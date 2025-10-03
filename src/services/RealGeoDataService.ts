@@ -190,6 +190,7 @@ export class RealGeoDataService {
     }
 
     const extractedTerritories: Array<{ name: string; code: string; data: GeoJSON.FeatureCollection; area: number; region: string }> = []
+    const addedCodes = new Set<string>() // Pour éviter les doublons
     
     for (const polygon of feature.geometry.coordinates) {
       const firstRing = polygon[0]
@@ -203,22 +204,25 @@ export class RealGeoDataService {
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
       
-      let territoryInfo: { name: string; code: string; region: string } | null = null
+      let territoryInfo: { name: string; code: string; region: string; area: number } | null = null
       
-      // Identifier le territoire selon ses coordonnées
-      if (minLon > 40 && maxLon < 50 && minLat > -15 && maxLat < -10) {
-        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Océan Indien' }
-      } else if (minLon > 50 && maxLon < 60 && minLat > -25 && maxLat < -15) {
-        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Océan Indien' }
-      } else if (minLon > -65 && maxLon < -55 && minLat > 14 && maxLat < 18) {
-        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Antilles' }
-      } else if (minLon > -63 && maxLon < -60 && minLat > 14 && maxLat < 17) {
-        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Antilles' }
-      } else if (minLon > -58 && maxLon < -48 && minLat > 0 && maxLat < 8) {
-        territoryInfo = { name: 'Guyane française', code: 'FR-GF', region: 'Amérique du Sud' }
+      // Identifier le territoire selon ses coordonnées avec des critères plus précis
+      if (minLon > 45.0 && maxLon < 45.3 && minLat > -13.0 && maxLat < -12.6) {
+        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Océan Indien', area: 374 }
+      } else if (minLon > 55.2 && maxLon < 55.9 && minLat > -21.4 && maxLat < -20.8) {
+        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Océan Indien', area: 2512 }
+      } else if (minLon > -61.9 && maxLon < -61.0 && minLat > 15.8 && maxLat < 16.6) {
+        // Guadeloupe archipel - identifier par position plus précise
+        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Antilles', area: 1628 }
+      } else if (minLon > -61.3 && maxLon < -60.8 && minLat > 14.4 && maxLat < 14.9) {
+        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Antilles', area: 1128 }
+      } else if (minLon > -54.7 && maxLon < -51.6 && minLat > 2.1 && maxLat < 5.8) {
+        territoryInfo = { name: 'Guyane française', code: 'FR-GF', region: 'Amérique du Sud', area: 83534 }
       }
       
-      if (territoryInfo) {
+      if (territoryInfo && !addedCodes.has(territoryInfo.code)) {
+        addedCodes.add(territoryInfo.code)
+        
         const territoryFeature: GeoJSON.Feature = {
           type: 'Feature',
           properties: {
@@ -235,7 +239,7 @@ export class RealGeoDataService {
           name: territoryInfo.name,
           code: territoryInfo.code,
           region: territoryInfo.region,
-          area: this.estimatePolygonArea(polygon),
+          area: territoryInfo.area,
           data: {
             type: 'FeatureCollection',
             features: [territoryFeature]
@@ -247,22 +251,19 @@ export class RealGeoDataService {
     return extractedTerritories
   }
 
-  /**
-   * Estime la superficie d'un polygone (approximation basique)
-   */
-  private estimatePolygonArea(_polygon: number[][][]): number {
-    // Approximation très basique pour l'affichage
-    // Dans un vrai projet, utiliser une bibliothèque de géométrie comme turf.js
-    return 1000 // Valeur par défaut
-  }
+
 
   async getDOMTOMData(): Promise<Array<{ name: string; code: string; data: GeoJSON.FeatureCollection; area: number; region: string }>> {
     await this.loadData()
     const domtomData = []
 
-    // Ajouter les DOM-TOM individuels
+    // Créer un Set pour éviter les doublons entre territoires individuels et extraits
+    const addedTerritories = new Set<string>()
+
+    // Ajouter les DOM-TOM individuels (territoires déjà séparés dans Natural Earth)
     for (const [code, territoryData] of this.territoryData) {
       if (code !== 'FR-MET') {
+        addedTerritories.add(code)
         domtomData.push({
           name: territoryData.territory.name,
           code: territoryData.territory.code,
@@ -277,10 +278,15 @@ export class RealGeoDataService {
     }
 
     // Extraire les DOM-TOM inclus dans la géométrie "France métropolitaine"
+    // seulement s'ils ne sont pas déjà présents comme territoires individuels
     const metropole = this.territoryData.get('FR-MET')
     if (metropole) {
       const extractedDOMTOM = this.extractDOMTOMFromMetropole(metropole.feature)
-      domtomData.push(...extractedDOMTOM)
+      for (const territory of extractedDOMTOM) {
+        if (!addedTerritories.has(territory.code)) {
+          domtomData.push(territory)
+        }
+      }
     }
 
     // Trier par région puis par superficie
@@ -291,6 +297,10 @@ export class RealGeoDataService {
       return b.area - a.area
     })
   }
+
+
+
+
 
   private getTerritoryRegion(code: string): string {
     // Régions basées sur les territoires réels de Natural Earth
@@ -326,9 +336,27 @@ export class RealGeoDataService {
   }
 
   private repositionTerritory(territoryData: GeoJSON.FeatureCollection, index: number): GeoJSON.FeatureCollection {
-    // Repositionnement simplifié - dans un vrai projet on utiliserait des projections
-    const offsetLon = 15 + (index % 3) * 10  // Décalage à droite de la France
-    const offsetLat = 50 - Math.floor(index / 3) * 8  // Empilement vertical
+    // Positions prédéfinies autour de la France métropolitaine pour une vue d'ensemble
+    const positions = [
+      { lon: 12, lat: 50 },  // Nord-Est
+      { lon: 12, lat: 42 },  // Sud-Est  
+      { lon: -8, lat: 50 },  // Nord-Ouest
+      { lon: -8, lat: 42 },  // Sud-Ouest
+      { lon: 2, lat: 55 },   // Nord
+      { lon: 2, lat: 37 },   // Sud
+      { lon: 18, lat: 46 },  // Est
+      { lon: -14, lat: 46 }, // Ouest
+      { lon: 8, lat: 54 },   // Nord-Est-2
+      { lon: 8, lat: 38 },   // Sud-Est-2
+      { lon: -4, lat: 54 },  // Nord-Ouest-2
+      { lon: -4, lat: 38 }   // Sud-Ouest-2
+    ]
+    
+    const targetPosition = positions[index % positions.length]
+    
+    // Calculer le décalage nécessaire en utilisant le centre approximatif de la France (2°E, 46°N)
+    const offsetLon = targetPosition.lon - 2  // Décalage par rapport au centre de la France
+    const offsetLat = targetPosition.lat - 46
 
     const repositioned = JSON.parse(JSON.stringify(territoryData))
     
@@ -346,7 +374,7 @@ export class RealGeoDataService {
       if (Array.isArray(coords[0])) {
         return coords.map(transformCoords)
       } else {
-        return [coords[0] + offsetLon, offsetLat]
+        return [coords[0] + offsetLon, coords[1] + offsetLat]
       }
     }
 

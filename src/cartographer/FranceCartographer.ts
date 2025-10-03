@@ -175,12 +175,15 @@ export class FranceCartographer {
         
         const mapDiv = document.createElement('div')
         
-        // Projection adaptée selon la région
-        const projection = this.getRegionalProjection(territory.region, territory.data)
+        // Utiliser la projection sélectionnée par l'utilisateur
+        const projection = this.projectionService.getProjection(projectionType, territory.data)
+        
+        // Adapter la taille selon la préservation d'échelle
+        const { width, height } = this.getTerritorySize(territory, this.scalePreservation)
         
         const plot = Plot.plot({
-          width: 200,
-          height: 160,
+          width,
+          height,
           projection,
           marks: [
             Plot.geo(territory.data, {
@@ -205,34 +208,34 @@ export class FranceCartographer {
     container.appendChild(gridContainer)
   }
 
-  private getRegionalProjection(region: string, data: any) {
-    // Projections adaptées par région géographique
-    switch (region) {
-      case 'Antilles':
-        return {
-          type: 'mercator' as const,
-          domain: data
-        }
-      case 'Amérique du Sud':
-        return {
-          type: 'mercator' as const,
-          domain: data
-        }
-      case 'Océan Indien':
-        return {
-          type: 'mercator' as const,
-          domain: data
-        }
-      case 'Océan Pacifique':
-        return {
-          type: 'mercator' as const,
-          domain: data
-        }
-      default:
-        return {
-          type: 'mercator' as const,
-          domain: data
-        }
+  /**
+   * Calcule la taille d'affichage d'un territoire selon la préservation d'échelle
+   */
+  private getTerritorySize(territory: any, preserveScale: boolean): { width: number; height: number } {
+    if (!preserveScale) {
+      // Taille standard pour tous les territoires (plus lisible)
+      return { width: 200, height: 160 }
+    }
+
+    // Avec préservation d'échelle : taille proportionnelle à la superficie
+    const franceMetropoleArea = 543965 // km² (superficie de référence)
+    const territoryArea = territory.area || 1000
+    
+    // Calculer un facteur d'échelle basé sur la racine carrée de la superficie
+    // (car l'aire est en 2D, nous voulons ajuster les dimensions linéaires)
+    const scaleFactor = Math.sqrt(territoryArea / franceMetropoleArea)
+    
+    // Taille de base pour la France métropolitaine
+    const baseWidth = 500
+    const baseHeight = 400
+    
+    // Calculer les dimensions proportionnelles avec des limites min/max
+    const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
+    const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
+    
+    return { 
+      width: Math.round(proportionalWidth), 
+      height: Math.round(proportionalHeight) 
     }
   }
 

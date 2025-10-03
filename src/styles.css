@@ -58,12 +58,23 @@ header p {
 
 .control-group {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
 }
 
 .control-group label {
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group small {
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 0.25rem;
 }
 
 select, input[type="checkbox"] {

@@ -16,19 +16,21 @@
       <main>
         <section id="controls">
           <div class="control-group">
-            <label for="projection-select">Projection :</label>
+            <label for="projection-select">Projection cartographique (toutes les cartes) :</label>
             <select id="projection-select">
-              <option value="albers">Albers (métropole)</option>
+              <option value="albers">Albers</option>
               <option value="mercator">Mercator</option>
               <option value="natural-earth">Equal Earth</option>
             </select>
+            <small>S'applique à toutes les vues : métropole, DOM-TOM et vue d'ensemble</small>
           </div>
           
           <div class="control-group">
             <label for="scale-preservation">
               <input type="checkbox" id="scale-preservation" checked>
-              Préserver les rapports de taille réels
+              Préserver les rapports de taille réels des DOM-TOM
             </label>
+            <small>Coché : taille proportionnelle à la superficie réelle | Décoché : taille uniforme pour la lisibilité</small>
           </div>
         </section>
 
