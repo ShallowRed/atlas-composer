@@ -361,6 +361,63 @@ export class RealGeoDataService {
   }
 
   /**
+   * Returns raw geographic data with original coordinates for composite projections
+   * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
+   * @returns Combined metropolitan and DOM-TOM data with ORIGINAL coordinates (no repositioning)
+   */
+  async getRawUnifiedData(mode: string = 'metropole-major'): Promise<GeoJSON.FeatureCollection | null> {
+    await this.loadData()
+    
+    // Get European metropolitan France (no repositioning needed)
+    const metropole = await this.getMetropoleData()
+    if (!metropole) return null
+
+    const allDomtomData = await this.getDOMTOMData()
+    
+    // Filter DOM-TOM territories based on selected mode
+    let filteredDomtom: any[] = []
+    
+    switch (mode) {
+      case 'metropole-only':
+        filteredDomtom = []
+        break
+        
+      case 'metropole-major':
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code)
+        )
+        break
+        
+      case 'metropole-uncommon':
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code)
+        )
+        break
+        
+      case 'all-territories':
+      default:
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code)
+        )
+        break
+    }
+    
+    // CREATE UNIFIED DATASET with ORIGINAL coordinates - no repositioning!
+    const unifiedFeatures = [...metropole.features]
+    
+    // Add DOM-TOM territories with their ORIGINAL coordinates
+    filteredDomtom.forEach(territory => {
+      // Add original DOM-TOM features without any coordinate transformation
+      unifiedFeatures.push(...territory.data.features)
+    })
+
+    return {
+      type: 'FeatureCollection',
+      features: unifiedFeatures
+    }
+  }
+
+  /**
    * Returns unified geographic data with repositioned territories
    * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
    * @returns Combined metropolitan and DOM-TOM data with applied transformations

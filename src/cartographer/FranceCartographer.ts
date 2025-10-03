@@ -60,7 +60,9 @@ export class FranceCartographer {
     // Populate projection options dynamically
     this.populateProjectionOptions(projectionSelect)
 
-    projectionSelect?.addEventListener('change', () => this.renderMaps())
+    projectionSelect?.addEventListener('change', () => {
+      this.renderMaps()
+    })
     
     scalePreservationCheck?.addEventListener('change', (event) => {
       this.scalePreservation = (event.target as HTMLInputElement).checked
@@ -68,8 +70,15 @@ export class FranceCartographer {
     })
 
     unifiedViewModeSelect?.addEventListener('change', () => {
-      const projectionType = projectionSelect?.value || 'albers'
-      this.renderUnifiedMap(projectionType)
+      const compositeRawTab = document.getElementById('tab-composite-raw') as HTMLInputElement
+      const isCompositeRawActive = compositeRawTab?.checked
+      
+      if (isCompositeRawActive) {
+        this.renderCompositeRawMap()
+      } else {
+        const projectionType = projectionSelect?.value || 'albers'
+        this.renderUnifiedMap(projectionType)
+      }
     })
 
     // Theme switching functionality
@@ -90,6 +99,7 @@ export class FranceCartographer {
    */
   private setupTabs() {
     const compositeTab = document.getElementById('tab-composite') as HTMLInputElement
+    const compositeRawTab = document.getElementById('tab-composite-raw') as HTMLInputElement
     const separateTab = document.getElementById('tab-separate') as HTMLInputElement
     const compositeOnlyControls = document.querySelectorAll('.composite-only')
     const separateOnlyControls = document.querySelectorAll('.separate-only')
@@ -97,10 +107,12 @@ export class FranceCartographer {
     // Handle tab changes
     const handleTabChange = () => {
       const isCompositeActive = compositeTab?.checked
+      const isCompositeRawActive = compositeRawTab?.checked
+      const isSeparateActive = separateTab?.checked
       
-      // Show/hide composite-only controls
+      // Show/hide composite-only controls (for repositioned composite view)
       compositeOnlyControls.forEach(control => {
-        if (isCompositeActive) {
+        if (isCompositeActive || isCompositeRawActive) {
           (control as HTMLElement).style.display = 'block'
         } else {
           (control as HTMLElement).style.display = 'none'
@@ -109,7 +121,7 @@ export class FranceCartographer {
 
       // Show/hide separate-only controls
       separateOnlyControls.forEach(control => {
-        if (!isCompositeActive) {
+        if (isSeparateActive) {
           (control as HTMLElement).style.display = 'block'
         } else {
           (control as HTMLElement).style.display = 'none'
@@ -118,12 +130,17 @@ export class FranceCartographer {
 
       // Re-render maps when switching tabs to ensure proper sizing
       setTimeout(() => {
-        this.renderMaps()
+        if (isCompositeRawActive) {
+          this.renderCompositeRawMap()
+        } else {
+          this.renderMaps()
+        }
       }, 100) // Small delay to allow DOM updates
     }
 
     // Add event listeners to radio inputs
     compositeTab?.addEventListener('change', handleTabChange)
+    compositeRawTab?.addEventListener('change', handleTabChange)
     separateTab?.addEventListener('change', handleTabChange)
 
     // Initialize state
@@ -388,6 +405,50 @@ export class FranceCartographer {
           fill: (d: any) => {
             // Couleur selon le code du territoire
             if (d.properties?.code === 'FR-MET') return '#e8f5e8' // Métropole en vert
+            return this.getTerritoryColor(d.properties?.code || 'unknown')
+          },
+          stroke: '#2d4a2d',
+          strokeWidth: 0.8
+        }),
+        Plot.frame({stroke: '#333'})
+      ]
+    })
+
+    container.innerHTML = ''
+    container.appendChild(plot)
+  }
+
+  /**
+   * Render a map using the composite geoAlbersFrance projection with original (raw) coordinates
+   * This reproduces the "Vue Composite" effect but uses original coordinates + composite projection
+   */
+  private async renderCompositeRawMap() {
+    const container = document.querySelector('#composite-raw-plot')
+    if (!container) {
+      console.warn('Composite raw plot container not found: #composite-raw-plot')
+      return
+    }
+    
+    // Get territory selection mode from the unified view mode selector (reuse the same control)
+    const unifiedViewMode = (document.getElementById('unified-view-mode') as HTMLSelectElement)?.value || 'metropole-major'
+    
+    // Use the new getRawUnifiedData method to get original coordinates
+    const rawData = await this.geoDataService.getRawUnifiedData(unifiedViewMode)
+    if (!rawData) return
+
+    // ALWAYS use the composite geoAlbersFrance projection (ignores dropdown selection)
+    // This projection will internally reposition DOM-TOM territories when given original coordinates
+    const projection = this.projectionService.getProjection('albers-france', rawData)
+    
+    const plot = Plot.plot({
+      width: 800,
+      height: 600,
+      projection: projection,
+      marks: [
+        Plot.geo(rawData, {
+          fill: (d: any) => {
+            // Color by territory code if available
+            if (d.properties?.code === 'FR-MET') return '#e8f5e8' // Metropolitan France in green
             return this.getTerritoryColor(d.properties?.code || 'unknown')
           },
           stroke: '#2d4a2d',

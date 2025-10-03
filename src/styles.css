@@ -1,5 +1,8 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+  /* themes: light --default, dark --prefersdark; */
+}
 @import "remixicon/fonts/remixicon.css";
 
 /* Composite-only controls visibility */
