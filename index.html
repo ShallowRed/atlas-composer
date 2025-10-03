@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -7,75 +7,146 @@
     <title>Cartographies de la France avec DOM-TOM</title>
   </head>
   <body>
-    <div id="app">
-      <header>
-        <h1>Cartographies de la France avec DOM-TOM</h1>
-        <p>Représentation côte à côte de la métropole et des outre-mer avec préservation des rapports de taille</p>
+    <div id="app" class="min-h-screen bg-base-200">
+      <!-- Header -->
+      <header class="hero bg-gradient-to-r from-primary to-secondary text-primary-content">
+        <div class="hero-content text-center py-12">
+          <div class="max-w-md">
+            <h1 class="text-4xl font-bold">Cartographies de la France</h1>
+            <p class="py-4 text-lg opacity-90">
+              Représentation de la métropole et des outre-mer avec préservation des rapports de taille
+            </p>
+          </div>
+        </div>
       </header>
       
-      <main>
-        <!-- Shared Controls -->
-        <section class="controls">
-          <div class="control-group">
-            <label for="projection-select">Projection cartographique :</label>
-            <select id="projection-select">
-              <option value="albers">Albers</option>
-              <option value="mercator">Mercator</option>
-              <option value="natural-earth">Equal Earth</option>
-            </select>
-            <small>S'applique à toutes les cartes</small>
-          </div>
-          
-          <div class="control-group">
-            <label for="scale-preservation">
-              <input type="checkbox" id="scale-preservation" checked>
-              Préserver les rapports de taille réels des DOM-TOM
-            </label>
-            <small>Coché : taille proportionnelle à la superficie réelle | Décoché : taille uniforme pour la lisibilité</small>
-          </div>
-
-          <div class="control-group composite-only">
-            <label for="unified-view-mode">Territoires à inclure :</label>
-            <select id="unified-view-mode">
-              <option value="metropole-only">Métropole seule</option>
-              <option value="metropole-major" selected>Métropole + principaux (Guyane, Réunion, Guadeloupe, Martinique, Mayotte)</option>
-              <option value="metropole-uncommon">Métropole + moins courants (Saint-Martin, Polynésie française, Nouvelle-Calédonie)</option>
-              <option value="all-territories">Métropole + rarement représentés (Terres australes, Wallis-et-Futuna, Saint-Pierre)</option>
-            </select>
-            <small>Sélectionnez quels territoires afficher dans la vue composite</small>
-          </div>
-        </section>
-
-        <!-- Tab Navigation -->
-        <nav class="tab-navigation">
-          <button class="tab-button active" data-tab="composite">Vue Composite</button>
-          <button class="tab-button" data-tab="separate">Territoires Séparés</button>
-        </nav>
-
-        <!-- Tab Content -->
-        <div class="tab-content">
-          <!-- Composite View (Default) -->
-          <section id="composite-view" class="tab-panel active">
-            <div id="unified-map" class="map-container full-width">
-              <h2>Vue d'ensemble avec repositionnement</h2>
-              <div id="unified-plot" class="map-plot"></div>
-            </div>
-          </section>
-
-          <!-- Separate Territory Views -->
-          <section id="separate-view" class="tab-panel">
-            <div id="territories-grid" class="territories-grid">
-              <div id="france-metropole" class="map-container">
-                <h2>France Métropolitaine</h2>
-                <div class="map-plot"></div>
+      <main class="container mx-auto py-8 flex flex-col md:flex-row gap-6">
+        <!-- Controls Card -->
+        <div class="card card-border bg-base-100 shadow-lg md:w-1/4 h-min">
+          <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">
+              <i class="ri-settings-3-line text-xl"></i>
+              Configuration
+            </h2>
+            
+            <div class="flex flex-col gap-6">
+              <!-- Theme Selector -->
+              <div class="form-control">
+                <label class="label mb-1">
+                  <span class="label-text flex items-center gap-2">
+                    <i class="ri-palette-line"></i>
+                    Thème
+                  </span>
+                </label>
+                <select id="theme-select" class="select cursor-pointer">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="cupcake">Cupcake</option>
+                  <option value="bumblebee">Bumblebee</option>
+                  <option value="emerald">Emerald</option>
+                  <option value="corporate">Corporate</option>
+                  <option value="synthwave">Synthwave</option>
+                  <option value="retro">Retro</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="valentine">Valentine</option>
+                  <option value="halloween">Halloween</option>
+                  <option value="garden">Garden</option>
+                  <option value="forest">Forest</option>
+                  <option value="aqua">Aqua</option>
+                  <option value="lofi">Lofi</option>
+                  <option value="pastel">Pastel</option>
+                  <option value="fantasy">Fantasy</option>
+                  <option value="wireframe">Wireframe</option>
+                  <option value="black">Black</option>
+                  <option value="luxury">Luxury</option>
+                  <option value="dracula">Dracula</option>
+                  <option value="cmyk">CMYK</option>
+                  <option value="autumn">Autumn</option>
+                  <option value="business">Business</option>
+                  <option value="acid">Acid</option>
+                  <option value="lemonade">Lemonade</option>
+                  <option value="night">Night</option>
+                  <option value="coffee">Coffee</option>
+                  <option value="winter">Winter</option>
+                  <option value="dim">Dim</option>
+                  <option value="nord">Nord</option>
+                  <option value="sunset">Sunset</option>
+                </select>
+              </div>
+              <!-- Projection Select -->
+              <div class="form-control">
+                <label class="label mb-1">
+                  Projection cartographique
+                </label>
+                <select id="projection-select" class="select cursor-pointer">
+                  <!-- Options dynamically populated by JavaScript -->
+                </select>
               </div>
               
-              <div id="dom-tom" class="map-container">
-                <h2>Départements et Collectivités d'Outre-Mer</h2>
-                <div class="map-plot"></div>
+              <!-- Scale Preservation -->
+              <div class="form-control separate-only">
+                <label class="label cursor-pointer flex flex-row-reverse justify-end gap-2">
+                  <span>
+                    Préserver les rapports de taille
+                  </span>
+                  <input type="checkbox" id="scale-preservation" class="toggle toggle-primary" checked />
+                </label>
+              </div>
+
+              <!-- Territory Selection (Composite Only) -->
+              <div class="form-control composite-only">
+                <label class="label mb-1">
+                  Territoires à inclure
+                </label>
+                <select id="unified-view-mode" class="select cursor-pointer">
+                  <option value="metropole-only">Métropole seule</option>
+                  <option value="metropole-major" selected>+ Principaux DOM-TOM</option>
+                  <option value="metropole-uncommon">+ Moins courants</option>
+                  <option value="all-territories">+ Rarement représentés</option>
+                </select>
               </div>
             </div>
-          </section>
+          </div>
+        </div>
+
+        <!-- Tab Navigation using DaisyUI -->
+        <div class="tabs tabs-lift tabs-xl w-full md:w-3/4">
+          <input type="radio" name="map_tabs" class="tab" aria-label="Vue Composite" id="tab-composite" checked />
+          <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
+            <h2 class="card-title mb-2">
+              <i class="ri-map-2-line text-lg"></i>
+              Vue d'ensemble avec repositionnement
+            </h2>
+            <div id="unified-plot" class="map-plot"></div>
+          </div>
+
+          <input type="radio" name="map_tabs" class="tab" aria-label="Territoires Séparés" id="tab-separate" />
+          <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
+            <!-- Separate Territory Views Content -->
+            <div class="flex flex-row gap-12">
+              <!-- Metropolitan France -->
+              <div class="">
+                <h2 class="card-title mb-2">
+                  <i class="ri-map-pin-line text-lg"></i>
+                  France Métropolitaine
+                </h2>
+                <div id="france-metropole">
+                  <div class="map-plot"></div>
+                </div>
+              </div>
+              
+              <!-- DOM-TOM -->
+              <div class="">
+                <h2 class="card-title mb-2">
+                  <i class="ri-earth-line text-lg"></i>
+                  Départements et Collectivités d'Outre-Mer
+                </h2>
+                <div id="dom-tom">
+                  <div class="map-plot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

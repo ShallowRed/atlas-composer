@@ -443,12 +443,6 @@ export class RealGeoDataService {
         const insetConfig = insets.domtom[territoryCode as keyof typeof insets.domtom]
         
         if (insetConfig) {
-          console.log(`Composite repositioning ${territoryCode}:`, insetConfig)
-          
-          // Calculate original geographic bounds
-          const originalBounds = this.calculateGeometryBounds(feature.geometry)
-          console.log(`  Geographic bounds:`, originalBounds)
-          
           // Target position according to inset configuration (relative to France center)
           const franceCenterLon = 2
           const franceCenterLat = 46
@@ -458,10 +452,6 @@ export class RealGeoDataService {
           // Repositionner et redimensionner selon la configuration
           this.repositionGeometryToTarget(feature.geometry, targetLon, targetLat)
           this.scaleGeometry(feature.geometry, insetConfig.scale)
-          
-          // Verify repositioning result
-          const newBounds = this.calculateGeometryBounds(feature.geometry)
-          console.log(`  New bounds:`, newBounds)
         } else {
           console.log(`No inset configuration for ${territoryCode}, using default position`)
           // Fallback: use legacy positioning method
@@ -496,8 +486,6 @@ export class RealGeoDataService {
     // Calculate required offset
     const offsetLon = targetLon - currentCenterLon
     const offsetLat = targetLat - currentCenterLat
-    
-    console.log(`    Offset: lon${offsetLon.toFixed(1)}, lat${offsetLat.toFixed(1)}`)
     
     // Apply the offset transformation
     this.transformGeometry(geometry, offsetLon, offsetLat)

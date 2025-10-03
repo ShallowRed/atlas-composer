@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { GeoProjectionService } from '../services/GeoProjectionService'
+import { GeoProjectionService, PROJECTION_OPTIONS } from '../services/GeoProjectionService'
 import { RealGeoDataService } from '../services/GeoDataService'
 import * as d3 from 'd3'
 
@@ -55,6 +55,10 @@ export class FranceCartographer {
     const projectionSelect = document.getElementById('projection-select') as HTMLSelectElement
     const scalePreservationCheck = document.getElementById('scale-preservation') as HTMLInputElement
     const unifiedViewModeSelect = document.getElementById('unified-view-mode') as HTMLSelectElement
+    const themeSelect = document.getElementById('theme-select') as HTMLSelectElement
+
+    // Populate projection options dynamically
+    this.populateProjectionOptions(projectionSelect)
 
     projectionSelect?.addEventListener('change', () => this.renderMaps())
     
@@ -68,44 +72,95 @@ export class FranceCartographer {
       this.renderUnifiedMap(projectionType)
     })
 
+    // Theme switching functionality
+    themeSelect?.addEventListener('change', (event) => {
+      const selectedTheme = (event.target as HTMLSelectElement).value
+      this.changeTheme(selectedTheme)
+    })
+
+    // Initialize theme from localStorage or default to light
+    this.initializeTheme()
+
     // Tab functionality
     this.setupTabs()
   }
 
   /**
-   * Initialize tab navigation functionality
+   * Initialize tab navigation functionality with DaisyUI radio tabs
    */
   private setupTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button')
-    const tabPanels = document.querySelectorAll('.tab-panel')
+    const compositeTab = document.getElementById('tab-composite') as HTMLInputElement
+    const separateTab = document.getElementById('tab-separate') as HTMLInputElement
     const compositeOnlyControls = document.querySelectorAll('.composite-only')
+    const separateOnlyControls = document.querySelectorAll('.separate-only')
 
-    tabButtons.forEach(button => {
-      button.addEventListener('click', (event) => {
-        const target = event.target as HTMLButtonElement
-        const tabId = target.dataset.tab
-
-        // Update active button
-        tabButtons.forEach(btn => btn.classList.remove('active'))
-        target.classList.add('active')
-
-        // Update active panel
-        tabPanels.forEach(panel => panel.classList.remove('active'))
-        const activePanel = document.getElementById(`${tabId}-view`)
-        activePanel?.classList.add('active')
-
-        // Show/hide composite-only controls
-        compositeOnlyControls.forEach(control => {
-          if (tabId === 'composite') {
-            (control as HTMLElement).style.display = 'block'
-          } else {
-            (control as HTMLElement).style.display = 'none'
-          }
-        })
-
-        // Re-render maps when switching tabs to ensure proper sizing
-        this.renderMaps()
+    // Handle tab changes
+    const handleTabChange = () => {
+      const isCompositeActive = compositeTab?.checked
+      
+      // Show/hide composite-only controls
+      compositeOnlyControls.forEach(control => {
+        if (isCompositeActive) {
+          (control as HTMLElement).style.display = 'block'
+        } else {
+          (control as HTMLElement).style.display = 'none'
+        }
       })
+
+      // Show/hide separate-only controls
+      separateOnlyControls.forEach(control => {
+        if (!isCompositeActive) {
+          (control as HTMLElement).style.display = 'block'
+        } else {
+          (control as HTMLElement).style.display = 'none'
+        }
+      })
+
+      // Re-render maps when switching tabs to ensure proper sizing
+      setTimeout(() => {
+        this.renderMaps()
+      }, 100) // Small delay to allow DOM updates
+    }
+
+    // Add event listeners to radio inputs
+    compositeTab?.addEventListener('change', handleTabChange)
+    separateTab?.addEventListener('change', handleTabChange)
+
+    // Initialize state
+    handleTabChange()
+  }
+
+  /**
+   * Dynamically populate projection options from centralized configuration
+   */
+  private populateProjectionOptions(selectElement: HTMLSelectElement) {
+    if (!selectElement) return
+
+    // Clear existing options
+    selectElement.innerHTML = ''
+
+    // Group options by category
+    const categories = [...new Set(PROJECTION_OPTIONS.map(option => option.category))]
+    
+    categories.forEach(category => {
+      const optgroup = document.createElement('optgroup')
+      optgroup.label = category
+      
+      const categoryOptions = PROJECTION_OPTIONS.filter(option => option.category === category)
+      categoryOptions.forEach(option => {
+        const optionElement = document.createElement('option')
+        optionElement.value = option.value
+        optionElement.textContent = option.label
+        
+        // Set default selection to 'albers'
+        if (option.value === 'albers') {
+          optionElement.selected = true
+        }
+        
+        optgroup.appendChild(optionElement)
+      })
+      
+      selectElement.appendChild(optgroup)
     })
   }
 
@@ -132,7 +187,10 @@ export class FranceCartographer {
    */
   private async renderMetropoleFranceMap(projectionType: string) {
     const container = document.querySelector('#france-metropole .map-plot')
-    if (!container) return
+    if (!container) {
+      console.warn('Metropolitan France container not found: #france-metropole .map-plot')
+      return
+    }
 
     const franceData = await this.geoDataService.getMetropoleData()
     if (!franceData) return
@@ -146,7 +204,7 @@ export class FranceCartographer {
           domain: franceData
         }
       : this.projectionService.getProjection(projectionType, franceData)
-    
+
     const plot = Plot.plot({
       width: 500,
       height: 400,
@@ -170,7 +228,10 @@ export class FranceCartographer {
    */
   private async renderDOMTOMMap(projectionType: string) {
     const container = document.querySelector('#dom-tom .map-plot')
-    if (!container) return
+    if (!container) {
+      console.warn('DOM-TOM container not found: #dom-tom .map-plot')
+      return
+    }
 
     const domtomData = await this.geoDataService.getDOMTOMData()
     if (!domtomData || domtomData.length === 0) return
@@ -299,7 +360,10 @@ export class FranceCartographer {
    */
   private async renderUnifiedMap(projectionType: string) {
     const container = document.querySelector('#unified-plot')
-    if (!container) return
+    if (!container) {
+      console.warn('Unified plot container not found: #unified-plot')
+      return
+    }
 
     // Obtenir le mode de vue d'ensemble sélectionné
     const unifiedViewMode = (document.getElementById('unified-view-mode') as HTMLSelectElement)?.value || 'metropole-major'
@@ -335,5 +399,38 @@ export class FranceCartographer {
 
     container.innerHTML = ''
     container.appendChild(plot)
+  }
+
+  /**
+   * Initialize theme from localStorage or set default theme
+   */
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem('daisyui-theme') || 'light'
+    const themeSelect = document.getElementById('theme-select') as HTMLSelectElement
+    const htmlElement = document.documentElement
+    
+    // Set theme on HTML element
+    htmlElement.setAttribute('data-theme', savedTheme)
+    
+    // Set select value to match current theme
+    if (themeSelect) {
+      themeSelect.value = savedTheme
+    }
+  }
+
+  /**
+   * Change the DaisyUI theme and save to localStorage
+   * @param theme - The theme name to apply
+   */
+  private changeTheme(theme: string) {
+    const htmlElement = document.documentElement
+    
+    // Apply theme to HTML element
+    htmlElement.setAttribute('data-theme', theme)
+    
+    // Save theme preference to localStorage
+    localStorage.setItem('daisyui-theme', theme)
+    
+    console.log(`Theme changed to: ${theme}`)
   }
 }
