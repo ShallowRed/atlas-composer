@@ -59,7 +59,9 @@ watch(
   () => [
     configStore.selectedProjection,
     configStore.territoryMode,
-    configStore.scalePreservation
+    configStore.scalePreservation,
+    configStore.territoryTranslations,
+    configStore.territoryScales
   ],
   async () => {
     await renderMap()

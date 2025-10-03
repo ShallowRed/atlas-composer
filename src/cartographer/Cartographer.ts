@@ -7,6 +7,8 @@ export interface CartographerSettings {
   selectedProjection: string
   territoryMode: string
   activeTab: string
+  territoryTranslations?: Record<string, { x: number, y: number }>
+  territoryScales?: Record<string, number>
 }
 
 export class Cartographer {
@@ -53,8 +55,12 @@ export class Cartographer {
       // Clear container
       container.innerHTML = ''
       
-      // Get repositioned data (like the original unified map)
-      const data = await this.geoDataService.getUnifiedData(this.settings.territoryMode)
+      // Get repositioned data with custom translations and scales (like the original unified map)
+      const data = await this.geoDataService.getUnifiedData(
+        this.settings.territoryMode,
+        this.settings.territoryTranslations,
+        this.settings.territoryScales
+      )
       if (!data) {
         throw new Error('No unified data available')
       }

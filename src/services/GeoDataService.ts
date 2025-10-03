@@ -422,7 +422,11 @@ export class RealGeoDataService {
    * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
    * @returns Combined metropolitan and DOM-TOM data with applied transformations
    */
-  async getUnifiedData(mode: string = 'metropole-major'): Promise<{ metropole: GeoJSON.FeatureCollection; domtom: any[] } | null> {
+  async getUnifiedData(
+    mode: string = 'metropole-major',
+    customTranslations?: Record<string, { x: number, y: number }>,
+    customScales?: Record<string, number>
+  ): Promise<{ metropole: GeoJSON.FeatureCollection; domtom: any[] } | null> {
     await this.loadData()
     
     // Create unified dataset with all geometries repositioned
@@ -467,7 +471,7 @@ export class RealGeoDataService {
     const unifiedFeatures = [...metropole.features]
     
     filteredDomtom.forEach((territory, index) => {
-      const repositioned = this.repositionTerritory(territory.data, index)
+      const repositioned = this.repositionTerritory(territory.data, index, customTranslations, customScales)
       unifiedFeatures.push(...repositioned.features)
     })
 
@@ -487,7 +491,12 @@ export class RealGeoDataService {
    * @param index - Territory index for positioning (unused in current implementation)
    * @returns Repositioned FeatureCollection with transformed coordinates
    */
-  private repositionTerritory(territoryData: GeoJSON.FeatureCollection, index: number): GeoJSON.FeatureCollection {
+  private repositionTerritory(
+    territoryData: GeoJSON.FeatureCollection, 
+    index: number,
+    customTranslations?: Record<string, { x: number, y: number }>,
+    customScales?: Record<string, number>
+  ): GeoJSON.FeatureCollection {
     // Get inset configuration from GeoProjectionService
     const projectionService = new GeoProjectionService()
     const insets = projectionService.getFranceCompositeInsets()
@@ -503,12 +512,20 @@ export class RealGeoDataService {
           // Target position according to inset configuration (relative to France center)
           const franceCenterLon = 2
           const franceCenterLat = 46
-          const targetLon = franceCenterLon + (insetConfig.translate[0] as number)
-          const targetLat = franceCenterLat + (insetConfig.translate[1] as number)
+          
+          // Use custom translations if provided, otherwise use default from inset config
+          const translateX = customTranslations?.[territoryCode]?.x ?? (insetConfig.translate[0] as number)
+          const translateY = customTranslations?.[territoryCode]?.y ?? (insetConfig.translate[1] as number)
+          
+          const targetLon = franceCenterLon + translateX
+          const targetLat = franceCenterLat + translateY
+          
+          // Use custom scale if provided, otherwise use default from inset config
+          const scale = customScales?.[territoryCode] ?? (insetConfig.scale as number)
           
           // Repositionner et redimensionner selon la configuration
           this.repositionGeometryToTarget(feature.geometry, targetLon, targetLat)
-          this.scaleGeometry(feature.geometry, insetConfig.scale)
+          this.scaleGeometry(feature.geometry, scale)
         } else {
           console.log(`No inset configuration for ${territoryCode}, using default position`)
           // Fallback: use legacy positioning method

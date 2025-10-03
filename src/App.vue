@@ -6,6 +6,7 @@ import MetropolitanFranceMap from './components/MetropolitanFranceMap.vue'
 import DOMTOMGrid from './components/DOMTOMGrid.vue'
 import VueCompositeMap from './components/VueCompositeMap.vue'
 import ProjectionCompositeMap from './components/ProjectionCompositeMap.vue'
+import TerritoryTranslationControls from './components/TerritoryTranslationControls.vue'
 
 // Stores
 const configStore = useConfigStore()
@@ -197,7 +198,14 @@ onMounted(async () => {
             <i class="ri-map-2-line text-lg"></i>
             Vue d'ensemble avec repositionnement
           </h2>
-          <VueCompositeMap />
+          <div class="flex gap-6">
+            <div class="flex-1 sticky top-0 self-start">
+              <VueCompositeMap />
+            </div>
+            <div class="w-80">
+              <TerritoryTranslationControls />
+            </div>
+          </div>
         </div>
 
         <input 

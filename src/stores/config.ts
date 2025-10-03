@@ -12,6 +12,24 @@ export const useConfigStore = defineStore('config', () => {
   const territoryMode = ref<TerritoryMode>('metropole-major')
   const activeTab = ref<ActiveTab>('vue-composite')
   const theme = ref('light')
+  
+  // Territory translations (x, y offsets for DOM-TOM positioning)
+  const territoryTranslations = ref<Record<string, { x: number, y: number }>>({
+    'FR-GF': { x: -8, y: -2 },  // Guyane
+    'FR-RE': { x: -10, y: 3 },  // Réunion
+    'FR-GP': { x: -8, y: 1 },   // Guadeloupe
+    'FR-MQ': { x: -8.5, y: 2.5 }, // Martinique
+    'FR-YT': { x: -2, y: -5 },  // Mayotte
+  })
+  
+  // Territory scales (scale multipliers for DOM-TOM sizing)
+  const territoryScales = ref<Record<string, number>>({
+    'FR-GF': 1.0,  // Guyane
+    'FR-RE': 1.0,  // Réunion
+    'FR-GP': 1.0,  // Guadeloupe
+    'FR-MQ': 1.0,  // Martinique
+    'FR-YT': 1.0,  // Mayotte
+  })
 
   // Computed
   const showProjectionSelector = computed(() => {
@@ -80,6 +98,17 @@ export const useConfigStore = defineStore('config', () => {
     }
   }
 
+  const setTerritoryTranslation = (territoryCode: string, axis: 'x' | 'y', value: number) => {
+    if (!territoryTranslations.value[territoryCode]) {
+      territoryTranslations.value[territoryCode] = { x: 0, y: 0 }
+    }
+    territoryTranslations.value[territoryCode][axis] = value
+  }
+
+  const setTerritoryScale = (territoryCode: string, value: number) => {
+    territoryScales.value[territoryCode] = value
+  }
+
   const setTheme = (newTheme: string) => {
     theme.value = newTheme
     
@@ -101,7 +130,9 @@ export const useConfigStore = defineStore('config', () => {
     scalePreservation: scalePreservation.value,
     selectedProjection: selectedProjection.value,
     territoryMode: territoryMode.value,
-    activeTab: activeTab.value
+    activeTab: activeTab.value,
+    territoryTranslations: territoryTranslations.value,
+    territoryScales: territoryScales.value
   })
 
   return {
@@ -111,6 +142,8 @@ export const useConfigStore = defineStore('config', () => {
     territoryMode,
     activeTab,
     theme,
+    territoryTranslations,
+    territoryScales,
     
     // Computed
     showProjectionSelector,
@@ -124,6 +157,8 @@ export const useConfigStore = defineStore('config', () => {
     setTerritoryMode,
     setActiveTab,
     setTheme,
+    setTerritoryTranslation,
+    setTerritoryScale,
     initializeTheme,
     getCartographerSettings
   }
