@@ -2,67 +2,85 @@ import * as topojson from 'topojson-client'
 import * as d3 from 'd3-geo'
 import { GeoProjectionService } from './GeoProjectionService'
 
-export interface RealTerritory {
-  id: string
-  iso: string
-  name: string
-  code: string
-  area: number
-  geometry?: any
-  bounds?: [number, number, number, number] // [minX, minY, maxX, maxY]
-  center?: [number, number] // [longitude, latitude]
+/**
+ * Represents a French territory (metropolitan France or overseas territories)
+ */
+export interface Territory {
+  id: string                                    // Natural Earth ID
+  iso: string                                   // ISO country code
+  name: string                                  // Territory display name
+  code: string                                  // French territory code (FR-XX)
+  area: number                                  // Area in square kilometers
+  geometry?: any                                // Raw geometry data
+  bounds?: [number, number, number, number]     // Geographic bounds [west, south, east, north]
+  center?: [number, number]                     // Geographic center [longitude, latitude]
 }
 
+/**
+ * Combined territory data including both metadata and geographic features
+ */
 export interface TerritoryGeoData {
-  territory: RealTerritory
-  feature: GeoJSON.Feature
-  bounds: [number, number, number, number]
+  territory: Territory                          // Territory metadata
+  feature: GeoJSON.Feature                      // GeoJSON feature for rendering
+  bounds: [number, number, number, number]      // Cached geographic bounds
 }
 
+/**
+ * Service for loading and processing French geographic data
+ * Handles Natural Earth data conversion, territory extraction, and composite projections
+ */
 export class RealGeoDataService {
-  private territoryData: Map<string, TerritoryGeoData> = new Map()
-  private metadata: any = null
-  private topologyData: any = null
-  private isLoaded = false
+  private territoryData: Map<string, TerritoryGeoData> = new Map()  // Cached processed territory data
+  private metadata: any = null                                      // Natural Earth metadata
+  private topologyData: any = null                                  // Raw TopoJSON data
+  private isLoaded = false                                          // Loading state flag
 
+  /**
+   * Loads and processes French geographic data from Natural Earth
+   * Downloads TopoJSON and metadata, then converts to processable format
+   */
   async loadData(): Promise<void> {
     if (this.isLoaded) return
 
     try {
-      console.log('🗺️ Chargement des données géographiques Natural Earth...')
+      console.log('Loading Natural Earth geographic data...')
       
-      // Charger les données TopoJSON
+      // Load TopoJSON data containing French territories
       const response = await fetch('/data/france-territories.json')
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`)
+        throw new Error(`HTTP Error: ${response.status}`)
       }
       this.topologyData = await response.json()
 
-      // Charger les métadonnées
+      // Load metadata with territory information
       const metaResponse = await fetch('/data/metadata.json')
       if (!metaResponse.ok) {
-        throw new Error(`Erreur métadonnées: ${metaResponse.status}`)
+        throw new Error(`Metadata Error: ${metaResponse.status}`)
       }
       this.metadata = await metaResponse.json()
 
-      // Convertir TopoJSON en GeoJSON et traiter chaque territoire
+      // Convert TopoJSON to GeoJSON and process each territory
       await this.processTerritoriesData()
       
       this.isLoaded = true
-      console.log(`✅ ${this.territoryData.size} territoires chargés`)
+      console.log(`Loaded ${this.territoryData.size} territories`)
       
     } catch (error) {
-      console.error('❌ Erreur chargement données:', error)
+      console.error('Data loading error:', error)
       throw error
     }
   }
 
+  /**
+   * Processes raw TopoJSON data into usable territory objects
+   * Converts topology to features and calculates geographic properties
+   */
   private async processTerritoriesData(): Promise<void> {
     if (!this.topologyData?.objects?.territories) {
-      throw new Error('Structure de données invalide')
+      throw new Error('Invalid data structure')
     }
 
-    // Convertir TopoJSON en FeatureCollection
+    // Convert TopoJSON topology to GeoJSON FeatureCollection
     const featureCollection = topojson.feature(
       this.topologyData,
       this.topologyData.objects.territories
@@ -71,7 +89,8 @@ export class RealGeoDataService {
     for (const feature of featureCollection.features) {
       if (!feature.properties) continue
 
-      const territory: RealTerritory = {
+      // Create territory metadata with calculated area
+      const territory: Territory = {
         id: feature.properties.id,
         iso: feature.properties.iso,
         name: feature.properties.name,
@@ -79,7 +98,7 @@ export class RealGeoDataService {
         area: this.calculateArea(feature)
       }
 
-      // Calculer les limites géographiques
+      // Calculate geographic bounds and center point
       const bounds = this.calculateBounds(feature)
       const center = this.calculateCenter(bounds)
 
@@ -93,6 +112,11 @@ export class RealGeoDataService {
     }
   }
 
+  /**
+   * Calculates the area of a geographic feature using d3-geo
+   * @param feature - GeoJSON feature to calculate area for
+   * @returns Area in square kilometers (rounded to nearest integer)
+   */
   private calculateArea(feature: GeoJSON.Feature): number {
     // Calculate area in square kilometers using d3.geoArea
     // d3.geoArea returns area in steradians, we convert to km²
@@ -102,43 +126,41 @@ export class RealGeoDataService {
     return Math.round(areaInKm2)
   }
 
+  /**
+   * Calculates the bounding box of a geographic feature using d3-geo
+   * @param feature - GeoJSON feature to calculate bounds for
+   * @returns Bounds array as [minLon, minLat, maxLon, maxLat]
+   */
   private calculateBounds(feature: GeoJSON.Feature): [number, number, number, number] {
-    // Fonction simplifiée pour calculer les limites
-    // Dans un vrai projet, on utiliserait d3-geo ou turf.js
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-
-    const processCoordinates = (coords: any) => {
-      if (Array.isArray(coords[0])) {
-        coords.forEach(processCoordinates)
-      } else {
-        const [x, y] = coords
-        minX = Math.min(minX, x)
-        maxX = Math.max(maxX, x)
-        minY = Math.min(minY, y)
-        maxY = Math.max(maxY, y)
-      }
-    }
-
-    if (feature.geometry && 'coordinates' in feature.geometry) {
-      processCoordinates((feature.geometry as any).coordinates)
-    }
-
-    return [minX, minY, maxX, maxY]
+    // Use d3-geo's geoBounds for accurate geographic bounds calculation
+    const bounds = d3.geoBounds(feature)
+    // d3.geoBounds returns [[west, south], [east, north]]
+    // We need [minX, minY, maxX, maxY] format
+    return [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]
   }
 
+  /**
+   * Calculates the center point from geographic bounds
+   * @param bounds - Bounding box as [minLon, minLat, maxLon, maxLat]
+   * @returns Center point as [longitude, latitude]
+   */
   private calculateCenter(bounds: [number, number, number, number]): [number, number] {
     const [minX, minY, maxX, maxY] = bounds
     return [(minX + maxX) / 2, (minY + maxY) / 2]
   }
 
-  // API publique
+  /**
+   * Returns the metropolitan France geographic data
+   * Filters to include only European mainland territory
+   * @returns FeatureCollection containing European metropolitan France
+   */
   async getMetropoleData(): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
     const metropole = this.territoryData.get('FR-MET')
     
     if (!metropole) return null
 
-    // Filtrer uniquement la géométrie de la métropole européenne
+    // Filter to include only European metropolitan geometry
     const europeanMetropoleFeature = this.extractEuropeanMetropole(metropole.feature)
 
     return {
@@ -148,8 +170,10 @@ export class RealGeoDataService {
   }
 
   /**
-   * Extrait uniquement la partie européenne de la France métropolitaine
-   * en filtrant les polygones selon leurs coordonnées géographiques
+   * Extracts only the European part of metropolitan France
+   * Filters polygons based on their geographic coordinates
+   * @param feature - Original France metropolitan feature
+   * @returns Feature containing only European mainland polygons
    */
   private extractEuropeanMetropole(feature: GeoJSON.Feature): GeoJSON.Feature {
     if (feature.geometry.type !== 'MultiPolygon') {
@@ -162,7 +186,7 @@ export class RealGeoDataService {
       const firstRing = polygon[0]
       if (firstRing.length === 0) continue
       
-      // Analyser les coordonnées du premier ring pour déterminer la région
+      // Analyze coordinates of the first ring to determine region
       const lons = firstRing.map(coord => coord[0])
       const lats = firstRing.map(coord => coord[1])
       const minLon = Math.min(...lons)
@@ -170,8 +194,8 @@ export class RealGeoDataService {
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
       
-      // Garder seulement les polygones dans la zone européenne
-      // France métropolitaine : longitude -5° à 10°, latitude 40° à 55°
+      // Keep only polygons within the European zone
+      // Metropolitan France bounds: longitude -5° to 10°, latitude 40° to 55°
       if (minLon > -10 && maxLon < 15 && minLat > 35 && maxLat < 55) {
         europeanPolygons.push(polygon)
       }
@@ -187,8 +211,10 @@ export class RealGeoDataService {
   }
 
   /**
-   * Extrait les DOM-TOM inclus dans la géométrie "France métropolitaine"
-   * et les retourne comme territoires séparés
+   * Extracts DOM-TOM territories included in metropolitan France geometry
+   * Returns them as separate territory objects for individual rendering
+   * @param feature - Metropolitan France feature containing mixed territories
+   * @returns Array of DOM-TOM territory objects with geographic data
    */
   private extractDOMTOMFromMetropole(feature: GeoJSON.Feature): Array<{ name: string; code: string; data: GeoJSON.FeatureCollection; area: number; region: string }> {
     if (feature.geometry.type !== 'MultiPolygon') {
@@ -212,18 +238,18 @@ export class RealGeoDataService {
       
       let territoryInfo: { name: string; code: string; region: string } | null = null
       
-      // Identifier le territoire selon ses coordonnées avec des critères plus précis
+      // Identify territory based on precise geographic coordinates
       if (minLon > 45.0 && maxLon < 45.3 && minLat > -13.0 && maxLat < -12.6) {
-        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Océan Indien' }
+        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Indian Ocean' }
       } else if (minLon > 55.2 && maxLon < 55.9 && minLat > -21.4 && maxLat < -20.8) {
-        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Océan Indien' }
+        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Indian Ocean' }
       } else if (minLon > -61.9 && maxLon < -61.0 && minLat > 15.8 && maxLat < 16.6) {
-        // Guadeloupe archipel - identifier par position plus précise
-        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Antilles' }
+        // Guadeloupe archipelago - identified by precise position
+        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Caribbean' }
       } else if (minLon > -61.3 && maxLon < -60.8 && minLat > 14.4 && maxLat < 14.9) {
-        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Antilles' }
+        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Caribbean' }
       } else if (minLon > -54.7 && maxLon < -51.6 && minLat > 2.1 && maxLat < 5.8) {
-        territoryInfo = { name: 'Guyane française', code: 'FR-GF', region: 'Amérique du Sud' }
+        territoryInfo = { name: 'French Guiana', code: 'FR-GF', region: 'South America' }
       }
       
       if (territoryInfo && !addedCodes.has(territoryInfo.code)) {
@@ -262,14 +288,19 @@ export class RealGeoDataService {
 
 
 
+  /**
+   * Returns all DOM-TOM (Overseas Departments and Territories) geographic data
+   * Combines individually defined territories with those extracted from metropolitan data
+   * @returns Array of DOM-TOM territory objects with geographic and metadata
+   */
   async getDOMTOMData(): Promise<Array<{ name: string; code: string; data: GeoJSON.FeatureCollection; area: number; region: string }>> {
     await this.loadData()
     const domtomData = []
 
-    // Créer un Set pour éviter les doublons entre territoires individuels et extraits
+    // Create Set to avoid duplicates between individual territories and extracted ones
     const addedTerritories = new Set<string>()
 
-    // Ajouter les DOM-TOM individuels (territoires déjà séparés dans Natural Earth)
+    // Add individual DOM-TOM territories (already separated in Natural Earth data)
     for (const [code, territoryData] of this.territoryData) {
       if (code !== 'FR-MET') {
         addedTerritories.add(code)
@@ -298,7 +329,7 @@ export class RealGeoDataService {
       }
     }
 
-    // Trier par région puis par superficie
+    // Sort by region then by area (largest first)
     return domtomData.sort((a, b) => {
       if (a.region !== b.region) {
         return a.region.localeCompare(b.region)
@@ -311,34 +342,44 @@ export class RealGeoDataService {
 
 
 
+  /**
+   * Returns the geographic region for a given territory code
+   * @param code - Territory ISO code (e.g., 'FR-GP', 'FR-RE')
+   * @returns Region name in English
+   */
   private getTerritoryRegion(code: string): string {
-    // Régions basées sur les territoires réels de Natural Earth
+    // Regional classifications based on actual Natural Earth territories
     const regions = {
-      'FR-PM': 'Amérique du Nord',
-      'FR-MF': 'Antilles',        // Saint-Martin
-      'FR-PF': 'Océan Pacifique', // Polynésie française
-      'FR-NC': 'Océan Pacifique', // Nouvelle-Calédonie
-      'FR-WF': 'Océan Pacifique', // Wallis-et-Futuna
-      'FR-TF': 'Océan Indien'     // Terres australes françaises
+      'FR-PM': 'North America',
+      'FR-MF': 'Caribbean',        // Saint-Martin
+      'FR-PF': 'Pacific Ocean',   // French Polynesia
+      'FR-NC': 'Pacific Ocean',   // New Caledonia
+      'FR-WF': 'Pacific Ocean',   // Wallis and Futuna
+      'FR-TF': 'Indian Ocean'     // French Southern Territories
     }
-    return regions[code as keyof typeof regions] || 'Autre'
+    return regions[code as keyof typeof regions] || 'Other'
   }
 
+  /**
+   * Returns unified geographic data with repositioned territories
+   * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
+   * @returns Combined metropolitan and DOM-TOM data with applied transformations
+   */
   async getUnifiedData(mode: string = 'metropole-major'): Promise<{ metropole: GeoJSON.FeatureCollection; domtom: any[] } | null> {
     await this.loadData()
     
-    // NOUVELLE APPROCHE : créer un dataset unifié avec toutes les géométries repositionnées
-    const metropole = await this.getMetropoleData() // Métropole européenne seule
+    // Create unified dataset with all geometries repositioned
+    const metropole = await this.getMetropoleData() // European metropolitan France only
     if (!metropole) return null
 
     const allDomtomData = await this.getDOMTOMData()
     
-    // Filtrer les DOM-TOM selon le mode sélectionné
+    // Filter DOM-TOM territories based on selected mode
     let filteredDomtom: any[] = []
     
     switch (mode) {
       case 'metropole-only':
-        // Aucun DOM-TOM
+        // No DOM-TOM territories
         filteredDomtom = []
         break
         
@@ -350,22 +391,22 @@ export class RealGeoDataService {
         break
         
       case 'metropole-uncommon':
-        // DOM-TOM moins courants
+        // Less common DOM-TOM territories
         filteredDomtom = allDomtomData.filter(territory => 
-          ['FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code)
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code)
         )
         break
         
       case 'all-territories':
       default:
-        // Territoires rarement représentés
+        // Rarely represented territories
         filteredDomtom = allDomtomData.filter(territory => 
-          ['FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code)
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code)
         )
         break
     }
     
-    // CRÉER UN DATASET UNIFIÉ avec métropole + DOM-TOM repositionnés
+    // CREATE UNIFIED DATASET with metropolitan France + repositioned DOM-TOM
     const unifiedFeatures = [...metropole.features]
     
     filteredDomtom.forEach((territory, index) => {
@@ -373,19 +414,24 @@ export class RealGeoDataService {
       unifiedFeatures.push(...repositioned.features)
     })
 
-    // Retourner comme une seule FeatureCollection pour forcer Observable Plot
-    // à calculer les limites uniquement sur les données repositionnées
+    // Return combined dataset
     return {
       metropole: {
         type: 'FeatureCollection',
         features: unifiedFeatures
       },
-      domtom: [] // Vide car tout est dans metropole maintenant
+      domtom: [] // Empty as everything is now in metropole
     }
   }
 
+  /**
+   * Repositions a territory to a new geographic location using composite projection insets
+   * @param territoryData - Original territory FeatureCollection
+   * @param index - Territory index for positioning (unused in current implementation)
+   * @returns Repositioned FeatureCollection with transformed coordinates
+   */
   private repositionTerritory(territoryData: GeoJSON.FeatureCollection, index: number): GeoJSON.FeatureCollection {
-    // Obtenir la configuration des insets depuis GeoProjectionService
+    // Get inset configuration from GeoProjectionService
     const projectionService = new GeoProjectionService()
     const insets = projectionService.getFranceCompositeInsets()
     
@@ -397,13 +443,13 @@ export class RealGeoDataService {
         const insetConfig = insets.domtom[territoryCode as keyof typeof insets.domtom]
         
         if (insetConfig) {
-          console.log(`🗺️ Repositionnement composite ${territoryCode}:`, insetConfig)
+          console.log(`Composite repositioning ${territoryCode}:`, insetConfig)
           
-          // Calculer les limites originales
+          // Calculate original geographic bounds
           const originalBounds = this.calculateGeometryBounds(feature.geometry)
-          console.log(`  📍 Limites originales:`, originalBounds)
+          console.log(`  Geographic bounds:`, originalBounds)
           
-          // Position cible selon la configuration inset (relative au centre de la France)
+          // Target position according to inset configuration (relative to France center)
           const franceCenterLon = 2
           const franceCenterLat = 46
           const targetLon = franceCenterLon + insetConfig.translate[0]
@@ -413,12 +459,12 @@ export class RealGeoDataService {
           this.repositionGeometryToTarget(feature.geometry, targetLon, targetLat)
           this.scaleGeometry(feature.geometry, insetConfig.scale)
           
-          // Vérifier le résultat
+          // Verify repositioning result
           const newBounds = this.calculateGeometryBounds(feature.geometry)
-          console.log(`  📍 Nouvelles limites:`, newBounds)
+          console.log(`  New bounds:`, newBounds)
         } else {
-          console.log(`⚠️ Pas de configuration inset pour ${territoryCode}, utilisation position par défaut`)
-          // Fallback : utiliser l'ancienne méthode de positionnement
+          console.log(`No inset configuration for ${territoryCode}, using default position`)
+          // Fallback: use legacy positioning method
           const fallbackPositions = [
             { lon: 5, lat: 47 }, { lon: 5, lat: 45 }, { lon: -1, lat: 47 }, { lon: -1, lat: 45 },
             { lon: 2, lat: 49 }, { lon: 2, lat: 43 }, { lon: 7, lat: 46 }, { lon: -3, lat: 46 }
@@ -434,28 +480,33 @@ export class RealGeoDataService {
   }
 
   /**
-   * Repositionne une géométrie directement à des coordonnées cibles
+   * Repositions a geometry directly to target coordinates
+   * @param geometry - GeoJSON geometry to reposition
+   * @param targetLon - Target longitude
+   * @param targetLat - Target latitude
    */
   private repositionGeometryToTarget(geometry: GeoJSON.Geometry, targetLon: number, targetLat: number): void {
     if (!('coordinates' in geometry)) return
 
-    // Calculer le centroïde actuel
+    // Calculate current centroid
     const bounds = this.calculateGeometryBounds(geometry)
     const currentCenterLon = (bounds[0] + bounds[2]) / 2
     const currentCenterLat = (bounds[1] + bounds[3]) / 2
     
-    // Calculer le décalage nécessaire
+    // Calculate required offset
     const offsetLon = targetLon - currentCenterLon
     const offsetLat = targetLat - currentCenterLat
     
-    console.log(`    🎯 Décalage: lon${offsetLon.toFixed(1)}, lat${offsetLat.toFixed(1)}`)
+    console.log(`    Offset: lon${offsetLon.toFixed(1)}, lat${offsetLat.toFixed(1)}`)
     
-    // Appliquer le décalage
+    // Apply the offset transformation
     this.transformGeometry(geometry, offsetLon, offsetLat)
   }
 
   /**
-   * Redimensionne une géométrie depuis son centroïde
+   * Scales a geometry from its centroid
+   * @param geometry - GeoJSON geometry to scale
+   * @param scaleFactor - Scale factor (1.0 = no change, 0.5 = half size, 2.0 = double size)
    */
   private scaleGeometry(geometry: GeoJSON.Geometry, scaleFactor: number): void {
     if (!('coordinates' in geometry)) return
@@ -480,27 +531,20 @@ export class RealGeoDataService {
   }
 
   /**
-   * Calcule les limites d'une géométrie
+   * Calculate geometric bounds using d3-geo
    */
   private calculateGeometryBounds(geometry: GeoJSON.Geometry): [number, number, number, number] {
-    let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity
-
-    const processBounds = (coords: any): void => {
-      if (Array.isArray(coords[0])) {
-        coords.forEach(processBounds)
-      } else {
-        minLon = Math.min(minLon, coords[0])
-        maxLon = Math.max(maxLon, coords[0])
-        minLat = Math.min(minLat, coords[1])
-        maxLat = Math.max(maxLat, coords[1])
-      }
+    // Create a temporary feature to use with d3.geoBounds
+    const tempFeature: GeoJSON.Feature = {
+      type: 'Feature',
+      properties: {},
+      geometry
     }
-
-    if ('coordinates' in geometry) {
-      processBounds(geometry.coordinates)
-    }
-
-    return [minLon, minLat, maxLon, maxLat]
+    
+    const bounds = d3.geoBounds(tempFeature)
+    // d3.geoBounds returns [[west, south], [east, north]]
+    // We need [minLon, minLat, maxLon, maxLat] format
+    return [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]
   }
 
   private transformGeometry(geometry: GeoJSON.Geometry, offsetLon: number, offsetLat: number): void {
@@ -517,7 +561,7 @@ export class RealGeoDataService {
     }
   }
 
-  getTerritoryInfo(): RealTerritory[] {
+  getTerritoryInfo(): Territory[] {
     const territories = Array.from(this.territoryData.values()).map(data => data.territory)
     return territories.sort((a, b) => b.area - a.area) // Tri par superficie
   }

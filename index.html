@@ -14,16 +14,16 @@
       </header>
       
       <main>
-        <section id="controls">
+        <!-- Shared Controls -->
+        <section class="controls">
           <div class="control-group">
-            <label for="projection-select">Projection cartographique (toutes les cartes) :</label>
+            <label for="projection-select">Projection cartographique :</label>
             <select id="projection-select">
               <option value="albers">Albers</option>
               <option value="mercator">Mercator</option>
               <option value="natural-earth">Equal Earth</option>
-              <option value="composite-france">🇫🇷 Composite France (type albers-usa)</option>
             </select>
-            <small>S'applique à toutes les vues : métropole, DOM-TOM et vue d'ensemble</small>
+            <small>S'applique à toutes les cartes</small>
           </div>
           
           <div class="control-group">
@@ -33,42 +33,50 @@
             </label>
             <small>Coché : taille proportionnelle à la superficie réelle | Décoché : taille uniforme pour la lisibilité</small>
           </div>
-          
-          <div class="control-group">
-            <label for="unified-view-mode">Vue d'ensemble - Territoires à inclure :</label>
+
+          <div class="control-group composite-only">
+            <label for="unified-view-mode">Territoires à inclure :</label>
             <select id="unified-view-mode">
               <option value="metropole-only">Métropole seule</option>
               <option value="metropole-major" selected>Métropole + principaux (Guyane, Réunion, Guadeloupe, Martinique, Mayotte)</option>
               <option value="metropole-uncommon">Métropole + moins courants (Saint-Martin, Polynésie française, Nouvelle-Calédonie)</option>
               <option value="all-territories">Métropole + rarement représentés (Terres australes, Wallis-et-Futuna, Saint-Pierre)</option>
             </select>
-            <small>Sélectionnez quels territoires afficher dans la vue d'ensemble repositionnée</small>
+            <small>Sélectionnez quels territoires afficher dans la vue composite</small>
           </div>
         </section>
 
-        <section id="maps">
-          <div id="france-metropole" class="map-container">
-            <h2>France Métropolitaine</h2>
-            <div class="map-plot"></div>
-          </div>
-          
-          <div id="dom-tom" class="map-container">
-            <h2>Départements et Collectivités d'Outre-Mer</h2>
-            <div class="map-plot"></div>
-          </div>
-        </section>
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation">
+          <button class="tab-button active" data-tab="composite">Vue Composite</button>
+          <button class="tab-button" data-tab="separate">Territoires Séparés</button>
+        </nav>
 
-        <section id="unified-map">
-          <h2>Vue d'ensemble avec repositionnement</h2>
-          <div id="unified-plot" class="map-plot"></div>
-        </section>
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Composite View (Default) -->
+          <section id="composite-view" class="tab-panel active">
+            <div id="unified-map" class="map-container full-width">
+              <h2>Vue d'ensemble avec repositionnement</h2>
+              <div id="unified-plot" class="map-plot"></div>
+            </div>
+          </section>
 
-        <section id="info">
-          <div class="info-panel">
-            <h3>Informations sur les territoires</h3>
-            <div id="territory-info"></div>
-          </div>
-        </section>
+          <!-- Separate Territory Views -->
+          <section id="separate-view" class="tab-panel">
+            <div id="territories-grid" class="territories-grid">
+              <div id="france-metropole" class="map-container">
+                <h2>France Métropolitaine</h2>
+                <div class="map-plot"></div>
+              </div>
+              
+              <div id="dom-tom" class="map-container">
+                <h2>Départements et Collectivités d'Outre-Mer</h2>
+                <div class="map-plot"></div>
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

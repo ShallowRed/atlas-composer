@@ -44,7 +44,7 @@ header p {
   opacity: 0.9;
 }
 
-#controls {
+.controls {
   background: white;
   padding: 1rem;
   margin-bottom: 2rem;
@@ -84,11 +84,68 @@ select, input[type="checkbox"] {
   font-size: 1rem;
 }
 
-#maps {
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 1rem 2rem;
+  border: none;
+  background: #f8f9fa;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.tab-button.active {
+  background: white;
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+/* Tab Content */
+.tab-content {
+  background: white;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 500px;
+}
+
+.tab-panel {
+  display: none;
+  padding: 2rem;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Composite-only controls - will be controlled by JavaScript */
+.composite-only {
+  display: block;
+}
+
+/* Territory Grid Layout */
+.territories-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  margin-bottom: 2rem;
 }
 
 .map-container {
@@ -96,6 +153,10 @@ select, input[type="checkbox"] {
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.map-container.full-width {
+  grid-column: 1 / -1;
 }
 
 .map-container h2 {
@@ -178,8 +239,52 @@ select, input[type="checkbox"] {
 }
 
 .map-plot h4 {
+  margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
-  color: #555;
+  color: #667eea;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #app {
+    padding: 0.5rem;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1rem;
+    text-align: center;
+  }
+
+  .territories-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tab-panel {
+    padding: 1rem;
+  }
+
+  .controls {
+    padding: 1rem;
+  }
+
+  .control-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-group label {
+    margin-bottom: 0.5rem;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+  }
 }
 
 @media (prefers-color-scheme: light) {
@@ -189,17 +294,53 @@ select, input[type="checkbox"] {
   }
 }
 
+/* DOM-TOM grid styles */
+.domtom-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.region-container {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #fafafa;
+}
+
+.region-title {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #555;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.territory-container {
+  margin-bottom: 10px;
+}
+
+.territory-title {
+  margin: 5px 0;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
   #maps {
     grid-template-columns: 1fr;
   }
   
-  #controls {
+  .controls {
     flex-direction: column;
     gap: 1rem;
   }
   
   header h1 {
     font-size: 1.5rem;
+  }
+  
+  .domtom-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,7 +1,8 @@
 import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
-import { RealGeoDataService } from '../services/RealGeoDataService'
+import { RealGeoDataService } from '../services/GeoDataService'
 import * as d3 from 'd3'
+
 export class FranceCartographer {
   private projectionService: GeoProjectionService
   private geoDataService: RealGeoDataService
@@ -13,87 +14,122 @@ export class FranceCartographer {
   }
 
   async init() {
-    console.log('🗺️ Initialisation du cartographe France...')
+    console.log('Initializing France cartographer...')
     
     try {
-      // Charger les données géographiques
       await this.geoDataService.loadData()
       
-      // Afficher les territoires chargés
-      const territories = this.geoDataService.getTerritoryInfo()
-      console.log(`📊 ${territories.length} territoires chargés:`)
-      territories.forEach(t => {
-        console.log(`  • ${t.name} (${t.code}): ${t.area.toLocaleString()} km²`)
-      })
+      this.geoDataService.getTerritoryInfo()
       
-      // Configurer les contrôles
       this.setupControls()
-      
-      // Créer les cartes initiales
+
       await this.renderMaps()
       
-      console.log('✅ Cartographe France initialisé avec succès')
+      console.log('France cartographer initialized successfully')
       
     } catch (error) {
-      console.error('❌ Erreur initialisation cartographe:', error)
-      
-      // Afficher un message d'erreur à l'utilisateur
-      const appContainer = document.getElementById('app')
-      if (appContainer) {
-        const errorDiv = document.createElement('div')
-        errorDiv.style.cssText = 'background: #ffe6e6; border: 1px solid #ff6b6b; padding: 20px; margin: 20px; border-radius: 8px; color: #d63031;'
-        errorDiv.innerHTML = `
-          <h3>⚠️ Erreur de chargement des données</h3>
-          <p>Impossible de charger les données géographiques.</p>
-          <p><strong>Erreur:</strong> ${error instanceof Error ? error.message : String(error)}</p>
-          <p><strong>Solution:</strong> Vérifiez que le script de préparation a été exécuté: <code>pnpm run prepare-data</code></p>
-        `
-        appContainer.insertBefore(errorDiv, appContainer.firstChild)
-      }
+      console.error('Cartographer initialization error:', error)
+      this.showError(error)
     }
   }
 
+  private showError(error: unknown) {
+    const appContainer = document.getElementById('app')
+    if (!appContainer) return
+    
+    const errorDiv = document.createElement('div')
+    errorDiv.style.cssText = 'background: #ffe6e6; border: 1px solid #ff6b6b; padding: 20px; margin: 20px; border-radius: 8px; color: #d63031;'
+    errorDiv.innerHTML = `
+      <h3>Data Loading Error</h3>
+      <p>Unable to load geographic data.</p>
+      <p><strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}</p>
+      <p><strong>Solution:</strong> Run the data preparation script: <code>pnpm run prepare-data</code></p>
+    `
+    appContainer.insertBefore(errorDiv, appContainer.firstChild)
+  }
+
+  /**
+   * Initialize UI controls and event listeners
+   */
   private setupControls() {
     const projectionSelect = document.getElementById('projection-select') as HTMLSelectElement
     const scalePreservationCheck = document.getElementById('scale-preservation') as HTMLInputElement
     const unifiedViewModeSelect = document.getElementById('unified-view-mode') as HTMLSelectElement
 
-    projectionSelect?.addEventListener('change', () => {
-      this.renderMaps()
-    })
-
+    projectionSelect?.addEventListener('change', () => this.renderMaps())
+    
     scalePreservationCheck?.addEventListener('change', (event) => {
       this.scalePreservation = (event.target as HTMLInputElement).checked
       this.renderMaps()
     })
 
     unifiedViewModeSelect?.addEventListener('change', () => {
-      // Ne re-rendre que la vue unifiée pour de meilleures performances
-      this.renderUnifiedMap((document.getElementById('projection-select') as HTMLSelectElement)?.value || 'albers')
+      const projectionType = projectionSelect?.value || 'albers'
+      this.renderUnifiedMap(projectionType)
+    })
+
+    // Tab functionality
+    this.setupTabs()
+  }
+
+  /**
+   * Initialize tab navigation functionality
+   */
+  private setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button')
+    const tabPanels = document.querySelectorAll('.tab-panel')
+    const compositeOnlyControls = document.querySelectorAll('.composite-only')
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', (event) => {
+        const target = event.target as HTMLButtonElement
+        const tabId = target.dataset.tab
+
+        // Update active button
+        tabButtons.forEach(btn => btn.classList.remove('active'))
+        target.classList.add('active')
+
+        // Update active panel
+        tabPanels.forEach(panel => panel.classList.remove('active'))
+        const activePanel = document.getElementById(`${tabId}-view`)
+        activePanel?.classList.add('active')
+
+        // Show/hide composite-only controls
+        compositeOnlyControls.forEach(control => {
+          if (tabId === 'composite') {
+            (control as HTMLElement).style.display = 'block'
+          } else {
+            (control as HTMLElement).style.display = 'none'
+          }
+        })
+
+        // Re-render maps when switching tabs to ensure proper sizing
+        this.renderMaps()
+      })
     })
   }
 
+  /**
+   * Render all maps: Métropole, DOM-TOM grid, and unified view
+   */
   private async renderMaps() {
     const projectionType = (document.getElementById('projection-select') as HTMLSelectElement)?.value || 'albers'
     
     try {
-      // Carte de la France métropolitaine
-      await this.renderMetropoleFranceMap(projectionType)
-      
-      // Cartes des DOM-TOM
-      await this.renderDOMTOMMap(projectionType)
-      
-      // Vue unifiée avec repositionnement
-      await this.renderUnifiedMap(projectionType)
-      
-      // Mise à jour des informations
-      this.updateTerritoryInfo()
+      await Promise.all([
+        this.renderMetropoleFranceMap(projectionType),
+        this.renderDOMTOMMap(projectionType),
+        this.renderUnifiedMap(projectionType)
+      ])
       
     } catch (error) {
-      console.error('Erreur lors du rendu des cartes:', error)
+      console.error('Map rendering error:', error)
     }
   }
 
+  /**
+   * Render the map of Metropolitan France with a specialized projection
+   */
   private async renderMetropoleFranceMap(projectionType: string) {
     const container = document.querySelector('#france-metropole .map-plot')
     if (!container) return
@@ -127,10 +163,11 @@ export class FranceCartographer {
 
     container.innerHTML = ''
     container.appendChild(plot)
-    
-    console.log('🇫🇷 France métropolitaine rendue avec projection:', typeof projection === 'object' && projection && 'type' in projection ? projection.type : projectionType)
   }
 
+  /**
+   * Render the DOM-TOM territories in a grid layout with individual maps
+   */
   private async renderDOMTOMMap(projectionType: string) {
     const container = document.querySelector('#dom-tom .map-plot')
     if (!container) return
@@ -138,16 +175,12 @@ export class FranceCartographer {
     const domtomData = await this.geoDataService.getDOMTOMData()
     if (!domtomData || domtomData.length === 0) return
 
-    // Créer une grille pour afficher les DOM-TOM par région
     const gridContainer = document.createElement('div')
-    gridContainer.style.display = 'grid'
-    gridContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))'
-    gridContainer.style.gap = '15px'
+    gridContainer.className = 'domtom-grid'
 
-    // Grouper par région
     const territoryGroups = new Map<string, any[]>()
     for (const territory of domtomData) {
-      const region = territory.region || 'Autre'
+      const region = territory.region || 'Other'
       if (!territoryGroups.has(region)) {
         territoryGroups.set(region, [])
       }
@@ -156,35 +189,23 @@ export class FranceCartographer {
 
     for (const [region, territories] of territoryGroups) {
       const regionContainer = document.createElement('div')
-      regionContainer.style.border = '1px solid #ddd'
-      regionContainer.style.borderRadius = '8px'
-      regionContainer.style.padding = '10px'
-      regionContainer.style.backgroundColor = '#fafafa'
+      regionContainer.className = 'region-container'
       
       const regionTitle = document.createElement('h3')
       regionTitle.textContent = region
-      regionTitle.style.margin = '0 0 10px 0'
-      regionTitle.style.fontSize = '1rem'
-      regionTitle.style.color = '#555'
-      regionTitle.style.borderBottom = '1px solid #ddd'
-      regionTitle.style.paddingBottom = '5px'
+      regionTitle.className = 'region-title'
       regionContainer.appendChild(regionTitle)
       
       for (const territory of territories) {
         const territoryContainer = document.createElement('div')
-        territoryContainer.style.marginBottom = '10px'
+        territoryContainer.className = 'territory-container'
         
         const title = document.createElement('h4')
         title.textContent = `${territory.name} (${territory.area.toLocaleString()} km²)`
-        title.style.margin = '5px 0'
-        title.style.fontSize = '0.85rem'
+        title.className = 'territory-title'
         
         const mapDiv = document.createElement('div')
-        
-        // Utiliser la projection sélectionnée par l'utilisateur
         const projection = this.projectionService.getProjection(projectionType, territory.data)
-        
-        // Adapter la taille selon la préservation d'échelle
         const { width, height } = this.getTerritorySize(territory, this.scalePreservation)
         
         const plot = Plot.plot({
@@ -215,7 +236,7 @@ export class FranceCartographer {
   }
 
   /**
-   * Calcule la taille d'affichage d'un territoire selon la préservation d'échelle
+   * Calculate appropriate size for each territory map, optionally preserving scale
    */
   private getTerritorySize(territory: any, preserveScale: boolean): { width: number; height: number } {
     if (!preserveScale) {
@@ -246,17 +267,36 @@ export class FranceCartographer {
     }
   }
 
+  /**
+   * Get color for a region
+   */
   private getRegionColor(region: string): string {
-    const colors = {
+    const regionColors = {
       'Antilles': '#e8f5e8',
       'Amérique du Sud': '#ffe8e8', 
       'Océan Indien': '#e8e8ff',
       'Océan Pacifique': '#fff8e8',
       'Amérique du Nord': '#f8e8ff'
     }
-    return colors[region as keyof typeof colors] || '#f0f0f0'
+    return regionColors[region as keyof typeof regionColors] || '#f0f0f0'
   }
 
+  /**
+   * Get color for a territory
+   */
+  private getTerritoryColor(code: string): string {
+    const territoryColors = {
+      'FR-GF': '#FFE8CC', 'FR-RE': '#E8F4FF', 'FR-GP': '#E8FFE8', 
+      'FR-MQ': '#FFE8F4', 'FR-YT': '#F4E8FF', 'FR-MF': '#FFF8E8',
+      'FR-PF': '#E8FFFF', 'FR-NC': '#FFFFE8', 'FR-TF': '#F0F0F0',
+      'FR-WF': '#F8F8E8', 'FR-PM': '#E8F8F8'
+    }
+    return territoryColors[code as keyof typeof territoryColors] || '#ffe8e8'
+  }
+
+  /**
+   * Render a unified map with all territories repositioned
+   */
   private async renderUnifiedMap(projectionType: string) {
     const container = document.querySelector('#unified-plot')
     if (!container) return
@@ -269,7 +309,7 @@ export class FranceCartographer {
     if (!unifiedData) return
 
     // Projection adaptée au mode de vue sélectionné
-    const projection = this.projectionService.getUnifiedProjection(projectionType, unifiedViewMode)
+    const projection = this.projectionService.getProjection(projectionType, unifiedViewMode)
     
     const plot = Plot.plot({
       width: 800,
@@ -295,47 +335,5 @@ export class FranceCartographer {
 
     container.innerHTML = ''
     container.appendChild(plot)
-  }
-
-  /**
-   * Couleurs différentiées par territoire pour la vue d'ensemble
-   */
-  private getTerritoryColor(code: string): string {
-    const colors = {
-      'FR-GF': '#FFE8CC', // Guyane - orange clair
-      'FR-RE': '#E8F4FF', // Réunion - bleu clair
-      'FR-GP': '#E8FFE8', // Guadeloupe - vert clair
-      'FR-MQ': '#FFE8F4', // Martinique - rose clair
-      'FR-YT': '#F4E8FF', // Mayotte - violet clair
-      'FR-MF': '#FFF8E8', // Saint-Martin - jaune clair
-      'FR-PF': '#E8FFFF', // Polynésie - cyan clair
-      'FR-NC': '#FFFFE8', // Nouvelle-Calédonie - jaune très clair
-      'FR-TF': '#F0F0F0', // Terres australes - gris clair
-      'FR-WF': '#F8F8E8', // Wallis-et-Futuna - beige
-      'FR-PM': '#E8F8F8'  // Saint-Pierre - bleu-gris clair
-    }
-    return colors[code as keyof typeof colors] || '#ffe8e8'
-  }
-
-  private updateTerritoryInfo() {
-    const infoContainer = document.getElementById('territory-info')
-    if (!infoContainer) return
-
-    const territories = this.geoDataService.getTerritoryInfo()
-    
-    infoContainer.innerHTML = `
-      <div class="territory-stats">
-        <h4>Statistiques des territoires</h4>
-        <ul>
-          ${territories.map((t: any) => `
-            <li>
-              <strong>${t.name}</strong>: 
-              ${t.area} km² 
-              ${this.scalePreservation ? '(taille réelle préservée)' : '(taille ajustée)'}
-            </li>
-          `).join('')}
-        </ul>
-      </div>
-    `
   }
 }
