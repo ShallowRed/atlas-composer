@@ -28,11 +28,13 @@ export class GeoProjectionService {
   }
 
   private createAlbersProjection(data: any) {
-    // Projection Albers optimisée pour la France
+    // Projection Albers spécifiquement optimisée pour la France métropolitaine
     if (!data) return 'albers' as const
     
     return {
-      type: 'albers' as const,
+      type: 'conic-conformal' as const,
+      parallels: [45.898889, 47.696014], // Parallèles standards pour la France
+      rotate: [-3, 0], // Longitude centrale de la France
       domain: data
     }
   }

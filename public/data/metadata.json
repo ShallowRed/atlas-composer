@@ -1,0 +1,57 @@
+{
+  "source": "Natural Earth",
+  "version": "5.1.2",
+  "resolution": "50m",
+  "projection": "WGS84",
+  "territories": [
+    {
+      "id": "250",
+      "iso": "FRA",
+      "name": "France métropolitaine",
+      "code": "FR-MET",
+      "area": 543965
+    },
+    {
+      "id": "258",
+      "iso": "PYF",
+      "name": "Polynésie française",
+      "code": "FR-PF",
+      "area": 4167
+    },
+    {
+      "id": "260",
+      "iso": "ATF",
+      "name": "Terres australes françaises",
+      "code": "FR-TF",
+      "area": 439781
+    },
+    {
+      "id": "540",
+      "iso": "NCL",
+      "name": "Nouvelle-Calédonie",
+      "code": "FR-NC",
+      "area": 18575
+    },
+    {
+      "id": "663",
+      "iso": "MAF",
+      "name": "Saint-Martin",
+      "code": "FR-MF",
+      "area": 53
+    },
+    {
+      "id": "666",
+      "iso": "SPM",
+      "name": "Saint-Pierre-et-Miquelon",
+      "code": "FR-PM",
+      "area": 242
+    },
+    {
+      "id": "876",
+      "iso": "WLF",
+      "name": "Wallis-et-Futuna",
+      "code": "FR-WF",
+      "area": 142
+    }
+  ]
+}

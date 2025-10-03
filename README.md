@@ -90,12 +90,25 @@ L'interface comprend :
 
 ## 📊 Données géographiques
 
-Le projet utilise actuellement des données de démonstration. Pour un usage en production, il faudrait intégrer de vraies données géographiques :
+Le projet utilise maintenant **de vraies données géographiques** issues de Natural Earth :
 
-- **Sources recommandées** :
-  - [Natural Earth](https://www.naturalearthdata.com/)
-  - [OpenStreetMap](https://www.openstreetmap.org/)
-  - [INSEE - Données géographiques](https://www.insee.fr/fr/information/2028028)
+- **Source** : [Natural Earth v5.1.2](https://www.naturalearthdata.com/)
+- **Résolution** : 50m (équilibre entre précision et taille des fichiers)
+- **Format** : TopoJSON optimisé
+- **Mise à jour** : Automatique via script de téléchargement
+
+### Préparation des données
+
+```bash
+# Télécharger et traiter les données Natural Earth
+pnpm run prepare-data
+```
+
+Ce script :
+1. Télécharge les données mondiales Natural Earth
+2. Filtre les territoires français (métropole + DOM-TOM)
+3. Optimise le format TopoJSON
+4. Génère les métadonnées (superficies, codes, etc.)
 
 ### Territoires couverts
 

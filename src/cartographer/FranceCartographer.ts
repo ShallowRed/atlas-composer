@@ -1,30 +1,56 @@
 import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
-import { FranceGeoDataService } from '../services/FranceGeoDataService'
+import { RealGeoDataService } from '../services/RealGeoDataService'
 
 export class FranceCartographer {
   private projectionService: GeoProjectionService
-  private geoDataService: FranceGeoDataService
+  private geoDataService: RealGeoDataService
   private scalePreservation: boolean = true
 
   constructor() {
     this.projectionService = new GeoProjectionService()
-    this.geoDataService = new FranceGeoDataService()
+    this.geoDataService = new RealGeoDataService()
   }
 
   async init() {
     console.log('🗺️ Initialisation du cartographe France...')
     
-    // Charger les données géographiques
-    await this.geoDataService.loadAllData()
-    
-    // Configurer les contrôles
-    this.setupControls()
-    
-    // Créer les cartes initiales
-    this.renderMaps()
-    
-    console.log('✅ Cartographe France initialisé')
+    try {
+      // Charger les données géographiques
+      await this.geoDataService.loadData()
+      
+      // Afficher les territoires chargés
+      const territories = this.geoDataService.getTerritoryInfo()
+      console.log(`📊 ${territories.length} territoires chargés:`)
+      territories.forEach(t => {
+        console.log(`  • ${t.name} (${t.code}): ${t.area.toLocaleString()} km²`)
+      })
+      
+      // Configurer les contrôles
+      this.setupControls()
+      
+      // Créer les cartes initiales
+      await this.renderMaps()
+      
+      console.log('✅ Cartographe France initialisé avec succès')
+      
+    } catch (error) {
+      console.error('❌ Erreur initialisation cartographe:', error)
+      
+      // Afficher un message d'erreur à l'utilisateur
+      const appContainer = document.getElementById('app')
+      if (appContainer) {
+        const errorDiv = document.createElement('div')
+        errorDiv.style.cssText = 'background: #ffe6e6; border: 1px solid #ff6b6b; padding: 20px; margin: 20px; border-radius: 8px; color: #d63031;'
+        errorDiv.innerHTML = `
+          <h3>⚠️ Erreur de chargement des données</h3>
+          <p>Impossible de charger les données géographiques.</p>
+          <p><strong>Erreur:</strong> ${error instanceof Error ? error.message : String(error)}</p>
+          <p><strong>Solution:</strong> Vérifiez que le script de préparation a été exécuté: <code>pnpm run prepare-data</code></p>
+        `
+        appContainer.insertBefore(errorDiv, appContainer.firstChild)
+      }
+    }
   }
 
   private setupControls() {
@@ -69,7 +95,15 @@ export class FranceCartographer {
     const franceData = await this.geoDataService.getMetropoleData()
     if (!franceData) return
 
-    const projection = this.projectionService.getProjection(projectionType, franceData)
+    // Pour la France métropolitaine, utiliser une projection spécialisée
+    const projection = projectionType === 'albers' ? 
+      {
+        type: 'conic-conformal' as const,
+        parallels: [45.898889, 47.696014], // Parallèles standards pour la France
+        rotate: [-3, 0], // Centré sur la France
+        domain: franceData
+      } : 
+      this.projectionService.getProjection(projectionType, franceData)
     
     const plot = Plot.plot({
       width: 500,
@@ -79,14 +113,16 @@ export class FranceCartographer {
         Plot.geo(franceData, {
           fill: '#e8f5e8',
           stroke: '#2d5a2d',
-          strokeWidth: 0.5
+          strokeWidth: 1.2
         }),
-        Plot.frame({stroke: '#333'})
+        Plot.frame({stroke: '#333', strokeWidth: 1})
       ]
     })
 
     container.innerHTML = ''
     container.appendChild(plot)
+    
+    console.log('🇫🇷 France métropolitaine rendue avec projection:', projection.type || projectionType)
   }
 
   private async renderDOMTOMMap(projectionType: string) {
@@ -96,46 +132,119 @@ export class FranceCartographer {
     const domtomData = await this.geoDataService.getDOMTOMData()
     if (!domtomData || domtomData.length === 0) return
 
-    // Créer une grille pour afficher les DOM-TOM
+    // Créer une grille pour afficher les DOM-TOM par région
     const gridContainer = document.createElement('div')
     gridContainer.style.display = 'grid'
-    gridContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))'
-    gridContainer.style.gap = '10px'
+    gridContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))'
+    gridContainer.style.gap = '15px'
 
+    // Grouper par région
+    const territoryGroups = new Map<string, any[]>()
     for (const territory of domtomData) {
-      const territoryContainer = document.createElement('div')
-      territoryContainer.style.textAlign = 'center'
-      
-      const title = document.createElement('h4')
-      title.textContent = territory.name
-      title.style.margin = '5px 0'
-      
-      const mapDiv = document.createElement('div')
-      
-      const projection = this.projectionService.getProjection(projectionType, territory.data)
-      
-      const plot = Plot.plot({
-        width: 180,
-        height: 150,
-        projection,
-        marks: [
-          Plot.geo(territory.data, {
-            fill: '#e8f5e8',
-            stroke: '#2d5a2d',
-            strokeWidth: 0.5
-          }),
-          Plot.frame({stroke: '#333'})
-        ]
-      })
+      const region = territory.region || 'Autre'
+      if (!territoryGroups.has(region)) {
+        territoryGroups.set(region, [])
+      }
+      territoryGroups.get(region)!.push(territory)
+    }
 
-      territoryContainer.appendChild(title)
-      territoryContainer.appendChild(mapDiv)
-      mapDiv.appendChild(plot)
-      gridContainer.appendChild(territoryContainer)
+    for (const [region, territories] of territoryGroups) {
+      const regionContainer = document.createElement('div')
+      regionContainer.style.border = '1px solid #ddd'
+      regionContainer.style.borderRadius = '8px'
+      regionContainer.style.padding = '10px'
+      regionContainer.style.backgroundColor = '#fafafa'
+      
+      const regionTitle = document.createElement('h3')
+      regionTitle.textContent = region
+      regionTitle.style.margin = '0 0 10px 0'
+      regionTitle.style.fontSize = '1rem'
+      regionTitle.style.color = '#555'
+      regionTitle.style.borderBottom = '1px solid #ddd'
+      regionTitle.style.paddingBottom = '5px'
+      regionContainer.appendChild(regionTitle)
+      
+      for (const territory of territories) {
+        const territoryContainer = document.createElement('div')
+        territoryContainer.style.marginBottom = '10px'
+        
+        const title = document.createElement('h4')
+        title.textContent = `${territory.name} (${territory.area.toLocaleString()} km²)`
+        title.style.margin = '5px 0'
+        title.style.fontSize = '0.85rem'
+        
+        const mapDiv = document.createElement('div')
+        
+        // Projection adaptée selon la région
+        const projection = this.getRegionalProjection(territory.region, territory.data)
+        
+        const plot = Plot.plot({
+          width: 200,
+          height: 160,
+          projection,
+          marks: [
+            Plot.geo(territory.data, {
+              fill: this.getRegionColor(territory.region),
+              stroke: '#2d4a2d',
+              strokeWidth: 0.8
+            }),
+            Plot.frame({stroke: '#333'})
+          ]
+        })
+
+        territoryContainer.appendChild(title)
+        territoryContainer.appendChild(mapDiv)
+        mapDiv.appendChild(plot)
+        regionContainer.appendChild(territoryContainer)
+      }
+      
+      gridContainer.appendChild(regionContainer)
     }
 
     container.innerHTML = ''
     container.appendChild(gridContainer)
+  }
+
+  private getRegionalProjection(region: string, data: any) {
+    // Projections adaptées par région géographique
+    switch (region) {
+      case 'Antilles':
+        return {
+          type: 'mercator' as const,
+          domain: data
+        }
+      case 'Amérique du Sud':
+        return {
+          type: 'mercator' as const,
+          domain: data
+        }
+      case 'Océan Indien':
+        return {
+          type: 'mercator' as const,
+          domain: data
+        }
+      case 'Océan Pacifique':
+        return {
+          type: 'mercator' as const,
+          domain: data
+        }
+      default:
+        return {
+          type: 'mercator' as const,
+          domain: data
+        }
+    }
+  }
+
+  private getRegionColor(region: string): string {
+    const colors = {
+      'Antilles': '#e8f5e8',
+      'Amérique du Sud': '#ffe8e8', 
+      'Océan Indien': '#e8e8ff',
+      'Océan Pacifique': '#fff8e8',
+      'Amérique du Nord': '#f8e8ff'
+    }
+    return colors[region as keyof typeof colors] || '#f0f0f0'
   }
 
   private async renderUnifiedMap(projectionType: string) {
