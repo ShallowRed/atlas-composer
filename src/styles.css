@@ -4,29 +4,3 @@
   /* themes: light --default, dark --prefersdark; */
 }
 @import "remixicon/fonts/remixicon.css";
-
-/* Composite-only controls visibility */
-.composite-only {
-  display: block;
-}
-
-.domtom-grid {
-  @apply flex flex-col gap-4;
-}
-
-.region-container {
-  @apply bg-base-200 border border-base-300 p-4 rounded-lg;
-  @apply grid grid-cols-1 md:grid-cols-2 gap-2;
-}
-
-.region-container .region-title {
-  @apply col-span-full text-base font-semibold;
-}
-
-.territory-container {
-  @apply bg-base-100 border border-base-300 p-4 rounded-md;
-}
-
-.territory-container .territory-title {
-  @apply text-sm font-bold mb-2;
-}

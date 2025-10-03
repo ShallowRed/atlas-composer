@@ -184,11 +184,11 @@ export class RealGeoDataService {
     
     for (const polygon of feature.geometry.coordinates) {
       const firstRing = polygon[0]
-      if (firstRing.length === 0) continue
+      if (!firstRing || firstRing.length === 0) continue
       
       // Analyze coordinates of the first ring to determine region
-      const lons = firstRing.map(coord => coord[0])
-      const lats = firstRing.map(coord => coord[1])
+      const lons = firstRing.map(coord => coord[0]) as number[]
+      const lats = firstRing.map(coord => coord[1]) as number[]
       const minLon = Math.min(...lons)
       const maxLon = Math.max(...lons)
       const minLat = Math.min(...lats)
@@ -226,11 +226,11 @@ export class RealGeoDataService {
     
     for (const polygon of feature.geometry.coordinates) {
       const firstRing = polygon[0]
-      if (firstRing.length === 0) continue
+      if (!firstRing || firstRing?.length === 0) continue
       
       // Analyser les coordonnées pour identifier le territoire
-      const lons = firstRing.map(coord => coord[0])
-      const lats = firstRing.map(coord => coord[1])
+      const lons = firstRing.map(coord => coord[0]) as number[]
+      const lats = firstRing.map(coord => coord[1]) as number[]
       const minLon = Math.min(...lons)
       const maxLon = Math.max(...lons)
       const minLat = Math.min(...lats)
@@ -503,8 +503,8 @@ export class RealGeoDataService {
           // Target position according to inset configuration (relative to France center)
           const franceCenterLon = 2
           const franceCenterLat = 46
-          const targetLon = franceCenterLon + insetConfig.translate[0]
-          const targetLat = franceCenterLat + insetConfig.translate[1]
+          const targetLon = franceCenterLon + (insetConfig.translate[0] as number)
+          const targetLat = franceCenterLat + (insetConfig.translate[1] as number)
           
           // Repositionner et redimensionner selon la configuration
           this.repositionGeometryToTarget(feature.geometry, targetLon, targetLat)
@@ -517,6 +517,7 @@ export class RealGeoDataService {
             { lon: 2, lat: 49 }, { lon: 2, lat: 43 }, { lon: 7, lat: 46 }, { lon: -3, lat: 46 }
           ]
           const targetPosition = fallbackPositions[index % fallbackPositions.length]
+          if (!targetPosition) return
           this.repositionGeometryToTarget(feature.geometry, targetPosition.lon, targetPosition.lat)
           this.scaleGeometry(feature.geometry, 0.4)
         }

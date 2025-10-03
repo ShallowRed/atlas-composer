@@ -9,7 +9,7 @@ export interface CartographerSettings {
   activeTab: string
 }
 
-export class VueCartographer {
+export class Cartographer {
   private projectionService: GeoProjectionService
   private geoDataService: RealGeoDataService
   private settings: CartographerSettings = {
@@ -43,6 +43,11 @@ export class VueCartographer {
 
   async renderVueComposite(container: HTMLElement): Promise<void> {
     console.log('Rendering Vue composite map...')
+    
+    if (!container) {
+      console.error('Vue composite container is null')
+      throw new Error('Container element is not available')
+    }
     
     try {
       // Clear container
@@ -101,6 +106,11 @@ export class VueCartographer {
   async renderProjectionComposite(container: HTMLElement): Promise<void> {
     console.log('Rendering projection composite map...')
     
+    if (!container) {
+      console.error('Container element is not available for projection composite rendering')
+      return
+    }
+    
     try {
       // Clear container
       container.innerHTML = ''
@@ -111,8 +121,8 @@ export class VueCartographer {
         throw new Error('No raw unified data available')
       }
 
-      // ALWAYS use the composite geoAlbersFrance projection
-      const projection = this.projectionService.getProjection('albers-france', rawData)
+      // Use the selected composite projection (albers-france or conic-conformal-france)
+      const projection = this.projectionService.getProjection(this.settings.selectedProjection, rawData)
 
       // Create plot
       const plot = Plot.plot({
@@ -128,7 +138,7 @@ export class VueCartographer {
             stroke: '#94a3b8',
             strokeWidth: 0.3
           }),
-          Plot.frame({ stroke: '#e2e8f0', strokeWidth: 1 })
+          Plot.frame({ opacity: 0.2 })
         ]
       })
 
@@ -211,7 +221,7 @@ export class VueCartographer {
               stroke: '#2d5a2d',
               strokeWidth: 1.2
             }),
-            Plot.frame({ stroke: '#333', strokeWidth: 1 })
+            Plot.frame({ opacity: 0.2 })
           ]
         })
         metroMapContainer.appendChild(metroPlot)
@@ -281,7 +291,7 @@ export class VueCartographer {
                     stroke: '#2d4a2d',
                     strokeWidth: 0.8
                   }),
-                  Plot.frame({ stroke: '#333' })
+                  Plot.frame({ opacity: 0.2 })
                 ]
               })
 

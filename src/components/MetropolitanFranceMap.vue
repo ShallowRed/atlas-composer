@@ -5,46 +5,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
+import { useGeoDataStore } from '../stores/geoData'
+import { useConfigStore } from '../stores/config'
 
-interface Props {
-  geoData: GeoJSON.FeatureCollection
-  projectionType: string
-}
-
-const props = defineProps<Props>()
+const geoDataStore = useGeoDataStore()
+const configStore = useConfigStore()
 const mapContainer = ref<HTMLElement>()
 const projectionService = new GeoProjectionService()
 
-const renderMap = () => {
-  if (!mapContainer.value || !props.geoData) return
+const renderMap = async () => {
+  if (!mapContainer.value) {
+    console.warn('Map container not available yet')
+    return
+  }
+
+  // Ensure data is loaded
+  if (!geoDataStore.metropolitanFranceData) {
+    console.log('Loading metropolitan France data...')
+    await geoDataStore.loadTerritoryData()
+  }
+
+  const geoData = geoDataStore.metropolitanFranceData
+  if (!geoData) {
+    console.warn('No metropolitan France data available')
+    return
+  }
 
   try {
     mapContainer.value.innerHTML = ''
     
     // Use specialized projection for metropolitan France (like original)
-    const projection = props.projectionType === 'albers' 
+    const projection = configStore.selectedProjection === 'albers' 
       ? {
           type: 'conic-conformal' as const,
           parallels: [45.898889, 47.696014] as [number, number],
           rotate: [-3, 0] as [number, number],
-          domain: props.geoData
+          domain: geoData
         }
-      : projectionService.getProjection(props.projectionType, props.geoData)
+      : projectionService.getProjection(configStore.selectedProjection, geoData)
 
     const plot = Plot.plot({
       width: 500,
       height: 400,
       projection,
       marks: [
-        Plot.geo(props.geoData, {
+        Plot.geo(geoData, {
           fill: '#e8f5e8',
           stroke: '#2d5a2d',
           strokeWidth: 1.2
         }),
-        Plot.frame({ stroke: '#333', strokeWidth: 1 })
+        Plot.frame({ opacity: 0.2 })
       ]
     })
     
@@ -54,11 +67,16 @@ const renderMap = () => {
   }
 }
 
-onMounted(() => {
-  renderMap()
+onMounted(async () => {
+  await nextTick() // Ensure DOM is ready
+  
+  // Add a small delay to ensure the container is fully initialized
+  setTimeout(async () => {
+    await renderMap()
+  }, 100)
 })
 
-watch(() => [props.geoData, props.projectionType], () => {
-  renderMap()
+watch(() => [geoDataStore.metropolitanFranceData, configStore.selectedProjection], async () => {
+  await renderMap()
 }, { deep: true })
 </script>

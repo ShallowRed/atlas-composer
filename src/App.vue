@@ -1,130 +1,49 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
-import { VueCartographer } from './cartographer/VueCartographer'
-import { PROJECTION_OPTIONS } from './services/GeoProjectionService'
+import { onMounted, nextTick } from 'vue'
+import { useConfigStore } from './stores/config'
+import { useGeoDataStore } from './stores/geoData'
 import MetropolitanFranceMap from './components/MetropolitanFranceMap.vue'
 import DOMTOMGrid from './components/DOMTOMGrid.vue'
+import VueCompositeMap from './components/VueCompositeMap.vue'
+import ProjectionCompositeMap from './components/ProjectionCompositeMap.vue'
 
-// State management
-const isLoading = ref(true)
-const error = ref<string | null>(null)
-const cartographer = ref<VueCartographer | null>(null)
-
-// Control state
-const controls = reactive({
-  scalePreservation: true,
-  selectedProjection: 'albers-france',
-  territoryMode: 'metropole-major'
-})
-
-// Territory data state
-const metropolitanFranceData = ref<GeoJSON.FeatureCollection | null>(null)
-const domtomTerritoriesData = ref<any[]>([])
-
-// Tab management
-const activeTab = ref('vue-composite')
-
-// Template refs
-const vueCompositeContainer = ref<HTMLElement>()
-const projectionCompositeContainer = ref<HTMLElement>()
-
-// Computed properties
-const projectionGroups = computed(() => {
-  const groups: { [key: string]: any[] } = {}
-  PROJECTION_OPTIONS.forEach(option => {
-    if (!groups[option.category]) {
-      groups[option.category] = []
-    }
-    groups[option.category]!.push(option)
-  })
-  
-  return Object.entries(groups).map(([category, options]) => ({
-    category,
-    options
-  }))
-})
-
-const showProjectionSelector = computed(() => {
-  return activeTab.value !== 'projection-composite'
-})
-
-const showTerritorySelector = computed(() => {
-  return activeTab.value === 'vue-composite' || activeTab.value === 'projection-composite'
-})
+// Stores
+const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
 
 // Methods
-const switchTab = async (tabId: string) => {
-  activeTab.value = tabId
-  await nextTick()
-  updateMaps()
-}
-
-const loadTerritoryData = async () => {
-  if (!cartographer.value) return
+const switchTab = async (tabId: 'vue-composite' | 'projection-composite' | 'individual-territories') => {
+  configStore.setActiveTab(tabId)
   
-  try {
-    // Load metropolitan France data
-    const geoDataService = (cartographer.value as any).geoDataService
-    metropolitanFranceData.value = await geoDataService.getMetropoleData()
-    domtomTerritoriesData.value = await geoDataService.getDOMTOMData()
-  } catch (err) {
-    console.error('Error loading territory data:', err)
-    throw err
+  await nextTick() // Wait for DOM to update
+  
+  // Load territory data if we're switching to individual territories tab
+  if (tabId === 'individual-territories' && !geoDataStore.metropolitanFranceData) {
+    await geoDataStore.loadTerritoryData()
   }
 }
 
 const updateMaps = async () => {
-  if (!cartographer.value) return
-  
-  try {
-    isLoading.value = true
-    error.value = null
-    
-    // Update cartographer with new settings
-    cartographer.value.updateSettings({
-      scalePreservation: controls.scalePreservation,
-      selectedProjection: controls.selectedProjection,
-      territoryMode: controls.territoryMode,
-      activeTab: activeTab.value
-    })
-    
-    // Load territory data if we're on the individual territories tab
-    if (activeTab.value === 'individual-territories') {
-      await loadTerritoryData()
-    }
-    
-    // Render appropriate maps based on active tab
-    switch (activeTab.value) {
-      case 'vue-composite':
-        await cartographer.value.renderVueComposite(vueCompositeContainer.value!)
-        break
-      case 'projection-composite':
-        await cartographer.value.renderProjectionComposite(projectionCompositeContainer.value!)
-        break
-      case 'individual-territories':
-        // Data is now loaded in Vue state, no need for DOM manipulation
-        break
-    }
-    
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Erreur lors du rendu des cartes'
-    console.error('Map update error:', err)
-  } finally {
-    isLoading.value = false
-  }
+  geoDataStore.updateCartographerSettings()
 }
 
 // Lifecycle
 onMounted(async () => {
   try {
-    cartographer.value = new VueCartographer()
-    await cartographer.value.init()
-    await updateMaps()
+    // Initialize theme
+    configStore.initializeTheme()
+    
+    // Initialize geo data store
+    await geoDataStore.initialize()
+    
+    // Load territory data for initial render if needed
+    if (configStore.activeTab === 'individual-territories') {
+      await geoDataStore.loadTerritoryData()
+    }
+    
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
+    geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
     console.error('Initialization error:', err)
-  } finally {
-    isLoading.value = false
   }
 })
 </script>
@@ -160,7 +79,12 @@ onMounted(async () => {
                   Thème
                 </span>
               </label>
-              <select class="select cursor-pointer">
+                            <select 
+                id="theme-select"
+                class="select cursor-pointer"
+                v-model="configStore.theme"
+                @change="configStore.setTheme(configStore.theme)"
+              >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="cupcake">Cupcake</option>
@@ -202,12 +126,12 @@ onMounted(async () => {
               </label>
               <select 
                 class="select cursor-pointer"
-                v-model="controls.selectedProjection"
+                v-model="configStore.selectedProjection"
                 @change="updateMaps"
-                :disabled="!showProjectionSelector"
+                :disabled="!configStore.showProjectionSelector"
               >
                 <optgroup 
-                  v-for="group in projectionGroups" 
+                  v-for="group in configStore.projectionGroups" 
                   :key="group.category" 
                   :label="group.category"
                 >
@@ -222,8 +146,8 @@ onMounted(async () => {
               </select>
             </div>
             
-            <!-- Scale Preservation -->
-            <div class="form-control separate-only">
+            <!-- Scale Preservation (Individual Territories Only) -->
+            <div class="form-control" v-show="configStore.showScalePreservation">
               <label class="label cursor-pointer flex flex-row-reverse justify-end gap-2">
                 <span>
                   Préserver les rapports de taille
@@ -231,20 +155,20 @@ onMounted(async () => {
                 <input 
                   type="checkbox" 
                   class="toggle toggle-primary" 
-                  v-model="controls.scalePreservation"
+                  v-model="configStore.scalePreservation"
                   @change="updateMaps"
                 />
               </label>
             </div>
 
-            <!-- Territory Selection (Both Composite Views) -->
-            <div class="form-control composite-only composite-raw-only" v-show="showTerritorySelector">
+            <!-- Territory Selection (All Tabs) -->
+            <div class="form-control composite-only composite-raw-only" v-show="configStore.showTerritorySelector">
               <label class="label mb-1">
                 Territoires à inclure
               </label>
               <select 
                 class="select cursor-pointer"
-                v-model="controls.territoryMode"
+                v-model="configStore.territoryMode"
                 @change="updateMaps"
               >
                 <option value="metropole-only">Métropole seule</option>
@@ -265,15 +189,15 @@ onMounted(async () => {
           class="tab" 
           aria-label="Vue Composite" 
           id="tab-composite" 
-          :checked="activeTab === 'vue-composite'" 
+          :checked="configStore.activeTab === 'vue-composite'" 
           @change="switchTab('vue-composite')" 
         />
-        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-show="activeTab === 'vue-composite'">
+        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'vue-composite'">
           <h2 class="card-title mb-2">
             <i class="ri-map-2-line text-lg"></i>
             Vue d'ensemble avec repositionnement
           </h2>
-          <div ref="vueCompositeContainer" class="map-plot"></div>
+          <VueCompositeMap />
         </div>
 
         <input 
@@ -282,10 +206,10 @@ onMounted(async () => {
           class="tab" 
           aria-label="Projection Composite" 
           id="tab-composite-raw" 
-          :checked="activeTab === 'projection-composite'" 
+          :checked="configStore.activeTab === 'projection-composite'" 
           @change="switchTab('projection-composite')" 
         />
-        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-show="activeTab === 'projection-composite'">
+        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'projection-composite'">
           <h2 class="card-title mb-2">
             <i class="ri-global-line text-lg"></i>
             Projection composite (coordonnées originales)
@@ -293,7 +217,7 @@ onMounted(async () => {
           <p class="text-sm opacity-70 mb-4">
             Utilise la projection composite geoAlbersFrance avec les coordonnées originales. Reproduit l'effet de "Vue Composite" mais avec repositionnement géré par la projection.
           </p>
-          <div ref="projectionCompositeContainer" class="map-plot"></div>
+          <ProjectionCompositeMap />
         </div>
 
         <input 
@@ -302,10 +226,10 @@ onMounted(async () => {
           class="tab" 
           aria-label="Territoires Séparés" 
           id="tab-separate" 
-          :checked="activeTab === 'individual-territories'" 
+          :checked="configStore.activeTab === 'individual-territories'" 
           @change="switchTab('individual-territories')" 
         />
-        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-show="activeTab === 'individual-territories'">
+        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'individual-territories'">
           <!-- Separate Territory Views Content -->
           <div class="flex flex-row gap-12">
             <!-- Metropolitan France -->
@@ -314,11 +238,7 @@ onMounted(async () => {
                 <i class="ri-map-pin-line text-lg"></i>
                 France Métropolitaine
               </h2>
-              <MetropolitanFranceMap
-                v-if="metropolitanFranceData"
-                :geo-data="metropolitanFranceData"
-                :projection-type="controls.selectedProjection"
-              />
+              <MetropolitanFranceMap />
             </div>
             
             <!-- DOM-TOM -->
@@ -327,12 +247,7 @@ onMounted(async () => {
                 <i class="ri-earth-line text-lg"></i>
                 Départements et Collectivités d'Outre-Mer
               </h2>
-              <DOMTOMGrid
-                :territories="domtomTerritoriesData"
-                :projection-type="controls.selectedProjection"
-                :preserve-scale="controls.scalePreservation"
-                :territory-mode="controls.territoryMode"
-              />
+              <DOMTOMGrid />
             </div>
           </div>
         </div>
@@ -341,7 +256,7 @@ onMounted(async () => {
   </div>
 
     <!-- Loading Indicator -->
-    <div v-if="isLoading" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div v-if="geoDataStore.isLoading" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body items-center text-center">
           <div class="loading loading-spinner loading-lg text-primary"></div>
@@ -352,11 +267,11 @@ onMounted(async () => {
     </div>
 
     <!-- Error Display -->
-    <div v-if="error" class="toast toast-top toast-end">
+    <div v-if="geoDataStore.error" class="toast toast-top toast-end">
       <div class="alert alert-error">
         <i class="ri-error-warning-line"></i>
-        <span>{{ error }}</span>
-        <button class="btn btn-sm btn-ghost" @click="error = null">
+        <span>{{ geoDataStore.error }}</span>
+        <button class="btn btn-sm btn-ghost" @click="geoDataStore.clearError()">
           <i class="ri-close-line"></i>
         </button>
       </div>
