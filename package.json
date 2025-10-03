@@ -1,0 +1,25 @@
+{
+  "name": "cartos-resp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/d3-geo": "^3.1.0",
+    "@types/topojson-client": "^3.1.5",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "@observablehq/plot": "^0.6.17",
+    "d3": "^7.9.0",
+    "d3-geo": "^3.1.1",
+    "proj4": "^2.19.10",
+    "topojson-client": "^3.1.0"
+  }
+}

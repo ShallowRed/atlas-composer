@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartographies de la France avec DOM-TOM</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Cartographies de la France avec DOM-TOM</h1>
+        <p>Représentation côte à côte de la métropole et des outre-mer avec préservation des rapports de taille</p>
+      </header>
+      
+      <main>
+        <section id="controls">
+          <div class="control-group">
+            <label for="projection-select">Projection :</label>
+            <select id="projection-select">
+              <option value="albers">Albers (métropole)</option>
+              <option value="mercator">Mercator</option>
+              <option value="natural-earth">Equal Earth</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="scale-preservation">
+              <input type="checkbox" id="scale-preservation" checked>
+              Préserver les rapports de taille réels
+            </label>
+          </div>
+        </section>
+
+        <section id="maps">
+          <div id="france-metropole" class="map-container">
+            <h2>France Métropolitaine</h2>
+            <div class="map-plot"></div>
+          </div>
+          
+          <div id="dom-tom" class="map-container">
+            <h2>Départements et Collectivités d'Outre-Mer</h2>
+            <div class="map-plot"></div>
+          </div>
+        </section>
+
+        <section id="unified-map">
+          <h2>Vue d'ensemble avec repositionnement</h2>
+          <div id="unified-plot" class="map-plot"></div>
+        </section>
+
+        <section id="info">
+          <div class="info-panel">
+            <h3>Informations sur les territoires</h3>
+            <div id="territory-info"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
