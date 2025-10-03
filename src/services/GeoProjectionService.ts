@@ -267,7 +267,7 @@ export const PROJECTION_OPTIONS: ProjectionOption[] = [
   // Projections de Compromis
   { value: 'robinson', label: 'Robinson', category: 'Projections de Compromis' },
   { value: 'winkel3', label: 'Winkel Tripel', category: 'Projections de Compromis' },
-  { value: 'natural-earth1', label: 'Natural Earth I', category: 'Projections de Compromis' },
+          // { value: 'natural-earth', label: 'Natural Earth', category: 'Pseudocylindriques' }, // Temporarily disabled due to import issue
   
   // Projections Historiques/Artistiques
   { value: 'aitoff', label: 'Aitoff', category: 'Projections Artistiques' },
@@ -397,11 +397,11 @@ export class GeoProjectionService {
           type: () => d3GeoProjection.geoWinkel3(),
           domain: data
         }
-      case 'natural-earth1':
-        return {
-          type: () => d3GeoProjection.geoNaturalEarth1(),
-          domain: data
-        }
+      // case 'natural-earth1':
+      //   return {
+      //     type: () => d3GeoProjection.geoNaturalEarth1(),
+      //     domain: data
+      //   }
       case 'aitoff':
         return {
           type: () => d3GeoProjection.geoAitoff(),

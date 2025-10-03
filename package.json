@@ -13,8 +13,11 @@
     "@types/d3": "^7.4.3",
     "@types/d3-geo": "^3.1.0",
     "@types/topojson-client": "^3.1.5",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
     "typescript": "~5.9.3",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vue-tsc": "^3.1.0"
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.17",
@@ -26,6 +29,7 @@
     "proj4": "^2.19.10",
     "remixicon": "^4.6.0",
     "tailwindcss": "^4.1.14",
-    "topojson-client": "^3.1.0"
+    "topojson-client": "^3.1.0",
+    "vue": "^3.5.22"
   }
 }
