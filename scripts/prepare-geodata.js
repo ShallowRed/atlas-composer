@@ -1,27 +1,33 @@
 #!/usr/bin/env node
 
 /**
- * Script pour télécharger et préparer les données géographiques Natural Earth
- * pour la France et ses territoires d'outre-mer
+ * Geographic Data Preparation Script
+ * Downloads Natural Earth world data and filters French territories (metropolitan + DOM-TOM)
+ * Creates optimized TopoJSON files for cartographic visualization
  */
 
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = path.join(__dirname, '../public/data')
 
-// URLs Natural Earth pour les données 50m (résolution moyenne)
-const NATURAL_EARTH_URLS = {
-  countries: 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json',
-  land: 'https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json'
+// Terminal colors for pretty console output
+const colors = {
+  green: '\x1b[32m',
+  blue: '\x1b[34m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+  reset: '\x1b[0m'
 }
 
-// IDs et noms pour les territoires français (Natural Earth - réels trouvés)
+// Natural Earth data source - pre-built world atlas at 50m resolution
+const NATURAL_EARTH_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json'
+
+// French territories mapping: Natural Earth ID → Territory metadata
+// Includes metropolitan France and all overseas departments/territories (DOM-TOM)
 const FRANCE_TERRITORIES = {
-  // Territoires confirmés présents dans Natural Earth 50m
   '250': { name: 'France métropolitaine', code: 'FR-MET', iso: 'FRA' },
   '666': { name: 'Saint-Pierre-et-Miquelon', code: 'FR-PM', iso: 'SPM' },
   '876': { name: 'Wallis-et-Futuna', code: 'FR-WF', iso: 'WLF' },
@@ -31,57 +37,65 @@ const FRANCE_TERRITORIES = {
   '663': { name: 'Saint-Martin', code: 'FR-MF', iso: 'MAF' }
 }
 
+/**
+ * Downloads geographic data from URL and saves to local file
+ * @param {string} url - Source URL for the geographic data
+ * @param {string} filename - Local filename to save the data
+ * @returns {Promise<Object>} Parsed JSON data
+ */
 async function downloadData(url, filename) {
   try {
-    console.log(`📥 Téléchargement: ${filename}`)
+    console.log(`${colors.blue}Downloading: ${filename}${colors.reset}`)
     const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-    const data = await response.json()
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
     
+    const data = await response.json()
     const filepath = path.join(dataDir, filename)
     await fs.writeFile(filepath, JSON.stringify(data, null, 2))
-    console.log(`✅ Sauvegardé: ${filepath}`)
+    console.log(`${colors.green}Saved: ${filepath}${colors.reset}`)
     return data
   } catch (error) {
-    console.error(`❌ Erreur téléchargement ${filename}:`, error.message)
+    console.error(`${colors.red}Error downloading ${filename}:${colors.reset}`, error.message)
     throw error
   }
 }
 
+/**
+ * Extracts French territories from world geographic data
+ * Preserves TopoJSON topology (arcs, transform) for efficient rendering
+ * @param {Object} worldData - Complete Natural Earth world TopoJSON
+ * @returns {Object} Filtered TopoJSON containing only French territories
+ */
 function filterFranceData(worldData) {
   const franceFeatures = []
+  const countries = worldData.objects.countries.geometries || []
   
-  if (worldData.objects && worldData.objects.countries) {
-    // TopoJSON format
-    const countries = worldData.objects.countries.geometries || []
-    
-    for (const country of countries) {
-      const countryId = country.id?.toString()
-      if (FRANCE_TERRITORIES[countryId]) {
-        const territory = FRANCE_TERRITORIES[countryId]
-        franceFeatures.push({
-          ...country,
-          properties: {
-            ...country.properties,
-            name: territory.name,
-            code: territory.code,
-            iso: territory.iso,
-            id: countryId
-          }
-        })
-      }
+  // Iterate through all world countries to find French territories
+  for (const country of countries) {
+    const countryId = country.id?.toString()
+    if (FRANCE_TERRITORIES[countryId]) {
+      const territory = FRANCE_TERRITORIES[countryId]
+      // Enrich country data with French territory metadata
+      franceFeatures.push({
+        ...country,
+        properties: {
+          ...country.properties,
+          name: territory.name,
+          code: territory.code,
+          iso: territory.iso,
+          id: countryId
+        }
+      })
     }
-    
-    console.log(`🔍 Trouvé ${franceFeatures.length} territoires français sur ${countries.length} pays`)
   }
   
+  console.log(`Found ${franceFeatures.length} French territories from ${countries.length} countries`)
+  
+  // Create new TopoJSON with only French territories but preserve topology
   return {
     type: 'Topology',
-    arcs: worldData.arcs,
-    // Préserver la transformation TopoJSON pour les coordonnées géographiques correctes
-    transform: worldData.transform,
+    arcs: worldData.arcs,           // Keep original coordinate arcs
+    transform: worldData.transform, // Keep quantization transform
     objects: {
       territories: {
         type: 'GeometryCollection',
@@ -91,6 +105,10 @@ function filterFranceData(worldData) {
   }
 }
 
+/**
+ * Creates metadata file with territory information for the cartography app
+ * @returns {Object} Metadata object with data source info and territory details
+ */
 function createMetadata() {
   return {
     source: 'Natural Earth',
@@ -101,64 +119,49 @@ function createMetadata() {
       id,
       iso: info.iso,
       name: info.name,
-      code: info.code,
-      // Superficies approximatives en km²
-      area: getApproximateArea(id)
+      code: info.code
     }))
   }
 }
 
-function getApproximateArea(territoryId) {
-  const areas = {
-    '250': 543965,  // France métropolitaine
-    '666': 242,     // Saint-Pierre-et-Miquelon
-    '876': 142,     // Wallis-et-Futuna
-    '258': 4167,    // Polynésie française
-    '540': 18575,   // Nouvelle-Calédonie
-    '260': 439781,  // Terres australes françaises
-    '663': 53       // Saint-Martin
-  }
-  return areas[territoryId] || 0
-}
-
+/**
+ * Main execution function
+ * 1. Downloads Natural Earth world data
+ * 2. Filters to French territories only
+ * 3. Creates optimized files for cartographic application
+ */
 async function main() {
   try {
-    // Créer le dossier data s'il n'existe pas
+    // Ensure data directory exists
     await fs.mkdir(dataDir, { recursive: true })
     
-    console.log('🌍 Préparation des données géographiques Natural Earth')
-    console.log('='.repeat(50))
+    console.log(`${colors.blue}Preparing Natural Earth geographic data${colors.reset}`)
     
-    // Télécharger les données mondiales
-    const worldCountries = await downloadData(
-      NATURAL_EARTH_URLS.countries, 
-      'world-countries-50m.json'
-    )
-    
-    // Filtrer pour la France et ses territoires
-    console.log('🇫🇷 Extraction des territoires français...')
+    // Download and process world geographic data
+    const worldCountries = await downloadData(NATURAL_EARTH_URL, 'world-countries-50m.json')
     const franceData = filterFranceData(worldCountries)
     
-    // Sauvegarder les données France
+    // Save filtered French territories TopoJSON
     const francePath = path.join(dataDir, 'france-territories.json')
     await fs.writeFile(francePath, JSON.stringify(franceData, null, 2))
-    console.log(`✅ Données France sauvegardées: ${francePath}`)
+    console.log(`${colors.green}France data saved: ${francePath}${colors.reset}`)
     
-    // Créer les métadonnées
+    // Create and save metadata for the cartography application
     const metadata = createMetadata()
     const metadataPath = path.join(dataDir, 'metadata.json')
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2))
-    console.log(`✅ Métadonnées créées: ${metadataPath}`)
+    console.log(`${colors.green}Metadata created: ${metadataPath}${colors.reset}`)
     
-    console.log('\n🎉 Préparation des données terminée!')
-    console.log(`📊 ${franceData.objects.territories.geometries.length} territoires préparés`)
+    console.log(`\n${colors.green}Data preparation completed!${colors.reset}`)
+    console.log(`${franceData.objects.territories.geometries.length} territories prepared`)
     
   } catch (error) {
-    console.error('💥 Erreur lors de la préparation:', error.message)
+    console.error(`${colors.red}Error during preparation:${colors.reset}`, error.message)
     process.exit(1)
   }
 }
 
+// Run main function only when script is executed directly (not imported)
 if (import.meta.url === `file://${process.argv[1]}`) {
   main()
 }

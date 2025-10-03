@@ -1,71 +1,73 @@
 #!/usr/bin/env node
 
 /**
- * Script de diagnostic des données géographiques
+ * Geographic Data Diagnostic Script
+ * Validates integrity of prepared TopoJSON data and metadata
+ * Ensures consistency between data files for cartographic rendering
  */
 
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = path.join(__dirname, '../public/data')
 
+// Terminal colors for diagnostic output
+const colors = {
+  green: '\x1b[32m',
+  blue: '\x1b[34m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+  reset: '\x1b[0m'
+}
+
+/**
+ * Performs comprehensive diagnostic checks on geographic data files
+ * Validates TopoJSON structure and metadata consistency
+ * Ensures data integrity for cartographic application
+ */
 async function diagnosisData() {
   try {
-    console.log('🔍 Diagnostic des données géographiques\n')
+    console.log(`${colors.blue}Diagnostic des données géographiques${colors.reset}\n`)
     
-    // Vérifier les fichiers
+    // Load both data files for cross-validation
     const francePath = path.join(dataDir, 'france-territories.json')
     const metaPath = path.join(dataDir, 'metadata.json')
     
     const franceData = JSON.parse(await fs.readFile(francePath, 'utf-8'))
     const metaData = JSON.parse(await fs.readFile(metaPath, 'utf-8'))
     
-    console.log('📊 Métadonnées:')
-    console.log(`   Source: ${metaData.source} v${metaData.version}`)
-    console.log(`   Territoires: ${metaData.territories.length}`)
-    metaData.territories.forEach(t => {
-      console.log(`     • ${t.name} (${t.code}) - ${t.area.toLocaleString()} km²`)
-    })
+    // Display metadata summary
+    console.log('Métadonnées:')
+    console.log(`  Source: ${metaData.source} v${metaData.version}`)
+    console.log(`  Territoires: ${metaData.territories.length}`)
     
-    console.log('\n🗺️ Données TopoJSON:')
-    console.log(`   Type: ${franceData.type}`)
-    console.log(`   Arcs: ${franceData.arcs ? franceData.arcs.length : 'N/A'}`)
-    console.log(`   Objets: ${Object.keys(franceData.objects).join(', ')}`)
+    // Display TopoJSON structure information
+    console.log('\nDonnées TopoJSON:')
+    console.log(`  Type: ${franceData.type}`)
+    console.log(`  Arcs: ${franceData.arcs?.length || 'N/A'}`)
+    console.log(`  Géométries: ${franceData.objects.territories?.geometries?.length || 0}`)
     
-    if (franceData.objects.territories) {
-      const territories = franceData.objects.territories.geometries || []
-      console.log(`   Geometries: ${territories.length}`)
-      
-      territories.forEach((geom, i) => {
-        console.log(`     ${i+1}. ID: ${geom.id}, Type: ${geom.type}, Nom: ${geom.properties?.name || 'N/A'}`)
-        
-        // Vérifier les coordonnées
-        if (geom.arcs) {
-          console.log(`        Arcs: ${geom.arcs.length} groupe(s)`)
-        }
-      })
-    }
-    
-    // Vérifier la cohérence
+    // Cross-validate data consistency
     const metaCount = metaData.territories.length
     const geomCount = franceData.objects.territories?.geometries?.length || 0
     
-    console.log('\n✅ Vérifications:')
-    console.log(`   Métadonnées: ${metaCount} territoires`)
-    console.log(`   Géométries: ${geomCount} features`)
+    console.log('\nVérifications:')
+    console.log(`  Métadonnées: ${metaCount} territoires`)
+    console.log(`  Géométries: ${geomCount} features`)
     
+    // Check if metadata and geometry counts match
     if (metaCount === geomCount) {
-      console.log('   ✅ Cohérence OK')
+      console.log(`  ${colors.green}Cohérence OK${colors.reset}`)
     } else {
-      console.log('   ⚠️ Incohérence détectée!')
+      console.log(`  ${colors.yellow}Incohérence détectée${colors.reset}`)
     }
     
   } catch (error) {
-    console.error('❌ Erreur diagnostic:', error.message)
+    console.error(`${colors.red}Erreur:${colors.reset}`, error.message)
   }
 }
 
+// Execute diagnostic when script is run directly
 diagnosisData()

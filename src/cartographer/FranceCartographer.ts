@@ -1,7 +1,7 @@
 import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import { RealGeoDataService } from '../services/RealGeoDataService'
-
+import * as d3 from 'd3'
 export class FranceCartographer {
   private projectionService: GeoProjectionService
   private geoDataService: RealGeoDataService
@@ -56,6 +56,7 @@ export class FranceCartographer {
   private setupControls() {
     const projectionSelect = document.getElementById('projection-select') as HTMLSelectElement
     const scalePreservationCheck = document.getElementById('scale-preservation') as HTMLInputElement
+    const unifiedViewModeSelect = document.getElementById('unified-view-mode') as HTMLSelectElement
 
     projectionSelect?.addEventListener('change', () => {
       this.renderMaps()
@@ -64,6 +65,11 @@ export class FranceCartographer {
     scalePreservationCheck?.addEventListener('change', (event) => {
       this.scalePreservation = (event.target as HTMLInputElement).checked
       this.renderMaps()
+    })
+
+    unifiedViewModeSelect?.addEventListener('change', () => {
+      // Ne re-rendre que la vue unifiée pour de meilleures performances
+      this.renderUnifiedMap((document.getElementById('projection-select') as HTMLSelectElement)?.value || 'albers')
     })
   }
 
@@ -96,14 +102,14 @@ export class FranceCartographer {
     if (!franceData) return
 
     // Pour la France métropolitaine, utiliser une projection spécialisée
-    const projection = projectionType === 'albers' ? 
-      {
-        type: 'conic-conformal' as const,
-        parallels: [45.898889, 47.696014], // Parallèles standards pour la France
-        rotate: [-3, 0], // Centré sur la France
-        domain: franceData
-      } : 
-      this.projectionService.getProjection(projectionType, franceData)
+    const projection = projectionType === 'albers' 
+      ? {
+          type: 'conic-conformal' as const,
+          parallels: [45.898889, 47.696014] as [number, number], // Parallèles standards pour la France
+          rotate: [-3, 0] as [number, number], // Centré sur la France
+          domain: franceData
+        }
+      : this.projectionService.getProjection(projectionType, franceData)
     
     const plot = Plot.plot({
       width: 500,
@@ -122,7 +128,7 @@ export class FranceCartographer {
     container.innerHTML = ''
     container.appendChild(plot)
     
-    console.log('🇫🇷 France métropolitaine rendue avec projection:', projection.type || projectionType)
+    console.log('🇫🇷 France métropolitaine rendue avec projection:', typeof projection === 'object' && projection && 'type' in projection ? projection.type : projectionType)
   }
 
   private async renderDOMTOMMap(projectionType: string) {
@@ -218,7 +224,8 @@ export class FranceCartographer {
     }
 
     // Avec préservation d'échelle : taille proportionnelle à la superficie
-    const franceMetropoleArea = 543965 // km² (superficie de référence)
+    // Use a reasonable reference area for metropolitan France (will be calculated dynamically)
+    const franceMetropoleArea = 550000 // Approximate area of metropolitan France in km²
     const territoryArea = territory.area || 1000
     
     // Calculer un facteur d'échelle basé sur la racine carrée de la superficie
@@ -254,35 +261,60 @@ export class FranceCartographer {
     const container = document.querySelector('#unified-plot')
     if (!container) return
 
-    // Cette méthode créera une vue unifiée avec repositionnement des DOM-TOM
-    const unifiedData = await this.geoDataService.getUnifiedData()
+    // Obtenir le mode de vue d'ensemble sélectionné
+    const unifiedViewMode = (document.getElementById('unified-view-mode') as HTMLSelectElement)?.value || 'metropole-major'
+    
+    // Cette méthode créera une vue unifiée avec repositionnement des DOM-TOM selon le mode
+    const unifiedData = await this.geoDataService.getUnifiedData(unifiedViewMode)
     if (!unifiedData) return
 
-    const projection = this.projectionService.getUnifiedProjection(projectionType)
+    // Projection adaptée au mode de vue sélectionné
+    const projection = this.projectionService.getUnifiedProjection(projectionType, unifiedViewMode)
     
     const plot = Plot.plot({
       width: 800,
       height: 600,
-      projection,
+      projection: {
+        ...projection,
+        domain: d3.geoCircle().center([2, 46]).radius(7)(),
+      },
       marks: [
+        // Maintenant tout est dans une seule FeatureCollection avec des couleurs par feature
         Plot.geo(unifiedData.metropole, {
-          fill: '#e8f5e8',
-          stroke: '#2d5a2d',
-          strokeWidth: 0.5
+          fill: (d: any) => {
+            // Couleur selon le code du territoire
+            if (d.properties?.code === 'FR-MET') return '#e8f5e8' // Métropole en vert
+            return this.getTerritoryColor(d.properties?.code || 'unknown')
+          },
+          stroke: '#2d4a2d',
+          strokeWidth: 0.8
         }),
-        ...unifiedData.domtom.map((territory: any) => 
-          Plot.geo(territory.repositioned, {
-            fill: '#ffe8e8',
-            stroke: '#5a2d2d',
-            strokeWidth: 0.5
-          })
-        ),
         Plot.frame({stroke: '#333'})
       ]
     })
 
     container.innerHTML = ''
     container.appendChild(plot)
+  }
+
+  /**
+   * Couleurs différentiées par territoire pour la vue d'ensemble
+   */
+  private getTerritoryColor(code: string): string {
+    const colors = {
+      'FR-GF': '#FFE8CC', // Guyane - orange clair
+      'FR-RE': '#E8F4FF', // Réunion - bleu clair
+      'FR-GP': '#E8FFE8', // Guadeloupe - vert clair
+      'FR-MQ': '#FFE8F4', // Martinique - rose clair
+      'FR-YT': '#F4E8FF', // Mayotte - violet clair
+      'FR-MF': '#FFF8E8', // Saint-Martin - jaune clair
+      'FR-PF': '#E8FFFF', // Polynésie - cyan clair
+      'FR-NC': '#FFFFE8', // Nouvelle-Calédonie - jaune très clair
+      'FR-TF': '#F0F0F0', // Terres australes - gris clair
+      'FR-WF': '#F8F8E8', // Wallis-et-Futuna - beige
+      'FR-PM': '#E8F8F8'  // Saint-Pierre - bleu-gris clair
+    }
+    return colors[code as keyof typeof colors] || '#ffe8e8'
   }
 
   private updateTerritoryInfo() {

@@ -8,50 +8,43 @@
       "id": "250",
       "iso": "FRA",
       "name": "France métropolitaine",
-      "code": "FR-MET",
-      "area": 543965
+      "code": "FR-MET"
     },
     {
       "id": "258",
       "iso": "PYF",
       "name": "Polynésie française",
-      "code": "FR-PF",
-      "area": 4167
+      "code": "FR-PF"
     },
     {
       "id": "260",
       "iso": "ATF",
       "name": "Terres australes françaises",
-      "code": "FR-TF",
-      "area": 439781
+      "code": "FR-TF"
     },
     {
       "id": "540",
       "iso": "NCL",
       "name": "Nouvelle-Calédonie",
-      "code": "FR-NC",
-      "area": 18575
+      "code": "FR-NC"
     },
     {
       "id": "663",
       "iso": "MAF",
       "name": "Saint-Martin",
-      "code": "FR-MF",
-      "area": 53
+      "code": "FR-MF"
     },
     {
       "id": "666",
       "iso": "SPM",
       "name": "Saint-Pierre-et-Miquelon",
-      "code": "FR-PM",
-      "area": 242
+      "code": "FR-PM"
     },
     {
       "id": "876",
       "iso": "WLF",
       "name": "Wallis-et-Futuna",
-      "code": "FR-WF",
-      "area": 142
+      "code": "FR-WF"
     }
   ]
 }

@@ -1,4 +1,6 @@
 import * as topojson from 'topojson-client'
+import * as d3 from 'd3-geo'
+import { GeoProjectionService } from './GeoProjectionService'
 
 export interface RealTerritory {
   id: string
@@ -74,7 +76,7 @@ export class RealGeoDataService {
         iso: feature.properties.iso,
         name: feature.properties.name,
         code: feature.properties.code,
-        area: this.getAreaFromMetadata(feature.properties.id)
+        area: this.calculateArea(feature)
       }
 
       // Calculer les limites géographiques
@@ -91,9 +93,13 @@ export class RealGeoDataService {
     }
   }
 
-  private getAreaFromMetadata(territoryId: string): number {
-    const territory = this.metadata?.territories?.find((t: any) => t.id === territoryId)
-    return territory?.area || 0
+  private calculateArea(feature: GeoJSON.Feature): number {
+    // Calculate area in square kilometers using d3.geoArea
+    // d3.geoArea returns area in steradians, we convert to km²
+    const areaInSteradians = d3.geoArea(feature)
+    const earthRadiusKm = 6371 // Earth's radius in kilometers
+    const areaInKm2 = areaInSteradians * earthRadiusKm * earthRadiusKm
+    return Math.round(areaInKm2)
   }
 
   private calculateBounds(feature: GeoJSON.Feature): [number, number, number, number] {
@@ -204,20 +210,20 @@ export class RealGeoDataService {
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
       
-      let territoryInfo: { name: string; code: string; region: string; area: number } | null = null
+      let territoryInfo: { name: string; code: string; region: string } | null = null
       
       // Identifier le territoire selon ses coordonnées avec des critères plus précis
       if (minLon > 45.0 && maxLon < 45.3 && minLat > -13.0 && maxLat < -12.6) {
-        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Océan Indien', area: 374 }
+        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Océan Indien' }
       } else if (minLon > 55.2 && maxLon < 55.9 && minLat > -21.4 && maxLat < -20.8) {
-        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Océan Indien', area: 2512 }
+        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Océan Indien' }
       } else if (minLon > -61.9 && maxLon < -61.0 && minLat > 15.8 && maxLat < 16.6) {
         // Guadeloupe archipel - identifier par position plus précise
-        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Antilles', area: 1628 }
+        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Antilles' }
       } else if (minLon > -61.3 && maxLon < -60.8 && minLat > 14.4 && maxLat < 14.9) {
-        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Antilles', area: 1128 }
+        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Antilles' }
       } else if (minLon > -54.7 && maxLon < -51.6 && minLat > 2.1 && maxLat < 5.8) {
-        territoryInfo = { name: 'Guyane française', code: 'FR-GF', region: 'Amérique du Sud', area: 83534 }
+        territoryInfo = { name: 'Guyane française', code: 'FR-GF', region: 'Amérique du Sud' }
       }
       
       if (territoryInfo && !addedCodes.has(territoryInfo.code)) {
@@ -235,11 +241,14 @@ export class RealGeoDataService {
           }
         }
         
+        // Calculate area dynamically from geometry
+        const calculatedArea = this.calculateArea(territoryFeature)
+        
         extractedTerritories.push({
           name: territoryInfo.name,
           code: territoryInfo.code,
           region: territoryInfo.region,
-          area: territoryInfo.area,
+          area: calculatedArea,
           data: {
             type: 'FeatureCollection',
             features: [territoryFeature]
@@ -315,58 +324,183 @@ export class RealGeoDataService {
     return regions[code as keyof typeof regions] || 'Autre'
   }
 
-  async getUnifiedData(): Promise<{ metropole: GeoJSON.FeatureCollection; domtom: any[] } | null> {
+  async getUnifiedData(mode: string = 'metropole-major'): Promise<{ metropole: GeoJSON.FeatureCollection; domtom: any[] } | null> {
     await this.loadData()
     
-    const metropole = await this.getMetropoleData()
+    // NOUVELLE APPROCHE : créer un dataset unifié avec toutes les géométries repositionnées
+    const metropole = await this.getMetropoleData() // Métropole européenne seule
     if (!metropole) return null
 
-    const domtomData = await this.getDOMTOMData()
+    const allDomtomData = await this.getDOMTOMData()
     
-    // Pour la vue unifiée, on repositionne les DOM-TOM
-    const repositionedDOMTOM = domtomData.map((territory, index) => ({
-      ...territory,
-      repositioned: this.repositionTerritory(territory.data, index)
-    }))
+    // Filtrer les DOM-TOM selon le mode sélectionné
+    let filteredDomtom: any[] = []
+    
+    switch (mode) {
+      case 'metropole-only':
+        // Aucun DOM-TOM
+        filteredDomtom = []
+        break
+        
+      case 'metropole-major':
+        // Principaux DOM-TOM : souvent représentés dans les cartes
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code)
+        )
+        break
+        
+      case 'metropole-uncommon':
+        // DOM-TOM moins courants
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code)
+        )
+        break
+        
+      case 'all-territories':
+      default:
+        // Territoires rarement représentés
+        filteredDomtom = allDomtomData.filter(territory => 
+          ['FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code)
+        )
+        break
+    }
+    
+    // CRÉER UN DATASET UNIFIÉ avec métropole + DOM-TOM repositionnés
+    const unifiedFeatures = [...metropole.features]
+    
+    filteredDomtom.forEach((territory, index) => {
+      const repositioned = this.repositionTerritory(territory.data, index)
+      unifiedFeatures.push(...repositioned.features)
+    })
 
+    // Retourner comme une seule FeatureCollection pour forcer Observable Plot
+    // à calculer les limites uniquement sur les données repositionnées
     return {
-      metropole,
-      domtom: repositionedDOMTOM
+      metropole: {
+        type: 'FeatureCollection',
+        features: unifiedFeatures
+      },
+      domtom: [] // Vide car tout est dans metropole maintenant
     }
   }
 
   private repositionTerritory(territoryData: GeoJSON.FeatureCollection, index: number): GeoJSON.FeatureCollection {
-    // Positions prédéfinies autour de la France métropolitaine pour une vue d'ensemble
-    const positions = [
-      { lon: 12, lat: 50 },  // Nord-Est
-      { lon: 12, lat: 42 },  // Sud-Est  
-      { lon: -8, lat: 50 },  // Nord-Ouest
-      { lon: -8, lat: 42 },  // Sud-Ouest
-      { lon: 2, lat: 55 },   // Nord
-      { lon: 2, lat: 37 },   // Sud
-      { lon: 18, lat: 46 },  // Est
-      { lon: -14, lat: 46 }, // Ouest
-      { lon: 8, lat: 54 },   // Nord-Est-2
-      { lon: 8, lat: 38 },   // Sud-Est-2
-      { lon: -4, lat: 54 },  // Nord-Ouest-2
-      { lon: -4, lat: 38 }   // Sud-Ouest-2
-    ]
+    // Obtenir la configuration des insets depuis GeoProjectionService
+    const projectionService = new GeoProjectionService()
+    const insets = projectionService.getFranceCompositeInsets()
     
-    const targetPosition = positions[index % positions.length]
-    
-    // Calculer le décalage nécessaire en utilisant le centre approximatif de la France (2°E, 46°N)
-    const offsetLon = targetPosition.lon - 2  // Décalage par rapport au centre de la France
-    const offsetLat = targetPosition.lat - 46
-
     const repositioned = JSON.parse(JSON.stringify(territoryData))
     
     repositioned.features.forEach((feature: GeoJSON.Feature) => {
-      if (feature.geometry) {
-        this.transformGeometry(feature.geometry, offsetLon, offsetLat)
+      if (feature.geometry && feature.properties?.code) {
+        const territoryCode = feature.properties.code
+        const insetConfig = insets.domtom[territoryCode as keyof typeof insets.domtom]
+        
+        if (insetConfig) {
+          console.log(`🗺️ Repositionnement composite ${territoryCode}:`, insetConfig)
+          
+          // Calculer les limites originales
+          const originalBounds = this.calculateGeometryBounds(feature.geometry)
+          console.log(`  📍 Limites originales:`, originalBounds)
+          
+          // Position cible selon la configuration inset (relative au centre de la France)
+          const franceCenterLon = 2
+          const franceCenterLat = 46
+          const targetLon = franceCenterLon + insetConfig.translate[0]
+          const targetLat = franceCenterLat + insetConfig.translate[1]
+          
+          // Repositionner et redimensionner selon la configuration
+          this.repositionGeometryToTarget(feature.geometry, targetLon, targetLat)
+          this.scaleGeometry(feature.geometry, insetConfig.scale)
+          
+          // Vérifier le résultat
+          const newBounds = this.calculateGeometryBounds(feature.geometry)
+          console.log(`  📍 Nouvelles limites:`, newBounds)
+        } else {
+          console.log(`⚠️ Pas de configuration inset pour ${territoryCode}, utilisation position par défaut`)
+          // Fallback : utiliser l'ancienne méthode de positionnement
+          const fallbackPositions = [
+            { lon: 5, lat: 47 }, { lon: 5, lat: 45 }, { lon: -1, lat: 47 }, { lon: -1, lat: 45 },
+            { lon: 2, lat: 49 }, { lon: 2, lat: 43 }, { lon: 7, lat: 46 }, { lon: -3, lat: 46 }
+          ]
+          const targetPosition = fallbackPositions[index % fallbackPositions.length]
+          this.repositionGeometryToTarget(feature.geometry, targetPosition.lon, targetPosition.lat)
+          this.scaleGeometry(feature.geometry, 0.4)
+        }
       }
     })
 
     return repositioned
+  }
+
+  /**
+   * Repositionne une géométrie directement à des coordonnées cibles
+   */
+  private repositionGeometryToTarget(geometry: GeoJSON.Geometry, targetLon: number, targetLat: number): void {
+    if (!('coordinates' in geometry)) return
+
+    // Calculer le centroïde actuel
+    const bounds = this.calculateGeometryBounds(geometry)
+    const currentCenterLon = (bounds[0] + bounds[2]) / 2
+    const currentCenterLat = (bounds[1] + bounds[3]) / 2
+    
+    // Calculer le décalage nécessaire
+    const offsetLon = targetLon - currentCenterLon
+    const offsetLat = targetLat - currentCenterLat
+    
+    console.log(`    🎯 Décalage: lon${offsetLon.toFixed(1)}, lat${offsetLat.toFixed(1)}`)
+    
+    // Appliquer le décalage
+    this.transformGeometry(geometry, offsetLon, offsetLat)
+  }
+
+  /**
+   * Redimensionne une géométrie depuis son centroïde
+   */
+  private scaleGeometry(geometry: GeoJSON.Geometry, scaleFactor: number): void {
+    if (!('coordinates' in geometry)) return
+
+    // Calculer le centroïde approximatif
+    const bounds = this.calculateGeometryBounds(geometry)
+    const centerLon = (bounds[0] + bounds[2]) / 2
+    const centerLat = (bounds[1] + bounds[3]) / 2
+
+    const scaleCoords = (coords: any): any => {
+      if (Array.isArray(coords[0])) {
+        return coords.map(scaleCoords)
+      } else {
+        // Redimensionner depuis le centre
+        const deltaLon = (coords[0] - centerLon) * scaleFactor
+        const deltaLat = (coords[1] - centerLat) * scaleFactor
+        return [centerLon + deltaLon, centerLat + deltaLat]
+      }
+    }
+
+    geometry.coordinates = scaleCoords(geometry.coordinates)
+  }
+
+  /**
+   * Calcule les limites d'une géométrie
+   */
+  private calculateGeometryBounds(geometry: GeoJSON.Geometry): [number, number, number, number] {
+    let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity
+
+    const processBounds = (coords: any): void => {
+      if (Array.isArray(coords[0])) {
+        coords.forEach(processBounds)
+      } else {
+        minLon = Math.min(minLon, coords[0])
+        maxLon = Math.max(maxLon, coords[0])
+        minLat = Math.min(minLat, coords[1])
+        maxLat = Math.max(maxLat, coords[1])
+      }
+    }
+
+    if ('coordinates' in geometry) {
+      processBounds(geometry.coordinates)
+    }
+
+    return [minLon, minLat, maxLon, maxLat]
   }
 
   private transformGeometry(geometry: GeoJSON.Geometry, offsetLon: number, offsetLat: number): void {
