@@ -1,6 +1,6 @@
 <template>
   <div class="metropolitan-france-map">
-    <div ref="mapContainer" class="map-plot"></div>
+    <div ref="mapContainer" class="map-plot bg-base-200 w-fit"></div>
   </div>
 </template>
 
@@ -10,6 +10,7 @@ import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import { useGeoDataStore } from '../stores/geoData'
 import { useConfigStore } from '../stores/config'
+import { getMetropolitanFranceColor, getDefaultStrokeColor } from '../utils/colorUtils'
 
 const geoDataStore = useGeoDataStore()
 const configStore = useConfigStore()
@@ -50,11 +51,12 @@ const renderMap = async () => {
     const plot = Plot.plot({
       width: 500,
       height: 400,
+      inset: 20,
       projection,
       marks: [
         Plot.geo(geoData, {
-          fill: '#e8f5e8',
-          stroke: '#2d5a2d',
+          fill: getMetropolitanFranceColor(),
+          stroke: getDefaultStrokeColor(),
           strokeWidth: 1.2
         }),
         Plot.frame({ opacity: 0.2 })

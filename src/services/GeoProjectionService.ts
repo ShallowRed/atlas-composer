@@ -239,9 +239,11 @@ export function geoAlbersFrance() {
 }
 
 export const PROJECTION_OPTIONS: ProjectionOption[] = [
+  // Projections Composites France (DOM-TOM inclus)
+  { value: 'albers-france', label: 'Albers France (Composite DOM-TOM)', category: 'Projections Composites France' },
+  { value: 'conic-conformal-france', label: 'Conic Conformal France (Composite)', category: 'Projections Composites France' },
+  
   // Recommandées pour la France
-  { value: 'albers-france', label: 'Albers France (Composite DOM-TOM)', category: 'Recommandées pour la France' },
-  { value: 'conic-conformal-france', label: 'Conic Conformal France (Composite)', category: 'Recommandées pour la France' },
   { value: 'albers', label: 'Albers (Conic Equal Area)', category: 'Recommandées pour la France' },
   { value: 'conic-conformal', label: 'Conic Conformal', category: 'Recommandées pour la France' },
   { value: 'conic-equal-area', label: 'Conic Equal Area', category: 'Recommandées pour la France' },

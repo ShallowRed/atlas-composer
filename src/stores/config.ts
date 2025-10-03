@@ -8,18 +8,24 @@ export type ActiveTab = 'vue-composite' | 'projection-composite' | 'individual-t
 export const useConfigStore = defineStore('config', () => {
   // State
   const scalePreservation = ref(true)
-  const selectedProjection = ref('albers-france')
+  const selectedProjection = ref('albers')
   const territoryMode = ref<TerritoryMode>('metropole-major')
   const activeTab = ref<ActiveTab>('vue-composite')
   const theme = ref('light')
   
   // Territory translations (x, y offsets for DOM-TOM positioning)
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>({
-    'FR-GF': { x: -8, y: -2 },  // Guyane
-    'FR-RE': { x: -10, y: 3 },  // Réunion
-    'FR-GP': { x: -8, y: 1 },   // Guadeloupe
+    'FR-GF': { x: -8, y: -2 },    // Guyane
+    'FR-RE': { x: -10, y: 3 },    // Réunion
+    'FR-GP': { x: -8, y: 1 },     // Guadeloupe
     'FR-MQ': { x: -8.5, y: 2.5 }, // Martinique
-    'FR-YT': { x: -2, y: -5 },  // Mayotte
+    'FR-YT': { x: -2, y: -5 },    // Mayotte
+    'FR-MF': { x: 0, y: 0 },      // Saint-Martin
+    'FR-PF': { x: 0, y: 0 },      // Polynésie française
+    'FR-NC': { x: 0, y: 0 },      // Nouvelle-Calédonie
+    'FR-TF': { x: 0, y: 0 },      // Terres australes
+    'FR-WF': { x: 0, y: 0 },      // Wallis-et-Futuna
+    'FR-PM': { x: 0, y: 0 },      // Saint-Pierre-et-Miquelon
   })
   
   // Territory scales (scale multipliers for DOM-TOM sizing)
@@ -29,6 +35,12 @@ export const useConfigStore = defineStore('config', () => {
     'FR-GP': 1.0,  // Guadeloupe
     'FR-MQ': 1.0,  // Martinique
     'FR-YT': 1.0,  // Mayotte
+    'FR-MF': 1.0,  // Saint-Martin
+    'FR-PF': 1.0,  // Polynésie française
+    'FR-NC': 1.0,  // Nouvelle-Calédonie
+    'FR-TF': 1.0,  // Terres australes
+    'FR-WF': 1.0,  // Wallis-et-Futuna
+    'FR-PM': 1.0,  // Saint-Pierre-et-Miquelon
   })
 
   // Computed
@@ -52,12 +64,14 @@ export const useConfigStore = defineStore('config', () => {
   const projectionGroups = computed(() => {
     const groups: { [key: string]: any[] } = {}
     
-    // Filter projections based on active tab
+    // Composite projections are only available in the "Projection composite" tab
+    const compositeProjections = ['albers-france', 'conic-conformal-france']
+    
     const filteredOptions = activeTab.value === 'projection-composite'
-      ? PROJECTION_OPTIONS.filter(option => 
-          option.value === 'albers-france' || option.value === 'conic-conformal-france'
-        )
-      : PROJECTION_OPTIONS
+      ? // Only show composite projections in projection-composite tab
+        PROJECTION_OPTIONS.filter(option => compositeProjections.includes(option.value))
+      : // Exclude composite projections from other tabs
+        PROJECTION_OPTIONS.filter(option => !compositeProjections.includes(option.value))
     
     filteredOptions.forEach(option => {
       if (!groups[option.category]) {
@@ -86,16 +100,23 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const setActiveTab = (tab: ActiveTab) => {
-    activeTab.value = tab
+    const compositeProjections = ['albers-france', 'conic-conformal-france']
+    const isCurrentProjectionComposite = compositeProjections.includes(selectedProjection.value)
     
-    // When switching to projection-composite tab, ensure a valid composite projection is selected
+    // When switching TO projection-composite tab
     if (tab === 'projection-composite') {
-      const validProjections = ['albers-france', 'conic-conformal-france']
-      if (!validProjections.includes(selectedProjection.value)) {
-        // Default to albers-france if current projection is not valid for this tab
+      if (!isCurrentProjectionComposite) {
+        // Default to albers-france if current projection is not a composite
         selectedProjection.value = 'albers-france'
       }
     }
+    // When switching FROM projection-composite tab to another tab
+    else if (activeTab.value === 'projection-composite' && isCurrentProjectionComposite) {
+      // Default to regular albers if current projection is composite
+      selectedProjection.value = 'albers'
+    }
+    
+    activeTab.value = tab
   }
 
   const setTerritoryTranslation = (territoryCode: string, axis: 'x' | 'y', value: number) => {

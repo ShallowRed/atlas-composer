@@ -1,6 +1,12 @@
 import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import { RealGeoDataService } from '../services/GeoDataService'
+import { 
+  getTerritoryColor, 
+  getRegionColor, 
+  getMetropolitanFranceColor,
+  getDefaultStrokeColor 
+} from '../utils/colorUtils'
 
 export interface CartographerSettings {
   scalePreservation: boolean
@@ -88,15 +94,15 @@ export class Cartographer {
       const plot = Plot.plot({
         width: 800,
         height: 600,
+        inset: 20,
         projection: projection,
         marks: [
           Plot.geo(unifiedCollection, {
             fill: (d: any) => {
               const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return this.getTerritoryColor(code)
+              return getTerritoryColor(code)
             },
-            stroke: '#94a3b8',
-            strokeWidth: 0.3
+            stroke: getDefaultStrokeColor(),
           }),
           Plot.frame({ opacity: 0.2 })
         ]
@@ -134,15 +140,15 @@ export class Cartographer {
       const plot = Plot.plot({
         width: 800,
         height: 600,
+        inset: 20,
         projection: projection,
         marks: [
           Plot.geo(rawData, {
             fill: (d: any) => {
               const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return this.getTerritoryColor(code)
+              return getTerritoryColor(code)
             },
-            stroke: '#94a3b8',
-            strokeWidth: 0.3
+            stroke: getDefaultStrokeColor(),
           }),
           Plot.frame({ opacity: 0.2 })
         ]
@@ -220,12 +226,12 @@ export class Cartographer {
         const metroPlot = Plot.plot({
           width: 500,
           height: 400,
+          inset: 20,
           projection: metroProjection,
           marks: [
             Plot.geo(metropoleData, {
-              fill: '#e8f5e8',
-              stroke: '#2d5a2d',
-              strokeWidth: 1.2
+              fill: getMetropolitanFranceColor(),
+              stroke: getDefaultStrokeColor(),
             }),
             Plot.frame({ opacity: 0.2 })
           ]
@@ -293,9 +299,8 @@ export class Cartographer {
                 projection,
                 marks: [
                   Plot.geo(territory.data, {
-                    fill: this.getRegionColor(territory.region),
-                    stroke: '#2d4a2d',
-                    strokeWidth: 0.8
+                    fill: getRegionColor(territory.region),
+                    stroke: getDefaultStrokeColor(),
                   }),
                   Plot.frame({ opacity: 0.2 })
                 ]
@@ -330,26 +335,6 @@ export class Cartographer {
     }
   }
 
-  private getTerritoryColor(code: string): string {
-    // More subtle, muted color mapping for different territories
-    const colors: { [key: string]: string } = {
-      'FR-GF': '#86efac', // Guyane - Light green
-      'FR-GP': '#fbbf24', // Guadeloupe - Soft orange
-      'FR-MQ': '#fca5a5', // Martinique - Light red
-      'FR-RE': '#c4b5fd', // Réunion - Light purple
-      'FR-YT': '#67e8f9', // Mayotte - Light cyan
-      'FR-MF': '#fdba74', // Saint-Martin - Light orange variant
-      'FR-PF': '#bef264', // Polynésie française - Light lime
-      'FR-NC': '#a5b4fc', // Nouvelle-Calédonie - Light indigo
-      'FR-TF': '#5eead4', // Terres australes - Light teal
-      'FR-WF': '#f9a8d4', // Wallis-et-Futuna - Light pink
-      'FR-PM': '#d8b4fe', // Saint-Pierre-et-Miquelon - Light purple variant
-      'metropole': '#93c5fd' // Metropolitan France - Light blue
-    }
-
-    return colors[code] || colors['metropole'] || '#cbd5e1'
-  }
-
   /**
    * Calculate appropriate size for each territory map, optionally preserving scale
    * From original FranceCartographer
@@ -379,20 +364,5 @@ export class Cartographer {
       width: Math.round(proportionalWidth), 
       height: Math.round(proportionalHeight) 
     }
-  }
-
-  /**
-   * Get color for a region
-   * From original FranceCartographer
-   */
-  private getRegionColor(region: string): string {
-    const regionColors = {
-      'North America': '#f8e8ff',
-      'Caribbean': '#e8ffe8', 
-      'Pacific Ocean': '#fff8e8',
-      'Indian Ocean': '#e8e8ff',
-      'Other': '#f0f0f0'
-    }
-    return regionColors[region as keyof typeof regionColors] || '#f0f0f0'
   }
 }

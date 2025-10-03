@@ -172,10 +172,10 @@ onMounted(async () => {
                 v-model="configStore.territoryMode"
                 @change="updateMaps"
               >
-                <option value="metropole-only">Métropole seule</option>
-                <option value="metropole-major">+ Principaux DOM-TOM</option>
-                <option value="metropole-uncommon">+ Moins courants</option>
-                <option value="all-territories">+ Rarement représentés</option>
+                <option value="metropole-only">France métropolitaine uniquement</option>
+                <option value="metropole-major">+ 5 territoires ultramarins</option>
+                <option value="metropole-uncommon">+ 8 territoires ultramarins</option>
+                <option value="all-territories">Tous les territoires (11 ultramarins)</option>
               </select>
             </div>
           </div>
@@ -188,7 +188,7 @@ onMounted(async () => {
           type="radio" 
           name="map_tabs" 
           class="tab" 
-          aria-label="Vue Composite" 
+          aria-label="Vue unifiée personnalisable" 
           id="tab-composite" 
           :checked="configStore.activeTab === 'vue-composite'" 
           @change="switchTab('vue-composite')" 
@@ -196,10 +196,13 @@ onMounted(async () => {
         <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'vue-composite'">
           <h2 class="card-title mb-2">
             <i class="ri-map-2-line text-lg"></i>
-            Vue d'ensemble avec repositionnement
+            Vue unifiée avec repositionnement personnalisable
           </h2>
+          <p class="text-sm opacity-70 mb-4">
+            Carte unifiée de la France avec contrôles de positionnement et d'échelle pour chaque territoire d'outre-mer.
+          </p>
           <div class="flex gap-6">
-            <div class="flex-1 sticky top-0 self-start">
+            <div class="flex-1 sticky top-4 self-start">
               <VueCompositeMap />
             </div>
             <div class="w-80">
@@ -212,7 +215,7 @@ onMounted(async () => {
           type="radio" 
           name="map_tabs" 
           class="tab" 
-          aria-label="Projection Composite" 
+          aria-label="Projection composite automatique" 
           id="tab-composite-raw" 
           :checked="configStore.activeTab === 'projection-composite'" 
           @change="switchTab('projection-composite')" 
@@ -220,10 +223,10 @@ onMounted(async () => {
         <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'projection-composite'">
           <h2 class="card-title mb-2">
             <i class="ri-global-line text-lg"></i>
-            Projection composite (coordonnées originales)
+            Projection composite avec repositionnement automatique
           </h2>
           <p class="text-sm opacity-70 mb-4">
-            Utilise la projection composite geoAlbersFrance avec les coordonnées originales. Reproduit l'effet de "Vue Composite" mais avec repositionnement géré par la projection.
+            Utilise les projections composites d3 (Albers France ou Conic Conformal France) qui incluent un repositionnement automatique des territoires d'outre-mer.
           </p>
           <ProjectionCompositeMap />
         </div>
@@ -232,12 +235,15 @@ onMounted(async () => {
           type="radio" 
           name="map_tabs" 
           class="tab" 
-          aria-label="Territoires Séparés" 
+          aria-label="Territoires individuels" 
           id="tab-separate" 
           :checked="configStore.activeTab === 'individual-territories'" 
           @change="switchTab('individual-territories')" 
         />
         <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8" v-if="configStore.activeTab === 'individual-territories'">
+          <p class="text-sm opacity-70 mb-4">
+            Vue séparée de chaque territoire avec sa propre projection optimisée.
+          </p>
           <!-- Separate Territory Views Content -->
           <div class="flex flex-row gap-12">
             <!-- Metropolitan France -->

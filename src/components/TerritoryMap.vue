@@ -4,6 +4,7 @@ import * as Plot from '@observablehq/plot'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import { useConfigStore } from '../stores/config'
 import type { Territory } from '../stores/geoData'
+import { getRegionColor, getDefaultStrokeColor } from '../utils/colorUtils'
 
 interface Props {
   territory: Territory
@@ -13,17 +14,6 @@ const props = defineProps<Props>()
 const configStore = useConfigStore()
 const mapContainer = ref<HTMLElement>()
 const projectionService = new GeoProjectionService()
-
-const getRegionColor = (region: string): string => {
-  const regionColors = {
-    'North America': '#f8e8ff',
-    'Caribbean': '#e8ffe8', 
-    'Pacific Ocean': '#fff8e8',
-    'Indian Ocean': '#e8e8ff',
-    'Other': '#f0f0f0'
-  }
-  return regionColors[region as keyof typeof regionColors] || '#f0f0f0'
-}
 
 const getTerritorySize = (territory: Territory, preserveScale: boolean): { width: number; height: number } => {
   if (!preserveScale) {
@@ -66,12 +56,12 @@ const renderMap = () => {
     const plot = Plot.plot({
       width,
       height,
+      inset: 5,
       projection,
       marks: [
         Plot.geo(props.territory.data, {
           fill: getRegionColor(props.territory.region),
-          stroke: '#2d4a2d',
-          strokeWidth: 0.8
+          stroke: getDefaultStrokeColor(),
         }),
         Plot.frame({ opacity: 0.2 })
       ]
@@ -97,6 +87,6 @@ watch(() => [configStore.selectedProjection, configStore.scalePreservation], () 
     <h4 class="font-medium mb-2 text-sm text-gray-600">
       {{ territory.name }} ({{ territory.area.toLocaleString() }} km²)
     </h4>
-    <div ref="mapContainer" class="territory-map"></div>
+    <div ref="mapContainer" class="territory-map map-plot bg-base-200 w-fit"></div>
   </div>
 </template>

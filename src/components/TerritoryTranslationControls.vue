@@ -5,8 +5,14 @@
       Ajuster les territoires d'outre-mer
     </h3>
     
+    <!-- Message when no territories are available -->
+    <div v-if="territories.length === 0" class="alert alert-info">
+      <i class="ri-information-line"></i>
+      <span>Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des DOM-TOM dans "Territoires à inclure".</span>
+    </div>
+    
     <!-- Accordion for all territories -->
-    <div class="join join-vertical w-full">
+    <div v-else class="join join-vertical w-full">
       <div 
         v-for="(territory, index) in territories" 
         :key="territory.code"
@@ -114,13 +120,45 @@ import { useConfigStore } from '../stores/config'
 
 const configStore = useConfigStore()
 
-const territories = [
+// All possible territories with their names
+const allTerritories = [
   { code: 'FR-GF', name: 'Guyane française' },
   { code: 'FR-RE', name: 'La Réunion' },
   { code: 'FR-GP', name: 'Guadeloupe' },
   { code: 'FR-MQ', name: 'Martinique' },
   { code: 'FR-YT', name: 'Mayotte' },
+  { code: 'FR-MF', name: 'Saint-Martin' },
+  { code: 'FR-PF', name: 'Polynésie française' },
+  { code: 'FR-NC', name: 'Nouvelle-Calédonie' },
+  { code: 'FR-TF', name: 'Terres australes et antarctiques françaises' },
+  { code: 'FR-WF', name: 'Wallis-et-Futuna' },
+  { code: 'FR-PM', name: 'Saint-Pierre-et-Miquelon' },
 ]
+
+// Filter territories based on selected mode
+const territories = computed(() => {
+  const mode = configStore.territoryMode
+  let codes: string[] = []
+  
+  switch (mode) {
+    case 'metropole-only':
+      codes = []
+      break
+    case 'metropole-major':
+      codes = ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT']
+      break
+    case 'metropole-uncommon':
+      codes = ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC']
+      break
+    case 'all-territories':
+      codes = ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM']
+      break
+    default:
+      codes = ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT']
+  }
+  
+  return allTerritories.filter(t => codes.includes(t.code))
+})
 
 const translations = computed(() => configStore.territoryTranslations)
 const scales = computed(() => configStore.territoryScales)
@@ -136,23 +174,30 @@ const updateScale = (territoryCode: string, event: Event) => {
 }
 
 const resetToDefaults = () => {
-  // Reset to default translation values
-  configStore.setTerritoryTranslation('FR-GF', 'x', -8)
-  configStore.setTerritoryTranslation('FR-GF', 'y', -2)
-  configStore.setTerritoryTranslation('FR-RE', 'x', -10)
-  configStore.setTerritoryTranslation('FR-RE', 'y', 3)
-  configStore.setTerritoryTranslation('FR-GP', 'x', -8)
-  configStore.setTerritoryTranslation('FR-GP', 'y', 1)
-  configStore.setTerritoryTranslation('FR-MQ', 'x', -8.5)
-  configStore.setTerritoryTranslation('FR-MQ', 'y', 2.5)
-  configStore.setTerritoryTranslation('FR-YT', 'x', -2)
-  configStore.setTerritoryTranslation('FR-YT', 'y', -5)
+  // Default translations (major territories have custom positions, others are centered)
+  const defaults = {
+    'FR-GF': { x: -8, y: -2 },
+    'FR-RE': { x: -10, y: 3 },
+    'FR-GP': { x: -8, y: 1 },
+    'FR-MQ': { x: -8.5, y: 2.5 },
+    'FR-YT': { x: -2, y: -5 },
+    'FR-MF': { x: 0, y: 0 },
+    'FR-PF': { x: 0, y: 0 },
+    'FR-NC': { x: 0, y: 0 },
+    'FR-TF': { x: 0, y: 0 },
+    'FR-WF': { x: 0, y: 0 },
+    'FR-PM': { x: 0, y: 0 },
+  }
   
-  // Reset to default scale values
-  configStore.setTerritoryScale('FR-GF', 1.0)
-  configStore.setTerritoryScale('FR-RE', 1.0)
-  configStore.setTerritoryScale('FR-GP', 1.0)
-  configStore.setTerritoryScale('FR-MQ', 1.0)
-  configStore.setTerritoryScale('FR-YT', 1.0)
+  // Reset translations for all territories
+  Object.entries(defaults).forEach(([code, { x, y }]) => {
+    configStore.setTerritoryTranslation(code, 'x', x)
+    configStore.setTerritoryTranslation(code, 'y', y)
+  })
+  
+  // Reset scales for all territories
+  allTerritories.forEach(t => {
+    configStore.setTerritoryScale(t.code, 1.0)
+  })
 }
 </script>
