@@ -2,6 +2,8 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { VueCartographer } from './cartographer/VueCartographer'
 import { PROJECTION_OPTIONS } from './services/GeoProjectionService'
+import MetropolitanFranceMap from './components/MetropolitanFranceMap.vue'
+import DOMTOMGrid from './components/DOMTOMGrid.vue'
 
 // State management
 const isLoading = ref(true)
@@ -15,13 +17,16 @@ const controls = reactive({
   territoryMode: 'metropole-major'
 })
 
+// Territory data state
+const metropolitanFranceData = ref<GeoJSON.FeatureCollection | null>(null)
+const domtomTerritoriesData = ref<any[]>([])
+
 // Tab management
 const activeTab = ref('vue-composite')
 
 // Template refs
 const vueCompositeContainer = ref<HTMLElement>()
 const projectionCompositeContainer = ref<HTMLElement>()
-const individualTerritoriesContainer = ref<HTMLElement>()
 
 // Computed properties
 const projectionGroups = computed(() => {
@@ -54,6 +59,20 @@ const switchTab = async (tabId: string) => {
   updateMaps()
 }
 
+const loadTerritoryData = async () => {
+  if (!cartographer.value) return
+  
+  try {
+    // Load metropolitan France data
+    const geoDataService = (cartographer.value as any).geoDataService
+    metropolitanFranceData.value = await geoDataService.getMetropoleData()
+    domtomTerritoriesData.value = await geoDataService.getDOMTOMData()
+  } catch (err) {
+    console.error('Error loading territory data:', err)
+    throw err
+  }
+}
+
 const updateMaps = async () => {
   if (!cartographer.value) return
   
@@ -69,6 +88,11 @@ const updateMaps = async () => {
       activeTab: activeTab.value
     })
     
+    // Load territory data if we're on the individual territories tab
+    if (activeTab.value === 'individual-territories') {
+      await loadTerritoryData()
+    }
+    
     // Render appropriate maps based on active tab
     switch (activeTab.value) {
       case 'vue-composite':
@@ -78,7 +102,7 @@ const updateMaps = async () => {
         await cartographer.value.renderProjectionComposite(projectionCompositeContainer.value!)
         break
       case 'individual-territories':
-        await cartographer.value.renderIndividualTerritories(individualTerritoriesContainer.value!)
+        // Data is now loaded in Vue state, no need for DOM manipulation
         break
     }
     
@@ -290,9 +314,11 @@ onMounted(async () => {
                 <i class="ri-map-pin-line text-lg"></i>
                 France Métropolitaine
               </h2>
-              <div ref="individualTerritoriesContainer">
-                <div class="map-plot"></div>
-              </div>
+              <MetropolitanFranceMap
+                v-if="metropolitanFranceData"
+                :geo-data="metropolitanFranceData"
+                :projection-type="controls.selectedProjection"
+              />
             </div>
             
             <!-- DOM-TOM -->
@@ -301,9 +327,12 @@ onMounted(async () => {
                 <i class="ri-earth-line text-lg"></i>
                 Départements et Collectivités d'Outre-Mer
               </h2>
-              <div>
-                <div class="map-plot"></div>
-              </div>
+              <DOMTOMGrid
+                :territories="domtomTerritoriesData"
+                :projection-type="controls.selectedProjection"
+                :preserve-scale="controls.scalePreservation"
+                :territory-mode="controls.territoryMode"
+              />
             </div>
           </div>
         </div>
