@@ -127,15 +127,27 @@ export class GeoProjectionService {
 
       // Cylindrical projections
       case 'mercator':
-        return { type: 'mercator' as const, domain: data }
+        return {
+          type: 'mercator' as const,
+          domain: data,
+        }
       case 'transverse-mercator':
-        return { type: 'transverse-mercator' as const, domain: data }
+        return {
+          type: 'transverse-mercator' as const,
+          domain: data,
+        }
       case 'equirectangular':
-        return { type: 'equirectangular' as const, domain: data }
+        return {
+          type: 'equirectangular' as const,
+          domain: data,
+        }
 
       // World projections (built-in)
       case 'equal-earth':
-        return { type: 'equal-earth' as const, domain: data }
+        return {
+          type: 'equal-earth' as const,
+          domain: data,
+        }
 
       // Extended projections from d3-geo-projection
       case 'bonne':

@@ -53,11 +53,13 @@ export class CustomCompositeProjection {
   private initialize() {
     const { mainland, overseasTerritories } = this.config
 
+    // Calculate mainland geographic extent to use as reference
+    const mainlandExtent = this.calculateGeographicExtent(mainland.bounds)
+
     // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
     const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
     const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
       .center(mainland.center)
-      .scale(mainland.scale)
       .translate([0, 0])
 
     // Apply rotation if supported and provided in config
@@ -70,11 +72,15 @@ export class CustomCompositeProjection {
       (mainlandProjection as any).parallels(mainland.parallels)
     }
 
+    // Calculate scale for mainland using a standard reference size
+    const mainlandScale = this.calculateProportionalScale(mainlandProjection, mainland.bounds, mainlandExtent)
+    mainlandProjection.scale(mainlandScale)
+
     this.addSubProjection({
       territoryCode: mainland.code,
       territoryName: mainland.name,
       projection: mainlandProjection,
-      baseScale: mainland.scale,
+      baseScale: mainlandScale,
       scaleMultiplier: 1.0,
       baseTranslate: [0, 0],
       clipExtent: null,
@@ -87,14 +93,17 @@ export class CustomCompositeProjection {
       const projectionType = territory.projectionType || 'mercator'
       const projection = this.createProjectionByType(projectionType)
         .center(territory.center)
-        .scale(territory.scale)
         .translate([0, 0])
+
+      // Calculate scale proportional to mainland (territories maintain relative geographic sizes)
+      const territoryScale = this.calculateProportionalScale(projection, territory.bounds, mainlandExtent)
+      projection.scale(territoryScale)
 
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
         projection,
-        baseScale: territory.scale,
+        baseScale: territoryScale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
         clipExtent: null,
@@ -105,8 +114,72 @@ export class CustomCompositeProjection {
   }
 
   /**
-   * Create a projection instance by type name
+   * Calculate the geographic extent (max span) of bounds
    */
+  private calculateGeographicExtent(bounds: [[number, number], [number, number]]): number {
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds
+    const lonSpan = maxLon - minLon
+    const latSpan = maxLat - minLat
+    return Math.max(lonSpan, latSpan)
+  }
+
+  /**
+   * Detect projection family from the projection instance
+   */
+  private getProjectionFamily(projection: GeoProjection): 'conic' | 'mercator' | 'azimuthal' | 'other' {
+    // Check for conic projections (they have parallels method)
+    if ((projection as any).parallels) {
+      return 'conic'
+    }
+    // Check for center method (typical for mercator and azimuthal)
+    if (projection.center) {
+      // Most mercator-family projections have these characteristics
+      return 'mercator'
+    }
+    return 'other'
+  }
+
+  /**
+   * Calculate scale proportional to geographic extent
+   * This ensures territories maintain their relative geographic sizes
+   *
+   * The formula ensures that territories are sized proportionally based on their
+   * geographic extent, using the same logic as the original implementation.
+   *
+   * @param projection - The projection to calculate scale for
+   * @param bounds - Geographic bounds of the territory
+   * @param _referenceExtent - Not used, kept for API compatibility
+   * @returns Calculated scale value
+   */
+  private calculateProportionalScale(
+    projection: GeoProjection,
+    bounds: [[number, number], [number, number]],
+    _referenceExtent: number,
+  ): number {
+    // Calculate this territory's geographic extent
+    const territoryExtent = this.calculateGeographicExtent(bounds)
+
+    // Get projection family to apply appropriate scaling formula
+    const projectionFamily = this.getProjectionFamily(projection)
+
+    // Base constant for scale calculation
+    // For conic: 42000 / 15° ≈ 2800 for mainland France
+    const BASE_CONSTANT = 42000
+
+    if (projectionFamily === 'conic') {
+      // Conic projections: scale inversely proportional to max span
+      return BASE_CONSTANT / territoryExtent
+    }
+    else {
+      // Mercator and other projections need adjustment
+      // Mercator at mid-latitudes needs ~4x smaller scale than Conic
+      // to produce proportional output
+      return (BASE_CONSTANT / territoryExtent) * 0.25
+    }
+  } /**
+     * Create a projection instance by type name
+     */
+
   private createProjectionByType(projectionType: string): GeoProjection {
     switch (projectionType) {
       case 'mercator':

@@ -11,7 +11,6 @@ export interface TerritoryConfig {
   name: string // Full display name
   shortName?: string // Optional abbreviated name
   center: [number, number] // Geographic center [longitude, latitude]
-  scale: number // Base scale for the projection (auto-calculated for proportional sizing)
   offset: [number, number] // [x, y] pixel offset relative to mainland center for composite layouts
   bounds: [[number, number], [number, number]] // Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
   projectionType?: string // Default projection type (mercator, conic-conformal, azimuthal, etc.)
@@ -78,48 +77,41 @@ export const SCALE_RANGE = {
 } as const
 
 /**
- * Calculate proportional scale using D3's projection.fitSize() logic
+ * Calculate proportional scale for a territory using D3's fitExtent logic
  *
- * This approach mimics D3's fitSize() to calculate the exact scale for a standard
- * pixel box, ensuring all territories have proportional sizes regardless of projection type.
+ * This uses D3's actual projection fitting to ensure territories are sized
+ * proportionally based on their geographic bounds, regardless of projection type.
  *
- * Reference: a ~15° geographic span should fit in ~500px at scale 1.0
- *
+ * @param projection - A D3 geo projection instance
  * @param bounds - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
- * @param projectionType - Type of projection to calculate scale for
- * @returns Calculated scale value
+ * @param targetSize - Target pixel dimensions [width, height] (default: [500, 500])
+ * @returns The calculated scale that would fit the bounds into targetSize
  */
-export function calculateProportionalScale(
+export function calculateScaleFromBounds(
+  projection: any, // D3 GeoProjection
   bounds: [[number, number], [number, number]],
-  projectionType: 'conic-conformal' | 'mercator' = 'mercator',
+  targetSize: [number, number] = [500, 500],
 ): number {
-  // Use a mathematical approximation based on geographic extent
-  // that mimics what D3's fitSize() does internally
-
+  // Create a GeoJSON box from bounds for fitting
   const [[minLon, minLat], [maxLon, maxLat]] = bounds
-  const lonSpan = maxLon - minLon
-  const latSpan = maxLat - minLat
-
-  // Use maxSpan (like D3 fitSize does)
-  const maxSpan = Math.max(lonSpan, latSpan)
-
-  // Calculate scale based on projection type
-  // These formulas are derived from empirical testing to match visual proportions
-
-  if (projectionType === 'conic-conformal') {
-    // For Conic Conformal projections (typically used for mid-latitude mainland regions):
-    // 15° span → scale 2800
-    // Formula: scale = 2800 * (15 / maxSpan) = 42000 / maxSpan
-    return 42000 / maxSpan
+  const boundingBox = {
+    type: 'Polygon' as const,
+    coordinates: [[
+      [minLon, minLat],
+      [maxLon, minLat],
+      [maxLon, maxLat],
+      [minLon, maxLat],
+      [minLon, minLat],
+    ]],
   }
-  else {
-    // For Mercator projections (typically used for tropical/equatorial regions):
-    // Need to account for projection difference
-    // Target: produce similar pixel output relative to geographic size
-    // Mercator at mid-latitudes (15-25°) needs ~50x smaller scale than Conic
-    // to produce proportional output
-    return (42000 / maxSpan) * 0.25
-  }
+
+  // Use D3's fitSize to calculate the proper scale
+  const tempProjection = projection.fitSize
+    ? projection.fitSize(targetSize, boundingBox)
+    : projection
+
+  // Extract and return the calculated scale
+  return tempProjection.scale()
 }
 
 /**
