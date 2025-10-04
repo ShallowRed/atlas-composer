@@ -53,7 +53,6 @@ async function renderMap() {
           stroke: getDefaultStrokeColor(),
           strokeWidth: 1.2,
         }),
-        Plot.frame({ opacity: 0.2 }),
       ],
     })
 
@@ -80,6 +79,6 @@ watch(() => [geoDataStore.metropolitanFranceData, configStore.selectedProjection
 
 <template>
   <div class="metropolitan-france-map">
-    <div ref="mapContainer" class="map-plot bg-base-200 w-fit" />
+    <div ref="mapContainer" class="map-plot bg-base-200 w-fit rounded-md border border-base-300" />
   </div>
 </template>

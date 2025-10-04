@@ -63,7 +63,6 @@ function renderMap() {
           fill: getRegionColor(props.territory.region),
           stroke: getDefaultStrokeColor(),
         }),
-        Plot.frame({ opacity: 0.2 }),
       ],
     })
 
@@ -88,6 +87,6 @@ watch(() => [configStore.selectedProjection, configStore.scalePreservation], () 
     <h4 class="font-medium mb-2 text-sm text-gray-600">
       {{ territory.name }} ({{ territory.area.toLocaleString() }} km²)
     </h4>
-    <div ref="mapContainer" class="territory-map map-plot bg-base-200 w-fit" />
+    <div ref="mapContainer" class="territory-map map-plot bg-base-200 w-fit border border-base-300 rounded-sm" />
   </div>
 </template>

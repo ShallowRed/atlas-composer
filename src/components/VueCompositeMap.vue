@@ -67,6 +67,6 @@ watch(
     <div v-if="error" class="alert alert-error">
       <span>{{ error }}</span>
     </div>
-    <div ref="mapContainer" class="map-plot bg-base-200" :style="{ display: isLoading || error ? 'none' : 'block' }" />
+    <div ref="mapContainer" class="map-plot bg-base-200 border border-base-300 rounded-sm" :style="{ display: isLoading || error ? 'none' : 'block' }" />
   </div>
 </template>

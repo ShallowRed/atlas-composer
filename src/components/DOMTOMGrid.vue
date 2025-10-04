@@ -17,7 +17,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="domtom-grid">
+  <div class="domtom-grid flex flex-col gap-4">
     <RegionContainer
       v-for="[regionName, territories] in geoDataStore.territoryGroups"
       :key="regionName"
@@ -35,9 +35,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.domtom-grid {
-  @apply flex flex-col gap-4 bg-red;
-}
-</style>

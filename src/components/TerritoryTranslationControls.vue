@@ -87,7 +87,7 @@ function resetToDefaults() {
 </script>
 
 <template>
-  <div class="territory-translation-controls p-4 bg-base-200 rounded-lg overflow-y-auto max-h-screen">
+  <div class="territory-translation-controls p-4 bg-base-200 rounded-lg overflow-y-auto max-h-screen border border-base-300">
     <h3 class="text-lg font-semibold mb-4">
       <i class="ri-drag-move-2-line" />
       Ajuster les territoires d'outre-mer

@@ -5,8 +5,6 @@
 
 /**
  * Get color for a specific territory code
- * @param _code - Territory code (e.g., 'FR-GF', 'FR-GP', 'metropole')
- * @returns DaisyUI theme color with appropriate opacity
  */
 export function getTerritoryColor(_code: string): string {
   return 'color-mix(in oklch, var(--color-primary) 20%, transparent)'
@@ -31,8 +29,6 @@ export function getTerritoryColor(_code: string): string {
 
 /**
  * Get color for a geographic region
- * @param _region - Region name (e.g., 'North America', 'Caribbean', 'Pacific Ocean')
- * @returns DaisyUI theme color with appropriate opacity
  */
 export function getRegionColor(_region: string): string {
   return 'color-mix(in oklch, var(--color-primary) 20%, transparent)'
@@ -48,7 +44,6 @@ export function getRegionColor(_region: string): string {
 
 /**
  * Get metropolitan France fill color
- * @returns DaisyUI success color with low opacity
  */
 export function getMetropolitanFranceColor(): string {
   return 'color-mix(in oklch, var(--color-primary) 20%, transparent)'
@@ -56,28 +51,10 @@ export function getMetropolitanFranceColor(): string {
 }
 
 /**
- * Get stroke color for map boundaries
- * @returns DaisyUI success color (full opacity)
- */
-export function getMetropolitanFranceStrokeColor(): string {
-  return 'var(--color-primary)'
-  // return 'var(--color-success)'
-}
-
-/**
  * Get default stroke color for territories
- * @returns DaisyUI base content color for borders
  */
 export function getDefaultStrokeColor(): string {
   return 'var(--color-primary)'
   // return 'var(--color-base-300)'
   // return 'var(--color-base-content)'
-}
-
-/**
- * Get base background color
- * @returns DaisyUI base-200 color
- */
-export function getBaseColor(): string {
-  return 'var(--color-base-200)'
 }
