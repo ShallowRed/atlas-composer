@@ -7,6 +7,7 @@ import {
   geoEquirectangular,
   geoMercator,
 } from 'd3-geo'
+import { MAINLAND_FRANCE, OVERSEAS_TERRITORIES } from '../constants/territories'
 
 /**
  * Configuration for a sub-projection within a composite projection
@@ -36,133 +37,43 @@ export class CustomCompositeProjection {
   }
 
   /**
-   * Initialize with default configuration
+   * Initialize all sub-projections with their geographic centers and base settings
+   * Uses centralized territory configuration from constants/territories.ts
    */
   private initialize() {
     // Metropolitan France - Conic Conformal
     this.addSubProjection({
-      territoryCode: 'FR-MET',
-      territoryName: 'France Métropolitaine',
+      territoryCode: MAINLAND_FRANCE.code,
+      territoryName: MAINLAND_FRANCE.name,
       projection: geoConicConformal()
-        .center([2.5, 46.5])
-        .scale(2800)
+        .center(MAINLAND_FRANCE.center)
+        .scale(MAINLAND_FRANCE.scale)
         .rotate([-3, 0])
         .parallels([45.898889, 47.696014])
-        .translate([0, 0]), // Local projection center
-      baseScale: 2800, // Store base scale for multiplier application
-      scaleMultiplier: 1.0, // Initial multiplier
-      baseTranslate: [0, 0], // Initial translate
-      clipExtent: null, // Don't clip, use bounds for geographic filtering
-      translateOffset: [0, 0], // Center of the composite map
-      bounds: [[-5, 41], [10, 51]], // Geographic bounds for France
+        .translate([0, 0]),
+      baseScale: MAINLAND_FRANCE.scale,
+      scaleMultiplier: 1.0,
+      baseTranslate: [0, 0],
+      clipExtent: null,
+      translateOffset: MAINLAND_FRANCE.offset,
+      bounds: MAINLAND_FRANCE.bounds,
     })
 
-    // Default configuration for DOM-TOM (will be updated dynamically)
-    const domtomDefaults = [
-      {
-        code: 'FR-GP',
-        name: 'Guadeloupe',
-        center: [-61.551, 16.265] as [number, number],
-        scale: 18000,
-        offset: [-400, 100] as [number, number],
-        bounds: [[-61.81, 15.83], [-61.0, 16.52]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-MQ',
-        name: 'Martinique',
-        center: [-61.024, 14.642] as [number, number],
-        scale: 20000,
-        offset: [-400, 200] as [number, number],
-        bounds: [[-61.23, 14.39], [-60.81, 14.88]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-GF',
-        name: 'Guyane',
-        center: [-53.1, 3.9] as [number, number],
-        scale: 2200,
-        offset: [-400, 300] as [number, number],
-        bounds: [[-54.6, 2.1], [-51.6, 5.8]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-RE',
-        name: 'La Réunion',
-        center: [55.536, -21.115] as [number, number],
-        scale: 18000,
-        offset: [300, 100] as [number, number],
-        bounds: [[55.22, -21.39], [55.84, -20.87]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-YT',
-        name: 'Mayotte',
-        center: [45.166, -12.827] as [number, number],
-        scale: 35000,
-        offset: [350, 200] as [number, number],
-        bounds: [[44.98, -13.0], [45.3, -12.64]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-NC',
-        name: 'Nouvelle-Calédonie',
-        center: [165.618, -20.904] as [number, number],
-        scale: 3000,
-        offset: [450, -100] as [number, number],
-        bounds: [[163.0, -22.7], [168.0, -19.5]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-PF',
-        name: 'Polynésie française',
-        center: [-149.566, -17.679] as [number, number],
-        scale: 8000,
-        offset: [450, 100] as [number, number],
-        bounds: [[-154, -28], [-134, -7]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-MF',
-        name: 'Saint-Martin',
-        center: [-63.082, 18.067] as [number, number],
-        scale: 40000,
-        offset: [-350, 80] as [number, number],
-        bounds: [[-63.15, 18.04], [-63.0, 18.13]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-WF',
-        name: 'Wallis-et-Futuna',
-        center: [-176.176, -13.768] as [number, number],
-        scale: 35000,
-        offset: [400, 250] as [number, number],
-        bounds: [[-178.2, -14.4], [-176.1, -13.2]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-PM',
-        name: 'Saint-Pierre-et-Miquelon',
-        center: [-56.327, 46.885] as [number, number],
-        scale: 25000,
-        offset: [-100, -200] as [number, number],
-        bounds: [[-56.42, 46.75], [-56.13, 47.15]] as [[number, number], [number, number]],
-      },
-      {
-        code: 'FR-TF',
-        name: 'Terres australes et antarctiques françaises',
-        center: [69.348, -49.280] as [number, number],
-        scale: 2500,
-        offset: [300, 300] as [number, number],
-        bounds: [[39.0, -50.0], [77.0, -37.0]] as [[number, number], [number, number]],
-      },
-    ]
-
-    domtomDefaults.forEach((config) => {
+    // DOM-TOM - Use centralized configuration with improved positioning
+    OVERSEAS_TERRITORIES.forEach((territory) => {
       this.addSubProjection({
-        territoryCode: config.code,
-        territoryName: config.name,
+        territoryCode: territory.code,
+        territoryName: territory.name,
         projection: geoMercator()
-          .center(config.center)
-          .scale(config.scale)
+          .center(territory.center)
+          .scale(territory.scale)
           .translate([0, 0]),
-        baseScale: config.scale, // Store base scale for multiplier application
-        scaleMultiplier: 1.0, // Initial multiplier
-        baseTranslate: [0, 0], // Initial translate
-        clipExtent: null, // Will be computed based on bounds
-        translateOffset: config.offset,
-        bounds: config.bounds as [[number, number], [number, number]],
+        baseScale: territory.scale,
+        scaleMultiplier: 1.0,
+        baseTranslate: [0, 0],
+        clipExtent: null,
+        translateOffset: territory.offset,
+        bounds: territory.bounds,
       })
     })
   }

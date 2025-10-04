@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, triggerRef } from 'vue'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
+import { ALL_TERRITORIES } from '../constants/territories'
 
 export type TerritoryMode = 'metropole-only' | 'metropole-major' | 'metropole-uncommon' | 'all-territories'
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom'
@@ -33,38 +34,22 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   // Territory translations (x, y offsets in pixels relative to mainland center)
+  // Initialize from centralized territory configuration
   // Positive X = right, Negative X = left
   // Positive Y = down, Negative Y = up
-  const territoryTranslations = ref<Record<string, { x: number, y: number }>>({
-    'FR-MET': { x: 0, y: 0 }, // France Métropolitaine - center reference
-    'FR-GP': { x: -400, y: 100 }, // Guadeloupe - bottom left
-    'FR-MQ': { x: -400, y: 200 }, // Martinique - below Guadeloupe
-    'FR-GF': { x: -400, y: 300 }, // Guyane - below Martinique
-    'FR-RE': { x: 300, y: 100 }, // Réunion - bottom right
-    'FR-YT': { x: 350, y: 200 }, // Mayotte - near Réunion
-    'FR-NC': { x: 450, y: -100 }, // Nouvelle-Calédonie - top right
-    'FR-PF': { x: 450, y: 100 }, // Polynésie - below NC
-    'FR-PM': { x: -100, y: -200 }, // Saint-Pierre-et-Miquelon - top left
-    'FR-WF': { x: 400, y: 250 }, // Wallis-et-Futuna - between RE and PF
-    'FR-MF': { x: -350, y: 80 }, // Saint-Martin - near GP
-    'FR-TF': { x: 300, y: 300 }, // TAAF - bottom right corner
-  })
+  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(
+    Object.fromEntries(
+      ALL_TERRITORIES.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
+    ),
+  )
 
   // Territory scales (scale multipliers for DOM-TOM sizing)
-  const territoryScales = ref<Record<string, number>>({
-    'FR-MET': 1.0, // France Métropolitaine
-    'FR-GP': 1.0, // Guadeloupe
-    'FR-MQ': 1.0, // Martinique
-    'FR-GF': 1.0, // Guyane
-    'FR-RE': 1.0, // Réunion
-    'FR-YT': 1.0, // Mayotte
-    'FR-NC': 1.0, // Nouvelle-Calédonie
-    'FR-PF': 1.0, // Polynésie française
-    'FR-PM': 1.0, // Saint-Pierre-et-Miquelon
-    'FR-WF': 1.0, // Wallis-et-Futuna
-    'FR-MF': 1.0, // Saint-Martin
-    'FR-TF': 1.0, // Terres australes
-  })
+  // All territories start with default 1.0 multiplier
+  const territoryScales = ref<Record<string, number>>(
+    Object.fromEntries(
+      ALL_TERRITORIES.map(t => [t.code, 1.0]),
+    ),
+  )
 
   // Computed
   const showProjectionSelector = computed(() => {

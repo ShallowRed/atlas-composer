@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { Cartographer } from '@/cartographer/Cartographer'
 import { useConfigStore } from '@/stores/config'
+import { TERRITORY_CODES } from '../constants/territories'
 
 export interface Territory {
   name: string
@@ -175,8 +176,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     else {
       // Uniform mode: all territories use the same projection (selectedProjection)
       console.log('[geoData] Applying uniform projection to all territories:', configStore.selectedProjection)
-      const allTerritoryCodes = ['FR-MET', 'FR-GP', 'FR-MQ', 'FR-GF', 'FR-RE', 'FR-YT', 'FR-NC', 'FR-PF', 'FR-PM', 'FR-BL', 'FR-MF', 'FR-WF', 'FR-TF']
-      allTerritoryCodes.forEach((code) => {
+      TERRITORY_CODES.forEach((code) => {
         cartographer.value!.updateTerritoryProjection(code, configStore.selectedProjection)
       })
     }
