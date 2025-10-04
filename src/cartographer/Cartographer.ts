@@ -1,4 +1,5 @@
 import * as Plot from '@observablehq/plot'
+import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '@/constants/france-territories'
 import { CustomCompositeProjection } from '../services/CustomCompositeProjection'
 import { GeoDataService } from '../services/GeoDataService'
 import { GeoProjectionService } from '../services/GeoProjectionService'
@@ -47,7 +48,7 @@ export class Cartographer {
   constructor() {
     this.projectionService = new GeoProjectionService()
     this.geoDataService = new GeoDataService()
-    this.customComposite = new CustomCompositeProjection()
+    this.customComposite = new CustomCompositeProjection(DEFAULT_COMPOSITE_PROJECTION_CONFIG)
   }
 
   async init(): Promise<void> {

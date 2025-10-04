@@ -106,7 +106,6 @@ watch(() => configStore.viewMode, async (newMode) => {
             icon="ri-global-line"
             type="select"
             :options="[
-              { value: 'albers-france', label: 'Albers France' },
               { value: 'conic-conformal-france', label: 'Conic Conformal France' },
             ]"
           />

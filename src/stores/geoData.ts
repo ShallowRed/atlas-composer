@@ -92,13 +92,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const service = (cartographer.value as any).geoDataService
 
       // Load all territory data
-      const [mainlandData, overseasData] = await Promise.all([
+      const [mainland, overseas] = await Promise.all([
         service.getMainLandData(),
         service.getOverseasData(),
       ])
 
-      mainlandData.value = mainlandData
-      overseasTerritoriesData.value = overseasData || []
+      mainlandData.value = mainland
+      overseasTerritoriesData.value = overseas || []
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'

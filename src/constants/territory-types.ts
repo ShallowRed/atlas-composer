@@ -16,6 +16,8 @@ export interface TerritoryConfig {
   bounds: [[number, number], [number, number]] // Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
   projectionType?: string // Default projection type (mercator, conic-conformal, azimuthal, etc.)
   clipExtent?: { x1: number, y1: number, x2: number, y2: number } // Clip extent for composite projection layouts
+  rotate?: [number, number, number?] // Optional rotation [lambda, phi, gamma] for the projection
+  parallels?: [number, number] // Optional standard parallels for conic projections
 }
 
 /**

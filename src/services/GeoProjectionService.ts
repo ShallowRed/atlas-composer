@@ -11,7 +11,6 @@ export interface ProjectionOption {
 
 export const PROJECTION_OPTIONS: ProjectionOption[] = [
   // Projections Composites France (DOM-TOM inclus)
-  { value: 'albers-france', label: 'Albers France (Composite DOM-TOM)', category: 'Projections Composites France' },
   { value: 'conic-conformal-france', label: 'Conic Conformal France (Composite)', category: 'Projections Composites France' },
 
   // Recommandées pour la France

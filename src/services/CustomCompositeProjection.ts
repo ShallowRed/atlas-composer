@@ -1,4 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
+import type { TerritoryConfig } from '@/constants/territory-types'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
@@ -7,7 +8,6 @@ import {
   geoEquirectangular,
   geoMercator,
 } from 'd3-geo'
-import { MAINLAND_FRANCE, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
 
 /**
  * Configuration for a sub-projection within a composite projection
@@ -25,49 +25,75 @@ interface SubProjectionConfig {
 }
 
 /**
+ * Configuration for initializing a composite projection
+ */
+export interface CompositeProjectionConfig {
+  mainland: TerritoryConfig
+  overseasTerritories: TerritoryConfig[]
+}
+
+/**
  * Custom composite projection that allows individual projections per territory
  * with manual positioning (insets)
  */
 export class CustomCompositeProjection {
   private subProjections: SubProjectionConfig[] = []
   private compositeProjection: GeoProjection | null = null
+  private config: CompositeProjectionConfig
 
-  constructor() {
+  constructor(config: CompositeProjectionConfig) {
+    this.config = config
     this.initialize()
   }
 
   /**
    * Initialize all sub-projections with their geographic centers and base settings
-   * Uses centralized territory configuration from constants/territories.ts
+   * Uses provided configuration for territories
    */
   private initialize() {
-    // Metropolitan France - Conic Conformal
+    const { mainland, overseasTerritories } = this.config
+
+    // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
+    const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
+    const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
+      .center(mainland.center)
+      .scale(mainland.scale)
+      .translate([0, 0])
+
+    // Apply rotation if supported and provided in config
+    if (mainlandProjection.rotate && mainland.rotate) {
+      mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+    }
+
+    // Apply parallels if supported and provided in config
+    if ((mainlandProjection as any).parallels && mainland.parallels) {
+      (mainlandProjection as any).parallels(mainland.parallels)
+    }
+
     this.addSubProjection({
-      territoryCode: MAINLAND_FRANCE.code,
-      territoryName: MAINLAND_FRANCE.name,
-      projection: geoConicConformal()
-        .center(MAINLAND_FRANCE.center)
-        .scale(MAINLAND_FRANCE.scale)
-        .rotate([-3, 0])
-        .parallels([45.898889, 47.696014])
-        .translate([0, 0]),
-      baseScale: MAINLAND_FRANCE.scale,
+      territoryCode: mainland.code,
+      territoryName: mainland.name,
+      projection: mainlandProjection,
+      baseScale: mainland.scale,
       scaleMultiplier: 1.0,
       baseTranslate: [0, 0],
       clipExtent: null,
-      translateOffset: MAINLAND_FRANCE.offset,
-      bounds: MAINLAND_FRANCE.bounds,
+      translateOffset: mainland.offset,
+      bounds: mainland.bounds,
     })
 
-    // DOM-TOM - Use centralized configuration with improved positioning
-    OVERSEAS_TERRITORIES.forEach((territory) => {
+    // Overseas territories - use projection type from config if available, otherwise default to Mercator
+    overseasTerritories.forEach((territory) => {
+      const projectionType = territory.projectionType || 'mercator'
+      const projection = this.createProjectionByType(projectionType)
+        .center(territory.center)
+        .scale(territory.scale)
+        .translate([0, 0])
+
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
-        projection: geoMercator()
-          .center(territory.center)
-          .scale(territory.scale)
-          .translate([0, 0]),
+        projection,
         baseScale: territory.scale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
@@ -76,6 +102,29 @@ export class CustomCompositeProjection {
         bounds: territory.bounds,
       })
     })
+  }
+
+  /**
+   * Create a projection instance by type name
+   */
+  private createProjectionByType(projectionType: string): GeoProjection {
+    switch (projectionType) {
+      case 'mercator':
+        return geoMercator()
+      case 'conic-conformal':
+        return geoConicConformal()
+      case 'conic-equal-area':
+      case 'albers':
+        return geoConicEqualArea()
+      case 'azimuthal-equal-area':
+        return geoAzimuthalEqualArea()
+      case 'azimuthal-equidistant':
+        return geoAzimuthalEquidistant()
+      case 'equirectangular':
+        return geoEquirectangular()
+      default:
+        return geoMercator()
+    }
   }
 
   /**
@@ -160,7 +209,6 @@ export class CustomCompositeProjection {
 
     // Update the projection
     subProj.projection = newProjection
-    // CRITICAL FIX: baseScale must NOT include the multiplier
     // currentScale = baseScale * multiplier, so we need to extract the base scale
     subProj.baseScale = currentScale / subProj.scaleMultiplier
     this.compositeProjection = null // Force rebuild
@@ -199,7 +247,7 @@ export class CustomCompositeProjection {
       return this.compositeProjection
     }
 
-    // Center point for the map (France métropolitaine will be centered here)
+    // Center point for the map (mainland territory will be centered here)
     const centerX = width / 2
     const centerY = height / 2
 
@@ -209,7 +257,7 @@ export class CustomCompositeProjection {
 
     this.subProjections.forEach((subProj) => {
       // All territories are positioned relative to the map center
-      // FR-MET has offset [0,0] so it will be centered
+      // Mainland has offset [0,0] or close to it, so it will be centered
       // Others have their configured offsets relative to center
       const newTranslate: [number, number] = [
         centerX + subProj.translateOffset[0],
@@ -349,7 +397,7 @@ export class CustomCompositeProjection {
     const baseTranslate: [number, number] = [width / 2, height / 2]
 
     return this.subProjections
-      .filter(sp => sp.bounds && sp.territoryCode !== 'FR-MET')
+      .filter(sp => sp.bounds && sp.territoryCode !== this.config.mainland.code)
       .map((subProj) => {
         if (!subProj.bounds)
           return null

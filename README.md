@@ -79,7 +79,6 @@ src/
 
 **Utilise les projections d3-composite-projections**
 
-- **Albers France** : Projection conique équivalente avec repositionnement automatique
 - **Conic Conformal France** : Projection conforme avec DOM-TOM pré-positionnés
 - Rendu optimisé pour la France avec tous ses territoires
 

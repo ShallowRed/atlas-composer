@@ -17,7 +17,7 @@ export const useConfigStore = defineStore('config', () => {
   const viewMode = ref<ViewMode>('composite-custom')
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
-  const compositeProjection = ref<'albers-france' | 'conic-conformal-france'>('albers-france')
+  const compositeProjection = ref<'conic-conformal-france'>('conic-conformal-france')
   const theme = ref('light')
 
   // Per-territory projections (for individual mode)
@@ -101,7 +101,7 @@ export const useConfigStore = defineStore('config', () => {
 
     // Exclude composite projections from the projection selector
     // They are now handled by the composite mode selector
-    const compositeProjections = ['albers-france', 'conic-conformal-france']
+    const compositeProjections = ['conic-conformal-france']
     const filteredOptions = PROJECTION_OPTIONS.filter(option => !compositeProjections.includes(option.value))
 
     filteredOptions.forEach((option) => {
@@ -143,7 +143,7 @@ export const useConfigStore = defineStore('config', () => {
     projectionMode.value = mode
   }
 
-  const setCompositeProjection = (projection: 'albers-france' | 'conic-conformal-france') => {
+  const setCompositeProjection = (projection: 'conic-conformal-france') => {
     compositeProjection.value = projection
   }
 

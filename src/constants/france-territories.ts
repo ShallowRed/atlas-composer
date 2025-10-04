@@ -30,6 +30,8 @@ export const MAINLAND_FRANCE: TerritoryConfig = {
   offset: [80, 0], // Center reference point + small offset for better visual balance
   bounds: mainlandBounds,
   projectionType: 'conic-conformal',
+  rotate: [-3, 0], // Rotation for France
+  parallels: [45.898889, 47.696014], // Standard parallels for France's conic conformal projection
 }
 
 /**
@@ -102,7 +104,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     name: 'La Réunion',
     center: [55.536, -21.115],
     scale: calculateProportionalScale([[55.22, -21.39], [55.84, -20.87]], 'mercator'),
-    offset: [350, 50], // Below Mayotte
+    offset: [-250, 0], // Below Mayotte
     bounds: [[55.22, -21.39], [55.84, -20.87]],
     clipExtent: { x1: 0.0967, y1: -0.052, x2: 0.1371, y2: -0.02 },
   },
@@ -222,29 +224,16 @@ export const TERRITORY_GROUPS: Record<string, TerritoryGroupConfig> = {
 } as const
 
 /**
- * Territory region mappings for geographic classification
- */
-export const TERRITORY_REGIONS: Record<string, string> = {
-  'FR-MET': 'Europe',
-  'FR-PM': 'North America',
-  'FR-MF': 'Caribbean',
-  'FR-BL': 'Caribbean',
-  'FR-GP': 'Caribbean',
-  'FR-MQ': 'Caribbean',
-  'FR-GF': 'South America',
-  'FR-PF': 'Pacific Ocean',
-  'FR-NC': 'Pacific Ocean',
-  'FR-WF': 'Pacific Ocean',
-  'FR-RE': 'Indian Ocean',
-  'FR-YT': 'Indian Ocean',
-  'FR-TF': 'Indian Ocean',
-}
-
-/**
  * Get the geographic region for a French territory code
  */
-export function getTerritoryRegion(code: string): string {
-  return TERRITORY_REGIONS[code] || 'Other'
+export function getTerritoryWorldRegion(code: string): string {
+  for (const groupKey in TERRITORY_GROUPS) {
+    const group = TERRITORY_GROUPS[groupKey]
+    if (group?.codes.includes(code)) {
+      return group.label
+    }
+  }
+  return 'Other'
 }
 
 /**
@@ -355,5 +344,14 @@ export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
   topologyObjectName: 'territories',
   mainlandCode: 'FR-MET',
   mainlandBounds: [[-5, 41], [10, 51]], // European mainland bounds
+  overseasTerritories: OVERSEAS_TERRITORIES,
+}
+
+/**
+ * Default composite projection configuration for French territories
+ * This configuration can be passed to CustomCompositeProjection
+ */
+export const DEFAULT_COMPOSITE_PROJECTION_CONFIG = {
+  mainland: MAINLAND_FRANCE,
   overseasTerritories: OVERSEAS_TERRITORIES,
 }

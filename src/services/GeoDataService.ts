@@ -2,7 +2,7 @@ import type { GeoDataConfig, TerritoryConfig } from '@/constants/territory-types
 
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-import { DEFAULT_GEO_DATA_CONFIG, getTerritoriesForMode, getTerritoryRegion } from '@/constants/france-territories'
+import { DEFAULT_GEO_DATA_CONFIG, getTerritoriesForMode, getTerritoryWorldRegion } from '@/constants/france-territories'
 
 /**
  * Represents a territory (mainland or overseas)
@@ -297,7 +297,7 @@ export class GeoDataService {
         extractedTerritories.push({
           name: matchedTerritory.name,
           code: matchedTerritory.code,
-          region: getTerritoryRegion(matchedTerritory.code),
+          region: getTerritoryWorldRegion(matchedTerritory.code),
           area: calculatedArea,
           data: {
             type: 'FeatureCollection',
@@ -330,7 +330,7 @@ export class GeoDataService {
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
-          region: getTerritoryRegion(code),
+          region: getTerritoryWorldRegion(code),
           data: {
             type: 'FeatureCollection' as const,
             features: [territoryData.feature],
