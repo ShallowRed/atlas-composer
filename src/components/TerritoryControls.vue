@@ -4,10 +4,13 @@ import { computed } from 'vue'
 import {
   DEFAULT_TERRITORY_TRANSLATIONS,
   getTerritoriesForMode,
-  SCALE_RANGE,
   TERRITORY_LIST,
+} from '@/constants/france-territories'
+import {
+  SCALE_RANGE,
   TRANSLATION_RANGES,
-} from '@/constants/territories'
+} from '@/constants/territory-types'
+
 import { useConfigStore } from '@/stores/config'
 
 interface Props {

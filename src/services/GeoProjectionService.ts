@@ -1,7 +1,7 @@
 import { geoConicConformalFrance } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
 
-import { FRANCE_PROJECTION_PARAMS } from '@/constants/territories'
+import { FRANCE_PROJECTION_PARAMS } from '@/constants/france-territories'
 
 export interface ProjectionOption {
   value: string

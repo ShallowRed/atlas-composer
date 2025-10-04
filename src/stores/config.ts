@@ -1,8 +1,9 @@
-import type { TerritoryMode } from '@/constants/territories'
+import type { TerritoryMode } from '@/constants/france-territories'
 import { defineStore } from 'pinia'
 
 import { computed, ref } from 'vue'
-import { ALL_TERRITORIES, DEFAULT_PROJECTION_TYPES, OVERSEAS_TERRITORIES } from '@/constants/territories'
+import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
+import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-types'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom'

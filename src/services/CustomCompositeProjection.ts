@@ -7,7 +7,7 @@ import {
   geoEquirectangular,
   geoMercator,
 } from 'd3-geo'
-import { MAINLAND_FRANCE, OVERSEAS_TERRITORIES } from '../constants/territories'
+import { MAINLAND_FRANCE, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
 
 /**
  * Configuration for a sub-projection within a composite projection

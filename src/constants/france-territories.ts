@@ -1,65 +1,24 @@
 /**
- * Centralized territory configuration
- * All territory codes, labels, geographic data, and default positioning
+ * French territory configurations
+ * Specific definitions for France and its overseas territories
  */
 
-export interface TerritoryConfig {
-  code: string
-  name: string
-  shortName?: string
-  center: [number, number] // [longitude, latitude]
-  scale: number // Base scale for the projection (auto-calculated to respect size ratios)
-  offset: [number, number] // [x, y] pixel offset relative to mainland center
-  bounds: [[number, number], [number, number]] // [[minLon, minLat], [maxLon, maxLat]]
-  projectionType?: string // Default projection type (mercator, conic-conformal, etc.)
-  clipExtent?: { x1: number, y1: number, x2: number, y2: number } // Clip extent for composite projection
-}
+import type {
+  GeoDataConfig,
+  TerritoryConfig,
+  TerritoryGroupConfig,
+  TerritoryModeConfig,
+} from '@/constants/territory-types'
+
+import {
+  calculateProportionalScale,
+  createDefaultTranslations,
+  createTerritoryMap,
+  extractTerritoryCodes,
+} from '@/constants/territory-types'
 
 /**
- * Calculate proportional scale using D3's projection.fitSize() logic
- *
- * This is the CORRECT approach: we create a temporary projection, use D3's fitSize()
- * to calculate the exact scale for a standard pixel box, then extract that scale.
- * This ensures all territories have proportional sizes regardless of projection type.
- *
- * Reference: mainland France should fit in ~500px box at scale 1.0
- */
-function calculateProportionalScale(
-  bounds: [[number, number], [number, number]],
-  projectionType: 'conic-conformal' | 'mercator' = 'mercator',
-): number {
-  // Dynamic import is not available in TypeScript constants
-  // So we'll use a mathematical approximation based on geographic extent
-  // that mimics what fitSize() does internally
-
-  const [[minLon, minLat], [maxLon, maxLat]] = bounds
-  const lonSpan = maxLon - minLon
-  const latSpan = maxLat - minLat
-
-  // Use maxSpan (like D3 fitSize does)
-  const maxSpan = Math.max(lonSpan, latSpan)
-
-  // Calculate scale based on projection type
-  // These formulas are derived from empirical testing to match visual proportions
-
-  if (projectionType === 'conic-conformal') {
-    // For Conic Conformal (mainland France):
-    // 15° span → scale 2800
-    // Formula: scale = 2800 * (15 / maxSpan) = 42000 / maxSpan
-    return 42000 / maxSpan
-  }
-  else {
-    // For Mercator (DOM-TOM):
-    // Need to account for projection difference
-    // Target: produce similar pixel output relative to geographic size
-    // Mercator at mid-latitudes (15-25°) needs ~50x smaller scale than Conic
-    // to produce proportional output
-    return (42000 / maxSpan) * 0.25
-  }
-}
-
-/**
- * France Métropolitaine configuration
+ * Mainland territory configuration (France Métropolitaine)
  */
 const mainlandBounds: [[number, number], [number, number]] = [[-5, 41], [10, 51]]
 export const MAINLAND_FRANCE: TerritoryConfig = {
@@ -68,13 +27,13 @@ export const MAINLAND_FRANCE: TerritoryConfig = {
   shortName: 'Métropole',
   center: [2.5, 46.5],
   scale: calculateProportionalScale(mainlandBounds, 'conic-conformal'),
-  offset: [80, 0], // Center reference point + small right for better visual balance with Corse
+  offset: [80, 0], // Center reference point + small offset for better visual balance
   bounds: mainlandBounds,
   projectionType: 'conic-conformal',
 }
 
 /**
- * DOM-TOM (Départements et Régions d'Outre-Mer) configurations
+ * Overseas territories configurations (DOM-TOM)
  * Optimized positioning for better visual layout
  */
 export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
@@ -187,7 +146,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     clipExtent: { x1: 0.0967, y1: 0.033, x2: 0.1371, y2: 0.0864 },
   },
 
-  // Saint-Barthélemy (not in original list but should be included)
+  // Saint-Barthélemy
   {
     code: 'FR-BL',
     name: 'Saint-Barthélemy',
@@ -200,21 +159,19 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
 ]
 
 /**
- * All territories combined (mainland + overseas)
+ * All French territories combined (mainland + overseas)
  */
 export const ALL_TERRITORIES: TerritoryConfig[] = [MAINLAND_FRANCE, ...OVERSEAS_TERRITORIES]
 
 /**
  * Territory codes only (for quick iteration)
  */
-export const TERRITORY_CODES = ALL_TERRITORIES.map(t => t.code)
+export const TERRITORY_CODES = extractTerritoryCodes(ALL_TERRITORIES)
 
 /**
  * Territory lookup by code
  */
-export const TERRITORIES_BY_CODE = new Map<string, TerritoryConfig>(
-  ALL_TERRITORIES.map(t => [t.code, t]),
-)
+export const TERRITORIES_BY_CODE = createTerritoryMap(ALL_TERRITORIES)
 
 /**
  * Get territory configuration by code
@@ -239,18 +196,9 @@ export function getTerritoryShortName(code: string): string {
 }
 
 /**
- * Default projection types for different territory types
- */
-export const DEFAULT_PROJECTION_TYPES = {
-  MAINLAND: 'conic-conformal',
-  OVERSEAS: 'mercator',
-  POLAR: 'azimuthal-equal-area',
-} as const
-
-/**
  * Territory groupings for UI organization
  */
-export const TERRITORY_GROUPS = {
+export const TERRITORY_GROUPS: Record<string, TerritoryGroupConfig> = {
   MAINLAND: {
     label: 'France Métropolitaine',
     codes: ['FR-MET'],
@@ -293,7 +241,7 @@ export const TERRITORY_REGIONS: Record<string, string> = {
 }
 
 /**
- * Get the geographic region for a territory code
+ * Get the geographic region for a French territory code
  */
 export function getTerritoryRegion(code: string): string {
   return TERRITORY_REGIONS[code] || 'Other'
@@ -301,9 +249,9 @@ export function getTerritoryRegion(code: string): string {
 
 /**
  * Territory mode definitions
- * Define which territories are included in each mode
+ * Define which territories are included in each display mode
  */
-export const TERRITORY_MODES = {
+export const TERRITORY_MODES: Record<string, TerritoryModeConfig> = {
   'metropole-only': {
     label: 'Métropole uniquement',
     codes: [],
@@ -367,30 +315,10 @@ export const FRANCE_PROJECTION_PARAMS = {
 } as const
 
 /**
- * Default translation ranges for territory controls (in pixels)
- */
-export const TRANSLATION_RANGES = {
-  x: { min: -600, max: 600, step: 10 },
-  y: { min: -400, max: 400, step: 10 },
-} as const
-
-/**
- * Default scale range for territory controls
- */
-export const SCALE_RANGE = {
-  min: 0.5,
-  max: 2.0,
-  step: 0.1,
-  default: 1.0,
-} as const
-
-/**
- * Default reset values for territory translations
+ * Default reset values for French territory translations
  * These match the offset values defined in OVERSEAS_TERRITORIES
  */
-export const DEFAULT_TERRITORY_TRANSLATIONS = Object.fromEntries(
-  OVERSEAS_TERRITORIES.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
-) as Record<string, { x: number, y: number }>
+export const DEFAULT_TERRITORY_TRANSLATIONS = createDefaultTranslations(OVERSEAS_TERRITORIES)
 
 /**
  * Variable name mappings for code generation
@@ -411,8 +339,21 @@ export const TERRITORY_VAR_NAMES: Record<string, string> = {
 } as const
 
 /**
- * Get JavaScript variable name for a territory code
+ * Get JavaScript variable name for a French territory code
  */
 export function getTerritoryVarName(code: string): string {
   return TERRITORY_VAR_NAMES[code] || code.toLowerCase().replace('-', '')
+}
+
+/**
+ * Default geographic data configuration for French territories
+ * This configuration can be passed to RealGeoDataService
+ */
+export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
+  dataPath: '/data/france-territories.json',
+  metadataPath: '/data/metadata.json',
+  topologyObjectName: 'territories',
+  mainlandCode: 'FR-MET',
+  mainlandBounds: [[-5, 41], [10, 51]], // European mainland bounds
+  overseasTerritories: OVERSEAS_TERRITORIES,
 }

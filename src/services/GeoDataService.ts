@@ -1,16 +1,17 @@
+import type { GeoDataConfig, TerritoryConfig } from '@/constants/territory-types'
+
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-
-import { getTerritoriesForMode, getTerritoryRegion, OVERSEAS_TERRITORIES } from '@/constants/territories'
+import { DEFAULT_GEO_DATA_CONFIG, getTerritoriesForMode, getTerritoryRegion } from '@/constants/france-territories'
 
 /**
  * Represents a territory (mainland or overseas)
  */
 export interface Territory {
-  id: string // Natural Earth ID
+  id: string // External data source ID
   iso: string // ISO country code
   name: string // Territory display name
-  code: string // French territory code (FR-XX)
+  code: string // Territory code (e.g., FR-XX, US-XX)
   area: number // Area in square kilometers
   geometry?: any // Raw geometry data
   bounds?: [number, number, number, number] // Geographic bounds [west, south, east, north]
@@ -27,17 +28,22 @@ export interface TerritoryGeoData {
 }
 
 /**
- * Service for loading and processing French geographic data
- * Handles Natural Earth data conversion, territory extraction, and composite projections
+ * Service for loading and processing geographic data
+ * Handles TopoJSON data conversion, territory extraction, and composite projections
  */
 export class RealGeoDataService {
   private territoryData: Map<string, TerritoryGeoData> = new Map() // Cached processed territory data
-  private metadata: any = null // Natural Earth metadata
+  private metadata: any = null // Data source metadata
   private topologyData: any = null // Raw TopoJSON data
   private isLoaded = false // Loading state flag
+  private config: GeoDataConfig // Service configuration
+
+  constructor(config: GeoDataConfig = DEFAULT_GEO_DATA_CONFIG) {
+    this.config = config
+  }
 
   /**
-   * Loads and processes French geographic data from Natural Earth
+   * Loads and processes geographic data from the configured data source
    * Downloads TopoJSON and metadata, then converts to processable format
    */
   async loadData(): Promise<void> {
@@ -45,15 +51,15 @@ export class RealGeoDataService {
       return
 
     try {
-      // Load TopoJSON data containing French territories
-      const response = await fetch('/data/france-territories.json')
+      // Load TopoJSON data containing territories
+      const response = await fetch(this.config.dataPath)
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`)
       }
       this.topologyData = await response.json()
 
       // Load metadata with territory information
-      const metaResponse = await fetch('/data/metadata.json')
+      const metaResponse = await fetch(this.config.metadataPath)
       if (!metaResponse.ok) {
         throw new Error(`Metadata Error: ${metaResponse.status}`)
       }
@@ -75,14 +81,15 @@ export class RealGeoDataService {
    * Converts topology to features and calculates geographic properties
    */
   private async processTerritoriesData(): Promise<void> {
-    if (!this.topologyData?.objects?.territories) {
-      throw new Error('Invalid data structure')
+    const objectName = this.config.topologyObjectName
+    if (!this.topologyData?.objects?.[objectName]) {
+      throw new Error(`Invalid data structure: missing object "${objectName}"`)
     }
 
     // Convert TopoJSON topology to GeoJSON FeatureCollection
     const featureCollection = topojson.feature(
       this.topologyData,
-      this.topologyData.objects.territories,
+      this.topologyData.objects[objectName],
     ) as any as GeoJSON.FeatureCollection
 
     for (const feature of featureCollection.features) {
@@ -150,38 +157,46 @@ export class RealGeoDataService {
   }
 
   /**
-   * Returns the metropolitan France geographic data
-   * Filters to include only European mainland territory
-   * @returns FeatureCollection containing European metropolitan France
+   * Returns the mainland territory geographic data
+   * Filters to include only the main geographic region
+   * @returns FeatureCollection containing mainland territory
    */
   async getMetropoleData(): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
-    const metropole = this.territoryData.get('FR-MET')
+    const mainland = this.territoryData.get(this.config.mainlandCode)
 
-    if (!metropole)
+    if (!mainland)
       return null
 
-    // Filter to include only European metropolitan geometry
-    const europeanMetropoleFeature = this.extractEuropeanMetropole(metropole.feature)
+    // Filter to include only main region geometry
+    const mainRegionFeature = this.extractMainlandRegion(mainland.feature)
 
     return {
       type: 'FeatureCollection',
-      features: [europeanMetropoleFeature],
+      features: [mainRegionFeature],
     }
   }
 
   /**
-   * Extracts only the European part of metropolitan France
-   * Filters polygons based on their geographic coordinates
-   * @param feature - Original France metropolitan feature
-   * @returns Feature containing only European mainland polygons
+   * Extracts only the main region of the mainland territory
+   * Filters polygons based on configured geographic bounds
+   * @param feature - Original mainland territory feature
+   * @returns Feature containing only main region polygons
    */
-  private extractEuropeanMetropole(feature: GeoJSON.Feature): GeoJSON.Feature {
+  private extractMainlandRegion(feature: GeoJSON.Feature): GeoJSON.Feature {
     if (feature.geometry.type !== 'MultiPolygon') {
       return feature
     }
 
-    const europeanPolygons: number[][][][] = []
+    const mainRegionPolygons: number[][][][] = []
+    const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = this.config.mainlandBounds
+
+    // Add tolerance for bounds checking
+    const tolerance = 5
+    const minLon = configMinLon - tolerance
+    const maxLon = configMaxLon + tolerance
+    const minLat = configMinLat - tolerance
+    const maxLat = configMaxLat + tolerance
 
     for (const polygon of feature.geometry.coordinates) {
       const firstRing = polygon[0]
@@ -191,15 +206,14 @@ export class RealGeoDataService {
       // Analyze coordinates of the first ring to determine region
       const lons = firstRing.map(coord => coord[0]) as number[]
       const lats = firstRing.map(coord => coord[1]) as number[]
-      const minLon = Math.min(...lons)
-      const maxLon = Math.max(...lons)
-      const minLat = Math.min(...lats)
-      const maxLat = Math.max(...lats)
+      const polyMinLon = Math.min(...lons)
+      const polyMaxLon = Math.max(...lons)
+      const polyMinLat = Math.min(...lats)
+      const polyMaxLat = Math.max(...lats)
 
-      // Keep only polygons within the European zone
-      // Metropolitan France bounds: longitude -5° to 10°, latitude 40° to 55°
-      if (minLon > -10 && maxLon < 15 && minLat > 35 && maxLat < 55) {
-        europeanPolygons.push(polygon)
+      // Keep only polygons within the configured main region bounds
+      if (polyMinLon > minLon && polyMaxLon < maxLon && polyMinLat > minLat && polyMaxLat < maxLat) {
+        mainRegionPolygons.push(polygon)
       }
     }
 
@@ -207,17 +221,17 @@ export class RealGeoDataService {
       ...feature,
       geometry: {
         type: 'MultiPolygon',
-        coordinates: europeanPolygons,
+        coordinates: mainRegionPolygons,
       },
     }
   }
 
   /**
-   * Extracts DOM-TOM territories included in metropolitan France geometry
+   * Extracts overseas/remote territories included in mainland geometry
    * Returns them as separate territory objects for individual rendering
-   * Uses centralized configuration from territories.ts for bounds and regions
-   * @param feature - Metropolitan France feature containing mixed territories
-   * @returns Array of DOM-TOM territory objects with geographic data
+   * Uses centralized configuration for bounds and regions
+   * @param feature - Mainland feature containing mixed territories
+   * @returns Array of overseas territory objects with geographic data
    */
   private extractDOMTOMFromMetropole(feature: GeoJSON.Feature): Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> {
     if (feature.geometry.type !== 'MultiPolygon') {
@@ -240,11 +254,11 @@ export class RealGeoDataService {
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
 
-      // Match against territories defined in territories.ts
-      // We check if the polygon bounds fall within the configured territory bounds
-      let matchedTerritory: typeof OVERSEAS_TERRITORIES[0] | null = null
+      // Match against overseas territories from configuration
+      // Check if the polygon bounds fall within the configured territory bounds
+      let matchedTerritory: TerritoryConfig | null = null
 
-      for (const territory of OVERSEAS_TERRITORIES) {
+      for (const territory of this.config.overseasTerritories) {
         const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = territory.bounds
 
         // Check if polygon bounds are approximately within the configured bounds
@@ -297,22 +311,22 @@ export class RealGeoDataService {
   }
 
   /**
-   * Returns all DOM-TOM (Overseas Departments and Territories) geographic data
-   * Combines individually defined territories with those extracted from metropolitan data
-   * @returns Array of DOM-TOM territory objects with geographic and metadata
+   * Returns all overseas/remote territories geographic data
+   * Combines individually defined territories with those extracted from mainland data
+   * @returns Array of overseas territory objects with geographic and metadata
    */
   async getDOMTOMData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
     await this.loadData()
-    const domtomData = []
+    const overseasData = []
 
     // Create Set to avoid duplicates between individual territories and extracted ones
     const addedTerritories = new Set<string>()
 
-    // Add individual DOM-TOM territories (already separated in Natural Earth data)
+    // Add individual overseas territories (already separated in source data)
     for (const [code, territoryData] of this.territoryData) {
-      if (code !== 'FR-MET') {
+      if (code !== this.config.mainlandCode) {
         addedTerritories.add(code)
-        domtomData.push({
+        overseasData.push({
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
@@ -325,20 +339,20 @@ export class RealGeoDataService {
       }
     }
 
-    // Extraire les DOM-TOM inclus dans la géométrie "France métropolitaine"
-    // seulement s'ils ne sont pas déjà présents comme territoires individuels
-    const metropole = this.territoryData.get('FR-MET')
-    if (metropole) {
-      const extractedDOMTOM = this.extractDOMTOMFromMetropole(metropole.feature)
-      for (const territory of extractedDOMTOM) {
+    // Extract overseas territories included in the mainland geometry
+    // only if they are not already present as individual territories
+    const mainland = this.territoryData.get(this.config.mainlandCode)
+    if (mainland) {
+      const extractedOverseas = this.extractDOMTOMFromMetropole(mainland.feature)
+      for (const territory of extractedOverseas) {
         if (!addedTerritories.has(territory.code)) {
-          domtomData.push(territory)
+          overseasData.push(territory)
         }
       }
     }
 
     // Sort by region then by area (largest first)
-    return domtomData.sort((a, b) => {
+    return overseasData.sort((a, b) => {
       if (a.region !== b.region) {
         return a.region.localeCompare(b.region)
       }
@@ -348,31 +362,31 @@ export class RealGeoDataService {
 
   /**
    * Returns raw geographic data with original coordinates for composite projections
-   * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
-   * @returns Combined metropolitan and DOM-TOM data with ORIGINAL coordinates (no repositioning)
+   * @param mode - Display mode determining which territories to include
+   * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
    */
   async getRawUnifiedData(mode: string = 'metropole-major'): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
-    // Get European metropolitan France (no repositioning needed)
-    const metropole = await this.getMetropoleData()
-    if (!metropole)
+    // Get mainland territory (no repositioning needed)
+    const mainland = await this.getMetropoleData()
+    if (!mainland)
       return null
 
-    const allDomtomData = await this.getDOMTOMData()
+    const allOverseasData = await this.getDOMTOMData()
 
-    // Filter DOM-TOM territories based on selected mode using centralized configuration
+    // Filter overseas territories based on selected mode using centralized configuration
     const allowedCodes = getTerritoriesForMode(mode as any)
-    const filteredDomtom = allDomtomData.filter(territory =>
+    const filteredOverseas = allOverseasData.filter(territory =>
       allowedCodes.includes(territory.code),
     )
 
     // CREATE UNIFIED DATASET with ORIGINAL coordinates - no repositioning!
-    const unifiedFeatures = [...metropole.features]
+    const unifiedFeatures = [...mainland.features]
 
-    // Add DOM-TOM territories with their ORIGINAL coordinates
-    filteredDomtom.forEach((territory) => {
-      // Add original DOM-TOM features without any coordinate transformation
+    // Add overseas territories with their ORIGINAL coordinates
+    filteredOverseas.forEach((territory) => {
+      // Add original overseas features without any coordinate transformation
       unifiedFeatures.push(...territory.data.features)
     })
 

@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { geoConicConformal, geoMercator } from 'd3-geo'
 
-import { getTerritoryConfig, getTerritoryVarName } from '@/constants/territories'
+import { getTerritoryConfig, getTerritoryVarName } from '@/constants/france-territories'
 
 export interface TerritoryProjectionParams {
   code: string
