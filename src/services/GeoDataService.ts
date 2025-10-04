@@ -1,6 +1,8 @@
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 
+import { getTerritoriesForMode, getTerritoryName, getTerritoryRegion } from '@/constants/territories'
+
 /**
  * Represents a French territory (metropolitan France or overseas territories)
  */
@@ -43,8 +45,6 @@ export class RealGeoDataService {
       return
 
     try {
-      console.log('Loading Natural Earth geographic data...')
-
       // Load TopoJSON data containing French territories
       const response = await fetch('/data/france-territories.json')
       if (!response.ok) {
@@ -63,7 +63,6 @@ export class RealGeoDataService {
       await this.processTerritoriesData()
 
       this.isLoaded = true
-      console.log(`Loaded ${this.territoryData.size} territories`)
     }
     catch (error) {
       console.error('Data loading error:', error)
@@ -244,20 +243,20 @@ export class RealGeoDataService {
 
       // Identify territory based on precise geographic coordinates
       if (minLon > 45.0 && maxLon < 45.3 && minLat > -13.0 && maxLat < -12.6) {
-        territoryInfo = { name: 'Mayotte', code: 'FR-YT', region: 'Indian Ocean' }
+        territoryInfo = { name: getTerritoryName('FR-YT'), code: 'FR-YT', region: 'Indian Ocean' }
       }
       else if (minLon > 55.2 && maxLon < 55.9 && minLat > -21.4 && maxLat < -20.8) {
-        territoryInfo = { name: 'La Réunion', code: 'FR-RE', region: 'Indian Ocean' }
+        territoryInfo = { name: getTerritoryName('FR-RE'), code: 'FR-RE', region: 'Indian Ocean' }
       }
       else if (minLon > -61.9 && maxLon < -61.0 && minLat > 15.8 && maxLat < 16.6) {
         // Guadeloupe archipelago - identified by precise position
-        territoryInfo = { name: 'Guadeloupe', code: 'FR-GP', region: 'Caribbean' }
+        territoryInfo = { name: getTerritoryName('FR-GP'), code: 'FR-GP', region: 'Caribbean' }
       }
       else if (minLon > -61.3 && maxLon < -60.8 && minLat > 14.4 && maxLat < 14.9) {
-        territoryInfo = { name: 'Martinique', code: 'FR-MQ', region: 'Caribbean' }
+        territoryInfo = { name: getTerritoryName('FR-MQ'), code: 'FR-MQ', region: 'Caribbean' }
       }
       else if (minLon > -54.7 && maxLon < -51.6 && minLat > 2.1 && maxLat < 5.8) {
-        territoryInfo = { name: 'French Guiana', code: 'FR-GF', region: 'South America' }
+        territoryInfo = { name: getTerritoryName('FR-GF'), code: 'FR-GF', region: 'South America' }
       }
 
       if (territoryInfo && !addedCodes.has(territoryInfo.code)) {
@@ -314,7 +313,7 @@ export class RealGeoDataService {
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
-          region: this.getTerritoryRegion(code),
+          region: getTerritoryRegion(code),
           data: {
             type: 'FeatureCollection' as const,
             features: [territoryData.feature],
@@ -345,24 +344,6 @@ export class RealGeoDataService {
   }
 
   /**
-   * Returns the geographic region for a given territory code
-   * @param code - Territory ISO code (e.g., 'FR-GP', 'FR-RE')
-   * @returns Region name in English
-   */
-  private getTerritoryRegion(code: string): string {
-    // Regional classifications based on actual Natural Earth territories
-    const regions = {
-      'FR-PM': 'North America',
-      'FR-MF': 'Caribbean', // Saint-Martin
-      'FR-PF': 'Pacific Ocean', // French Polynesia
-      'FR-NC': 'Pacific Ocean', // New Caledonia
-      'FR-WF': 'Pacific Ocean', // Wallis and Futuna
-      'FR-TF': 'Indian Ocean', // French Southern Territories
-    }
-    return regions[code as keyof typeof regions] || 'Other'
-  }
-
-  /**
    * Returns raw geographic data with original coordinates for composite projections
    * @param mode - Display mode: 'metropole-only', 'metropole-major', or 'all'
    * @returns Combined metropolitan and DOM-TOM data with ORIGINAL coordinates (no repositioning)
@@ -377,33 +358,11 @@ export class RealGeoDataService {
 
     const allDomtomData = await this.getDOMTOMData()
 
-    // Filter DOM-TOM territories based on selected mode
-    let filteredDomtom: any[] = []
-
-    switch (mode) {
-      case 'metropole-only':
-        filteredDomtom = []
-        break
-
-      case 'metropole-major':
-        filteredDomtom = allDomtomData.filter(territory =>
-          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code),
-        )
-        break
-
-      case 'metropole-uncommon':
-        filteredDomtom = allDomtomData.filter(territory =>
-          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code),
-        )
-        break
-
-      case 'all-territories':
-      default:
-        filteredDomtom = allDomtomData.filter(territory =>
-          ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code),
-        )
-        break
-    }
+    // Filter DOM-TOM territories based on selected mode using centralized configuration
+    const allowedCodes = getTerritoriesForMode(mode as any)
+    const filteredDomtom = allDomtomData.filter(territory =>
+      allowedCodes.includes(territory.code),
+    )
 
     // CREATE UNIFIED DATASET with ORIGINAL coordinates - no repositioning!
     const unifiedFeatures = [...metropole.features]

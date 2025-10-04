@@ -1,9 +1,10 @@
+import type { TerritoryMode } from '@/constants/territories'
 import { defineStore } from 'pinia'
-import { computed, ref, triggerRef } from 'vue'
-import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
-import { ALL_TERRITORIES } from '../constants/territories'
 
-export type TerritoryMode = 'metropole-only' | 'metropole-major' | 'metropole-uncommon' | 'all-territories'
+import { computed, ref } from 'vue'
+import { ALL_TERRITORIES, DEFAULT_PROJECTION_TYPES, OVERSEAS_TERRITORIES } from '@/constants/territories'
+import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
+
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom'
 export type ProjectionMode = 'uniform' | 'individual'
 
@@ -19,19 +20,15 @@ export const useConfigStore = defineStore('config', () => {
   const theme = ref('light')
 
   // Per-territory projections (for individual mode)
-  const territoryProjections = ref<Record<string, string>>({
-    'FR-GF': 'albers', // Guyane
-    'FR-RE': 'albers', // Réunion
-    'FR-GP': 'albers', // Guadeloupe
-    'FR-MQ': 'albers', // Martinique
-    'FR-YT': 'albers', // Mayotte
-    'FR-MF': 'albers', // Saint-Martin
-    'FR-PF': 'albers', // Polynésie française
-    'FR-NC': 'albers', // Nouvelle-Calédonie
-    'FR-TF': 'albers', // Terres australes
-    'FR-WF': 'albers', // Wallis-et-Futuna
-    'FR-PM': 'albers', // Saint-Pierre-et-Miquelon
-  })
+  // Initialize from centralized territory configuration
+  const territoryProjections = ref<Record<string, string>>(
+    Object.fromEntries(
+      OVERSEAS_TERRITORIES.map(t => [
+        t.code,
+        t.projectionType || DEFAULT_PROJECTION_TYPES.OVERSEAS,
+      ]),
+    ),
+  )
 
   // Territory translations (x, y offsets in pixels relative to mainland center)
   // Initialize from centralized territory configuration
@@ -137,7 +134,6 @@ export const useConfigStore = defineStore('config', () => {
     // Auto-adjust projection mode for composite-custom
     // In composite-custom, individual projections make the most sense
     if (mode === 'composite-custom' && projectionMode.value === 'uniform') {
-      console.log('[config] Auto-switching to individual projection mode for composite-custom')
       projectionMode.value = 'individual'
     }
   }
@@ -152,9 +148,6 @@ export const useConfigStore = defineStore('config', () => {
 
   const setTerritoryProjection = (territoryCode: string, projection: string) => {
     territoryProjections.value[territoryCode] = projection
-    // Force Vue to detect the change in nested object
-    triggerRef(territoryProjections)
-    console.log('[config] setTerritoryProjection', territoryCode, projection)
   }
 
   const setTerritoryTranslation = (territoryCode: string, axis: 'x' | 'y', value: number) => {
@@ -162,16 +155,10 @@ export const useConfigStore = defineStore('config', () => {
       territoryTranslations.value[territoryCode] = { x: 0, y: 0 }
     }
     territoryTranslations.value[territoryCode][axis] = value
-    // Force Vue to detect the change in nested object
-    triggerRef(territoryTranslations)
-    console.log('[config] setTerritoryTranslation', territoryCode, axis, value)
   }
 
   const setTerritoryScale = (territoryCode: string, value: number) => {
     territoryScales.value[territoryCode] = value
-    // Force Vue to detect the change in nested object
-    triggerRef(territoryScales)
-    console.log('[config] setTerritoryScale', territoryCode, value)
   }
 
   const setTheme = (newTheme: string) => {
@@ -182,8 +169,6 @@ export const useConfigStore = defineStore('config', () => {
 
     // Save theme preference to localStorage
     localStorage.setItem('daisyui-theme', newTheme)
-
-    console.log(`Theme changed to: ${newTheme}`)
   }
 
   const initializeTheme = () => {

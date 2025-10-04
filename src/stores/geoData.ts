@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+
 import { Cartographer } from '@/cartographer/Cartographer'
+import { getTerritoriesForMode, TERRITORY_CODES } from '@/constants/territories'
 import { useConfigStore } from '@/stores/config'
-import { TERRITORY_CODES } from '../constants/territories'
 
 export interface Territory {
   name: string
@@ -34,23 +35,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
     if (!territories)
       return []
 
-    switch (configStore.territoryMode) {
-      case 'metropole-only':
-        return []
-      case 'metropole-major':
-        return territories.filter(territory =>
-          territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code),
-        )
-      case 'metropole-uncommon':
-        return territories.filter(territory =>
-          territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code),
-        )
-      case 'all-territories':
-      default:
-        return territories.filter(territory =>
-          territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code),
-        )
-    }
+    const allowedCodes = getTerritoriesForMode(configStore.territoryMode)
+    return territories.filter(territory =>
+      territory && territory.code && allowedCodes.includes(territory.code),
+    )
   })
 
   const territoryGroups = computed(() => {
@@ -76,13 +64,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      console.log('Initializing geo data store...')
-
       cartographer.value = new Cartographer()
       await cartographer.value.init()
 
       isInitialized.value = true
-      console.log('Geo data store initialized successfully')
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error initializing geo data'
@@ -114,11 +99,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       metropolitanFranceData.value = metroData
       domtomTerritoriesData.value = domtomData || []
-
-      console.log('Territory data loaded:', {
-        metro: !!metroData,
-        domtom: domtomData?.length || 0,
-      })
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'
@@ -163,39 +143,32 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return
 
     const configStore = useConfigStore()
-    console.log('[geoData] renderCustomComposite - projectionMode:', configStore.projectionMode)
 
     // Synchronize CustomCompositeProjection with current store state
     if (configStore.projectionMode === 'individual') {
       // Individual mode: each territory uses its own projection
-      console.log('[geoData] Syncing individual projections:', configStore.territoryProjections)
       Object.entries(configStore.territoryProjections).forEach(([code, projectionType]) => {
         cartographer.value!.updateTerritoryProjection(code, projectionType)
       })
     }
     else {
       // Uniform mode: all territories use the same projection (selectedProjection)
-      console.log('[geoData] Applying uniform projection to all territories:', configStore.selectedProjection)
       TERRITORY_CODES.forEach((code) => {
         cartographer.value!.updateTerritoryProjection(code, configStore.selectedProjection)
       })
     }
 
     // Update translations (in pixels relative to mainland center)
-    console.log('[geoData] Syncing translations:', configStore.territoryTranslations)
     Object.entries(configStore.territoryTranslations).forEach(([code, translation]) => {
       const offset: [number, number] = [translation.x || 0, translation.y || 0]
-      console.log(`[geoData] Updating translation for ${code}: [${offset[0]}, ${offset[1]}]`)
       cartographer.value!.updateTerritoryTranslationOffset(code, offset)
     })
 
     // Update scales
-    console.log('[geoData] Syncing scales:', configStore.territoryScales)
     Object.entries(configStore.territoryScales).forEach(([code, scale]) => {
       cartographer.value!.updateTerritoryScale(code, scale)
     })
 
-    console.log('[geoData] Calling cartographer.renderCustomComposite')
     await cartographer.value.renderCustomComposite(container)
   }
 

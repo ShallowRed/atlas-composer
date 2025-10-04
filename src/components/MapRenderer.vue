@@ -4,7 +4,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { GeoProjectionService } from '@/services/GeoProjectionService'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
-import { getDefaultStrokeColor, getMetropolitanFranceColor, getRegionColor } from '@/utils/colorUtils'
+import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/colorUtils'
 
 interface Props {
   // For simple territory maps
@@ -78,10 +78,10 @@ const computedSize = computed(() => {
 
 const fillColor = computed(() => {
   if (props.isMetropolitan) {
-    return getMetropolitanFranceColor()
+    return getTerritoryFillColor()
   }
   if (props.region) {
-    return getRegionColor(props.region)
+    return getTerritoryFillColor(props.region)
   }
   return 'steelblue'
 })
@@ -149,7 +149,7 @@ async function renderMap() {
       marks: [
         Plot.geo(props.geoData, {
           fill: fillColor.value,
-          stroke: getDefaultStrokeColor(),
+          stroke: getTerritoryStrokeColor(),
           strokeWidth: props.isMetropolitan ? 1.2 : 1,
         }),
       ],
@@ -210,10 +210,6 @@ watch(() => {
     props.preserveScale,
   ]
 }, async () => {
-  console.log('[MapRenderer] Watch triggered!')
-  console.log('[MapRenderer] territoryTranslations:', JSON.stringify(configStore.territoryTranslations))
-  console.log('[MapRenderer] territoryScales:', JSON.stringify(configStore.territoryScales))
-  console.log('[MapRenderer] territoryProjections:', JSON.stringify(configStore.territoryProjections))
   await renderMap()
 }, { deep: true })
 </script>

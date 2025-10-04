@@ -1,6 +1,8 @@
 import type { GeoProjection } from 'd3-geo'
 import { geoConicConformal, geoMercator } from 'd3-geo'
 
+import { getTerritoryConfig, getTerritoryVarName } from '@/constants/territories'
+
 export interface TerritoryProjectionParams {
   code: string
   name: string
@@ -23,50 +25,6 @@ export interface CompositeProjectionConfig {
   territories: TerritoryProjectionParams[]
 }
 
-// Centres géographiques par défaut pour chaque territoire
-const TERRITORY_CENTERS: Record<string, [number, number]> = {
-  'FR-GF': [-53.2, 3.9], // Guyane
-  'FR-MQ': [-61.03, 14.67], // Martinique
-  'FR-GP': [-61.46, 16.14], // Guadeloupe
-  'FR-YT': [45.16, -12.8], // Mayotte
-  'FR-RE': [55.52, -21.13], // Réunion
-  'FR-NC': [165.8, -21.07], // Nouvelle-Calédonie
-  'FR-WF': [-178.1, -14.3], // Wallis-et-Futuna
-  'FR-PF': [-150.55, -17.11], // Polynésie française
-  'FR-PM': [-56.23, 46.93], // Saint-Pierre-et-Miquelon
-  'FR-MF': [-62.85, 17.92], // Saint-Martin
-  'FR-TF': [69.35, -49.28], // Terres australes
-}
-
-// ClipExtents par défaut (basés sur ConicConformalFrance)
-const TERRITORY_CLIP_EXTENTS: Record<string, { x1: number, y1: number, x2: number, y2: number }> = {
-  'FR-GF': { x1: -0.14, y1: 0.029, x2: -0.0996, y2: 0.0864 },
-  'FR-MQ': { x1: -0.14, y1: 0, x2: -0.0996, y2: 0.029 },
-  'FR-GP': { x1: -0.14, y1: -0.032, x2: -0.0996, y2: 0 },
-  'FR-YT': { x1: 0.0967, y1: -0.076, x2: 0.1371, y2: -0.052 },
-  'FR-RE': { x1: 0.0967, y1: -0.052, x2: 0.1371, y2: -0.02 },
-  'FR-NC': { x1: 0.0967, y1: -0.02, x2: 0.1371, y2: 0.012 },
-  'FR-WF': { x1: 0.0967, y1: 0.012, x2: 0.1371, y2: 0.033 },
-  'FR-PF': { x1: 0.0967, y1: 0.033, x2: 0.1371, y2: 0.0864 },
-  'FR-PM': { x1: -0.14, y1: -0.076, x2: -0.0996, y2: -0.052 },
-  'FR-MF': { x1: -0.14, y1: -0.052, x2: -0.0996, y2: -0.032 },
-  'FR-TF': { x1: 0.0967, y1: -0.09, x2: 0.1371, y2: -0.076 },
-}
-
-const TERRITORY_NAMES: Record<string, string> = {
-  'FR-GF': 'Guyane',
-  'FR-MQ': 'Martinique',
-  'FR-GP': 'Guadeloupe',
-  'FR-YT': 'Mayotte',
-  'FR-RE': 'Réunion',
-  'FR-NC': 'Nouvelle-Calédonie',
-  'FR-WF': 'Wallis-et-Futuna',
-  'FR-PF': 'Polynésie française',
-  'FR-PM': 'Saint-Pierre-et-Miquelon',
-  'FR-MF': 'Saint-Martin',
-  'FR-TF': 'Terres australes et antarctiques françaises',
-}
-
 /**
  * Convertit les paramètres des sliders (utilisateur) en configuration de projection composite
  */
@@ -78,6 +36,10 @@ export function clientParamsToProjectionConfig(
   const territories: TerritoryProjectionParams[] = []
 
   Object.entries(clientTranslations).forEach(([code, translation]) => {
+    const territoryConfig = getTerritoryConfig(code)
+    if (!territoryConfig)
+      return
+
     const scale = clientScales[code] || 1.0
 
     // Convertir les translations client (-15 à +15, -10 à +10) en coefficients
@@ -87,12 +49,12 @@ export function clientParamsToProjectionConfig(
 
     territories.push({
       code,
-      name: TERRITORY_NAMES[code] || code,
-      center: TERRITORY_CENTERS[code] || [0, 0],
+      name: territoryConfig.name,
+      center: territoryConfig.center,
       translateXCoeff,
       translateYCoeff,
       scale,
-      clipExtent: TERRITORY_CLIP_EXTENTS[code] || { x1: 0, y1: 0, x2: 0.1, y2: 0.1 },
+      clipExtent: territoryConfig.clipExtent || { x1: 0, y1: 0, x2: 0.1, y2: 0.1 },
     })
   })
 
@@ -292,23 +254,6 @@ export function createCustomCompositeProjection(config: CompositeProjectionConfi
  * Génère le code TypeScript d'une projection composite personnalisée
  */
 export function generateProjectionCode(config: CompositeProjectionConfig): string {
-  const getTerritoryVarName = (code: string): string => {
-    const names: Record<string, string> = {
-      'FR-GF': 'guyane',
-      'FR-MQ': 'martinique',
-      'FR-GP': 'guadeloupe',
-      'FR-YT': 'mayotte',
-      'FR-RE': 'reunion',
-      'FR-NC': 'nouvelleCaledonie',
-      'FR-WF': 'wallisFutuna',
-      'FR-PF': 'polynesie',
-      'FR-PM': 'stPierreMiquelon',
-      'FR-MF': 'saintMartin',
-      'FR-TF': 'terresAustrales',
-    }
-    return names[code] || code.toLowerCase().replace('-', '')
-  }
-
   const formatNumber = (n: number): string => {
     return n >= 0 ? `${n.toFixed(4)}` : `${n.toFixed(4)}`
   }

@@ -10,7 +10,6 @@ const configStore = useConfigStore()
 onMounted(async () => {
   // Ensure territory data is loaded
   if (!geoDataStore.domtomTerritoriesData.length) {
-    console.log('Loading territory data...')
     await geoDataStore.loadTerritoryData()
   }
 })

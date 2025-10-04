@@ -3,8 +3,8 @@ import { CustomCompositeProjection } from '../services/CustomCompositeProjection
 import { RealGeoDataService } from '../services/GeoDataService'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import {
-  getDefaultStrokeColor,
-  getTerritoryColor,
+  getTerritoryFillColor,
+  getTerritoryStrokeColor,
 } from '../utils/colorUtils'
 
 export interface CartographerSettings {
@@ -32,12 +32,9 @@ export class Cartographer {
   }
 
   async init(): Promise<void> {
-    console.log('Initializing Vue cartographer...')
-
     try {
       await this.geoDataService.loadData()
       this.geoDataService.getTerritoryInfo()
-      console.log('Vue cartographer initialized successfully')
     }
     catch (error) {
       console.error('Cartographer initialization error:', error)
@@ -50,8 +47,6 @@ export class Cartographer {
   }
 
   async renderProjectionComposite(container: HTMLElement): Promise<void> {
-    console.log('Rendering projection composite map...')
-
     if (!container) {
       console.error('Container element is not available for projection composite rendering')
       return
@@ -80,9 +75,9 @@ export class Cartographer {
           Plot.geo(rawData, {
             fill: (d: any) => {
               const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return getTerritoryColor(code)
+              return getTerritoryFillColor(code)
             },
-            stroke: getDefaultStrokeColor(),
+            stroke: getTerritoryStrokeColor(),
           }),
         ],
       })
@@ -96,8 +91,6 @@ export class Cartographer {
   }
 
   async renderCustomComposite(container: HTMLElement): Promise<void> {
-    console.log('Rendering custom composite map...')
-
     if (!container) {
       console.error('Container element is not available for custom composite rendering')
       return
@@ -113,27 +106,21 @@ export class Cartographer {
         throw new Error('No raw unified data available')
       }
 
-      // Build custom composite projection (force rebuild to ensure latest code is used)
-      console.log('[Cartographer] Building projection...')
-
       // Create plot with projection as a function (Observable Plot expects this)
       const plot = Plot.plot({
         width: 800,
         height: 600,
         inset: 20,
         projection: ({ width, height }) => {
-          console.log('[Cartographer] Projection function called with', width, height)
-          const proj = this.customComposite.build(width, height, true)
-          console.log('[Cartographer] Projection built, config:', this.customComposite.exportConfig())
-          return proj
+          return this.customComposite.build(width, height, true)
         },
         marks: [
           Plot.geo(rawData, {
             fill: (d: any) => {
               const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return getTerritoryColor(code)
+              return getTerritoryFillColor(code)
             },
-            stroke: getDefaultStrokeColor(),
+            stroke: getTerritoryStrokeColor(),
           }),
         ],
       })
