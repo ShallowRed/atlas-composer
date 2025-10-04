@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import * as Plot from '@observablehq/plot'
+import type * as Plot from '@observablehq/plot'
+import type { CompositeRenderOptions, SimpleRenderOptions } from '@/cartographer/Cartographer'
 import { computed, onMounted, ref, watch } from 'vue'
-import { GeoProjectionService } from '@/services/GeoProjectionService'
+import { Cartographer } from '@/cartographer/Cartographer'
+import { TERRITORY_CODES } from '@/constants/france-territories'
 import { useConfigStore } from '@/stores/config'
-import { useGeoDataStore } from '@/stores/geoData'
-import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/colorUtils'
 
 interface Props {
   // For simple territory maps
@@ -12,7 +12,7 @@ interface Props {
   title?: string
   area?: number
   region?: string
-  isMetropolitan?: boolean
+  isMainland?: boolean
   preserveScale?: boolean
   width?: number
   height?: number
@@ -24,7 +24,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   geoData: null,
-  isMetropolitan: false,
+  isMainland: false,
   preserveScale: false,
   width: 200,
   height: 160,
@@ -32,12 +32,26 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const configStore = useConfigStore()
-const geoDataStore = useGeoDataStore()
 const mapContainer = ref<HTMLElement>()
-const projectionService = new GeoProjectionService()
+const cartographer = ref<Cartographer | null>(null)
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+
+// Initialize cartographer on mount
+onMounted(async () => {
+  if (!cartographer.value) {
+    try {
+      cartographer.value = new Cartographer()
+      await cartographer.value.init()
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : 'Error initializing cartographer'
+      console.error('Cartographer initialization error:', err)
+    }
+  }
+  await renderMap()
+})
 
 const computedSize = computed(() => {
   // For composite maps, use fixed larger dimensions
@@ -51,7 +65,7 @@ const computedSize = computed(() => {
   }
 
   // Pour la France métropolitaine, utiliser des dimensions fixes
-  if (props.isMetropolitan) {
+  if (props.isMainland) {
     return { width: 500, height: 400 }
   }
 
@@ -77,32 +91,14 @@ const computedSize = computed(() => {
 })
 
 const insetValue = computed(() => {
-  return props.isMetropolitan ? 20 : 5
+  return props.isMainland ? 20 : 5
 })
 
-function getProjection() {
-  if (!props.geoData)
-    return null
-
-  // Use provided projection or fall back to store's selected projection
-  const projectionToUse = props.projection || configStore.selectedProjection
-
-  // Use specialized projection for metropolitan France
-  if (props.isMetropolitan && projectionToUse === 'albers') {
-    return {
-      type: 'conic-conformal' as const,
-      parallels: [45.898889, 47.696014] as [number, number],
-      rotate: [-3, 0] as [number, number],
-      domain: props.geoData,
-    }
-  }
-
-  return projectionService.getProjection(projectionToUse, props.geoData)
-}
+// Removed getProjection - now handled directly by Cartographer
 
 async function renderMap() {
-  if (!mapContainer.value) {
-    console.warn('Map container not available yet')
+  if (!mapContainer.value || !cartographer.value) {
+    console.warn('Map container or cartographer not available yet')
     return
   }
 
@@ -111,41 +107,38 @@ async function renderMap() {
     error.value = null
     mapContainer.value.innerHTML = ''
 
+    let plot: Plot.Plot
+
     // Handle composite mode
     if (props.mode === 'composite') {
-      await renderComposite()
-      return
+      plot = await renderComposite()
+    }
+    else {
+      // Handle simple mode
+      if (!props.geoData) {
+        console.warn('No geo data available')
+        return
+      }
+
+      const { width, height } = computedSize.value
+      const projectionToUse = props.projection || configStore.selectedProjection
+
+      const options: SimpleRenderOptions = {
+        mode: 'simple',
+        geoData: props.geoData,
+        projection: projectionToUse,
+        width,
+        height,
+        inset: insetValue.value,
+        isMainland: props.isMainland,
+        area: props.area,
+        preserveScale: props.preserveScale,
+      }
+
+      plot = await cartographer.value.render(options)
     }
 
-    // Handle simple mode
-    if (!props.geoData) {
-      console.warn('No geo data available')
-      return
-    }
-
-    const projection = getProjection()
-    if (!projection) {
-      console.warn('Could not create projection')
-      return
-    }
-
-    const { width, height } = computedSize.value
-
-    const plot = Plot.plot({
-      width,
-      height,
-      inset: insetValue.value,
-      projection,
-      marks: [
-        Plot.geo(props.geoData, {
-          fill: getTerritoryFillColor(),
-          stroke: getTerritoryStrokeColor(),
-          strokeWidth: props.isMetropolitan ? 1.2 : 1,
-        }),
-      ],
-    })
-
-    mapContainer.value.appendChild(plot)
+    mapContainer.value.appendChild(plot as any)
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
@@ -156,27 +149,51 @@ async function renderMap() {
   }
 }
 
-async function renderComposite() {
-  if (!geoDataStore.cartographer) {
-    await geoDataStore.initialize()
+async function renderComposite(): Promise<Plot.Plot> {
+  if (!cartographer.value) {
+    throw new Error('Cartographer not initialized')
   }
 
-  await geoDataStore.updateCartographerSettings()
+  const { width, height } = computedSize.value
 
-  // Choose rendering method based on view mode
+  // Build custom composite settings if in custom mode
+  let customSettings
   if (configStore.viewMode === 'composite-custom') {
-    // Custom composite with individual projections per territory
-    await geoDataStore.renderCustomComposite(mapContainer.value!)
-  }
-  else if (configStore.viewMode === 'composite-existing') {
-    // Existing composite projection (albers-france or conic-conformal-france)
-    await geoDataStore.renderProjectionComposite(mapContainer.value!)
-  }
-}
+    // Build territory projections
+    const territoryProjections: Record<string, string> = {}
+    if (configStore.projectionMode === 'individual') {
+      Object.assign(territoryProjections, configStore.territoryProjections)
+    }
+    else {
+      // Uniform mode: all territories use the same projection
+      TERRITORY_CODES.forEach((code) => {
+        territoryProjections[code] = configStore.selectedProjection
+      })
+    }
 
-onMounted(() => {
-  renderMap()
-})
+    customSettings = {
+      territoryProjections,
+      territoryTranslations: configStore.territoryTranslations,
+      territoryScales: configStore.territoryScales,
+    }
+  }
+
+  // Determine rendering mode
+  const mode = configStore.viewMode === 'composite-custom'
+    ? 'composite-custom'
+    : 'composite-projection'
+
+  const options: CompositeRenderOptions = {
+    mode,
+    territoryMode: configStore.territoryMode,
+    projection: configStore.compositeProjection || configStore.selectedProjection,
+    width,
+    height,
+    settings: customSettings,
+  }
+
+  return await cartographer.value.render(options)
+}
 
 // Watch dependencies based on mode
 watch(() => {

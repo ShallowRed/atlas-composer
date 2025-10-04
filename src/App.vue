@@ -23,12 +23,10 @@ const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 
 // Methods
-async function updateMaps() {
-  geoDataStore.updateCartographerSettings()
-}
+// updateMaps() removed - MapRenderer now watches store changes automatically
 
 // Get projection for metropolitan France in individual mode
-function getMetropolitanProjection() {
+function getMainLandProjection() {
   if (configStore.projectionMode === 'individual') {
     return configStore.territoryProjections['FR-MET'] || configStore.selectedProjection
   }
@@ -67,7 +65,7 @@ onMounted(async () => {
 
 // Watch for view mode changes to load territory data when needed
 watch(() => configStore.viewMode, async (newMode) => {
-  if (newMode === 'split' && !geoDataStore.domtomTerritoriesData.length) {
+  if (newMode === 'split' && !geoDataStore.overseasTerritoriesData.length) {
     await geoDataStore.loadTerritoryData()
   }
 })
@@ -98,7 +96,6 @@ watch(() => configStore.viewMode, async (newMode) => {
               { value: 'split', label: 'Territoires séparés' },
               { value: 'composite-existing', label: 'Projection composite existante' },
             ]"
-            @change="updateMaps"
           />
 
           <!-- Composite Projection Selector (for composite-existing mode) -->
@@ -112,7 +109,6 @@ watch(() => configStore.viewMode, async (newMode) => {
               { value: 'albers-france', label: 'Albers France' },
               { value: 'conic-conformal-france', label: 'Conic Conformal France' },
             ]"
-            @change="updateMaps"
           />
 
           <!-- Projection Mode Toggle (for split and composite-custom modes) -->
@@ -126,7 +122,6 @@ watch(() => configStore.viewMode, async (newMode) => {
               { value: 'uniform', label: 'Uniforme' },
               { value: 'individual', label: 'Individuelle' },
             ]"
-            @change="updateMaps"
           />
 
           <!-- Uniform Projection Selector (for uniform projection mode) -->
@@ -137,7 +132,6 @@ watch(() => configStore.viewMode, async (newMode) => {
             icon="ri-global-line"
             type="select"
             :option-groups="configStore.projectionGroups"
-            @change="updateMaps"
           />
 
           <!-- Scale Preservation (for split mode only) -->
@@ -146,7 +140,6 @@ watch(() => configStore.viewMode, async (newMode) => {
             v-model="configStore.scalePreservation"
             label="Préserver les rapports de taille"
             type="toggle"
-            @change="updateMaps"
           />
 
           <!-- Territory Selection (for composite modes) -->
@@ -162,7 +155,6 @@ watch(() => configStore.viewMode, async (newMode) => {
               { value: 'metropole-uncommon', label: '+ 8 territoires ultramarins' },
               { value: 'all-territories', label: 'Tous les territoires (11 ultramarins)' },
             ]"
-            @change="updateMaps"
           />
         </div>
       </CardContainer>
@@ -188,9 +180,9 @@ watch(() => configStore.viewMode, async (newMode) => {
                 :level="3"
               />
               <MapRenderer
-                :geo-data="geoDataStore.metropolitanFranceData"
-                is-metropolitan
-                :projection="getMetropolitanProjection()"
+                :geo-data="geoDataStore.mainlandData"
+                is-mainland
+                :projection="getMainLandProjection()"
                 :width="500"
                 :height="400"
               />
@@ -205,7 +197,7 @@ watch(() => configStore.viewMode, async (newMode) => {
               />
 
               <!-- DOM-TOM Grid -->
-              <div class="domtom-grid flex flex-col gap-4">
+              <div class="flex flex-col gap-4">
                 <!-- Region Groups -->
                 <div
                   v-for="[regionName, territories] in geoDataStore.territoryGroups"

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { Cartographer } from '@/cartographer/Cartographer'
-import { getTerritoriesForMode, TERRITORY_CODES } from '@/constants/france-territories'
+import { getTerritoriesForMode } from '@/constants/france-territories'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -23,14 +23,14 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const isInitialized = ref(false)
 
   // Territory data
-  const metropolitanFranceData = ref<GeoJSON.FeatureCollection | null>(null)
-  const domtomTerritoriesData = ref<Territory[]>([])
+  const mainlandData = ref<GeoJSON.FeatureCollection | null>(null)
+  const overseasTerritoriesData = ref<Territory[]>([])
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
   // Computed
   const filteredTerritories = computed(() => {
     const configStore = useConfigStore()
-    const territories = domtomTerritoriesData.value
+    const territories = overseasTerritoriesData.value
 
     if (!territories)
       return []
@@ -92,13 +92,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const service = (cartographer.value as any).geoDataService
 
       // Load all territory data
-      const [metroData, domtomData] = await Promise.all([
-        service.getMetropoleData(),
-        service.getDOMTOMData(),
+      const [mainlandData, overseasData] = await Promise.all([
+        service.getMainLandData(),
+        service.getOverseasData(),
       ])
 
-      metropolitanFranceData.value = metroData
-      domtomTerritoriesData.value = domtomData || []
+      mainlandData.value = mainlandData
+      overseasTerritoriesData.value = overseasData || []
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'
@@ -132,53 +132,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  const renderProjectionComposite = async (container: HTMLElement) => {
-    if (!cartographer.value)
-      return
-    await cartographer.value.renderProjectionComposite(container)
-  }
-
-  const renderCustomComposite = async (container: HTMLElement) => {
-    if (!cartographer.value)
-      return
-
-    const configStore = useConfigStore()
-
-    // Synchronize CustomCompositeProjection with current store state
-    if (configStore.projectionMode === 'individual') {
-      // Individual mode: each territory uses its own projection
-      Object.entries(configStore.territoryProjections).forEach(([code, projectionType]) => {
-        cartographer.value!.customComposite.updateTerritoryProjection(code, projectionType)
-      })
-    }
-    else {
-      // Uniform mode: all territories use the same projection (selectedProjection)
-      TERRITORY_CODES.forEach((code) => {
-        cartographer.value!.customComposite.updateTerritoryProjection(code, configStore.selectedProjection)
-      })
-    }
-
-    // Update translations (in pixels relative to mainland center)
-    Object.entries(configStore.territoryTranslations).forEach(([code, translation]) => {
-      const offset: [number, number] = [translation.x || 0, translation.y || 0]
-      cartographer.value!.customComposite.updateTranslationOffset(code, offset)
-    })
-
-    // Update scales
-    Object.entries(configStore.territoryScales).forEach(([code, scale]) => {
-      cartographer.value!.customComposite.updateScale(code, scale)
-    })
-
-    await cartographer.value.renderCustomComposite(container)
-  }
-
-  const updateCartographerSettings = () => {
-    if (!cartographer.value)
-      return
-
-    const configStore = useConfigStore()
-    cartographer.value.updateSettings(configStore.getCartographerSettings())
-  }
+  // Removed rendering methods - rendering now handled by Cartographer directly
+  // See RENDERING_REFACTOR_PROPOSAL.md for details
 
   const clearError = () => {
     error.value = null
@@ -192,8 +147,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     isLoading,
     error,
     isInitialized,
-    metropolitanFranceData,
-    domtomTerritoriesData,
+    mainlandData,
+    overseasTerritoriesData,
     rawUnifiedData,
 
     // Computed
@@ -204,9 +159,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     initialize,
     loadTerritoryData,
     loadRawUnifiedData,
-    renderProjectionComposite,
-    renderCustomComposite,
-    updateCartographerSettings,
     clearError,
   }
 })

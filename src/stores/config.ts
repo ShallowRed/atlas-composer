@@ -177,15 +177,6 @@ export const useConfigStore = defineStore('config', () => {
     setTheme(savedTheme)
   }
 
-  const getCartographerSettings = () => ({
-    scalePreservation: scalePreservation.value,
-    selectedProjection: selectedProjection.value,
-    territoryMode: territoryMode.value,
-    viewMode: viewMode.value,
-    territoryTranslations: territoryTranslations.value,
-    territoryScales: territoryScales.value,
-  })
-
   return {
     // State
     scalePreservation,
@@ -221,6 +212,5 @@ export const useConfigStore = defineStore('config', () => {
     setTerritoryTranslation,
     setTerritoryScale,
     initializeTheme,
-    getCartographerSettings,
   }
 })

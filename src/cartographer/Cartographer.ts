@@ -7,23 +7,42 @@ import {
   getTerritoryStrokeColor,
 } from '../utils/colorUtils'
 
-export interface CartographerSettings {
-  scalePreservation: boolean
-  selectedProjection: string
+// Unified rendering options
+export interface RenderOptions {
+  mode: 'simple' | 'composite-custom' | 'composite-projection'
+}
+
+export interface SimpleRenderOptions extends RenderOptions {
+  mode: 'simple'
+  geoData: GeoJSON.FeatureCollection
+  projection: string
+  width: number
+  height: number
+  inset: number
+  isMainland?: boolean
+  area?: number
+  preserveScale?: boolean
+}
+
+export interface CompositeRenderOptions extends RenderOptions {
+  mode: 'composite-custom' | 'composite-projection'
   territoryMode: string
-  territoryTranslations?: Record<string, { x: number, y: number }>
-  territoryScales?: Record<string, number>
+  projection: string
+  width: number
+  height: number
+  settings?: CustomCompositeSettings
+}
+
+export interface CustomCompositeSettings {
+  territoryProjections: Record<string, string>
+  territoryTranslations: Record<string, { x: number, y: number }>
+  territoryScales: Record<string, number>
 }
 
 export class Cartographer {
   private projectionService: GeoProjectionService
   private geoDataService: GeoDataService
   public customComposite: CustomCompositeProjection
-  private settings: CartographerSettings = {
-    scalePreservation: true,
-    selectedProjection: 'albers-france',
-    territoryMode: 'metropole-major',
-  }
 
   constructor() {
     this.projectionService = new GeoProjectionService()
@@ -42,94 +61,134 @@ export class Cartographer {
     }
   }
 
-  updateSettings(newSettings: Partial<CartographerSettings>): void {
-    this.settings = { ...this.settings, ...newSettings }
-  }
-
-  async renderProjectionComposite(container: HTMLElement): Promise<void> {
-    if (!container) {
-      console.error('Container element is not available for projection composite rendering')
-      return
-    }
-
-    try {
-      // Clear container
-      container.innerHTML = ''
-
-      // Get raw data (original coordinates)
-      const rawData = await this.geoDataService.getRawUnifiedData(this.settings.territoryMode)
-      if (!rawData) {
-        throw new Error('No raw unified data available')
-      }
-
-      // Use the selected composite projection (albers-france or conic-conformal-france)
-      const projection = this.projectionService.getProjection(this.settings.selectedProjection, rawData)
-
-      // Create plot
-      const plot = Plot.plot({
-        width: 800,
-        height: 600,
-        inset: 20,
-        projection,
-        marks: [
-          Plot.geo(rawData, {
-            fill: (d: any) => {
-              const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return getTerritoryFillColor(code)
-            },
-            stroke: getTerritoryStrokeColor(),
-          }),
-        ],
-      })
-
-      container.appendChild(plot)
-    }
-    catch (error) {
-      console.error('Error rendering projection composite:', error)
-      throw error
+  // Unified rendering API
+  async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<Plot.Plot> {
+    switch (options.mode) {
+      case 'simple':
+        return this.renderSimple(options)
+      case 'composite-custom':
+        return this.renderCustomComposite(options)
+      case 'composite-projection':
+        return this.renderProjectionComposite(options)
+      default:
+        throw new Error(`Unknown render mode: ${(options as any).mode}`)
     }
   }
 
-  async renderCustomComposite(container: HTMLElement): Promise<void> {
-    if (!container) {
-      console.error('Container element is not available for custom composite rendering')
-      return
+  private renderSimple(options: SimpleRenderOptions): Plot.Plot {
+    const { geoData, projection, width, height, inset } = options
+
+    // Get projection function
+    const projectionFn = this.projectionService.getProjection(projection, geoData)
+
+    // Create plot
+    const plot = Plot.plot({
+      width,
+      height,
+      inset,
+      projection: projectionFn,
+      marks: [
+        Plot.geo(geoData, {
+          fill: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryFillColor(code)
+          },
+          stroke: getTerritoryStrokeColor(),
+        }),
+      ],
+    })
+
+    return plot
+  }
+
+  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
+    const { territoryMode, projection, width, height } = options
+
+    // Get raw data (original coordinates)
+    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode)
+    if (!rawData) {
+      throw new Error('No raw unified data available')
     }
 
-    try {
-      // Clear container
-      container.innerHTML = ''
+    // Use the selected composite projection
+    const projectionFn = this.projectionService.getProjection(projection, rawData)
 
-      // Get raw data (original coordinates)
-      const rawData = await this.geoDataService.getRawUnifiedData(this.settings.territoryMode)
-      if (!rawData) {
-        throw new Error('No raw unified data available')
+    // Create plot
+    const plot = Plot.plot({
+      width,
+      height,
+      inset: 20,
+      projection: projectionFn,
+      marks: [
+        Plot.geo(rawData, {
+          fill: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryFillColor(code)
+          },
+          stroke: getTerritoryStrokeColor(),
+        }),
+      ],
+    })
+
+    return plot
+  }
+
+  private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
+    const { territoryMode, width, height, settings } = options
+
+    // Apply custom settings if provided
+    if (settings) {
+      this.applyCustomCompositeSettings(settings)
+    }
+
+    // Get raw data (original coordinates)
+    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode)
+    if (!rawData) {
+      throw new Error('No raw unified data available')
+    }
+
+    // Create plot with projection as a function
+    const plot = Plot.plot({
+      width,
+      height,
+      inset: 20,
+      projection: ({ width: w, height: h }) => {
+        return this.customComposite.build(w, h, true)
+      },
+      marks: [
+        Plot.geo(rawData, {
+          fill: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryFillColor(code)
+          },
+          stroke: getTerritoryStrokeColor(),
+        }),
+      ],
+    })
+
+    return plot
+  }
+
+  private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
+    const { territoryProjections, territoryTranslations, territoryScales } = settings
+
+    // Apply to customComposite instance
+    if (territoryProjections) {
+      for (const [code, proj] of Object.entries(territoryProjections)) {
+        this.customComposite.updateTerritoryProjection(code, proj as any)
       }
-
-      // Create plot with projection as a function (Observable Plot expects this)
-      const plot = Plot.plot({
-        width: 800,
-        height: 600,
-        inset: 20,
-        projection: ({ width, height }) => {
-          return this.customComposite.build(width, height, true)
-        },
-        marks: [
-          Plot.geo(rawData, {
-            fill: (d: any) => {
-              const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-              return getTerritoryFillColor(code)
-            },
-            stroke: getTerritoryStrokeColor(),
-          }),
-        ],
-      })
-
-      container.appendChild(plot)
     }
-    catch (error) {
-      console.error('Error rendering custom composite:', error)
-      throw error
+
+    if (territoryTranslations) {
+      for (const [code, translation] of Object.entries(territoryTranslations)) {
+        this.customComposite.updateTranslationOffset(code, [translation.x, translation.y])
+      }
+    }
+
+    if (territoryScales) {
+      for (const [code, scale] of Object.entries(territoryScales)) {
+        this.customComposite.updateScale(code, scale)
+      }
     }
   }
 }

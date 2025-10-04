@@ -161,7 +161,7 @@ export class GeoDataService {
    * Filters to include only the main geographic region
    * @returns FeatureCollection containing mainland territory
    */
-  async getMetropoleData(): Promise<GeoJSON.FeatureCollection | null> {
+  async getMainLandData(): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
     const mainland = this.territoryData.get(this.config.mainlandCode)
 
@@ -233,7 +233,7 @@ export class GeoDataService {
    * @param feature - Mainland feature containing mixed territories
    * @returns Array of overseas territory objects with geographic data
    */
-  private extractDOMTOMFromMetropole(feature: GeoJSON.Feature): Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> {
+  private extractOverseasFromMainland(feature: GeoJSON.Feature): Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> {
     if (feature.geometry.type !== 'MultiPolygon') {
       return []
     }
@@ -315,7 +315,7 @@ export class GeoDataService {
    * Combines individually defined territories with those extracted from mainland data
    * @returns Array of overseas territory objects with geographic and metadata
    */
-  async getDOMTOMData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
+  async getOverseasData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
     await this.loadData()
     const overseasData = []
 
@@ -343,7 +343,7 @@ export class GeoDataService {
     // only if they are not already present as individual territories
     const mainland = this.territoryData.get(this.config.mainlandCode)
     if (mainland) {
-      const extractedOverseas = this.extractDOMTOMFromMetropole(mainland.feature)
+      const extractedOverseas = this.extractOverseasFromMainland(mainland.feature)
       for (const territory of extractedOverseas) {
         if (!addedTerritories.has(territory.code)) {
           overseasData.push(territory)
@@ -369,11 +369,11 @@ export class GeoDataService {
     await this.loadData()
 
     // Get mainland territory (no repositioning needed)
-    const mainland = await this.getMetropoleData()
+    const mainland = await this.getMainLandData()
     if (!mainland)
       return null
 
-    const allOverseasData = await this.getDOMTOMData()
+    const allOverseasData = await this.getOverseasData()
 
     // Filter overseas territories based on selected mode using centralized configuration
     const allowedCodes = getTerritoriesForMode(mode as any)
