@@ -11,7 +11,6 @@ export interface CartographerSettings {
   scalePreservation: boolean
   selectedProjection: string
   territoryMode: string
-  activeTab: string
   territoryTranslations?: Record<string, { x: number, y: number }>
   territoryScales?: Record<string, number>
 }
@@ -24,7 +23,6 @@ export class Cartographer {
     scalePreservation: true,
     selectedProjection: 'albers-france',
     territoryMode: 'metropole-major',
-    activeTab: 'vue-composite',
   }
 
   constructor() {
