@@ -54,7 +54,7 @@ function resetToDefaults() {
 </script>
 
 <template>
-  <div class="territory-translation-controls card-body">
+  <div class="card-body">
     <h3 class="card-title">
       <i class="ri-settings-4-line" />
       Paramètres par territoire

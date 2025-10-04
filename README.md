@@ -150,7 +150,7 @@ Le système convertit automatiquement vos paramètres visuels en code de project
 
 - **`App.vue`** : Layout principal avec tabs DaisyUI
 - **`MapRenderer.vue`** : Composant générique et polyvalent pour tous les types de cartes (simple, vue-composite, projection-composite)
-- **`TerritoryTranslationControls.vue`** : Sliders de contrôle pour repositionnement des territoires
+- **`TerritoryControls.vue`** : Sliders de contrôle pour repositionnement des territoires
 - **`ProjectionExporter.vue`** : Modal d'export avec preview (TypeScript/JSON)
 - **`ProjectionPreview.vue`** : Aperçu en temps réel de la projection générée
 - **`DOMTOMGrid.vue`** : Grille responsive des territoires individuels

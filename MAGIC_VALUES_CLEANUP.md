@@ -54,7 +54,7 @@ Added comprehensive constants for all magic values across the application:
 - Switch statement replaced with single filter using centralized codes
 - Much simpler and more maintainable
 
-### 4. Updated `src/components/TerritoryTranslationControls.vue`
+### 4. Updated `src/components/TerritoryControls.vue`
 - **Removed**: Hardcoded `allTerritories` array with names
 - **Removed**: Hardcoded territory codes in switch statement
 - **Removed**: Hardcoded default translations in `resetToDefaults()`
@@ -123,7 +123,7 @@ All territory-related constants are now in one place: `src/constants/territories
 1. ✅ `src/constants/territories.ts` - Enhanced with new constants including regions
 2. ✅ `src/stores/config.ts` - Uses centralized TerritoryMode, constants, and dynamic projection init
 3. ✅ `src/stores/geoData.ts` - Uses getTerritoriesForMode()
-4. ✅ `src/components/TerritoryTranslationControls.vue` - Uses all UI constants
+4. ✅ `src/components/TerritoryControls.vue` - Uses all UI constants
 5. ✅ `src/utils/projectionExporter.ts` - Uses centralized territory configs
 6. ✅ `src/services/GeoProjectionService.ts` - Uses FRANCE_PROJECTION_PARAMS
 7. ✅ `src/services/GeoDataService.ts` - Uses centralized functions including getTerritoryRegion()

@@ -3,8 +3,9 @@
 // import { onMounted, ref } from 'vue'
 import { onMounted } from 'vue'
 import DOMTOMGrid from '@/components/DOMTOMGrid.vue'
+import FormControl from '@/components/FormControl.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
-import TerritoryTranslationControls from '@/components/TerritoryTranslationControls.vue'
+import TerritoryControls from '@/components/TerritoryControls.vue'
 import ThemeSelector from '@/components/ThemeSelector.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -80,232 +81,159 @@ onMounted(async () => {
             <ThemeSelector />
 
             <!-- Main View Mode Selector -->
-            <div class="form-control">
-              <label class="label mb-1">
-                <span class="label-text flex items-center gap-2">
-                  <i class="ri-layout-grid-line" />
-                  Mode d'affichage
-                </span>
-              </label>
-              <select
-                v-model="configStore.viewMode"
-                class="select cursor-pointer"
-                @change="updateMaps"
-              >
-                <option value="composite-custom">
-                  Projection composite personnalisée
-                </option>
-                <option value="split">
-                  Territoires séparés
-                </option>
-                <option value="composite-existing">
-                  Projection composite existante
-                </option>
-              </select>
-            </div>
+            <FormControl
+              v-model="configStore.viewMode"
+              label="Mode d'affichage"
+              icon="ri-layout-grid-line"
+              type="select"
+              :options="[
+                { value: 'composite-custom', label: 'Projection composite personnalisée' },
+                { value: 'split', label: 'Territoires séparés' },
+                { value: 'composite-existing', label: 'Projection composite existante' },
+              ]"
+              @change="updateMaps"
+            />
 
             <!-- Composite Projection Selector (for composite-existing mode) -->
-            <div v-show="configStore.showCompositeProjectionSelector" class="form-control">
-              <label class="label mb-1">
-                <span class="label-text flex items-center gap-2">
-                  <i class="ri-global-line" />
-                  Projection composite
-                </span>
-              </label>
-              <select
-                v-model="configStore.compositeProjection"
-                class="select cursor-pointer"
-                @change="updateMaps"
-              >
-                <option value="albers-france">
-                  Albers France
-                </option>
-                <option value="conic-conformal-france">
-                  Conic Conformal France
-                </option>
-              </select>
-            </div>
+            <FormControl
+              v-show="configStore.showCompositeProjectionSelector"
+              v-model="configStore.compositeProjection"
+              label="Projection composite"
+              icon="ri-global-line"
+              type="select"
+              :options="[
+                { value: 'albers-france', label: 'Albers France' },
+                { value: 'conic-conformal-france', label: 'Conic Conformal France' },
+              ]"
+              @change="updateMaps"
+            />
 
             <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-            <div v-show="configStore.showProjectionModeToggle" class="form-control">
-              <label class="label mb-1">
-                <span class="label-text flex items-center gap-2">
-                  <i class="ri-git-branch-line" />
-                  Mode de projection
-                </span>
-              </label>
-              <select
-                v-model="configStore.projectionMode"
-                class="select cursor-pointer"
-                @change="updateMaps"
-              >
-                <option value="uniform">
-                  Uniforme
-                </option>
-                <option value="individual">
-                  Individuelle
-                </option>
-              </select>
-            </div>
+            <FormControl
+              v-show="configStore.showProjectionModeToggle"
+              v-model="configStore.projectionMode"
+              label="Mode de projection"
+              icon="ri-git-branch-line"
+              type="select"
+              :options="[
+                { value: 'uniform', label: 'Uniforme' },
+                { value: 'individual', label: 'Individuelle' },
+              ]"
+              @change="updateMaps"
+            />
 
             <!-- Uniform Projection Selector (for uniform projection mode) -->
-            <div v-show="configStore.showProjectionSelector" class="form-control">
-              <label class="label mb-1">
-                <span class="label-text flex items-center gap-2">
-                  <i class="ri-global-line" />
-                  Projection cartographique
-                </span>
-              </label>
-              <select
-                v-model="configStore.selectedProjection"
-                class="select cursor-pointer"
-                @change="updateMaps"
-              >
-                <optgroup
-                  v-for="group in configStore.projectionGroups"
-                  :key="group.category"
-                  :label="group.category"
-                >
-                  <option
-                    v-for="option in group.options"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </optgroup>
-              </select>
-            </div>
+            <FormControl
+              v-show="configStore.showProjectionSelector"
+              v-model="configStore.selectedProjection"
+              label="Projection cartographique"
+              icon="ri-global-line"
+              type="select"
+              :option-groups="configStore.projectionGroups"
+              @change="updateMaps"
+            />
 
             <!-- Scale Preservation (for split mode only) -->
-            <div v-show="configStore.showScalePreservation" class="form-control">
-              <label class="label cursor-pointer flex flex-row-reverse justify-end gap-2">
-                <span>
-                  Préserver les rapports de taille
-                </span>
-                <input
-                  v-model="configStore.scalePreservation"
-                  type="checkbox"
-                  class="toggle toggle-primary"
-                  @change="updateMaps"
-                >
-              </label>
-            </div>
+            <FormControl
+              v-show="configStore.showScalePreservation"
+              v-model="configStore.scalePreservation"
+              label="Préserver les rapports de taille"
+              type="toggle"
+              @change="updateMaps"
+            />
 
             <!-- Territory Selection (for composite modes) -->
-            <div v-show="configStore.showTerritorySelector" class="form-control">
-              <label class="label mb-1">
-                <span class="label-text flex items-center gap-2">
-                  <i class="ri-map-pin-range-line" />
-                  Territoires à inclure
-                </span>
-              </label>
-              <select
-                v-model="configStore.territoryMode"
-                class="select cursor-pointer"
-                @change="updateMaps"
-              >
-                <option value="metropole-only">
-                  France métropolitaine uniquement
-                </option>
-                <option value="metropole-major">
-                  + 5 territoires ultramarins
-                </option>
-                <option value="metropole-uncommon">
-                  + 8 territoires ultramarins
-                </option>
-                <option value="all-territories">
-                  Tous les territoires (11 ultramarins)
-                </option>
-              </select>
-            </div>
+            <FormControl
+              v-show="configStore.showTerritorySelector"
+              v-model="configStore.territoryMode"
+              label="Territoires à inclure"
+              icon="ri-map-pin-range-line"
+              type="select"
+              :options="[
+                { value: 'metropole-only', label: 'France métropolitaine uniquement' },
+                { value: 'metropole-major', label: '+ 5 territoires ultramarins' },
+                { value: 'metropole-uncommon', label: '+ 8 territoires ultramarins' },
+                { value: 'all-territories', label: 'Tous les territoires (11 ultramarins)' },
+              ]"
+              @change="updateMaps"
+            />
           </div>
         </div>
       </div>
 
       <!-- Main Content Area (Single Tab) -->
-      <div class="tabs tabs-lift tabs-xl w-full md:w-3/4">
-        <input
-          id="tab-main"
-          type="radio"
-          name="map_tabs"
-          class="tab"
-          aria-label="Cartographie de la France"
-          checked
-        >
-        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
-          <!-- Split Territories Mode -->
-          <div v-show="configStore.viewMode === 'split'">
-            <h2 class="card-title mb-2">
-              <i class="ri-layout-grid-line text-lg" />
-              Territoires séparés
-            </h2>
-            <p class="text-sm opacity-70 mb-4">
-              Vue séparée de chaque territoire avec sa propre projection optimisée.
-            </p>
-            <div class="flex flex-row gap-12">
-              <!-- Metropolitan France -->
-              <div>
-                <h3 class="text-lg font-semibold mb-2">
-                  <i class="ri-map-pin-line text-lg" />
-                  France Métropolitaine
-                </h3>
-                <MapRenderer
-                  :geo-data="geoDataStore.metropolitanFranceData"
-                  is-metropolitan
-                  :projection="getMetropolitanProjection()"
-                  :width="500"
-                  :height="400"
-                />
-              </div>
+      <div class="card card-border w-full shadow-lg bg-base-100 border-base-300 p-8">
+        <!-- Split Territories Mode -->
+        <div v-show="configStore.viewMode === 'split'">
+          <h2 class="card-title mb-2">
+            <i class="ri-layout-grid-line text-lg" />
+            Territoires séparés
+          </h2>
+          <p class="text-sm opacity-70 mb-4">
+            Vue séparée de chaque territoire avec sa propre projection optimisée.
+          </p>
+          <div class="flex flex-row gap-12">
+            <!-- Metropolitan France -->
+            <div>
+              <h3 class="text-lg font-semibold mb-2">
+                <i class="ri-map-pin-line text-lg" />
+                France Métropolitaine
+              </h3>
+              <MapRenderer
+                :geo-data="geoDataStore.metropolitanFranceData"
+                is-metropolitan
+                :projection="getMetropolitanProjection()"
+                :width="500"
+                :height="400"
+              />
+            </div>
 
-              <!-- DOM-TOM -->
-              <div>
-                <h3 class="text-lg font-semibold mb-2">
-                  <i class="ri-earth-line text-lg" />
-                  Départements et Collectivités d'Outre-Mer
-                </h3>
-                <DOMTOMGrid />
-              </div>
+            <!-- DOM-TOM -->
+            <div>
+              <h3 class="text-lg font-semibold mb-2">
+                <i class="ri-earth-line text-lg" />
+                Départements et Collectivités d'Outre-Mer
+              </h3>
+              <DOMTOMGrid />
             </div>
           </div>
+        </div>
 
-          <!-- Composite Existing Mode -->
-          <div v-show="configStore.viewMode === 'composite-existing'">
-            <h2 class="card-title mb-2">
-              <i class="ri-map-2-line text-lg" />
-              Projection composite existante
-            </h2>
-            <p class="text-sm opacity-70 mb-4">
-              Carte unifiée utilisant des projections composites prédéfinies (d3-composite-projections).
-            </p>
-            <MapRenderer mode="composite" />
-          </div>
+        <!-- Composite Existing Mode -->
+        <div v-show="configStore.viewMode === 'composite-existing'">
+          <h2 class="card-title mb-2">
+            <i class="ri-map-2-line text-lg" />
+            Projection composite existante
+          </h2>
+          <p class="text-sm opacity-70 mb-4">
+            Carte unifiée utilisant des projections composites prédéfinies (d3-composite-projections).
+          </p>
+          <MapRenderer mode="composite" />
+        </div>
 
-          <!-- Composite Custom Mode -->
-          <div v-show="configStore.viewMode === 'composite-custom'">
-            <h2 class="card-title mb-2">
-              <i class="ri-map-2-line text-lg" />
-              Projection composite personnalisée
-            </h2>
-            <p class="text-sm opacity-70 mb-4">
-              Carte unifiée avec projections individuelles et positionnement manuel des territoires.
-            </p>
-            <div class="flex gap-6">
-              <div class="flex-1">
-                <MapRenderer mode="composite" />
-              </div>
-              <!-- <div class="w-80 space-y-4">
+        <!-- Composite Custom Mode -->
+        <div v-show="configStore.viewMode === 'composite-custom'">
+          <h2 class="card-title mb-2">
+            <i class="ri-map-2-line text-lg" />
+            Projection composite personnalisée
+          </h2>
+          <p class="text-sm opacity-70 mb-4">
+            Carte unifiée avec projections individuelles et positionnement manuel des territoires.
+          </p>
+          <div class="flex gap-6">
+            <div class="flex-1">
+              <MapRenderer mode="composite" />
+            </div>
+            <!-- <div class="w-80 space-y-4">
                 <ProjectionExporter ref="projectionExporterRef" />
               </div> -->
-            </div>
           </div>
         </div>
       </div>
 
       <!-- Territory Parameters (projections, translations, scales) -->
       <div v-show="configStore.showIndividualProjectionSelectors" class="mt-6 card card-border border-base-300 bg-base-100 shadow-lg md:w-1/4 h-min">
-        <TerritoryTranslationControls
+        <TerritoryControls
           :show-transform-controls="configStore.viewMode === 'composite-custom'"
         />
       </div>

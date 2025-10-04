@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FormControl from '@/components/FormControl.vue'
 import { useConfigStore } from '@/stores/config'
 
 const configStore = useConfigStore()
@@ -6,7 +7,7 @@ const configStore = useConfigStore()
 const themes: Array<{
   key: string
   label: string
-  themes: Array<{
+  options: Array<{
     value: string
     label: string
   }>
@@ -14,7 +15,7 @@ const themes: Array<{
   {
     key: 'light',
     label: 'Thèmes clairs',
-    themes: [
+    options: [
       { value: 'light', label: 'Light' },
       { value: 'cupcake', label: 'Cupcake' },
       { value: 'bumblebee', label: 'Bumblebee' },
@@ -39,10 +40,9 @@ const themes: Array<{
     ],
   },
   {
-    key: 'light',
-    label: 'Thèmes clairs',
-    themes: [
-
+    key: 'dark',
+    label: 'Thèmes sombres',
+    options: [
       { value: 'dark', label: 'Dark' },
       { value: 'synthwave', label: 'Synthwave' },
       { value: 'halloween', label: 'Halloween' },
@@ -63,30 +63,12 @@ const themes: Array<{
 </script>
 
 <template>
-  <div class="form-control">
-    <label class="label mb-1">
-      <span class="label-text flex items-center gap-2">
-        <i class="ri-palette-line" />
-        Thème
-      </span>
-    </label>
-    <select
-      id="theme-select" v-model="configStore.theme" class="select cursor-pointer"
-      @change="configStore.setTheme(configStore.theme)"
-    >
-      <optgroup
-        v-for="group in themes"
-        :key="group.key"
-        :label="group.label"
-      >
-        <option
-          v-for="theme in group.themes"
-          :key="theme.value"
-          :value="theme.value"
-        >
-          {{ theme.label }}
-        </option>
-      </optgroup>
-    </select>
-  </div>
+  <FormControl
+    v-model="configStore.theme"
+    label="Thème"
+    icon="ri-palette-line"
+    type="select"
+    :option-groups="themes"
+    @change="configStore.setTheme(configStore.theme)"
+  />
 </template>

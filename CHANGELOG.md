@@ -50,7 +50,7 @@ Suppression de tous les logs de debug ajoutés pendant l'investigation:
 - `geoData.ts`: Supprimé logs de synchronisation
 - `config.ts`: Supprimé logs de setters
 - `MapRenderer.vue`: Supprimé logs de watch
-- `TerritoryTranslationControls.vue`: Supprimé logs d'événements
+- `TerritoryControls.vue`: Supprimé logs d'événements
 - `GeoDataService.ts`: Supprimé logs de chargement
 - Conservé uniquement les logs d'erreur critiques
 
@@ -99,7 +99,7 @@ const territoryTranslations = Object.fromEntries(
 - `src/stores/geoData.ts`
 - `src/cartographer/Cartographer.ts`
 - `src/services/GeoDataService.ts`
-- `src/components/TerritoryTranslationControls.vue`
+- `src/components/TerritoryControls.vue`
 - `src/components/MapRenderer.vue`
 - `src/components/DOMTOMGrid.vue`
 - `src/App.vue`
