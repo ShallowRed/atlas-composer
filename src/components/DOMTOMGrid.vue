@@ -38,6 +38,6 @@ onMounted(async () => {
 
 <style scoped>
 .domtom-grid {
-  @apply  flex flex-col gap-4;
+  @apply flex flex-col gap-4 bg-red;
 }
 </style>
