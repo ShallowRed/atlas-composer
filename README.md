@@ -149,14 +149,12 @@ Le système convertit automatiquement vos paramètres visuels en code de project
 ### Composants Vue
 
 - **`App.vue`** : Layout principal avec tabs DaisyUI
-- **`VueCompositeMap.vue`** : Carte unifiée personnalisable
-- **`ProjectionCompositeMap.vue`** : Projection composite d3
-- **`TerritoryTranslationControls.vue`** : Sliders de contrôle
-- **`ProjectionExporter.vue`** : Modal d'export avec preview
-- **`ProjectionPreview.vue`** : Aperçu de la projection générée
-- **`DOMTOMGrid.vue`** : Grille des territoires individuels
-- **`TerritoryMap.vue`** : Carte individuelle d'un territoire
-- **`MetropolitanFranceMap.vue`** : Carte de la métropole
+- **`MapRenderer.vue`** : Composant générique et polyvalent pour tous les types de cartes (simple, vue-composite, projection-composite)
+- **`TerritoryTranslationControls.vue`** : Sliders de contrôle pour repositionnement des territoires
+- **`ProjectionExporter.vue`** : Modal d'export avec preview (TypeScript/JSON)
+- **`ProjectionPreview.vue`** : Aperçu en temps réel de la projection générée
+- **`DOMTOMGrid.vue`** : Grille responsive des territoires individuels
+- **`RegionContainer.vue`** : Conteneur avec styling pour les cartes territoriales
 
 ## 📊 Données géographiques
 

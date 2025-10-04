@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
 import DOMTOMGrid from '@/components/DOMTOMGrid.vue'
-import MetropolitanFranceMap from '@/components/MetropolitanFranceMap.vue'
-import ProjectionCompositeMap from '@/components/ProjectionCompositeMap.vue'
+import MapRenderer from '@/components/MapRenderer.vue'
 import ProjectionExporter from '@/components/ProjectionExporter.vue'
 import ProjectionPreview from '@/components/ProjectionPreview.vue'
 import TerritoryTranslationControls from '@/components/TerritoryTranslationControls.vue'
-import VueCompositeMap from '@/components/VueCompositeMap.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -283,7 +281,7 @@ onMounted(async () => {
           </p>
           <div class="flex gap-6">
             <div class="flex-1 sticky top-4 self-start">
-              <VueCompositeMap />
+              <MapRenderer mode="vue-composite" />
             </div>
             <div class="w-80 space-y-4">
               <TerritoryTranslationControls />
@@ -316,7 +314,7 @@ onMounted(async () => {
           <p class="text-sm opacity-70 mb-4">
             Utilise les projections composites d3 (Albers France ou Conic Conformal France) qui incluent un repositionnement automatique des territoires d'outre-mer.
           </p>
-          <ProjectionCompositeMap />
+          <MapRenderer mode="projection-composite" />
         </div>
 
         <input
@@ -340,7 +338,12 @@ onMounted(async () => {
                 <i class="ri-map-pin-line text-lg" />
                 France Métropolitaine
               </h2>
-              <MetropolitanFranceMap />
+              <MapRenderer
+                :geo-data="geoDataStore.metropolitanFranceData"
+                is-metropolitan
+                :width="500"
+                :height="400"
+              />
             </div>
 
             <!-- DOM-TOM -->

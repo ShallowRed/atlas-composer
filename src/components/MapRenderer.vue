@@ -1,0 +1,249 @@
+<script setup lang="ts">
+import * as Plot from '@observablehq/plot'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { GeoProjectionService } from '@/services/GeoProjectionService'
+import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
+import { getDefaultStrokeColor, getMetropolitanFranceColor, getRegionColor } from '@/utils/colorUtils'
+
+interface Props {
+  // For simple territory maps
+  geoData?: GeoJSON.FeatureCollection | null
+  title?: string
+  area?: number
+  region?: string
+  isMetropolitan?: boolean
+  preserveScale?: boolean
+  width?: number
+  height?: number
+  
+  // For composite maps
+  mode?: 'simple' | 'vue-composite' | 'projection-composite'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  geoData: null,
+  isMetropolitan: false,
+  preserveScale: false,
+  width: 200,
+  height: 160,
+  mode: 'simple',
+})
+
+const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
+const mapContainer = ref<HTMLElement>()
+const projectionService = new GeoProjectionService()
+
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+
+const computedSize = computed(() => {
+  // For composite maps, use fixed larger dimensions
+  if (props.mode === 'vue-composite' || props.mode === 'projection-composite') {
+    return { width: 800, height: 600 }
+  }
+  
+  // Si des dimensions sont explicitement fournies, les utiliser
+  if (props.width && props.height && !props.preserveScale) {
+    return { width: props.width, height: props.height }
+  }
+
+  // Pour la France métropolitaine, utiliser des dimensions fixes
+  if (props.isMetropolitan) {
+    return { width: 500, height: 400 }
+  }
+
+  // Pour les territoires avec préservation d'échelle
+  if (props.preserveScale && props.area) {
+    const franceMetropoleArea = 550000
+    const scaleFactor = Math.sqrt(props.area / franceMetropoleArea)
+
+    const baseWidth = 500
+    const baseHeight = 400
+
+    const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
+    const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
+
+    return {
+      width: Math.round(proportionalWidth),
+      height: Math.round(proportionalHeight),
+    }
+  }
+
+  // Dimensions par défaut
+  return { width: props.width, height: props.height }
+})
+
+const fillColor = computed(() => {
+  if (props.isMetropolitan) {
+    return getMetropolitanFranceColor()
+  }
+  if (props.region) {
+    return getRegionColor(props.region)
+  }
+  return 'steelblue'
+})
+
+const insetValue = computed(() => {
+  return props.isMetropolitan ? 20 : 5
+})
+
+function getProjection() {
+  if (!props.geoData)
+    return null
+
+  // Use specialized projection for metropolitan France
+  if (props.isMetropolitan && configStore.selectedProjection === 'albers') {
+    return {
+      type: 'conic-conformal' as const,
+      parallels: [45.898889, 47.696014] as [number, number],
+      rotate: [-3, 0] as [number, number],
+      domain: props.geoData,
+    }
+  }
+
+  return projectionService.getProjection(configStore.selectedProjection, props.geoData)
+}
+
+async function renderMap() {
+  if (!mapContainer.value) {
+    console.warn('Map container not available yet')
+    return
+  }
+
+  try {
+    isLoading.value = true
+    error.value = null
+    mapContainer.value.innerHTML = ''
+
+    // Handle composite modes
+    if (props.mode === 'vue-composite') {
+      await renderVueComposite()
+      return
+    }
+    
+    if (props.mode === 'projection-composite') {
+      await renderProjectionComposite()
+      return
+    }
+
+    // Handle simple mode
+    if (!props.geoData) {
+      console.warn('No geo data available')
+      return
+    }
+
+    const projection = getProjection()
+    if (!projection) {
+      console.warn('Could not create projection')
+      return
+    }
+
+    const { width, height } = computedSize.value
+
+    const plot = Plot.plot({
+      width,
+      height,
+      inset: insetValue.value,
+      projection,
+      marks: [
+        Plot.geo(props.geoData, {
+          fill: fillColor.value,
+          stroke: getDefaultStrokeColor(),
+          strokeWidth: props.isMetropolitan ? 1.2 : 1,
+        }),
+      ],
+    })
+
+    mapContainer.value.appendChild(plot)
+  }
+  catch (err) {
+    error.value = err instanceof Error ? err.message : 'Error rendering map'
+    console.error('Error rendering map:', err)
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+async function renderVueComposite() {
+  if (!geoDataStore.cartographer) {
+    await geoDataStore.initialize()
+  }
+  
+  await geoDataStore.updateCartographerSettings()
+  await geoDataStore.renderVueComposite(mapContainer.value!)
+}
+
+async function renderProjectionComposite() {
+  if (!geoDataStore.cartographer) {
+    await geoDataStore.initialize()
+  }
+  
+  await geoDataStore.updateCartographerSettings()
+  await geoDataStore.renderProjectionComposite(mapContainer.value!)
+}
+
+onMounted(async () => {
+  await nextTick() // Ensure DOM is ready
+
+  // Add a small delay to ensure the container is fully initialized
+  setTimeout(async () => {
+    await renderMap()
+  }, 100)
+})
+
+// Watch dependencies based on mode
+watch(() => {
+  if (props.mode === 'vue-composite') {
+    return [
+      configStore.selectedProjection,
+      configStore.territoryMode,
+      configStore.scalePreservation,
+      configStore.territoryTranslations,
+      configStore.territoryScales,
+    ]
+  }
+  if (props.mode === 'projection-composite') {
+    return [
+      configStore.selectedProjection,
+      configStore.territoryMode,
+    ]
+  }
+  return [
+    props.geoData,
+    configStore.selectedProjection,
+    props.preserveScale,
+  ]
+}, async () => {
+  await renderMap()
+}, { deep: true })
+</script>
+
+<template>
+  <div class="map-renderer">
+    <h4
+      v-if="title"
+      class="font-medium mb-2 text-sm text-gray-600"
+    >
+      {{ title }}
+      <span v-if="area">({{ area.toLocaleString() }} km²)</span>
+    </h4>
+    
+    <div v-if="isLoading" class="text-center p-8">
+      <div class="loading loading-spinner loading-lg text-primary" />
+      <p>Chargement de la carte...</p>
+    </div>
+    
+    <div v-if="error" class="alert alert-error">
+      <span>{{ error }}</span>
+    </div>
+    
+    <div
+      ref="mapContainer"
+      class="map-plot bg-base-200 w-fit rounded-sm border border-base-300"
+      :style="{ display: isLoading || error ? 'none' : 'block' }"
+    />
+  </div>
+</template>
