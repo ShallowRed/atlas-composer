@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import type { Territory } from '@/stores/geoData'
 import * as Plot from '@observablehq/plot'
-import { GeoProjectionService } from '../services/GeoProjectionService'
-import { useConfigStore } from '../stores/config'
-import type { Territory } from '../stores/geoData'
-import { getRegionColor, getDefaultStrokeColor } from '../utils/colorUtils'
+import { onMounted, ref, watch } from 'vue'
+import { GeoProjectionService } from '@/services/GeoProjectionService'
+import { useConfigStore } from '@/stores/config'
+import { getDefaultStrokeColor, getRegionColor } from '@/utils/colorUtils'
 
 interface Props {
   territory: Territory
@@ -15,7 +15,7 @@ const configStore = useConfigStore()
 const mapContainer = ref<HTMLElement>()
 const projectionService = new GeoProjectionService()
 
-const getTerritorySize = (territory: Territory, preserveScale: boolean): { width: number; height: number } => {
+function getTerritorySize(territory: Territory, preserveScale: boolean): { width: number, height: number } {
   if (!preserveScale) {
     return { width: 200, height: 160 }
   }
@@ -23,20 +23,20 @@ const getTerritorySize = (territory: Territory, preserveScale: boolean): { width
   const franceMetropoleArea = 550000
   const territoryArea = territory.area || 1000
   const scaleFactor = Math.sqrt(territoryArea / franceMetropoleArea)
-  
+
   const baseWidth = 500
   const baseHeight = 400
-  
+
   const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
   const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
-  
-  return { 
-    width: Math.round(proportionalWidth), 
-    height: Math.round(proportionalHeight) 
+
+  return {
+    width: Math.round(proportionalWidth),
+    height: Math.round(proportionalHeight),
   }
 }
 
-const renderMap = () => {
+function renderMap() {
   if (!mapContainer.value) {
     console.warn('Territory map container not available yet')
     return
@@ -49,10 +49,10 @@ const renderMap = () => {
 
   try {
     mapContainer.value.innerHTML = ''
-    
+
     const projection = projectionService.getProjection(configStore.selectedProjection, props.territory.data)
     const { width, height } = getTerritorySize(props.territory, configStore.scalePreservation)
-    
+
     const plot = Plot.plot({
       width,
       height,
@@ -63,12 +63,13 @@ const renderMap = () => {
           fill: getRegionColor(props.territory.region),
           stroke: getDefaultStrokeColor(),
         }),
-        Plot.frame({ opacity: 0.2 })
-      ]
+        Plot.frame({ opacity: 0.2 }),
+      ],
     })
 
     mapContainer.value.appendChild(plot)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error rendering territory map:', error)
   }
 }
@@ -87,6 +88,6 @@ watch(() => [configStore.selectedProjection, configStore.scalePreservation], () 
     <h4 class="font-medium mb-2 text-sm text-gray-600">
       {{ territory.name }} ({{ territory.area.toLocaleString() }} km²)
     </h4>
-    <div ref="mapContainer" class="territory-map map-plot bg-base-200 w-fit"></div>
+    <div ref="mapContainer" class="territory-map map-plot bg-base-200 w-fit" />
   </div>
 </template>

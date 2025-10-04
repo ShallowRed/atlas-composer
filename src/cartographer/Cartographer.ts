@@ -1,11 +1,11 @@
 import * as Plot from '@observablehq/plot'
-import { GeoProjectionService } from '../services/GeoProjectionService'
 import { RealGeoDataService } from '../services/GeoDataService'
-import { 
-  getTerritoryColor, 
-  getRegionColor, 
+import { GeoProjectionService } from '../services/GeoProjectionService'
+import {
+  getDefaultStrokeColor,
   getMetropolitanFranceColor,
-  getDefaultStrokeColor 
+  getRegionColor,
+  getTerritoryColor,
 } from '../utils/colorUtils'
 
 export interface CartographerSettings {
@@ -24,7 +24,7 @@ export class Cartographer {
     scalePreservation: true,
     selectedProjection: 'albers-france',
     territoryMode: 'metropole-major',
-    activeTab: 'vue-composite'
+    activeTab: 'vue-composite',
   }
 
   constructor() {
@@ -34,12 +34,13 @@ export class Cartographer {
 
   async init(): Promise<void> {
     console.log('Initializing Vue cartographer...')
-    
+
     try {
       await this.geoDataService.loadData()
       this.geoDataService.getTerritoryInfo()
       console.log('Vue cartographer initialized successfully')
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Cartographer initialization error:', error)
       throw error
     }
@@ -51,21 +52,21 @@ export class Cartographer {
 
   async renderVueComposite(container: HTMLElement): Promise<void> {
     console.log('Rendering Vue composite map...')
-    
+
     if (!container) {
       console.error('Vue composite container is null')
       throw new Error('Container element is not available')
     }
-    
+
     try {
       // Clear container
       container.innerHTML = ''
-      
+
       // Get repositioned data with custom translations and scales (like the original unified map)
       const data = await this.geoDataService.getUnifiedData(
         this.settings.territoryMode,
         this.settings.territoryTranslations,
-        this.settings.territoryScales
+        this.settings.territoryScales,
       )
       if (!data) {
         throw new Error('No unified data available')
@@ -73,8 +74,8 @@ export class Cartographer {
 
       // Get projection (not composite for this view)
       const projection = this.projectionService.getProjection(
-        this.settings.selectedProjection === 'albers-france' ? 'albers' : this.settings.selectedProjection, 
-        data.metropole
+        this.settings.selectedProjection === 'albers-france' ? 'albers' : this.settings.selectedProjection,
+        data.metropole,
       )
 
       // Create unified dataset from metropole + repositioned DOM-TOM
@@ -87,7 +88,7 @@ export class Cartographer {
 
       const unifiedCollection = {
         type: 'FeatureCollection' as const,
-        features: unifiedFeatures
+        features: unifiedFeatures,
       }
 
       // Create plot
@@ -95,7 +96,7 @@ export class Cartographer {
         width: 800,
         height: 600,
         inset: 20,
-        projection: projection,
+        projection,
         marks: [
           Plot.geo(unifiedCollection, {
             fill: (d: any) => {
@@ -104,12 +105,13 @@ export class Cartographer {
             },
             stroke: getDefaultStrokeColor(),
           }),
-          Plot.frame({ opacity: 0.2 })
-        ]
+          Plot.frame({ opacity: 0.2 }),
+        ],
       })
 
       container.appendChild(plot)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error rendering Vue composite:', error)
       throw error
     }
@@ -117,16 +119,16 @@ export class Cartographer {
 
   async renderProjectionComposite(container: HTMLElement): Promise<void> {
     console.log('Rendering projection composite map...')
-    
+
     if (!container) {
       console.error('Container element is not available for projection composite rendering')
       return
     }
-    
+
     try {
       // Clear container
       container.innerHTML = ''
-      
+
       // Get raw data (original coordinates)
       const rawData = await this.geoDataService.getRawUnifiedData(this.settings.territoryMode)
       if (!rawData) {
@@ -141,7 +143,7 @@ export class Cartographer {
         width: 800,
         height: 600,
         inset: 20,
-        projection: projection,
+        projection,
         marks: [
           Plot.geo(rawData, {
             fill: (d: any) => {
@@ -150,19 +152,19 @@ export class Cartographer {
             },
             stroke: getDefaultStrokeColor(),
           }),
-          Plot.frame({ opacity: 0.2 })
-        ]
+          Plot.frame({ opacity: 0.2 }),
+        ],
       })
 
       container.appendChild(plot)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error rendering projection composite:', error)
       throw error
     }
   }
 
   async renderIndividualTerritories(container: HTMLElement): Promise<void> {
-    
     try {
       // Get metropolitan France data
       const metropoleData = await this.geoDataService.getMetropoleData()
@@ -172,7 +174,7 @@ export class Cartographer {
 
       // Get DOM-TOM data (same method as original cartographer)
       const domtomData = await this.geoDataService.getDOMTOMData()
-      
+
       if (!domtomData || !Array.isArray(domtomData)) {
         console.error('Invalid DOM-TOM data:', domtomData)
         throw new Error('No DOM-TOM data available')
@@ -180,46 +182,46 @@ export class Cartographer {
 
       // Filter DOM-TOM territories based on selected mode
       let filteredDomtom: any[] = []
-      
+
       switch (this.settings.territoryMode) {
         case 'metropole-only':
           filteredDomtom = []
           break
         case 'metropole-major':
-          filteredDomtom = domtomData.filter(territory => 
-            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code)
+          filteredDomtom = domtomData.filter(territory =>
+            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'].includes(territory.code),
           )
           break
         case 'metropole-uncommon':
-          filteredDomtom = domtomData.filter(territory => 
-            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code)
+          filteredDomtom = domtomData.filter(territory =>
+            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'].includes(territory.code),
           )
           break
         case 'all-territories':
         default:
-          filteredDomtom = domtomData.filter(territory => 
-            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code)
+          filteredDomtom = domtomData.filter(territory =>
+            territory && territory.code && ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM'].includes(territory.code),
           )
           break
       }
 
       // The container ref is on the Metropolitan France section, so we need to navigate up to find both sections
       const parentContainer = container.closest('.tab-content')
-      
-      // Find the metropolitan France container 
+
+      // Find the metropolitan France container
       const metroMapContainer = parentContainer?.querySelector('.flex.flex-row.gap-12 > div:first-child .map-plot')
-      
+
       if (metroMapContainer) {
         // Clear and render metropolitan France
         metroMapContainer.innerHTML = ''
-        
+
         // Use specialized projection for metropolitan France (like original)
-        const metroProjection = this.settings.selectedProjection === 'albers' 
+        const metroProjection = this.settings.selectedProjection === 'albers'
           ? {
               type: 'conic-conformal' as const,
               parallels: [45.898889, 47.696014] as [number, number],
               rotate: [-3, 0] as [number, number],
-              domain: metropoleData
+              domain: metropoleData,
             }
           : this.projectionService.getProjection(this.settings.selectedProjection, metropoleData)
 
@@ -233,19 +235,19 @@ export class Cartographer {
               fill: getMetropolitanFranceColor(),
               stroke: getDefaultStrokeColor(),
             }),
-            Plot.frame({ opacity: 0.2 })
-          ]
+            Plot.frame({ opacity: 0.2 }),
+          ],
         })
         metroMapContainer.appendChild(metroPlot)
       }
 
-      // Find the DOM-TOM container within the template  
+      // Find the DOM-TOM container within the template
       const domtomMapContainer = parentContainer?.querySelector('.flex.flex-row.gap-12 > div:last-child .map-plot')
-      
+
       if (domtomMapContainer) {
         // Clear the container
         domtomMapContainer.innerHTML = ''
-        
+
         if (filteredDomtom.length > 0) {
           // Create grid container like the original implementation
           const gridContainer = document.createElement('div')
@@ -271,28 +273,28 @@ export class Cartographer {
           for (const [region, territories] of territoryGroups) {
             const regionContainer = document.createElement('div')
             regionContainer.className = 'region-container mb-6'
-            
+
             const regionTitle = document.createElement('h3')
             regionTitle.textContent = region
             regionTitle.className = 'text-lg font-semibold mb-4 text-gray-700'
             regionContainer.appendChild(regionTitle)
-            
+
             for (const territory of territories) {
               const territoryContainer = document.createElement('div')
               territoryContainer.className = 'territory-container text-center mb-4'
-              
+
               const title = document.createElement('h4')
               title.textContent = `${territory.name} (${territory.area.toLocaleString()} km²)`
               title.className = 'font-medium mb-2 text-sm text-gray-600'
-              
+
               const mapDiv = document.createElement('div')
-              
+
               // Use territory.data (GeoJSON.FeatureCollection) like the original
               const projection = this.projectionService.getProjection(this.settings.selectedProjection, territory.data)
-              
+
               // Calculate size with scale preservation logic from original
               const { width, height } = this.getTerritorySize(territory, true)
-              
+
               const plot = Plot.plot({
                 width,
                 height,
@@ -302,8 +304,8 @@ export class Cartographer {
                     fill: getRegionColor(territory.region),
                     stroke: getDefaultStrokeColor(),
                   }),
-                  Plot.frame({ opacity: 0.2 })
-                ]
+                  Plot.frame({ opacity: 0.2 }),
+                ],
               })
 
               territoryContainer.appendChild(title)
@@ -311,12 +313,13 @@ export class Cartographer {
               mapDiv.appendChild(plot)
               regionContainer.appendChild(territoryContainer)
             }
-            
+
             gridContainer.appendChild(regionContainer)
           }
 
           domtomMapContainer.appendChild(gridContainer)
-        } else {
+        }
+        else {
           // Show a message when no DOM-TOM territories are available
           const messageDiv = document.createElement('div')
           messageDiv.className = 'text-center p-4 text-gray-500'
@@ -328,8 +331,8 @@ export class Cartographer {
           domtomMapContainer.appendChild(messageDiv)
         }
       }
-
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error rendering individual territories:', error)
       throw error
     }
@@ -339,7 +342,7 @@ export class Cartographer {
    * Calculate appropriate size for each territory map, optionally preserving scale
    * From original FranceCartographer
    */
-  private getTerritorySize(territory: any, preserveScale: boolean): { width: number; height: number } {
+  private getTerritorySize(territory: any, preserveScale: boolean): { width: number, height: number } {
     if (!preserveScale) {
       // Standard size for all territories (more readable)
       return { width: 200, height: 160 }
@@ -348,21 +351,21 @@ export class Cartographer {
     // With scale preservation: size proportional to area
     const franceMetropoleArea = 550000 // Approximate area of metropolitan France in km²
     const territoryArea = territory.area || 1000
-    
+
     // Calculate scale factor based on square root of area
     const scaleFactor = Math.sqrt(territoryArea / franceMetropoleArea)
-    
+
     // Base size for metropolitan France
     const baseWidth = 500
     const baseHeight = 400
-    
+
     // Calculate proportional dimensions with min/max limits
     const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
     const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
-    
-    return { 
-      width: Math.round(proportionalWidth), 
-      height: Math.round(proportionalHeight) 
+
+    return {
+      width: Math.round(proportionalWidth),
+      height: Math.round(proportionalHeight),
     }
   }
 }

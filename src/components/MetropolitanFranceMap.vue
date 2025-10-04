@@ -1,23 +1,17 @@
-<template>
-  <div class="metropolitan-france-map">
-    <div ref="mapContainer" class="map-plot bg-base-200 w-fit"></div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
 import * as Plot from '@observablehq/plot'
-import { GeoProjectionService } from '../services/GeoProjectionService'
-import { useGeoDataStore } from '../stores/geoData'
-import { useConfigStore } from '../stores/config'
-import { getMetropolitanFranceColor, getDefaultStrokeColor } from '../utils/colorUtils'
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { GeoProjectionService } from '@/services/GeoProjectionService'
+import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
+import { getDefaultStrokeColor, getMetropolitanFranceColor } from '@/utils/colorUtils'
 
 const geoDataStore = useGeoDataStore()
 const configStore = useConfigStore()
 const mapContainer = ref<HTMLElement>()
 const projectionService = new GeoProjectionService()
 
-const renderMap = async () => {
+async function renderMap() {
   if (!mapContainer.value) {
     console.warn('Map container not available yet')
     return
@@ -37,14 +31,14 @@ const renderMap = async () => {
 
   try {
     mapContainer.value.innerHTML = ''
-    
+
     // Use specialized projection for metropolitan France (like original)
-    const projection = configStore.selectedProjection === 'albers' 
+    const projection = configStore.selectedProjection === 'albers'
       ? {
           type: 'conic-conformal' as const,
           parallels: [45.898889, 47.696014] as [number, number],
           rotate: [-3, 0] as [number, number],
-          domain: geoData
+          domain: geoData,
         }
       : projectionService.getProjection(configStore.selectedProjection, geoData)
 
@@ -57,21 +51,22 @@ const renderMap = async () => {
         Plot.geo(geoData, {
           fill: getMetropolitanFranceColor(),
           stroke: getDefaultStrokeColor(),
-          strokeWidth: 1.2
+          strokeWidth: 1.2,
         }),
-        Plot.frame({ opacity: 0.2 })
-      ]
+        Plot.frame({ opacity: 0.2 }),
+      ],
     })
-    
+
     mapContainer.value.appendChild(plot)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error rendering metropolitan France map:', error)
   }
 }
 
 onMounted(async () => {
   await nextTick() // Ensure DOM is ready
-  
+
   // Add a small delay to ensure the container is fully initialized
   setTimeout(async () => {
     await renderMap()
@@ -82,3 +77,9 @@ watch(() => [geoDataStore.metropolitanFranceData, configStore.selectedProjection
   await renderMap()
 }, { deep: true })
 </script>
+
+<template>
+  <div class="metropolitan-france-map">
+    <div ref="mapContainer" class="map-plot bg-base-200 w-fit" />
+  </div>
+</template>
