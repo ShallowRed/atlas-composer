@@ -1,4 +1,4 @@
-import type { GeoProjection, GeoStream } from 'd3-geo'
+import type { GeoProjection } from 'd3-geo'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
@@ -6,7 +6,6 @@ import {
   geoConicEqualArea,
   geoEquirectangular,
   geoMercator,
-  geoProjection,
 } from 'd3-geo'
 
 /**
@@ -16,10 +15,12 @@ interface SubProjectionConfig {
   territoryCode: string
   territoryName: string
   projection: GeoProjection
-  baseScale: number // Base scale value (before multiplier)
+  baseScale: number // Prevents scale accumulation on rebuild
+  scaleMultiplier: number // Current scale multiplier (used to preserve scale when changing projection type)
+  baseTranslate: [number, number] // Prevents translation accumulation on rebuild
+  translateOffset: [number, number]
   clipExtent: [[number, number], [number, number]] | null
-  translateOffset: [number, number] // Offset in screen coordinates
-  bounds?: [[number, number], [number, number]] // Geographic bounds [min, max]
+  bounds?: [[number, number], [number, number]]
 }
 
 /**
@@ -49,6 +50,8 @@ export class CustomCompositeProjection {
         .parallels([45.898889, 47.696014])
         .translate([0, 0]), // Local projection center
       baseScale: 2800, // Store base scale for multiplier application
+      scaleMultiplier: 1.0, // Initial multiplier
+      baseTranslate: [0, 0], // Initial translate
       clipExtent: null, // Don't clip, use bounds for geographic filtering
       translateOffset: [0, 0], // Center of the composite map
       bounds: [[-5, 41], [10, 51]], // Geographic bounds for France
@@ -136,6 +139,14 @@ export class CustomCompositeProjection {
         offset: [-100, -200] as [number, number],
         bounds: [[-56.42, 46.75], [-56.13, 47.15]] as [[number, number], [number, number]],
       },
+      {
+        code: 'FR-TF',
+        name: 'Terres australes et antarctiques françaises',
+        center: [69.348, -49.280] as [number, number],
+        scale: 2500,
+        offset: [300, 300] as [number, number],
+        bounds: [[39.0, -50.0], [77.0, -37.0]] as [[number, number], [number, number]],
+      },
     ]
 
     domtomDefaults.forEach((config) => {
@@ -147,6 +158,8 @@ export class CustomCompositeProjection {
           .scale(config.scale)
           .translate([0, 0]),
         baseScale: config.scale, // Store base scale for multiplier application
+        scaleMultiplier: 1.0, // Initial multiplier
+        baseTranslate: [0, 0], // Initial translate
         clipExtent: null, // Will be computed based on bounds
         translateOffset: config.offset,
         bounds: config.bounds as [[number, number], [number, number]],
@@ -234,11 +247,13 @@ export class CustomCompositeProjection {
     }
     newProjection.translate(currentTranslate)
 
-    // Update the projection and base scale
+    // Update the projection
     subProj.projection = newProjection
-    subProj.baseScale = currentScale // New base scale is current scale (preserves visual size)
+    // CRITICAL FIX: baseScale must NOT include the multiplier
+    // currentScale = baseScale * multiplier, so we need to extract the base scale
+    subProj.baseScale = currentScale / subProj.scaleMultiplier
     this.compositeProjection = null // Force rebuild
-    console.log(`[CustomCompositeProjection] updateTerritoryProjection ${territoryCode}: type=${projectionType}, newBaseScale=${currentScale}`)
+    console.log(`[CustomCompositeProjection] updateTerritoryProjection ${territoryCode}: type=${projectionType}, currentScale=${currentScale}, multiplier=${subProj.scaleMultiplier}, newBaseScale=${subProj.baseScale}`)
   }
 
   /**
@@ -247,8 +262,12 @@ export class CustomCompositeProjection {
   updateTranslationOffset(territoryCode: string, offset: [number, number]) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
+      console.log(`[CustomCompositeProjection] updateTranslationOffset ${territoryCode}: old=${JSON.stringify(subProj.translateOffset)}, new=${JSON.stringify(offset)}`)
       subProj.translateOffset = offset
       this.compositeProjection = null
+    }
+    else {
+      console.warn(`[CustomCompositeProjection] updateTranslationOffset: territory ${territoryCode} not found`)
     }
   }
 
@@ -258,6 +277,8 @@ export class CustomCompositeProjection {
   updateScale(territoryCode: string, scaleMultiplier: number) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
+      // Store the multiplier so it's preserved when changing projection type
+      subProj.scaleMultiplier = scaleMultiplier
       // Apply multiplier to base scale (not current scale to avoid accumulation)
       subProj.projection.scale(subProj.baseScale * scaleMultiplier)
       this.compositeProjection = null
@@ -266,77 +287,168 @@ export class CustomCompositeProjection {
   }
 
   /**
-   * Build the composite projection
+   * Build the composite projection - albersUsa style with proper clip regions
    */
-  build(width = 800, height = 600): GeoProjection {
-    if (this.compositeProjection) {
+  build(width = 800, height = 600, forceRebuild = false): GeoProjection {
+    console.log('[CustomCompositeProjection] build() called, cached?', this.compositeProjection !== null, 'forceRebuild?', forceRebuild)
+    if (this.compositeProjection && !forceRebuild) {
       console.log('[CustomCompositeProjection] Returning cached projection')
       return this.compositeProjection
     }
 
+    if (forceRebuild) {
+      console.log('[CustomCompositeProjection] Force rebuilding projection')
+    }
+
     console.log('[CustomCompositeProjection] Building new projection with', this.subProjections.length, 'sub-projections')
-    console.log('[CustomCompositeProjection] Sub-projections:', this.subProjections.map(sp => ({
-      code: sp.territoryCode,
-      offset: sp.translateOffset,
-      scale: sp.projection.scale(),
-    })))
+    console.log('[CustomCompositeProjection] Map dimensions:', width, 'x', height)
 
-    const baseTranslate: [number, number] = [width / 2, height / 2]
+    // Center point for the map (France métropolitaine will be centered here)
+    const centerX = width / 2
+    const centerY = height / 2
 
-    // Create the projection function
-    const projectFn = (coordinates: [number, number] | null): [number, number] | null => {
-      if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
-        return null
+    // Stats tracking
+    let projectionCalls = 0
+    const territoryHits = new Map<string, number>()
+
+    // Apply translation offsets to each sub-projection (like albersUsa does)
+    // The offset is applied via .translate() which moves the projection output
+    const epsilon = 1e-6
+
+    this.subProjections.forEach((subProj) => {
+      // All territories are positioned relative to the map center
+      // FR-MET has offset [0,0] so it will be centered
+      // Others have their configured offsets relative to center
+      const newTranslate: [number, number] = [
+        centerX + subProj.translateOffset[0],
+        centerY + subProj.translateOffset[1],
+      ]
+      subProj.projection.translate(newTranslate)
+
+      if (subProj.bounds) {
+        const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
+
+        // Project the bounds corners to get clip extent in screen coordinates
+        // NOW the projection already includes the offset
+        const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
+        const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
+
+        if (topLeft && bottomRight) {
+          // Set clip extent (already in final coordinate space thanks to translate)
+          subProj.projection.clipExtent([
+            [topLeft[0], topLeft[1]],
+            [bottomRight[0], bottomRight[1]],
+          ])
+
+          console.log(`[CustomCompositeProjection] ${subProj.territoryCode}: translate=${JSON.stringify(newTranslate)}, clipExtent=${JSON.stringify([[topLeft[0], topLeft[1]], [bottomRight[0], bottomRight[1]]])}`)
+        }
+      }
+    })
+
+    // Point capture mechanism (like albersUsa)
+    let capturedPoint: [number, number] | null = null
+    const pointStream = {
+      point: (x: number, y: number) => {
+        capturedPoint = [x, y]
+      },
+      lineStart: () => {},
+      lineEnd: () => {},
+      polygonStart: () => {},
+      polygonEnd: () => {},
+      sphere: () => {},
+    }
+
+    // Create point capture for each sub-projection
+    const subProjPoints = this.subProjections.map(subProj => ({
+      subProj,
+      stream: subProj.projection.stream(pointStream),
+    }))
+
+    // Main projection function (like albersUsa)
+    const compositeProjection = (coordinates: [number, number]): [number, number] | null => {
+      const [lon, lat] = coordinates
+      projectionCalls++
+
+      if (projectionCalls <= 5) {
+        console.log(`[CompositeProjection] Call #${projectionCalls}: [${lon.toFixed(2)}, ${lat.toFixed(2)}]`)
       }
 
-      const [lon, lat] = coordinates
+      capturedPoint = null
 
-      // Try each sub-projection in sequence
-      for (const subProj of this.subProjections) {
-        // Check if point is within bounds
+      // Try each sub-projection's bounds
+      for (const { subProj, stream } of subProjPoints) {
         if (subProj.bounds) {
           const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
+
           if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
-            const projected = subProj.projection([lon, lat])
-            if (projected) {
-              // Apply base translation and offset
-              return [
-                projected[0] + baseTranslate[0] + subProj.translateOffset[0],
-                projected[1] + baseTranslate[1] + subProj.translateOffset[1],
-              ]
+            // Track hits
+            territoryHits.set(subProj.territoryCode, (territoryHits.get(subProj.territoryCode) || 0) + 1)
+
+            // Project through stream (offset already applied in projection.translate)
+            stream.point(lon, lat)
+
+            if (capturedPoint) {
+              // Offset already applied by the projection's translate!
+              if (territoryHits.get(subProj.territoryCode)! <= 2) {
+                console.log(`[CompositeProjection] ${subProj.territoryCode}: [${lon.toFixed(2)}, ${lat.toFixed(2)}] ->`, capturedPoint)
+              }
+
+              return capturedPoint
             }
           }
         }
       }
 
+      // No match found
       return null
     }
 
-    // Create the invert function
-    projectFn.invert = (coordinates: [number, number] | null): [number, number] | null => {
+    // Multiplex stream (like albersUsa) - now with proper clip regions
+    ;(compositeProjection as any).stream = (stream: any) => {
+      const streams = this.subProjections.map(sp => sp.projection.stream(stream))
+      return {
+        point: (x: number, y: number) => {
+          for (const s of streams) s.point(x, y)
+        },
+        sphere: () => {
+          for (const s of streams) {
+            if (s.sphere)
+              s.sphere()
+          }
+        },
+        lineStart: () => {
+          for (const s of streams) s.lineStart()
+        },
+        lineEnd: () => {
+          for (const s of streams) s.lineEnd()
+        },
+        polygonStart: () => {
+          for (const s of streams) s.polygonStart()
+        },
+        polygonEnd: () => {
+          for (const s of streams) s.polygonEnd()
+        },
+      }
+    }
+
+    // Add invert
+    ;(compositeProjection as any).invert = (coordinates: [number, number]) => {
       if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
         return null
       }
 
       const [x, y] = coordinates
 
-      // Try each sub-projection in reverse
+      // Try each sub-projection's invert
       for (const subProj of this.subProjections) {
-        // Remove base translation and offset
-        const adjustedX = x - baseTranslate[0] - subProj.translateOffset[0]
-        const adjustedY = y - baseTranslate[1] - subProj.translateOffset[1]
+        const adjustedX = x - subProj.translateOffset[0]
+        const adjustedY = y - subProj.translateOffset[1]
 
         const inverted = subProj.projection.invert?.([adjustedX, adjustedY])
-        if (inverted) {
-          // Check if result is within bounds
-          if (subProj.bounds) {
-            const [lon, lat] = inverted
-            const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
-            if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
-              return inverted
-            }
-          }
-          else {
+        if (inverted && subProj.bounds) {
+          const [lon, lat] = inverted
+          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
+          if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
             return inverted
           }
         }
@@ -345,41 +457,16 @@ export class CustomCompositeProjection {
       return null
     }
 
-    // Create the composite projection
-    const projection = geoProjection(projectFn as any)
-      .translate(baseTranslate)
-      .scale(1) // Scale is handled by sub-projections
+    // Log stats after a delay
+    setTimeout(() => {
+      console.log('[CustomCompositeProjection] Projection stats:', {
+        totalCalls: projectionCalls,
+        territoryHits: Object.fromEntries(territoryHits),
+      })
+    }, 100)
 
-    // Create composite stream (multiplexing)
-    projection.stream = (sink: GeoStream) => {
-      const streams = this.subProjections.map(subProj =>
-        subProj.projection.stream(sink),
-      )
-
-      return {
-        point(x: number, y: number) {
-          streams.forEach(s => s.point(x, y))
-        },
-        lineStart() {
-          streams.forEach(s => s.lineStart())
-        },
-        lineEnd() {
-          streams.forEach(s => s.lineEnd())
-        },
-        polygonStart() {
-          streams.forEach(s => s.polygonStart())
-        },
-        polygonEnd() {
-          streams.forEach(s => s.polygonEnd())
-        },
-        sphere() {
-          streams.forEach(s => s.sphere?.())
-        },
-      }
-    }
-
-    this.compositeProjection = projection
-    return projection
+    this.compositeProjection = compositeProjection as any
+    return compositeProjection as any
   }
 
   /**

@@ -101,8 +101,8 @@ function resetToDefaults() {
 </script>
 
 <template>
-  <div class="territory-translation-controls p-4 bg-base-200 rounded-lg overflow-y-auto max-h-screen border border-base-300">
-    <h3 class="text-lg font-semibold mb-4">
+  <div class="territory-translation-controls card-body">
+    <h3 class="card-title">
       <i class="ri-settings-4-line" />
       Paramètres par territoire
     </h3>

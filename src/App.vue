@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+// import type ProjectionExporter from '@/components/ProjectionExporter.vue'
+// import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import DOMTOMGrid from '@/components/DOMTOMGrid.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
-import ProjectionExporter from '@/components/ProjectionExporter.vue'
-import ProjectionPreview from '@/components/ProjectionPreview.vue'
 import TerritoryTranslationControls from '@/components/TerritoryTranslationControls.vue'
 import ThemeSelector from '@/components/ThemeSelector.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
 // Refs
-const projectionExporterRef = ref<InstanceType<typeof ProjectionExporter>>()
+// const projectionExporterRef = ref<InstanceType<typeof ProjectionExporter>>()
 
 // Stores
 const configStore = useConfigStore()
@@ -134,22 +134,18 @@ onMounted(async () => {
                   Mode de projection
                 </span>
               </label>
-              <div class="join join-horizontal w-full">
-                <button
-                  class="btn join-item flex-1"
-                  :class="{ 'btn-active': configStore.projectionMode === 'uniform' }"
-                  @click="configStore.setProjectionMode('uniform'); updateMaps()"
-                >
+              <select
+                v-model="configStore.projectionMode"
+                class="select cursor-pointer"
+                @change="updateMaps"
+              >
+                <option value="uniform">
                   Uniforme
-                </button>
-                <button
-                  class="btn join-item flex-1"
-                  :class="{ 'btn-active': configStore.projectionMode === 'individual' }"
-                  @click="configStore.setProjectionMode('individual'); updateMaps()"
-                >
+                </option>
+                <option value="individual">
                   Individuelle
-                </button>
-              </div>
+                </option>
+              </select>
             </div>
 
             <!-- Uniform Projection Selector (for uniform projection mode) -->
@@ -222,13 +218,6 @@ onMounted(async () => {
                   Tous les territoires (11 ultramarins)
                 </option>
               </select>
-            </div>
-
-            <!-- Territory Parameters (projections, translations, scales) -->
-            <div v-show="configStore.showIndividualProjectionSelectors" class="mt-6">
-              <TerritoryTranslationControls
-                :show-transform-controls="configStore.viewMode === 'composite-custom'"
-              />
             </div>
           </div>
         </div>
@@ -306,18 +295,19 @@ onMounted(async () => {
               <div class="flex-1">
                 <MapRenderer mode="composite" />
               </div>
-              <div class="w-80 space-y-4">
+              <!-- <div class="w-80 space-y-4">
                 <ProjectionExporter ref="projectionExporterRef" />
-                <div v-if="projectionExporterRef?.customProjection" class="mt-4">
-                  <ProjectionPreview
-                    :projection="projectionExporterRef.customProjection"
-                    title="Aperçu de la projection générée"
-                  />
-                </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Territory Parameters (projections, translations, scales) -->
+      <div v-show="configStore.showIndividualProjectionSelectors" class="mt-6 card card-border border-base-300 bg-base-100 shadow-lg md:w-1/4 h-min">
+        <TerritoryTranslationControls
+          :show-transform-controls="configStore.viewMode === 'composite-custom'"
+        />
       </div>
     </main>
   </div>

@@ -113,15 +113,20 @@ export class Cartographer {
         throw new Error('No raw unified data available')
       }
 
-      // Build custom composite projection
-      const projection = this.customComposite.build(800, 600)
+      // Build custom composite projection (force rebuild to ensure latest code is used)
+      console.log('[Cartographer] Building projection...')
 
-      // Create plot
+      // Create plot with projection as a function (Observable Plot expects this)
       const plot = Plot.plot({
         width: 800,
         height: 600,
         inset: 20,
-        projection,
+        projection: ({ width, height }) => {
+          console.log('[Cartographer] Projection function called with', width, height)
+          const proj = this.customComposite.build(width, height, true)
+          console.log('[Cartographer] Projection built, config:', this.customComposite.exportConfig())
+          return proj
+        },
         marks: [
           Plot.geo(rawData, {
             fill: (d: any) => {

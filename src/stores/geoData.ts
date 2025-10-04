@@ -165,22 +165,27 @@ export const useGeoDataStore = defineStore('geoData', () => {
     console.log('[geoData] renderCustomComposite - projectionMode:', configStore.projectionMode)
 
     // Synchronize CustomCompositeProjection with current store state
-    // In composite-custom mode, ALWAYS sync individual projections (they're the whole point!)
-    // In uniform mode, all territories will use the base projection defined in CustomCompositeProjection.initialize()
     if (configStore.projectionMode === 'individual') {
+      // Individual mode: each territory uses its own projection
       console.log('[geoData] Syncing individual projections:', configStore.territoryProjections)
       Object.entries(configStore.territoryProjections).forEach(([code, projectionType]) => {
         cartographer.value!.updateTerritoryProjection(code, projectionType)
       })
     }
     else {
-      console.log('[geoData] Using uniform projection mode - territories will use their default projections')
+      // Uniform mode: all territories use the same projection (selectedProjection)
+      console.log('[geoData] Applying uniform projection to all territories:', configStore.selectedProjection)
+      const allTerritoryCodes = ['FR-MET', 'FR-GP', 'FR-MQ', 'FR-GF', 'FR-RE', 'FR-YT', 'FR-NC', 'FR-PF', 'FR-PM', 'FR-BL', 'FR-MF', 'FR-WF', 'FR-TF']
+      allTerritoryCodes.forEach((code) => {
+        cartographer.value!.updateTerritoryProjection(code, configStore.selectedProjection)
+      })
     }
 
     // Update translations (in pixels relative to mainland center)
     console.log('[geoData] Syncing translations:', configStore.territoryTranslations)
     Object.entries(configStore.territoryTranslations).forEach(([code, translation]) => {
       const offset: [number, number] = [translation.x || 0, translation.y || 0]
+      console.log(`[geoData] Updating translation for ${code}: [${offset[0]}, ${offset[1]}]`)
       cartographer.value!.updateTerritoryTranslationOffset(code, offset)
     })
 
