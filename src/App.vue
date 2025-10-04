@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { nextTick, onMounted } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import DOMTOMGrid from '@/components/DOMTOMGrid.vue'
 import MetropolitanFranceMap from '@/components/MetropolitanFranceMap.vue'
 import ProjectionCompositeMap from '@/components/ProjectionCompositeMap.vue'
+import ProjectionExporter from '@/components/ProjectionExporter.vue'
+import ProjectionPreview from '@/components/ProjectionPreview.vue'
 import TerritoryTranslationControls from '@/components/TerritoryTranslationControls.vue'
 import VueCompositeMap from '@/components/VueCompositeMap.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+
+// Refs
+const projectionExporterRef = ref<InstanceType<typeof ProjectionExporter>>()
 
 // Stores
 const configStore = useConfigStore()
@@ -280,8 +285,16 @@ onMounted(async () => {
             <div class="flex-1 sticky top-4 self-start">
               <VueCompositeMap />
             </div>
-            <div class="w-80">
+            <div class="w-80 space-y-4">
               <TerritoryTranslationControls />
+              <div class="divider" />
+              <ProjectionExporter ref="projectionExporterRef" />
+              <div v-if="projectionExporterRef?.customProjection" class="mt-4">
+                <ProjectionPreview
+                  :projection="projectionExporterRef.customProjection"
+                  title="Aperçu de la projection générée"
+                />
+              </div>
             </div>
           </div>
         </div>

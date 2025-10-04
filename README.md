@@ -13,8 +13,13 @@ Ce projet permet de créer des visualisations cartographiques de la France métr
 
 - **[Vite](https://vitejs.dev/)** : Build tool et serveur de développement
 - **[TypeScript](https://www.typescriptlang.org/)** : Langage de programmation
+- **[Vue.js 3](https://vuejs.org/)** : Framework réactif pour l'interface utilisateur
+- **[Pinia](https://pinia.vuejs.org/)** : Gestion d'état pour Vue.js
+- **[Tailwind CSS](https://tailwindcss.com/)** : Framework CSS utility-first
+- **[DaisyUI](https://daisyui.com/)** : Composants UI basés sur Tailwind
 - **[Observable Plot](https://observablehq.com/plot/)** : Bibliothèque de visualisation de données
-- **[D3.js](https://d3js.org/)** : Manipulation des données géographiques
+- **[D3.js](https://d3js.org/)** : Manipulation des données géographiques et projections
+- **[d3-composite-projections](https://github.com/rveciana/d3-composite-projections)** : Projections composites pour la France
 - **[TopoJSON](https://github.com/topojson/topojson)** : Format de données géographiques optimisé
 
 ## 🚀 Démarrage rapide
@@ -59,34 +64,99 @@ src/
 └── main.ts                      # Point d'entrée de l'application
 ```
 
-## 🗺️ Fonctionnalités
+## 🗺️ Fonctionnalités principales
 
-### Cartes disponibles
+### 1. Vue unifiée personnalisable
 
-1. **France Métropolitaine** : Projection optimisée pour le territoire hexagonal
-2. **DOM-TOM individuels** : Chaque territoire dans sa propre projection
-3. **Vue unifiée** : Repositionnement des DOM-TOM à côté de la métropole
+**Carte interactive avec contrôles de positionnement en temps réel**
 
-### Projections supportées
+- Sliders pour ajuster la position X/Y de chaque territoire d'outre-mer (-15 à +15, -10 à +10)
+- Contrôle du scale (échelle) de 0.5x à 2.0x pour chaque territoire
+- Aperçu en temps réel des modifications
+- **🆕 Export de projection** : Générez du code TypeScript ou JSON à partir de votre configuration
 
-- **Albers** : Projection conique équivalente, optimisée pour la France
-- **Mercator** : Projection cylindrique conforme
-- **Equal Earth** : Projection pseudo-cylindrique équivalente
+### 2. Projection composite automatique
 
-### Options d'affichage
+**Utilise les projections d3-composite-projections**
 
-- Préservation des rapports de taille réels
-- Basculement entre différentes projections
-- Vue comparative des territoires
+- **Albers France** : Projection conique équivalente avec repositionnement automatique
+- **Conic Conformal France** : Projection conforme avec DOM-TOM pré-positionnés
+- Rendu optimisé pour la France avec tous ses territoires
 
-## 🎨 Interface utilisateur
+### 3. Vues territoriales individuelles
 
-L'interface comprend :
+**Cartes séparées pour chaque territoire**
 
-- **Contrôles** : Sélecteur de projection et options d'affichage
-- **Cartes séparées** : Métropole et DOM-TOM côte à côte
-- **Vue unifiée** : Carte composite avec repositionnement
-- **Informations** : Statistiques sur les territoires (superficie, etc.)
+- France métropolitaine avec projection optimisée
+- 11 territoires d'outre-mer avec projections Mercator individuelles
+- Grille responsive avec DaisyUI
+
+## 🎯 Système d'export de projection
+
+### Fonctionnement
+
+1. **Configuration visuelle** : Utilisez les sliders dans l'onglet "Vue unifiée personnalisable"
+2. **Aperçu temps réel** : La carte se met à jour instantanément
+3. **Export** : Cliquez sur "🗺️ Exporter la projection"
+4. **Choix du format** :
+   - **TypeScript (.ts)** : Fonction de projection prête à l'emploi, similaire à `ConicConformalFrance`
+   - **JSON (.json)** : Configuration pure pour persistence ou import
+5. **Actions** : Copiez ou téléchargez le code généré
+
+### Utilisation du code exporté
+
+```typescript
+// Fichier généré : custom-projection.ts
+import customCompositeProjection from './custom-projection'
+
+// Utilisation identique à d3-composite-projections
+const projection = customCompositeProjection()
+  .scale(2700)
+  .translate([width / 2, height / 2])
+
+// Utilisable directement avec Observable Plot ou D3.js
+Plot.plot({
+  projection,
+  marks: [Plot.geo(data, { fill: 'steelblue' })]
+})
+```
+
+### Paramètres de mapping
+
+Le système convertit automatiquement vos paramètres visuels en code de projection :
+
+| Paramètre UI | Paramètre D3 | Description |
+|--------------|--------------|-------------|
+| `translateX` (-15 à +15) | `coeffX * k` | Position horizontale relative au scale |
+| `translateY` (-10 à +10) | `coeffY * k` | Position verticale relative au scale |
+| `scale` (0.5 à 2.0) | `baseScale * multiplier` | Taille relative du territoire |
+
+## 🎨 Architecture Vue.js
+
+### Stores Pinia
+
+- **`useConfigStore`** : Configuration globale (thème, projection, territoires)
+  - `territoryTranslations`: Position X/Y de chaque territoire
+  - `territoryScales`: Échelle de chaque territoire
+  - `selectedProjection`: Projection active
+  - `territoryMode`: Mode d'inclusion des territoires
+
+- **`useGeoDataStore`** : Données géographiques et rendu
+  - Chargement des TopoJSON
+  - Repositionnement des territoires
+  - Rendering via Cartographer
+
+### Composants Vue
+
+- **`App.vue`** : Layout principal avec tabs DaisyUI
+- **`VueCompositeMap.vue`** : Carte unifiée personnalisable
+- **`ProjectionCompositeMap.vue`** : Projection composite d3
+- **`TerritoryTranslationControls.vue`** : Sliders de contrôle
+- **`ProjectionExporter.vue`** : Modal d'export avec preview
+- **`ProjectionPreview.vue`** : Aperçu de la projection générée
+- **`DOMTOMGrid.vue`** : Grille des territoires individuels
+- **`TerritoryMap.vue`** : Carte individuelle d'un territoire
+- **`MetropolitanFranceMap.vue`** : Carte de la métropole
 
 ## 📊 Données géographiques
 
