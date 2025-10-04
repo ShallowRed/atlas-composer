@@ -153,8 +153,6 @@ Le système convertit automatiquement vos paramètres visuels en code de project
 - **`TerritoryControls.vue`** : Sliders de contrôle pour repositionnement des territoires
 - **`ProjectionExporter.vue`** : Modal d'export avec preview (TypeScript/JSON)
 - **`ProjectionPreview.vue`** : Aperçu en temps réel de la projection générée
-- **`DOMTOMGrid.vue`** : Grille responsive des territoires individuels
-- **`RegionContainer.vue`** : Conteneur avec styling pour les cartes territoriales
 
 ## 📊 Données géographiques
 

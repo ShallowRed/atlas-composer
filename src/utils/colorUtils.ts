@@ -6,7 +6,7 @@
 /**
  * Get color for a specific territory code
  */
-export function getTerritoryFillColor(_code: string): string {
+export function getTerritoryFillColor(_code?: string): string {
   return 'color-mix(in oklch, var(--color-primary) 20%, transparent)'
 }
 

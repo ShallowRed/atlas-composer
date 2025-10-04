@@ -6,12 +6,12 @@ interface Props {
   icon?: string
   modelValue?: string | boolean
   type?: 'select' | 'checkbox' | 'toggle'
-  options?: Array<{ value: string; label: string }>
+  options?: Array<{ value: string, label: string }>
   optionGroups?: Array<{
     key?: string
     label?: string
     category?: string
-    options?: Array<{ value: string; label: string }>
+    options?: Array<{ value: string, label: string }>
   }>
 }
 

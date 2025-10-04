@@ -101,7 +101,6 @@ const territoryTranslations = Object.fromEntries(
 - `src/services/GeoDataService.ts`
 - `src/components/TerritoryControls.vue`
 - `src/components/MapRenderer.vue`
-- `src/components/DOMTOMGrid.vue`
 - `src/App.vue`
 
 ---

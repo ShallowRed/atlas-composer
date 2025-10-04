@@ -1,10 +1,10 @@
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 
-import { getTerritoriesForMode, getTerritoryName, getTerritoryRegion } from '@/constants/territories'
+import { getTerritoriesForMode, getTerritoryRegion, OVERSEAS_TERRITORIES } from '@/constants/territories'
 
 /**
- * Represents a French territory (metropolitan France or overseas territories)
+ * Represents a territory (mainland or overseas)
  */
 export interface Territory {
   id: string // Natural Earth ID
@@ -215,6 +215,7 @@ export class RealGeoDataService {
   /**
    * Extracts DOM-TOM territories included in metropolitan France geometry
    * Returns them as separate territory objects for individual rendering
+   * Uses centralized configuration from territories.ts for bounds and regions
    * @param feature - Metropolitan France feature containing mixed territories
    * @returns Array of DOM-TOM territory objects with geographic data
    */
@@ -224,14 +225,14 @@ export class RealGeoDataService {
     }
 
     const extractedTerritories: Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> = []
-    const addedCodes = new Set<string>() // Pour éviter les doublons
+    const addedCodes = new Set<string>() // To avoid duplicates
 
     for (const polygon of feature.geometry.coordinates) {
       const firstRing = polygon[0]
       if (!firstRing || firstRing?.length === 0)
         continue
 
-      // Analyser les coordonnées pour identifier le territoire
+      // Analyze coordinates to identify the territory
       const lons = firstRing.map(coord => coord[0]) as number[]
       const lats = firstRing.map(coord => coord[1]) as number[]
       const minLon = Math.min(...lons)
@@ -239,34 +240,36 @@ export class RealGeoDataService {
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
 
-      let territoryInfo: { name: string, code: string, region: string } | null = null
+      // Match against territories defined in territories.ts
+      // We check if the polygon bounds fall within the configured territory bounds
+      let matchedTerritory: typeof OVERSEAS_TERRITORIES[0] | null = null
 
-      // Identify territory based on precise geographic coordinates
-      if (minLon > 45.0 && maxLon < 45.3 && minLat > -13.0 && maxLat < -12.6) {
-        territoryInfo = { name: getTerritoryName('FR-YT'), code: 'FR-YT', region: 'Indian Ocean' }
-      }
-      else if (minLon > 55.2 && maxLon < 55.9 && minLat > -21.4 && maxLat < -20.8) {
-        territoryInfo = { name: getTerritoryName('FR-RE'), code: 'FR-RE', region: 'Indian Ocean' }
-      }
-      else if (minLon > -61.9 && maxLon < -61.0 && minLat > 15.8 && maxLat < 16.6) {
-        // Guadeloupe archipelago - identified by precise position
-        territoryInfo = { name: getTerritoryName('FR-GP'), code: 'FR-GP', region: 'Caribbean' }
-      }
-      else if (minLon > -61.3 && maxLon < -60.8 && minLat > 14.4 && maxLat < 14.9) {
-        territoryInfo = { name: getTerritoryName('FR-MQ'), code: 'FR-MQ', region: 'Caribbean' }
-      }
-      else if (minLon > -54.7 && maxLon < -51.6 && minLat > 2.1 && maxLat < 5.8) {
-        territoryInfo = { name: getTerritoryName('FR-GF'), code: 'FR-GF', region: 'South America' }
+      for (const territory of OVERSEAS_TERRITORIES) {
+        const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = territory.bounds
+
+        // Check if polygon bounds are approximately within the configured bounds
+        // Allow small tolerance for floating point comparisons
+        const tolerance = 0.1
+
+        if (
+          minLon >= (configMinLon - tolerance)
+          && maxLon <= (configMaxLon + tolerance)
+          && minLat >= (configMinLat - tolerance)
+          && maxLat <= (configMaxLat + tolerance)
+        ) {
+          matchedTerritory = territory
+          break
+        }
       }
 
-      if (territoryInfo && !addedCodes.has(territoryInfo.code)) {
-        addedCodes.add(territoryInfo.code)
+      if (matchedTerritory && !addedCodes.has(matchedTerritory.code)) {
+        addedCodes.add(matchedTerritory.code)
 
         const territoryFeature: GeoJSON.Feature = {
           type: 'Feature',
           properties: {
-            name: territoryInfo.name,
-            code: territoryInfo.code,
+            name: matchedTerritory.name,
+            code: matchedTerritory.code,
           },
           geometry: {
             type: 'MultiPolygon',
@@ -278,9 +281,9 @@ export class RealGeoDataService {
         const calculatedArea = this.calculateArea(territoryFeature)
 
         extractedTerritories.push({
-          name: territoryInfo.name,
-          code: territoryInfo.code,
-          region: territoryInfo.region,
+          name: matchedTerritory.name,
+          code: matchedTerritory.code,
+          region: getTerritoryRegion(matchedTerritory.code),
           area: calculatedArea,
           data: {
             type: 'FeatureCollection',

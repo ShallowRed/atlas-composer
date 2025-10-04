@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormControl from '@/components/FormControl.vue'
+import FormControl from '@/components/ui/FormControl.vue'
 import { useConfigStore } from '@/stores/config'
 
 const configStore = useConfigStore()

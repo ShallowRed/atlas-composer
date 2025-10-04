@@ -76,16 +76,6 @@ const computedSize = computed(() => {
   return { width: props.width, height: props.height }
 })
 
-const fillColor = computed(() => {
-  if (props.isMetropolitan) {
-    return getTerritoryFillColor()
-  }
-  if (props.region) {
-    return getTerritoryFillColor(props.region)
-  }
-  return 'steelblue'
-})
-
 const insetValue = computed(() => {
   return props.isMetropolitan ? 20 : 5
 })
@@ -148,7 +138,7 @@ async function renderMap() {
       projection,
       marks: [
         Plot.geo(props.geoData, {
-          fill: fillColor.value,
+          fill: getTerritoryFillColor(),
           stroke: getTerritoryStrokeColor(),
           strokeWidth: props.isMetropolitan ? 1.2 : 1,
         }),

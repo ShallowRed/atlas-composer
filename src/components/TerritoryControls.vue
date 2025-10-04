@@ -54,12 +54,7 @@ function resetToDefaults() {
 </script>
 
 <template>
-  <div class="card-body">
-    <h3 class="card-title">
-      <i class="ri-settings-4-line" />
-      Paramètres par territoire
-    </h3>
-
+  <div>
     <!-- Message when no territories are available -->
     <div v-if="territories.length === 0" class="alert alert-info">
       <i class="ri-information-line" />
