@@ -57,28 +57,34 @@ const scales = computed(() => configStore.territoryScales)
 
 function updateTranslation(territoryCode: string, axis: 'x' | 'y', event: Event) {
   const value = Number.parseFloat((event.target as HTMLInputElement).value)
+  console.log(`[TerritoryTranslationControls] updateTranslation ${territoryCode} ${axis}=${value}`)
+  // Update store - this will trigger MapRenderer watch which will call renderCustomComposite
   configStore.setTerritoryTranslation(territoryCode, axis, value)
 }
 
 function updateScale(territoryCode: string, event: Event) {
   const value = Number.parseFloat((event.target as HTMLInputElement).value)
+  console.log(`[TerritoryTranslationControls] updateScale ${territoryCode}=${value}`)
+  // Update store - this will trigger MapRenderer watch which will call renderCustomComposite
   configStore.setTerritoryScale(territoryCode, value)
 }
 
 function resetToDefaults() {
-  // Default translations (major territories have custom positions, others are centered)
+  // Default translations in pixels relative to mainland center
+  // Positive X = right, Negative X = left
+  // Positive Y = down, Negative Y = up
   const defaults = {
-    'FR-GF': { x: -8, y: -2 },
-    'FR-RE': { x: -10, y: 3 },
-    'FR-GP': { x: -8, y: 1 },
-    'FR-MQ': { x: -8.5, y: 2.5 },
-    'FR-YT': { x: -2, y: -5 },
-    'FR-MF': { x: 0, y: 0 },
-    'FR-PF': { x: 0, y: 0 },
-    'FR-NC': { x: 0, y: 0 },
-    'FR-TF': { x: 0, y: 0 },
-    'FR-WF': { x: 0, y: 0 },
-    'FR-PM': { x: 0, y: 0 },
+    'FR-GP': { x: -400, y: 100 }, // Guadeloupe - bottom left
+    'FR-MQ': { x: -400, y: 200 }, // Martinique - below Guadeloupe
+    'FR-GF': { x: -400, y: 300 }, // Guyane - below Martinique
+    'FR-RE': { x: 300, y: 100 }, // Réunion - bottom right
+    'FR-YT': { x: 350, y: 200 }, // Mayotte - near Réunion
+    'FR-NC': { x: 450, y: -100 }, // Nouvelle-Calédonie - top right
+    'FR-PF': { x: 450, y: 100 }, // Polynésie - below NC
+    'FR-PM': { x: -100, y: -200 }, // Saint-Pierre-et-Miquelon - top left
+    'FR-WF': { x: 400, y: 250 }, // Wallis-et-Futuna - between RE and PF
+    'FR-MF': { x: -350, y: 80 }, // Saint-Martin - near GP
+    'FR-TF': { x: 300, y: 300 }, // TAAF - bottom right corner
   }
 
   // Reset translations for all territories
@@ -135,7 +141,10 @@ function resetToDefaults() {
               :value="configStore.territoryProjections['FR-MET'] || configStore.selectedProjection"
               class="select select-sm w-full cursor-pointer"
               @change="(e) => {
-                configStore.setTerritoryProjection('FR-MET', (e.target as HTMLSelectElement).value)
+                const projectionType = (e.target as HTMLSelectElement).value
+                console.log('[TerritoryTranslationControls] Changing FR-MET projection to:', projectionType)
+                // Update store - this will trigger MapRenderer watch which will call renderCustomComposite
+                configStore.setTerritoryProjection('FR-MET', projectionType)
               }"
             >
               <optgroup
@@ -183,7 +192,10 @@ function resetToDefaults() {
               :value="configStore.territoryProjections[territory.code] || configStore.selectedProjection"
               class="select select-sm w-full cursor-pointer"
               @change="(e) => {
-                configStore.setTerritoryProjection(territory.code, (e.target as HTMLSelectElement).value)
+                const projectionType = (e.target as HTMLSelectElement).value
+                console.log(`[TerritoryTranslationControls] Changing ${territory.code} projection to:`, projectionType)
+                // Update store - this will trigger MapRenderer watch which will call renderCustomComposite
+                configStore.setTerritoryProjection(territory.code, projectionType)
               }"
             >
               <optgroup
@@ -204,51 +216,51 @@ function resetToDefaults() {
 
           <!-- Transform Controls (hidden in split mode) -->
           <template v-if="props.showTransformControls">
-            <!-- X Translation -->
+            <!-- X Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
               <label class="label">
                 <span class="label-text text-sm font-medium">
                   <i class="ri-arrow-left-right-line" />
-                  Position horizontale (X): {{ translations[territory.code]?.x.toFixed(1) }}
+                  Position horizontale (X): {{ Math.round(translations[territory.code]?.x || 0) }}px
                 </span>
               </label>
               <input
                 type="range"
-                min="-15"
-                max="15"
-                step="0.5"
+                min="-600"
+                max="600"
+                step="10"
                 :value="translations[territory.code]?.x || 0"
                 class="range range-primary range-xs"
                 @input="updateTranslation(territory.code, 'x', $event)"
               >
               <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-                <span>Gauche</span>
-                <span>Centre</span>
-                <span>Droite</span>
+                <span>-600px</span>
+                <span>0</span>
+                <span>+600px</span>
               </div>
             </div>
 
-            <!-- Y Translation -->
+            <!-- Y Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
               <label class="label">
                 <span class="label-text text-sm font-medium">
                   <i class="ri-arrow-up-down-line" />
-                  Position verticale (Y): {{ translations[territory.code]?.y.toFixed(1) }}
+                  Position verticale (Y): {{ Math.round(translations[territory.code]?.y || 0) }}px
                 </span>
               </label>
               <input
                 type="range"
-                min="-10"
-                max="10"
-                step="0.5"
+                min="-400"
+                max="400"
+                step="10"
                 :value="translations[territory.code]?.y || 0"
                 class="range range-secondary range-xs"
                 @input="updateTranslation(territory.code, 'y', $event)"
               >
               <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-                <span>Haut</span>
-                <span>Centre</span>
-                <span>Bas</span>
+                <span>-400px</span>
+                <span>0</span>
+                <span>+400px</span>
               </div>
             </div>
 

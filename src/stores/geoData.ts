@@ -23,7 +23,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   // Territory data
   const metropolitanFranceData = ref<GeoJSON.FeatureCollection | null>(null)
   const domtomTerritoriesData = ref<Territory[]>([])
-  const unifiedData = ref<any>(null)
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
   // Computed
@@ -130,28 +129,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  const loadUnifiedData = async (mode: string) => {
-    if (!cartographer.value) {
-      await initialize()
-    }
-
-    try {
-      isLoading.value = true
-      error.value = null
-
-      const service = (cartographer.value as any).geoDataService
-      unifiedData.value = await service.getUnifiedData(mode)
-    }
-    catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error loading unified data'
-      console.error('Error loading unified data:', err)
-      throw err
-    }
-    finally {
-      isLoading.value = false
-    }
-  }
-
   const loadRawUnifiedData = async (mode: string) => {
     if (!cartographer.value) {
       await initialize()
@@ -174,16 +151,47 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  const renderVueComposite = async (container: HTMLElement) => {
-    if (!cartographer.value)
-      return
-    await cartographer.value.renderVueComposite(container)
-  }
-
   const renderProjectionComposite = async (container: HTMLElement) => {
     if (!cartographer.value)
       return
     await cartographer.value.renderProjectionComposite(container)
+  }
+
+  const renderCustomComposite = async (container: HTMLElement) => {
+    if (!cartographer.value)
+      return
+
+    const configStore = useConfigStore()
+    console.log('[geoData] renderCustomComposite - projectionMode:', configStore.projectionMode)
+
+    // Synchronize CustomCompositeProjection with current store state
+    // In composite-custom mode, ALWAYS sync individual projections (they're the whole point!)
+    // In uniform mode, all territories will use the base projection defined in CustomCompositeProjection.initialize()
+    if (configStore.projectionMode === 'individual') {
+      console.log('[geoData] Syncing individual projections:', configStore.territoryProjections)
+      Object.entries(configStore.territoryProjections).forEach(([code, projectionType]) => {
+        cartographer.value!.updateTerritoryProjection(code, projectionType)
+      })
+    }
+    else {
+      console.log('[geoData] Using uniform projection mode - territories will use their default projections')
+    }
+
+    // Update translations (in pixels relative to mainland center)
+    console.log('[geoData] Syncing translations:', configStore.territoryTranslations)
+    Object.entries(configStore.territoryTranslations).forEach(([code, translation]) => {
+      const offset: [number, number] = [translation.x || 0, translation.y || 0]
+      cartographer.value!.updateTerritoryTranslationOffset(code, offset)
+    })
+
+    // Update scales
+    console.log('[geoData] Syncing scales:', configStore.territoryScales)
+    Object.entries(configStore.territoryScales).forEach(([code, scale]) => {
+      cartographer.value!.updateTerritoryScale(code, scale)
+    })
+
+    console.log('[geoData] Calling cartographer.renderCustomComposite')
+    await cartographer.value.renderCustomComposite(container)
   }
 
   const updateCartographerSettings = () => {
@@ -208,7 +216,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     isInitialized,
     metropolitanFranceData,
     domtomTerritoriesData,
-    unifiedData,
     rawUnifiedData,
 
     // Computed
@@ -218,10 +225,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
     // Actions
     initialize,
     loadTerritoryData,
-    loadUnifiedData,
     loadRawUnifiedData,
-    renderVueComposite,
     renderProjectionComposite,
+    renderCustomComposite,
     updateCartographerSettings,
     clearError,
   }

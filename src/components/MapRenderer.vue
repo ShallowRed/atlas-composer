@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as Plot from '@observablehq/plot'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { GeoProjectionService } from '@/services/GeoProjectionService'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -175,8 +175,8 @@ async function renderComposite() {
 
   // Choose rendering method based on view mode
   if (configStore.viewMode === 'composite-custom') {
-    // Custom composite with manual positioning
-    await geoDataStore.renderVueComposite(mapContainer.value!)
+    // Custom composite with individual projections per territory
+    await geoDataStore.renderCustomComposite(mapContainer.value!)
   }
   else if (configStore.viewMode === 'composite-existing') {
     // Existing composite projection (albers-france or conic-conformal-france)
@@ -184,13 +184,8 @@ async function renderComposite() {
   }
 }
 
-onMounted(async () => {
-  await nextTick() // Ensure DOM is ready
-
-  // Add a small delay to ensure the container is fully initialized
-  setTimeout(async () => {
-    await renderMap()
-  }, 100)
+onMounted(() => {
+  renderMap()
 })
 
 // Watch dependencies based on mode
@@ -215,6 +210,10 @@ watch(() => {
     props.preserveScale,
   ]
 }, async () => {
+  console.log('[MapRenderer] Watch triggered!')
+  console.log('[MapRenderer] territoryTranslations:', JSON.stringify(configStore.territoryTranslations))
+  console.log('[MapRenderer] territoryScales:', JSON.stringify(configStore.territoryScales))
+  console.log('[MapRenderer] territoryProjections:', JSON.stringify(configStore.territoryProjections))
   await renderMap()
 }, { deep: true })
 </script>

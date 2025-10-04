@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, triggerRef } from 'vue'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 
 export type TerritoryMode = 'metropole-only' | 'metropole-major' | 'metropole-uncommon' | 'all-territories'
@@ -11,11 +11,12 @@ export const useConfigStore = defineStore('config', () => {
   const scalePreservation = ref(true)
   const selectedProjection = ref('albers')
   const territoryMode = ref<TerritoryMode>('metropole-major')
-  const viewMode = ref<ViewMode>('split')
-  const projectionMode = ref<ProjectionMode>('uniform')
+  const viewMode = ref<ViewMode>('composite-custom')
+  // Default to 'individual' since default viewMode is 'composite-custom'
+  const projectionMode = ref<ProjectionMode>('individual')
   const compositeProjection = ref<'albers-france' | 'conic-conformal-france'>('albers-france')
   const theme = ref('light')
-  
+
   // Per-territory projections (for individual mode)
   const territoryProjections = ref<Record<string, string>>({
     'FR-GF': 'albers', // Guyane
@@ -31,34 +32,38 @@ export const useConfigStore = defineStore('config', () => {
     'FR-PM': 'albers', // Saint-Pierre-et-Miquelon
   })
 
-  // Territory translations (x, y offsets for DOM-TOM positioning)
+  // Territory translations (x, y offsets in pixels relative to mainland center)
+  // Positive X = right, Negative X = left
+  // Positive Y = down, Negative Y = up
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>({
-    'FR-GF': { x: -8, y: -2 }, // Guyane
-    'FR-RE': { x: -10, y: 3 }, // Réunion
-    'FR-GP': { x: -8, y: 1 }, // Guadeloupe
-    'FR-MQ': { x: -8.5, y: 2.5 }, // Martinique
-    'FR-YT': { x: -2, y: -5 }, // Mayotte
-    'FR-MF': { x: 0, y: 0 }, // Saint-Martin
-    'FR-PF': { x: 0, y: 0 }, // Polynésie française
-    'FR-NC': { x: 0, y: 0 }, // Nouvelle-Calédonie
-    'FR-TF': { x: 0, y: 0 }, // Terres australes
-    'FR-WF': { x: 0, y: 0 }, // Wallis-et-Futuna
-    'FR-PM': { x: 0, y: 0 }, // Saint-Pierre-et-Miquelon
+    'FR-MET': { x: 0, y: 0 }, // France Métropolitaine - center reference
+    'FR-GP': { x: -400, y: 100 }, // Guadeloupe - bottom left
+    'FR-MQ': { x: -400, y: 200 }, // Martinique - below Guadeloupe
+    'FR-GF': { x: -400, y: 300 }, // Guyane - below Martinique
+    'FR-RE': { x: 300, y: 100 }, // Réunion - bottom right
+    'FR-YT': { x: 350, y: 200 }, // Mayotte - near Réunion
+    'FR-NC': { x: 450, y: -100 }, // Nouvelle-Calédonie - top right
+    'FR-PF': { x: 450, y: 100 }, // Polynésie - below NC
+    'FR-PM': { x: -100, y: -200 }, // Saint-Pierre-et-Miquelon - top left
+    'FR-WF': { x: 400, y: 250 }, // Wallis-et-Futuna - between RE and PF
+    'FR-MF': { x: -350, y: 80 }, // Saint-Martin - near GP
+    'FR-TF': { x: 300, y: 300 }, // TAAF - bottom right corner
   })
 
   // Territory scales (scale multipliers for DOM-TOM sizing)
   const territoryScales = ref<Record<string, number>>({
-    'FR-GF': 1.0, // Guyane
-    'FR-RE': 1.0, // Réunion
+    'FR-MET': 1.0, // France Métropolitaine
     'FR-GP': 1.0, // Guadeloupe
     'FR-MQ': 1.0, // Martinique
+    'FR-GF': 1.0, // Guyane
+    'FR-RE': 1.0, // Réunion
     'FR-YT': 1.0, // Mayotte
-    'FR-MF': 1.0, // Saint-Martin
-    'FR-PF': 1.0, // Polynésie française
     'FR-NC': 1.0, // Nouvelle-Calédonie
-    'FR-TF': 1.0, // Terres australes
-    'FR-WF': 1.0, // Wallis-et-Futuna
+    'FR-PF': 1.0, // Polynésie française
     'FR-PM': 1.0, // Saint-Pierre-et-Miquelon
+    'FR-WF': 1.0, // Wallis-et-Futuna
+    'FR-MF': 1.0, // Saint-Martin
+    'FR-TF': 1.0, // Terres australes
   })
 
   // Computed
@@ -73,15 +78,19 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   const showProjectionModeToggle = computed(() => {
-    // Show projection mode toggle (uniform/individual) only for split mode
-    // Custom composite always uses uniform projection since territories are repositioned
-    return viewMode.value === 'split'
+    // Show projection mode toggle (uniform/individual) for split and custom composite modes
+    // Split: Can switch between uniform and individual projections per territory
+    // Custom composite: Can use individual projections with D3 composite projection pattern
+    // Existing composite: Uses predefined projections (no toggle)
+    return viewMode.value === 'split' || viewMode.value === 'composite-custom'
   })
 
   const showIndividualProjectionSelectors = computed(() => {
-    // Show per-territory projection selectors only in split mode with individual projection
-    // Not available for composite modes since they require a unified projection
-    return viewMode.value === 'split' && projectionMode.value === 'individual'
+    // Show per-territory projection selectors in individual mode
+    // Split: Renders each territory separately with its own projection
+    // Custom composite: Uses D3 composite projection with sub-projections per territory
+    return (viewMode.value === 'split' || viewMode.value === 'composite-custom')
+      && projectionMode.value === 'individual'
   })
 
   const showTerritorySelector = computed(() => {
@@ -140,6 +149,12 @@ export const useConfigStore = defineStore('config', () => {
 
   const setViewMode = (mode: ViewMode) => {
     viewMode.value = mode
+    // Auto-adjust projection mode for composite-custom
+    // In composite-custom, individual projections make the most sense
+    if (mode === 'composite-custom' && projectionMode.value === 'uniform') {
+      console.log('[config] Auto-switching to individual projection mode for composite-custom')
+      projectionMode.value = 'individual'
+    }
   }
 
   const setProjectionMode = (mode: ProjectionMode) => {
@@ -152,6 +167,9 @@ export const useConfigStore = defineStore('config', () => {
 
   const setTerritoryProjection = (territoryCode: string, projection: string) => {
     territoryProjections.value[territoryCode] = projection
+    // Force Vue to detect the change in nested object
+    triggerRef(territoryProjections)
+    console.log('[config] setTerritoryProjection', territoryCode, projection)
   }
 
   const setTerritoryTranslation = (territoryCode: string, axis: 'x' | 'y', value: number) => {
@@ -159,10 +177,16 @@ export const useConfigStore = defineStore('config', () => {
       territoryTranslations.value[territoryCode] = { x: 0, y: 0 }
     }
     territoryTranslations.value[territoryCode][axis] = value
+    // Force Vue to detect the change in nested object
+    triggerRef(territoryTranslations)
+    console.log('[config] setTerritoryTranslation', territoryCode, axis, value)
   }
 
   const setTerritoryScale = (territoryCode: string, value: number) => {
     territoryScales.value[territoryCode] = value
+    // Force Vue to detect the change in nested object
+    triggerRef(territoryScales)
+    console.log('[config] setTerritoryScale', territoryCode, value)
   }
 
   const setTheme = (newTheme: string) => {

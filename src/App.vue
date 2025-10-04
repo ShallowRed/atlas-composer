@@ -92,14 +92,14 @@ onMounted(async () => {
                 class="select cursor-pointer"
                 @change="updateMaps"
               >
+                <option value="composite-custom">
+                  Projection composite personnalisée
+                </option>
                 <option value="split">
                   Territoires séparés
                 </option>
                 <option value="composite-existing">
                   Projection composite existante
-                </option>
-                <option value="composite-custom">
-                  Projection composite personnalisée
                 </option>
               </select>
             </div>
@@ -224,9 +224,11 @@ onMounted(async () => {
               </select>
             </div>
 
-            <!-- Individual Territory Projections (for split and composite-custom modes) -->
+            <!-- Territory Parameters (projections, translations, scales) -->
             <div v-show="configStore.showIndividualProjectionSelectors" class="mt-6">
-              <TerritoryTranslationControls :show-transform-controls="false" />
+              <TerritoryTranslationControls
+                :show-transform-controls="configStore.viewMode === 'composite-custom'"
+              />
             </div>
           </div>
         </div>
@@ -298,15 +300,13 @@ onMounted(async () => {
               Projection composite personnalisée
             </h2>
             <p class="text-sm opacity-70 mb-4">
-              Carte unifiée avec positionnement manuel des territoires d'outre-mer.
+              Carte unifiée avec projections individuelles et positionnement manuel des territoires.
             </p>
             <div class="flex gap-6">
-              <div class="flex-1 sticky top-4 self-start">
+              <div class="flex-1">
                 <MapRenderer mode="composite" />
               </div>
               <div class="w-80 space-y-4">
-                <TerritoryTranslationControls />
-                <div class="divider" />
                 <ProjectionExporter ref="projectionExporterRef" />
                 <div v-if="projectionExporterRef?.customProjection" class="mt-4">
                   <ProjectionPreview
