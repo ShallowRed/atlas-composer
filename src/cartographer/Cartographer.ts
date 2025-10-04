@@ -1,6 +1,6 @@
 import * as Plot from '@observablehq/plot'
 import { CustomCompositeProjection } from '../services/CustomCompositeProjection'
-import { RealGeoDataService } from '../services/GeoDataService'
+import { GeoDataService } from '../services/GeoDataService'
 import { GeoProjectionService } from '../services/GeoProjectionService'
 import {
   getTerritoryFillColor,
@@ -17,8 +17,8 @@ export interface CartographerSettings {
 
 export class Cartographer {
   private projectionService: GeoProjectionService
-  private geoDataService: RealGeoDataService
-  private customComposite: CustomCompositeProjection
+  private geoDataService: GeoDataService
+  public customComposite: CustomCompositeProjection
   private settings: CartographerSettings = {
     scalePreservation: true,
     selectedProjection: 'albers-france',
@@ -27,7 +27,7 @@ export class Cartographer {
 
   constructor() {
     this.projectionService = new GeoProjectionService()
-    this.geoDataService = new RealGeoDataService()
+    this.geoDataService = new GeoDataService()
     this.customComposite = new CustomCompositeProjection()
   }
 
@@ -131,27 +131,5 @@ export class Cartographer {
       console.error('Error rendering custom composite:', error)
       throw error
     }
-  }
-
-  // Proxy methods for CustomCompositeProjection
-
-  updateTerritoryProjection(territoryCode: string, projectionType: string): void {
-    this.customComposite.updateTerritoryProjection(territoryCode, projectionType)
-  }
-
-  updateTerritoryTranslationOffset(territoryCode: string, offset: [number, number]): void {
-    this.customComposite.updateTranslationOffset(territoryCode, offset)
-  }
-
-  updateTerritoryScale(territoryCode: string, scaleFactor: number): void {
-    this.customComposite.updateScale(territoryCode, scaleFactor)
-  }
-
-  getCompositionBorders(width: number, height: number) {
-    return this.customComposite.getCompositionBorders(width, height)
-  }
-
-  exportCustomCompositeConfig() {
-    return this.customComposite.exportConfig()
   }
 }

@@ -31,7 +31,7 @@ export interface TerritoryGeoData {
  * Service for loading and processing geographic data
  * Handles TopoJSON data conversion, territory extraction, and composite projections
  */
-export class RealGeoDataService {
+export class GeoDataService {
   private territoryData: Map<string, TerritoryGeoData> = new Map() // Cached processed territory data
   private metadata: any = null // Data source metadata
   private topologyData: any = null // Raw TopoJSON data

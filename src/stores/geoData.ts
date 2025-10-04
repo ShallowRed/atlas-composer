@@ -148,25 +148,25 @@ export const useGeoDataStore = defineStore('geoData', () => {
     if (configStore.projectionMode === 'individual') {
       // Individual mode: each territory uses its own projection
       Object.entries(configStore.territoryProjections).forEach(([code, projectionType]) => {
-        cartographer.value!.updateTerritoryProjection(code, projectionType)
+        cartographer.value!.customComposite.updateTerritoryProjection(code, projectionType)
       })
     }
     else {
       // Uniform mode: all territories use the same projection (selectedProjection)
       TERRITORY_CODES.forEach((code) => {
-        cartographer.value!.updateTerritoryProjection(code, configStore.selectedProjection)
+        cartographer.value!.customComposite.updateTerritoryProjection(code, configStore.selectedProjection)
       })
     }
 
     // Update translations (in pixels relative to mainland center)
     Object.entries(configStore.territoryTranslations).forEach(([code, translation]) => {
       const offset: [number, number] = [translation.x || 0, translation.y || 0]
-      cartographer.value!.updateTerritoryTranslationOffset(code, offset)
+      cartographer.value!.customComposite.updateTranslationOffset(code, offset)
     })
 
     // Update scales
     Object.entries(configStore.territoryScales).forEach(([code, scale]) => {
-      cartographer.value!.updateTerritoryScale(code, scale)
+      cartographer.value!.customComposite.updateScale(code, scale)
     })
 
     await cartographer.value.renderCustomComposite(container)

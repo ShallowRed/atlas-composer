@@ -347,7 +347,7 @@ export function getTerritoryVarName(code: string): string {
 
 /**
  * Default geographic data configuration for French territories
- * This configuration can be passed to RealGeoDataService
+ * This configuration can be passed to GeoDataService
  */
 export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
   dataPath: '/data/france-territories.json',
