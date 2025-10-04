@@ -9,7 +9,7 @@ Cette refactorisation consolide tous les composants de rendu de carte dans un se
 L'application comportait 5 composants séparés pour le rendu de cartes :
 
 1. **MetropolitanFranceMap.vue** (20 lignes) - Wrapper pour la France métropolitaine
-2. **TerritoryMap.vue** (28 lignes) - Wrapper pour les territoires d'outre-mer  
+2. **TerritoryMap.vue** (28 lignes) - Wrapper pour les territoires d'outre-mer
 3. **VueCompositeMap.vue** (60 lignes) - Vue composite avec repositionnement personnalisable
 4. **ProjectionCompositeMap.vue** (60 lignes) - Projection composite d3 automatique
 5. **MapRenderer.vue** (150 lignes) - Composant de base pour le rendu
@@ -36,7 +36,7 @@ interface Props {
   preserveScale?: boolean
   width?: number
   height?: number
-  
+
   // Mode de rendu
   mode?: 'simple' | 'vue-composite' | 'projection-composite'
 }
@@ -47,7 +47,7 @@ interface Props {
 Rendu d'une carte individuelle avec données GeoJSON fournies :
 
 ```vue
-<MapRenderer 
+<MapRenderer
   :geo-data="geoDataStore.metropolitanFranceData"
   is-metropolitan
   :width="500"
@@ -109,8 +109,9 @@ const error = ref<string | null>(null)
 
 ```typescript
 async function renderMap() {
-  if (!mapContainer.value) return
-  
+  if (!mapContainer.value)
+    return
+
   try {
     isLoading.value = true
     error.value = null
@@ -121,10 +122,9 @@ async function renderMap() {
       await renderVueComposite()
       return
     }
-    
+
     if (props.mode === 'projection-composite') {
       await renderProjectionComposite()
-      return
     }
 
     // Mode simple
@@ -175,7 +175,9 @@ watch(() => {
 ```vue
 <!-- 3 composants différents -->
 <VueCompositeMap />
+
 <ProjectionCompositeMap />
+
 <MetropolitanFranceMap />
 ```
 
@@ -184,8 +186,10 @@ watch(() => {
 ```vue
 <!-- 1 seul composant, 3 modes -->
 <MapRenderer mode="vue-composite" />
+
 <MapRenderer mode="projection-composite" />
-<MapRenderer 
+
+<MapRenderer
   :geo-data="geoDataStore.metropolitanFranceData"
   is-metropolitan
 />
