@@ -1,6 +1,5 @@
 import { geoConicConformalFrance } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
-import { geoAlbersFrance } from '@/services/CustomAlbersFrance'
 
 export interface ProjectionOption {
   value: string
@@ -62,13 +61,6 @@ export class GeoProjectionService {
     }
 
     switch (type) {
-      // Composite France projections
-      case 'albers-france':
-        return {
-          type: () => geoAlbersFrance(),
-          domain: data,
-        }
-
       case 'conic-conformal-france':
         return {
           type: () => geoConicConformalFrance(),

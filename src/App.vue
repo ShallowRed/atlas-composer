@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import DOMTOMGrid from '@/components/DOMTOMGrid.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
 import ProjectionExporter from '@/components/ProjectionExporter.vue'
 import ProjectionPreview from '@/components/ProjectionPreview.vue'
 import TerritoryTranslationControls from '@/components/TerritoryTranslationControls.vue'
+import ThemeSelector from '@/components/ThemeSelector.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -16,19 +17,16 @@ const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 
 // Methods
-async function switchTab(tabId: 'vue-composite' | 'projection-composite' | 'individual-territories') {
-  configStore.setActiveTab(tabId)
-
-  await nextTick() // Wait for DOM to update
-
-  // Load territory data if we're switching to individual territories tab
-  if (tabId === 'individual-territories' && !geoDataStore.metropolitanFranceData) {
-    await geoDataStore.loadTerritoryData()
-  }
-}
-
 async function updateMaps() {
   geoDataStore.updateCartographerSettings()
+}
+
+// Get projection for metropolitan France in individual mode
+function getMetropolitanProjection() {
+  if (configStore.projectionMode === 'individual') {
+    return configStore.territoryProjections['FR-MET'] || configStore.selectedProjection
+  }
+  return configStore.selectedProjection
 }
 
 // Lifecycle
@@ -41,7 +39,7 @@ onMounted(async () => {
     await geoDataStore.initialize()
 
     // Load territory data for initial render if needed
-    if (configStore.activeTab === 'individual-territories') {
+    if (configStore.viewMode === 'split') {
       await geoDataStore.loadTerritoryData()
     }
   }
@@ -79,126 +77,92 @@ onMounted(async () => {
 
           <div class="flex flex-col gap-6">
             <!-- Theme Selector -->
+            <ThemeSelector />
+
+            <!-- Main View Mode Selector -->
             <div class="form-control">
               <label class="label mb-1">
                 <span class="label-text flex items-center gap-2">
-                  <i class="ri-palette-line" />
-                  Thème
+                  <i class="ri-layout-grid-line" />
+                  Mode d'affichage
                 </span>
               </label>
               <select
-                id="theme-select"
-                v-model="configStore.theme"
+                v-model="configStore.viewMode"
                 class="select cursor-pointer"
-                @change="configStore.setTheme(configStore.theme)"
+                @change="updateMaps"
               >
-                <option value="light">
-                  Light
+                <option value="split">
+                  Territoires séparés
                 </option>
-                <option value="dark">
-                  Dark
+                <option value="composite-existing">
+                  Projection composite existante
                 </option>
-                <option value="cupcake">
-                  Cupcake
-                </option>
-                <option value="bumblebee">
-                  Bumblebee
-                </option>
-                <option value="emerald">
-                  Emerald
-                </option>
-                <option value="corporate">
-                  Corporate
-                </option>
-                <option value="synthwave">
-                  Synthwave
-                </option>
-                <option value="retro">
-                  Retro
-                </option>
-                <option value="cyberpunk">
-                  Cyberpunk
-                </option>
-                <option value="valentine">
-                  Valentine
-                </option>
-                <option value="halloween">
-                  Halloween
-                </option>
-                <option value="garden">
-                  Garden
-                </option>
-                <option value="forest">
-                  Forest
-                </option>
-                <option value="aqua">
-                  Aqua
-                </option>
-                <option value="lofi">
-                  Lofi
-                </option>
-                <option value="pastel">
-                  Pastel
-                </option>
-                <option value="fantasy">
-                  Fantasy
-                </option>
-                <option value="wireframe">
-                  Wireframe
-                </option>
-                <option value="black">
-                  Black
-                </option>
-                <option value="luxury">
-                  Luxury
-                </option>
-                <option value="dracula">
-                  Dracula
-                </option>
-                <option value="cmyk">
-                  CMYK
-                </option>
-                <option value="autumn">
-                  Autumn
-                </option>
-                <option value="business">
-                  Business
-                </option>
-                <option value="acid">
-                  Acid
-                </option>
-                <option value="lemonade">
-                  Lemonade
-                </option>
-                <option value="night">
-                  Night
-                </option>
-                <option value="coffee">
-                  Coffee
-                </option>
-                <option value="winter">
-                  Winter
-                </option>
-                <option value="dim">
-                  Dim
-                </option>
-                <option value="nord">
-                  Nord
-                </option>
-                <option value="sunset">
-                  Sunset
+                <option value="composite-custom">
+                  Projection composite personnalisée
                 </option>
               </select>
             </div>
-            <!-- Projection Select -->
-            <div class="form-control">
+
+            <!-- Composite Projection Selector (for composite-existing mode) -->
+            <div v-show="configStore.showCompositeProjectionSelector" class="form-control">
               <label class="label mb-1">
-                Projection cartographique
+                <span class="label-text flex items-center gap-2">
+                  <i class="ri-global-line" />
+                  Projection composite
+                </span>
+              </label>
+              <select
+                v-model="configStore.compositeProjection"
+                class="select cursor-pointer"
+                @change="updateMaps"
+              >
+                <option value="albers-france">
+                  Albers France
+                </option>
+                <option value="conic-conformal-france">
+                  Conic Conformal France
+                </option>
+              </select>
+            </div>
+
+            <!-- Projection Mode Toggle (for split and composite-custom modes) -->
+            <div v-show="configStore.showProjectionModeToggle" class="form-control">
+              <label class="label mb-1">
+                <span class="label-text flex items-center gap-2">
+                  <i class="ri-git-branch-line" />
+                  Mode de projection
+                </span>
+              </label>
+              <div class="join join-horizontal w-full">
+                <button
+                  class="btn join-item flex-1"
+                  :class="{ 'btn-active': configStore.projectionMode === 'uniform' }"
+                  @click="configStore.setProjectionMode('uniform'); updateMaps()"
+                >
+                  Uniforme
+                </button>
+                <button
+                  class="btn join-item flex-1"
+                  :class="{ 'btn-active': configStore.projectionMode === 'individual' }"
+                  @click="configStore.setProjectionMode('individual'); updateMaps()"
+                >
+                  Individuelle
+                </button>
+              </div>
+            </div>
+
+            <!-- Uniform Projection Selector (for uniform projection mode) -->
+            <div v-show="configStore.showProjectionSelector" class="form-control">
+              <label class="label mb-1">
+                <span class="label-text flex items-center gap-2">
+                  <i class="ri-global-line" />
+                  Projection cartographique
+                </span>
               </label>
               <select
                 v-model="configStore.selectedProjection"
                 class="select cursor-pointer"
-                :disabled="!configStore.showProjectionSelector"
                 @change="updateMaps"
               >
                 <optgroup
@@ -217,7 +181,7 @@ onMounted(async () => {
               </select>
             </div>
 
-            <!-- Scale Preservation (Individual Territories Only) -->
+            <!-- Scale Preservation (for split mode only) -->
             <div v-show="configStore.showScalePreservation" class="form-control">
               <label class="label cursor-pointer flex flex-row-reverse justify-end gap-2">
                 <span>
@@ -232,10 +196,13 @@ onMounted(async () => {
               </label>
             </div>
 
-            <!-- Territory Selection (All Tabs) -->
-            <div v-show="configStore.showTerritorySelector" class="form-control composite-only composite-raw-only">
+            <!-- Territory Selection (for composite modes) -->
+            <div v-show="configStore.showTerritorySelector" class="form-control">
               <label class="label mb-1">
-                Territoires à inclure
+                <span class="label-text flex items-center gap-2">
+                  <i class="ri-map-pin-range-line" />
+                  Territoires à inclure
+                </span>
               </label>
               <select
                 v-model="configStore.territoryMode"
@@ -256,103 +223,98 @@ onMounted(async () => {
                 </option>
               </select>
             </div>
+
+            <!-- Individual Territory Projections (for split and composite-custom modes) -->
+            <div v-show="configStore.showIndividualProjectionSelectors" class="mt-6">
+              <TerritoryTranslationControls :show-transform-controls="false" />
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Tab Navigation using DaisyUI -->
+      <!-- Main Content Area (Single Tab) -->
       <div class="tabs tabs-lift tabs-xl w-full md:w-3/4">
         <input
-          id="tab-composite"
+          id="tab-main"
           type="radio"
           name="map_tabs"
           class="tab"
-          aria-label="Vue unifiée personnalisable"
-          :checked="configStore.activeTab === 'vue-composite'"
-          @change="switchTab('vue-composite')"
+          aria-label="Cartographie de la France"
+          checked
         >
-        <div v-if="configStore.activeTab === 'vue-composite'" class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
-          <h2 class="card-title mb-2">
-            <i class="ri-map-2-line text-lg" />
-            Vue unifiée avec repositionnement personnalisable
-          </h2>
-          <p class="text-sm opacity-70 mb-4">
-            Carte unifiée de la France avec contrôles de positionnement et d'échelle pour chaque territoire d'outre-mer.
-          </p>
-          <div class="flex gap-6">
-            <div class="flex-1 sticky top-4 self-start">
-              <MapRenderer mode="vue-composite" />
-            </div>
-            <div class="w-80 space-y-4">
-              <TerritoryTranslationControls />
-              <div class="divider" />
-              <ProjectionExporter ref="projectionExporterRef" />
-              <div v-if="projectionExporterRef?.customProjection" class="mt-4">
-                <ProjectionPreview
-                  :projection="projectionExporterRef.customProjection"
-                  title="Aperçu de la projection générée"
+        <div class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
+          <!-- Split Territories Mode -->
+          <div v-show="configStore.viewMode === 'split'">
+            <h2 class="card-title mb-2">
+              <i class="ri-layout-grid-line text-lg" />
+              Territoires séparés
+            </h2>
+            <p class="text-sm opacity-70 mb-4">
+              Vue séparée de chaque territoire avec sa propre projection optimisée.
+            </p>
+            <div class="flex flex-row gap-12">
+              <!-- Metropolitan France -->
+              <div>
+                <h3 class="text-lg font-semibold mb-2">
+                  <i class="ri-map-pin-line text-lg" />
+                  France Métropolitaine
+                </h3>
+                <MapRenderer
+                  :geo-data="geoDataStore.metropolitanFranceData"
+                  is-metropolitan
+                  :projection="getMetropolitanProjection()"
+                  :width="500"
+                  :height="400"
                 />
+              </div>
+
+              <!-- DOM-TOM -->
+              <div>
+                <h3 class="text-lg font-semibold mb-2">
+                  <i class="ri-earth-line text-lg" />
+                  Départements et Collectivités d'Outre-Mer
+                </h3>
+                <DOMTOMGrid />
               </div>
             </div>
           </div>
-        </div>
 
-        <input
-          id="tab-composite-raw"
-          type="radio"
-          name="map_tabs"
-          class="tab"
-          aria-label="Projection composite automatique"
-          :checked="configStore.activeTab === 'projection-composite'"
-          @change="switchTab('projection-composite')"
-        >
-        <div v-if="configStore.activeTab === 'projection-composite'" class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
-          <h2 class="card-title mb-2">
-            <i class="ri-global-line text-lg" />
-            Projection composite avec repositionnement automatique
-          </h2>
-          <p class="text-sm opacity-70 mb-4">
-            Utilise les projections composites d3 (Albers France ou Conic Conformal France) qui incluent un repositionnement automatique des territoires d'outre-mer.
-          </p>
-          <MapRenderer mode="projection-composite" />
-        </div>
+          <!-- Composite Existing Mode -->
+          <div v-show="configStore.viewMode === 'composite-existing'">
+            <h2 class="card-title mb-2">
+              <i class="ri-map-2-line text-lg" />
+              Projection composite existante
+            </h2>
+            <p class="text-sm opacity-70 mb-4">
+              Carte unifiée utilisant des projections composites prédéfinies (d3-composite-projections).
+            </p>
+            <MapRenderer mode="composite" />
+          </div>
 
-        <input
-          id="tab-separate"
-          type="radio"
-          name="map_tabs"
-          class="tab"
-          aria-label="Territoires individuels"
-          :checked="configStore.activeTab === 'individual-territories'"
-          @change="switchTab('individual-territories')"
-        >
-        <div v-if="configStore.activeTab === 'individual-territories'" class="tab-content shadow-lg bg-base-100 border-base-300 p-8">
-          <p class="text-sm opacity-70 mb-4">
-            Vue séparée de chaque territoire avec sa propre projection optimisée.
-          </p>
-          <!-- Separate Territory Views Content -->
-          <div class="flex flex-row gap-12">
-            <!-- Metropolitan France -->
-            <div class="">
-              <h2 class="card-title mb-2">
-                <i class="ri-map-pin-line text-lg" />
-                France Métropolitaine
-              </h2>
-              <MapRenderer
-                :geo-data="geoDataStore.metropolitanFranceData"
-                is-metropolitan
-                :width="500"
-                :height="400"
-              />
-            </div>
-
-            <!-- DOM-TOM -->
-            <div class="">
-              <h2 class="card-title mb-2">
-                <i class="ri-earth-line text-lg" />
-                Départements et Collectivités d'Outre-Mer
-              </h2>
-              <DOMTOMGrid />
+          <!-- Composite Custom Mode -->
+          <div v-show="configStore.viewMode === 'composite-custom'">
+            <h2 class="card-title mb-2">
+              <i class="ri-map-2-line text-lg" />
+              Projection composite personnalisée
+            </h2>
+            <p class="text-sm opacity-70 mb-4">
+              Carte unifiée avec positionnement manuel des territoires d'outre-mer.
+            </p>
+            <div class="flex gap-6">
+              <div class="flex-1 sticky top-4 self-start">
+                <MapRenderer mode="composite" />
+              </div>
+              <div class="w-80 space-y-4">
+                <TerritoryTranslationControls />
+                <div class="divider" />
+                <ProjectionExporter ref="projectionExporterRef" />
+                <div v-if="projectionExporterRef?.customProjection" class="mt-4">
+                  <ProjectionPreview
+                    :projection="projectionExporterRef.customProjection"
+                    title="Aperçu de la projection générée"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

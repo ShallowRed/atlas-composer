@@ -16,9 +16,10 @@ interface Props {
   preserveScale?: boolean
   width?: number
   height?: number
+  projection?: string // Optional projection override for individual mode
 
   // For composite maps
-  mode?: 'simple' | 'vue-composite' | 'projection-composite'
+  mode?: 'simple' | 'composite'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,7 +41,7 @@ const error = ref<string | null>(null)
 
 const computedSize = computed(() => {
   // For composite maps, use fixed larger dimensions
-  if (props.mode === 'vue-composite' || props.mode === 'projection-composite') {
+  if (props.mode === 'composite') {
     return { width: 800, height: 600 }
   }
 
@@ -93,8 +94,11 @@ function getProjection() {
   if (!props.geoData)
     return null
 
+  // Use provided projection or fall back to store's selected projection
+  const projectionToUse = props.projection || configStore.selectedProjection
+
   // Use specialized projection for metropolitan France
-  if (props.isMetropolitan && configStore.selectedProjection === 'albers') {
+  if (props.isMetropolitan && projectionToUse === 'albers') {
     return {
       type: 'conic-conformal' as const,
       parallels: [45.898889, 47.696014] as [number, number],
@@ -103,7 +107,7 @@ function getProjection() {
     }
   }
 
-  return projectionService.getProjection(configStore.selectedProjection, props.geoData)
+  return projectionService.getProjection(projectionToUse, props.geoData)
 }
 
 async function renderMap() {
@@ -117,14 +121,9 @@ async function renderMap() {
     error.value = null
     mapContainer.value.innerHTML = ''
 
-    // Handle composite modes
-    if (props.mode === 'vue-composite') {
-      await renderVueComposite()
-      return
-    }
-
-    if (props.mode === 'projection-composite') {
-      await renderProjectionComposite()
+    // Handle composite mode
+    if (props.mode === 'composite') {
+      await renderComposite()
       return
     }
 
@@ -167,22 +166,22 @@ async function renderMap() {
   }
 }
 
-async function renderVueComposite() {
+async function renderComposite() {
   if (!geoDataStore.cartographer) {
     await geoDataStore.initialize()
   }
 
   await geoDataStore.updateCartographerSettings()
-  await geoDataStore.renderVueComposite(mapContainer.value!)
-}
 
-async function renderProjectionComposite() {
-  if (!geoDataStore.cartographer) {
-    await geoDataStore.initialize()
+  // Choose rendering method based on view mode
+  if (configStore.viewMode === 'composite-custom') {
+    // Custom composite with manual positioning
+    await geoDataStore.renderVueComposite(mapContainer.value!)
   }
-
-  await geoDataStore.updateCartographerSettings()
-  await geoDataStore.renderProjectionComposite(mapContainer.value!)
+  else if (configStore.viewMode === 'composite-existing') {
+    // Existing composite projection (albers-france or conic-conformal-france)
+    await geoDataStore.renderProjectionComposite(mapContainer.value!)
+  }
 }
 
 onMounted(async () => {
@@ -196,23 +195,22 @@ onMounted(async () => {
 
 // Watch dependencies based on mode
 watch(() => {
-  if (props.mode === 'vue-composite') {
+  if (props.mode === 'composite') {
     return [
+      configStore.viewMode,
+      configStore.projectionMode,
+      configStore.compositeProjection,
       configStore.selectedProjection,
       configStore.territoryMode,
       configStore.scalePreservation,
       configStore.territoryTranslations,
       configStore.territoryScales,
-    ]
-  }
-  if (props.mode === 'projection-composite') {
-    return [
-      configStore.selectedProjection,
-      configStore.territoryMode,
+      configStore.territoryProjections,
     ]
   }
   return [
     props.geoData,
+    props.projection,
     configStore.selectedProjection,
     props.preserveScale,
   ]

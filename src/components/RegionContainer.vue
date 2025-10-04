@@ -11,6 +11,16 @@ interface Props {
 defineProps<Props>()
 
 const configStore = useConfigStore()
+
+// Get projection for a specific territory
+function getTerritoryProjection(territoryCode: string) {
+  if (configStore.projectionMode === 'individual') {
+    // Use territory-specific projection if defined, otherwise use default
+    return configStore.territoryProjections[territoryCode] || configStore.selectedProjection
+  }
+  // Use uniform projection
+  return configStore.selectedProjection
+}
 </script>
 
 <template>
@@ -30,6 +40,7 @@ const configStore = useConfigStore()
           :area="territory.area"
           :region="territory.region"
           :preserve-scale="configStore.scalePreservation"
+          :projection="getTerritoryProjection(territory.code)"
           :width="200"
           :height="160"
         />
