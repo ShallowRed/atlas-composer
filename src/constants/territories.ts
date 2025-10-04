@@ -8,7 +8,7 @@ export interface TerritoryConfig {
   name: string
   shortName?: string
   center: [number, number] // [longitude, latitude]
-  scale: number // Base scale for the projection
+  scale: number // Base scale for the projection (auto-calculated to respect size ratios)
   offset: [number, number] // [x, y] pixel offset relative to mainland center
   bounds: [[number, number], [number, number]] // [[minLon, minLat], [maxLon, maxLat]]
   projectionType?: string // Default projection type (mercator, conic-conformal, etc.)
@@ -16,16 +16,41 @@ export interface TerritoryConfig {
 }
 
 /**
+ * Reference scale for automatic calculation
+ * All territories will use the same base scale to maintain true proportions
+ * This ensures that at scale=1.0, all territories appear with sizes proportional to their real geographic extent
+ */
+const BASE_SCALE_PER_DEGREE = 1070 // Calculated from mainland France to serve as reference
+
+/**
+ * Calculate scale based on geographic extent to maintain true size proportions
+ * All territories at scale=1.0 will appear with sizes proportional to their real geographic extent
+ */
+function calculateProportionalScale(
+  bounds: [[number, number], [number, number]],
+): number {
+  const [[minLon, minLat], [maxLon, maxLat]] = bounds
+  const lonSpan = maxLon - minLon
+  const latSpan = maxLat - minLat
+  const avgSpan = (lonSpan + latSpan) / 2
+
+  // Scale proportionally to geographic size
+  // Smaller territories get higher scales to be visible, but proportionally
+  return BASE_SCALE_PER_DEGREE / avgSpan
+}
+
+/**
  * France Métropolitaine configuration
  */
+const mainlandBounds: [[number, number], [number, number]] = [[-5, 41], [10, 51]]
 export const MAINLAND_FRANCE: TerritoryConfig = {
   code: 'FR-MET',
   name: 'France Métropolitaine',
   shortName: 'Métropole',
   center: [2.5, 46.5],
-  scale: 2800,
+  scale: calculateProportionalScale(mainlandBounds),
   offset: [80, 0], // Center reference point + small right for better visual balance with Corse
-  bounds: [[-5, 41], [10, 51]],
+  bounds: mainlandBounds,
   projectionType: 'conic-conformal',
 }
 
@@ -39,7 +64,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-MF',
     name: 'Saint-Martin',
     center: [-63.082, 18.067],
-    scale: 40000,
+    scale: calculateProportionalScale([[-63.15, 18.04], [-63.0, 18.13]]),
     offset: [-450, -50], // Top left
     bounds: [[-63.15, 18.04], [-63.0, 18.13]],
     clipExtent: { x1: -0.14, y1: -0.052, x2: -0.0996, y2: -0.032 },
@@ -48,7 +73,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-GP',
     name: 'Guadeloupe',
     center: [-61.551, 16.265],
-    scale: 25000, // Adjusted for actual geographic size (~1,628 km²)
+    scale: calculateProportionalScale([[-61.81, 15.83], [-61.0, 16.52]]),
     offset: [-450, 50], // Below Saint-Martin
     bounds: [[-61.81, 15.83], [-61.0, 16.52]],
     clipExtent: { x1: -0.14, y1: -0.032, x2: -0.0996, y2: 0 },
@@ -57,7 +82,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-MQ',
     name: 'Martinique',
     center: [-61.024, 14.642],
-    scale: 28000, // Adjusted for actual geographic size (~1,128 km²)
+    scale: calculateProportionalScale([[-61.23, 14.39], [-60.81, 14.88]]),
     offset: [-450, 150], // Below Guadeloupe
     bounds: [[-61.23, 14.39], [-60.81, 14.88]],
     clipExtent: { x1: -0.14, y1: 0, x2: -0.0996, y2: 0.029 },
@@ -67,7 +92,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     name: 'Guyane',
     shortName: 'Guyane Française',
     center: [-53.1, 3.9],
-    scale: 2200,
+    scale: calculateProportionalScale([[-54.6, 2.1], [-51.6, 5.8]]),
     offset: [-300, 180], // Below Martinique (larger territory)
     bounds: [[-54.6, 2.1], [-51.6, 5.8]],
     clipExtent: { x1: -0.14, y1: 0.029, x2: -0.0996, y2: 0.0864 },
@@ -78,7 +103,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-PM',
     name: 'Saint-Pierre-et-Miquelon',
     center: [-56.327, 46.885],
-    scale: 25000,
+    scale: calculateProportionalScale([[-56.42, 46.75], [-56.13, 47.15]]),
     offset: [-200, -200], // Top center-left
     bounds: [[-56.42, 46.75], [-56.13, 47.15]],
     clipExtent: { x1: -0.14, y1: -0.076, x2: -0.0996, y2: -0.052 },
@@ -89,7 +114,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-YT',
     name: 'Mayotte',
     center: [45.166, -12.827],
-    scale: 35000,
+    scale: calculateProportionalScale([[44.98, -13.0], [45.3, -12.64]]),
     offset: [350, -50], // Top right (small island)
     bounds: [[44.98, -13.0], [45.3, -12.64]],
     clipExtent: { x1: 0.0967, y1: -0.076, x2: 0.1371, y2: -0.052 },
@@ -98,7 +123,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-RE',
     name: 'La Réunion',
     center: [55.536, -21.115],
-    scale: 22000, // Adjusted for actual geographic size (~2,512 km²)
+    scale: calculateProportionalScale([[55.22, -21.39], [55.84, -20.87]]),
     offset: [350, 50], // Below Mayotte
     bounds: [[55.22, -21.39], [55.84, -20.87]],
     clipExtent: { x1: 0.0967, y1: -0.052, x2: 0.1371, y2: -0.02 },
@@ -108,7 +133,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     name: 'Terres australes et antarctiques françaises',
     shortName: 'TAAF',
     center: [69.348, -49.280],
-    scale: 2500,
+    scale: calculateProportionalScale([[39.0, -50.0], [77.0, -37.0]]),
     offset: [350, 250], // Bottom right (large territory)
     bounds: [[39.0, -50.0], [77.0, -37.0]],
     clipExtent: { x1: 0.0967, y1: -0.09, x2: 0.1371, y2: -0.076 },
@@ -119,7 +144,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-NC',
     name: 'Nouvelle-Calédonie',
     center: [165.618, -20.904],
-    scale: 3000,
+    scale: calculateProportionalScale([[163.0, -22.7], [168.0, -19.5]]),
     offset: [550, -100], // Far top right
     bounds: [[163.0, -22.7], [168.0, -19.5]],
     clipExtent: { x1: 0.0967, y1: -0.02, x2: 0.1371, y2: 0.012 },
@@ -128,7 +153,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-WF',
     name: 'Wallis-et-Futuna',
     center: [-176.176, -13.768],
-    scale: 35000,
+    scale: calculateProportionalScale([[-178.2, -14.4], [-176.1, -13.2]]),
     offset: [550, 50], // Below NC (small islands)
     bounds: [[-178.2, -14.4], [-176.1, -13.2]],
     clipExtent: { x1: 0.0967, y1: 0.012, x2: 0.1371, y2: 0.033 },
@@ -137,7 +162,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-PF',
     name: 'Polynésie française',
     center: [-149.566, -17.679],
-    scale: 8000,
+    scale: calculateProportionalScale([[-154, -28], [-134, -7]]),
     offset: [550, 180], // Below WF (large territory)
     bounds: [[-154, -28], [-134, -7]],
     clipExtent: { x1: 0.0967, y1: 0.033, x2: 0.1371, y2: 0.0864 },
@@ -148,7 +173,7 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     code: 'FR-BL',
     name: 'Saint-Barthélemy',
     center: [-62.85, 17.90],
-    scale: 45000,
+    scale: calculateProportionalScale([[-62.88, 17.87], [-62.79, 17.97]]),
     offset: [-450, -150], // Above Saint-Martin (very small)
     bounds: [[-62.88, 17.87], [-62.79, 17.97]],
     clipExtent: { x1: -0.14, y1: -0.08, x2: -0.0996, y2: -0.06 },
