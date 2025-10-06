@@ -2,168 +2,247 @@
 
 /**
  * Geographic Data Preparation Script
- * Downloads Natural Earth world data and filters French territories (metropolitan + DOM-TOM)
+ * Downloads Natural Earth world data and filters specific territories
  * Creates optimized TopoJSON files for cartographic visualization
+ *
+ * Usage:
+ *   node prepare-geodata.js [config-name]
+ *   NE_RESOLUTION=10m node prepare-geodata.js france
+ *
+ * Examples:
+ *   node prepare-geodata.js                  # Uses default config (france)
+ *   node prepare-geodata.js spain            # Uses spain config
+ *   NE_RESOLUTION=10m node prepare-geodata.js france  # High resolution
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const dataDir = path.join(__dirname, '../public/data')
+// Get current directory in ES module
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-// Terminal colors for pretty console output
-const colors = {
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+/**
+ * Natural Earth data resolution
+ * Available options: '110m' (lowest detail), '50m' (medium), '10m' (highest detail)
+ * Can be overridden with NE_RESOLUTION environment variable
+ */
+const NATURAL_EARTH_RESOLUTION = process.env.NE_RESOLUTION || '50m'
+
+/**
+ * Data source URL for Natural Earth countries dataset
+ */
+const DATA_SOURCE = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${NATURAL_EARTH_RESOLUTION}.json`
+
+/**
+ * Output directory for processed geographic data
+ */
+const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
+
+/**
+ * Configurations directory
+ */
+const CONFIGS_DIR = path.join(__dirname, 'configs')
+
+/**
+ * Output filenames for each data file
+ */
+const OUTPUT_FILENAMES = {
+  world: `world-countries-${NATURAL_EARTH_RESOLUTION}.json`,
+  territories: configName => `${configName}-territories.json`,
+  metadata: configName => `${configName}-metadata.json`,
+}
+
+/**
+ * Console colors for better readability
+ */
+const COLORS = {
+  reset: '\x1B[0m',
   green: '\x1B[32m',
   blue: '\x1B[34m',
   yellow: '\x1B[33m',
   red: '\x1B[31m',
-  reset: '\x1B[0m',
 }
 
-// Natural Earth data source - pre-built world atlas at 50m resolution
-const NATURAL_EARTH_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json'
-
-// French territories mapping: Natural Earth ID → Territory metadata
-// Includes metropolitan France and all overseas departments/territories (DOM-TOM)
-const FRANCE_TERRITORIES = {
-  250: { name: 'France métropolitaine', code: 'FR-MET', iso: 'FRA' },
-  666: { name: 'Saint-Pierre-et-Miquelon', code: 'FR-PM', iso: 'SPM' },
-  876: { name: 'Wallis-et-Futuna', code: 'FR-WF', iso: 'WLF' },
-  258: { name: 'Polynésie française', code: 'FR-PF', iso: 'PYF' },
-  540: { name: 'Nouvelle-Calédonie', code: 'FR-NC', iso: 'NCL' },
-  260: { name: 'Terres australes françaises', code: 'FR-TF', iso: 'ATF' },
-  663: { name: 'Saint-Martin', code: 'FR-MF', iso: 'MAF' },
-}
+// ============================================================================
+// CONFIGURATION LOADER
+// ============================================================================
 
 /**
- * Downloads geographic data from URL and saves to local file
- * @param {string} url - Source URL for the geographic data
- * @param {string} filename - Local filename to save the data
- * @returns {Promise<object>} Parsed JSON data
+ * Load a territory configuration from the configs directory
+ * @param {string} configName - Name of the configuration file (without .js extension)
+ * @returns {Promise<object>} The configuration object
  */
-async function downloadData(url, filename) {
+async function loadConfig(configName) {
   try {
-    console.log(`${colors.blue}Downloading: ${filename}${colors.reset}`)
-    const response = await fetch(url)
-    if (!response.ok)
-      throw new Error(`HTTP ${response.status}`)
-
-    const data = await response.json()
-    const filepath = path.join(dataDir, filename)
-    await fs.writeFile(filepath, JSON.stringify(data, null, 2))
-    console.log(`${colors.green}Saved: ${filepath}${colors.reset}`)
-    return data
+    const configPath = path.join(CONFIGS_DIR, `${configName}.js`)
+    const configModule = await import(configPath)
+    return configModule.default
   }
   catch (error) {
-    console.error(`${colors.red}Error downloading ${filename}:${colors.reset}`, error.message)
+    if (error.code === 'ERR_MODULE_NOT_FOUND' || error.code === 'ENOENT') {
+      return null
+    }
     throw error
   }
 }
 
 /**
- * Extracts French territories from world geographic data
- * Preserves TopoJSON topology (arcs, transform) for efficient rendering
- * @param {object} worldData - Complete Natural Earth world TopoJSON
- * @returns {object} Filtered TopoJSON containing only French territories
+ * List all available configurations
+ * @returns {Promise<string[]>} Array of available config names
  */
-function filterFranceData(worldData) {
-  const franceFeatures = []
-  const countries = worldData.objects.countries.geometries || []
-
-  // Iterate through all world countries to find French territories
-  for (const country of countries) {
-    const countryId = country.id?.toString()
-    if (FRANCE_TERRITORIES[countryId]) {
-      const territory = FRANCE_TERRITORIES[countryId]
-      // Enrich country data with French territory metadata
-      franceFeatures.push({
-        ...country,
-        properties: {
-          ...country.properties,
-          name: territory.name,
-          code: territory.code,
-          iso: territory.iso,
-          id: countryId,
-        },
-      })
-    }
-  }
-
-  console.log(`Found ${franceFeatures.length} French territories from ${countries.length} countries`)
-
-  // Create new TopoJSON with only French territories but preserve topology
-  return {
-    type: 'Topology',
-    arcs: worldData.arcs, // Keep original coordinate arcs
-    transform: worldData.transform, // Keep quantization transform
-    objects: {
-      territories: {
-        type: 'GeometryCollection',
-        geometries: franceFeatures,
-      },
-    },
-  }
-}
-
-/**
- * Creates metadata file with territory information for the cartography app
- * @returns {object} Metadata object with data source info and territory details
- */
-function createMetadata() {
-  return {
-    source: 'Natural Earth',
-    version: '5.1.2',
-    resolution: '50m',
-    projection: 'WGS84',
-    territories: Object.entries(FRANCE_TERRITORIES).map(([id, info]) => ({
-      id,
-      iso: info.iso,
-      name: info.name,
-      code: info.code,
-    })),
-  }
-}
-
-/**
- * Main execution function
- * 1. Downloads Natural Earth world data
- * 2. Filters to French territories only
- * 3. Creates optimized files for cartographic application
- */
-async function main() {
+async function listAvailableConfigs() {
   try {
-    // Ensure data directory exists
-    await fs.mkdir(dataDir, { recursive: true })
-
-    console.log(`${colors.blue}Preparing Natural Earth geographic data${colors.reset}`)
-
-    // Download and process world geographic data
-    const worldCountries = await downloadData(NATURAL_EARTH_URL, 'world-countries-50m.json')
-    const franceData = filterFranceData(worldCountries)
-
-    // Save filtered French territories TopoJSON
-    const francePath = path.join(dataDir, 'france-territories.json')
-    await fs.writeFile(francePath, JSON.stringify(franceData, null, 2))
-    console.log(`${colors.green}France data saved: ${francePath}${colors.reset}`)
-
-    // Create and save metadata for the cartography application
-    const metadata = createMetadata()
-    const metadataPath = path.join(dataDir, 'metadata.json')
-    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2))
-    console.log(`${colors.green}Metadata created: ${metadataPath}${colors.reset}`)
-
-    console.log(`\n${colors.green}Data preparation completed!${colors.reset}`)
-    console.log(`${franceData.objects.territories.geometries.length} territories prepared`)
+    const files = await fs.readdir(CONFIGS_DIR)
+    return files
+      .filter(file => file.endsWith('.js') && !file.startsWith('.'))
+      .map(file => file.replace('.js', ''))
   }
   catch (error) {
-    console.error(`${colors.red}Error during preparation:${colors.reset}`, error.message)
+    console.error(`${COLORS.red}Error reading configs directory: ${error.message}${COLORS.reset}`)
+    return []
+  }
+}
+
+// ============================================================================
+// DATA PROCESSING FUNCTIONS
+// ============================================================================
+
+/**
+ * Download data from a URL and save it to a file
+ * @param {string} url - The URL to download from
+ * @param {string} filename - The filename to save to (in OUTPUT_DIR)
+ */
+async function downloadData(url, filename) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to download: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  const outputPath = path.join(OUTPUT_DIR, filename)
+
+  // Ensure output directory exists
+  await fs.mkdir(OUTPUT_DIR, { recursive: true })
+
+  // Write the file
+  await fs.writeFile(outputPath, JSON.stringify(data))
+  console.log(`${COLORS.green}✓ Saved ${filename}${COLORS.reset}`)
+}
+
+/**
+ * Filter TopoJSON data to include only specified territories
+ * @param {object} worldData - The full world TopoJSON data
+ * @param {object} territoriesConfig - Territory ID mapping
+ * @returns {object} Filtered TopoJSON containing only specified territories
+ */
+function filterTerritories(worldData, territoriesConfig) {
+  const territoryIds = Object.keys(territoriesConfig).map(Number)
+
+  return {
+    type: worldData.type,
+    transform: worldData.transform,
+    objects: {
+      countries: {
+        type: 'GeometryCollection',
+        geometries: worldData.objects.countries.geometries.filter(geometry =>
+          territoryIds.includes(geometry.id),
+        ),
+      },
+    },
+    arcs: worldData.arcs,
+  }
+}
+
+/**
+ * Create metadata file for the filtered territories
+ * @param {object} territoriesConfig - Territory configuration object
+ * @returns {object} Metadata object
+ */
+function createMetadata(territoriesConfig) {
+  return {
+    name: territoriesConfig.name,
+    description: territoriesConfig.description,
+    source: 'Natural Earth',
+    sourceUrl: DATA_SOURCE,
+    resolution: NATURAL_EARTH_RESOLUTION,
+    created: new Date().toISOString(),
+    territories: territoriesConfig.territories,
+    count: Object.keys(territoriesConfig.territories).length,
+  }
+}
+
+// ============================================================================
+// MAIN EXECUTION
+// ============================================================================
+
+async function main() {
+  try {
+    // Get configuration name from command line (default: france)
+    const configName = process.argv[2] || 'france'
+
+    // Load the configuration
+    const CONFIG = await loadConfig(configName)
+
+    if (!CONFIG) {
+      const availableConfigs = await listAvailableConfigs()
+      console.error(`${COLORS.red}Configuration not found: ${configName}${COLORS.reset}`)
+      if (availableConfigs.length > 0) {
+        console.log(`${COLORS.blue}Available configurations: ${availableConfigs.join(', ')}${COLORS.reset}`)
+      }
+      else {
+        console.log(`${COLORS.yellow} No configurations found in ${CONFIGS_DIR}${COLORS.reset}`)
+      }
+      process.exit(1)
+    }
+
+    console.log(`${COLORS.blue}  Preparing geodata for: ${CONFIG.name}${COLORS.reset}`)
+    console.log(`${COLORS.blue}   Description: ${CONFIG.description}${COLORS.reset}`)
+    console.log(`${COLORS.blue}   Resolution: ${NATURAL_EARTH_RESOLUTION}${COLORS.reset}`)
+    console.log(`${COLORS.blue}   Territories: ${Object.keys(CONFIG.territories).length}${COLORS.reset}\n`)
+
+    // Step 1: Download and save world data
+    console.log(`${COLORS.blue} Downloading world data...${COLORS.reset}`)
+    const worldFilename = OUTPUT_FILENAMES.world
+    await downloadData(DATA_SOURCE, worldFilename)
+
+    // Step 2: Filter and save territory data
+    console.log(`${COLORS.blue} Filtering ${CONFIG.name} territories...${COLORS.reset}`)
+    const worldData = JSON.parse(
+      await fs.readFile(path.join(OUTPUT_DIR, worldFilename), 'utf8'),
+    )
+    const territoryData = filterTerritories(worldData, CONFIG.territories)
+
+    const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || configName)
+    await fs.writeFile(
+      path.join(OUTPUT_DIR, territoriesFilename),
+      JSON.stringify(territoryData),
+    )
+    console.log(`${COLORS.green}✓ Saved ${territoriesFilename}${COLORS.reset}`)
+
+    // Step 3: Create and save metadata
+    console.log(`${COLORS.blue} Creating metadata...${COLORS.reset}`)
+    const metadata = createMetadata(CONFIG)
+
+    const metadataFilename = OUTPUT_FILENAMES.metadata(CONFIG.outputName || configName)
+    await fs.writeFile(
+      path.join(OUTPUT_DIR, metadataFilename),
+      JSON.stringify(metadata, null, 2),
+    )
+    console.log(`${COLORS.green}✓ Saved ${metadataFilename}${COLORS.reset}`)
+
+    console.log(`\n${COLORS.green} All done!${COLORS.reset}`)
+  }
+  catch (error) {
+    console.error(`${COLORS.red}Error:${COLORS.reset}`, error)
     process.exit(1)
   }
 }
 
-// Run main function only when script is executed directly (not imported)
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main()
-}
+main()

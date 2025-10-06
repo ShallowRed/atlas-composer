@@ -3,11 +3,15 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
+  "imports": {
+    "#scripts/*": "./scripts/*",
+    "#src/*": "./src/*",
+    "#public/*": "./public/*"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "prepare-data": "node scripts/prepare-geodata.js",
     "lint": "eslint --ext .ts,.tsx,.vue src",
     "lint:fix": "eslint --fix --ext .ts,.tsx,.vue src"
   },

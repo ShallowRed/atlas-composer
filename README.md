@@ -39,6 +39,9 @@ cd cartos-resp
 # Installer les dépendances
 pnpm install
 
+# Préparer les données géographiques (optionnel si déjà générées)
+node scripts/prepare-geodata.js france
+
 # Lancer le serveur de développement
 pnpm dev
 ```
@@ -200,12 +203,53 @@ Le projet suit une architecture modulaire avec séparation des responsabilités 
 - **GeoProjectionService** : Gestion des projections géographiques
 - **FranceGeoDataService** : Chargement et manipulation des données
 
+### Préparation des données géographiques
+
+Le projet utilise un système de configuration modulaire pour générer les données géographiques :
+
+```bash
+# Préparer les données pour la France (par défaut)
+node scripts/prepare-geodata.js france
+
+# Préparer les données pour l'Espagne
+node scripts/prepare-geodata.js spain
+
+# Préparer les données pour l'UE
+node scripts/prepare-geodata.js eu
+
+# Utiliser une résolution différente (10m = haute précision)
+NE_RESOLUTION=10m node scripts/prepare-geodata.js france
+```
+
+#### Créer une nouvelle configuration
+
+1. Créez un fichier dans `scripts/configs/` (ex: `portugal.js`) :
+
+```javascript
+export default {
+  name: 'Portugal',
+  description: 'Portugal and autonomous regions',
+  territories: {
+    620: { name: 'Portugal', code: 'PT', iso: 'PRT' },
+  },
+  outputName: 'portugal-territories',
+}
+```
+
+2. Exécutez le script avec votre configuration :
+
+```bash
+node scripts/prepare-geodata.js portugal
+```
+
+Voir [`scripts/configs/README.md`](scripts/configs/README.md) pour plus de détails.
+
 ### Extension
 
 Pour ajouter de nouvelles fonctionnalités :
 
 1. **Nouvelles projections** : Étendre `GeoProjectionService`
-2. **Nouveaux territoires** : Modifier `FranceGeoDataService`
+2. **Nouveaux territoires** : Ajouter une configuration dans `scripts/configs/`
 3. **Nouveaux types de visualisation** : Étendre `FranceCartographer`
 
 ### Tests

@@ -325,7 +325,7 @@ export function getTerritoryVarName(code: string): string {
  */
 export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
   dataPath: '/data/france-territories.json',
-  metadataPath: '/data/metadata.json',
+  metadataPath: '/data/france-metadata.json',
   topologyObjectName: 'territories',
   mainlandCode: 'FR-MET',
   mainlandBounds: MAINLAND_FRANCE.bounds, // Use bounds from mainland config
