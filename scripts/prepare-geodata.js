@@ -143,7 +143,8 @@ async function downloadData(url, filename) {
  * @returns {object} Filtered TopoJSON containing only specified territories
  */
 function filterTerritories(worldData, territoriesConfig) {
-  const territoryIds = Object.keys(territoriesConfig).map(Number)
+  // Territory IDs as strings (world-atlas uses string IDs)
+  const territoryIds = Object.keys(territoriesConfig)
 
   return {
     type: worldData.type,
@@ -152,7 +153,7 @@ function filterTerritories(worldData, territoriesConfig) {
       countries: {
         type: 'GeometryCollection',
         geometries: worldData.objects.countries.geometries.filter(geometry =>
-          territoryIds.includes(geometry.id),
+          territoryIds.includes(String(geometry.id)),
         ),
       },
     },

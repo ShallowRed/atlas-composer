@@ -18,7 +18,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 const projectRoot = process.cwd()
-const dataDir = path.join(projectRoot, 'public', 'data')
+const dataDir = path.join(projectRoot, 'src', 'public', 'data')
 const configsDir = path.join(projectRoot, 'scripts', 'configs')
 
 // Terminal colors for diagnostic output
@@ -78,16 +78,16 @@ async function diagnoseData(configName) {
 
     if (!config) {
       const availableConfigs = await listAvailableConfigs()
-      console.error(`${colors.red}❌ Configuration not found: ${configName}${colors.reset}`)
+      console.error(`${colors.red}Configuration not found: ${configName}${colors.reset}`)
       if (availableConfigs.length > 0) {
-        console.log(`${colors.blue}📋 Available configurations: ${availableConfigs.join(', ')}${colors.reset}`)
+        console.log(`${colors.blue}Available configurations: ${availableConfigs.join(', ')}${colors.reset}`)
       }
       process.exit(1)
     }
 
     const outputName = config.outputName || configName
 
-    console.log(`${colors.blue}🔍 Diagnostic des données géographiques - ${config.name}${colors.reset}\n`)
+    console.log(`${colors.blue}Diagnostic des données géographiques - ${config.name}${colors.reset}\n`)
 
     // Load both data files for cross-validation
     const territoriesPath = path.join(dataDir, `${outputName}-territories.json`)
@@ -98,8 +98,8 @@ async function diagnoseData(configName) {
       await fs.access(territoriesPath)
     }
     catch {
-      console.error(`${colors.red}❌ Fichier non trouvé: ${outputName}-territories.json${colors.reset}`)
-      console.log(`${colors.yellow}💡 Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
+      console.error(`${colors.red}Fichier non trouvé: ${outputName}-territories.json${colors.reset}`)
+      console.log(`${colors.yellow}Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
       process.exit(1)
     }
 
@@ -107,8 +107,8 @@ async function diagnoseData(configName) {
       await fs.access(metadataPath)
     }
     catch {
-      console.error(`${colors.red}❌ Fichier non trouvé: ${outputName}-metadata.json${colors.reset}`)
-      console.log(`${colors.yellow}💡 Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
+      console.error(`${colors.red}Fichier non trouvé: ${outputName}-metadata.json${colors.reset}`)
+      console.log(`${colors.yellow}Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
       process.exit(1)
     }
 
@@ -116,7 +116,7 @@ async function diagnoseData(configName) {
     const metadataInfo = JSON.parse(await fs.readFile(metadataPath, 'utf-8'))
 
     // Display metadata summary
-    console.log(`${colors.blue}📋 Métadonnées:${colors.reset}`)
+    console.log(`${colors.blue}Métadonnées:${colors.reset}`)
     console.log(`  Nom: ${metadataInfo.name}`)
     console.log(`  Description: ${metadataInfo.description}`)
     console.log(`  Source: ${metadataInfo.source}`)
@@ -158,22 +158,23 @@ async function diagnoseData(configName) {
     let hasErrors = false
 
     if (expectedCount !== metaCount) {
-      console.log(`  ${colors.yellow}⚠️  Incohérence: config (${expectedCount}) ≠ métadonnées (${metaCount})${colors.reset}`)
+      console.log(`  ${colors.yellow} Incohérence: config (${expectedCount}) ≠ métadonnées (${metaCount})${colors.reset}`)
       hasErrors = true
     }
 
     if (metaCount !== geomCount) {
-      console.log(`  ${colors.yellow}⚠️  Incohérence: métadonnées (${metaCount}) ≠ géométries (${geomCount})${colors.reset}`)
+      console.log(`  ${colors.yellow} Incohérence: métadonnées (${metaCount}) ≠ géométries (${geomCount})${colors.reset}`)
       hasErrors = true
     }
 
     // Verify all territories in config have geometries
-    const geomIds = new Set(geometries.map(g => g.id))
-    const configIds = Object.keys(config.territories).map(Number)
+    // Note: IDs are strings in the TopoJSON data
+    const geomIds = new Set(geometries.map(g => String(g.id)))
+    const configIds = Object.keys(config.territories)
     const missingIds = configIds.filter(id => !geomIds.has(id))
 
     if (missingIds.length > 0) {
-      console.log(`  ${colors.red}❌ Territoires manquants:${colors.reset}`)
+      console.log(`  ${colors.red}Territoires manquants:${colors.reset}`)
       missingIds.forEach((id) => {
         const territory = config.territories[id]
         console.log(`     - ${territory.name} (ID: ${id})`)
@@ -184,7 +185,7 @@ async function diagnoseData(configName) {
     // Check for extra geometries not in config
     const extraIds = [...geomIds].filter(id => !configIds.includes(id))
     if (extraIds.length > 0) {
-      console.log(`  ${colors.yellow}⚠️  Géométries supplémentaires:${colors.reset}`)
+      console.log(`  ${colors.yellow} Géométries supplémentaires:${colors.reset}`)
       extraIds.forEach((id) => {
         console.log(`     - ID: ${id}`)
       })
@@ -192,15 +193,15 @@ async function diagnoseData(configName) {
     }
 
     if (!hasErrors) {
-      console.log(`\n${colors.green}✅ Tous les contrôles sont OK !${colors.reset}`)
+      console.log(`\n${colors.green}Tous les contrôles sont OK !${colors.reset}`)
     }
     else {
-      console.log(`\n${colors.yellow}⚠️  Des incohérences ont été détectées${colors.reset}`)
-      console.log(`${colors.yellow}💡 Essayez de régénérer les données: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
+      console.log(`\n${colors.yellow} Des incohérences ont été détectées${colors.reset}`)
+      console.log(`${colors.yellow}Essayez de régénérer les données: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
     }
   }
   catch (error) {
-    console.error(`${colors.red}❌ Erreur:${colors.reset}`, error.message)
+    console.error(`${colors.red}Erreur:${colors.reset}`, error.message)
     console.error(error.stack)
     process.exit(1)
   }
