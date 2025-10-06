@@ -35,6 +35,14 @@ export const useGeoDataStore = defineStore('geoData', () => {
     if (!territories)
       return []
 
+    // For EU region, show all countries (no filtering by mode)
+    const regionConfig = configStore.currentRegionConfig
+    if (regionConfig.geoDataConfig.overseasTerritories.length === 0) {
+      // EU or other regions without mainland/overseas split
+      return territories
+    }
+
+    // For France, filter by territory mode
     const allowedCodes = getTerritoriesForMode(configStore.territoryMode)
     return territories.filter(territory =>
       territory && territory.code && allowedCodes.includes(territory.code),
@@ -60,11 +68,15 @@ export const useGeoDataStore = defineStore('geoData', () => {
     if (isInitialized.value)
       return
 
+    const configStore = useConfigStore()
+
     try {
       isLoading.value = true
       error.value = null
 
-      cartographer.value = new Cartographer()
+      // Use the geo data config from the selected region
+      const geoDataConfig = configStore.currentRegionConfig.geoDataConfig
+      cartographer.value = new Cartographer(geoDataConfig)
       await cartographer.value.init()
 
       isInitialized.value = true
@@ -84,6 +96,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
       await initialize()
     }
 
+    const configStore = useConfigStore()
+
     try {
       isLoading.value = true
       error.value = null
@@ -91,14 +105,39 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // Access the geoDataService through the cartographer
       const service = (cartographer.value as any).geoDataService
 
-      // Load all territory data
-      const [mainland, overseas] = await Promise.all([
-        service.getMainLandData(),
-        service.getOverseasData(),
-      ])
+      // For EU: all countries are treated as individual territories (no mainland/overseas split)
+      // For France: mainland is separate from overseas territories
+      const hasMainlandOverseasSplit = configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0
 
-      mainlandData.value = mainland
-      overseasTerritoriesData.value = overseas || []
+      if (hasMainlandOverseasSplit) {
+        // France: load mainland and overseas separately
+        const [mainland, overseas] = await Promise.all([
+          service.getMainLandData(),
+          service.getOverseasData(),
+        ])
+
+        mainlandData.value = mainland
+        overseasTerritoriesData.value = overseas || []
+      }
+      else {
+        // EU: load all countries as individual territories
+        const allTerritoriesData = await service.getAllTerritories()
+
+        // Transform to the format expected by the UI
+        const territories = allTerritoriesData.map((territoryData: any) => ({
+          name: territoryData.territory.name,
+          code: territoryData.territory.code,
+          area: territoryData.territory.area,
+          region: 'Europe', // Generic region for EU countries
+          data: {
+            type: 'FeatureCollection' as const,
+            features: [territoryData.feature],
+          },
+        }))
+
+        mainlandData.value = null
+        overseasTerritoriesData.value = territories
+      }
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'
@@ -139,6 +178,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
     error.value = null
   }
 
+  const reinitialize = async () => {
+    // Reset state
+    isInitialized.value = false
+    mainlandData.value = null
+    overseasTerritoriesData.value = []
+    rawUnifiedData.value = null
+    cartographer.value = null
+
+    // Reinitialize
+    await initialize()
+  }
+
   return {
     // Services
     cartographer,
@@ -157,6 +208,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     // Actions
     initialize,
+    reinitialize,
     loadTerritoryData,
     loadRawUnifiedData,
     clearError,

@@ -325,8 +325,8 @@ export function getTerritoryVarName(code: string): string {
  * Note: Update resolution suffix (50m) if using different Natural Earth resolution
  */
 export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
-  dataPath: '/data/france-territories-10m.json',
-  metadataPath: '/data/france-metadata-10m.json',
+  dataPath: '/data/france-territories-50m.json',
+  metadataPath: '/data/france-metadata-50m.json',
   topologyObjectName: 'territories',
   mainlandCode: 'FR-MET',
   mainlandBounds: MAINLAND_FRANCE.bounds, // Use bounds from mainland config

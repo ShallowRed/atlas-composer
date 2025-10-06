@@ -6,6 +6,7 @@ interface Props {
   icon?: string
   modelValue?: string | boolean
   type?: 'select' | 'checkbox' | 'toggle'
+  disabled?: boolean
   options?: Array<{ value: string, label: string }>
   optionGroups?: Array<{
     key?: string
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'select',
   icon: undefined,
   modelValue: undefined,
+  disabled: false,
   options: undefined,
   optionGroups: undefined,
 })
@@ -52,6 +54,7 @@ const localValue = computed({
       <select
         v-model="localValue"
         class="select cursor-pointer"
+        :disabled="disabled"
       >
         <optgroup
           v-for="group in optionGroups"
@@ -80,6 +83,7 @@ const localValue = computed({
       <select
         v-model="localValue"
         class="select cursor-pointer"
+        :disabled="disabled"
       >
         <option
           v-for="option in options"
@@ -102,6 +106,7 @@ const localValue = computed({
       <select
         v-model="localValue"
         class="select cursor-pointer"
+        :disabled="disabled"
       >
         <slot />
       </select>
@@ -114,6 +119,7 @@ const localValue = computed({
         <input
           v-model="localValue"
           type="checkbox"
+          :disabled="disabled"
           :class="type === 'toggle' ? 'toggle toggle-primary' : 'checkbox'"
         >
       </label>

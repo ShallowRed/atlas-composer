@@ -53,8 +53,13 @@ onMounted(async () => {
     await geoDataStore.initialize()
 
     // Load territory data for initial render if needed
-    if (configStore.viewMode === 'split') {
+    // Both split and composite-custom modes need territory data for individual projections
+    if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
       await geoDataStore.loadTerritoryData()
+    }
+    // Load unified data for unified mode
+    else if (configStore.viewMode === 'unified') {
+      await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
     }
   }
   catch (err) {
@@ -65,8 +70,33 @@ onMounted(async () => {
 
 // Watch for view mode changes to load territory data when needed
 watch(() => configStore.viewMode, async (newMode) => {
-  if (newMode === 'split' && !geoDataStore.overseasTerritoriesData.length) {
+  // Load territory data for split and composite-custom modes (needed for individual projections)
+  if ((newMode === 'split' || newMode === 'composite-custom') && !geoDataStore.overseasTerritoriesData.length) {
     await geoDataStore.loadTerritoryData()
+  }
+  // Load unified data for unified mode
+  else if (newMode === 'unified' && !geoDataStore.rawUnifiedData) {
+    await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
+  }
+})
+
+// Watch for region changes to reinitialize data
+watch(() => configStore.selectedRegion, async () => {
+  try {
+    await geoDataStore.reinitialize()
+
+    // Load territory data for split and composite-custom modes
+    if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
+      await geoDataStore.loadTerritoryData()
+    }
+    // Load unified data for unified mode
+    else if (configStore.viewMode === 'unified') {
+      await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
+    }
+  }
+  catch (err) {
+    geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors du changement de région'
+    console.error('Region change error:', err)
   }
 })
 </script>
@@ -85,16 +115,30 @@ watch(() => configStore.viewMode, async (newMode) => {
           <!-- Theme Selector -->
           <ThemeSelector />
 
+          <!-- Region Selector -->
+          <FormControl
+            v-model="configStore.selectedRegion"
+            label="Région"
+            icon="ri-global-line"
+            type="select"
+            :options="[
+              { value: 'france', label: 'France' },
+              { value: 'eu', label: 'Union Européenne' },
+            ]"
+          />
+
           <!-- Main View Mode Selector -->
           <FormControl
             v-model="configStore.viewMode"
             label="Mode d'affichage"
             icon="ri-layout-grid-line"
             type="select"
+            :disabled="configStore.isViewModeLocked"
             :options="[
               { value: 'composite-custom', label: 'Projection composite personnalisée' },
               { value: 'split', label: 'Territoires séparés' },
               { value: 'composite-existing', label: 'Projection composite existante' },
+              { value: 'unified', label: 'Projection unifiée' },
             ]"
           />
 
@@ -143,17 +187,12 @@ watch(() => configStore.viewMode, async (newMode) => {
 
           <!-- Territory Selection (for composite modes) -->
           <FormControl
-            v-show="configStore.showTerritorySelector"
+            v-show="configStore.showTerritorySelector && configStore.currentRegionConfig?.hasTerritorySelector"
             v-model="configStore.territoryMode"
             label="Territoires à inclure"
             icon="ri-map-pin-range-line"
             type="select"
-            :options="[
-              { value: 'metropole-only', label: 'France métropolitaine uniquement' },
-              { value: 'metropole-major', label: '+ 5 territoires ultramarins' },
-              { value: 'metropole-uncommon', label: '+ 8 territoires ultramarins' },
-              { value: 'all-territories', label: 'Tous les territoires (11 ultramarins)' },
-            ]"
+            :options="configStore.currentRegionConfig?.territoryModeOptions || []"
           />
         </div>
       </CardContainer>
@@ -162,40 +201,107 @@ watch(() => configStore.viewMode, async (newMode) => {
       <!-- <div class="md:w-3/4 card card-border w-full shadow-lg bg-base-100 border-base-300 p-8"> -->
       <CardContainer
         width="md:w-3/4"
-        :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : 'Projection composite personnalisée'"
+        :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
         icon="ri-map-2-line"
       >
-        <!-- Split Territories Mode -->
-        <ViewModeSection
-          :view-mode="configStore.viewMode"
-          active-mode="split"
-        >
-          <div class="flex flex-row gap-12">
-            <!-- Metropolitan France -->
-            <div>
-              <SectionHeader
-                title="France Métropolitaine"
-                icon="ri-map-pin-line"
-                :level="3"
-              />
-              <MapRenderer
-                :geo-data="geoDataStore.mainlandData"
-                is-mainland
-                :projection="getMainLandProjection()"
-                :width="500"
-                :height="400"
-              />
+        <!-- Loading state for main content -->
+        <div v-if="geoDataStore.isLoading" class="space-y-6">
+          <!-- Skeleton for main map area -->
+          <div class="skeleton h-96 w-full" />
+
+          <!-- Skeleton for grid of territories (split mode) -->
+          <div v-if="configStore.viewMode === 'split'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="i in 6" :key="i" class="skeleton h-48" />
+          </div>
+        </div>
+
+        <!-- Content when loaded -->
+        <template v-else>
+          <!-- Split Territories Mode -->
+          <ViewModeSection
+            :view-mode="configStore.viewMode"
+            active-mode="split"
+          >
+            <!-- France: Mainland + Overseas split layout -->
+            <div v-if="configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0" class="flex flex-row gap-12">
+              <!-- Metropolitan France -->
+              <div>
+                <SectionHeader
+                  :title="configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland'"
+                  icon="ri-map-pin-line"
+                  :level="3"
+                />
+                <MapRenderer
+                  :geo-data="geoDataStore.mainlandData"
+                  is-mainland
+                  :projection="getMainLandProjection()"
+                  :width="500"
+                  :height="400"
+                />
+              </div>
+
+              <!-- DOM-TOM -->
+              <div>
+                <SectionHeader
+                  :title="configStore.currentRegionConfig.splitModeConfig?.territoriesTitle || 'Territories'"
+                  icon="ri-earth-line"
+                  :level="3"
+                />
+
+                <!-- DOM-TOM Grid -->
+                <div class="flex flex-col gap-4">
+                  <!-- Region Groups -->
+                  <div
+                    v-for="[regionName, territories] in geoDataStore.territoryGroups"
+                    :key="regionName"
+                    class="bg-base-200 border border-base-300 p-4 rounded-lg"
+                  >
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700">
+                      {{ regionName }}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div
+                        v-for="territory in territories"
+                        :key="territory.code"
+                        class="bg-base-100 border border-base-300 p-4 rounded-md"
+                      >
+                        <MapRenderer
+                          :geo-data="territory.data"
+                          :title="territory.name"
+                          :area="territory.area"
+                          :region="territory.region"
+                          :preserve-scale="configStore.scalePreservation"
+                          :projection="getTerritoryProjection(territory.code)"
+                          :width="200"
+                          :height="160"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
+                    <p>Aucun territoire d'outre-mer disponible.</p>
+                    <p class="text-sm mt-2">
+                      Mode: {{ configStore.territoryMode }}
+                    </p>
+                    <p class="text-sm">
+                      Vérifiez les données ou changez le mode de sélection des territoires.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- DOM-TOM -->
-            <div>
+            <!-- EU / Other regions: All territories in a single grid -->
+            <div v-else>
               <SectionHeader
-                title="Départements et Collectivités d'Outre-Mer"
+                :title="configStore.currentRegionConfig.splitModeConfig?.territoriesTitle || 'Territories'"
                 icon="ri-earth-line"
                 :level="3"
               />
 
-              <!-- DOM-TOM Grid -->
+              <!-- Territories Grid -->
               <div class="flex flex-col gap-4">
                 <!-- Region Groups -->
                 <div
@@ -206,7 +312,7 @@ watch(() => configStore.viewMode, async (newMode) => {
                   <h3 class="text-lg font-semibold mb-4 text-gray-700">
                     {{ regionName }}
                   </h3>
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div
                       v-for="territory in territories"
                       :key="territory.code"
@@ -228,37 +334,47 @@ watch(() => configStore.viewMode, async (newMode) => {
 
                 <!-- Empty State -->
                 <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
-                  <p>Aucun territoire d'outre-mer disponible.</p>
+                  <p>Aucun territoire disponible.</p>
                   <p class="text-sm mt-2">
-                    Mode: {{ configStore.territoryMode }}
-                  </p>
-                  <p class="text-sm">
-                    Vérifiez les données ou changez le mode de sélection des territoires.
+                    Vérifiez les données ou changez de région.
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-        </ViewModeSection>
+          </ViewModeSection>
 
-        <!-- Composite Existing Mode -->
-        <ViewModeSection
-          :view-mode="configStore.viewMode"
-          active-mode="composite-existing"
-        >
-          <MapRenderer mode="composite" />
-        </ViewModeSection>
+          <!-- Composite Existing Mode -->
+          <ViewModeSection
+            :view-mode="configStore.viewMode"
+            active-mode="composite-existing"
+          >
+            <MapRenderer mode="composite" />
+          </ViewModeSection>
 
-        <!-- Composite Custom Mode -->
-        <ViewModeSection
-          :view-mode="configStore.viewMode"
-          active-mode="composite-custom"
-        >
-          <MapRenderer mode="composite" />
+          <!-- Composite Custom Mode -->
+          <ViewModeSection
+            :view-mode="configStore.viewMode"
+            active-mode="composite-custom"
+          >
+            <MapRenderer mode="composite" />
           <!-- <div class="w-80 space-y-4">
             <ProjectionExporter ref="projectionExporterRef" />
           </div> -->
-        </ViewModeSection>
+          </ViewModeSection>
+
+          <!-- Unified Mode -->
+          <ViewModeSection
+            :view-mode="configStore.viewMode"
+            active-mode="unified"
+          >
+            <MapRenderer
+              :geo-data="geoDataStore.rawUnifiedData"
+              :projection="configStore.selectedProjection"
+              :width="800"
+              :height="600"
+            />
+          </ViewModeSection>
+        </template>
       </CardContainer>
 
       <!-- Territory Parameters (projections, translations, scales) -->
@@ -268,7 +384,14 @@ watch(() => configStore.viewMode, async (newMode) => {
         title="Paramètres par territoire"
         icon="ri-settings-4-line"
       >
+        <!-- Loading state -->
+        <div
+          v-if="geoDataStore.isLoading"
+          class="skeleton h-64"
+        />
+        <!-- Territory controls -->
         <TerritoryControls
+          v-else
           :show-transform-controls="configStore.viewMode === 'composite-custom'"
         />
       </CardContainer>

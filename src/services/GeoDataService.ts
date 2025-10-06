@@ -197,10 +197,16 @@ export class GeoDataService {
   /**
    * Returns the mainland territory geographic data
    * Filters to include only the main geographic region
-   * @returns FeatureCollection containing mainland territory
+   * @returns FeatureCollection containing mainland territory, or null if no mainland configured
    */
   async getMainLandData(): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
+
+    // Return null if this region doesn't have a mainland concept
+    if (!this.config.mainlandCode) {
+      return null
+    }
+
     const mainland = this.territoryData.get(this.config.mainlandCode)
 
     if (!mainland)
@@ -223,6 +229,11 @@ export class GeoDataService {
    */
   private extractMainlandRegion(feature: GeoJSON.Feature): GeoJSON.Feature {
     if (feature.geometry.type !== 'MultiPolygon') {
+      return feature
+    }
+
+    // Return feature as-is if no mainlandBounds configured
+    if (!this.config.mainlandBounds) {
       return feature
     }
 
@@ -379,12 +390,14 @@ export class GeoDataService {
 
     // Extract overseas territories included in the mainland geometry
     // only if they are not already present as individual territories
-    const mainland = this.territoryData.get(this.config.mainlandCode)
-    if (mainland) {
-      const extractedOverseas = this.extractOverseasFromMainland(mainland.feature)
-      for (const territory of extractedOverseas) {
-        if (!addedTerritories.has(territory.code)) {
-          overseasData.push(territory)
+    if (this.config.mainlandCode) {
+      const mainland = this.territoryData.get(this.config.mainlandCode)
+      if (mainland) {
+        const extractedOverseas = this.extractOverseasFromMainland(mainland.feature)
+        for (const territory of extractedOverseas) {
+          if (!addedTerritories.has(territory.code)) {
+            overseasData.push(territory)
+          }
         }
       }
     }
@@ -406,25 +419,25 @@ export class GeoDataService {
   async getRawUnifiedData(mode: string = 'metropole-major'): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
-    // Get mainland territory (no repositioning needed)
+    const unifiedFeatures: GeoJSON.Feature[] = []
+
+    // Get mainland territory if configured (no repositioning needed)
     const mainland = await this.getMainLandData()
-    if (!mainland)
-      return null
+    if (mainland) {
+      unifiedFeatures.push(...mainland.features)
+    }
 
     const allOverseasData = await this.getOverseasData()
 
-    // Filter overseas territories based on selected mode using centralized configuration
-    const allowedCodes = getTerritoriesForMode(mode as any)
-    const filteredOverseas = allOverseasData.filter(territory =>
-      allowedCodes.includes(territory.code),
-    )
+    // For regions with mainland (like France), filter territories based on mode
+    // For regions without mainland (like EU), include all territories
+    const filteredOverseas = this.config.mainlandCode
+      ? allOverseasData.filter(territory => getTerritoriesForMode(mode as any).includes(territory.code))
+      : allOverseasData
 
-    // CREATE UNIFIED DATASET with ORIGINAL coordinates - no repositioning!
-    const unifiedFeatures = [...mainland.features]
-
-    // Add overseas territories with their ORIGINAL coordinates
+    // Add overseas/all territories with their ORIGINAL coordinates
     filteredOverseas.forEach((territory) => {
-      // Add original overseas features without any coordinate transformation
+      // Add original features without any coordinate transformation
       unifiedFeatures.push(...territory.data.features)
     })
 

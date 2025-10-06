@@ -45,9 +45,9 @@ export class Cartographer {
   private geoDataService: GeoDataService
   public customComposite: CustomCompositeProjection
 
-  constructor() {
+  constructor(geoDataConfig?: import('@/constants/territory-types').GeoDataConfig) {
     this.projectionService = new GeoProjectionService()
-    this.geoDataService = new GeoDataService()
+    this.geoDataService = new GeoDataService(geoDataConfig)
     this.customComposite = new CustomCompositeProjection(DEFAULT_COMPOSITE_PROJECTION_CONFIG)
   }
 

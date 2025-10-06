@@ -27,9 +27,27 @@ export interface GeoDataConfig {
   dataPath: string // Path to the TopoJSON data file
   metadataPath: string // Path to the metadata JSON file
   topologyObjectName: string // Name of the TopoJSON object containing territories
-  mainlandCode: string // Code for the main/mainland territory
-  mainlandBounds: [[number, number], [number, number]] // Geographic bounds for mainland filtering
-  overseasTerritories: TerritoryConfig[] // List of overseas/remote territories
+  mainlandCode?: string // Optional code for the main/mainland territory (for regions with mainland/overseas split)
+  mainlandBounds?: [[number, number], [number, number]] // Optional geographic bounds for mainland filtering
+  overseasTerritories: TerritoryConfig[] // List of overseas/remote territories (empty for regions without split)
+}
+
+/**
+ * Complete region configuration
+ * Defines all settings for a geographic region (France, EU, etc.)
+ */
+export interface RegionConfig {
+  id: string // Unique identifier (e.g., 'france', 'eu')
+  name: string // Display name (e.g., 'France', 'European Union')
+  geoDataConfig: GeoDataConfig // Data loading configuration
+  supportedViewModes: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'> // Which view modes are available
+  defaultViewMode: 'split' | 'composite-existing' | 'composite-custom' | 'unified' // Default view mode
+  splitModeConfig?: {
+    mainlandTitle?: string // Title for mainland section (e.g., 'France Métropolitaine')
+    territoriesTitle: string // Title for territories section (e.g., 'États membres de l'Union Européenne', 'DOM-TOM')
+  }
+  territoryModeOptions?: Array<{ value: string, label: string }> // Options for "Territoires à inclure" selector (null if not applicable)
+  hasTerritorySelector?: boolean // Whether to show the territory selector
 }
 
 /**

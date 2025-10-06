@@ -3,15 +3,13 @@ import { computed } from 'vue'
 
 import {
   DEFAULT_TERRITORY_TRANSLATIONS,
-  getTerritoriesForMode,
-  TERRITORY_LIST,
 } from '@/constants/france-territories'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
 } from '@/constants/territory-types'
-
 import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
 
 interface Props {
   showTransformControls?: boolean // Show translation/scale controls (false for split mode)
@@ -22,11 +20,19 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
 
-// Filter territories based on selected mode
+// Use territories from geoData store (works for all regions)
 const territories = computed(() => {
-  const allowedCodes = getTerritoriesForMode(configStore.territoryMode)
-  return TERRITORY_LIST.filter(t => allowedCodes.includes(t.code))
+  return geoDataStore.filteredTerritories.map(t => ({
+    code: t.code,
+    name: t.name,
+  }))
+})
+
+// Check if we should show mainland section (only for France)
+const showMainland = computed(() => {
+  return configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0
 })
 
 const translations = computed(() => configStore.territoryTranslations)
@@ -50,7 +56,7 @@ function resetToDefaults() {
   })
 
   // Reset scales for all territories
-  TERRITORY_LIST.forEach((t) => {
+  territories.value.forEach((t) => {
     configStore.setTerritoryScale(t.code, SCALE_RANGE.default)
   })
 }
@@ -66,9 +72,9 @@ function resetToDefaults() {
 
     <!-- Accordion for all territories -->
     <div v-else class="join join-vertical w-full">
-      <!-- Metropolitan France (only in individual mode) -->
+      <!-- Metropolitan France (only in individual mode and France region) -->
       <div
-        v-if="configStore.projectionMode === 'individual'"
+        v-if="configStore.projectionMode === 'individual' && showMainland"
         class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
       >
         <input
@@ -77,7 +83,7 @@ function resetToDefaults() {
           checked
         >
         <div class="collapse-title font-semibold">
-          France Métropolitaine <span class="text-sm opacity-60">(FR-MET)</span>
+          {{ configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">(FR-MET)</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector -->

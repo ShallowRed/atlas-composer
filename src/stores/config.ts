@@ -1,16 +1,18 @@
 import type { TerritoryMode } from '@/constants/france-territories'
 import { defineStore } from 'pinia'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
+import { DEFAULT_REGION, getRegionConfig } from '@/constants/regions'
 import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-types'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 
-export type ViewMode = 'split' | 'composite-existing' | 'composite-custom'
+export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
 
 export const useConfigStore = defineStore('config', () => {
   // State
+  const selectedRegion = ref(DEFAULT_REGION)
   const scalePreservation = ref(true)
   const selectedProjection = ref('albers')
   const territoryMode = ref<TerritoryMode>('metropole-major')
@@ -19,6 +21,15 @@ export const useConfigStore = defineStore('config', () => {
   const projectionMode = ref<ProjectionMode>('individual')
   const compositeProjection = ref<'conic-conformal-france'>('conic-conformal-france')
   const theme = ref('light')
+
+  // Computed: Current region configuration
+  const currentRegionConfig = computed(() => getRegionConfig(selectedRegion.value))
+
+  // Computed: Check if view mode selector should be disabled
+  const isViewModeLocked = computed(() => {
+    const config = currentRegionConfig.value
+    return config.supportedViewModes.length === 1
+  })
 
   // Per-territory projections (for individual mode)
   // Initialize from centralized territory configuration
@@ -54,8 +65,9 @@ export const useConfigStore = defineStore('config', () => {
     // Show uniform projection selector when:
     // - In split mode with uniform projection
     // - OR in custom composite mode (always uses one projection)
-    if (viewMode.value === 'composite-custom') {
-      return true // Custom composite always uses one projection
+    // - OR in unified mode (single projection for all territories)
+    if (viewMode.value === 'composite-custom' || viewMode.value === 'unified') {
+      return true // Custom composite and unified always use one projection
     }
     return viewMode.value === 'split' && projectionMode.value === 'uniform'
   })
@@ -177,8 +189,19 @@ export const useConfigStore = defineStore('config', () => {
     setTheme(savedTheme)
   }
 
+  // Watch for region changes and enforce view mode restrictions
+  watch(selectedRegion, (newRegion) => {
+    const config = getRegionConfig(newRegion)
+
+    // If the current view mode is not supported by the new region, switch to default
+    if (!config.supportedViewModes.includes(viewMode.value)) {
+      viewMode.value = config.defaultViewMode
+    }
+  })
+
   return {
     // State
+    selectedRegion,
     scalePreservation,
     selectedProjection,
     territoryMode,
@@ -191,6 +214,8 @@ export const useConfigStore = defineStore('config', () => {
     territoryScales,
 
     // Computed
+    currentRegionConfig,
+    isViewModeLocked,
     showProjectionSelector,
     showProjectionModeToggle,
     showIndividualProjectionSelectors,
