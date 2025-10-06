@@ -114,9 +114,9 @@ async function renderMap() {
       plot = await renderComposite()
     }
     else {
-      // Handle simple mode
+      // Handle simple mode - geoData is required
       if (!props.geoData) {
-        console.warn('No geo data available')
+        // Don't warn during initial load, only if data should be available
         return
       }
 
@@ -231,16 +231,8 @@ watch(() => {
       <span v-if="area">({{ area.toLocaleString() }} km²)</span>
     </h4>
 
-    <div v-if="isLoading" class="text-center p-8">
-      <div class="loading loading-spinner loading-lg text-primary" />
-      <p>Chargement de la carte...</p>
-    </div>
-
-    <div v-if="error" class="alert alert-error">
-      <span>{{ error }}</span>
-    </div>
-
     <div
+      v-show="!isLoading && !error"
       ref="mapContainer"
       class="map-plot bg-base-200 w-fit rounded-sm border border-base-300"
       :style="{ display: isLoading || error ? 'none' : 'block' }"

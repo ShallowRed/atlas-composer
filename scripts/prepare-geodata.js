@@ -144,15 +144,25 @@ async function downloadData(url, filename) {
  * @returns {object} Filtered TopoJSON containing only specified territories
  */
 function filterTerritories(worldData, territoriesConfig) {
-  // Territory IDs as strings (world-atlas uses string IDs)
+  // Territory IDs as strings (world-atlas uses string IDs with zero-padding)
+  // Normalize config IDs to match world-atlas format (e.g., 40 -> '040', 250 -> '250')
   const territoryIds = Object.keys(territoriesConfig)
+
+  // Create a lookup map with both padded and unpadded versions
+  const idLookup = new Map()
+  for (const id of territoryIds) {
+    const paddedId = id.padStart(3, '0')
+    idLookup.set(paddedId, id)
+    idLookup.set(id, id)
+  }
 
   // Filter and enrich geometries with territory metadata
   const enrichedGeometries = worldData.objects.countries.geometries
-    .filter(geometry => territoryIds.includes(String(geometry.id)))
+    .filter(geometry => idLookup.has(String(geometry.id)))
     .map((geometry) => {
-      const territoryId = String(geometry.id)
-      const territory = territoriesConfig[territoryId]
+      const geomId = String(geometry.id)
+      const configId = idLookup.get(geomId)
+      const territory = territoriesConfig[configId]
 
       // Enrich geometry with territory metadata
       return {
@@ -162,7 +172,7 @@ function filterTerritories(worldData, territoriesConfig) {
           name: territory.name,
           code: territory.code,
           iso: territory.iso,
-          id: territoryId,
+          id: configId,
         },
       }
     })

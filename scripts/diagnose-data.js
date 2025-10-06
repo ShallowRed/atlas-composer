@@ -143,12 +143,20 @@ async function diagnoseData(configName) {
     console.log(`\n${colors.blue}Territoires:${colors.reset}`)
     const geometries = territoriesData.objects.territories?.geometries || []
     geometries.forEach((geom, index) => {
-      const territoryInfo = metadataInfo.territories[geom.id]
+      const geomId = String(geom.id)
+      // Try both the actual ID and the unpadded version for metadata lookup
+      let territoryInfo = metadataInfo.territories[geomId]
+      if (!territoryInfo && geomId.length === 3) {
+        // Try unpadded version (e.g., '040' -> '40')
+        const unpaddedId = String(Number.parseInt(geomId, 10))
+        territoryInfo = metadataInfo.territories[unpaddedId]
+      }
+
       if (territoryInfo) {
-        console.log(`  ${index + 1}. ${territoryInfo.name} (${territoryInfo.code}) - ID: ${geom.id}`)
+        console.log(`  ${index + 1}. ${territoryInfo.name} (${territoryInfo.code}) - ID: ${geomId}`)
       }
       else {
-        console.log(`  ${index + 1}. ${colors.yellow}[Territoire inconnu]${colors.reset} - ID: ${geom.id}`)
+        console.log(`  ${index + 1}. ${colors.yellow}[Territoire inconnu]${colors.reset} - ID: ${geomId}`)
       }
     })
 
@@ -176,10 +184,24 @@ async function diagnoseData(configName) {
     }
 
     // Verify all territories in config have geometries
-    // Note: IDs are strings in the TopoJSON data
+    // Note: IDs are strings in the TopoJSON data, with zero-padding (e.g., '040')
+    // Create lookup maps for both padded and unpadded IDs
     const geomIds = new Set(geometries.map(g => String(g.id)))
     const configIds = Object.keys(config.territories)
-    const missingIds = configIds.filter(id => !geomIds.has(id))
+
+    // Create bidirectional lookup for ID matching
+    const idLookup = new Map()
+    for (const id of configIds) {
+      const paddedId = id.padStart(3, '0')
+      idLookup.set(paddedId, id)
+      idLookup.set(id, id)
+    }
+
+    // Check if all config IDs have corresponding geometries
+    const missingIds = configIds.filter((id) => {
+      const paddedId = id.padStart(3, '0')
+      return !geomIds.has(id) && !geomIds.has(paddedId)
+    })
 
     if (missingIds.length > 0) {
       console.log(`  ${colors.red}Territoires manquants:${colors.reset}`)
@@ -191,7 +213,7 @@ async function diagnoseData(configName) {
     }
 
     // Check for extra geometries not in config
-    const extraIds = [...geomIds].filter(id => !configIds.includes(id))
+    const extraIds = [...geomIds].filter(geomId => !idLookup.has(geomId))
     if (extraIds.length > 0) {
       console.log(`  ${colors.yellow} Géométries supplémentaires:${colors.reset}`)
       extraIds.forEach((id) => {

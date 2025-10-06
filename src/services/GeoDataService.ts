@@ -53,17 +53,55 @@ export class GeoDataService {
     try {
       // Load TopoJSON data containing territories
       const response = await fetch(this.config.dataPath)
+
+      // Check response status before attempting to parse JSON
       if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`)
+        if (response.status === 404) {
+          throw new Error(`Geographic data file not found: ${this.config.dataPath}`)
+        }
+        throw new Error(`Failed to load geographic data (HTTP ${response.status})`)
       }
-      this.topologyData = await response.json()
+
+      // Verify content type is JSON before parsing
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Geographic data file not found or invalid: ${this.config.dataPath}`)
+      }
+
+      // Parse JSON only if response was successful
+      try {
+        this.topologyData = await response.json()
+      }
+      catch (parseError) {
+        console.error('TopoJSON parse error:', parseError)
+        throw new Error(`Invalid JSON in geographic data file: ${this.config.dataPath}`)
+      }
 
       // Load metadata with territory information
       const metaResponse = await fetch(this.config.metadataPath)
+
+      // Check response status before attempting to parse JSON
       if (!metaResponse.ok) {
-        throw new Error(`Metadata Error: ${metaResponse.status}`)
+        if (metaResponse.status === 404) {
+          throw new Error(`Metadata file not found: ${this.config.metadataPath}`)
+        }
+        throw new Error(`Failed to load metadata (HTTP ${metaResponse.status})`)
       }
-      this.metadata = await metaResponse.json()
+
+      // Verify content type is JSON before parsing
+      const metaContentType = metaResponse.headers.get('content-type')
+      if (!metaContentType || !metaContentType.includes('application/json')) {
+        throw new Error(`Metadata file not found or invalid: ${this.config.metadataPath}`)
+      }
+
+      // Parse JSON only if response was successful
+      try {
+        this.metadata = await metaResponse.json()
+      }
+      catch (parseError) {
+        console.error('Metadata parse error:', parseError)
+        throw new Error(`Invalid JSON in metadata file: ${this.config.metadataPath}`)
+      }
 
       // Convert TopoJSON to GeoJSON and process each territory
       await this.processTerritoriesData()
