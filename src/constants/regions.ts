@@ -6,6 +6,7 @@
 import type { RegionConfig } from '@/constants/territory-types'
 import { EU_GEO_DATA_CONFIG } from '@/constants/eu-territories'
 import { DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '@/constants/france-territories'
+import { PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '@/constants/portugal-territories'
 
 /**
  * Available region configurations
@@ -17,6 +18,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     geoDataConfig: DEFAULT_GEO_DATA_CONFIG,
     supportedViewModes: ['split', 'composite-existing', 'composite-custom', 'unified'],
     defaultViewMode: 'composite-custom',
+    defaultTerritoryMode: 'metropole-major', // Default: France métropolitaine + DOM-TOM majeurs
     splitModeConfig: {
       mainlandTitle: 'France Métropolitaine',
       territoriesTitle: 'Départements et Collectivités d\'Outre-Mer',
@@ -39,6 +41,24 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
       territoriesTitle: 'États membres de l\'Union Européenne',
     },
     hasTerritorySelector: false, // EU doesn't have territory mode filtering
+  },
+  portugal: {
+    id: 'portugal',
+    name: 'Portugal',
+    geoDataConfig: PORTUGAL_GEO_DATA_CONFIG,
+    supportedViewModes: ['split', 'composite-custom', 'unified'],
+    defaultViewMode: 'composite-custom',
+    defaultTerritoryMode: 'all-territories', // Default: Toutes les régions autonomes
+    splitModeConfig: {
+      mainlandTitle: 'Portugal Continental',
+      territoriesTitle: 'Régions Autonomes',
+    },
+    hasTerritorySelector: true,
+    territoryModeOptions: [
+      { value: 'mainland-only', label: PORTUGAL_TERRITORY_MODES['mainland-only']!.label },
+      { value: 'with-madeira', label: PORTUGAL_TERRITORY_MODES['with-madeira']!.label },
+      { value: 'all-territories', label: PORTUGAL_TERRITORY_MODES['all-territories']!.label },
+    ],
   },
 }
 

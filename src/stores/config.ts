@@ -1,4 +1,3 @@
-import type { TerritoryMode } from '@/constants/france-territories'
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
@@ -15,15 +14,30 @@ export const useConfigStore = defineStore('config', () => {
   const selectedRegion = ref(DEFAULT_REGION)
   const scalePreservation = ref(true)
   const selectedProjection = ref('albers')
-  const territoryMode = ref<TerritoryMode>('metropole-major')
+
+  // Computed: Current region configuration (needs to be before territoryMode)
+  const currentRegionConfig = computed(() => getRegionConfig(selectedRegion.value))
+
+  // Territory mode - initialize with the default from the current region's config
+  const getInitialTerritoryMode = () => {
+    const config = getRegionConfig(DEFAULT_REGION)
+    // Use configured default territory mode if available
+    if (config.defaultTerritoryMode) {
+      return config.defaultTerritoryMode
+    }
+    // Otherwise use first option from territoryModeOptions
+    if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
+      return config.territoryModeOptions[0]!.value
+    }
+    return 'metropole-major' // Fallback for backward compatibility
+  }
+  const territoryMode = ref<string>(getInitialTerritoryMode())
+
   const viewMode = ref<ViewMode>('composite-custom')
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
   const compositeProjection = ref<'conic-conformal-france'>('conic-conformal-france')
   const theme = ref('light')
-
-  // Computed: Current region configuration
-  const currentRegionConfig = computed(() => getRegionConfig(selectedRegion.value))
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -138,7 +152,7 @@ export const useConfigStore = defineStore('config', () => {
     selectedProjection.value = projection
   }
 
-  const setTerritoryMode = (mode: TerritoryMode) => {
+  const setTerritoryMode = (mode: string) => {
     territoryMode.value = mode
   }
 
@@ -196,6 +210,18 @@ export const useConfigStore = defineStore('config', () => {
     // If the current view mode is not supported by the new region, switch to default
     if (!config.supportedViewModes.includes(viewMode.value)) {
       viewMode.value = config.defaultViewMode
+    }
+
+    // Update territory mode for the new region
+    if (config.hasTerritorySelector) {
+      // Use configured default territory mode if available
+      if (config.defaultTerritoryMode) {
+        territoryMode.value = config.defaultTerritoryMode
+      }
+      // Otherwise use first option from territoryModeOptions
+      else if (config.territoryModeOptions && config.territoryModeOptions.length > 0) {
+        territoryMode.value = config.territoryModeOptions[0]!.value as any
+      }
     }
   })
 

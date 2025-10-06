@@ -346,7 +346,7 @@ export class GeoDataService {
         extractedTerritories.push({
           name: matchedTerritory.name,
           code: matchedTerritory.code,
-          region: getTerritoryWorldRegion(matchedTerritory.code),
+          region: matchedTerritory.region || getTerritoryWorldRegion(matchedTerritory.code),
           area: calculatedArea,
           data: {
             type: 'FeatureCollection',
@@ -375,11 +375,13 @@ export class GeoDataService {
     for (const [code, territoryData] of this.territoryData) {
       if (code !== this.config.mainlandCode) {
         addedTerritories.add(code)
+        // Find territory config to get region
+        const territoryConfig = this.config.overseasTerritories.find(t => t.code === code)
         overseasData.push({
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
-          region: getTerritoryWorldRegion(code),
+          region: territoryConfig?.region || getTerritoryWorldRegion(code),
           data: {
             type: 'FeatureCollection' as const,
             features: [territoryData.feature],
@@ -414,9 +416,10 @@ export class GeoDataService {
   /**
    * Returns raw geographic data with original coordinates for composite projections
    * @param mode - Display mode determining which territories to include
+   * @param territoryCodes - Optional array of territory codes to include (if not provided, uses mode-based filtering)
    * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
    */
-  async getRawUnifiedData(mode: string = 'metropole-major'): Promise<GeoJSON.FeatureCollection | null> {
+  async getRawUnifiedData(mode: string = 'metropole-major', territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
     const unifiedFeatures: GeoJSON.Feature[] = []
@@ -429,11 +432,20 @@ export class GeoDataService {
 
     const allOverseasData = await this.getOverseasData()
 
-    // For regions with mainland (like France), filter territories based on mode
-    // For regions without mainland (like EU), include all territories
-    const filteredOverseas = this.config.mainlandCode
-      ? allOverseasData.filter(territory => getTerritoriesForMode(mode as any).includes(territory.code))
-      : allOverseasData
+    // Filter territories based on provided codes or fall back to France-specific mode filtering
+    let filteredOverseas: typeof allOverseasData
+    if (territoryCodes !== undefined) {
+      // Use provided territory codes (supports any region)
+      filteredOverseas = allOverseasData.filter(territory => territoryCodes.includes(territory.code))
+    }
+    else if (this.config.mainlandCode) {
+      // Legacy France-specific filtering for backward compatibility
+      filteredOverseas = allOverseasData.filter(territory => getTerritoriesForMode(mode as any).includes(territory.code))
+    }
+    else {
+      // For regions without mainland (like EU), include all territories
+      filteredOverseas = allOverseasData
+    }
 
     // Add overseas/all territories with their ORIGINAL coordinates
     filteredOverseas.forEach((territory) => {

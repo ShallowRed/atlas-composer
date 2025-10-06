@@ -10,6 +10,7 @@ export interface TerritoryConfig {
   code: string // Unique territory identifier (e.g., FR-GP, US-HI)
   name: string // Full display name
   shortName?: string // Optional abbreviated name
+  region?: string // Geographic region for grouping (e.g., 'Caribbean', 'Atlantic', 'Pacific')
   center: [number, number] // Geographic center [longitude, latitude]
   offset: [number, number] // [x, y] pixel offset relative to mainland center for composite layouts
   bounds: [[number, number], [number, number]] // Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
@@ -47,6 +48,7 @@ export interface RegionConfig {
     territoriesTitle: string // Title for territories section (e.g., 'États membres de l'Union Européenne', 'DOM-TOM')
   }
   territoryModeOptions?: Array<{ value: string, label: string }> // Options for "Territoires à inclure" selector (null if not applicable)
+  defaultTerritoryMode?: string // Default territory mode (e.g., 'metropole-major' for France)
   hasTerritorySelector?: boolean // Whether to show the territory selector
 }
 

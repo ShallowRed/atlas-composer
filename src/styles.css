@@ -2,6 +2,7 @@
 @import "remixicon/fonts/remixicon.css";
 
 @plugin "daisyui" {
-  themes: all;
+  themes: autumn;
+  /* themes: all; */
   /* themes: light --default, dark --prefersdark; */
 }

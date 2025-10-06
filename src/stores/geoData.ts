@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { Cartographer } from '@/cartographer/Cartographer'
 import { getTerritoriesForMode } from '@/constants/france-territories'
+import { getPortugalTerritoriesForMode } from '@/constants/portugal-territories'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -42,8 +43,19 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return territories
     }
 
-    // For France, filter by territory mode
-    const allowedCodes = getTerritoriesForMode(configStore.territoryMode)
+    // Filter by territory mode based on the selected region
+    let allowedCodes: readonly string[]
+    switch (configStore.selectedRegion) {
+      case 'france':
+        allowedCodes = getTerritoriesForMode(configStore.territoryMode as any)
+        break
+      case 'portugal':
+        allowedCodes = getPortugalTerritoriesForMode(configStore.territoryMode as any)
+        break
+      default:
+        allowedCodes = []
+    }
+
     return territories.filter(territory =>
       territory && territory.code && allowedCodes.includes(territory.code),
     )
@@ -158,8 +170,24 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
+      const configStore = useConfigStore()
       const service = (cartographer.value as any).geoDataService
-      rawUnifiedData.value = await service.getRawUnifiedData(mode)
+
+      // Get territory codes based on current region and mode
+      let territoryCodes: readonly string[]
+      switch (configStore.selectedRegion) {
+        case 'france':
+          territoryCodes = getTerritoriesForMode(mode as any)
+          break
+        case 'portugal':
+          territoryCodes = getPortugalTerritoriesForMode(mode as any)
+          break
+        default:
+          // EU or other regions without mode filtering
+          territoryCodes = []
+      }
+
+      rawUnifiedData.value = await service.getRawUnifiedData(mode, territoryCodes)
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading raw unified data'

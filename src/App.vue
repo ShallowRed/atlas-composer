@@ -12,9 +12,11 @@ import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
+import { getAvailableRegions } from '@/constants/regions'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
+const allowThemeSelection = false
 // Refs
 // const projectionExporterRef = ref<InstanceType<typeof ProjectionExporter>>()
 
@@ -99,6 +101,14 @@ watch(() => configStore.selectedRegion, async () => {
     console.error('Region change error:', err)
   }
 })
+
+// Watch for territory mode changes to reload data in unified mode
+watch(() => configStore.territoryMode, async () => {
+  // In unified mode, reload data when territory mode changes
+  if (configStore.viewMode === 'unified') {
+    await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
+  }
+})
 </script>
 
 <template>
@@ -113,7 +123,7 @@ watch(() => configStore.selectedRegion, async () => {
       >
         <div class="flex flex-col gap-6">
           <!-- Theme Selector -->
-          <ThemeSelector />
+          <ThemeSelector v-if="allowThemeSelection" />
 
           <!-- Region Selector -->
           <FormControl
@@ -121,10 +131,7 @@ watch(() => configStore.selectedRegion, async () => {
             label="Région"
             icon="ri-global-line"
             type="select"
-            :options="[
-              { value: 'france', label: 'France' },
-              { value: 'eu', label: 'Union Européenne' },
-            ]"
+            :options="getAvailableRegions()"
           />
 
           <!-- Main View Mode Selector -->
@@ -379,7 +386,7 @@ watch(() => configStore.selectedRegion, async () => {
 
       <!-- Territory Parameters (projections, translations, scales) -->
       <CardContainer
-        v-show="configStore.showIndividualProjectionSelectors"
+        v-show="configStore.showIndividualProjectionSelectors && geoDataStore.filteredTerritories.length > 0"
         width="md:w-1/4"
         title="Paramètres par territoire"
         icon="ri-settings-4-line"
