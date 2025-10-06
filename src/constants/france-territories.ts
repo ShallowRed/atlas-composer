@@ -322,10 +322,11 @@ export function getTerritoryVarName(code: string): string {
 /**
  * Default geographic data configuration for French territories
  * This configuration can be passed to GeoDataService
+ * Note: Update resolution suffix (50m) if using different Natural Earth resolution
  */
 export const DEFAULT_GEO_DATA_CONFIG: GeoDataConfig = {
-  dataPath: '/data/france-territories.json',
-  metadataPath: '/data/france-metadata.json',
+  dataPath: '/data/france-territories-10m.json',
+  metadataPath: '/data/france-metadata-10m.json',
   topologyObjectName: 'territories',
   mainlandCode: 'FR-MET',
   mainlandBounds: MAINLAND_FRANCE.bounds, // Use bounds from mainland config

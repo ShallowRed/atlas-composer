@@ -55,8 +55,8 @@ const CONFIGS_DIR = path.join(__dirname, 'configs')
  */
 const OUTPUT_FILENAMES = {
   world: `world-countries-${NATURAL_EARTH_RESOLUTION}.json`,
-  territories: configName => `${configName}-territories.json`,
-  metadata: configName => `${configName}-metadata.json`,
+  territories: configName => `${configName}-territories-${NATURAL_EARTH_RESOLUTION}.json`,
+  metadata: configName => `${configName}-metadata-${NATURAL_EARTH_RESOLUTION}.json`,
 }
 
 /**
@@ -138,6 +138,7 @@ async function downloadData(url, filename) {
 
 /**
  * Filter TopoJSON data to include only specified territories
+ * Enriches geometries with territory metadata (name, code, iso)
  * @param {object} worldData - The full world TopoJSON data
  * @param {object} territoriesConfig - Territory ID mapping
  * @returns {object} Filtered TopoJSON containing only specified territories
@@ -146,15 +147,33 @@ function filterTerritories(worldData, territoriesConfig) {
   // Territory IDs as strings (world-atlas uses string IDs)
   const territoryIds = Object.keys(territoriesConfig)
 
+  // Filter and enrich geometries with territory metadata
+  const enrichedGeometries = worldData.objects.countries.geometries
+    .filter(geometry => territoryIds.includes(String(geometry.id)))
+    .map((geometry) => {
+      const territoryId = String(geometry.id)
+      const territory = territoriesConfig[territoryId]
+
+      // Enrich geometry with territory metadata
+      return {
+        ...geometry,
+        properties: {
+          ...geometry.properties,
+          name: territory.name,
+          code: territory.code,
+          iso: territory.iso,
+          id: territoryId,
+        },
+      }
+    })
+
   return {
     type: worldData.type,
     transform: worldData.transform,
     objects: {
-      countries: {
+      territories: {
         type: 'GeometryCollection',
-        geometries: worldData.objects.countries.geometries.filter(geometry =>
-          territoryIds.includes(String(geometry.id)),
-        ),
+        geometries: enrichedGeometries,
       },
     },
     arcs: worldData.arcs,
@@ -203,10 +222,10 @@ async function main() {
       process.exit(1)
     }
 
-    console.log(`${COLORS.blue}  Preparing geodata for: ${CONFIG.name}${COLORS.reset}`)
-    console.log(`${COLORS.blue}   Description: ${CONFIG.description}${COLORS.reset}`)
-    console.log(`${COLORS.blue}   Resolution: ${NATURAL_EARTH_RESOLUTION}${COLORS.reset}`)
-    console.log(`${COLORS.blue}   Territories: ${Object.keys(CONFIG.territories).length}${COLORS.reset}\n`)
+    console.log(`Preparing geodata for: ${CONFIG.name}${COLORS.reset}`)
+    console.log(`${COLORS.blue}  Description: ${CONFIG.description}${COLORS.reset}`)
+    console.log(`${COLORS.blue}  Resolution: ${NATURAL_EARTH_RESOLUTION}${COLORS.reset}`)
+    console.log(`${COLORS.blue}  Territories: ${Object.keys(CONFIG.territories).length}${COLORS.reset}\n`)
 
     // Step 1: Download and save world data
     console.log(`${COLORS.blue} Downloading world data...${COLORS.reset}`)

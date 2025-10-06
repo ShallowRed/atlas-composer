@@ -26,13 +26,15 @@ export default {
 ## Available Configurations
 
 - **`france.js`** - France métropolitaine + DOM-TOM (7 territories)
-  - Output: `france-territories.json`, `france-metadata.json`
+  - Output: `france-territories-50m.json`, `france-metadata-50m.json`
 - **`spain.js`** - Spain and autonomous communities (1 territory)
-  - Output: `spain-territories.json`, `spain-metadata.json`
+  - Output: `spain-territories-50m.json`, `spain-metadata-50m.json`
 - **`eu.js`** - European Union member states (27 countries)
-  - Output: `eu-territories.json`, `eu-metadata.json`
+  - Output: `eu-territories-50m.json`, `eu-metadata-50m.json`
 - **`portugal.js`** - Portugal (example configuration)
-  - Output: `portugal-territories.json`, `portugal-metadata.json`
+  - Output: `portugal-territories-50m.json`, `portugal-metadata-50m.json`
+
+Note: The resolution suffix (50m, 10m, 110m) is automatically added based on the `NE_RESOLUTION` environment variable.
 
 ## Usage
 

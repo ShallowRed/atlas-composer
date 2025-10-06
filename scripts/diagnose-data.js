@@ -21,6 +21,11 @@ const projectRoot = process.cwd()
 const dataDir = path.join(projectRoot, 'src', 'public', 'data')
 const configsDir = path.join(projectRoot, 'scripts', 'configs')
 
+/**
+ * Get Natural Earth resolution from environment or default
+ */
+const NATURAL_EARTH_RESOLUTION = process.env.NE_RESOLUTION || '50m'
+
 // Terminal colors for diagnostic output
 const colors = {
   green: '\x1B[32m',
@@ -87,19 +92,21 @@ async function diagnoseData(configName) {
 
     const outputName = config.outputName || configName
 
-    console.log(`${colors.blue}Diagnostic des données géographiques - ${config.name}${colors.reset}\n`)
+    console.log(`${colors.blue}Diagnostic des données géographiques - ${config.name}${colors.reset}`)
+    console.log(`${colors.blue}Resolution: ${NATURAL_EARTH_RESOLUTION}${colors.reset}\n`)
 
     // Load both data files for cross-validation
-    const territoriesPath = path.join(dataDir, `${outputName}-territories.json`)
-    const metadataPath = path.join(dataDir, `${outputName}-metadata.json`)
+    const territoriesPath = path.join(dataDir, `${outputName}-territories-${NATURAL_EARTH_RESOLUTION}.json`)
+    const metadataPath = path.join(dataDir, `${outputName}-metadata-${NATURAL_EARTH_RESOLUTION}.json`)
 
     // Check if files exist
     try {
       await fs.access(territoriesPath)
     }
     catch {
-      console.error(`${colors.red}Fichier non trouvé: ${outputName}-territories.json${colors.reset}`)
+      console.error(`${colors.red}Fichier non trouvé: ${outputName}-territories-${NATURAL_EARTH_RESOLUTION}.json${colors.reset}`)
       console.log(`${colors.yellow}Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
+      console.log(`${colors.yellow}Ou utilisez: NE_RESOLUTION=${NATURAL_EARTH_RESOLUTION} node scripts/prepare-geodata.js ${configName}${colors.reset}`)
       process.exit(1)
     }
 
@@ -107,8 +114,9 @@ async function diagnoseData(configName) {
       await fs.access(metadataPath)
     }
     catch {
-      console.error(`${colors.red}Fichier non trouvé: ${outputName}-metadata.json${colors.reset}`)
+      console.error(`${colors.red}Fichier non trouvé: ${outputName}-metadata-${NATURAL_EARTH_RESOLUTION}.json${colors.reset}`)
       console.log(`${colors.yellow}Exécutez: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
+      console.log(`${colors.yellow}Ou utilisez: NE_RESOLUTION=${NATURAL_EARTH_RESOLUTION} node scripts/prepare-geodata.js ${configName}${colors.reset}`)
       process.exit(1)
     }
 
@@ -125,15 +133,15 @@ async function diagnoseData(configName) {
     console.log(`  Territoires déclarés: ${metadataInfo.count}`)
 
     // Display TopoJSON structure information
-    console.log(`\n${colors.blue}🗺️  Données TopoJSON:${colors.reset}`)
+    console.log(`\n${colors.blue}Données TopoJSON:${colors.reset}`)
     console.log(`  Type: ${territoriesData.type}`)
     console.log(`  Arcs: ${territoriesData.arcs?.length || 'N/A'}`)
     console.log(`  Objet: ${Object.keys(territoriesData.objects)[0]}`)
-    console.log(`  Géométries: ${territoriesData.objects.countries?.geometries?.length || 0}`)
+    console.log(`  Géométries: ${territoriesData.objects.territories?.geometries?.length || 0}`)
 
     // Display territories details
-    console.log(`\n${colors.blue}🏴 Territoires:${colors.reset}`)
-    const geometries = territoriesData.objects.countries?.geometries || []
+    console.log(`\n${colors.blue}Territoires:${colors.reset}`)
+    const geometries = territoriesData.objects.territories?.geometries || []
     geometries.forEach((geom, index) => {
       const territoryInfo = metadataInfo.territories[geom.id]
       if (territoryInfo) {
@@ -193,10 +201,10 @@ async function diagnoseData(configName) {
     }
 
     if (!hasErrors) {
-      console.log(`\n${colors.green}Tous les contrôles sont OK !${colors.reset}`)
+      console.log(`\n${colors.green}[OK] Tous les contrôles sont OK${colors.reset}`)
     }
     else {
-      console.log(`\n${colors.yellow} Des incohérences ont été détectées${colors.reset}`)
+      console.log(`\n${colors.yellow}[WARNING] Des incohérences ont été détectées${colors.reset}`)
       console.log(`${colors.yellow}Essayez de régénérer les données: node scripts/prepare-geodata.js ${configName}${colors.reset}`)
     }
   }
