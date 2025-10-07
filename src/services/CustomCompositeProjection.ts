@@ -132,7 +132,7 @@ export class CustomCompositeProjection {
       return 'conic'
     }
     // Check for center method (typical for mercator and azimuthal)
-    if (projection.center) {
+    if (typeof projection.center === 'function') {
       // Most mercator-family projections have these characteristics
       return 'mercator'
     }
