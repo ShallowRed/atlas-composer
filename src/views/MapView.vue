@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// import type ProjectionExporter from '@/components/ProjectionExporter.vue'
-// import { onMounted, ref } from 'vue'
 import { computed, onMounted, watch } from 'vue'
 import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
@@ -15,8 +13,6 @@ import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
 const allowThemeSelection = false
-// Refs
-// const projectionExporterRef = ref<InstanceType<typeof ProjectionExporter>>()
 
 // Stores
 const configStore = useConfigStore()

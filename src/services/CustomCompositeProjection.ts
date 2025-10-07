@@ -1,4 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
+
+import type { TerritoryConfig } from '@/types/territory'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
