@@ -163,25 +163,27 @@ src/
 - ✅ `src/services/GeoProjectionService.ts`
 - ✅ `src/cartographer/Cartographer.ts`
 
-### Phase 5: Refactor Store to be Region-Agnostic
+### Phase 5: Refactor Store to be Region-Agnostic ✅
 **Goal:** Remove France-specific imports from store
 
-**Tasks:**
-- [ ] Update `src/stores/config.ts`:
-  - Remove `import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from france-territories`
-  - Add `import { RegionService } from '@/services/RegionService'`
-  - Create computed `regionService: () => new RegionService(selectedRegion.value)`
-  - Make `territoryProjections` computed from region service
-  - Make `territoryTranslations` computed from region service
-  - Make `territoryScales` computed from region service
-  - Update watcher to use region service
-- [ ] Update `src/stores/geoData.ts`:
-  - Make region-agnostic if needed
-  - Check for hard-coded dependencies
+**Tasks completed:**
+- ✅ Updated `src/stores/config.ts`:
+  - Removed `import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from france-territories`
+  - Added `import { RegionService } from '@/services/RegionService'`
+  - Added `import { TerritoryService } from '@/services/TerritoryService'`
+  - Created computed `regionService: () => new RegionService(selectedRegion.value)`
+  - Created initialization functions for territory projections/translations/scales
+  - Changed to refs initialized with these functions (to maintain mutability for setters)
+  - Updated watcher to reinitialize refs when region changes
+  - Preserved defaultCompositeConfig override logic
 
-**Files to modify:**
-- `src/stores/config.ts`
-- `src/stores/geoData.ts` (if needed)
+**Implementation notes:**
+- Used ref + initialization functions pattern instead of computed because setter methods exist that mutate these properties
+- Initialization functions use RegionService to get region-specific territories dynamically
+- Watch block now reinitializes defaults before applying config overrides
+
+**Files modified:**
+- ✅ `src/stores/config.ts`
 
 ### Phase 6: Update Views and Components
 **Goal:** Use new factory pattern and services

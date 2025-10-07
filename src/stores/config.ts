@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
 import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/constants/regions'
-import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/territories/france-territories.ts'
-import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-constants'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
+import { RegionService } from '@/services/RegionService'
+import { TerritoryService } from '@/services/TerritoryService'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
@@ -17,6 +17,9 @@ export const useConfigStore = defineStore('config', () => {
 
   // Computed: Current region configuration (needs to be before territoryMode)
   const currentRegionConfig = computed(() => getRegionConfig(selectedRegion.value))
+
+  // Computed: Region service for accessing region-specific data
+  const regionService = computed(() => new RegionService(selectedRegion.value))
 
   // Territory mode - initialize with the default from the current region's config
   const getInitialTerritoryMode = () => {
@@ -46,33 +49,30 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   // Per-territory projections (for individual mode)
-  // Initialize from centralized territory configuration
-  const territoryProjections = ref<Record<string, string>>(
-    Object.fromEntries(
-      OVERSEAS_TERRITORIES.map(t => [
-        t.code,
-        t.projectionType || DEFAULT_PROJECTION_TYPES.OVERSEAS,
-      ]),
-    ),
-  )
+  // Initialize from current region's territories
+  const initializeTerritoryProjections = () => {
+    const overseas = regionService.value.getOverseasTerritories()
+    return TerritoryService.calculateDefaultProjections(overseas, 'mercator')
+  }
+  const territoryProjections = ref<Record<string, string>>(initializeTerritoryProjections())
 
   // Territory translations (x, y offsets in pixels relative to mainland center)
-  // Initialize from centralized territory configuration
+  // Initialize from current region's territories
   // Positive X = right, Negative X = left
   // Positive Y = down, Negative Y = up
-  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(
-    Object.fromEntries(
-      ALL_TERRITORIES.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
-    ),
-  )
+  const initializeTerritoryTranslations = () => {
+    const all = regionService.value.getAllTerritories()
+    return TerritoryService.calculateDefaultTranslations(all)
+  }
+  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initializeTerritoryTranslations())
 
   // Territory scales (scale multipliers for territoires ultramarins sizing)
-  // All territories start with default 1.0 multiplier
-  const territoryScales = ref<Record<string, number>>(
-    Object.fromEntries(
-      ALL_TERRITORIES.map(t => [t.code, 1.0]),
-    ),
-  )
+  // Initialize from current region's territories - all start with default 1.0 multiplier
+  const initializeTerritoryScales = () => {
+    const all = regionService.value.getAllTerritories()
+    return TerritoryService.calculateDefaultScales(all)
+  }
+  const territoryScales = ref<Record<string, number>>(initializeTerritoryScales())
 
   // Computed
   const showProjectionSelector = computed(() => {
@@ -229,7 +229,12 @@ export const useConfigStore = defineStore('config', () => {
       }
     }
 
-    // Load default composite configuration if available
+    // Reinitialize territory configurations for the new region
+    territoryProjections.value = initializeTerritoryProjections()
+    territoryTranslations.value = initializeTerritoryTranslations()
+    territoryScales.value = initializeTerritoryScales()
+
+    // Load default composite configuration if available (overrides calculated defaults)
     if (config.defaultCompositeConfig) {
       Object.assign(territoryProjections.value, config.defaultCompositeConfig.territoryProjections)
       Object.assign(territoryTranslations.value, config.defaultCompositeConfig.territoryTranslations)
