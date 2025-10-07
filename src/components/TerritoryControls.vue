@@ -2,12 +2,10 @@
 import { computed } from 'vue'
 
 import {
-  DEFAULT_TERRITORY_TRANSLATIONS,
-} from '@/constants/territories/france-territories.ts'
-import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
 } from '@/constants/territory-constants'
+import { TerritoryService } from '@/services/TerritoryService'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -54,8 +52,14 @@ function updateScale(territoryCode: string, event: Event) {
 }
 
 function resetToDefaults() {
+  // Get default translations from region service
+  const regionService = configStore.regionService
+  const defaultTranslations = TerritoryService.calculateDefaultTranslations(
+    regionService.getOverseasTerritories(),
+  )
+
   // Reset translations for all territories to their default offset values
-  Object.entries(DEFAULT_TERRITORY_TRANSLATIONS).forEach(([code, { x, y }]) => {
+  Object.entries(defaultTranslations).forEach(([code, { x, y }]) => {
     configStore.setTerritoryTranslation(code, 'x', x)
     configStore.setTerritoryTranslation(code, 'y', y)
   })

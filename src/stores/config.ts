@@ -262,6 +262,7 @@ export const useConfigStore = defineStore('config', () => {
     territoryScales,
 
     // Computed
+    regionService,
     currentRegionConfig,
     isViewModeLocked,
     showProjectionSelector,

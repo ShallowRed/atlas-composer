@@ -1,6 +1,6 @@
+import type { GeoDataConfig, TerritoryConfig } from '@/types/territory'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-import { DEFAULT_GEO_DATA_CONFIG, getTerritoryWorldRegion } from '@/constants/territories/france-territories.ts'
 
 /**
  * Represents a territory (mainland or overseas)
@@ -36,7 +36,7 @@ export class GeoDataService {
   private isLoaded = false // Loading state flag
   private config: GeoDataConfig // Service configuration
 
-  constructor(config: GeoDataConfig = DEFAULT_GEO_DATA_CONFIG) {
+  constructor(config: GeoDataConfig) {
     this.config = config
   }
 
@@ -45,8 +45,9 @@ export class GeoDataService {
    * Downloads TopoJSON and metadata, then converts to processable format
    */
   async loadData(): Promise<void> {
-    if (this.isLoaded)
+    if (this.isLoaded) {
       return
+    }
 
     try {
       // Load TopoJSON data containing territories
@@ -365,7 +366,7 @@ export class GeoDataService {
         extractedTerritories.push({
           name: matchedTerritory.name,
           code: matchedTerritory.code,
-          region: matchedTerritory.region || getTerritoryWorldRegion(matchedTerritory.code),
+          region: matchedTerritory.region || 'Other',
           area: calculatedArea,
           data: {
             type: 'FeatureCollection',
@@ -395,12 +396,12 @@ export class GeoDataService {
       if (code !== this.config.mainlandCode) {
         addedTerritories.add(code)
         // Find territory config to get region
-        const territoryConfig = this.config.overseasTerritories.find(t => t.code === code)
+        const territoryConfig = this.config.overseasTerritories.find((t: TerritoryConfig) => t.code === code)
         overseasData.push({
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
-          region: territoryConfig?.region || getTerritoryWorldRegion(code),
+          region: territoryConfig?.region || 'Other',
           data: {
             type: 'FeatureCollection' as const,
             features: [territoryData.feature],

@@ -185,23 +185,43 @@ src/
 **Files modified:**
 - ✅ `src/stores/config.ts`
 
-### Phase 6: Update Views and Components
+### Phase 6: Update Views and Components ✅
 **Goal:** Use new factory pattern and services
 
-**Tasks:**
-- [ ] Update `MapView.vue`:
-  - Import `CartographerFactory`
-  - Use factory to create cartographer instances
-  - Handle region switching properly
-- [ ] Update components using territory data:
-  - `TerritoryControls.vue`
-  - `MapRenderer.vue`
-  - Check for direct territory imports
+**Tasks completed:**
+- ✅ Updated `TerritoryControls.vue`:
+  - Removed `DEFAULT_TERRITORY_TRANSLATIONS` import from france-territories
+  - Added `TerritoryService` import
+  - Updated `resetToDefaults()` to use `RegionService` and `TerritoryService`
+  - Now calculates defaults dynamically based on current region
+- ✅ Updated `geoData.ts` store:
+  - Removed `getTerritoriesForMode` and `getPortugalTerritoriesForMode` imports
+  - Added `TerritoryService` import
+  - Updated `filteredTerritories` computed to use `TerritoryService.getTerritoriesForMode()`
+  - Updated `loadRawUnifiedData()` to use `TerritoryService` for territory filtering
+  - Now fully region-agnostic
+- ✅ Updated `GeoDataService.ts`:
+  - Removed `DEFAULT_GEO_DATA_CONFIG` and `getTerritoryWorldRegion` imports
+  - Added type imports for `GeoDataConfig` and `TerritoryConfig`
+  - Removed default parameter from constructor (config now required)
+  - Updated territory region lookups to use config data directly
+- ✅ Updated `constants/regions.ts`:
+  - Deprecated in favor of `config/regions`
+  - Now re-exports from new location for backward compatibility
+  - Added deprecation notice
 
-**Files to modify:**
-- `src/views/MapView.vue`
-- `src/components/TerritoryControls.vue`
-- `src/components/MapRenderer.vue`
+**Implementation notes:**
+- TerritoryService.getTerritoryRegion() added for looking up territory regions
+- All components now use RegionService for dynamic region-based data
+- MapView.vue already clean (no Cartographer instantiation, uses store)
+
+**Files modified:**
+- ✅ `src/components/TerritoryControls.vue`
+- ✅ `src/stores/geoData.ts`
+- ✅ `src/services/GeoDataService.ts`
+- ✅ `src/constants/regions.ts`
+- ✅ `src/services/TerritoryService.ts` (added getTerritoryRegion method)
+- ✅ `src/stores/config.ts` (exposed regionService)
 
 ### Phase 7: Deprecate Old Files
 **Goal:** Remove or mark old structure as deprecated

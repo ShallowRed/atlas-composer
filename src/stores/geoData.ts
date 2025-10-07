@@ -2,8 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { Cartographer } from '@/cartographer/Cartographer'
-import { getTerritoriesForMode } from '@/constants/territories/france-territories.ts'
-import { getPortugalTerritoriesForMode } from '@/constants/territories/portugal-territories.ts'
+import { TerritoryService } from '@/services/TerritoryService'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -43,18 +42,16 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return territories
     }
 
-    // Filter by territory mode based on the selected region
-    let allowedCodes: readonly string[]
-    switch (configStore.selectedRegion) {
-      case 'france':
-        allowedCodes = getTerritoriesForMode(configStore.territoryMode as any)
-        break
-      case 'portugal':
-        allowedCodes = getPortugalTerritoriesForMode(configStore.territoryMode as any)
-        break
-      default:
-        allowedCodes = []
-    }
+    // Use TerritoryService to get allowed territories for the current mode
+    const regionService = configStore.regionService
+    const allTerritories = regionService.getAllTerritories()
+    const territoryModes = regionService.getTerritoryModes()
+    const allowedTerritories = TerritoryService.getTerritoriesForMode(
+      allTerritories,
+      configStore.territoryMode,
+      territoryModes,
+    )
+    const allowedCodes = allowedTerritories.map(t => t.code)
 
     return territories.filter(territory =>
       territory && territory.code && allowedCodes.includes(territory.code),
@@ -174,18 +171,25 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const configStore = useConfigStore()
       const service = (cartographer.value as any).geoDataService
 
-      // Get territory codes based on current region and mode
+      // Get territory codes based on current region and mode using TerritoryService
+      const regionService = configStore.regionService
+      const regionConfig = configStore.currentRegionConfig
+
       let territoryCodes: readonly string[] | undefined
-      switch (configStore.selectedRegion) {
-        case 'france':
-          territoryCodes = getTerritoriesForMode(mode as any)
-          break
-        case 'portugal':
-          territoryCodes = getPortugalTerritoriesForMode(mode as any)
-          break
-        default:
-          // EU or other regions without mode filtering - pass undefined to include all
-          territoryCodes = undefined
+      if (regionConfig.geoDataConfig.overseasTerritories.length === 0) {
+        // EU or other regions without mode filtering - pass undefined to include all
+        territoryCodes = undefined
+      }
+      else {
+        // Use TerritoryService to get allowed territories
+        const allTerritories = regionService.getAllTerritories()
+        const territoryModes = regionService.getTerritoryModes()
+        const allowedTerritories = TerritoryService.getTerritoriesForMode(
+          allTerritories,
+          mode,
+          territoryModes,
+        )
+        territoryCodes = allowedTerritories.map(t => t.code)
       }
 
       rawUnifiedData.value = await service.getRawUnifiedData(mode, territoryCodes)

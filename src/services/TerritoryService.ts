@@ -147,4 +147,16 @@ export class TerritoryService {
     }
     return Array.from(regions).sort()
   }
+
+  /**
+   * Get the world region for a territory by its code
+   * Returns 'Other' if territory not found or has no region
+   */
+  static getTerritoryRegion(
+    territories: TerritoryConfig[],
+    code: string,
+  ): string {
+    const territory = this.getTerritoryByCode(territories, code)
+    return territory?.region || 'Other'
+  }
 }

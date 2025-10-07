@@ -46,12 +46,10 @@ export class Cartographer {
   private projectionService: GeoProjectionService
   private geoDataService: GeoDataService
   public customComposite: CustomCompositeProjection | null = null
-  private compositeConfig: CompositeProjectionConfig | undefined
 
   constructor(geoDataConfig: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
     this.projectionService = new GeoProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
-    this.compositeConfig = compositeConfig
 
     // Only create CustomCompositeProjection if config is provided
     if (compositeConfig) {
