@@ -1,4 +1,4 @@
-import { REGION_CONFIGS } from '@/constants/regions'
+import { REGION_CONFIGS } from '@/config/regions/'
 import { useConfigStore } from '@/stores/config'
 
 /**

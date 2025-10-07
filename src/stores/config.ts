@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/constants/regions'
+import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/config/regions/'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 import { RegionService } from '@/services/RegionService'
 import { TerritoryService } from '@/services/TerritoryService'
