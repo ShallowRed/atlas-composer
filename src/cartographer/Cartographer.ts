@@ -1,7 +1,6 @@
 import type { CompositeProjectionConfig } from '@/services/CustomCompositeProjection'
 import type { GeoDataConfig } from '@/types/territory'
 import * as Plot from '@observablehq/plot'
-import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '@/constants/territories/france-territories.ts'
 import { CustomCompositeProjection } from '@/services/CustomCompositeProjection'
 import { GeoDataService } from '@/services/GeoDataService'
 import { GeoProjectionService } from '@/services/GeoProjectionService'
@@ -46,15 +45,18 @@ export interface CustomCompositeSettings {
 export class Cartographer {
   private projectionService: GeoProjectionService
   private geoDataService: GeoDataService
-  public customComposite: CustomCompositeProjection
-  private compositeConfig: CompositeProjectionConfig
+  public customComposite: CustomCompositeProjection | null = null
+  private compositeConfig: CompositeProjectionConfig | undefined
 
-  constructor(geoDataConfig?: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
+  constructor(geoDataConfig: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
     this.projectionService = new GeoProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
-    // Use provided composite config or fall back to France default
-    this.compositeConfig = compositeConfig || DEFAULT_COMPOSITE_PROJECTION_CONFIG
-    this.customComposite = new CustomCompositeProjection(this.compositeConfig)
+    this.compositeConfig = compositeConfig
+
+    // Only create CustomCompositeProjection if config is provided
+    if (compositeConfig) {
+      this.customComposite = new CustomCompositeProjection(compositeConfig)
+    }
   }
 
   async init(): Promise<void> {
@@ -150,6 +152,10 @@ export class Cartographer {
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
     const { territoryMode, territoryCodes, width, height, settings } = options
 
+    if (!this.customComposite) {
+      throw new Error('Custom composite projection not configured for this region')
+    }
+
     // Apply custom settings if provided
     if (settings) {
       this.applyCustomCompositeSettings(settings)
@@ -167,7 +173,7 @@ export class Cartographer {
       height,
       inset: 20,
       projection: ({ width: w, height: h }) => {
-        return this.customComposite.build(w, h, true)
+        return this.customComposite!.build(w, h, true)
       },
       marks: [
         Plot.geo(rawData, {
@@ -187,24 +193,29 @@ export class Cartographer {
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
+    if (!this.customComposite) {
+      return
+    }
+
+    const composite = this.customComposite
     const { territoryProjections, territoryTranslations, territoryScales } = settings
 
     // Apply to customComposite instance
     if (territoryProjections) {
       for (const [code, proj] of Object.entries(territoryProjections)) {
-        this.customComposite.updateTerritoryProjection(code, proj as any)
+        composite.updateTerritoryProjection(code, proj as any)
       }
     }
 
     if (territoryTranslations) {
       for (const [code, translation] of Object.entries(territoryTranslations)) {
-        this.customComposite.updateTranslationOffset(code, [translation.x, translation.y])
+        composite.updateTranslationOffset(code, [translation.x, translation.y])
       }
     }
 
     if (territoryScales) {
       for (const [code, scale] of Object.entries(territoryScales)) {
-        this.customComposite.updateScale(code, scale)
+        composite.updateScale(code, scale)
       }
     }
   }

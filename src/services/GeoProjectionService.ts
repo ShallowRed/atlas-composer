@@ -1,7 +1,6 @@
+import type { ProjectionParams } from '@/config/regions/types'
 import { geoConicConformalEurope, geoConicConformalFrance, geoConicConformalPortugal } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
-
-import { FRANCE_PROJECTION_PARAMS } from '@/constants/territories/france-territories.ts'
 
 export interface ProjectionOption {
   value: string
@@ -55,11 +54,35 @@ export const PROJECTION_OPTIONS: ProjectionOption[] = [
 ]
 
 export class GeoProjectionService {
+  private projectionParams: ProjectionParams | null = null
+
+  /**
+   * Set region-specific projection parameters
+   * Must be called before using getProjection for region-specific projections
+   */
+  setProjectionParams(params: ProjectionParams): void {
+    this.projectionParams = params
+  }
+
+  /**
+   * Get projection parameters (or use default France params as fallback)
+   */
+  private getParams(): ProjectionParams {
+    // Default fallback to France params for backward compatibility
+    return this.projectionParams || {
+      center: { longitude: 2.5, latitude: 46.5 },
+      rotate: { mainland: [-2, 0], azimuthal: [-2, -46.5] },
+      parallels: { conic: [44, 49] },
+    }
+  }
+
   getProjection(type: string, data: any) {
+    const params = this.getParams()
+
     const albers = {
       type: 'conic-equal-area' as const,
-      parallels: FRANCE_PROJECTION_PARAMS.parallels.conic,
-      rotate: FRANCE_PROJECTION_PARAMS.rotate.mainland,
+      parallels: params.parallels.conic,
+      rotate: params.rotate.mainland,
       domain: data,
     }
 
@@ -85,56 +108,56 @@ export class GeoProjectionService {
       case 'azimuthal-equal-area':
         return {
           type: 'azimuthal-equal-area' as const,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.azimuthal,
+          rotate: params.rotate.azimuthal,
           domain: data,
         }
       case 'azimuthal-equidistant':
         return {
           type: 'azimuthal-equidistant' as const,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.azimuthal,
+          rotate: params.rotate.azimuthal,
           domain: data,
         }
       case 'orthographic':
         return {
           type: 'orthographic' as const,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.azimuthal,
+          rotate: params.rotate.azimuthal,
           domain: data,
         }
       case 'stereographic':
         return {
           type: 'stereographic' as const,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.azimuthal,
+          rotate: params.rotate.azimuthal,
           domain: data,
         }
       case 'gnomonic':
         return {
           type: 'gnomonic' as const,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.azimuthal,
+          rotate: params.rotate.azimuthal,
           domain: data,
         }
 
-      // Conic projections (optimisées pour la France)
+      // Conic projections
       case 'albers':
         return albers
       case 'conic-equal-area':
         return {
           type: 'conic-equal-area' as const,
-          parallels: FRANCE_PROJECTION_PARAMS.parallels.conic,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.mainland,
+          parallels: params.parallels.conic,
+          rotate: params.rotate.mainland,
           domain: data,
         }
       case 'conic-conformal':
         return {
           type: 'conic-conformal' as const,
-          parallels: FRANCE_PROJECTION_PARAMS.parallels.conic,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.mainland,
+          parallels: params.parallels.conic,
+          rotate: params.rotate.mainland,
           domain: data,
         }
       case 'conic-equidistant':
         return {
-          type: 'conic-equidistant' as const,
-          parallels: FRANCE_PROJECTION_PARAMS.parallels.conic,
-          rotate: FRANCE_PROJECTION_PARAMS.rotate.mainland,
+          type: 'conic-conformal' as const,
+          parallels: params.parallels.conic,
+          rotate: params.rotate.mainland,
           domain: data,
         }
 
