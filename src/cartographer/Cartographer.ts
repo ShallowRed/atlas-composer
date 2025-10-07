@@ -1,4 +1,6 @@
+import type { CompositeProjectionConfig } from '../services/CustomCompositeProjection'
 import * as Plot from '@observablehq/plot'
+
 import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '@/constants/france-territories'
 import { CustomCompositeProjection } from '../services/CustomCompositeProjection'
 import { GeoDataService } from '../services/GeoDataService'
@@ -28,6 +30,7 @@ export interface SimpleRenderOptions extends RenderOptions {
 export interface CompositeRenderOptions extends RenderOptions {
   mode: 'composite-custom' | 'composite-projection'
   territoryMode: string
+  territoryCodes?: readonly string[] // Optional territory codes to filter data
   projection: string
   width: number
   height: number
@@ -44,11 +47,14 @@ export class Cartographer {
   private projectionService: GeoProjectionService
   private geoDataService: GeoDataService
   public customComposite: CustomCompositeProjection
+  private compositeConfig: CompositeProjectionConfig
 
-  constructor(geoDataConfig?: import('@/constants/territory-types').GeoDataConfig) {
+  constructor(geoDataConfig?: import('@/constants/territory-types').GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
     this.projectionService = new GeoProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
-    this.customComposite = new CustomCompositeProjection(DEFAULT_COMPOSITE_PROJECTION_CONFIG)
+    // Use provided composite config or fall back to France default
+    this.compositeConfig = compositeConfig || DEFAULT_COMPOSITE_PROJECTION_CONFIG
+    this.customComposite = new CustomCompositeProjection(this.compositeConfig)
   }
 
   async init(): Promise<void> {
@@ -94,7 +100,11 @@ export class Cartographer {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryFillColor(code)
           },
-          stroke: getTerritoryStrokeColor(),
+          // stroke: getTerritoryStrokeColor(code),
+          stroke: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryStrokeColor(code)
+          },
         }),
       ],
     })
@@ -103,10 +113,10 @@ export class Cartographer {
   }
 
   private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, projection, width, height } = options
+    const { territoryMode, territoryCodes, projection, width, height } = options
 
     // Get raw data (original coordinates)
-    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode)
+    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode, territoryCodes)
     if (!rawData) {
       throw new Error('No raw unified data available')
     }
@@ -126,7 +136,10 @@ export class Cartographer {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryFillColor(code)
           },
-          stroke: getTerritoryStrokeColor(),
+          stroke: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryStrokeColor(code)
+          },
         }),
       ],
     })
@@ -135,7 +148,7 @@ export class Cartographer {
   }
 
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, width, height, settings } = options
+    const { territoryMode, territoryCodes, width, height, settings } = options
 
     // Apply custom settings if provided
     if (settings) {
@@ -143,7 +156,7 @@ export class Cartographer {
     }
 
     // Get raw data (original coordinates)
-    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode)
+    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode, territoryCodes)
     if (!rawData) {
       throw new Error('No raw unified data available')
     }
@@ -162,7 +175,10 @@ export class Cartographer {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryFillColor(code)
           },
-          stroke: getTerritoryStrokeColor(),
+          stroke: (d: any) => {
+            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+            return getTerritoryStrokeColor(code)
+          },
         }),
       ],
     })

@@ -1,4 +1,4 @@
-import { geoConicConformalFrance } from 'd3-composite-projections'
+import { geoConicConformalEurope, geoConicConformalFrance, geoConicConformalPortugal } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
 
 import { FRANCE_PROJECTION_PARAMS } from '@/constants/france-territories'
@@ -10,8 +10,10 @@ export interface ProjectionOption {
 }
 
 export const PROJECTION_OPTIONS: ProjectionOption[] = [
-  // Projections Composites France (DOM-TOM inclus)
+  // Projections Composites (avec régions d'outre-mer intégrées)
   { value: 'conic-conformal-france', label: 'Conic Conformal France (Composite)', category: 'Projections Composites France' },
+  { value: 'conic-conformal-portugal', label: 'Conic Conformal Portugal (Composite)', category: 'Projections Composites Portugal' },
+  { value: 'conic-conformal-europe', label: 'Conic Conformal Europe (Composite)', category: 'Projections Composites Europe' },
 
   // Recommandées pour la France
   { value: 'albers', label: 'Albers (Conic Equal Area)', category: 'Recommandées pour la France' },
@@ -62,9 +64,20 @@ export class GeoProjectionService {
     }
 
     switch (type) {
+      // Composite projections (with integrated overseas territories)
       case 'conic-conformal-france':
         return {
           type: () => geoConicConformalFrance(),
+          domain: data,
+        }
+      case 'conic-conformal-portugal':
+        return {
+          type: () => geoConicConformalPortugal(),
+          domain: data,
+        }
+      case 'conic-conformal-europe':
+        return {
+          type: () => geoConicConformalEurope(),
           domain: data,
         }
 

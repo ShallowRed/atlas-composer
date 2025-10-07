@@ -88,7 +88,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       // Use the geo data config from the selected region
       const geoDataConfig = configStore.currentRegionConfig.geoDataConfig
-      cartographer.value = new Cartographer(geoDataConfig)
+      const compositeConfig = configStore.currentRegionConfig.compositeProjectionConfig
+      cartographer.value = new Cartographer(geoDataConfig, compositeConfig)
       await cartographer.value.init()
 
       isInitialized.value = true
@@ -174,7 +175,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const service = (cartographer.value as any).geoDataService
 
       // Get territory codes based on current region and mode
-      let territoryCodes: readonly string[]
+      let territoryCodes: readonly string[] | undefined
       switch (configStore.selectedRegion) {
         case 'france':
           territoryCodes = getTerritoriesForMode(mode as any)
@@ -183,8 +184,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
           territoryCodes = getPortugalTerritoriesForMode(mode as any)
           break
         default:
-          // EU or other regions without mode filtering
-          territoryCodes = []
+          // EU or other regions without mode filtering - pass undefined to include all
+          territoryCodes = undefined
       }
 
       rawUnifiedData.value = await service.getRawUnifiedData(mode, territoryCodes)

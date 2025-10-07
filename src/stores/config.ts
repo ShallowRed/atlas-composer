@@ -36,7 +36,7 @@ export const useConfigStore = defineStore('config', () => {
   const viewMode = ref<ViewMode>('composite-custom')
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
-  const compositeProjection = ref<'conic-conformal-france'>('conic-conformal-france')
+  const compositeProjection = ref<string>(currentRegionConfig.value.defaultCompositeProjection || 'conic-conformal-france')
   const theme = ref('light')
 
   // Computed: Check if view mode selector should be disabled
@@ -77,13 +77,15 @@ export const useConfigStore = defineStore('config', () => {
   // Computed
   const showProjectionSelector = computed(() => {
     // Show uniform projection selector when:
-    // - In split mode with uniform projection
-    // - OR in custom composite mode (always uses one projection)
-    // - OR in unified mode (single projection for all territories)
-    if (viewMode.value === 'composite-custom' || viewMode.value === 'unified') {
-      return true // Custom composite and unified always use one projection
+    // - In unified mode (single projection for all territories)
+    if (viewMode.value === 'unified') {
+      return true
     }
-    return viewMode.value === 'split' && projectionMode.value === 'uniform'
+    // - In split or custom composite mode with uniform projection
+    if (viewMode.value === 'split' || viewMode.value === 'composite-custom') {
+      return projectionMode.value === 'uniform'
+    }
+    return false
   })
 
   const showProjectionModeToggle = computed(() => {
@@ -127,7 +129,7 @@ export const useConfigStore = defineStore('config', () => {
 
     // Exclude composite projections from the projection selector
     // They are now handled by the composite mode selector
-    const compositeProjections = ['conic-conformal-france']
+    const compositeProjections = ['conic-conformal-france', 'conic-conformal-portugal']
     const filteredOptions = PROJECTION_OPTIONS.filter(option => !compositeProjections.includes(option.value))
 
     filteredOptions.forEach((option) => {
@@ -169,7 +171,7 @@ export const useConfigStore = defineStore('config', () => {
     projectionMode.value = mode
   }
 
-  const setCompositeProjection = (projection: 'conic-conformal-france') => {
+  const setCompositeProjection = (projection: string) => {
     compositeProjection.value = projection
   }
 
@@ -222,6 +224,18 @@ export const useConfigStore = defineStore('config', () => {
       else if (config.territoryModeOptions && config.territoryModeOptions.length > 0) {
         territoryMode.value = config.territoryModeOptions[0]!.value as any
       }
+    }
+
+    // Load default composite configuration if available
+    if (config.defaultCompositeConfig) {
+      Object.assign(territoryProjections.value, config.defaultCompositeConfig.territoryProjections)
+      Object.assign(territoryTranslations.value, config.defaultCompositeConfig.territoryTranslations)
+      Object.assign(territoryScales.value, config.defaultCompositeConfig.territoryScales)
+    }
+
+    // Update composite projection to match the new region
+    if (config.defaultCompositeProjection) {
+      compositeProjection.value = config.defaultCompositeProjection
     }
   })
 

@@ -2,7 +2,7 @@ import type { GeoDataConfig, TerritoryConfig } from '@/constants/territory-types
 
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-import { DEFAULT_GEO_DATA_CONFIG, getTerritoriesForMode, getTerritoryWorldRegion } from '@/constants/france-territories'
+import { DEFAULT_GEO_DATA_CONFIG, getTerritoryWorldRegion } from '@/constants/france-territories'
 
 /**
  * Represents a territory (mainland or overseas)
@@ -222,6 +222,27 @@ export class GeoDataService {
   }
 
   /**
+   * Returns the complete, unmodified territory data for all territories
+   * Used for built-in composite projections that handle positioning internally
+   * @returns FeatureCollection containing all territory data with original coordinates
+   */
+  async getCompleteData(): Promise<GeoJSON.FeatureCollection> {
+    await this.loadData()
+
+    const allFeatures: GeoJSON.Feature[] = []
+
+    // Add all territories without any extraction or filtering
+    for (const [_, territoryData] of this.territoryData) {
+      allFeatures.push(territoryData.feature)
+    }
+
+    return {
+      type: 'FeatureCollection',
+      features: allFeatures,
+    }
+  }
+
+  /**
    * Extracts only the main region of the mainland territory
    * Filters polygons based on configured geographic bounds
    * @param feature - Original mainland territory feature
@@ -415,43 +436,65 @@ export class GeoDataService {
 
   /**
    * Returns raw geographic data with original coordinates for composite projections
-   * @param mode - Display mode determining which territories to include
-   * @param territoryCodes - Optional array of territory codes to include (if not provided, uses mode-based filtering)
+   * @param _mode - Display mode determining which territories to include (unused, kept for API compatibility)
+   * @param territoryCodes - Array of territory codes to include
    * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
    */
-  async getRawUnifiedData(mode: string = 'metropole-major', territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
+  async getRawUnifiedData(_mode: string = 'metropole-major', territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
+    // Handle regions without mainland concept (like EU)
+    if (!this.config.mainlandCode) {
+      if (!territoryCodes) {
+        return await this.getCompleteData()
+      }
+      // For EU: filter features by territory codes
+      const allFeatures: GeoJSON.Feature[] = []
+      for (const code of territoryCodes) {
+        const territory = this.territoryData.get(code)
+        if (territory) {
+          allFeatures.push(territory.feature)
+        }
+      }
+      return { type: 'FeatureCollection', features: allFeatures }
+    }
+
+    // For regions with mainland
     const unifiedFeatures: GeoJSON.Feature[] = []
 
-    // Get mainland territory if configured (no repositioning needed)
-    const mainland = await this.getMainLandData()
+    // Always include mainland for composite projections
+    // The mainland code is typically not in territoryCodes (which only contains overseas territories)
+    const mainland = this.territoryData.get(this.config.mainlandCode)
     if (mainland) {
-      unifiedFeatures.push(...mainland.features)
+      // Always extract only the mainland region (not the complete MultiPolygon)
+      const mainlandData = await this.getMainLandData()
+      if (mainlandData) {
+        unifiedFeatures.push(...mainlandData.features)
+      }
     }
 
+    // Add overseas territories
     const allOverseasData = await this.getOverseasData()
 
-    // Filter territories based on provided codes or fall back to France-specific mode filtering
-    let filteredOverseas: typeof allOverseasData
-    if (territoryCodes !== undefined) {
-      // Use provided territory codes (supports any region)
-      filteredOverseas = allOverseasData.filter(territory => territoryCodes.includes(territory.code))
-    }
-    else if (this.config.mainlandCode) {
-      // Legacy France-specific filtering for backward compatibility
-      filteredOverseas = allOverseasData.filter(territory => getTerritoriesForMode(mode as any).includes(territory.code))
+    if (territoryCodes) {
+      // Filter territories based on provided codes
+      // If territoryCodes is empty array [], don't include any overseas territories
+      if (territoryCodes.length > 0) {
+        const filteredOverseas = allOverseasData.filter(territory =>
+          territoryCodes.includes(territory.code),
+        )
+        filteredOverseas.forEach((territory) => {
+          unifiedFeatures.push(...territory.data.features)
+        })
+      }
+      // else: empty array means no overseas territories (metropole-only mode)
     }
     else {
-      // For regions without mainland (like EU), include all territories
-      filteredOverseas = allOverseasData
+      // territoryCodes is undefined: include all overseas territories
+      allOverseasData.forEach((territory) => {
+        unifiedFeatures.push(...territory.data.features)
+      })
     }
-
-    // Add overseas/all territories with their ORIGINAL coordinates
-    filteredOverseas.forEach((territory) => {
-      // Add original features without any coordinate transformation
-      unifiedFeatures.push(...territory.data.features)
-    })
 
     return {
       type: 'FeatureCollection',

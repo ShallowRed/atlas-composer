@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import type ProjectionExporter from '@/components/ProjectionExporter.vue'
 // import { onMounted, ref } from 'vue'
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
@@ -13,6 +13,7 @@ import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import { getAvailableRegions } from '@/constants/regions'
+import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -23,6 +24,21 @@ const allowThemeSelection = false
 // Stores
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
+
+// Computed
+const compositeProjectionOptions = computed(() => {
+  // Get the current region's available composite projections
+  const regionConfig = configStore.currentRegionConfig
+  const availableProjections = regionConfig.compositeProjections || []
+
+  // Filter PROJECTION_OPTIONS to only show projections available for this region
+  return PROJECTION_OPTIONS
+    .filter(option =>
+      option.category.startsWith('Projections Composites') // Matches all composite projection categories
+      && availableProjections.includes(option.value),
+    )
+    .map(option => ({ value: option.value, label: option.label }))
+})
 
 // Methods
 // updateMaps() removed - MapRenderer now watches store changes automatically
@@ -151,14 +167,12 @@ watch(() => configStore.territoryMode, async () => {
 
           <!-- Composite Projection Selector (for composite-existing mode) -->
           <FormControl
-            v-show="configStore.showCompositeProjectionSelector"
+            v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
             v-model="configStore.compositeProjection"
             label="Projection composite"
             icon="ri-global-line"
             type="select"
-            :options="[
-              { value: 'conic-conformal-france', label: 'Conic Conformal France' },
-            ]"
+            :options="compositeProjectionOptions"
           />
 
           <!-- Projection Mode Toggle (for split and composite-custom modes) -->

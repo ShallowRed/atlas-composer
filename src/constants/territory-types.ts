@@ -45,10 +45,22 @@ export interface RegionConfig {
   defaultViewMode: 'split' | 'composite-existing' | 'composite-custom' | 'unified' // Default view mode
   splitModeConfig?: {
     mainlandTitle?: string // Title for mainland section (e.g., 'France Métropolitaine')
+    mainlandCode?: string // Code for mainland in territory controls (e.g., 'FR-MET', 'PT-CONT')
     territoriesTitle: string // Title for territories section (e.g., 'États membres de l'Union Européenne', 'DOM-TOM')
   }
   territoryModeOptions?: Array<{ value: string, label: string }> // Options for "Territoires à inclure" selector (null if not applicable)
   defaultTerritoryMode?: string // Default territory mode (e.g., 'metropole-major' for France)
+  defaultCompositeConfig?: {
+    territoryProjections: Record<string, string>
+    territoryTranslations: Record<string, { x: number, y: number }>
+    territoryScales: Record<string, number>
+  } // Default configuration for composite-custom mode
+  compositeProjections?: string[] // Built-in D3 composite projections available for this region (e.g., ['conic-conformal-france'])
+  defaultCompositeProjection?: string // Default composite projection to use
+  compositeProjectionConfig?: {
+    mainland: TerritoryConfig
+    overseasTerritories: TerritoryConfig[]
+  } // Configuration for CustomCompositeProjection class
   hasTerritorySelector?: boolean // Whether to show the territory selector
 }
 

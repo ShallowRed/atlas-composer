@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/cartographer/Cartographer'
-import { computed, onMounted, ref, watch } from 'vue'
-import { Cartographer } from '@/cartographer/Cartographer'
-import { TERRITORY_CODES } from '@/constants/france-territories'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
 
 interface Props {
   // For simple territory maps
@@ -32,24 +31,22 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
 const mapContainer = ref<HTMLElement>()
-const cartographer = ref<Cartographer | null>(null)
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const isMounted = ref(false)
+const isRendering = ref(false)
 
-// Initialize cartographer on mount
+// Use cartographer from store
+const cartographer = computed(() => geoDataStore.cartographer)
+
+// Render map on mount
 onMounted(async () => {
-  if (!cartographer.value) {
-    try {
-      cartographer.value = new Cartographer()
-      await cartographer.value.init()
-    }
-    catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error initializing cartographer'
-      console.error('Cartographer initialization error:', err)
-    }
-  }
+  // Wait for DOM to be ready
+  await nextTick()
+  isMounted.value = true
   await renderMap()
 })
 
@@ -97,12 +94,23 @@ const insetValue = computed(() => {
 // Removed getProjection - now handled directly by Cartographer
 
 async function renderMap() {
+  // Don't render if not mounted yet
+  if (!isMounted.value) {
+    return
+  }
+
+  // Don't render if already rendering (prevent concurrent renders)
+  if (isRendering.value) {
+    return
+  }
+
+  // Check required dependencies
   if (!mapContainer.value || !cartographer.value) {
-    console.warn('Map container or cartographer not available yet')
     return
   }
 
   try {
+    isRendering.value = true
     isLoading.value = true
     error.value = null
     mapContainer.value.innerHTML = ''
@@ -138,6 +146,12 @@ async function renderMap() {
       plot = await cartographer.value.render(options)
     }
 
+    // Check again after async operations in case component unmounted
+    if (!mapContainer.value) {
+      // Component unmounted during render - this is normal, just return silently
+      return
+    }
+
     mapContainer.value.appendChild(plot as any)
   }
   catch (err) {
@@ -146,6 +160,7 @@ async function renderMap() {
   }
   finally {
     isLoading.value = false
+    isRendering.value = false
   }
 }
 
@@ -159,6 +174,17 @@ async function renderComposite(): Promise<Plot.Plot> {
   // Build custom composite settings if in custom mode
   let customSettings
   if (configStore.viewMode === 'composite-custom') {
+    // Get territory codes from the current region's composite config
+    const compositeConfig = configStore.currentRegionConfig.compositeProjectionConfig
+    const territoryCodes: string[] = []
+
+    if (compositeConfig) {
+      // Add mainland code
+      territoryCodes.push(compositeConfig.mainland.code)
+      // Add all overseas territory codes
+      compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code))
+    }
+
     // Build territory projections
     const territoryProjections: Record<string, string> = {}
     if (configStore.projectionMode === 'individual') {
@@ -166,7 +192,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     }
     else {
       // Uniform mode: all territories use the same projection
-      TERRITORY_CODES.forEach((code) => {
+      territoryCodes.forEach((code) => {
         territoryProjections[code] = configStore.selectedProjection
       })
     }
@@ -183,9 +209,14 @@ async function renderComposite(): Promise<Plot.Plot> {
     ? 'composite-custom'
     : 'composite-projection'
 
+  // Get territory codes for both modes
+  // The territory mode determines which territories to show
+  const territoryCodes = geoDataStore.filteredTerritories.map(t => t.code)
+
   const options: CompositeRenderOptions = {
     mode,
     territoryMode: configStore.territoryMode,
+    territoryCodes,
     projection: configStore.compositeProjection || configStore.selectedProjection,
     width,
     height,
@@ -208,6 +239,7 @@ watch(() => {
       configStore.territoryTranslations,
       configStore.territoryScales,
       configStore.territoryProjections,
+      geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
     ]
   }
   return [
@@ -218,7 +250,7 @@ watch(() => {
   ]
 }, async () => {
   await renderMap()
-}, { deep: true })
+}, { deep: true, flush: 'post' })
 </script>
 
 <template>

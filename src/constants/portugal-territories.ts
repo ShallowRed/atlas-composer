@@ -93,3 +93,41 @@ export function getPortugalTerritoryRegion(code: string): string {
   const territory = AUTONOMOUS_REGIONS.find(t => t.code === code)
   return territory ? 'Atlantic' : 'Other'
 }
+
+/**
+ * Default composite projection configuration for Portugal
+ * Defines projections, translations, and scales for custom composite view
+ */
+export const DEFAULT_PORTUGAL_COMPOSITE_CONFIG = {
+  territoryProjections: {
+    'PT-CONT': 'mercator', // Continental Portugal
+    'PT-20': 'mercator', // Madeira
+    'PT-30': 'mercator', // Azores
+  },
+  territoryTranslations: {
+    'PT-CONT': { x: 0, y: 0 }, // Mainland at center
+    'PT-20': { x: 400, y: -200 }, // Madeira to the east
+    'PT-30': { x: -400, y: -100 }, // Azores to the west
+  },
+  territoryScales: {
+    'PT-CONT': 1.0,
+    'PT-20': 1.0,
+    'PT-30': 1.0,
+  },
+}
+
+/**
+ * Composite projection configuration for CustomCompositeProjection
+ * This matches the format required by the CustomCompositeProjection class
+ */
+export const PORTUGAL_COMPOSITE_PROJECTION_CONFIG = {
+  mainland: {
+    code: 'PT-CONT',
+    name: 'Portugal Continental',
+    center: [-8.0, 39.5] as [number, number],
+    offset: [0, 0] as [number, number],
+    bounds: [[-9.5, 37.0], [-6.2, 42.2]] as [[number, number], [number, number]],
+    projectionType: 'mercator',
+  },
+  overseasTerritories: AUTONOMOUS_REGIONS,
+}

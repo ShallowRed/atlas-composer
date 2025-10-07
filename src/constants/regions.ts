@@ -5,8 +5,8 @@
 
 import type { RegionConfig } from '@/constants/territory-types'
 import { EU_GEO_DATA_CONFIG } from '@/constants/eu-territories'
-import { DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '@/constants/france-territories'
-import { PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '@/constants/portugal-territories'
+import { DEFAULT_COMPOSITE_PROJECTION_CONFIG, DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '@/constants/france-territories'
+import { DEFAULT_PORTUGAL_COMPOSITE_CONFIG, PORTUGAL_COMPOSITE_PROJECTION_CONFIG, PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '@/constants/portugal-territories'
 
 /**
  * Available region configurations
@@ -19,8 +19,12 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     supportedViewModes: ['split', 'composite-existing', 'composite-custom', 'unified'],
     defaultViewMode: 'composite-custom',
     defaultTerritoryMode: 'metropole-major', // Default: France métropolitaine + DOM-TOM majeurs
+    compositeProjections: ['conic-conformal-france'], // Built-in D3 composite projections for France
+    defaultCompositeProjection: 'conic-conformal-france', // Default composite projection
+    compositeProjectionConfig: DEFAULT_COMPOSITE_PROJECTION_CONFIG, // Configuration for CustomCompositeProjection
     splitModeConfig: {
       mainlandTitle: 'France Métropolitaine',
+      mainlandCode: 'FR-MET',
       territoriesTitle: 'Départements et Collectivités d\'Outre-Mer',
     },
     hasTerritorySelector: true,
@@ -35,8 +39,10 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     id: 'eu',
     name: 'Union Européenne',
     geoDataConfig: EU_GEO_DATA_CONFIG,
-    supportedViewModes: ['split', 'unified'], // EU supports split and unified modes
+    supportedViewModes: ['split', 'composite-existing', 'unified'], // EU supports split, composite-existing, and unified modes
     defaultViewMode: 'split',
+    compositeProjections: ['conic-conformal-europe'], // Built-in D3 composite projection for Europe
+    defaultCompositeProjection: 'conic-conformal-europe', // Default composite projection
     splitModeConfig: {
       territoriesTitle: 'États membres de l\'Union Européenne',
     },
@@ -46,11 +52,16 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     id: 'portugal',
     name: 'Portugal',
     geoDataConfig: PORTUGAL_GEO_DATA_CONFIG,
-    supportedViewModes: ['split', 'composite-custom', 'unified'],
+    supportedViewModes: ['split', 'composite-existing', 'composite-custom', 'unified'],
     defaultViewMode: 'composite-custom',
     defaultTerritoryMode: 'all-territories', // Default: Toutes les régions autonomes
+    defaultCompositeConfig: DEFAULT_PORTUGAL_COMPOSITE_CONFIG, // Default composite projection settings
+    compositeProjections: ['conic-conformal-portugal'], // Built-in D3 composite projections for Portugal
+    defaultCompositeProjection: 'conic-conformal-portugal', // Default composite projection
+    compositeProjectionConfig: PORTUGAL_COMPOSITE_PROJECTION_CONFIG, // Configuration for CustomCompositeProjection
     splitModeConfig: {
       mainlandTitle: 'Portugal Continental',
+      mainlandCode: 'PT-CONT',
       territoriesTitle: 'Régions Autonomes',
     },
     hasTerritorySelector: true,

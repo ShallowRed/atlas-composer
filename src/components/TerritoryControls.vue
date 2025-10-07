@@ -30,9 +30,14 @@ const territories = computed(() => {
   }))
 })
 
-// Check if we should show mainland section (only for France)
+// Check if we should show mainland section (only for regions with mainland/overseas split)
 const showMainland = computed(() => {
   return configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0
+})
+
+// Get mainland code dynamically from region config
+const mainlandCode = computed(() => {
+  return configStore.currentRegionConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
 })
 
 const translations = computed(() => configStore.territoryTranslations)
@@ -83,7 +88,7 @@ function resetToDefaults() {
           checked
         >
         <div class="collapse-title font-semibold">
-          {{ configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">(FR-MET)</span>
+          {{ configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">({{ mainlandCode }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector -->
@@ -95,11 +100,11 @@ function resetToDefaults() {
               </span>
             </label>
             <select
-              :value="configStore.territoryProjections['FR-MET'] || configStore.selectedProjection"
+              :value="configStore.territoryProjections[mainlandCode] || configStore.selectedProjection"
               class="select select-sm w-full cursor-pointer"
               @change="(e) => {
                 const projectionType = (e.target as HTMLSelectElement).value
-                configStore.setTerritoryProjection('FR-MET', projectionType)
+                configStore.setTerritoryProjection(mainlandCode, projectionType)
               }"
             >
               <optgroup
