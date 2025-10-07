@@ -95,7 +95,7 @@ function resetToDefaults() {
           <div class="mb-4">
             <label class="label">
               <span class="label-text text-sm font-medium">
-                <i class="ri-global-line" />
+                <i class="ri-map-2-line" />
                 Projection cartographique
               </span>
             </label>
@@ -143,7 +143,7 @@ function resetToDefaults() {
           <div v-if="configStore.projectionMode === 'individual'" class="mb-4">
             <label class="label">
               <span class="label-text text-sm font-medium">
-                <i class="ri-global-line" />
+                <i class="ri-map-2-line" />
                 Projection cartographique
               </span>
             </label>

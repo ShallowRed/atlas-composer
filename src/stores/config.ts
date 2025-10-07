@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
 import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
-import { DEFAULT_REGION, getRegionConfig } from '@/constants/regions'
+import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/constants/regions'
 import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-types'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 
@@ -127,10 +127,13 @@ export const useConfigStore = defineStore('config', () => {
   const projectionGroups = computed(() => {
     const groups: { [key: string]: any[] } = {}
 
-    // Exclude composite projections from the projection selector
+    // Exclude all composite projections from the projection selector
     // They are now handled by the composite mode selector
-    const compositeProjections = ['conic-conformal-france', 'conic-conformal-portugal']
-    const filteredOptions = PROJECTION_OPTIONS.filter(option => !compositeProjections.includes(option.value))
+    // Dynamically get all composite projections from all regions
+    const allCompositeProjections = Object.values(REGION_CONFIGS)
+      .flatMap(config => config.compositeProjections || [])
+    
+    const filteredOptions = PROJECTION_OPTIONS.filter(option => !allCompositeProjections.includes(option.value))
 
     filteredOptions.forEach((option) => {
       if (!groups[option.category]) {

@@ -161,7 +161,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-model="configStore.selectedRegion"
             label="Région"
-            icon="ri-global-line"
+            icon="ri-earth-line"
             type="select"
             :options="getAvailableRegions()"
           />
@@ -191,7 +191,7 @@ watch(() => configStore.territoryMode, async () => {
             v-show="configStore.showProjectionModeToggle"
             v-model="configStore.projectionMode"
             label="Mode de projection"
-            icon="ri-git-branch-line"
+            icon="ri-global-line"
             type="select"
             :options="[
               { value: 'uniform', label: 'Uniforme' },
@@ -204,7 +204,7 @@ watch(() => configStore.territoryMode, async () => {
             v-show="configStore.showProjectionSelector"
             v-model="configStore.selectedProjection"
             label="Projection cartographique"
-            icon="ri-global-line"
+            icon="ri-map-2-line"
             type="select"
             :option-groups="configStore.projectionGroups"
           />

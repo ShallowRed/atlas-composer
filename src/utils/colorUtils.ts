@@ -30,16 +30,16 @@ function getMainlandCodes(): string[] {
 function isMainland(code?: string): boolean {
   if (!code)
     return false
-  
+
   const configStore = useConfigStore()
   const regionConfig = configStore.currentRegionConfig
-  
+
   // If the region doesn't have a mainland code defined, treat all territories equally
   // This automatically handles regions like EU where all countries should have the same color
   if (!regionConfig.splitModeConfig?.mainlandCode) {
     return false
   }
-  
+
   const mainlandCodes = getMainlandCodes()
   return mainlandCodes.includes(code)
 }
