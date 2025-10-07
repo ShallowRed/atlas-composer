@@ -209,9 +209,12 @@ async function renderComposite(): Promise<Plot.Plot> {
     ? 'composite-custom'
     : 'composite-projection'
 
-  // Get territory codes for both modes
-  // The territory mode determines which territories to show
-  const territoryCodes = geoDataStore.filteredTerritories.map(t => t.code)
+  // Get territory codes
+  // For composite-existing mode, territories may not be loaded, so use undefined (composite projection handles all territories)
+  // For composite-custom mode, use filtered territories
+  const territoryCodes = configStore.viewMode === 'composite-existing'
+    ? undefined
+    : geoDataStore.filteredTerritories.map(t => t.code)
 
   const options: CompositeRenderOptions = {
     mode,
