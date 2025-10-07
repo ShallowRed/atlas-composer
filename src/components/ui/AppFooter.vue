@@ -1,16 +1,34 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
+
+const route = useRoute()
 </script>
 
 <template>
   <footer class="footer footer-center bg-neutral text-neutral-content py-10">
     <nav class="grid grid-flow-col gap-4">
-      <RouterLink to="/" class="link link-hover">
+      <RouterLink
+        v-if="route.path !== '/'"
+        to="/"
+        class="link link-hover"
+      >
         Carte
       </RouterLink>
-      <RouterLink to="/about" class="link link-hover">
+      <span v-else class="opacity-70 cursor-default">
+        Carte
+      </span>
+
+      <RouterLink
+        v-if="route.path !== '/about'"
+        to="/about"
+        class="link link-hover"
+      >
         À propos
       </RouterLink>
+      <span v-else class="opacity-70 cursor-default">
+        À propos
+      </span>
+
       <a
         href="https://github.com"
         target="_blank"
@@ -23,7 +41,7 @@ import { RouterLink } from 'vue-router'
 
     <aside>
       <p class="text-sm">
-        Cartographies Responsives - Un projet de visualisation cartographique interactive
+        Geo projection sandbox
       </p>
       <p class="text-xs">
         Construit avec Vue 3, D3.js, Observable Plot et daisyUI
@@ -31,7 +49,7 @@ import { RouterLink } from 'vue-router'
     </aside>
 
     <aside class="text-xs">
-      <p>© {{ new Date().getFullYear() }} - Tous droits réservés</p>
+      <p>License MIT</p>
     </aside>
   </footer>
 </template>
