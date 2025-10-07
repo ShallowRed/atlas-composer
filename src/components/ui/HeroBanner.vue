@@ -1,14 +1,41 @@
+<script setup lang="ts">
+import { RouterLink, useRoute } from 'vue-router'
+
+const route = useRoute()
+</script>
+
 <template>
-  <header class="hero bg-base-300">
-    <div class="hero-content text-center py-12">
-      <div class="max-w-md">
-        <h1 class="text-4xl font-bold">
-          Cartographies de la France
-        </h1>
-        <p class="py-4 text-lg opacity-90">
-          Représentation de la métropole et des outre-mer avec préservation des rapports de taille
-        </p>
+  <header class="">
+    <!-- Navigation Bar -->
+    <nav class="container mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <RouterLink
+          to="/"
+          class="text-2xl font-bold flex items-center gap-2 hover:opacity-80 transition"
+        >
+          <i class="ri-map-2-fill" />
+          Cartographies Responsives
+        </RouterLink>
+
+        <div class="flex items-center gap-4">
+          <RouterLink
+            to="/"
+            class="btn btn-ghost btn-sm"
+            :class="{ 'btn-active': route.path === '/' }"
+          >
+            <i class="ri-map-line" />
+            Cartes
+          </RouterLink>
+          <RouterLink
+            to="/about"
+            class="btn btn-ghost btn-sm"
+            :class="{ 'btn-active': route.path === '/about' }"
+          >
+            <i class="ri-information-line" />
+            À propos
+          </RouterLink>
+        </div>
       </div>
-    </div>
+    </nav>
   </header>
 </template>

@@ -132,7 +132,7 @@ export const useConfigStore = defineStore('config', () => {
     // Dynamically get all composite projections from all regions
     const allCompositeProjections = Object.values(REGION_CONFIGS)
       .flatMap(config => config.compositeProjections || [])
-    
+
     const filteredOptions = PROJECTION_OPTIONS.filter(option => !allCompositeProjections.includes(option.value))
 
     filteredOptions.forEach((option) => {

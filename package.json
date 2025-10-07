@@ -29,7 +29,8 @@
     "tailwindcss": "^4.1.14",
     "topojson-client": "^3.1.0",
     "vite-plugin-eslint": "^1.8.1",
-    "vue": "^3.5.22"
+    "vue": "^3.5.22",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
