@@ -54,18 +54,84 @@ Le projet sera accessible à l'adresse [http://localhost:5173](http://localhost:
 pnpm build
 ```
 
-## 📁 Structure du projet
+## 📁 Architecture du projet
+
+Le projet suit une architecture en couches avec séparation des préoccupations :
+
+### Structure des répertoires
 
 ```
 src/
-├── cartographer/
-│   └── FranceCartographer.ts    # Classe principale de cartographie
-├── services/
-│   ├── FranceGeoDataService.ts  # Gestion des données géographiques
-│   └── GeoProjectionService.ts  # Service des projections géographiques
-├── styles.css                   # Styles CSS
-└── main.ts                      # Point d'entrée de l'application
+├── data/territories/              # 📊 Couche de données
+│   ├── france.data.ts            # Données géographiques de la France
+│   ├── portugal.data.ts          # Données géographiques du Portugal
+│   ├── eu.data.ts                # Données géographiques de l'UE
+│   └── index.ts                  # Registre central des données
+│
+├── config/regions/               # ⚙️ Couche de configuration
+│   ├── types.ts                  # Types TypeScript pour la config
+│   ├── france.config.ts          # Configuration spécifique France
+│   ├── portugal.config.ts        # Configuration spécifique Portugal
+│   ├── eu.config.ts              # Configuration spécifique UE
+│   └── index.ts                  # Registre central des configs
+│
+├── services/                     # 🔧 Couche métier
+│   ├── TerritoryService.ts       # Utilitaires génériques pour territoires
+│   ├── RegionService.ts          # Accès aux données par région
+│   ├── CartographerFactory.ts    # Factory pour créer des cartographes
+│   ├── GeoDataService.ts         # Service de chargement des données
+│   └── GeoProjectionService.ts   # Service de projections géographiques
+│
+├── cartographer/                 # 🗺️ Moteur cartographique
+│   └── Cartographer.ts           # Classe principale de rendu
+│
+├── stores/                       # 💾 Gestion d'état (Pinia)
+│   ├── config.ts                 # Store de configuration UI
+│   └── geoData.ts                # Store des données géographiques
+│
+├── components/                   # 🎨 Composants Vue
+│   ├── MapRenderer.vue           # Rendu des cartes
+│   ├── TerritoryControls.vue    # Contrôles des territoires
+│   └── ui/                       # Composants UI réutilisables
+│
+├── views/                        # 📄 Pages
+│   ├── MapView.vue               # Vue principale des cartes
+│   └── AboutView.vue             # Page À propos
+│
+└── types/                        # 📝 Définitions TypeScript
+    └── territory.d.ts            # Types pour territoires et régions
 ```
+
+### Principes d'architecture
+
+1. **Séparation des préoccupations**
+   - **Data** : Données géographiques pures (coordinates, bounds, etc.)
+   - **Config** : Configuration spécifique à chaque région (modes, projections, etc.)
+   - **Services** : Logique métier et utilitaires
+
+2. **Agnostique de la région**
+   - Aucune dépendance dure vers une région spécifique
+   - Ajout d'une nouvelle région = 2 fichiers (data + config)
+   - Les services fonctionnent avec n'importe quelle région
+
+3. **Factory Pattern**
+   - `CartographerFactory` gère la création d'instances par région
+   - Cache intégré pour optimiser les performances
+   - Configuration automatique selon la région
+
+4. **Service Layer**
+   - `TerritoryService` : Opérations génériques (statiques)
+   - `RegionService` : Accès contextualisé par région (instance)
+
+### Migration depuis l'ancienne architecture
+
+Si vous utilisez l'ancienne structure (`src/constants/territories/`), consultez le [Guide de Migration](.github/MIGRATION_GUIDE.md) pour migrer vers la nouvelle architecture.
+
+**Fichiers dépréciés** :
+- ⚠️ `src/constants/territories/france-territories.ts`
+- ⚠️ `src/constants/territories/portugal-territories.ts`
+- ⚠️ `src/constants/territories/eu-territories.ts`
+- ⚠️ `src/constants/regions.ts`
 
 ## 🗺️ Fonctionnalités principales
 

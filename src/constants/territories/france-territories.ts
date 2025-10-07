@@ -1,6 +1,21 @@
 /**
  * French territory configurations
  * Specific definitions for France and its overseas territories
+ *
+ * @deprecated This file is deprecated and will be removed in a future version.
+ *
+ * **Migration Guide:**
+ * - For pure territory data, use: `@/data/territories/france.data.ts`
+ * - For region configuration, use: `@/config/regions/france.config.ts`
+ * - For territory operations, use: `@/services/TerritoryService.ts`
+ * - For region-aware access, use: `@/services/RegionService.ts`
+ *
+ * The new architecture separates:
+ * 1. Data layer (src/data/territories/) - Pure geographic data
+ * 2. Config layer (src/config/regions/) - Region-specific settings
+ * 3. Service layer (src/services/) - Business logic and utilities
+ *
+ * This separation improves maintainability and makes the codebase region-agnostic.
  */
 
 import type {

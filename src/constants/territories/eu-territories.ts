@@ -1,6 +1,16 @@
 /**
  * European Union territory configurations
  * Configuration for EU member states
+ *
+ * @deprecated This file is deprecated and will be removed in a future version.
+ *
+ * **Migration Guide:**
+ * - For pure territory data, use: `@/data/territories/eu.data.ts`
+ * - For region configuration, use: `@/config/regions/eu.config.ts`
+ * - For territory operations, use: `@/services/TerritoryService.ts`
+ * - For region-aware access, use: `@/services/RegionService.ts`
+ *
+ * The new architecture separates concerns for better maintainability.
  */
 
 import type { GeoDataConfig } from '@/types/territory'
