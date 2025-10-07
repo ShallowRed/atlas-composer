@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
-import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
+import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '#src/constants/territories/france-territories.ts'
 import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/constants/regions'
 import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-constants'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'

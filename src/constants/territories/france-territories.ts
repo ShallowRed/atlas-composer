@@ -3,11 +3,18 @@
  * Specific definitions for France and its overseas territories
  */
 
+import type {
+  GeoDataConfig,
+  TerritoryConfig,
+  TerritoryGroupConfig,
+  TerritoryModeConfig,
+} from '@/types/territory'
+
 import {
   createDefaultTranslations,
   createTerritoryMap,
   extractTerritoryCodes,
-} from '@/utils/territoryUtils'
+} from '#src/utils/territory-utils.ts'
 
 /**
  * Mainland territory configuration (France Métropolitaine)

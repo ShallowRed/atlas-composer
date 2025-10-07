@@ -1,14 +1,14 @@
-import type { CompositeProjectionConfig } from '../services/CustomCompositeProjection'
+import type { CompositeProjectionConfig } from '@/services/CustomCompositeProjection'
+import type { GeoDataConfig } from '@/types/territory'
+import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '#src/constants/territories/france-territories.ts'
 import * as Plot from '@observablehq/plot'
-
-import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '@/constants/france-territories'
-import { CustomCompositeProjection } from '../services/CustomCompositeProjection'
-import { GeoDataService } from '../services/GeoDataService'
-import { GeoProjectionService } from '../services/GeoProjectionService'
+import { CustomCompositeProjection } from '@/services/CustomCompositeProjection'
+import { GeoDataService } from '@/services/GeoDataService'
+import { GeoProjectionService } from '@/services/GeoProjectionService'
 import {
   getTerritoryFillColor,
   getTerritoryStrokeColor,
-} from '../utils/colorUtils'
+} from '@/utils/color-utils'
 
 // Unified rendering options
 export interface RenderOptions {
@@ -49,7 +49,7 @@ export class Cartographer {
   public customComposite: CustomCompositeProjection
   private compositeConfig: CompositeProjectionConfig
 
-  constructor(geoDataConfig?: import('@/constants/territory-types').GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
+  constructor(geoDataConfig?: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
     this.projectionService = new GeoProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
     // Use provided composite config or fall back to France default

@@ -2,6 +2,8 @@
  * Territory utility functions
  */
 
+import type { TerritoryConfig } from '@/types/territory'
+
 /**
  * Create a territory lookup map by code
  * @param territories - Array of territory configurations

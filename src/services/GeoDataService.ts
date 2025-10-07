@@ -1,6 +1,6 @@
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-import { DEFAULT_GEO_DATA_CONFIG, getTerritoryWorldRegion } from '@/constants/france-territories'
+import { DEFAULT_GEO_DATA_CONFIG, getTerritoryWorldRegion } from '#src/constants/territories/france-territories.ts'
 
 /**
  * Represents a territory (mainland or overseas)
