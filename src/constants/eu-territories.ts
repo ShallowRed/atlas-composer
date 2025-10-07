@@ -3,8 +3,6 @@
  * Configuration for EU member states
  */
 
-import type { GeoDataConfig } from '@/constants/territory-types'
-
 /**
  * Default geographic data configuration for EU territories
  * This configuration can be passed to GeoDataService

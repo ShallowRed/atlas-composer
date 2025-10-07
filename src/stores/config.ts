@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { ALL_TERRITORIES, OVERSEAS_TERRITORIES } from '@/constants/france-territories'
 import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/constants/regions'
-import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-types'
+import { DEFAULT_PROJECTION_TYPES } from '@/constants/territory-constants'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'

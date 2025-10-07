@@ -3,7 +3,6 @@
  * Centralized configuration for all available geographic regions
  */
 
-import type { RegionConfig } from '@/constants/territory-types'
 import { EU_GEO_DATA_CONFIG } from '@/constants/eu-territories'
 import { DEFAULT_COMPOSITE_PROJECTION_CONFIG, DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '@/constants/france-territories'
 import { DEFAULT_PORTUGAL_COMPOSITE_CONFIG, PORTUGAL_COMPOSITE_PROJECTION_CONFIG, PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '@/constants/portugal-territories'

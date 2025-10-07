@@ -1,5 +1,3 @@
-import type { GeoDataConfig, TerritoryConfig } from '@/constants/territory-types'
-
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 import { DEFAULT_GEO_DATA_CONFIG, getTerritoryWorldRegion } from '@/constants/france-territories'

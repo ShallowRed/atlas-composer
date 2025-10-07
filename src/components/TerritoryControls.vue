@@ -7,7 +7,7 @@ import {
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
-} from '@/constants/territory-types'
+} from '@/constants/territory-constants'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 

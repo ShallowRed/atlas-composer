@@ -3,8 +3,6 @@
  * Defines all Portuguese territories including mainland and autonomous regions
  */
 
-import type { GeoDataConfig, TerritoryModeConfig } from '@/constants/territory-types'
-
 /**
  * Mainland Portugal
  */
