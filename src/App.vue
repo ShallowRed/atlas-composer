@@ -40,6 +40,22 @@ const compositeProjectionOptions = computed(() => {
     .map(option => ({ value: option.value, label: option.label }))
 })
 
+const viewModeOptions = computed(() => {
+  const regionConfig = configStore.currentRegionConfig
+  const supportedModes = regionConfig.supportedViewModes || []
+
+  // All possible view mode options
+  const allOptions = [
+    { value: 'composite-custom', label: 'Projection composite personnalisée' },
+    { value: 'split', label: 'Territoires séparés' },
+    { value: 'composite-existing', label: 'Projection composite existante' },
+    { value: 'unified', label: 'Projection unifiée' },
+  ]
+
+  // Filter to only supported modes for this region
+  return allOptions.filter(option => supportedModes.includes(option.value as any))
+})
+
 // Methods
 // updateMaps() removed - MapRenderer now watches store changes automatically
 
@@ -157,12 +173,7 @@ watch(() => configStore.territoryMode, async () => {
             icon="ri-layout-grid-line"
             type="select"
             :disabled="configStore.isViewModeLocked"
-            :options="[
-              { value: 'composite-custom', label: 'Projection composite personnalisée' },
-              { value: 'split', label: 'Territoires séparés' },
-              { value: 'composite-existing', label: 'Projection composite existante' },
-              { value: 'unified', label: 'Projection unifiée' },
-            ]"
+            :options="viewModeOptions"
           />
 
           <!-- Composite Projection Selector (for composite-existing mode) -->
@@ -261,7 +272,6 @@ watch(() => configStore.territoryMode, async () => {
                 />
               </div>
 
-              <!-- DOM-TOM -->
               <div>
                 <SectionHeader
                   :title="configStore.currentRegionConfig.splitModeConfig?.territoriesTitle || 'Territories'"
@@ -269,7 +279,6 @@ watch(() => configStore.territoryMode, async () => {
                   :level="3"
                 />
 
-                <!-- DOM-TOM Grid -->
                 <div class="flex flex-col gap-4">
                   <!-- Region Groups -->
                   <div
@@ -402,7 +411,7 @@ watch(() => configStore.territoryMode, async () => {
       <CardContainer
         v-show="configStore.showIndividualProjectionSelectors && geoDataStore.filteredTerritories.length > 0"
         width="md:w-1/4"
-        title="Paramètres par territoire"
+        title="Par territoire"
         icon="ri-settings-4-line"
       >
         <!-- Loading state -->

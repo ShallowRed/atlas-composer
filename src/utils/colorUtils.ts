@@ -1,4 +1,5 @@
 import { REGION_CONFIGS } from '@/constants/regions'
+import { useConfigStore } from '@/stores/config'
 
 /**
  * Color utility functions using DaisyUI theme colors
@@ -24,10 +25,21 @@ function getMainlandCodes(): string[] {
 
 /**
  * Check if a territory code represents a mainland territory
+ * Returns false for regions without mainland/overseas distinction (no splitModeConfig.mainlandCode)
  */
 function isMainland(code?: string): boolean {
   if (!code)
     return false
+  
+  const configStore = useConfigStore()
+  const regionConfig = configStore.currentRegionConfig
+  
+  // If the region doesn't have a mainland code defined, treat all territories equally
+  // This automatically handles regions like EU where all countries should have the same color
+  if (!regionConfig.splitModeConfig?.mainlandCode) {
+    return false
+  }
+  
   const mainlandCodes = getMainlandCodes()
   return mainlandCodes.includes(code)
 }
@@ -35,6 +47,7 @@ function isMainland(code?: string): boolean {
 /**
  * Get color for a specific territory code
  * Primary color for mainland territories, secondary for overseas/other territories
+ * For regions without mainland distinction, all territories use secondary color
  */
 export function getTerritoryFillColor(code?: string): string {
   if (isMainland(code)) {
@@ -46,6 +59,7 @@ export function getTerritoryFillColor(code?: string): string {
 /**
  * Get default stroke color for territories
  * Primary color for mainland territories, secondary for overseas/other territories
+ * For regions without mainland distinction, all territories use secondary color
  */
 export function getTerritoryStrokeColor(code?: string): string {
   if (isMainland(code)) {

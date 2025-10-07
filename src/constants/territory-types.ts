@@ -46,7 +46,7 @@ export interface RegionConfig {
   splitModeConfig?: {
     mainlandTitle?: string // Title for mainland section (e.g., 'France Métropolitaine')
     mainlandCode?: string // Code for mainland in territory controls (e.g., 'FR-MET', 'PT-CONT')
-    territoriesTitle: string // Title for territories section (e.g., 'États membres de l'Union Européenne', 'DOM-TOM')
+    territoriesTitle: string // Title for territories section (e.g., 'États membres de l'Union Européenne', 'territoires ultramarins')
   }
   territoryModeOptions?: Array<{ value: string, label: string }> // Options for "Territoires à inclure" selector (null if not applicable)
   defaultTerritoryMode?: string // Default territory mode (e.g., 'metropole-major' for France)

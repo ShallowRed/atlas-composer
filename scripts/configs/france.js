@@ -1,6 +1,6 @@
 /**
  * France Territory Configuration
- * Includes metropolitan France and all overseas departments/territories (DOM-TOM)
+ * Includes metropolitan France and all overseas departments/territories (territoires ultramarins)
  */
 
 export default {

@@ -32,7 +32,7 @@ export const MAINLAND_FRANCE: TerritoryConfig = {
 }
 
 /**
- * Overseas territories configurations (DOM-TOM)
+ * Overseas territories configurations (territoires ultramarins)
  * Optimized positioning for better visual layout
  */
 export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
@@ -231,7 +231,7 @@ export const TERRITORY_MODES: Record<string, TerritoryModeConfig> = {
     codes: [],
   },
   'metropole-major': {
-    label: 'Métropole + DOM majeurs',
+    label: 'Métropole + DOM',
     codes: ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT'],
   },
   'metropole-uncommon': {

@@ -18,7 +18,7 @@ export const REGION_CONFIGS: Record<string, RegionConfig> = {
     geoDataConfig: DEFAULT_GEO_DATA_CONFIG,
     supportedViewModes: ['split', 'composite-existing', 'composite-custom', 'unified'],
     defaultViewMode: 'composite-custom',
-    defaultTerritoryMode: 'metropole-major', // Default: France métropolitaine + DOM-TOM majeurs
+    defaultTerritoryMode: 'metropole-major', // Default: France métropolitaine + territoires ultramarins majeurs
     compositeProjections: ['conic-conformal-france'], // Built-in D3 composite projections for France
     defaultCompositeProjection: 'conic-conformal-france', // Default composite projection
     compositeProjectionConfig: DEFAULT_COMPOSITE_PROJECTION_CONFIG, // Configuration for CustomCompositeProjection

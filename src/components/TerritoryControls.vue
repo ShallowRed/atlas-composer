@@ -72,7 +72,7 @@ function resetToDefaults() {
     <!-- Message when no territories are available -->
     <div v-if="territories.length === 0" class="alert alert-info">
       <i class="ri-information-line" />
-      <span>Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des DOM-TOM dans "Territoires à inclure".</span>
+      <span>Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des territoires ultramarins dans "Territoires à inclure".</span>
     </div>
 
     <!-- Accordion for all territories -->
@@ -125,7 +125,6 @@ function resetToDefaults() {
         </div>
       </div>
 
-      <!-- DOM-TOM Territories -->
       <div
         v-for="(territory, index) in territories"
         :key="territory.code"

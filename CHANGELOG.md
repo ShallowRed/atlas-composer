@@ -9,7 +9,7 @@
 - Groupements de territoires par région (Caraïbes, Océan Indien, Pacifique, etc.)
 - Liste complète: `TERRITORY_CODES`, `ALL_TERRITORIES`, `TERRITORIES_BY_CODE`
 
-### 🗺️ Amélioration du positionnement des DOM-TOM
+### 🗺️ Amélioration du positionnement des territoires ultramarins
 Nouveaux placements optimisés pour une meilleure lisibilité:
 
 **Caraïbes (gauche)**:

@@ -2,7 +2,7 @@
 - [x] Verify that the copilot-instructions.md file in the .github directory is created.
 
 - [x] Clarify Project Requirements
-	<!-- Project: Cartographie de la France avec DOM-TOM utilisant Observable Plot et Notebook Kit, avec préservation des rapports de taille et projections géographiques avancées -->
+	<!-- Project: Cartographie de la France avec territoires ultramarins utilisant Observable Plot et Notebook Kit, avec préservation des rapports de taille et projections géographiques avancées -->
 
 - [x] Scaffold the Project
 	<!-- Project scaffolded by user with Vite and TypeScript -->

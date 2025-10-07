@@ -66,7 +66,7 @@ export const useConfigStore = defineStore('config', () => {
     ),
   )
 
-  // Territory scales (scale multipliers for DOM-TOM sizing)
+  // Territory scales (scale multipliers for territoires ultramarins sizing)
   // All territories start with default 1.0 multiplier
   const territoryScales = ref<Record<string, number>>(
     Object.fromEntries(

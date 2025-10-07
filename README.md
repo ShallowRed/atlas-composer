@@ -1,10 +1,10 @@
-# Cartographies de la France avec DOM-TOM
+# Cartographies de la France avec territoires ultramarins
 
-Ce projet permet de créer des visualisations cartographiques de la France métropolitaine et de ses départements et collectivités d'outre-mer (DOM-TOM), en préservant les rapports de taille réels entre les territoires.
+Ce projet permet de créer des visualisations cartographiques de la France métropolitaine et de ses départements et collectivités d'outre-mer (territoires ultramarins), en préservant les rapports de taille réels entre les territoires.
 
 ## 🎯 Objectifs
 
-- **Représentation côte à côte** : Afficher la métropole et les DOM-TOM de manière adjacente
+- **Représentation côte à côte** : Afficher la métropole et les territoires ultramarins de manière adjacente
 - **Préservation des échelles** : Conserver les rapports de taille réels pour montrer la véritable étendue de territoires comme la Guyane
 - **Projections géographiques avancées** : Utiliser des projections optimisées pour chaque territoire
 - **Interactivité** : Permettre de basculer entre différentes projections et modes d'affichage
@@ -82,7 +82,7 @@ src/
 
 **Utilise les projections d3-composite-projections**
 
-- **Conic Conformal France** : Projection conforme avec DOM-TOM pré-positionnés
+- **Conic Conformal France** : Projection conforme avec territoires ultramarins pré-positionnés
 - Rendu optimisé pour la France avec tous ses territoires
 
 ### 3. Vues territoriales individuelles
@@ -174,7 +174,7 @@ pnpm run prepare-data
 
 Ce script :
 1. Télécharge les données mondiales Natural Earth
-2. Filtre les territoires français (métropole + DOM-TOM)
+2. Filtre les territoires français (métropole + territoires ultramarins)
 3. Optimise le format TopoJSON
 4. Génère les métadonnées (superficies, codes, etc.)
 

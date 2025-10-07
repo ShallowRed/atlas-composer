@@ -25,7 +25,7 @@ export default {
 
 ## Available Configurations
 
-- **`france.js`** - France métropolitaine + DOM-TOM (7 territories)
+- **`france.js`** - France métropolitaine + territoires ultramarins (7 territories)
   - Output: `france-territories-50m.json`, `france-metadata-50m.json`
 - **`spain.js`** - Spain and autonomous communities (1 territory)
   - Output: `spain-territories-50m.json`, `spain-metadata-50m.json`
