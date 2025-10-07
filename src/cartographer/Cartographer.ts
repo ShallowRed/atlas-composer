@@ -100,6 +100,10 @@ export class Cartographer {
       projection,
       marks: [
         Plot.geo(data, {
+          // tip: true,
+          // channels: {
+          //   name: (d: any) => d.properties.name,
+          // },
           fill: (d: any) => {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryFillColor(code)
