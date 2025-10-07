@@ -1,7 +1,7 @@
 import type { CompositeProjectionConfig } from '@/services/CustomCompositeProjection'
 import type { GeoDataConfig } from '@/types/territory'
-import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '#src/constants/territories/france-territories.ts'
 import * as Plot from '@observablehq/plot'
+import { DEFAULT_COMPOSITE_PROJECTION_CONFIG } from '@/constants/territories/france-territories.ts'
 import { CustomCompositeProjection } from '@/services/CustomCompositeProjection'
 import { GeoDataService } from '@/services/GeoDataService'
 import { GeoProjectionService } from '@/services/GeoProjectionService'

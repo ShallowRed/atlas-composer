@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import {
   DEFAULT_TERRITORY_TRANSLATIONS,
-} from '#src/constants/territories/france-territories.ts'
+} from '@/constants/territories/france-territories.ts'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,

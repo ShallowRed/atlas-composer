@@ -14,7 +14,7 @@ import {
   createDefaultTranslations,
   createTerritoryMap,
   extractTerritoryCodes,
-} from '#src/utils/territory-utils.ts'
+} from '@/utils/territory-utils.ts'
 
 /**
  * Mainland territory configuration (France Métropolitaine)

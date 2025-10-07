@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { Cartographer } from '@/cartographer/Cartographer'
-import { getTerritoriesForMode } from '#src/constants/territories/france-territories.ts'
-import { getPortugalTerritoriesForMode } from '#src/constants/territories/portugal-territories.ts'
+import { getTerritoriesForMode } from '@/constants/territories/france-territories.ts'
+import { getPortugalTerritoriesForMode } from '@/constants/territories/portugal-territories.ts'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AppHeader from '#src/components/ui/AppHeader.vue'
 import { RouterView } from 'vue-router'
 import AppFooter from '@/components/ui/AppFooter.vue'
+import AppHeader from '@/components/ui/AppHeader.vue'
 import LoadingModal from '@/components/ui/LoadingModal.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import { useGeoDataStore } from '@/stores/geoData'

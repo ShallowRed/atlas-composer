@@ -5,9 +5,9 @@
 
 import type { RegionConfig } from '@/types/territory'
 
-import { EU_GEO_DATA_CONFIG } from '#src/constants/territories/eu-territories.ts'
-import { DEFAULT_COMPOSITE_PROJECTION_CONFIG, DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '#src/constants/territories/france-territories.ts'
-import { DEFAULT_PORTUGAL_COMPOSITE_CONFIG, PORTUGAL_COMPOSITE_PROJECTION_CONFIG, PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '#src/constants/territories/portugal-territories.ts'
+import { EU_GEO_DATA_CONFIG } from '@/constants/territories/eu-territories.ts'
+import { DEFAULT_COMPOSITE_PROJECTION_CONFIG, DEFAULT_GEO_DATA_CONFIG, TERRITORY_MODES } from '@/constants/territories/france-territories.ts'
+import { DEFAULT_PORTUGAL_COMPOSITE_CONFIG, PORTUGAL_COMPOSITE_PROJECTION_CONFIG, PORTUGAL_GEO_DATA_CONFIG, PORTUGAL_TERRITORY_MODES } from '@/constants/territories/portugal-territories.ts'
 
 /**
  * Available region configurations
