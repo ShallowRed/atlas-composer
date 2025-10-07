@@ -82,25 +82,28 @@ export class Cartographer {
     }
   }
 
-  private renderSimple(options: SimpleRenderOptions): Plot.Plot {
-    const { geoData, projection, width, height, inset } = options
-
-    // Get projection function
-    const projectionFn = this.projectionService.getProjection(projection, geoData)
-
-    // Create plot
-    const plot = Plot.plot({
+  /**
+   * Creates a Plot with the specified data, projection, and dimensions
+   * Common rendering logic shared by all render modes
+   */
+  private createPlot(
+    data: GeoJSON.FeatureCollection,
+    projection: any,
+    width: number,
+    height: number,
+    inset: number,
+  ): Plot.Plot {
+    return Plot.plot({
       width,
       height,
       inset,
-      projection: projectionFn,
+      projection,
       marks: [
-        Plot.geo(geoData, {
+        Plot.geo(data, {
           fill: (d: any) => {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryFillColor(code)
           },
-          // stroke: getTerritoryStrokeColor(code),
           stroke: (d: any) => {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
             return getTerritoryStrokeColor(code)
@@ -108,45 +111,48 @@ export class Cartographer {
         }),
       ],
     })
-
-    return plot
   }
 
-  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, projection, width, height } = options
-
-    // Get raw data (original coordinates)
+  /**
+   * Fetches raw unified data for composite rendering modes
+   * Throws error if data is not available
+   */
+  private async getRawDataForComposite(
+    territoryMode: string,
+    territoryCodes?: readonly string[],
+  ): Promise<GeoJSON.FeatureCollection> {
     const rawData = await this.geoDataService.getRawUnifiedData(territoryMode, territoryCodes)
     if (!rawData) {
       throw new Error('No raw unified data available')
     }
-
-    // Use the selected composite projection
-    const projectionFn = this.projectionService.getProjection(projection, rawData)
-
-    // Create plot
-    const plot = Plot.plot({
-      width,
-      height,
-      inset: 20,
-      projection: projectionFn,
-      marks: [
-        Plot.geo(rawData, {
-          fill: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryFillColor(code)
-          },
-          stroke: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryStrokeColor(code)
-          },
-        }),
-      ],
-    })
-
-    return plot
+    return rawData
   }
 
+  /**
+   * Renders a simple map with a single projection
+   * Data is provided directly in options
+   */
+  private renderSimple(options: SimpleRenderOptions): Plot.Plot {
+    const { geoData, projection, width, height, inset } = options
+    const projectionFn = this.projectionService.getProjection(projection, geoData)
+    return this.createPlot(geoData, projectionFn, width, height, inset)
+  }
+
+  /**
+   * Renders a composite map using a built-in composite projection (e.g., d3-composite-projections)
+   * Fetches raw data and applies a pre-configured composite projection
+   */
+  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
+    const { territoryMode, territoryCodes, projection, width, height } = options
+    const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
+    const projectionFn = this.projectionService.getProjection(projection, rawData)
+    return this.createPlot(rawData, projectionFn, width, height, 20)
+  }
+
+  /**
+   * Renders a custom composite map with individually positioned territories
+   * Fetches raw data, applies custom settings, and uses CustomCompositeProjection
+   */
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
     const { territoryMode, territoryCodes, width, height, settings } = options
 
@@ -159,35 +165,14 @@ export class Cartographer {
       this.applyCustomCompositeSettings(settings)
     }
 
-    // Get raw data (original coordinates)
-    const rawData = await this.geoDataService.getRawUnifiedData(territoryMode, territoryCodes)
-    if (!rawData) {
-      throw new Error('No raw unified data available')
+    const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
+
+    // Dynamic projection that rebuilds on resize
+    const projectionFn = ({ width: w, height: h }: { width: number, height: number }) => {
+      return this.customComposite!.build(w, h, true)
     }
 
-    // Create plot with projection as a function
-    const plot = Plot.plot({
-      width,
-      height,
-      inset: 20,
-      projection: ({ width: w, height: h }) => {
-        return this.customComposite!.build(w, h, true)
-      },
-      marks: [
-        Plot.geo(rawData, {
-          fill: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryFillColor(code)
-          },
-          stroke: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryStrokeColor(code)
-          },
-        }),
-      ],
-    })
-
-    return plot
+    return this.createPlot(rawData, projectionFn, width, height, 20)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
