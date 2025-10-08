@@ -116,5 +116,47 @@
       "madeWith": "Réalisé avec",
       "by": "par"
     }
+  },
+  "projections": {
+    "categories": {
+      "COMPOSITE": "Projections Composites",
+      "CONIC": "Projections Coniques",
+      "AZIMUTHAL": "Projections Azimutales",
+      "CYLINDRICAL": "Projections Cylindriques",
+      "WORLD": "Projections Mondiales",
+      "COMPROMISE": "Projections de Compromis",
+      "ARTISTIC": "Projections Artistiques"
+    },
+    "conicConformalFrance": {
+      "name": "Conic Conformal France (Composite)",
+      "description": "Projection composite optimisée pour la France, intégrant le territoire métropolitain et les départements d'outre-mer"
+    },
+    "conicConformalPortugal": {
+      "name": "Conic Conformal Portugal (Composite)",
+      "description": "Projection composite optimisée pour le Portugal, incluant le continent et les archipels atlantiques (Açores, Madère)"
+    },
+    "conicConformalEurope": {
+      "name": "Conic Conformal Europe (Composite)",
+      "description": "Projection composite optimisée pour l'Union Européenne et ses territoires d'outre-mer"
+    },
+    "conicConformal": {
+      "name": "Conique Conforme (Lambert)",
+      "description": "Préserve les angles et les formes. Idéale pour les régions de latitudes moyennes"
+    },
+    "conicEqualArea": {
+      "name": "Conique Équivalente (Albers)",
+      "description": "Préserve les surfaces. Parfaite pour les cartes thématiques des régions de latitudes moyennes"
+    },
+    "mercator": {
+      "name": "Mercator",
+      "description": "Préserve les angles et les directions. Couramment utilisée pour la navigation et les régions tropicales"
+    },
+    "recommendations": {
+      "general": "Projection appropriée",
+      "atlasOptimized": "Optimisée pour cet atlas",
+      "territoryExcellent": "Excellente pour ce type de territoire",
+      "territoryGood": "Bonne pour ce type de territoire",
+      "notSuitable": "Non recommandée pour ce contexte"
+    }
   }
 }

@@ -321,44 +321,43 @@ Add `projectionPreferences` object to schema with:
 - [ ] Add artistic projections (4 projections)
 
 #### Task 1.3: Projection Registry
-- [ ] **1.3.1** Create `src/projections/registry.ts`
-- [ ] **1.3.2** Implement `ProjectionRegistry` class with:
-  - [ ] Singleton pattern implementation
-  - [ ] Private `definitions` Map
-  - [ ] `registerAll()` private method
-  - [ ] `register()` method with alias support
-  - [ ] `get()` method for retrieval by ID/alias
-  - [ ] `getAll()` method (deduplicated)
-  - [ ] `getByCategory()` method
-  - [ ] `getByStrategy()` method
-  - [ ] `filter()` method with context support
-  - [ ] `recommend()` method with scoring
-  - [ ] `getRecommendationReason()` private helper
-  - [ ] `isValid()` validation method
-  - [ ] `getCategories()` method
-- [ ] **1.3.3** Add comprehensive JSDoc comments
-- [ ] **1.3.4** Export singleton instance `projectionRegistry`
+- [x] **1.3.1** Create `src/projections/registry.ts`
+- [x] **1.3.2** Implement `ProjectionRegistry` class with:
+  - [x] Singleton pattern implementation
+  - [x] Private `definitions` Map
+  - [x] `registerAll()` private method
+  - [x] `register()` method with alias support
+  - [x] `get()` method for retrieval by ID/alias
+  - [x] `getAll()` method (deduplicated)
+  - [x] `getByCategory()` method
+  - [x] `getByStrategy()` method
+  - [x] `filter()` method with context support
+  - [x] `recommend()` method with scoring
+  - [x] `isValid()` validation method
+  - [x] `getCategories()` method
+- [x] **1.3.3** Add comprehensive JSDoc comments
+- [x] **1.3.4** Export singleton instance `projectionRegistry`
 - [ ] **1.3.5** Add unit tests for registry
 
 #### Task 1.4: Projection Factory
-- [ ] **1.4.1** Create `src/projections/factory.ts`
-- [ ] **1.4.2** Define `ProjectionFactoryOptions` interface
-- [ ] **1.4.3** Implement `ProjectionFactory` class with:
-  - [ ] `create()` static method (main entry point)
-  - [ ] `createById()` convenience method
-  - [ ] `createD3Builtin()` private method
-  - [ ] `createD3Extended()` private method
-  - [ ] `createD3Composite()` private method
-- [ ] **1.4.4** Map all projection IDs to D3 functions in each strategy method
-- [ ] **1.4.5** Handle projection parameters (center, rotate, parallels, scale)
-- [ ] **1.4.6** Add error handling for unknown projections
+- [x] **1.4.1** Create `src/projections/factory.ts`
+- [x] **1.4.2** Define `ProjectionFactoryOptions` interface
+- [x] **1.4.3** Implement `ProjectionFactory` class with:
+  - [x] `create()` static method (main entry point)
+  - [x] `createById()` convenience method
+  - [x] `createD3Builtin()` private method
+  - [x] `createD3Extended()` private method
+  - [x] `createD3Composite()` private method
+- [x] **1.4.4** Map all projection IDs to D3 functions in each strategy method
+- [x] **1.4.5** Handle projection parameters (center, rotate, parallels, scale)
+- [x] **1.4.6** Add error handling for unknown projections
 - [ ] **1.4.7** Add unit tests for factory
 
 #### Task 1.5: Internationalization
-- [ ] **1.5.1** Add projection names to `src/i18n/locales/en.json`
-- [ ] **1.5.2** Add projection names to `src/i18n/locales/fr.json`
-- [ ] **1.5.3** Add projection descriptions to both locale files
-- [ ] **1.5.4** Add category translations to both locale files
+- [x] **1.5.1** Add projection names to `src/i18n/locales/en.json`
+- [x] **1.5.2** Add projection names to `src/i18n/locales/fr.json`
+- [x] **1.5.3** Add projection descriptions to both locale files
+- [x] **1.5.4** Add category translations to both locale files
 
 #### Task 1.6: Testing Phase 1
 - [ ] **1.6.1** Create `src/projections/__tests__/` directory
@@ -576,9 +575,9 @@ Add `projectionPreferences` object to schema with:
 
 ### Progress Tracking
 
-**Overall Progress**: 1/154 tasks complete (0.6%)
+**Overall Progress**: 52/154 tasks complete (33.8%)
 
-**Current Phase**: Phase 0 - Preparation
+**Current Phase**: Phase 1 - Core Infrastructure (Almost Complete)
 
 **Critical Path**:
 1. ⭐ Composite projections (france, portugal, europe) - Project core functionality
