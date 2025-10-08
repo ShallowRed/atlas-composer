@@ -154,6 +154,8 @@
     "recommendations": {
       "general": "Suitable projection",
       "atlasOptimized": "Optimized for this atlas",
+      "atlasRecommended": "Recommended by atlas configuration",
+      "atlasProhibited": "Not suitable for this atlas",
       "territoryExcellent": "Excellent for this type of territory",
       "territoryGood": "Good for this type of territory",
       "notSuitable": "Not recommended for this context"

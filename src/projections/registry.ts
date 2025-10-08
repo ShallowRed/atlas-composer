@@ -13,6 +13,9 @@ import type {
   ProjectionRecommendation,
   ProjectionStrategyType,
 } from './types'
+import type { ProjectionPreferences } from '@/core/atlases/loader'
+import { getAtlasSpecificConfig } from '@/core/atlases/registry'
+
 import { ALL_PROJECTIONS } from './definitions'
 
 /**
@@ -187,13 +190,32 @@ class ProjectionRegistry {
     const projections = this.filter(context)
     const recommendations: ProjectionRecommendation[] = []
 
+    // Get atlas projection preferences if atlas ID is provided
+    let atlasPreferences: ProjectionPreferences | undefined
+    if (context.atlasId) {
+      const atlasSpecificConfig = getAtlasSpecificConfig(context.atlasId)
+      atlasPreferences = atlasSpecificConfig.projectionPreferences
+    }
+
     projections.forEach((projection) => {
       let score = 50 // Base score
       let level: ProjectionRecommendation['level'] = 'usable'
       let reason = 'projections.recommendations.general'
 
-      // Check atlas match
-      if (
+      // Check if projection is in atlas recommended list (highest priority)
+      if (atlasPreferences?.recommended?.includes(projection.id)) {
+        score += 40
+        level = 'excellent'
+        reason = 'projections.recommendations.atlasRecommended'
+      }
+      // Check if projection is prohibited for this atlas (immediate disqualification)
+      else if (atlasPreferences?.prohibited?.includes(projection.id)) {
+        score -= 50
+        level = 'not-recommended'
+        reason = 'projections.recommendations.atlasProhibited'
+      }
+      // Check atlas match from projection's own suitability
+      else if (
         context.atlasId
         && projection.suitability.recommendedForAtlases?.includes(context.atlasId)
       ) {
