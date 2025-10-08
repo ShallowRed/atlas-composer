@@ -1,11 +1,14 @@
 - [x] Clarify Project Requirements
 	<!--
-    Project: Une interface web simple pour tester différentes projections géographiques, notamment composites et personnalisées.
-    Technologies: TypeScript, Vite, D3.js, ObservablePlot
+    Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations
+             of countries with geographically-scattered territories using composite projections.
+    Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
+    Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
+                  composite projections, interactive territory positioning, JSON-driven configuration
   -->
 
 - [x] Ensure Documentation is Complete
-	<!-- README.md created with comprehensive documentation -->
+	<!-- README.md updated with comprehensive architecture documentation -->
 
 ## Execution Guidelines
 PROGRESS TRACKING:
