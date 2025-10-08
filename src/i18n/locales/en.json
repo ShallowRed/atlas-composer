@@ -29,7 +29,15 @@
     "compositeExisting": "Existing composite projection",
     "unified": "Unified projection",
     "custom": "Custom",
-    "useRecommended": "Use {projection}"
+    "useRecommended": "Use {projection}",
+    "validation": {
+      "prohibited": "{projection} is not recommended: {reason}",
+      "poorChoice": "{projection} may not be ideal for this atlas",
+      "betterOptionsAvailable": "Better projection options are available",
+      "notSuitable": "Not suitable for this atlas",
+      "alternatives": "Consider using: {projections}",
+      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?"
+    }
   },
   "mode": {
     "select": "Territories to include",

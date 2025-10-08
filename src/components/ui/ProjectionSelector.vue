@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { ProjectionRecommendation } from '@/projections/types'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import ToastNotification from '@/components/ui/ToastNotification.vue'
+import { useProjectionValidation } from '@/composables/useProjectionValidation'
+import { projectionRegistry } from '@/projections/registry'
+import { useConfigStore } from '@/stores/config'
 
 interface ProjectionOption {
   value: string
@@ -89,6 +94,55 @@ function getRecommendationTooltip(projectionId: string): string {
   
   return t(rec.reason)
 }
+
+// Validation
+const configStore = useConfigStore()
+const { validateProjection, formatAlternatives } = useProjectionValidation()
+const validationMessage = ref<string | null>(null)
+const validationSeverity = ref<'error' | 'warning' | 'info'>('info')
+
+// Watch for projection changes and validate
+watch(localValue, (newProjectionId) => {
+  if (!newProjectionId || !props.recommendations) {
+    validationMessage.value = null
+    return
+  }
+
+  const projection = projectionRegistry.get(newProjectionId)
+  if (!projection) {
+    validationMessage.value = null
+    return
+  }
+
+  const result = validateProjection(projection, {
+    atlasId: configStore.selectedAtlas,
+    viewMode: configStore.viewMode,
+    recommendations: props.recommendations,
+  })
+
+  if (result.severity === 'error' || result.severity === 'warning') {
+    validationSeverity.value = result.severity
+    let message = result.message
+    if (result.alternatives && result.alternatives.length > 0) {
+      message = `${message}. ${formatAlternatives(result.alternatives)}`
+    }
+    validationMessage.value = message
+    
+    // Auto-hide warnings after 5 seconds
+    if (result.severity === 'warning') {
+      setTimeout(() => {
+        validationMessage.value = null
+      }, 5000)
+    }
+  }
+  else {
+    validationMessage.value = null
+  }
+})
+
+function closeValidationMessage() {
+  validationMessage.value = null
+}
 </script>
 
 <template>
@@ -136,5 +190,13 @@ function getRecommendationTooltip(projectionId: string): string {
         </span>
       </span>
     </div>
+
+    <!-- Validation warning toast -->
+    <ToastNotification
+      :message="validationMessage"
+      :type="validationSeverity"
+      position="top-end"
+      @close="closeValidationMessage"
+    />
   </div>
 </template>

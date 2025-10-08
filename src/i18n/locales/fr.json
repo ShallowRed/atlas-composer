@@ -29,7 +29,15 @@
     "compositeExisting": "Projection composite existante",
     "unified": "Projection unifiée",
     "custom": "Personnalisée",
-    "useRecommended": "Utiliser {projection}"
+    "useRecommended": "Utiliser {projection}",
+    "validation": {
+      "prohibited": "{projection} n'est pas recommandée : {reason}",
+      "poorChoice": "{projection} n'est peut-être pas idéale pour cet atlas",
+      "betterOptionsAvailable": "De meilleures projections sont disponibles",
+      "notSuitable": "Non adaptée à cet atlas",
+      "alternatives": "Considérez d'utiliser : {projections}",
+      "confirmProhibited": "Cette projection n'est pas recommandée pour cet atlas. Êtes-vous sûr de vouloir l'utiliser ?"
+    }
   },
   "mode": {
     "select": "Territoires à inclure",
