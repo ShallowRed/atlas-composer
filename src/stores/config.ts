@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_ATLAS, getAllAtlases, getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
+import { projectionRegistry } from '@/projections/registry'
 import { AtlasService } from '@/services/atlas-service'
-import { PROJECTION_OPTIONS } from '@/services/projection-service'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
@@ -132,27 +132,43 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   const projectionGroups = computed(() => {
+    // Use new projection registry for context-aware filtering
+    const filteredProjections = projectionRegistry.filter({
+      atlasId: selectedAtlas.value,
+      viewMode: viewMode.value,
+      // Exclude composite projections - they're shown in separate selector
+      excludeCategories: ['COMPOSITE'],
+    })
+
+    // Group projections by category
     const groups: { [key: string]: any[] } = {}
-
-    // Exclude all composite projections from the projection selector
-    // They are now handled by the composite mode selector
-    // Dynamically get all composite projections from all regions
-    const allCompositeProjections = Object.values(getAllAtlases())
-      .flatMap(config => config.compositeProjections || [])
-
-    const filteredOptions = PROJECTION_OPTIONS.filter(option => !allCompositeProjections.includes(option.value))
-
-    filteredOptions.forEach((option) => {
-      if (!groups[option.category]) {
-        groups[option.category] = []
+    
+    filteredProjections.forEach((projection) => {
+      const category = projection.category
+      if (!groups[category]) {
+        groups[category] = []
       }
-      groups[option.category]!.push(option)
+      // Convert projection definition to legacy format for UI compatibility
+      groups[category]!.push({
+        value: projection.id,
+        label: projection.name,
+        category: projection.category,
+      })
     })
 
     return Object.keys(groups).map(category => ({
       category,
       options: groups[category],
     }))
+  })
+
+  const projectionRecommendations = computed(() => {
+    // Get projection recommendations based on current context
+    return projectionRegistry.recommend({
+      atlasId: selectedAtlas.value,
+      viewMode: viewMode.value,
+      excludeCategories: ['COMPOSITE'],
+    })
   })
 
   // Actions
@@ -280,6 +296,7 @@ export const useConfigStore = defineStore('config', () => {
     showTerritoryControls,
     showCompositeProjectionSelector,
     projectionGroups,
+    projectionRecommendations,
 
     // Actions
     setScalePreservation,
