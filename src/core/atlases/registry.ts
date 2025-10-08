@@ -6,9 +6,9 @@
  * using Vite's import.meta.glob feature. Simply add a new JSON file to add an atlas.
  */
 
-import type { AtlasSpecificConfig, LoadedAtlasConfig, ProjectionParams } from './loader'
+import type { AtlasSpecificConfig, LoadedAtlasConfig, ProjectionParams } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types/territory'
-import { loadAtlasConfig } from './loader'
+import { loadAtlasConfig } from '@/core/atlases/loader'
 
 /**
  * Registry of all loaded atlas configurations
