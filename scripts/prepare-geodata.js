@@ -139,8 +139,6 @@ async function downloadData(url, filename) {
 
 /**
  * Extracts sub-territories from a MultiPolygon GeoJSON feature based on bounds matching
- * Used to extract DOM territories from France mainland MultiPolygon
- * NOTE: This works with GeoJSON format (with coordinates), not TopoJSON
  * @param {object} mainlandFeature - GeoJSON feature with MultiPolygon geometry
  * @param {object} config - Territory configuration with extraction rules
  * @returns {object} Object with mainland feature and extracted territory features
