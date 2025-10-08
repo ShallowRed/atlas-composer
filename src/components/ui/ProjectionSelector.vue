@@ -20,6 +20,7 @@ interface Props {
   icon?: string
   modelValue?: string
   disabled?: boolean
+  loading?: boolean
   projectionGroups: Array<{
     category: string
     options?: ProjectionOption[]
@@ -32,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   icon: 'ri-map-2-line',
   modelValue: undefined,
   disabled: false,
+  loading: false,
   recommendations: undefined,
   showRecommendations: true,
 })
@@ -186,7 +188,11 @@ function handleCancelProhibited() {
       </span>
     </label>
     
+    <!-- Loading skeleton -->
+    <div v-if="loading" class="skeleton h-12 w-full" />
+    
     <select
+      v-else
       v-model="localValue"
       class="select cursor-pointer"
       :disabled="disabled"
@@ -257,6 +263,24 @@ function handleCancelProhibited() {
 .select:focus {
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.select:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Enhance recommendation badges visibility */
