@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Geographic Region Configuration",
-  "description": "Unified configuration for geographic regions including territories, projections, and UI settings",
+  "title": "Geographic Atlas Configuration",
+  "description": "Unified configuration for geographic atlases including territories, projections, and UI settings",
   "type": "object",
   "required": ["id", "name", "territories"],
   "properties": {
@@ -11,7 +11,7 @@
     },
     "id": {
       "type": "string",
-      "description": "Unique identifier for the region (e.g., 'portugal', 'france')",
+      "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'eu')",
       "pattern": "^[a-z][a-z0-9-]*$"
     },
     "name": {
@@ -20,7 +20,7 @@
     },
     "description": {
       "type": "string",
-      "description": "Brief description of the region"
+      "description": "Brief description of the atlas"
     },
     "metadata": {
       "type": "object",
@@ -107,7 +107,7 @@
           "role": {
             "type": "string",
             "enum": ["mainland", "overseas", "embedded"],
-            "description": "Territory role in the region"
+            "description": "Territory role in the atlas"
           },
           "iso": {
             "type": "string",

@@ -308,7 +308,7 @@ async function main() {
     return
   }
 
-  const countryId = args.region || process.argv[2]
+  const countryId = args.country || process.argv[2]
 
   if (!countryId) {
     logger.error('Missing country ID')

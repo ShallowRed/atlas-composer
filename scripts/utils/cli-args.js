@@ -1,6 +1,9 @@
 /**
- * CLI Arguments Parser
- * Provides unified argument parsing for all scripts
+ * CLI Argument Parser
+ *
+ * Provides unified argument parsing for all scripts.
+ * The first positional argument is available as both .atlas and .country
+ * to support different script contexts (atlas config scripts vs dev utilities).
  */
 
 import process from 'node:process'
@@ -11,8 +14,8 @@ import { DEFAULT_RESOLUTION, isValidResolution } from './ne-data.js'
  * Parse command line arguments
  *
  * Supports patterns:
- *   script <region>
- *   script <region> --resolution=10m
+ *   script <atlas>
+ *   script <atlas> --resolution=10m
  *   script --resolution=50m <region>
  *   script --help
  *
@@ -22,7 +25,8 @@ export function parseArgs() {
   const args = process.argv.slice(2)
 
   const parsed = {
-    region: null,
+    atlas: null, // For prepare/validate scripts (france, portugal, eu)
+    country: null, // Alias for dev scripts (lookup, analyze)
     resolution: null,
     help: false,
     _unknown: [],
@@ -44,8 +48,10 @@ export function parseArgs() {
     else if (arg.startsWith('--')) {
       parsed._unknown.push(arg)
     }
-    else if (!parsed.region) {
-      parsed.region = arg
+    else if (!parsed.atlas) {
+      // First positional argument - available as both atlas and country
+      parsed.atlas = arg
+      parsed.country = arg
     }
     else {
       parsed._unknown.push(arg)

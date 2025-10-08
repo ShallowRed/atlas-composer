@@ -249,7 +249,7 @@ async function main() {
     return
   }
 
-  if (!args.region) {
+  if (!args.country) {
     logger.error('Missing country name or ID.')
     logger.newline()
     showHelp(
@@ -270,7 +270,7 @@ async function main() {
   }
 
   const resolution = getResolution(args)
-  await lookupCountry(args.region, resolution)
+  await lookupCountry(args.country, resolution)
 }
 
 main().catch((error) => {

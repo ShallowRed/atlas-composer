@@ -32,13 +32,13 @@ function getAdapterPath() {
 /**
  * Load unified JSON config and transform to backend format
  *
- * @param {string} regionName - Name of the region (e.g., 'portugal', 'france', 'eu')
+ * @param {string} atlasName - Name of the atlas (e.g., 'portugal', 'france', 'eu')
  * @returns {Promise<{unified: object, backend: object}>} Both formats
  */
-export async function loadConfig(regionName) {
+export async function loadConfig(atlasName) {
   try {
     // Load unified JSON config
-    const configPath = path.join(getConfigsDir(), `${regionName}.json`)
+    const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
     const configContent = await fs.readFile(configPath, 'utf-8')
     const unified = JSON.parse(configContent)
 
@@ -53,7 +53,7 @@ export async function loadConfig(regionName) {
   }
   catch (error) {
     if (error.code === 'ENOENT') {
-      logger.error(`Config file not found: ${regionName}.json`)
+      logger.error(`Config file not found: ${atlasName}.json`)
       logger.info(`Available configs in ${getConfigsDir()}:`)
 
       try {
@@ -68,11 +68,11 @@ export async function loadConfig(regionName) {
         // Ignore
       }
 
-      throw new Error(`Config '${regionName}' not found`)
+      throw new Error(`Config '${atlasName}' not found`)
     }
 
     if (error instanceof SyntaxError) {
-      logger.error(`Invalid JSON in config: ${regionName}.json`)
+      logger.error(`Invalid JSON in config: ${atlasName}.json`)
       throw new Error(`Invalid JSON: ${error.message}`)
     }
 
@@ -105,12 +105,12 @@ export async function listConfigs() {
 /**
  * Check if a config exists
  *
- * @param {string} regionName - Name of the region
+ * @param {string} atlasName - Name of the atlas
  * @returns {Promise<boolean>} True if config exists
  */
-export async function configExists(regionName) {
+export async function configExists(atlasName) {
   try {
-    const configPath = path.join(getConfigsDir(), `${regionName}.json`)
+    const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
     await fs.access(configPath)
     return true
   }

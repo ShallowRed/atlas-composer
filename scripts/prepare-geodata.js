@@ -6,7 +6,7 @@
  * Creates optimized TopoJSON files for cartographic visualization
  *
  * Usage:
- *   npm run geodata:prepare <region> [--resolution=10m|50m|110m]
+ *   npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]
  *
  * Examples:
  *   npm run geodata:prepare portugal
@@ -334,9 +334,9 @@ async function main() {
       showHelp(
         'prepare-geodata',
         'Downloads Natural Earth world data and filters specific territories',
-        'npm run geodata:prepare <region> [--resolution=10m|50m|110m]',
+        'npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]',
         {
-          '<region>': 'Region name (portugal, france, eu)',
+          '<atlas>': 'Atlas name (portugal, france, eu)',
           '--resolution=<val>': 'Natural Earth resolution (10m, 50m, 110m) [default: 50m]',
           '--help': 'Show this help message',
         },
@@ -345,17 +345,17 @@ async function main() {
     }
 
     // Validate required arguments
-    if (!validateRequired(args, ['region'])) {
-      logger.error('Usage: npm run geodata:prepare <region> [--resolution=10m|50m|110m]')
+    if (!validateRequired(args, ['atlas'])) {
+      logger.error('Usage: npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]')
       process.exit(1)
     }
 
-    const regionName = args.region
+    const atlasName = args.atlas
     const resolution = getResolution(args)
 
     // Load configuration
-    logger.section(`Preparing geodata: ${regionName}`)
-    const { backend: CONFIG } = await loadConfig(regionName)
+    logger.section(`Preparing geodata: ${atlasName}`)
+    const { backend: CONFIG } = await loadConfig(atlasName)
 
     logger.data('Description', CONFIG.description)
     logger.data('Resolution', resolution)
@@ -371,14 +371,14 @@ async function main() {
     // Step 2: Filter and save territory data
     logger.subsection('Step 2: Filter territories')
     const territoryData = filterTerritories(worldData, CONFIG.territories)
-    const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || regionName, resolution)
+    const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || atlasName, resolution)
     await saveData(territoriesFilename, territoryData)
 
     // Step 3: Create and save metadata
     logger.subsection('Step 3: Create metadata')
     const dataSourceUrl = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${resolution}.json`
     const metadata = createMetadata(CONFIG, resolution, dataSourceUrl)
-    const metadataFilename = OUTPUT_FILENAMES.metadata(CONFIG.outputName || regionName, resolution)
+    const metadataFilename = OUTPUT_FILENAMES.metadata(CONFIG.outputName || atlasName, resolution)
     await saveData(metadataFilename, metadata)
 
     logger.newline()
