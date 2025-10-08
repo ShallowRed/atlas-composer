@@ -5,7 +5,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <header class="">
+  <header>
     <!-- Navigation Bar -->
     <div class="bg-base-100 shadow-sm">
       <div class="container max-w-auto m-auto">

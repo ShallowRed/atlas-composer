@@ -42,7 +42,7 @@ const localValue = computed({
 </script>
 
 <template>
-  <div class="form-control">
+  <div class="form-control flex flex-col">
     <!-- Select with Option Groups -->
     <template v-if="type === 'select' && optionGroups">
       <label class="label mb-1">
