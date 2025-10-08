@@ -1,5 +1,6 @@
 /**
- * Territory utility functions
+ * Territory Helpers
+ * Pure data structure operations for territories (no business logic)
  */
 
 import type { TerritoryConfig } from '@/types/territory'
@@ -73,4 +74,26 @@ export function createDefaultTranslations(
  */
 export function extractTerritoryCodes(territories: TerritoryConfig[]): string[] {
   return territories.map(t => t.code)
+}
+
+/**
+ * Check if a territory code represents a mainland territory
+ * Returns false for regions without mainland/overseas distinction
+ *
+ * @param code - Territory code to check
+ * @param mainlandCode - Mainland code from splitModeConfig
+ * @param geoDataMainlandCode - Mainland code from geoDataConfig (fallback)
+ * @returns True if the code represents mainland territory
+ */
+export function isMainlandTerritory(
+  code: string | undefined,
+  mainlandCode: string | undefined,
+  geoDataMainlandCode?: string,
+): boolean {
+  if (!code || !mainlandCode) {
+    return false
+  }
+
+  // Check if this code matches the mainland code
+  return code === mainlandCode || code === geoDataMainlandCode
 }

@@ -4,11 +4,7 @@ import * as Plot from '@observablehq/plot'
 import { CustomCompositeProjection } from '@/services/CustomCompositeProjection'
 import { GeoDataService } from '@/services/GeoDataService'
 import { GeoProjectionService } from '@/services/GeoProjectionService'
-import {
-  getTerritoryFillColor,
-  getTerritoryStrokeColor,
-} from '@/utils/color-utils'
-
+import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
 // Unified rendering options
 export interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -93,6 +89,9 @@ export class Cartographer {
     height: number,
     inset: number,
   ): Plot.Plot {
+    const { mainlandCode } = this.geoDataService.config
+    const geoDataMainlandCode = this.geoDataService.config.mainlandCode
+
     return Plot.plot({
       width,
       height,
@@ -106,11 +105,11 @@ export class Cartographer {
           },
           fill: (d: any) => {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryFillColor(code)
+            return getTerritoryFillColor(code, mainlandCode, geoDataMainlandCode)
           },
           stroke: (d: any) => {
             const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryStrokeColor(code)
+            return getTerritoryStrokeColor(code, mainlandCode, geoDataMainlandCode)
           },
         }),
       ],

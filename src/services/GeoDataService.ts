@@ -34,7 +34,7 @@ export class GeoDataService {
   private metadata: any = null // Data source metadata
   private topologyData: any = null // Raw TopoJSON data
   private isLoaded = false // Loading state flag
-  private config: GeoDataConfig // Service configuration
+  public readonly config: GeoDataConfig // Service configuration
 
   constructor(config: GeoDataConfig) {
     this.config = config

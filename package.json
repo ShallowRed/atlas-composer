@@ -3,11 +3,6 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "imports": {
-    "#scripts/*": "./scripts/*",
-    "#src/*": "./src/*",
-    "#public/*": "./public/*"
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

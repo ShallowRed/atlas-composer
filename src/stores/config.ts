@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_REGION, getRegionConfig, REGION_CONFIGS } from '@/config/regions/'
+import { DEFAULT_REGION, getAllRegionConfigs, getRegionConfig } from '@/core/regions/registry'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 import { RegionService } from '@/services/RegionService'
 import { TerritoryService } from '@/services/TerritoryService'
@@ -130,7 +130,7 @@ export const useConfigStore = defineStore('config', () => {
     // Exclude all composite projections from the projection selector
     // They are now handled by the composite mode selector
     // Dynamically get all composite projections from all regions
-    const allCompositeProjections = Object.values(REGION_CONFIGS)
+    const allCompositeProjections = Object.values(getAllRegionConfigs())
       .flatMap(config => config.compositeProjections || [])
 
     const filteredOptions = PROJECTION_OPTIONS.filter(option => !allCompositeProjections.includes(option.value))

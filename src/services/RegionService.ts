@@ -7,40 +7,17 @@
  */
 
 import type { CompositeProjectionConfig } from './CustomCompositeProjection'
-import type { ProjectionParams, RegionSpecificConfig } from '@/config/regions/types'
+import type { ProjectionParams, RegionSpecificConfig } from '@/core/regions/loader'
 import type { RegionConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types/territory'
-import { getRegionConfig, REGION_SPECIFIC_CONFIGS } from '@/config/regions'
 import {
-  EU_COUNTRIES,
-  FRANCE_ALL_TERRITORIES,
-  FRANCE_OVERSEAS_TERRITORIES,
-  MAINLAND_FRANCE,
-  MAINLAND_PORTUGAL,
-  PORTUGAL_ALL_TERRITORIES,
-  PORTUGAL_OVERSEAS,
-} from '@/data/territories'
-import { TerritoryService } from './TerritoryService'
+  getMainlandTerritory,
+  getAllTerritories as getRegionAllTerritories,
+  getRegionConfig,
+  getOverseasTerritories as getRegionOverseasTerritories,
+  getRegionSpecificConfig,
+} from '@/core/regions/registry'
 
-/**
- * Region-specific data registry
- */
-const REGION_DATA_REGISTRY = {
-  france: {
-    mainland: MAINLAND_FRANCE,
-    overseas: FRANCE_OVERSEAS_TERRITORIES,
-    all: FRANCE_ALL_TERRITORIES,
-  },
-  portugal: {
-    mainland: MAINLAND_PORTUGAL,
-    overseas: PORTUGAL_OVERSEAS,
-    all: PORTUGAL_ALL_TERRITORIES,
-  },
-  eu: {
-    mainland: undefined,
-    overseas: [],
-    all: [],
-  },
-}
+import { TerritoryService } from './TerritoryService'
 
 export class RegionService {
   private regionId: string
@@ -50,7 +27,7 @@ export class RegionService {
   constructor(regionId: string) {
     this.regionId = regionId
     this.regionConfig = getRegionConfig(regionId)
-    this.specificConfig = (REGION_SPECIFIC_CONFIGS as any)[regionId] || REGION_SPECIFIC_CONFIGS.france!
+    this.specificConfig = getRegionSpecificConfig(regionId)
   }
 
   /**
@@ -78,24 +55,21 @@ export class RegionService {
    * Get mainland territory (if applicable)
    */
   getMainland(): TerritoryConfig | undefined {
-    const data = REGION_DATA_REGISTRY[this.regionId as keyof typeof REGION_DATA_REGISTRY]
-    return data?.mainland
+    return getMainlandTerritory(this.regionId)
   }
 
   /**
    * Get overseas/remote territories
    */
   getOverseasTerritories(): TerritoryConfig[] {
-    const data = REGION_DATA_REGISTRY[this.regionId as keyof typeof REGION_DATA_REGISTRY]
-    return data?.overseas || []
+    return getRegionOverseasTerritories(this.regionId)
   }
 
   /**
    * Get all territories (mainland + overseas)
    */
   getAllTerritories(): TerritoryConfig[] {
-    const data = REGION_DATA_REGISTRY[this.regionId as keyof typeof REGION_DATA_REGISTRY]
-    return data?.all || []
+    return getRegionAllTerritories(this.regionId)
   }
 
   /**
@@ -166,7 +140,8 @@ export class RegionService {
    */
   getEUCountries() {
     if (this.regionId === 'eu') {
-      return EU_COUNTRIES
+      // return EU_COUNTRIES
+      return []
     }
     return []
   }

@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
-} from '@/constants/territory-constants'
+} from '@/core/regions/constants'
 import { TerritoryService } from '@/services/TerritoryService'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'

@@ -8,8 +8,8 @@
  * - Proper cleanup when switching regions
  */
 
-import { Cartographer } from '@/cartographer/Cartographer'
-import { getRegionConfig } from '@/config/regions'
+import { getRegionConfig } from '@/core/regions/registry'
+import { Cartographer } from '@/services/Cartographer'
 
 export class CartographerFactory {
   private static instances = new Map<string, Cartographer>()

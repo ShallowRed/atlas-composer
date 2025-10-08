@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import { Cartographer } from '@/cartographer/Cartographer'
+import { Cartographer } from '@/services/Cartographer'
 import { TerritoryService } from '@/services/TerritoryService'
 import { useConfigStore } from '@/stores/config'
 

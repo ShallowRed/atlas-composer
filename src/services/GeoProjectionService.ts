@@ -1,4 +1,4 @@
-import type { ProjectionParams } from '@/config/regions/types'
+import type { ProjectionParams } from '@/core/regions/loader'
 import { geoConicConformalEurope, geoConicConformalFrance, geoConicConformalPortugal } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
 
