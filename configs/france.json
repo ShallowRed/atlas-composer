@@ -18,7 +18,7 @@
       },
       "rendering": {
         "offset": [80, 0],
-        "projectionType": "conic",
+        "projectionType": "conic-conformal",
         "rotate": [-3, 0],
         "parallels": [45.898889, 47.696014]
       }

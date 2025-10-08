@@ -13,7 +13,14 @@ export const useConfigStore = defineStore('config', () => {
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
-  const selectedProjection = ref('albers')
+
+  // Initialize selectedProjection from the default atlas's mainland projection type
+  const getInitialProjection = () => {
+    const atlasService = new AtlasService(DEFAULT_ATLAS)
+    const mainland = atlasService.getMainland()
+    return mainland?.projectionType || 'albers'
+  }
+  const selectedProjection = ref(getInitialProjection())
 
   // Computed: Current atlas configuration (needs to be before territoryMode)
   const currentAtlasConfig = computed(() => getAtlasConfig(selectedAtlas.value))

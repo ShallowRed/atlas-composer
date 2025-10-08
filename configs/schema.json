@@ -171,8 +171,32 @@
               },
               "projectionType": {
                 "type": "string",
-                "enum": ["mercator", "conic", "azimuthal", "stereographic"],
-                "description": "Projection type for this territory"
+                "enum": [
+                  "mercator",
+                  "transverse-mercator",
+                  "equirectangular",
+                  "miller",
+                  "albers",
+                  "conic-conformal",
+                  "conic-equal-area",
+                  "conic-equidistant",
+                  "azimuthal-equal-area",
+                  "azimuthal-equidistant",
+                  "orthographic",
+                  "stereographic",
+                  "gnomonic",
+                  "equal-earth",
+                  "mollweide",
+                  "sinusoidal",
+                  "robinson",
+                  "winkel3",
+                  "bonne",
+                  "aitoff",
+                  "hammer",
+                  "bertin1953",
+                  "polyhedral-waterman"
+                ],
+                "description": "Specific projection type for this territory (must match projection service options)"
               },
               "scale": {
                 "type": "number",

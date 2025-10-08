@@ -35,7 +35,7 @@
       },
       "rendering": {
         "offset": [0, 0],
-        "projectionType": "conic"
+        "projectionType": "conic-conformal"
       }
     },
     {
