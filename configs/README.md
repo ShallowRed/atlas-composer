@@ -23,7 +23,7 @@ npm run geodata:validate portugal
 configs/
 ├── schema.json        # JSON Schema for validation
 ├── portugal.json      # Portugal configuration
-├── france.json        # France configuration  
+├── france.json        # France configuration
 ├── spain.json         # Spain configuration
 └── README.md         # This file
 ```

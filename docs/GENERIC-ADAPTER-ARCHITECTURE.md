@@ -39,6 +39,7 @@ export function createBackendConfig(unifiedConfig) {
 ```javascript
 import config from '../../configs/portugal.json' with { type: 'json' }
 import { createBackendConfig } from './adapter.js'
+
 export default createBackendConfig(config)
 ```
 
@@ -82,17 +83,17 @@ export const PORTUGAL_ALL_TERRITORIES = all
 **API:**
 ```typescript
 export function createRegionConfigExports(config: any, territories: TerritoryExports) {
-  // Returns: { projectionParams, territoryModes, territoryGroups, 
-  //           defaultCompositeConfig, geoDataConfig, 
+  // Returns: { projectionParams, territoryModes, territoryGroups,
+  //           defaultCompositeConfig, geoDataConfig,
   //           compositeProjectionConfig, regionConfig, regionSpecificConfig }
 }
 ```
 
 **Usage in region files (~24 lines each):**
 ```typescript
+import { MAINLAND_PORTUGAL, PORTUGAL_ALL_TERRITORIES, PORTUGAL_OVERSEAS } from '@/data/territories'
 import config from '../../../configs/portugal.json'
 import { createRegionConfigExports } from './adapter'
-import { MAINLAND_PORTUGAL, PORTUGAL_OVERSEAS, PORTUGAL_ALL_TERRITORIES } from '@/data/territories'
 
 const exports = createRegionConfigExports(config, {
   mainland: MAINLAND_PORTUGAL,
@@ -171,6 +172,7 @@ export const PORTUGAL_TERRITORY_MODES = exports.territoryModes
    ```javascript
    import config from '../../configs/new-region.json' with { type: 'json' }
    import { createBackendConfig } from './adapter.js'
+
    export default createBackendConfig(config)
    ```
 
@@ -178,6 +180,7 @@ export const PORTUGAL_TERRITORY_MODES = exports.territoryModes
    ```typescript
    import config from '../../../configs/new-region.json'
    import { createTerritoryExports } from './adapter'
+
    const { mainland, overseas, all } = createTerritoryExports(config)
    export const MAINLAND_NEW = mainland
    export const NEW_OVERSEAS = overseas
@@ -186,9 +189,10 @@ export const PORTUGAL_TERRITORY_MODES = exports.territoryModes
 
 4. **Region config** (`src/config/regions/new-region.config.ts`, ~24 lines):
    ```typescript
+   import { MAINLAND_NEW, NEW_ALL, NEW_OVERSEAS } from '@/data/territories'
    import config from '../../../configs/new-region.json'
    import { createRegionConfigExports } from './adapter'
-   import { MAINLAND_NEW, NEW_OVERSEAS, NEW_ALL } from '@/data/territories'
+
    const exports = createRegionConfigExports(config, { mainland: MAINLAND_NEW, overseas: NEW_OVERSEAS, all: NEW_ALL })
    export const NEW_PROJECTION_PARAMS = exports.projectionParams
    // ... 6 more exports

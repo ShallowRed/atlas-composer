@@ -97,8 +97,8 @@
           },
           "code": {
             "type": "string",
-            "description": "Territory code (e.g., 'PT-CONT', 'PT-20')",
-            "pattern": "^[A-Z]{2}-[A-Z0-9]+$"
+            "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
+            "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
           },
           "name": {
             "type": "string",

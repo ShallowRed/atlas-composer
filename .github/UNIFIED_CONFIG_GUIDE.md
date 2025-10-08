@@ -39,13 +39,13 @@ configs/
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
-  
+
   "metadata": {
     "naturalEarthIds": [620],
     "iso3": "PRT",
     "region": "Europe"
   },
-  
+
   "projection": {
     "center": { "longitude": -8.0, "latitude": 39.5 },
     "rotate": {
@@ -54,7 +54,7 @@ configs/
     },
     "parallels": { "conic": [37, 42] }
   },
-  
+
   "territories": [
     {
       "id": "620",
@@ -89,7 +89,7 @@ configs/
       }
     }
   ],
-  
+
   "modes": [
     {
       "id": "mainland-only",
@@ -102,7 +102,7 @@ configs/
       "territories": ["PT-CONT", "PT-20", "PT-30"]
     }
   ],
-  
+
   "groups": [
     {
       "id": "mainland",
@@ -285,7 +285,7 @@ To migrate an existing country from the old format:
    ```bash
    npm run geodata:generate portugal
    ```
-   
+
 4. **Test** that generated files match the originals functionally
 
 5. **Delete old manual configs** (optional - they're now auto-generated)
@@ -297,10 +297,10 @@ To migrate an existing country from the old format:
 For territories extracted from parent MultiPolygons:
 ```json
 {
-  "id": "620-20",         // Compound ID
+  "id": "620-20", // Compound ID
   "extraction": {
-    "extractFrom": "620",  // Parent territory
-    "polygonIndices": [0]  // Extract polygon 0 from parent
+    "extractFrom": "620", // Parent territory
+    "polygonIndices": [0] // Extract polygon 0 from parent
   }
 }
 ```
