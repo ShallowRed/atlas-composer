@@ -209,19 +209,26 @@ function handleCancelProhibited() {
     </select>
     
     <!-- Recommendation hint for selected projection -->
-    <div
-      v-if="showRecommendations && modelValue && getRecommendation(modelValue)"
-      class="label"
+    <Transition
+      enter-active-class="transition-all duration-200"
+      leave-active-class="transition-all duration-200"
+      enter-from-class="opacity-0 -translate-y-1"
+      leave-to-class="opacity-0 -translate-y-1"
     >
-      <span class="label-text-alt flex items-center gap-1">
-        <span :class="getRecommendationClass(modelValue)">
-          {{ getRecommendationBadge(modelValue) }}
+      <div
+        v-if="showRecommendations && modelValue && getRecommendation(modelValue)"
+        class="label"
+      >
+        <span class="label-text-alt flex items-center gap-1">
+          <span :class="getRecommendationClass(modelValue)">
+            {{ getRecommendationBadge(modelValue) }}
+          </span>
+          <span class="opacity-70">
+            {{ getRecommendationTooltip(modelValue) }}
+          </span>
         </span>
-        <span class="opacity-70">
-          {{ getRecommendationTooltip(modelValue) }}
-        </span>
-      </span>
-    </div>
+      </div>
+    </Transition>
 
     <!-- Validation warning toast -->
     <ToastNotification
@@ -241,3 +248,27 @@ function handleCancelProhibited() {
     />
   </div>
 </template>
+
+<style scoped>
+.select {
+  transition: all 0.2s ease;
+}
+
+.select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Enhance recommendation badges visibility */
+.text-success {
+  font-weight: 600;
+}
+
+.text-info {
+  font-weight: 500;
+}
+
+.text-error {
+  font-style: italic;
+}
+</style>

@@ -3,6 +3,8 @@ import type { ProjectionDefinition } from '@/projections/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { getCategoryIcon, getPropertyIcon } from '@/utils/projection-icons'
+
 interface Props {
   projection: ProjectionDefinition
   showMetadata?: boolean
@@ -42,7 +44,7 @@ const propertyBadges = computed(() => {
   if (props.projection.capabilities.preserves.includes('area')) {
     badges.push({
       label: t('projections.properties.area'),
-      icon: 'ri-shape-line',
+      icon: getPropertyIcon('area'),
       class: 'badge-success',
     })
   }
@@ -50,7 +52,7 @@ const propertyBadges = computed(() => {
   if (props.projection.capabilities.preserves.includes('angle')) {
     badges.push({
       label: t('projections.properties.angle'),
-      icon: 'ri-compass-3-line',
+      icon: getPropertyIcon('angle'),
       class: 'badge-info',
     })
   }
@@ -58,13 +60,16 @@ const propertyBadges = computed(() => {
   if (props.projection.capabilities.isInterrupted) {
     badges.push({
       label: t('projections.properties.interrupted'),
-      icon: 'ri-scissors-cut-line',
+      icon: getPropertyIcon('interrupted'),
       class: 'badge-warning',
     })
   }
   
   return badges
 })
+
+// Get category icon
+const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
 </script>
 
 <template>
@@ -75,7 +80,8 @@ const propertyBadges = computed(() => {
         <h3 class="font-semibold text-base">
           {{ $t(projection.name) }}
         </h3>
-        <p class="text-xs opacity-70">
+        <p class="text-xs opacity-70 flex items-center gap-1">
+          <i :class="categoryIcon" />
           {{ categoryLabel }}
         </p>
       </div>

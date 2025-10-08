@@ -126,14 +126,21 @@ function useRecommendedProjection(territoryCode: string) {
               @update:model-value="(value) => configStore.setTerritoryProjection(mainlandCode, value)"
             />
             <!-- Quick action button to apply best recommendation -->
-            <button
-              v-if="bestRecommendation"
-              class="btn btn-sm btn-primary mt-2"
-              @click="useRecommendedProjection(mainlandCode)"
+            <Transition
+              enter-active-class="transition-all duration-300"
+              leave-active-class="transition-all duration-300"
+              enter-from-class="opacity-0 translate-y-2"
+              leave-to-class="opacity-0 translate-y-2"
             >
-              <i class="ri-magic-line" />
-              {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
-            </button>
+              <button
+                v-if="bestRecommendation"
+                class="btn btn-sm btn-primary mt-2 gap-2"
+                @click="useRecommendedProjection(mainlandCode)"
+              >
+                <i class="ri-magic-line text-lg" />
+                {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+              </button>
+            </Transition>
           </div>
         </div>
       </div>
@@ -162,14 +169,21 @@ function useRecommendedProjection(territoryCode: string) {
               @update:model-value="(value) => configStore.setTerritoryProjection(territory.code, value)"
             />
             <!-- Quick action button to apply best recommendation -->
-            <button
-              v-if="bestRecommendation"
-              class="btn btn-sm btn-primary mt-2"
-              @click="useRecommendedProjection(territory.code)"
+            <Transition
+              enter-active-class="transition-all duration-300"
+              leave-active-class="transition-all duration-300"
+              enter-from-class="opacity-0 translate-y-2"
+              leave-to-class="opacity-0 translate-y-2"
             >
-              <i class="ri-magic-line" />
-              {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
-            </button>
+              <button
+                v-if="bestRecommendation"
+                class="btn btn-sm btn-primary mt-2 gap-2"
+                @click="useRecommendedProjection(territory.code)"
+              >
+                <i class="ri-magic-line text-lg" />
+                {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+              </button>
+            </Transition>
           </div>
 
           <!-- Transform Controls (hidden in split mode) -->
