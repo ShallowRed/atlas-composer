@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
@@ -100,34 +101,13 @@ function resetToDefaults() {
         <div class="collapse-content">
           <!-- Projection Selector -->
           <div class="mb-4">
-            <label class="label">
-              <span class="label-text text-sm font-medium">
-                <i class="ri-map-2-line" />
-                {{ t('projection.cartographic') }}
-              </span>
-            </label>
-            <select
-              :value="configStore.territoryProjections[mainlandCode] || configStore.selectedProjection"
-              class="select select-sm w-full cursor-pointer"
-              @change="(e) => {
-                const projectionType = (e.target as HTMLSelectElement).value
-                configStore.setTerritoryProjection(mainlandCode, projectionType)
-              }"
-            >
-              <optgroup
-                v-for="group in configStore.projectionGroups"
-                :key="group.category"
-                :label="group.category"
-              >
-                <option
-                  v-for="option in group.options"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ $t(option.label) }}
-                </option>
-              </optgroup>
-            </select>
+            <ProjectionSelector
+              :model-value="configStore.territoryProjections[mainlandCode] || configStore.selectedProjection"
+              :label="t('projection.cartographic')"
+              :projection-groups="configStore.projectionGroups"
+              :recommendations="configStore.projectionRecommendations"
+              @update:model-value="(value) => configStore.setTerritoryProjection(mainlandCode, value)"
+            />
           </div>
         </div>
       </div>
@@ -148,34 +128,13 @@ function resetToDefaults() {
         <div class="collapse-content">
           <!-- Projection Selector (always shown in individual mode) -->
           <div v-if="configStore.projectionMode === 'individual'" class="mb-4">
-            <label class="label">
-              <span class="label-text text-sm font-medium">
-                <i class="ri-map-2-line" />
-                {{ t('projection.cartographic') }}
-              </span>
-            </label>
-            <select
-              :value="configStore.territoryProjections[territory.code] || configStore.selectedProjection"
-              class="select select-sm w-full cursor-pointer"
-              @change="(e) => {
-                const projectionType = (e.target as HTMLSelectElement).value
-                configStore.setTerritoryProjection(territory.code, projectionType)
-              }"
-            >
-              <optgroup
-                v-for="group in configStore.projectionGroups"
-                :key="group.category"
-                :label="group.category"
-              >
-                <option
-                  v-for="option in group.options"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ $t(option.label) }}
-                </option>
-              </optgroup>
-            </select>
+            <ProjectionSelector
+              :model-value="configStore.territoryProjections[territory.code] || configStore.selectedProjection"
+              :label="t('projection.cartographic')"
+              :projection-groups="configStore.projectionGroups"
+              :recommendations="configStore.projectionRecommendations"
+              @update:model-value="(value) => configStore.setTerritoryProjection(territory.code, value)"
+            />
           </div>
 
           <!-- Transform Controls (hidden in split mode) -->

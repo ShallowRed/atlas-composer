@@ -5,6 +5,7 @@ import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
 import FormControl from '@/components/ui/FormControl.vue'
+import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
@@ -233,13 +234,13 @@ watch(() => configStore.territoryMode, async () => {
           />
 
           <!-- Uniform Projection Selector (for uniform projection mode) -->
-          <FormControl
+          <ProjectionSelector
             v-show="configStore.showProjectionSelector"
             v-model="configStore.selectedProjection"
             :label="t('projection.cartographic')"
             icon="ri-map-2-line"
-            type="select"
-            :option-groups="configStore.projectionGroups"
+            :projection-groups="configStore.projectionGroups"
+            :recommendations="configStore.projectionRecommendations"
           />
 
           <!-- Scale Preservation (for split mode only) -->
