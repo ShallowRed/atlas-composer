@@ -32,6 +32,7 @@ async function loadBackendConfig(country) {
     const { backend } = await loadConfig(country)
     return backend
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (error) {
     return null
   }
@@ -46,6 +47,7 @@ async function loadGeneratedData(country, resolution = '50m') {
     const content = await fs.readFile(dataPath, 'utf-8')
     return JSON.parse(content)
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (error) {
     return null
   }
@@ -60,6 +62,7 @@ async function loadFrontendConfig(country) {
     const content = await fs.readFile(configPath, 'utf-8')
     return content
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (error) {
     return null
   }
@@ -70,6 +73,7 @@ async function loadFrontendConfig(country) {
  */
 function extractBackendCodes(config) {
   const codes = []
+  // eslint-disable-next-line no-unused-vars
   for (const [_id, territory] of Object.entries(config.territories)) {
     if (territory.code) {
       codes.push(territory.code)

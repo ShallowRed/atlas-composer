@@ -157,6 +157,7 @@ async function analyzeCountry(countryId, resolution) {
   try {
     worldData = await fetchWorldData(resolution)
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (error) {
     logger.error('Failed to fetch world data')
     logger.info('Make sure you have internet connectivity')

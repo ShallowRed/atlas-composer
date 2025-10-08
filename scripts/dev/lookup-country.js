@@ -15,7 +15,7 @@ import { fetchWorldData } from '../utils/ne-data.js'
 /**
  * Calculate bounding box for a polygon ring
  * @param {number[][]} ring - Array of [lon, lat] coordinates
- * @returns {{minLon: number, maxLon: number, minLat: number, maxLat: number}}
+ * @returns {{minLon: number, maxLon: number, minLat: number, maxLat: number}} Bounds
  */
 function calculateBounds(ring) {
   if (!ring || ring.length === 0) {
@@ -41,7 +41,7 @@ function calculateBounds(ring) {
 /**
  * Format bounds for friendly display
  * @param {{minLon: number, maxLon: number, minLat: number, maxLat: number}} bounds
- * @returns {string}
+ * @returns {string} Formatted bounds
  */
 function formatBounds(bounds) {
   return `lon [${bounds.minLon.toFixed(2)}, ${bounds.maxLon.toFixed(2)}], lat [${bounds.minLat.toFixed(2)}, ${bounds.maxLat.toFixed(2)}]`
@@ -51,7 +51,7 @@ function formatBounds(bounds) {
  * Calculate polygon statistics used in analysis
  * @param {number[][][]} polygon - MultiPolygon polygon (array of rings)
  * @param {number} index
- * @returns {object}
+ * @returns {object} Polygon stats
  */
 function getPolygonStats(polygon, index) {
   const firstRing = polygon[0] || []
@@ -77,7 +77,7 @@ function getPolygonStats(polygon, index) {
  * Distance between two centers in degrees
  * @param {{lon: number, lat: number}} a
  * @param {{lon: number, lat: number}} b
- * @returns {number}
+ * @returns {number} Distance in degrees
  */
 function distanceBetweenCenters(a, b) {
   return Math.hypot((a.lon ?? 0) - (b.lon ?? 0), (a.lat ?? 0) - (b.lat ?? 0))

@@ -1,31 +1,8 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-- [x] Verify that the copilot-instructions.md file in the .github directory is created.
-
 - [x] Clarify Project Requirements
-	<!-- Project: Cartographie de la France avec territoires ultramarins utilisant Observable Plot et Notebook Kit, avec préservation des rapports de taille et projections géographiques avancées -->
-
-- [x] Scaffold the Project
-	<!-- Project scaffolded by user with Vite and TypeScript -->
-
-- [x] Customize the Project
-	<!-- 
-	Verify that all previous steps have been completed successfully and you have marked the step as completed.
-	Develop a plan to modify codebase according to user requirements.
-	Apply modifications using appropriate tools and user-provided references.
-	Skip this step for "Hello World" projects.
-	-->
-
-- [x] Install Required Extensions
-	<!-- No extensions needed -->
-
-- [x] Compile the Project
-	<!-- Project compiled successfully with TypeScript and Vite -->
-
-- [x] Create and Run Task
-	<!-- Dev server task created and running on localhost:5173 -->
-
-- [x] Launch the Project
-	<!-- Project launched and accessible at http://localhost:5173 -->
+	<!--
+    Project: Une interface web simple pour tester différentes projections géographiques, notamment composites et personnalisées.
+    Technologies: TypeScript, Vite, D3.js, ObservablePlot
+  -->
 
 - [x] Ensure Documentation is Complete
 	<!-- README.md created with comprehensive documentation -->
