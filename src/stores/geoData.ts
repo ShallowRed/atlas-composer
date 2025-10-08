@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'
-import { Cartographer } from '@/services/cartographer'
+import { Cartographer } from '@/services/cartographer-service' // Updated import path
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {

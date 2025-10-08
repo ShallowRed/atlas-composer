@@ -9,7 +9,7 @@ import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
-import { PROJECTION_OPTIONS } from '@/services/projections'
+import { PROJECTION_OPTIONS } from '@/services/projection-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 

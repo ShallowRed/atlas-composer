@@ -11,9 +11,11 @@ const outDir = path.resolve(__dirname, 'dist')
 
 export default defineConfig(env => ({
   root: srcDir,
+  publicDir: path.resolve(srcDir, 'public'),
   base: env.mode === 'production' ? '/atlas-composer/' : '/',
   build: {
     outDir,
+    emptyOutDir: true,
   },
   plugins: [
     vue(),

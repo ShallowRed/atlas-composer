@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/cartographer'
+import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/cartographer-service'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'

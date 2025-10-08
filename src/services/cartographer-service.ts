@@ -2,8 +2,8 @@ import type { CompositeProjectionConfig } from '@/services/composite-projection'
 import type { GeoDataConfig } from '@/types/territory'
 import * as Plot from '@observablehq/plot'
 import { CompositeProjection } from '@/services/composite-projection'
-import { GeoDataService } from '@/services/geo-data'
-import { ProjectionService } from '@/services/projections'
+import { GeoDataService } from '@/services/geo-data-service'
+import { ProjectionService } from '@/services/projection-service'
 import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
 // Unified rendering options
 export interface RenderOptions {
