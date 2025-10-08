@@ -391,17 +391,17 @@ Add `projectionPreferences` object to schema with:
 - [ ] **2.2.6** Test composite projection updates with new factory
 
 #### Task 2.3: Update Config Store
-- [ ] **2.3.1** Import `projectionRegistry` in `src/stores/config.ts`
-- [ ] **2.3.2** Update `projectionGroups` computed property to use registry
-- [ ] **2.3.3** Add projection filtering by atlas context
-- [ ] **2.3.4** Update projection initialization logic
-- [ ] **2.3.5** Add projection validation in setters
-- [ ] **2.3.6** Keep backward compatibility with existing projection strings
+- [x] **2.3.1** Import `projectionRegistry` in `src/stores/config.ts`
+- [x] **2.3.2** Update `projectionGroups` computed property to use registry
+- [x] **2.3.3** Add projection filtering by atlas context
+- [x] **2.3.4** Update projection initialization logic
+- [x] **2.3.5** Add projection validation in setters
+- [x] **2.3.6** Keep backward compatibility with existing projection strings
 
 #### Task 2.4: Update MapRenderer
-- [ ] **2.4.1** Verify `MapRenderer.vue` works with refactored services
-- [ ] **2.4.2** Update projection prop validation if needed
-- [ ] **2.4.3** Test all view modes (split, composite-custom, composite-existing, unified)
+- [x] **2.4.1** Verify `MapRenderer.vue` works with refactored services
+- [x] **2.4.2** Update projection prop validation if needed
+- [x] **2.4.3** Test all view modes (split, composite-custom, composite-existing, unified)
 
 #### Task 2.5: Update Cartographer Service
 - [ ] **2.5.1** Verify `cartographer-service.ts` works with new ProjectionService
@@ -423,41 +423,41 @@ Add `projectionPreferences` object to schema with:
 ### Phase 3: Atlas-Specific Configuration ⭐
 
 #### Task 3.1: Schema Updates
-- [ ] **3.1.1** Backup `configs/schema.json`
-- [ ] **3.1.2** Add `projectionPreferences` object to schema
-- [ ] **3.1.3** Add `projectionPreferences.recommended` array
-- [ ] **3.1.4** Add `projectionPreferences.default` object with mainland/overseas
-- [ ] **3.1.5** Add `projectionPreferences.prohibited` array
-- [ ] **3.1.6** Add descriptions and examples to schema
-- [ ] **3.1.7** Validate schema with JSON Schema validator
+- [x] **3.1.1** Backup `configs/schema.json`
+- [x] **3.1.2** Add `projectionPreferences` object to schema
+- [x] **3.1.3** Add `projectionPreferences.recommended` array
+- [x] **3.1.4** Add `projectionPreferences.default` object with mainland/overseas
+- [x] **3.1.5** Add `projectionPreferences.prohibited` array
+- [x] **3.1.6** Add descriptions and examples to schema
+- [x] **3.1.7** Validate schema with JSON Schema validator
 
 #### Task 3.2: Update Atlas Configs
-- [ ] **3.2.1** Update `configs/france.json` with projection preferences
-  - [ ] Add recommended projections for France
-  - [ ] Set default mainland projection
-  - [ ] Set default overseas projection
-  - [ ] Add any prohibited projections
-- [ ] **3.2.2** Update `configs/portugal.json` with projection preferences
-  - [ ] Add recommended projections for Portugal
-  - [ ] Set default projections
-- [ ] **3.2.3** Update `configs/eu.json` with projection preferences (if exists)
-  - [ ] Add recommended projections for EU
-  - [ ] Set default projections
-- [ ] **3.2.4** Validate all configs against updated schema
+- [x] **3.2.1** Update `configs/france.json` with projection preferences
+  - [x] Add recommended projections for France
+  - [x] Set default mainland projection
+  - [x] Set default overseas projection
+  - [x] Add any prohibited projections
+- [x] **3.2.2** Update `configs/portugal.json` with projection preferences
+  - [x] Add recommended projections for Portugal
+  - [x] Set default projections
+- [x] **3.2.3** Update `configs/eu.json` with projection preferences (if exists)
+  - [x] Add recommended projections for EU
+  - [x] Set default projections
+- [x] **3.2.4** Validate all configs against updated schema
 
 #### Task 3.3: Update Config Loader
-- [ ] **3.3.1** Update `src/core/atlases/loader.ts` to read projection preferences
-- [ ] **3.3.2** Add projection preferences to `AtlasSpecificConfig` interface
-- [ ] **3.3.3** Transform projection preferences in `loadAtlasConfig()`
-- [ ] **3.3.4** Update TypeScript types in `src/types/territory.d.ts`
-- [ ] **3.3.5** Test config loading with new preferences
+- [x] **3.3.1** Update `src/core/atlases/loader.ts` to read projection preferences
+- [x] **3.3.2** Add projection preferences to `AtlasSpecificConfig` interface
+- [x] **3.3.3** Transform projection preferences in `loadAtlasConfig()`
+- [x] **3.3.4** Update TypeScript types in `src/types/territory.d.ts`
+- [x] **3.3.5** Test config loading with new preferences
 
-#### Task 3.4: Update Atlas Service
-- [ ] **3.4.1** Add `getProjectionPreferences()` method to `AtlasService`
-- [ ] **3.4.2** Add `getRecommendedProjections()` method
-- [ ] **3.4.3** Add `getDefaultProjection(territoryType)` method
-- [ ] **3.4.4** Add `isProjectionProhibited(projectionId)` method
-- [ ] **3.4.5** Update registry filtering to respect atlas preferences
+#### Task 3.4: Update Atlas Service  
+- [x] **3.4.1** Add `getProjectionPreferences()` method to `AtlasService` (via registry)
+- [x] **3.4.2** Add `getRecommendedProjections()` method (via registry)
+- [x] **3.4.3** Add `getDefaultProjection(territoryType)` method (via registry)
+- [x] **3.4.4** Add `isProjectionProhibited(projectionId)` method (via registry)
+- [x] **3.4.5** Update registry filtering to respect atlas preferences
 
 #### Task 3.5: Testing Phase 3
 - [ ] **3.5.1** Test config loading with projection preferences
