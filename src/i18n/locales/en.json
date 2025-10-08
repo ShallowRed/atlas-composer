@@ -36,7 +36,10 @@
       "betterOptionsAvailable": "Better projection options are available",
       "notSuitable": "Not suitable for this atlas",
       "alternatives": "Consider using: {projections}",
-      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?"
+      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?",
+      "warningTitle": "Projection Warning",
+      "suggestedAlternatives": "Suggested alternatives:",
+      "useAnyway": "Use Anyway"
     }
   },
   "mode": {

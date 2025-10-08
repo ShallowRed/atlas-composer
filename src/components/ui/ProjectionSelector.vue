@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ProjectionRecommendation } from '@/projections/types'
+import type { ProjectionDefinition, ProjectionRecommendation } from '@/projections/types'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import ProjectionConfirmDialog from '@/components/ui/ProjectionConfirmDialog.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import { useProjectionValidation } from '@/composables/useProjectionValidation'
 import { projectionRegistry } from '@/projections/registry'
@@ -101,18 +102,28 @@ const { validateProjection, formatAlternatives } = useProjectionValidation()
 const validationMessage = ref<string | null>(null)
 const validationSeverity = ref<'error' | 'warning' | 'info'>('info')
 
+// Confirmation dialog state
+const confirmDialogProjection = ref<ProjectionDefinition | null>(null)
+const confirmDialogMessage = ref('')
+const confirmDialogAlternatives = ref<ProjectionDefinition[]>([])
+const previousProjectionId = ref<string | undefined>(props.modelValue)
+
 // Watch for projection changes and validate
-watch(localValue, (newProjectionId) => {
+watch(localValue, (newProjectionId, oldProjectionId) => {
   if (!newProjectionId || !props.recommendations) {
     validationMessage.value = null
+    confirmDialogProjection.value = null
     return
   }
 
   const projection = projectionRegistry.get(newProjectionId)
   if (!projection) {
     validationMessage.value = null
+    confirmDialogProjection.value = null
     return
   }
+
+  previousProjectionId.value = oldProjectionId
 
   const result = validateProjection(projection, {
     atlasId: configStore.selectedAtlas,
@@ -120,28 +131,49 @@ watch(localValue, (newProjectionId) => {
     recommendations: props.recommendations,
   })
 
-  if (result.severity === 'error' || result.severity === 'warning') {
+  // Show confirmation dialog for prohibited projections (errors)
+  if (result.severity === 'error' && result.requiresConfirmation) {
+    confirmDialogProjection.value = projection
+    confirmDialogMessage.value = result.message
+    confirmDialogAlternatives.value = result.alternatives || []
+    validationMessage.value = null
+  }
+  // Show warning toast for poor/low suitability projections
+  else if (result.severity === 'warning') {
     validationSeverity.value = result.severity
     let message = result.message
     if (result.alternatives && result.alternatives.length > 0) {
       message = `${message}. ${formatAlternatives(result.alternatives)}`
     }
     validationMessage.value = message
+    confirmDialogProjection.value = null
     
     // Auto-hide warnings after 5 seconds
-    if (result.severity === 'warning') {
-      setTimeout(() => {
-        validationMessage.value = null
-      }, 5000)
-    }
+    setTimeout(() => {
+      validationMessage.value = null
+    }, 5000)
   }
   else {
     validationMessage.value = null
+    confirmDialogProjection.value = null
   }
 })
 
 function closeValidationMessage() {
   validationMessage.value = null
+}
+
+function handleConfirmProhibited() {
+  // User confirmed, keep the prohibited projection
+  confirmDialogProjection.value = null
+}
+
+function handleCancelProhibited() {
+  // User cancelled, revert to previous projection
+  if (previousProjectionId.value) {
+    emit('update:modelValue', previousProjectionId.value)
+  }
+  confirmDialogProjection.value = null
 }
 </script>
 
@@ -197,6 +229,15 @@ function closeValidationMessage() {
       :type="validationSeverity"
       position="top-end"
       @close="closeValidationMessage"
+    />
+
+    <!-- Confirmation dialog for prohibited projections -->
+    <ProjectionConfirmDialog
+      :projection="confirmDialogProjection"
+      :message="confirmDialogMessage"
+      :alternatives="confirmDialogAlternatives"
+      @confirm="handleConfirmProhibited"
+      @cancel="handleCancelProhibited"
     />
   </div>
 </template>
