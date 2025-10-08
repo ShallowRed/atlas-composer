@@ -3,122 +3,87 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import CardContainer from '@/components/ui/CardContainer.vue'
-import SectionHeader from '@/components/ui/SectionHeader.vue'
 
 const { t } = useI18n()
 </script>
 
 <template>
-  <div class="container mx-auto py-8 max-w-4xl">
-    <div class="flex flex-col gap-6">
-      <!-- Introduction -->
-      <CardContainer
-        :title="t('about.pageTitle')"
-        icon="ri-map-2-line"
-      >
-        <div class="prose max-w-none space-y-4">
+  <div class="flex flex-col gap-6">
+    <!-- Introduction -->
+    <!-- <CardContainer
+      :title="t('about.pageTitle')"
+      icon="ri-map-2-line"
+    >
+      <div class="prose max-w-none">
+        <p class="text-xl">
+          {{ t('about.intro') }}
+        </p>
+      </div>
+    </CardContainer> -->
+    <div class="hero">
+      <div class="hero-content text-center">
+        <div class="max-w-2xl">
+          <h1 class="text-4xl font-bold mb-4">
+            {{ t('about.title') }}
+          </h1>
           <p class="text-lg">
             {{ t('about.intro') }}
           </p>
         </div>
-      </CardContainer>
-
-      <!-- The Problem -->
+      </div>
+    </div>
+    <div class="grid gap-6 md:grid-cols-3">
+      <!-- Why this tool -->
       <CardContainer
-        :title="t('about.challenge.title')"
-        icon="ri-error-warning-line"
+        :title="t('about.why.title')"
+        icon="ri-lightbulb-line"
       >
-        <div class="prose max-w-none space-y-4">
+        <div class="prose max-w-none text-lg">
           <p>
-            {{ t('about.challenge.description1') }}
-          </p>
-
-          <p>
-            {{ t('about.challenge.description2') }}
-          </p>
-          <p>
-            {{ t('about.challenge.description3') }}
+            {{ t('about.why.description') }}
           </p>
         </div>
       </CardContainer>
 
-      <!-- The Solution -->
+      <!-- Features -->
       <CardContainer
-        :title="t('about.solution.title')"
-        icon="ri-compass-3-line"
+        :title="t('about.features.title')"
+        icon="ri-list-check"
       >
-        <div class="prose max-w-none space-y-4">
-          <p>
-            {{ t('about.solution.description') }}
-          </p>
-
-          <SectionHeader
-            :title="t('about.solution.modesTitle')"
-            :level="3"
-          />
-
-          <ul class="list-disc pl-6 space-y-2">
-            <li>
-              {{ t('about.features.compositeExisting') }}
-            </li>
-            <li>
-              {{ t('about.features.compositeCustom') }}
-            </li>
-            <li>
-              {{ t('about.features.split') }}
-            </li>
-            <li>
-              {{ t('about.features.unified') }}
-            </li>
+        <div class="prose max-w-none">
+          <ul class="list-disc pl-6 space-y-2 text-lg">
+            <li>{{ t('about.features.compositeExisting') }}</li>
+            <li>{{ t('about.features.compositeCustom') }}</li>
+            <li>{{ t('about.features.split') }}</li>
+            <li>{{ t('about.features.unified') }}</li>
           </ul>
         </div>
       </CardContainer>
 
-      <!-- Regions -->
+      <!-- Atlases -->
       <CardContainer
         :title="t('about.atlases.title')"
         icon="ri-global-line"
       >
-        <div class="prose max-w-none">
+        <div class="prose max-w-none text-lg">
           <ul class="list-disc pl-6 space-y-2">
-            <li>
-              {{ t('about.atlases.france') }}
-            </li>
-            <li>
-              {{ t('about.atlases.portugal') }}
-            </li>
-            <li>
-              {{ t('about.atlases.eu') }}
-            </li>
+            <li>{{ t('about.atlases.france') }}</li>
+            <li>{{ t('about.atlases.portugal') }}</li>
+            <li>{{ t('about.atlases.eu') }}</li>
           </ul>
         </div>
       </CardContainer>
+    </div>
 
-      <!-- Stack -->
-      <CardContainer
-        :title="t('about.technologies.title')"
-        icon="ri-code-box-line"
+    <!-- CTA -->
+    <div class="text-center py-6">
+      <RouterLink
+        to="/"
+        class="btn btn-primary btn-lg"
       >
-        <div class="prose max-w-none">
-          <ul class="list-disc pl-6 space-y-2 text-sm">
-            <li>{{ t('about.technologies.d3') }}</li>
-            <li>{{ t('about.technologies.plot') }}</li>
-            <li>{{ t('about.technologies.vue') }}</li>
-            <li>{{ t('about.technologies.topojson') }}</li>
-          </ul>
-        </div>
-      </CardContainer>
-
-      <!-- CTA -->
-      <div class="text-center py-6">
-        <RouterLink
-          to="/"
-          class="btn btn-primary btn-lg"
-        >
-          <i class="ri-flask-line" />
-          {{ t('about.cta') }}
-        </RouterLink>
-      </div>
+        <i class="ri-flask-line" />
+        {{ t('about.cta') }}
+      </RouterLink>
     </div>
   </div>
 </template>

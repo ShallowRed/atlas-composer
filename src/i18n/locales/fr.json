@@ -84,41 +84,31 @@
     "import": "Importer"
   },
   "about": {
-    "title": "À propos du Composeur d'Atlas",
-    "pageTitle": "À propos du Composeur d'Atlas",
-    "intro": "Un bac à sable pour expérimenter avec les projections géographiques composites, permettant de représenter des territoires éloignés avec des rapports de taille préservés.",
-    "challenge": {
-      "title": "Le défi cartographique",
-      "description1": "Représenter sur une même carte un pays et ses territoires dispersés géographiquement pose un défi : comment afficher ensemble des zones séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ?",
-      "description2": "La solution classique utilise des encarts repositionnés : la projection Albers USA, par exemple, intègre l'Alaska et Hawaï dans des cadres déplacés près du continent américain.",
-      "description3": "Contrairement aux États-Unis, la France ne dispose pas de projection composite standardisée pour visualiser ensemble la métropole et les départements/collectivités d'outre-mer (Antilles, Guyane, océan Indien, Pacifique) avec des proportions et positionnements cohérents."
-    },
-    "solution": {
-      "title": "L'approche : projections composites interactives",
-      "description": "Ce projet exploite les capacités de D3.js pour créer des projections composites interactives, en s'inspirant des recherches de Roger Veciana via la bibliothèque d3-composite-projections.",
-      "modesTitle": "Quatre modes de visualisation"
+    "title": "À propos",
+    "pageTitle": "À propos",
+    "intro": "Le composeur d'atlas est un outil interactif pour visualiser des pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
+    "why": {
+      "title": "Pourquoi cet outil ?",
+      "description": "Afficher un pays et ses territoires distants sur une même carte est un défi cartographique. Comment représenter des régions séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ? Cet outil explore différentes solutions en utilisant des projections composites, à l'image de la projection Albers USA qui affiche l'Alaska et Hawaï aux côtés des États-Unis continentaux."
     },
     "features": {
-      "title": "Fonctionnalités principales",
-      "compositeExisting": "Composite existante : Applique des projections géographiques professionnelles (France, Portugal, Europe) déjà paramétrées et validées",
-      "compositeCustom": "Composite personnalisée : Construisez votre propre assemblage en contrôlant finement la position, l'orientation et l'échelle de chaque région",
-      "split": "Vues séparées : Affiche chaque territoire dans sa propre projection, en respectant les proportions géographiques réelles",
-      "unified": "Vue unifiée : Rassemble tous les territoires dans une projection unique (pour observer les distorsions)"
+      "title": "Fonctionnalités",
+      "compositeExisting": "Appliquer des projections composites préconfigurées de d3-composite-projections",
+      "compositeCustom": "Créer des compositions personnalisées en positionnant chaque territoire individuellement",
+      "split": "Voir chaque territoire avec sa propre projection",
+      "unified": "Afficher tous les territoires dans une projection globale unique"
     },
     "atlases": {
-      "title": "Régions supportées",
-      "france": "France : Métropole + DOM-TOM (Guadeloupe, Martinique, Guyane, Réunion, Mayotte, Saint-Pierre-et-Miquelon, Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna, Polynésie française, Nouvelle-Calédonie)",
-      "portugal": "Portugal : Continental + Régions autonomes (Açores, Madère)",
-      "eu": "Union Européenne : 27 états membres avec projection composite Europe"
+      "title": "Atlas disponibles",
+      "france": "France (métropole + territoires d'outre-mer)",
+      "portugal": "Portugal (continental + Açores, Madère)",
+      "eu": "Union Européenne (27 états membres)"
     },
     "technologies": {
-      "title": "Technologies",
-      "d3": "D3.js + d3-composite-projections : Projections géographiques avancées",
-      "plot": "Observable Plot : Rendu des visualisations cartographiques",
-      "vue": "Vue 3 + TypeScript : Interface réactive et typée",
-      "topojson": "TopoJSON : Données géographiques optimisées (Natural Earth, OpenStreetMap)"
+      "title": "Construit avec",
+      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
     },
-    "cta": "Expérimenter avec les projections",
+    "cta": "Commencer l'exploration",
     "footer": {
       "title": "Composeur d'Atlas",
       "built": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",

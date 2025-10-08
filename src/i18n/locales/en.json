@@ -84,41 +84,31 @@
     "import": "Import"
   },
   "about": {
-    "title": "About Atlas Composer",
-    "pageTitle": "About Atlas Composer",
-    "intro": "A sandbox to experiment with composite geographic projections, allowing representation of distant territories with preserved size ratios.",
-    "challenge": {
-      "title": "The cartographic challenge",
-      "description1": "Representing a country and its geographically scattered territories on the same map poses a challenge: how to display together areas separated by thousands of kilometers while maintaining visual coherence?",
-      "description2": "The classic solution uses repositioned insets: the Albers USA projection, for example, integrates Alaska and Hawaii in frames moved near the American continent.",
-      "description3": "Unlike the United States, France does not have a standardized composite projection to visualize together the mainland and the overseas departments/collectivities (Caribbean, Guiana, Indian Ocean, Pacific) with coherent proportions and positioning."
-    },
-    "solution": {
-      "title": "The approach: interactive composite projections",
-      "description": "This project leverages D3.js capabilities to create interactive composite projections, inspired by Roger Veciana's research via the d3-composite-projections library.",
-      "modesTitle": "Four visualization modes"
+    "title": "About",
+    "pageTitle": "About",
+    "intro": "Atlas composer is an interactive tool for visualizing countries with geographically-scattered territories using composite projections.",
+    "why": {
+      "title": "Why this tool?",
+      "description": "Displaying a country and its distant territories on the same map is a cartographic challenge. How do you show regions separated by thousands of kilometers while maintaining visual coherence? This tool explores different solutions using composite projections, similar to how the Albers USA projection displays Alaska and Hawaii alongside the continental United States."
     },
     "features": {
-      "title": "Key features",
-      "compositeExisting": "Existing composite: Apply professional geographic projections (France, Portugal, Europe) already configured and validated",
-      "compositeCustom": "Custom composite: Build your own assembly by precisely controlling the position, orientation, and scale of each region",
-      "split": "Separate views: Display each territory in its own projection, respecting real geographic proportions",
-      "unified": "Unified view: Brings all territories together in a single projection (to observe distortions)"
+      "title": "Features",
+      "compositeExisting": "Apply pre-configured composite projections from d3-composite-projections",
+      "compositeCustom": "Build custom layouts by positioning each territory individually",
+      "split": "View each territory with its own projection",
+      "unified": "Display all territories in a single global projection"
     },
     "atlases": {
-      "title": "Supported regions",
-      "france": "France: Mainland + overseas departments and territories (Guadeloupe, Martinique, French Guiana, Réunion, Mayotte, Saint-Pierre-et-Miquelon, Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna, French Polynesia, New Caledonia)",
-      "portugal": "Portugal: Continental + autonomous regions (Azores, Madeira)",
-      "eu": "European Union: 27 member states with composite Europe projection"
+      "title": "Available atlases",
+      "france": "France (mainland + overseas territories)",
+      "portugal": "Portugal (continental + Azores, Madeira)",
+      "eu": "European Union (27 member states)"
     },
     "technologies": {
-      "title": "Technologies",
-      "d3": "D3.js + d3-composite-projections: Advanced geographic projections",
-      "plot": "Observable Plot: Cartographic visualization rendering",
-      "vue": "Vue 3 + TypeScript: Reactive and typed interface",
-      "topojson": "TopoJSON: Optimized geographic data (Natural Earth, OpenStreetMap)"
+      "title": "Built with",
+      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
     },
-    "cta": "Experiment with projections",
+    "cta": "Start exploring",
     "footer": {
       "title": "Atlas Composer",
       "built": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
