@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/Cartographer'
+import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/cartographer'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -175,7 +175,7 @@ async function renderComposite(): Promise<Plot.Plot> {
   let customSettings
   if (configStore.viewMode === 'composite-custom') {
     // Get territory codes from the current region's composite config
-    const compositeConfig = configStore.currentRegionConfig.compositeProjectionConfig
+    const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
     const territoryCodes: string[] = []
 
     if (compositeConfig) {

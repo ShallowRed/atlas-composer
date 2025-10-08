@@ -34,10 +34,10 @@ export interface GeoDataConfig {
 }
 
 /**
- * Complete region configuration
- * Defines all settings for a geographic region (France, EU, etc.)
+ * Complete atlas configuration
+ * Defines all settings for a geographic atlas (France, EU, etc.)
  */
-export interface RegionConfig {
+export interface AtlasConfig {
   id: string // Unique identifier (e.g., 'france', 'eu')
   name: string // Display name (e.g., 'France', 'European Union')
   geoDataConfig: GeoDataConfig // Data loading configuration
@@ -55,12 +55,12 @@ export interface RegionConfig {
     territoryTranslations: Record<string, { x: number, y: number }>
     territoryScales: Record<string, number>
   } // Default configuration for composite-custom mode
-  compositeProjections?: string[] // Built-in D3 composite projections available for this region (e.g., ['conic-conformal-france'])
+  compositeProjections?: string[] // Built-in D3 composite projections available for this atlas (e.g., ['conic-conformal-france'])
   defaultCompositeProjection?: string // Default composite projection to use
   compositeProjectionConfig?: {
     mainland: TerritoryConfig
     overseasTerritories: TerritoryConfig[]
-  } // Configuration for CustomCompositeProjection class
+  } // Configuration for CompositeProjection class
   hasTerritorySelector?: boolean // Whether to show the territory selector
 }
 

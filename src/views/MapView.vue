@@ -7,8 +7,8 @@ import FormControl from '@/components/ui/FormControl.vue'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
-import { getAvailableRegions } from '@/core/regions/registry'
-import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
+import { getAvailableAtlases } from '@/core/atlases/registry'
+import { PROJECTION_OPTIONS } from '@/services/projections'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -42,8 +42,8 @@ async function withMinLoadingTime<T>(fn: () => Promise<T>): Promise<T> {
 // Computed
 const compositeProjectionOptions = computed(() => {
   // Get the current region's available composite projections
-  const regionConfig = configStore.currentRegionConfig
-  const availableProjections = regionConfig.compositeProjections || []
+  const atlasConfig = configStore.currentAtlasConfig
+  const availableProjections = atlasConfig.compositeProjections || []
 
   // Filter PROJECTION_OPTIONS to only show projections available for this region
   return PROJECTION_OPTIONS
@@ -55,8 +55,8 @@ const compositeProjectionOptions = computed(() => {
 })
 
 const viewModeOptions = computed(() => {
-  const regionConfig = configStore.currentRegionConfig
-  const supportedModes = regionConfig.supportedViewModes || []
+  const atlasConfig = configStore.currentAtlasConfig
+  const supportedModes = atlasConfig.supportedViewModes || []
 
   // All possible view mode options
   const allOptions = [
@@ -140,7 +140,7 @@ watch(() => configStore.viewMode, async (newMode) => {
 })
 
 // Watch for region changes to reinitialize data
-watch(() => configStore.selectedRegion, async () => {
+watch(() => configStore.selectedAtlas, async () => {
   try {
     await withMinLoadingTime(async () => {
       await geoDataStore.reinitialize()
@@ -190,11 +190,11 @@ watch(() => configStore.territoryMode, async () => {
 
           <!-- Region Selector -->
           <FormControl
-            v-model="configStore.selectedRegion"
+            v-model="configStore.selectedAtlas"
             label="Région"
             icon="ri-earth-line"
             type="select"
-            :options="getAvailableRegions()"
+            :options="getAvailableAtlases()"
           />
 
           <!-- Main View Mode Selector -->
@@ -250,12 +250,12 @@ watch(() => configStore.territoryMode, async () => {
 
           <!-- Territory Selection (for composite modes) -->
           <FormControl
-            v-show="configStore.showTerritorySelector && configStore.currentRegionConfig?.hasTerritorySelector"
+            v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
             v-model="configStore.territoryMode"
             label="Territoires à inclure"
             icon="ri-map-pin-range-line"
             type="select"
-            :options="configStore.currentRegionConfig?.territoryModeOptions || []"
+            :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
           />
         </div>
       </CardContainer>
@@ -289,11 +289,11 @@ watch(() => configStore.territoryMode, async () => {
             active-mode="split"
           >
             <!-- France: Mainland + Overseas split layout -->
-            <div v-if="configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0" class="flex flex-row gap-12">
+            <div v-if="configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0" class="flex flex-row gap-12">
               <!-- Metropolitan France -->
               <div>
                 <SectionHeader
-                  :title="configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland'"
+                  :title="configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland'"
                   icon="ri-map-pin-line"
                   :level="3"
                 />
@@ -308,7 +308,7 @@ watch(() => configStore.territoryMode, async () => {
 
               <div>
                 <SectionHeader
-                  :title="configStore.currentRegionConfig.splitModeConfig?.territoriesTitle || 'Territories'"
+                  :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
                   icon="ri-earth-line"
                   :level="3"
                 />
@@ -360,7 +360,7 @@ watch(() => configStore.territoryMode, async () => {
             <!-- EU / Other regions: All territories in a single grid -->
             <div v-else>
               <SectionHeader
-                :title="configStore.currentRegionConfig.splitModeConfig?.territoriesTitle || 'Territories'"
+                :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
                 icon="ri-earth-line"
                 :level="3"
               />

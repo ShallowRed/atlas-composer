@@ -37,7 +37,7 @@ export interface CompositeProjectionConfig {
  * Custom composite projection that allows individual projections per territory
  * with manual positioning (insets)
  */
-export class CustomCompositeProjection {
+export class CompositeProjection {
   private subProjections: SubProjectionConfig[] = []
   private compositeProjection: GeoProjection | null = null
   private config: CompositeProjectionConfig

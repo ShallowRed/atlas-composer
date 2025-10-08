@@ -3,7 +3,7 @@
  * Pure functions for territory coloring based on DaisyUI theme colors
  */
 
-import { isMainlandTerritory } from '@/core/regions/utils'
+import { isMainlandTerritory } from '@/core/atlases/utils'
 
 export function getTerritoryFillColor(
   code: string | undefined,

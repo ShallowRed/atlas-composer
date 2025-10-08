@@ -8,8 +8,8 @@
  * - Proper cleanup when switching regions
  */
 
-import { getRegionConfig } from '@/core/regions/registry'
-import { Cartographer } from '@/services/Cartographer'
+import { getAtlasConfig } from '@/core/atlases/registry'
+import { Cartographer } from '@/services/cartographer'
 
 export class CartographerFactory {
   private static instances = new Map<string, Cartographer>()
@@ -25,7 +25,7 @@ export class CartographerFactory {
     }
 
     // Get region configuration
-    const regionConfig = getRegionConfig(regionId)
+    const regionConfig = getAtlasConfig(regionId)
 
     // Create new Cartographer instance with region-specific config
     const cartographer = new Cartographer(

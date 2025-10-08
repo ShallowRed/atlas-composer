@@ -1,18 +1,18 @@
 /**
  * Unified Config Loader
- * Adapter to transform shared JSON configs into complete region configurations
+ * Adapter to transform shared JSON configs into complete atlas configurations
  */
 
 import type {
+  AtlasConfig,
   GeoDataConfig,
-  RegionConfig,
   TerritoryConfig,
   TerritoryGroupConfig,
   TerritoryModeConfig,
 } from '@/types/territory'
 
 /**
- * Projection parameters for a region
+ * Projection parameters for an atlas
  */
 export interface ProjectionParams {
   center: {
@@ -38,9 +38,9 @@ export interface CompositeProjectionDefaults {
 }
 
 /**
- * Region-specific configuration
+ * Atlas-specific configuration
  */
-export interface RegionSpecificConfig {
+export interface AtlasSpecificConfig {
   projectionParams: ProjectionParams
   territoryModes: Record<string, TerritoryModeConfig>
   territoryGroups?: Record<string, TerritoryGroupConfig>
@@ -48,11 +48,11 @@ export interface RegionSpecificConfig {
 }
 
 /**
- * Complete loaded config for a region
+ * Complete loaded config for an atlas
  */
-export interface LoadedRegionConfig {
-  regionConfig: RegionConfig
-  regionSpecificConfig: RegionSpecificConfig
+export interface LoadedAtlasConfig {
+  atlasConfig: AtlasConfig
+  atlasSpecificConfig: AtlasSpecificConfig
   territories: {
     mainland: TerritoryConfig
     overseas: TerritoryConfig[]
@@ -168,13 +168,16 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
 /**
  * Create RegionConfig
  */
-function createRegionConfig(
+/**
+ * Create the main atlas configuration object
+ */
+function createAtlasConfig(
   config: any,
   territories: any,
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryModeConfig>,
   defaultCompositeConfig: CompositeProjectionDefaults,
-): RegionConfig {
+): AtlasConfig {
   return {
     id: config.id,
     name: config.name,
@@ -204,12 +207,12 @@ function createRegionConfig(
 }
 
 /**
- * Load complete region configuration from JSON config
+ * Load complete atlas configuration from JSON config
  *
  * This is the main entry point that transforms a JSON config
  * into all necessary configuration objects for the application.
  */
-export function loadRegionConfig(jsonConfig: any): LoadedRegionConfig {
+export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
   // Extract territories
   const territories = extractTerritories(jsonConfig)
 
@@ -226,8 +229,8 @@ export function loadRegionConfig(jsonConfig: any): LoadedRegionConfig {
   // Create geo data config
   const geoDataConfig = createGeoDataConfig(jsonConfig, territories)
 
-  // Create region config
-  const regionConfig = createRegionConfig(
+  // Create atlas config
+  const atlasConfig = createAtlasConfig(
     jsonConfig,
     territories,
     geoDataConfig,
@@ -235,8 +238,8 @@ export function loadRegionConfig(jsonConfig: any): LoadedRegionConfig {
     defaultCompositeConfig,
   )
 
-  // Create region-specific config
-  const regionSpecificConfig: RegionSpecificConfig = {
+  // Create atlas-specific config
+  const atlasSpecificConfig: AtlasSpecificConfig = {
     projectionParams,
     territoryModes,
     territoryGroups,
@@ -244,8 +247,8 @@ export function loadRegionConfig(jsonConfig: any): LoadedRegionConfig {
   }
 
   return {
-    regionConfig,
-    regionSpecificConfig,
+    atlasConfig,
+    atlasSpecificConfig,
     territories,
   }
 }

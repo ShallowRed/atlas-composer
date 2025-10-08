@@ -1,4 +1,4 @@
-import type { ProjectionParams } from '@/core/regions/loader'
+import type { ProjectionParams } from '@/core/atlases/loader'
 import { geoConicConformalEurope, geoConicConformalFrance, geoConicConformalPortugal } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
 
@@ -53,7 +53,7 @@ export const PROJECTION_OPTIONS: ProjectionOption[] = [
   { value: 'polyhedral-waterman', label: 'Polyhedral Waterman (Butterfly)', category: 'Projections Polyédriques' },
 ]
 
-export class GeoProjectionService {
+export class ProjectionService {
   private projectionParams: ProjectionParams | null = null
 
   /**

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import { getTerritoriesForMode } from '@/core/regions/utils'
-import { Cartographer } from '@/services/Cartographer'
+import { getTerritoriesForMode } from '@/core/atlases/utils'
+import { Cartographer } from '@/services/cartographer'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -36,16 +36,16 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return []
 
     // For EU region, show all countries (no filtering by mode)
-    const regionConfig = configStore.currentRegionConfig
-    if (regionConfig.geoDataConfig.overseasTerritories.length === 0) {
+    const atlasConfig = configStore.currentAtlasConfig
+    if (atlasConfig.geoDataConfig.overseasTerritories.length === 0) {
       // EU or other regions without mainland/overseas split
       return territories
     }
 
     // Get allowed territories for the current mode
-    const regionService = configStore.regionService
-    const allTerritories = regionService.getAllTerritories()
-    const territoryModes = regionService.getTerritoryModes()
+    const atlasService = configStore.atlasService
+    const allTerritories = atlasService.getAllTerritories()
+    const territoryModes = atlasService.getTerritoryModes()
     const allowedTerritories = getTerritoriesForMode(
       allTerritories,
       configStore.territoryMode,
@@ -84,8 +84,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
       error.value = null
 
       // Use the geo data config from the selected region
-      const geoDataConfig = configStore.currentRegionConfig.geoDataConfig
-      const compositeConfig = configStore.currentRegionConfig.compositeProjectionConfig
+      const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
+      const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
       cartographer.value = new Cartographer(geoDataConfig, compositeConfig)
       await cartographer.value.init()
 
@@ -117,7 +117,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       // For EU: all countries are treated as individual territories (no mainland/overseas split)
       // For France: mainland is separate from overseas territories
-      const hasMainlandOverseasSplit = configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0
+      const hasMainlandOverseasSplit = configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
 
       if (hasMainlandOverseasSplit) {
         // France: load mainland and overseas separately
@@ -172,18 +172,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const service = (cartographer.value as any).geoDataService
 
       // Get territory codes based on current region and mode using TerritoryService
-      const regionService = configStore.regionService
-      const regionConfig = configStore.currentRegionConfig
+      const atlasService = configStore.atlasService
+      const atlasConfig = configStore.currentAtlasConfig
 
       let territoryCodes: readonly string[] | undefined
-      if (regionConfig.geoDataConfig.overseasTerritories.length === 0) {
+      if (atlasConfig.geoDataConfig.overseasTerritories.length === 0) {
         // EU or other regions without mode filtering - pass undefined to include all
         territoryCodes = undefined
       }
       else {
         // Get allowed territories for the mode
-        const allTerritories = regionService.getAllTerritories()
-        const territoryModes = regionService.getTerritoryModes()
+        const allTerritories = atlasService.getAllTerritories()
+        const territoryModes = atlasService.getTerritoryModes()
         const allowedTerritories = getTerritoriesForMode(
           allTerritories,
           mode,

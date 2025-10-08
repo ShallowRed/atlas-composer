@@ -4,8 +4,8 @@ import { computed } from 'vue'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
-} from '@/core/regions/constants'
-import { createDefaultTranslations } from '@/core/regions/utils'
+} from '@/core/atlases/constants'
+import { createDefaultTranslations } from '@/core/atlases/utils'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -30,12 +30,12 @@ const territories = computed(() => {
 
 // Check if we should show mainland section (only for regions with mainland/overseas split)
 const showMainland = computed(() => {
-  return configStore.currentRegionConfig.geoDataConfig.overseasTerritories.length > 0
+  return configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
 })
 
 // Get mainland code dynamically from region config
 const mainlandCode = computed(() => {
-  return configStore.currentRegionConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
+  return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
 })
 
 const translations = computed(() => configStore.territoryTranslations)
@@ -53,9 +53,9 @@ function updateScale(territoryCode: string, event: Event) {
 
 function resetToDefaults() {
   // Get default translations from region service
-  const regionService = configStore.regionService
+  const atlasService = configStore.atlasService
   const defaultTranslations = createDefaultTranslations(
-    regionService.getOverseasTerritories(),
+    atlasService.getOverseasTerritories(),
   )
 
   // Reset translations for all territories to their default offset values
@@ -92,7 +92,7 @@ function resetToDefaults() {
           checked
         >
         <div class="collapse-title font-semibold">
-          {{ configStore.currentRegionConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">({{ mainlandCode }})</span>
+          {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">({{ mainlandCode }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector -->

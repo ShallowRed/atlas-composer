@@ -1,9 +1,9 @@
-import type { CompositeProjectionConfig } from '@/services/CustomCompositeProjection'
+import type { CompositeProjectionConfig } from '@/services/composite-projection'
 import type { GeoDataConfig } from '@/types/territory'
 import * as Plot from '@observablehq/plot'
-import { CustomCompositeProjection } from '@/services/CustomCompositeProjection'
-import { GeoDataService } from '@/services/GeoDataService'
-import { GeoProjectionService } from '@/services/GeoProjectionService'
+import { CompositeProjection } from '@/services/composite-projection'
+import { GeoDataService } from '@/services/geo-data'
+import { ProjectionService } from '@/services/projections'
 import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
 // Unified rendering options
 export interface RenderOptions {
@@ -39,17 +39,17 @@ export interface CustomCompositeSettings {
 }
 
 export class Cartographer {
-  private projectionService: GeoProjectionService
+  private projectionService: ProjectionService
   private geoDataService: GeoDataService
-  public customComposite: CustomCompositeProjection | null = null
+  public customComposite: CompositeProjection | null = null
 
   constructor(geoDataConfig: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
-    this.projectionService = new GeoProjectionService()
+    this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
 
-    // Only create CustomCompositeProjection if config is provided
+    // Only create CompositeProjection if config is provided
     if (compositeConfig) {
-      this.customComposite = new CustomCompositeProjection(compositeConfig)
+      this.customComposite = new CompositeProjection(compositeConfig)
     }
   }
 
@@ -154,7 +154,7 @@ export class Cartographer {
 
   /**
    * Renders a custom composite map with individually positioned territories
-   * Fetches raw data, applies custom settings, and uses CustomCompositeProjection
+   * Fetches raw data, applies custom settings, and uses CompositeProjection
    */
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
     const { territoryMode, territoryCodes, width, height, settings } = options

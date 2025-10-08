@@ -1,75 +1,75 @@
 /**
- * Region Service
- * Region-aware facade for accessing territory data and configuration
+ * Atlas Service
+ * Atlas-aware facade for accessing territory data and configuration
  *
- * This service provides a clean API for working with a specific region's
+ * This service provides a clean API for working with a specific atlas's
  * territories, modes, groups, and projection parameters.
  */
 
-import type { CompositeProjectionConfig } from './CustomCompositeProjection'
-import type { ProjectionParams, RegionSpecificConfig } from '@/core/regions/loader'
-import type { RegionConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types/territory'
+import type { AtlasSpecificConfig, ProjectionParams } from '@/core/atlases/loader'
+import type { CompositeProjectionConfig } from '@/services/composite-projection'
+import type { AtlasConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types/territory'
 import {
+  getAllTerritories as getAtlasAllTerritories,
+  getAtlasConfig,
+  getOverseasTerritories as getAtlasOverseasTerritories,
+  getAtlasSpecificConfig,
   getMainlandTerritory,
-  getAllTerritories as getRegionAllTerritories,
-  getRegionConfig,
-  getOverseasTerritories as getRegionOverseasTerritories,
-  getRegionSpecificConfig,
-} from '@/core/regions/registry'
+} from '@/core/atlases/registry'
 
-import { getTerritoriesForMode, getTerritoryByCode, getTerritoryNameFromArray } from '@/core/regions/utils'
+import { getTerritoriesForMode, getTerritoryByCode, getTerritoryNameFromArray } from '@/core/atlases/utils'
 
-export class RegionService {
-  private regionId: string
-  private regionConfig: RegionConfig
-  private specificConfig: RegionSpecificConfig
+export class AtlasService {
+  private atlasId: string
+  private atlasConfig: AtlasConfig
+  private specificConfig: AtlasSpecificConfig
 
-  constructor(regionId: string) {
-    this.regionId = regionId
-    this.regionConfig = getRegionConfig(regionId)
-    this.specificConfig = getRegionSpecificConfig(regionId)
+  constructor(atlasId: string) {
+    this.atlasId = atlasId
+    this.atlasConfig = getAtlasConfig(atlasId)
+    this.specificConfig = getAtlasSpecificConfig(atlasId)
   }
 
   /**
-   * Get region ID
+   * Get atlas ID
    */
-  getRegionId(): string {
-    return this.regionId
+  getAtlasId(): string {
+    return this.atlasId
   }
 
   /**
-   * Get region name
+   * Get atlas name
    */
-  getRegionName(): string {
-    return this.regionConfig.name
+  getAtlasName(): string {
+    return this.atlasConfig.name
   }
 
   /**
    * Get full region configuration
    */
-  getRegionConfig(): RegionConfig {
-    return this.regionConfig
+  getAtlasConfig(): AtlasConfig {
+    return this.atlasConfig
   }
 
   /**
    * Get mainland territory (if applicable)
    */
   getMainland(): TerritoryConfig | undefined {
-    return getMainlandTerritory(this.regionId)
+    return getMainlandTerritory(this.atlasId)
   }
 
   /**
    * Get overseas/remote territories
    */
   getOverseasTerritories(): TerritoryConfig[] {
-    return getRegionOverseasTerritories(this.regionId)
+    return getAtlasOverseasTerritories(this.atlasId)
   }
 
   /**
    * Get all territories (mainland + overseas)
    */
   getAllTerritories(): TerritoryConfig[] {
-    return getRegionAllTerritories(this.regionId)
+    return getAtlasAllTerritories(this.atlasId)
   }
 
   /**
@@ -109,7 +109,7 @@ export class RegionService {
    * Get composite projection configuration
    */
   getCompositeConfig(): CompositeProjectionConfig | undefined {
-    return this.regionConfig.compositeProjectionConfig
+    return this.atlasConfig.compositeProjectionConfig
   }
 
   /**
@@ -136,16 +136,16 @@ export class RegionService {
   }
 
   /**
-   * Check if region has mainland/overseas split
+   * Check if atlas has mainland/overseas split
    */
   hasMainlandOverseasSplit(): boolean {
     return !!this.getMainland()
   }
 
   /**
-   * Check if region has territory selector
+   * Check if atlas has territory selector
    */
   hasTerritorySelector(): boolean {
-    return this.regionConfig.hasTerritorySelector || false
+    return this.atlasConfig.hasTerritorySelector || false
   }
 }

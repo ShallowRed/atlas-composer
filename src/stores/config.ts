@@ -1,29 +1,29 @@
 import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_REGION, getAllRegionConfigs, getRegionConfig } from '@/core/regions/registry'
-import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/regions/utils'
-import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
-import { RegionService } from '@/services/RegionService'
+import { DEFAULT_ATLAS, getAllAtlases, getAtlasConfig } from '@/core/atlases/registry'
+import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
+import { AtlasService } from '@/services/atlas'
+import { PROJECTION_OPTIONS } from '@/services/projections'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
 
 export const useConfigStore = defineStore('config', () => {
   // State
-  const selectedRegion = ref(DEFAULT_REGION)
+  const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
   const selectedProjection = ref('albers')
 
-  // Computed: Current region configuration (needs to be before territoryMode)
-  const currentRegionConfig = computed(() => getRegionConfig(selectedRegion.value))
+  // Computed: Current atlas configuration (needs to be before territoryMode)
+  const currentAtlasConfig = computed(() => getAtlasConfig(selectedAtlas.value))
 
-  // Computed: Region service for accessing region-specific data
-  const regionService = computed(() => new RegionService(selectedRegion.value))
+  // Computed: Atlas service for accessing atlas-specific data
+  const atlasService = computed(() => new AtlasService(selectedAtlas.value))
 
-  // Territory mode - initialize with the default from the current region's config
+  // Territory mode - initialize with the default from the current atlas's config
   const getInitialTerritoryMode = () => {
-    const config = getRegionConfig(DEFAULT_REGION)
+    const config = getAtlasConfig(DEFAULT_ATLAS)
     // Use configured default territory mode if available
     if (config.defaultTerritoryMode) {
       return config.defaultTerritoryMode
@@ -39,19 +39,19 @@ export const useConfigStore = defineStore('config', () => {
   const viewMode = ref<ViewMode>('composite-custom')
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
-  const compositeProjection = ref<string>(currentRegionConfig.value.defaultCompositeProjection || 'conic-conformal-france')
+  const compositeProjection = ref<string>(currentAtlasConfig.value.defaultCompositeProjection || 'conic-conformal-france')
   const theme = ref('light')
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
-    const config = currentRegionConfig.value
+    const config = currentAtlasConfig.value
     return config.supportedViewModes.length === 1
   })
 
   // Per-territory projections (for individual mode)
   // Initialize from current region's territories
   const initializeTerritoryProjections = () => {
-    const overseas = regionService.value.getOverseasTerritories()
+    const overseas = atlasService.value.getOverseasTerritories()
     return calculateDefaultProjections(overseas, 'mercator')
   }
   const territoryProjections = ref<Record<string, string>>(initializeTerritoryProjections())
@@ -61,7 +61,7 @@ export const useConfigStore = defineStore('config', () => {
   // Positive X = right, Negative X = left
   // Positive Y = down, Negative Y = up
   const initializeTerritoryTranslations = () => {
-    const all = regionService.value.getAllTerritories()
+    const all = atlasService.value.getAllTerritories()
     return createDefaultTranslations(all)
   }
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initializeTerritoryTranslations())
@@ -69,7 +69,7 @@ export const useConfigStore = defineStore('config', () => {
   // Territory scales (scale multipliers for territoires ultramarins sizing)
   // Initialize from current region's territories - all start with default 1.0 multiplier
   const initializeTerritoryScales = () => {
-    const all = regionService.value.getAllTerritories()
+    const all = atlasService.value.getAllTerritories()
     return calculateDefaultScales(all)
   }
   const territoryScales = ref<Record<string, number>>(initializeTerritoryScales())
@@ -130,7 +130,7 @@ export const useConfigStore = defineStore('config', () => {
     // Exclude all composite projections from the projection selector
     // They are now handled by the composite mode selector
     // Dynamically get all composite projections from all regions
-    const allCompositeProjections = Object.values(getAllRegionConfigs())
+    const allCompositeProjections = Object.values(getAllAtlases())
       .flatMap(config => config.compositeProjections || [])
 
     const filteredOptions = PROJECTION_OPTIONS.filter(option => !allCompositeProjections.includes(option.value))
@@ -209,8 +209,8 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   // Watch for region changes and enforce view mode restrictions
-  watch(selectedRegion, (newRegion) => {
-    const config = getRegionConfig(newRegion)
+  watch(selectedAtlas, (newRegion) => {
+    const config = getAtlasConfig(newRegion)
 
     // If the current view mode is not supported by the new region, switch to default
     if (!config.supportedViewModes.includes(viewMode.value)) {
@@ -249,7 +249,7 @@ export const useConfigStore = defineStore('config', () => {
 
   return {
     // State
-    selectedRegion,
+    selectedAtlas,
     scalePreservation,
     selectedProjection,
     territoryMode,
@@ -262,8 +262,8 @@ export const useConfigStore = defineStore('config', () => {
     territoryScales,
 
     // Computed
-    regionService,
-    currentRegionConfig,
+    atlasService,
+    currentAtlasConfig,
     isViewModeLocked,
     showProjectionSelector,
     showProjectionModeToggle,
