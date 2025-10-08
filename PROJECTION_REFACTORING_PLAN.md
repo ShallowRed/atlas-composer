@@ -383,11 +383,11 @@ Add `projectionPreferences` object to schema with:
 - [x] **2.1.9** Import new projection system types and classes
 
 #### Task 2.2: Update CompositeProjection
-- [ ] **2.2.1** Backup current `src/services/composite-projection.ts`
-- [ ] **2.2.2** Replace projection creation switch in `updateTerritoryProjection()` with factory
-- [ ] **2.2.3** Use `ProjectionFactory.createById()` for all projection instances
-- [ ] **2.2.4** Remove duplicate projection creation logic
-- [ ] **2.2.5** Add validation using `projectionRegistry.isValid()`
+- [x] **2.2.1** Backup current `src/services/composite-projection.ts`
+- [x] **2.2.2** Replace projection creation switch in `updateTerritoryProjection()` with factory
+- [x] **2.2.3** Use `ProjectionFactory.createById()` for all projection instances
+- [x] **2.2.4** Refactor `createProjectionByType()` to use factory with fallback
+- [x] **2.2.5** Add validation using `projectionRegistry.isValid()`
 - [ ] **2.2.6** Test composite projection updates with new factory
 
 #### Task 2.3: Update Config Store

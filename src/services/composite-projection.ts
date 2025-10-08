@@ -1,5 +1,4 @@
 import type { GeoProjection } from 'd3-geo'
-
 import type { TerritoryConfig } from '@/types/territory'
 import {
   geoAzimuthalEqualArea,
@@ -9,6 +8,9 @@ import {
   geoEquirectangular,
   geoMercator,
 } from 'd3-geo'
+
+import { ProjectionFactory } from '@/projections/factory'
+import { projectionRegistry } from '@/projections/registry'
 
 /**
  * Configuration for a sub-projection within a composite projection
@@ -126,6 +128,15 @@ export class CompositeProjection {
    * Create a projection instance by type name
    */
   private createProjectionByType(projectionType: string): GeoProjection {
+    // Try to use the new ProjectionFactory first
+    if (projectionRegistry.isValid(projectionType)) {
+      const projection = ProjectionFactory.createById(projectionType)
+      if (projection) {
+        return projection
+      }
+    }
+
+    // Fallback to legacy switch statement for backward compatibility
     switch (projectionType) {
       case 'mercator':
         return geoMercator()
@@ -141,6 +152,7 @@ export class CompositeProjection {
       case 'equirectangular':
         return geoEquirectangular()
       default:
+        console.warn(`[CompositeProjection] Unknown projection type: ${projectionType}, falling back to Mercator`)
         return geoMercator()
     }
   }
@@ -185,34 +197,56 @@ export class CompositeProjection {
     // Create new projection based on type
     let newProjection: GeoProjection
 
-    switch (projectionType) {
-      case 'mercator':
-        newProjection = geoMercator()
-        break
-      case 'conic-conformal':
-        newProjection = geoConicConformal()
-        if (currentCenter) {
-          (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+    // Try to use the new ProjectionFactory first
+    if (projectionRegistry.isValid(projectionType)) {
+      const factoryProjection = ProjectionFactory.createById(projectionType)
+      if (factoryProjection) {
+        newProjection = factoryProjection
+
+        // Apply parallels for conic projections if center is available
+        if (currentCenter && (projectionType.includes('conic') || projectionType === 'albers')) {
+          if ('parallels' in newProjection) {
+            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+          }
         }
-        break
-      case 'conic-equal-area':
-      case 'albers':
-        newProjection = geoConicEqualArea()
-        if (currentCenter) {
-          (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
-        }
-        break
-      case 'azimuthal-equal-area':
-        newProjection = geoAzimuthalEqualArea()
-        break
-      case 'azimuthal-equidistant':
-        newProjection = geoAzimuthalEquidistant()
-        break
-      case 'equirectangular':
-        newProjection = geoEquirectangular()
-        break
-      default:
-        newProjection = geoMercator()
+      }
+      else {
+        // Factory failed, fall back to legacy code
+        newProjection = this.createProjectionByType(projectionType)
+      }
+    }
+    else {
+      // Fallback to legacy switch statement
+      switch (projectionType) {
+        case 'mercator':
+          newProjection = geoMercator()
+          break
+        case 'conic-conformal':
+          newProjection = geoConicConformal()
+          if (currentCenter) {
+            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+          }
+          break
+        case 'conic-equal-area':
+        case 'albers':
+          newProjection = geoConicEqualArea()
+          if (currentCenter) {
+            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+          }
+          break
+        case 'azimuthal-equal-area':
+          newProjection = geoAzimuthalEqualArea()
+          break
+        case 'azimuthal-equidistant':
+          newProjection = geoAzimuthalEquidistant()
+          break
+        case 'equirectangular':
+          newProjection = geoEquirectangular()
+          break
+        default:
+          console.warn(`[CompositeProjection] Unknown projection type: ${projectionType}, falling back to Mercator`)
+          newProjection = geoMercator()
+      }
     }
 
     // Restore settings
