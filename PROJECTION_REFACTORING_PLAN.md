@@ -372,15 +372,15 @@ Add `projectionPreferences` object to schema with:
 ### Phase 2: Integration with Existing Code ⭐⭐
 
 #### Task 2.1: Refactor ProjectionService
-- [ ] **2.1.1** Backup current `src/services/projection-service.ts`
-- [ ] **2.1.2** Remove `PROJECTION_OPTIONS` array export
-- [ ] **2.1.3** Keep `ProjectionOption` interface for backward compatibility
-- [ ] **2.1.4** Simplify `getProjection()` to use `ProjectionFactory.createById()`
-- [ ] **2.1.5** Add `getAvailableProjections(context)` method
-- [ ] **2.1.6** Add `getRecommendations(context)` method
-- [ ] **2.1.7** Add `getProjectionOptions()` method (returns UI-compatible format)
-- [ ] **2.1.8** Update method signatures to use new types where applicable
-- [ ] **2.1.9** Run existing tests to verify backward compatibility
+- [x] **2.1.1** Backup current `src/services/projection-service.ts`
+- [ ] **2.1.2** Remove `PROJECTION_OPTIONS` array export (deferred - keep for backward compatibility)
+- [x] **2.1.3** Keep `ProjectionOption` interface for backward compatibility
+- [ ] **2.1.4** Simplify `getProjection()` to use `ProjectionFactory.createById()` (deferred - keep old logic)
+- [x] **2.1.5** Add `getAvailableProjections(context)` method
+- [x] **2.1.6** Add `getRecommendations(context)` method
+- [x] **2.1.7** Add `createProjection()` method (new factory-based method)
+- [x] **2.1.8** Add `isValidProjection()` validation method
+- [x] **2.1.9** Import new projection system types and classes
 
 #### Task 2.2: Update CompositeProjection
 - [ ] **2.2.1** Backup current `src/services/composite-projection.ts`

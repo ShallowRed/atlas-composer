@@ -1,6 +1,6 @@
 /**
  * Composite Projection Definitions
- * 
+ *
  * These are the main composite projections that combine multiple projections
  * to create optimal representations of countries with geographically-scattered territories.
  * This is the core feature of Atlas Composer.
@@ -20,16 +20,16 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.COMPOSITE,
   strategy: ProjectionStrategy.D3_COMPOSITE,
-  
+
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
     supportsComposite: false, // Already composite
-    supportsSplit: false,      // Already composite
+    supportsSplit: false, // Already composite
     supportsUnified: true,
     isInterrupted: false,
   },
-  
+
   suitability: {
     excellent: [
       { territoryType: 'mainland', region: 'europe' },
@@ -38,14 +38,14 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     recommendedForAtlases: ['france'],
     avoidForAtlases: ['portugal', 'eu'],
   },
-  
+
   defaultParameters: {
     // Parameters are handled by d3-composite-projections
     center: [2.5, 46.5], // Approximate center of France
   },
-  
+
   aliases: ['france-composite', 'composite-france'],
-  
+
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
@@ -63,7 +63,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.COMPOSITE,
   strategy: ProjectionStrategy.D3_COMPOSITE,
-  
+
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
@@ -72,7 +72,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     supportsUnified: true,
     isInterrupted: false,
   },
-  
+
   suitability: {
     excellent: [
       { territoryType: 'mainland', region: 'europe' },
@@ -81,13 +81,13 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     recommendedForAtlases: ['portugal'],
     avoidForAtlases: ['france', 'eu'],
   },
-  
+
   defaultParameters: {
     center: [-8, 39.5], // Approximate center of Portugal
   },
-  
+
   aliases: ['portugal-composite', 'composite-portugal'],
-  
+
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
@@ -105,7 +105,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.COMPOSITE,
   strategy: ProjectionStrategy.D3_COMPOSITE,
-  
+
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
@@ -114,7 +114,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     supportsUnified: true,
     isInterrupted: false,
   },
-  
+
   suitability: {
     excellent: [
       { territoryType: 'mainland', region: 'europe' },
@@ -123,13 +123,13 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     recommendedForAtlases: ['eu'],
     avoidForAtlases: ['france', 'portugal'],
   },
-  
+
   defaultParameters: {
     center: [10, 50], // Approximate center of Europe
   },
-  
+
   aliases: ['europe-composite', 'composite-europe', 'eu-composite', 'composite-eu'],
-  
+
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,

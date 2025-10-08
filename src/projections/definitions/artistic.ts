@@ -1,6 +1,6 @@
 /**
  * Artistic Projection Definitions
- * 
+ *
  * Placeholder for future artistic and historical projections.
  * These projections have unique visual characteristics.
  */

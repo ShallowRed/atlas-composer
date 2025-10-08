@@ -1,6 +1,6 @@
 /**
  * Projection Factory
- * 
+ *
  * Creates D3 projection instances based on projection definitions.
  * Implements the Strategy pattern to handle different projection sources
  * (D3 built-in, d3-geo-projection, d3-composite-projections).
@@ -42,7 +42,8 @@ export class ProjectionFactory {
         console.error(`[ProjectionFactory] Unknown projection: ${projection}`)
         return null
       }
-    } else {
+    }
+    else {
       definition = projection
     }
 

@@ -1,6 +1,6 @@
 /**
  * Core type definitions for the projection system
- * 
+ *
  * This module defines the metadata structure for map projections,
  * including their properties, capabilities, and suitability for
  * different geographic contexts.
@@ -17,9 +17,9 @@ export interface GeographicContext {
   /** Geographic region */
   region?: 'europe' | 'africa' | 'asia' | 'oceania' | 'americas' | 'polar' | 'world'
   /** Latitude range (for polar/equatorial suitability) */
-  latitudeRange?: { min: number; max: number }
+  latitudeRange?: { min: number, max: number }
   /** Longitude range (for extent calculations) */
-  longitudeRange?: { min: number; max: number }
+  longitudeRange?: { min: number, max: number }
   /** Scale level (local, regional, continental, global) */
   scale?: 'local' | 'regional' | 'continental' | 'global'
 }
@@ -141,40 +141,40 @@ export type ProjectionFamilyType = typeof ProjectionFamily[keyof typeof Projecti
 export interface ProjectionDefinition {
   /** Unique identifier (kebab-case) */
   id: string
-  
+
   /** Display name (i18n key) */
   name: string
-  
+
   /** Optional description (i18n key) */
   description?: string
-  
+
   /** Category for UI grouping */
   category: ProjectionCategoryType
-  
+
   /** Mathematical family */
   family: ProjectionFamilyType
-  
+
   /** Implementation strategy */
   strategy: ProjectionStrategyType
-  
+
   /** Projection capabilities */
   capabilities: ProjectionCapabilities
-  
+
   /** Geographic suitability */
   suitability: ProjectionSuitability
-  
+
   /** Default parameters */
   defaultParameters?: ProjectionParameters
-  
+
   /** Alternative names/aliases */
   aliases?: string[]
-  
+
   /** Historical creator/inventor */
   creator?: string
-  
+
   /** Year of creation */
   year?: number
-  
+
   /** Additional metadata */
   metadata?: {
     /** Official EPSG code if applicable */
@@ -192,23 +192,23 @@ export interface ProjectionDefinition {
 export interface ProjectionFilterContext {
   /** Current atlas ID */
   atlasId?: string
-  
+
   /** Current view mode */
   viewMode?: 'split' | 'composite-custom' | 'composite-existing' | 'unified'
-  
+
   /** Territory being configured */
   territory?: {
     id: string
     type: 'mainland' | 'overseas' | 'island' | 'archipelago' | 'peninsula'
     region?: string
   }
-  
+
   /** Required capabilities */
   requiredCapabilities?: Partial<ProjectionCapabilities>
-  
+
   /** Excluded categories */
   excludeCategories?: ProjectionCategoryType[]
-  
+
   /** Only show recommended projections */
   recommendedOnly?: boolean
 }
@@ -219,16 +219,16 @@ export interface ProjectionFilterContext {
 export interface ProjectionRecommendation {
   /** Projection definition */
   projection: ProjectionDefinition
-  
+
   /** Recommendation score (0-100) */
   score: number
-  
+
   /** Suitability level */
   level: 'excellent' | 'good' | 'usable' | 'not-recommended'
-  
+
   /** Reason for recommendation (i18n key) */
   reason: string
-  
+
   /** Suggested parameters for this context */
   suggestedParameters?: ProjectionParameters
 }
@@ -244,10 +244,10 @@ export type D3ProjectionFunction = () => GeoProjection
 export interface CreateProjectionOptions {
   /** Projection ID or definition */
   projection: string | ProjectionDefinition
-  
+
   /** Override default parameters */
   parameters?: ProjectionParameters
-  
+
   /** Territory-specific configuration */
   territory?: {
     id: string

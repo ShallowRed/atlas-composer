@@ -1,6 +1,6 @@
 /**
  * Projection Definitions Index
- * 
+ *
  * Central export point for all projection definitions.
  * Import from here to access any projection definition.
  */

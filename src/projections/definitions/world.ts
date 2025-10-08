@@ -1,6 +1,6 @@
 /**
  * World Projection Definitions
- * 
+ *
  * Placeholder for future world projections.
  * These projections are optimized for displaying the entire world.
  */

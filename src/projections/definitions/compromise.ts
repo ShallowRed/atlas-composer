@@ -1,6 +1,6 @@
 /**
  * Compromise Projection Definitions
- * 
+ *
  * Placeholder for future compromise projections.
  * These projections balance various distortions for general-purpose mapping.
  */

@@ -1,6 +1,6 @@
 /**
  * Projection Registry
- * 
+ *
  * Singleton registry that manages all projection definitions and provides
  * methods for querying, filtering, and recommending projections based on
  * geographic context.
@@ -90,14 +90,14 @@ class ProjectionRegistry {
    * Get projections by category
    */
   public getByCategory(category: ProjectionCategoryType): ProjectionDefinition[] {
-    return this.getAll().filter((def) => def.category === category)
+    return this.getAll().filter(def => def.category === category)
   }
 
   /**
    * Get projections by strategy
    */
   public getByStrategy(strategy: ProjectionStrategyType): ProjectionDefinition[] {
-    return this.getAll().filter((def) => def.strategy === strategy)
+    return this.getAll().filter(def => def.strategy === strategy)
   }
 
   /**
@@ -121,8 +121,8 @@ class ProjectionRegistry {
         }
         // Include if no specific atlas preference
         return (
-          !def.suitability.recommendedForAtlases ||
-          def.suitability.recommendedForAtlases.length === 0
+          !def.suitability.recommendedForAtlases
+          || def.suitability.recommendedForAtlases.length === 0
         )
       })
     }
@@ -152,8 +152,8 @@ class ProjectionRegistry {
         return Object.keys(required).every((key) => {
           const capKey = key as keyof typeof required
           return (
-            required[capKey] === undefined ||
-            def.capabilities[capKey] === required[capKey]
+            required[capKey] === undefined
+            || def.capabilities[capKey] === required[capKey]
           )
         })
       })
@@ -162,7 +162,7 @@ class ProjectionRegistry {
     // Exclude categories
     if (context.excludeCategories && context.excludeCategories.length > 0) {
       projections = projections.filter(
-        (def) => !context.excludeCategories!.includes(def.category),
+        def => !context.excludeCategories!.includes(def.category),
       )
     }
 
@@ -171,10 +171,10 @@ class ProjectionRegistry {
       const recommendations = this.recommend(context)
       const recommendedIds = new Set(
         recommendations
-          .filter((rec) => rec.level === 'excellent' || rec.level === 'good')
-          .map((rec) => rec.projection.id),
+          .filter(rec => rec.level === 'excellent' || rec.level === 'good')
+          .map(rec => rec.projection.id),
       )
-      projections = projections.filter((def) => recommendedIds.has(def.id))
+      projections = projections.filter(def => recommendedIds.has(def.id))
     }
 
     return projections
@@ -194,8 +194,8 @@ class ProjectionRegistry {
 
       // Check atlas match
       if (
-        context.atlasId &&
-        projection.suitability.recommendedForAtlases?.includes(context.atlasId)
+        context.atlasId
+        && projection.suitability.recommendedForAtlases?.includes(context.atlasId)
       ) {
         score += 30
         reason = 'projections.recommendations.atlasOptimized'
@@ -206,7 +206,7 @@ class ProjectionRegistry {
         // Check excellent suitability
         if (
           projection.suitability.excellent?.some(
-            (ctx) => ctx.territoryType === context.territory!.type,
+            ctx => ctx.territoryType === context.territory!.type,
           )
         ) {
           score += 30
@@ -216,7 +216,7 @@ class ProjectionRegistry {
         // Check good suitability
         else if (
           projection.suitability.good?.some(
-            (ctx) => ctx.territoryType === context.territory!.type,
+            ctx => ctx.territoryType === context.territory!.type,
           )
         ) {
           score += 20
@@ -226,7 +226,7 @@ class ProjectionRegistry {
         // Check usable suitability
         else if (
           projection.suitability.usable?.some(
-            (ctx) => ctx.territoryType === context.territory!.type,
+            ctx => ctx.territoryType === context.territory!.type,
           )
         ) {
           score += 10
@@ -235,7 +235,7 @@ class ProjectionRegistry {
         // Check if should be avoided
         else if (
           projection.suitability.avoid?.some(
-            (ctx) => ctx.territoryType === context.territory!.type,
+            ctx => ctx.territoryType === context.territory!.type,
           )
         ) {
           score -= 40
@@ -254,11 +254,14 @@ class ProjectionRegistry {
       // Determine final level based on score
       if (score >= 80) {
         level = 'excellent'
-      } else if (score >= 60) {
+      }
+      else if (score >= 60) {
         level = 'good'
-      } else if (score >= 40) {
+      }
+      else if (score >= 40) {
         level = 'usable'
-      } else {
+      }
+      else {
         level = 'not-recommended'
       }
 

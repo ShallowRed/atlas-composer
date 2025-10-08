@@ -1,6 +1,10 @@
 import type { ProjectionParams } from '@/core/atlases/loader'
+import type { ProjectionFilterContext, ProjectionRecommendation } from '@/projections/types'
 import { geoConicConformalEurope, geoConicConformalFrance, geoConicConformalPortugal } from 'd3-composite-projections'
 import * as d3GeoProjection from 'd3-geo-projection'
+
+import { ProjectionFactory } from '@/projections/factory'
+import { projectionRegistry } from '@/projections/registry'
 
 export interface ProjectionOption {
   value: string
@@ -246,5 +250,47 @@ export class ProjectionService {
       default:
         return albers
     }
+  }
+
+  /**
+   * Get available projections for a given context
+   * Uses the new projection registry system
+   */
+  getAvailableProjections(context: ProjectionFilterContext = {}): ProjectionOption[] {
+    const projections = projectionRegistry.filter(context)
+
+    return projections.map(def => ({
+      value: def.id,
+      label: def.name, // This should be translated by the UI layer
+      category: def.category,
+    }))
+  }
+
+  /**
+   * Get projection recommendations for a given context
+   * Returns projections ranked by suitability score
+   */
+  getRecommendations(context: ProjectionFilterContext = {}): ProjectionRecommendation[] {
+    return projectionRegistry.recommend(context)
+  }
+
+  /**
+   * Create a projection using the new factory (for future use)
+   * This method can gradually replace getProjection()
+   */
+  createProjection(id: string, parameters: any = {}) {
+    const projection = ProjectionFactory.createById(id, parameters)
+    if (!projection) {
+      console.warn(`[ProjectionService] Could not create projection: ${id}`)
+      return null
+    }
+    return projection
+  }
+
+  /**
+   * Check if a projection ID is valid
+   */
+  isValidProjection(id: string): boolean {
+    return projectionRegistry.isValid(id)
   }
 }

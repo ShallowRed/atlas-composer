@@ -1,6 +1,6 @@
 /**
  * Conic Projection Definitions
- * 
+ *
  * Conic projections are ideal for mid-latitude regions. They project the sphere
  * onto a cone, which is then unrolled into a flat surface. They are commonly used
  * for individual territories in custom composite mode.
@@ -21,7 +21,7 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
   category: ProjectionCategory.CONIC,
   family: ProjectionFamily.CONIC,
   strategy: ProjectionStrategy.D3_BUILTIN,
-  
+
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
@@ -30,7 +30,7 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
     supportsUnified: true,
     recommendedMaxScale: 5000000,
   },
-  
+
   suitability: {
     excellent: [
       { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
@@ -49,16 +49,16 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
     ],
     recommendedForAtlases: ['france', 'portugal', 'eu'],
   },
-  
+
   defaultParameters: {
     parallels: [30, 60],
   },
-  
+
   aliases: ['lambert-conformal-conic', 'lambert', 'lcc'],
-  
+
   creator: 'Johann Heinrich Lambert',
   year: 1772,
-  
+
   metadata: {
     infoUrl: 'https://en.wikipedia.org/wiki/Lambert_conformal_conic_projection',
     experimental: false,
@@ -77,7 +77,7 @@ export const ALBERS: ProjectionDefinition = {
   category: ProjectionCategory.CONIC,
   family: ProjectionFamily.CONIC,
   strategy: ProjectionStrategy.D3_BUILTIN,
-  
+
   capabilities: {
     preserves: ['area'],
     distorts: ['angle'],
@@ -86,7 +86,7 @@ export const ALBERS: ProjectionDefinition = {
     supportsUnified: true,
     recommendedMaxScale: 5000000,
   },
-  
+
   suitability: {
     excellent: [
       { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
@@ -105,16 +105,16 @@ export const ALBERS: ProjectionDefinition = {
     ],
     recommendedForAtlases: ['france', 'portugal', 'eu'],
   },
-  
+
   defaultParameters: {
     parallels: [30, 60],
   },
-  
+
   aliases: ['albers', 'albers-usa'],
-  
+
   creator: 'Heinrich Christian Albers',
   year: 1805,
-  
+
   metadata: {
     infoUrl: 'https://en.wikipedia.org/wiki/Albers_projection',
     experimental: false,

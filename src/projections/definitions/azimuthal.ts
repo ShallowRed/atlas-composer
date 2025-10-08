@@ -1,6 +1,6 @@
 /**
  * Azimuthal Projection Definitions
- * 
+ *
  * Placeholder for future azimuthal projections.
  * These projections are useful for polar regions and hemispheric views.
  */
