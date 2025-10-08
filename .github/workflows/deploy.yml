@@ -37,6 +37,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare geodata
+        run: |
+          pnpm run geodata:prepare france
+          pnpm run geodata:prepare portugal
+          pnpm run geodata:prepare eu
+
       - name: Build
         run: pnpm build
 
