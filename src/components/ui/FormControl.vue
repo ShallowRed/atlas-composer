@@ -66,7 +66,7 @@ const localValue = computed({
             :key="option.value"
             :value="option.value"
           >
-            {{ option.label }}
+            {{ $t(option.label) }}
           </option>
         </optgroup>
       </select>

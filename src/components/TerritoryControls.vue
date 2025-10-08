@@ -124,7 +124,7 @@ function resetToDefaults() {
                   :key="option.value"
                   :value="option.value"
                 >
-                  {{ option.label }}
+                  {{ $t(option.label) }}
                 </option>
               </optgroup>
             </select>
@@ -172,7 +172,7 @@ function resetToDefaults() {
                   :key="option.value"
                   :value="option.value"
                 >
-                  {{ option.label }}
+                  {{ $t(option.label) }}
                 </option>
               </optgroup>
             </select>
