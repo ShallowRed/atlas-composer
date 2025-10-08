@@ -50,7 +50,9 @@ export const MERCATOR: ProjectionDefinition = {
       { latitudeRange: { min: -90, max: -60 } },
       { scale: 'global' }, // Not suitable for world maps due to infinite poles
     ],
-    recommendedForAtlases: ['france', 'portugal', 'eu'],
+    // Note: Not recommended for france/portugal/eu because there are dedicated
+    // composite projections for those atlases
+    recommendedForAtlases: [],
   },
 
   defaultParameters: {},

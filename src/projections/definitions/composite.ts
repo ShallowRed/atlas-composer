@@ -25,7 +25,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     preserves: ['angle'],
     distorts: ['area'],
     supportsComposite: false, // Already composite
-    supportsSplit: false, // Already composite
+    supportsSplit: true, // Can be used in split view mode
     supportsUnified: true,
     isInterrupted: false,
   },
@@ -68,7 +68,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     preserves: ['angle'],
     distorts: ['area'],
     supportsComposite: false,
-    supportsSplit: false,
+    supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
   },
@@ -110,7 +110,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     preserves: ['angle'],
     distorts: ['area'],
     supportsComposite: false,
-    supportsSplit: false,
+    supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
   },

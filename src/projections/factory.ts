@@ -13,11 +13,12 @@ import type {
   ProjectionDefinition,
   ProjectionParameters,
 } from './types'
-import {
-  geoConicConformalEurope,
-  geoConicConformalFrance,
-  geoConicConformalPortugal,
-} from 'd3-composite-projections'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests  
+import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConformalEurope.js'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 import { projectionRegistry } from './registry'
@@ -32,6 +33,12 @@ export class ProjectionFactory {
    * Create a projection instance
    */
   public static create(options: CreateProjectionOptions): GeoProjection | null {
+    // Validate options
+    if (!options || !options.projection) {
+      console.error('[ProjectionFactory] Invalid options: projection is required')
+      return null
+    }
+    
     const { projection, parameters = {} } = options
 
     // Get projection definition
@@ -223,18 +230,18 @@ export class ProjectionFactory {
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
-    // Map projection IDs to d3-composite-projections functions
+    // Map projection IDs to d3-composite-projections factory functions
     switch (id) {
       case 'conic-conformal-france':
       case 'france-composite':
       case 'composite-france':
-        projectionFn = () => geoConicConformalFrance()
+        projectionFn = d3CompositeProjections.default
         break
 
       case 'conic-conformal-portugal':
       case 'portugal-composite':
       case 'composite-portugal':
-        projectionFn = () => geoConicConformalPortugal()
+        projectionFn = d3CompositeProjPortugal.default
         break
 
       case 'conic-conformal-europe':
@@ -242,7 +249,7 @@ export class ProjectionFactory {
       case 'composite-europe':
       case 'eu-composite':
       case 'composite-eu':
-        projectionFn = () => geoConicConformalEurope()
+        projectionFn = d3CompositeProjEurope.default
         break
 
       default:

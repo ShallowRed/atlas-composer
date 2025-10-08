@@ -66,10 +66,34 @@ class ProjectionRegistry {
   }
 
   /**
-   * Get a projection definition by ID or alias
+   * Get a projection definition by ID or alias (case-insensitive)
    */
   public get(id: string): ProjectionDefinition | undefined {
-    return this.definitions.get(id)
+    // Try exact match by ID first
+    const definition = this.definitions.get(id)
+    if (definition) {
+      return definition
+    }
+
+    // Try case-insensitive match by ID or alias
+    const lowerCaseId = id.toLowerCase()
+    for (const [key, value] of this.definitions.entries()) {
+      // Check if ID matches (case-insensitive)
+      if (key.toLowerCase() === lowerCaseId) {
+        return value
+      }
+      
+      // Check if any alias matches (case-insensitive)
+      if (value.aliases) {
+        for (const alias of value.aliases) {
+          if (alias.toLowerCase() === lowerCaseId) {
+            return value
+          }
+        }
+      }
+    }
+
+    return undefined
   }
 
   /**
@@ -202,25 +226,27 @@ class ProjectionRegistry {
       let level: ProjectionRecommendation['level'] = 'usable'
       let reason = 'projections.recommendations.general'
 
-      // Check if projection is in atlas recommended list (highest priority)
-      if (atlasPreferences?.recommended?.includes(projection.id)) {
+      // Check if projection is specifically recommended for this atlas in its definition
+      // (e.g., composite projections like conic-conformal-france for france atlas)
+      if (
+        context.atlasId
+        && projection.suitability.recommendedForAtlases?.includes(context.atlasId)
+      ) {
+        score += 50 // Highest priority - projection designed for this atlas
+        level = 'excellent'
+        reason = 'projections.recommendations.atlasOptimized'
+      }
+      // Check if projection is in atlas config recommended list
+      else if (atlasPreferences?.recommended?.includes(projection.id)) {
         score += 40
         level = 'excellent'
         reason = 'projections.recommendations.atlasRecommended'
       }
       // Check if projection is prohibited for this atlas (immediate disqualification)
-      else if (atlasPreferences?.prohibited?.includes(projection.id)) {
+      if (atlasPreferences?.prohibited?.includes(projection.id)) {
         score -= 50
         level = 'not-recommended'
         reason = 'projections.recommendations.atlasProhibited'
-      }
-      // Check atlas match from projection's own suitability
-      else if (
-        context.atlasId
-        && projection.suitability.recommendedForAtlases?.includes(context.atlasId)
-      ) {
-        score += 30
-        reason = 'projections.recommendations.atlasOptimized'
       }
 
       // Check territory context
@@ -302,10 +328,10 @@ class ProjectionRegistry {
   }
 
   /**
-   * Check if a projection ID is valid
+   * Check if a projection ID is valid (case-insensitive)
    */
   public isValid(id: string): boolean {
-    return this.definitions.has(id)
+    return this.get(id) !== undefined
   }
 
   /**

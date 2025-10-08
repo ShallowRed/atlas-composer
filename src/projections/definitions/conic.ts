@@ -47,14 +47,16 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
       { latitudeRange: { min: -10, max: 10 } }, // Not good for equatorial regions
       { scale: 'global' }, // Not suitable for world maps
     ],
-    recommendedForAtlases: ['france', 'portugal', 'eu'],
+    // Note: Not recommended for france/portugal/eu because there are dedicated
+    // composite projections (conic-conformal-france, etc.) for those atlases
+    recommendedForAtlases: [],
   },
 
   defaultParameters: {
     parallels: [30, 60],
   },
 
-  aliases: ['lambert-conformal-conic', 'lambert', 'lcc'],
+  aliases: ['conicConformal', 'lambert-conformal-conic', 'lambert', 'lcc'],
 
   creator: 'Johann Heinrich Lambert',
   year: 1772,
@@ -103,7 +105,9 @@ export const ALBERS: ProjectionDefinition = {
       { latitudeRange: { min: -10, max: 10 } },
       { scale: 'global' },
     ],
-    recommendedForAtlases: ['france', 'portugal', 'eu'],
+    // Note: Not recommended for france/portugal/eu because there are dedicated
+    // composite projections for those atlases
+    recommendedForAtlases: [],
   },
 
   defaultParameters: {
