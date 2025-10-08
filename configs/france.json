@@ -3,6 +3,21 @@
   "id": "france",
   "name": "France",
   "description": "France métropolitaine et territoires d'outre-mer",
+  "projectionPreferences": {
+    "recommended": [
+      "conic-conformal",
+      "albers",
+      "conic-equal-area"
+    ],
+    "default": {
+      "mainland": "conic-conformal",
+      "overseas": "mercator"
+    },
+    "prohibited": [
+      "gnomonic",
+      "orthographic"
+    ]
+  },
   "territories": [
     {
       "id": "250",

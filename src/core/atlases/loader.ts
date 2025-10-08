@@ -38,6 +38,21 @@ export interface CompositeProjectionDefaults {
 }
 
 /**
+ * Projection preferences for an atlas
+ */
+export interface ProjectionPreferences {
+  /** Array of recommended projection IDs for this atlas */
+  recommended?: string[]
+  /** Default projections for different territory types */
+  default?: {
+    mainland?: string
+    overseas?: string
+  }
+  /** Array of projection IDs that are not suitable for this atlas */
+  prohibited?: string[]
+}
+
+/**
  * Atlas-specific configuration
  */
 export interface AtlasSpecificConfig {
@@ -45,6 +60,7 @@ export interface AtlasSpecificConfig {
   territoryModes: Record<string, TerritoryModeConfig>
   territoryGroups?: Record<string, TerritoryGroupConfig>
   defaultCompositeConfig?: CompositeProjectionDefaults
+  projectionPreferences?: ProjectionPreferences
 }
 
 /**
@@ -239,12 +255,16 @@ export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
     defaultCompositeConfig,
   )
 
+  // Extract projection preferences if provided
+  const projectionPreferences: ProjectionPreferences | undefined = jsonConfig.projectionPreferences
+
   // Create atlas-specific config
   const atlasSpecificConfig: AtlasSpecificConfig = {
     projectionParams,
     territoryModes,
     territoryGroups,
     defaultCompositeConfig,
+    projectionPreferences,
   }
 
   return {

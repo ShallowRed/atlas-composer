@@ -83,6 +83,44 @@
         }
       }
     },
+    "projectionPreferences": {
+      "type": "object",
+      "description": "Projection preferences and recommendations for this atlas",
+      "properties": {
+        "recommended": {
+          "type": "array",
+          "description": "Array of recommended projection IDs for this atlas",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["conic-conformal", "albers", "mercator"]]
+        },
+        "default": {
+          "type": "object",
+          "description": "Default projections for different territory types",
+          "properties": {
+            "mainland": {
+              "type": "string",
+              "description": "Default projection ID for mainland territory",
+              "examples": ["conic-conformal", "albers"]
+            },
+            "overseas": {
+              "type": "string",
+              "description": "Default projection ID for overseas territories",
+              "examples": ["mercator", "azimuthal-equal-area"]
+            }
+          }
+        },
+        "prohibited": {
+          "type": "array",
+          "description": "Array of projection IDs that are not suitable for this atlas",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["gnomonic", "polyhedral-waterman"]]
+        }
+      }
+    },
     "territories": {
       "type": "array",
       "description": "List of territories",

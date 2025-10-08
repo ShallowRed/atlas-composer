@@ -3,6 +3,21 @@
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
+  "projectionPreferences": {
+    "recommended": [
+      "conic-conformal",
+      "albers",
+      "azimuthal-equal-area"
+    ],
+    "default": {
+      "mainland": "conic-conformal",
+      "overseas": "azimuthal-equal-area"
+    },
+    "prohibited": [
+      "gnomonic",
+      "orthographic"
+    ]
+  },
   "metadata": {
     "naturalEarthIds": [620],
     "iso3": "PRT",
