@@ -26,7 +26,7 @@ function getConfigsDir() {
  * Get backend adapter path
  */
 function getAdapterPath() {
-  return path.join(getProjectRoot(), 'scripts/configs/adapter.js')
+  return path.join(getProjectRoot(), 'scripts/utils', 'config-adapter.js')
 }
 
 /**
