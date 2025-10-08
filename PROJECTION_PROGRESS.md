@@ -4,7 +4,17 @@
 
 **Date**: October 8, 2025
 **Branch**: `feature/projection-refactoring`
-**Overall Progress**: 64/154 tasks (41.6%)
+**Ov| Phase | Tasks | Complete | Percentage |
+|-------|-------|----------|------------|
+| Phase 0 | 4 | 2 | 50% |
+| Phase 1 | 42 | 40 | 95% |
+| Phase 2 | 29 | 21 | 72% |
+| Phase 3 | 21 | 0 | 0% |
+| Phase 4 | 34 | 0 | 0% |
+| Phase 5 | 24 | 0 | 0% |
+| **Total** | **154** | **73** | **47.4%** |
+
+## 🔧 Phase 2: Integration Progressess**: 64/154 tasks (41.6%)
 **Current Phase**: Phase 2 - Integration with Existing Code (40% complete)
 
 ## ✅ Completed Work
@@ -166,13 +176,25 @@ Once testing is complete, **Phase 1 will be 100% done** and we can move to **Pha
 - ✅ Maintained backward compatibility with fallback logic
 - ✅ Added warning logs for unknown projections
 
+#### Task 2.3: Config Store Integration
+- ✅ Removed dependency on legacy `PROJECTION_OPTIONS`
+- ✅ Updated `projectionGroups` to use `projectionRegistry.filter()`
+- ✅ Added context-aware filtering based on atlasId and viewMode
+- ✅ Excluded composite projections from regular selector
+- ✅ Added `projectionRecommendations` computed property
+- ✅ Maintained backward compatibility with UI format
+
+#### Task 2.4: MapRenderer Verification
+- ✅ Verified MapRenderer.vue uses CartographerService correctly
+- ✅ Verified CartographerService integrates with refactored services
+- ✅ No changes needed - backward compatibility maintained
+
 ### 🎯 Next Steps (Phase 2 Remaining)
 
-- Update `config.ts` store to use registry filtering
-- Update projection initialization in store
 - Test all view modes (split, composite-custom, composite-existing, unified)
-- Verify MapRenderer works with refactored services
 - Test all atlases (France, Portugal, EU)
+- Test projection switching in UI
+- Verify no visual regressions
 
 ## 🚀 Ready for Production Testing
 
@@ -182,4 +204,4 @@ The new projection system is integrated with existing services while maintaining
 
 *Last Updated: 2025-10-08*
 *Branch: feature/projection-refactoring*
-*Commits: 5*
+*Commits: 7*
