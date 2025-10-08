@@ -17,7 +17,7 @@ import {
   getRegionSpecificConfig,
 } from '@/core/regions/registry'
 
-import { TerritoryService } from './TerritoryService'
+import { getTerritoriesForMode, getTerritoryByCode, getTerritoryNameFromArray } from '@/core/regions/utils'
 
 export class RegionService {
   private regionId: string
@@ -77,7 +77,7 @@ export class RegionService {
    */
   getTerritoriesForMode(mode: string): TerritoryConfig[] {
     const overseas = this.getOverseasTerritories()
-    return TerritoryService.getTerritoriesForMode(
+    return getTerritoriesForMode(
       overseas,
       mode,
       this.specificConfig.territoryModes,
@@ -124,7 +124,7 @@ export class RegionService {
    */
   getTerritoryByCode(code: string): TerritoryConfig | undefined {
     const all = this.getAllTerritories()
-    return TerritoryService.getTerritoryByCode(all, code)
+    return getTerritoryByCode(all, code)
   }
 
   /**
@@ -132,18 +132,7 @@ export class RegionService {
    */
   getTerritoryName(code: string): string {
     const all = this.getAllTerritories()
-    return TerritoryService.getTerritoryName(all, code)
-  }
-
-  /**
-   * Get EU countries (for EU region only)
-   */
-  getEUCountries() {
-    if (this.regionId === 'eu') {
-      // return EU_COUNTRIES
-      return []
-    }
-    return []
+    return getTerritoryNameFromArray(all, code)
   }
 
   /**

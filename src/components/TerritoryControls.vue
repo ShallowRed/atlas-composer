@@ -5,7 +5,7 @@ import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
 } from '@/core/regions/constants'
-import { TerritoryService } from '@/services/TerritoryService'
+import { createDefaultTranslations } from '@/core/regions/utils'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -54,7 +54,7 @@ function updateScale(territoryCode: string, event: Event) {
 function resetToDefaults() {
   // Get default translations from region service
   const regionService = configStore.regionService
-  const defaultTranslations = TerritoryService.calculateDefaultTranslations(
+  const defaultTranslations = createDefaultTranslations(
     regionService.getOverseasTerritories(),
   )
 

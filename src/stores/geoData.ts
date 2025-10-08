@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { getTerritoriesForMode } from '@/core/regions/utils'
 import { Cartographer } from '@/services/Cartographer'
-import { TerritoryService } from '@/services/TerritoryService'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -42,11 +42,11 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return territories
     }
 
-    // Use TerritoryService to get allowed territories for the current mode
+    // Get allowed territories for the current mode
     const regionService = configStore.regionService
     const allTerritories = regionService.getAllTerritories()
     const territoryModes = regionService.getTerritoryModes()
-    const allowedTerritories = TerritoryService.getTerritoriesForMode(
+    const allowedTerritories = getTerritoriesForMode(
       allTerritories,
       configStore.territoryMode,
       territoryModes,
@@ -181,10 +181,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
         territoryCodes = undefined
       }
       else {
-        // Use TerritoryService to get allowed territories
+        // Get allowed territories for the mode
         const allTerritories = regionService.getAllTerritories()
         const territoryModes = regionService.getTerritoryModes()
-        const allowedTerritories = TerritoryService.getTerritoriesForMode(
+        const allowedTerritories = getTerritoriesForMode(
           allTerritories,
           mode,
           territoryModes,

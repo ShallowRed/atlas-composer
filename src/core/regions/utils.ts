@@ -97,3 +97,86 @@ export function isMainlandTerritory(
   // Check if this code matches the mainland code
   return code === mainlandCode || code === geoDataMainlandCode
 }
+
+/**
+ * Calculate default projections from territory projection types
+ * @param territories - Array of territory configurations
+ * @param fallback - Fallback projection type (default: 'mercator')
+ * @returns Record of territory code to projection type
+ */
+export function calculateDefaultProjections(
+  territories: TerritoryConfig[],
+  fallback: string = 'mercator',
+): Record<string, string> {
+  return Object.fromEntries(
+    territories.map(t => [t.code, t.projectionType || fallback]),
+  )
+}
+
+/**
+ * Calculate default scales (all set to 1.0)
+ * @param territories - Array of territory configurations
+ * @returns Record of territory code to scale
+ */
+export function calculateDefaultScales(
+  territories: TerritoryConfig[],
+): Record<string, number> {
+  return Object.fromEntries(
+    territories.map(t => [t.code, 1.0]),
+  )
+}
+
+/**
+ * Get territory by code from an array
+ * @param territories - Array of territories
+ * @param code - Territory code
+ * @returns Territory configuration or undefined
+ */
+export function getTerritoryByCode(
+  territories: TerritoryConfig[],
+  code: string,
+): TerritoryConfig | undefined {
+  return territories.find(t => t.code === code)
+}
+
+/**
+ * Get territory name from an array
+ * @param territories - Array of territories
+ * @param code - Territory code
+ * @returns Territory name or the code if not found
+ */
+export function getTerritoryNameFromArray(
+  territories: TerritoryConfig[],
+  code: string,
+): string {
+  const territory = territories.find(t => t.code === code)
+  return territory?.name || code
+}
+
+/**
+ * Get territories for a specific mode
+ * Uses the mode configuration to filter territories
+ * @param territories - Array of all territories
+ * @param mode - Mode identifier
+ * @param modeConfig - Territory mode configuration
+ * @returns Filtered array of territories for the mode
+ */
+export function getTerritoriesForMode(
+  territories: TerritoryConfig[],
+  mode: string,
+  modeConfig: Record<string, any>,
+): TerritoryConfig[] {
+  const modeDefinition = modeConfig[mode]
+  if (!modeDefinition) {
+    return []
+  }
+
+  // If no codes specified, return empty (mode shows only mainland)
+  if (modeDefinition.codes.length === 0) {
+    return []
+  }
+
+  // Return territories matching the codes in this mode
+  const codesSet = new Set(modeDefinition.codes)
+  return territories.filter(t => codesSet.has(t.code))
+}

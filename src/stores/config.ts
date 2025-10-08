@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 
 import { computed, ref, watch } from 'vue'
 import { DEFAULT_REGION, getAllRegionConfigs, getRegionConfig } from '@/core/regions/registry'
+import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/regions/utils'
 import { PROJECTION_OPTIONS } from '@/services/GeoProjectionService'
 import { RegionService } from '@/services/RegionService'
-import { TerritoryService } from '@/services/TerritoryService'
 
 export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
@@ -52,7 +52,7 @@ export const useConfigStore = defineStore('config', () => {
   // Initialize from current region's territories
   const initializeTerritoryProjections = () => {
     const overseas = regionService.value.getOverseasTerritories()
-    return TerritoryService.calculateDefaultProjections(overseas, 'mercator')
+    return calculateDefaultProjections(overseas, 'mercator')
   }
   const territoryProjections = ref<Record<string, string>>(initializeTerritoryProjections())
 
@@ -62,7 +62,7 @@ export const useConfigStore = defineStore('config', () => {
   // Positive Y = down, Negative Y = up
   const initializeTerritoryTranslations = () => {
     const all = regionService.value.getAllTerritories()
-    return TerritoryService.calculateDefaultTranslations(all)
+    return createDefaultTranslations(all)
   }
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initializeTerritoryTranslations())
 
@@ -70,7 +70,7 @@ export const useConfigStore = defineStore('config', () => {
   // Initialize from current region's territories - all start with default 1.0 multiplier
   const initializeTerritoryScales = () => {
     const all = regionService.value.getAllTerritories()
-    return TerritoryService.calculateDefaultScales(all)
+    return calculateDefaultScales(all)
   }
   const territoryScales = ref<Record<string, number>>(initializeTerritoryScales())
 
