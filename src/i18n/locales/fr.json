@@ -28,7 +28,8 @@
     "compositeCustom": "Projection composite personnalisée",
     "compositeExisting": "Projection composite existante",
     "unified": "Projection unifiée",
-    "custom": "Personnalisée"
+    "custom": "Personnalisée",
+    "useRecommended": "Utiliser {projection}"
   },
   "mode": {
     "select": "Territoires à inclure",

@@ -73,6 +73,23 @@ function resetToDefaults() {
     configStore.setTerritoryScale(t.code, SCALE_RANGE.default)
   })
 }
+
+// Get the best recommended projection
+const bestRecommendation = computed(() => {
+  const recommendations = configStore.projectionRecommendations
+  if (!recommendations || recommendations.length === 0) return null
+  
+  // Sort by score and return the best one
+  const sorted = [...recommendations].sort((a, b) => b.score - a.score)
+  return sorted[0]
+})
+
+// Apply the best recommended projection to a territory
+function useRecommendedProjection(territoryCode: string) {
+  if (bestRecommendation.value) {
+    configStore.setTerritoryProjection(territoryCode, bestRecommendation.value.projection.id)
+  }
+}
 </script>
 
 <template>
@@ -108,6 +125,15 @@ function resetToDefaults() {
               :recommendations="configStore.projectionRecommendations"
               @update:model-value="(value) => configStore.setTerritoryProjection(mainlandCode, value)"
             />
+            <!-- Quick action button to apply best recommendation -->
+            <button
+              v-if="bestRecommendation"
+              class="btn btn-sm btn-primary mt-2"
+              @click="useRecommendedProjection(mainlandCode)"
+            >
+              <i class="ri-magic-line" />
+              {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+            </button>
           </div>
         </div>
       </div>
@@ -135,6 +161,15 @@ function resetToDefaults() {
               :recommendations="configStore.projectionRecommendations"
               @update:model-value="(value) => configStore.setTerritoryProjection(territory.code, value)"
             />
+            <!-- Quick action button to apply best recommendation -->
+            <button
+              v-if="bestRecommendation"
+              class="btn btn-sm btn-primary mt-2"
+              @click="useRecommendedProjection(territory.code)"
+            >
+              <i class="ri-magic-line" />
+              {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+            </button>
           </div>
 
           <!-- Transform Controls (hidden in split mode) -->
