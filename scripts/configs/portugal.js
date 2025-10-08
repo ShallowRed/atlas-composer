@@ -17,18 +17,41 @@ export default {
   /**
    * Portuguese territories mapping: Natural Earth ID → Territory metadata
    * IDs from Natural Earth dataset (world-atlas)
+   *
+   * Properties:
+   * - name, code, iso: Territory metadata
+   * - extractFrom: Extract this territory's geometry from parent MultiPolygon
+   * - bounds: [[minLon, minLat], [maxLon, maxLat]] - used to match polygons for extraction
+   * - mainlandBounds: Used to identify mainland polygons when extracting from MultiPolygon
    */
   territories: {
-    620: {
-      name: 'Portugal',
-      code: 'PT',
+    // Continental Portugal (will have autonomous regions extracted from it)
+    '620': {
+      name: 'Portugal Continental',
+      code: 'PT-CONT',
       iso: 'PRT',
       // Mainland Portugal bounds (Continental Portugal)
       // Polygon 1: lon [-9.48, -6.21], lat [37.01, 42.14]
       mainlandBounds: [[-10, 36.5], [-6, 42.5]],
-      // Autonomous regions (extracted from the MultiPolygon):
-      // - Madeira: Polygon 0, lon [-17.24, -16.69], lat [32.65, 32.87]
-      // - Azores: Polygons 2-8, lon [-31.28, -25.03], lat [36.94, 39.52]
+    },
+
+    // Autonomous regions - extracted from Portugal (620)
+    // These are embedded as polygons in the Portugal MultiPolygon in Natural Earth data
+    '620-20': {
+      name: 'Madeira',
+      code: 'PT-20',
+      iso: 'PRT',
+      extractFrom: 620,
+      // Madeira: Polygon 0, lon [-17.24, -16.69], lat [32.65, 32.87]
+      bounds: [[-17.5, 32.5], [-16.5, 33.0]],
+    },
+    '620-30': {
+      name: 'Azores',
+      code: 'PT-30',
+      iso: 'PRT',
+      extractFrom: 620,
+      // Azores: Polygons 2-8, lon [-31.28, -25.03], lat [36.94, 39.52]
+      bounds: [[-32.0, 36.5], [-24.5, 40.0]],
     },
   },
 

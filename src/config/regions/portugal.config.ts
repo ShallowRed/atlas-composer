@@ -85,7 +85,7 @@ export const PORTUGAL_GEO_DATA_CONFIG: GeoDataConfig = {
   dataPath: '/data/portugal-territories-50m.json',
   metadataPath: '/data/portugal-metadata-50m.json',
   topologyObjectName: 'territories',
-  mainlandCode: 'PT',
+  mainlandCode: 'PT-CONT',
   mainlandBounds: MAINLAND_PORTUGAL.bounds,
   overseasTerritories: PORTUGAL_AUTONOMOUS_REGIONS,
 }

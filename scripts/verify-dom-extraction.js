@@ -5,8 +5,9 @@
  * Checks if the 5 DOM embedded in France (250) match our territory bounds
  */
 
-const topojson = require('topojson-client')
-const fs = require('node:fs')
+import fs from 'node:fs'
+import process from 'node:process'
+import topojson from 'topojson-client'
 
 // Load data
 const data = JSON.parse(fs.readFileSync('./src/public/data/france-territories-50m.json', 'utf8'))

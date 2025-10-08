@@ -383,28 +383,11 @@ function filterTerritories(worldData, territoriesConfig) {
 
   console.log(`${COLORS.green}  Total territories: ${finalFeatures.length}${COLORS.reset}`)
 
-  // STEP 4: Convert back to simplified TopoJSON structure
-  // Note: We're creating a simplified TopoJSON without actual topology (no arc sharing)
-  // This keeps the same format but with extracted/duplicated features as separate geometries
-  const geometries = finalFeatures.map((feature) => {
-    return {
-      type: feature.geometry.type,
-      id: feature.id,
-      properties: feature.properties,
-      coordinates: feature.geometry.coordinates,
-    }
-  })
-
+  // STEP 4: Return as GeoJSON FeatureCollection
+  // We use GeoJSON format directly since we've already extracted and processed features
   return {
-    type: worldData.type,
-    transform: worldData.transform, // Preserve transform for coordinate quantization
-    objects: {
-      territories: {
-        type: 'GeometryCollection',
-        geometries,
-      },
-    },
-    arcs: [], // Empty arcs array since we're using GeoJSON-style coordinates
+    type: 'FeatureCollection',
+    features: finalFeatures,
   }
 }
 
