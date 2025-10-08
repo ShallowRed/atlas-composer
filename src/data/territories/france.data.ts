@@ -115,9 +115,9 @@ export const OVERSEAS_TERRITORIES: TerritoryConfig[] = [
     shortName: 'TAAF',
     region: 'Océan Indien',
     center: [69.348, -49.280],
-    offset: [328, 126], // Estimated position (not in d3-composite-projections)
+    offset: [0, 250], // Positioned at bottom center of map (not in d3-composite-projections)
     bounds: [[39.0, -50.0], [77.0, -37.0]],
-    clipExtent: { x1: 0.0967, y1: -0.09, x2: 0.1371, y2: -0.076 },
+    clipExtent: { x1: -0.02, y1: 0.09, x2: 0.02, y2: 0.12 }, // Bottom center position
     baseScaleMultiplier: 0.1, // NOT in d3-cp - much smaller scale to avoid overwhelming the map
   },
 
