@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+withDefaults(defineProps<Props>(), {
+  title: '',
+  description: '',
+})
+
+const { t } = useI18n()
+
 interface Props {
   isLoading: boolean
   title?: string
   description?: string
 }
-
-withDefaults(defineProps<Props>(), {
-  title: 'Chargement des données...',
-  description: 'Préparation des cartes géographiques',
-})
 </script>
 
 <template>
@@ -27,10 +31,10 @@ withDefaults(defineProps<Props>(), {
           <div class="card-body items-center text-center">
             <div class="loading loading-spinner loading-lg text-primary" />
             <h3 class="text-lg font-semibold">
-              {{ title }}
+              {{ title || t('common.loadingData') }}
             </h3>
             <p class="text-sm text-base-content/70">
-              {{ description }}
+              {{ description || t('common.preparingMaps') }}
             </p>
           </div>
         </div>

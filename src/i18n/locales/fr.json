@@ -1,0 +1,130 @@
+{
+  "app": {
+    "title": "Composeur d'Atlas",
+    "subtitle": "Visualisations géographiques interactives"
+  },
+  "nav": {
+    "map": "Carte",
+    "about": "À propos"
+  },
+  "atlas": {
+    "select": "Sélectionner un atlas",
+    "france": "France",
+    "portugal": "Portugal",
+    "spain": "Espagne",
+    "eu": "Union Européenne"
+  },
+  "projection": {
+    "select": "Sélectionner une projection",
+    "type": "Type de projection",
+    "mode": "Mode de projection",
+    "cartographic": "Projection cartographique",
+    "uniform": "Uniforme",
+    "individual": "Individuelle",
+    "mercator": "Mercator",
+    "naturalEarth": "Natural Earth",
+    "equalEarth": "Equal Earth",
+    "composite": "Composite (conique conforme)",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée",
+    "custom": "Personnalisée"
+  },
+  "mode": {
+    "select": "Territoires à inclure",
+    "view": "Mode de visualisation",
+    "all": "Tous les territoires",
+    "mainland": "Métropole uniquement",
+    "overseas": "Outre-mer uniquement",
+    "split": "Territoires séparés",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée"
+  },
+  "territory": {
+    "controls": "Contrôles des territoires",
+    "byTerritory": "Par territoire",
+    "position": "Position",
+    "positionX": "Position horizontale (X)",
+    "positionY": "Position verticale (Y)",
+    "scale": "Échelle",
+    "reset": "Réinitialiser tout",
+    "resetButton": "Réinitialiser",
+    "mainland": "Métropole",
+    "overseas": "Territoires d'outre-mer",
+    "noOverseas": "Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des territoires ultramarins dans « Territoires à inclure ».",
+    "noTerritories": "Aucun territoire disponible.",
+    "checkData": "Vérifiez les données ou changez de région.",
+    "adjustPosition": "Ajustez la position et l'échelle des territoires à l'aide des curseurs ci-dessous",
+    "scalePreservation": "Préserver les rapports de taille"
+  },
+  "view": {
+    "unified": "Vue unifiée",
+    "composite": "Vue composite",
+    "individual": "Territoires individuels",
+    "split": "Territoires séparés"
+  },
+  "settings": {
+    "title": "Configuration",
+    "theme": "Thème",
+    "language": "Langue",
+    "resolution": "Résolution des données",
+    "region": "Région"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "loadingData": "Chargement des données...",
+    "preparingMaps": "Préparation des cartes géographiques",
+    "error": "Erreur",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "apply": "Appliquer",
+    "export": "Exporter",
+    "import": "Importer"
+  },
+  "about": {
+    "title": "À propos du Composeur d'Atlas",
+    "pageTitle": "À propos du Composeur d'Atlas",
+    "intro": "Un bac à sable pour expérimenter avec les projections géographiques composites, permettant de représenter des territoires éloignés avec des rapports de taille préservés.",
+    "challenge": {
+      "title": "Le défi cartographique",
+      "description1": "Représenter sur une même carte un pays et ses territoires dispersés géographiquement pose un défi : comment afficher ensemble des zones séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ?",
+      "description2": "La solution classique utilise des encarts repositionnés : la projection Albers USA, par exemple, intègre l'Alaska et Hawaï dans des cadres déplacés près du continent américain.",
+      "description3": "Contrairement aux États-Unis, la France ne dispose pas de projection composite standardisée pour visualiser ensemble la métropole et les départements/collectivités d'outre-mer (Antilles, Guyane, océan Indien, Pacifique) avec des proportions et positionnements cohérents."
+    },
+    "solution": {
+      "title": "L'approche : projections composites interactives",
+      "description": "Ce projet exploite les capacités de D3.js pour créer des projections composites interactives, en s'inspirant des recherches de Roger Veciana via la bibliothèque d3-composite-projections.",
+      "modesTitle": "Quatre modes de visualisation"
+    },
+    "features": {
+      "title": "Fonctionnalités principales",
+      "compositeExisting": "Composite existante : Applique des projections géographiques professionnelles (France, Portugal, Europe) déjà paramétrées et validées",
+      "compositeCustom": "Composite personnalisée : Construisez votre propre assemblage en contrôlant finement la position, l'orientation et l'échelle de chaque région",
+      "split": "Vues séparées : Affiche chaque territoire dans sa propre projection, en respectant les proportions géographiques réelles",
+      "unified": "Vue unifiée : Rassemble tous les territoires dans une projection unique (pour observer les distorsions)"
+    },
+    "atlases": {
+      "title": "Régions supportées",
+      "france": "France : Métropole + DOM-TOM (Guadeloupe, Martinique, Guyane, Réunion, Mayotte, Saint-Pierre-et-Miquelon, Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna, Polynésie française, Nouvelle-Calédonie)",
+      "portugal": "Portugal : Continental + Régions autonomes (Açores, Madère)",
+      "eu": "Union Européenne : 27 états membres avec projection composite Europe"
+    },
+    "technologies": {
+      "title": "Technologies",
+      "d3": "D3.js + d3-composite-projections : Projections géographiques avancées",
+      "plot": "Observable Plot : Rendu des visualisations cartographiques",
+      "vue": "Vue 3 + TypeScript : Interface réactive et typée",
+      "topojson": "TopoJSON : Données géographiques optimisées (Natural Earth, OpenStreetMap)"
+    },
+    "cta": "Expérimenter avec les projections",
+    "footer": {
+      "title": "Composeur d'Atlas",
+      "built": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
+      "license": "Licence MIT",
+      "madeWith": "Réalisé avec",
+      "by": "par"
+    }
+  }
+}

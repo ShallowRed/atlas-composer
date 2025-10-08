@@ -1,0 +1,130 @@
+{
+  "app": {
+    "title": "Atlas Composer",
+    "subtitle": "Interactive Geographic Visualizations"
+  },
+  "nav": {
+    "map": "Map",
+    "about": "About"
+  },
+  "atlas": {
+    "select": "Select Atlas",
+    "france": "France",
+    "portugal": "Portugal",
+    "spain": "Spain",
+    "eu": "European Union"
+  },
+  "projection": {
+    "select": "Select projection",
+    "type": "Projection type",
+    "mode": "Projection mode",
+    "cartographic": "Cartographic projection",
+    "uniform": "Uniform",
+    "individual": "Individual",
+    "mercator": "Mercator",
+    "naturalEarth": "Natural Earth",
+    "equalEarth": "Equal Earth",
+    "composite": "Composite (conic conformal)",
+    "compositeCustom": "Custom composite projection",
+    "compositeExisting": "Existing composite projection",
+    "unified": "Unified projection",
+    "custom": "Custom"
+  },
+  "mode": {
+    "select": "Territories to include",
+    "view": "View mode",
+    "all": "All territories",
+    "mainland": "Mainland only",
+    "overseas": "Overseas only",
+    "split": "Separate territories",
+    "compositeCustom": "Custom composite projection",
+    "compositeExisting": "Existing composite projection",
+    "unified": "Unified projection"
+  },
+  "territory": {
+    "controls": "Territory controls",
+    "byTerritory": "By territory",
+    "position": "Position",
+    "positionX": "Horizontal position (X)",
+    "positionY": "Vertical position (Y)",
+    "scale": "Scale",
+    "reset": "Reset all",
+    "resetButton": "Reset",
+    "mainland": "Mainland",
+    "overseas": "Overseas territories",
+    "noOverseas": "No overseas territories to adjust. Select a mode that includes overseas territories in \"Territories to include\".",
+    "noTerritories": "No territories available.",
+    "checkData": "Check the data or change region.",
+    "adjustPosition": "Adjust territory positions and scale using the sliders below",
+    "scalePreservation": "Preserve size ratios"
+  },
+  "view": {
+    "unified": "Unified view",
+    "composite": "Composite view",
+    "individual": "Individual territories",
+    "split": "Separate territories"
+  },
+  "settings": {
+    "title": "Configuration",
+    "theme": "Theme",
+    "language": "Language",
+    "resolution": "Data resolution",
+    "region": "Region"
+  },
+  "common": {
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "preparingMaps": "Preparing geographic maps",
+    "error": "Error",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "export": "Export",
+    "import": "Import"
+  },
+  "about": {
+    "title": "About Atlas Composer",
+    "pageTitle": "About Atlas Composer",
+    "intro": "A sandbox to experiment with composite geographic projections, allowing representation of distant territories with preserved size ratios.",
+    "challenge": {
+      "title": "The cartographic challenge",
+      "description1": "Representing a country and its geographically scattered territories on the same map poses a challenge: how to display together areas separated by thousands of kilometers while maintaining visual coherence?",
+      "description2": "The classic solution uses repositioned insets: the Albers USA projection, for example, integrates Alaska and Hawaii in frames moved near the American continent.",
+      "description3": "Unlike the United States, France does not have a standardized composite projection to visualize together the mainland and the overseas departments/collectivities (Caribbean, Guiana, Indian Ocean, Pacific) with coherent proportions and positioning."
+    },
+    "solution": {
+      "title": "The approach: interactive composite projections",
+      "description": "This project leverages D3.js capabilities to create interactive composite projections, inspired by Roger Veciana's research via the d3-composite-projections library.",
+      "modesTitle": "Four visualization modes"
+    },
+    "features": {
+      "title": "Key features",
+      "compositeExisting": "Existing composite: Apply professional geographic projections (France, Portugal, Europe) already configured and validated",
+      "compositeCustom": "Custom composite: Build your own assembly by precisely controlling the position, orientation, and scale of each region",
+      "split": "Separate views: Display each territory in its own projection, respecting real geographic proportions",
+      "unified": "Unified view: Brings all territories together in a single projection (to observe distortions)"
+    },
+    "atlases": {
+      "title": "Supported regions",
+      "france": "France: Mainland + overseas departments and territories (Guadeloupe, Martinique, French Guiana, Réunion, Mayotte, Saint-Pierre-et-Miquelon, Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna, French Polynesia, New Caledonia)",
+      "portugal": "Portugal: Continental + autonomous regions (Azores, Madeira)",
+      "eu": "European Union: 27 member states with composite Europe projection"
+    },
+    "technologies": {
+      "title": "Technologies",
+      "d3": "D3.js + d3-composite-projections: Advanced geographic projections",
+      "plot": "Observable Plot: Cartographic visualization rendering",
+      "vue": "Vue 3 + TypeScript: Reactive and typed interface",
+      "topojson": "TopoJSON: Optimized geographic data (Natural Earth, OpenStreetMap)"
+    },
+    "cta": "Experiment with projections",
+    "footer": {
+      "title": "Atlas Composer",
+      "built": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
+      "license": "License MIT",
+      "madeWith": "Made with",
+      "by": "by"
+    }
+  }
+}

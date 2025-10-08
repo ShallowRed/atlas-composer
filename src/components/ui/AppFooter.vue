@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
+const { t } = useI18n()
 const route = useRoute()
 </script>
 
@@ -12,10 +14,10 @@ const route = useRoute()
         to="/"
         class="link link-hover"
       >
-        Carte
+        {{ t('nav.map') }}
       </RouterLink>
       <span v-else class="opacity-70 cursor-default">
-        Carte
+        {{ t('nav.map') }}
       </span>
 
       <RouterLink
@@ -23,10 +25,10 @@ const route = useRoute()
         to="/about"
         class="link link-hover"
       >
-        À propos
+        {{ t('nav.about') }}
       </RouterLink>
       <span v-else class="opacity-70 cursor-default">
-        À propos
+        {{ t('nav.about') }}
       </span>
 
       <a
@@ -41,15 +43,15 @@ const route = useRoute()
 
     <aside>
       <p class="text-sm">
-        Geo projection sandbox
+        {{ t('about.footer.title') }}
       </p>
       <p class="text-xs">
-        Construit avec Vue 3, D3.js, Observable Plot et daisyUI
+        {{ t('about.footer.built') }}
       </p>
     </aside>
 
     <aside class="text-xs">
-      <p>License MIT</p>
+      <p>{{ t('about.footer.license') }}</p>
     </aside>
   </footer>
 </template>

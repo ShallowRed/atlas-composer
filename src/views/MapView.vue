@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
@@ -12,6 +13,7 @@ import { PROJECTION_OPTIONS } from '@/services/projections'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
+const { t } = useI18n()
 const allowThemeSelection = false
 
 // Stores
@@ -60,10 +62,10 @@ const viewModeOptions = computed(() => {
 
   // All possible view mode options
   const allOptions = [
-    { value: 'composite-custom', label: 'Projection composite personnalisée' },
-    { value: 'split', label: 'Territoires séparés' },
-    { value: 'composite-existing', label: 'Projection composite existante' },
-    { value: 'unified', label: 'Projection unifiée' },
+    { value: 'composite-custom', label: t('mode.compositeCustom') },
+    { value: 'split', label: t('mode.split') },
+    { value: 'composite-existing', label: t('mode.compositeExisting') },
+    { value: 'unified', label: t('mode.unified') },
   ]
 
   // Filter to only supported modes for this region
@@ -179,7 +181,7 @@ watch(() => configStore.territoryMode, async () => {
     >
       <!-- Controls Card -->
       <CardContainer
-        title="Configuration"
+        :title="t('settings.title')"
         icon="ri-settings-3-line"
         class="h-full overflow-y-auto"
         has-overflow
@@ -191,7 +193,7 @@ watch(() => configStore.territoryMode, async () => {
           <!-- Region Selector -->
           <FormControl
             v-model="configStore.selectedAtlas"
-            label="Région"
+            :label="t('settings.region')"
             icon="ri-earth-line"
             type="select"
             :options="getAvailableAtlases()"
@@ -200,7 +202,7 @@ watch(() => configStore.territoryMode, async () => {
           <!-- Main View Mode Selector -->
           <FormControl
             v-model="configStore.viewMode"
-            label="Mode d'affichage"
+            :label="t('mode.view')"
             icon="ri-layout-grid-line"
             type="select"
             :disabled="configStore.isViewModeLocked"
@@ -211,7 +213,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
             v-model="configStore.compositeProjection"
-            label="Projection composite"
+            :label="t('projection.composite')"
             icon="ri-global-line"
             type="select"
             :options="compositeProjectionOptions"
@@ -221,12 +223,12 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-show="configStore.showProjectionModeToggle"
             v-model="configStore.projectionMode"
-            label="Mode de projection"
+            :label="t('projection.mode')"
             icon="ri-global-line"
             type="select"
             :options="[
-              { value: 'uniform', label: 'Uniforme' },
-              { value: 'individual', label: 'Individuelle' },
+              { value: 'uniform', label: t('projection.uniform') },
+              { value: 'individual', label: t('projection.individual') },
             ]"
           />
 
@@ -234,7 +236,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-show="configStore.showProjectionSelector"
             v-model="configStore.selectedProjection"
-            label="Projection cartographique"
+            :label="t('projection.cartographic')"
             icon="ri-map-2-line"
             type="select"
             :option-groups="configStore.projectionGroups"
@@ -244,7 +246,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-show="configStore.showScalePreservation"
             v-model="configStore.scalePreservation"
-            label="Préserver les rapports de taille"
+            :label="t('territory.scalePreservation')"
             type="toggle"
           />
 
@@ -252,7 +254,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
             v-model="configStore.territoryMode"
-            label="Territoires à inclure"
+            :label="t('mode.select')"
             icon="ri-map-pin-range-line"
             type="select"
             :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
@@ -345,13 +347,7 @@ watch(() => configStore.territoryMode, async () => {
 
                   <!-- Empty State -->
                   <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
-                    <p>Aucun territoire d'outre-mer disponible.</p>
-                    <p class="text-sm mt-2">
-                      Mode: {{ configStore.territoryMode }}
-                    </p>
-                    <p class="text-sm">
-                      Vérifiez les données ou changez le mode de sélection des territoires.
-                    </p>
+                    <p>{{ t('territory.noTerritories') }}</p>
                   </div>
                 </div>
               </div>
@@ -398,9 +394,9 @@ watch(() => configStore.territoryMode, async () => {
 
                 <!-- Empty State -->
                 <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
-                  <p>Aucun territoire disponible.</p>
+                  <p>{{ t('territory.noTerritories') }}</p>
                   <p class="text-sm mt-2">
-                    Vérifiez les données ou changez de région.
+                    {{ t('territory.checkData') }}
                   </p>
                 </div>
               </div>
@@ -447,7 +443,7 @@ watch(() => configStore.territoryMode, async () => {
       <!-- Territory Parameters (projections, translations, scales) -->
       <CardContainer
         v-show="configStore.showIndividualProjectionSelectors && geoDataStore.filteredTerritories.length > 0"
-        title="Par territoire"
+        :title="t('territory.byTerritory')"
         icon="ri-settings-4-line"
         class="h-full"
         has-overflow

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
+import LanguageSelector from './LanguageSelector.vue'
 
 const route = useRoute()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -17,14 +20,14 @@ const route = useRoute()
               class="btn btn-ghost text-lg"
             >
               <i class="ri-map-2-fill" />
-              Geo projection sandbox
+              {{ t('app.title') }}
             </RouterLink>
             <span
               v-else
               class="text-lg font-semibold flex items-center gap-2 px-4"
             >
               <i class="ri-map-2-fill" />
-              Geo projection sandbox
+              {{ t('app.title') }}
             </span>
           </div>
           <div class="flex-none">
@@ -35,11 +38,11 @@ const route = useRoute()
                   to="/"
                 >
                   <i class="ri-map-line" />
-                  Cartes
+                  {{ t('nav.map') }}
                 </RouterLink>
                 <span v-else class="text-primary font-semibold flex items-center gap-2">
                   <i class="ri-map-line" />
-                  Cartes
+                  {{ t('nav.map') }}
                 </span>
               </li>
               <li :class="{ 'disabled pointer-events-none': route.path === '/about' }">
@@ -48,14 +51,15 @@ const route = useRoute()
                   to="/about"
                 >
                   <i class="ri-information-line" />
-                  À propos
+                  {{ t('nav.about') }}
                 </RouterLink>
                 <span v-else class="text-primary font-semibold flex items-center gap-2">
                   <i class="ri-information-line" />
-                  À propos
+                  {{ t('nav.about') }}
                 </span>
               </li>
             </ul>
+            <LanguageSelector />
           </div>
         </nav>
       </div>

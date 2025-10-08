@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import {
   SCALE_RANGE,
@@ -9,13 +10,15 @@ import { createDefaultTranslations } from '@/core/atlases/utils'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
-interface Props {
-  showTransformControls?: boolean // Show translation/scale controls (false for split mode)
-}
-
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
 })
+
+const { t } = useI18n()
+
+interface Props {
+  showTransformControls?: boolean // Show translation/scale controls (false for split mode)
+}
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
@@ -76,7 +79,7 @@ function resetToDefaults() {
     <!-- Message when no territories are available -->
     <div v-if="territories.length === 0" class="alert alert-info">
       <i class="ri-information-line" />
-      <span>Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des territoires ultramarins dans "Territoires à inclure".</span>
+      <span>{{ t('territory.noOverseas') }}</span>
     </div>
 
     <!-- Accordion for all territories -->
@@ -100,7 +103,7 @@ function resetToDefaults() {
             <label class="label">
               <span class="label-text text-sm font-medium">
                 <i class="ri-map-2-line" />
-                Projection cartographique
+                {{ t('projection.cartographic') }}
               </span>
             </label>
             <select
@@ -148,7 +151,7 @@ function resetToDefaults() {
             <label class="label">
               <span class="label-text text-sm font-medium">
                 <i class="ri-map-2-line" />
-                Projection cartographique
+                {{ t('projection.cartographic') }}
               </span>
             </label>
             <select
@@ -182,7 +185,7 @@ function resetToDefaults() {
               <label class="label">
                 <span class="label-text text-sm font-medium">
                   <i class="ri-arrow-left-right-line" />
-                  Position horizontale (X): {{ Math.round(translations[territory.code]?.x || 0) }}px
+                  {{ t('territory.positionX') }}: {{ Math.round(translations[territory.code]?.x || 0) }}px
                 </span>
               </label>
               <input
@@ -206,7 +209,7 @@ function resetToDefaults() {
               <label class="label">
                 <span class="label-text text-sm font-medium">
                   <i class="ri-arrow-up-down-line" />
-                  Position verticale (Y): {{ Math.round(translations[territory.code]?.y || 0) }}px
+                  {{ t('territory.positionY') }}: {{ Math.round(translations[territory.code]?.y || 0) }}px
                 </span>
               </label>
               <input
@@ -230,7 +233,7 @@ function resetToDefaults() {
               <label class="label">
                 <span class="label-text text-sm font-medium">
                   <i class="ri-expand-diagonal-line" />
-                  Échelle: {{ scales[territory.code]?.toFixed(2) }}×
+                  {{ t('territory.scale') }}: {{ scales[territory.code]?.toFixed(2) }}×
                 </span>
               </label>
               <input
@@ -259,7 +262,7 @@ function resetToDefaults() {
         @click="resetToDefaults"
       >
         <i class="ri-restart-line" />
-        Réinitialiser
+        {{ t('territory.resetButton') }}
       </button>
     </div>
   </div>
