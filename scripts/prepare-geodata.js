@@ -19,6 +19,7 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import * as topojson from 'topojson-client'
 
 // Get current directory in ES module
 const __filename = fileURLToPath(import.meta.url)
@@ -137,8 +138,174 @@ async function downloadData(url, filename) {
 }
 
 /**
+ * Extracts sub-territories from a MultiPolygon GeoJSON feature based on bounds matching
+ * Used to extract DOM territories from France mainland MultiPolygon
+ * NOTE: This works with GeoJSON format (with coordinates), not TopoJSON
+ * @param {object} mainlandFeature - GeoJSON feature with MultiPolygon geometry
+ * @param {object} config - Territory configuration with extraction rules
+ * @returns {object} Object with mainland feature and extracted territory features
+ */
+function extractEmbeddedTerritories(mainlandFeature, config) {
+  if (!mainlandFeature.geometry || mainlandFeature.geometry.type !== 'MultiPolygon') {
+    return {
+      mainland: mainlandFeature,
+      extracted: [],
+    }
+  }
+
+  const extracted = []
+  const mainlandPolygons = []
+
+  // Find territories to extract (those with extractFrom property)
+  const extractionRules = Object.entries(config)
+    .filter(([_, terr]) => terr.extractFrom && String(terr.extractFrom) === String(mainlandFeature.id || mainlandFeature.properties?.id))
+    .map(([id, terr]) => ({ id, ...terr }))
+
+  if (extractionRules.length === 0) {
+    return {
+      mainland: mainlandFeature,
+      extracted: [],
+    }
+  }
+
+  // Group extracted polygons by territory
+  const extractedGroups = new Map()
+
+  // Iterate through each polygon in the MultiPolygon
+  for (const polygon of mainlandFeature.geometry.coordinates) {
+    const firstRing = polygon[0]
+    if (!firstRing || firstRing.length === 0)
+      continue
+
+    // Calculate polygon bounds
+    const lons = firstRing.map(coord => coord[0])
+    const lats = firstRing.map(coord => coord[1])
+    const minLon = Math.min(...lons)
+    const maxLon = Math.max(...lons)
+    const minLat = Math.min(...lats)
+    const maxLat = Math.max(...lats)
+
+    // Try to match against extraction rules
+    let matched = false
+    const tolerance = 0.1
+
+    for (const rule of extractionRules) {
+      if (!rule.bounds)
+        continue
+
+      const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = rule.bounds
+
+      if (
+        minLon >= (configMinLon - tolerance)
+        && maxLon <= (configMaxLon + tolerance)
+        && minLat >= (configMinLat - tolerance)
+        && maxLat <= (configMaxLat + tolerance)
+      ) {
+        // This polygon belongs to an embedded territory
+        // Add to the group for this territory
+        if (!extractedGroups.has(rule.id)) {
+          extractedGroups.set(rule.id, {
+            id: rule.id,
+            name: rule.name,
+            code: rule.code,
+            iso: rule.iso,
+            polygons: [],
+          })
+        }
+        extractedGroups.get(rule.id).polygons.push(polygon)
+        matched = true
+        break
+      }
+    }
+
+    // If not matched, it's part of mainland
+    if (!matched) {
+      mainlandPolygons.push(polygon)
+    }
+  }
+
+  // Convert grouped polygons to features
+  for (const group of extractedGroups.values()) {
+    extracted.push({
+      type: 'Feature',
+      id: group.id,
+      properties: {
+        name: group.name,
+        code: group.code,
+        iso: group.iso,
+        id: group.id,
+      },
+      geometry: {
+        type: 'MultiPolygon',
+        coordinates: group.polygons,
+      },
+    })
+  }
+
+  return {
+    mainland: {
+      ...mainlandFeature,
+      geometry: {
+        ...mainlandFeature.geometry,
+        coordinates: mainlandPolygons,
+      },
+    },
+    extracted,
+  }
+}
+
+/**
+ * Duplicates territory features for multiple projections
+ * Used to create FR-PF-2 from FR-PF with same geometry but different code
+ * NOTE: This works with GeoJSON features
+ * @param {Array} features - Array of GeoJSON features
+ * @param {object} config - Territory configuration with duplication rules
+ * @returns {Array} Array with original and duplicate features
+ */
+function duplicateTerritories(features, config) {
+  const result = [...features]
+
+  // Find duplication rules (territories with duplicateFrom property)
+  const duplicationRules = Object.entries(config)
+    .filter(([_, terr]) => terr.duplicateFrom)
+    .map(([id, terr]) => ({ id, ...terr }))
+
+  for (const rule of duplicationRules) {
+    // Find source feature by ID or code
+    const sourceFeature = features.find(f =>
+      String(f.id) === String(rule.duplicateFrom)
+      || String(f.properties?.id) === String(rule.duplicateFrom)
+      || f.properties?.code === rule.duplicateFrom,
+    )
+
+    if (sourceFeature) {
+      // Create duplicate with new ID and properties
+      result.push({
+        ...sourceFeature,
+        type: 'Feature',
+        id: rule.id,
+        properties: {
+          name: rule.name,
+          code: rule.code,
+          iso: rule.iso,
+          id: rule.id,
+        },
+      })
+      console.log(`${COLORS.blue}  Duplicated ${rule.duplicateFrom} → ${rule.code}${COLORS.reset}`)
+    }
+    else {
+      console.log(`${COLORS.yellow}  Warning: Could not find source for duplicate ${rule.code}${COLORS.reset}`)
+    }
+  }
+
+  return result
+}
+
+/**
  * Filter TopoJSON data to include only specified territories
  * Enriches geometries with territory metadata (name, code, iso)
+ * Extracts embedded territories (like DOM from France)
+ * Duplicates territories for multiple projections (like FR-PF-2)
  * @param {object} worldData - The full world TopoJSON data
  * @param {object} territoriesConfig - Territory ID mapping
  * @returns {object} Filtered TopoJSON containing only specified territories
@@ -156,19 +323,23 @@ function filterTerritories(worldData, territoriesConfig) {
     idLookup.set(id, id)
   }
 
-  // Filter and enrich geometries with territory metadata
-  const enrichedGeometries = worldData.objects.countries.geometries
-    .filter(geometry => idLookup.has(String(geometry.id)))
-    .map((geometry) => {
-      const geomId = String(geometry.id)
-      const configId = idLookup.get(geomId)
+  // STEP 1: Convert TopoJSON to GeoJSON for easier manipulation
+  const featureCollection = topojson.feature(worldData, worldData.objects.countries)
+
+  // Filter features by ID and enrich with metadata
+  let processedFeatures = featureCollection.features
+    .filter(feature => idLookup.has(String(feature.id)))
+    .map((feature) => {
+      const featureId = String(feature.id)
+      const configId = idLookup.get(featureId)
       const territory = territoriesConfig[configId]
 
-      // Enrich geometry with territory metadata
+      // Enrich feature with territory metadata
       return {
-        ...geometry,
+        ...feature,
+        id: configId,
         properties: {
-          ...geometry.properties,
+          ...feature.properties,
           name: territory.name,
           code: territory.code,
           iso: territory.iso,
@@ -177,16 +348,63 @@ function filterTerritories(worldData, territoriesConfig) {
       }
     })
 
+  // STEP 2: Extract embedded territories (like DOM from France mainland)
+  const extractionResults = []
+  processedFeatures = processedFeatures.flatMap((feature) => {
+    const territory = territoriesConfig[feature.properties.id]
+
+    // Check if any territories should be extracted from this one
+    const hasExtractions = Object.values(territoriesConfig).some(
+      t => String(t.extractFrom) === String(feature.properties.id),
+    )
+
+    if (hasExtractions) {
+      const { mainland, extracted } = extractEmbeddedTerritories(feature, territoriesConfig)
+
+      // Log extraction
+      if (extracted.length > 0) {
+        const codes = extracted.map(e => e.properties.code).join(', ')
+        console.log(`${COLORS.blue}  Extracted from ${territory.code}: ${codes}${COLORS.reset}`)
+        extractionResults.push(...extracted)
+      }
+
+      // Return mainland with filtered polygons
+      return mainland
+    }
+
+    return feature
+  })
+
+  // Add extracted territories to processed features
+  processedFeatures.push(...extractionResults)
+
+  // STEP 3: Duplicate territories for multiple projections (like FR-PF-2)
+  const finalFeatures = duplicateTerritories(processedFeatures, territoriesConfig)
+
+  console.log(`${COLORS.green}  Total territories: ${finalFeatures.length}${COLORS.reset}`)
+
+  // STEP 4: Convert back to simplified TopoJSON structure
+  // Note: We're creating a simplified TopoJSON without actual topology (no arc sharing)
+  // This keeps the same format but with extracted/duplicated features as separate geometries
+  const geometries = finalFeatures.map((feature) => {
+    return {
+      type: feature.geometry.type,
+      id: feature.id,
+      properties: feature.properties,
+      coordinates: feature.geometry.coordinates,
+    }
+  })
+
   return {
     type: worldData.type,
-    transform: worldData.transform,
+    transform: worldData.transform, // Preserve transform for coordinate quantization
     objects: {
       territories: {
         type: 'GeometryCollection',
-        geometries: enrichedGeometries,
+        geometries,
       },
     },
-    arcs: worldData.arcs,
+    arcs: [], // Empty arcs array since we're using GeoJSON-style coordinates
   }
 }
 

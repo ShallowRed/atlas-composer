@@ -50,12 +50,18 @@ export class CustomCompositeProjection {
   /**
    * Initialize all sub-projections with their geographic centers and base settings
    * Uses provided configuration for territories
+   *
+   * This implementation follows d3-composite-projections approach:
+   * 1. Use a single reference scale for all projections
+   * 2. Apply territory-specific baseScaleMultiplier from territory data
+   * 3. The multipliers ensure proper visual composition while maintaining proportionality
    */
   private initialize() {
     const { mainland, overseasTerritories } = this.config
 
-    // Calculate mainland geographic extent to use as reference
-    const mainlandExtent = this.calculateGeographicExtent(mainland.bounds)
+    // Reference scale for all territories (like d3-composite-projections does)
+    // This is the "base unit" that all territories scale relative to
+    const REFERENCE_SCALE = 2800
 
     // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
     const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
@@ -73,8 +79,8 @@ export class CustomCompositeProjection {
       (mainlandProjection as any).parallels(mainland.parallels)
     }
 
-    // Calculate scale for mainland using a standard reference size
-    const mainlandScale = this.calculateProportionalScale(mainlandProjection, mainland.bounds, mainlandExtent)
+    // Mainland always uses the reference scale (multiplier = 1.0)
+    const mainlandScale = REFERENCE_SCALE
     mainlandProjection.scale(mainlandScale)
 
     this.addSubProjection({
@@ -89,15 +95,17 @@ export class CustomCompositeProjection {
       bounds: mainland.bounds,
     })
 
-    // Overseas territories - use projection type from config if available, otherwise default to Mercator
+    // Overseas territories - each gets reference scale * baseScaleMultiplier
     overseasTerritories.forEach((territory) => {
       const projectionType = territory.projectionType || 'mercator'
       const projection = this.createProjectionByType(projectionType)
         .center(territory.center)
         .translate([0, 0])
 
-      // Calculate scale proportional to mainland (territories maintain relative geographic sizes)
-      const territoryScale = this.calculateProportionalScale(projection, territory.bounds, mainlandExtent)
+      // Use territory's baseScaleMultiplier (defaults to 1.0 if not specified)
+      // This is the "artistic adjustment" multiplier from d3-composite-projections
+      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+      const territoryScale = REFERENCE_SCALE * baseMultiplier
       projection.scale(territoryScale)
 
       this.addSubProjection({
@@ -105,7 +113,7 @@ export class CustomCompositeProjection {
         territoryName: territory.name,
         projection,
         baseScale: territoryScale,
-        scaleMultiplier: 1.0,
+        scaleMultiplier: 1.0, // User adjustments start at 1.0
         baseTranslate: [0, 0],
         clipExtent: null,
         translateOffset: territory.offset,
@@ -115,72 +123,8 @@ export class CustomCompositeProjection {
   }
 
   /**
-   * Calculate the geographic extent (max span) of bounds
+   * Create a projection instance by type name
    */
-  private calculateGeographicExtent(bounds: [[number, number], [number, number]]): number {
-    const [[minLon, minLat], [maxLon, maxLat]] = bounds
-    const lonSpan = maxLon - minLon
-    const latSpan = maxLat - minLat
-    return Math.max(lonSpan, latSpan)
-  }
-
-  /**
-   * Detect projection family from the projection instance
-   */
-  private getProjectionFamily(projection: GeoProjection): 'conic' | 'mercator' | 'azimuthal' | 'other' {
-    // Check for conic projections (they have parallels method)
-    if ((projection as any).parallels) {
-      return 'conic'
-    }
-    // Check for center method (typical for mercator and azimuthal)
-    if (typeof projection.center === 'function') {
-      // Most mercator-family projections have these characteristics
-      return 'mercator'
-    }
-    return 'other'
-  }
-
-  /**
-   * Calculate scale proportional to geographic extent
-   * This ensures territories maintain their relative geographic sizes
-   *
-   * The formula ensures that territories are sized proportionally based on their
-   * geographic extent, using the same logic as the original implementation.
-   *
-   * @param projection - The projection to calculate scale for
-   * @param bounds - Geographic bounds of the territory
-   * @param _referenceExtent - Not used, kept for API compatibility
-   * @returns Calculated scale value
-   */
-  private calculateProportionalScale(
-    projection: GeoProjection,
-    bounds: [[number, number], [number, number]],
-    _referenceExtent: number,
-  ): number {
-    // Calculate this territory's geographic extent
-    const territoryExtent = this.calculateGeographicExtent(bounds)
-
-    // Get projection family to apply appropriate scaling formula
-    const projectionFamily = this.getProjectionFamily(projection)
-
-    // Base constant for scale calculation
-    // For conic: 42000 / 15° ≈ 2800 for mainland France
-    const BASE_CONSTANT = 42000
-
-    if (projectionFamily === 'conic') {
-      // Conic projections: scale inversely proportional to max span
-      return BASE_CONSTANT / territoryExtent
-    }
-    else {
-      // Mercator and other projections need adjustment
-      // Mercator at mid-latitudes needs ~4x smaller scale than Conic
-      // to produce proportional output
-      return (BASE_CONSTANT / territoryExtent) * 0.25
-    }
-  } /**
-     * Create a projection instance by type name
-     */
-
   private createProjectionByType(projectionType: string): GeoProjection {
     switch (projectionType) {
       case 'mercator':

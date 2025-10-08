@@ -114,20 +114,30 @@ export class GeoDataService {
   }
 
   /**
-   * Processes raw TopoJSON data into usable territory objects
-   * Converts topology to features and calculates geographic properties
+   * Processes geographic data into usable territory objects
+   * Handles both TopoJSON (legacy) and GeoJSON (preprocessed) formats
+   * Calculates geographic properties for each territory
    */
   private async processTerritoriesData(): Promise<void> {
-    const objectName = this.config.topologyObjectName
-    if (!this.topologyData?.objects?.[objectName]) {
-      throw new Error(`Invalid data structure: missing object "${objectName}"`)
-    }
+    let featureCollection: GeoJSON.FeatureCollection
 
-    // Convert TopoJSON topology to GeoJSON FeatureCollection
-    const featureCollection = topojson.feature(
-      this.topologyData,
-      this.topologyData.objects[objectName],
-    ) as any as GeoJSON.FeatureCollection
+    // Check if data is already GeoJSON FeatureCollection (preprocessed format)
+    if (this.topologyData.type === 'FeatureCollection') {
+      featureCollection = this.topologyData as GeoJSON.FeatureCollection
+    }
+    // Otherwise, convert from TopoJSON (legacy format)
+    else {
+      const objectName = this.config.topologyObjectName
+      if (!this.topologyData?.objects?.[objectName]) {
+        throw new Error(`Invalid data structure: missing object "${objectName}"`)
+      }
+
+      // Convert TopoJSON topology to GeoJSON FeatureCollection
+      featureCollection = topojson.feature(
+        this.topologyData,
+        this.topologyData.objects[objectName],
+      ) as any as GeoJSON.FeatureCollection
+    }
 
     for (const feature of featureCollection.features) {
       if (!feature.properties)
@@ -195,7 +205,6 @@ export class GeoDataService {
 
   /**
    * Returns the mainland territory geographic data
-   * Filters to include only the main geographic region
    * @returns FeatureCollection containing mainland territory, or null if no mainland configured
    */
   async getMainLandData(): Promise<GeoJSON.FeatureCollection | null> {
@@ -211,12 +220,10 @@ export class GeoDataService {
     if (!mainland)
       return null
 
-    // Filter to include only main region geometry
-    const mainRegionFeature = this.extractMainlandRegion(mainland.feature)
-
+    // Mainland is already pre-processed (DOM territories extracted at build time)
     return {
       type: 'FeatureCollection',
-      features: [mainRegionFeature],
+      features: [mainland.feature],
     }
   }
 
@@ -242,159 +249,21 @@ export class GeoDataService {
   }
 
   /**
-   * Extracts only the main region of the mainland territory
-   * Filters polygons based on configured geographic bounds
-   * @param feature - Original mainland territory feature
-   * @returns Feature containing only main region polygons
-   */
-  private extractMainlandRegion(feature: GeoJSON.Feature): GeoJSON.Feature {
-    if (feature.geometry.type !== 'MultiPolygon') {
-      return feature
-    }
-
-    // Return feature as-is if no mainlandBounds configured
-    if (!this.config.mainlandBounds) {
-      return feature
-    }
-
-    const mainRegionPolygons: number[][][][] = []
-    const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = this.config.mainlandBounds
-
-    // Add tolerance for bounds checking
-    const tolerance = 5
-    const minLon = configMinLon - tolerance
-    const maxLon = configMaxLon + tolerance
-    const minLat = configMinLat - tolerance
-    const maxLat = configMaxLat + tolerance
-
-    for (const polygon of feature.geometry.coordinates) {
-      const firstRing = polygon[0]
-      if (!firstRing || firstRing.length === 0)
-        continue
-
-      // Analyze coordinates of the first ring to determine region
-      const lons = firstRing.map(coord => coord[0]) as number[]
-      const lats = firstRing.map(coord => coord[1]) as number[]
-      const polyMinLon = Math.min(...lons)
-      const polyMaxLon = Math.max(...lons)
-      const polyMinLat = Math.min(...lats)
-      const polyMaxLat = Math.max(...lats)
-
-      // Keep only polygons within the configured main region bounds
-      if (polyMinLon > minLon && polyMaxLon < maxLon && polyMinLat > minLat && polyMaxLat < maxLat) {
-        mainRegionPolygons.push(polygon)
-      }
-    }
-
-    return {
-      ...feature,
-      geometry: {
-        type: 'MultiPolygon',
-        coordinates: mainRegionPolygons,
-      },
-    }
-  }
-
-  /**
-   * Extracts overseas/remote territories included in mainland geometry
-   * Returns them as separate territory objects for individual rendering
-   * Uses centralized configuration for bounds and regions
-   * @param feature - Mainland feature containing mixed territories
-   * @returns Array of overseas territory objects with geographic data
-   */
-  private extractOverseasFromMainland(feature: GeoJSON.Feature): Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> {
-    if (feature.geometry.type !== 'MultiPolygon') {
-      return []
-    }
-
-    const extractedTerritories: Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }> = []
-    const addedCodes = new Set<string>() // To avoid duplicates
-
-    for (const polygon of feature.geometry.coordinates) {
-      const firstRing = polygon[0]
-      if (!firstRing || firstRing?.length === 0)
-        continue
-
-      // Analyze coordinates to identify the territory
-      const lons = firstRing.map(coord => coord[0]) as number[]
-      const lats = firstRing.map(coord => coord[1]) as number[]
-      const minLon = Math.min(...lons)
-      const maxLon = Math.max(...lons)
-      const minLat = Math.min(...lats)
-      const maxLat = Math.max(...lats)
-
-      // Match against overseas territories from configuration
-      // Check if the polygon bounds fall within the configured territory bounds
-      let matchedTerritory: TerritoryConfig | null = null
-
-      for (const territory of this.config.overseasTerritories) {
-        const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = territory.bounds
-
-        // Check if polygon bounds are approximately within the configured bounds
-        // Allow small tolerance for floating point comparisons
-        const tolerance = 0.1
-
-        if (
-          minLon >= (configMinLon - tolerance)
-          && maxLon <= (configMaxLon + tolerance)
-          && minLat >= (configMinLat - tolerance)
-          && maxLat <= (configMaxLat + tolerance)
-        ) {
-          matchedTerritory = territory
-          break
-        }
-      }
-
-      if (matchedTerritory && !addedCodes.has(matchedTerritory.code)) {
-        addedCodes.add(matchedTerritory.code)
-
-        const territoryFeature: GeoJSON.Feature = {
-          type: 'Feature',
-          properties: {
-            name: matchedTerritory.name,
-            code: matchedTerritory.code,
-          },
-          geometry: {
-            type: 'MultiPolygon',
-            coordinates: [polygon],
-          },
-        }
-
-        // Calculate area dynamically from geometry
-        const calculatedArea = this.calculateArea(territoryFeature)
-
-        extractedTerritories.push({
-          name: matchedTerritory.name,
-          code: matchedTerritory.code,
-          region: matchedTerritory.region || 'Other',
-          area: calculatedArea,
-          data: {
-            type: 'FeatureCollection',
-            features: [territoryFeature],
-          },
-        })
-      }
-    }
-
-    return extractedTerritories
-  }
-
-  /**
    * Returns all overseas/remote territories geographic data
-   * Combines individually defined territories with those extracted from mainland data
+   * All territories (including DOM and duplicates like FR-PF-2) are pre-processed at build time
    * @returns Array of overseas territory objects with geographic and metadata
    */
   async getOverseasData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
     await this.loadData()
     const overseasData = []
 
-    // Create Set to avoid duplicates between individual territories and extracted ones
-    const addedTerritories = new Set<string>()
-
-    // Add individual overseas territories (already separated in source data)
+    // Add all overseas territories (pre-processed, already separated in source data)
+    // This includes:
+    // - Original overseas territories (FR-PM, FR-WF, FR-NC, FR-PF, FR-TF, FR-MF)
+    // - Extracted DOM territories (FR-GP, FR-MQ, FR-GF, FR-RE, FR-YT)
+    // - Duplicate projections (FR-PF-2)
     for (const [code, territoryData] of this.territoryData) {
       if (code !== this.config.mainlandCode) {
-        addedTerritories.add(code)
         // Find territory config to get region
         const territoryConfig = this.config.overseasTerritories.find((t: TerritoryConfig) => t.code === code)
         overseasData.push({
@@ -407,20 +276,6 @@ export class GeoDataService {
             features: [territoryData.feature],
           },
         })
-      }
-    }
-
-    // Extract overseas territories included in the mainland geometry
-    // only if they are not already present as individual territories
-    if (this.config.mainlandCode) {
-      const mainland = this.territoryData.get(this.config.mainlandCode)
-      if (mainland) {
-        const extractedOverseas = this.extractOverseasFromMainland(mainland.feature)
-        for (const territory of extractedOverseas) {
-          if (!addedTerritories.has(territory.code)) {
-            overseasData.push(territory)
-          }
-        }
       }
     }
 

@@ -17,6 +17,7 @@ export interface TerritoryConfig {
   clipExtent?: { x1: number, y1: number, x2: number, y2: number } // Clip extent for composite projection layouts
   rotate?: [number, number, number?] // Optional rotation [lambda, phi, gamma] for the projection
   parallels?: [number, number] // Optional standard parallels for conic projections
+  baseScaleMultiplier?: number // Scale multiplier relative to mainland for geographic proportionality (default: 1.0 for true proportions, <1.0 smaller, >1.0 larger for visibility)
 }
 
 /**

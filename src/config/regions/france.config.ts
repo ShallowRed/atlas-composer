@@ -43,11 +43,11 @@ export const FRANCE_TERRITORY_MODES: Record<string, TerritoryModeConfig> = {
   },
   'metropole-uncommon': {
     label: 'Métropole + DOM + COM principaux',
-    codes: ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC'],
+    codes: ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-PF-2', 'FR-NC'],
   },
   'all-territories': {
     label: 'Tous les territoires',
-    codes: ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM', 'FR-BL'],
+    codes: ['FR-GF', 'FR-RE', 'FR-GP', 'FR-MQ', 'FR-YT', 'FR-MF', 'FR-PF', 'FR-PF-2', 'FR-NC', 'FR-TF', 'FR-WF', 'FR-PM', 'FR-BL'],
   },
 }
 
@@ -69,7 +69,7 @@ export const FRANCE_TERRITORY_GROUPS: Record<string, TerritoryGroupConfig> = {
   },
   PACIFIC: {
     label: 'Océan Pacifique',
-    codes: ['FR-NC', 'FR-PF', 'FR-WF'],
+    codes: ['FR-NC', 'FR-PF', 'FR-PF-2', 'FR-WF'],
   },
   NORTH_ATLANTIC: {
     label: 'Atlantique Nord',
