@@ -1,25 +1,50 @@
 {
-  "name": "cartos-resp",
-  "private": true,
-  "version": "0.0.0",
+  "name": "atlas-composer",
   "type": "module",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "@types/d3": "^7.4.3",
-    "@types/d3-geo": "^3.1.0",
-    "@types/topojson-client": "^3.1.5",
-    "typescript": "~5.9.3",
-    "vite": "^7.1.7"
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint --ext .ts,.tsx,.vue src",
+    "lint:fix": "eslint --fix --ext .ts,.tsx,.vue src",
+    "geodata:analyze": "node scripts/dev/analyze-country.js",
+    "geodata:lookup": "node scripts/dev/lookup-country.js",
+    "geodata:prepare": "node scripts/prepare-geodata.js",
+    "geodata:validate": "node scripts/validate-configs.js"
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.17",
     "d3": "^7.9.0",
+    "d3-composite-projections": "^2.0.0",
     "d3-geo": "^3.1.1",
+    "d3-geo-projection": "^4.0.0",
+    "daisyui": "^5.1.26",
+    "pinia": "^3.0.3",
     "proj4": "^2.19.10",
-    "topojson-client": "^3.1.0"
+    "remixicon": "^4.6.0",
+    "tailwindcss": "^4.1.14",
+    "topojson-client": "^3.1.0",
+    "vue": "^3.5.22",
+    "vue-i18n": "9",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^5.4.1",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/d3": "^7.4.3",
+    "@types/d3-geo": "^3.1.0",
+    "@types/node": "^24.6.2",
+    "@types/topojson-client": "^3.1.5",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.36.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vite-plugin-eslint": "^1.8.1",
+    "vue-tsc": "^3.1.0"
   }
 }

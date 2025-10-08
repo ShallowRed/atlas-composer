@@ -1,0 +1,120 @@
+{
+  "app": {
+    "title": "Atlas Composer",
+    "subtitle": "Interactive Geographic Visualizations"
+  },
+  "nav": {
+    "map": "Map",
+    "about": "About"
+  },
+  "atlas": {
+    "select": "Select Atlas",
+    "france": "France",
+    "portugal": "Portugal",
+    "spain": "Spain",
+    "eu": "European Union"
+  },
+  "projection": {
+    "select": "Select projection",
+    "type": "Projection type",
+    "mode": "Projection mode",
+    "cartographic": "Cartographic projection",
+    "uniform": "Uniform",
+    "individual": "Individual",
+    "mercator": "Mercator",
+    "naturalEarth": "Natural Earth",
+    "equalEarth": "Equal Earth",
+    "composite": "Composite (conic conformal)",
+    "compositeCustom": "Custom composite projection",
+    "compositeExisting": "Existing composite projection",
+    "unified": "Unified projection",
+    "custom": "Custom"
+  },
+  "mode": {
+    "select": "Territories to include",
+    "view": "View mode",
+    "all": "All territories",
+    "mainland": "Mainland only",
+    "overseas": "Overseas only",
+    "split": "Separate territories",
+    "compositeCustom": "Custom composite projection",
+    "compositeExisting": "Existing composite projection",
+    "unified": "Unified projection"
+  },
+  "territory": {
+    "controls": "Territory controls",
+    "byTerritory": "By territory",
+    "position": "Position",
+    "positionX": "Horizontal position (X)",
+    "positionY": "Vertical position (Y)",
+    "scale": "Scale",
+    "reset": "Reset all",
+    "resetButton": "Reset",
+    "mainland": "Mainland",
+    "overseas": "Overseas territories",
+    "noOverseas": "No overseas territories to adjust. Select a mode that includes overseas territories in \"Territories to include\".",
+    "noTerritories": "No territories available.",
+    "checkData": "Check the data or change region.",
+    "adjustPosition": "Adjust territory positions and scale using the sliders below",
+    "scalePreservation": "Preserve size ratios"
+  },
+  "view": {
+    "unified": "Unified view",
+    "composite": "Composite view",
+    "individual": "Individual territories",
+    "split": "Separate territories"
+  },
+  "settings": {
+    "title": "Configuration",
+    "theme": "Theme",
+    "language": "Language",
+    "resolution": "Data resolution",
+    "region": "Region"
+  },
+  "common": {
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "preparingMaps": "Preparing geographic maps",
+    "error": "Error",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "export": "Export",
+    "import": "Import"
+  },
+  "about": {
+    "title": "About",
+    "pageTitle": "About",
+    "intro": "Atlas composer is an interactive tool for visualizing countries with geographically-scattered territories using composite projections.",
+    "why": {
+      "title": "Why this tool?",
+      "description": "Displaying a country and its distant territories on the same map is a cartographic challenge. How do you show regions separated by thousands of kilometers while maintaining visual coherence? This tool explores different solutions using composite projections, similar to how the Albers USA projection displays Alaska and Hawaii alongside the continental United States."
+    },
+    "features": {
+      "title": "Features",
+      "compositeExisting": "Apply pre-configured composite projections from d3-composite-projections",
+      "compositeCustom": "Build custom layouts by positioning each territory individually",
+      "split": "View each territory with its own projection",
+      "unified": "Display all territories in a single global projection"
+    },
+    "atlases": {
+      "title": "Available atlases",
+      "france": "France (mainland + overseas territories)",
+      "portugal": "Portugal (continental + Azores, Madeira)",
+      "eu": "European Union (27 member states)"
+    },
+    "technologies": {
+      "title": "Built with",
+      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
+    },
+    "cta": "Start exploring",
+    "footer": {
+      "title": "Atlas Composer",
+      "built": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
+      "license": "License MIT",
+      "madeWith": "Made with",
+      "by": "by"
+    }
+  }
+}

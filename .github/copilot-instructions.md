@@ -1,41 +1,10 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-- [x] Verify that the copilot-instructions.md file in the .github directory is created.
-
-- [x] Clarify Project Requirements
-	<!-- Project: Cartographie de la France avec DOM-TOM utilisant Observable Plot et Notebook Kit, avec préservation des rapports de taille et projections géographiques avancées -->
-
-- [x] Scaffold the Project
-	<!-- Project scaffolded by user with Vite and TypeScript -->
-
-- [x] Customize the Project
-	<!-- 
-	Verify that all previous steps have been completed successfully and you have marked the step as completed.
-	Develop a plan to modify codebase according to user requirements.
-	Apply modifications using appropriate tools and user-provided references.
-	Skip this step for "Hello World" projects.
-	-->
-
-- [x] Install Required Extensions
-	<!-- No extensions needed -->
-
-- [x] Compile the Project
-	<!-- Project compiled successfully with TypeScript and Vite -->
-
-- [x] Create and Run Task
-	<!-- Dev server task created and running on localhost:5173 -->
-
-- [x] Launch the Project
-	<!-- Project launched and accessible at http://localhost:5173 -->
-
-- [x] Ensure Documentation is Complete
-	<!-- README.md created with comprehensive documentation -->
+## Project Overview
+- Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
+- Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
+- Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
+- composite projections, interactive territory positioning, JSON-driven configuration
 
 ## Execution Guidelines
-PROGRESS TRACKING:
-- If any tools are available to manage the above todo list, use it to track progress through this checklist.
-- After completing each step, mark it complete and add a summary.
-- Read current todo list status before starting each new step.
-
 COMMUNICATION RULES:
 - Avoid verbose explanations or printing full command outputs.
 - If a step is skipped, state that briefly (e.g. "No extensions needed").
@@ -67,6 +36,7 @@ PROJECT CONTENT RULES:
 - Ensure all generated components serve a clear purpose within the user's requested workflow.
 - If a feature is assumed but not confirmed, prompt the user for clarification before including it.
 - If you are working on a VS Code extension, use the VS Code API tool with a query to find relevant VS Code API references and samples related to that query.
+- Never ever use emojis in code comments or documentation.
 
 TASK COMPLETION RULES:
 - Your task is complete when:

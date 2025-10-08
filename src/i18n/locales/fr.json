@@ -1,0 +1,120 @@
+{
+  "app": {
+    "title": "Composeur d'Atlas",
+    "subtitle": "Visualisations géographiques interactives"
+  },
+  "nav": {
+    "map": "Carte",
+    "about": "À propos"
+  },
+  "atlas": {
+    "select": "Sélectionner un atlas",
+    "france": "France",
+    "portugal": "Portugal",
+    "spain": "Espagne",
+    "eu": "Union Européenne"
+  },
+  "projection": {
+    "select": "Sélectionner une projection",
+    "type": "Type de projection",
+    "mode": "Mode de projection",
+    "cartographic": "Projection cartographique",
+    "uniform": "Uniforme",
+    "individual": "Individuelle",
+    "mercator": "Mercator",
+    "naturalEarth": "Natural Earth",
+    "equalEarth": "Equal Earth",
+    "composite": "Composite (conique conforme)",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée",
+    "custom": "Personnalisée"
+  },
+  "mode": {
+    "select": "Territoires à inclure",
+    "view": "Mode de visualisation",
+    "all": "Tous les territoires",
+    "mainland": "Métropole uniquement",
+    "overseas": "Outre-mer uniquement",
+    "split": "Territoires séparés",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée"
+  },
+  "territory": {
+    "controls": "Contrôles des territoires",
+    "byTerritory": "Par territoire",
+    "position": "Position",
+    "positionX": "Position horizontale (X)",
+    "positionY": "Position verticale (Y)",
+    "scale": "Échelle",
+    "reset": "Réinitialiser tout",
+    "resetButton": "Réinitialiser",
+    "mainland": "Métropole",
+    "overseas": "Territoires d'outre-mer",
+    "noOverseas": "Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des territoires ultramarins dans « Territoires à inclure ».",
+    "noTerritories": "Aucun territoire disponible.",
+    "checkData": "Vérifiez les données ou changez de région.",
+    "adjustPosition": "Ajustez la position et l'échelle des territoires à l'aide des curseurs ci-dessous",
+    "scalePreservation": "Préserver les rapports de taille"
+  },
+  "view": {
+    "unified": "Vue unifiée",
+    "composite": "Vue composite",
+    "individual": "Territoires individuels",
+    "split": "Territoires séparés"
+  },
+  "settings": {
+    "title": "Configuration",
+    "theme": "Thème",
+    "language": "Langue",
+    "resolution": "Résolution des données",
+    "region": "Région"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "loadingData": "Chargement des données...",
+    "preparingMaps": "Préparation des cartes géographiques",
+    "error": "Erreur",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "apply": "Appliquer",
+    "export": "Exporter",
+    "import": "Importer"
+  },
+  "about": {
+    "title": "À propos",
+    "pageTitle": "À propos",
+    "intro": "Le composeur d'atlas est un outil interactif pour visualiser des pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
+    "why": {
+      "title": "Pourquoi cet outil ?",
+      "description": "Afficher un pays et ses territoires distants sur une même carte est un défi cartographique. Comment représenter des régions séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ? Cet outil explore différentes solutions en utilisant des projections composites, à l'image de la projection Albers USA qui affiche l'Alaska et Hawaï aux côtés des États-Unis continentaux."
+    },
+    "features": {
+      "title": "Fonctionnalités",
+      "compositeExisting": "Appliquer des projections composites préconfigurées de d3-composite-projections",
+      "compositeCustom": "Créer des compositions personnalisées en positionnant chaque territoire individuellement",
+      "split": "Voir chaque territoire avec sa propre projection",
+      "unified": "Afficher tous les territoires dans une projection globale unique"
+    },
+    "atlases": {
+      "title": "Atlas disponibles",
+      "france": "France (métropole + territoires d'outre-mer)",
+      "portugal": "Portugal (continental + Açores, Madère)",
+      "eu": "Union Européenne (27 états membres)"
+    },
+    "technologies": {
+      "title": "Construit avec",
+      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
+    },
+    "cta": "Commencer l'exploration",
+    "footer": {
+      "title": "Composeur d'Atlas",
+      "built": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
+      "license": "Licence MIT",
+      "madeWith": "Réalisé avec",
+      "by": "par"
+    }
+  }
+}

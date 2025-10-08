@@ -1,0 +1,238 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Geographic Atlas Configuration",
+  "description": "Unified configuration for geographic atlases including territories, projections, and UI settings",
+  "type": "object",
+  "required": ["id", "name", "territories"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'eu')",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the atlas"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "naturalEarthIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Natural Earth feature IDs"
+        },
+        "iso3": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 3166-1 alpha-3 country code"
+        },
+        "region": {
+          "type": "string",
+          "description": "Geographic region (e.g., 'Europe', 'Asia')"
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "description": "Projection parameters",
+      "properties": {
+        "center": {
+          "type": "object",
+          "properties": {
+            "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+            "latitude": { "type": "number", "minimum": -90, "maximum": 90 }
+          },
+          "required": ["longitude", "latitude"]
+        },
+        "rotate": {
+          "type": "object",
+          "properties": {
+            "mainland": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 3
+            },
+            "azimuthal": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 3
+            }
+          }
+        },
+        "parallels": {
+          "type": "object",
+          "properties": {
+            "conic": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }
+      }
+    },
+    "territories": {
+      "type": "array",
+      "description": "List of territories",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "code", "name", "role"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
+          },
+          "code": {
+            "type": "string",
+            "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
+            "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
+          },
+          "name": {
+            "type": "string",
+            "description": "Territory name"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["mainland", "overseas", "embedded"],
+            "description": "Territory role in the atlas"
+          },
+          "iso": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 3166-1 alpha-3 code"
+          },
+          "region": {
+            "type": "string",
+            "description": "Geographic sub-region (e.g., 'Atlantic', 'Indian Ocean')"
+          },
+          "bounds": {
+            "type": "array",
+            "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "center": {
+            "type": "array",
+            "description": "Geographic center [longitude, latitude]",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "extraction": {
+            "type": "object",
+            "description": "How to extract this territory from Natural Earth data",
+            "properties": {
+              "extractFrom": {
+                "type": "string",
+                "description": "Parent territory ID to extract from"
+              },
+              "mainlandPolygon": {
+                "type": "integer",
+                "description": "Index of the mainland polygon in MultiPolygon",
+                "minimum": 0
+              },
+              "polygonIndices": {
+                "type": "array",
+                "description": "Indices of polygons to extract",
+                "items": { "type": "integer", "minimum": 0 },
+                "minItems": 1
+              }
+            }
+          },
+          "rendering": {
+            "type": "object",
+            "description": "Rendering configuration for frontend",
+            "properties": {
+              "offset": {
+                "type": "array",
+                "description": "Translation offset [x, y]",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "projectionType": {
+                "type": "string",
+                "enum": ["mercator", "conic", "azimuthal", "stereographic"],
+                "description": "Projection type for this territory"
+              },
+              "scale": {
+                "type": "number",
+                "description": "Scale factor",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "modes": {
+      "type": "array",
+      "description": "UI modes for selecting territory combinations",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "territories"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Mode identifier",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "label": {
+            "type": "string",
+            "description": "UI label"
+          },
+          "territories": {
+            "type": "array",
+            "description": "Territory codes included in this mode",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "description": "UI groupings for territories",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "territories"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Group identifier",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "label": {
+            "type": "string",
+            "description": "UI label"
+          },
+          "territories": {
+            "type": "array",
+            "description": "Territory codes in this group",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        }
+      }
+    }
+  }
+}

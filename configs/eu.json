@@ -1,0 +1,320 @@
+{
+  "$schema": "./schema.json",
+  "id": "eu",
+  "name": "Union Européenne",
+  "description": "EU member states (27 countries)",
+  "territories": [
+    {
+      "id": "40",
+      "role": "mainland",
+      "code": "AT",
+      "name": "Austria",
+      "iso": "AUT",
+      "center": [13.33, 47.33],
+      "bounds": [[9.5, 46.4], [17.2, 49.0]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "56",
+      "role": "mainland",
+      "code": "BE",
+      "name": "Belgium",
+      "iso": "BEL",
+      "center": [4.67, 50.63],
+      "bounds": [[2.5, 49.5], [6.4, 51.5]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "100",
+      "role": "mainland",
+      "code": "BG",
+      "name": "Bulgaria",
+      "iso": "BGR",
+      "center": [25.0, 43.0],
+      "bounds": [[22.4, 41.2], [28.6, 44.2]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "191",
+      "role": "mainland",
+      "code": "HR",
+      "name": "Croatia",
+      "iso": "HRV",
+      "center": [16.0, 45.0],
+      "bounds": [[13.5, 42.4], [19.4, 46.5]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "196",
+      "role": "mainland",
+      "code": "CY",
+      "name": "Cyprus",
+      "iso": "CYP",
+      "center": [33.0, 35.0],
+      "bounds": [[32.3, 34.6], [34.6, 35.7]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "203",
+      "role": "mainland",
+      "code": "CZ",
+      "name": "Czech Republic",
+      "iso": "CZE",
+      "center": [15.5, 49.75],
+      "bounds": [[12.1, 48.6], [18.9, 51.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "208",
+      "role": "mainland",
+      "code": "DK",
+      "name": "Denmark",
+      "iso": "DNK",
+      "center": [10.0, 56.0],
+      "bounds": [[8.1, 54.6], [15.2, 57.7]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "233",
+      "role": "mainland",
+      "code": "EE",
+      "name": "Estonia",
+      "iso": "EST",
+      "center": [25.5, 59.0],
+      "bounds": [[21.8, 57.5], [28.2, 59.7]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "246",
+      "role": "mainland",
+      "code": "FI",
+      "name": "Finland",
+      "iso": "FIN",
+      "center": [26.0, 64.0],
+      "bounds": [[20.5, 59.8], [31.6, 70.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "250",
+      "role": "mainland",
+      "code": "FR",
+      "name": "France",
+      "iso": "FRA",
+      "center": [2.5, 46.5],
+      "bounds": [[-5.0, 41.0], [10.0, 51.0]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "276",
+      "role": "mainland",
+      "code": "DE",
+      "name": "Germany",
+      "iso": "DEU",
+      "center": [10.5, 51.0],
+      "bounds": [[5.9, 47.3], [15.0, 55.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "300",
+      "role": "mainland",
+      "code": "GR",
+      "name": "Greece",
+      "iso": "GRC",
+      "center": [22.0, 39.0],
+      "bounds": [[19.4, 34.8], [28.2, 41.7]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "348",
+      "role": "mainland",
+      "code": "HU",
+      "name": "Hungary",
+      "iso": "HUN",
+      "center": [19.5, 47.0],
+      "bounds": [[16.1, 45.7], [22.9, 48.6]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "372",
+      "role": "mainland",
+      "code": "IE",
+      "name": "Ireland",
+      "iso": "IRL",
+      "center": [-8.0, 53.5],
+      "bounds": [[-10.5, 51.4], [-5.4, 55.4]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "380",
+      "role": "mainland",
+      "code": "IT",
+      "name": "Italy",
+      "iso": "ITA",
+      "center": [12.5, 42.8],
+      "bounds": [[6.6, 36.6], [18.5, 47.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "428",
+      "role": "mainland",
+      "code": "LV",
+      "name": "Latvia",
+      "iso": "LVA",
+      "center": [25.0, 57.0],
+      "bounds": [[21.0, 55.7], [28.2, 58.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "440",
+      "role": "mainland",
+      "code": "LT",
+      "name": "Lithuania",
+      "iso": "LTU",
+      "center": [24.0, 55.5],
+      "bounds": [[21.0, 53.9], [26.8, 56.5]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "442",
+      "role": "mainland",
+      "code": "LU",
+      "name": "Luxembourg",
+      "iso": "LUX",
+      "center": [6.13, 49.75],
+      "bounds": [[5.7, 49.4], [6.5, 50.2]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "470",
+      "role": "mainland",
+      "code": "MT",
+      "name": "Malta",
+      "iso": "MLT",
+      "center": [14.4, 35.9],
+      "bounds": [[14.2, 35.8], [14.6, 36.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "528",
+      "role": "mainland",
+      "code": "NL",
+      "name": "Netherlands",
+      "iso": "NLD",
+      "center": [5.5, 52.5],
+      "bounds": [[3.4, 50.8], [7.2, 53.6]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "616",
+      "role": "mainland",
+      "code": "PL",
+      "name": "Poland",
+      "iso": "POL",
+      "center": [19.5, 52.0],
+      "bounds": [[14.1, 49.0], [24.2, 54.8]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "620",
+      "role": "mainland",
+      "code": "PT",
+      "name": "Portugal",
+      "iso": "PRT",
+      "center": [-8.0, 39.5],
+      "bounds": [[-9.5, 37.0], [-6.2, 42.2]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "642",
+      "role": "mainland",
+      "code": "RO",
+      "name": "Romania",
+      "iso": "ROU",
+      "center": [25.0, 46.0],
+      "bounds": [[20.3, 43.6], [29.7, 48.3]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "703",
+      "role": "mainland",
+      "code": "SK",
+      "name": "Slovakia",
+      "iso": "SVK",
+      "center": [19.5, 48.7],
+      "bounds": [[16.8, 47.7], [22.6, 49.6]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "705",
+      "role": "mainland",
+      "code": "SI",
+      "name": "Slovenia",
+      "iso": "SVN",
+      "center": [14.8, 46.1],
+      "bounds": [[13.4, 45.4], [16.6, 46.9]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "724",
+      "role": "mainland",
+      "code": "ES",
+      "name": "Spain",
+      "iso": "ESP",
+      "center": [-4.0, 40.0],
+      "bounds": [[-9.3, 36.0], [4.3, 43.8]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "752",
+      "role": "mainland",
+      "code": "SE",
+      "name": "Sweden",
+      "iso": "SWE",
+      "center": [15.0, 62.0],
+      "bounds": [[11.0, 55.3], [24.2, 69.1]],
+      "extraction": {},
+      "rendering": {}
+    }
+  ],
+  "projection": {
+    "center": {
+      "longitude": 10.0,
+      "latitude": 51.0
+    },
+    "rotate": {
+      "mainland": [-10.0, 0],
+      "azimuthal": [-10.0, -51.0]
+    },
+    "parallels": {
+      "conic": [43, 62]
+    }
+  },
+  "modes": [],
+  "groups": []
+}
