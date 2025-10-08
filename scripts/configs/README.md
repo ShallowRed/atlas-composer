@@ -1,51 +1,54 @@
-# Territory Configuration Files
+# Backend Configuration Adapter
 
-This directory contains configuration files for different territory groups used by the `prepare-geodata.js` script.
+This directory contains the **generic backend adapter** that transforms unified JSON configurations into the format required by geodata extraction scripts.
 
-## File Structure
+## Architecture
 
-Each configuration file exports a default object with the following structure:
-
-```javascript
-export default {
-  name: 'Territory Name', // Display name
-  description: 'Description...', // Brief description
-  territories: { // Natural Earth ID mapping
-    123: {
-      name: 'Territory Name',
-      code: 'CODE',
-      iso: 'ISO'
-    },
-    // ... more territories
-  },
-  outputName: 'base-filename' // Base filename (without suffixes)
-  // Script adds -territories and -metadata
-}
+```
+configs/*.json (unified configs)
+    ↓
+scripts/configs/adapter.js (transformation)
+    ↓
+prepare-geodata.js (geodata generation)
 ```
 
-## Available Configurations
+## Files
 
-- **`france.js`** - France métropolitaine + territoires ultramarins (7 territories)
-  - Output: `france-territories-50m.json`, `france-metadata-50m.json`
-- **`spain.js`** - Spain and autonomous communities (1 territory)
-  - Output: `spain-territories-50m.json`, `spain-metadata-50m.json`
-- **`eu.js`** - European Union member states (27 countries)
-  - Output: `eu-territories-50m.json`, `eu-metadata-50m.json`
-- **`portugal.js`** - Portugal (example configuration)
-  - Output: `portugal-territories-50m.json`, `portugal-metadata-50m.json`
+- **`adapter.js`** - Generic adapter that transforms unified JSON configs to backend format
+  - Handles territory extraction rules
+  - Supports `mainlandPolygon`, `extractFrom`, `polygonBounds`, `duplicateFrom`
+  - Used by `prepare-geodata.js` and `validate-configs.js`
 
-Note: The resolution suffix (50m, 10m, 110m) is automatically added based on the `NE_RESOLUTION` environment variable.
+## How It Works
+
+The adapter eliminates the need for separate backend config files. Instead:
+
+1. **Unified configs** live in `configs/*.json` (single source of truth)
+2. **Backend scripts** import JSON directly and transform on-the-fly
+3. **No duplication** - backend configs are generated automatically
+
+## Previous Architecture (Deprecated)
+
+Previously, each region required a separate `.js` file in this directory:
+- ❌ `portugal.js` (50 lines)
+- ❌ `france.js` (92 lines)
+- ❌ `eu.js` (43 lines)
+- ❌ `spain.js` (...)
+
+Now replaced by:
+- ✅ `configs/portugal.json` → `adapter.js` (automatic)
+- ✅ `configs/france.json` → `adapter.js` (automatic)
+- ✅ `configs/eu.json` → `adapter.js` (automatic)
+- ✅ `configs/spain.json` → `adapter.js` (automatic)
 
 ## Usage
 
-```bash
-# Use a specific configuration
-node scripts/prepare-geodata.js france
-node scripts/prepare-geodata.js spain
-node scripts/prepare-geodata.js eu
+The adapter is used automatically by backend scripts. You don't need to interact with it directly.
 
-# With custom resolution
-NE_RESOLUTION=10m node scripts/prepare-geodata.js france
+```bash
+# Scripts automatically load JSON and apply adapter
+node scripts/prepare-geodata.js france
+node scripts/validate-configs.js portugal
 ```
 
 ## Creating a New Configuration

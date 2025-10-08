@@ -5,10 +5,12 @@
  * Analyzes Natural Earth data to help configure territory extraction
  *
  * Usage:
- *   node analyze-country.js <country-id>
- *   node analyze-country.js 250        # France
- *   node analyze-country.js 620        # Portugal
- *   node analyze-country.js 724        # Spain
+ *   node scripts/dev/analyze-country.js <country-id> [--resolution=10m|50m|110m]
+ *
+ * Examples:
+ *   node scripts/dev/analyze-country.js 250              # France (50m)
+ *   node scripts/dev/analyze-country.js 620 --resolution=10m  # Portugal (10m)
+ *   node scripts/dev/analyze-country.js 724              # Spain
  *
  * Output:
  *   - Lists all polygons with their bounds and areas
@@ -17,24 +19,11 @@
  *   - Suggests configuration structure
  */
 
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 import * as topojson from 'topojson-client'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const COLORS = {
-  reset: '\x1B[0m',
-  green: '\x1B[32m',
-  blue: '\x1B[34m',
-  yellow: '\x1B[33m',
-  red: '\x1B[31m',
-  cyan: '\x1B[36m',
-  bold: '\x1B[1m',
-}
+import { getResolution, parseArgs, showHelp } from '../utils/cli-args.js'
+import { logger } from '../utils/logger.js'
+import { fetchWorldData } from '../utils/ne-data.js'
 
 /**
  * Calculate the area of a polygon using the Shoelace formula
@@ -159,20 +148,18 @@ function groupPolygonsByProximity(polygons, threshold = 5) {
 /**
  * Main analysis function
  */
-async function analyzeCountry(countryId) {
-  console.log(`${COLORS.blue}${COLORS.bold}Analyzing Natural Earth Country: ${countryId}${COLORS.reset}\n`)
+async function analyzeCountry(countryId, resolution) {
+  logger.section(`Analyzing Natural Earth Country: ${countryId}`)
+  logger.newline()
 
   // Load world data
-  const worldDataPath = path.join(process.cwd(), 'src/public/data/world-countries-50m.json')
-
   let worldData
   try {
-    const fileContent = await fs.readFile(worldDataPath, 'utf-8')
-    worldData = JSON.parse(fileContent)
+    worldData = await fetchWorldData(resolution)
   }
   catch (error) {
-    console.error(`${COLORS.red}Error: Could not load world data from ${worldDataPath}${COLORS.reset}`)
-    console.error(`${COLORS.yellow}Run: node scripts/prepare-geodata.js world${COLORS.reset}`)
+    logger.error('Failed to fetch world data')
+    logger.info('Make sure you have internet connectivity')
     process.exit(1)
   }
 
@@ -185,24 +172,27 @@ async function analyzeCountry(countryId) {
   )
 
   if (!country) {
-    console.error(`${COLORS.red}Error: Country with ID ${countryId} not found${COLORS.reset}`)
-    console.log(`\n${COLORS.yellow}Available countries:${COLORS.reset}`)
+    logger.error(`Country with ID ${countryId} not found`)
+    logger.newline()
+    logger.warning('Available countries (first 20):')
     featureCollection.features.slice(0, 20).forEach((f) => {
-      console.log(`  ${f.id}: ${f.properties.name}`)
+      logger.log(`  ${f.id}: ${f.properties.name}`)
     })
     process.exit(1)
   }
 
-  console.log(`${COLORS.green}✓ Found: ${country.properties.name} (ID ${country.id})${COLORS.reset}`)
+  logger.success(`Found: ${country.properties.name} (ID ${country.id})`)
 
   if (country.geometry.type !== 'MultiPolygon') {
-    console.log(`${COLORS.yellow}⚠ Geometry type: ${country.geometry.type} (not MultiPolygon)${COLORS.reset}`)
-    console.log('This country does not require polygon extraction.\n')
+    logger.warning(`Geometry type: ${country.geometry.type} (not MultiPolygon)`)
+    logger.log('This country does not require polygon extraction.')
+    logger.newline()
     return
   }
 
   const polygonCount = country.geometry.coordinates.length
-  console.log(`${COLORS.green}✓ Geometry: MultiPolygon with ${polygonCount} polygon(s)${COLORS.reset}\n`)
+  logger.success(`Geometry: MultiPolygon with ${polygonCount} polygon(s)`)
+  logger.newline()
 
   // Analyze each polygon
   const polygons = country.geometry.coordinates.map((polygon, i) =>
@@ -216,45 +206,53 @@ async function analyzeCountry(countryId) {
   const mainland = sortedPolygons[0]
 
   // Print analysis
-  console.log(`${COLORS.bold}Polygon Analysis:${COLORS.reset}\n`)
+  logger.section('Polygon Analysis')
+  logger.newline()
 
-  sortedPolygons.forEach((polygon, rank) => {
+  sortedPolygons.forEach((polygon) => {
     const isMainland = polygon.index === mainland.index
     const [[minLon, minLat], [maxLon, maxLat]] = polygon.bounds
     const [centerLon, centerLat] = polygon.center
 
-    console.log(`${isMainland ? COLORS.green + COLORS.bold : COLORS.cyan}Polygon ${polygon.index}:${COLORS.reset}`)
-    console.log(`  Bounds: [${minLon.toFixed(2)}, ${minLat.toFixed(2)}] → [${maxLon.toFixed(2)}, ${maxLat.toFixed(2)}]`)
-    console.log(`  Center: [${centerLon.toFixed(2)}, ${centerLat.toFixed(2)}]`)
-    console.log(`  Area: ${polygon.area.toFixed(2)} sq° ${isMainland ? '(LARGEST - MAINLAND)' : ''}`)
-    console.log(`  Rings: ${polygon.ringCount}`)
-    console.log(`  Region: ${polygon.region}`)
-    console.log()
+    if (isMainland) {
+      logger.highlight(`Polygon ${polygon.index}:`)
+    }
+    else {
+      logger.log(`Polygon ${polygon.index}:`)
+    }
+    logger.log(`  Bounds: [${minLon.toFixed(2)}, ${minLat.toFixed(2)}] → [${maxLon.toFixed(2)}, ${maxLat.toFixed(2)}]`)
+    logger.log(`  Center: [${centerLon.toFixed(2)}, ${centerLat.toFixed(2)}]`)
+    logger.log(`  Area: ${polygon.area.toFixed(2)} sq° ${isMainland ? '(LARGEST - MAINLAND)' : ''}`)
+    logger.log(`  Rings: ${polygon.ringCount}`)
+    logger.log(`  Region: ${polygon.region}`)
+    logger.newline()
   })
 
   // Group by proximity
   const groups = groupPolygonsByProximity(polygons.filter(p => p.index !== mainland.index))
 
   if (groups.length > 0) {
-    console.log(`${COLORS.bold}Suggested Territory Groupings:${COLORS.reset}\n`)
+    logger.section('Suggested Territory Groupings')
+    logger.newline()
 
-    groups.forEach((group, i) => {
+    groups.forEach((group, _i) => {
       if (group.length === 1) {
-        console.log(`Group ${i + 1}: Single polygon [${group[0].index}]`)
-        console.log(`  Region: ${group[0].region}`)
+        logger.log(`Group ${_i + 1}: Single polygon [${group[0].index}]`)
+        logger.log(`  Region: ${group[0].region}`)
       }
       else {
         const indices = group.map(p => p.index).join(', ')
-        console.log(`Group ${i + 1}: Archipelago [${indices}]`)
-        console.log(`  Region: ${group[0].region}`)
-        console.log(`  Polygons: ${group.length}`)
+        logger.log(`Group ${_i + 1}: Archipelago [${indices}]`)
+        logger.log(`  Region: ${group[0].region}`)
+        logger.log(`  Polygons: ${group.length}`)
       }
-      console.log()
+      logger.newline()
     })
   }
 
   // Generate suggested configuration
-  console.log(`${COLORS.bold}Suggested Configuration (using polygon indices):${COLORS.reset}\n`)
+  logger.section('Suggested Configuration (using polygon indices)')
+  logger.newline()
 
   console.log(`{
   '${countryId}': {
@@ -265,10 +263,10 @@ async function analyzeCountry(countryId) {
   },`)
 
   let extractCount = 0
-  groups.forEach((group, i) => {
+  groups.forEach((group, _i) => {
     if (group.length === 1) {
       const p = group[0]
-      console.log(`  '${countryId}-${extractCount++}': {
+      logger.log(`  '${countryId}-${extractCount++}': {
     name: 'Territory ${extractCount}',  // Name this territory
     code: 'XX-T${extractCount}',  // Choose your code
     iso: '${country.properties.name.substring(0, 3).toUpperCase()}',
@@ -278,7 +276,7 @@ async function analyzeCountry(countryId) {
     }
     else {
       const indices = group.map(p => p.index).join(', ')
-      console.log(`  '${countryId}-${extractCount++}': {
+      logger.log(`  '${countryId}-${extractCount++}': {
     name: 'Archipelago ${extractCount}',  // Name this archipelago
     code: 'XX-A${extractCount}',  // Choose your code
     iso: '${country.properties.name.substring(0, 3).toUpperCase()}',
@@ -288,19 +286,47 @@ async function analyzeCountry(countryId) {
     }
   })
 
-  console.log(`}`)
+  logger.log(`}`)
 }
 
 // Main
-const countryId = process.argv[2]
+async function main() {
+  const args = parseArgs()
 
-if (!countryId) {
-  console.log(`${COLORS.yellow}Usage: node analyze-country.js <country-id>${COLORS.reset}`)
-  console.log(`\nExamples:`)
-  console.log(`  node analyze-country.js 250  # France`)
-  console.log(`  node analyze-country.js 620  # Portugal`)
-  console.log(`  node analyze-country.js 724  # Spain`)
-  process.exit(1)
+  if (args.help) {
+    showHelp(
+      'analyze-country',
+      'Analyzes Natural Earth data to help configure territory extraction',
+      'node scripts/dev/analyze-country.js <country-id> [--resolution=10m|50m|110m]',
+      {
+        '<country-id>': 'Natural Earth country ID (250=France, 620=Portugal, 724=Spain)',
+        '--resolution=<val>': 'Natural Earth resolution (10m, 50m, 110m) [default: 50m]',
+        '--help': 'Show this help message',
+      },
+    )
+    return
+  }
+
+  const countryId = args.region || process.argv[2]
+
+  if (!countryId) {
+    logger.error('Missing country ID')
+    logger.log('\nUsage: node scripts/dev/analyze-country.js <country-id> [--resolution=10m|50m|110m]')
+    logger.log('\nExamples:')
+    logger.log('  node scripts/dev/analyze-country.js 250              # France')
+    logger.log('  node scripts/dev/analyze-country.js 620 --resolution=10m  # Portugal (10m)')
+    logger.log('  node scripts/dev/analyze-country.js 724              # Spain')
+    process.exit(1)
+  }
+
+  const resolution = getResolution(args)
+  await analyzeCountry(countryId, resolution)
 }
 
-analyzeCountry(countryId)
+main().catch((error) => {
+  logger.error(`${error.message}`)
+  if (process.env.DEBUG) {
+    console.error(error)
+  }
+  process.exit(1)
+})

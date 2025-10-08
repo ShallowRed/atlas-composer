@@ -5,9 +5,9 @@
  * Validates consistency between backend configs, frontend configs, and generated data
  *
  * Usage:
- *   node validate-configs.js [country]
- *   node validate-configs.js portugal
- *   node validate-configs.js --all
+ *   npm run geodata:validate <region>
+ *   npm run geodata:validate portugal
+ *   npm run geodata:validate --all
  *
  * Checks:
  *   - Backend config exists
@@ -21,26 +21,16 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-const COLORS = {
-  reset: '\x1B[0m',
-  green: '\x1B[32m',
-  red: '\x1B[31m',
-  yellow: '\x1B[33m',
-  bold: '\x1B[1m',
-}
+import { listConfigs, loadConfig } from './utils/config-loader.js'
+import { logger } from './utils/logger.js'
 
 /**
- * Load backend config
+ * Load backend config from unified JSON
  */
 async function loadBackendConfig(country) {
   try {
-    const configPath = path.join(__dirname, 'configs', `${country}.js`)
-    const module = await import(configPath)
-    return module.default
+    const { backend } = await loadConfig(country)
+    return backend
   }
   catch (error) {
     return null
@@ -121,7 +111,8 @@ function extractFrontendCodes(configContent) {
  * Validate a country configuration
  */
 async function validateCountry(country) {
-  console.log(`${COLORS.bold}Validating: ${country}${COLORS.reset}\n`)
+  logger.section(`Validating: ${country}`)
+  logger.newline()
 
   const results = {
     errors: [],
@@ -199,18 +190,18 @@ async function validateCountry(country) {
 
   // Print results
   results.info.forEach((msg) => {
-    console.log(`${COLORS.green}ℹ ${msg}${COLORS.reset}`)
+    logger.success(msg)
   })
 
   results.warnings.forEach((msg) => {
-    console.log(`${COLORS.yellow}⚠ ${msg}${COLORS.reset}`)
+    logger.warning(msg)
   })
 
   results.errors.forEach((msg) => {
-    console.log(`${COLORS.red}✖ ${msg}${COLORS.reset}`)
+    logger.error(msg)
   })
 
-  console.log()
+  logger.newline()
 
   return {
     country,
@@ -224,11 +215,7 @@ async function validateCountry(country) {
  * List all available countries
  */
 async function listAvailableCountries() {
-  const configsDir = path.join(__dirname, 'configs')
-  const files = await fs.readdir(configsDir)
-  return files
-    .filter(file => file.endsWith('.js') && !file.startsWith('.') && !file.includes('README'))
-    .map(file => file.replace('.js', ''))
+  return await listConfigs()
 }
 
 /**
@@ -238,17 +225,18 @@ async function main() {
   const args = process.argv.slice(2)
 
   if (args.length === 0 || args[0] === '--help') {
-    console.log('Usage: node validate-configs.js [country|--all]')
-    console.log('\nExamples:')
-    console.log('  node validate-configs.js portugal')
-    console.log('  node validate-configs.js france')
-    console.log('  node validate-configs.js --all')
+    logger.log('Usage: npm run geodata:validate <region|--all>')
+    logger.log('\nExamples:')
+    logger.log('  npm run geodata:validate portugal')
+    logger.log('  npm run geodata:validate france')
+    logger.log('  npm run geodata:validate --all')
     return
   }
 
   if (args[0] === '--all') {
     const countries = await listAvailableCountries()
-    console.log(`${COLORS.bold}Validating all countries (${countries.length})${COLORS.reset}\n`)
+    logger.section(`Validating all countries (${countries.length})`)
+    logger.newline()
 
     const results = []
     for (const country of countries) {
@@ -257,19 +245,19 @@ async function main() {
     }
 
     // Summary
-    console.log(`${COLORS.bold}Summary:${COLORS.reset}`)
+    logger.section('Summary')
     const successful = results.filter(r => r.success)
     const failed = results.filter(r => !r.success)
     const warnings = results.filter(r => r.hasWarnings)
 
-    console.log(`${COLORS.green}✓ ${successful.length} valid${COLORS.reset}`)
+    logger.success(`${successful.length} valid`)
     if (warnings.length > 0) {
-      console.log(`${COLORS.yellow}⚠ ${warnings.length} with warnings${COLORS.reset}`)
+      logger.warning(`${warnings.length} with warnings`)
     }
     if (failed.length > 0) {
-      console.log(`${COLORS.red}✖ ${failed.length} with errors${COLORS.reset}`)
+      logger.error(`${failed.length} with errors`)
       failed.forEach((r) => {
-        console.log(`  - ${r.country}`)
+        logger.log(`  - ${r.country}`)
       })
     }
   }
@@ -280,6 +268,9 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`${COLORS.red}Error: ${error.message}${COLORS.reset}`)
+  logger.error(`${error.message}`)
+  if (process.env.DEBUG) {
+    console.error(error)
+  }
   process.exit(1)
 })

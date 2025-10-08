@@ -6,109 +6,36 @@
  * Creates optimized TopoJSON files for cartographic visualization
  *
  * Usage:
- *   node prepare-geodata.js [config-name]
- *   NE_RESOLUTION=10m node prepare-geodata.js france
+ *   npm run geodata:prepare <region> [--resolution=10m|50m|110m]
  *
  * Examples:
- *   node prepare-geodata.js                  # Uses default config (france)
- *   node prepare-geodata.js spain            # Uses spain config
- *   NE_RESOLUTION=10m node prepare-geodata.js france  # High resolution
+ *   npm run geodata:prepare portugal
+ *   npm run geodata:prepare france --resolution=10m
+ *   npm run geodata:prepare eu
  */
 
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 import * as topojson from 'topojson-client'
-
-// Get current directory in ES module
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getResolution, parseArgs, showHelp, validateRequired } from './utils/cli-args.js'
+import { loadConfig } from './utils/config-loader.js'
+import { logger } from './utils/logger.js'
+import { fetchWorldData } from './utils/ne-data.js'
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-/**
- * Natural Earth data resolution
- * Available options: '110m' (lowest detail), '50m' (medium), '10m' (highest detail)
- * Can be overridden with NE_RESOLUTION environment variable
- */
-const NATURAL_EARTH_RESOLUTION = process.env.NE_RESOLUTION || '50m'
-
-/**
- * Data source URL for Natural Earth countries dataset
- */
-const DATA_SOURCE = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${NATURAL_EARTH_RESOLUTION}.json`
-
-/**
- * Output directory for processed geographic data
- */
 const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
-
-/**
- * Configurations directory
- */
-const CONFIGS_DIR = path.join(__dirname, 'configs')
 
 /**
  * Output filenames for each data file
  */
 const OUTPUT_FILENAMES = {
-  world: `world-countries-${NATURAL_EARTH_RESOLUTION}.json`,
-  territories: configName => `${configName}-territories-${NATURAL_EARTH_RESOLUTION}.json`,
-  metadata: configName => `${configName}-metadata-${NATURAL_EARTH_RESOLUTION}.json`,
-}
-
-/**
- * Console colors for better readability
- */
-const COLORS = {
-  reset: '\x1B[0m',
-  green: '\x1B[32m',
-  blue: '\x1B[34m',
-  yellow: '\x1B[33m',
-  red: '\x1B[31m',
-}
-
-// ============================================================================
-// CONFIGURATION LOADER
-// ============================================================================
-
-/**
- * Load a territory configuration from the configs directory
- * @param {string} configName - Name of the configuration file (without .js extension)
- * @returns {Promise<object>} The configuration object
- */
-async function loadConfig(configName) {
-  try {
-    const configPath = path.join(CONFIGS_DIR, `${configName}.js`)
-    const configModule = await import(configPath)
-    return configModule.default
-  }
-  catch (error) {
-    if (error.code === 'ERR_MODULE_NOT_FOUND' || error.code === 'ENOENT') {
-      return null
-    }
-    throw error
-  }
-}
-
-/**
- * List all available configurations
- * @returns {Promise<string[]>} Array of available config names
- */
-async function listAvailableConfigs() {
-  try {
-    const files = await fs.readdir(CONFIGS_DIR)
-    return files
-      .filter(file => file.endsWith('.js') && !file.startsWith('.'))
-      .map(file => file.replace('.js', ''))
-  }
-  catch (error) {
-    console.error(`${COLORS.red}Error reading configs directory: ${error.message}${COLORS.reset}`)
-    return []
-  }
+  world: resolution => `world-countries-${resolution}.json`,
+  territories: (configName, resolution) => `${configName}-territories-${resolution}.json`,
+  metadata: (configName, resolution) => `${configName}-metadata-${resolution}.json`,
 }
 
 // ============================================================================
@@ -116,25 +43,13 @@ async function listAvailableConfigs() {
 // ============================================================================
 
 /**
- * Download data from a URL and save it to a file
- * @param {string} url - The URL to download from
- * @param {string} filename - The filename to save to (in OUTPUT_DIR)
+ * Save data to a file in the output directory
  */
-async function downloadData(url, filename) {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Failed to download: ${response.statusText}`)
-  }
-
-  const data = await response.json()
+async function saveData(filename, data) {
   const outputPath = path.join(OUTPUT_DIR, filename)
-
-  // Ensure output directory exists
   await fs.mkdir(OUTPUT_DIR, { recursive: true })
-
-  // Write the file
   await fs.writeFile(outputPath, JSON.stringify(data))
-  console.log(`${COLORS.green}✓ Saved ${filename}${COLORS.reset}`)
+  logger.success(`Saved ${filename}`)
 }
 
 /**
@@ -289,10 +204,10 @@ function duplicateTerritories(features, config) {
           id: rule.id,
         },
       })
-      console.log(`${COLORS.blue}  Duplicated ${rule.duplicateFrom} → ${rule.code}${COLORS.reset}`)
+      logger.info(`  Duplicated ${rule.duplicateFrom} → ${rule.code}`)
     }
     else {
-      console.log(`${COLORS.yellow}  Warning: Could not find source for duplicate ${rule.code}${COLORS.reset}`)
+      logger.warning(`  Could not find source for duplicate ${rule.code}`)
     }
   }
 
@@ -362,7 +277,7 @@ function filterTerritories(worldData, territoriesConfig) {
       // Log extraction
       if (extracted.length > 0) {
         const codes = extracted.map(e => e.properties.code).join(', ')
-        console.log(`${COLORS.blue}  Extracted from ${territory.code}: ${codes}${COLORS.reset}`)
+        logger.info(`  Extracted from ${territory.code}: ${codes}`)
         extractionResults.push(...extracted)
       }
 
@@ -379,7 +294,7 @@ function filterTerritories(worldData, territoriesConfig) {
   // STEP 3: Duplicate territories for multiple projections (like FR-PF-2)
   const finalFeatures = duplicateTerritories(processedFeatures, territoriesConfig)
 
-  console.log(`${COLORS.green}  Total territories: ${finalFeatures.length}${COLORS.reset}`)
+  logger.success(`  Total territories: ${finalFeatures.length}`)
 
   // STEP 4: Return as GeoJSON FeatureCollection
   // We use GeoJSON format directly since we've already extracted and processed features
@@ -391,19 +306,17 @@ function filterTerritories(worldData, territoriesConfig) {
 
 /**
  * Create metadata file for the filtered territories
- * @param {object} territoriesConfig - Territory configuration object
- * @returns {object} Metadata object
  */
-function createMetadata(territoriesConfig) {
+function createMetadata(config, resolution, dataSourceUrl) {
   return {
-    name: territoriesConfig.name,
-    description: territoriesConfig.description,
+    name: config.name,
+    description: config.description,
     source: 'Natural Earth',
-    sourceUrl: DATA_SOURCE,
-    resolution: NATURAL_EARTH_RESOLUTION,
+    sourceUrl: dataSourceUrl,
+    resolution,
     created: new Date().toISOString(),
-    territories: territoriesConfig.territories,
-    count: Object.keys(territoriesConfig.territories).length,
+    territories: config.territories,
+    count: Object.keys(config.territories).length,
   }
 }
 
@@ -413,63 +326,69 @@ function createMetadata(territoriesConfig) {
 
 async function main() {
   try {
-    // Get configuration name from command line (default: france)
-    const configName = process.argv[2] || 'france'
+    // Parse arguments
+    const args = parseArgs()
 
-    // Load the configuration
-    const CONFIG = await loadConfig(configName)
+    // Show help if requested
+    if (args.help) {
+      showHelp(
+        'prepare-geodata',
+        'Downloads Natural Earth world data and filters specific territories',
+        'npm run geodata:prepare <region> [--resolution=10m|50m|110m]',
+        {
+          '<region>': 'Region name (portugal, france, eu)',
+          '--resolution=<val>': 'Natural Earth resolution (10m, 50m, 110m) [default: 50m]',
+          '--help': 'Show this help message',
+        },
+      )
+      return
+    }
 
-    if (!CONFIG) {
-      const availableConfigs = await listAvailableConfigs()
-      console.error(`${COLORS.red}Configuration not found: ${configName}${COLORS.reset}`)
-      if (availableConfigs.length > 0) {
-        console.log(`${COLORS.blue}Available configurations: ${availableConfigs.join(', ')}${COLORS.reset}`)
-      }
-      else {
-        console.log(`${COLORS.yellow} No configurations found in ${CONFIGS_DIR}${COLORS.reset}`)
-      }
+    // Validate required arguments
+    if (!validateRequired(args, ['region'])) {
+      logger.error('Usage: npm run geodata:prepare <region> [--resolution=10m|50m|110m]')
       process.exit(1)
     }
 
-    console.log(`Preparing geodata for: ${CONFIG.name}${COLORS.reset}`)
-    console.log(`${COLORS.blue}  Description: ${CONFIG.description}${COLORS.reset}`)
-    console.log(`${COLORS.blue}  Resolution: ${NATURAL_EARTH_RESOLUTION}${COLORS.reset}`)
-    console.log(`${COLORS.blue}  Territories: ${Object.keys(CONFIG.territories).length}${COLORS.reset}\n`)
+    const regionName = args.region
+    const resolution = getResolution(args)
+
+    // Load configuration
+    logger.section(`Preparing geodata: ${regionName}`)
+    const { backend: CONFIG } = await loadConfig(regionName)
+
+    logger.data('Description', CONFIG.description)
+    logger.data('Resolution', resolution)
+    logger.data('Territories', Object.keys(CONFIG.territories).length)
+    logger.newline()
 
     // Step 1: Download and save world data
-    console.log(`${COLORS.blue} Downloading world data...${COLORS.reset}`)
-    const worldFilename = OUTPUT_FILENAMES.world
-    await downloadData(DATA_SOURCE, worldFilename)
+    logger.subsection('Step 1: Download world data')
+    const worldData = await fetchWorldData(resolution)
+    const worldFilename = OUTPUT_FILENAMES.world(resolution)
+    await saveData(worldFilename, worldData)
 
     // Step 2: Filter and save territory data
-    console.log(`${COLORS.blue} Filtering ${CONFIG.name} territories...${COLORS.reset}`)
-    const worldData = JSON.parse(
-      await fs.readFile(path.join(OUTPUT_DIR, worldFilename), 'utf8'),
-    )
+    logger.subsection('Step 2: Filter territories')
     const territoryData = filterTerritories(worldData, CONFIG.territories)
-
-    const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || configName)
-    await fs.writeFile(
-      path.join(OUTPUT_DIR, territoriesFilename),
-      JSON.stringify(territoryData),
-    )
-    console.log(`${COLORS.green}✓ Saved ${territoriesFilename}${COLORS.reset}`)
+    const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || regionName, resolution)
+    await saveData(territoriesFilename, territoryData)
 
     // Step 3: Create and save metadata
-    console.log(`${COLORS.blue} Creating metadata...${COLORS.reset}`)
-    const metadata = createMetadata(CONFIG)
+    logger.subsection('Step 3: Create metadata')
+    const dataSourceUrl = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${resolution}.json`
+    const metadata = createMetadata(CONFIG, resolution, dataSourceUrl)
+    const metadataFilename = OUTPUT_FILENAMES.metadata(CONFIG.outputName || regionName, resolution)
+    await saveData(metadataFilename, metadata)
 
-    const metadataFilename = OUTPUT_FILENAMES.metadata(CONFIG.outputName || configName)
-    await fs.writeFile(
-      path.join(OUTPUT_DIR, metadataFilename),
-      JSON.stringify(metadata, null, 2),
-    )
-    console.log(`${COLORS.green}✓ Saved ${metadataFilename}${COLORS.reset}`)
-
-    console.log(`\n${COLORS.green} All done!${COLORS.reset}`)
+    logger.newline()
+    logger.success('All done!')
   }
   catch (error) {
-    console.error(`${COLORS.red}Error:${COLORS.reset}`, error)
+    logger.error(`${error.message}`)
+    if (process.env.DEBUG) {
+      console.error(error)
+    }
     process.exit(1)
   }
 }
