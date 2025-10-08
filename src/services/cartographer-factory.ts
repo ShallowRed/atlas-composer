@@ -9,7 +9,7 @@
  */
 
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { Cartographer } from '@/services/cartographer'
+import { Cartographer } from '@/services/cartographer-service'
 
 export class CartographerFactory {
   private static instances = new Map<string, Cartographer>()
