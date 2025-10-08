@@ -155,9 +155,10 @@ function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProje
  * Create GeoDataConfig
  */
 function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
+  const baseUrl = import.meta.env.BASE_URL
   return {
-    dataPath: `/data/${config.id}-territories-50m.json`,
-    metadataPath: `/data/${config.id}-metadata-50m.json`,
+    dataPath: `${baseUrl}data/${config.id}-territories-50m.json`,
+    metadataPath: `${baseUrl}data/${config.id}-metadata-50m.json`,
     topologyObjectName: 'territories',
     mainlandCode: territories.mainland.code,
     mainlandBounds: territories.mainland.bounds,
