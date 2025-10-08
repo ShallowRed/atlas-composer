@@ -9,8 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const srcDir = path.resolve(__dirname, 'src')
 const outDir = path.resolve(__dirname, 'dist')
 
-export default defineConfig({
+export default defineConfig(env => ({
   root: srcDir,
+  base: env.mode === 'production' ? '/atlas-composer/' : '/',
   build: {
     outDir,
   },
@@ -28,4 +29,4 @@ export default defineConfig({
       '@configs': path.resolve(__dirname, 'configs'),
     },
   },
-})
+}))

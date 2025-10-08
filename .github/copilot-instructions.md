@@ -1,21 +1,10 @@
-- [x] Clarify Project Requirements
-	<!--
-    Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations
-             of countries with geographically-scattered territories using composite projections.
-    Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
-    Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
-                  composite projections, interactive territory positioning, JSON-driven configuration
-  -->
-
-- [x] Ensure Documentation is Complete
-	<!-- README.md updated with comprehensive architecture documentation -->
+## Project Overview
+- Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
+- Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
+- Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
+- composite projections, interactive territory positioning, JSON-driven configuration
 
 ## Execution Guidelines
-PROGRESS TRACKING:
-- If any tools are available to manage the above todo list, use it to track progress through this checklist.
-- After completing each step, mark it complete and add a summary.
-- Read current todo list status before starting each new step.
-
 COMMUNICATION RULES:
 - Avoid verbose explanations or printing full command outputs.
 - If a step is skipped, state that briefly (e.g. "No extensions needed").
