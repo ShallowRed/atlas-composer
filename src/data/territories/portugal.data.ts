@@ -1,52 +1,25 @@
 /**
- * Portuguese Territory Data
- * Pure territory definitions with NO logic, NO UI concerns, NO utility functions
- *
- * This file contains ONLY geographic data for Portuguese territories.
- * All configuration, modes, groups, and operations are handled elsewhere.
+ * Portugal Territory Data
+ * Uses generic adapter to transform unified JSON config
  */
 
 import type { TerritoryConfig } from '@/types/territory'
+import config from '../../../configs/portugal.json'
+import { createTerritoryExports } from './adapter'
+
+const { mainland, overseas, all } = createTerritoryExports(config)
 
 /**
- * Mainland Portugal (Portugal Continental)
+ * Mainland Portugal
  */
-export const MAINLAND_PORTUGAL: TerritoryConfig = {
-  code: 'PT-CONT',
-  name: 'Portugal Continental',
-  center: [-8.0, 39.5],
-  offset: [0, 0],
-  bounds: [[-9.5, 37.0], [-6.2, 42.2]],
-}
+export const MAINLAND_PORTUGAL: TerritoryConfig = mainland
 
 /**
- * Autonomous Regions (Madeira and Azores)
+ * Overseas Territories
  */
-export const AUTONOMOUS_REGIONS: TerritoryConfig[] = [
-  {
-    code: 'PT-20',
-    name: 'Madeira',
-    region: 'Atlantic',
-    center: [-16.9, 32.75],
-    offset: [400, -200],
-    bounds: [[-17.5, 32.5], [-16.5, 33.0]],
-    projectionType: 'mercator',
-  },
-  {
-    code: 'PT-30',
-    name: 'Azores',
-    region: 'Atlantic',
-    center: [-28.0, 38.5],
-    offset: [-400, -100],
-    bounds: [[-32.0, 36.5], [-24.5, 40.0]],
-    projectionType: 'mercator',
-  },
-]
+export const PORTUGAL_OVERSEAS: TerritoryConfig[] = overseas
 
 /**
- * All Portuguese territories (mainland + autonomous regions)
+ * All Portugal territories (mainland + overseas)
  */
-export const ALL_TERRITORIES: TerritoryConfig[] = [
-  MAINLAND_PORTUGAL,
-  ...AUTONOMOUS_REGIONS,
-]
+export const PORTUGAL_ALL_TERRITORIES: TerritoryConfig[] = all

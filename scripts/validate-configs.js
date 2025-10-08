@@ -3,12 +3,12 @@
 /**
  * Configuration Validator
  * Validates consistency between backend configs, frontend configs, and generated data
- * 
+ *
  * Usage:
  *   node validate-configs.js [country]
  *   node validate-configs.js portugal
  *   node validate-configs.js --all
- * 
+ *
  * Checks:
  *   - Backend config exists
  *   - Frontend config exists
@@ -132,7 +132,7 @@ async function validateCountry(country) {
   // Check backend config
   const backendConfig = await loadBackendConfig(country)
   if (!backendConfig) {
-    results.errors.push('Backend config not found (scripts/configs/${country}.js)')
+    results.errors.push(`Backend config not found (scripts/configs/${country}.js)`)
   }
   else {
     results.info.push(`Backend config found: ${Object.keys(backendConfig.territories).length} territory definitions`)
@@ -154,7 +154,7 @@ async function validateCountry(country) {
   // Check frontend config
   const frontendConfig = await loadFrontendConfig(country)
   if (!frontendConfig) {
-    results.warnings.push('Frontend config not found (src/config/regions/${country}.config.ts)')
+    results.warnings.push(`Frontend config not found (src/config/regions/${country}.config.ts)`)
   }
   else {
     results.info.push('Frontend config found')

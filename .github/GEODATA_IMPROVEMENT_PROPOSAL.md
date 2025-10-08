@@ -79,7 +79,7 @@ Create a single source of truth with automatic metadata generation.
   "description": "France métropolitaine et territoires d'outre-mer",
   "naturalEarthId": 250,
   "mainlandCode": "FR-MET",
-  
+
   "territories": [
     {
       "code": "FR-MET",
@@ -135,21 +135,21 @@ npm run geodata:analyze -- --country france --id 250
 # Output:
 # ✓ Found: France (ID 250)
 # ✓ Geometry: MultiPolygon with 13 polygons
-# 
+#
 # Polygon Analysis:
-# 
+#
 # Polygon 0: [-61.81, 15.83] → [-61.00, 16.51]
 #   → Likely: Caribbean territory (Guadeloupe?)
 #   → Area: 1,628 km²
-# 
+#
 # Polygon 1: [-5.50, 41.00] → [10.00, 51.50]
 #   → Likely: MAINLAND (largest polygon)
 #   → Area: 543,940 km²
-# 
+#
 # Polygon 2: [-61.23, 14.39] → [-60.81, 14.88]
 #   → Likely: Caribbean territory (Martinique?)
 #   → Area: 1,128 km²
-# 
+#
 # Suggested configuration:
 # {
 #   "250": { "name": "France", "code": "FR-MET", "type": "mainland" },
@@ -211,8 +211,8 @@ Instead of bounds matching, use polygon indices directly.
 **Backend Config**:
 ```javascript
 territories: {
-  '250': { 
-    name: 'France métropolitaine', 
+  '250': {
+    name: 'France métropolitaine',
     code: 'FR-MET',
     mainlandPolygon: 1  // Explicitly specify which polygon is mainland
   },
@@ -370,27 +370,27 @@ scripts/
       france.json
       portugal.json
       spain.json
-  
+
   tools/                        # NEW: Helper tools
     analyze-country.js          # Analyze Natural Earth data
     generate-configs.js         # Generate backend/frontend configs
     validate-config.js          # Validate consistency
-    
+
   web/                          # NEW: Interactive tools
     territory-mapper/
       index.html
       app.js
-  
+
   prepare-geodata.js            # Updated to use polygon indices
 
 src/
   public/data/
     france-territories-50m.json
     france-metadata-50m.json    # Enhanced with suggestions
-  
+
   config/regions/
     france.config.ts            # Can be auto-generated or use metadata
-  
+
   data/territories/
     france.data.ts              # Can be auto-generated or use metadata
 ```

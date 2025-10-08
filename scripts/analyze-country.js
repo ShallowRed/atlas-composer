@@ -3,13 +3,13 @@
 /**
  * Country Polygon Analyzer
  * Analyzes Natural Earth data to help configure territory extraction
- * 
+ *
  * Usage:
  *   node analyze-country.js <country-id>
  *   node analyze-country.js 250        # France
  *   node analyze-country.js 620        # Portugal
  *   node analyze-country.js 724        # Spain
- * 
+ *
  * Output:
  *   - Lists all polygons with their bounds and areas
  *   - Identifies likely mainland (largest polygon)

@@ -104,14 +104,14 @@ $ node scripts/analyze-country.js 620
 Polygon 1:
   Bounds: [-9.48, 37.01] → [-6.21, 42.14]
   Area: 9.23 sq° (LARGEST - MAINLAND)
-  
+
 Polygon 0:
   Bounds: [-17.24, 32.65] → [-16.69, 32.87]
   Area: 0.07 sq° (Madeira)
-  
+
 Polygons 2-8:
   Archipelago (Azores)
-  
+
 Suggested Configuration:
 {
   '620': { code: 'PT-CONT', mainlandPolygon: 1 },
@@ -131,7 +131,7 @@ $ node scripts/validate-configs.js portugal
 Validating: portugal
 
 ℹ Backend config found: 3 territory definitions
-ℹ Generated data found: FeatureCollection with 3 features  
+ℹ Generated data found: FeatureCollection with 3 features
 ℹ Frontend config found
 ℹ ✓ Backend config and data are in sync (3 territories)
 ℹ ✓ Frontend config references valid data
@@ -230,13 +230,13 @@ Frontend Config (.config.ts, .data.ts)
 
 1. **Still some duplication**: Backend and frontend configs are separate files
    - *Solution*: Phase 2 will unify them
-   
+
 2. **Manual frontend config**: TypeScript definitions still handwritten
    - *Solution*: Phase 2 will auto-generate them
-   
+
 3. **No visual tools**: Offset adjustment is still trial-and-error
    - *Solution*: Phase 3 will add interactive mapper
-   
+
 4. **Proximity grouping is rough**: Uses simple distance threshold
    - *Acceptable*: User adjusts the suggested groupings
 

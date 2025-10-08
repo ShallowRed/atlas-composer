@@ -17,7 +17,7 @@ import {
   MAINLAND_FRANCE,
   MAINLAND_PORTUGAL,
   PORTUGAL_ALL_TERRITORIES,
-  PORTUGAL_AUTONOMOUS_REGIONS,
+  PORTUGAL_OVERSEAS,
 } from '@/data/territories'
 import { TerritoryService } from './TerritoryService'
 
@@ -32,7 +32,7 @@ const REGION_DATA_REGISTRY = {
   },
   portugal: {
     mainland: MAINLAND_PORTUGAL,
-    overseas: PORTUGAL_AUTONOMOUS_REGIONS,
+    overseas: PORTUGAL_OVERSEAS,
     all: PORTUGAL_ALL_TERRITORIES,
   },
   eu: {

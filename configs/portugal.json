@@ -1,0 +1,109 @@
+{
+  "$schema": "./schema.json",
+  "id": "portugal",
+  "name": "Portugal",
+  "description": "Portugal, Madeira, and Azores",
+  "metadata": {
+    "naturalEarthIds": [620],
+    "iso3": "PRT",
+    "region": "Europe"
+  },
+  "projection": {
+    "center": {
+      "longitude": -8.0,
+      "latitude": 39.5
+    },
+    "rotate": {
+      "mainland": [8.0, 0],
+      "azimuthal": [8.0, -39.5]
+    },
+    "parallels": {
+      "conic": [37, 42]
+    }
+  },
+  "territories": [
+    {
+      "id": "620",
+      "code": "PT-CONT",
+      "name": "Portugal Continental",
+      "role": "mainland",
+      "iso": "PRT",
+      "bounds": [[-9.5, 37.0], [-6.2, 42.2]],
+      "center": [-8.0, 39.5],
+      "extraction": {
+        "mainlandPolygon": 1
+      },
+      "rendering": {
+        "offset": [0, 0],
+        "projectionType": "conic"
+      }
+    },
+    {
+      "id": "620-20",
+      "code": "PT-20",
+      "name": "Madeira",
+      "role": "overseas",
+      "iso": "PRT",
+      "region": "Atlantic",
+      "bounds": [[-17.5, 32.5], [-16.5, 33.0]],
+      "center": [-16.9, 32.75],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [0]
+      },
+      "rendering": {
+        "offset": [400, -200],
+        "projectionType": "mercator",
+        "scale": 1.0
+      }
+    },
+    {
+      "id": "620-30",
+      "code": "PT-30",
+      "name": "Azores",
+      "role": "overseas",
+      "iso": "PRT",
+      "region": "Atlantic",
+      "bounds": [[-32.0, 36.5], [-24.5, 40.0]],
+      "center": [-28.0, 38.5],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [2, 3, 4, 5, 6, 7, 8]
+      },
+      "rendering": {
+        "offset": [-400, -100],
+        "projectionType": "mercator",
+        "scale": 1.0
+      }
+    }
+  ],
+  "modes": [
+    {
+      "id": "mainland-only",
+      "label": "Portugal continental uniquement",
+      "territories": ["PT-CONT"]
+    },
+    {
+      "id": "with-madeira",
+      "label": "Continental + Madeira",
+      "territories": ["PT-CONT", "PT-20"]
+    },
+    {
+      "id": "all-territories",
+      "label": "Toutes les régions autonomes",
+      "territories": ["PT-CONT", "PT-20", "PT-30"]
+    }
+  ],
+  "groups": [
+    {
+      "id": "mainland",
+      "label": "Portugal Continental",
+      "territories": ["PT-CONT"]
+    },
+    {
+      "id": "atlantic",
+      "label": "Régions Autonomes Atlantique",
+      "territories": ["PT-20", "PT-30"]
+    }
+  ]
+}

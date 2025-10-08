@@ -44,7 +44,7 @@ Polygon 1: (MAINLAND)
   Area: 9.23 sq°
 
 Polygon 0:
-  Bounds: [-17.24, 32.65] → [-16.69, 32.87]  
+  Bounds: [-17.24, 32.65] → [-16.69, 32.87]
   Area: 0.07 sq° (Madeira)
 
 Polygons 2-8: Archipelago (Azores)
@@ -71,7 +71,7 @@ node scripts/validate-configs.js --all
 
 **What it checks:**
 - ✓ Backend config exists
-- ✓ Frontend config exists  
+- ✓ Frontend config exists
 - ✓ Generated data files exist
 - ✓ Territory codes match between all files
 - ✓ All referenced territories exist in data
@@ -137,31 +137,31 @@ Create `scripts/configs/spain.js` based on analyzer output:
 export default {
   name: 'Spain',
   description: 'Spain with Canary and Balearic Islands',
-  
+
   territories: {
     // Use analyzer suggestions, adjust names and codes
-    '724': { 
-      name: 'Spain Mainland', 
+    '724': {
+      name: 'Spain Mainland',
       code: 'ES-MAIN',
       iso: 'ESP',
-      mainlandPolygon: 0  // From analyzer
+      mainlandPolygon: 0 // From analyzer
     },
     '724-1': {
       name: 'Canary Islands',
       code: 'ES-CN',
       iso: 'ESP',
       extractFrom: 724,
-      polygonIndices: [1]  // From analyzer
+      polygonIndices: [1] // From analyzer
     },
     '724-2': {
-      name: 'Balearic Islands', 
+      name: 'Balearic Islands',
       code: 'ES-IB',
       iso: 'ESP',
       extractFrom: 724,
-      polygonIndices: [2]  // From analyzer
+      polygonIndices: [2] // From analyzer
     }
   },
-  
+
   outputName: 'spain'
 }
 ```
@@ -247,24 +247,24 @@ See [GEODATA_IMPROVEMENT_PROPOSAL.md](../.github/GEODATA_IMPROVEMENT_PROPOSAL.md
 export default {
   name: 'Country Name',
   description: 'Description',
-  
+
   territories: {
     '<NE-ID>': {
       name: 'Territory Name',
-      code: 'XX-CODE',  // 2-letter country + identifier
-      iso: 'ISO',       // 3-letter ISO code
-      mainlandPolygon: 0  // Which polygon is mainland (optional)
+      code: 'XX-CODE', // 2-letter country + identifier
+      iso: 'ISO', // 3-letter ISO code
+      mainlandPolygon: 0 // Which polygon is mainland (optional)
     },
     '<NE-ID>-<N>': {
       name: 'Extracted Territory',
       code: 'XX-TER',
       iso: 'ISO',
-      extractFrom: '<NE-ID>',  // Extract from this parent
-      polygonIndices: [0, 1]   // Which polygons to extract
+      extractFrom: '<NE-ID>', // Extract from this parent
+      polygonIndices: [0, 1] // Which polygons to extract
     }
   },
-  
-  outputName: 'country'  // Output file prefix
+
+  outputName: 'country' // Output file prefix
 }
 ```
 

@@ -54,7 +54,62 @@ Le projet sera accessible à l'adresse [http://localhost:5173](http://localhost:
 pnpm build
 ```
 
-## 📁 Architecture du projet
+## �️ Configuration unifiée
+
+Le projet utilise désormais un **système de configuration unifiée** qui élimine la duplication de code :
+
+### Single Source of Truth
+
+Au lieu de maintenir des configurations séparées pour le backend et le frontend, tout est défini dans un seul fichier JSON :
+
+```
+configs/
+├── schema.json        # Validation JSON Schema
+├── portugal.json      # Configuration Portugal
+├── france.json        # Configuration France
+└── spain.json         # Configuration Espagne
+```
+
+### Commandes disponibles
+
+```bash
+# Analyser un pays (Natural Earth ID)
+npm run geodata:analyze 620
+
+# Générer les configs (backend + frontend)
+npm run geodata:generate portugal
+npm run geodata:generate --all
+
+# Générer les données géographiques
+npm run geodata:prepare portugal
+
+# Valider la cohérence
+npm run geodata:validate portugal
+npm run geodata:validate --all
+```
+
+### Workflow simplifié
+
+```bash
+# 1. Analyser (30 secondes)
+npm run geodata:analyze 620  # Portugal
+
+# 2. Créer configs/portugal.json (copier la sortie suggérée)
+
+# 3. Générer tout
+npm run geodata:generate portugal
+npm run geodata:prepare portugal
+
+# Total : ~30 secondes (au lieu de 30-60 minutes manuellement)
+```
+
+### Documentation
+
+- [configs/README.md](configs/README.md) - Guide rapide
+- [.github/UNIFIED_CONFIG_GUIDE.md](.github/UNIFIED_CONFIG_GUIDE.md) - Documentation complète
+- [scripts/README.md](scripts/README.md) - Outils disponibles
+
+## �📁 Architecture du projet
 
 Le projet suit une architecture en couches avec séparation des préoccupations :
 

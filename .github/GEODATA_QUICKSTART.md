@@ -108,11 +108,11 @@ npm run geodata:add spain
 # ✓ Found: Spain (ID 724) - 3 polygons
 # ? Name for polygon 0 (largest): Spain Mainland
 # ? Code: ES-MAIN
-# ? Name for polygon 1: Canary Islands  
+# ? Name for polygon 1: Canary Islands
 # ? Code: ES-CN
 # ? Name for polygon 2: Balearic Islands
 # ? Code: ES-IB
-# 
+#
 # ✓ Generated configs
 # ✓ Generated TypeScript definitions
 # ✓ Downloaded and processed data
