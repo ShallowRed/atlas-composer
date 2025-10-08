@@ -32,16 +32,18 @@
 
 ### Phase 4: Move Development Tools
 - [x] Create `scripts/dev/` folder
-- [ ] Move `analyze-country.js` to `scripts/dev/`
-- [ ] Move `lookup-country.js` to `scripts/dev/`
-- [ ] Update both to use utilities
+- [x] Move `analyze-country.js` to `scripts/dev/`
+- [x] Move `lookup-country.js` to `scripts/dev/`
+- [x] Update both to use utilities
 
-**Status**: IN PROGRESS
+**Status**: COMPLETED. Analyzer and lookup tool now live under `scripts/dev/` and share the common logging/CLI helpers.
 
 ### Phase 5: Update Configuration
-- [ ] Update `package.json` scripts
-- [ ] Add `--resolution` flag support
-- [ ] Update `scripts/README.md` with new architecture
+- [x] Update `package.json` scripts
+- [x] Add `--resolution` flag support
+- [x] Update `scripts/README.md` with new architecture
+
+**Status**: COMPLETED. npm scripts point to the new dev tools and documentation reflects the unified CLI usage.
 
 ### Phase 6: Testing & Validation
 - [ ] Test all npm scripts
@@ -127,14 +129,18 @@ Total: ~1,000 lines (600 lines reduction)
 - [ ] Notes:
 
 ### Phase 4: Move Development Tools
-- [ ] Started: [timestamp]
-- [ ] Completed: [timestamp]
+- [x] Started: 8 octobre 2025
+- [x] Completed: 9 octobre 2025
 - [ ] Notes:
+  - `analyze-country.js` and `lookup-country.js` now live under `scripts/dev/`.
+  - Both scripts share the logger, CLI args, and Natural Earth utilities.
 
 ### Phase 5: Update Configuration
-- [ ] Started: [timestamp]
-- [ ] Completed: [timestamp]
+- [x] Started: 9 octobre 2025
+- [x] Completed: 9 octobre 2025
 - [ ] Notes:
+  - Added `geodata:lookup` npm script and updated `geodata:analyze` target.
+  - README documents the new CLI workflow and resolution flag usage.
 
 ### Phase 6: Testing & Validation
 - [ ] Started: [timestamp]
@@ -145,12 +151,12 @@ Total: ~1,000 lines (600 lines reduction)
 
 ## ✅ Completion Checklist
 
-- [ ] All redundant scripts removed
-- [ ] All utilities created and tested
-- [ ] Production scripts refactored
-- [ ] Dev tools moved and updated
-- [ ] package.json updated
-- [ ] README.md updated
+- [x] All redundant scripts removed
+- [x] All utilities created and tested
+- [x] Production scripts refactored
+- [x] Dev tools moved and updated
+- [x] package.json updated
+- [x] README.md updated
 - [ ] All tests passing
 - [ ] Build successful
 - [ ] Documentation complete

@@ -15,12 +15,12 @@ Now it takes **~30 seconds**.
 
 ## 🛠️ Available Tools
 
-### 1. **Country Analyzer** (`analyze-country.js`)
+### 1. **Country Analyzer** (`npm run geodata:analyze`)
 
-Analyzes Natural Earth data and suggests configuration.
+Analyzes Natural Earth data and suggests configuration using the shared CLI utilities.
 
 ```bash
-node scripts/analyze-country.js <natural-earth-id>
+npm run geodata:analyze -- <natural-earth-id> [--resolution=10m|50m|110m]
 ```
 
 **What it does:**
@@ -31,30 +31,23 @@ node scripts/analyze-country.js <natural-earth-id>
 
 **Example:**
 ```bash
-node scripts/analyze-country.js 620  # Portugal
+npm run geodata:analyze -- 620
+npm run geodata:analyze -- 620 --resolution=10m
 ```
 
 **Output:**
 ```
-✓ Found: Portugal (ID 620)
-✓ Geometry: MultiPolygon with 9 polygon(s)
+[✓] Found: Portugal (ID 620)
+[✓] Geometry: MultiPolygon with 9 polygon(s)
 
-Polygon 1: (MAINLAND)
+Polygon 1 — MAINLAND CANDIDATE
   Bounds: [-9.48, 37.01] → [-6.21, 42.14]
-  Area: 9.23 sq°
+  Approx area: 9.23 deg²
 
-Polygon 0:
+Polygon 0
   Bounds: [-17.24, 32.65] → [-16.69, 32.87]
-  Area: 0.07 sq° (Madeira)
-
-Polygons 2-8: Archipelago (Azores)
-
-Suggested Configuration:
-{
-  '620': { code: 'PT-CONT', mainlandPolygon: 1 },
-  '620-0': { code: 'PT-20', polygonIndices: [0] },
-  '620-1': { code: 'PT-30', polygonIndices: [2, 3, 4, 5, 6, 7, 8] }
-}
+  Approx area: 0.07 deg²
+  Likely separate territory / island
 ```
 
 ### 2. **Configuration Validator** (`validate-configs.js`)
@@ -63,10 +56,10 @@ Validates consistency between backend config, frontend config, and generated dat
 
 ```bash
 # Validate one country
-node scripts/validate-configs.js portugal
+npm run geodata:validate -- portugal
 
 # Validate all countries
-node scripts/validate-configs.js --all
+npm run geodata:validate -- --all
 ```
 
 **What it checks:**
@@ -93,7 +86,7 @@ Validating: portugal
 Generates optimized territory data from Natural Earth.
 
 ```bash
-node scripts/prepare-geodata.js <country>
+npm run geodata:prepare -- <country> [--resolution=10m|50m|110m]
 ```
 
 **What it does:**
@@ -103,16 +96,31 @@ node scripts/prepare-geodata.js <country>
 - Generates GeoJSON FeatureCollection
 - Creates metadata file
 
+### 4. **Country Lookup** (`npm run geodata:lookup`)
+
+Lightweight helper for exploring Natural Earth metadata when you only have a fuzzy name or code.
+
+```bash
+npm run geodata:lookup -- portugal
+npm run geodata:lookup -- 620 --resolution=10m
+```
+
+**What it does:**
+- Lists matching countries by name/ID fragment
+- Prints raw Natural Earth properties
+- Highlights polygons that look like separate territories
+- Suggests `polygonIndices` snippets for quick config scaffolding
+
 ## 📖 How to Add a New Country
 
 ### Step 1: Find Natural Earth ID
 
 ```bash
 # Download world data if needed
-node scripts/prepare-geodata.js world
+npm run geodata:prepare -- world
 
 # Then analyze to find IDs (they're printed on error)
-node scripts/analyze-country.js 999
+npm run geodata:analyze -- 999
 # Shows available country IDs
 ```
 
@@ -121,12 +129,12 @@ Or search Natural Earth documentation: https://www.naturalearthdata.com/
 ### Step 2: Analyze the Country
 
 ```bash
-node scripts/analyze-country.js <ID>
+npm run geodata:analyze -- <ID>
 ```
 
 Example for Spain (ID 724):
 ```bash
-node scripts/analyze-country.js 724
+npm run geodata:analyze -- 724
 ```
 
 ### Step 3: Create Backend Config
@@ -169,7 +177,7 @@ export default {
 ### Step 4: Generate Data
 
 ```bash
-node scripts/prepare-geodata.js spain
+npm run geodata:prepare -- spain
 ```
 
 ### Step 5: Create Frontend Config
@@ -183,7 +191,7 @@ Use existing configs as templates:
 ### Step 6: Validate
 
 ```bash
-node scripts/validate-configs.js spain
+npm run geodata:validate -- spain
 ```
 
 Fix any errors or warnings reported.
@@ -309,7 +317,7 @@ export default {
 ### "Country not found"
 Run analyzer with wrong ID to see available countries:
 ```bash
-node scripts/analyze-country.js 999
+npm run geodata:analyze -- 999
 ```
 
 ### "Backend config not found"
@@ -318,13 +326,13 @@ Create `scripts/configs/<country>.js` using template above.
 ### "Generated data not found"
 Run:
 ```bash
-node scripts/prepare-geodata.js <country>
+npm run geodata:prepare -- <country>
 ```
 
 ### "Territories don't match"
 Run validator to see differences:
 ```bash
-node scripts/validate-configs.js <country>
+npm run geodata:validate -- <country>
 ```
 
 ## 📚 Additional Resources
