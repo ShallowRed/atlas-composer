@@ -159,6 +159,20 @@
       "territoryExcellent": "Excellente pour ce type de territoire",
       "territoryGood": "Bonne pour ce type de territoire",
       "notSuitable": "Non recommandée pour ce contexte"
+    },
+    "properties": {
+      "area": "Superficie",
+      "angle": "Angles",
+      "distance": "Distance",
+      "direction": "Direction",
+      "interrupted": "Interrompue"
+    },
+    "info": {
+      "preserves": "Préserve",
+      "distorts": "Déforme",
+      "compatibility": "Compatible avec",
+      "creator": "Créateur",
+      "year": "Année"
     }
   }
 }

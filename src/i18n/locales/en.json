@@ -159,6 +159,20 @@
       "territoryExcellent": "Excellent for this type of territory",
       "territoryGood": "Good for this type of territory",
       "notSuitable": "Not recommended for this context"
+    },
+    "properties": {
+      "area": "Area",
+      "angle": "Angles",
+      "distance": "Distance",
+      "direction": "Direction",
+      "interrupted": "Interrupted"
+    },
+    "info": {
+      "preserves": "Preserves",
+      "distorts": "Distorts",
+      "compatibility": "Compatible with",
+      "creator": "Creator",
+      "year": "Year"
     }
   }
 }
