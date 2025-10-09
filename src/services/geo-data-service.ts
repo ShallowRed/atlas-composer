@@ -294,7 +294,7 @@ export class GeoDataService {
    * @param territoryCodes - Array of territory codes to include
    * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
    */
-  async getRawUnifiedData(_mode: string = 'metropole-major', territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
+  async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
     // Handle regions without mainland concept (like EU)

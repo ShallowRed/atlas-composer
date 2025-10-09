@@ -274,13 +274,13 @@
       "territories": ["FR-MET"]
     },
     {
-      "id": "metropole-major",
-      "label": "Métropole + DOM",
+      "id": "metropole-drom",
+      "label": "Métropole + DROM",
       "territories": ["FR-MET", "FR-GF", "FR-RE", "FR-GP", "FR-MQ", "FR-YT"]
     },
     {
-      "id": "metropole-uncommon",
-      "label": "Métropole + DOM + COM principaux",
+      "id": "metropole-drom-com",
+      "label": "Métropole + DROM + COM",
       "territories": ["FR-MET", "FR-GF", "FR-RE", "FR-GP", "FR-MQ", "FR-YT", "FR-MF", "FR-PF", "FR-PF-2", "FR-NC"]
     },
     {

@@ -39,7 +39,7 @@ export const useConfigStore = defineStore('config', () => {
     if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
-    return 'metropole-major' // Fallback for backward compatibility
+    throw new Error('No territory mode options available for the default atlas')
   }
   const territoryMode = ref<string>(getInitialTerritoryMode())
 

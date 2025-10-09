@@ -35,7 +35,7 @@ export interface SplitModeConfig {
  * UI option for "Territoires à inclure" dropdown selector
  */
 export interface TerritoryModeOption {
-  /** Internal value/ID (e.g., 'all', 'major', 'metropole-major') */
+  /** Internal value/ID (e.g., 'all-territories', 'metropole-only') */
   value: string
 
   /** Display label (e.g., 'Tous les territoires', 'Territoires majeurs') */
@@ -73,7 +73,7 @@ export interface AtlasConfig {
   /** Options for territory mode selector */
   territoryModeOptions?: TerritoryModeOption[]
 
-  /** Default territory mode (e.g., 'all', 'major', 'metropole-major') */
+  /** Default territory mode (e.g., 'all-territories', 'metropole-only') */
   defaultTerritoryMode?: string
 
   /** Default configuration for composite-custom mode */
