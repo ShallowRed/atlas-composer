@@ -80,6 +80,11 @@ export interface JSONAtlasConfig {
     supported: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
     default: 'split' | 'composite-existing' | 'composite-custom' | 'unified'
   }
+  mapDisplayDefaults?: {
+    showGraticule?: boolean
+    showCompositionBorders?: boolean
+    showMapLimits?: boolean
+  }
   splitModeConfig?: {
     mainlandTitle?: string
     mainlandCode?: string

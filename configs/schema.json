@@ -82,6 +82,28 @@
       "description": "Default view mode for this atlas. Defaults to 'composite-custom' if not specified.",
       "enum": ["split", "composite-existing", "composite-custom", "unified"]
     },
+    "mapDisplayDefaults": {
+      "type": "object",
+      "description": "Default display options applied to maps when loading this atlas.",
+      "properties": {
+        "showGraticule": {
+          "type": "boolean",
+          "description": "Display latitude/longitude graticule overlay.",
+          "default": false
+        },
+        "showCompositionBorders": {
+          "type": "boolean",
+          "description": "Display composition borders for composite projections when available.",
+          "default": false
+        },
+        "showMapLimits": {
+          "type": "boolean",
+          "description": "Display the bounding box outlining the map extent.",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
     "compositeProjections": {
       "type": "array",
       "description": "List of composite projection IDs available for this atlas in composite-existing mode. If not specified, defaults to 'conic-conformal-{atlasId}'.",

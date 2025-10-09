@@ -284,6 +284,13 @@ function createAtlasConfig(
   const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
+  const mapDisplayDefaults = {
+    showGraticule: false,
+    showCompositionBorders: false,
+    showMapLimits: false,
+    ...(config.mapDisplayDefaults || {}),
+  }
+
   // Composite projections: explicitly defined in config or empty array
   // For wildcard atlases (like world), no composite projections (unified view only)
   // For other atlases, use config.compositeProjections if provided
@@ -332,6 +339,7 @@ function createAtlasConfig(
       value: mode.id,
       label: territoryModes[mode.id]!.label,
     })),
+    mapDisplayDefaults,
   }
 }
 

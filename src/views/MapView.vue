@@ -280,6 +280,19 @@ watch(() => configStore.territoryMode, async () => {
             icon="ri-grid-line"
             type="toggle"
           />
+          <FormControl
+            v-show="configStore.viewMode === 'composite-custom' || configStore.viewMode === 'composite-existing'"
+            v-model="configStore.showCompositionBorders"
+            :label="t('settings.compositionBorders')"
+            icon="ri-shape-2-line"
+            type="toggle"
+          />
+          <FormControl
+            v-model="configStore.showMapLimits"
+            :label="t('settings.mapLimits')"
+            icon="ri-crop-line"
+            type="toggle"
+          />
         </div>
       </CardContainer>
     </section>

@@ -13,7 +13,11 @@ export const useConfigStore = defineStore('config', () => {
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
-  const showGraticule = ref(true)
+
+  const initialMapDisplay = getAtlasConfig(DEFAULT_ATLAS).mapDisplayDefaults || {}
+  const showGraticule = ref(initialMapDisplay.showGraticule ?? false)
+  const showCompositionBorders = ref(initialMapDisplay.showCompositionBorders ?? false)
+  const showMapLimits = ref(initialMapDisplay.showMapLimits ?? false)
 
   // Initialize selectedProjection from the default atlas's projection preferences or mainland
   const getInitialProjection = () => {
@@ -281,6 +285,12 @@ export const useConfigStore = defineStore('config', () => {
       compositeProjection.value = config.defaultCompositeProjection
     }
 
+    // Update map display options from atlas defaults
+    const mapDisplayDefaults = config.mapDisplayDefaults || {}
+    showGraticule.value = mapDisplayDefaults.showGraticule ?? false
+    showCompositionBorders.value = mapDisplayDefaults.showCompositionBorders ?? false
+    showMapLimits.value = mapDisplayDefaults.showMapLimits ?? false
+
     // Update view mode to match the new atlas default
     viewMode.value = config.defaultViewMode
 
@@ -302,6 +312,8 @@ export const useConfigStore = defineStore('config', () => {
     selectedAtlas,
     scalePreservation,
     showGraticule,
+    showCompositionBorders,
+    showMapLimits,
     selectedProjection,
     territoryMode,
     viewMode,

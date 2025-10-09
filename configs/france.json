@@ -556,6 +556,11 @@
       ]
     }
   },
+  "mapDisplayDefaults": {
+    "showGraticule": false,
+    "showCompositionBorders": false,
+    "showMapLimits": false
+  },
   "modes": [
     {
       "id": "metropole-only",

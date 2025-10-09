@@ -83,7 +83,9 @@
     "language": "Langue",
     "resolution": "Résolution des données",
     "region": "Atlas",
-    "graticule": "Afficher le graticule"
+    "graticule": "Afficher le graticule",
+    "compositionBorders": "Afficher les bordures de composition",
+    "mapLimits": "Afficher les limites de la carte"
   },
   "common": {
     "loading": "Chargement...",

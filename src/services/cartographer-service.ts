@@ -21,6 +21,8 @@ export interface SimpleRenderOptions extends RenderOptions {
   area?: number
   preserveScale?: boolean
   showGraticule?: boolean
+  showCompositionBorders?: boolean
+  showMapLimits?: boolean
 }
 
 export interface CompositeRenderOptions extends RenderOptions {
@@ -32,6 +34,8 @@ export interface CompositeRenderOptions extends RenderOptions {
   height: number
   settings?: CustomCompositeSettings
   showGraticule?: boolean
+  showCompositionBorders?: boolean
+  showMapLimits?: boolean
 }
 
 export interface CustomCompositeSettings {

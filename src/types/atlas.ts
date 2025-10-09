@@ -13,6 +13,15 @@ import type { CompositeProjectionConfig, CompositeProjectionDefaults, ViewMode }
 import type { GeoDataConfig } from '@/types/geo-data'
 
 /**
+ * Default map display preferences loaded from atlas configuration.
+ */
+export interface MapDisplayDefaults {
+  showGraticule?: boolean
+  showCompositionBorders?: boolean
+  showMapLimits?: boolean
+}
+
+/**
  * Split mode configuration
  *
  * Defines labels and codes for split view mode where
@@ -93,6 +102,9 @@ export interface AtlasConfig {
 
   /** Whether to show the territory selector in the UI */
   hasTerritorySelector?: boolean
+
+  /** Default map display options sourced from atlas configuration */
+  mapDisplayDefaults?: MapDisplayDefaults
 
   /**
    * Atlas pattern type - defines structural relationship between territories
