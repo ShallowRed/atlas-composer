@@ -74,10 +74,13 @@ const viewModeOptions = computed(() => {
 // Methods
 // updateMaps() removed - MapRenderer now watches store changes automatically
 
-// Get projection for metropolitan France in individual mode
+// Get projection for mainland in individual mode
 function getMainLandProjection() {
   if (configStore.projectionMode === 'individual') {
-    return configStore.territoryProjections['FR-MET'] || configStore.selectedProjection
+    const mainlandCode = configStore.currentAtlasConfig.splitModeConfig?.mainlandCode
+    if (mainlandCode) {
+      return configStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+    }
   }
   return configStore.selectedProjection
 }
@@ -344,7 +347,7 @@ watch(() => configStore.territoryMode, async () => {
                   </div>
 
                   <!-- Empty State -->
-                  <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
+                  <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
                     <p>{{ t('territory.noTerritories') }}</p>
                   </div>
                 </div>
@@ -391,7 +394,7 @@ watch(() => configStore.territoryMode, async () => {
                 </div>
 
                 <!-- Empty State -->
-                <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-center p-4 text-gray-500">
+                <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
                   <p>{{ t('territory.noTerritories') }}</p>
                   <p class="text-sm mt-2">
                     {{ t('territory.checkData') }}

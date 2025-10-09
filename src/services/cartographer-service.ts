@@ -1,3 +1,4 @@
+import type { ProjectionParams } from '@/core/atlases/loader'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import * as Plot from '@observablehq/plot'
 import { CompositeProjection } from '@/services/composite-projection'
@@ -42,9 +43,18 @@ export class Cartographer {
   private geoDataService: GeoDataService
   public customComposite: CompositeProjection | null = null
 
-  constructor(geoDataConfig: GeoDataConfig, compositeConfig?: CompositeProjectionConfig) {
+  constructor(
+    geoDataConfig: GeoDataConfig,
+    compositeConfig?: CompositeProjectionConfig,
+    projectionParams?: ProjectionParams,
+  ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
+
+    // Set projection parameters if provided
+    if (projectionParams) {
+      this.projectionService.setProjectionParams(projectionParams)
+    }
 
     // Only create CompositeProjection if config is provided
     if (compositeConfig) {
