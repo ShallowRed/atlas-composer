@@ -2,7 +2,7 @@
   "$schema": "./schema.json",
   "id": "world",
   "name": "World",
-  "description": "Complete world map with all countries",
+  "description": "World atlas with wildcard territory loading (work in progress)",
   "viewModes": ["unified"],
   "defaultViewMode": "unified",
   "projectionPreferences": {
@@ -10,33 +10,14 @@
       "natural-earth",
       "robinson",
       "mercator",
-      "equirectangular",
       "miller",
-      "eckert4",
-      "winkel3"
+      "eckert4"
     ],
     "default": {
       "mainland": "natural-earth",
       "overseas": "natural-earth"
-    },
-    "prohibited": [
-      "conic-conformal-france",
-      "conic-conformal-portugal",
-      "conic-conformal-europe"
-    ]
+    }
   },
   "territories": "*",
-  "modes": [
-    {
-      "id": "all-territories",
-      "label": "All territories",
-      "territories": ["*"]
-    },
-    {
-      "id": "all-except-antarctica",
-      "label": "All except Antarctica",
-      "territories": ["*"],
-      "excludeTerritories": ["110"]
-    }
-  ]
+  "modes": []
 }

@@ -15,12 +15,37 @@
       "pattern": "^[a-z][a-z0-9-]*$"
     },
     "name": {
-      "type": "string",
-      "description": "Human-readable name"
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"]
+        }
+      ],
+      "description": "Human-readable name (string or i18n object)"
     },
     "description": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"]
+        }
+      ],
+      "description": "Brief description of the atlas (string or i18n object)"
+    },
+    "pattern": {
       "type": "string",
-      "description": "Brief description of the atlas"
+      "enum": ["single-focus", "equal-members", "hierarchical"],
+      "description": "Atlas pattern type: 'single-focus' for traditional atlases with one primary territory (mainland) and secondary territories (overseas), 'equal-members' for atlases where all territories are equal (EU, world), 'hierarchical' for complex multi-level structures (future)"
     },
     "viewModes": {
       "type": "array",
@@ -156,133 +181,142 @@
       }
     },
     "territories": {
-      "type": "array",
-      "description": "List of territories",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["id", "code", "name", "role"],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
-          },
-          "code": {
-            "type": "string",
-            "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
-            "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
-          },
-          "name": {
-            "type": "string",
-            "description": "Territory name"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["primary", "secondary", "member", "embedded"],
-            "description": "Territory role in the atlas. Use 'primary' for single-focus primary territory (mainland), 'member' for equal-members territories (EU member states, all world countries), 'secondary' for remote territories (overseas, islands), 'embedded' for enclaves/exclaves"
-          },
-          "iso": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 3166-1 alpha-3 code"
-          },
-          "region": {
-            "type": "string",
-            "description": "Geographic sub-region (e.g., 'Atlantic', 'Indian Ocean')"
-          },
-          "bounds": {
-            "type": "array",
-            "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
-            "items": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "minItems": 2,
-            "maxItems": 2
-          },
-          "center": {
-            "type": "array",
-            "description": "Geographic center [longitude, latitude]",
-            "items": { "type": "number" },
-            "minItems": 2,
-            "maxItems": 2
-          },
-          "extraction": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["*"],
+          "description": "Use '*' to load all territories from data file (for equal-members patterns like world atlas)"
+        },
+        {
+          "type": "array",
+          "description": "List of territories",
+          "minItems": 1,
+          "items": {
             "type": "object",
-            "description": "How to extract this territory from Natural Earth data",
+            "required": ["id", "code", "name", "role"],
             "properties": {
-              "extractFrom": {
+              "id": {
                 "type": "string",
-                "description": "Parent territory ID to extract from"
+                "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
               },
-              "mainlandPolygon": {
-                "type": "integer",
-                "description": "Index of the mainland polygon in MultiPolygon",
-                "minimum": 0
+              "code": {
+                "type": "string",
+                "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
+                "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
               },
-              "polygonIndices": {
+              "name": {
+                "type": "string",
+                "description": "Territory name"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["primary", "secondary", "member", "embedded"],
+                "description": "Territory role in the atlas. Use 'primary' for single-focus primary territory (mainland), 'member' for equal-members territories (EU member states, all world countries), 'secondary' for remote territories (overseas, islands), 'embedded' for enclaves/exclaves"
+              },
+              "iso": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$",
+                "description": "ISO 3166-1 alpha-3 code"
+              },
+              "region": {
+                "type": "string",
+                "description": "Geographic sub-region (e.g., 'Atlantic', 'Indian Ocean')"
+              },
+              "bounds": {
                 "type": "array",
-                "description": "Indices of polygons to extract",
-                "items": { "type": "integer", "minimum": 0 },
-                "minItems": 1
-              }
-            }
-          },
-          "rendering": {
-            "type": "object",
-            "description": "Rendering configuration for frontend",
-            "properties": {
-              "offset": {
+                "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+                "items": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "center": {
                 "type": "array",
-                "description": "Translation offset [x, y]",
+                "description": "Geographic center [longitude, latitude]",
                 "items": { "type": "number" },
                 "minItems": 2,
                 "maxItems": 2
               },
-              "projectionType": {
-                "type": "string",
-                "enum": [
-                  "mercator",
-                  "transverse-mercator",
-                  "equirectangular",
-                  "miller",
-                  "albers",
-                  "conic-conformal",
-                  "conic-equal-area",
-                  "conic-equidistant",
-                  "azimuthal-equal-area",
-                  "azimuthal-equidistant",
-                  "orthographic",
-                  "stereographic",
-                  "gnomonic",
-                  "equal-earth",
-                  "mollweide",
-                  "sinusoidal",
-                  "robinson",
-                  "winkel3",
-                  "bonne",
-                  "aitoff",
-                  "hammer",
-                  "bertin1953",
-                  "polyhedral-waterman"
-                ],
-                "description": "Specific projection type for this territory (must match projection service options)"
+              "extraction": {
+                "type": "object",
+                "description": "How to extract this territory from Natural Earth data",
+                "properties": {
+                  "extractFrom": {
+                    "type": "string",
+                    "description": "Parent territory ID to extract from"
+                  },
+                  "mainlandPolygon": {
+                    "type": "integer",
+                    "description": "Index of the mainland polygon in MultiPolygon",
+                    "minimum": 0
+                  },
+                  "polygonIndices": {
+                    "type": "array",
+                    "description": "Indices of polygons to extract",
+                    "items": { "type": "integer", "minimum": 0 },
+                    "minItems": 1
+                  }
+                }
               },
-              "scale": {
-                "type": "number",
-                "description": "Scale factor",
-                "minimum": 0
+              "rendering": {
+                "type": "object",
+                "description": "Rendering configuration for frontend",
+                "properties": {
+                  "offset": {
+                    "type": "array",
+                    "description": "Translation offset [x, y]",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "projectionType": {
+                    "type": "string",
+                    "enum": [
+                      "mercator",
+                      "transverse-mercator",
+                      "equirectangular",
+                      "miller",
+                      "albers",
+                      "conic-conformal",
+                      "conic-equal-area",
+                      "conic-equidistant",
+                      "azimuthal-equal-area",
+                      "azimuthal-equidistant",
+                      "orthographic",
+                      "stereographic",
+                      "gnomonic",
+                      "equal-earth",
+                      "mollweide",
+                      "sinusoidal",
+                      "robinson",
+                      "winkel3",
+                      "bonne",
+                      "aitoff",
+                      "hammer",
+                      "bertin1953",
+                      "polyhedral-waterman"
+                    ],
+                    "description": "Specific projection type for this territory (must match projection service options)"
+                  },
+                  "scale": {
+                    "type": "number",
+                    "description": "Scale factor",
+                    "minimum": 0
+                  }
+                }
               }
             }
           }
         }
-      }
+      ]
     },
     "modes": {
       "type": "array",
-      "description": "UI modes for selecting territory combinations",
+      "description": "UI modes for selecting territory combinations (legacy, use territoryModes instead)",
       "items": {
         "type": "object",
         "required": ["id", "label", "territories"],
@@ -304,6 +338,64 @@
           }
         }
       }
+    },
+    "territoryModes": {
+      "type": "array",
+      "description": "UI modes for selecting territory combinations (replaces modes)",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "territoryCodes"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Mode identifier",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "name": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"]
+              }
+            ],
+            "description": "UI label (string or i18n object)"
+          },
+          "territoryCodes": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["*"],
+                "description": "Use '*' to include all territories"
+              },
+              {
+                "type": "array",
+                "description": "Territory codes included in this mode",
+                "items": { "type": "string" },
+                "minItems": 1
+              }
+            ]
+          },
+          "exclude": {
+            "type": "array",
+            "description": "Territory codes to exclude when using '*' for all territories",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "defaultTerritoryMode": {
+      "type": "string",
+      "description": "Default territory mode ID to use on initial load",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "defaultProjection": {
+      "type": "string",
+      "description": "Default projection ID for this atlas (e.g., 'naturalEarth1', 'robinson')"
     },
     "groups": {
       "type": "array",

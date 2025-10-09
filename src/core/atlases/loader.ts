@@ -41,6 +41,7 @@ export interface LoadedTerritories {
   mainlands?: TerritoryConfig[]
   overseas: TerritoryConfig[]
   all: TerritoryConfig[]
+  isWildcard?: boolean // True if territories should be loaded dynamically from data file
 }
 
 export interface LoadedAtlasConfig {
@@ -78,12 +79,31 @@ function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
 }
 
 /**
- * Extract territories from config
- * Supports two patterns:
- * 1. Traditional: 1 mainland + N overseas territories (France, Portugal)
- * 2. Multi-mainland: N member-states + M overseas territories (EU, Malaysia)
+ * Extract territories and detect pattern type from role usage
  */
 function extractTerritories(config: JSONAtlasConfig) {
+  // Handle wildcard "*" - return placeholder for dynamic loading
+  // Territories will be loaded by geo-data service from topology data
+  if (config.territories === '*') {
+    // Create placeholder territory for wildcard atlases
+    const placeholderTerritory: TerritoryConfig = {
+      code: 'WORLD',
+      name: 'World',
+      center: [0, 0],
+      offset: [0, 0],
+      bounds: [[-180, -90], [180, 90]],
+    }
+    
+    return {
+      type: 'equal-members' as const,
+      mainland: placeholderTerritory,
+      mainlands: [placeholderTerritory],
+      overseas: [],
+      all: [placeholderTerritory],
+      isWildcard: true, // Flag for geo-data service
+    }
+  }
+
   // Collect primary territories and members
   const primaryTerritories = config.territories.filter(t => t.role === 'primary')
   const memberTerritories = config.territories.filter(t => t.role === 'member')

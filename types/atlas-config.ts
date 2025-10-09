@@ -45,9 +45,33 @@ export interface JSONTerritoryConfig {
  */
 export interface JSONAtlasConfig {
   id: string
-  name: string
-  description: string
-  territories: JSONTerritoryConfig[]
+  name: string | { en: string, fr?: string }
+  description: string | { en: string, fr?: string }
+  pattern?: 'single-focus' | 'equal-members' | 'hierarchical'
+  territories: '*' | JSONTerritoryConfig[]
+  defaultProjection?: string
+  territoryModes?: Array<{
+    id: string
+    name: string | { en: string, fr?: string }
+    territoryCodes: '*' | string[]
+    exclude?: string[]
+  }>
+  defaultTerritoryMode?: string
+  metadata?: {
+    source?: string
+    resolution?: string
+    dataFiles?: {
+      '50m'?: {
+        territories?: string
+        metadata?: string
+      }
+      '10m'?: {
+        territories?: string
+        metadata?: string
+      }
+    }
+  }
+  // Legacy fields (for backward compatibility)
   projectionPreferences?: {
     defaultProjection?: string
     compositeModes?: string[]
@@ -62,5 +86,4 @@ export interface JSONAtlasConfig {
     territoriesTitle: string
   }
   territoryModeOptions?: Array<{ value: string, label: string }>
-  defaultTerritoryMode?: string
 }
