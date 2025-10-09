@@ -270,6 +270,11 @@ export class ProjectionFactory {
         return null
     }
 
+    if (!projectionFn) {
+      console.error(`[ProjectionFactory] Projection function is null for: ${id}`)
+      return null
+    }
+
     const projection = projectionFn()
     // Note: Composite projections handle their own internal parameters
     // We only apply top-level parameters like scale and translate
