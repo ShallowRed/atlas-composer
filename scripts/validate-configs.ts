@@ -57,9 +57,9 @@ async function loadBackendConfig(country: string): Promise<BackendConfig | null>
 }
 
 /**
- * Load generated geodata for a country
+ * Load generated geodata for a country at a specific resolution
  */
-async function loadGeneratedData(country: string, resolution = '50m'): Promise<GeneratedData | null> {
+async function loadGeneratedData(country: string, resolution: string): Promise<GeneratedData | null> {
   try {
     const dataPath = resolve(process.cwd(), `src/public/data/${country}-territories-${resolution}.json`)
     const content = await readFile(dataPath, 'utf-8')
@@ -68,6 +68,23 @@ async function loadGeneratedData(country: string, resolution = '50m'): Promise<G
   catch {
     return null
   }
+}
+
+/**
+ * Find all available resolutions for a country
+ */
+async function findAvailableResolutions(country: string): Promise<string[]> {
+  const resolutions = ['10m', '50m', '110m']
+  const available: string[] = []
+
+  for (const resolution of resolutions) {
+    const data = await loadGeneratedData(country, resolution)
+    if (data) {
+      available.push(resolution)
+    }
+  }
+
+  return available
 }
 
 /**
@@ -110,45 +127,65 @@ async function validateCountry(country: string): Promise<ValidationSummary> {
     results.errors.push(`Atlas config not found (configs/${country}.json)`)
   }
   else {
-    results.info.push(`Atlas config found: ${Object.keys(backendConfig.territories).length} territory definitions`)
+    const territoryCount = Object.keys(backendConfig.territories).length
+    const isWildcard = territoryCount === 0
+    if (isWildcard) {
+      results.info.push(`Atlas config found: wildcard atlas (territories loaded dynamically)`)
+    }
+    else {
+      results.info.push(`Atlas config found: ${territoryCount} territory definitions`)
+    }
   }
 
-  // Check generated data
-  const generatedData = await loadGeneratedData(country)
-  if (!generatedData) {
-    results.warnings.push(`Generated data not found (run: pnpm geodata:prepare ${country})`)
+  // Check generated data for all available resolutions
+  const availableResolutions = await findAvailableResolutions(country)
+  if (availableResolutions.length === 0) {
+    results.warnings.push(`No generated data found for any resolution (run: pnpm geodata:prepare ${country})`)
   }
   else {
-    const dataFormat = generatedData.type
-    let featureCount = 0
-    if (dataFormat === 'FeatureCollection' && 'features' in generatedData) {
-      featureCount = generatedData.features.length
-    }
-    else if ('objects' in generatedData && generatedData.objects?.territories?.geometries) {
-      featureCount = generatedData.objects.territories.geometries.length
-    }
-    results.info.push(`Generated data found: ${dataFormat} with ${featureCount} features`)
-  }
+    results.info.push(`Available resolutions: ${availableResolutions.join(', ')}`)
 
-  // Cross-validation
-  if (backendConfig && generatedData) {
-    const backendCodes = extractBackendCodes(backendConfig)
-    const dataCodes = extractDataCodes(generatedData)
+    // Validate each resolution
+    for (const resolution of availableResolutions) {
+      const generatedData = await loadGeneratedData(country, resolution)
+      if (generatedData) {
+        const dataFormat = generatedData.type
+        let featureCount = 0
+        if (dataFormat === 'FeatureCollection' && 'features' in generatedData) {
+          featureCount = generatedData.features.length
+        }
+        else if ('objects' in generatedData && generatedData.objects?.territories?.geometries) {
+          featureCount = generatedData.objects.territories.geometries.length
+        }
+        results.info.push(`  ${resolution}: ${dataFormat} with ${featureCount} features`)
 
-    // Check if all backend codes are in data
-    const missingInData = backendCodes.filter(code => !dataCodes.includes(code))
-    if (missingInData.length > 0) {
-      results.errors.push(`Territories in atlas config but not in data: ${missingInData.join(', ')}`)
-    }
+        // Cross-validation (only for non-wildcard atlases)
+        if (backendConfig && Object.keys(backendConfig.territories).length > 0) {
+          const backendCodes = extractBackendCodes(backendConfig)
+          const dataCodes = extractDataCodes(generatedData)
 
-    // Check if all data codes are in backend
-    const orphanedInData = dataCodes.filter(code => !backendCodes.includes(code))
-    if (orphanedInData.length > 0) {
-      results.warnings.push(`Territories in data but not in atlas config: ${orphanedInData.join(', ')}`)
-    }
+          // Check if all backend codes are in data
+          const missingInData = backendCodes.filter(code => !dataCodes.includes(code))
+          if (missingInData.length > 0) {
+            results.errors.push(`  ${resolution}: Territories in atlas config but not in data: ${missingInData.join(', ')}`)
+          }
 
-    if (missingInData.length === 0 && orphanedInData.length === 0) {
-      results.info.push(`✓ Atlas config and data are in sync (${backendCodes.length} territories)`)
+          // Check if all data codes are in backend
+          const orphanedInData = dataCodes.filter(code => !backendCodes.includes(code))
+          if (orphanedInData.length > 0) {
+            results.warnings.push(`  ${resolution}: Territories in data but not in atlas config: ${orphanedInData.join(', ')}`)
+          }
+
+          if (missingInData.length === 0 && orphanedInData.length === 0) {
+            results.info.push(`  ${resolution}: ✓ Atlas config and data are in sync (${backendCodes.length} territories)`)
+          }
+        }
+        else if (backendConfig) {
+          // Wildcard atlas - just report feature count
+          const dataCodes = extractDataCodes(generatedData)
+          results.info.push(`  ${resolution}: ✓ Wildcard atlas with ${dataCodes.length} territories loaded`)
+        }
+      }
     }
   }
 

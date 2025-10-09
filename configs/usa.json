@@ -3,6 +3,10 @@
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, Hawaii, and territories",
+  "dataSources": {
+    "territories": "usa-territories-50m.json",
+    "metadata": "usa-metadata-50m.json"
+  },
   "viewModes": [
     "composite-existing",
     "composite-custom",
@@ -15,10 +19,6 @@
     "albers-usa-composite",
     "albers-usa-territories"
   ],
-  "dataSources": {
-    "territories": "usa-territories-50m.json",
-    "metadata": "usa-metadata-50m.json"
-  },
   "defaultCompositeProjection": "albers-usa",
   "projection": {
     "center": {
@@ -44,10 +44,6 @@
   },
   "projectionPreferences": {
     "recommended": [
-      "albers-usa",
-      "albers-usa-composite",
-      "albers-usa-territories",
-      "albers",
       "conic-conformal",
       "conic-equal-area"
     ],
@@ -86,7 +82,7 @@
           100,
           -50
         ],
-        "projectionType": "albers",
+        "projectionType": "conic-conformal",
         "parallels": [
           29.5,
           45.5

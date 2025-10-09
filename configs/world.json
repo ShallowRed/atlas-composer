@@ -3,12 +3,12 @@
   "id": "world",
   "name": "World",
   "description": "World atlas with wildcard territory loading (work in progress)",
+  "dataSources": {
+    "territories": "world-countries-110m.json",
+    "metadata": "world-metadata-110m.json"
+  },
   "viewModes": ["unified"],
   "defaultViewMode": "unified",
-  "dataSources": {
-    "territories": "world-countries-50m.json",
-    "metadata": "world-metadata-50m.json"
-  },
   "projectionPreferences": {
     "recommended": [
       "natural-earth",

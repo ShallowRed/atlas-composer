@@ -327,7 +327,7 @@ function filterTerritories(
     // For wildcard atlases, keep all territories with their original Natural Earth properties
     const processedFeatures = featureCollection.features.map((feature): GeoJSONFeature => {
       const featureId = String(feature.id).padStart(3, '0')
-      
+
       return {
         ...feature,
         id: featureId,

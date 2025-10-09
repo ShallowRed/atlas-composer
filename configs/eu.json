@@ -3,16 +3,16 @@
   "id": "eu",
   "name": "Europe",
   "description": "European countries including EU members (27), non-EU states, and overseas territories",
+  "dataSources": {
+    "territories": "eu-territories-50m.json",
+    "metadata": "eu-metadata-50m.json"
+  },
   "viewModes": [
     "composite-existing",
     "unified",
     "split"
   ],
   "defaultViewMode": "composite-existing",
-  "dataSources": {
-    "territories": "eu-territories-50m.json",
-    "metadata": "eu-metadata-50m.json"
-  },
   "compositeProjections": [
     "conic-conformal-europe"
   ],
@@ -266,6 +266,34 @@
       ],
       "extraction": {
         "mainlandPolygon": 1
+      },
+      "rendering": {}
+    },
+    {
+      "id": "250-COR",
+      "role": "member",
+      "code": "FR-COR",
+      "name": "Corsica",
+      "iso": "FRA",
+      "center": [
+        9.06,
+        42.20
+      ],
+      "bounds": [
+        [
+          8.57,
+          41.39
+        ],
+        [
+          9.56,
+          43.02
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          0
+        ]
       },
       "rendering": {}
     },

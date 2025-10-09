@@ -1,7 +1,5 @@
-- Default projection for mainland in split mode + usa
-- Usa + custom composite rendering
 - (baseScaleMultiplier = 1) !== (ui range = 1)
 - Corsica is missing in EU
-- graticules
+- I would like showGraticules default value to be set in json config (false default)
 - any in config loader
-- other resolutions than 50 not validating
+- add "display compositing border" option and "display map limits" option

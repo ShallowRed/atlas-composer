@@ -185,7 +185,6 @@ function createTerritoryModes(
         // Non-wildcard atlas with explicit territories: expand now
         codes = [...allTerritoryCodes]
 
-
         // Handle exclusions
         if (mode.exclude && Array.isArray(mode.exclude)) {
           codes = codes.filter((code: string) => !mode.exclude.includes(code))
