@@ -197,7 +197,16 @@ watch(() => configStore.territoryMode, async () => {
             type="select"
             :options="getAvailableAtlases()"
           />
-
+          <!-- Territory Selection (for composite modes) -->
+          <FormControl
+            v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
+            v-model="configStore.territoryMode"
+            :label="t('mode.select')"
+            icon="ri-map-pin-range-line"
+            type="select"
+            :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
+          />
+          <div class="divider my-2" />
           <!-- Main View Mode Selector -->
           <FormControl
             v-model="configStore.viewMode"
@@ -247,16 +256,6 @@ watch(() => configStore.territoryMode, async () => {
             v-model="configStore.scalePreservation"
             :label="t('territory.scalePreservation')"
             type="toggle"
-          />
-
-          <!-- Territory Selection (for composite modes) -->
-          <FormControl
-            v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
-            v-model="configStore.territoryMode"
-            :label="t('mode.select')"
-            icon="ri-map-pin-range-line"
-            type="select"
-            :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
           />
         </div>
       </CardContainer>

@@ -54,16 +54,14 @@ export interface ProjectionCapabilities {
  * Projection suitability for different contexts
  */
 export interface ProjectionSuitability {
-  /** Contexts where this projection is excellent (⭐⭐⭐) */
+  /** Contexts where this projection is excellent (+++) */
   excellent?: GeographicContext[]
-  /** Contexts where this projection is good (⭐⭐) */
+  /** Contexts where this projection is good (++) */
   good?: GeographicContext[]
-  /** Contexts where this projection is usable (⭐) */
+  /** Contexts where this projection is usable (+) */
   usable?: GeographicContext[]
   /** Contexts where this projection is NOT recommended */
   avoid?: GeographicContext[]
-  /** Atlas IDs where this projection is recommended */
-  recommendedForAtlases?: string[]
 }
 
 /**

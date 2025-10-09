@@ -35,7 +35,6 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
       { territoryType: 'mainland', region: 'europe' },
       { territoryType: 'overseas', scale: 'regional' },
     ],
-    recommendedForAtlases: ['france'],
   },
 
   defaultParameters: {
@@ -82,7 +81,6 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
       { territoryType: 'mainland', region: 'europe' },
       { territoryType: 'archipelago', region: 'europe' },
     ],
-    recommendedForAtlases: ['portugal'],
   },
 
   defaultParameters: {
@@ -128,7 +126,6 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
       { territoryType: 'mainland', region: 'europe' },
       { territoryType: 'overseas', scale: 'regional' },
     ],
-    recommendedForAtlases: ['eu'],
   },
 
   defaultParameters: {
@@ -176,7 +173,6 @@ export const ALBERS_USA: ProjectionDefinition = {
       { territoryType: 'overseas', region: 'americas' },
       { territoryType: 'overseas', region: 'oceania' },
     ],
-    recommendedForAtlases: ['usa'],
   },
 
   defaultParameters: {
@@ -224,7 +220,6 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
       { territoryType: 'overseas', region: 'americas' },
       { territoryType: 'overseas', region: 'oceania' },
     ],
-    recommendedForAtlases: ['usa'],
   },
 
   defaultParameters: {
@@ -266,7 +261,6 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
       { territoryType: 'overseas', region: 'americas' },
       { territoryType: 'overseas', region: 'oceania' },
     ],
-    recommendedForAtlases: ['usa'],
   },
 
   defaultParameters: {

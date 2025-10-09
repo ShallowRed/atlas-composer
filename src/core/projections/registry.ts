@@ -157,17 +157,7 @@ class ProjectionRegistry {
         if (prohibitedProjections.includes(def.id)) {
           return false
         }
-        // Include if recommended for this atlas
-        if (
-          def.suitability.recommendedForAtlases?.includes(context.atlasId!)
-        ) {
-          return true
-        }
-        // Include if no specific atlas preference
-        return (
-          !def.suitability.recommendedForAtlases
-          || def.suitability.recommendedForAtlases.length === 0
-        )
+        return true
       })
     }
 
@@ -243,18 +233,8 @@ class ProjectionRegistry {
       let level: ProjectionRecommendation['level'] = 'usable'
       let reason = 'projections.recommendations.general'
 
-      // Check if projection is specifically recommended for this atlas in its definition
-      // (e.g., composite projections like conic-conformal-france for france atlas)
-      if (
-        context.atlasId
-        && projection.suitability.recommendedForAtlases?.includes(context.atlasId)
-      ) {
-        score += 50 // Highest priority - projection designed for this atlas
-        level = 'excellent'
-        reason = 'projections.recommendations.atlasOptimized'
-      }
       // Check if projection is in atlas config recommended list
-      else if (atlasPreferences?.recommended?.includes(projection.id)) {
+      if (atlasPreferences?.recommended?.includes(projection.id)) {
         score += 40
         level = 'excellent'
         reason = 'projections.recommendations.atlasRecommended'

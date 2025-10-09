@@ -47,9 +47,6 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
       { latitudeRange: { min: -10, max: 10 } }, // Not good for equatorial regions
       { scale: 'global' }, // Not suitable for world maps
     ],
-    // Note: Not recommended for france/portugal/eu because there are dedicated
-    // composite projections (conic-conformal-france, etc.) for those atlases
-    recommendedForAtlases: [],
   },
 
   defaultParameters: {
@@ -105,9 +102,6 @@ export const ALBERS: ProjectionDefinition = {
       { latitudeRange: { min: -10, max: 10 } },
       { scale: 'global' },
     ],
-    // Note: Not recommended for france/portugal/eu because there are dedicated
-    // composite projections for those atlases
-    recommendedForAtlases: [],
   },
 
   defaultParameters: {

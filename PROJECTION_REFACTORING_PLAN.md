@@ -94,7 +94,7 @@ src/core/projections/
 
 ---
 
-### Phase 1: Core Infrastructure ⭐⭐⭐ (High Priority)
+### Phase 1: Core Infrastructure +++ (High Priority)
 
 #### Task 1.1: Type Definitions
 - [x] **1.1.1** Create `src/core/projections/` directory
@@ -115,9 +115,9 @@ src/core/projections/
 #### Task 1.2: Core Projection Definitions
 - [x] **1.2.1** Create `src/core/projections/definitions/` directory
 - [x] **1.2.2** Create `src/core/projections/definitions/composite.ts` with:
-  - [x] `conic-conformal-france` definition ⭐ CRITICAL
-  - [x] `conic-conformal-portugal` definition ⭐ CRITICAL
-  - [x] `conic-conformal-europe` definition ⭐ CRITICAL
+  - [x] `conic-conformal-france` definition + CRITICAL
+  - [x] `conic-conformal-portugal` definition + CRITICAL
+  - [x] `conic-conformal-europe` definition + CRITICAL
   - [x] Export `COMPOSITE_PROJECTIONS` array
 - [x] **1.2.3** Create `src/core/projections/definitions/conic.ts` with:
   - [x] `conic-conformal` definition (for custom composite mode)
@@ -200,7 +200,7 @@ src/core/projections/
 
 ---
 
-### Phase 2: Integration with Existing Code ⭐⭐
+### Phase 2: Integration with Existing Code ++
 
 #### Task 2.1: Refactor ProjectionService
 - [x] **2.1.1** Backup current `src/services/projection-service.ts`
@@ -282,7 +282,7 @@ src/core/projections/
 
 ---
 
-### Phase 3: Atlas-Specific Configuration ⭐
+### Phase 3: Atlas-Specific Configuration +
 
 #### Task 3.1: Schema Updates
 - [x] **3.1.1** Backup `configs/schema.json`
@@ -330,7 +330,7 @@ src/core/projections/
 
 ---
 
-### Phase 4: Enhanced UI Features ⭐
+### Phase 4: Enhanced UI Features +
 
 #### Task 4.1: Smart Projection Selector
 - [x] **4.1.1** Update projection selector in `MapView.vue`

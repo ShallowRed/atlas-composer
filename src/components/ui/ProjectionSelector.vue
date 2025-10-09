@@ -136,11 +136,11 @@ function getRecommendationBadge(projectionId: string): string {
     return ''
 
   if (rec.level === 'excellent')
-    return '⭐⭐⭐'
+    return '+++'
   if (rec.level === 'good')
-    return '⭐⭐'
+    return '++'
   if (rec.level === 'usable')
-    return '⭐'
+    return '+'
   return ''
 }
 
@@ -337,26 +337,19 @@ function handleCancelProhibited() {
     </Transition>
 
     <!-- Recommendation hint for selected projection -->
-    <Transition
-      enter-active-class="transition-all duration-200"
-      leave-active-class="transition-all duration-200"
-      enter-from-class="opacity-0 -translate-y-1"
-      leave-to-class="opacity-0 -translate-y-1"
+    <div
+      v-if="showRecommendations && modelValue && getRecommendation(modelValue)"
+      class="label mt-3"
     >
-      <div
-        v-if="showRecommendations && modelValue && getRecommendation(modelValue)"
-        class="label"
-      >
-        <span class="label-text-alt flex items-center gap-1">
-          <span :class="getRecommendationClass(modelValue)">
-            {{ getRecommendationBadge(modelValue) }}
-          </span>
-          <span class="opacity-70">
-            {{ getRecommendationTooltip(modelValue) }}
-          </span>
+      <span class="label-text-alt flex items-center gap-2">
+        <span :class="getRecommendationClass(modelValue)">
+          {{ getRecommendationBadge(modelValue) }}
         </span>
-      </div>
-    </Transition>
+        <span class="opacity-70">
+          {{ getRecommendationTooltip(modelValue) }}
+        </span>
+      </span>
+    </div>
 
     <!-- Validation warning toast -->
     <ToastNotification
