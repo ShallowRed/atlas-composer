@@ -3,10 +3,11 @@
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, and Hawaii",
-  "viewModes": ["split", "composite-custom", "unified"],
-  "defaultViewMode": "composite-custom",
+  "viewModes": ["composite-existing", "composite-custom", "split", "unified"],
+  "defaultViewMode": "composite-existing",
   "projectionPreferences": {
     "recommended": [
+      "albers-usa",
       "albers",
       "conic-conformal",
       "conic-equal-area"

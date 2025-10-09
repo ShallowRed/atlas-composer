@@ -134,10 +134,60 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
 }
 
 /**
+ * Albers USA - Composite projection for United States
+ * Optimized for the contiguous United States, Alaska, and Hawaii
+ * This is the classic D3 composite projection for the USA
+ */
+export const ALBERS_USA: ProjectionDefinition = {
+  id: 'albers-usa',
+  name: 'projections.albersUsa.name',
+  description: 'projections.albersUsa.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['area'],
+    distorts: ['angle', 'distance'],
+    supportsComposite: false, // Already composite
+    supportsSplit: true, // Can be used in split view mode
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'americas' },
+      { territoryType: 'overseas', region: 'americas' },
+      { territoryType: 'overseas', region: 'oceania' },
+    ],
+    recommendedForAtlases: ['usa'],
+  },
+
+  defaultParameters: {
+    // Parameters are handled by d3-geo albersUsa
+    center: [-98.5, 39.8], // Approximate center of contiguous USA
+  },
+
+  aliases: ['usa-composite', 'composite-usa', 'albers-us', 'albersUsa', 'conic-conformal-usa'],
+
+  metadata: {
+    infoUrl: 'https://d3js.org/d3-geo/conic#geoAlbersUsa',
+    experimental: false,
+    requiresCustomFit: true, // geoAlbersUsa has fixed positioning and needs manual scaling
+    customFit: {
+      defaultScale: 1070, // D3's default scale for geoAlbersUsa
+      referenceWidth: 960, // Reference width for the default scale
+    },
+  },
+}
+
+/**
  * Array of all composite projection definitions
  */
 export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL_FRANCE,
   CONIC_CONFORMAL_PORTUGAL,
   CONIC_CONFORMAL_EUROPE,
+  ALBERS_USA,
 ]

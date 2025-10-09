@@ -187,6 +187,15 @@ export interface ProjectionDefinition {
     infoUrl?: string
     /** Whether this is experimental */
     experimental?: boolean
+    /** Whether this projection requires custom fitting (no domain) */
+    requiresCustomFit?: boolean
+    /** Custom fit parameters for projections that need manual scaling */
+    customFit?: {
+      /** Default scale value */
+      defaultScale: number
+      /** Reference width for the default scale */
+      referenceWidth: number
+    }
   }
 }
 

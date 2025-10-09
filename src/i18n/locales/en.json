@@ -157,6 +157,10 @@
       "name": "Conic Conformal Europe (Composite)",
       "description": "Optimized composite projection for the European Union and its overseas territories"
     },
+    "albersUsa": {
+      "name": "Albers USA (Composite)",
+      "description": "Optimized composite projection for the United States, integrating the contiguous states, Alaska, and Hawaii"
+    },
     "conicConformal": {
       "name": "Conic Conformal (Lambert)",
       "description": "Preserves angles and shapes. Ideal for mid-latitude regions"

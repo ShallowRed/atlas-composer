@@ -113,8 +113,8 @@ function useRecommendedProjection(territoryCode: string) {
           name="territory-accordion"
           checked
         >
-        <div class="collapse-title font-semibold">
-          {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-sm opacity-60">({{ mainlandCode }})</span>
+        <div class="collapse-title text-sm font-semibold">
+          {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-base-content/50">({{ mainlandCode }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector -->
@@ -149,8 +149,8 @@ function useRecommendedProjection(territoryCode: string) {
           name="territory-accordion"
           :checked="configStore.projectionMode === 'uniform' && index === 0"
         >
-        <div class="collapse-title font-semibold">
-          {{ territory.name }} <span class="text-sm opacity-60">({{ territory.code }})</span>
+        <div class="collapse-title text-sm font-semibold text-sm font-semibold">
+          {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector (always shown in individual mode) -->
@@ -185,7 +185,7 @@ function useRecommendedProjection(territoryCode: string) {
             <!-- X Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
               <label class="label">
-                <span class="label-text text-sm font-medium">
+                <span class="label-text">
                   <i class="ri-arrow-left-right-line" />
                   {{ t('territory.positionX') }}: {{ Math.round(translations[territory.code]?.x || 0) }}px
                 </span>
@@ -209,7 +209,7 @@ function useRecommendedProjection(territoryCode: string) {
             <!-- Y Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
               <label class="label">
-                <span class="label-text text-sm font-medium">
+                <span class="label-text">
                   <i class="ri-arrow-up-down-line" />
                   {{ t('territory.positionY') }}: {{ Math.round(translations[territory.code]?.y || 0) }}px
                 </span>
@@ -233,7 +233,7 @@ function useRecommendedProjection(territoryCode: string) {
             <!-- Scale -->
             <div class="mb-2">
               <label class="label">
-                <span class="label-text text-sm font-medium">
+                <span class="label-text">
                   <i class="ri-expand-diagonal-line" />
                   {{ t('territory.scale') }}: {{ scales[territory.code]?.toFixed(2) }}×
                 </span>

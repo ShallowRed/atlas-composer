@@ -60,7 +60,6 @@ export class ProjectionService {
     if (definition.strategy === ProjectionStrategy.D3_COMPOSITE) {
       const projection = ProjectionFactory.createById(type)
       if (!projection) {
-        console.error(`[ProjectionService] Failed to create composite projection: ${type}`)
         return {
           type: 'conic-equal-area' as const,
           parallels: params.parallels.conic,
@@ -68,6 +67,34 @@ export class ProjectionService {
           domain: data,
         }
       }
+
+      // Check if projection requires custom fitting (e.g., geoAlbersUsa)
+      // These projections have fixed internal positioning and need manual scaling
+      if (definition.metadata?.requiresCustomFit) {
+        const customFit = definition.metadata.customFit
+        if (!customFit) {
+          console.error(`[ProjectionService] Projection ${type} requires custom fit but no customFit metadata provided`)
+          return {
+            type: () => projection,
+            domain: data,
+          }
+        }
+
+        return {
+          type: ({ width, height }: { width: number, height: number }) => {
+            const proj = ProjectionFactory.createById(type)
+            if (proj) {
+              // Scale proportionally based on metadata
+              const scaleFactor = width / customFit.referenceWidth
+              proj.scale(customFit.defaultScale * scaleFactor)
+              proj.translate([width / 2, height / 2])
+            }
+            return proj
+          },
+        }
+      }
+
+      // For standard composite projections (d3-composite-projections), use domain
       return {
         type: () => projection,
         domain: data,

@@ -296,6 +296,11 @@ export class ProjectionFactory {
         projectionFn = d3CompositeProjEurope.default
         break
 
+      case 'albers-usa':
+        // Use D3's built-in geoAlbersUsa
+        projectionFn = d3Geo.geoAlbersUsa
+        break
+
       default:
         console.error(`[ProjectionFactory] Unknown composite projection: ${id}`)
         return null
