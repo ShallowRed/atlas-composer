@@ -1,0 +1,29 @@
+{
+  "$schema": "./schema.json",
+  "id": "world",
+  "name": "World",
+  "description": "Complete world map with all countries",
+  "viewModes": ["unified"],
+  "defaultViewMode": "unified",
+  "projectionPreferences": {
+    "recommended": [
+      "natural-earth",
+      "robinson",
+      "mercator",
+      "equirectangular",
+      "miller",
+      "eckert4",
+      "winkel3"
+    ],
+    "default": {
+      "mainland": "natural-earth",
+      "overseas": "natural-earth"
+    },
+    "prohibited": [
+      "conic-conformal-france",
+      "conic-conformal-portugal",
+      "conic-conformal-europe"
+    ]
+  },
+  "territories": []
+}
