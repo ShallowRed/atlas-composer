@@ -85,6 +85,7 @@ export class ProjectionService {
             const proj = ProjectionFactory.createById(type)
             if (proj) {
               // Scale proportionally based on metadata
+              // Note: Plot applies inset internally, so we don't adjust dimensions here
               const scaleFactor = width / customFit.referenceWidth
               proj.scale(customFit.defaultScale * scaleFactor)
               proj.translate([width / 2, height / 2])

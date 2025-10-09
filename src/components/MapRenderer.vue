@@ -142,11 +142,12 @@ function appendRectOverlay(
   rectEl.setAttribute('width', rect.width.toFixed(2))
   rectEl.setAttribute('height', rect.height.toFixed(2))
   rectEl.setAttribute('fill', 'none')
-  rectEl.setAttribute('stroke', 'var(--bc)')
+  rectEl.setAttribute('stroke', 'currentColor')
   rectEl.setAttribute('stroke-width', strokeWidth.toString())
   rectEl.setAttribute('stroke-dasharray', dash)
   rectEl.setAttribute('stroke-linejoin', 'round')
   rectEl.setAttribute('class', className)
+  rectEl.setAttribute('opacity', '0.5')
   group.appendChild(rectEl)
   return rectEl
 }
@@ -159,10 +160,11 @@ function appendPathOverlay(
   const pathEl = document.createElementNS(group.namespaceURI, 'path') as SVGPathElement
   pathEl.setAttribute('d', pathData)
   pathEl.setAttribute('fill', 'none')
-  pathEl.setAttribute('stroke', 'var(--bc)')
+  pathEl.setAttribute('stroke', 'currentColor')
   pathEl.setAttribute('stroke-width', '1.25')
   pathEl.setAttribute('stroke-dasharray', '8 4')
   pathEl.setAttribute('stroke-linejoin', 'round')
+  pathEl.setAttribute('opacity', '0.5')
   pathEl.setAttribute('class', className)
   group.appendChild(pathEl)
   return pathEl
@@ -228,6 +230,10 @@ function createPathRecorder() {
   }
 }
 
+/**
+ * Creates a path string for composite projection borders
+ * Uses getCompositionBorders() or drawCompositionBorders() from d3-composite-projections
+ */
 function createCompositeBorderPath(
   projectionId: string | undefined,
   width: number,
@@ -247,6 +253,7 @@ function createCompositeBorderPath(
     return null
   }
 
+  // Apply scale and translation to match the rendered map
   const customFit = definition.metadata?.customFit
   if (customFit) {
     const scaleFactor = width / customFit.referenceWidth
@@ -257,15 +264,34 @@ function createCompositeBorderPath(
     projection.translate([width / 2, height / 2])
   }
 
+  // Try getCompositionBorders first (convenience method that returns path string)
+  const getBorders = (projection as any)?.getCompositionBorders
+  if (typeof getBorders === 'function') {
+    try {
+      const pathString = getBorders.call(projection)
+      return pathString.length > 0 ? pathString : null
+    }
+    catch (err) {
+      console.error(`[MapRenderer] Error getting composition borders:`, err)
+    }
+  }
+
+  // Fall back to drawCompositionBorders with custom context
   const drawBorders = (projection as any)?.drawCompositionBorders
   if (typeof drawBorders !== 'function') {
     return null
   }
 
   const context = createPathRecorder()
-  drawBorders(context)
-  const pathString = context.toString()
-  return pathString.length > 0 ? pathString : null
+  try {
+    drawBorders.call(projection, context)
+    const pathString = context.toString()
+    return pathString.length > 0 ? pathString : null
+  }
+  catch (err) {
+    console.error(`[MapRenderer] Error drawing composition borders:`, err)
+    return null
+  }
 }
 
 function applyOverlays(svg: SVGSVGElement) {
@@ -304,21 +330,37 @@ function applyOverlays(svg: SVGSVGElement) {
     }
     else if (configStore.viewMode === 'composite-existing') {
       const overlayProjectionId = (configStore.compositeProjection || configStore.selectedProjection) as string
+      // Plot applies a 20px inset for composite maps, so we need to account for this
+      // when creating the border path to ensure alignment
+      const inset = 20
+      const adjustedWidth = width - 2 * inset
+      const adjustedHeight = height - 2 * inset
       const pathData = createCompositeBorderPath(
         overlayProjectionId,
-        width,
-        height,
+        adjustedWidth,
+        adjustedHeight,
       )
       if (pathData) {
+        // Apply translate to account for the inset offset
         const pathEl = appendPathOverlay(overlayGroup, pathData, 'composition-border')
-        const bbox = pathEl.getBBox()
-        if (Number.isFinite(bbox.width) && Number.isFinite(bbox.height) && bbox.width > 0 && bbox.height > 0) {
-          mapBounds = unionRect(mapBounds, {
-            x: bbox.x,
-            y: bbox.y,
-            width: bbox.width,
-            height: bbox.height,
-          })
+        pathEl.setAttribute('transform', `translate(${inset}, ${inset})`)
+        
+        // Try to get bbox for map limits calculation
+        // Note: getBBox() may return zero dimensions for composite projection borders
+        // even though they render correctly. This is a known limitation.
+        try {
+          const bbox = pathEl.getBBox()
+          if (Number.isFinite(bbox.width) && Number.isFinite(bbox.height) && bbox.width > 0 && bbox.height > 0) {
+            mapBounds = unionRect(mapBounds, {
+              x: bbox.x,
+              y: bbox.y,
+              width: bbox.width,
+              height: bbox.height,
+            })
+          }
+        }
+        catch {
+          // getBBox can fail in some circumstances, ignore errors
         }
       }
     }
@@ -399,6 +441,10 @@ async function renderMap() {
     }
 
     mapContainer.value.appendChild(plot as any)
+    
+    // Wait for next tick to ensure SVG paths are rendered
+    await nextTick()
+    
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
       applyOverlays(svg)
