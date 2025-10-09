@@ -4,3 +4,5 @@
 - ~~Missing austria in eu + projection unifiées~~ ✅ FIXED
 - ~~Austria as mainland in split mode~~ ✅ FIXED
 - (baseScaleMultiplier = 1) !== (ui range = 1)
+- Corsica is missing in EU
+-ça fait plusieurs fois que je vois des problèmes à cause de "[`conic-conformal-${compositeProjectionName}`]". Je préfererais ne pas utiliser de nom de projection qui ne soit pas explicitement déclaré dans son entiereté

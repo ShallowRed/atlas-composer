@@ -2,7 +2,7 @@ import type { ViewMode } from '@/types'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
 import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
 import { projectionRegistry } from '@/core/projections/registry'
 import { AtlasService } from '@/services/atlas-service'
@@ -14,11 +14,20 @@ export const useConfigStore = defineStore('config', () => {
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
 
-  // Initialize selectedProjection from the default atlas's mainland projection type
+  // Initialize selectedProjection from the default atlas's projection preferences or mainland
   const getInitialProjection = () => {
+    const specificConfig = getAtlasSpecificConfig(DEFAULT_ATLAS)
+
+    // First, try to get from projection preferences (for wildcard atlases like world)
+    const projectionPrefs = specificConfig.projectionPreferences
+    if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
+      return projectionPrefs.recommended[0]
+    }
+
+    // Otherwise, use mainland territory projection
     const atlasService = new AtlasService(DEFAULT_ATLAS)
     const mainland = atlasService.getMainland()
-    return mainland?.projectionType || 'albers'
+    return mainland?.projectionType || 'natural-earth'
   }
   const selectedProjection = ref(getInitialProjection())
 
@@ -43,7 +52,7 @@ export const useConfigStore = defineStore('config', () => {
   }
   const territoryMode = ref<string>(getInitialTerritoryMode())
 
-  const viewMode = ref<ViewMode>('composite-custom')
+  const viewMode = ref<ViewMode>(currentAtlasConfig.value.defaultViewMode)
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
   const compositeProjection = ref<string>(currentAtlasConfig.value.defaultCompositeProjection || 'conic-conformal-france')
@@ -269,6 +278,21 @@ export const useConfigStore = defineStore('config', () => {
     // Update composite projection to match the new region
     if (config.defaultCompositeProjection) {
       compositeProjection.value = config.defaultCompositeProjection
+    }
+
+    // Update view mode to match the new atlas default
+    viewMode.value = config.defaultViewMode
+
+    // Update selected projection based on atlas preferences or mainland
+    const specificConfig = getAtlasSpecificConfig(selectedAtlas.value)
+    const projectionPrefs = specificConfig.projectionPreferences
+    if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
+      selectedProjection.value = projectionPrefs.recommended[0]
+    }
+    else {
+      const atlasService = new AtlasService(selectedAtlas.value)
+      const mainland = atlasService.getMainland()
+      selectedProjection.value = mainland?.projectionType || 'natural-earth'
     }
   })
 

@@ -111,13 +111,13 @@ Need to implement dynamic territory extraction:
 ```typescript
 async function loadTerritoryData(atlasId: string) {
   const config = getAtlasConfig(atlasId)
-  
+
   // Check if this is a wildcard atlas
   const territories = getAtlasTerritories(atlasId)
   if (territories.isWildcard) {
     // Load TopoJSON
     const topoData = await fetch(config.geoDataConfig.dataPath).then(r => r.json())
-    
+
     // Extract all geometries as territories
     const geometries = topoData.objects.countries?.geometries || []
     const allTerritories = geometries.map(geom => ({
@@ -125,18 +125,18 @@ async function loadTerritoryData(atlasId: string) {
       name: geom.properties.name,
       // Calculate bounds, center from geometry
     }))
-    
+
     // Update territories in-place
     territories.mainlands = allTerritories
     territories.all = allTerritories
   }
-  
+
   // Continue with normal loading...
 }
 ```
 
 ### 2. Territory Mode Wildcard & Exclusion 🔄
-**Files**: 
+**Files**:
 - `src/core/atlases/loader.ts` - `createTerritoryModes()`
 - `src/stores/geoData.ts` - territory mode filtering
 - `src/components/TerritoryControls.vue` - UI
@@ -147,12 +147,12 @@ Support `territoryCodes: "*"` with `exclude` array:
 if (mode.territoryCodes === '*') {
   // Get all territory codes
   let codes = getAllTerritoryCodes(territories)
-  
+
   // Apply exclusions
   if (mode.exclude) {
     codes = codes.filter(code => !mode.exclude.includes(code))
   }
-  
+
   return codes
 }
 ```

@@ -44,4 +44,10 @@ export interface GeoDataConfig {
    * Empty array for regions without overseas territories
    */
   overseasTerritories: TerritoryConfig[]
+
+  /**
+   * Flag indicating wildcard territory loading (all territories from data file)
+   * When true, all features in the data file are loaded dynamically
+   */
+  isWildcard?: boolean
 }

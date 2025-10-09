@@ -139,16 +139,38 @@ export class GeoDataService {
       ) as any as GeoJSON.FeatureCollection
     }
 
+    // Check if this is a wildcard configuration
+    // Wildcard atlases load all territories from the data file without filtering
+    const isWildcard = this.config.isWildcard === true
+
     for (const feature of featureCollection.features) {
       if (!feature.properties)
         continue
 
+      // For wildcard atlases: generate code from id, use name from properties
+      // For explicit atlases: use existing code from properties
+      // Note: In TopoJSON, id is at feature level, not in properties
+      const featureId = feature.id || feature.properties.id
+      const territoryCode = isWildcard && !feature.properties.code
+        ? `WD-${featureId}`
+        : feature.properties.code
+
+      // For wildcard atlases, skip if missing required data
+      // For explicit atlases, skip if code is missing (territory not configured)
+      if (!isWildcard && !feature.properties.code) {
+        continue
+      }
+
+      if (isWildcard && (!featureId || !feature.properties.name)) {
+        continue
+      }
+
       // Create territory metadata with calculated area
       const territory: Territory = {
-        id: feature.properties.id,
-        iso: feature.properties.iso,
+        id: String(featureId),
+        iso: feature.properties.iso || '', // May be empty for world data
         name: feature.properties.name,
-        code: feature.properties.code,
+        code: territoryCode,
         area: this.calculateArea(feature),
       }
 
@@ -164,6 +186,8 @@ export class GeoDataService {
 
       this.territoryData.set(territory.code, territoryData)
     }
+
+    console.log(`[GeoDataService] Loaded ${this.territoryData.size} territories`)
   }
 
   /**

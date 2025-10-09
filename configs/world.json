@@ -5,6 +5,12 @@
   "description": "World atlas with wildcard territory loading (work in progress)",
   "viewModes": ["unified"],
   "defaultViewMode": "unified",
+  "dataSources": {
+    "50m": {
+      "territories": "world-countries-50m.json",
+      "metadata": "world-metadata-50m.json"
+    }
+  },
   "projectionPreferences": {
     "recommended": [
       "natural-earth",

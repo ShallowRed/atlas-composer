@@ -93,7 +93,7 @@ function extractTerritories(config: JSONAtlasConfig) {
       offset: [0, 0],
       bounds: [[-180, -90], [180, 90]],
     }
-    
+
     return {
       type: 'equal-members' as const,
       mainland: placeholderTerritory,
@@ -220,10 +220,21 @@ function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProje
  */
 function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
   const baseUrl = import.meta.env.BASE_URL
+
+  // Use custom dataSources if provided, otherwise use default naming
+  const dataPath = config.dataSources?.['50m']?.territories
+    ? `${baseUrl}data/${config.dataSources['50m'].territories}`
+    : `${baseUrl}data/${config.id}-territories-50m.json`
+
+  const metadataPath = config.dataSources?.['50m']?.metadata
+    ? `${baseUrl}data/${config.dataSources['50m'].metadata}`
+    : `${baseUrl}data/${config.id}-metadata-50m.json`
+
   return {
-    dataPath: `${baseUrl}data/${config.id}-territories-50m.json`,
-    metadataPath: `${baseUrl}data/${config.id}-metadata-50m.json`,
-    topologyObjectName: 'territories',
+    dataPath,
+    metadataPath,
+    // World atlas uses 'countries' as object name, others use 'territories'
+    topologyObjectName: territories.isWildcard ? 'countries' : 'territories',
     // For equal-members atlases, don't set a single primary code (all territories are equal)
     mainlandCode: territories.type === 'single-focus' ? territories.mainland.code : undefined,
     mainlandBounds: territories.mainland.bounds,
@@ -232,6 +243,8 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
     overseasTerritories: territories.type === 'equal-members'
       ? [...territories.mainlands, ...territories.overseas]
       : territories.overseas,
+    // Pass wildcard flag from territories configuration
+    isWildcard: territories.isWildcard === true,
   }
 }
 
@@ -246,7 +259,7 @@ function createAtlasConfig(
   territories: any,
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryModeConfig>,
-  defaultCompositeConfig: CompositeProjectionDefaults,
+  defaultCompositeConfig: CompositeProjectionDefaults | undefined,
 ): AtlasConfig {
   // Map atlas IDs to their composite projection names
   // Some atlas IDs differ from their projection names (eu -> europe)
@@ -257,8 +270,13 @@ function createAtlasConfig(
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
   // Determine composite projections: use config if provided, otherwise generate default
-  const compositeProjections = config.compositeProjections || [`conic-conformal-${compositeProjectionName}`]
-  const defaultCompositeProjection = config.defaultCompositeProjection || compositeProjections[0]
+  // For wildcard atlases (like world), no composite projections (unified view only)
+  const compositeProjections = territories.isWildcard
+    ? []
+    : (config.compositeProjections || [`conic-conformal-${compositeProjectionName}`])
+  const defaultCompositeProjection = territories.isWildcard
+    ? undefined
+    : (config.defaultCompositeProjection || compositeProjections[0])
 
   return {
     id: config.id,
@@ -272,17 +290,20 @@ function createAtlasConfig(
     defaultCompositeConfig,
     compositeProjections,
     defaultCompositeProjection,
-    compositeProjectionConfig: territories.type === 'single-focus'
-      ? {
-          type: 'single-focus',
-          mainland: territories.mainland,
-          overseasTerritories: territories.overseas,
-        }
-      : {
-          type: 'equal-members',
-          mainlands: territories.mainlands,
-          overseasTerritories: territories.overseas,
-        },
+    // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
+    compositeProjectionConfig: territories.isWildcard
+      ? undefined
+      : territories.type === 'single-focus'
+        ? {
+            type: 'single-focus',
+            mainland: territories.mainland,
+            overseasTerritories: territories.overseas,
+          }
+        : {
+            type: 'equal-members',
+            mainlands: territories.mainlands,
+            overseasTerritories: territories.overseas,
+          },
     splitModeConfig: {
       mainlandTitle: territories.mainland.name,
       mainlandCode: territories.mainland.code,
@@ -314,8 +335,10 @@ export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
   const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code, isSingleFocusPattern)
   const territoryGroups = createTerritoryGroups(jsonConfig)
 
-  // Create composite defaults
-  const defaultCompositeConfig = createCompositeDefaults(territories.all)
+  // Create composite defaults (not needed for wildcard atlases)
+  const defaultCompositeConfig = territories.isWildcard
+    ? undefined
+    : createCompositeDefaults(territories.all)
 
   // Create geo data config
   const geoDataConfig = createGeoDataConfig(jsonConfig, territories)

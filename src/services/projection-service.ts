@@ -101,24 +101,74 @@ export class ProjectionService {
       }
     }
 
-    // For D3 builtin projections, return type string with parameters
+    // For D3 builtin projections, check if Plot supports the name directly
     if (definition.strategy === ProjectionStrategy.D3_BUILTIN) {
-      const config: any = {
-        type: definition.id as any,
-        domain: data,
+      // Observable Plot built-in projection names (kebab-case)
+      const plotBuiltins = new Set([
+        'equirectangular',
+        'mercator',
+        'transverse-mercator',
+        'equal-earth',
+        'orthographic',
+        'stereographic',
+        'azimuthal-equal-area',
+        'azimuthal-equidistant',
+        'conic-conformal',
+        'conic-equal-area',
+        'conic-equidistant',
+        'albers',
+        'albers-usa',
+        'gnomonic',
+      ])
+
+      // If Plot supports this projection name, use string type
+      if (plotBuiltins.has(definition.id)) {
+        const config: any = {
+          type: definition.id as any,
+          domain: data,
+        }
+
+        // Apply parameters based on projection family
+        if (definition.family === ProjectionFamily.CONIC) {
+          config.parallels = params.parallels.conic
+          config.rotate = params.rotate.mainland
+          console.log(`[ProjectionService] Conic projection ${definition.id}: parallels=${config.parallels}, rotate=${config.rotate}`)
+        }
+        else if (definition.family === ProjectionFamily.AZIMUTHAL) {
+          config.rotate = params.rotate.azimuthal
+          console.log(`[ProjectionService] Azimuthal projection ${definition.id}: rotate=${config.rotate}`)
+        }
+
+        return config
       }
 
-      // Apply parameters based on projection family
-      if (definition.family === ProjectionFamily.CONIC) {
-        config.parallels = params.parallels.conic
-        config.rotate = params.rotate.mainland
-        console.log(`[ProjectionService] Conic projection ${definition.id}: parallels=${config.parallels}, rotate=${config.rotate}`)
+      // Otherwise, create a D3 projection function for Plot
+      // Plot accepts: projection: ({width, height}) => d3Projection
+      const config: any = {
+        type: ({ width: _width, height: _height }: { width: number, height: number }) => {
+          const projection = ProjectionFactory.createById(definition.id, {
+            center: [params.center.longitude, params.center.latitude],
+            rotate: params.rotate.mainland,
+          })
+
+          if (!projection) {
+            throw new Error(`Failed to create projection: ${definition.id}`)
+          }
+
+          // Apply parameters based on projection family
+          if (definition.family === ProjectionFamily.CONIC && 'parallels' in projection) {
+            ;(projection as any).parallels(params.parallels.conic)
+            projection.rotate?.(params.rotate.mainland)
+          }
+          else if (definition.family === ProjectionFamily.AZIMUTHAL) {
+            projection.rotate?.(params.rotate.azimuthal)
+          }
+
+          // Let Plot handle fitExtent
+          return projection
+        },
+        domain: data,
       }
-      else if (definition.family === ProjectionFamily.AZIMUTHAL) {
-        config.rotate = params.rotate.azimuthal
-        console.log(`[ProjectionService] Azimuthal projection ${definition.id}: rotate=${config.rotate}`)
-      }
-      // Cylindrical and world projections typically don't need special parameters
 
       return config
     }

@@ -15,6 +15,15 @@ export type { BackendConfig, BackendTerritory }
 export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConfig {
   const territories: Record<string, BackendTerritory> = {}
 
+  // Skip territory processing if wildcard (all territories loaded dynamically)
+  if (unifiedConfig.territories === '*') {
+    return {
+      name: unifiedConfig.name,
+      description: unifiedConfig.description,
+      territories: {},
+    }
+  }
+
   for (const territory of unifiedConfig.territories) {
     const backendTerritory: BackendTerritory = {
       name: territory.name,

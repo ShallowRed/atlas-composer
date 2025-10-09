@@ -3,7 +3,7 @@
 ## What Was Done ✅
 
 1. **Schema**: Added `territories: "*"` support, `territoryModes` with `exclude`, i18n names
-2. **Types**: Extended `JSONAtlasConfig` for wildcard and new patterns  
+2. **Types**: Extended `JSONAtlasConfig` for wildcard and new patterns
 3. **Loader**: Detect wildcard, return placeholder with `isWildcard: true` flag
 4. **World Config**: Created `configs/world.json` with wildcard territories
 5. **No Breaking Changes**: All existing atlases work, compilation successful

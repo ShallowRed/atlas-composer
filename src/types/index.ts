@@ -26,8 +26,6 @@ export type {
 export type {
   CompositeProjectionConfig,
   CompositeProjectionDefaults,
-  MultiMainlandCompositeConfig,
-  TraditionalCompositeConfig,
   ViewMode,
 } from '@/types/composite'
 
