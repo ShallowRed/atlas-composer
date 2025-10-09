@@ -48,6 +48,11 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 3000,
+      referenceWidth: 960, // Configured for 960×500
+    },
   },
 }
 
@@ -89,6 +94,11 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 4200, // Adjusted for better fill (was 3500)
+      referenceWidth: 960, // Configured for 960×500
+    },
   },
 }
 
@@ -130,6 +140,11 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 750, // d3-composite-projections default for Europe
+      referenceWidth: 960, // Configured for 960×500
+    },
   },
 }
 
