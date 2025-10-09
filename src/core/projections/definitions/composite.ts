@@ -180,15 +180,16 @@ export const ALBERS_USA: ProjectionDefinition = {
     center: [-98.5, 39.8], // Approximate center of contiguous USA
   },
 
-  aliases: ['conic-conformal-usa'],
-
   metadata: {
     infoUrl: 'https://d3js.org/d3-geo/conic#geoAlbersUsa',
     experimental: false,
-    requiresCustomFit: true, // geoAlbersUsa has fixed positioning and needs manual scaling
+    // Note: D3's native geoAlbersUsa doesn't support fitExtent properly with external data.
+    // We must use customFit to manually scale it. Use albers-usa-composite if you need
+    // proper fitting behavior with territories beyond Alaska/Hawaii.
+    requiresCustomFit: true,
     customFit: {
       defaultScale: 1070, // D3's default scale for geoAlbersUsa
-      referenceWidth: 960, // Reference width for the default scale
+      referenceWidth: 960,
     },
   },
 }
@@ -231,6 +232,11 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 1300, // Adjusted for standard composite
+      referenceWidth: 960,
+    },
   },
 }
 
@@ -272,6 +278,11 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',
     experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 1300, // Adjusted for USA territories extent
+      referenceWidth: 960,
+    },
   },
 }
 
@@ -286,3 +297,7 @@ export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   ALBERS_USA_COMPOSITE,
   ALBERS_USA_TERRITORIES,
 ]
+
+console.log('[composite.ts] COMPOSITE_PROJECTIONS length:', COMPOSITE_PROJECTIONS.length)
+console.log('[composite.ts] ALBERS_USA defined?', ALBERS_USA)
+console.log('[composite.ts] Projection IDs:', COMPOSITE_PROJECTIONS.map(p => p.id))

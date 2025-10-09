@@ -301,14 +301,15 @@ export class ProjectionFactory {
         break
 
       case 'albers-usa':
-      case 'conic-conformal-usa':
         // Use D3's built-in geoAlbersUsa (native)
+        console.log('[ProjectionFactory] Creating D3 native geoAlbersUsa')
         projectionFn = d3Geo.geoAlbersUsa
         break
 
       case 'albers-usa-composite':
       case 'usa-composite':
         // Use d3-composite-projections albersUsa
+        console.log('[ProjectionFactory] Creating d3-composite-projections albersUsa')
         projectionFn = d3CompositeProjAlbersUsa.default
         break
 

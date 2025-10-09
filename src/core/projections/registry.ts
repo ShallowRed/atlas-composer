@@ -65,6 +65,9 @@ class ProjectionRegistry {
   public register(definition: ProjectionDefinition): void {
     // Register by ID
     this.definitions.set(definition.id, definition)
+    if (definition.id === 'albers-usa') {
+      console.log('[Registry] Registered albers-usa projection', definition)
+    }
 
     // Register by aliases
     if (definition.aliases) {
@@ -114,16 +117,23 @@ class ProjectionRegistry {
    * Get all projection definitions (deduplicated)
    */
   public getAll(): ProjectionDefinition[] {
+    console.log('[Registry.getAll] Map size:', this.definitions.size)
+    console.log('[Registry.getAll] Map keys:', Array.from(this.definitions.keys()))
+    
     const seen = new Set<string>()
     const projections: ProjectionDefinition[] = []
 
-    this.definitions.forEach((definition) => {
+    this.definitions.forEach((definition, key) => {
       if (!seen.has(definition.id)) {
         seen.add(definition.id)
         projections.push(definition)
+        console.log(`[Registry.getAll] Added ${definition.id} (from key: ${key})`)
+      } else {
+        console.log(`[Registry.getAll] Skipped ${definition.id} (from key: ${key}) - already seen`)
       }
     })
 
+    console.log('[Registry.getAll] Returning', projections.length, 'projections')
     return projections
   }
 

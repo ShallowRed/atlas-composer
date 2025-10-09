@@ -108,7 +108,7 @@ export const ALBERS: ProjectionDefinition = {
     parallels: [30, 60],
   },
 
-  aliases: ['albers', 'albers-usa'],
+  aliases: ['albers'],
 
   creator: 'Heinrich Christian Albers',
   year: 1805,

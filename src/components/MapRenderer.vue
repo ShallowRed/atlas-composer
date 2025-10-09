@@ -260,8 +260,18 @@ function createCompositeBorderPath(
     projection.scale(customFit.defaultScale * scaleFactor)
     projection.translate([width / 2, height / 2])
   }
-  else if (typeof projection.translate === 'function') {
-    projection.translate([width / 2, height / 2])
+  else {
+    // For projections without customFit, scale proportionally from a reference size
+    // d3-composite-projections default to scale 1000 at 960px width
+    const defaultScale = 1000
+    const referenceWidth = 960
+    if (typeof projection.scale === 'function') {
+      const scaleFactor = width / referenceWidth
+      projection.scale(defaultScale * scaleFactor)
+    }
+    if (typeof projection.translate === 'function') {
+      projection.translate([width / 2, height / 2])
+    }
   }
 
   // Try getCompositionBorders first (convenience method that returns path string)
@@ -344,7 +354,7 @@ function applyOverlays(svg: SVGSVGElement) {
         // Apply translate to account for the inset offset
         const pathEl = appendPathOverlay(overlayGroup, pathData, 'composition-border')
         pathEl.setAttribute('transform', `translate(${inset}, ${inset})`)
-        
+
         // Try to get bbox for map limits calculation
         // Note: getBBox() may return zero dimensions for composite projection borders
         // even though they render correctly. This is a known limitation.
@@ -441,10 +451,10 @@ async function renderMap() {
     }
 
     mapContainer.value.appendChild(plot as any)
-    
+
     // Wait for next tick to ensure SVG paths are rendered
     await nextTick()
-    
+
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
       applyOverlays(svg)
