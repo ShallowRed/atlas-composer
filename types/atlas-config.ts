@@ -25,7 +25,7 @@ export interface JSONTerritoryConfig {
     mainlandPolygon?: number
     extractFrom?: string
     polygonIndices?: number[]
-    polygonBounds?: [number, number, number, number]
+    polygonBounds?: [[number, number], [number, number]]
     duplicateFrom?: string
   }
   rendering?: {

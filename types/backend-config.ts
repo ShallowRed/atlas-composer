@@ -16,7 +16,7 @@ export interface BackendTerritory {
   mainlandPolygon?: number
   extractFrom?: number
   polygonIndices?: number[]
-  bounds?: [number, number, number, number]
+  bounds?: [[number, number], [number, number]]
   duplicateFrom?: string
 }
 

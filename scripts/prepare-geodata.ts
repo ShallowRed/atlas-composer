@@ -151,7 +151,7 @@ function extractEmbeddedTerritories(
       if (!rule.bounds)
         continue
 
-      const [configMinLon, configMinLat, configMaxLon, configMaxLat] = rule.bounds
+      const [[configMinLon, configMinLat], [configMaxLon, configMaxLat]] = rule.bounds
 
       if (
         minLon >= (configMinLon - tolerance)
