@@ -120,12 +120,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // Access the geoDataService through the cartographer
       const service = (cartographer.value as any).geoDataService
 
-      // For multi-mainland atlases (EU): all countries are treated as individual territories
-      // For traditional atlases (France): mainland is separate from overseas territories
-      const isTraditionalPattern = configStore.currentAtlasConfig.pattern === 'traditional'
+      // For equal-members atlases (EU): all countries are treated as individual territories
+      // For single-focus atlases (France): primary is separate from secondary territories
+      const isSingleFocusPattern = configStore.currentAtlasConfig.pattern === 'single-focus'
 
-      if (isTraditionalPattern) {
-        // Traditional pattern: load mainland and overseas separately
+      if (isSingleFocusPattern) {
+        // Single-focus pattern: load primary and secondary separately
         const [mainland, overseas] = await Promise.all([
           service.getMainLandData(),
           service.getOverseasData(),
@@ -135,7 +135,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         overseasTerritoriesData.value = overseas || []
       }
       else {
-        // Multi-mainland pattern: load all territories as equal individual territories
+        // Equal-members pattern: load all territories as equal individual territories
         const allTerritoriesData = await service.getAllTerritories()
 
         // Transform to the format expected by the UI
@@ -143,7 +143,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
           name: territoryData.territory.name,
           code: territoryData.territory.code,
           area: territoryData.territory.area,
-          region: 'Europe', // Generic region for EU countries
+          region: territoryData.territory.region || 'Unknown', // Generic region
           data: {
             type: 'FeatureCollection' as const,
             features: [territoryData.feature],

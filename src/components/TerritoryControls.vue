@@ -32,9 +32,9 @@ const territories = computed(() => {
   }))
 })
 
-// Check if we should show mainland section (only for traditional pattern atlases)
+// Check if we should show primary section (only for single-focus pattern atlases)
 const showMainland = computed(() => {
-  return configStore.currentAtlasConfig.pattern === 'traditional'
+  return configStore.currentAtlasConfig.pattern === 'single-focus'
 })
 
 // Get mainland code dynamically from region config

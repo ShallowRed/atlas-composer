@@ -95,9 +95,10 @@ export interface AtlasConfig {
   hasTerritorySelector?: boolean
 
   /**
-   * Atlas pattern type
-   * - 'traditional': Single mainland + N overseas territories (France, Portugal, USA)
-   * - 'multi-mainland': N equal member states + optional overseas (EU, ASEAN)
+   * Atlas pattern type - defines structural relationship between territories
+   * - 'single-focus': Single primary territory + N secondary territories (France, Portugal, USA)
+   * - 'equal-members': N equal member territories + optional secondary (EU, World, ASEAN)
+   * - 'hierarchical': Hierarchical parent-child structure (future: USA states, China provinces)
    */
-  pattern: 'traditional' | 'multi-mainland'
+  pattern: 'single-focus' | 'equal-members' | 'hierarchical'
 }

@@ -36,7 +36,7 @@ export interface AtlasSpecificConfig {
 }
 
 export interface LoadedTerritories {
-  type: 'traditional' | 'multi-mainland'
+  type: 'single-focus' | 'equal-members' | 'hierarchical'
   mainland: TerritoryConfig
   mainlands?: TerritoryConfig[]
   overseas: TerritoryConfig[]
@@ -84,43 +84,57 @@ function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
  * 2. Multi-mainland: N member-states + M overseas territories (EU, Malaysia)
  */
 function extractTerritories(config: JSONAtlasConfig) {
-  // Collect all mainland-type territories (both 'mainland' and 'member-state' roles)
-  const allMainlands = config.territories.filter(
-    t => t.role === 'mainland' || t.role === 'member-state',
-  )
-  const overseasTerritories = config.territories.filter(t => t.role === 'overseas')
+  // Collect primary territories and members
+  const primaryTerritories = config.territories.filter(t => t.role === 'primary')
+  const memberTerritories = config.territories.filter(t => t.role === 'member')
+  const secondaryTerritories = config.territories.filter(t => t.role === 'secondary')
 
-  if (allMainlands.length === 0) {
-    throw new Error(`No mainland or member-state territories found in ${config.id}`)
+  // Validate: must have either primaries or members, not both
+  if (primaryTerritories.length > 0 && memberTerritories.length > 0) {
+    throw new Error(
+      `Atlas ${config.id} has both 'primary' and 'member' roles. `
+      + `Use 'primary'+'secondary' for single-focus or 'member' for equal-members pattern.`,
+    )
   }
 
-  // Traditional pattern: Single mainland + overseas territories
-  if (allMainlands.length === 1) {
-    const mainland = transformTerritory(allMainlands[0]!)
-    const overseas = overseasTerritories.map(transformTerritory)
+  if (primaryTerritories.length === 0 && memberTerritories.length === 0) {
+    throw new Error(`No primary or member territories found in ${config.id}`)
+  }
+
+  // Single-focus pattern: 1 primary + N secondary territories
+  if (primaryTerritories.length > 0) {
+    if (primaryTerritories.length > 1) {
+      throw new Error(
+        `Atlas ${config.id} has multiple 'primary' territories. `
+        + `For equal territories, use 'member' role instead.`,
+      )
+    }
+
+    const mainland = transformTerritory(primaryTerritories[0]!)
+    const overseas = secondaryTerritories.map(transformTerritory)
     const all = [mainland, ...overseas]
 
     return {
-      type: 'traditional' as const,
+      type: 'single-focus' as const,
       mainland,
       overseas,
       all,
-      mainlands: undefined, // Not used in traditional pattern
+      mainlands: undefined, // Not used in single-focus pattern
     }
   }
 
-  // Multi-mainland pattern: Multiple equal mainlands + optional overseas territories
+  // Equal-members pattern: N equal members + optional secondary territories
   else {
-    const mainlands = allMainlands.map(transformTerritory)
-    const overseas = overseasTerritories.map(transformTerritory)
+    const mainlands = memberTerritories.map(transformTerritory)
+    const overseas = secondaryTerritories.map(transformTerritory)
     const all = [...mainlands, ...overseas]
 
-    // Use first mainland as primary (guaranteed to exist since allMainlands.length > 1)
+    // Use first member as representative (for backward compatibility)
     const primaryMainland = mainlands[0]!
 
     return {
-      type: 'multi-mainland' as const,
-      mainland: primaryMainland, // For backward compatibility, use first as "primary"
+      type: 'equal-members' as const,
+      mainland: primaryMainland, // For backward compatibility, use first as representative
       mainlands,
       overseas,
       all,
@@ -134,16 +148,16 @@ function extractTerritories(config: JSONAtlasConfig) {
 function createTerritoryModes(
   config: any,
   mainlandCode: string,
-  isTraditionalPattern: boolean,
+  isSingleFocusPattern: boolean,
 ): Record<string, TerritoryModeConfig> {
   return Object.fromEntries(
     (config.modes || []).map((mode: any) => [
       mode.id,
       {
         label: mode.label,
-        // For traditional atlases (France, Portugal): filter out mainland code (it's shown separately)
-        // For multi-mainland atlases (EU): include all codes (all territories are equal)
-        codes: isTraditionalPattern
+        // For single-focus atlases (France, Portugal): filter out primary code (it's shown separately)
+        // For equal-members atlases (EU, World): include all codes (all territories are equal)
+        codes: isSingleFocusPattern
           ? mode.territories.filter((code: string) => code !== mainlandCode)
           : mode.territories,
       },
@@ -190,12 +204,12 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
     dataPath: `${baseUrl}data/${config.id}-territories-50m.json`,
     metadataPath: `${baseUrl}data/${config.id}-metadata-50m.json`,
     topologyObjectName: 'territories',
-    // For multi-mainland atlases, don't set a single mainland code (all territories are equal)
-    mainlandCode: territories.type === 'traditional' ? territories.mainland.code : undefined,
+    // For equal-members atlases, don't set a single primary code (all territories are equal)
+    mainlandCode: territories.type === 'single-focus' ? territories.mainland.code : undefined,
     mainlandBounds: territories.mainland.bounds,
-    // For multi-mainland atlases (like EU), include all territories (mainlands + overseas)
-    // For traditional atlases, only include overseas territories
-    overseasTerritories: territories.type === 'multi-mainland'
+    // For equal-members atlases (like EU), include all territories (members + secondary)
+    // For single-focus atlases, only include secondary territories
+    overseasTerritories: territories.type === 'equal-members'
       ? [...territories.mainlands, ...territories.overseas]
       : territories.overseas,
   }
@@ -238,14 +252,14 @@ function createAtlasConfig(
     defaultCompositeConfig,
     compositeProjections,
     defaultCompositeProjection,
-    compositeProjectionConfig: territories.type === 'traditional'
+    compositeProjectionConfig: territories.type === 'single-focus'
       ? {
-          type: 'traditional',
+          type: 'single-focus',
           mainland: territories.mainland,
           overseasTerritories: territories.overseas,
         }
       : {
-          type: 'multi-mainland',
+          type: 'equal-members',
           mainlands: territories.mainlands,
           overseasTerritories: territories.overseas,
         },
@@ -276,8 +290,8 @@ export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
   const projectionParams: ProjectionParams = jsonConfig.projection as ProjectionParams
 
   // Create territory modes and groups
-  const isTraditionalPattern = territories.type === 'traditional'
-  const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code, isTraditionalPattern)
+  const isSingleFocusPattern = territories.type === 'single-focus'
+  const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code, isSingleFocusPattern)
   const territoryGroups = createTerritoryGroups(jsonConfig)
 
   // Create composite defaults

@@ -102,9 +102,9 @@ const hasTerritoriesForProjectionConfig = computed(() => {
     return true
   }
 
-  // Or has mainland with traditional pattern configuration
-  const isTraditionalPattern = configStore.currentAtlasConfig.pattern === 'traditional'
-  return isTraditionalPattern && geoDataStore.mainlandData !== null
+  // Or has mainland with single-focus pattern configuration
+  const isSingleFocusPattern = configStore.currentAtlasConfig.pattern === 'single-focus'
+  return isSingleFocusPattern && geoDataStore.mainlandData !== null
 })
 
 // Lifecycle
@@ -303,9 +303,9 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="split"
           >
-            <!-- Traditional pattern: Mainland + Overseas split layout (France, Portugal, USA) -->
-            <div v-if="configStore.currentAtlasConfig.pattern === 'traditional'" class="flex flex-row gap-12">
-              <!-- Metropolitan France -->
+            <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
+            <div v-if="configStore.currentAtlasConfig.pattern === 'single-focus'" class="flex flex-row gap-12">
+              <!-- Primary territory -->
               <div>
                 <SectionHeader
                   :title="configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland'"

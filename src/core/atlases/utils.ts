@@ -180,3 +180,59 @@ export function getTerritoriesForMode(
   const codesSet = new Set(modeDefinition.codes)
   return territories.filter(t => codesSet.has(t.code))
 }
+
+/**
+ * Pattern Utilities
+ * Helper functions for working with atlas patterns
+ */
+
+/**
+ * Check if an atlas pattern supports split view (primary vs secondary)
+ * @param pattern - Atlas pattern type
+ * @returns True if split view is supported
+ */
+export function supportsSplitView(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): boolean {
+  return pattern === 'single-focus'
+}
+
+/**
+ * Check if primary territory should be filtered from territory mode codes
+ * (Only single-focus has a separate primary that shouldn't be in the mode selector)
+ * @param pattern - Atlas pattern type
+ * @returns True if primary code should be filtered
+ */
+export function shouldFilterPrimaryFromModes(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): boolean {
+  return pattern === 'single-focus'
+}
+
+/**
+ * Get the primary territory role(s) for a given pattern
+ * @param pattern - Atlas pattern type
+ * @returns Array of roles considered "primary" for this pattern
+ */
+export function getPrimaryRolesForPattern(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): Array<'primary' | 'member'> {
+  switch (pattern) {
+    case 'single-focus':
+      return ['primary']
+    case 'equal-members':
+      return ['member']
+    case 'hierarchical':
+      return ['primary'] // Future: may also include hierarchical parent role
+  }
+}
+
+/**
+ * Get the secondary territory role(s) for a given pattern
+ * @param pattern - Atlas pattern type
+ * @returns Array of roles considered "secondary" for this pattern
+ */
+export function getSecondaryRolesForPattern(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): Array<'secondary' | 'embedded' | 'member'> {
+  switch (pattern) {
+    case 'single-focus':
+      return ['secondary', 'embedded']
+    case 'equal-members':
+      return ['secondary', 'embedded'] // Equal-members can have secondary territories too
+    case 'hierarchical':
+      return ['member', 'embedded'] // Future: children are "members" in hierarchical
+  }
+}

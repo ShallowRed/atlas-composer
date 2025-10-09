@@ -7,7 +7,7 @@ Currently defined in the codebase:
 - `'traditional'`: 1 mainland + N overseas (France, Portugal, USA)
 - `'multi-mainland'`: N member-states + M overseas (EU)
 
-### 2. **Territory Roles** 
+### 2. **Territory Roles**
 Currently defined in schema:
 - `'mainland'`: Single mainland territory (FR, PT-CONT)
 - `'member-state'`: Equal territories in multi-mainland (EU countries: AT, BE, DE...)
@@ -51,7 +51,7 @@ t.role === 'mainland' || t.role === 'member-state'
 ATLAS PATTERN (how territories relate)
     ↓
 TERRITORY ROLE (what each territory is)
-    ↓  
+    ↓
 VIEW CAPABILITY (what UI features are available)
 ```
 
@@ -64,10 +64,10 @@ VIEW CAPABILITY (what UI features are available)
 Defines the **structural relationship** between territories:
 
 ```typescript
-type AtlasPattern = 
-  | 'single-focus'      // 1 primary + N secondary (France, Portugal, USA)
-  | 'equal-members'     // N equal territories (EU, World, ASEAN)
-  | 'hierarchical'      // Parent + children (Future: USA states, China provinces)
+type AtlasPattern
+  = | 'single-focus' // 1 primary + N secondary (France, Portugal, USA)
+    | 'equal-members' // N equal territories (EU, World, ASEAN)
+    | 'hierarchical' // Parent + children (Future: USA states, China provinces)
 ```
 
 **Rationale:**
@@ -80,11 +80,11 @@ type AtlasPattern =
 Defines **what type of territory** this is:
 
 ```typescript
-type TerritoryRole = 
-  | 'primary'       // Main/mainland territory (FR, PT-CONT, USA-CONT)
-  | 'secondary'     // Remote territories (FR-GP, PT-20, US-HI)
-  | 'member'        // Equal member (AT, BE, DE in EU; all countries in World)
-  | 'embedded'      // Enclave/exclave (Future: Vatican, Kaliningrad)
+type TerritoryRole
+  = | 'primary' // Main/mainland territory (FR, PT-CONT, USA-CONT)
+    | 'secondary' // Remote territories (FR-GP, PT-20, US-HI)
+    | 'member' // Equal member (AT, BE, DE in EU; all countries in World)
+    | 'embedded' // Enclave/exclave (Future: Vatican, Kaliningrad)
 ```
 
 **Rationale:**
@@ -99,8 +99,8 @@ Defines **what UI features** are available:
 
 ```typescript
 interface ViewCapabilities {
-  supportsSplitView: boolean      // Can show primary vs secondary separately
-  supportsTerritorySelector: boolean  // Can filter territories by mode
+  supportsSplitView: boolean // Can show primary vs secondary separately
+  supportsTerritorySelector: boolean // Can filter territories by mode
   supportsCompositeProjection: boolean // Has D3 composite projection
   defaultViewMode: ViewMode
 }
@@ -126,7 +126,7 @@ interface ViewCapabilities {
    // OLD
    pattern: 'traditional' | 'multi-mainland'
    role: 'mainland' | 'overseas' | 'member-state' | 'embedded'
-   
+
    // NEW
    pattern: 'single-focus' | 'equal-members' | 'hierarchical'
    role: 'primary' | 'secondary' | 'member' | 'embedded'
@@ -142,16 +142,16 @@ interface ViewCapabilities {
    // OLD logic
    if (allMainlands.length === 1) return { type: 'traditional', ... }
    else return { type: 'multi-mainland', ... }
-   
+
    // NEW logic
    function inferPattern(territories, config): AtlasPattern {
      // If config explicitly sets pattern, use it
      if (config.pattern) return config.pattern
-     
+
      // Otherwise infer from roles
      const primaries = territories.filter(t => t.role === 'primary')
      const members = territories.filter(t => t.role === 'member')
-     
+
      if (primaries.length === 1 && members.length === 0) {
        return 'single-focus'
      }
@@ -172,7 +172,7 @@ interface ViewCapabilities {
        case 'hierarchical': return ['primary'] // Future
      }
    }
-   
+
    export function getSecondaryRoleForPattern(pattern: AtlasPattern): TerritoryRole[] {
      switch (pattern) {
        case 'single-focus': return ['secondary']
@@ -184,7 +184,7 @@ interface ViewCapabilities {
 
 **Files to update:** (~8 files)
 - `src/types/atlas.ts`
-- `src/types/composite.ts`  
+- `src/types/composite.ts`
 - `types/atlas-config.ts`
 - `configs/schema.json`
 - `src/core/atlases/loader.ts`
@@ -202,7 +202,7 @@ interface ViewCapabilities {
    export function supportsSplitView(pattern: AtlasPattern): boolean {
      return pattern === 'single-focus'
    }
-   
+
    export function shouldFilterMainlandFromModes(pattern: AtlasPattern): boolean {
      return pattern === 'single-focus' // Only single-focus has separate mainland
    }
@@ -212,8 +212,8 @@ interface ViewCapabilities {
    ```typescript
    // BEFORE
    if (configStore.currentAtlasConfig.pattern === 'traditional') { ... }
-   
-   // AFTER  
+
+   // AFTER
    if (supportsSplitView(configStore.currentAtlasConfig.pattern)) { ... }
    ```
 
@@ -236,7 +236,7 @@ interface ViewCapabilities {
    // BEFORE
    { "role": "mainland", "code": "FR", ... }
    { "role": "overseas", "code": "FR-GP", ... }
-   
+
    // AFTER
    { "role": "primary", "code": "FR", ... }
    { "role": "secondary", "code": "FR-GP", ... }
@@ -244,9 +244,9 @@ interface ViewCapabilities {
 
 2. **EU Config** (`configs/eu.json`)
    ```json
-   // BEFORE  
+   // BEFORE
    { "role": "member-state", "code": "AT", ... }
-   
+
    // AFTER
    { "role": "member", "code": "AT", ... }
    ```
@@ -277,7 +277,7 @@ interface ViewCapabilities {
        },
        {
          "id": "without-antarctica",
-         "label": "Without Antarctica",  
+         "label": "Without Antarctica",
          "territories": ["*"],
          "exclude": ["010"]
        },
@@ -304,11 +304,11 @@ interface ViewCapabilities {
      if (config.territories === 'all' || config.territories === '*') {
        return loadAllCountriesAsMembers()
      }
-     
+
      // Normal case: use territories array
      // ... existing logic
    }
-   
+
    function loadAllCountriesAsMembers() {
      // Load from world-territories-50m.json
      // All get role: 'member'
@@ -323,22 +323,22 @@ interface ViewCapabilities {
      return Object.fromEntries(
        (config.modes || []).map((mode) => {
          let codes = mode.territories
-         
+
          // Handle wildcard
          if (codes.includes('*')) {
            codes = getAllTerritoryCodes(config)
          }
-         
+
          // Handle exclusions
          if (mode.exclude) {
            codes = codes.filter(c => !mode.exclude.includes(c))
          }
-         
+
          // Filter mainland only for single-focus
          if (shouldFilterMainlandFromModes(pattern)) {
            codes = codes.filter(c => c !== mainlandCode)
          }
-         
+
          return [mode.id, { label: mode.label, codes }]
        })
      )
@@ -363,7 +363,7 @@ interface ViewCapabilities {
      // ... existing fields
      viewCapabilities: ViewCapabilities
    }
-   
+
    interface ViewCapabilities {
      supportsSplitView: boolean
      supportsTerritorySelector: boolean
@@ -393,7 +393,7 @@ interface ViewCapabilities {
    <div v-if="config.viewCapabilities.supportsSplitView">
      <!-- Split view UI -->
    </div>
-   
+
    <!-- TerritoryControls.vue -->
    <select v-if="config.viewCapabilities.supportsTerritorySelector">
      <!-- Territory mode selector -->
@@ -446,7 +446,7 @@ interface ViewCapabilities {
 
 ### ⭐ **Quick Win Path** (If you want world atlas ASAP)
 1. **Phase 1** - Core types (2-3 hours)
-2. **Phase 2** - Update checks (1-2 hours)  
+2. **Phase 2** - Update checks (1-2 hours)
 3. **Phase 4** - World atlas (2-3 hours)
 4. **Phase 3** - Config migration (1 hour)
 5. **Phase 5** - View capabilities (optional polish)
@@ -476,7 +476,7 @@ interface ViewCapabilities {
 - [ ] No TypeScript errors
 - [ ] Config validation script passes
 
-### Should Have  
+### Should Have
 - [ ] Unit tests for pattern utilities
 - [ ] E2E test for world atlas
 - [ ] Documentation updated
@@ -532,3 +532,71 @@ Option C: Automated - write migration script
 5. **Should world atlas** load all ~200 countries or just major ones?
 
 Please review and let me know your thoughts! 🙏
+
+---
+
+## 🚧 IMPLEMENTATION PROGRESS
+
+**Execution Path Chosen:** Careful Path (clean refactor first)
+**Started:** 2025-10-09
+
+### Phase 1: Core Type Refactoring ✅
+- [x] Update `src/types/atlas.ts` - pattern type
+- [x] Update `src/types/composite.ts` - pattern type
+- [x] Update `types/atlas-config.ts` - role enum
+- [x] Update `configs/schema.json` - role enum
+- [x] Update `src/core/atlases/loader.ts` - extractTerritories logic
+- [x] Add pattern utilities to `src/core/atlases/utils.ts`
+
+### Phase 2: Update All Pattern Checks ✅
+- [x] Create utility functions in utils.ts
+- [x] Update MapView.vue
+- [x] Update TerritoryControls.vue
+- [x] Update geoData.ts
+- [x] Update composite-projection.ts
+- [x] Update MapRenderer.vue
+- [x] Update loader.ts (GeoDataConfig)
+
+### Phase 3: Config Migration ✅
+- [x] Create migration script
+- [x] Update france.json (13 territories)
+- [x] Update portugal.json (3 territories)
+- [x] Update usa.json (9 territories)
+- [x] Update eu.json (49 territories)
+- [x] Total: 74 territories migrated
+
+### Phase 4: World Atlas ⏸️
+- [ ] Complete world.json config
+- [ ] Update loader for wildcard territories
+- [ ] Add exclusion support
+- [ ] Test world rendering
+
+### Phase 4: World Atlas ⏸️
+- [ ] Complete world.json config
+- [ ] Update loader for wildcard territories
+- [ ] Add exclusion support
+- [ ] Test world rendering
+
+### Phase 5: View Capabilities ⏸️
+- [ ] Add ViewCapabilities interface
+- [ ] Derive capabilities in loader
+- [ ] Update UI components
+
+---
+
+## 📊 Summary So Far
+
+**✅ Phases 1-3 Complete!**
+
+- **Type System**: All pattern types renamed (`single-focus`, `equal-members`)
+- **Role System**: All territory roles renamed (`primary`, `secondary`, `member`)
+- **Code Updated**: 12 files across loader, stores, views, components
+- **Configs Migrated**: 74 territories across 4 atlases (France, Portugal, USA, EU)
+- **Utilities Added**: Pattern helper functions for consistent behavior
+- **Tests Needed**: Manual testing to verify Austria fix still works + all views render
+
+**Next Steps:**
+1. Test the application thoroughly
+2. Verify Austria appears in EU unified view
+3. Verify "Continental Europe" mode filters correctly
+4. Consider implementing World atlas (Phase 4) or View Capabilities (Phase 5)

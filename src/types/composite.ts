@@ -15,29 +15,29 @@
 import type { TerritoryConfig } from '@/types/territory'
 
 /**
- * Traditional composite projection configuration
+ * Single-focus composite projection configuration
  *
- * Used for atlases with a single mainland and multiple overseas territories
+ * Used for atlases with a single primary territory and multiple secondary territories
  * Examples: France (mainland + DROM), Portugal (continental + islands)
  *
- * Pattern: 1 mainland + N overseas territories
+ * Pattern: 1 primary + N secondary territories
  */
-export interface TraditionalCompositeConfig {
-  type: 'traditional'
+export interface SingleFocusCompositeConfig {
+  type: 'single-focus'
   mainland: TerritoryConfig
   overseasTerritories: TerritoryConfig[]
 }
 
 /**
- * Multi-mainland composite projection configuration
+ * Equal-members composite projection configuration
  *
- * Used for atlases with multiple equal mainland territories
- * Examples: EU (member states), Malaysia (states), USA (states)
+ * Used for atlases with multiple equal member territories
+ * Examples: EU (member states), World (all countries), ASEAN (member states)
  *
- * Pattern: N mainlands + M overseas territories
+ * Pattern: N equal members + optional secondary territories
  */
-export interface MultiMainlandCompositeConfig {
-  type: 'multi-mainland'
+export interface EqualMembersCompositeConfig {
+  type: 'equal-members'
   mainlands: TerritoryConfig[]
   overseasTerritories: TerritoryConfig[]
 }
@@ -46,12 +46,12 @@ export interface MultiMainlandCompositeConfig {
  * Composite projection configuration
  *
  * Union type supporting both projection patterns:
- * - Traditional: Single mainland with overseas territories
- * - Multi-mainland: Multiple equal mainlands with optional overseas
+ * - Single-focus: Single primary with secondary territories
+ * - Equal-members: Multiple equal members with optional secondary
  */
 export type CompositeProjectionConfig
-  = | TraditionalCompositeConfig
-    | MultiMainlandCompositeConfig
+  = | SingleFocusCompositeConfig
+    | EqualMembersCompositeConfig
 
 /**
  * Default composite projection settings

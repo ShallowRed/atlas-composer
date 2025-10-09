@@ -13,7 +13,7 @@
  */
 export interface JSONTerritoryConfig {
   id: string
-  role: 'mainland' | 'overseas' | 'member-state'
+  role: 'primary' | 'secondary' | 'member' | 'embedded'
   code: string
   name: string
   shortName?: string

@@ -52,19 +52,19 @@ export class CompositeProjection {
    * 3. The multipliers ensure proper visual composition while maintaining proportionality
    */
   private initialize() {
-    if (this.config.type === 'traditional') {
-      this.initializeTraditional()
+    if (this.config.type === 'single-focus') {
+      this.initializeSingleFocus()
     }
     else {
-      this.initializeMultiMainland()
+      this.initializeEqualMembers()
     }
   }
 
   /**
-   * Initialize traditional pattern: 1 mainland + N overseas territories
+   * Initialize single-focus pattern: 1 primary + N secondary territories
    */
-  private initializeTraditional() {
-    if (this.config.type !== 'traditional')
+  private initializeSingleFocus() {
+    if (this.config.type !== 'single-focus')
       return
     const { mainland, overseasTerritories } = this.config
 
@@ -132,11 +132,11 @@ export class CompositeProjection {
   }
 
   /**
-   * Initialize multi-mainland pattern: N equal mainlands + M overseas territories
-   * All mainlands are treated equally with no hierarchy
+   * Initialize equal-members pattern: N equal members + M secondary territories
+   * All members are treated equally with no hierarchy
    */
-  private initializeMultiMainland() {
-    if (this.config.type !== 'multi-mainland')
+  private initializeEqualMembers() {
+    if (this.config.type !== 'equal-members')
       return
     const { mainlands, overseasTerritories } = this.config
 
@@ -531,8 +531,8 @@ export class CompositeProjection {
   }> {
     const baseTranslate: [number, number] = [width / 2, height / 2]
 
-    // Get mainland code(s) to exclude from borders
-    const mainlandCodes = this.config.type === 'traditional'
+    // Get primary/member code(s) to exclude from borders
+    const mainlandCodes = this.config.type === 'single-focus'
       ? [this.config.mainland.code]
       : this.config.mainlands.map(m => m.code)
 
