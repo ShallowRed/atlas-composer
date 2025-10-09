@@ -215,7 +215,7 @@ function createAtlasConfig(
       mainlandCode: territories.mainland.code,
       territoriesTitle: 'Overseas Territories',
     },
-    hasTerritorySelector: true,
+    hasTerritorySelector: (config.modes || []).length > 0,
     territoryModeOptions: (config.modes || []).map((mode: any) => ({
       value: mode.id,
       label: territoryModes[mode.id]!.label,
