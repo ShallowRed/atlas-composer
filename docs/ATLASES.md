@@ -115,7 +115,7 @@ console.log(params.parallels.conic) // [45.898889, 47.696014]
 ### Listing Available Atlases
 
 ```typescript
-import { getAvailableAtlases, getAtlasIds } from '@/core/atlases/registry'
+import { getAtlasIds, getAvailableAtlases } from '@/core/atlases/registry'
 
 // Get list for UI selector
 const atlases = getAvailableAtlases()
@@ -133,13 +133,13 @@ const ids = getAtlasIds()
 ### Working with Territories
 
 ```typescript
+import { getAtlasConfig, getAtlasTerritories } from '@/core/atlases/registry'
 import {
   createTerritoryMap,
   getTerritoryName,
   getTerritoryShortName,
   isMainlandTerritory
 } from '@/core/atlases/utils'
-import { getAtlasTerritories, getAtlasConfig } from '@/core/atlases/registry'
 
 const { all } = getAtlasTerritories('france')
 const territoryMap = createTerritoryMap(all)
@@ -183,15 +183,15 @@ A geographic entity with its own geometry and rendering configuration:
 
 ```typescript
 interface TerritoryConfig {
-  code: string              // Unique identifier (e.g., "FR-MET", "FR-GP")
-  name: string              // Full name (e.g., "France Métropolitaine")
-  shortName?: string        // Short name (e.g., "Métropole")
-  region?: string           // Geographic region (e.g., "Caraïbes")
-  center: [number, number]  // [longitude, latitude]
+  code: string // Unique identifier (e.g., "FR-MET", "FR-GP")
+  name: string // Full name (e.g., "France Métropolitaine")
+  shortName?: string // Short name (e.g., "Métropole")
+  region?: string // Geographic region (e.g., "Caraïbes")
+  center: [number, number] // [longitude, latitude]
   bounds: [[number, number], [number, number]] // [[west, south], [east, north]]
-  offset: [number, number]  // [x, y] rendering offset
-  projectionType?: string   // Preferred projection (e.g., "mercator")
-  scale?: number            // Rendering scale
+  offset: [number, number] // [x, y] rendering offset
+  projectionType?: string // Preferred projection (e.g., "mercator")
+  scale?: number // Rendering scale
   rotate?: [number, number] // Projection rotation
   parallels?: [number, number] // Standard parallels for conic
   clipExtent?: [number, number, number, number] // Clipping bounds
@@ -254,15 +254,15 @@ Atlas-specific projection configuration:
 ```typescript
 interface ProjectionParams {
   center: {
-    longitude: number  // Center longitude for projections
-    latitude: number   // Center latitude for projections
+    longitude: number // Center longitude for projections
+    latitude: number // Center latitude for projections
   }
   rotate: {
-    mainland: [number, number]    // Rotation for mainland projection
-    azimuthal: [number, number]   // Rotation for azimuthal projections
+    mainland: [number, number] // Rotation for mainland projection
+    azimuthal: [number, number] // Rotation for azimuthal projections
   }
   parallels: {
-    conic: [number, number]  // Standard parallels for conic projections
+    conic: [number, number] // Standard parallels for conic projections
   }
 }
 ```
@@ -273,12 +273,12 @@ Recommendations for suitable projections:
 
 ```typescript
 interface ProjectionPreferences {
-  recommended?: string[]  // Array of recommended projection IDs
+  recommended?: string[] // Array of recommended projection IDs
   default?: {
-    mainland?: string     // Default projection for mainland
-    overseas?: string     // Default projection for overseas
+    mainland?: string // Default projection for mainland
+    overseas?: string // Default projection for overseas
   }
-  prohibited?: string[]   // Projections that don't work well
+  prohibited?: string[] // Projections that don't work well
 }
 ```
 
@@ -302,8 +302,8 @@ Pre-defined territory selections for display:
 
 ```typescript
 interface TerritoryModeConfig {
-  label: string    // Display label
-  codes: string[]  // Territory codes to include
+  label: string // Display label
+  codes: string[] // Territory codes to include
 }
 ```
 
@@ -699,7 +699,7 @@ Create a new file in `configs/` (e.g., `configs/netherlands.json`):
   "id": "netherlands",
   "name": "Netherlands",
   "description": "Netherlands with Caribbean territories",
-  
+
   "projectionPreferences": {
     "recommended": ["conic-conformal", "mercator"],
     "default": {
@@ -707,7 +707,7 @@ Create a new file in `configs/` (e.g., `configs/netherlands.json`):
       "overseas": "mercator"
     }
   },
-  
+
   "territories": [
     {
       "id": "360",
@@ -746,7 +746,7 @@ Create a new file in `configs/` (e.g., `configs/netherlands.json`):
       }
     }
   ],
-  
+
   "projection": {
     "center": { "longitude": 5.5, "latitude": 52.3 },
     "rotate": {
@@ -757,7 +757,7 @@ Create a new file in `configs/` (e.g., `configs/netherlands.json`):
       "conic": [51.5, 53.0]
     }
   },
-  
+
   "modes": [
     {
       "id": "all-territories",
@@ -770,7 +770,7 @@ Create a new file in `configs/` (e.g., `configs/netherlands.json`):
       "territories": ["NL-AW", "NL-CW", "NL-SX", "NL-BQ"]
     }
   ],
-  
+
   "groups": [
     {
       "id": "caribbean",
@@ -855,7 +855,7 @@ For multi-mainland atlases (like EU), use `"member-state"` role:
   "name": "ASEAN",
   "viewModes": ["composite-existing", "unified"],
   "defaultViewMode": "composite-existing",
-  
+
   "territories": [
     {
       "id": "702",
@@ -904,20 +904,20 @@ console.log(caribbean.map(t => t.name))
 ### Dynamic Mode Selection
 
 ```typescript
-import { getAtlasSpecificConfig, getAllTerritories } from '@/core/atlases/registry'
+import { getAllTerritories, getAtlasSpecificConfig } from '@/core/atlases/registry'
 import { getTerritoriesForMode } from '@/core/atlases/utils'
 
 // Get territories for a mode dynamically
 function selectMode(atlasId: string, modeId: string) {
   const specific = getAtlasSpecificConfig(atlasId)
   const allTerritories = getAllTerritories(atlasId)
-  
+
   const selectedTerritories = getTerritoriesForMode(
     allTerritories,
     modeId,
     specific.territoryModes
   )
-  
+
   return selectedTerritories
 }
 
@@ -935,21 +935,21 @@ import { ProjectionRegistry } from '@/core/projections/registry'
 function getAtlasRecommendations(atlasId: string, viewMode: string) {
   const specific = getAtlasSpecificConfig(atlasId)
   const preferences = specific.projectionPreferences
-  
+
   const projectionRegistry = ProjectionRegistry.getInstance()
   const recommendations = projectionRegistry.recommend({
     atlasId,
     viewMode,
     limit: 5
   })
-  
+
   // Filter out prohibited projections
   const filtered = preferences?.prohibited
     ? recommendations.filter(rec =>
         !preferences.prohibited!.includes(rec.definition.id)
       )
     : recommendations
-  
+
   return filtered
 }
 
@@ -965,20 +965,21 @@ import { getLoadedConfig } from '@/core/atlases/registry'
 // Handle both traditional and multi-mainland patterns
 function renderAtlas(atlasId: string) {
   const { territories, atlasConfig } = getLoadedConfig(atlasId)
-  
+
   if (territories.type === 'traditional') {
     // Traditional pattern: 1 mainland + N overseas
     console.log(`Mainland: ${territories.mainland.name}`)
     console.log(`Overseas: ${territories.overseas.length}`)
-    
+
     // Render with single mainland focus
     renderMainland(territories.mainland)
     territories.overseas.forEach(renderTerritory)
-  } else {
+  }
+  else {
     // Multi-mainland pattern: N equal mainlands
     console.log(`Member states: ${territories.mainlands!.length}`)
     console.log(`Overseas: ${territories.overseas.length}`)
-    
+
     // Render all mainlands equally
     territories.mainlands!.forEach(renderTerritory)
     territories.overseas.forEach(renderTerritory)
@@ -995,17 +996,18 @@ import { getAtlasConfig } from '@/core/atlases/registry'
 function getCompositeConfig(atlasId: string) {
   const config = getAtlasConfig(atlasId)
   const compositeConfig = config.compositeProjectionConfig
-  
+
   if (compositeConfig.type === 'traditional') {
     console.log('Traditional composite projection')
     console.log('Mainland:', compositeConfig.mainland.name)
     console.log('Overseas count:', compositeConfig.overseasTerritories.length)
-  } else {
+  }
+  else {
     console.log('Multi-mainland composite projection')
     console.log('Mainlands count:', compositeConfig.mainlands.length)
     console.log('Overseas count:', compositeConfig.overseasTerritories.length)
   }
-  
+
   return compositeConfig
 }
 ```
@@ -1024,6 +1026,7 @@ import franceConfig from '@configs/france.json'
 ```typescript
 // GOOD - validated, transformed, type-safe
 import { getAtlasConfig } from '@/core/atlases/registry'
+
 const config = getAtlasConfig('france')
 ```
 
@@ -1040,7 +1043,8 @@ const mainland = territories.mainland
 // GOOD - handles both patterns
 if (territories.type === 'traditional') {
   const mainland = territories.mainland
-} else {
+}
+else {
   const mainlands = territories.mainlands
 }
 ```
@@ -1075,7 +1079,8 @@ const config = getAtlasConfig(userInput)
 // GOOD - safe access
 if (hasAtlas(userInput)) {
   const config = getAtlasConfig(userInput)
-} else {
+}
+else {
   const config = getAtlasConfig(DEFAULT_ATLAS)
 }
 ```
@@ -1094,7 +1099,8 @@ const mainland = config.compositeProjectionConfig.mainland
 const compositeConfig = config.compositeProjectionConfig
 if (compositeConfig.type === 'traditional') {
   const mainland = compositeConfig.mainland
-} else {
+}
+else {
   const mainlands = compositeConfig.mainlands
 }
 ```
@@ -1127,7 +1133,7 @@ const caribbeanCodes = ['FR-GP', 'FR-MQ', 'FR-BL', 'FR-MF']
 ```typescript
 // GOOD - configurable, validated
 const specific = getAtlasSpecificConfig('france')
-const caribbeanMode = specific.territoryModes['caribbean']
+const caribbeanMode = specific.territoryModes.caribbean
 const codes = caribbeanMode.codes
 ```
 

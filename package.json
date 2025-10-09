@@ -14,10 +14,11 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "geodata:analyze": "node scripts/dev/analyze-country.js",
-    "geodata:lookup": "node scripts/dev/lookup-country.js",
-    "geodata:prepare": "node scripts/prepare-geodata.js",
-    "geodata:validate": "node scripts/validate-configs.js"
+    "build:scripts": "tsc -p scripts/tsconfig.json",
+    "geodata:analyze": "tsx scripts/dev/analyze-country.ts",
+    "geodata:lookup": "tsx scripts/dev/lookup-country.ts",
+    "geodata:prepare": "tsx scripts/prepare-geodata.ts",
+    "geodata:validate": "tsx scripts/validate-configs.ts"
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.17",
@@ -44,6 +45,7 @@
     "@types/d3-geo": "^3.1.0",
     "@types/node": "^24.6.2",
     "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
@@ -51,6 +53,7 @@
     "@vue/tsconfig": "^0.8.1",
     "eslint": "^9.36.0",
     "happy-dom": "^19.0.2",
+    "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "vite": "^7.1.7",
     "vite-plugin-eslint": "^1.8.1",

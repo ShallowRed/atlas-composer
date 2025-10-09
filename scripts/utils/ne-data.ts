@@ -3,8 +3,9 @@
  * Handles fetching and caching of Natural Earth world data
  */
 
+import type { Topology } from 'topojson-specification'
 import process from 'node:process'
-import { logger } from './logger.js'
+import { logger } from './logger.ts'
 
 /**
  * Valid Natural Earth resolutions
@@ -13,20 +14,19 @@ export const RESOLUTIONS = {
   HIGH: '10m',
   MEDIUM: '50m',
   LOW: '110m',
-}
+} as const
+
+export type Resolution = typeof RESOLUTIONS[keyof typeof RESOLUTIONS]
 
 /**
  * Default resolution
  */
-export const DEFAULT_RESOLUTION = RESOLUTIONS.MEDIUM
+export const DEFAULT_RESOLUTION: Resolution = RESOLUTIONS.MEDIUM
 
 /**
  * Get Natural Earth data source URL for a given resolution
- *
- * @param {string} resolution - One of: '10m', '50m', '110m'
- * @returns {string} CDN URL
  */
-export function getDataSourceUrl(resolution = DEFAULT_RESOLUTION) {
+export function getDataSourceUrl(resolution: Resolution = DEFAULT_RESOLUTION): string {
   if (!Object.values(RESOLUTIONS).includes(resolution)) {
     logger.warning(`Invalid resolution '${resolution}', using '${DEFAULT_RESOLUTION}'`)
     resolution = DEFAULT_RESOLUTION
@@ -37,11 +37,8 @@ export function getDataSourceUrl(resolution = DEFAULT_RESOLUTION) {
 
 /**
  * Fetch Natural Earth world data from CDN
- *
- * @param {string} resolution - One of: '10m', '50m', '110m'
- * @returns {Promise<object>} TopoJSON data
  */
-export async function fetchWorldData(resolution = DEFAULT_RESOLUTION) {
+export async function fetchWorldData(resolution: Resolution = DEFAULT_RESOLUTION): Promise<Topology> {
   const url = getDataSourceUrl(resolution)
 
   try {
@@ -54,33 +51,29 @@ export async function fetchWorldData(resolution = DEFAULT_RESOLUTION) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = await response.json() as Topology
     logger.success(`Loaded ${Object.keys(data.objects || {}).length} object(s) from Natural Earth`)
 
     return data
   }
   catch (error) {
-    logger.error(`Failed to fetch Natural Earth data: ${error.message}`)
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error(`Failed to fetch Natural Earth data: ${message}`)
     throw error
   }
 }
 
 /**
  * Validate resolution string
- *
- * @param {string} resolution - Resolution to validate
- * @returns {boolean} True if valid
  */
-export function isValidResolution(resolution) {
-  return Object.values(RESOLUTIONS).includes(resolution)
+export function isValidResolution(resolution: string): resolution is Resolution {
+  return Object.values(RESOLUTIONS).includes(resolution as Resolution)
 }
 
 /**
  * Get resolution from environment variable or default
- *
- * @returns {string} Resolution ('10m', '50m', or '110m')
  */
-export function getResolutionFromEnv() {
+export function getResolutionFromEnv(): Resolution {
   const envResolution = process.env.NE_RESOLUTION
 
   if (envResolution && isValidResolution(envResolution)) {

@@ -9,8 +9,8 @@ import {
   geoMercator,
 } from 'd3-geo'
 
-import { ProjectionFactory } from '@/projections/factory'
-import { projectionRegistry } from '@/projections/registry'
+import { ProjectionFactory } from '@/core/projections/factory'
+import { projectionRegistry } from '@/core/projections/registry'
 
 /**
  * Configuration for a sub-projection within a composite projection

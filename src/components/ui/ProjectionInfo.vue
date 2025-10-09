@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectionDefinition } from '@/projections/types'
+import type { ProjectionDefinition } from '@/core/projections/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,0 +1,57 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Use the `@tailwind` directive to insert Tailwind's `base`, `components`, `utilities` and `screens` styles into your CSS."
+    },
+    {
+      "name": "@apply",
+      "description": "Use `@apply` to inline any existing utility classes into your own custom CSS."
+    },
+    {
+      "name": "@layer",
+      "description": "Use the `@layer` directive to tell Tailwind which \"bucket\" a set of custom styles belong to."
+    },
+    {
+      "name": "@variants",
+      "description": "You can generate responsive, hover, focus, active, and other variants of your own utilities by wrapping their definitions in the `@variants` directive."
+    },
+    {
+      "name": "@responsive",
+      "description": "You can generate responsive variants of your own classes by wrapping their definitions in the `@responsive` directive."
+    },
+    {
+      "name": "@screen",
+      "description": "The `@screen` directive allows you to create media queries that reference your breakpoints by name instead of duplicating their values in your own CSS."
+    },
+    {
+      "name": "@config",
+      "description": "Use the `@config` directive to specify which config file Tailwind should use when compiling that CSS file."
+    },
+    {
+      "name": "@plugin",
+      "description": "Use the `@plugin` directive to register plugins in CSS files for Tailwind CSS v4."
+    },
+    {
+      "name": "@theme",
+      "description": "Use the `@theme` directive to define theme values in CSS files for Tailwind CSS v4."
+    },
+    {
+      "name": "@utility",
+      "description": "Use the `@utility` directive to define custom utilities in CSS files for Tailwind CSS v4."
+    },
+    {
+      "name": "@variant",
+      "description": "Use the `@variant` directive to define custom variants in CSS files for Tailwind CSS v4."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Use the `@custom-variant` directive to define custom variants in CSS files for Tailwind CSS v4."
+    },
+    {
+      "name": "@reference",
+      "description": "Use the `@reference` directive to reference other stylesheets without duplicating their styles in the output, making utilities available for @apply in component files."
+    }
+  ]
+}

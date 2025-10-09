@@ -1,8 +1,8 @@
 import type { ProjectionParams } from '@/core/atlases/loader'
-import type { ProjectionFilterContext, ProjectionRecommendation } from '@/projections/types'
-import { ProjectionFactory } from '@/projections/factory'
-import { projectionRegistry } from '@/projections/registry'
-import { ProjectionFamily, ProjectionStrategy } from '@/projections/types'
+import type { ProjectionFilterContext, ProjectionRecommendation } from '@/core/projections/types'
+import { ProjectionFactory } from '@/core/projections/factory'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionFamily, ProjectionStrategy } from '@/core/projections/types'
 
 export interface ProjectionOption {
   value: string

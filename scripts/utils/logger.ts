@@ -22,12 +22,14 @@ const COLORS = {
   cyan: '\x1B[36m',
   white: '\x1B[37m',
   gray: '\x1B[90m',
-}
+} as const
+
+type Color = typeof COLORS[keyof typeof COLORS]
 
 /**
  * Format helper - wraps text in color
  */
-function colorize(text, color) {
+function colorize(text: string, color: Color): string {
   return `${color}${text}${COLORS.reset}`
 }
 
@@ -38,49 +40,49 @@ export const logger = {
   /**
    * Informational message (blue)
    */
-  info(message) {
+  info(message: string): void {
     console.log(`${colorize('[i]', COLORS.blue)} ${message}`)
   },
 
   /**
    * Success message (green)
    */
-  success(message) {
+  success(message: string): void {
     console.log(`${colorize('[✓]', COLORS.green)} ${message}`)
   },
 
   /**
    * Warning message (yellow)
    */
-  warning(message) {
+  warning(message: string): void {
     console.log(`${colorize('[!]', COLORS.yellow)} ${message}`)
   },
 
   /**
    * Error message (red)
    */
-  error(message) {
+  error(message: string): void {
     console.error(`${colorize('[✗]', COLORS.red)} ${message}`)
   },
 
   /**
    * Section header (bold cyan)
    */
-  section(message) {
+  section(message: string): void {
     console.log(`\n${COLORS.bold}${COLORS.cyan}${message}${COLORS.reset}`)
   },
 
   /**
    * Subsection header (cyan)
    */
-  subsection(message) {
+  subsection(message: string): void {
     console.log(`\n${COLORS.cyan}${message}${COLORS.reset}`)
   },
 
   /**
    * Plain message with optional color
    */
-  log(message, color = null) {
+  log(message: string, color: Color | null = null): void {
     if (color) {
       console.log(colorize(message, color))
     }
@@ -92,28 +94,28 @@ export const logger = {
   /**
    * Dimmed/gray text for less important info
    */
-  dim(message) {
+  dim(message: string): void {
     console.log(colorize(message, COLORS.gray))
   },
 
   /**
    * Highlight text (bold yellow)
    */
-  highlight(message) {
+  highlight(message: string): void {
     console.log(`${COLORS.bold}${COLORS.yellow}${message}${COLORS.reset}`)
   },
 
   /**
    * Data output (formatted key-value)
    */
-  data(key, value) {
+  data(key: string, value: string | number): void {
     console.log(`  ${COLORS.cyan}${key}:${COLORS.reset} ${value}`)
   },
 
   /**
    * Empty line for spacing
    */
-  newline() {
+  newline(): void {
     console.log()
   },
 }
@@ -122,3 +124,4 @@ export const logger = {
  * Export colors for direct use if needed
  */
 export { COLORS }
+export type { Color }

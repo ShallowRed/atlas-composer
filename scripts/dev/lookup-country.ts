@@ -8,16 +8,64 @@
 
 import process from 'node:process'
 import * as topojson from 'topojson-client'
-import { getResolution, parseArgs, showHelp } from '../utils/cli-args.js'
-import { logger } from '../utils/logger.js'
-import { fetchWorldData } from '../utils/ne-data.js'
+import { getResolution, parseArgs, showHelp } from '../utils/cli-args.ts'
+import { logger } from '../utils/logger.ts'
+import { fetchWorldData } from '../utils/ne-data.ts'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface Bounds {
+  minLon: number
+  maxLon: number
+  minLat: number
+  maxLat: number
+}
+
+interface Center {
+  lon: number
+  lat: number
+}
+
+interface PolygonStats {
+  index: number
+  bounds: Bounds
+  approxArea: number
+  center: Center
+  ringCount: number
+}
+
+interface SeparateCandidate {
+  stats: PolygonStats
+  distance: number
+}
+
+interface GeoJSONFeature {
+  type: 'Feature'
+  id?: string | number
+  properties?: Record<string, any>
+  geometry?: {
+    type: string
+    coordinates: any
+  }
+}
+
+interface GeoJSONFeatureCollection {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
 
 /**
  * Calculate bounding box for a polygon ring
- * @param {number[][]} ring - Array of [lon, lat] coordinates
- * @returns {{minLon: number, maxLon: number, minLat: number, maxLat: number}} Bounds
+ * @param ring - Array of [lon, lat] coordinates
+ * @returns Bounds
  */
-function calculateBounds(ring) {
+function calculateBounds(ring: number[][]): Bounds {
   if (!ring || ring.length === 0) {
     return {
       minLon: 0,
@@ -27,8 +75,8 @@ function calculateBounds(ring) {
     }
   }
 
-  const lons = ring.map(coord => coord[0])
-  const lats = ring.map(coord => coord[1])
+  const lons = ring.map(coord => coord[0]).filter((n): n is number => n !== undefined)
+  const lats = ring.map(coord => coord[1]).filter((n): n is number => n !== undefined)
 
   return {
     minLon: Math.min(...lons),
@@ -40,20 +88,20 @@ function calculateBounds(ring) {
 
 /**
  * Format bounds for friendly display
- * @param {{minLon: number, maxLon: number, minLat: number, maxLat: number}} bounds
- * @returns {string} Formatted bounds
+ * @param bounds - Bounds object
+ * @returns Formatted bounds
  */
-function formatBounds(bounds) {
+function formatBounds(bounds: Bounds): string {
   return `lon [${bounds.minLon.toFixed(2)}, ${bounds.maxLon.toFixed(2)}], lat [${bounds.minLat.toFixed(2)}, ${bounds.maxLat.toFixed(2)}]`
 }
 
 /**
  * Calculate polygon statistics used in analysis
- * @param {number[][][]} polygon - MultiPolygon polygon (array of rings)
- * @param {number} index
- * @returns {object} Polygon stats
+ * @param polygon - MultiPolygon polygon (array of rings)
+ * @param index - Polygon index
+ * @returns Polygon stats
  */
-function getPolygonStats(polygon, index) {
+function getPolygonStats(polygon: any[], index: number): PolygonStats {
   const firstRing = polygon[0] || []
   const bounds = calculateBounds(firstRing)
 
@@ -75,22 +123,22 @@ function getPolygonStats(polygon, index) {
 
 /**
  * Distance between two centers in degrees
- * @param {{lon: number, lat: number}} a
- * @param {{lon: number, lat: number}} b
- * @returns {number} Distance in degrees
+ * @param a - First center
+ * @param b - Second center
+ * @returns Distance in degrees
  */
-function distanceBetweenCenters(a, b) {
+function distanceBetweenCenters(a: Center, b: Center): number {
   return Math.hypot((a.lon ?? 0) - (b.lon ?? 0), (a.lat ?? 0) - (b.lat ?? 0))
 }
 
 /**
  * Pretty-print a country feature with geometry insights
- * @param {GeoJSON.Feature} country
- * @param {string} resolution
- * @param {number} index
- * @param {number} total
+ * @param country - GeoJSON feature
+ * @param resolution - Resolution string
+ * @param index - Match index
+ * @param total - Total matches
  */
-function describeCountry(country, resolution, index, total) {
+function describeCountry(country: GeoJSONFeature, resolution: string, index: number, total: number): void {
   const name = country.properties?.name || 'Unknown'
   const heading = total > 1
     ? `${name} (ID ${country.id}) — match ${index + 1} of ${total}`
@@ -136,12 +184,12 @@ function describeCountry(country, resolution, index, total) {
     return
   }
 
-  const polygonStats = polygons.map((polygon, idx) => getPolygonStats(polygon, idx))
-  const mainland = polygonStats.reduce((largest, current) =>
+  const polygonStats = polygons.map((polygon: any, idx: number) => getPolygonStats(polygon, idx))
+  const mainland = polygonStats.reduce((largest: PolygonStats, current: PolygonStats) =>
     current.approxArea > largest.approxArea ? current : largest, polygonStats[0])
 
   logger.subsection(`Polygon Breakdown (${polygons.length})`)
-  const separateCandidates = []
+  const separateCandidates: SeparateCandidate[] = []
 
   for (const stats of polygonStats) {
     const isMainland = stats.index === mainland.index
@@ -183,14 +231,18 @@ function describeCountry(country, resolution, index, total) {
 
 /**
  * Look up country information from Natural Earth data
- * @param {string} searchTerm
- * @param {string} resolution
+ * @param searchTerm - Country name or ID
+ * @param resolution - Natural Earth resolution
  */
-async function lookupCountry(searchTerm, resolution) {
+async function lookupCountry(searchTerm: string, resolution: string): Promise<void> {
   logger.section(`Looking up "${searchTerm}"`)
 
-  const worldData = await fetchWorldData(resolution)
-  const featureCollection = topojson.feature(worldData, worldData.objects.countries)
+  const worldData = await fetchWorldData(resolution as any)
+  const countriesObject = worldData.objects.countries
+  if (!countriesObject) {
+    throw new Error('No countries object found in world data')
+  }
+  const featureCollection = topojson.feature(worldData, countriesObject) as any as GeoJSONFeatureCollection
   const features = featureCollection.features || []
 
   const normalized = searchTerm.toLowerCase()
@@ -232,7 +284,7 @@ async function lookupCountry(searchTerm, resolution) {
   })
 }
 
-async function main() {
+async function main(): Promise<void> {
   const args = parseArgs()
 
   if (args.help) {
@@ -274,7 +326,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error(error.message)
+  const message = error instanceof Error ? error.message : String(error)
+  logger.error(message)
   if (process.env.DEBUG) {
     console.error(error)
   }

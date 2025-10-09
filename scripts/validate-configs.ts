@@ -1,82 +1,93 @@
-#!/usr/bin/env node
-
-/**
- * Configuration Validator
- * Validates consistency between atlas configs, frontend configs, and generated data
- *
- * Usage:
- *   npm run geodata:validate <atlas>
- *   npm run geodata:validate portugal
- *   npm run geodata:validate --all
- *
- * Checks:
- *   - Atlas config exists
- *   - Frontend config exists
- *   - Generated data files exist
- *   - Territory codes match between atlas and frontend
- *   - All referenced territories exist in data
- *   - No orphaned territories in data
- */
-
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
+import type { BackendConfig } from './utils/config-adapter.js'
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import process from 'node:process'
 import { listConfigs, loadConfig } from './utils/config-loader.js'
 import { logger } from './utils/logger.js'
 
+interface ValidationResults {
+  errors: string[]
+  warnings: string[]
+  info: string[]
+}
+
+interface ValidationSummary extends ValidationResults {
+  country: string
+  success: boolean
+  hasWarnings: boolean
+}
+
+interface GeoJSONFeature {
+  type: 'Feature'
+  id: string
+  properties: {
+    code?: string
+    [key: string]: any
+  }
+  geometry: any
+}
+
+interface GeoJSONFeatureCollection {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}
+
+interface TopoJSONData {
+  type: string
+  objects?: {
+    territories?: {
+      geometries?: Array<{ id: string }>
+    }
+  }
+}
+
+type GeneratedData = GeoJSONFeatureCollection | TopoJSONData
+
 /**
- * Load atlas config from unified JSON
+ * Load backend config for a country
  */
-async function loadBackendConfig(country) {
+async function loadBackendConfig(country: string): Promise<BackendConfig | null> {
   try {
     const { backend } = await loadConfig(country)
     return backend
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  catch (error) {
+  catch {
     return null
   }
 }
 
 /**
- * Load generated data
+ * Load generated geodata for a country
  */
-async function loadGeneratedData(country, resolution = '50m') {
+async function loadGeneratedData(country: string, resolution = '50m'): Promise<GeneratedData | null> {
   try {
-    const dataPath = path.join(process.cwd(), 'src/public/data', `${country}-territories-${resolution}.json`)
-    const content = await fs.readFile(dataPath, 'utf-8')
-    return JSON.parse(content)
+    const dataPath = resolve(process.cwd(), `src/public/data/${country}-territories-${resolution}.json`)
+    const content = await readFile(dataPath, 'utf-8')
+    return JSON.parse(content) as GeneratedData
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  catch (error) {
+  catch {
     return null
   }
 }
 
 /**
- * Extract territory codes from atlas config
+ * Extract territory codes from backend config
  */
-function extractBackendCodes(config) {
-  const codes = []
-  // eslint-disable-next-line no-unused-vars
-  for (const [_id, territory] of Object.entries(config.territories)) {
-    if (territory.code) {
-      codes.push(territory.code)
-    }
-  }
-  return codes
+function extractBackendCodes(config: BackendConfig): string[] {
+  return Object.values(config.territories).map(t => t.code)
 }
 
 /**
  * Extract territory codes from generated data
  */
-function extractDataCodes(data) {
-  if (data.type === 'FeatureCollection') {
-    return data.features.map(f => f.properties.code)
+function extractDataCodes(data: GeneratedData): string[] {
+  if ('features' in data && data.type === 'FeatureCollection') {
+    return data.features
+      .map(f => f.properties?.code)
+      .filter((code): code is string => typeof code === 'string')
   }
-  // TopoJSON
-  if (data.objects?.territories?.geometries) {
-    return data.objects.territories.geometries.map(g => g.properties.code)
+  else if (data.objects?.territories?.geometries) {
+    return data.objects.territories.geometries.map(g => g.id)
   }
   return []
 }
@@ -84,20 +95,19 @@ function extractDataCodes(data) {
 /**
  * Validate a country configuration
  */
-async function validateCountry(country) {
+async function validateCountry(country: string): Promise<ValidationSummary> {
   logger.section(`Validating: ${country}`)
-  logger.newline()
 
-  const results = {
+  const results: ValidationResults = {
     errors: [],
     warnings: [],
     info: [],
   }
 
-  // Check atlas config
+  // Check backend config
   const backendConfig = await loadBackendConfig(country)
   if (!backendConfig) {
-    results.errors.push(`Atlas config not found (scripts/configs/${country}.js)`)
+    results.errors.push(`Atlas config not found (configs/${country}.json)`)
   }
   else {
     results.info.push(`Atlas config found: ${Object.keys(backendConfig.territories).length} territory definitions`)
@@ -106,13 +116,17 @@ async function validateCountry(country) {
   // Check generated data
   const generatedData = await loadGeneratedData(country)
   if (!generatedData) {
-    results.warnings.push(`Generated data not found (run: node scripts/prepare-geodata.js ${country})`)
+    results.warnings.push(`Generated data not found (run: pnpm geodata:prepare ${country})`)
   }
   else {
     const dataFormat = generatedData.type
-    const featureCount = dataFormat === 'FeatureCollection'
-      ? generatedData.features.length
-      : generatedData.objects?.territories?.geometries?.length || 0
+    let featureCount = 0
+    if (dataFormat === 'FeatureCollection' && 'features' in generatedData) {
+      featureCount = generatedData.features.length
+    }
+    else if ('objects' in generatedData && generatedData.objects?.territories?.geometries) {
+      featureCount = generatedData.objects.territories.geometries.length
+    }
     results.info.push(`Generated data found: ${dataFormat} with ${featureCount} features`)
   }
 
@@ -164,22 +178,22 @@ async function validateCountry(country) {
 /**
  * List all available countries
  */
-async function listAvailableCountries() {
+async function listAvailableCountries(): Promise<string[]> {
   return await listConfigs()
 }
 
 /**
  * Main
  */
-async function main() {
+async function main(): Promise<void> {
   const args = process.argv.slice(2)
 
   if (args.length === 0 || args[0] === '--help') {
-    logger.log('Usage: npm run geodata:validate <atlas|--all>')
+    logger.log('Usage: pnpm geodata:validate <atlas|--all>')
     logger.log('\nExamples:')
-    logger.log('  npm run geodata:validate portugal')
-    logger.log('  npm run geodata:validate france')
-    logger.log('  npm run geodata:validate --all')
+    logger.log('  pnpm geodata:validate portugal')
+    logger.log('  pnpm geodata:validate france')
+    logger.log('  pnpm geodata:validate --all')
     return
   }
 
@@ -188,7 +202,7 @@ async function main() {
     logger.section(`Validating all countries (${countries.length})`)
     logger.newline()
 
-    const results = []
+    const results: ValidationSummary[] = []
     for (const country of countries) {
       const result = await validateCountry(country)
       results.push(result)
@@ -213,11 +227,13 @@ async function main() {
   }
   else {
     const country = args[0]
-    await validateCountry(country)
+    if (country) {
+      await validateCountry(country)
+    }
   }
 }
 
-main().catch((error) => {
+main().catch((error: Error) => {
   logger.error(`${error.message}`)
   if (process.env.DEBUG) {
     console.error(error)

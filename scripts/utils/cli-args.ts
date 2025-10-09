@@ -7,8 +7,19 @@
  */
 
 import process from 'node:process'
-import { logger } from './logger.js'
-import { DEFAULT_RESOLUTION, isValidResolution } from './ne-data.js'
+import { logger } from './logger.ts'
+import { DEFAULT_RESOLUTION, isValidResolution } from './ne-data.ts'
+
+/**
+ * Parsed command line arguments
+ */
+export interface ParsedArgs {
+  atlas: string | null
+  country: string | null
+  resolution: string | null
+  help: boolean
+  _unknown: string[]
+}
 
 /**
  * Parse command line arguments
@@ -18,13 +29,11 @@ import { DEFAULT_RESOLUTION, isValidResolution } from './ne-data.js'
  *   script <atlas> --resolution=10m
  *   script --resolution=50m <region>
  *   script --help
- *
- * @returns {object} Parsed arguments
  */
-export function parseArgs() {
+export function parseArgs(): ParsedArgs {
   const args = process.argv.slice(2)
 
-  const parsed = {
+  const parsed: ParsedArgs = {
     atlas: null, // For prepare/validate scripts (france, portugal, eu)
     country: null, // Alias for dev scripts (lookup, analyze)
     resolution: null,
@@ -38,11 +47,11 @@ export function parseArgs() {
     }
     else if (arg.startsWith('--resolution=')) {
       const value = arg.split('=')[1]
-      if (isValidResolution(value)) {
+      if (value && isValidResolution(value)) {
         parsed.resolution = value
       }
       else {
-        logger.warning(`Invalid --resolution value: ${value}`)
+        logger.warning(`Invalid --resolution value: ${value || 'empty'}`)
       }
     }
     else if (arg.startsWith('--')) {
@@ -63,11 +72,8 @@ export function parseArgs() {
 
 /**
  * Get resolution with precedence: CLI flag > env var > default
- *
- * @param {object} args - Parsed arguments from parseArgs()
- * @returns {string} Resolution ('10m', '50m', or '110m')
  */
-export function getResolution(args) {
+export function getResolution(args: ParsedArgs): string {
   // CLI flag takes precedence
   if (args.resolution) {
     return args.resolution
@@ -85,13 +91,13 @@ export function getResolution(args) {
 
 /**
  * Show help message
- *
- * @param {string} scriptName - Name of the script
- * @param {string} description - Description of what the script does
- * @param {string} usage - Usage pattern
- * @param {object} options - Available options
  */
-export function showHelp(scriptName, description, usage, options = {}) {
+export function showHelp(
+  scriptName: string,
+  description: string,
+  usage: string,
+  options: Record<string, string> = {},
+): void {
   logger.section(scriptName)
   logger.log(description)
   logger.newline()
@@ -111,13 +117,9 @@ export function showHelp(scriptName, description, usage, options = {}) {
 
 /**
  * Validate that required arguments are present
- *
- * @param {object} args - Parsed arguments
- * @param {string[]} required - Required argument names
- * @returns {boolean} True if all required args present
  */
-export function validateRequired(args, required) {
-  const missing = required.filter(name => !args[name])
+export function validateRequired(args: ParsedArgs, required: string[]): boolean {
+  const missing = required.filter(name => !args[name as keyof ParsedArgs])
 
   if (missing.length > 0) {
     logger.error(`Missing required argument(s): ${missing.join(', ')}`)

@@ -3,48 +3,47 @@
  * Loads unified JSON configs and applies backend adapter transformation
  */
 
+import type { BackendConfig } from './config-adapter.ts'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
-import { logger } from './logger.js'
+import { createBackendConfig } from './config-adapter.ts'
+import { logger } from './logger.ts'
+
+/**
+ * Loaded config with both formats
+ */
+export interface LoadedConfig {
+  unified: any
+  backend: BackendConfig
+}
 
 /**
  * Get project root directory
  */
-function getProjectRoot() {
+function getProjectRoot(): string {
   return process.cwd()
 }
 
 /**
  * Get configs directory path
  */
-function getConfigsDir() {
+function getConfigsDir(): string {
   return path.join(getProjectRoot(), 'configs')
-}
-
-/**
- * Get backend adapter path
- */
-function getAdapterPath() {
-  return path.join(getProjectRoot(), 'scripts/utils', 'config-adapter.js')
 }
 
 /**
  * Load unified JSON config and transform to backend format
  *
- * @param {string} atlasName - Name of the atlas (e.g., 'portugal', 'france', 'eu')
- * @returns {Promise<{unified: object, backend: object}>} Both formats
+ * @param atlasName - Name of the atlas (e.g., 'portugal', 'france', 'eu')
+ * @returns Both unified and backend formats
  */
-export async function loadConfig(atlasName) {
+export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
   try {
     // Load unified JSON config
     const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
     const configContent = await fs.readFile(configPath, 'utf-8')
     const unified = JSON.parse(configContent)
-
-    // Load backend adapter
-    const adapterPath = getAdapterPath()
-    const { createBackendConfig } = await import(adapterPath)
 
     // Transform to backend format
     const backend = createBackendConfig(unified)
@@ -52,7 +51,7 @@ export async function loadConfig(atlasName) {
     return { unified, backend }
   }
   catch (error) {
-    if (error.code === 'ENOENT') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
       logger.error(`Config file not found: ${atlasName}.json`)
       logger.info(`Available configs in ${getConfigsDir()}:`)
 
@@ -76,7 +75,8 @@ export async function loadConfig(atlasName) {
       throw new Error(`Invalid JSON: ${error.message}`)
     }
 
-    logger.error(`Failed to load config: ${error.message}`)
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error(`Failed to load config: ${message}`)
     throw error
   }
 }
@@ -84,9 +84,9 @@ export async function loadConfig(atlasName) {
 /**
  * List all available configs
  *
- * @returns {Promise<string[]>} Array of config names (without .json extension)
+ * @returns Array of config names (without .json extension)
  */
-export async function listConfigs() {
+export async function listConfigs(): Promise<string[]> {
   try {
     const configsDir = getConfigsDir()
     const files = await fs.readdir(configsDir)
@@ -97,7 +97,8 @@ export async function listConfigs() {
       .sort()
   }
   catch (error) {
-    logger.error(`Failed to list configs: ${error.message}`)
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error(`Failed to list configs: ${message}`)
     return []
   }
 }
@@ -105,10 +106,10 @@ export async function listConfigs() {
 /**
  * Check if a config exists
  *
- * @param {string} atlasName - Name of the atlas
- * @returns {Promise<boolean>} True if config exists
+ * @param atlasName - Name of the atlas
+ * @returns True if config exists
  */
-export async function configExists(atlasName) {
+export async function configExists(atlasName: string): Promise<boolean> {
   try {
     const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
     await fs.access(configPath)

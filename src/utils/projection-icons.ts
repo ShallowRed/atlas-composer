@@ -1,6 +1,6 @@
-import type { ProjectionCategoryType } from '@/projections/types'
+import type { ProjectionCategoryType } from '@/core/projections/types'
 
-import { ProjectionCategory } from '@/projections/types'
+import { ProjectionCategory } from '@/core/projections/types'
 
 /**
  * Map of projection categories to Remix Icon class names

@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { ProjectionDefinition, ProjectionRecommendation } from '@/projections/types'
+import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
 
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'

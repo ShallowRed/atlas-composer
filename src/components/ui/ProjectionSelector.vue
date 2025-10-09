@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ProjectionDefinition, ProjectionRecommendation } from '@/projections/types'
+import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ProjectionConfirmDialog from '@/components/ui/ProjectionConfirmDialog.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import { useProjectionValidation } from '@/composables/useProjectionValidation'
-import { projectionRegistry } from '@/projections/registry'
+import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
 
 interface ProjectionOption {
