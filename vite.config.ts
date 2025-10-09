@@ -29,6 +29,7 @@ export default defineConfig(env => ({
     alias: {
       '@': srcDir,
       '@configs': path.resolve(__dirname, 'configs'),
+      '#types': path.resolve(__dirname, 'types'),
     },
   },
 }))

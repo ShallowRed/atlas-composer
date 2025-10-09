@@ -3,64 +3,10 @@
  * Transforms unified JSON configs to backend extraction format
  */
 
-/**
- * Raw JSON territory structure (as it appears in configs/*.json)
- */
-interface JSONTerritoryConfig {
-  id: string
-  role: 'mainland' | 'overseas'
-  code: string
-  name: string
-  shortName?: string
-  iso: string
-  region?: string
-  center: [number, number]
-  bounds: [[number, number], [number, number]]
-  extraction?: {
-    mainlandPolygon?: number
-    extractFrom?: string
-    polygonIndices?: number[]
-    polygonBounds?: [number, number, number, number]
-    duplicateFrom?: string
-  }
-  rendering?: any
-}
+import type { BackendConfig, BackendTerritory, JSONAtlasConfig } from '#types'
 
-/**
- * Raw JSON atlas config structure (as it appears in configs/*.json)
- */
-interface JSONAtlasConfig {
-  id: string
-  name: string
-  description: string
-  territories: JSONTerritoryConfig[]
-  projectionPreferences?: any
-  [key: string]: any
-}
-
-/**
- * Backend territory structure for geodata extraction
- */
-export interface BackendTerritory {
-  name: string
-  code: string
-  iso: string
-  mainlandPolygon?: number
-  extractFrom?: number
-  polygonIndices?: number[]
-  bounds?: [number, number, number, number]
-  duplicateFrom?: string
-}
-
-/**
- * Backend configuration format for geodata scripts
- */
-export interface BackendConfig {
-  name: string
-  description: string
-  territories: Record<string, BackendTerritory>
-  outputName: string
-}
+// Re-export types for backwards compatibility
+export type { BackendConfig, BackendTerritory }
 
 /**
  * Transform unified config to backend extraction format

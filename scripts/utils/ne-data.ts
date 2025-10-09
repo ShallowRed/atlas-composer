@@ -5,7 +5,7 @@
 
 import type { Topology } from 'topojson-specification'
 import process from 'node:process'
-import { logger } from './logger.ts'
+import { logger } from '#scripts/utils/logger'
 
 /**
  * Valid Natural Earth resolutions

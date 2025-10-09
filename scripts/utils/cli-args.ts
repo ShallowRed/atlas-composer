@@ -7,8 +7,8 @@
  */
 
 import process from 'node:process'
-import { logger } from './logger.ts'
-import { DEFAULT_RESOLUTION, isValidResolution } from './ne-data.ts'
+import { logger } from '#scripts/utils/logger'
+import { DEFAULT_RESOLUTION, isValidResolution } from '#scripts/utils/ne-data'
 
 /**
  * Parsed command line arguments

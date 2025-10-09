@@ -3,6 +3,11 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
+  "imports": {
+    "#types": "./types/index.ts",
+    "#types/*": "./types/*.ts",
+    "#scripts/*": "./scripts/*.ts"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -51,6 +56,8 @@
     "@vitest/ui": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "eslint": "^9.36.0",
     "happy-dom": "^19.0.2",
     "tsx": "^4.20.6",

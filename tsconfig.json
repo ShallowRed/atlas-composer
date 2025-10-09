@@ -15,7 +15,8 @@
     "moduleResolution": "bundler",
     "paths": {
       "@/*": ["src/*"],
-      "@configs/*": ["configs/*"]
+      "@configs/*": ["configs/*"],
+      "#types/*": ["types/*"]
     },
     "types": ["vite/client", "node"],
     "allowImportingTsExtensions": true,

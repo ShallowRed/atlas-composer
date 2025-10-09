@@ -3,15 +3,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "rootDir": ".",
+    "rootDir": "..",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-
-    // Reuse frontend path mappings
-    "paths": {
-      "@/*": ["../src/*"],
-      "@configs/*": ["../configs/*"]
-    },
     "types": ["node"],
     "declaration": true,
     "declarationMap": true,
@@ -24,7 +18,8 @@
   },
   "include": [
     "**/*.ts",
-    "../src/types/**/*.d.ts"
+    "../src/types/**/*.d.ts",
+    "../types/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

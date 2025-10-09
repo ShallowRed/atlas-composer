@@ -288,10 +288,134 @@ All old JavaScript files have been safely deleted:
 
 ---
 
+## Shared Type Definitions
+
+**Added: 9 October 2025**
+
+### Implementation Summary
+
+Extracted shared configuration types to `/types/` directory for use by both frontend (`src/`) and backend scripts (`scripts/`).
+
+### Structure
+
+```
+types/
+├── config.d.ts      # Shared JSON config types (JSONTerritoryConfig, JSONAtlasConfig, etc.)
+└── index.ts         # Barrel export with re-exports from src/types/territory.d.ts
+```
+
+### Shared Types
+
+**Configuration Types:**
+- `JSONTerritoryConfig` - Territory as stored in configs/*.json files
+- `JSONAtlasConfig` - Complete atlas as stored in configs/*.json files
+- `BackendTerritory` - Backend format for geodata extraction scripts
+- `BackendConfig` - Backend configuration for prepare-geodata.ts
+
+**Frontend Types** (re-exported for convenience):
+- `TerritoryConfig`, `AtlasConfig`, `GeoDataConfig`
+- `CompositeProjectionConfig`, `TraditionalCompositeConfig`, `MultiMainlandCompositeConfig`
+- `TerritoryModeConfig`
+
+### Benefits
+
+1. **Single Source of Truth**: Config structure defined once, used everywhere
+2. **Type Safety Across Boundaries**: Frontend and backend share exact same type definitions
+3. **Refactoring Safety**: Changes to config structure caught at compile-time in both frontend and scripts
+4. **Better IDE Support**: Full autocomplete and type checking when working with configs
+
+### Import Patterns
+
+**In scripts** (from `/scripts/`):
+```typescript
+import type { BackendConfig, JSONAtlasConfig } from '../../types/index.js'
+```
+
+**In frontend** (from `/src/`):
+```typescript
+import type { JSONAtlasConfig, JSONTerritoryConfig } from '../../../types/index'
+```
+
+### TypeScript Configuration
+
+Updated both `tsconfig.json` and `scripts/tsconfig.json`:
+- Changed `rootDir` to `..` to include `/types/` directory
+- Added `/types/**/*.ts` to include patterns
+- Both frontend and scripts can now import from shared types
+
+---
+
+## Runtime Schema Validation
+
+**Added: 9 October 2025**
+
+### Implementation Summary
+
+After completing TypeScript migration, we added runtime validation using AJV (JSON Schema validator) to complement compile-time type safety.
+
+### Why AJV Instead of Zod?
+
+**Decision:** Use AJV with existing `configs/schema.json` ✅
+
+**Rationale:**
+- ✅ **Single Source of Truth:** Uses existing schema.json (no duplication)
+- ✅ **IDE Already Validates:** Configs have `$schema` reference for editor validation
+- ✅ **Zero Bundle Impact:** Runtime validation only in Node.js scripts (not browser)
+- ✅ **Static Files:** Configs are trusted static files, not user input
+- ❌ **Zod Would:** Require duplicating schema.json, adding 14KB to bundle, manual sync
+
+### Implementation
+
+**New File:** `scripts/utils/schema-validator.ts`
+- Dynamic imports for ESM/CommonJS compatibility with Ajv
+- Loads and compiles `configs/schema.json` once (cached)
+- Two functions:
+  - `validateConfigSchema(config, atlasName)` - Throws on error with details
+  - `isValidConfig(config)` - Returns boolean for checks
+
+**Integration:** `scripts/utils/config-loader.ts`
+- Validates all configs when loaded
+- Catches schema violations at runtime
+- Provides detailed error messages with paths and parameters
+
+**TypeScript Compatibility:**
+- Used dynamic imports to resolve ESM/CommonJS module issues
+- Type casting for Ajv constructor and addFormats (TypeScript sees them as type-only exports)
+- Follows official Ajv TypeScript documentation patterns
+
+### Validation Layers
+
+Our configs are now validated at three levels:
+
+1. **IDE Level:** `$schema` reference → Real-time validation in VSCode
+2. **Compile-Time:** TypeScript types → Structural validation at build
+3. **Runtime:** AJV + schema.json → Schema compliance when configs load
+
+### Testing
+
+```bash
+✓ pnpm exec tsc --noEmit -p scripts/tsconfig.json  # Compiles without errors
+✓ pnpm geodata:validate --all                       # 3 atlases valid (with schema validation)
+✓ pnpm test:run                                     # 170 tests passed
+✓ Invalid config test                               # Correctly rejects malformed configs
+```
+
+### Dependencies Added
+
+```json
+{
+  "ajv": "^8.17.1",
+  "ajv-formats": "^3.0.1"
+}
+```
+
+---
+
 **Next Steps:**
 1. ~~Review this analysis~~ ✅
 2. ~~If approved, start with Phase 1 (Setup)~~ ✅
 3. ~~Migrate utilities first (they're small and have dependencies)~~ ✅
 4. ~~Migrate main scripts~~ ✅
 5. ~~Validate thoroughly~~ ✅
-6. Document and commit 📝
+6. ~~Add runtime schema validation~~ ✅
+7. Document and commit 📝

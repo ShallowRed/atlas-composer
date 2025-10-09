@@ -20,10 +20,10 @@
  */
 
 import process from 'node:process'
+import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
+import { logger } from '#scripts/utils/logger'
+import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
-import { getResolution, parseArgs, showHelp } from '../utils/cli-args.ts'
-import { logger } from '../utils/logger.ts'
-import { fetchWorldData } from '../utils/ne-data.ts'
 
 // ============================================================================
 // TYPES

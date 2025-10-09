@@ -14,16 +14,16 @@
  *   npm run geodata:prepare eu
  */
 
+import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
 import type { Topology } from 'topojson-specification'
-import type { BackendConfig, BackendTerritory } from './utils/config-adapter.ts'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
+import { loadConfig } from '#scripts/config/loader'
+import { getResolution, parseArgs, showHelp, validateRequired } from '#scripts/utils/cli-args'
+import { logger } from '#scripts/utils/logger'
+import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
-import { getResolution, parseArgs, showHelp, validateRequired } from './utils/cli-args.ts'
-import { loadConfig } from './utils/config-loader.ts'
-import { logger } from './utils/logger.ts'
-import { fetchWorldData } from './utils/ne-data.ts'
 
 // ============================================================================
 // TYPES

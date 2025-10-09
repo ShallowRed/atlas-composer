@@ -3,6 +3,7 @@
  * Adapter to transform shared JSON configs into complete atlas configurations
  */
 
+import type { JSONAtlasConfig, JSONTerritoryConfig } from '#types/index'
 import type {
   AtlasConfig,
   GeoDataConfig,
@@ -79,7 +80,7 @@ export interface LoadedAtlasConfig {
 /**
  * Transform territory from JSON to TerritoryConfig
  */
-function transformTerritory(territory: any): TerritoryConfig {
+function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
   return {
     code: territory.code,
     name: territory.name,
@@ -107,12 +108,12 @@ function transformTerritory(territory: any): TerritoryConfig {
  * 1. Traditional: 1 mainland + N overseas territories (France, Portugal)
  * 2. Multi-mainland: N member-states + M overseas territories (EU, Malaysia)
  */
-function extractTerritories(config: any) {
+function extractTerritories(config: JSONAtlasConfig) {
   // Collect all mainland-type territories (both 'mainland' and 'member-state' roles)
   const allMainlands = config.territories.filter(
-    (t: any) => t.role === 'mainland' || t.role === 'member-state',
+    t => t.role === 'mainland' || t.role === 'member-state',
   )
-  const overseasTerritories = config.territories.filter((t: any) => t.role === 'overseas')
+  const overseasTerritories = config.territories.filter(t => t.role === 'overseas')
 
   if (allMainlands.length === 0) {
     throw new Error(`No mainland or member-state territories found in ${config.id}`)
@@ -120,7 +121,7 @@ function extractTerritories(config: any) {
 
   // Traditional pattern: Single mainland + overseas territories
   if (allMainlands.length === 1) {
-    const mainland = transformTerritory(allMainlands[0])
+    const mainland = transformTerritory(allMainlands[0]!)
     const overseas = overseasTerritories.map(transformTerritory)
     const all = [mainland, ...overseas]
 
