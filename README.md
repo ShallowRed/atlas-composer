@@ -13,11 +13,13 @@ A web application for creating custom cartographic visualizations of countries w
 ## ✨ Features
 
 - 🗺️ **Interactive Atlas Composer** - Adjust territory positions and scales in real-time
-- 📐 **Multiple Projection Types** - D3 projections, composite projections, and custom projections
+- 📐 **Smart Projection System** - 20+ projections with intelligent recommendations
+- 🎯 **Context-Aware Selection** - Automatic filtering based on atlas and view mode
 - 🎨 **Visual Territory Controls** - Sliders for fine-tuning X/Y position and scale
 - 🌍 **Multiple Countries** - Pre-configured atlases for France, Portugal, Spain, and EU
 - 🔧 **Natural Earth Integration** - Automated geodata preparation from Natural Earth datasets
 - 📊 **Data Validation** - Scripts to ensure config/data consistency
+- 🧪 **Comprehensive Testing** - 79 unit & integration tests with 100% pass rate
 
 ## 🚀 Quick Start
 
@@ -108,13 +110,27 @@ atlas-composer/
     │       ├── utils.ts         # Territory utility functions
     │       └── constants.ts     # Atlas-related constants
     │
+    ├── projections/              # 📐 Projection System
+    │   ├── types.ts             # Type definitions
+    │   ├── registry.ts          # Central projection registry (singleton)
+    │   ├── factory.ts           # Projection factory
+    │   ├── recommender.ts       # Smart projection recommendations
+    │   ├── definitions/         # Projection definitions by category
+    │   │   ├── composite.ts     # Composite projections (France, Portugal, EU)
+    │   │   ├── conic.ts         # Conic projections
+    │   │   ├── azimuthal.ts     # Azimuthal projections
+    │   │   ├── cylindrical.ts   # Cylindrical projections
+    │   │   ├── world.ts         # World projections
+    │   │   └── artistic.ts      # Artistic/historical projections
+    │   └── __tests__/           # Test suite (79 tests, 100% passing)
+    │
     ├── services/                 # 🔧 Business Logic Layer
-    │   ├── atlas.ts             # AtlasService - atlas operations facade
-    │   ├── cartographer.ts      # Cartographer - map rendering engine
-    │   ├── cartographer-factory.ts  # Factory for creating Cartographer instances
-    │   ├── geo-data.ts          # GeoDataService - TopoJSON loading
-    │   ├── projections.ts       # ProjectionService - D3 projection factory
-    │   └── composite-projection.ts  # CompositeProjection - custom composite builder
+    │   ├── atlas-service.ts     # Atlas operations facade
+    │   ├── cartographer-service.ts # Map rendering engine
+    │   ├── cartographer-factory.ts # Factory for Cartographer instances
+    │   ├── geo-data-service.ts  # TopoJSON loading
+    │   ├── projection-service.ts # Legacy projection service (deprecated)
+    │   └── composite-projection.ts # Custom composite builder
     │
     ├── stores/                   # 💾 State Management (Pinia)
     │   ├── config.ts            # UI configuration store
@@ -165,17 +181,20 @@ atlas-composer/
 #### 2. **Service Layer Pattern**
    - **AtlasService**: Facade for atlas-specific operations (territories, modes, projections)
    - **GeoDataService**: Handles TopoJSON loading and geographic data manipulation
-   - **ProjectionService**: Factory for D3 projection instances
+   - **ProjectionRegistry**: Singleton registry for all projection definitions
+   - **ProjectionFactory**: Creates D3 projection instances with parameters
    - **Cartographer**: Orchestrates map rendering with territories and projections
 
 #### 3. **Factory Pattern**
    - `CartographerFactory` creates `Cartographer` instances for specific atlases
+   - `ProjectionFactory` creates D3 projection instances using strategy pattern
    - Built-in caching for performance optimization
    - Automatic configuration based on selected atlas
 
 #### 4. **Separation of Concerns**
    - **configs/**: Pure data definitions (JSON)
    - **core/atlases/**: Infrastructure for loading and accessing configs
+   - **projections/**: Type-safe projection system with metadata
    - **services/**: Business logic (projections, data loading, rendering)
    - **stores/**: Reactive state management
    - **components/**: UI presentation layer
@@ -184,8 +203,78 @@ atlas-composer/
    - Complete TypeScript coverage
    - Strict typing for atlas configs, territories, and projections
    - JSON Schema validation for config files
+   - Compile-time validation of projection IDs and parameters
 
-## 📊 Atlas Configuration System
+#### 6. **Intelligent Recommendations**
+   - Context-aware projection filtering based on atlas and view mode
+   - Smart scoring algorithm considering suitability, capabilities, and usage
+   - Automatic fallback to best alternatives
+
+## � Projection System
+
+Atlas Composer includes a comprehensive projection system with intelligent recommendations and context-aware filtering.
+
+### Features
+
+- **20+ Projections**: From standard D3 projections to composite projections
+- **Smart Recommendations**: Automatic scoring based on atlas, view mode, and geographic suitability
+- **Type Safety**: Compile-time validation with TypeScript
+- **Metadata-Rich**: Each projection includes capabilities, suitability, and usage recommendations
+- **Extensible**: Easy to add new projections with definition files
+
+### Projection Categories
+
+1. **Composite Projections** (Recommended)
+   - `conic-conformal-france` - Optimized for France with overseas territories
+   - `conic-conformal-portugal` - Optimized for Portugal with Azores & Madeira
+   - `conic-conformal-europe` - Optimized for European Union
+
+2. **Conic Projections** (Mid-latitudes)
+   - `conic-conformal` - Lambert Conformal Conic
+   - `albers` - Albers Equal Area
+
+3. **Azimuthal Projections** (Polar & centered views)
+   - `azimuthal-equal-area` - Equal area
+   - `azimuthal-equidistant` - Preserves distances from center
+   - `stereographic` - Conformal polar view
+
+4. **Cylindrical Projections** (World maps)
+   - `mercator` - Standard web mapping
+   - `equirectangular` - Simple rectangular
+
+5. **World Projections** (Global context)
+   - `natural-earth` - Visually appealing compromise
+   - `robinson` - National Geographic standard
+
+6. **Artistic Projections** (Historical/aesthetic)
+   - `armadillo`, `polyhedral`, `loximuthal`
+
+### Usage Example
+
+```typescript
+import { ProjectionFactory } from '@/projections/factory'
+import { ProjectionRegistry } from '@/projections/registry'
+
+// Get recommended projections for France in split view
+const registry = ProjectionRegistry.getInstance()
+const recommendations = registry.recommend({
+  atlasId: 'france',
+  viewMode: 'split',
+  limit: 5
+})
+
+// Create a projection instance
+const factory = ProjectionFactory.getInstance()
+const projection = factory.create({
+  projection: recommendations[0].definition,
+  center: [2.5, 46.5],
+  scale: 2500
+})
+```
+
+For detailed documentation, see [docs/PROJECTIONS.md](docs/PROJECTIONS.md).
+
+## �📊 Atlas Configuration System
 
 ### Configuration Structure
 
@@ -216,7 +305,7 @@ Each atlas is defined in a JSON file following this structure:
   "modes": {
     "all": {
       "label": "All territories",
-      "territories": ["250", "250-gf", ...]
+      "territories": ["250", "250-gf", "250-gp", "250-mq"]
     }
   },
   "projections": {
