@@ -133,13 +133,16 @@ src/core/projections/
   - [x] `compromise.ts` (empty array for now)
   - [x] `artistic.ts` (empty array for now)
 
-#### Task 1.2-EXTRA: Additional Projections (Nice-to-Have, Defer)
-- [ ] Add remaining conic projections (conic-equidistant)
-- [ ] Add azimuthal projections (5 projections)
-- [ ] Add remaining cylindrical projections (3 projections)
-- [ ] Add world projections (3 projections)
-- [ ] Add compromise projections (2 projections)
-- [ ] Add artistic projections (4 projections)
+#### Task 1.2-EXTRA: Additional Projections ✅ **COMPLETE**
+- [x] Add remaining conic projections (conic-equidistant) ✅
+- [x] Add azimuthal projections (5 projections) ✅
+  - azimuthal-equal-area, azimuthal-equidistant, stereographic, orthographic, gnomonic
+- [x] Add cylindrical projections (equirectangular) ✅
+- [x] Add world projections (4 projections) ✅
+  - natural-earth, robinson, eckert4, winkel-tripel
+- [x] Add artistic projections (4 projections) ✅
+  - armadillo, polyhedral-butterfly, loximuthal, polyhedral-waterman
+- [x] Add i18n translations (EN/FR) for all new projections ✅
 
 #### Task 1.3: Projection Registry
 - [x] **1.3.1** Create `src/core/projections/registry.ts`

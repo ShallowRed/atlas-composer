@@ -15,7 +15,9 @@
     },
     "prohibited": [
       "gnomonic",
-      "orthographic"
+      "orthographic",
+      "conic-conformal-portugal",
+      "conic-conformal-europe"
     ]
   },
   "territories": [

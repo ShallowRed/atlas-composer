@@ -15,7 +15,9 @@
     },
     "prohibited": [
       "gnomonic",
-      "orthographic"
+      "orthographic",
+      "conic-conformal-france",
+      "conic-conformal-europe"
     ]
   },
   "metadata": {

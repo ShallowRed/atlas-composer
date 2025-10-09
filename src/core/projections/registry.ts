@@ -149,16 +149,19 @@ class ProjectionRegistry {
 
     // Filter by atlas
     if (context.atlasId) {
+      const atlasSpecificConfig = getAtlasSpecificConfig(context.atlasId)
+      const prohibitedProjections = atlasSpecificConfig.projectionPreferences?.prohibited || []
+
       projections = projections.filter((def) => {
+        // Exclude if prohibited in atlas config
+        if (prohibitedProjections.includes(def.id)) {
+          return false
+        }
         // Include if recommended for this atlas
         if (
           def.suitability.recommendedForAtlases?.includes(context.atlasId!)
         ) {
           return true
-        }
-        // Exclude if explicitly avoided for this atlas
-        if (def.suitability.avoidForAtlases?.includes(context.atlasId!)) {
-          return false
         }
         // Include if no specific atlas preference
         return (
@@ -258,7 +261,7 @@ class ProjectionRegistry {
       }
       // Check if projection is prohibited for this atlas (immediate disqualification)
       if (atlasPreferences?.prohibited?.includes(projection.id)) {
-        score -= 50
+        score = -50 // Set to negative score for prohibited projections
         level = 'not-recommended'
         reason = 'projections.recommendations.atlasProhibited'
       }

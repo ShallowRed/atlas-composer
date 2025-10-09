@@ -157,6 +157,10 @@ export class ProjectionFactory {
       case 'equal-earth':
         projectionFn = d3Geo.geoEqualEarth
         break
+      case 'natural-earth':
+      case 'natural-earth1':
+        projectionFn = d3Geo.geoNaturalEarth1
+        break
 
       default:
         console.error(`[ProjectionFactory] Unknown D3 builtin: ${id}`)
@@ -195,9 +199,27 @@ export class ProjectionFactory {
       case 'sinusoidal':
         projectionFn = () => d3GeoProjection.geoSinusoidal()
         break
-      case 'natural-earth':
-      case 'natural-earth1':
-        projectionFn = () => d3GeoProjection.geoNaturalEarth1()
+      case 'eckert1':
+        projectionFn = () => d3GeoProjection.geoEckert1()
+        break
+      case 'eckert2':
+        projectionFn = () => d3GeoProjection.geoEckert2()
+        break
+      case 'eckert3':
+        projectionFn = () => d3GeoProjection.geoEckert3()
+        break
+      case 'eckert4':
+        projectionFn = () => d3GeoProjection.geoEckert4()
+        break
+      case 'eckert5':
+        projectionFn = () => d3GeoProjection.geoEckert5()
+        break
+      case 'eckert6':
+        projectionFn = () => d3GeoProjection.geoEckert6()
+        break
+      case 'wagner6':
+      case 'wagner-vi':
+        projectionFn = () => d3GeoProjection.geoWagner6()
         break
 
       // Compromise
@@ -219,10 +241,19 @@ export class ProjectionFactory {
       case 'bertin1953':
         projectionFn = () => d3GeoProjection.geoBertin1953()
         break
+      case 'armadillo':
+        projectionFn = () => d3GeoProjection.geoArmadillo()
+        break
+      case 'loximuthal':
+        projectionFn = () => d3GeoProjection.geoLoximuthal()
+        break
 
       // Polyhedral
       case 'polyhedral-waterman':
         projectionFn = () => d3GeoProjection.geoPolyhedralWaterman()
+        break
+      case 'polyhedral-butterfly':
+        projectionFn = () => d3GeoProjection.geoPolyhedralButterfly()
         break
 
       default:

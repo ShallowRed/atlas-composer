@@ -69,8 +69,51 @@ export const MERCATOR: ProjectionDefinition = {
 }
 
 /**
+ * Equirectangular Projection (Plate Carrée)
+ * Simple rectangular projection where meridians and parallels are evenly spaced
+ */
+export const EQUIRECTANGULAR: ProjectionDefinition = {
+  id: 'equirectangular',
+  name: 'projections.equirectangular.name',
+  description: 'projections.equirectangular.description',
+  category: ProjectionCategory.CYLINDRICAL,
+  family: ProjectionFamily.CYLINDRICAL,
+  strategy: ProjectionStrategy.D3_BUILTIN,
+
+  capabilities: {
+    preserves: [],
+    distorts: ['area', 'angle', 'distance', 'direction'],
+    supportsComposite: true,
+    supportsSplit: true,
+    supportsUnified: true,
+  },
+
+  suitability: {
+    good: [
+      { scale: 'global' },
+      { latitudeRange: { min: -30, max: 30 } },
+    ],
+    usable: [
+      { scale: 'regional' },
+    ],
+    avoid: [
+      { latitudeRange: { min: 60, max: 90 } },
+      { latitudeRange: { min: -90, max: -60 } },
+    ],
+  },
+
+  aliases: ['plateCarree', 'geographic'],
+
+  metadata: {
+    infoUrl: 'https://en.wikipedia.org/wiki/Equirectangular_projection',
+    experimental: false,
+  },
+}
+
+/**
  * Array of all cylindrical projection definitions
  */
 export const CYLINDRICAL_PROJECTIONS: ProjectionDefinition[] = [
   MERCATOR,
+  EQUIRECTANGULAR,
 ]

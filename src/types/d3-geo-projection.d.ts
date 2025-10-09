@@ -8,21 +8,10 @@
 declare module 'd3-geo-projection' {
   import type { GeoProjection } from 'd3-geo'
 
-  // Basic projections
-  export function geoAlbers(): GeoProjection
-  export function geoConicConformal(): GeoProjection
-  export function geoMercator(): GeoProjection
-  export function geoEquirectangular(): GeoProjection
-
-  // Azimuthal projections
-  export function geoAzimuthalEqualArea(): GeoProjection
-  export function geoAzimuthalEquidistant(): GeoProjection
-  export function geoOrthographic(): GeoProjection
-  export function geoStereographic(): GeoProjection
+  // Extended projections from d3-geo-projection library only
+  // (projections from d3-geo core are already typed via @types/d3-geo)
 
   // Compromise projections
-  export function geoNaturalEarth1(): GeoProjection
-  export function geoEqualEarth(): GeoProjection
   export function geoWinkel3(): GeoProjection
   export function geoRobinson(): GeoProjection
   export function geoBertin1953(): GeoProjection
@@ -34,11 +23,23 @@ declare module 'd3-geo-projection' {
   export function geoMollweide(): GeoProjection
   export function geoSinusoidal(): GeoProjection
   export function geoBonne(): GeoProjection
+  export function geoEckert1(): GeoProjection
+  export function geoEckert2(): GeoProjection
+  export function geoEckert3(): GeoProjection
+  export function geoEckert4(): GeoProjection
+  export function geoEckert5(): GeoProjection
+  export function geoEckert6(): GeoProjection
+  export function geoWagner6(): GeoProjection
 
   // Lenticular projections
   export function geoAitoff(): GeoProjection
   export function geoHammer(): GeoProjection
 
+  // Artistic projections
+  export function geoArmadillo(): GeoProjection
+  export function geoLoximuthal(): GeoProjection
+
   // Polyhedral projections
   export function geoPolyhedralWaterman(): GeoProjection
+  export function geoPolyhedralButterfly(): GeoProjection
 }

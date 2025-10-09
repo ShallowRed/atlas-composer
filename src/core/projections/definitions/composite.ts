@@ -36,7 +36,6 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
       { territoryType: 'overseas', scale: 'regional' },
     ],
     recommendedForAtlases: ['france'],
-    avoidForAtlases: ['portugal', 'eu'],
   },
 
   defaultParameters: {
@@ -79,7 +78,6 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
       { territoryType: 'archipelago', region: 'europe' },
     ],
     recommendedForAtlases: ['portugal'],
-    avoidForAtlases: ['france', 'eu'],
   },
 
   defaultParameters: {
@@ -121,7 +119,6 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
       { territoryType: 'overseas', scale: 'regional' },
     ],
     recommendedForAtlases: ['eu'],
-    avoidForAtlases: ['france', 'portugal'],
   },
 
   defaultParameters: {

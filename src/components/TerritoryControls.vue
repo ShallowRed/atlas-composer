@@ -171,10 +171,10 @@ function useRecommendedProjection(territoryCode: string) {
             >
               <button
                 v-if="bestRecommendation"
-                class="btn btn-sm btn-primary mt-2 gap-2"
+                class="btn btn-sm btn-ghost mt-4 gap-2"
                 @click="useRecommendedProjection(territory.code)"
               >
-                <i class="ri-magic-line text-lg" />
+                <i class="ri-magic-line" />
                 {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
               </button>
             </Transition>

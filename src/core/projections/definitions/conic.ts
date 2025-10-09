@@ -126,9 +126,58 @@ export const ALBERS: ProjectionDefinition = {
 }
 
 /**
+ * Conic Equidistant
+ * Preserves distance along meridians, good for north-south extent
+ */
+export const CONIC_EQUIDISTANT: ProjectionDefinition = {
+  id: 'conic-equidistant',
+  name: 'projections.conicEquidistant.name',
+  description: 'projections.conicEquidistant.description',
+  category: ProjectionCategory.CONIC,
+  family: ProjectionFamily.CONIC,
+  strategy: ProjectionStrategy.D3_BUILTIN,
+
+  capabilities: {
+    preserves: ['distance'],
+    distorts: ['area', 'angle'],
+    supportsComposite: true,
+    supportsSplit: true,
+    supportsUnified: true,
+    recommendedMaxScale: 5000000,
+  },
+
+  suitability: {
+    good: [
+      { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
+      { territoryType: 'mainland', region: 'americas', latitudeRange: { min: 30, max: 60 } },
+    ],
+    usable: [
+      { territoryType: 'mainland', latitudeRange: { min: 20, max: 70 } },
+      { territoryType: 'island', scale: 'regional' },
+    ],
+    avoid: [
+      { latitudeRange: { min: -10, max: 10 } },
+      { scale: 'global' },
+    ],
+  },
+
+  defaultParameters: {
+    parallels: [30, 60],
+  },
+
+  aliases: ['conicEquidistant'],
+
+  metadata: {
+    infoUrl: 'https://en.wikipedia.org/wiki/Equidistant_conic_projection',
+    experimental: false,
+  },
+}
+
+/**
  * Array of all conic projection definitions
  */
 export const CONIC_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL,
   ALBERS,
+  CONIC_EQUIDISTANT,
 ]

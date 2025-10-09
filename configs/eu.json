@@ -18,7 +18,9 @@
     "prohibited": [
       "gnomonic",
       "orthographic",
-      "stereographic"
+      "stereographic",
+      "conic-conformal-france",
+      "conic-conformal-portugal"
     ]
   },
   "territories": [

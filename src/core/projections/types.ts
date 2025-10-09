@@ -64,8 +64,6 @@ export interface ProjectionSuitability {
   avoid?: GeographicContext[]
   /** Atlas IDs where this projection is recommended */
   recommendedForAtlases?: string[]
-  /** Atlas IDs where this projection is NOT recommended */
-  avoidForAtlases?: string[]
 }
 
 /**

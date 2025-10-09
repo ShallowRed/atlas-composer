@@ -168,6 +168,106 @@
       "name": "Mercator",
       "description": "Préserve les angles et les directions. Couramment utilisée pour la navigation et les régions tropicales"
     },
+    "conicEquidistant": {
+      "name": "Conique Équidistante",
+      "description": "Préserve les distances le long des méridiens. Bonne pour les régions à grande étendue nord-sud"
+    },
+    "azimuthalEqualArea": {
+      "name": "Azimutale Équivalente (Lambert)",
+      "description": "Préserve les surfaces. Excellente pour les régions polaires et vues hémisphériques"
+    },
+    "azimuthalEquidistant": {
+      "name": "Azimutale Équidistante",
+      "description": "Préserve les distances depuis le centre. Idéale pour la navigation polaire et cartes de couverture radio"
+    },
+    "stereographic": {
+      "name": "Stéréographique",
+      "description": "Projection azimutale conforme. Excellente pour les régions polaires"
+    },
+    "orthographic": {
+      "name": "Orthographique",
+      "description": "Simule une vue depuis l'espace. Visualisation en forme de globe"
+    },
+    "gnomonic": {
+      "name": "Gnomonique",
+      "description": "Les grands cercles apparaissent comme des lignes droites. Utile pour la planification de routes de navigation"
+    },
+    "equirectangular": {
+      "name": "Équirectangulaire (Plate Carrée)",
+      "description": "Projection rectangulaire simple. Méridiens et parallèles régulièrement espacés"
+    },
+    "naturalEarth": {
+      "name": "Natural Earth",
+      "description": "Projection mondiale visuellement attrayante avec distorsions équilibrées"
+    },
+    "robinson": {
+      "name": "Robinson",
+      "description": "Projection mondiale classique. Utilisée par National Geographic"
+    },
+    "eckert4": {
+      "name": "Eckert IV",
+      "description": "Projection pseudocylindrique équivalente pour cartes mondiales"
+    },
+    "winkelTripel": {
+      "name": "Winkel Tripel",
+      "description": "Projection de compromis pour cartes mondiales de référence générale"
+    },
+    "mollweide": {
+      "name": "Mollweide",
+      "description": "Pseudocylindrique équivalente. Largement utilisée pour les cartes mondiales"
+    },
+    "miller": {
+      "name": "Cylindrique de Miller",
+      "description": "Mercator modifiée avec distorsion polaire réduite"
+    },
+    "sinusoidal": {
+      "name": "Sinusoïdale",
+      "description": "Pseudocylindrique équivalente. Simple et largement reconnue"
+    },
+    "wagner6": {
+      "name": "Wagner VI",
+      "description": "Projection pseudocylindrique de compromis populaire"
+    },
+    "hammer": {
+      "name": "Hammer",
+      "description": "Variante azimutale équivalente. Excellente pour les cartes mondiales"
+    },
+    "eckert1": {
+      "name": "Eckert I",
+      "description": "Pseudocylindrique avec parallèles rectilignes"
+    },
+    "eckert2": {
+      "name": "Eckert II",
+      "description": "Pseudocylindrique équivalente avec parallèles rectilignes"
+    },
+    "eckert3": {
+      "name": "Eckert III",
+      "description": "Pseudocylindrique avec parallèles elliptiques"
+    },
+    "eckert5": {
+      "name": "Eckert V",
+      "description": "Pseudocylindrique équivalente avec parallèles elliptiques"
+    },
+    "eckert6": {
+      "name": "Eckert VI",
+      "description": "Pseudocylindrique équivalente avec parallèles sinusoïdaux"
+    },
+    "armadillo": {
+      "name": "Armadillo",
+      "description": "Projection polyédrique artistique avec apparence visuelle unique"
+    },
+    "polyhedralButterfly": {
+      "name": "Papillon Polyédrique",
+      "description": "Globe déplié en forme de papillon. Éducatif et artistique"
+    },
+    "loximuthal": {
+      "name": "Loximuthal",
+      "description": "Les loxodromies depuis le centre sont droites. Navigation maritime"
+    },
+    "polyhedralWaterman": {
+      "name": "Papillon de Waterman",
+      "description": "Projection polyédrique avec distorsion minimale des surfaces"
+    },
     "recommendations": {
       "general": "Projection appropriée",
       "atlasOptimized": "Optimisée pour cet atlas",

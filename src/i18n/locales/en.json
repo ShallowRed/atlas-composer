@@ -168,6 +168,106 @@
       "name": "Mercator",
       "description": "Preserves angles and direction. Commonly used for navigation and tropical regions"
     },
+    "conicEquidistant": {
+      "name": "Conic Equidistant",
+      "description": "Preserves distance along meridians. Good for regions with large north-south extent"
+    },
+    "azimuthalEqualArea": {
+      "name": "Azimuthal Equal Area (Lambert)",
+      "description": "Preserves area. Excellent for polar regions and hemispheric views"
+    },
+    "azimuthalEquidistant": {
+      "name": "Azimuthal Equidistant",
+      "description": "Preserves distance from center point. Ideal for polar navigation and radio coverage maps"
+    },
+    "stereographic": {
+      "name": "Stereographic",
+      "description": "Conformal azimuthal projection. Excellent for polar regions"
+    },
+    "orthographic": {
+      "name": "Orthographic",
+      "description": "Simulates view from space. Globe-like visualization"
+    },
+    "gnomonic": {
+      "name": "Gnomonic",
+      "description": "Great circles appear as straight lines. Useful for navigation route planning"
+    },
+    "equirectangular": {
+      "name": "Equirectangular (Plate Carrée)",
+      "description": "Simple rectangular projection. Evenly spaced meridians and parallels"
+    },
+    "naturalEarth": {
+      "name": "Natural Earth",
+      "description": "Visually appealing world projection with balanced distortions"
+    },
+    "robinson": {
+      "name": "Robinson",
+      "description": "Classic world map projection. Used by National Geographic"
+    },
+    "eckert4": {
+      "name": "Eckert IV",
+      "description": "Equal-area pseudocylindrical projection for world maps"
+    },
+    "winkelTripel": {
+      "name": "Winkel Tripel",
+      "description": "Compromise projection for general reference world maps"
+    },
+    "mollweide": {
+      "name": "Mollweide",
+      "description": "Equal-area pseudocylindrical. Widely used for world maps"
+    },
+    "miller": {
+      "name": "Miller Cylindrical",
+      "description": "Modified Mercator with reduced polar distortion"
+    },
+    "sinusoidal": {
+      "name": "Sinusoidal",
+      "description": "Equal-area pseudocylindrical. Simple and widely recognized"
+    },
+    "wagner6": {
+      "name": "Wagner VI",
+      "description": "Popular pseudocylindrical compromise projection"
+    },
+    "hammer": {
+      "name": "Hammer",
+      "description": "Equal-area azimuthal variant. Excellent for world maps"
+    },
+    "eckert1": {
+      "name": "Eckert I",
+      "description": "Pseudocylindrical with straight parallels"
+    },
+    "eckert2": {
+      "name": "Eckert II",
+      "description": "Equal-area pseudocylindrical with straight parallels"
+    },
+    "eckert3": {
+      "name": "Eckert III",
+      "description": "Pseudocylindrical with elliptical parallels"
+    },
+    "eckert5": {
+      "name": "Eckert V",
+      "description": "Equal-area pseudocylindrical with elliptical parallels"
+    },
+    "eckert6": {
+      "name": "Eckert VI",
+      "description": "Equal-area pseudocylindrical with sinusoidal parallels"
+    },
+    "armadillo": {
+      "name": "Armadillo",
+      "description": "Artistic polyhedral projection with unique visual appearance"
+    },
+    "polyhedralButterfly": {
+      "name": "Polyhedral Butterfly",
+      "description": "Unfolded globe in butterfly shape. Educational and artistic"
+    },
+    "loximuthal": {
+      "name": "Loximuthal",
+      "description": "Rhumb lines from center are straight. Maritime navigation"
+    },
+    "polyhedralWaterman": {
+      "name": "Waterman Butterfly",
+      "description": "Polyhedral projection with minimal area distortion"
+    },
     "recommendations": {
       "general": "Suitable projection",
       "atlasOptimized": "Optimized for this atlas",
