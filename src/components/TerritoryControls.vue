@@ -139,7 +139,7 @@ function useRecommendedProjection(territoryCode: string) {
                 @click="useRecommendedProjection(mainlandCode)"
               >
                 <i class="ri-magic-line text-lg" />
-                {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+                {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
               </button>
             </Transition>
           </div>
@@ -182,7 +182,7 @@ function useRecommendedProjection(territoryCode: string) {
                 @click="useRecommendedProjection(territory.code)"
               >
                 <i class="ri-magic-line text-lg" />
-                {{ t('projection.useRecommended', { projection: $t(`projections.${bestRecommendation.projection.id}.name`) }) }}
+                {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
               </button>
             </Transition>
           </div>

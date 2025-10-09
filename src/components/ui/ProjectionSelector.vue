@@ -30,7 +30,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  icon: 'ri-map-2-line',
+  icon: 'ri-global-line',
   modelValue: undefined,
   disabled: false,
   loading: false,

@@ -67,7 +67,7 @@ function handleCancel() {
           <span class="font-medium">{{ t('projection.validation.suggestedAlternatives') }}</span>
           <ul class="list-disc list-inside">
             <li v-for="alt in alternatives" :key="alt.id">
-              {{ t(`projections.${alt.id}.name`) }}
+              {{ t(alt.name) }}
             </li>
           </ul>
         </div>

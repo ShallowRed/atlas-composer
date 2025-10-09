@@ -52,7 +52,7 @@ export function useProjectionValidation() {
         isValid: false,
         severity: 'error',
         message: t('projection.validation.prohibited', {
-          projection: t(`projections.${projection.id}.name`),
+          projection: t(projection.name),
           reason: recommendation.reason
             ? t(`projections.recommendations.${recommendation.reason}`)
             : t('projection.validation.notSuitable'),
@@ -75,7 +75,7 @@ export function useProjectionValidation() {
         isValid: true,
         severity: 'warning',
         message: t('projection.validation.poorChoice', {
-          projection: t(`projections.${projection.id}.name`),
+          projection: t(projection.name),
         }),
         alternatives,
         requiresConfirmation: false,
@@ -95,7 +95,7 @@ export function useProjectionValidation() {
         isValid: true,
         severity: 'info',
         message: t('projection.validation.betterOptionsAvailable', {
-          projection: t(`projections.${projection.id}.name`),
+          projection: t(projection.name),
         }),
         alternatives,
         requiresConfirmation: false,
@@ -125,7 +125,7 @@ export function useProjectionValidation() {
     if (alternatives.length === 0)
       return ''
 
-    const names = alternatives.map(p => t(`projections.${p.id}.name`))
+    const names = alternatives.map(p => t(p.name))
     return t('projection.validation.alternatives', {
       projections: names.join(', '),
     })

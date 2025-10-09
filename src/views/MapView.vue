@@ -193,7 +193,7 @@ watch(() => configStore.territoryMode, async () => {
           <FormControl
             v-model="configStore.selectedAtlas"
             :label="t('settings.region')"
-            icon="ri-earth-line"
+            icon="ri-map-2-line"
             type="select"
             :options="getAvailableAtlases()"
           />
@@ -236,7 +236,7 @@ watch(() => configStore.territoryMode, async () => {
             v-show="configStore.showProjectionSelector"
             v-model="configStore.selectedProjection"
             :label="t('projection.cartographic')"
-            icon="ri-map-2-line"
+            icon="ri-global-line"
             :projection-groups="configStore.projectionGroups"
             :recommendations="configStore.projectionRecommendations"
           />
@@ -267,7 +267,7 @@ watch(() => configStore.territoryMode, async () => {
       <!-- Main Content Area (Single Tab) -->
       <CardContainer
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
-        icon="ri-map-2-line"
+        icon="ri-map-line"
         class="h-full"
         has-overflow
       >
