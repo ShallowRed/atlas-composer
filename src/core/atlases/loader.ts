@@ -230,12 +230,16 @@ function createAtlasConfig(
   // Some atlas IDs differ from their projection names (eu -> europe)
   const compositeProjectionName = config.id === 'eu' ? 'europe' : config.id
 
+  // Use view modes from config if specified, otherwise default to all modes
+  const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
+  const defaultViewMode = config.defaultViewMode || 'composite-custom'
+
   return {
     id: config.id,
     name: config.name,
     geoDataConfig,
-    supportedViewModes: ['split', 'composite-existing', 'composite-custom', 'unified'],
-    defaultViewMode: 'composite-custom',
+    supportedViewModes,
+    defaultViewMode,
     defaultTerritoryMode:
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
     defaultCompositeConfig,

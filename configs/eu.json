@@ -3,6 +3,8 @@
   "id": "eu",
   "name": "Union Européenne",
   "description": "EU member states (27 countries)",
+  "viewModes": ["composite-existing", "unified"],
+  "defaultViewMode": "composite-existing",
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",
