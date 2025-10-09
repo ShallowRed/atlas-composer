@@ -410,6 +410,11 @@ export class CompositeProjection {
             [bottomRight[0], bottomRight[1]],
           ])
         }
+        else {
+          // If projection fails (e.g. due to rotation), don't set clipExtent
+          // This allows the territory to render without clipping
+          console.warn(`[CompositeProjection] Failed to project bounds for ${subProj.territoryCode}, skipping clipExtent`)
+        }
       }
     })
 
