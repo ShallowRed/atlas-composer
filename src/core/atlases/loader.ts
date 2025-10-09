@@ -206,7 +206,8 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
     dataPath: `${baseUrl}data/${config.id}-territories-50m.json`,
     metadataPath: `${baseUrl}data/${config.id}-metadata-50m.json`,
     topologyObjectName: 'territories',
-    mainlandCode: territories.mainland.code,
+    // For multi-mainland atlases, don't set a single mainland code (all territories are equal)
+    mainlandCode: territories.type === 'traditional' ? territories.mainland.code : undefined,
     mainlandBounds: territories.mainland.bounds,
     overseasTerritories: territories.overseas,
   }
