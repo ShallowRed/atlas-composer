@@ -112,9 +112,11 @@ export class ProjectionService {
       if (definition.family === ProjectionFamily.CONIC) {
         config.parallels = params.parallels.conic
         config.rotate = params.rotate.mainland
+        console.log(`[ProjectionService] Conic projection ${definition.id}: parallels=${config.parallels}, rotate=${config.rotate}`)
       }
       else if (definition.family === ProjectionFamily.AZIMUTHAL) {
         config.rotate = params.rotate.azimuthal
+        console.log(`[ProjectionService] Azimuthal projection ${definition.id}: rotate=${config.rotate}`)
       }
       // Cylindrical and world projections typically don't need special parameters
 

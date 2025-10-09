@@ -250,21 +250,21 @@ function handleCancelProhibited() {
 </script>
 
 <template>
-  <div class="form-control flex flex-col">
-    <label class="label mb-1">
-      <span class="label-text flex items-center gap-2">
+  <fieldset class="form-control fieldset flex flex-col">
+    <legend class="fieldset-legend text-sm flex items-center justify-between w-full">
+      <span class="flex items-center gap-2">
         <i v-if="icon" :class="icon" />
         {{ label }}
       </span>
       <button
         type="button"
-        class="btn btn-ghost btn-xs btn-circle"
+        class="btn btn-ghost btn-xs btn-circle ml-auto"
         :aria-label="isSearching ? t('common.closeSearch') : t('common.search')"
         @click="toggleSearch"
       >
-        <i :class="isSearching ? 'ri-close-line' : 'ri-search-line'" />
+        <i class="text-base" :class="[isSearching ? 'ri-close-line' : 'ri-search-line']" />
       </button>
-    </label>
+    </legend>
 
     <!-- Search input -->
     <Transition
@@ -367,7 +367,7 @@ function handleCancelProhibited() {
       @confirm="handleConfirmProhibited"
       @cancel="handleCancelProhibited"
     />
-  </div>
+  </fieldset>
 </template>
 
 <style scoped>

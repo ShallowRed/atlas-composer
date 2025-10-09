@@ -95,6 +95,18 @@ function getTerritoryProjection(territoryCode: string) {
   return configStore.selectedProjection
 }
 
+// Check if there are territories to configure (including mainland)
+const hasTerritoriesForProjectionConfig = computed(() => {
+  // Has overseas territories
+  if (geoDataStore.filteredTerritories.length > 0) {
+    return true
+  }
+
+  // Or has mainland with mainland/overseas split configuration
+  const hasMainlandOverseasSplit = configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
+  return hasMainlandOverseasSplit && geoDataStore.mainlandData !== null
+})
+
 // Lifecycle
 onMounted(async () => {
   try {
@@ -443,7 +455,7 @@ watch(() => configStore.territoryMode, async () => {
     >
       <!-- Territory Parameters (projections, translations, scales) -->
       <CardContainer
-        v-show="configStore.showIndividualProjectionSelectors && geoDataStore.filteredTerritories.length > 0"
+        v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
         :title="t('territory.byTerritory')"
         icon="ri-settings-4-line"
         class="h-full"

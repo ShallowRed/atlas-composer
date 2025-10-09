@@ -56,10 +56,10 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   // Per-territory projections (for individual mode)
-  // Initialize from current region's territories
+  // Initialize from current region's territories (including mainland)
   const initializeTerritoryProjections = () => {
-    const overseas = atlasService.value.getOverseasTerritories()
-    return calculateDefaultProjections(overseas, 'mercator')
+    const all = atlasService.value.getAllTerritories()
+    return calculateDefaultProjections(all, 'mercator')
   }
   const territoryProjections = ref<Record<string, string>>(initializeTerritoryProjections())
 

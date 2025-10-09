@@ -42,6 +42,11 @@ const mainlandCode = computed(() => {
   return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
 })
 
+// Check if the mainland is in the filtered territories list (for modes like "Contiguous US only")
+const isMainlandInTerritories = computed(() => {
+  return geoDataStore.filteredTerritories.some(t => t.code === mainlandCode.value)
+})
+
 const translations = computed(() => configStore.territoryTranslations)
 const scales = computed(() => configStore.territoryScales)
 
@@ -95,17 +100,17 @@ function useRecommendedProjection(territoryCode: string) {
 
 <template>
   <div>
-    <!-- Message when no territories are available -->
-    <div v-if="territories.length === 0" class="alert alert-info">
+    <!-- Message when no territories are available (and no mainland in individual mode) -->
+    <div v-if="territories.length === 0 && !(configStore.projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" class="alert alert-info">
       <i class="ri-information-line" />
       <span>{{ t('territory.noOverseas') }}</span>
     </div>
 
     <!-- Accordion for all territories -->
     <div v-else class="join join-vertical w-full">
-      <!-- Metropolitan France (only in individual mode and France region) -->
+      <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
       <div
-        v-if="configStore.projectionMode === 'individual' && showMainland"
+        v-if="configStore.projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
         class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
       >
         <input
@@ -129,7 +134,7 @@ function useRecommendedProjection(territoryCode: string) {
             <!-- Quick action button to apply best recommendation -->
             <button
               v-if="bestRecommendation"
-              class="btn btn-sm btn-ghost mt-4 gap-2"
+              class="btn btn-sm btn-ghost w-full mt-2 gap-2"
               @click="useRecommendedProjection(mainlandCode)"
             >
               <i class="ri-magic-line" />
@@ -139,8 +144,9 @@ function useRecommendedProjection(territoryCode: string) {
         </div>
       </div>
 
+      <!-- Overseas territories (excluding mainland to avoid duplication) -->
       <div
-        v-for="(territory, index) in territories"
+        v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
         :key="territory.code"
         class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
       >

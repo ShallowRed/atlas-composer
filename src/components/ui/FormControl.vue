@@ -42,15 +42,15 @@ const localValue = computed({
 </script>
 
 <template>
-  <div class="form-control flex flex-col">
+  <fieldset class="fieldset form-control flex flex-col">
     <!-- Select with Option Groups -->
     <template v-if="type === 'select' && optionGroups">
-      <label class="label mb-1">
+      <legend class="fieldset-legend text-xl">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
           {{ label }}
         </span>
-      </label>
+      </legend>
       <select
         v-model="localValue"
         class="select cursor-pointer"
@@ -74,12 +74,12 @@ const localValue = computed({
 
     <!-- Select with Simple Options -->
     <template v-else-if="type === 'select' && options">
-      <label class="label mb-1">
+      <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
           {{ label }}
         </span>
-      </label>
+      </legend>
       <select
         v-model="localValue"
         class="select cursor-pointer"
@@ -97,12 +97,12 @@ const localValue = computed({
 
     <!-- Select with Default Slot -->
     <template v-else-if="type === 'select'">
-      <label class="label mb-1">
+      <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
           {{ label }}
         </span>
-      </label>
+      </legend>
       <select
         v-model="localValue"
         class="select cursor-pointer"
@@ -124,5 +124,5 @@ const localValue = computed({
         >
       </label>
     </template>
-  </div>
+  </fieldset>
 </template>
