@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { TerritoryConfig } from '@/types/territory'
+import type { CompositeProjectionConfig } from '@/types/territory'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
@@ -28,16 +28,9 @@ interface SubProjectionConfig {
 }
 
 /**
- * Configuration for initializing a composite projection
- */
-export interface CompositeProjectionConfig {
-  mainland: TerritoryConfig
-  overseasTerritories: TerritoryConfig[]
-}
-
-/**
  * Custom composite projection that allows individual projections per territory
  * with manual positioning (insets)
+ * Supports both traditional (1 mainland + N overseas) and multi-mainland (N mainlands + M overseas) patterns
  */
 export class CompositeProjection {
   private subProjections: SubProjectionConfig[] = []
@@ -59,6 +52,18 @@ export class CompositeProjection {
    * 3. The multipliers ensure proper visual composition while maintaining proportionality
    */
   private initialize() {
+    if (this.config.type === 'traditional') {
+      this.initializeTraditional()
+    } else {
+      this.initializeMultiMainland()
+    }
+  }
+
+  /**
+   * Initialize traditional pattern: 1 mainland + N overseas territories
+   */
+  private initializeTraditional() {
+    if (this.config.type !== 'traditional') return
     const { mainland, overseasTerritories } = this.config
 
     // Reference scale for all territories (like d3-composite-projections does)
@@ -116,6 +121,76 @@ export class CompositeProjection {
         projection,
         baseScale: territoryScale,
         scaleMultiplier: 1.0, // User adjustments start at 1.0
+        baseTranslate: [0, 0],
+        clipExtent: null,
+        translateOffset: territory.offset,
+        bounds: territory.bounds,
+      })
+    })
+  }
+
+  /**
+   * Initialize multi-mainland pattern: N equal mainlands + M overseas territories
+   * All mainlands are treated equally with no hierarchy
+   */
+  private initializeMultiMainland() {
+    if (this.config.type !== 'multi-mainland') return
+    const { mainlands, overseasTerritories } = this.config
+
+    // Reference scale for all territories
+    const REFERENCE_SCALE = 2800
+
+    // Process all mainlands equally - no special treatment for any
+    mainlands.forEach((mainland) => {
+      const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
+      const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
+        .center(mainland.center)
+        .translate([0, 0])
+
+      // Apply rotation if supported and provided in config
+      if (mainlandProjection.rotate && mainland.rotate) {
+        mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+      }
+
+      // Apply parallels if supported and provided in config
+      if ((mainlandProjection as any).parallels && mainland.parallels) {
+        (mainlandProjection as any).parallels(mainland.parallels)
+      }
+
+      // Each mainland uses the reference scale
+      const mainlandScale = REFERENCE_SCALE
+      mainlandProjection.scale(mainlandScale)
+
+      this.addSubProjection({
+        territoryCode: mainland.code,
+        territoryName: mainland.name,
+        projection: mainlandProjection,
+        baseScale: mainlandScale,
+        scaleMultiplier: 1.0,
+        baseTranslate: [0, 0],
+        clipExtent: null,
+        translateOffset: mainland.offset,
+        bounds: mainland.bounds,
+      })
+    })
+
+    // Overseas territories (if any)
+    overseasTerritories.forEach((territory) => {
+      const projectionType = territory.projectionType || 'mercator'
+      const projection = this.createProjectionByType(projectionType)
+        .center(territory.center)
+        .translate([0, 0])
+
+      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+      const territoryScale = REFERENCE_SCALE * baseMultiplier
+      projection.scale(territoryScale)
+
+      this.addSubProjection({
+        territoryCode: territory.code,
+        territoryName: territory.name,
+        projection,
+        baseScale: territoryScale,
+        scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
         clipExtent: null,
         translateOffset: territory.offset,
@@ -448,8 +523,13 @@ export class CompositeProjection {
   }> {
     const baseTranslate: [number, number] = [width / 2, height / 2]
 
+    // Get mainland code(s) to exclude from borders
+    const mainlandCodes = this.config.type === 'traditional'
+      ? [this.config.mainland.code]
+      : this.config.mainlands.map(m => m.code)
+
     return this.subProjections
-      .filter(sp => sp.bounds && sp.territoryCode !== this.config.mainland.code)
+      .filter(sp => sp.bounds && !mainlandCodes.includes(sp.territoryCode))
       .map((subProj) => {
         if (!subProj.bounds)
           return null

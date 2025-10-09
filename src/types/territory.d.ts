@@ -3,6 +3,32 @@
  */
 
 /**
+ * Traditional composite projection configuration
+ * Used for atlases with a single mainland and multiple overseas territories (e.g., France, Portugal)
+ */
+export interface TraditionalCompositeConfig {
+  type: 'traditional'
+  mainland: TerritoryConfig
+  overseasTerritories: TerritoryConfig[]
+}
+
+/**
+ * Multi-mainland composite projection configuration
+ * Used for atlases with multiple equal mainland territories (e.g., EU with member states, Malaysia with states)
+ */
+export interface MultiMainlandCompositeConfig {
+  type: 'multi-mainland'
+  mainlands: TerritoryConfig[]
+  overseasTerritories: TerritoryConfig[]
+}
+
+/**
+ * Composite projection configuration
+ * Union type supporting both traditional (1 mainland + N overseas) and multi-mainland (N mainlands + M overseas) patterns
+ */
+export type CompositeProjectionConfig = TraditionalCompositeConfig | MultiMainlandCompositeConfig
+
+/**
  * Configuration for a single territory
  */
 export interface TerritoryConfig {
@@ -57,10 +83,7 @@ export interface AtlasConfig {
   } // Default configuration for composite-custom mode
   compositeProjections?: string[] // Built-in D3 composite projections available for this atlas (e.g., ['conic-conformal-france'])
   defaultCompositeProjection?: string // Default composite projection to use
-  compositeProjectionConfig?: {
-    mainland: TerritoryConfig
-    overseasTerritories: TerritoryConfig[]
-  } // Configuration for CompositeProjection class
+  compositeProjectionConfig?: CompositeProjectionConfig // Configuration for CompositeProjection class
   hasTerritorySelector?: boolean // Whether to show the territory selector
 }
 

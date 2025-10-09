@@ -144,8 +144,8 @@
           },
           "role": {
             "type": "string",
-            "enum": ["mainland", "overseas", "embedded"],
-            "description": "Territory role in the atlas"
+            "enum": ["mainland", "overseas", "embedded", "member-state"],
+            "description": "Territory role in the atlas. Use 'mainland' for traditional single mainland, 'member-state' for equal multi-mainland territories (e.g., EU member states), 'overseas' for remote territories, 'embedded' for enclaves"
           },
           "iso": {
             "type": "string",

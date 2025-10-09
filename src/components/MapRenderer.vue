@@ -179,8 +179,12 @@ async function renderComposite(): Promise<Plot.Plot> {
     const territoryCodes: string[] = []
 
     if (compositeConfig) {
-      // Add mainland code
-      territoryCodes.push(compositeConfig.mainland.code)
+      // Add mainland code(s)
+      if (compositeConfig.type === 'traditional') {
+        territoryCodes.push(compositeConfig.mainland.code)
+      } else {
+        compositeConfig.mainlands.forEach(m => territoryCodes.push(m.code))
+      }
       // Add all overseas territory codes
       compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code))
     }

@@ -103,20 +103,50 @@ function transformTerritory(territory: any): TerritoryConfig {
 
 /**
  * Extract territories from config
+ * Supports two patterns:
+ * 1. Traditional: 1 mainland + N overseas territories (France, Portugal)
+ * 2. Multi-mainland: N member-states + M overseas territories (EU, Malaysia)
  */
 function extractTerritories(config: any) {
-  const mainlandTerritory = config.territories.find((t: any) => t.role === 'mainland')
+  // Collect all mainland-type territories (both 'mainland' and 'member-state' roles)
+  const allMainlands = config.territories.filter(
+    (t: any) => t.role === 'mainland' || t.role === 'member-state'
+  )
   const overseasTerritories = config.territories.filter((t: any) => t.role === 'overseas')
 
-  if (!mainlandTerritory) {
-    throw new Error(`No mainland territory found in ${config.id}`)
+  if (allMainlands.length === 0) {
+    throw new Error(`No mainland or member-state territories found in ${config.id}`)
   }
 
-  const mainland = transformTerritory(mainlandTerritory)
-  const overseas = overseasTerritories.map(transformTerritory)
-  const all = [mainland, ...overseas]
+  // Traditional pattern: Single mainland + overseas territories
+  if (allMainlands.length === 1) {
+    const mainland = transformTerritory(allMainlands[0])
+    const overseas = overseasTerritories.map(transformTerritory)
+    const all = [mainland, ...overseas]
 
-  return { mainland, overseas, all }
+    return {
+      type: 'traditional' as const,
+      mainland,
+      overseas,
+      all,
+      mainlands: undefined, // Not used in traditional pattern
+    }
+  }
+
+  // Multi-mainland pattern: Multiple equal mainlands + optional overseas territories
+  else {
+    const mainlands = allMainlands.map(transformTerritory)
+    const overseas = overseasTerritories.map(transformTerritory)
+    const all = [...mainlands, ...overseas]
+
+    return {
+      type: 'multi-mainland' as const,
+      mainland: mainlands[0], // For backward compatibility, use first as "primary"
+      mainlands,
+      overseas,
+      all,
+    }
+  }
 }
 
 /**
@@ -210,10 +240,17 @@ function createAtlasConfig(
     defaultCompositeConfig,
     compositeProjections: [`conic-conformal-${compositeProjectionName}`],
     defaultCompositeProjection: `conic-conformal-${compositeProjectionName}`,
-    compositeProjectionConfig: {
-      mainland: territories.mainland,
-      overseasTerritories: territories.overseas,
-    },
+    compositeProjectionConfig: territories.type === 'traditional'
+      ? {
+          type: 'traditional',
+          mainland: territories.mainland,
+          overseasTerritories: territories.overseas,
+        }
+      : {
+          type: 'multi-mainland',
+          mainlands: territories.mainlands,
+          overseasTerritories: territories.overseas,
+        },
     splitModeConfig: {
       mainlandTitle: territories.mainland.name,
       mainlandCode: territories.mainland.code,
