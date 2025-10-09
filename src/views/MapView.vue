@@ -49,18 +49,10 @@ const compositeProjectionOptions = computed(() => {
   const atlasConfig = configStore.currentAtlasConfig
   const availableProjections = atlasConfig.compositeProjections || []
 
-  console.log('[MapView] Available projections from config:', availableProjections)
-
   // Get all composite projections from registry and filter by region
-  const allComposite = projectionRegistry.getAll()
-    .filter(def => def.family === ProjectionFamily.COMPOSITE)
-  
-  console.log('[MapView] All composite projections in registry:', allComposite.map(d => d.id))
-  
-  const filtered = allComposite.filter(def => availableProjections.includes(def.id))
-  console.log('[MapView] Filtered projections:', filtered.map(d => d.id))
-  
-  return filtered.map(def => ({ value: def.id, label: t(def.name) }))
+  return projectionRegistry.getAll()
+    .filter(def => def.family === ProjectionFamily.COMPOSITE && availableProjections.includes(def.id))
+    .map(def => ({ value: def.id, label: t(def.name) }))
 })
 
 const viewModeOptions = computed(() => {

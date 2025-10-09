@@ -297,7 +297,3 @@ export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   ALBERS_USA_COMPOSITE,
   ALBERS_USA_TERRITORIES,
 ]
-
-console.log('[composite.ts] COMPOSITE_PROJECTIONS length:', COMPOSITE_PROJECTIONS.length)
-console.log('[composite.ts] ALBERS_USA defined?', ALBERS_USA)
-console.log('[composite.ts] Projection IDs:', COMPOSITE_PROJECTIONS.map(p => p.id))

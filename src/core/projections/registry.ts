@@ -65,13 +65,19 @@ class ProjectionRegistry {
   public register(definition: ProjectionDefinition): void {
     // Register by ID
     this.definitions.set(definition.id, definition)
-    if (definition.id === 'albers-usa') {
-      console.log('[Registry] Registered albers-usa projection', definition)
-    }
 
-    // Register by aliases
+    // Register by aliases (with collision detection)
     if (definition.aliases) {
       definition.aliases.forEach((alias) => {
+        // Check for collision with existing projections
+        const existing = this.definitions.get(alias)
+        if (existing && existing.id !== definition.id) {
+          console.error(
+            `[Registry] Alias collision detected! Alias "${alias}" from projection "${definition.id}" ` +
+            `conflicts with existing projection "${existing.id}". ` +
+            `The alias will be overwritten.`
+          )
+        }
         this.definitions.set(alias, definition)
       })
     }
@@ -117,23 +123,16 @@ class ProjectionRegistry {
    * Get all projection definitions (deduplicated)
    */
   public getAll(): ProjectionDefinition[] {
-    console.log('[Registry.getAll] Map size:', this.definitions.size)
-    console.log('[Registry.getAll] Map keys:', Array.from(this.definitions.keys()))
-    
     const seen = new Set<string>()
     const projections: ProjectionDefinition[] = []
 
-    this.definitions.forEach((definition, key) => {
+    this.definitions.forEach((definition) => {
       if (!seen.has(definition.id)) {
         seen.add(definition.id)
         projections.push(definition)
-        console.log(`[Registry.getAll] Added ${definition.id} (from key: ${key})`)
-      } else {
-        console.log(`[Registry.getAll] Skipped ${definition.id} (from key: ${key}) - already seen`)
       }
     })
 
-    console.log('[Registry.getAll] Returning', projections.length, 'projections')
     return projections
   }
 
