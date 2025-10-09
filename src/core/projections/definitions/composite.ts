@@ -184,7 +184,7 @@ export const ALBERS_USA: ProjectionDefinition = {
     center: [-98.5, 39.8], // Approximate center of contiguous USA
   },
 
-  aliases: ['usa-composite', 'composite-usa', 'albers-us', 'albersUsa', 'conic-conformal-usa'],
+  aliases: ['conic-conformal-usa'],
 
   metadata: {
     infoUrl: 'https://d3js.org/d3-geo/conic#geoAlbersUsa',
@@ -198,6 +198,90 @@ export const ALBERS_USA: ProjectionDefinition = {
 }
 
 /**
+ * Albers USA Composite - From d3-composite-projections
+ * Alternative implementation with additional features
+ */
+export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
+  id: 'albers-usa-composite',
+  name: 'projections.albersUsaComposite.name',
+  description: 'projections.albersUsaComposite.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['area'],
+    distorts: ['angle', 'distance'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'americas' },
+      { territoryType: 'overseas', region: 'americas' },
+      { territoryType: 'overseas', region: 'oceania' },
+    ],
+    recommendedForAtlases: ['usa'],
+  },
+
+  defaultParameters: {
+    center: [-98.5, 39.8],
+  },
+
+  aliases: ['usa-composite'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+  },
+}
+
+/**
+ * Albers USA Territories - Extended version with US territories
+ * Includes Puerto Rico, US Virgin Islands, Guam, American Samoa, Northern Mariana Islands
+ */
+export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
+  id: 'albers-usa-territories',
+  name: 'projections.albersUsaTerritories.name',
+  description: 'projections.albersUsaTerritories.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['area'],
+    distorts: ['angle', 'distance'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'americas' },
+      { territoryType: 'overseas', region: 'americas' },
+      { territoryType: 'overseas', region: 'oceania' },
+    ],
+    recommendedForAtlases: ['usa'],
+  },
+
+  defaultParameters: {
+    center: [-98.5, 39.8],
+  },
+
+  aliases: ['usa-territories'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+  },
+}
+
+/**
  * Array of all composite projection definitions
  */
 export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
@@ -205,4 +289,6 @@ export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL_PORTUGAL,
   CONIC_CONFORMAL_EUROPE,
   ALBERS_USA,
+  ALBERS_USA_COMPOSITE,
+  ALBERS_USA_TERRITORIES,
 ]

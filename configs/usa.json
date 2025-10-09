@@ -5,9 +5,17 @@
   "description": "United States mainland, Alaska, and Hawaii",
   "viewModes": ["composite-existing", "composite-custom", "split", "unified"],
   "defaultViewMode": "composite-existing",
+  "compositeProjections": [
+    "albers-usa",
+    "albers-usa-composite",
+    "albers-usa-territories"
+  ],
+  "defaultCompositeProjection": "albers-usa",
   "projectionPreferences": {
     "recommended": [
       "albers-usa",
+      "albers-usa-composite",
+      "albers-usa-territories",
       "albers",
       "conic-conformal",
       "conic-equal-area"
@@ -93,6 +101,93 @@
         "projectionType": "mercator",
         "baseScaleMultiplier": 1.0
       }
+    },
+    {
+      "id": "630",
+      "code": "US-PR",
+      "name": "Puerto Rico",
+      "role": "overseas",
+      "iso": "PRI",
+      "region": "Caribbean",
+      "center": [-66.5, 18.2],
+      "extraction": {
+        "polygonIndices": [0, 1, 2]
+      },
+      "rendering": {
+        "offset": [100, 200],
+        "projectionType": "mercator",
+        "baseScaleMultiplier": 1.0
+      }
+    },
+    {
+      "id": "850",
+      "code": "US-VI",
+      "name": "U.S. Virgin Islands",
+      "shortName": "Virgin Is.",
+      "role": "overseas",
+      "iso": "VIR",
+      "region": "Caribbean",
+      "center": [-64.8, 18.3],
+      "extraction": {
+        "polygonIndices": [0, 1, 2]
+      },
+      "rendering": {
+        "offset": [120, 190],
+        "projectionType": "mercator",
+        "baseScaleMultiplier": 1.5
+      }
+    },
+    {
+      "id": "316",
+      "code": "US-GU",
+      "name": "Guam",
+      "role": "overseas",
+      "iso": "GUM",
+      "region": "Pacific West",
+      "center": [144.8, 13.4],
+      "extraction": {
+        "polygonIndices": [0]
+      },
+      "rendering": {
+        "offset": [-300, 250],
+        "projectionType": "mercator",
+        "baseScaleMultiplier": 2.0
+      }
+    },
+    {
+      "id": "016",
+      "code": "US-AS",
+      "name": "American Samoa",
+      "role": "overseas",
+      "iso": "ASM",
+      "region": "Pacific South",
+      "center": [-170.7, -14.3],
+      "extraction": {
+        "polygonIndices": [0]
+      },
+      "rendering": {
+        "offset": [-200, 280],
+        "projectionType": "mercator",
+        "baseScaleMultiplier": 2.0
+      }
+    },
+    {
+      "id": "580",
+      "code": "US-MP",
+      "name": "Northern Mariana Islands",
+      "shortName": "N. Mariana Is.",
+      "role": "overseas",
+      "iso": "MNP",
+      "region": "Pacific West",
+      "center": [145.7, 15.2],
+      "extraction": {
+        "polygonIndices": [0, 1, 2, 3, 4, 5]
+      },
+      "rendering": {
+        "offset": [-320, 240],
+        "projectionType": "mercator",
+        "baseScaleMultiplier": 2.0
+      }
     }
   ],
   "modes": [
@@ -102,24 +197,24 @@
       "territories": ["US-CONT"]
     },
     {
-      "id": "mainland-alaska",
-      "label": "Mainland + Alaska",
-      "territories": ["US-CONT", "US-AK"]
-    },
-    {
-      "id": "mainland-hawaii",
-      "label": "Mainland + Hawaii",
-      "territories": ["US-CONT", "US-HI"]
-    },
-    {
       "id": "fifty-states",
       "label": "50 states (AK + HI)",
       "territories": ["US-CONT", "US-AK", "US-HI"]
     },
     {
+      "id": "states-territories",
+      "label": "States + Major territories",
+      "territories": ["US-CONT", "US-AK", "US-HI", "US-PR", "US-GU"]
+    },
+    {
+      "id": "all-territories",
+      "label": "All US territories",
+      "territories": ["US-CONT", "US-AK", "US-HI", "US-PR", "US-VI", "US-GU", "US-AS", "US-MP"]
+    },
+    {
       "id": "everything",
-      "label": "All territories + Aleutians",
-      "territories": ["US-CONT", "US-AK", "US-ALEU", "US-HI"]
+      "label": "Complete (inc. Aleutians)",
+      "territories": ["US-CONT", "US-AK", "US-ALEU", "US-HI", "US-PR", "US-VI", "US-GU", "US-AS", "US-MP"]
     }
   ]
 }

@@ -213,6 +213,10 @@ function createAtlasConfig(
   const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
+  // Determine composite projections: use config if provided, otherwise generate default
+  const compositeProjections = config.compositeProjections || [`conic-conformal-${compositeProjectionName}`]
+  const defaultCompositeProjection = config.defaultCompositeProjection || compositeProjections[0]
+
   return {
     id: config.id,
     name: config.name,
@@ -222,8 +226,8 @@ function createAtlasConfig(
     defaultTerritoryMode:
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
     defaultCompositeConfig,
-    compositeProjections: [`conic-conformal-${compositeProjectionName}`],
-    defaultCompositeProjection: `conic-conformal-${compositeProjectionName}`,
+    compositeProjections,
+    defaultCompositeProjection,
     compositeProjectionConfig: territories.type === 'traditional'
       ? {
           type: 'traditional',

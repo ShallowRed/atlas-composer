@@ -40,6 +40,22 @@
       "description": "Default view mode for this atlas. Defaults to 'composite-custom' if not specified.",
       "enum": ["split", "composite-existing", "composite-custom", "unified"]
     },
+    "compositeProjections": {
+      "type": "array",
+      "description": "List of composite projection IDs available for this atlas in composite-existing mode. If not specified, defaults to 'conic-conformal-{atlasId}'.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["albers-usa", "albers-usa-composite", "albers-usa-territories"],
+        ["conic-conformal-france"]
+      ]
+    },
+    "defaultCompositeProjection": {
+      "type": "string",
+      "description": "Default composite projection ID to use in composite-existing mode. If not specified, uses the first projection from compositeProjections array.",
+      "examples": ["albers-usa", "conic-conformal-france"]
+    },
     "metadata": {
       "type": "object",
       "properties": {

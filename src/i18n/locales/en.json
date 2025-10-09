@@ -158,8 +158,16 @@
       "description": "Optimized composite projection for the European Union and its overseas territories"
     },
     "albersUsa": {
+      "name": "Albers USA (D3 Native)",
+      "description": "D3's built-in composite projection for the United States with fixed positioning"
+    },
+    "albersUsaComposite": {
       "name": "Albers USA (Composite)",
-      "description": "Optimized composite projection for the United States, integrating the contiguous states, Alaska, and Hawaii"
+      "description": "Enhanced composite projection from d3-composite-projections with better customization"
+    },
+    "albersUsaTerritories": {
+      "name": "Albers USA with Territories",
+      "description": "Extended composite projection including Puerto Rico, US Virgin Islands, Guam, American Samoa, and Northern Mariana Islands"
     },
     "conicConformal": {
       "name": "Conic Conformal (Lambert)",

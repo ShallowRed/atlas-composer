@@ -158,8 +158,16 @@
       "description": "Projection composite optimisée pour l'Union Européenne et ses territoires d'outre-mer"
     },
     "albersUsa": {
+      "name": "Albers États-Unis (D3 Native)",
+      "description": "Projection composite native de D3 pour les États-Unis avec positionnement fixe"
+    },
+    "albersUsaComposite": {
       "name": "Albers États-Unis (Composite)",
-      "description": "Projection composite optimisée pour les États-Unis, intégrant les états contigus, l'Alaska et Hawaï"
+      "description": "Projection composite améliorée de d3-composite-projections avec meilleure personnalisation"
+    },
+    "albersUsaTerritories": {
+      "name": "Albers États-Unis avec Territoires",
+      "description": "Projection composite étendue incluant Porto Rico, Îles Vierges américaines, Guam, Samoa américaines et Îles Mariannes du Nord"
     },
     "conicConformal": {
       "name": "Conique Conforme (Lambert)",

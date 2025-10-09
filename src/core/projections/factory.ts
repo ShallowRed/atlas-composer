@@ -14,6 +14,10 @@ import type {
   ProjectionParameters,
 } from '@/core/projections/types'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjAlbersUsa from 'd3-composite-projections/src/albersUsa.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjAlbersUsaTerritories from 'd3-composite-projections/src/albersUsaTerritories.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConformalEurope.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
@@ -297,8 +301,21 @@ export class ProjectionFactory {
         break
 
       case 'albers-usa':
-        // Use D3's built-in geoAlbersUsa
+      case 'conic-conformal-usa':
+        // Use D3's built-in geoAlbersUsa (native)
         projectionFn = d3Geo.geoAlbersUsa
+        break
+
+      case 'albers-usa-composite':
+      case 'usa-composite':
+        // Use d3-composite-projections albersUsa
+        projectionFn = d3CompositeProjAlbersUsa.default
+        break
+
+      case 'albers-usa-territories':
+      case 'usa-territories':
+        // Use d3-composite-projections albersUsaTerritories
+        projectionFn = d3CompositeProjAlbersUsaTerritories.default
         break
 
       default:
