@@ -2,7 +2,18 @@
 
 A web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections. Design and test different map projections interactively, par## 📐 Projection System
 
-Atlas Composer includes a comprehensive projection ## 🗺️ Atlas Configuration System
+Atlas Composer includes a comprehensive projection ## � Documentation
+
+Complete guides and API references:
+
+- **[📖 ATLASES.md](./docs/ATLASES.md)** - Atlas system architecture, API reference, and core concepts
+- **[📖 PROJECTIONS.md](./docs/PROJECTIONS.md)** - Projection system, catalog, and recommendations
+- **[📖 SCRIPTS.md](./docs/SCRIPTS.md)** - CLI tools, geodata pipeline, and developer utilities
+- **[📖 ADDING_NEW_ATLAS.md](./docs/ADDING_NEW_ATLAS.md)** - Step-by-step guide to adding new atlases
+
+## 🗸 Architecture
+
+Atlas-Focused Structure
 
 > **📖 [Full Atlas Documentation](./docs/ATLASES.md)** - Complete guide to atlas configuration, API reference, and adding new atlases
 
