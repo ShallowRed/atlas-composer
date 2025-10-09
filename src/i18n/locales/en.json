@@ -12,7 +12,8 @@
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
-    "eu": "European Union"
+    "eu": "European Union",
+    "usa": "United States"
   },
   "projection": {
     "select": "Select projection",

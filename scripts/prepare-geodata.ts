@@ -129,11 +129,49 @@ function extractEmbeddedTerritories(
   // Group extracted polygons by territory
   const extractedGroups = new Map<string, ExtractedTerritory>()
 
-  // Iterate through each polygon in the MultiPolygon
-  for (const polygon of mainlandFeature.geometry.coordinates) {
+  // Separate extraction rules by method
+  const indicesBasedRules = extractionRules.filter(rule => rule.polygonIndices && rule.polygonIndices.length > 0)
+  const boundsBasedRules = extractionRules.filter(rule => rule.bounds && !rule.polygonIndices)
+
+  // Process polygonIndices-based extraction first (more precise)
+  const extractedIndices = new Set<number>()
+  for (const rule of indicesBasedRules) {
+    if (!rule.polygonIndices)
+      continue
+
+    // Initialize group for this territory
+    if (!extractedGroups.has(rule.id)) {
+      extractedGroups.set(rule.id, {
+        id: rule.id,
+        name: rule.name,
+        code: rule.code,
+        iso: rule.iso,
+        polygons: [],
+      })
+    }
+
+    // Extract polygons by index
+    for (const index of rule.polygonIndices) {
+      if (index >= 0 && index < mainlandFeature.geometry.coordinates.length) {
+        extractedGroups.get(rule.id)!.polygons.push(mainlandFeature.geometry.coordinates[index])
+        extractedIndices.add(index)
+      }
+      else {
+        logger.warning(`  Polygon index ${index} out of range for ${rule.code} (total: ${mainlandFeature.geometry.coordinates.length})`)
+      }
+    }
+  }
+
+  // Process bounds-based extraction for remaining polygons
+  mainlandFeature.geometry.coordinates.forEach((polygon: any, index: number) => {
+    // Skip if already extracted by index
+    if (extractedIndices.has(index)) {
+      return
+    }
+
     const firstRing = polygon[0]
     if (!firstRing || firstRing.length === 0)
-      continue
+      return
 
     // Calculate polygon bounds
     const lons = firstRing.map((coord: number[]) => coord[0])
@@ -143,11 +181,11 @@ function extractEmbeddedTerritories(
     const minLat = Math.min(...lats)
     const maxLat = Math.max(...lats)
 
-    // Try to match against extraction rules
+    // Try to match against bounds-based extraction rules
     let matched = false
     const tolerance = 0.1
 
-    for (const rule of extractionRules) {
+    for (const rule of boundsBasedRules) {
       if (!rule.bounds)
         continue
 
@@ -176,11 +214,11 @@ function extractEmbeddedTerritories(
       }
     }
 
-    // If not matched, it's part of mainland
+    // If not matched by any extraction rule, it's part of mainland
     if (!matched) {
       mainlandPolygons.push(polygon)
     }
-  }
+  })
 
   // Convert grouped polygons to features
   for (const group of extractedGroups.values()) {

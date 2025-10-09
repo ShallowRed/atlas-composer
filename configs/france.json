@@ -51,7 +51,7 @@
       "bounds": [[-61.81, 15.83], [-61.0, 16.52]],
       "extraction": {
         "extractFrom": "250",
-        "polygonBounds": [[-61.81, 15.83], [-61.0, 16.51]]
+        "polygonIndices": [6, 7, 8]
       },
       "rendering": {
         "offset": [-336, -39],
@@ -70,7 +70,7 @@
       "bounds": [[-61.23, 14.39], [-60.81, 14.88]],
       "extraction": {
         "extractFrom": "250",
-        "polygonBounds": [[-61.23, 14.39], [-60.81, 14.88]]
+        "polygonIndices": [5]
       },
       "rendering": {
         "offset": [-336, 36],
@@ -90,7 +90,7 @@
       "bounds": [[-54.6, 2.1], [-51.6, 5.8]],
       "extraction": {
         "extractFrom": "250",
-        "polygonBounds": [[-54.61, 2.11], [-51.64, 5.75]]
+        "polygonIndices": [9]
       },
       "rendering": {
         "offset": [-336, 161],
@@ -109,7 +109,7 @@
       "bounds": [[55.22, -21.39], [55.84, -20.87]],
       "extraction": {
         "extractFrom": "250",
-        "polygonBounds": [[55.22, -21.39], [55.84, -20.87]]
+        "polygonIndices": [4]
       },
       "rendering": {
         "offset": [325, -99],
@@ -128,7 +128,7 @@
       "bounds": [[44.98, -13.0], [45.3, -12.64]],
       "extraction": {
         "extractFrom": "250",
-        "polygonBounds": [[45.04, -13.0], [45.3, -12.64]]
+        "polygonIndices": [3]
       },
       "rendering": {
         "offset": [328, -179],
