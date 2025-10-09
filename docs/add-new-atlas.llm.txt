@@ -1,0 +1,223 @@
+# Quick Guide: Adding a New Atlas to Atlas Composer
+
+## Essential Instructions for LLMs
+
+When adding a new atlas to Atlas Composer, follow these steps in order:
+
+### Step 1: Research Natural Earth Data
+
+Run lookup to find the country ID:
+```bash
+pnpm geodata:lookup "CountryName"
+```
+
+Get the Natural Earth ID from output (e.g., "ID 528" for Netherlands).
+
+Run analyze to get polygon structure:
+```bash
+pnpm geodata:analyze <id>
+```
+
+Note:
+- Polygon indices (zero-based: 0, 1, 2, ...)
+- Which polygon is mainland (largest, marked as MAINLAND)
+- Which polygons are overseas territories
+
+### Step 2: Create JSON Configuration
+
+Create `configs/<atlas-id>.json` with this structure:
+
+```json
+{
+  "$schema": "./schema.json",
+  "id": "atlas-id",
+  "name": "Atlas Name",
+  "description": "Brief description",
+  
+  "projectionPreferences": {
+    "recommended": ["conic-conformal", "albers", "mercator"],
+    "default": {
+      "mainland": "conic-conformal",
+      "overseas": "mercator"
+    },
+    "prohibited": [
+      "gnomonic",
+      "orthographic",
+      "conic-conformal-france",
+      "conic-conformal-portugal",
+      "conic-conformal-europe"
+    ]
+  },
+  
+  "territories": [
+    {
+      "id": "<natural-earth-id>",
+      "role": "mainland",
+      "code": "XX-MET",
+      "name": "Mainland Name",
+      "iso": "XXX",
+      "center": [lon, lat],
+      "bounds": [[minLon, minLat], [maxLon, maxLat]],
+      "extraction": {
+        "mainlandPolygon": 0
+      },
+      "rendering": {
+        "offset": [0, 0],
+        "projectionType": "conic-conformal"
+      }
+    },
+    {
+      "id": "<natural-earth-id>-1",
+      "role": "overseas",
+      "code": "XX-OVS",
+      "name": "Overseas Territory Name",
+      "iso": "XXX",
+      "region": "Region Name",
+      "center": [lon, lat],
+      "bounds": [[minLon, minLat], [maxLon, maxLat]],
+      "extraction": {
+        "extractFrom": "<parent-id>",
+        "polygonIndices": [1]
+      },
+      "rendering": {
+        "offset": [-300, -100],
+        "baseScaleMultiplier": 2.0
+      }
+    }
+  ],
+  
+  "projection": {
+    "center": { "longitude": <lon>, "latitude": <lat> },
+    "rotate": {
+      "mainland": [<-lon>, 0],
+      "azimuthal": [<-lon>, <-lat>]
+    },
+    "parallels": {
+      "conic": [<south>, <north>]
+    }
+  }
+}
+```
+
+### Step 3: Generate Geodata
+
+```bash
+pnpm geodata:prepare <atlas-id>
+```
+
+This creates:
+- `src/public/data/<atlas>-territories-50m.json`
+- `src/public/data/<atlas>-metadata-50m.json`
+
+### Step 4: Validate
+
+```bash
+pnpm geodata:validate <atlas-id>
+```
+
+Must show "✓ VALID" before proceeding.
+
+### Step 5: Test
+
+```bash
+pnpm dev
+```
+
+Check:
+- Atlas appears in dropdown
+- All territories render
+- All view modes work
+- Projections show correctly
+
+## Key Field Reference
+
+### Territory Extraction Methods
+
+**Mainland only (removes other polygons):**
+```json
+"extraction": {
+  "mainlandPolygon": 0
+}
+```
+
+**Extract polygon(s) by index (RECOMMENDED):**
+```json
+"extraction": {
+  "extractFrom": "528",
+  "polygonIndices": [1]
+}
+```
+
+**Extract multiple polygons (archipelago):**
+```json
+"extraction": {
+  "extractFrom": "528",
+  "polygonIndices": [5, 6, 7, 8]
+}
+```
+
+**Extract by bounds (alternative):**
+```json
+"extraction": {
+  "extractFrom": "528",
+  "polygonBounds": [[-69.99, 12.41], [-69.84, 12.63]]
+}
+```
+
+### Territory Roles
+
+- `mainland` - Main territory (single primary landmass)
+- `overseas` - Distant territory
+- `island` - Island territory
+- `archipelago` - Island group
+- `embedded` - Enclave/exclave
+- `member-state` - Equal member (for multi-mainland like EU)
+
+### Projection Preferences by Region
+
+- **60°+** (Polar): `azimuthal-equal-area`, `stereographic`
+- **30°-60°** (Mid-latitude): `conic-conformal`, `albers`, `conic-equal-area`
+- **±30°** (Equatorial): `mercator`, `equirectangular`
+- **Global**: `natural-earth`, `robinson`, `mollweide`
+
+### Common Issues
+
+**Territory missing from data:**
+- Wrong polygon index → Re-run `geodata:analyze`
+- Use exact index from analyze output
+
+**Territory count mismatch:**
+- Check `geodata:prepare` console output for errors
+- Verify `polygonIndices` is array: `[1]` not `1`
+
+**Atlas not appearing:**
+- JSON syntax error → Validate: `cat config.json | python -m json.tool`
+
+**Wrong projections shown:**
+- Update `projectionPreferences.recommended`
+- Add other atlas composites to `prohibited`
+
+## Critical Rules
+
+✅ DO:
+- Use `pnpm geodata:analyze` for polygon indices
+- Use zero-based indices (0, 1, 2, ...)
+- Add other atlas composites to `prohibited` list
+- Use `polygonIndices` (plural, array)
+- Validate after every change
+
+❌ DON'T:
+- Guess polygon indices
+- Use `polygonIndex` (singular)
+- Forget validation step
+- Mix `mainland` and `member-state` roles
+- Edit generated TopoJSON files manually
+
+## Complete Example
+
+See `configs/france.json` or `configs/portugal.json` for working examples.
+
+For full documentation, see:
+- [ADDING_NEW_ATLAS.md](./ADDING_NEW_ATLAS.md) - Complete guide
+- [ATLASES.md](./ATLASES.md) - System architecture
+- [SCRIPTS.md](./SCRIPTS.md) - CLI tools reference
