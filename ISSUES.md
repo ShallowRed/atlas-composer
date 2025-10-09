@@ -1,5 +1,3 @@
 - (baseScaleMultiplier = 1) !== (ui range = 1)
-- Corsica is missing in EU
-- I would like showGraticules default value to be set in json config (false default)
 - any in config loader
 - add "display compositing border" option and "display map limits" option

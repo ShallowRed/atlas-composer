@@ -265,34 +265,9 @@
         ]
       ],
       "extraction": {
-        "mainlandPolygon": 1
-      },
-      "rendering": {}
-    },
-    {
-      "id": "250-COR",
-      "role": "member",
-      "code": "FR-COR",
-      "name": "Corsica",
-      "iso": "FRA",
-      "center": [
-        9.06,
-        42.20
-      ],
-      "bounds": [
-        [
-          8.57,
-          41.39
-        ],
-        [
-          9.56,
-          43.02
-        ]
-      ],
-      "extraction": {
-        "extractFrom": "250",
         "polygonIndices": [
-          0
+          0,
+          1
         ]
       },
       "rendering": {}
