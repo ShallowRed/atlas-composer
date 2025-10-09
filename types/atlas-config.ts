@@ -32,7 +32,7 @@ export interface JSONTerritoryConfig {
     projectionType?: string
     offset?: [number, number]
     scale?: number
-    clipExtent?: { x1: number; y1: number; x2: number; y2: number }
+    clipExtent?: { x1: number, y1: number, x2: number, y2: number }
     rotate?: [number, number, number?]
     parallels?: [number, number]
     baseScaleMultiplier?: number
@@ -61,6 +61,6 @@ export interface JSONAtlasConfig {
     mainlandCode?: string
     territoriesTitle: string
   }
-  territoryModeOptions?: Array<{ value: string; label: string }>
+  territoryModeOptions?: Array<{ value: string, label: string }>
   defaultTerritoryMode?: string
 }

@@ -82,6 +82,8 @@ pnpm geodata:lookup <country>  # Look up Natural Earth country data
 pnpm geodata:analyze <id>      # Analyze country polygon structure
 ```
 
+> **📖 [Full Scripts Documentation](./docs/SCRIPTS.md)** - Complete guide to build tools, geodata pipeline, and developer utilities
+
 ## 🛠️ Technology Stack
 
 - **[Vite](https://vitejs.dev/)** - Build tool and dev server
@@ -243,6 +245,7 @@ For detailed information about the core domain systems:
 
 - **[Atlas System](./docs/ATLASES.md)** - Complete guide to atlas configuration, territory management, and multi-pattern support
 - **[Projection System](./docs/PROJECTIONS.md)** - Comprehensive projection documentation with API reference and recommendations
+- **[Scripts & Build Tools](./docs/SCRIPTS.md)** - Complete guide to geodata preparation, validation, and developer utilities
 
 ## � Projection System
 

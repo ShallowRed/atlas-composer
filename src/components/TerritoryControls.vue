@@ -127,21 +127,14 @@ function useRecommendedProjection(territoryCode: string) {
               @update:model-value="(value) => configStore.setTerritoryProjection(mainlandCode, value)"
             />
             <!-- Quick action button to apply best recommendation -->
-            <Transition
-              enter-active-class="transition-all duration-300"
-              leave-active-class="transition-all duration-300"
-              enter-from-class="opacity-0 translate-y-2"
-              leave-to-class="opacity-0 translate-y-2"
+            <button
+              v-if="bestRecommendation"
+              class="btn btn-sm btn-ghost mt-4 gap-2"
+              @click="useRecommendedProjection(mainlandCode)"
             >
-              <button
-                v-if="bestRecommendation"
-                class="btn btn-sm btn-primary mt-2 gap-2"
-                @click="useRecommendedProjection(mainlandCode)"
-              >
-                <i class="ri-magic-line text-lg" />
-                {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
-              </button>
-            </Transition>
+              <i class="ri-magic-line" />
+              {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
+            </button>
           </div>
         </div>
       </div>

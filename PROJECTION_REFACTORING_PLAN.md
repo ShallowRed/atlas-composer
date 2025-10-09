@@ -60,7 +60,7 @@ This document outlines a comprehensive refactoring plan to improve projection de
 ### Directory Structure
 
 ```
-src/projections/
+src/core/projections/
 ├── types.ts                    # Type definitions
 ├── registry.ts                 # Central projection registry (singleton)
 ├── factory.ts                  # Projection factory
@@ -97,8 +97,8 @@ src/projections/
 ### Phase 1: Core Infrastructure ⭐⭐⭐ (High Priority)
 
 #### Task 1.1: Type Definitions
-- [x] **1.1.1** Create `src/projections/` directory
-- [x] **1.1.2** Create `src/projections/types.ts` with:
+- [x] **1.1.1** Create `src/core/projections/` directory
+- [x] **1.1.2** Create `src/core/projections/types.ts` with:
   - [x] `GeographicContext` interface
   - [x] `ProjectionCapabilities` interface
   - [x] `ProjectionSuitability` interface
@@ -113,20 +113,20 @@ src/projections/
 - [x] **1.1.4** Export all types from `types.ts`
 
 #### Task 1.2: Core Projection Definitions
-- [x] **1.2.1** Create `src/projections/definitions/` directory
-- [x] **1.2.2** Create `src/projections/definitions/composite.ts` with:
+- [x] **1.2.1** Create `src/core/projections/definitions/` directory
+- [x] **1.2.2** Create `src/core/projections/definitions/composite.ts` with:
   - [x] `conic-conformal-france` definition ⭐ CRITICAL
   - [x] `conic-conformal-portugal` definition ⭐ CRITICAL
   - [x] `conic-conformal-europe` definition ⭐ CRITICAL
   - [x] Export `COMPOSITE_PROJECTIONS` array
-- [x] **1.2.3** Create `src/projections/definitions/conic.ts` with:
+- [x] **1.2.3** Create `src/core/projections/definitions/conic.ts` with:
   - [x] `conic-conformal` definition (for custom composite mode)
   - [x] `albers` / `conic-equal-area` definition (for custom composite mode)
   - [x] Export `CONIC_PROJECTIONS` array
-- [x] **1.2.4** Create `src/projections/definitions/cylindrical.ts` with:
+- [x] **1.2.4** Create `src/core/projections/definitions/cylindrical.ts` with:
   - [x] `mercator` definition (for overseas territories)
   - [x] Export `CYLINDRICAL_PROJECTIONS` array
-- [x] **1.2.5** Create `src/projections/definitions/index.ts` to re-export all definitions
+- [x] **1.2.5** Create `src/core/projections/definitions/index.ts` to re-export all definitions
 - [x] **1.2.6** Create placeholder files for additional projection categories:
   - [x] `azimuthal.ts` (empty array for now)
   - [x] `world.ts` (empty array for now)
@@ -142,7 +142,7 @@ src/projections/
 - [ ] Add artistic projections (4 projections)
 
 #### Task 1.3: Projection Registry
-- [x] **1.3.1** Create `src/projections/registry.ts`
+- [x] **1.3.1** Create `src/core/projections/registry.ts`
 - [x] **1.3.2** Implement `ProjectionRegistry` class with:
   - [x] Singleton pattern implementation
   - [x] Private `definitions` Map
@@ -161,7 +161,7 @@ src/projections/
 - [x] **1.3.5** Add unit tests for registry
 
 #### Task 1.4: Projection Factory
-- [x] **1.4.1** Create `src/projections/factory.ts`
+- [x] **1.4.1** Create `src/core/projections/factory.ts`
 - [x] **1.4.2** Define `ProjectionFactoryOptions` interface
 - [x] **1.4.3** Implement `ProjectionFactory` class with:
   - [x] `create()` static method (main entry point)
@@ -181,7 +181,7 @@ src/projections/
 - [x] **1.5.4** Add category translations to both locale files
 
 #### Task 1.6: Testing Phase 1
-- [x] **1.6.1** Create `src/projections/__tests__/` directory
+- [x] **1.6.1** Create `src/core/projections/__tests__/` directory
 - [x] **1.6.2** Write unit tests for `registry.ts` (34 tests passing)
 - [x] **1.6.3** Write unit tests for `factory.ts` (26 tests passing)
 - [x] **1.6.4** Write integration tests (registry + factory) (19 tests passing)
