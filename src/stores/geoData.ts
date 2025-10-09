@@ -32,18 +32,21 @@ export const useGeoDataStore = defineStore('geoData', () => {
     const configStore = useConfigStore()
     const territories = overseasTerritoriesData.value
 
-    if (!territories)
+    if (!territories || territories.length === 0)
       return []
 
-    // For EU region, show all countries (no filtering by mode)
     const atlasConfig = configStore.currentAtlasConfig
-    if (atlasConfig.geoDataConfig.overseasTerritories.length === 0) {
-      // EU or other regions without mainland/overseas split
+    const atlasService = configStore.atlasService
+
+    // Check if there are territory modes defined for filtering
+    const hasTerritoryModes = atlasConfig.hasTerritorySelector
+
+    // If no territory modes, return all territories (no filtering available)
+    if (!hasTerritoryModes) {
       return territories
     }
 
     // Get allowed territories for the current mode
-    const atlasService = configStore.atlasService
     const allTerritories = atlasService.getAllTerritories()
     const territoryModes = atlasService.getTerritoryModes()
     const allowedTerritories = getTerritoriesForMode(
@@ -53,6 +56,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     )
     const allowedCodes = allowedTerritories.map(t => t.code)
 
+    // Filter territories based on mode
     return territories.filter(territory =>
       territory && territory.code && allowedCodes.includes(territory.code),
     )
@@ -116,12 +120,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // Access the geoDataService through the cartographer
       const service = (cartographer.value as any).geoDataService
 
-      // For EU: all countries are treated as individual territories (no mainland/overseas split)
-      // For France: mainland is separate from overseas territories
-      const hasMainlandOverseasSplit = configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
+      // For multi-mainland atlases (EU): all countries are treated as individual territories
+      // For traditional atlases (France): mainland is separate from overseas territories
+      const isTraditionalPattern = configStore.currentAtlasConfig.pattern === 'traditional'
 
-      if (hasMainlandOverseasSplit) {
-        // France: load mainland and overseas separately
+      if (isTraditionalPattern) {
+        // Traditional pattern: load mainland and overseas separately
         const [mainland, overseas] = await Promise.all([
           service.getMainLandData(),
           service.getOverseasData(),
@@ -131,7 +135,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         overseasTerritoriesData.value = overseas || []
       }
       else {
-        // EU: load all countries as individual territories
+        // Multi-mainland pattern: load all territories as equal individual territories
         const allTerritoriesData = await service.getAllTerritories()
 
         // Transform to the format expected by the UI
@@ -177,8 +181,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const atlasConfig = configStore.currentAtlasConfig
 
       let territoryCodes: readonly string[] | undefined
-      if (atlasConfig.geoDataConfig.overseasTerritories.length === 0) {
-        // EU or other regions without mode filtering - pass undefined to include all
+
+      // Check if atlas has territory modes for filtering
+      if (!atlasConfig.hasTerritorySelector) {
+        // No territory modes defined: include all territories
         territoryCodes = undefined
       }
       else {

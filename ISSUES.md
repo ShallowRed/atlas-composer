@@ -1,0 +1,6 @@
+- Full world map
+- Default projection for mainland in split mode + usa
+- Usa + custom composite rendering
+- ~~Missing austria in eu + projection unifiées~~ ✅ FIXED
+- ~~Austria as mainland in split mode~~ ✅ FIXED
+- (baseScaleMultiplier = 1) !== (ui range = 1)

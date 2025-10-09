@@ -32,9 +32,9 @@ const territories = computed(() => {
   }))
 })
 
-// Check if we should show mainland section (only for regions with mainland/overseas split)
+// Check if we should show mainland section (only for traditional pattern atlases)
 const showMainland = computed(() => {
-  return configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
+  return configStore.currentAtlasConfig.pattern === 'traditional'
 })
 
 // Get mainland code dynamically from region config

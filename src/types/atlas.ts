@@ -93,4 +93,11 @@ export interface AtlasConfig {
 
   /** Whether to show the territory selector in the UI */
   hasTerritorySelector?: boolean
+
+  /**
+   * Atlas pattern type
+   * - 'traditional': Single mainland + N overseas territories (France, Portugal, USA)
+   * - 'multi-mainland': N equal member states + optional overseas (EU, ASEAN)
+   */
+  pattern: 'traditional' | 'multi-mainland'
 }

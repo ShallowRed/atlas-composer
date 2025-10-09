@@ -1,0 +1,190 @@
+# Atlas System Quick Reference
+
+## Core Architecture
+
+**Registry Pattern**: Auto-discovers all configs from `configs/` folder
+**Adapter Pattern**: Transforms JSON → TypeScript configs
+**Zero Code Changes**: Add new atlas by creating JSON file only
+
+## Directory Structure
+
+```
+configs/
+├── schema.json        # JSON Schema validation
+├── france.json        # Atlas configurations
+├── portugal.json
+└── eu.json
+
+src/core/atlases/
+├── loader.ts          # JSON → TypeScript adapter
+├── registry.ts        # Singleton auto-discovery
+├── utils.ts           # Territory helpers
+└── constants.ts       # Defaults
+
+src/public/data/
+├── {atlas}-territories-{res}.json  # TopoJSON geometries
+└── {atlas}-metadata-{res}.json     # Territory metadata
+```
+
+## Territory Patterns
+
+### Pattern 1: Traditional (1 Mainland + N Overseas)
+**Examples**: France, Portugal, Netherlands
+**Structure**: Single primary mainland + multiple overseas territories
+
+```json
+{
+  "territories": [
+    {
+      "role": "mainland",
+      "code": "FR-MET",
+      "name": "France Métropolitaine"
+    },
+    {
+      "role": "overseas",
+      "code": "FR-GP",
+      "name": "Guadeloupe"
+    }
+  ]
+}
+```
+
+### Pattern 2: Multi-Mainland (N Member States + M Overseas)
+**Examples**: EU, ASEAN, Benelux
+**Structure**: Multiple equal mainland territories (member states)
+
+```json
+{
+  "territories": [
+    {
+      "role": "member-state",
+      "code": "BE",
+      "name": "Belgium"
+    },
+    {
+      "role": "member-state",
+      "code": "NL",
+      "name": "Netherlands"
+    }
+  ]
+}
+```
+
+## Territory Roles
+
+- `mainland` - Primary territory (single primary landmass)
+- `overseas` - Distant territory
+- `island` - Island territory
+- `archipelago` - Island group
+- `embedded` - Enclave/exclave
+- `member-state` - Equal member (for multi-mainland like EU)
+
+## View Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `split` | Separate maps per territory | Traditional atlases with distant territories |
+| `composite-existing` | Pre-built D3 composite | France, Portugal, Spain |
+| `composite-custom` | User-defined layout | Any atlas, full customization |
+| `unified` | Single world map | Regional groups, geographic context |
+
+## Minimal Config
+
+```json
+{
+  "$schema": "./schema.json",
+  "id": "atlas-id",
+  "name": "Atlas Name",
+  "territories": [
+    {
+      "id": "250",
+      "role": "mainland",
+      "code": "FR-MET",
+      "name": "Territory Name",
+      "center": [2.5, 46.5],
+      "bounds": [[-5, 41], [10, 51]],
+      "extraction": { "mainlandPolygon": 1 }
+    }
+  ]
+}
+```
+
+## Complete Config Structure
+
+```json
+{
+  "$schema": "./schema.json",
+  "id": "atlas-id",
+  "name": "Atlas Name",
+  "description": "Brief description",
+
+  "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
+  "defaultViewMode": "composite-custom",
+
+  "projectionPreferences": {
+    "recommended": ["conic-conformal", "albers"],
+    "default": {
+      "mainland": "conic-conformal",
+      "overseas": "mercator"
+    },
+    "prohibited": ["gnomonic", "orthographic"]
+  },
+
+  "territories": [/* territory objects */],
+
+  "projection": {
+    "center": { "longitude": 2.5, "latitude": 46.5 },
+    "rotate": {
+      "mainland": [-3, 0],
+      "azimuthal": [-3, -46]
+    },
+    "parallels": { "conic": [45.9, 47.7] }
+  },
+
+  "modes": [
+    {
+      "id": "all-territories",
+      "label": "All territories",
+      "territories": ["FR-MET", "FR-GP", "FR-MQ"]
+    }
+  ],
+
+  "groups": [
+    {
+      "id": "caribbean",
+      "label": "Caribbean",
+      "territories": ["FR-GP", "FR-MQ"]
+    }
+  ]
+}
+```
+
+## Key Fields Reference
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `$schema` | ✅ | Reference to schema.json |
+| `id` | ✅ | Unique atlas identifier (kebab-case) |
+| `name` | ✅ | Display name |
+| `description` | ⏩ | Brief description |
+| `viewModes` | ⏩ | Supported view modes (default: all) |
+| `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
+| `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
+| `territories` | ✅ | Territory definitions |
+| `projection` | ⚠️ | Highly recommended projection parameters |
+| `modes` | ⏩ | Territory selection presets |
+| `groups` | ⏩ | Territory groupings |
+
+## Auto-Discovery Flow
+
+1. **Build Time**: Vite glob imports scan `configs/*.json`
+2. **Load Time**: Registry loads and validates each config
+3. **Transform**: Loader adapts JSON to TypeScript interfaces
+4. **Register**: Each atlas is registered by ID
+5. **Ready**: Application can query registry for atlases
+
+## Related Docs
+
+- `add-new-atlas.llm.txt` - Step-by-step guide for adding new atlas
+- `projections.llm.txt` - Projection system reference
+- `scripts.llm.txt` - CLI tools for geodata preparation

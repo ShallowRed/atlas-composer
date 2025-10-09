@@ -15,18 +15,12 @@
  * see src/core/projections/types.d.ts
  */
 
-// Territory types
+// Atlas configuration types
 export type {
-  BoundingBox,
-  ClipExtent,
-  ConicParallels,
-  Coordinates,
-  PixelOffset,
-  ProjectionRotation,
-  TerritoryConfig,
-  TerritoryGroupConfig,
-  TerritoryModeConfig,
-} from '@/types/territory'
+  AtlasConfig,
+  SplitModeConfig,
+  TerritoryModeOption,
+} from '@/types/atlas'
 
 // Composite layout types
 export type {
@@ -42,9 +36,15 @@ export type {
   GeoDataConfig,
 } from '@/types/geo-data'
 
-// Atlas configuration types
+// Territory types
 export type {
-  AtlasConfig,
-  SplitModeConfig,
-  TerritoryModeOption,
-} from '@/types/atlas'
+  BoundingBox,
+  ClipExtent,
+  ConicParallels,
+  Coordinates,
+  PixelOffset,
+  ProjectionRotation,
+  TerritoryConfig,
+  TerritoryGroupConfig,
+  TerritoryModeConfig,
+} from '@/types/territory'

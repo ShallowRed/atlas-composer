@@ -25,5 +25,18 @@
       "conic-conformal-europe"
     ]
   },
-  "territories": []
+  "territories": "*",
+  "modes": [
+    {
+      "id": "all-territories",
+      "label": "All territories",
+      "territories": ["*"]
+    },
+    {
+      "id": "all-except-antarctica",
+      "label": "All except Antarctica",
+      "territories": ["*"],
+      "excludeTerritories": ["110"]
+    }
+  ]
 }

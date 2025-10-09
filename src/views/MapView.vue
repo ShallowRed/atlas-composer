@@ -97,14 +97,14 @@ function getTerritoryProjection(territoryCode: string) {
 
 // Check if there are territories to configure (including mainland)
 const hasTerritoriesForProjectionConfig = computed(() => {
-  // Has overseas territories
+  // Has territories
   if (geoDataStore.filteredTerritories.length > 0) {
     return true
   }
 
-  // Or has mainland with mainland/overseas split configuration
-  const hasMainlandOverseasSplit = configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
-  return hasMainlandOverseasSplit && geoDataStore.mainlandData !== null
+  // Or has mainland with traditional pattern configuration
+  const isTraditionalPattern = configStore.currentAtlasConfig.pattern === 'traditional'
+  return isTraditionalPattern && geoDataStore.mainlandData !== null
 })
 
 // Lifecycle
@@ -303,8 +303,8 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="split"
           >
-            <!-- France: Mainland + Overseas split layout -->
-            <div v-if="configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0" class="flex flex-row gap-12">
+            <!-- Traditional pattern: Mainland + Overseas split layout (France, Portugal, USA) -->
+            <div v-if="configStore.currentAtlasConfig.pattern === 'traditional'" class="flex flex-row gap-12">
               <!-- Metropolitan France -->
               <div>
                 <SectionHeader
@@ -366,7 +366,7 @@ watch(() => configStore.territoryMode, async () => {
               </div>
             </div>
 
-            <!-- EU / Other regions: All territories in a single grid -->
+            <!-- Multi-mainland pattern: All territories in a single grid (EU, ASEAN, etc.) -->
             <div v-else>
               <SectionHeader
                 :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"

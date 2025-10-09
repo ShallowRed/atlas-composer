@@ -134,13 +134,18 @@ function extractTerritories(config: JSONAtlasConfig) {
 function createTerritoryModes(
   config: any,
   mainlandCode: string,
+  isTraditionalPattern: boolean,
 ): Record<string, TerritoryModeConfig> {
   return Object.fromEntries(
     (config.modes || []).map((mode: any) => [
       mode.id,
       {
         label: mode.label,
-        codes: mode.territories.filter((code: string) => code !== mainlandCode),
+        // For traditional atlases (France, Portugal): filter out mainland code (it's shown separately)
+        // For multi-mainland atlases (EU): include all codes (all territories are equal)
+        codes: isTraditionalPattern
+          ? mode.territories.filter((code: string) => code !== mainlandCode)
+          : mode.territories,
       },
     ]),
   )
@@ -188,7 +193,11 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
     // For multi-mainland atlases, don't set a single mainland code (all territories are equal)
     mainlandCode: territories.type === 'traditional' ? territories.mainland.code : undefined,
     mainlandBounds: territories.mainland.bounds,
-    overseasTerritories: territories.overseas,
+    // For multi-mainland atlases (like EU), include all territories (mainlands + overseas)
+    // For traditional atlases, only include overseas territories
+    overseasTerritories: territories.type === 'multi-mainland'
+      ? [...territories.mainlands, ...territories.overseas]
+      : territories.overseas,
   }
 }
 
@@ -220,6 +229,7 @@ function createAtlasConfig(
   return {
     id: config.id,
     name: config.name,
+    pattern: territories.type,
     geoDataConfig,
     supportedViewModes,
     defaultViewMode,
@@ -266,7 +276,8 @@ export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
   const projectionParams: ProjectionParams = jsonConfig.projection as ProjectionParams
 
   // Create territory modes and groups
-  const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code)
+  const isTraditionalPattern = territories.type === 'traditional'
+  const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code, isTraditionalPattern)
   const territoryGroups = createTerritoryGroups(jsonConfig)
 
   // Create composite defaults

@@ -66,7 +66,7 @@ export interface CompositeProjectionDefaults {
   territoryProjections: Record<string, string>
 
   /** Default pixel translations for each territory (e.g., { 'FR-GP': { x: 100, y: -50 } }) */
-  territoryTranslations: Record<string, { x: number; y: number }>
+  territoryTranslations: Record<string, { x: number, y: number }>
 
   /** Default scale multipliers for each territory (e.g., { 'FR-GP': 1.2 }) */
   territoryScales: Record<string, number>
