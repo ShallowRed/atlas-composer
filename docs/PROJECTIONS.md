@@ -121,7 +121,7 @@ const recommendations = registry.recommend({
   limit: 5
 })
 
-recommendations.forEach(rec => {
+recommendations.forEach((rec) => {
   console.log(`${rec.definition.name} - Score: ${rec.score}`)
 })
 
@@ -161,24 +161,24 @@ Each projection is defined with comprehensive metadata:
 ```typescript
 interface ProjectionDefinition {
   // Identification
-  id: string                           // Unique identifier (e.g., 'mercator')
-  name: string                         // Display name
-  aliases?: string[]                   // Alternative names
-  
+  id: string // Unique identifier (e.g., 'mercator')
+  name: string // Display name
+  aliases?: string[] // Alternative names
+
   // Classification
-  category: ProjectionCategory         // RECOMMENDED | STANDARD | SPECIALIZED | ARTISTIC
-  family: ProjectionFamily             // conic | azimuthal | cylindrical | etc.
-  strategy: ProjectionStrategy         // D3_BUILTIN | D3_EXTENDED | D3_COMPOSITE
-  
+  category: ProjectionCategory // RECOMMENDED | STANDARD | SPECIALIZED | ARTISTIC
+  family: ProjectionFamily // conic | azimuthal | cylindrical | etc.
+  strategy: ProjectionStrategy // D3_BUILTIN | D3_EXTENDED | D3_COMPOSITE
+
   // Technical details
-  d3Name: string                       // D3 function name
+  d3Name: string // D3 function name
   defaultParameters?: ProjectionParameters
-  
+
   // Context awareness
   capabilities: ProjectionCapabilities // What it preserves/supports
-  suitability: ProjectionSuitability   // Geographic fit scores
-  recommendedForAtlases?: string[]     // Atlas IDs (e.g., ['france'])
-  
+  suitability: ProjectionSuitability // Geographic fit scores
+  recommendedForAtlases?: string[] // Atlas IDs (e.g., ['france'])
+
   // Documentation
   description: string
   useCases?: string[]
@@ -191,14 +191,14 @@ Describes what the projection preserves or supports:
 
 ```typescript
 interface ProjectionCapabilities {
-  preservesArea?: boolean       // Equal area projection
-  preservesAngles?: boolean     // Conformal projection
-  preservesDistance?: boolean   // Equidistant from center
-  preservesDirection?: boolean  // Azimuthal
-  
-  supportsSplit?: boolean       // Can be used in split view
-  supportsGraticule?: boolean   // Works with graticule overlay
-  supportsClipping?: boolean    // Supports custom clipping
+  preservesArea?: boolean // Equal area projection
+  preservesAngles?: boolean // Conformal projection
+  preservesDistance?: boolean // Equidistant from center
+  preservesDirection?: boolean // Azimuthal
+
+  supportsSplit?: boolean // Can be used in split view
+  supportsGraticule?: boolean // Works with graticule overlay
+  supportsClipping?: boolean // Supports custom clipping
 }
 ```
 
@@ -208,13 +208,13 @@ Geographic context scores (0-100):
 
 ```typescript
 interface ProjectionSuitability {
-  polar?: number        // 0-100: Arctic/Antarctic regions
-  midLatitude?: number  // 0-100: Temperate zones (30-60°)
-  equatorial?: number   // 0-100: Tropical zones (±30°)
-  global?: number       // 0-100: World maps
-  regional?: number     // 0-100: Country/region maps
-  
-  france?: number       // Atlas-specific scores
+  polar?: number // 0-100: Arctic/Antarctic regions
+  midLatitude?: number // 0-100: Temperate zones (30-60°)
+  equatorial?: number // 0-100: Tropical zones (±30°)
+  global?: number // 0-100: World maps
+  regional?: number // 0-100: Country/region maps
+
+  france?: number // Atlas-specific scores
   portugal?: number
   eu?: number
 }
@@ -226,13 +226,13 @@ Context provided when requesting recommendations:
 
 ```typescript
 interface ProjectionFilterContext {
-  atlasId?: string              // 'france' | 'portugal' | 'spain' | 'eu'
-  viewMode?: ViewMode           // 'composite' | 'split' | 'individual'
+  atlasId?: string // 'france' | 'portugal' | 'spain' | 'eu'
+  viewMode?: ViewMode // 'composite' | 'split' | 'individual'
   category?: ProjectionCategory
   family?: ProjectionFamily
   capabilities?: Partial<ProjectionCapabilities>
-  suitability?: Record<string, { min?: number; max?: number }>
-  limit?: number                // Max results
+  suitability?: Record<string, { min?: number, max?: number }>
+  limit?: number // Max results
 }
 ```
 
@@ -443,8 +443,8 @@ Retrieve a projection by ID (case-insensitive) or alias.
 
 ```typescript
 const mercator = registry.get('mercator')
-const same = registry.get('MERCATOR')  // Case-insensitive
-const alias = registry.get('lambert')  // Alias for 'conic-conformal'
+const same = registry.get('MERCATOR') // Case-insensitive
+const alias = registry.get('lambert') // Alias for 'conic-conformal'
 ```
 
 #### `getAll(): ProjectionDefinition[]`
@@ -496,7 +496,7 @@ const recommendations = registry.recommend({
   limit: 3
 })
 
-recommendations.forEach(rec => {
+recommendations.forEach((rec) => {
   console.log(`${rec.definition.name} - Score: ${rec.score}`)
   console.log(`Reason: ${rec.reason}`)
 })
@@ -631,29 +631,29 @@ export const myConicProjection: ProjectionDefinition = {
   id: 'my-conic',
   name: 'My Conic Projection',
   aliases: ['myConic'],
-  
+
   category: 'STANDARD',
   family: 'conic',
   strategy: 'D3_BUILTIN',
-  
+
   d3Name: 'geoConicConformal',
   defaultParameters: {
     parallels: [20, 50]
   },
-  
+
   capabilities: {
     preservesAngles: true,
     supportsSplit: true,
     supportsGraticule: true
   },
-  
+
   suitability: {
     midLatitude: 85,
     regional: 80
   },
-  
+
   recommendedForAtlases: ['spain'],
-  
+
   description: 'Custom conic projection optimized for Spain',
   useCases: [
     'Regional maps of Spain',
@@ -665,7 +665,7 @@ export const myConicProjection: ProjectionDefinition = {
 export const conicDefinitions: ProjectionDefinition[] = [
   conicConformal,
   albers,
-  myConicProjection  // Add here
+  myConicProjection // Add here
 ]
 ```
 
@@ -695,14 +695,14 @@ describe('My Conic Projection', () => {
     expect(def).toBeDefined()
     expect(def?.name).toBe('My Conic Projection')
   })
-  
+
   it('should create projection instance', () => {
     const factory = ProjectionFactory.getInstance()
     const projection = factory.createById('my-conic')
     expect(projection).toBeDefined()
     expect(typeof projection).toBe('function')
   })
-  
+
   it('should be recommended for Spain', () => {
     const registry = ProjectionRegistry.getInstance()
     const recommendations = registry.recommend({
@@ -731,25 +731,25 @@ For composite projections from `d3-composite-projections`:
 export const myCompositeProjection: ProjectionDefinition = {
   id: 'my-composite',
   name: 'My Composite Projection',
-  
+
   category: 'RECOMMENDED',
   family: 'composite',
   strategy: 'D3_COMPOSITE',
-  
-  d3Name: 'geoMyComposite',  // Must match d3-composite-projections export
-  
+
+  d3Name: 'geoMyComposite', // Must match d3-composite-projections export
+
   capabilities: {
     preservesAngles: true,
     supportsSplit: true
   },
-  
+
   suitability: {
     myCountry: 100,
     midLatitude: 90
   },
-  
+
   recommendedForAtlases: ['my-atlas'],
-  
+
   description: 'Composite projection for My Country with territories',
   useCases: ['Displaying My Country with overseas territories']
 }
@@ -763,15 +763,15 @@ export const myCompositeProjection: ProjectionDefinition = {
 
 ```typescript
 // Get projections suitable for polar regions with equal area
-const polarEqualArea = registry.getAll().filter(def => 
-  (def.suitability.polar ?? 0) > 80 &&
-  def.capabilities.preservesArea === true
+const polarEqualArea = registry.getAll().filter(def =>
+  (def.suitability.polar ?? 0) > 80
+  && def.capabilities.preservesArea === true
 )
 
 // Get conformal projections for mid-latitudes
 const conformalMidLat = registry.getAll().filter(def =>
-  def.capabilities.preservesAngles === true &&
-  (def.suitability.midLatitude ?? 0) > 75
+  def.capabilities.preservesAngles === true
+  && (def.suitability.midLatitude ?? 0) > 75
 )
 ```
 
@@ -782,21 +782,23 @@ const conformalMidLat = registry.getAll().filter(def =>
 function selectProjectionForBounds(bounds: [[number, number], [number, number]]) {
   const [[west, south], [east, north]] = bounds
   const centerLat = (south + north) / 2
-  
+
   if (Math.abs(centerLat) > 60) {
     // Polar region
     return registry.recommend({
       suitability: { polar: { min: 80 } },
       limit: 1
     })[0]
-  } else if (Math.abs(centerLat) > 30) {
+  }
+  else if (Math.abs(centerLat) > 30) {
     // Mid-latitude
     return registry.recommend({
       family: 'conic',
       suitability: { midLatitude: { min: 75 } },
       limit: 1
     })[0]
-  } else {
+  }
+  else {
     // Equatorial
     return registry.recommend({
       suitability: { equatorial: { min: 75 } },
@@ -811,13 +813,14 @@ function selectProjectionForBounds(bounds: [[number, number], [number, number]])
 ```typescript
 // Compare multiple projections
 function compareProjections(ids: string[], atlas: string) {
-  const results = ids.map(id => {
+  const results = ids.map((id) => {
     const def = registry.get(id)
-    if (!def) return null
-    
+    if (!def)
+      return null
+
     const recommendations = registry.recommend({ atlasId: atlas, limit: 100 })
     const rec = recommendations.find(r => r.definition.id === id)
-    
+
     return {
       id,
       name: def.name,
@@ -826,7 +829,7 @@ function compareProjections(ids: string[], atlas: string) {
       suitability: def.suitability
     }
   }).filter(Boolean)
-  
+
   return results.sort((a, b) => b!.score - a!.score)
 }
 
@@ -842,20 +845,20 @@ const comparison = compareProjections(
 // Implement custom scoring logic
 function customScore(def: ProjectionDefinition, requirements: any): number {
   let score = 0
-  
+
   // Prioritize equal area for choropleth maps
   if (requirements.mapType === 'choropleth' && def.capabilities.preservesArea) {
     score += 50
   }
-  
+
   // Prioritize conformal for navigation
   if (requirements.mapType === 'navigation' && def.capabilities.preservesAngles) {
     score += 50
   }
-  
+
   // Add suitability score
   score += def.suitability[requirements.region] ?? 0
-  
+
   return score
 }
 ```
@@ -871,7 +874,7 @@ const projection = factory.createById('conic-conformal-france', {
 })
 
 // ❌ Bad - Using basic projection for composite atlas
-const projection = factory.createById('mercator')  // Won't position territories correctly
+const projection = factory.createById('mercator') // Won't position territories correctly
 ```
 
 ### 2. Let the Recommender Choose
@@ -885,7 +888,7 @@ const [best] = registry.recommend({
 })
 
 // ❌ Bad - Hardcoding projection IDs
-const projection = registry.get('mercator')  // May not be optimal
+const projection = registry.get('mercator') // May not be optimal
 ```
 
 ### 3. Check Capabilities Before Using
@@ -898,7 +901,7 @@ if (def?.capabilities.supportsSplit && viewMode === 'split') {
 }
 
 // ❌ Bad - Assuming capabilities
-const projection = factory.createById(projectionId)  // May fail in split view
+const projection = factory.createById(projectionId) // May fail in split view
 ```
 
 ### 4. Use Type Guards
@@ -911,7 +914,7 @@ if (def) {
 }
 
 // ❌ Bad - Assuming existence
-const projection = factory.createById(projectionId)  // Throws if ID doesn't exist
+const projection = factory.createById(projectionId) // Throws if ID doesn't exist
 ```
 
 ### 5. Cache Projection Instances
@@ -930,7 +933,7 @@ function getProjection(id: string, params: any) {
 
 // ❌ Bad - Creating new instance every time
 function render() {
-  const projection = factory.createById('mercator')  // Expensive
+  const projection = factory.createById('mercator') // Expensive
   // ...
 }
 ```
@@ -942,7 +945,8 @@ function render() {
 try {
   const projection = factory.createById(userSelectedId)
   renderMap(projection)
-} catch (error) {
+}
+catch (error) {
   console.error('Invalid projection:', error)
   // Fall back to default
   const fallback = factory.createById('natural-earth')

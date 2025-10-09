@@ -77,9 +77,9 @@ Some projection IDs have been standardized:
 
 ```typescript
 // All of these work:
-registry.get('naturalEarth')      // ✅ Alias
-registry.get('natural-earth')     // ✅ New ID
-registry.get('NATURAL-EARTH')     // ✅ Case-insensitive
+registry.get('naturalEarth') // ✅ Alias
+registry.get('natural-earth') // ✅ New ID
+registry.get('NATURAL-EARTH') // ✅ Case-insensitive
 ```
 
 ### 2. Import Paths Changed
@@ -92,12 +92,13 @@ registry.get('NATURAL-EARTH')     // ✅ Case-insensitive
 **Migration Example**:
 
 ```typescript
-// Old
-import { ProjectionService } from '@/services/projection-service'
-const projection = ProjectionService.getProjection('mercator')
-
 // New
 import { ProjectionFactory } from '@/projections/factory'
+
+// Old
+import { ProjectionService } from '@/services/projection-service'
+
+const projection = ProjectionService.getProjection('mercator')
 const factory = ProjectionFactory.getInstance()
 const projection = factory.createById('mercator')
 ```
@@ -107,12 +108,13 @@ const projection = factory.createById('mercator')
 #### Getting Projections
 
 ```typescript
-// Old
-import { PROJECTION_OPTIONS } from '@/services/projection-service'
-const options = PROJECTION_OPTIONS
-
 // New
 import { ProjectionRegistry } from '@/projections/registry'
+
+// Old
+import { PROJECTION_OPTIONS } from '@/services/projection-service'
+
+const options = PROJECTION_OPTIONS
 const registry = ProjectionRegistry.getInstance()
 const projections = registry.getAll()
 ```
@@ -120,14 +122,15 @@ const projections = registry.getAll()
 #### Creating Projections
 
 ```typescript
+// New
+import { ProjectionFactory } from '@/projections/factory'
+
 // Old
 import { ProjectionService } from '@/services/projection-service'
+
 const projection = ProjectionService.getProjection('mercator')
   .center([2.5, 46.5])
   .scale(2500)
-
-// New
-import { ProjectionFactory } from '@/projections/factory'
 const factory = ProjectionFactory.getInstance()
 const projection = factory.createById('mercator', {
   center: [2.5, 46.5],
@@ -139,7 +142,7 @@ const projection = factory.createById('mercator', {
 
 ```typescript
 // Old: Manual filtering
-const conicProjections = PROJECTION_OPTIONS.filter(p => 
+const conicProjections = PROJECTION_OPTIONS.filter(p =>
   p.category === 'Conique'
 )
 
@@ -177,13 +180,13 @@ interface ProjectionDefinition {
 Replace old projection service imports:
 
 ```typescript
-// Before
-import { ProjectionService } from '@/services/projection-service'
-import { PROJECTION_OPTIONS } from '@/services/projection-service'
-
 // After
 import { ProjectionFactory } from '@/projections/factory'
 import { ProjectionRegistry } from '@/projections/registry'
+
+// Before
+import { ProjectionService } from '@/services/projection-service'
+import { PROJECTION_OPTIONS } from '@/services/projection-service'
 ```
 
 ### Step 2: Update Projection Lists
@@ -244,7 +247,7 @@ Replace manual filtering with registry filters:
 
 ```typescript
 // Before
-const recommendedProjections = projections.filter(p => 
+const recommendedProjections = projections.filter(p =>
   p.category === 'Recommandées'
 )
 
@@ -332,7 +335,7 @@ export class MapService {
     const projection = ProjectionService.getProjection(projectionName)
       .center(options.center)
       .scale(options.scale)
-    
+
     return d3.geoPath().projection(projection)
   }
 }
@@ -348,22 +351,22 @@ import { ProjectionRegistry } from '@/projections/registry'
 export class MapService {
   private factory = ProjectionFactory.getInstance()
   private registry = ProjectionRegistry.getInstance()
-  
+
   createMap(projectionId: string, options: any) {
     const definition = this.registry.get(projectionId)
     if (!definition) {
       throw new Error(`Unknown projection: ${projectionId}`)
     }
-    
+
     const projection = this.factory.create({
       projection: definition,
       center: options.center,
       scale: options.scale
     })
-    
+
     return d3.geoPath().projection(projection)
   }
-  
+
   // New: Smart projection selection
   createMapWithRecommendation(atlasId: string, viewMode: string, options: any) {
     const recommendations = this.registry.recommend({
@@ -371,13 +374,13 @@ export class MapService {
       viewMode,
       limit: 1
     })
-    
+
     const projection = this.factory.create({
       projection: recommendations[0].definition,
       center: options.center,
       scale: options.scale
     })
-    
+
     return d3.geoPath().projection(projection)
   }
 }
@@ -397,7 +400,7 @@ export const useProjectionStore = defineStore('projection', {
     selectedProjection: 'mercator',
     availableProjections: PROJECTION_OPTIONS
   }),
-  
+
   actions: {
     setProjection(name: string) {
       this.selectedProjection = name
@@ -409,10 +412,10 @@ export const useProjectionStore = defineStore('projection', {
 #### After
 
 ```typescript
+import type { ProjectionDefinition } from '@/projections/types'
 // projection-store.ts (New)
 import { defineStore } from 'pinia'
 import { ProjectionRegistry } from '@/projections/registry'
-import type { ProjectionDefinition } from '@/projections/types'
 
 export const useProjectionStore = defineStore('projection', {
   state: () => ({
@@ -420,18 +423,18 @@ export const useProjectionStore = defineStore('projection', {
     atlasId: 'france',
     viewMode: 'split' as const
   }),
-  
+
   getters: {
     registry: () => ProjectionRegistry.getInstance(),
-    
+
     selectedProjection(): ProjectionDefinition | undefined {
       return this.registry.get(this.selectedProjectionId)
     },
-    
+
     availableProjections(): ProjectionDefinition[] {
       return this.registry.getAll()
     },
-    
+
     recommendedProjections(): ProjectionDefinition[] {
       const recommendations = this.registry.recommend({
         atlasId: this.atlasId,
@@ -441,18 +444,18 @@ export const useProjectionStore = defineStore('projection', {
       return recommendations.map(rec => rec.definition)
     }
   },
-  
+
   actions: {
     setProjection(id: string) {
       if (this.registry.isValid(id)) {
         this.selectedProjectionId = id
       }
     },
-    
+
     setContext(atlasId: string, viewMode: string) {
       this.atlasId = atlasId
       this.viewMode = viewMode
-      
+
       // Auto-select best projection
       const recommendations = this.registry.recommend({
         atlasId,
@@ -481,7 +484,7 @@ const recommendations = registry.recommend({
   limit: 5
 })
 
-recommendations.forEach(rec => {
+recommendations.forEach((rec) => {
   console.log(`${rec.definition.name} - Score: ${rec.score}`)
 })
 ```
@@ -542,7 +545,7 @@ Ensure all projection IDs are valid:
 const registry = ProjectionRegistry.getInstance()
 
 const myProjectionIds = ['mercator', 'naturalEarth', 'albers']
-myProjectionIds.forEach(id => {
+myProjectionIds.forEach((id) => {
   if (!registry.isValid(id)) {
     console.error(`Invalid projection ID: ${id}`)
   }
@@ -555,7 +558,7 @@ Verify recommendations work for your atlases:
 
 ```typescript
 const atlases = ['france', 'portugal', 'spain', 'eu']
-atlases.forEach(atlasId => {
+atlases.forEach((atlasId) => {
   const recommendations = registry.recommend({ atlasId, limit: 1 })
   console.log(`Best for ${atlasId}:`, recommendations[0]?.definition.name)
 })
@@ -581,12 +584,12 @@ pnpm typecheck
 **Solution**: Update import to new path:
 
 ```typescript
-// Old
-import { ProjectionService } from '@/services/projection-service'
-
 // New
 import { ProjectionFactory } from '@/projections/factory'
+
 import { ProjectionRegistry } from '@/projections/registry'
+// Old
+import { ProjectionService } from '@/services/projection-service'
 ```
 
 ### Problem: "Projection ID 'naturalEarth' not found"
@@ -598,7 +601,7 @@ import { ProjectionRegistry } from '@/projections/registry'
 registry.get('natural-earth')
 
 // Option 2: Use alias (still works)
-registry.get('naturalEarth')  // Alias support
+registry.get('naturalEarth') // Alias support
 
 // Option 3: Case-insensitive
 registry.get('NATURAL-EARTH')
@@ -627,8 +630,8 @@ const validAtlases = ['france', 'portugal', 'spain', 'eu']
 
 // Check your filter context
 const recommendations = registry.recommend({
-  atlasId: 'france',  // Must be a valid atlas
-  viewMode: 'split',  // Must be valid view mode
+  atlasId: 'france', // Must be a valid atlas
+  viewMode: 'split', // Must be valid view mode
   limit: 5
 })
 
@@ -660,6 +663,7 @@ The old `ProjectionService` is marked as deprecated but still functional:
 ```typescript
 // This still works (with warnings)
 import { ProjectionService } from '@/services/projection-service'
+
 const projection = ProjectionService.getProjection('mercator')
 ```
 
@@ -684,7 +688,8 @@ if (USE_NEW_PROJECTION_SYSTEM) {
   // Use new system
   const factory = ProjectionFactory.getInstance()
   projection = factory.createById(id)
-} else {
+}
+else {
   // Use old system
   projection = ProjectionService.getProjection(id)
 }
