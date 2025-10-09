@@ -195,6 +195,10 @@ function createAtlasConfig(
   territoryModes: Record<string, TerritoryModeConfig>,
   defaultCompositeConfig: CompositeProjectionDefaults,
 ): AtlasConfig {
+  // Map atlas IDs to their composite projection names
+  // Some atlas IDs differ from their projection names (eu -> europe)
+  const compositeProjectionName = config.id === 'eu' ? 'europe' : config.id
+
   return {
     id: config.id,
     name: config.name,
@@ -204,8 +208,8 @@ function createAtlasConfig(
     defaultTerritoryMode:
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
     defaultCompositeConfig,
-    compositeProjections: [`conic-conformal-${config.id}`],
-    defaultCompositeProjection: `conic-conformal-${config.id}`,
+    compositeProjections: [`conic-conformal-${compositeProjectionName}`],
+    defaultCompositeProjection: `conic-conformal-${compositeProjectionName}`,
     compositeProjectionConfig: {
       mainland: territories.mainland,
       overseasTerritories: territories.overseas,

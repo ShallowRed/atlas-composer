@@ -52,7 +52,7 @@ const compositeProjectionOptions = computed(() => {
   // Get all composite projections from registry and filter by region
   return projectionRegistry.getAll()
     .filter(def => def.family === ProjectionFamily.COMPOSITE && availableProjections.includes(def.id))
-    .map(def => ({ value: def.id, label: def.name }))
+    .map(def => ({ value: def.id, label: t(def.name) }))
 })
 
 const viewModeOptions = computed(() => {
