@@ -393,6 +393,40 @@ function filterTerritories(
   // Add extracted territories to processed features
   processedFeatures.push(...extractionResults)
 
+  // STEP 2.5: Apply mainlandPolygon filter for territories that specify it
+  processedFeatures = processedFeatures.map((feature) => {
+    const territoryId = feature.properties!.id
+    const territory = territoriesConfig[territoryId]
+
+    if (!territory || territory.mainlandPolygon === undefined) {
+      return feature
+    }
+
+    // If mainlandPolygon is specified, extract only that polygon
+    if (feature.geometry && feature.geometry.type === 'MultiPolygon') {
+      const mainlandIndex = territory.mainlandPolygon
+      if (mainlandIndex >= 0 && mainlandIndex < feature.geometry.coordinates.length) {
+        // Convert to Polygon (single polygon)
+        return {
+          ...feature,
+          geometry: {
+            type: 'Polygon',
+            coordinates: feature.geometry.coordinates[mainlandIndex],
+          },
+        }
+      }
+      else {
+        logger.warning(`  mainlandPolygon index ${mainlandIndex} out of range for ${territory.code} (total: ${feature.geometry.coordinates.length})`)
+      }
+    }
+    else if (feature.geometry && feature.geometry.type === 'Polygon' && territory.mainlandPolygon === 0) {
+      // Already a single polygon, keep as is
+      return feature
+    }
+
+    return feature
+  })
+
   // STEP 3: Duplicate territories for multiple projections (like FR-PF-2)
   const finalFeatures = duplicateTerritories(processedFeatures, territoriesConfig)
 

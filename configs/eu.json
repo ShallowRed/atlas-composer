@@ -1,8 +1,8 @@
 {
   "$schema": "./schema.json",
   "id": "eu",
-  "name": "Union Européenne",
-  "description": "EU member states (27 countries)",
+  "name": "Europe",
+  "description": "European countries including EU members (27), non-EU states, and overseas territories",
   "viewModes": ["composite-existing", "unified", "split"],
   "defaultViewMode": "composite-existing",
   "projectionPreferences": {
@@ -98,7 +98,9 @@
       "iso": "DNK",
       "center": [10.0, 56.0],
       "bounds": [[8.1, 54.6], [15.2, 57.7]],
-      "extraction": {},
+      "extraction": {
+        "mainlandPolygon": 1
+      },
       "rendering": {}
     },
     {
@@ -131,7 +133,9 @@
       "iso": "FRA",
       "center": [2.5, 46.5],
       "bounds": [[-5.0, 41.0], [10.0, 51.0]],
-      "extraction": {},
+      "extraction": {
+        "mainlandPolygon": 1
+      },
       "rendering": {}
     },
     {
@@ -241,7 +245,9 @@
       "iso": "NLD",
       "center": [5.5, 52.5],
       "bounds": [[3.4, 50.8], [7.2, 53.6]],
-      "extraction": {},
+      "extraction": {
+        "mainlandPolygon": 0
+      },
       "rendering": {}
     },
     {
@@ -263,7 +269,9 @@
       "iso": "PRT",
       "center": [-8.0, 39.5],
       "bounds": [[-9.5, 37.0], [-6.2, 42.2]],
-      "extraction": {},
+      "extraction": {
+        "mainlandPolygon": 1
+      },
       "rendering": {}
     },
     {
@@ -307,7 +315,9 @@
       "iso": "ESP",
       "center": [-4.0, 40.0],
       "bounds": [[-9.3, 36.0], [4.3, 43.8]],
-      "extraction": {},
+      "extraction": {
+        "mainlandPolygon": 4
+      },
       "rendering": {}
     },
     {
@@ -318,6 +328,328 @@
       "iso": "SWE",
       "center": [15.0, 62.0],
       "bounds": [[11.0, 55.3], [24.2, 69.1]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "250-GP",
+      "role": "overseas",
+      "code": "FR-GP",
+      "name": "Guadeloupe",
+      "iso": "GLP",
+      "region": "Caribbean",
+      "center": [-61.46, 16.14],
+      "bounds": [[-61.81, 15.83], [-61.0, 16.52]],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [6, 7, 8]
+      },
+      "rendering": {
+        "offset": [-300, -100],
+        "baseScaleMultiplier": 1.4
+      }
+    },
+    {
+      "id": "250-MQ",
+      "role": "overseas",
+      "code": "FR-MQ",
+      "name": "Martinique",
+      "iso": "MTQ",
+      "region": "Caribbean",
+      "center": [-61.03, 14.67],
+      "bounds": [[-61.23, 14.39], [-60.81, 14.88]],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [5]
+      },
+      "rendering": {
+        "offset": [-300, 0],
+        "baseScaleMultiplier": 1.6
+      }
+    },
+    {
+      "id": "250-GF",
+      "role": "overseas",
+      "code": "FR-GF",
+      "name": "French Guiana",
+      "iso": "GUF",
+      "region": "South America",
+      "center": [-53.2, 3.9],
+      "bounds": [[-54.6, 2.1], [-51.6, 5.8]],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [9]
+      },
+      "rendering": {
+        "offset": [-300, 150],
+        "baseScaleMultiplier": 0.6
+      }
+    },
+    {
+      "id": "250-RE",
+      "role": "overseas",
+      "code": "FR-RE",
+      "name": "Réunion",
+      "iso": "REU",
+      "region": "Indian Ocean",
+      "center": [55.52, -21.13],
+      "bounds": [[55.22, -21.39], [55.84, -20.87]],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [4]
+      },
+      "rendering": {
+        "offset": [300, -100],
+        "baseScaleMultiplier": 1.2
+      }
+    },
+    {
+      "id": "250-YT",
+      "role": "overseas",
+      "code": "FR-YT",
+      "name": "Mayotte",
+      "iso": "MYT",
+      "region": "Indian Ocean",
+      "center": [45.16, -12.8],
+      "bounds": [[44.98, -13.0], [45.3, -12.64]],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [3]
+      },
+      "rendering": {
+        "offset": [300, -200],
+        "baseScaleMultiplier": 1.6
+      }
+    },
+    {
+      "id": "663",
+      "role": "overseas",
+      "code": "FR-MF",
+      "name": "Saint-Martin",
+      "iso": "MAF",
+      "region": "Caribbean",
+      "center": [-63.082, 18.067],
+      "bounds": [[-63.15, 18.04], [-63.0, 18.13]],
+      "extraction": {},
+      "rendering": {
+        "offset": [-300, -200],
+        "baseScaleMultiplier": 5.0
+      }
+    },
+    {
+      "id": "666",
+      "role": "overseas",
+      "code": "FR-PM",
+      "name": "Saint-Pierre-et-Miquelon",
+      "iso": "SPM",
+      "region": "North Atlantic",
+      "center": [-56.23, 46.93],
+      "bounds": [[-56.42, 46.75], [-56.13, 47.15]],
+      "extraction": {},
+      "rendering": {
+        "offset": [-300, -300],
+        "baseScaleMultiplier": 1.3
+      }
+    },
+    {
+      "id": "876",
+      "role": "overseas",
+      "code": "FR-WF",
+      "name": "Wallis and Futuna",
+      "iso": "WLF",
+      "region": "Pacific Ocean",
+      "center": [-178.1, -14.3],
+      "bounds": [[-178.2, -14.4], [-176.1, -13.2]],
+      "extraction": {},
+      "rendering": {
+        "offset": [300, 50],
+        "baseScaleMultiplier": 2.7
+      }
+    },
+    {
+      "id": "258",
+      "role": "overseas",
+      "code": "FR-PF",
+      "name": "French Polynesia",
+      "iso": "PYF",
+      "region": "Pacific Ocean",
+      "center": [-150.55, -17.11],
+      "bounds": [[-154, -28], [-134, -7]],
+      "extraction": {},
+      "rendering": {
+        "offset": [300, 200],
+        "baseScaleMultiplier": 0.5
+      }
+    },
+    {
+      "id": "540",
+      "role": "overseas",
+      "code": "FR-NC",
+      "name": "New Caledonia",
+      "iso": "NCL",
+      "region": "Pacific Ocean",
+      "center": [165.6, -21.3],
+      "bounds": [[163.5, -23.0], [168.5, -19.5]],
+      "extraction": {},
+      "rendering": {
+        "offset": [300, 100],
+        "baseScaleMultiplier": 0.8
+      }
+    },
+    {
+      "id": "620-20",
+      "role": "overseas",
+      "code": "PT-20",
+      "name": "Madeira",
+      "iso": "PRT",
+      "region": "Atlantic",
+      "center": [-16.9, 32.75],
+      "bounds": [[-17.5, 32.5], [-16.5, 33.0]],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [0]
+      },
+      "rendering": {
+        "offset": [200, -150],
+        "baseScaleMultiplier": 1.0
+      }
+    },
+    {
+      "id": "620-30",
+      "role": "overseas",
+      "code": "PT-30",
+      "name": "Azores",
+      "iso": "PRT",
+      "region": "Atlantic",
+      "center": [-28.0, 38.5],
+      "bounds": [[-32.0, 36.5], [-24.5, 40.0]],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [2, 3, 4, 5, 6, 7, 8]
+      },
+      "rendering": {
+        "offset": [-200, -100],
+        "baseScaleMultiplier": 1.0
+      }
+    },
+    {
+      "id": "724-CN",
+      "role": "overseas",
+      "code": "ES-CN",
+      "name": "Canary Islands",
+      "iso": "ESP",
+      "region": "Atlantic",
+      "center": [-15.5, 28.3],
+      "bounds": [[-18.2, 27.6], [-13.4, 29.4]],
+      "extraction": {
+        "extractFrom": "724",
+        "polygonIndices": [5, 6, 7, 8, 9, 10, 11]
+      },
+      "rendering": {
+        "offset": [-200, 0],
+        "baseScaleMultiplier": 0.8
+      }
+    },
+    {
+      "id": "578",
+      "role": "member-state",
+      "code": "NO",
+      "name": "Norway",
+      "iso": "NOR",
+      "center": [10.0, 64.0],
+      "bounds": [[4.91, 58.02], [30.96, 71.09]],
+      "extraction": {
+        "mainlandPolygon": 0
+      },
+      "rendering": {}
+    },
+    {
+      "id": "756",
+      "role": "member-state",
+      "code": "CH",
+      "name": "Switzerland",
+      "iso": "CHE",
+      "center": [8.2, 46.8],
+      "bounds": [[5.97, 45.83], [10.46, 47.78]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "826",
+      "role": "member-state",
+      "code": "GB",
+      "name": "United Kingdom",
+      "iso": "GBR",
+      "center": [-2.0, 54.0],
+      "bounds": [[-6.13, 50.02], [1.75, 58.65]],
+      "extraction": {
+        "mainlandPolygon": 0
+      },
+      "rendering": {}
+    },
+    {
+      "id": "352",
+      "role": "member-state",
+      "code": "IS",
+      "name": "Iceland",
+      "iso": "ISL",
+      "center": [-19.0, 65.0],
+      "bounds": [[-24.47, 63.41], [-13.56, 66.53]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "688",
+      "role": "member-state",
+      "code": "RS",
+      "name": "Serbia",
+      "iso": "SRB",
+      "center": [21.0, 44.0],
+      "bounds": [[18.84, 42.24], [22.98, 46.17]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "008",
+      "role": "member-state",
+      "code": "AL",
+      "name": "Albania",
+      "iso": "ALB",
+      "center": [20.0, 41.0],
+      "bounds": [[19.28, 39.65], [21.03, 42.65]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "070",
+      "role": "member-state",
+      "code": "BA",
+      "name": "Bosnia and Herzegovina",
+      "iso": "BIH",
+      "center": [18.0, 44.0],
+      "bounds": [[15.74, 42.56], [19.58, 45.28]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "807",
+      "role": "member-state",
+      "code": "MK",
+      "name": "North Macedonia",
+      "iso": "MKD",
+      "center": [21.7, 41.6],
+      "bounds": [[20.45, 40.85], [23.01, 42.36]],
+      "extraction": {},
+      "rendering": {}
+    },
+    {
+      "id": "499",
+      "role": "member-state",
+      "code": "ME",
+      "name": "Montenegro",
+      "iso": "MNE",
+      "center": [19.3, 42.7],
+      "bounds": [[18.44, 41.87], [20.35, 43.54]],
       "extraction": {},
       "rendering": {}
     }
@@ -335,6 +667,128 @@
       "conic": [43, 62]
     }
   },
-  "modes": [],
+  "modes": [
+    {
+      "id": "continental-europe",
+      "label": "Continental Europe (Geographic Region)",
+      "territories": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+        "NO",
+        "CH",
+        "GB",
+        "IS",
+        "RS",
+        "AL",
+        "BA",
+        "MK",
+        "ME"
+      ]
+    },
+    {
+      "id": "continental-eu",
+      "label": "Continental EU (27 Members)",
+      "territories": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE"
+      ]
+    },
+    {
+      "id": "eu-overseas",
+      "label": "EU + Overseas Territories",
+      "territories": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+        "FR-GP",
+        "FR-MQ",
+        "FR-GF",
+        "FR-RE",
+        "FR-YT",
+        "FR-MF",
+        "FR-PM",
+        "FR-WF",
+        "FR-PF",
+        "FR-NC",
+        "PT-20",
+        "PT-30",
+        "ES-CN"
+      ]
+    }
+  ],
   "groups": []
 }
