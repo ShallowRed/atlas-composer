@@ -54,7 +54,8 @@ export class CompositeProjection {
   private initialize() {
     if (this.config.type === 'traditional') {
       this.initializeTraditional()
-    } else {
+    }
+    else {
       this.initializeMultiMainland()
     }
   }
@@ -63,7 +64,8 @@ export class CompositeProjection {
    * Initialize traditional pattern: 1 mainland + N overseas territories
    */
   private initializeTraditional() {
-    if (this.config.type !== 'traditional') return
+    if (this.config.type !== 'traditional')
+      return
     const { mainland, overseasTerritories } = this.config
 
     // Reference scale for all territories (like d3-composite-projections does)
@@ -134,7 +136,8 @@ export class CompositeProjection {
    * All mainlands are treated equally with no hierarchy
    */
   private initializeMultiMainland() {
-    if (this.config.type !== 'multi-mainland') return
+    if (this.config.type !== 'multi-mainland')
+      return
     const { mainlands, overseasTerritories } = this.config
 
     // Reference scale for all territories

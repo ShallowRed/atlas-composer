@@ -112,8 +112,10 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   const showTerritorySelector = computed(() => {
-    // Show territory selector in all modes
-    return true
+    // Hide territory selector for composite-existing mode
+    // Built-in composite projections render all territories as a monolithic unit
+    // and cannot selectively hide/show individual territories
+    return viewMode.value !== 'composite-existing'
   })
 
   const showScalePreservation = computed(() => {

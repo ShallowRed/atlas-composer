@@ -110,7 +110,7 @@ function transformTerritory(territory: any): TerritoryConfig {
 function extractTerritories(config: any) {
   // Collect all mainland-type territories (both 'mainland' and 'member-state' roles)
   const allMainlands = config.territories.filter(
-    (t: any) => t.role === 'mainland' || t.role === 'member-state'
+    (t: any) => t.role === 'mainland' || t.role === 'member-state',
   )
   const overseasTerritories = config.territories.filter((t: any) => t.role === 'overseas')
 

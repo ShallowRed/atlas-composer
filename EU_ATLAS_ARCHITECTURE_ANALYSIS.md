@@ -49,15 +49,15 @@ function extractTerritories(config: any) {
   // 🔴 PROBLEM: Uses .find() - returns FIRST mainland only
   const mainlandTerritory = config.territories.find((t: any) => t.role === 'mainland')
   const overseasTerritories = config.territories.filter((t: any) => t.role === 'overseas')
-  
+
   if (!mainlandTerritory) {
     throw new Error(`No mainland territory found in ${config.id}`)
   }
-  
-  const mainland = transformTerritory(mainlandTerritory)  // ← Only Austria for EU
-  const overseas = overseasTerritories.map(transformTerritory)  // ← Empty array for EU
-  const all = [mainland, ...overseas]  // ← Austria + empty = [Austria]
-  
+
+  const mainland = transformTerritory(mainlandTerritory) // ← Only Austria for EU
+  const overseas = overseasTerritories.map(transformTerritory) // ← Empty array for EU
+  const all = [mainland, ...overseas] // ← Austria + empty = [Austria]
+
   return { mainland, overseas, all }
 }
 ```
@@ -88,8 +88,8 @@ compositeProjectionConfig: {
 **Load Logic** (Lines 118-150):
 ```typescript
 // Detect if atlas has mainland/overseas split
-const hasMainlandOverseasSplit = 
-  configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
+const hasMainlandOverseasSplit
+  = configStore.currentAtlasConfig.geoDataConfig.overseasTerritories.length > 0
 
 if (hasMainlandOverseasSplit) {
   // France: load mainland and overseas separately
@@ -99,10 +99,11 @@ if (hasMainlandOverseasSplit) {
   ])
   mainlandData.value = mainland
   overseasTerritoriesData.value = overseas || []
-} else {
+}
+else {
   // 🟢 EU path: load all countries as individual territories
   const allTerritoriesData = await service.getAllTerritories()
-  
+
   const territories = allTerritoriesData.map((territoryData: any) => ({
     name: territoryData.territory.name,
     code: territoryData.territory.code,
@@ -110,9 +111,9 @@ if (hasMainlandOverseasSplit) {
     region: 'Europe',
     data: { type: 'FeatureCollection', features: [territoryData.feature] },
   }))
-  
-  mainlandData.value = null  // ← No single mainland
-  overseasTerritoriesData.value = territories  // ← All 27 countries as "overseas"
+
+  mainlandData.value = null // ← No single mainland
+  overseasTerritoriesData.value = territories // ← All 27 countries as "overseas"
 }
 ```
 
@@ -137,7 +138,7 @@ private initialize() {
   const mainlandProjection = this.createProjectionByType(mainland.projectionType || 'conic-conformal')
     .center(mainland.center)
     .translate([0, 0])
-  
+
   this.addSubProjection({
     territoryCode: mainland.code,  // ← "AT" (Austria)
     territoryName: mainland.name,  // ← "Austria"
@@ -195,9 +196,9 @@ const territoryCodes: string[] = []
 
 if (compositeConfig) {
   // Add mainland code
-  territoryCodes.push(compositeConfig.mainland.code)  // ← Pushes "AT"
+  territoryCodes.push(compositeConfig.mainland.code) // ← Pushes "AT"
   // Add all overseas territory codes
-  compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code))  // ← Empty for EU
+  compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code)) // ← Empty for EU
 }
 
 // Result: territoryCodes = ["AT"] for EU
@@ -317,11 +318,11 @@ Malaysia (future):
 **2. Loader** (`src/core/atlases/loader.ts`):
 ```typescript
 function extractTerritories(config: any) {
-  const allMainlands = config.territories.filter((t: any) => 
+  const allMainlands = config.territories.filter((t: any) =>
     t.role === 'mainland' || t.role === 'member-state'
   )
   const overseasTerritories = config.territories.filter((t: any) => t.role === 'overseas')
-  
+
   // Traditional pattern: 1 mainland + N overseas
   if (allMainlands.length === 1) {
     const mainland = transformTerritory(allMainlands[0])
@@ -329,7 +330,7 @@ function extractTerritories(config: any) {
     const all = [mainland, ...overseas]
     return { type: 'traditional', mainland, overseas, all }
   }
-  
+
   // Multi-mainland pattern: N mainlands + M overseas
   else if (allMainlands.length > 1) {
     const mainlands = allMainlands.map(transformTerritory)
@@ -337,7 +338,7 @@ function extractTerritories(config: any) {
     const all = [...mainlands, ...overseas]
     return { type: 'multi-mainland', mainlands, overseas, all }
   }
-  
+
   else {
     throw new Error(`No mainland or member-state territories found in ${config.id}`)
   }
@@ -360,9 +361,9 @@ export interface MultiMainlandCompositeConfig {
   overseasTerritories: TerritoryConfig[]
 }
 
-export type CompositeProjectionConfig = 
-  | TraditionalCompositeConfig 
-  | MultiMainlandCompositeConfig
+export type CompositeProjectionConfig
+  = | TraditionalCompositeConfig
+    | MultiMainlandCompositeConfig
 ```
 
 **4. CompositeProjection Service**:
@@ -377,14 +378,14 @@ private initialize() {
 
 private initializeMultiMainland(config: MultiMainlandCompositeConfig) {
   const REFERENCE_SCALE = 2800
-  
+
   // All mainlands get equal treatment
   config.mainlands.forEach((territory) => {
     const projection = this.createProjectionByType(territory.projectionType || 'conic-conformal')
       .center(territory.center)
       .translate([0, 0])
       .scale(REFERENCE_SCALE)
-    
+
     this.addSubProjection({
       territoryCode: territory.code,
       territoryName: territory.name,
@@ -397,7 +398,7 @@ private initializeMultiMainland(config: MultiMainlandCompositeConfig) {
       bounds: territory.bounds,
     })
   })
-  
+
   // Overseas territories (if any)
   config.overseasTerritories.forEach((territory) => {
     // Same logic as before
