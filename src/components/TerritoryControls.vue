@@ -77,8 +77,9 @@ function resetToDefaults() {
 // Get the best recommended projection
 const bestRecommendation = computed(() => {
   const recommendations = configStore.projectionRecommendations
-  if (!recommendations || recommendations.length === 0) return null
-  
+  if (!recommendations || recommendations.length === 0)
+    return null
+
   // Sort by score and return the best one
   const sorted = [...recommendations].sort((a, b) => b.score - a.score)
   return sorted[0]

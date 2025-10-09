@@ -122,7 +122,8 @@ export function useProjectionValidation() {
    * @returns Formatted message string
    */
   function formatAlternatives(alternatives: ProjectionDefinition[]): string {
-    if (alternatives.length === 0) return ''
+    if (alternatives.length === 0)
+      return ''
 
     const names = alternatives.map(p => t(`projections.${p.id}.name`))
     return t('projection.validation.alternatives', {

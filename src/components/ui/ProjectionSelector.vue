@@ -57,7 +57,8 @@ const localValue = computed({
 
 // Create a map of projection IDs to their recommendations
 const recommendationMap = computed(() => {
-  if (!props.recommendations) return new Map()
+  if (!props.recommendations)
+    return new Map()
   return new Map(
     props.recommendations.map(rec => [rec.projection.id, rec]),
   )
@@ -71,30 +72,39 @@ function getRecommendation(projectionId: string): ProjectionRecommendation | und
 // Get recommendation badge for display
 function getRecommendationBadge(projectionId: string): string {
   const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations) return ''
-  
-  if (rec.level === 'excellent') return '⭐⭐⭐'
-  if (rec.level === 'good') return '⭐⭐'
-  if (rec.level === 'usable') return '⭐'
+  if (!rec || !props.showRecommendations)
+    return ''
+
+  if (rec.level === 'excellent')
+    return '⭐⭐⭐'
+  if (rec.level === 'good')
+    return '⭐⭐'
+  if (rec.level === 'usable')
+    return '⭐'
   return ''
 }
 
 // Get CSS class for recommendation level
 function getRecommendationClass(projectionId: string): string {
   const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations) return ''
-  
-  if (rec.level === 'excellent') return 'text-success'
-  if (rec.level === 'good') return 'text-info'
-  if (rec.level === 'not-recommended') return 'text-error opacity-60'
+  if (!rec || !props.showRecommendations)
+    return ''
+
+  if (rec.level === 'excellent')
+    return 'text-success'
+  if (rec.level === 'good')
+    return 'text-info'
+  if (rec.level === 'not-recommended')
+    return 'text-error opacity-60'
   return ''
 }
 
 // Get recommendation tooltip
 function getRecommendationTooltip(projectionId: string): string {
   const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations) return ''
-  
+  if (!rec || !props.showRecommendations)
+    return ''
+
   return t(rec.reason)
 }
 
@@ -149,7 +159,7 @@ watch(localValue, (newProjectionId, oldProjectionId) => {
     }
     validationMessage.value = message
     confirmDialogProjection.value = null
-    
+
     // Auto-hide warnings after 5 seconds
     setTimeout(() => {
       validationMessage.value = null
@@ -187,10 +197,10 @@ function handleCancelProhibited() {
         {{ label }}
       </span>
     </label>
-    
+
     <!-- Loading skeleton -->
     <div v-if="loading" class="skeleton h-12 w-full" />
-    
+
     <select
       v-else
       v-model="localValue"
@@ -213,7 +223,7 @@ function handleCancelProhibited() {
         </option>
       </optgroup>
     </select>
-    
+
     <!-- Recommendation hint for selected projection -->
     <Transition
       enter-active-class="transition-all duration-200"

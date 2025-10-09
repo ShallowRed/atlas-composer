@@ -20,31 +20,11 @@ import { ALL_PROJECTIONS } from './definitions'
 
 /**
  * Projection Registry Class
- * 
+ *
  * Singleton that manages all projection definitions and provides methods for:
  * - Querying projections by ID, category, or strategy
  * - Filtering projections by atlas, view mode, and geographic context
  * - Recommending projections with suitability scoring
- * 
- * @example
- * ```typescript
- * import { projectionRegistry } from '@/projections/registry';
- * 
- * // Get a specific projection
- * const mercator = projectionRegistry.get('mercator');
- * 
- * // Filter projections for France atlas in split view
- * const suitable = projectionRegistry.filter({
- *   atlasId: 'france',
- *   viewMode: 'split'
- * });
- * 
- * // Get recommendations with scoring
- * const recommendations = projectionRegistry.recommend({
- *   atlasId: 'france',
- *   territoryType: 'mainland'
- * });
- * ```
  */
 class ProjectionRegistry {
   private definitions: Map<string, ProjectionDefinition>
@@ -57,7 +37,7 @@ class ProjectionRegistry {
 
   /**
    * Get singleton instance of the projection registry
-   * 
+   *
    * @returns The singleton ProjectionRegistry instance
    */
   public static getInstance(): ProjectionRegistry {
@@ -78,7 +58,7 @@ class ProjectionRegistry {
 
   /**
    * Register a projection definition with its ID and aliases
-   * 
+   *
    * @param definition - The projection definition to register
    * @internal
    */
@@ -96,21 +76,11 @@ class ProjectionRegistry {
 
   /**
    * Get a projection definition by ID or alias
-   * 
+   *
    * Supports case-insensitive lookup for both IDs and aliases.
-   * 
+   *
    * @param id - Projection ID or alias (e.g., 'mercator', 'MERCATOR', 'conicConformal')
    * @returns The projection definition, or undefined if not found
-   * 
-   * @example
-   * ```typescript
-   * // By ID
-   * const proj1 = projectionRegistry.get('mercator');
-   * 
-   * // By alias (case-insensitive)
-   * const proj2 = projectionRegistry.get('conicConformal');
-   * const proj3 = projectionRegistry.get('MERCATOR');
-   * ```
    */
   public get(id: string): ProjectionDefinition | undefined {
     // Try exact match by ID first
@@ -126,7 +96,7 @@ class ProjectionRegistry {
       if (key.toLowerCase() === lowerCaseId) {
         return value
       }
-      
+
       // Check if any alias matches (case-insensitive)
       if (value.aliases) {
         for (const alias of value.aliases) {

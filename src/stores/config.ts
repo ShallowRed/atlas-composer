@@ -142,7 +142,7 @@ export const useConfigStore = defineStore('config', () => {
 
     // Group projections by category
     const groups: { [key: string]: any[] } = {}
-    
+
     filteredProjections.forEach((projection) => {
       const category = projection.category
       if (!groups[category]) {

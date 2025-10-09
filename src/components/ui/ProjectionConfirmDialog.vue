@@ -52,7 +52,7 @@ function handleCancel() {
         <i class="ri-error-warning-line text-error" />
         {{ t('projection.validation.warningTitle') }}
       </h3>
-      
+
       <p class="py-4">
         {{ message }}
       </p>
@@ -89,10 +89,12 @@ function handleCancel() {
         </button>
       </div>
     </div>
-    
+
     <!-- Backdrop -->
     <form method="dialog" class="modal-backdrop">
-      <button @click="handleCancel">close</button>
+      <button @click="handleCancel">
+        close
+      </button>
     </form>
   </dialog>
 </template>

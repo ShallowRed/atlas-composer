@@ -26,7 +26,8 @@ const preserves = computed(() => {
 })
 
 const distorts = computed(() => {
-  if (!props.projection.capabilities.distorts?.length) return null
+  if (!props.projection.capabilities.distorts?.length)
+    return null
   return props.projection.capabilities.distorts
     .map(prop => t(`projections.properties.${prop}`))
     .join(', ')
@@ -40,7 +41,7 @@ const categoryLabel = computed(() => {
 // Get projection properties badges
 const propertyBadges = computed(() => {
   const badges: Array<{ label: string, icon: string, class: string }> = []
-  
+
   if (props.projection.capabilities.preserves.includes('area')) {
     badges.push({
       label: t('projections.properties.area'),
@@ -48,7 +49,7 @@ const propertyBadges = computed(() => {
       class: 'badge-success',
     })
   }
-  
+
   if (props.projection.capabilities.preserves.includes('angle')) {
     badges.push({
       label: t('projections.properties.angle'),
@@ -56,7 +57,7 @@ const propertyBadges = computed(() => {
       class: 'badge-info',
     })
   }
-  
+
   if (props.projection.capabilities.isInterrupted) {
     badges.push({
       label: t('projections.properties.interrupted'),
@@ -64,7 +65,7 @@ const propertyBadges = computed(() => {
       class: 'badge-warning',
     })
   }
-  
+
   return badges
 })
 

@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 src/public/data
+
+coverage/src/

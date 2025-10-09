@@ -14,11 +14,11 @@ import type {
   ProjectionParameters,
 } from './types'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
-import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
-// @ts-expect-error - d3-composite-projections has module resolution issues in tests  
-import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
-// @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConformalEurope.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 import { projectionRegistry } from './registry'
@@ -26,46 +26,18 @@ import { ProjectionStrategy } from './types'
 
 /**
  * Projection Factory Class
- * 
+ *
  * Creates D3 projection instances using the Strategy pattern to handle different
  * projection sources (D3 built-in, d3-geo-projection, d3-composite-projections).
- * 
- * @example
- * ```typescript
- * // Create by ID
- * const projection = ProjectionFactory.createById('mercator', {
- *   center: [0, 45],
- *   scale: 1000
- * });
- * 
- * // Create from definition
- * const definition = projectionRegistry.get('conic-conformal');
- * const projection = ProjectionFactory.create({
- *   projection: definition,
- *   parameters: { parallels: [30, 60] }
- * });
- * ```
  */
 export class ProjectionFactory {
   /**
    * Create a projection instance from a definition or ID
-   * 
+   *
    * @param options - Projection creation options
    * @param options.projection - Projection definition object or ID string
    * @param options.parameters - Optional projection parameters (center, rotate, scale, etc.)
    * @returns Configured D3 projection instance, or null if creation fails
-   * 
-   * @example
-   * ```typescript
-   * const projection = ProjectionFactory.create({
-   *   projection: 'mercator',
-   *   parameters: {
-   *     center: [2, 46],
-   *     scale: 2000,
-   *     rotate: [0, 0, 0]
-   *   }
-   * });
-   * ```
    */
   public static create(options: CreateProjectionOptions): GeoProjection | null {
     // Validate options
@@ -73,7 +45,7 @@ export class ProjectionFactory {
       console.error('[ProjectionFactory] Invalid options: projection is required')
       return null
     }
-    
+
     const { projection, parameters = {} } = options
 
     // Get projection definition
@@ -116,24 +88,12 @@ export class ProjectionFactory {
 
   /**
    * Create projection by ID (convenience method)
-   * 
+   *
    * A simpler alternative to `create()` when you only have a projection ID.
-   * 
+   *
    * @param id - Projection ID (e.g., 'mercator', 'conic-conformal')
    * @param parameters - Optional projection parameters
    * @returns Configured D3 projection instance, or null if ID is invalid
-   * 
-   * @example
-   * ```typescript
-   * // Simple usage
-   * const mercator = ProjectionFactory.createById('mercator');
-   * 
-   * // With parameters
-   * const conic = ProjectionFactory.createById('conic-conformal', {
-   *   parallels: [30, 60],
-   *   center: [0, 45]
-   * });
-   * ```
    */
   public static createById(
     id: string,
