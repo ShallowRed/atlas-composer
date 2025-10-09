@@ -9,6 +9,9 @@
     "split"
   ],
   "defaultViewMode": "composite-existing",
+  "compositeProjections": [
+    "conic-conformal-europe"
+  ],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",

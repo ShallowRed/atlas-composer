@@ -3,6 +3,9 @@
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
+  "compositeProjections": [
+    "conic-conformal-portugal"
+  ],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",

@@ -261,19 +261,17 @@ function createAtlasConfig(
   territoryModes: Record<string, TerritoryModeConfig>,
   defaultCompositeConfig: CompositeProjectionDefaults | undefined,
 ): AtlasConfig {
-  // Map atlas IDs to their composite projection names
-  // Some atlas IDs differ from their projection names (eu -> europe)
-  const compositeProjectionName = config.id === 'eu' ? 'europe' : config.id
-
   // Use view modes from config if specified, otherwise default to all modes
   const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
-  // Determine composite projections: use config if provided, otherwise generate default
+  // Composite projections: explicitly defined in config or empty array
   // For wildcard atlases (like world), no composite projections (unified view only)
+  // For other atlases, use config.compositeProjections if provided
   const compositeProjections = territories.isWildcard
     ? []
-    : (config.compositeProjections || [`conic-conformal-${compositeProjectionName}`])
+    : (config.compositeProjections || [])
+  
   const defaultCompositeProjection = territories.isWildcard
     ? undefined
     : (config.defaultCompositeProjection || compositeProjections[0])

@@ -25,5 +25,17 @@
     }
   },
   "territories": "*",
-  "modes": []
+  "modes": [
+    {
+      "id": "all-countries",
+      "label": "All Countries",
+      "territories": ["*"]
+    },
+    {
+      "id": "without-antarctica",
+      "label": "Without Antarctica",
+      "territories": ["*"],
+      "exclude": ["010"]
+    }
+  ]
 }
