@@ -1,3 +1,2 @@
 - (baseScaleMultiplier = 1) !== (ui range = 1)
-- any in config loader
 - add "display compositing border" option and "display map limits" option

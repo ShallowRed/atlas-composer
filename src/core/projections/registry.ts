@@ -73,9 +73,9 @@ class ProjectionRegistry {
         const existing = this.definitions.get(alias)
         if (existing && existing.id !== definition.id) {
           console.error(
-            `[Registry] Alias collision detected! Alias "${alias}" from projection "${definition.id}" ` +
-            `conflicts with existing projection "${existing.id}". ` +
-            `The alias will be overwritten.`
+            `[Registry] Alias collision detected! Alias "${alias}" from projection "${definition.id}" `
+            + `conflicts with existing projection "${existing.id}". `
+            + `The alias will be overwritten.`,
           )
         }
         this.definitions.set(alias, definition)

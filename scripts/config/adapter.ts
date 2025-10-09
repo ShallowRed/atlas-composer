@@ -18,8 +18,8 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
   // Skip territory processing if wildcard (all territories loaded dynamically)
   if (unifiedConfig.territories === '*') {
     return {
-      name: unifiedConfig.name,
-      description: unifiedConfig.description,
+      name: typeof unifiedConfig.name === 'string' ? unifiedConfig.name : unifiedConfig.name.en,
+      description: typeof unifiedConfig.description === 'string' ? unifiedConfig.description : unifiedConfig.description.en,
       territories: {},
     }
   }
@@ -48,13 +48,8 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
       backendTerritory.bounds = territory.extraction.polygonBounds
     }
     else if (territory.bounds) {
-      // Convert [[minLon, minLat], [maxLon, maxLat]] to [minLon, minLat, maxLon, maxLat]
-      backendTerritory.bounds = [
-        territory.bounds[0][0],
-        territory.bounds[0][1],
-        territory.bounds[1][0],
-        territory.bounds[1][1],
-      ]
+      // Use bounds as-is in [[minLon, minLat], [maxLon, maxLat]] format
+      backendTerritory.bounds = territory.bounds
     }
 
     if (territory.extraction?.duplicateFrom) {
@@ -65,8 +60,8 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
   }
 
   return {
-    name: unifiedConfig.name,
-    description: unifiedConfig.description,
+    name: typeof unifiedConfig.name === 'string' ? unifiedConfig.name : unifiedConfig.name.en,
+    description: typeof unifiedConfig.description === 'string' ? unifiedConfig.description : unifiedConfig.description.en,
     territories,
     outputName: unifiedConfig.id,
   }

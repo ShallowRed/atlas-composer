@@ -49,7 +49,31 @@ export interface JSONAtlasConfig {
   description: string | { en: string, fr?: string }
   pattern?: 'single-focus' | 'equal-members' | 'hierarchical'
   territories: '*' | JSONTerritoryConfig[]
+  dataSources: {
+    territories: string
+    metadata: string
+  }
+  projection: {
+    center: { longitude: number, latitude: number }
+    rotate: { mainland: [number, number], azimuthal: [number, number] }
+    parallels: { conic: [number, number] }
+  }
+  compositeProjections?: string[]
+  defaultCompositeProjection?: string
   defaultProjection?: string
+  modes?: Array<{
+    id: string
+    label: string
+    territories: string[]
+    exclude?: string[]
+  }>
+  groups?: Array<{
+    id: string
+    label: string
+    territories: string[]
+  }>
+  viewModes?: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
+  defaultViewMode?: 'split' | 'composite-existing' | 'composite-custom' | 'unified'
   territoryModes?: Array<{
     id: string
     name: string | { en: string, fr?: string }
@@ -71,14 +95,17 @@ export interface JSONAtlasConfig {
       }
     }
   }
-  // Legacy fields (for backward compatibility)
   projectionPreferences?: {
+    exclude?: string[]
+    categoryOrder?: string[]
+    recommended?: string[]
+    prohibited?: string[]
     defaultProjection?: string
     compositeModes?: string[]
-  }
-  viewModes?: {
-    supported: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
-    default: 'split' | 'composite-existing' | 'composite-custom' | 'unified'
+    default?: {
+      mainland?: string
+      overseas?: string
+    }
   }
   mapDisplayDefaults?: {
     showGraticule?: boolean

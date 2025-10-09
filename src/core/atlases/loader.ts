@@ -166,13 +166,13 @@ function extractTerritories(config: JSONAtlasConfig) {
  * Create territory mode configurations
  */
 function createTerritoryModes(
-  config: any,
+  config: JSONAtlasConfig,
   mainlandCode: string,
   isSingleFocusPattern: boolean,
   allTerritoryCodes?: string[],
 ): Record<string, TerritoryModeConfig> {
   return Object.fromEntries(
-    (config.modes || []).map((mode: any) => {
+    (config.modes || []).map((mode) => {
       let codes = mode.territories
 
       // For wildcard modes, keep the "*" marker for runtime resolution
@@ -187,7 +187,8 @@ function createTerritoryModes(
 
         // Handle exclusions
         if (mode.exclude && Array.isArray(mode.exclude)) {
-          codes = codes.filter((code: string) => !mode.exclude.includes(code))
+          const excludeList = mode.exclude
+          codes = codes.filter((code: string) => !excludeList.includes(code))
         }
       }
 
@@ -212,9 +213,9 @@ function createTerritoryModes(
 /**
  * Create territory group configurations
  */
-function createTerritoryGroups(config: any): Record<string, TerritoryGroupConfig> {
+function createTerritoryGroups(config: JSONAtlasConfig): Record<string, TerritoryGroupConfig> {
   return Object.fromEntries(
-    (config.groups || []).map((group: any) => [
+    (config.groups || []).map(group => [
       group.id.toUpperCase(),
       {
         label: group.label,
@@ -242,7 +243,7 @@ function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProje
 /**
  * Create GeoDataConfig
  */
-function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
+function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerritories): GeoDataConfig {
   const baseUrl = import.meta.env.BASE_URL
 
   // Use dataSources provided in config
@@ -260,7 +261,7 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
     // For equal-members atlases (like EU), include all territories (members + secondary)
     // For single-focus atlases, only include secondary territories
     overseasTerritories: territories.type === 'equal-members'
-      ? [...territories.mainlands, ...territories.overseas]
+      ? [...(territories.mainlands || []), ...territories.overseas]
       : territories.overseas,
     // Pass wildcard flag from territories configuration
     isWildcard: territories.isWildcard === true,
@@ -274,8 +275,8 @@ function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
  * Create the main atlas configuration object
  */
 function createAtlasConfig(
-  config: any,
-  territories: any,
+  config: JSONAtlasConfig,
+  territories: LoadedTerritories,
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryModeConfig>,
   defaultCompositeConfig: CompositeProjectionDefaults | undefined,
@@ -304,7 +305,7 @@ function createAtlasConfig(
 
   return {
     id: config.id,
-    name: config.name,
+    name: typeof config.name === 'string' ? config.name : config.name.en,
     pattern: territories.type,
     geoDataConfig,
     supportedViewModes,
@@ -325,7 +326,7 @@ function createAtlasConfig(
           }
         : {
             type: 'equal-members',
-            mainlands: territories.mainlands,
+            mainlands: territories.mainlands!,
             overseasTerritories: territories.overseas,
           },
     splitModeConfig: {
@@ -335,7 +336,7 @@ function createAtlasConfig(
     },
     hasTerritorySelector: (config.modes || []).length > 0,
     isWildcard: territories.isWildcard === true,
-    territoryModeOptions: (config.modes || []).map((mode: any) => ({
+    territoryModeOptions: (config.modes || []).map(mode => ({
       value: mode.id,
       label: territoryModes[mode.id]!.label,
     })),
@@ -349,7 +350,7 @@ function createAtlasConfig(
  * This is the main entry point that transforms a JSON config
  * into all necessary configuration objects for the application.
  */
-export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
+export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig {
   // Extract territories
   const territories = extractTerritories(jsonConfig)
 
