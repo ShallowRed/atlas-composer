@@ -45,6 +45,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+// Search/filter state
+const searchQuery = ref('')
+const isSearching = ref(false)
+
 const localValue = computed({
   get: () => props.modelValue,
   set: (value: string | undefined) => {
@@ -63,6 +67,62 @@ const recommendationMap = computed(() => {
     props.recommendations.map(rec => [rec.projection.id, rec]),
   )
 })
+
+// Filter projection groups based on search query
+const filteredProjectionGroups = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return props.projectionGroups
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+
+  return props.projectionGroups
+    .map(group => ({
+      ...group,
+      options: group.options?.filter((option) => {
+        // Search by label (translated)
+        const label = t(option.label).toLowerCase()
+        if (label.includes(query))
+          return true
+
+        // Search by projection ID
+        if (option.value.toLowerCase().includes(query))
+          return true
+
+        // Search by category
+        if (group.category.toLowerCase().includes(query))
+          return true
+
+        // Search by projection properties (if available)
+        const projection = projectionRegistry.get(option.value)
+        if (projection) {
+          // Search by family
+          if (projection.family.toLowerCase().includes(query))
+            return true
+
+          // Search by preservation properties
+          if (projection.capabilities.preserves.some(prop => prop.toLowerCase().includes(query)))
+            return true
+        }
+
+        return false
+      }),
+    }))
+    .filter(group => group.options && group.options.length > 0)
+})
+
+// Toggle search mode
+function toggleSearch() {
+  isSearching.value = !isSearching.value
+  if (!isSearching.value) {
+    searchQuery.value = ''
+  }
+}
+
+// Clear search
+function clearSearch() {
+  searchQuery.value = ''
+}
 
 // Get recommendation for a projection
 function getRecommendation(projectionId: string): ProjectionRecommendation | undefined {
@@ -196,7 +256,42 @@ function handleCancelProhibited() {
         <i v-if="icon" :class="icon" />
         {{ label }}
       </span>
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs btn-circle"
+        :aria-label="isSearching ? t('common.closeSearch') : t('common.search')"
+        @click="toggleSearch"
+      >
+        <i :class="isSearching ? 'ri-close-line' : 'ri-search-line'" />
+      </button>
     </label>
+
+    <!-- Search input -->
+    <Transition
+      enter-active-class="transition-all duration-200"
+      leave-active-class="transition-all duration-200"
+      enter-from-class="opacity-0 -translate-y-2"
+      leave-to-class="opacity-0 -translate-y-2"
+    >
+      <div v-if="isSearching" class="relative mb-2">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="t('common.searchProjections')"
+          class="input input-sm w-full pr-8"
+          autofocus
+        >
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
+          :aria-label="t('common.clear')"
+          @click="clearSearch"
+        >
+          <i class="ri-close-line" />
+        </button>
+      </div>
+    </Transition>
 
     <!-- Loading skeleton -->
     <div v-if="loading" class="skeleton h-12 w-full" />
@@ -208,7 +303,7 @@ function handleCancelProhibited() {
       :disabled="disabled"
     >
       <optgroup
-        v-for="group in projectionGroups"
+        v-for="group in filteredProjectionGroups"
         :key="group.category"
         :label="group.category"
       >
@@ -223,6 +318,23 @@ function handleCancelProhibited() {
         </option>
       </optgroup>
     </select>
+
+    <!-- No results message -->
+    <Transition
+      enter-active-class="transition-all duration-200"
+      leave-active-class="transition-all duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isSearching && searchQuery && filteredProjectionGroups.length === 0"
+        class="label"
+      >
+        <span class="label-text-alt text-warning">
+          {{ t('common.noProjectionsFound') }}
+        </span>
+      </div>
+    </Transition>
 
     <!-- Recommendation hint for selected projection -->
     <Transition

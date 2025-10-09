@@ -93,7 +93,12 @@
     "cancel": "Cancel",
     "apply": "Apply",
     "export": "Export",
-    "import": "Import"
+    "import": "Import",
+    "search": "Search",
+    "closeSearch": "Close search",
+    "searchProjections": "Search projections...",
+    "clear": "Clear",
+    "noProjectionsFound": "No projections found matching your search"
   },
   "about": {
     "title": "About",

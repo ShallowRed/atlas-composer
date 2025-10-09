@@ -93,7 +93,12 @@
     "cancel": "Annuler",
     "apply": "Appliquer",
     "export": "Exporter",
-    "import": "Importer"
+    "import": "Importer",
+    "search": "Rechercher",
+    "closeSearch": "Fermer la recherche",
+    "searchProjections": "Rechercher des projections...",
+    "clear": "Effacer",
+    "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche"
   },
   "about": {
     "title": "À propos",
