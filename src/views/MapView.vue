@@ -10,7 +10,8 @@ import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
-import { PROJECTION_OPTIONS } from '@/services/projection-service'
+import { ProjectionFamily } from '@/projections/types'
+import { projectionRegistry } from '@/projections/registry'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -48,13 +49,10 @@ const compositeProjectionOptions = computed(() => {
   const atlasConfig = configStore.currentAtlasConfig
   const availableProjections = atlasConfig.compositeProjections || []
 
-  // Filter PROJECTION_OPTIONS to only show projections available for this region
-  return PROJECTION_OPTIONS
-    .filter(option =>
-      option.category.startsWith('Projections Composites') // Matches all composite projection categories
-      && availableProjections.includes(option.value),
-    )
-    .map(option => ({ value: option.value, label: option.label }))
+  // Get all composite projections from registry and filter by region
+  return projectionRegistry.getAll()
+    .filter(def => def.family === ProjectionFamily.COMPOSITE && availableProjections.includes(def.id))
+    .map(def => ({ value: def.id, label: def.name }))
 })
 
 const viewModeOptions = computed(() => {
