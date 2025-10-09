@@ -141,6 +141,7 @@ async function renderMap() {
         isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
+        showGraticule: configStore.showGraticule,
       }
 
       plot = await cartographer.value.render(options)
@@ -229,6 +230,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     width,
     height,
     settings: customSettings,
+    showGraticule: configStore.showGraticule,
   }
 
   return await cartographer.value.render(options)
@@ -244,6 +246,7 @@ watch(() => {
       configStore.selectedProjection,
       configStore.territoryMode,
       configStore.scalePreservation,
+      configStore.showGraticule,
       configStore.territoryTranslations,
       configStore.territoryScales,
       configStore.territoryProjections,
@@ -255,6 +258,7 @@ watch(() => {
     props.projection,
     configStore.selectedProjection,
     props.preserveScale,
+    configStore.showGraticule,
   ]
 }, async () => {
   await renderMap()

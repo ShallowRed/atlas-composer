@@ -169,19 +169,44 @@ function createTerritoryModes(
   config: any,
   mainlandCode: string,
   isSingleFocusPattern: boolean,
+  allTerritoryCodes?: string[],
 ): Record<string, TerritoryModeConfig> {
   return Object.fromEntries(
-    (config.modes || []).map((mode: any) => [
-      mode.id,
-      {
-        label: mode.label,
-        // For single-focus atlases (France, Portugal): filter out primary code (it's shown separately)
-        // For equal-members atlases (EU, World): include all codes (all territories are equal)
-        codes: isSingleFocusPattern
-          ? mode.territories.filter((code: string) => code !== mainlandCode)
-          : mode.territories,
-      },
-    ]),
+    (config.modes || []).map((mode: any) => {
+      let codes = mode.territories
+
+      // For wildcard modes, keep the "*" marker for runtime resolution
+      // For non-wildcard modes with known territories, process normally
+      if (codes.includes('*') && !allTerritoryCodes) {
+        // Wildcard atlas (like world): keep "*" for runtime resolution
+        codes = ['*']
+      }
+      else if (codes.includes('*') && allTerritoryCodes) {
+        // Non-wildcard atlas with explicit territories: expand now
+        codes = [...allTerritoryCodes]
+
+
+        // Handle exclusions
+        if (mode.exclude && Array.isArray(mode.exclude)) {
+          codes = codes.filter((code: string) => !mode.exclude.includes(code))
+        }
+      }
+
+      // For single-focus atlases (France, Portugal): filter out primary code (it's shown separately)
+      // For equal-members atlases (EU, World): include all codes (all territories are equal)
+      if (isSingleFocusPattern && !codes.includes('*')) {
+        codes = codes.filter((code: string) => code !== mainlandCode)
+      }
+
+      return [
+        mode.id,
+        {
+          label: mode.label,
+          codes,
+          exclude: mode.exclude, // Store exclusions for runtime resolution
+        },
+      ]
+    }),
   )
 }
 
@@ -221,14 +246,9 @@ function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProje
 function createGeoDataConfig(config: any, territories: any): GeoDataConfig {
   const baseUrl = import.meta.env.BASE_URL
 
-  // Use custom dataSources if provided, otherwise use default naming
-  const dataPath = config.dataSources?.['50m']?.territories
-    ? `${baseUrl}data/${config.dataSources['50m'].territories}`
-    : `${baseUrl}data/${config.id}-territories-50m.json`
-
-  const metadataPath = config.dataSources?.['50m']?.metadata
-    ? `${baseUrl}data/${config.dataSources['50m'].metadata}`
-    : `${baseUrl}data/${config.id}-metadata-50m.json`
+  // Use dataSources provided in config
+  const dataPath = `${baseUrl}data/${config.dataSources.territories}`
+  const metadataPath = `${baseUrl}data/${config.dataSources.metadata}`
 
   return {
     dataPath,
@@ -271,7 +291,7 @@ function createAtlasConfig(
   const compositeProjections = territories.isWildcard
     ? []
     : (config.compositeProjections || [])
-  
+
   const defaultCompositeProjection = territories.isWildcard
     ? undefined
     : (config.defaultCompositeProjection || compositeProjections[0])
@@ -308,6 +328,7 @@ function createAtlasConfig(
       territoriesTitle: 'Overseas Territories',
     },
     hasTerritorySelector: (config.modes || []).length > 0,
+    isWildcard: territories.isWildcard === true,
     territoryModeOptions: (config.modes || []).map((mode: any) => ({
       value: mode.id,
       label: territoryModes[mode.id]!.label,
@@ -330,7 +351,17 @@ export function loadAtlasConfig(jsonConfig: any): LoadedAtlasConfig {
 
   // Create territory modes and groups
   const isSingleFocusPattern = territories.type === 'single-focus'
-  const territoryModes = createTerritoryModes(jsonConfig, territories.mainland.code, isSingleFocusPattern)
+  // For wildcard atlases, we'll need to get codes from the actual data later
+  // For now, use placeholder or generate from config
+  const allTerritoryCodes = territories.isWildcard
+    ? undefined // Will be resolved at runtime by GeoDataService
+    : territories.all.map(t => t.code)
+  const territoryModes = createTerritoryModes(
+    jsonConfig,
+    territories.mainland.code,
+    isSingleFocusPattern,
+    allTerritoryCodes,
+  )
   const territoryGroups = createTerritoryGroups(jsonConfig)
 
   // Create composite defaults (not needed for wildcard atlases)

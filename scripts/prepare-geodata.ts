@@ -306,13 +306,48 @@ function duplicateTerritories(
  * Extracts embedded territories (like DOM from France)
  * Duplicates territories for multiple projections (like FR-PF-2)
  * @param worldData - The full world TopoJSON data
- * @param territoriesConfig - Territory ID mapping
+ * @param territoriesConfig - Territory ID mapping (empty object for wildcard atlases)
  * @returns Filtered GeoJSON FeatureCollection containing only specified territories
  */
 function filterTerritories(
   worldData: Topology,
   territoriesConfig: Record<string, BackendTerritory>,
 ): GeoJSONFeatureCollection {
+  // STEP 1: Convert TopoJSON to GeoJSON for easier manipulation
+  const countriesObject = worldData.objects.countries
+  if (!countriesObject) {
+    throw new Error('No countries object found in world data')
+  }
+  const featureCollection = topojson.feature(worldData, countriesObject) as any as GeoJSONFeatureCollection
+
+  // Handle wildcard atlases (empty territoriesConfig means include all)
+  const isWildcardAtlas = Object.keys(territoriesConfig).length === 0
+
+  if (isWildcardAtlas) {
+    // For wildcard atlases, keep all territories with their original Natural Earth properties
+    const processedFeatures = featureCollection.features.map((feature): GeoJSONFeature => {
+      const featureId = String(feature.id).padStart(3, '0')
+      
+      return {
+        ...feature,
+        id: featureId,
+        properties: {
+          ...feature.properties,
+          id: featureId,
+          code: feature.properties?.ISO_A3 || featureId,
+          iso: feature.properties?.ISO_A3 || '',
+          name: feature.properties?.NAME || '',
+        },
+      }
+    })
+
+    // STEP 4: Return as GeoJSON FeatureCollection
+    return {
+      type: 'FeatureCollection',
+      features: processedFeatures,
+    }
+  }
+
   // Territory IDs as strings (world-atlas uses string IDs with zero-padding)
   // Normalize config IDs to match world-atlas format (e.g., 40 -> '040', 250 -> '250')
   const territoryIds = Object.keys(territoriesConfig)
@@ -324,13 +359,6 @@ function filterTerritories(
     idLookup.set(paddedId, id)
     idLookup.set(id, id)
   }
-
-  // STEP 1: Convert TopoJSON to GeoJSON for easier manipulation
-  const countriesObject = worldData.objects.countries
-  if (!countriesObject) {
-    throw new Error('No countries object found in world data')
-  }
-  const featureCollection = topojson.feature(worldData, countriesObject) as any as GeoJSONFeatureCollection
 
   // Filter features by ID and enrich with metadata
   let processedFeatures = featureCollection.features
@@ -493,9 +521,12 @@ async function main(): Promise<void> {
     logger.section(`Preparing geodata: ${atlasName}`)
     const { backend: CONFIG } = await loadConfig(atlasName)
 
+    const isWildcard = Object.keys(CONFIG.territories).length === 0
+    const territoryCount = isWildcard ? 'all (wildcard)' : Object.keys(CONFIG.territories).length
+
     logger.data('Description', CONFIG.description)
     logger.data('Resolution', resolution)
-    logger.data('Territories', Object.keys(CONFIG.territories).length)
+    logger.data('Territories', territoryCount)
     logger.newline()
 
     // Step 1: Download and save world data

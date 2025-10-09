@@ -102,8 +102,11 @@ export interface TerritoryModeConfig {
   /** Display label for the mode (e.g., "Métropole + majeurs") */
   label: string
 
-  /** Territory codes to include in this mode */
+  /** Territory codes to include in this mode. Can include "*" for wildcard (all territories) */
   codes: string[]
+
+  /** Territory codes to exclude when using wildcard. Only used with wildcard modes. */
+  exclude?: string[]
 }
 
 /**

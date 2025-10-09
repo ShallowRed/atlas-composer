@@ -13,6 +13,7 @@ export const useConfigStore = defineStore('config', () => {
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
+  const showGraticule = ref(true)
 
   // Initialize selectedProjection from the default atlas's projection preferences or mainland
   const getInitialProjection = () => {
@@ -300,6 +301,7 @@ export const useConfigStore = defineStore('config', () => {
     // State
     selectedAtlas,
     scalePreservation,
+    showGraticule,
     selectedProjection,
     territoryMode,
     viewMode,

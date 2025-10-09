@@ -624,7 +624,7 @@ Please review and let me know your thoughts! 🙏
 5. ✅ Austria bug stays fixed
 6. ✅ Custom dataSources support for flexible data loading
 
-**Tests Needed**: 
+**Tests Needed**:
 1. Manual testing of all 5 atlases (France, Portugal, USA, EU, World)
 2. Verify Austria appears in EU unified view
 3. Verify "Continental Europe" mode filters correctly

@@ -1,3 +1,4 @@
+import type { TerritoryConfig } from '@/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -188,8 +189,28 @@ export const useGeoDataStore = defineStore('geoData', () => {
         territoryCodes = undefined
       }
       else {
-        // Get allowed territories for the mode
-        const allTerritories = atlasService.getAllTerritories()
+        // For wildcard atlases, get territories from GeoDataService (loaded from data file)
+        // For regular atlases, get territories from registry (static config)
+        let allTerritories: TerritoryConfig[]
+
+        if (atlasConfig.isWildcard) {
+          // Load data first to ensure territories are available
+          const geoTerritories = await service.getAllTerritories()
+          // Convert Territory to TerritoryConfig format
+          allTerritories = geoTerritories.map((gt: any) => ({
+            code: gt.territory.code,
+            name: gt.territory.name,
+            center: gt.territory.center || [0, 0],
+            offset: [0, 0],
+            bounds: gt.territory.bounds
+              ? [[gt.territory.bounds[0], gt.territory.bounds[1]], [gt.territory.bounds[2], gt.territory.bounds[3]]]
+              : [[-180, -90], [180, 90]],
+          }))
+        }
+        else {
+          allTerritories = atlasService.getAllTerritories()
+        }
+
         const territoryModes = atlasService.getTerritoryModes()
         const allowedTerritories = getTerritoriesForMode(
           allTerritories,

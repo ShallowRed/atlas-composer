@@ -6,10 +6,8 @@
   "viewModes": ["unified"],
   "defaultViewMode": "unified",
   "dataSources": {
-    "50m": {
-      "territories": "world-countries-50m.json",
-      "metadata": "world-metadata-50m.json"
-    }
+    "territories": "world-countries-50m.json",
+    "metadata": "world-metadata-50m.json"
   },
   "projectionPreferences": {
     "recommended": [
@@ -35,7 +33,7 @@
       "id": "without-antarctica",
       "label": "Without Antarctica",
       "territories": ["*"],
-      "exclude": ["010"]
+      "exclude": ["WD-010"]
     }
   ]
 }

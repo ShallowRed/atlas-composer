@@ -65,6 +65,23 @@
       "description": "Default view mode for this atlas. Defaults to 'composite-custom' if not specified.",
       "enum": ["split", "composite-existing", "composite-custom", "unified"]
     },
+    "dataSources": {
+      "type": "object",
+      "description": "Data source files for territories and metadata",
+      "properties": {
+        "territories": {
+          "type": "string",
+          "description": "Path to the GeoJSON file containing territory geometries",
+          "examples": ["world-countries-110m.json", "france-regions-50m.json"]
+        },
+        "metadata": {
+          "type": "string",
+          "description": "Path to the JSON file containing territory metadata",
+          "examples": ["world-metadata-110m.json", "france-metadata-50m.json"]
+        }
+      },
+      "required": ["territories", "metadata"]
+    },
     "compositeProjections": {
       "type": "array",
       "description": "List of composite projection IDs available for this atlas in composite-existing mode. If not specified, defaults to 'conic-conformal-{atlasId}'.",

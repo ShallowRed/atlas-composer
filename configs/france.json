@@ -6,6 +6,10 @@
   "compositeProjections": [
     "conic-conformal-france"
   ],
+  "dataSources": {
+    "territories": "france-territories-50m.json",
+    "metadata": "france-metadata-50m.json"
+  },
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",

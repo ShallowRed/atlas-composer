@@ -82,7 +82,8 @@
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
-    "region": "Atlas"
+    "region": "Atlas",
+    "graticule": "Show graticule"
   },
   "common": {
     "loading": "Loading...",

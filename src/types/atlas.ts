@@ -101,4 +101,10 @@ export interface AtlasConfig {
    * - 'hierarchical': Hierarchical parent-child structure (future: USA states, China provinces)
    */
   pattern: 'single-focus' | 'equal-members' | 'hierarchical'
+
+  /**
+   * Whether territories are loaded dynamically from data file (wildcard atlas)
+   * True for atlases with territories: "*" in config
+   */
+  isWildcard?: boolean
 }

@@ -3,3 +3,5 @@
 - (baseScaleMultiplier = 1) !== (ui range = 1)
 - Corsica is missing in EU
 - graticules
+- any in config loader
+- other resolutions than 50 not validating

@@ -321,12 +321,12 @@ export class GeoDataService {
   async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.loadData()
 
-    // Handle regions without mainland concept (like EU)
+    // Handle regions without mainland concept (like EU, World)
     if (!this.config.mainlandCode) {
       if (!territoryCodes) {
         return await this.getCompleteData()
       }
-      // For EU: filter features by territory codes
+      // Filter features by territory codes
       const allFeatures: GeoJSON.Feature[] = []
       for (const code of territoryCodes) {
         const territory = this.territoryData.get(code)

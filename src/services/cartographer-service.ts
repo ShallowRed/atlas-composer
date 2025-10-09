@@ -20,6 +20,7 @@ export interface SimpleRenderOptions extends RenderOptions {
   isMainland?: boolean
   area?: number
   preserveScale?: boolean
+  showGraticule?: boolean
 }
 
 export interface CompositeRenderOptions extends RenderOptions {
@@ -30,6 +31,7 @@ export interface CompositeRenderOptions extends RenderOptions {
   width: number
   height: number
   settings?: CustomCompositeSettings
+  showGraticule?: boolean
 }
 
 export interface CustomCompositeSettings {
@@ -97,31 +99,44 @@ export class Cartographer {
     width: number,
     height: number,
     inset: number,
+    showGraticule = true,
   ): Plot.Plot {
     const { mainlandCode } = this.geoDataService.config
     const geoDataMainlandCode = this.geoDataService.config.mainlandCode
+
+    const marks: any[] = []
+
+    // Add graticule if enabled
+    if (showGraticule) {
+      marks.push(
+        Plot.graticule(),
+      )
+    }
+
+    // Add geography
+    marks.push(
+      Plot.geo(data, {
+        tip: true,
+        channels: {
+          name: (d: any) => d.properties.name,
+        },
+        fill: (d: any) => {
+          const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+          return getTerritoryFillColor(code, mainlandCode, geoDataMainlandCode)
+        },
+        stroke: (d: any) => {
+          const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
+          return getTerritoryStrokeColor(code, mainlandCode, geoDataMainlandCode)
+        },
+      }),
+    )
 
     return Plot.plot({
       width,
       height,
       inset,
       projection,
-      marks: [
-        Plot.geo(data, {
-          tip: true,
-          channels: {
-            name: (d: any) => d.properties.name,
-          },
-          fill: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryFillColor(code, mainlandCode, geoDataMainlandCode)
-          },
-          stroke: (d: any) => {
-            const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-            return getTerritoryStrokeColor(code, mainlandCode, geoDataMainlandCode)
-          },
-        }),
-      ],
+      marks,
     })
   }
 
@@ -145,9 +160,9 @@ export class Cartographer {
    * Data is provided directly in options
    */
   private renderSimple(options: SimpleRenderOptions): Plot.Plot {
-    const { geoData, projection, width, height, inset } = options
+    const { geoData, projection, width, height, inset, showGraticule } = options
     const projectionFn = this.projectionService.getProjection(projection, geoData)
-    return this.createPlot(geoData, projectionFn, width, height, inset)
+    return this.createPlot(geoData, projectionFn, width, height, inset, showGraticule)
   }
 
   /**
@@ -155,10 +170,10 @@ export class Cartographer {
    * Fetches raw data and applies a pre-configured composite projection
    */
   private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, projection, width, height } = options
+    const { territoryMode, territoryCodes, projection, width, height, showGraticule } = options
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
     const projectionFn = this.projectionService.getProjection(projection, rawData)
-    return this.createPlot(rawData, projectionFn, width, height, 20)
+    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule)
   }
 
   /**
@@ -166,7 +181,7 @@ export class Cartographer {
    * Fetches raw data, applies custom settings, and uses CompositeProjection
    */
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, width, height, settings } = options
+    const { territoryMode, territoryCodes, width, height, settings, showGraticule } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -184,7 +199,7 @@ export class Cartographer {
       return this.customComposite!.build(w, h, true)
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, 20)
+    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {

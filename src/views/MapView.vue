@@ -272,6 +272,14 @@ watch(() => configStore.territoryMode, async () => {
             :label="t('territory.scalePreservation')"
             type="toggle"
           />
+
+          <!-- Graticule Toggle -->
+          <FormControl
+            v-model="configStore.showGraticule"
+            :label="t('settings.graticule')"
+            icon="ri-grid-line"
+            type="toggle"
+          />
         </div>
       </CardContainer>
     </section>

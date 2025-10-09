@@ -3,6 +3,10 @@
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
+  "dataSources": {
+    "territories": "portugal-territories-10m.json",
+    "metadata": "portugal-metadata-10m.json"
+  },
   "compositeProjections": [
     "conic-conformal-portugal"
   ],

@@ -176,8 +176,20 @@ export function getTerritoriesForMode(
     return []
   }
 
+  // Resolve wildcards: check if codes include "*"
+  let codes = modeDefinition.codes
+  if (codes.includes('*')) {
+    // Replace wildcard with all territory codes
+    codes = territories.map(t => t.code)
+
+    // Handle exclusions from the mode config
+    if (modeDefinition.exclude && Array.isArray(modeDefinition.exclude)) {
+      codes = codes.filter((code: string) => !modeDefinition.exclude.includes(code))
+    }
+  }
+
   // Return territories matching the codes in this mode
-  const codesSet = new Set(modeDefinition.codes)
+  const codesSet = new Set(codes)
   return territories.filter(t => codesSet.has(t.code))
 }
 

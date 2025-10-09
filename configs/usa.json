@@ -15,6 +15,10 @@
     "albers-usa-composite",
     "albers-usa-territories"
   ],
+  "dataSources": {
+    "territories": "usa-territories-50m.json",
+    "metadata": "usa-metadata-50m.json"
+  },
   "defaultCompositeProjection": "albers-usa",
   "projection": {
     "center": {

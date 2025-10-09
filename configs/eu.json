@@ -9,6 +9,10 @@
     "split"
   ],
   "defaultViewMode": "composite-existing",
+  "dataSources": {
+    "territories": "eu-territories-50m.json",
+    "metadata": "eu-metadata-50m.json"
+  },
   "compositeProjections": [
     "conic-conformal-europe"
   ],
