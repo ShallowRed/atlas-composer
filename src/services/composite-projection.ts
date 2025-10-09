@@ -70,17 +70,22 @@ export class CompositeProjection {
 
     // Reference scale for all territories (like d3-composite-projections does)
     // This is the "base unit" that all territories scale relative to
-    const REFERENCE_SCALE = 2800
+    const REFERENCE_SCALE = 2700
 
     // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
     const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
     const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
-      .center(mainland.center)
       .translate([0, 0])
 
-    // Apply rotation if supported and provided in config
+    // For conic projections, use rotate instead of center (as d3-composite-projections does)
+    // For mercator/other projections, use center
     if (mainlandProjection.rotate && mainland.rotate) {
+      // Conic projection: use rotate to position
       mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+    }
+    else {
+      // Mercator/other: use center to position
+      mainlandProjection.center(mainland.center)
     }
 
     // Apply parallels if supported and provided in config
@@ -141,18 +146,23 @@ export class CompositeProjection {
     const { mainlands, overseasTerritories } = this.config
 
     // Reference scale for all territories
-    const REFERENCE_SCALE = 2800
+    const REFERENCE_SCALE = 200
 
     // Process all mainlands equally - no special treatment for any
     mainlands.forEach((mainland) => {
       const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
       const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
-        .center(mainland.center)
         .translate([0, 0])
 
-      // Apply rotation if supported and provided in config
+      // For conic projections, use rotate instead of center (as d3-composite-projections does)
+      // For mercator/other projections, use center
       if (mainlandProjection.rotate && mainland.rotate) {
+        // Conic projection: use rotate to position
         mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+      }
+      else {
+        // Mercator/other: use center to position
+        mainlandProjection.center(mainland.center)
       }
 
       // Apply parallels if supported and provided in config

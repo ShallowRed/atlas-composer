@@ -236,7 +236,7 @@ function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProje
     territoryTranslations: Object.fromEntries(
       territories.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
     ),
-    territoryScales: Object.fromEntries(territories.map(t => [t.code, 1.0])),
+    territoryScales: Object.fromEntries(territories.map(t => [t.code, t.baseScaleMultiplier ?? 1.0])),
   }
 }
 

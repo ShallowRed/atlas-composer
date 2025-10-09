@@ -1,2 +1,0 @@
-- (baseScaleMultiplier = 1) !== (ui range = 1)
-- add "display compositing border" option and "display map limits" option

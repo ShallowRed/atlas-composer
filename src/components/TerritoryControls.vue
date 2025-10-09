@@ -73,9 +73,12 @@ function resetToDefaults() {
     configStore.setTerritoryTranslation(code, 'y', y)
   })
 
-  // Reset scales for all territories
+  // Reset scales for all territories to their baseScaleMultiplier (or 1.0 if not defined)
+  const allTerritoryConfigs = atlasService.getAllTerritories()
   territories.value.forEach((t) => {
-    configStore.setTerritoryScale(t.code, SCALE_RANGE.default)
+    const territoryConfig = allTerritoryConfigs.find(tc => tc.code === t.code)
+    const defaultScale = territoryConfig?.baseScaleMultiplier ?? SCALE_RANGE.default
+    configStore.setTerritoryScale(t.code, defaultScale)
   })
 }
 

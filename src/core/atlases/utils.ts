@@ -122,7 +122,7 @@ export function calculateDefaultScales(
   territories: TerritoryConfig[],
 ): Record<string, number> {
   return Object.fromEntries(
-    territories.map(t => [t.code, 1.0]),
+    territories.map(t => [t.code, t.baseScaleMultiplier ?? 1.0]),
   )
 }
 

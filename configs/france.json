@@ -57,17 +57,17 @@
       },
       "rendering": {
         "offset": [
-          80,
+          0,
           0
         ],
         "projectionType": "conic-conformal",
         "rotate": [
           -3,
-          0
+          -46.2
         ],
         "parallels": [
-          45.898889,
-          47.696014
+          0,
+          60
         ]
       }
     },
@@ -102,8 +102,8 @@
       },
       "rendering": {
         "offset": [
-          -336,
-          -39
+          -324,
+          -38
         ],
         "clipExtent": [
           -0.14,
@@ -143,8 +143,8 @@
       },
       "rendering": {
         "offset": [
-          -336,
-          36
+          -324,
+          35
         ],
         "clipExtent": [
           -0.14,
@@ -185,8 +185,8 @@
       },
       "rendering": {
         "offset": [
-          -336,
-          161
+          -324,
+          155
         ],
         "clipExtent": [
           -0.14,
@@ -226,8 +226,8 @@
       },
       "rendering": {
         "offset": [
-          325,
-          -99
+          313,
+          -96
         ],
         "clipExtent": [
           0.0967,
@@ -267,8 +267,8 @@
       },
       "rendering": {
         "offset": [
-          328,
-          -179
+          316,
+          -173
         ],
         "clipExtent": [
           0.0967,
@@ -303,8 +303,8 @@
       "extraction": {},
       "rendering": {
         "offset": [
-          -336,
-          -123
+          -324,
+          -119
         ],
         "clipExtent": [
           -0.14,
@@ -312,7 +312,7 @@
           -0.0996,
           -0.032
         ],
-        "baseScaleMultiplier": 5
+        "baseScaleMultiplier": 2.5
       }
     },
     {
@@ -339,8 +339,8 @@
       "extraction": {},
       "rendering": {
         "offset": [
-          -336,
-          -182
+          -324,
+          -176
         ],
         "clipExtent": [
           -0.14,
@@ -375,8 +375,8 @@
       "extraction": {},
       "rendering": {
         "offset": [
-          325,
-          62
+          313,
+          59
         ],
         "clipExtent": [
           0.0967,
@@ -412,8 +412,8 @@
       "extraction": {},
       "rendering": {
         "offset": [
-          322,
-          210
+          311,
+          203
         ],
         "clipExtent": [
           0.0967,
@@ -451,8 +451,8 @@
       },
       "rendering": {
         "offset": [
-          308,
-          126
+          297,
+          122
         ],
         "clipExtent": [
           0.0967,
@@ -487,7 +487,7 @@
       "extraction": {},
       "rendering": {
         "offset": [
-          325,
+          313,
           -13
         ],
         "clipExtent": [
