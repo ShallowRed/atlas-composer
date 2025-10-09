@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
-import LanguageSelector from './LanguageSelector.vue'
+import LanguageSelector from '@/components/ui/LanguageSelector.vue'
 
 const route = useRoute()
 const { t } = useI18n()

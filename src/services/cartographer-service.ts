@@ -1,4 +1,4 @@
-import type { CompositeProjectionConfig, GeoDataConfig } from '@/types/territory'
+import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import * as Plot from '@observablehq/plot'
 import { CompositeProjection } from '@/services/composite-projection'
 import { GeoDataService } from '@/services/geo-data-service'

@@ -1,9 +1,15 @@
 /**
- * Core type definitions for the projection system
+ * Projection System Type Definitions
+ *
+ * Domain: Projection metadata and capabilities
+ * Scope: Projection registry, D3 projection functions, suitability
  *
  * This module defines the metadata structure for map projections,
  * including their properties, capabilities, and suitability for
  * different geographic contexts.
+ *
+ * Note: For atlas layout and territory composition types,
+ * see src/types/composite.d.ts
  */
 
 import type { GeoProjection } from 'd3-geo'

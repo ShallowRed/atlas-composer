@@ -1,9 +1,9 @@
-import type { BackendConfig } from './config/adapter.ts'
+import type { BackendConfig } from '#scripts/config/adapter'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { listConfigs, loadConfig } from './config/loader.ts'
-import { logger } from './utils/logger.js'
+import { listConfigs, loadConfig } from '#scripts/config/loader'
+import { logger } from '#scripts/utils/logger'
 
 interface ValidationResults {
   errors: string[]

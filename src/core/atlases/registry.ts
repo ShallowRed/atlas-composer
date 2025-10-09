@@ -7,7 +7,7 @@
  */
 
 import type { AtlasSpecificConfig, LoadedAtlasConfig, ProjectionParams } from '@/core/atlases/loader'
-import type { AtlasConfig } from '@/types/territory'
+import type { AtlasConfig } from '@/types'
 import { loadAtlasConfig } from '@/core/atlases/loader'
 
 /**
@@ -29,7 +29,7 @@ function buildRegistry(): AtlasRegistry {
 
   // Import all JSON files from configs/ folder
   // The key is the file path, value is the imported module
-  const configModules = import.meta.glob('@configs/*.json', { eager: true })
+  const configModules = import.meta.glob('#configs/*.json', { eager: true })
 
   for (const [path, module] of Object.entries(configModules)) {
     try {

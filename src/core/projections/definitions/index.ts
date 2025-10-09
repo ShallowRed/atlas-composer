@@ -5,21 +5,21 @@
  * Import from here to access any projection definition.
  */
 
-import { ARTISTIC_PROJECTIONS } from './artistic'
-import { AZIMUTHAL_PROJECTIONS } from './azimuthal'
-import { COMPOSITE_PROJECTIONS } from './composite'
-import { COMPROMISE_PROJECTIONS } from './compromise'
-import { CONIC_PROJECTIONS } from './conic'
-import { CYLINDRICAL_PROJECTIONS } from './cylindrical'
-import { WORLD_PROJECTIONS } from './world'
+import { ARTISTIC_PROJECTIONS } from '@/core/projections/definitions/artistic'
+import { AZIMUTHAL_PROJECTIONS } from '@/core/projections/definitions/azimuthal'
+import { COMPOSITE_PROJECTIONS } from '@/core/projections/definitions/composite'
+import { COMPROMISE_PROJECTIONS } from '@/core/projections/definitions/compromise'
+import { CONIC_PROJECTIONS } from '@/core/projections/definitions/conic'
+import { CYLINDRICAL_PROJECTIONS } from '@/core/projections/definitions/cylindrical'
+import { WORLD_PROJECTIONS } from '@/core/projections/definitions/world'
 
-export * from './artistic'
-export * from './azimuthal'
-export * from './composite'
-export * from './compromise'
-export * from './conic'
-export * from './cylindrical'
-export * from './world'
+export * from '@/core/projections/definitions/artistic'
+export * from '@/core/projections/definitions/azimuthal'
+export * from '@/core/projections/definitions/composite'
+export * from '@/core/projections/definitions/compromise'
+export * from '@/core/projections/definitions/conic'
+export * from '@/core/projections/definitions/cylindrical'
+export * from '@/core/projections/definitions/world'
 
 /**
  * All projection definitions combined

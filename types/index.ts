@@ -1,22 +1,29 @@
 /**
- * Shared types for Atlas Composer
- * Used by both frontend (src/) and backend scripts (scripts/)
+ * Shared Types for Atlas Composer
+ * Domain-agnostic types used by both backend (scripts/) and frontend (src/)
+ *
+ * IMPORTANT: This directory should NOT re-export from src/ or scripts/
+ * - Backend scripts depend on types/ only
+ * - Frontend depends on types/ AND src/types/
+ * - No circular dependencies allowed
  */
 
-// Re-export territory types for convenience
+// JSON Configuration (raw data from configs/*.json)
 export type {
-  AtlasConfig,
-  CompositeProjectionConfig,
-  GeoDataConfig,
-  MultiMainlandCompositeConfig,
-  TerritoryConfig,
-  TerritoryModeConfig,
-  TraditionalCompositeConfig,
-} from '../src/types/territory.d.ts'
+  JSONAtlasConfig,
+  JSONTerritoryConfig,
+} from './atlas-config.js'
 
+// Backend Processing Types
 export type {
   BackendConfig,
   BackendTerritory,
-  JSONAtlasConfig,
-  JSONTerritoryConfig,
-} from './config.d.ts'
+} from './backend-config.js'
+
+// GeoJSON Types
+export type {
+  GeoJSONFeature,
+  GeoJSONFeatureCollection,
+  GeoJSONGeometry,
+  GeoJSONProperties,
+} from './geojson.js'

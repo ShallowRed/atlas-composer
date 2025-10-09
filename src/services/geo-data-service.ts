@@ -1,4 +1,4 @@
-import type { GeoDataConfig, TerritoryConfig } from '@/types/territory'
+import type { GeoDataConfig, TerritoryConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 

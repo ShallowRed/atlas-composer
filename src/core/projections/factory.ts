@@ -12,7 +12,7 @@ import type {
   D3ProjectionFunction,
   ProjectionDefinition,
   ProjectionParameters,
-} from './types'
+} from '@/core/projections/types'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConformalEurope.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
@@ -21,8 +21,8 @@ import * as d3CompositeProjections from 'd3-composite-projections/src/conicConfo
 import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
-import { projectionRegistry } from './registry'
-import { ProjectionStrategy } from './types'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionStrategy } from '@/core/projections/types'
 
 /**
  * Projection Factory Class

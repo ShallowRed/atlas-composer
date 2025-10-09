@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { CompositeProjectionConfig } from '@/types/territory'
+import type { CompositeProjectionConfig } from '@/types'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,

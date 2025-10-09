@@ -3,7 +3,7 @@ import type { ValidateFunction } from 'ajv'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { logger } from '#script/utils/logger'
+import { logger } from '#scripts/utils/logger'
 /**
  * JSON Schema Validator
  * Runtime validation of config files against schema.json

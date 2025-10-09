@@ -1,6 +1,10 @@
 /**
- * Shared configuration types for atlas configs
- * Used by both frontend (src/) and backend scripts (scripts/)
+ * JSON Configuration Types
+ * Represents the structure of configs/*.json files
+ * Used by both backend (scripts/) and frontend (src/)
+ *
+ * These types define the on-disk JSON format for atlas configurations.
+ * Frontend may derive additional runtime types from these in src/types/
  */
 
 /**
@@ -28,7 +32,7 @@ export interface JSONTerritoryConfig {
     projectionType?: string
     offset?: [number, number]
     scale?: number
-    clipExtent?: { x1: number, y1: number, x2: number, y2: number }
+    clipExtent?: { x1: number; y1: number; x2: number; y2: number }
     rotate?: [number, number, number?]
     parallels?: [number, number]
     baseScaleMultiplier?: number
@@ -57,32 +61,6 @@ export interface JSONAtlasConfig {
     mainlandCode?: string
     territoriesTitle: string
   }
-  territoryModeOptions?: Array<{ value: string, label: string }>
+  territoryModeOptions?: Array<{ value: string; label: string }>
   defaultTerritoryMode?: string
-}
-
-/**
- * Backend territory structure for geodata extraction
- * Used by scripts/prepare-geodata.ts for processing Natural Earth data
- */
-export interface BackendTerritory {
-  name: string
-  code: string
-  iso: string
-  mainlandPolygon?: number
-  extractFrom?: number
-  polygonIndices?: number[]
-  bounds?: [number, number, number, number]
-  duplicateFrom?: string
-}
-
-/**
- * Backend configuration format for geodata scripts
- * Used by scripts/prepare-geodata.ts
- */
-export interface BackendConfig {
-  name: string
-  description: string
-  territories: Record<string, BackendTerritory>
-  outputName: string
 }

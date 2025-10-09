@@ -1,12 +1,12 @@
-import { defineStore } from 'pinia'
+import type { ViewMode } from '@/types'
 
+import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
 import { projectionRegistry } from '@/core/projections/registry'
 import { AtlasService } from '@/services/atlas-service'
 
-export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
 export type ProjectionMode = 'uniform' | 'individual'
 
 export const useConfigStore = defineStore('config', () => {

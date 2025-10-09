@@ -7,7 +7,7 @@
  */
 
 import type { AtlasSpecificConfig, ProjectionParams } from '@/core/atlases/loader'
-import type { AtlasConfig, CompositeProjectionConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types/territory'
+import type { AtlasConfig, CompositeProjectionConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types'
 import {
   getAllTerritories as getAtlasAllTerritories,
   getAtlasConfig,

@@ -1019,7 +1019,7 @@ function getCompositeConfig(atlasId: string) {
 **❌ Don't** import JSON configs directly:
 ```typescript
 // BAD - bypasses registry, no validation
-import franceConfig from '@configs/france.json'
+import franceConfig from '#configs/france.json'
 ```
 
 **✅ Do** use registry functions:

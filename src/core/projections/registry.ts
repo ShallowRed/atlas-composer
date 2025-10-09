@@ -16,7 +16,7 @@ import type {
 import type { ProjectionPreferences } from '@/core/atlases/loader'
 import { getAtlasSpecificConfig } from '@/core/atlases/registry'
 
-import { ALL_PROJECTIONS } from './definitions'
+import { ALL_PROJECTIONS } from '@/core/projections/definitions'
 
 /**
  * Projection Registry Class

@@ -3,7 +3,7 @@
  * Pure data structure operations for territories (no business logic)
  */
 
-import type { TerritoryConfig } from '@/types/territory'
+import type { TerritoryConfig } from '@/types'
 
 /**
  * Create a territory lookup map by code

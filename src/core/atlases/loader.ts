@@ -3,59 +3,30 @@
  * Adapter to transform shared JSON configs into complete atlas configurations
  */
 
-import type { JSONAtlasConfig, JSONTerritoryConfig } from '#types/index'
+import type { JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
+  CompositeProjectionDefaults,
   GeoDataConfig,
   TerritoryConfig,
   TerritoryGroupConfig,
   TerritoryModeConfig,
-} from '@/types/territory'
+} from '@/types'
 
-/**
- * Projection parameters for an atlas
- */
+// Internal loader types - defined here to avoid separation of concerns violations
 export interface ProjectionParams {
-  center: {
-    longitude: number
-    latitude: number
-  }
-  rotate: {
-    mainland: [number, number]
-    azimuthal: [number, number]
-  }
-  parallels: {
-    conic: [number, number]
-  }
+  center: { longitude: number, latitude: number }
+  rotate: { mainland: [number, number], azimuthal: [number, number] }
+  parallels: { conic: [number, number] }
 }
 
-/**
- * Default composite projection settings
- */
-export interface CompositeProjectionDefaults {
-  territoryProjections: Record<string, string>
-  territoryTranslations: Record<string, { x: number, y: number }>
-  territoryScales: Record<string, number>
-}
-
-/**
- * Projection preferences for an atlas
- */
 export interface ProjectionPreferences {
-  /** Array of recommended projection IDs for this atlas */
+  exclude?: string[]
+  categoryOrder?: string[]
   recommended?: string[]
-  /** Default projections for different territory types */
-  default?: {
-    mainland?: string
-    overseas?: string
-  }
-  /** Array of projection IDs that are not suitable for this atlas */
   prohibited?: string[]
 }
 
-/**
- * Atlas-specific configuration
- */
 export interface AtlasSpecificConfig {
   projectionParams: ProjectionParams
   territoryModes: Record<string, TerritoryModeConfig>
@@ -64,18 +35,22 @@ export interface AtlasSpecificConfig {
   projectionPreferences?: ProjectionPreferences
 }
 
-/**
- * Complete loaded config for an atlas
- */
+export interface LoadedTerritories {
+  type: 'traditional' | 'multi-mainland'
+  mainland: TerritoryConfig
+  mainlands?: TerritoryConfig[]
+  overseas: TerritoryConfig[]
+  all: TerritoryConfig[]
+}
+
 export interface LoadedAtlasConfig {
   atlasConfig: AtlasConfig
   atlasSpecificConfig: AtlasSpecificConfig
-  territories: {
-    mainland: TerritoryConfig
-    overseas: TerritoryConfig[]
-    all: TerritoryConfig[]
-  }
+  territories: LoadedTerritories
 }
+
+// Re-export for convenience
+export type { CompositeProjectionDefaults } from '@/types'
 
 /**
  * Transform territory from JSON to TerritoryConfig
@@ -140,9 +115,12 @@ function extractTerritories(config: JSONAtlasConfig) {
     const overseas = overseasTerritories.map(transformTerritory)
     const all = [...mainlands, ...overseas]
 
+    // Use first mainland as primary (guaranteed to exist since allMainlands.length > 1)
+    const primaryMainland = mainlands[0]!
+
     return {
       type: 'multi-mainland' as const,
-      mainland: mainlands[0], // For backward compatibility, use first as "primary"
+      mainland: primaryMainland, // For backward compatibility, use first as "primary"
       mainlands,
       overseas,
       all,
