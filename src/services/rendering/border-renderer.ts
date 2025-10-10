@@ -1,3 +1,8 @@
+import type { CompositeProjection } from '@/services/projection/composite-projection'
+import { select } from 'd3'
+import { ProjectionFactory } from '@/core/projections/factory'
+import { projectionRegistry } from '@/core/projections/registry'
+
 /**
  * Interface for rendering composition borders
  * Different view modes have different border rendering strategies
@@ -17,12 +22,12 @@ export interface Rect {
 }
 
 /**
- * Renders borders for custom composite projections
+ * Renders borders for custom composite projections using D3 selection API
  */
 export class CustomCompositeBorderRenderer implements BorderRenderer {
-  private customComposite: any // CompositeProjection type
+  private customComposite: CompositeProjection
 
-  constructor(customComposite: any) {
+  constructor(customComposite: CompositeProjection) {
     this.customComposite = customComposite
   }
 
@@ -34,15 +39,29 @@ export class CustomCompositeBorderRenderer implements BorderRenderer {
     this.customComposite.build(width, height, true)
     const borders = this.customComposite.getCompositionBorders(width, height)
 
-    let mapBounds: Rect | null = null
+    // Use D3 selection API for cleaner DOM manipulation
+    const selection = select(group)
 
     borders.forEach((border: any) => {
       const rect = this.boundsToRect(border.bounds)
       if (rect.width === 0 || rect.height === 0) {
         return
       }
-      this.appendRectOverlay(group, rect, 'composition-border', '8 4', 1.25)
-      mapBounds = this.unionRect(mapBounds, rect)
+
+      // Append rectangle using D3 selection
+      selection
+        .append('rect')
+        .attr('x', rect.x.toFixed(2))
+        .attr('y', rect.y.toFixed(2))
+        .attr('width', rect.width.toFixed(2))
+        .attr('height', rect.height.toFixed(2))
+        .attr('class', 'composition-border')
+        .attr('fill', 'none')
+        .attr('stroke', 'currentColor')
+        .attr('stroke-width', '1.25')
+        .attr('stroke-dasharray', '8 4')
+        .attr('stroke-linejoin', 'round')
+        .attr('opacity', '0.5')
     })
   }
 
@@ -55,63 +74,16 @@ export class CustomCompositeBorderRenderer implements BorderRenderer {
       height: Math.abs(y2 - y1),
     }
   }
-
-  private unionRect(base: Rect | null, next: Rect | null): Rect | null {
-    if (!next) {
-      return base
-    }
-    if (!base) {
-      return { ...next }
-    }
-    const minX = Math.min(base.x, next.x)
-    const minY = Math.min(base.y, next.y)
-    const maxX = Math.max(base.x + base.width, next.x + next.width)
-    const maxY = Math.max(base.y + base.height, next.y + next.height)
-    return {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
-    }
-  }
-
-  private appendRectOverlay(
-    group: SVGGElement,
-    rect: Rect,
-    className: string,
-    dash: string,
-    strokeWidth: number,
-  ): SVGRectElement {
-    const rectEl = document.createElementNS(group.namespaceURI, 'rect') as SVGRectElement
-    rectEl.setAttribute('x', rect.x.toFixed(2))
-    rectEl.setAttribute('y', rect.y.toFixed(2))
-    rectEl.setAttribute('width', rect.width.toFixed(2))
-    rectEl.setAttribute('height', rect.height.toFixed(2))
-    rectEl.setAttribute('fill', 'none')
-    rectEl.setAttribute('stroke', 'currentColor')
-    rectEl.setAttribute('stroke-width', strokeWidth.toString())
-    rectEl.setAttribute('stroke-dasharray', dash)
-    rectEl.setAttribute('stroke-linejoin', 'round')
-    rectEl.setAttribute('class', className)
-    rectEl.setAttribute('opacity', '0.5')
-    group.appendChild(rectEl)
-    return rectEl
-  }
 }
 
 /**
- * Renders borders for existing composite projections (d3-composite-projections)
+ * Renders borders for existing composite projections (d3-composite-projections) using D3
  */
 export class ExistingCompositeBorderRenderer implements BorderRenderer {
   private projectionId: string
-  private projectionRegistry: any // ProjectionRegistry type
 
-  constructor(
-    projectionId: string,
-    projectionRegistry: any,
-  ) {
+  constructor(projectionId: string) {
     this.projectionId = projectionId
-    this.projectionRegistry = projectionRegistry
   }
 
   render(group: SVGGElement, width: number, height: number): void {
@@ -127,8 +99,18 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
     )
 
     if (pathData) {
-      const pathEl = this.appendPathOverlay(group, pathData, 'composition-border')
-      pathEl.setAttribute('transform', `translate(${inset}, ${inset})`)
+      // Use D3 selection API for cleaner path creation
+      select(group)
+        .append('path')
+        .attr('d', pathData)
+        .attr('class', 'composition-border')
+        .attr('fill', 'none')
+        .attr('stroke', 'currentColor')
+        .attr('stroke-width', '1.25')
+        .attr('stroke-dasharray', '8 4')
+        .attr('stroke-linejoin', 'round')
+        .attr('opacity', '0.5')
+        .attr('transform', `translate(${inset}, ${inset})`)
     }
   }
 
@@ -137,12 +119,12 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
     width: number,
     height: number,
   ): string | null {
-    const definition = this.projectionRegistry.get(projectionId)
+    const definition = projectionRegistry.get(projectionId)
     if (!definition) {
       return null
     }
 
-    const projection = this.createProjection(projectionId)
+    const projection = ProjectionFactory.createById(projectionId)
     if (!projection) {
       return null
     }
@@ -150,7 +132,7 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
     // Apply scale and translation
     this.applyProjectionTransform(projection, definition, width, height)
 
-    // Try getCompositionBorders first
+    // Try getCompositionBorders first (convenience method that returns path string)
     const getBorders = (projection as any)?.getCompositionBorders
     if (typeof getBorders === 'function') {
       try {
@@ -162,7 +144,7 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
       }
     }
 
-    // Fall back to drawCompositionBorders with custom context
+    // Fall back to drawCompositionBorders with custom path recorder context
     const drawBorders = (projection as any)?.drawCompositionBorders
     if (typeof drawBorders !== 'function') {
       return null
@@ -178,12 +160,6 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
       console.error('[BorderRenderer] Error drawing composition borders:', err)
       return null
     }
-  }
-
-  private createProjection(_projectionId: string): any {
-    // Import ProjectionFactory to create projection
-    // This would need proper import in real implementation
-    return null // Placeholder
   }
 
   private applyProjectionTransform(projection: any, definition: any, width: number, height: number): void {
@@ -241,23 +217,5 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
         return commands.join('')
       },
     }
-  }
-
-  private appendPathOverlay(
-    group: SVGGElement,
-    pathData: string,
-    className: string,
-  ): SVGPathElement {
-    const pathEl = document.createElementNS(group.namespaceURI, 'path') as SVGPathElement
-    pathEl.setAttribute('d', pathData)
-    pathEl.setAttribute('fill', 'none')
-    pathEl.setAttribute('stroke', 'currentColor')
-    pathEl.setAttribute('stroke-width', '1.25')
-    pathEl.setAttribute('stroke-dasharray', '8 4')
-    pathEl.setAttribute('stroke-linejoin', 'round')
-    pathEl.setAttribute('opacity', '0.5')
-    pathEl.setAttribute('class', className)
-    group.appendChild(pathEl)
-    return pathEl
   }
 }
