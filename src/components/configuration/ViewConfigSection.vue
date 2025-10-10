@@ -1,21 +1,33 @@
 <script setup lang="ts">
+import type { ExportedCompositeConfig } from '@/types/export-config'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CompositeExportDialog from '@/components/ui/CompositeExportDialog.vue'
 import FormControl from '@/components/ui/FormControl.vue'
+import ImportModal from '@/components/ui/ImportModal.vue'
 import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
 
 defineProps<Props>()
 const { t } = useI18n()
 const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
 
 const showExportDialog = ref(false)
+const showImportDialog = ref(false)
 
 interface Props {
   compositeProjectionOptions: Array<{ value: string, label: string }>
   viewModeOptions: Array<{ value: string, label: string }>
+}
+
+function handleImported(_config: ExportedCompositeConfig) {
+  // Configuration has been applied to stores by ImportModal
+  // Just close the dialog and maybe show a success message
+  showImportDialog.value = false
+  // TODO: Add toast notification for success
 }
 </script>
 
@@ -77,15 +89,35 @@ interface Props {
       <ProjectionParamsControls />
     </div>
 
-    <!-- Export Button (for composite-custom mode) -->
-    <button
+    <!-- Import/Export Buttons (for composite-custom mode) -->
+    <div
       v-if="configStore.viewMode === 'composite-custom'"
-      class="btn btn-outline btn-block"
-      @click="showExportDialog = true"
+      class="flex gap-2"
     >
-      <i class="ri-download-2-line" />
-      {{ t('actions.export') }}
-    </button>
+      <button
+        class="btn btn-outline flex-1"
+        @click="showImportDialog = true"
+      >
+        <i class="ri-upload-2-line" />
+        {{ t('actions.import') }}
+      </button>
+      <button
+        class="btn btn-outline flex-1"
+        @click="showExportDialog = true"
+      >
+        <i class="ri-download-2-line" />
+        {{ t('actions.export') }}
+      </button>
+    </div>
+
+    <!-- Import Dialog -->
+    <ImportModal
+      :is-open="showImportDialog"
+      :atlas-id="configStore.selectedAtlas"
+      :composite-projection="geoDataStore.cartographer?.customComposite"
+      @close="showImportDialog = false"
+      @imported="handleImported"
+    />
 
     <!-- Export Dialog -->
     <CompositeExportDialog v-model="showExportDialog" />

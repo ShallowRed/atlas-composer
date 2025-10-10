@@ -30,6 +30,66 @@ import { CodeGenerator } from './code-generator'
 const APP_VERSION = 'Atlas Composer v1.0'
 
 /**
+ * Round a number to specified decimal places, removing floating-point artifacts
+ * @param n - Number to round
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Rounded number
+ */
+function roundNumber(n: number | undefined, decimals = 6): number {
+  if (n === undefined) return 0
+  return Math.round(n * 10 ** decimals) / 10 ** decimals
+}
+
+/**
+ * Round a 2-element tuple (center, translate, parallels)
+ * @param arr - 2-element array
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Rounded 2-element tuple
+ */
+function roundTuple2(
+  arr: [number, number] | number[] | undefined,
+  decimals = 6,
+): [number, number] {
+  if (!arr || arr.length < 2) return [0, 0]
+  return [roundNumber(arr[0], decimals), roundNumber(arr[1], decimals)]
+}
+
+/**
+ * Round a 3-element tuple (rotate)
+ * @param arr - 3-element array
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Rounded 3-element tuple
+ */
+function roundTuple3(
+  arr: [number, number, number] | number[] | undefined,
+  decimals = 6,
+): [number, number, number] {
+  if (!arr || arr.length < 3) return [0, 0, 0]
+  return [
+    roundNumber(arr[0], decimals),
+    roundNumber(arr[1], decimals),
+    roundNumber(arr[2], decimals),
+  ]
+}
+
+/**
+ * Round a 2D bounds array [[minLon, minLat], [maxLon, maxLat]]
+ * @param bounds - 2D bounds array
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Rounded bounds array
+ */
+function roundBounds(
+  bounds: [[number, number], [number, number]] | undefined,
+  decimals = 6,
+): [[number, number], [number, number]] {
+  if (!bounds) return [[0, 0], [0, 0]]
+  return [
+    [roundNumber(bounds[0][0], decimals), roundNumber(bounds[0][1], decimals)],
+    [roundNumber(bounds[1][0], decimals), roundNumber(bounds[1][1], decimals)],
+  ]
+}
+
+/**
  * Export service for composite projections
  */
 export class CompositeExportService {
@@ -75,22 +135,19 @@ export class CompositeExportService {
         projectionId,
         projectionFamily: projectionDef?.family || 'unknown',
         parameters: {
-          center: subProj.center,
-          rotate: subProj.rotate,
-          scale: subProj.scale,
-          baseScale: subProj.baseScale,
-          scaleMultiplier: subProj.scaleMultiplier,
+          center: roundTuple2(subProj.center),
+          rotate: roundTuple3(subProj.rotate),
+          scale: roundNumber(subProj.scale),
+          baseScale: roundNumber(subProj.baseScale),
+          scaleMultiplier: roundNumber(subProj.scaleMultiplier),
           // Extract parallels if available (for conic projections)
-          parallels: this.extractParallels(subProj),
+          parallels: roundTuple2(this.extractParallels(subProj)),
         },
         layout: {
-          translateOffset: subProj.translateOffset,
+          translateOffset: roundTuple2(subProj.translateOffset),
           clipExtent: subProj.clipExtent || null,
         },
-        bounds: subProj.bounds || [
-          [0, 0],
-          [0, 0],
-        ],
+        bounds: roundBounds(subProj.bounds),
       }
     })
 
