@@ -19,6 +19,7 @@ interface SubProjectionConfig {
   territoryCode: string
   territoryName: string
   projection: GeoProjection
+  projectionType: string // Store the projection type/ID for export
   baseScale: number // Prevents scale accumulation on rebuild
   scaleMultiplier: number // Current scale multiplier (used to preserve scale when changing projection type)
   baseTranslate: [number, number] // Prevents translation accumulation on rebuild
@@ -102,6 +103,7 @@ export class CompositeProjection {
       territoryCode: mainland.code,
       territoryName: mainland.name,
       projection: mainlandProjection,
+      projectionType: mainlandProjectionType,
       baseScale: mainlandScale,
       scaleMultiplier: 1.0,
       baseTranslate: [0, 0],
@@ -127,6 +129,7 @@ export class CompositeProjection {
         territoryCode: territory.code,
         territoryName: territory.name,
         projection,
+        projectionType,
         baseScale: territoryScale,
         scaleMultiplier: 1.0, // User adjustments start at 1.0
         baseTranslate: [0, 0],
@@ -180,6 +183,7 @@ export class CompositeProjection {
         territoryCode: mainland.code,
         territoryName: mainland.name,
         projection: mainlandProjection,
+        projectionType: mainlandProjectionType,
         baseScale: mainlandScale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
@@ -204,6 +208,7 @@ export class CompositeProjection {
         territoryCode: territory.code,
         territoryName: territory.name,
         projection,
+        projectionType,
         baseScale: territoryScale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
@@ -596,12 +601,17 @@ export class CompositeProjection {
       subProjections: this.subProjections.map(sp => ({
         territoryCode: sp.territoryCode,
         territoryName: sp.territoryName,
-        projectionType: sp.projection.constructor.name,
+        projectionType: sp.projectionType,
         center: sp.projection.center?.(),
         scale: sp.projection.scale(),
         rotate: sp.projection.rotate?.(),
         translateOffset: sp.translateOffset,
         bounds: sp.bounds,
+        baseScale: sp.baseScale,
+        scaleMultiplier: sp.scaleMultiplier,
+        clipExtent: sp.clipExtent,
+        // Extract parallels if projection supports it
+        parallels: (sp.projection as any).parallels?.(),
       })),
     }
   }
