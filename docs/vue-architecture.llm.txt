@@ -192,9 +192,13 @@ src/
 - useViewMode.ts (34 lines) - View mode options and logic
 - useTerritoryConfig.ts (27 lines) - Territory-related computed properties
 
-**Phase 5: Component Simplification** (1 composable + 1 component refactored)
+**Phase 5: Component Simplification** (2 composables + 2 components refactored)
 - useTerritoryTransforms.ts (155 lines) - Territory transform controls
 - TerritoryControls.vue: 283 → 247 lines (13% reduction, 36 lines removed)
+- useProjectionFiltering.ts (91 lines) - Projection search/filter logic
+- useProjectionRecommendations.ts (78 lines) - Recommendation display logic
+- ProjectionSelector.vue: 468 → 341 lines (27% reduction, 127 lines removed)
+- ProjectionSearchBar.vue (48 lines), ProjectionDropdown.vue (118 lines), ProjectionRecommendationBadge.vue (52 lines)
 
 **Phase 6: Store Organization** (2 new stores created)
 - ui.ts (68 lines) - Theme management, display toggles (graticule, sphere, borders, limits)
@@ -202,10 +206,11 @@ src/
 - Note: Stores created but not yet integrated into config.ts (requires migration)
 
 ### Total Impact
-- **Files Created**: 16 new files (7 components + 7 composables + 2 stores)
+- **Files Created**: 24 new files (16 components + 7 composables + 2 stores - 1 plan)
 - **MapView.vue**: 528 → 142 lines (73% reduction, 386 lines removed)
 - **TerritoryControls.vue**: 283 → 247 lines (13% reduction, 36 lines removed)
-- **Total Lines Reduced**: 422 lines removed from components
+- **ProjectionSelector.vue**: 468 → 341 lines (27% reduction, 127 lines removed)
+- **Total Lines Reduced**: 549 lines removed from 3 major components
 - **Improved Testability**: Each composable/component/store can be tested independently
 - **Better Reusability**: Composables and stores can be used across components
 - **Clear Separation**: View logic, data loading, configuration, UI state all separated

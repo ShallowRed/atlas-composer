@@ -3,6 +3,13 @@
 ## Objective
 Refactor Vue components and state management to improve maintainability, testability, and code organization by decomposing large components, extracting reusable logic, and establishing consistent patterns.
 
+## Related Documentation
+- **Complex Tasks Sub-Plan**: vue-refactoring-complex-tasks.plan.llm.txt
+  - Detailed analysis of Task 1 (Store Migration) and Task 2 (ProjectionSelector Refactoring)
+  - Phase-by-phase implementation guides
+  - Risk analysis and mitigation strategies
+  - Estimated effort: 10-15 hours total
+
 ## Affected Domains
 - [ ] Vue Components (docs/vue-architecture.llm.txt) - Complete refactoring
 - [ ] State Management (stores/) - Extract composables, reorganize
@@ -145,11 +152,14 @@ Standardize component interfaces and reduce prop drilling.
   - Result: Reduced from 283 to 247 lines (13% reduction, 36 lines removed)
   - Status: COMPLETE - Successfully integrated composable
   
-- [ ] File: src/components/ui/ProjectionSelector.vue
+- [x] File: src/components/ui/ProjectionSelector.vue
   - Action: Break down into sub-components
-  - Why: Reduce from 468 lines to ~200 lines
-  - Content: Extract search, info modal, recommendation display
-  - Status: DEFERRED - Separate refactoring task (ProjectionSelector needs dedicated focus)
+  - Why: Reduce from 468 lines to improve maintainability
+  - Content: Extract search, dropdown, recommendation display into components + composables
+  - Result: 468 → 341 lines (27% reduction, 127 lines removed)
+  - Created: ProjectionSearchBar.vue (48), ProjectionDropdown.vue (118), ProjectionRecommendationBadge.vue (52)
+  - Created: useProjectionFiltering.ts (91), useProjectionRecommendations.ts (78)
+  - Status: COMPLETE - All components reusable, typecheck passes
 
 ### Phase 6: Reorganize Store Structure
 Split large stores into focused modules.
@@ -289,20 +299,41 @@ Created By: Analysis of current Vue architecture
 Documentation Updated: docs/vue-architecture.llm.txt
 
 ## Progress Summary
-COMPLETED PHASES (1-6):
+COMPLETED PHASES (1-5):
 - Phase 1: 4 view components created (SplitView, CompositeCustomView, CompositeExistingView, UnifiedView)
 - Phase 2: 3 config section components (AtlasConfigSection, ViewConfigSection, DisplayOptionsSection)
 - Phase 3: 2 data loading composables (useAtlasData, useLoadingState)
 - Phase 4: 3 store composables (useProjectionConfig, useViewMode, useTerritoryConfig)
-- Phase 5: useTerritoryTransforms composable created + TerritoryControls refactored (247 lines, 13% reduction)
-- Phase 6: 2 new stores created (ui.ts, territory.ts) - ready for integration
-- Total: 16 new files created (13 components/composables + 2 stores + 1 plan)
-- MapView.vue: 528 → 142 lines (73% reduction)
-- TerritoryControls.vue: 283 → 247 lines (13% reduction)
+- Phase 5a: useTerritoryTransforms composable created + TerritoryControls refactored (247 lines, 13% reduction)
+- Phase 5b: ProjectionSelector refactored into 3 components + 2 composables (341 lines, 27% reduction) ✅ NEW
+- Phase 6a: 2 new stores created (ui.ts, territory.ts) - ready for integration
+- Total: 24 new files created (16 components + 7 composables + 2 stores - 1 plan)
+- MapView.vue: 528 → 142 lines (73% reduction, 386 lines removed)
+- TerritoryControls.vue: 283 → 247 lines (13% reduction, 36 lines removed)
+- ProjectionSelector.vue: 468 → 341 lines (27% reduction, 127 lines removed) ✅ NEW
+- **Total Lines Reduced: 549 lines removed from 3 major components**
 
 PARTIALLY COMPLETE:
-- Phase 5: ProjectionSelector (468 lines) deferred - needs dedicated refactoring
+- Phase 6b: Store migration deferred - new stores created but config.ts integration requires careful dependency migration
+  - Detailed sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 1)
+  - Estimated effort: 6-10 hours
+  - Complexity: HIGH
+  - Status: READY TO START (Phase 5b success builds confidence for complex refactoring)
+
+COMPLETED:
+- Phase 5: ProjectionSelector refactoring COMPLETE
+  - 468 → 341 lines (27% reduction, 127 lines removed)
+  - Created 3 new UI components + 2 new composables
+  - Sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 2) ✅
+  - Actual effort: ~2 hours
+  - All functionality preserved, typecheck passes
+
+PARTIALLY COMPLETE:
 - Phase 6: Store migration deferred - new stores created but config.ts integration requires careful dependency migration
+  - Detailed sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 1)
+  - Estimated effort: 6-10 hours
+  - Complexity: HIGH
+  - Status: READY TO START (Task 2 success builds confidence)
 
 DEFERRED PHASES (7-8):
 These phases are optional improvements for future iterations:

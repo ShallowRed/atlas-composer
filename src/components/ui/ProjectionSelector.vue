@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
-import { computed, ref, watch } from 'vue'
+
+import { computed, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ProjectionConfirmDialog from '@/components/ui/ProjectionConfirmDialog.vue'
 import ProjectionInfo from '@/components/ui/ProjectionInfo.vue'
+import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import ProjectionRecommendationBadge from '@/components/ui/projections/ProjectionRecommendationBadge.vue'
+import ProjectionSearchBar from '@/components/ui/projections/ProjectionSearchBar.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
+import { useProjectionFiltering } from '@/composables/useProjectionFiltering'
+import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
 import { useProjectionValidation } from '@/composables/useProjectionValidation'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
@@ -46,9 +52,19 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Search/filter state
-const searchQuery = ref('')
-const isSearching = ref(false)
+// Use filtering composable
+const {
+  searchQuery,
+  isSearching,
+  filteredProjectionGroups,
+  toggleSearch,
+  clearSearch,
+} = useProjectionFiltering(toRef(props, 'projectionGroups'))
+
+// Use recommendations composable
+const { getRecommendation } = useProjectionRecommendations(
+  toRef(props, 'recommendations'),
+)
 
 // Projection info modal state
 const showInfoModal = ref(false)
@@ -64,71 +80,6 @@ const localValue = computed({
   },
 })
 
-// Create a map of projection IDs to their recommendations
-const recommendationMap = computed(() => {
-  if (!props.recommendations)
-    return new Map()
-  return new Map(
-    props.recommendations.map(rec => [rec.projection.id, rec]),
-  )
-})
-
-// Filter projection groups based on search query
-const filteredProjectionGroups = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return props.projectionGroups
-  }
-
-  const query = searchQuery.value.toLowerCase().trim()
-
-  return props.projectionGroups
-    .map(group => ({
-      ...group,
-      options: group.options?.filter((option) => {
-        // Search by label (translated)
-        const label = t(option.label).toLowerCase()
-        if (label.includes(query))
-          return true
-
-        // Search by projection ID
-        if (option.value.toLowerCase().includes(query))
-          return true
-
-        // Search by category
-        if (group.category.toLowerCase().includes(query))
-          return true
-
-        // Search by projection properties (if available)
-        const projection = projectionRegistry.get(option.value)
-        if (projection) {
-          // Search by family
-          if (projection.family.toLowerCase().includes(query))
-            return true
-
-          // Search by preservation properties
-          if (projection.capabilities.preserves.some(prop => prop.toLowerCase().includes(query)))
-            return true
-        }
-
-        return false
-      }),
-    }))
-    .filter(group => group.options && group.options.length > 0)
-})
-
-// Toggle search mode
-function toggleSearch() {
-  isSearching.value = !isSearching.value
-  if (!isSearching.value) {
-    searchQuery.value = ''
-  }
-}
-
-// Clear search
-function clearSearch() {
-  searchQuery.value = ''
-}
-
 // Show projection info modal
 function showProjectionInfo() {
   if (localValue.value) {
@@ -143,50 +94,6 @@ function showProjectionInfo() {
 // Close projection info modal
 function closeInfoModal() {
   showInfoModal.value = false
-}
-
-// Get recommendation for a projection
-function getRecommendation(projectionId: string): ProjectionRecommendation | undefined {
-  return recommendationMap.value.get(projectionId)
-}
-
-// Get recommendation badge for display
-function getRecommendationBadge(projectionId: string): string {
-  const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations)
-    return ''
-
-  if (rec.level === 'excellent')
-    return '+++'
-  if (rec.level === 'good')
-    return '++'
-  if (rec.level === 'usable')
-    return '+'
-  return ''
-}
-
-// Get CSS class for recommendation level
-function getRecommendationClass(projectionId: string): string {
-  const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations)
-    return ''
-
-  if (rec.level === 'excellent')
-    return 'text-success'
-  if (rec.level === 'good')
-    return 'text-info'
-  if (rec.level === 'not-recommended')
-    return 'text-error opacity-60'
-  return ''
-}
-
-// Get recommendation tooltip
-function getRecommendationTooltip(projectionId: string): string {
-  const rec = getRecommendation(projectionId)
-  if (!rec || !props.showRecommendations)
-    return ''
-
-  return t(rec.reason)
 }
 
 // Validation
@@ -298,58 +205,23 @@ function handleCancelProhibited() {
       </div>
     </legend>
 
-    <!-- Search input -->
-    <Transition
-      enter-active-class="transition-all duration-200"
-      leave-active-class="transition-all duration-200"
-      enter-from-class="opacity-0 -translate-y-2"
-      leave-to-class="opacity-0 -translate-y-2"
-    >
-      <div v-if="isSearching" class="relative mb-2">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('common.searchProjections')"
-          class="input input-sm w-full pr-8"
-          autofocus
-        >
-        <button
-          v-if="searchQuery"
-          type="button"
-          class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
-          :aria-label="t('common.clear')"
-          @click="clearSearch"
-        >
-          <i class="ri-close-line" />
-        </button>
-      </div>
-    </Transition>
+    <!-- Search Bar Component -->
+    <ProjectionSearchBar
+      v-model="searchQuery"
+      v-model:is-searching="isSearching"
+      :placeholder="t('common.searchProjections')"
+      @clear="clearSearch"
+    />
 
-    <!-- Loading skeleton -->
-    <div v-if="loading" class="skeleton h-12 w-full" />
-
-    <select
-      v-else
+    <!-- Dropdown Component -->
+    <ProjectionDropdown
       v-model="localValue"
-      class="select cursor-pointer"
+      :projection-groups="filteredProjectionGroups"
+      :recommendations="recommendations"
+      :show-recommendations="showRecommendations"
       :disabled="disabled"
-    >
-      <optgroup
-        v-for="group in filteredProjectionGroups"
-        :key="group.category"
-        :label="group.category"
-      >
-        <option
-          v-for="option in group.options"
-          :key="option.value"
-          :value="option.value"
-          :class="getRecommendationClass(option.value)"
-          :title="getRecommendationTooltip(option.value)"
-        >
-          {{ $t(option.label) }}{{ showRecommendations && getRecommendationBadge(option.value) ? ` ${getRecommendationBadge(option.value)}` : '' }}
-        </option>
-      </optgroup>
-    </select>
+      :loading="loading"
+    />
 
     <!-- No results message -->
     <Transition
@@ -374,11 +246,13 @@ function handleCancelProhibited() {
       class="label mt-3"
     >
       <span class="label-text-alt flex items-center gap-2">
-        <span :class="getRecommendationClass(modelValue)">
-          {{ getRecommendationBadge(modelValue) }}
-        </span>
+        <ProjectionRecommendationBadge
+          :projection-id="modelValue"
+          :recommendations="recommendations || []"
+          :show-tooltip="false"
+        />
         <span class="opacity-70">
-          {{ getRecommendationTooltip(modelValue) }}
+          {{ getRecommendation(modelValue)?.reason ? t(getRecommendation(modelValue)!.reason) : '' }}
         </span>
       </span>
     </div>

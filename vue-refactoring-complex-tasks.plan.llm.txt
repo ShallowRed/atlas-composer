@@ -1,0 +1,1350 @@
+# Vue Refactoring - Complex Tasks Sub-Plan
+
+## Overview
+This document provides detailed analysis and implementation plans for the complex tasks identified in vue-refactoring.plan.llm.txt that require more careful consideration than initially anticipated.
+
+## Context
+- Parent Plan: vue-refactoring.plan.llm.txt
+- Current Status: Phases 1-6 partially complete
+- Complex Tasks Identified: 2 major tasks with significant dependencies
+
+---
+
+## Task 1: Store Migration - config.ts → ui.ts + territory.ts
+
+### Objective
+Migrate theme and display toggles from config.ts to ui.ts, and territory state from config.ts to territory.ts, establishing proper separation of concerns.
+
+### Complexity Assessment: HIGH
+**Estimated Effort**: 4-6 hours
+**Risk Level**: Medium-High (breaking changes, cross-store dependencies)
+
+### Current State Analysis
+
+#### config.ts Dependencies (36 usages across codebase)
+**Components using config.ts**:
+- MapRenderer.vue (13 references to display toggles + territory state)
+- DisplayOptionsSection.vue (4 v-model bindings to display toggles)
+- AtlasConfigSection.vue (1 usage)
+- ViewConfigSection.vue (1 usage)
+- TerritoryControls.vue (via useTerritoryTransforms composable)
+- ProjectionSelector.vue (validation logic)
+- ThemeSelector.vue (theme management)
+- SplitView.vue, UnifiedView.vue
+- ProjectionParamsControls.vue
+
+**Composables using config.ts**:
+- useAtlasData.ts (9 references)
+- useProjectionConfig.ts (2 references to territoryProjections)
+- useTerritoryConfig.ts
+- useTerritoryTransforms.ts (3 references to territory state)
+- useViewMode.ts
+
+**Stores cross-referencing**:
+- geoData.ts (5 references to configStore)
+
+#### State to Migrate
+
+**To ui.ts** (68 lines already created):
+```typescript
+// State
+theme: Ref<string>
+showGraticule: Ref<boolean>
+showSphere: Ref<boolean>
+showCompositionBorders: Ref<boolean>
+showMapLimits: Ref<boolean>
+
+// Actions
+initializeTheme()
+setTheme(theme: string)
+applyTheme(theme: string)
+initializeDisplayOptions(defaults)
+```
+
+**To territory.ts** (57 lines already created):
+```typescript
+// State
+territoryProjections: Ref<Record<string, string>>
+territoryTranslations: Ref<Record<string, { x: number, y: number }>>
+territoryScales: Ref<Record<string, number>>
+
+// Actions
+initializeDefaults(territories, defaultProjection)
+setTerritoryProjection(code, projectionId)
+setTerritoryTranslation(code, axis, value)
+setTerritoryScale(code, value)
+resetAll(territories, defaultProjection)
+```
+
+### Implementation Plan
+
+#### Phase 1: Create Store Bridge Pattern (1-2 hours)
+Create temporary bridge to allow both stores to coexist during migration.
+
+**Step 1.1**: Add computed properties in config.ts that reference new stores
+```typescript
+// In config.ts
+import { useUIStore } from '@/stores/ui'
+import { useTerritoryStore } from '@/stores/territory'
+
+// Bridge to new stores (temporary during migration)
+const uiStore = useUIStore()
+const territoryStore = useTerritoryStore()
+
+// Replace direct refs with computed that delegate to new stores
+const theme = computed({
+  get: () => uiStore.theme,
+  set: (value) => uiStore.setTheme(value)
+})
+
+const showGraticule = computed({
+  get: () => uiStore.showGraticule,
+  set: (value) => { uiStore.showGraticule = value }
+})
+
+// ... repeat for other display toggles
+
+const territoryProjections = computed({
+  get: () => territoryStore.territoryProjections,
+  set: (value) => { territoryStore.territoryProjections = value }
+})
+
+// ... repeat for translations and scales
+```
+
+**Benefits**:
+- No breaking changes for existing consumers
+- Gradual migration path
+- Easy to test each piece
+- Can rollback easily
+
+**Verification**:
+- Run typecheck: `pnpm run typecheck`
+- Verify all views still work correctly
+- Check localStorage persistence still works
+
+#### Phase 2: Update Component Direct Bindings (1-2 hours)
+Update components that directly access store state via v-model or references.
+
+**Files to Update** (4 files):
+
+**Step 2.1**: DisplayOptionsSection.vue
+```vue
+<!-- BEFORE -->
+<script setup>
+import { useConfigStore } from '@/stores/config'
+const configStore = useConfigStore()
+</script>
+
+<template>
+  <input v-model="configStore.showGraticule" />
+  <input v-model="configStore.showSphere" />
+  <input v-model="configStore.showCompositionBorders" />
+  <input v-model="configStore.showMapLimits" />
+</template>
+
+<!-- AFTER -->
+<script setup>
+import { useUIStore } from '@/stores/ui'
+const uiStore = useUIStore()
+</script>
+
+<template>
+  <input v-model="uiStore.showGraticule" />
+  <input v-model="uiStore.showSphere" />
+  <input v-model="uiStore.showCompositionBorders" />
+  <input v-model="uiStore.showMapLimits" />
+</template>
+```
+
+**Step 2.2**: ThemeSelector.vue
+```vue
+<!-- BEFORE -->
+<script setup>
+import { useConfigStore } from '@/stores/config'
+const configStore = useConfigStore()
+</script>
+
+<template>
+  <select v-model="configStore.theme">
+</template>
+
+<!-- AFTER -->
+<script setup>
+import { useUIStore } from '@/stores/ui'
+const uiStore = useUIStore()
+</script>
+
+<template>
+  <select v-model="uiStore.theme">
+</template>
+```
+
+**Step 2.3**: MapRenderer.vue (13 references)
+```typescript
+// BEFORE
+import { useConfigStore } from '@/stores/config'
+const configStore = useConfigStore()
+
+const renderOptions = computed(() => ({
+  showGraticule: configStore.showGraticule,
+  showSphere: configStore.showSphere,
+  showCompositionBorders: configStore.showCompositionBorders,
+  showMapLimits: configStore.showMapLimits,
+  territoryProjections: configStore.territoryProjections,
+  territoryTranslations: configStore.territoryTranslations,
+  territoryScales: configStore.territoryScales,
+}))
+
+// AFTER
+import { useUIStore } from '@/stores/ui'
+import { useTerritoryStore } from '@/stores/territory'
+const uiStore = useUIStore()
+const territoryStore = useTerritoryStore()
+
+const renderOptions = computed(() => ({
+  showGraticule: uiStore.showGraticule,
+  showSphere: uiStore.showSphere,
+  showCompositionBorders: uiStore.showCompositionBorders,
+  showMapLimits: uiStore.showMapLimits,
+  territoryProjections: territoryStore.territoryProjections,
+  territoryTranslations: territoryStore.territoryTranslations,
+  territoryScales: territoryStore.territoryScales,
+}))
+```
+
+**Step 2.4**: AtlasConfigSection.vue
+Update theme initialization call if present.
+
+**Verification After Each File**:
+- Component still compiles
+- Template bindings work (test in browser)
+- No console errors
+
+#### Phase 3: Update Composables (1-2 hours)
+Update composables that access migrated state.
+
+**Files to Update** (4 files):
+
+**Step 3.1**: useTerritoryTransforms.ts (3 references)
+```typescript
+// BEFORE
+import { useConfigStore } from '@/stores/config'
+const configStore = useConfigStore()
+
+const territoryProjections = computed(() => configStore.territoryProjections)
+const translations = computed(() => configStore.territoryTranslations)
+const scales = computed(() => configStore.territoryScales)
+
+// AFTER
+import { useTerritoryStore } from '@/stores/territory'
+const territoryStore = useTerritoryStore()
+
+const territoryProjections = computed(() => territoryStore.territoryProjections)
+const translations = computed(() => territoryStore.territoryTranslations)
+const scales = computed(() => territoryStore.territoryScales)
+```
+
+**Step 3.2**: useProjectionConfig.ts (2 references)
+```typescript
+// BEFORE
+import { useConfigStore } from '@/stores/config'
+const configStore = useConfigStore()
+
+function getMainlandProjection() {
+  return configStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+}
+
+function getTerritoryProjection(code: string) {
+  return configStore.territoryProjections[code] || configStore.selectedProjection
+}
+
+// AFTER
+import { useConfigStore } from '@/stores/config'
+import { useTerritoryStore } from '@/stores/territory'
+const configStore = useConfigStore()
+const territoryStore = useTerritoryStore()
+
+function getMainlandProjection() {
+  return territoryStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+}
+
+function getTerritoryProjection(code: string) {
+  return territoryStore.territoryProjections[code] || configStore.selectedProjection
+}
+```
+
+**Step 3.3**: useAtlasData.ts
+Review for any display toggle or territory state references (likely none).
+
+**Step 3.4**: useTerritoryConfig.ts
+Review and update if needed.
+
+**Verification**:
+- All composables typecheck correctly
+- Integration tests pass (if available)
+- Manual testing of affected features
+
+#### Phase 4: Update Watchers in config.ts (1 hour)
+The most critical part - updating the watch() in config.ts that handles atlas changes.
+
+**Current Implementation**:
+```typescript
+// In config.ts - watch(selectedAtlas, ...)
+watch(selectedAtlas, (newAtlasId) => {
+  const updates = AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
+
+  // Currently updates config store state directly
+  viewMode.value = updates.viewMode
+  territoryMode.value = updates.territoryMode
+  territoryProjections.value = updates.projections
+  territoryTranslations.value = updates.translations
+  territoryScales.value = updates.scales
+  selectedProjection.value = updates.selectedProjection
+  showGraticule.value = updates.mapDisplay.showGraticule
+  showSphere.value = updates.mapDisplay.showSphere
+  showCompositionBorders.value = updates.mapDisplay.showCompositionBorders
+  showMapLimits.value = updates.mapDisplay.showMapLimits
+
+  if (updates.compositeProjection) {
+    compositeProjection.value = updates.compositeProjection
+  }
+})
+```
+
+**Updated Implementation**:
+```typescript
+// In config.ts - watch(selectedAtlas, ...)
+import { useUIStore } from '@/stores/ui'
+import { useTerritoryStore } from '@/stores/territory'
+
+const uiStore = useUIStore()
+const territoryStore = useTerritoryStore()
+
+watch(selectedAtlas, (newAtlasId) => {
+  const updates = AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
+
+  // Update config store state
+  viewMode.value = updates.viewMode
+  territoryMode.value = updates.territoryMode
+  selectedProjection.value = updates.selectedProjection
+
+  // Update territory store
+  territoryStore.territoryProjections = updates.projections
+  territoryStore.territoryTranslations = updates.translations
+  territoryStore.territoryScales = updates.scales
+
+  // Update UI store
+  uiStore.showGraticule = updates.mapDisplay.showGraticule
+  uiStore.showSphere = updates.mapDisplay.showSphere
+  uiStore.showCompositionBorders = updates.mapDisplay.showCompositionBorders
+  uiStore.showMapLimits = updates.mapDisplay.showMapLimits
+
+  if (updates.compositeProjection) {
+    compositeProjection.value = updates.compositeProjection
+  }
+})
+```
+
+**Critical Consideration**:
+- This watcher orchestrates the entire app state on atlas change
+- Must ensure reactivity still works across all stores
+- Test thoroughly with multiple atlas switches
+
+**Verification**:
+- Switch between atlases (France → Portugal → Spain → EU → USA → World)
+- Verify projections reset correctly
+- Verify display options update correctly
+- Check localStorage persistence
+- Verify no memory leaks (use browser DevTools)
+
+#### Phase 5: Remove Bridge & Clean Up config.ts (30 min - 1 hour)
+Once all consumers updated, remove temporary computed bridges.
+
+**Step 5.1**: Remove migrated state from config.ts
+```typescript
+// DELETE these from config.ts:
+const theme = ref('light')
+const showGraticule = ref(...)
+const showSphere = ref(...)
+const showCompositionBorders = ref(...)
+const showMapLimits = ref(...)
+const territoryProjections = ref<Record<string, string>>({})
+const territoryTranslations = ref<Record<string, { x: number, y: number }>>({})
+const territoryScales = ref<Record<string, number>>({})
+
+// DELETE these actions from config.ts:
+const setTheme = (newTheme: string) => { ... }
+const initializeTheme = () => { ... }
+const setTerritoryProjection = (...) => { ... }
+const setTerritoryTranslation = (...) => { ... }
+const setTerritoryScale = (...) => { ... }
+```
+
+**Step 5.2**: Update config.ts return statement
+Remove migrated properties from the return statement.
+
+**Step 5.3**: Update initialization
+Move theme initialization to App.vue or main.ts:
+```typescript
+// In App.vue or main.ts
+import { useUIStore } from '@/stores/ui'
+const uiStore = useUIStore()
+onMounted(() => {
+  uiStore.initializeTheme()
+})
+```
+
+**Verification**:
+- Config store reduces from ~391 lines to ~320 lines (18% reduction)
+- All features still work
+- No TypeScript errors
+- Run full regression test suite
+
+#### Phase 6: Update localStorage Persistence (30 min)
+Ensure localStorage keys are properly migrated.
+
+**Current localStorage usage in config.ts**:
+```typescript
+// Theme
+localStorage.setItem('daisyui-theme', newTheme)
+localStorage.getItem('daisyui-theme')
+```
+
+**New approach in ui.ts**:
+```typescript
+// Already implemented in ui.ts
+localStorage.setItem('theme', newTheme)
+localStorage.getItem('theme')
+```
+
+**Migration Strategy**:
+1. Check for old key, migrate to new key if exists
+2. Add migration function in ui.ts:
+```typescript
+function migrateLocalStorage() {
+  const oldTheme = localStorage.getItem('daisyui-theme')
+  if (oldTheme && !localStorage.getItem('theme')) {
+    localStorage.setItem('theme', oldTheme)
+    localStorage.removeItem('daisyui-theme')
+  }
+}
+```
+
+3. Call migration on first load
+
+**Verification**:
+- Existing users' preferences preserved
+- New installations work correctly
+- Clear old localStorage keys after migration
+
+### Testing Strategy
+
+#### Unit Tests (Optional but Recommended)
+```typescript
+// src/stores/__tests__/ui.spec.ts
+describe('UI Store', () => {
+  it('initializes theme from localStorage')
+  it('persists theme changes to localStorage')
+  it('applies theme to DOM')
+  it('initializes display options with defaults')
+  it('migrates old localStorage keys')
+})
+
+// src/stores/__tests__/territory.spec.ts
+describe('Territory Store', () => {
+  it('initializes defaults for all territories')
+  it('updates territory projections')
+  it('updates territory translations')
+  it('updates territory scales')
+  it('resets all territory state')
+})
+```
+
+#### Integration Tests
+1. **Atlas Switching**: Switch between all 6 atlases, verify state updates
+2. **Theme Persistence**: Change theme, reload page, verify persisted
+3. **Display Toggles**: Toggle each option, verify rendering updates
+4. **Territory Controls**: Modify projections/translations/scales, verify updates
+5. **View Mode Changes**: Switch view modes, verify state coordination
+
+#### Manual Testing Checklist
+- [ ] Atlas selection updates all state correctly
+- [ ] Theme switching works and persists
+- [ ] Display toggles affect rendering
+- [ ] Territory projections update correctly
+- [ ] Territory translations work in split view
+- [ ] Territory scales work in split view
+- [ ] Bulk vs individual mode switching works
+- [ ] Composite projection selection works
+- [ ] No console errors or warnings
+- [ ] localStorage keys migrated properly
+- [ ] Performance is not degraded
+
+### Rollback Plan
+If migration causes issues:
+1. Keep Phase 1 bridge pattern in place
+2. Revert consumer changes (git revert)
+3. Remove new store imports
+4. Test with original config.ts implementation
+5. Document issues encountered
+6. Re-plan migration strategy
+
+### Success Criteria
+- [ ] All 36 usages of config.ts properly updated
+- [ ] config.ts reduced by ~70 lines (to ~320 lines)
+- [ ] All features work identically to before
+- [ ] No performance degradation
+- [ ] localStorage migration complete
+- [ ] Typecheck passes with 0 errors
+- [ ] All manual tests pass
+- [ ] Documentation updated
+
+### Estimated Timeline
+- Phase 1 (Bridge): 1-2 hours
+- Phase 2 (Components): 1-2 hours
+- Phase 3 (Composables): 1-2 hours
+- Phase 4 (Watchers): 1 hour
+- Phase 5 (Cleanup): 30 min - 1 hour
+- Phase 6 (localStorage): 30 min
+- Testing: 1-2 hours
+- **Total: 6-10 hours**
+
+### Risks & Mitigations
+
+**Risk 1**: Reactivity breaks between stores
+- **Mitigation**: Use computed properties in bridge pattern, test thoroughly
+- **Detection**: Watch for UI not updating when state changes
+- **Rollback**: Keep bridge pattern if needed
+
+**Risk 2**: localStorage keys conflict or migration fails
+- **Mitigation**: Careful key naming, migration function with fallbacks
+- **Detection**: User preferences lost after migration
+- **Rollback**: Restore old localStorage keys
+
+**Risk 3**: Watcher order/timing issues
+- **Mitigation**: Document watcher dependencies, maintain orchestration in config.ts watcher
+- **Detection**: State updates in wrong order, race conditions
+- **Rollback**: Revert watcher changes, keep orchestration in config.ts
+
+**Risk 4**: Performance degradation from multiple store accesses
+- **Mitigation**: Use computed properties, avoid unnecessary reactivity
+- **Detection**: Profile with Chrome DevTools, measure render times
+- **Rollback**: Consolidate stores if performance issue confirmed
+
+---
+
+## Task 2: ProjectionSelector.vue Refactoring
+
+### Objective
+Break down ProjectionSelector.vue from 468 lines into smaller, focused sub-components for better maintainability and reusability.
+
+### Complexity Assessment: MEDIUM-HIGH
+**Estimated Effort**: 3-5 hours
+**Risk Level**: Medium (isolated component, limited cross-dependencies)
+
+### Current State Analysis
+
+**File**: src/components/ui/ProjectionSelector.vue (468 lines)
+
+**Responsibilities**:
+1. Search/filter functionality (40 lines)
+2. Projection information modal (50 lines)
+3. Recommendation system display (80 lines)
+4. Validation and warnings (60 lines)
+5. Confirmation dialog for prohibited projections (40 lines)
+6. Main projection selection dropdown (120 lines)
+7. State management and props handling (78 lines)
+
+**Dependencies**:
+- ProjectionConfirmDialog.vue (already separate)
+- ProjectionInfo.vue (already separate)
+- ToastNotification.vue (already separate)
+- useProjectionValidation composable
+- projectionRegistry
+- useConfigStore (for validation context)
+
+**Props Interface**:
+```typescript
+interface Props {
+  label: string
+  icon?: string
+  modelValue?: string
+  disabled?: boolean
+  loading?: boolean
+  projectionGroups: Array<{ category: string, options?: ProjectionOption[] }>
+  recommendations?: ProjectionRecommendation[]
+  showRecommendations?: boolean
+}
+```
+
+### Refactoring Strategy
+
+#### Approach: Extract Logical Components
+Break down by feature rather than by visual sections to maintain cohesion.
+
+#### Component Structure
+
+```
+ProjectionSelector.vue (120 lines) - Orchestrator
+├── ProjectionSearchBar.vue (60 lines) - Search functionality
+├── ProjectionDropdown.vue (100 lines) - Main selection dropdown
+├── ProjectionRecommendationBadge.vue (40 lines) - Recommendation display
+└── composables/
+    └── useProjectionFiltering.ts (80 lines) - Search/filter logic
+```
+
+### Implementation Plan
+
+#### Phase 1: Extract Search Functionality (1 hour)
+
+**Step 1.1**: Create ProjectionSearchBar.vue
+```vue
+<!-- src/components/ui/projections/ProjectionSearchBar.vue -->
+<script setup lang="ts">
+interface Props {
+  modelValue: string
+  isSearching: boolean
+  placeholder?: string
+}
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  'update:isSearching': [value: boolean]
+  'clear': []
+}>()
+</script>
+
+<template>
+  <div v-if="isSearching" class="relative mb-2">
+    <input
+      :value="modelValue"
+      type="text"
+      :placeholder="placeholder"
+      class="input input-sm w-full pr-8"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    >
+    <button
+      v-if="modelValue"
+      type="button"
+      class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
+      @click="emit('clear')"
+    >
+      <i class="ri-close-line" />
+    </button>
+  </div>
+</template>
+```
+
+**Step 1.2**: Create useProjectionFiltering.ts composable
+```typescript
+// src/composables/useProjectionFiltering.ts
+import type { ProjectionDefinition } from '@/core/projections/types'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { projectionRegistry } from '@/core/projections/registry'
+
+interface ProjectionOption {
+  value: string
+  label: string
+  category?: string
+}
+
+interface ProjectionGroup {
+  category: string
+  options?: ProjectionOption[]
+}
+
+export function useProjectionFiltering(
+  projectionGroups: Ref<ProjectionGroup[]>
+) {
+  const { t } = useI18n()
+  const searchQuery = ref('')
+  const isSearching = ref(false)
+
+  const filteredProjectionGroups = computed(() => {
+    if (!searchQuery.value.trim()) {
+      return projectionGroups.value
+    }
+
+    const query = searchQuery.value.toLowerCase().trim()
+
+    return projectionGroups.value
+      .map(group => ({
+        ...group,
+        options: group.options?.filter((option) => {
+          // Search by label
+          const label = t(option.label).toLowerCase()
+          if (label.includes(query)) return true
+
+          // Search by projection ID
+          if (option.value.toLowerCase().includes(query)) return true
+
+          // Search by category
+          if (group.category.toLowerCase().includes(query)) return true
+
+          // Search by projection properties
+          const projection = projectionRegistry.get(option.value)
+          if (projection) {
+            if (projection.family.toLowerCase().includes(query)) return true
+            if (projection.capabilities.preserves.some(prop => 
+              prop.toLowerCase().includes(query)
+            )) return true
+          }
+
+          return false
+        }),
+      }))
+      .filter(group => group.options && group.options.length > 0)
+  })
+
+  function toggleSearch() {
+    isSearching.value = !isSearching.value
+    if (!isSearching.value) {
+      searchQuery.value = ''
+    }
+  }
+
+  function clearSearch() {
+    searchQuery.value = ''
+  }
+
+  return {
+    searchQuery,
+    isSearching,
+    filteredProjectionGroups,
+    toggleSearch,
+    clearSearch,
+  }
+}
+```
+
+**Verification**:
+- Search functionality works identically
+- Filtering is case-insensitive
+- Clear button works
+- Toggle search works
+
+#### Phase 2: Extract Recommendation Display (1 hour)
+
+**Step 2.1**: Create ProjectionRecommendationBadge.vue
+```vue
+<!-- src/components/ui/projections/ProjectionRecommendationBadge.vue -->
+<script setup lang="ts">
+import type { ProjectionRecommendation } from '@/core/projections/types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+interface Props {
+  projectionId: string
+  recommendations: ProjectionRecommendation[]
+  showBadge?: boolean
+  showTooltip?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showBadge: true,
+  showTooltip: true,
+})
+
+const { t } = useI18n()
+
+const recommendation = computed(() => 
+  props.recommendations.find(r => r.projection.id === props.projectionId)
+)
+
+const badge = computed(() => {
+  if (!recommendation.value || !props.showBadge) return ''
+  
+  switch (recommendation.value.level) {
+    case 'excellent': return '+++'
+    case 'good': return '++'
+    case 'usable': return '+'
+    default: return ''
+  }
+})
+
+const cssClass = computed(() => {
+  if (!recommendation.value) return ''
+  
+  switch (recommendation.value.level) {
+    case 'excellent': return 'text-success'
+    case 'good': return 'text-info'
+    case 'not-recommended': return 'text-error opacity-60'
+    default: return ''
+  }
+})
+
+const tooltip = computed(() => {
+  if (!recommendation.value || !props.showTooltip) return ''
+  return t(recommendation.value.reason)
+})
+</script>
+
+<template>
+  <span 
+    v-if="recommendation && showBadge" 
+    :class="cssClass"
+    :title="tooltip"
+  >
+    {{ badge }}
+  </span>
+</template>
+```
+
+**Step 2.2**: Create useProjectionRecommendations.ts composable
+```typescript
+// src/composables/useProjectionRecommendations.ts
+import type { ProjectionRecommendation } from '@/core/projections/types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+export function useProjectionRecommendations(
+  recommendations: Ref<ProjectionRecommendation[] | undefined>
+) {
+  const { t } = useI18n()
+
+  const recommendationMap = computed(() => {
+    if (!recommendations.value) return new Map()
+    return new Map(
+      recommendations.value.map(rec => [rec.projection.id, rec])
+    )
+  })
+
+  function getRecommendation(projectionId: string) {
+    return recommendationMap.value.get(projectionId)
+  }
+
+  function getBadge(projectionId: string): string {
+    const rec = getRecommendation(projectionId)
+    if (!rec) return ''
+
+    switch (rec.level) {
+      case 'excellent': return '+++'
+      case 'good': return '++'
+      case 'usable': return '+'
+      default: return ''
+    }
+  }
+
+  function getCssClass(projectionId: string): string {
+    const rec = getRecommendation(projectionId)
+    if (!rec) return ''
+
+    switch (rec.level) {
+      case 'excellent': return 'text-success'
+      case 'good': return 'text-info'
+      case 'not-recommended': return 'text-error opacity-60'
+      default: return ''
+    }
+  }
+
+  function getTooltip(projectionId: string): string {
+    const rec = getRecommendation(projectionId)
+    if (!rec) return ''
+    return t(rec.reason)
+  }
+
+  return {
+    recommendationMap,
+    getRecommendation,
+    getBadge,
+    getCssClass,
+    getTooltip,
+  }
+}
+```
+
+**Verification**:
+- Recommendation badges display correctly
+- Tooltips show on hover
+- CSS classes apply properly
+- Integration with main selector works
+
+#### Phase 3: Extract Dropdown Component (1 hour)
+
+**Step 3.1**: Create ProjectionDropdown.vue
+```vue
+<!-- src/components/ui/projections/ProjectionDropdown.vue -->
+<script setup lang="ts">
+import type { ProjectionRecommendation } from '@/core/projections/types'
+
+interface ProjectionOption {
+  value: string
+  label: string
+  category?: string
+}
+
+interface ProjectionGroup {
+  category: string
+  options?: ProjectionOption[]
+}
+
+interface Props {
+  modelValue?: string
+  projectionGroups: ProjectionGroup[]
+  recommendations?: ProjectionRecommendation[]
+  showRecommendations?: boolean
+  disabled?: boolean
+  loading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: undefined,
+  recommendations: undefined,
+  showRecommendations: true,
+  disabled: false,
+  loading: false,
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+// Import recommendation composable
+import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
+import { toRef } from 'vue'
+
+const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
+  toRef(props, 'recommendations')
+)
+</script>
+
+<template>
+  <!-- Loading skeleton -->
+  <div v-if="loading" class="skeleton h-12 w-full" />
+
+  <!-- Dropdown -->
+  <select
+    v-else
+    :value="modelValue"
+    class="select cursor-pointer"
+    :disabled="disabled"
+    @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
+  >
+    <optgroup
+      v-for="group in projectionGroups"
+      :key="group.category"
+      :label="group.category"
+    >
+      <option
+        v-for="option in group.options"
+        :key="option.value"
+        :value="option.value"
+        :class="getCssClass(option.value)"
+        :title="getTooltip(option.value)"
+      >
+        {{ $t(option.label) }}{{ showRecommendations && getBadge(option.value) ? ` ${getBadge(option.value)}` : '' }}
+      </option>
+    </optgroup>
+  </select>
+</template>
+```
+
+**Verification**:
+- Dropdown renders all options
+- Selection emits correct values
+- Loading skeleton displays
+- Disabled state works
+
+#### Phase 4: Refactor Main Component (1 hour)
+
+**Step 4.1**: Update ProjectionSelector.vue to use extracted components
+```vue
+<!-- src/components/ui/ProjectionSelector.vue (NEW ~120 lines) -->
+<script setup lang="ts">
+import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import ProjectionConfirmDialog from '@/components/ui/ProjectionConfirmDialog.vue'
+import ProjectionInfo from '@/components/ui/ProjectionInfo.vue'
+import ProjectionSearchBar from '@/components/ui/projections/ProjectionSearchBar.vue'
+import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import ProjectionRecommendationBadge from '@/components/ui/projections/ProjectionRecommendationBadge.vue'
+import ToastNotification from '@/components/ui/ToastNotification.vue'
+
+import { useProjectionValidation } from '@/composables/useProjectionValidation'
+import { useProjectionFiltering } from '@/composables/useProjectionFiltering'
+import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
+import { projectionRegistry } from '@/core/projections/registry'
+import { useConfigStore } from '@/stores/config'
+
+// ... props interface (unchanged)
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  'change': [value: string]
+}>()
+
+const { t } = useI18n()
+
+// Use filtering composable
+const { 
+  searchQuery, 
+  isSearching, 
+  filteredProjectionGroups,
+  toggleSearch,
+  clearSearch 
+} = useProjectionFiltering(toRef(props, 'projectionGroups'))
+
+// Use recommendations composable
+const { getRecommendation } = useProjectionRecommendations(
+  toRef(props, 'recommendations')
+)
+
+// Info modal state
+const showInfoModal = ref(false)
+const infoProjection = ref<ProjectionDefinition | null>(null)
+
+// Local value
+const localValue = computed({
+  get: () => props.modelValue,
+  set: (value: string | undefined) => {
+    if (value !== undefined) {
+      emit('update:modelValue', value)
+      emit('change', value)
+    }
+  },
+})
+
+// Validation logic (unchanged but cleaner)
+const configStore = useConfigStore()
+const { validateProjection, formatAlternatives } = useProjectionValidation()
+const validationMessage = ref<string | null>(null)
+const validationSeverity = ref<'error' | 'warning' | 'info'>('info')
+const confirmDialogProjection = ref<ProjectionDefinition | null>(null)
+const confirmDialogMessage = ref('')
+const confirmDialogAlternatives = ref<ProjectionDefinition[]>([])
+const previousProjectionId = ref<string | undefined>(props.modelValue)
+
+// Watch for validation (unchanged)
+watch(localValue, (newProjectionId, oldProjectionId) => {
+  // ... validation logic (unchanged)
+})
+
+// Helper functions
+function showProjectionInfo() {
+  if (localValue.value) {
+    const projection = projectionRegistry.get(localValue.value)
+    if (projection) {
+      infoProjection.value = projection
+      showInfoModal.value = true
+    }
+  }
+}
+
+function closeInfoModal() {
+  showInfoModal.value = false
+}
+
+function closeValidationMessage() {
+  validationMessage.value = null
+}
+
+function handleConfirmProhibited() {
+  confirmDialogProjection.value = null
+}
+
+function handleCancelProhibited() {
+  if (previousProjectionId.value) {
+    emit('update:modelValue', previousProjectionId.value)
+  }
+  confirmDialogProjection.value = null
+}
+</script>
+
+<template>
+  <fieldset class="form-control fieldset flex flex-col">
+    <legend class="fieldset-legend text-sm flex items-center justify-between w-full">
+      <span class="flex items-center gap-2">
+        <i v-if="icon" :class="icon" />
+        {{ label }}
+      </span>
+      <div class="flex items-center gap-1 ml-auto">
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs btn-circle"
+          :disabled="!modelValue"
+          @click="showProjectionInfo"
+        >
+          <i class="text-base ri-information-line" />
+        </button>
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs btn-circle"
+          @click="toggleSearch"
+        >
+          <i class="text-base" :class="[isSearching ? 'ri-close-line' : 'ri-search-line']" />
+        </button>
+      </div>
+    </legend>
+
+    <!-- Search Bar Component -->
+    <ProjectionSearchBar
+      v-model="searchQuery"
+      v-model:is-searching="isSearching"
+      :placeholder="t('common.searchProjections')"
+      @clear="clearSearch"
+    />
+
+    <!-- Dropdown Component -->
+    <ProjectionDropdown
+      v-model="localValue"
+      :projection-groups="filteredProjectionGroups"
+      :recommendations="recommendations"
+      :show-recommendations="showRecommendations"
+      :disabled="disabled"
+      :loading="loading"
+    />
+
+    <!-- No results message -->
+    <div
+      v-if="isSearching && searchQuery && filteredProjectionGroups.length === 0"
+      class="label"
+    >
+      <span class="label-text-alt text-warning">
+        {{ t('common.noProjectionsFound') }}
+      </span>
+    </div>
+
+    <!-- Recommendation hint -->
+    <div
+      v-if="showRecommendations && modelValue && getRecommendation(modelValue)"
+      class="label mt-3"
+    >
+      <span class="label-text-alt flex items-center gap-2">
+        <ProjectionRecommendationBadge
+          :projection-id="modelValue"
+          :recommendations="recommendations || []"
+        />
+        <span class="opacity-70">
+          {{ getRecommendation(modelValue)?.reason }}
+        </span>
+      </span>
+    </div>
+
+    <!-- Validation toast -->
+    <ToastNotification
+      :message="validationMessage"
+      :type="validationSeverity"
+      position="top-end"
+      @close="closeValidationMessage"
+    />
+
+    <!-- Confirmation dialog -->
+    <ProjectionConfirmDialog
+      :projection="confirmDialogProjection"
+      :message="confirmDialogMessage"
+      :alternatives="confirmDialogAlternatives"
+      @confirm="handleConfirmProhibited"
+      @cancel="handleCancelProhibited"
+    />
+
+    <!-- Info modal -->
+    <dialog :class="{ 'modal-open': showInfoModal }" class="modal">
+      <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">
+          {{ t('common.projectionInformation') }}
+        </h3>
+        <ProjectionInfo
+          v-if="infoProjection"
+          :projection="infoProjection"
+          :show-metadata="true"
+        />
+        <div class="modal-action">
+          <button class="btn" @click="closeInfoModal">
+            {{ t('common.close') }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop" @click="closeInfoModal">
+        <button>close</button>
+      </form>
+    </dialog>
+  </fieldset>
+</template>
+
+<style scoped>
+/* Keep existing styles */
+</style>
+```
+
+**Verification**:
+- All functionality works identically
+- Component count reduced from 468 to ~120 lines (74% reduction)
+- New components are reusable
+- Props interface unchanged (no breaking changes)
+
+### Testing Strategy
+
+#### Unit Tests (Recommended)
+```typescript
+// useProjectionFiltering.spec.ts
+describe('useProjectionFiltering', () => {
+  it('filters by label')
+  it('filters by projection ID')
+  it('filters by category')
+  it('filters by projection family')
+  it('filters by preservation properties')
+  it('returns empty when no matches')
+  it('toggles search mode')
+  it('clears search query')
+})
+
+// useProjectionRecommendations.spec.ts
+describe('useProjectionRecommendations', () => {
+  it('creates recommendation map')
+  it('gets recommendation by ID')
+  it('returns correct badge for level')
+  it('returns correct CSS class for level')
+  it('returns translated tooltip')
+})
+
+// ProjectionSearchBar.spec.ts
+describe('ProjectionSearchBar', () => {
+  it('emits update on input')
+  it('shows clear button when has value')
+  it('emits clear event')
+  it('only renders when isSearching is true')
+})
+
+// ProjectionDropdown.spec.ts
+describe('ProjectionDropdown', () => {
+  it('renders all groups')
+  it('renders all options')
+  it('emits update on change')
+  it('shows loading skeleton')
+  it('applies disabled state')
+  it('shows recommendation badges')
+})
+```
+
+#### Integration Tests
+1. Search functionality with various queries
+2. Recommendation display across different projection types
+3. Dropdown selection and change events
+4. Modal info display
+5. Validation and confirmation dialogs
+6. No results message display
+
+#### Manual Testing Checklist
+- [ ] Search filters projections correctly
+- [ ] Search by ID, label, category, family works
+- [ ] Clear search resets filter
+- [ ] Toggle search opens/closes search bar
+- [ ] Dropdown shows all projections
+- [ ] Dropdown selection emits correct events
+- [ ] Loading skeleton displays
+- [ ] Disabled state works
+- [ ] Recommendation badges display
+- [ ] Recommendation tooltips work
+- [ ] Info modal opens with correct projection
+- [ ] Validation warnings appear
+- [ ] Confirmation dialog works
+- [ ] No console errors
+- [ ] No visual regressions
+
+### Success Criteria
+- [ ] ProjectionSelector.vue reduced from 468 to ~120 lines (74% reduction)
+- [ ] 3 new reusable components created
+- [ ] 2 new composables created
+- [ ] All functionality preserved
+- [ ] No breaking changes to props interface
+- [ ] Typecheck passes
+- [ ] All tests pass
+- [ ] Documentation updated
+
+### Estimated Timeline
+- Phase 1 (Search): 1 hour
+- Phase 2 (Recommendations): 1 hour
+- Phase 3 (Dropdown): 1 hour
+- Phase 4 (Main Component): 1 hour
+- Testing: 1 hour
+- **Total: 4-5 hours**
+
+### Risks & Mitigations
+
+**Risk 1**: Breaking changes to external consumers
+- **Mitigation**: Keep props interface identical, only internal refactoring
+- **Detection**: Compile-time errors in consumers
+- **Rollback**: Revert to original single component
+
+**Risk 2**: Performance degradation from prop drilling
+- **Mitigation**: Use composables for shared logic, not excessive props
+- **Detection**: Profile render times before/after
+- **Rollback**: Consolidate if performance issue found
+
+**Risk 3**: Validation logic breaks
+- **Mitigation**: Thorough testing of validation flows
+- **Detection**: Unit tests + manual testing with prohibited projections
+- **Rollback**: Keep validation logic unchanged during refactor
+
+---
+
+## Summary & Recommendations
+
+### Task Priority
+1. **ProjectionSelector Refactoring** (Task 2) - Recommended FIRST
+   - Lower risk (isolated component)
+   - No cross-store dependencies
+   - Clear boundaries
+   - Immediate benefit (74% line reduction)
+   - Builds confidence for store migration
+
+2. **Store Migration** (Task 1) - Recommended SECOND
+   - Higher complexity
+   - More testing required
+   - Benefits from cleaner components after Task 2
+   - Requires careful coordination
+
+### Overall Estimated Effort
+- Task 1 (Store Migration): 6-10 hours
+- Task 2 (ProjectionSelector): 4-5 hours
+- **Total: 10-15 hours**
+
+### Key Success Factors
+1. **Incremental approach**: Both tasks designed for gradual migration
+2. **Bridge patterns**: Temporary compatibility layers reduce risk
+3. **Comprehensive testing**: Manual and automated tests at each phase
+4. **Rollback plans**: Clear reversal strategy if issues arise
+5. **Documentation**: Update docs as changes are made
+
+### Next Steps
+1. Review this sub-plan with team/stakeholders
+2. Decide on task order (recommend Task 2 first)
+3. Create feature branch for chosen task
+4. Follow phase-by-phase implementation
+5. Update vue-refactoring.plan.llm.txt as tasks complete
+
+## Status
+Status: TASK_2_COMPLETE - TASK_1_PENDING
+Created: 2025-10-10
+Last Updated: 2025-10-10
+Parent Plan: vue-refactoring.plan.llm.txt
+Ready for Implementation: Task 1 ready to start
+Completed: Task 2 (ProjectionSelector Refactoring)
+
+## Task 2 Completion Summary
+**Status**: ✅ COMPLETE
+**Result**: ProjectionSelector.vue: 468 → 341 lines (27% reduction, 127 lines removed)
+
+**Files Created** (5 files):
+- ProjectionSearchBar.vue (48 lines) - Search input component
+- ProjectionDropdown.vue (118 lines) - Main dropdown component  
+- ProjectionRecommendationBadge.vue (52 lines) - Recommendation display
+- useProjectionFiltering.ts (91 lines) - Search/filter logic composable
+- useProjectionRecommendations.ts (78 lines) - Recommendation logic composable
+
+**Benefits Achieved**:
+- ✅ Reduced main component from 468 to 341 lines (27% reduction)
+- ✅ Created 3 reusable UI components
+- ✅ Created 2 reusable composables
+- ✅ Maintained exact same props interface (no breaking changes)
+- ✅ All functionality preserved
+- ✅ Typecheck passes with 0 errors
+- ✅ Better separation of concerns (search, dropdown, recommendations)
+
+**Note**: Actual reduction was 27% (not the planned 74%) because validation, info modal, 
+and confirmation dialog logic were kept in main component to maintain cohesion with 
+validation workflow. The extracted components and composables are highly reusable.
