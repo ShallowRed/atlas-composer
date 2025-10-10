@@ -37,7 +37,15 @@ File: docs/services.llm.txt
 - DataLoaderService: GeoJSON data loading
 - TerritoryDataService: Territory positioning
 
-### 4. Build System
+### 4. Vue Layer
+Domain: User interface and interaction
+File: docs/vue-architecture.llm.txt
+- Vue 3 components with Composition API
+- Pinia stores for state management
+- Composables for reusable logic
+- Component hierarchy and data flow
+
+### 5. Build System
 Domain: Data preparation and validation
 File: docs/scripts.llm.txt
 - prepare-geodata.ts: Natural Earth processing
@@ -48,10 +56,19 @@ File: docs/scripts.llm.txt
 
 ```
 src/
-├── components/          # Vue components
+├── App.vue             # Root component
+├── main.ts             # Application entry
+├── router/             # Vue Router configuration
+├── views/              # Page components
+│   └── MapView.vue         # Main application view
+├── components/         # Vue components
 │   ├── MapRenderer.vue      # Main rendering component
 │   ├── TerritoryControls.vue
-│   └── ui/                  # UI components
+│   └── ui/                  # Reusable UI components
+├── composables/        # Vue composables (reusable logic)
+├── stores/             # Pinia state stores
+│   ├── config.ts           # Configuration state
+│   └── geoData.ts          # Geographic data state
 ├── core/               # Core domain logic
 │   ├── atlases/            # Atlas system
 │   ├── projections/        # Projection system
@@ -61,11 +78,8 @@ src/
 │   ├── projection/         # Projection creation
 │   ├── rendering/          # Rendering coordination
 │   └── data/               # Data loading
-├── stores/             # Pinia state stores
-│   ├── config.ts           # Configuration state
-│   └── geoData.ts          # Geographic data state
 ├── types/              # TypeScript definitions
-└── views/              # Page components
+└── i18n/               # Internationalization
 
 configs/                # Atlas configurations
 ├── schema.json            # JSON schema
@@ -143,9 +157,14 @@ DOM Update
    - Natural Earth data processing
    - Territory data management
 
-5. **State Domain** (stores/)
-   - Application configuration state
-   - Geographic data state
+5. **UI Domain** (views/, components/, composables/)
+   - Vue components and page layouts
+   - Reusable composables for logic
+   - Component-specific state and interactions
+
+6. **State Domain** (stores/)
+   - Application configuration state (Pinia)
+   - Geographic data state (Pinia)
    - Reactive computed properties
 
 ## Reference Files
@@ -155,6 +174,7 @@ For detailed information on specific domains:
 - Projections: docs/projections.llm.txt
 - Services: docs/services.llm.txt
 - Scripts: docs/scripts.llm.txt
+- Vue Architecture: docs/vue-architecture.llm.txt
 - Adding New Atlas: docs/add-new-atlas.llm.txt
 
 ## Critical Dependencies

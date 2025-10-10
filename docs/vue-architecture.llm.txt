@@ -1,0 +1,298 @@
+# Vue Architecture Documentation
+
+## Overview
+
+Vue 3 Composition API application with TypeScript, Pinia stores, and service-oriented architecture.
+
+## Technology Stack
+
+- **Vue 3**: Composition API with `<script setup>` syntax
+- **TypeScript**: Full type safety across components
+- **Pinia**: State management (2 stores: config, geoData)
+- **Vue Router**: SPA routing (2 routes: map, about)
+- **Vue I18n**: Internationalization (EN/FR)
+- **Tailwind CSS + DaisyUI**: Styling framework
+
+## Component Architecture
+
+```
+src/
+├── App.vue                    # Root component, layout, global error handling
+├── main.ts                    # App initialization, plugin setup
+├── router/index.ts            # Route definitions
+├── views/                     # Page components
+│   ├── MapView.vue           # Main application view (528 lines - NEEDS REFACTORING)
+│   └── AboutView.vue         # About page
+├── components/
+│   ├── MapRenderer.vue       # Map rendering component (259 lines)
+│   ├── TerritoryControls.vue # Territory parameter controls (283 lines)
+│   └── ui/                   # Reusable UI components
+│       ├── AppHeader.vue
+│       ├── AppFooter.vue
+│       ├── CardContainer.vue
+│       ├── FormControl.vue
+│       ├── ProjectionSelector.vue (468 lines - COMPLEX)
+│       ├── ProjectionParamsControls.vue
+│       ├── ProjectionInfo.vue
+│       ├── ProjectionConfirmDialog.vue
+│       ├── ViewModeSection.vue
+│       ├── SectionHeader.vue
+│       ├── ThemeSelector.vue
+│       ├── LanguageSelector.vue
+│       ├── ToastNotification.vue
+│       └── LoadingModal.vue
+├── composables/
+│   └── useProjectionValidation.ts  # Projection validation logic
+└── stores/
+    ├── config.ts              # Configuration state (391 lines)
+    └── geoData.ts             # Geographic data state (200 lines)
+```
+
+## Current Issues
+
+### 1. MapView Component Bloat (528 lines)
+**Problem**: Single view component handles too many concerns:
+- Atlas configuration
+- View mode management
+- Projection configuration
+- Data loading orchestration
+- Layout rendering for 4 different view modes
+- Watchers for region/mode/territory changes
+
+**Impact**:
+- Hard to maintain and test
+- Complex template with nested v-if conditions
+- Difficult to add new features
+- Poor separation of concerns
+
+### 2. Insufficient Component Decomposition
+**Problem**: Large monolithic components instead of focused, reusable ones:
+- MapView.vue: 528 lines
+- ProjectionSelector.vue: 468 lines
+- TerritoryControls.vue: 283 lines
+- MapRenderer.vue: 259 lines
+
+**Impact**:
+- Duplication of logic
+- Hard to unit test
+- Difficult to understand data flow
+- No clear component hierarchy
+
+### 3. State Management Patterns
+**Problem**: Mixed state management approaches:
+- Direct store access in templates (`configStore.selectedAtlas`)
+- Computed properties wrapping store state
+- Some logic in components, some in stores
+- No clear ownership of business logic
+
+**Impact**:
+- Inconsistent patterns
+- Hard to predict state changes
+- Difficult to debug state flow
+
+### 4. Data Loading Strategy
+**Problem**: Complex loading orchestration in MapView:
+- Multiple watchers for different loading scenarios
+- `withMinLoadingTime` wrapper for skeleton timing
+- Loading logic mixed with business logic
+- No centralized loading state machine
+
+**Impact**:
+- Race conditions possible
+- Hard to reason about loading states
+- Skeleton timing feels artificial
+
+### 5. Type Safety Gaps
+**Problem**: Some type definitions incomplete:
+- Props with optional defaults but no validation
+- Loose typing in some event handlers
+- Missing null checks in computed properties
+
+**Impact**:
+- Runtime errors possible
+- Poor IDE intellisense
+- Hard to refactor safely
+
+### 6. Component Communication
+**Problem**: Mixed patterns for component communication:
+- Direct store mutations
+- v-model bindings
+- Event emitters
+- Props drilling
+
+**Impact**:
+- Inconsistent data flow
+- Hard to trace changes
+- Difficult to implement features
+
+## Strengths
+
+✅ **Good Patterns**:
+- Composition API with `<script setup>` - modern and concise
+- Service layer separation - logic not in components
+- Pinia stores - reactive and well-structured
+- TypeScript usage - good type safety where implemented
+- i18n integration - proper internationalization
+- ViewModeSection component - clean conditional rendering
+
+✅ **Well-Designed Components**:
+- FormControl - reusable, consistent API
+- CardContainer - good layout component
+- ViewModeSection - clean view mode switching
+- ToastNotification - proper error display
+
+✅ **Service Integration**:
+- Services properly used for business logic
+- Clear separation: UI → Store → Service → Domain
+- Cartographer service manages rendering lifecycle
+
+## Component Relationships
+
+```
+App.vue
+├── AppHeader.vue
+├── RouterView
+│   └── MapView.vue (MAIN VIEW)
+│       ├── CardContainer (x3)
+│       │   ├── Controls Section
+│       │   │   ├── FormControl (atlas, territory, theme)
+│       │   │   └── ThemeSelector
+│       │   ├── View Configuration Section
+│       │   │   ├── FormControl (view mode, proj mode)
+│       │   │   ├── ProjectionSelector
+│       │   │   └── ProjectionParamsControls
+│       │   └── Map Display Section
+│       │       ├── ViewModeSection (x4 modes)
+│       │       │   ├── MapRenderer (split/composite/unified)
+│       │       │   ├── TerritoryControls
+│       │       │   └── SectionHeader
+│       └── Territory Config Section
+│           └── TerritoryControls
+└── AppFooter.vue
+```
+
+## State Management
+
+### configStore (391 lines)
+**Responsibilities**:
+- Atlas selection and configuration
+- View mode and projection mode
+- Projection parameters (custom overrides)
+- Territory projections, translations, scales
+- UI visibility flags (computed)
+- Theme management
+
+**Issues**:
+- Too many responsibilities
+- Mixes UI state with domain state
+- Large file, hard to navigate
+- Some computed properties could be separate composables
+
+### geoDataStore (200 lines)
+**Responsibilities**:
+- Data loading and caching
+- Territory filtering
+- Cartographer instance management
+- Loading state and error handling
+
+**Issues**:
+- Cartographer lifecycle tightly coupled to store
+- Data loading logic could be extracted
+- Territory filtering duplicates service logic
+
+## Composables
+
+### useProjectionValidation (148 lines)
+**Purpose**: Validates projection selections, provides warnings
+
+**Good**:
+- Single responsibility
+- Reusable logic
+- Clear interface
+
+**Opportunity**:
+- Could return more granular validation hooks
+- Could be split into smaller composables
+
+## Current Data Flow
+
+```
+User Action (Template)
+    ↓
+Direct Store Mutation / v-model
+    ↓
+Store State Change
+    ↓
+Watcher in MapView / MapRenderer
+    ↓
+Service Call (if needed)
+    ↓
+Store Update / Component Re-render
+```
+
+**Issues**:
+- No clear action/command pattern
+- State changes scattered
+- Hard to implement undo/redo
+- Difficult to add analytics/logging
+
+## Recommended Patterns
+
+### 1. Composition API Best Practices
+- Use `<script setup lang="ts">` - already done ✓
+- Extract logic to composables - partially done
+- Keep components focused - NEEDS WORK
+- Use `defineProps` with types - done ✓
+
+### 2. State Management
+- Store for global state only
+- Component state for local UI state
+- Computed properties for derived state
+- Actions for state mutations (not direct mutations)
+
+### 3. Component Design
+- Single Responsibility Principle
+- Props down, events up
+- Composition over inheritance
+- Keep templates simple (<100 lines)
+
+### 4. Code Organization
+- Group by feature, not by type
+- Co-locate related files
+- Extract complex logic to composables
+- Keep components focused
+
+## Performance Considerations
+
+### Current State
+- No virtual scrolling for territory lists
+- All watchers are not optimized with `{ deep: true }` sparingly used
+- No lazy loading of components
+- Skeleton timing uses artificial delays
+
+### Optimization Opportunities
+- Implement virtual scrolling for large territory lists
+- Use `v-memo` for static content
+- Lazy load heavy components (ProjectionSelector)
+- Optimize watchers with proper dependencies
+- Use `shallowRef` where deep reactivity not needed
+
+## Testing Considerations
+
+### Current State
+- No component tests visible
+- Complex components hard to test
+- Tight coupling to stores makes mocking difficult
+
+### Testing Strategy
+- Unit test composables (isolated logic)
+- Component tests with Testing Library
+- Mock stores for component tests
+- E2E tests for critical flows
+- Test service layer independently
+
+## Related Documentation
+
+- docs/architecture.llm.txt - Overall architecture
+- docs/services.llm.txt - Service layer
+- docs/atlases.llm.txt - Atlas configuration system

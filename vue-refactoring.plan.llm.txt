@@ -1,0 +1,240 @@
+# Vue Architecture Refactoring - Implementation Plan
+
+## Objective
+Refactor Vue components and state management to improve maintainability, testability, and code organization by decomposing large components, extracting reusable logic, and establishing consistent patterns.
+
+## Affected Domains
+- [ ] Vue Components (docs/vue-architecture.llm.txt) - Complete refactoring
+- [ ] State Management (stores/) - Extract composables, reorganize
+- [ ] Architecture (docs/architecture.llm.txt) - Add Vue layer documentation
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Vue docs: docs/vue-architecture.llm.txt (newly created)
+- Services: docs/services.llm.txt
+- Current state: MapView.vue is 528 lines with too many responsibilities
+
+## Changes
+
+### Phase 1: Extract View Mode Components
+Split MapView into focused components for each view mode.
+
+- [ ] File: src/components/views/SplitView.vue
+  - Action: Extract split mode rendering from MapView
+  - Why: Isolate complex split mode layout logic
+  - Content: Mainland + territories grid, region grouping
+  
+- [ ] File: src/components/views/CompositeCustomView.vue
+  - Action: Extract composite-custom mode rendering
+  - Why: Dedicated component for custom composite projection
+  - Content: MapRenderer in composite mode
+  
+- [ ] File: src/components/views/CompositeExistingView.vue
+  - Action: Extract composite-existing mode rendering
+  - Why: Dedicated component for pre-built composites
+  - Content: MapRenderer with existing projection
+  
+- [ ] File: src/components/views/UnifiedView.vue
+  - Action: Extract unified mode rendering
+  - Why: Dedicated component for unified projection
+  - Content: MapRenderer with unified data
+  
+- [ ] File: src/views/MapView.vue
+  - Action: Refactor to orchestrator component
+  - Why: Reduce from 528 lines to ~150 lines
+  - Content: Configuration panels + dynamic view component
+
+### Phase 2: Extract Configuration Sections
+Break down MapView's configuration sections into focused components.
+
+- [ ] File: src/components/configuration/AtlasConfigSection.vue
+  - Action: Extract atlas/region/territory selection
+  - Why: Separate atlas configuration concerns
+  - Content: Atlas selector, territory mode selector, theme
+  
+- [ ] File: src/components/configuration/ViewConfigSection.vue
+  - Action: Extract view mode and projection configuration
+  - Why: Separate view/projection concerns
+  - Content: View mode, composite projection, projection mode, parameters
+  
+- [ ] File: src/components/configuration/DisplayOptionsSection.vue
+  - Action: Extract display toggles
+  - Why: Group related display options
+  - Content: Graticule, sphere, composition borders, map limits
+
+### Phase 3: Extract Data Loading Composables
+Move data loading logic from MapView watchers to composables.
+
+- [ ] File: src/composables/useAtlasData.ts
+  - Action: Extract data loading orchestration
+  - Why: Centralize data loading logic, remove watchers from MapView
+  - Content: initialize(), loadForViewMode(), loadForAtlas()
+  - Returns: { isLoading, error, loadData, reinitialize }
+  
+- [ ] File: src/composables/useLoadingState.ts
+  - Action: Extract skeleton/loading timing logic
+  - Why: Reusable loading state management
+  - Content: withMinLoadingTime, showSkeleton ref
+  - Returns: { showSkeleton, withMinLoadingTime }
+
+### Phase 4: Extract Store Composables
+Create focused composables for store interactions.
+
+- [ ] File: src/composables/useProjectionConfig.ts
+  - Action: Extract projection configuration logic
+  - Why: Simplify projection-related computed properties
+  - Content: Projection groups, recommendations, visibility flags
+  - Returns: { projectionGroups, recommendations, showSelector, etc. }
+  
+- [ ] File: src/composables/useTerritoryConfig.ts
+  - Action: Extract territory configuration logic
+  - Why: Simplify territory-related computed properties
+  - Content: Territory list, projections, translations, scales
+  - Returns: { territories, projections, updateProjection, resetDefaults }
+  
+- [ ] File: src/composables/useViewMode.ts
+  - Action: Extract view mode logic
+  - Why: Centralize view mode state and options
+  - Content: View mode options, composite options, current view component
+  - Returns: { viewModeOptions, compositeOptions, currentViewComponent }
+
+### Phase 5: Simplify Component Props
+Standardize component interfaces and reduce prop drilling.
+
+- [ ] File: src/components/MapRenderer.vue
+  - Action: Simplify props interface
+  - Why: Reduce complexity, use better defaults
+  - Content: Consolidate rendering options into single config object
+  
+- [ ] File: src/components/TerritoryControls.vue
+  - Action: Use composables instead of direct store access
+  - Why: Better testability and reusability
+  - Content: Replace store access with composable hooks
+  
+- [ ] File: src/components/ui/ProjectionSelector.vue
+  - Action: Break down into sub-components
+  - Why: Reduce from 468 lines to ~200 lines
+  - Content: Extract search, info modal, recommendation display
+
+### Phase 6: Reorganize Store Structure
+Split large stores into focused modules.
+
+- [ ] File: src/stores/config.ts
+  - Action: Extract UI state to separate module
+  - Why: Separate domain state from UI state
+  - Content: Keep only: atlas, projection, view mode, parameters
+  
+- [ ] File: src/stores/ui.ts
+  - Action: Create new UI state store
+  - Why: Manage UI-only state separately
+  - Content: Theme, visibility flags, user preferences
+  
+- [ ] File: src/stores/territory.ts
+  - Action: Extract territory state
+  - Why: Separate territory configuration concerns
+  - Content: Territory projections, translations, scales
+
+### Phase 7: Improve Type Safety
+Add stronger typing throughout Vue layer.
+
+- [ ] File: src/types/vue-props.ts
+  - Action: Create shared prop type definitions
+  - Why: Consistent prop types across components
+  - Content: MapRendererProps, ConfigSectionProps, etc.
+  
+- [ ] File: src/types/composables.ts
+  - Action: Create composable return types
+  - Why: Type-safe composable interfaces
+  - Content: LoadingState, ProjectionConfig, TerritoryConfig, etc.
+
+### Phase 8: Add Component Tests
+Establish testing foundation for refactored components.
+
+- [ ] File: src/components/__tests__/MapRenderer.spec.ts
+  - Action: Add unit tests for MapRenderer
+  - Why: Ensure rendering logic correctness
+  
+- [ ] File: src/composables/__tests__/useProjectionConfig.spec.ts
+  - Action: Add unit tests for projection config composable
+  - Why: Test business logic in isolation
+  
+- [ ] File: src/composables/__tests__/useAtlasData.spec.ts
+  - Action: Add unit tests for data loading composable
+  - Why: Test loading orchestration logic
+
+## Documentation Updates
+- [ ] docs/vue-architecture.llm.txt - Update with new structure
+- [ ] docs/architecture.llm.txt - Add Vue layer section
+- [ ] Create docs/vue-components.llm.txt - Component catalog
+- [ ] Create docs/vue-composables.llm.txt - Composables reference
+
+## Verification
+- [ ] Code compiles without errors
+- [ ] All view modes render correctly
+- [ ] Data loading works for all scenarios
+- [ ] No regression in functionality
+- [ ] Reduced component line counts (MapView <150 lines)
+- [ ] Tests pass for refactored components
+- [ ] All documentation updated
+- [ ] Plan file marked complete
+
+## Benefits
+
+### Maintainability
+- Focused components (<200 lines each)
+- Clear single responsibility
+- Easy to locate and modify code
+- Reduced cognitive load
+
+### Testability
+- Isolated composables can be unit tested
+- Components can be tested with mocked composables
+- Clear boundaries for testing
+- Better test coverage
+
+### Reusability
+- Composables can be used across components
+- Configuration sections can be reused
+- View components can be used independently
+- Consistent patterns
+
+### Performance
+- Smaller components = better tree-shaking
+- Lazy loading opportunities
+- Optimized reactivity with focused state
+- Better change detection
+
+### Developer Experience
+- Clear file structure
+- Easy to onboard new developers
+- Predictable patterns
+- Better IDE support
+
+## Migration Strategy
+
+### Incremental Approach
+1. Create new components/composables alongside existing
+2. Test new components in isolation
+3. Switch MapView to use new components one at a time
+4. Remove old code after verification
+5. Update documentation as we go
+
+### Rollback Plan
+- Keep old MapView as MapView.legacy.vue during migration
+- Feature flag to switch between old and new
+- Can revert quickly if issues found
+
+### Timeline Estimate
+- Phase 1-2: 2-3 hours (component extraction)
+- Phase 3-4: 2-3 hours (composables)
+- Phase 5: 1-2 hours (props simplification)
+- Phase 6: 1-2 hours (store reorganization)
+- Phase 7: 1 hour (type safety)
+- Phase 8: 2-3 hours (testing)
+- Documentation: 1 hour
+- **Total: 10-15 hours**
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-10
+Created By: Analysis of current Vue architecture
