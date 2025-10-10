@@ -225,6 +225,6 @@ Check:
 See `configs/france.json` or `configs/portugal.json` for working examples.
 
 For full documentation, see:
-- [ADDING_NEW_ATLAS.md](./ADDING_NEW_ATLAS.md) - Complete guide
-- [ATLASES.md](./ATLASES.md) - System architecture
-- [SCRIPTS.md](./SCRIPTS.md) - CLI tools reference
+- docs/atlases.llm.txt - Atlas system architecture
+- docs/scripts.llm.txt - CLI tools reference
+- docs/projections.llm.txt - Projection system reference

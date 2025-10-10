@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
-import { ProjectionFamily } from '@/core/projections/types'
 import { useConfigStore } from '@/stores/config'
 
 const { t } = useI18n()
@@ -26,43 +26,27 @@ const currentProjection = computed(() => {
   return projectionRegistry.get(configStore.selectedProjection)
 })
 
-// Determine which parameters are relevant for the current projection
+/**
+ * Get the relevant parameters for the current projection
+ * Uses centralized configuration from parameters.ts
+ */
 const relevantParams = computed(() => {
   const projection = currentProjection.value
-  if (!projection) {
-    return {
-      rotateLongitude: false,
-      rotateLatitude: false,
-      centerLongitude: false,
-      centerLatitude: false,
-      parallels: false,
-    }
-  }
+  if (!projection)
+    return getRelevantParameters('OTHER')
 
-  const family = projection.family
-
-  return {
-    // Rotation longitude is useful for most projections except purely regional ones
-    rotateLongitude: family === ProjectionFamily.CYLINDRICAL
-      || family === ProjectionFamily.PSEUDOCYLINDRICAL
-      || family === ProjectionFamily.AZIMUTHAL
-      || family === ProjectionFamily.CONIC,
-
-    // Rotation latitude is primarily for azimuthal projections
-    rotateLatitude: family === ProjectionFamily.AZIMUTHAL,
-
-    // Center parameters are primarily for azimuthal and conic projections
-    centerLongitude: family === ProjectionFamily.AZIMUTHAL || family === ProjectionFamily.CONIC,
-    centerLatitude: family === ProjectionFamily.AZIMUTHAL || family === ProjectionFamily.CONIC,
-
-    // Parallels are ONLY for conic projections
-    parallels: family === ProjectionFamily.CONIC,
-  }
+  return getRelevantParameters(projection.family)
 })
 
-// Check if there are any parameters to show
+/**
+ * Check if there are any parameters to show for the current projection
+ */
 const hasAnyRelevantParams = computed(() => {
-  return Object.values(relevantParams.value).some(value => value === true)
+  const projection = currentProjection.value
+  if (!projection)
+    return false
+
+  return hasRelevantParameters(projection.family)
 })
 
 // Get current values or defaults from atlas

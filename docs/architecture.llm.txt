@@ -1,0 +1,226 @@
+# Atlas Composer - Architecture Overview
+
+## Purpose
+Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
+
+## Technology Stack
+- Frontend: Vue.js 3 + TypeScript + Vite
+- Mapping: D3.js + Observable Plot
+- State: Pinia stores
+- Styling: Tailwind CSS + DaisyUI 5
+- Data: Natural Earth GeoJSON
+
+## Core Concepts
+
+### 1. Atlas System
+Domain: Configuration-driven atlas definitions
+File: docs/atlases.llm.txt
+- JSON-based atlas configurations (configs/*.json)
+- Atlas registry and loader
+- Territory composition rules
+- View modes (composite, split, unified)
+
+### 2. Projection System
+Domain: Map projection management
+File: docs/projections.llm.txt
+- Projection definitions and families (20+ projections)
+- Parameter configuration and application
+- Projection registry with recommendation engine
+- Projection factory and D3/Observable Plot integration
+
+### 3. Service Layer
+Domain: Business logic and rendering
+File: docs/services.llm.txt
+- AtlasService: Configuration management
+- ProjectionService: Projection creation
+- CartographerService: Rendering coordination
+- DataLoaderService: GeoJSON data loading
+- TerritoryDataService: Territory positioning
+
+### 4. Build System
+Domain: Data preparation and validation
+File: docs/scripts.llm.txt
+- prepare-geodata.ts: Natural Earth processing
+- validate-configs.ts: Schema validation
+- Development utilities
+
+## Project Structure
+
+```
+src/
+├── components/          # Vue components
+│   ├── MapRenderer.vue      # Main rendering component
+│   ├── TerritoryControls.vue
+│   └── ui/                  # UI components
+├── core/               # Core domain logic
+│   ├── atlases/            # Atlas system
+│   ├── projections/        # Projection system
+│   └── types/              # Shared types
+├── services/           # Business logic layer
+│   ├── atlas/              # Atlas management
+│   ├── projection/         # Projection creation
+│   ├── rendering/          # Rendering coordination
+│   └── data/               # Data loading
+├── stores/             # Pinia state stores
+│   ├── config.ts           # Configuration state
+│   └── geoData.ts          # Geographic data state
+├── types/              # TypeScript definitions
+└── views/              # Page components
+
+configs/                # Atlas configurations
+├── schema.json            # JSON schema
+├── france.json
+├── portugal.json
+└── ...
+
+scripts/                # Build and dev scripts
+├── prepare-geodata.ts     # Data preparation
+└── validate-configs.ts    # Validation
+```
+
+## Key Patterns
+
+### Configuration-Driven Design
+- Atlas behavior defined in JSON configs
+- Validated against JSON schema
+- Loaded dynamically at runtime
+- Single source of truth for atlas rules
+
+### Service Layer Pattern
+- Clear separation: UI → Service → D3/Plot
+- Services are stateless coordinators
+- State managed in Pinia stores
+- Services use dependency injection
+
+### Projection Parameter Management
+- Centralized configuration (projections/parameters.ts)
+- Family-based parameter relevance
+- Priority: custom → atlas → defaults
+- Type-safe with TypeScript
+
+### Reactive Rendering
+- Watchers trigger re-renders on state changes
+- CartographerService coordinates rendering
+- MapRenderer.vue handles DOM updates
+- Efficient re-renders with computed properties
+
+## Data Flow
+
+```
+User Action
+    ↓
+Vue Component
+    ↓
+Pinia Store (state update)
+    ↓
+Service Layer (business logic)
+    ↓
+D3/Observable Plot (rendering)
+    ↓
+DOM Update
+```
+
+## Domain Boundaries
+
+1. **Configuration Domain** (core/atlases/)
+   - Atlas definitions and metadata
+   - Territory composition rules
+   - JSON schema validation
+
+2. **Projection Domain** (core/projections/)
+   - Projection definitions and families (20+ projections)
+   - Parameter configuration and defaults
+   - Projection registry with recommendation engine
+   - D3 projection factory and creation
+
+3. **Rendering Domain** (services/rendering/)
+   - Cartographer coordination
+   - Observable Plot integration
+   - Map rendering logic
+
+4. **Data Domain** (services/data/)
+   - GeoJSON loading and caching
+   - Natural Earth data processing
+   - Territory data management
+
+5. **State Domain** (stores/)
+   - Application configuration state
+   - Geographic data state
+   - Reactive computed properties
+
+## Reference Files
+
+For detailed information on specific domains:
+- Atlas System: docs/atlases.llm.txt
+- Projections: docs/projections.llm.txt
+- Services: docs/services.llm.txt
+- Scripts: docs/scripts.llm.txt
+- Adding New Atlas: docs/add-new-atlas.llm.txt
+
+## Critical Dependencies
+
+- d3-geo: Core projection engine
+- d3-geo-projection: Extended projections
+- @observablehq/plot: Declarative plotting
+- topojson-client: TopoJSON to GeoJSON conversion
+- ajv: JSON schema validation
+- pinia: Vue state management
+- vue-i18n: Internationalization
+
+## Development Commands
+
+```bash
+pnpm install              # Install dependencies
+pnpm run dev              # Start dev server
+pnpm run build            # Build for production
+pnpm run prepare-geodata  # Process Natural Earth data
+pnpm run validate-configs # Validate atlas configurations
+```
+
+## Entry Points
+
+- Application: src/main.ts
+- Routing: src/router/index.ts
+- Main View: src/views/MapView.vue
+- Renderer: src/components/MapRenderer.vue
+
+## State Management
+
+Two primary stores:
+1. **configStore** (stores/config.ts)
+   - Selected atlas, projection, view mode
+   - Custom projection parameters
+   - UI preferences (theme, language)
+   - Computed: effectiveProjectionParams
+
+2. **geoDataStore** (stores/geoData.ts)
+   - Loaded GeoJSON data
+   - Cartographer service instance
+   - Data loading state
+
+## Type System
+
+Central type definitions:
+- types/atlas.ts: Atlas configuration types
+- types/composite.ts: Territory composition
+- types/geo-data.ts: Geographic data structures
+- core/projections/types.ts: Projection metadata
+- types/territory.ts: Territory positioning
+
+## Current State (Last verified: 2025-10-10)
+
+Recent changes:
+- Projection system: Registry includes recommendation engine
+- Service layer: Organized into atlas/, data/, projection/, rendering/ subdirectories
+- Parameter system: Centralized configuration with family-based relevance
+- Clean separation: configuration → UI → service → rendering
+- Comprehensive LLM documentation system
+
+Active features:
+- Multi-atlas support (France, Portugal, Spain, EU, USA, World)
+- 20+ projections with smart recommendations
+- Interactive projection parameter controls
+- Three view modes (composite-custom, composite-existing, split, unified)
+- Real-time territory positioning
+- Responsive design with theme support
+- Internationalization (EN/FR)

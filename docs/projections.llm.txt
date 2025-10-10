@@ -11,16 +11,17 @@
 ## Architecture
 
 ```
-src/projections/
+src/core/projections/
 ├── types.ts           # TypeScript types
-├── registry.ts        # Singleton projection registry
+├── registry.ts        # Singleton projection registry with recommendation engine
 ├── factory.ts         # Projection factory
-├── recommender.ts     # Smart recommendation engine
+├── parameters.ts      # Parameter configuration and defaults
 └── definitions/       # Projection definitions by category
     ├── composite.ts   # France, Portugal, EU composites
     ├── conic.ts       # Conic projections
     ├── azimuthal.ts   # Azimuthal projections
     ├── cylindrical.ts # Cylindrical projections
+    ├── compromise.ts  # Compromise projections
     ├── world.ts       # World projections
     └── artistic.ts    # Artistic/historical projections
 ```
@@ -142,7 +143,9 @@ interface ProjectionFilterContext {
 | `preservesDistance` | Distance from center | Distance measurement |
 | `preservesDirection` | Direction from center | Navigation, polar maps |
 
-## Common Projection Parameters
+## Projection Parameters
+
+### Common Parameters
 
 ```typescript
 {
@@ -154,6 +157,25 @@ interface ProjectionFilterContext {
   clipAngle?: number                 // Clipping angle (degrees)
 }
 ```
+
+### Parameter Relevance by Family
+
+Defined in `parameters.ts` - determines which parameters are applicable:
+
+| Family | rotateLon | rotateLat | centerLon | centerLat | parallels |
+|--------|-----------|-----------|-----------|-----------|-----------|
+| `cylindrical` | ✓ | - | - | - | - |
+| `conic` | - | - | ✓ | ✓ | ✓ |
+| `azimuthal` | ✓ | ✓ | - | - | - |
+| `world` | ✓ | - | - | - | - |
+| `compromise` | ✓ | - | - | - | - |
+| `composite` | - | - | - | - | - |
+
+**Rules**:
+- Conic: Uses `center` + `parallels`, ignores `rotate`
+- Azimuthal: Uses `rotate` for both axes (longitude/latitude)
+- Cylindrical/World/Compromise: Uses `rotate` for longitude only
+- Composite: Parameters managed per sub-projection
 
 ## Adding New Projection
 

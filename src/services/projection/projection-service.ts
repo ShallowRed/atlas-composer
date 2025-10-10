@@ -144,6 +144,10 @@ export class ProjectionService {
           config.rotate = params.rotate.azimuthal
           console.log(`[ProjectionService] Azimuthal projection ${definition.id}: rotate=${config.rotate}`)
         }
+        else if (definition.family === ProjectionFamily.CYLINDRICAL || definition.family === ProjectionFamily.PSEUDOCYLINDRICAL) {
+          config.rotate = [params.rotate.mainland[0], 0, 0]
+          console.log(`[ProjectionService] Cylindrical/Pseudocylindrical projection ${definition.id}: rotate=${config.rotate}`)
+        }
 
         return config
       }
