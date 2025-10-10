@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import MapRenderer from '@/components/MapRenderer.vue'
+import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
+import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
+import ViewConfigSection from '@/components/configuration/ViewConfigSection.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
-import FormControl from '@/components/ui/FormControl.vue'
-import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
-import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
-import SectionHeader from '@/components/ui/SectionHeader.vue'
-import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
-import { getAvailableAtlases } from '@/core/atlases/registry'
+import CompositeCustomView from '@/components/views/CompositeCustomView.vue'
+import CompositeExistingView from '@/components/views/CompositeExistingView.vue'
+import SplitView from '@/components/views/SplitView.vue'
+import UnifiedView from '@/components/views/UnifiedView.vue'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
@@ -109,12 +109,6 @@ const hasTerritoriesForProjectionConfig = computed(() => {
   return patternService.isSingleFocus() && geoDataStore.mainlandData !== null
 })
 
-// Check if current atlas uses single-focus pattern (for template v-if)
-const isSingleFocusPattern = computed(() => {
-  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
-  return patternService.isSingleFocus()
-})
-
 // Lifecycle
 onMounted(async () => {
   try {
@@ -201,129 +195,17 @@ watch(() => configStore.territoryMode, async () => {
     <section
       class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
     >
-      <!-- Controls Card -->
-      <CardContainer
-        :title="t('settings.atlasConfigTitle')"
-        icon="ri-settings-3-line"
-        class="overflow-y-auto"
-        has-overflow
-      >
-        <div class="flex flex-col gap-6">
-          <!-- Theme Selector -->
-          <ThemeSelector v-if="allowThemeSelection" />
+      <!-- Atlas Configuration -->
+      <AtlasConfigSection :allow-theme-selection="allowThemeSelection" />
 
-          <!-- Region Selector -->
-          <FormControl
-            v-model="configStore.selectedAtlas"
-            :label="t('settings.region')"
-            icon="ri-map-2-line"
-            type="select"
-            :options="getAvailableAtlases()"
-          />
-          <!-- Territory Selection (for composite modes) -->
-          <FormControl
-            v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
-            v-model="configStore.territoryMode"
-            :label="t('mode.select')"
-            icon="ri-map-pin-range-line"
-            type="select"
-            :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
-          />
-        </div>
-      </CardContainer>
-      <CardContainer
-        :title="t('settings.viewConfigTitle')"
-        icon="ri-settings-3-line"
-        class="overflow-y-auto"
-        has-overflow
-      >
-        <div class="flex flex-col gap-6">
-          <!-- Main View Mode Selector -->
-          <FormControl
-            v-model="configStore.viewMode"
-            :label="t('mode.view')"
-            icon="ri-layout-grid-line"
-            type="select"
-            :disabled="configStore.isViewModeLocked"
-            :options="viewModeOptions"
-          />
+      <!-- View Configuration -->
+      <ViewConfigSection
+        :view-mode-options="viewModeOptions"
+        :composite-projection-options="compositeProjectionOptions"
+      />
 
-          <!-- Composite Projection Selector (for composite-existing mode) -->
-          <FormControl
-            v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
-            v-model="configStore.compositeProjection"
-            :label="t('projection.composite')"
-            icon="ri-global-line"
-            type="select"
-            :options="compositeProjectionOptions"
-          />
-
-          <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-          <FormControl
-            v-show="configStore.showProjectionModeToggle"
-            v-model="configStore.projectionMode"
-            :label="t('projection.mode')"
-            icon="ri-global-line"
-            type="select"
-            :options="[
-              { value: 'uniform', label: t('projection.uniform') },
-              { value: 'individual', label: t('projection.individual') },
-            ]"
-          />
-
-          <!-- Uniform Projection Selector (for uniform projection mode) -->
-          <ProjectionSelector
-            v-show="configStore.showProjectionSelector"
-            v-model="configStore.selectedProjection"
-            :label="t('projection.cartographic')"
-            icon="ri-global-line"
-            :projection-groups="configStore.projectionGroups"
-            :recommendations="configStore.projectionRecommendations"
-          />
-
-          <!-- Scale Preservation (for split mode only) -->
-          <FormControl
-            v-show="configStore.showScalePreservation"
-            v-model="configStore.scalePreservation"
-            :label="t('territory.scalePreservation')"
-            type="toggle"
-          />
-
-          <!-- Graticule Toggle -->
-          <FormControl
-            v-model="configStore.showGraticule"
-            :label="t('settings.graticule')"
-            icon="ri-grid-line"
-            type="toggle"
-          />
-          <!-- Sphere Outline Toggle -->
-          <FormControl
-            v-model="configStore.showSphere"
-            :label="t('settings.sphere')"
-            icon="ri-earth-line"
-            type="toggle"
-          />
-
-          <!-- Projection Parameters (for unified mode) -->
-          <div v-if="configStore.viewMode === 'unified'" class="border-t border-base-300 pt-4">
-            <ProjectionParamsControls />
-          </div>
-
-          <FormControl
-            v-show="configStore.viewMode === 'composite-custom' || configStore.viewMode === 'composite-existing'"
-            v-model="configStore.showCompositionBorders"
-            :label="t('settings.compositionBorders')"
-            icon="ri-shape-2-line"
-            type="toggle"
-          />
-          <FormControl
-            v-model="configStore.showMapLimits"
-            :label="t('settings.mapLimits')"
-            icon="ri-crop-line"
-            type="toggle"
-          />
-        </div>
-      </CardContainer>
+      <!-- Display Options -->
+      <DisplayOptionsSection />
     </section>
     <section
       class="lg:w-1/2 max-h-[calc(100vh-8rem)]"
@@ -353,117 +235,10 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="split"
           >
-            <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
-            <div v-if="isSingleFocusPattern" class="flex flex-row gap-12">
-              <!-- Primary territory -->
-              <div>
-                <SectionHeader
-                  :title="configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland'"
-                  icon="ri-map-pin-line"
-                  :level="3"
-                />
-                <MapRenderer
-                  :geo-data="geoDataStore.mainlandData"
-                  is-mainland
-                  :projection="getMainLandProjection()"
-                  :width="500"
-                  :height="400"
-                />
-              </div>
-
-              <div>
-                <SectionHeader
-                  :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
-                  icon="ri-earth-line"
-                  :level="3"
-                />
-
-                <div class="flex flex-col gap-4">
-                  <!-- Region Groups -->
-                  <div
-                    v-for="[regionName, territories] in geoDataStore.territoryGroups"
-                    :key="regionName"
-                    class="bg-base-200 border border-base-300 p-4 rounded-lg"
-                  >
-                    <h3 class="text-lg font-semibold mb-4 text-gray-700">
-                      {{ regionName }}
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div
-                        v-for="territory in territories"
-                        :key="territory.code"
-                        class="bg-base-100 border border-base-300 p-4 rounded-md"
-                      >
-                        <MapRenderer
-                          :geo-data="territory.data"
-                          :title="territory.name"
-                          :area="territory.area"
-                          :region="territory.region"
-                          :preserve-scale="configStore.scalePreservation"
-                          :projection="getTerritoryProjection(territory.code)"
-                          :width="200"
-                          :height="160"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Empty State -->
-                  <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
-                    <p>{{ t('territory.noTerritories') }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Multi-mainland pattern: All territories in a single grid (EU, ASEAN, etc.) -->
-            <div v-else>
-              <SectionHeader
-                :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
-                icon="ri-earth-line"
-                :level="3"
-              />
-
-              <!-- Territories Grid -->
-              <div class="flex flex-col gap-4">
-                <!-- Region Groups -->
-                <div
-                  v-for="[regionName, territories] in geoDataStore.territoryGroups"
-                  :key="regionName"
-                  class="bg-base-200 border border-base-300 p-4 rounded-lg"
-                >
-                  <h3 class="text-lg font-semibold mb-4 text-gray-700">
-                    {{ regionName }}
-                  </h3>
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                      v-for="territory in territories"
-                      :key="territory.code"
-                      class="bg-base-100 border border-base-300 p-4 rounded-md"
-                    >
-                      <MapRenderer
-                        :geo-data="territory.data"
-                        :title="territory.name"
-                        :area="territory.area"
-                        :region="territory.region"
-                        :preserve-scale="configStore.scalePreservation"
-                        :projection="getTerritoryProjection(territory.code)"
-                        :width="200"
-                        :height="160"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Empty State -->
-                <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
-                  <p>{{ t('territory.noTerritories') }}</p>
-                  <p class="text-sm mt-2">
-                    {{ t('territory.checkData') }}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <SplitView
+              :get-mainland-projection="getMainLandProjection"
+              :get-territory-projection="getTerritoryProjection"
+            />
           </ViewModeSection>
 
           <!-- Composite Existing Mode -->
@@ -471,7 +246,7 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="composite-existing"
           >
-            <MapRenderer mode="composite" />
+            <CompositeExistingView />
           </ViewModeSection>
 
           <!-- Composite Custom Mode -->
@@ -479,10 +254,7 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="composite-custom"
           >
-            <MapRenderer mode="composite" />
-            <!-- <div class="w-80 space-y-4">
-          <ProjectionExporter ref="projectionExporterRef" />
-        </div> -->
+            <CompositeCustomView />
           </ViewModeSection>
 
           <!-- Unified Mode -->
@@ -490,12 +262,7 @@ watch(() => configStore.territoryMode, async () => {
             :view-mode="configStore.viewMode"
             active-mode="unified"
           >
-            <MapRenderer
-              :geo-data="geoDataStore.rawUnifiedData"
-              :projection="configStore.selectedProjection"
-              :width="800"
-              :height="600"
-            />
+            <UnifiedView />
           </ViewModeSection>
         </template>
       </CardContainer>

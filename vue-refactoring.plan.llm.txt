@@ -19,48 +19,57 @@ Refactor Vue components and state management to improve maintainability, testabi
 ### Phase 1: Extract View Mode Components
 Split MapView into focused components for each view mode.
 
-- [ ] File: src/components/views/SplitView.vue
+- [x] File: src/components/views/SplitView.vue
   - Action: Extract split mode rendering from MapView
   - Why: Isolate complex split mode layout logic
   - Content: Mainland + territories grid, region grouping
   
-- [ ] File: src/components/views/CompositeCustomView.vue
+- [x] File: src/components/views/CompositeCustomView.vue
   - Action: Extract composite-custom mode rendering
   - Why: Dedicated component for custom composite projection
   - Content: MapRenderer in composite mode
   
-- [ ] File: src/components/views/CompositeExistingView.vue
+- [x] File: src/components/views/CompositeExistingView.vue
   - Action: Extract composite-existing mode rendering
   - Why: Dedicated component for pre-built composites
   - Content: MapRenderer with existing projection
   
-- [ ] File: src/components/views/UnifiedView.vue
+- [x] File: src/components/views/UnifiedView.vue
   - Action: Extract unified mode rendering
   - Why: Dedicated component for unified projection
   - Content: MapRenderer with unified data
   
-- [ ] File: src/views/MapView.vue
-  - Action: Refactor to orchestrator component
+- [x] File: src/views/MapView.vue (Phase 1 integration)
+  - Action: Refactor to orchestrator component - Phase 1
   - Why: Reduce from 528 lines to ~150 lines
   - Content: Configuration panels + dynamic view component
+  - Result: Reduced from 528 to 365 lines (31% reduction)
 
 ### Phase 2: Extract Configuration Sections
 Break down MapView's configuration sections into focused components.
 
-- [ ] File: src/components/configuration/AtlasConfigSection.vue
+- [x] File: src/components/configuration/AtlasConfigSection.vue
   - Action: Extract atlas/region/territory selection
   - Why: Separate atlas configuration concerns
   - Content: Atlas selector, territory mode selector, theme
+  - Result: 40 lines created
   
-- [ ] File: src/components/configuration/ViewConfigSection.vue
+- [x] File: src/components/configuration/ViewConfigSection.vue
   - Action: Extract view mode and projection configuration
   - Why: Separate view/projection concerns
   - Content: View mode, composite projection, projection mode, parameters
+  - Result: 71 lines created
   
-- [ ] File: src/components/configuration/DisplayOptionsSection.vue
+- [x] File: src/components/configuration/DisplayOptionsSection.vue
   - Action: Extract display toggles
   - Why: Group related display options
   - Content: Graticule, sphere, composition borders, map limits
+  - Result: 44 lines created
+
+- [x] File: src/views/MapView.vue
+  - Action: Integrate Phase 2 config components
+  - Why: Replace CardContainer sections with focused components
+  - Result: Reduced from 365 to 294 lines (44% reduction from original 528)
 
 ### Phase 3: Extract Data Loading Composables
 Move data loading logic from MapView watchers to composables.
@@ -235,6 +244,7 @@ Establish testing foundation for refactored components.
 - **Total: 10-15 hours**
 
 ## Status
-Status: PLANNED
+Status: IN_PROGRESS
 Last Updated: 2025-10-10
+Started: 2025-10-10
 Created By: Analysis of current Vue architecture
