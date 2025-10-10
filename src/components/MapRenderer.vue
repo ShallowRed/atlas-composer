@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/cartographer-service'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { ProjectionFactory } from '@/core/projections/factory'
-import { projectionRegistry } from '@/core/projections/registry'
+import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -69,301 +67,6 @@ const insetValue = computed(() => {
   return props.isMainland ? 20 : 5
 })
 
-interface Rect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-function boundsToRect(bounds: [[number, number], [number, number]]): Rect {
-  const [[x1, y1], [x2, y2]] = bounds
-  return {
-    x: Math.min(x1, x2),
-    y: Math.min(y1, y2),
-    width: Math.abs(x2 - x1),
-    height: Math.abs(y2 - y1),
-  }
-}
-
-function unionRect(base: Rect | null, next: Rect | null): Rect | null {
-  if (!next) {
-    return base
-  }
-  if (!base) {
-    return { ...next }
-  }
-  const minX = Math.min(base.x, next.x)
-  const minY = Math.min(base.y, next.y)
-  const maxX = Math.max(base.x + base.width, next.x + next.width)
-  const maxY = Math.max(base.y + base.height, next.y + next.height)
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY,
-  }
-}
-
-function appendRectOverlay(
-  group: SVGGElement,
-  rect: Rect,
-  className: string,
-  dash: string,
-  strokeWidth: number,
-): SVGRectElement {
-  const rectEl = document.createElementNS(group.namespaceURI, 'rect') as SVGRectElement
-  rectEl.setAttribute('x', rect.x.toFixed(2))
-  rectEl.setAttribute('y', rect.y.toFixed(2))
-  rectEl.setAttribute('width', rect.width.toFixed(2))
-  rectEl.setAttribute('height', rect.height.toFixed(2))
-  rectEl.setAttribute('fill', 'none')
-  rectEl.setAttribute('stroke', 'currentColor')
-  rectEl.setAttribute('stroke-width', strokeWidth.toString())
-  rectEl.setAttribute('stroke-dasharray', dash)
-  rectEl.setAttribute('stroke-linejoin', 'round')
-  rectEl.setAttribute('class', className)
-  rectEl.setAttribute('opacity', '0.5')
-  group.appendChild(rectEl)
-  return rectEl
-}
-
-function appendPathOverlay(
-  group: SVGGElement,
-  pathData: string,
-  className: string,
-): SVGPathElement {
-  const pathEl = document.createElementNS(group.namespaceURI, 'path') as SVGPathElement
-  pathEl.setAttribute('d', pathData)
-  pathEl.setAttribute('fill', 'none')
-  pathEl.setAttribute('stroke', 'currentColor')
-  pathEl.setAttribute('stroke-width', '1.25')
-  pathEl.setAttribute('stroke-dasharray', '8 4')
-  pathEl.setAttribute('stroke-linejoin', 'round')
-  pathEl.setAttribute('opacity', '0.5')
-  pathEl.setAttribute('class', className)
-  group.appendChild(pathEl)
-  return pathEl
-}
-
-function computeSceneBBox(svg: SVGSVGElement): Rect | null {
-  const paths = Array.from(svg.querySelectorAll('path'))
-  if (paths.length === 0) {
-    return null
-  }
-
-  let bounds: Rect | null = null
-  for (const path of paths) {
-    const bbox = path.getBBox()
-    if (!Number.isFinite(bbox.width) || !Number.isFinite(bbox.height) || bbox.width === 0 || bbox.height === 0) {
-      continue
-    }
-    bounds = unionRect(bounds, {
-      x: bbox.x,
-      y: bbox.y,
-      width: bbox.width,
-      height: bbox.height,
-    })
-  }
-
-  return bounds
-}
-
-function createPathRecorder() {
-  const commands: string[] = []
-  const format = (value: number) => {
-    if (!Number.isFinite(value)) {
-      return '0'
-    }
-    return Math.abs(value) < 1e-6 ? '0' : value.toFixed(6).replace(/\.?0+$/, '')
-  }
-
-  return {
-    moveTo(x: number, y: number) {
-      commands.push(`M${format(x)},${format(y)}`)
-    },
-    lineTo(x: number, y: number) {
-      commands.push(`L${format(x)},${format(y)}`)
-    },
-    rect(x: number, y: number, width: number, height: number) {
-      commands.push(
-        `M${format(x)},${format(y)}`,
-        `L${format(x + width)},${format(y)}`,
-        `L${format(x + width)},${format(y + height)}`,
-        `L${format(x)},${format(y + height)}`,
-        'Z',
-      )
-    },
-    closePath() {
-      commands.push('Z')
-    },
-    beginPath() {
-      // No-op for compatibility
-    },
-    toString() {
-      return commands.join('')
-    },
-  }
-}
-
-/**
- * Creates a path string for composite projection borders
- * Uses getCompositionBorders() or drawCompositionBorders() from d3-composite-projections
- */
-function createCompositeBorderPath(
-  projectionId: string | undefined,
-  width: number,
-  height: number,
-): string | null {
-  if (!projectionId) {
-    return null
-  }
-
-  const definition = projectionRegistry.get(projectionId)
-  if (!definition) {
-    return null
-  }
-
-  const projection = ProjectionFactory.createById(projectionId)
-  if (!projection) {
-    return null
-  }
-
-  // Apply scale and translation to match the rendered map
-  const customFit = definition.metadata?.customFit
-  if (customFit) {
-    const scaleFactor = width / customFit.referenceWidth
-    projection.scale(customFit.defaultScale * scaleFactor)
-    projection.translate([width / 2, height / 2])
-  }
-  else {
-    // For projections without customFit, scale proportionally from a reference size
-    // d3-composite-projections default to scale 1000 at 960px width
-    const defaultScale = 1000
-    const referenceWidth = 960
-    if (typeof projection.scale === 'function') {
-      const scaleFactor = width / referenceWidth
-      projection.scale(defaultScale * scaleFactor)
-    }
-    if (typeof projection.translate === 'function') {
-      projection.translate([width / 2, height / 2])
-    }
-  }
-
-  // Try getCompositionBorders first (convenience method that returns path string)
-  const getBorders = (projection as any)?.getCompositionBorders
-  if (typeof getBorders === 'function') {
-    try {
-      const pathString = getBorders.call(projection)
-      return pathString.length > 0 ? pathString : null
-    }
-    catch (err) {
-      console.error(`[MapRenderer] Error getting composition borders:`, err)
-    }
-  }
-
-  // Fall back to drawCompositionBorders with custom context
-  const drawBorders = (projection as any)?.drawCompositionBorders
-  if (typeof drawBorders !== 'function') {
-    return null
-  }
-
-  const context = createPathRecorder()
-  try {
-    drawBorders.call(projection, context)
-    const pathString = context.toString()
-    return pathString.length > 0 ? pathString : null
-  }
-  catch (err) {
-    console.error(`[MapRenderer] Error drawing composition borders:`, err)
-    return null
-  }
-}
-
-function applyOverlays(svg: SVGSVGElement) {
-  const showBorders = configStore.showCompositionBorders
-  const showLimits = configStore.showMapLimits
-
-  if (!showBorders && !showLimits) {
-    return
-  }
-
-  const { width, height } = computedSize.value
-  const fallbackSceneBounds = showLimits ? computeSceneBBox(svg) : null
-
-  const overlayGroup = document.createElementNS(svg.namespaceURI, 'g') as SVGGElement
-  overlayGroup.setAttribute('class', 'map-overlays')
-  overlayGroup.setAttribute('pointer-events', 'none')
-  svg.appendChild(overlayGroup)
-
-  let mapBounds: Rect | null = null
-
-  if (showBorders) {
-    if (configStore.viewMode === 'composite-custom') {
-      const composite = cartographer.value?.customComposite
-      if (composite) {
-        composite.build(width, height, true)
-        const borders = composite.getCompositionBorders(width, height)
-        borders.forEach((border) => {
-          const rect = boundsToRect(border.bounds)
-          if (rect.width === 0 || rect.height === 0) {
-            return
-          }
-          appendRectOverlay(overlayGroup, rect, 'composition-border', '8 4', 1.25)
-          mapBounds = unionRect(mapBounds, rect)
-        })
-      }
-    }
-    else if (configStore.viewMode === 'composite-existing') {
-      const overlayProjectionId = (configStore.compositeProjection || configStore.selectedProjection) as string
-      // Plot applies a 20px inset for composite maps, so we need to account for this
-      // when creating the border path to ensure alignment
-      const inset = 20
-      const adjustedWidth = width - 2 * inset
-      const adjustedHeight = height - 2 * inset
-      const pathData = createCompositeBorderPath(
-        overlayProjectionId,
-        adjustedWidth,
-        adjustedHeight,
-      )
-      if (pathData) {
-        // Apply translate to account for the inset offset
-        const pathEl = appendPathOverlay(overlayGroup, pathData, 'composition-border')
-        pathEl.setAttribute('transform', `translate(${inset}, ${inset})`)
-
-        // Try to get bbox for map limits calculation
-        // Note: getBBox() may return zero dimensions for composite projection borders
-        // even though they render correctly. This is a known limitation.
-        try {
-          const bbox = pathEl.getBBox()
-          if (Number.isFinite(bbox.width) && Number.isFinite(bbox.height) && bbox.width > 0 && bbox.height > 0) {
-            mapBounds = unionRect(mapBounds, {
-              x: bbox.x,
-              y: bbox.y,
-              width: bbox.width,
-              height: bbox.height,
-            })
-          }
-        }
-        catch {
-          // getBBox can fail in some circumstances, ignore errors
-        }
-      }
-    }
-  }
-
-  if (showLimits) {
-    const bounds = mapBounds || fallbackSceneBounds
-    if (bounds && bounds.width > 0 && bounds.height > 0) {
-      appendRectOverlay(overlayGroup, bounds, 'map-limits', '4 3', 1.5)
-    }
-  }
-
-  if (!overlayGroup.childNodes.length) {
-    overlayGroup.remove()
-  }
-}
-
 async function renderMap() {
   // Don't render if not mounted yet
   if (!isMounted.value) {
@@ -402,8 +105,7 @@ async function renderMap() {
       const { width, height } = computedSize.value
       const projectionToUse = (props.projection ?? configStore.selectedProjection) as string
 
-      const options: SimpleRenderOptions = {
-        mode: 'simple',
+      plot = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
         geoData: props.geoData,
         projection: projectionToUse,
         width,
@@ -415,9 +117,7 @@ async function renderMap() {
         showGraticule: configStore.showGraticule,
         showCompositionBorders: configStore.showCompositionBorders,
         showMapLimits: configStore.showMapLimits,
-      }
-
-      plot = await cartographer.value.render(options)
+      })
     }
 
     // Check again after async operations in case component unmounted
@@ -433,7 +133,19 @@ async function renderMap() {
 
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
-      applyOverlays(svg)
+      const { width, height } = computedSize.value
+      MapRenderCoordinator.applyOverlays(
+        svg,
+        configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+        {
+          showBorders: configStore.showCompositionBorders,
+          showLimits: configStore.showMapLimits,
+          projectionId: (configStore.compositeProjection || configStore.selectedProjection) as string,
+          width,
+          height,
+          customComposite: cartographer.value?.customComposite,
+        },
+      )
     }
   }
   catch (err) {
@@ -453,72 +165,23 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   const { width, height } = computedSize.value
 
-  // Build custom composite settings if in custom mode
-  let customSettings
-  if (configStore.viewMode === 'composite-custom') {
-    // Get territory codes from the current region's composite config
-    const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
-    const territoryCodes: string[] = []
-
-    if (compositeConfig) {
-      // Add primary/member code(s)
-      if (compositeConfig.type === 'single-focus') {
-        territoryCodes.push(compositeConfig.mainland.code)
-      }
-      else {
-        compositeConfig.mainlands.forEach(m => territoryCodes.push(m.code))
-      }
-      // Add all secondary territory codes
-      compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code))
-    }
-
-    // Build territory projections
-    const territoryProjections: Record<string, string> = {}
-    if (configStore.projectionMode === 'individual') {
-      Object.assign(territoryProjections, configStore.territoryProjections)
-    }
-    else {
-      // Uniform mode: all territories use the same projection
-      territoryCodes.forEach((code) => {
-        territoryProjections[code] = configStore.selectedProjection as string
-      })
-    }
-
-    customSettings = {
-      territoryProjections,
-      territoryTranslations: configStore.territoryTranslations,
-      territoryScales: configStore.territoryScales,
-    }
-  }
-
-  // Determine rendering mode
-  const mode = configStore.viewMode === 'composite-custom'
-    ? 'composite-custom'
-    : 'composite-projection'
-
-  // Get territory codes
-  // For composite-existing mode, territories may not be loaded, so use undefined (composite projection handles all territories)
-  // For composite-custom mode, use filtered territories
-  const territoryCodes = configStore.viewMode === 'composite-existing'
-    ? undefined
-    : geoDataStore.filteredTerritories.map(t => t.code)
-
-  const projectionId = (configStore.compositeProjection || configStore.selectedProjection) as string
-
-  const options: CompositeRenderOptions = {
-    mode,
+  return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
+    viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+    projectionMode: configStore.projectionMode,
     territoryMode: configStore.territoryMode,
-    territoryCodes,
-    projection: projectionId,
+    selectedProjection: configStore.selectedProjection as string,
+    compositeProjection: configStore.compositeProjection as string | undefined,
     width,
     height,
-    settings: customSettings,
     showGraticule: configStore.showGraticule,
     showCompositionBorders: configStore.showCompositionBorders,
     showMapLimits: configStore.showMapLimits,
-  }
-
-  return await cartographer.value.render(options)
+    currentAtlasConfig: configStore.currentAtlasConfig,
+    territoryProjections: configStore.territoryProjections,
+    territoryTranslations: configStore.territoryTranslations,
+    territoryScales: configStore.territoryScales,
+    filteredTerritories: geoDataStore.filteredTerritories,
+  })
 }
 
 // Watch dependencies based on mode
