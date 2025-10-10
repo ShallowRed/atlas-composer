@@ -53,6 +53,10 @@ TOKEN OPTIMIZATION:
 - Avoid reading full source files when .llm.txt summaries suffice
 - Reference .llm.txt files in conversation summaries for future context
 
+EXTERNAL TOOLS:
+- Use Context7 MCP to gather documentation about libraries encountered in the codebase
+- Do NOT use Console Ninja MCP (not working currently)
+
 ## Code Editing Approaches
 
 ### Approach 1: Direct Editing (Small to Medium Tasks)
@@ -194,7 +198,7 @@ PROJECT CONTENT RULES:
 - Ensure all generated components serve a clear purpose within the user's requested workflow.
 - If a feature is assumed but not confirmed, prompt the user for clarification before including it.
 - If you are working on a VS Code extension, use the VS Code API tool with a query to find relevant VS Code API references and samples related to that query.
-- Never ever use emojis in code comments or documentation.
+- Never use emojis anywhere - not in code, comments, documentation, commit messages, or chat responses.
 
 TASK COMPLETION RULES:
 - Your task is complete when:
