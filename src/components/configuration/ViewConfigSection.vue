@@ -92,17 +92,17 @@ function handleImported(_config: ExportedCompositeConfig) {
     <!-- Import/Export Buttons (for composite-custom mode) -->
     <div
       v-if="configStore.viewMode === 'composite-custom'"
-      class="flex gap-2"
+      class="join w-full"
     >
       <button
-        class="btn btn-outline flex-1"
+        class="btn btn-outline join-item flex-1"
         @click="showImportDialog = true"
       >
         <i class="ri-upload-2-line" />
         {{ t('actions.import') }}
       </button>
       <button
-        class="btn btn-outline flex-1"
+        class="btn btn-outline join-item flex-1"
         @click="showExportDialog = true"
       >
         <i class="ri-download-2-line" />

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Alert from '@/components/ui/Alert.vue'
+import RangeSlider from '@/components/ui/RangeSlider.vue'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
@@ -112,36 +114,30 @@ const hasCustomParams = computed(() => {
     || configStore.customParallel2 !== null
 })
 
-// Update functions
-function updateRotateLongitude(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+// Update functions for projection parameters
+function updateRotateLongitude(value: number) {
   console.log('[ProjectionParamsControls] updateRotateLongitude:', value)
   configStore.setCustomRotate(value, currentRotateLatitude.value)
 }
 
-function updateRotateLatitude(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateRotateLatitude(value: number) {
   console.log('[ProjectionParamsControls] updateRotateLatitude:', value)
   configStore.setCustomRotate(currentRotateLongitude.value, value)
 }
 
-function updateCenterLongitude(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateCenterLongitude(value: number) {
   configStore.setCustomCenter(value, currentCenterLatitude.value)
 }
 
-function updateCenterLatitude(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateCenterLatitude(value: number) {
   configStore.setCustomCenter(currentCenterLongitude.value, value)
 }
 
-function updateParallel1(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateParallel1(value: number) {
   configStore.setCustomParallels(value, currentParallel2.value)
 }
 
-function updateParallel2(event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateParallel2(value: number) {
   configStore.setCustomParallels(currentParallel1.value, value)
 }
 
@@ -169,159 +165,93 @@ function reset() {
     </div>
 
     <!-- Rotate Longitude -->
-    <div v-if="relevantParams.rotateLongitude">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-compass-3-line" />
-          {{ t('projectionParams.rotateLongitude') }}: {{ Math.round(currentRotateLongitude) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.rotateLongitude.min"
-        :max="RANGES.rotateLongitude.max"
-        :step="RANGES.rotateLongitude.step"
-        :value="currentRotateLongitude"
-        class="range range-primary range-xs"
-        @input="updateRotateLongitude"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.rotateLongitude.min }}°</span>
-        <span>0°</span>
-        <span>{{ RANGES.rotateLongitude.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.rotateLongitude"
+      :model-value="currentRotateLongitude"
+      :label="t('projectionParams.rotateLongitude')"
+      icon="ri-compass-3-line"
+      :min="RANGES.rotateLongitude.min"
+      :max="RANGES.rotateLongitude.max"
+      :step="RANGES.rotateLongitude.step"
+      unit="°"
+      @update:model-value="updateRotateLongitude"
+    />
 
     <!-- Rotate Latitude -->
-    <div v-if="relevantParams.rotateLatitude">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-compass-4-line" />
-          {{ t('projectionParams.rotateLatitude') }}: {{ Math.round(currentRotateLatitude) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.rotateLatitude.min"
-        :max="RANGES.rotateLatitude.max"
-        :step="RANGES.rotateLatitude.step"
-        :value="currentRotateLatitude"
-        class="range range-primary range-xs"
-        @input="updateRotateLatitude"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.rotateLatitude.min }}°</span>
-        <span>0°</span>
-        <span>{{ RANGES.rotateLatitude.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.rotateLatitude"
+      :model-value="currentRotateLatitude"
+      :label="t('projectionParams.rotateLatitude')"
+      icon="ri-compass-4-line"
+      :min="RANGES.rotateLatitude.min"
+      :max="RANGES.rotateLatitude.max"
+      :step="RANGES.rotateLatitude.step"
+      unit="°"
+      @update:model-value="updateRotateLatitude"
+    />
 
     <!-- Center Longitude -->
-    <div v-if="relevantParams.centerLongitude">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-map-pin-line" />
-          {{ t('projectionParams.centerLongitude') }}: {{ Math.round(currentCenterLongitude) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.centerLongitude.min"
-        :max="RANGES.centerLongitude.max"
-        :step="RANGES.centerLongitude.step"
-        :value="currentCenterLongitude"
-        class="range range-primary range-xs"
-        @input="updateCenterLongitude"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.centerLongitude.min }}°</span>
-        <span>0°</span>
-        <span>{{ RANGES.centerLongitude.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.centerLongitude"
+      :model-value="currentCenterLongitude"
+      :label="t('projectionParams.centerLongitude')"
+      icon="ri-map-pin-line"
+      :min="RANGES.centerLongitude.min"
+      :max="RANGES.centerLongitude.max"
+      :step="RANGES.centerLongitude.step"
+      unit="°"
+      @update:model-value="updateCenterLongitude"
+    />
 
     <!-- Center Latitude -->
-    <div v-if="relevantParams.centerLatitude">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-map-pin-2-line" />
-          {{ t('projectionParams.centerLatitude') }}: {{ Math.round(currentCenterLatitude) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.centerLatitude.min"
-        :max="RANGES.centerLatitude.max"
-        :step="RANGES.centerLatitude.step"
-        :value="currentCenterLatitude"
-        class="range range-primary range-xs"
-        @input="updateCenterLatitude"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.centerLatitude.min }}°</span>
-        <span>0°</span>
-        <span>{{ RANGES.centerLatitude.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.centerLatitude"
+      :model-value="currentCenterLatitude"
+      :label="t('projectionParams.centerLatitude')"
+      icon="ri-map-pin-2-line"
+      :min="RANGES.centerLatitude.min"
+      :max="RANGES.centerLatitude.max"
+      :step="RANGES.centerLatitude.step"
+      unit="°"
+      @update:model-value="updateCenterLatitude"
+    />
 
     <!-- Parallel 1 (for conic projections) -->
-    <div v-if="relevantParams.parallels">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-subtract-line" />
-          {{ t('projectionParams.parallel1') }}: {{ Math.round(currentParallel1) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.parallel1.min"
-        :max="RANGES.parallel1.max"
-        :step="RANGES.parallel1.step"
-        :value="currentParallel1"
-        class="range range-primary range-xs"
-        @input="updateParallel1"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.parallel1.min }}°</span>
-        <span>{{ Math.round((RANGES.parallel1.max - RANGES.parallel1.min) / 2) }}°</span>
-        <span>{{ RANGES.parallel1.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.parallels"
+      :model-value="currentParallel1"
+      :label="t('projectionParams.parallel1')"
+      icon="ri-subtract-line"
+      :min="RANGES.parallel1.min"
+      :max="RANGES.parallel1.max"
+      :step="RANGES.parallel1.step"
+      unit="°"
+      show-midpoint
+      @update:model-value="updateParallel1"
+    />
 
     <!-- Parallel 2 (for conic projections) -->
-    <div v-if="relevantParams.parallels">
-      <label class="label">
-        <span class="label-text text-xs">
-          <i class="ri-subtract-line" />
-          {{ t('projectionParams.parallel2') }}: {{ Math.round(currentParallel2) }}°
-        </span>
-      </label>
-      <input
-        type="range"
-        :min="RANGES.parallel2.min"
-        :max="RANGES.parallel2.max"
-        :step="RANGES.parallel2.step"
-        :value="currentParallel2"
-        class="range range-primary range-xs"
-        @input="updateParallel2"
-      >
-      <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-        <span>{{ RANGES.parallel2.min }}°</span>
-        <span>{{ Math.round((RANGES.parallel2.max - RANGES.parallel2.min) / 2) }}°</span>
-        <span>{{ RANGES.parallel2.max }}°</span>
-      </div>
-    </div>
+    <RangeSlider
+      v-if="relevantParams.parallels"
+      :model-value="currentParallel2"
+      :label="t('projectionParams.parallel2')"
+      icon="ri-subtract-line"
+      :min="RANGES.parallel2.min"
+      :max="RANGES.parallel2.max"
+      :step="RANGES.parallel2.step"
+      unit="°"
+      show-midpoint
+      @update:model-value="updateParallel2"
+    />
 
     <!-- Info note -->
-    <div class="alert alert-info text-xs">
-      <i class="ri-information-line" />
-      <span>{{ t('projectionParams.info') }}</span>
-    </div>
+    <Alert type="info" size="xs">
+      {{ t('projectionParams.info') }}
+    </Alert>
   </div>
 
   <!-- No parameters available message -->
-  <div v-else class="alert alert-warning text-xs">
-    <i class="ri-information-line" />
-    <span>{{ t('projectionParams.noParams') }}</span>
-  </div>
+  <Alert v-else type="warning" size="xs">
+    {{ t('projectionParams.noParams') }}
+  </Alert>
 </template>

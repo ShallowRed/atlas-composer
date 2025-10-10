@@ -3,6 +3,8 @@ import type { CodeGenerationOptions } from '@/types/export-config'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import ButtonGroup from '@/components/ui/ButtonGroup.vue'
+import Modal from '@/components/ui/Modal.vue'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -117,125 +119,94 @@ async function copyToClipboard() {
 </script>
 
 <template>
-  <dialog :open="modelValue" class="modal" @click.self="close">
-    <div class="modal-box max-w-4xl">
-      <!-- Header -->
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-bold">
-          {{ t('export.title') }}
-        </h3>
-        <button class="btn btn-circle btn-ghost btn-sm" @click="close">
-          ✕
-        </button>
-      </div>
+  <Modal
+    :model-value="modelValue"
+    :title="t('export.title')"
+    max-width="4xl"
+    @update:model-value="emit('update:modelValue', $event)"
+  >
+    <!-- Export Format Selection -->
+    <div class="mb-4">
+      <label class="label">
+        <span class="label-text">{{ t('export.formatLabel') }}</span>
+      </label>
+      <ButtonGroup
+        v-model="exportFormat"
+        :options="[
+          { value: 'json', label: t('export.formatJson') },
+          { value: 'code', label: t('export.formatCode') },
+        ]"
+        full-width
+      />
+    </div>
 
-      <!-- Export Format Selection -->
-      <div class="mb-4">
+    <!-- Code Options (shown when format is 'code') -->
+    <div v-if="exportFormat === 'code'" class="mb-4 space-y-4">
+      <!-- Target Library -->
+      <div>
         <label class="label">
-          <span class="label-text">{{ t('export.formatLabel') }}</span>
+          <span class="label-text">{{ t('export.targetLibrary') }}</span>
         </label>
-        <div class="join w-full">
-          <button
-            class="btn join-item flex-1"
-            :class="{ 'btn-active': exportFormat === 'json' }"
-            @click="exportFormat = 'json'"
-          >
-            {{ t('export.formatJson') }}
-          </button>
-          <button
-            class="btn join-item flex-1"
-            :class="{ 'btn-active': exportFormat === 'code' }"
-            @click="exportFormat = 'code'"
-          >
-            {{ t('export.formatCode') }}
-          </button>
-        </div>
+        <ButtonGroup
+          v-model="codeFormat"
+          :options="[
+            { value: 'd3', label: 'D3.js' },
+            { value: 'plot', label: 'Observable Plot' },
+          ]"
+          full-width
+        />
       </div>
 
-      <!-- Code Options (shown when format is 'code') -->
-      <div v-if="exportFormat === 'code'" class="mb-4 space-y-4">
-        <!-- Target Library -->
-        <div>
-          <label class="label">
-            <span class="label-text">{{ t('export.targetLibrary') }}</span>
-          </label>
-          <div class="join w-full">
-            <button
-              class="btn join-item flex-1"
-              :class="{ 'btn-active': codeFormat === 'd3' }"
-              @click="codeFormat = 'd3'"
-            >
-              D3.js
-            </button>
-            <button
-              class="btn join-item flex-1"
-              :class="{ 'btn-active': codeFormat === 'plot' }"
-              @click="codeFormat = 'plot'"
-            >
-              Observable Plot
-            </button>
-          </div>
-        </div>
-
-        <!-- Language -->
-        <div>
-          <label class="label">
-            <span class="label-text">{{ t('export.language') }}</span>
-          </label>
-          <div class="join w-full">
-            <button
-              class="btn join-item flex-1"
-              :class="{ 'btn-active': codeLanguage === 'javascript' }"
-              @click="codeLanguage = 'javascript'"
-            >
-              {{ t('export.javascript') }}
-            </button>
-            <button
-              class="btn join-item flex-1"
-              :class="{ 'btn-active': codeLanguage === 'typescript' }"
-              @click="codeLanguage = 'typescript'"
-            >
-              {{ t('export.typescript') }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Options -->
-        <div class="flex gap-4">
-          <label class="label flex cursor-pointer items-center gap-2">
-            <input v-model="includeComments" type="checkbox" class="checkbox">
-            <span class="label-text">{{ t('export.includeComments') }}</span>
-          </label>
-          <label class="label flex cursor-pointer items-center gap-2">
-            <input v-model="includeExamples" type="checkbox" class="checkbox">
-            <span class="label-text">{{ t('export.includeExamples') }}</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Preview -->
-      <div class="mb-4">
+      <!-- Language -->
+      <div>
         <label class="label">
-          <span class="label-text">{{ t('export.preview') }}</span>
-          <span class="label-text-alt">{{ fileName }}</span>
+          <span class="label-text">{{ t('export.language') }}</span>
         </label>
-        <div class="mockup-code max-h-96 overflow-auto">
-          <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
-        </div>
+        <ButtonGroup
+          v-model="codeLanguage"
+          :options="[
+            { value: 'javascript', label: t('export.javascript') },
+            { value: 'typescript', label: t('export.typescript') },
+          ]"
+          full-width
+        />
       </div>
 
-      <!-- Actions -->
-      <div class="modal-action">
-        <button class="btn btn-ghost" @click="close">
-          {{ t('actions.cancel') }}
-        </button>
-        <button class="btn btn-outline" @click="copyToClipboard">
-          {{ t('export.copyToClipboard') }}
-        </button>
-        <button class="btn btn-primary" @click="downloadFile">
-          {{ t('export.downloadFile') }}
-        </button>
+      <!-- Options -->
+      <div class="flex gap-4">
+        <label class="label flex cursor-pointer items-center gap-2">
+          <input v-model="includeComments" type="checkbox" class="checkbox">
+          <span class="label-text">{{ t('export.includeComments') }}</span>
+        </label>
+        <label class="label flex cursor-pointer items-center gap-2">
+          <input v-model="includeExamples" type="checkbox" class="checkbox">
+          <span class="label-text">{{ t('export.includeExamples') }}</span>
+        </label>
       </div>
     </div>
-  </dialog>
+
+    <!-- Preview -->
+    <div class="mb-4">
+      <label class="label">
+        <span class="label-text">{{ t('export.preview') }}</span>
+        <span class="label-text-alt">{{ fileName }}</span>
+      </label>
+      <div class="mockup-code max-h-96 overflow-auto">
+        <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <template #actions>
+      <button class="btn btn-ghost" @click="close">
+        {{ t('actions.cancel') }}
+      </button>
+      <button class="btn btn-outline" @click="copyToClipboard">
+        {{ t('export.copyToClipboard') }}
+      </button>
+      <button class="btn btn-primary" @click="downloadFile">
+        {{ t('export.downloadFile') }}
+      </button>
+    </template>
+  </Modal>
 </template>

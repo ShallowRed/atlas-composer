@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Alert from '@/components/ui/Alert.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
+import RangeSlider from '@/components/ui/RangeSlider.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,14 +38,16 @@ const {
   resetTransforms,
 } = useTerritoryTransforms()
 
-// Event handlers that extract values and call composable functions
-function updateTranslation(territoryCode: string, axis: 'x' | 'y', event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
-  setTerritoryTranslation(territoryCode, axis, value)
+// Event handlers that call composable functions directly
+function updateTranslationX(territoryCode: string, value: number) {
+  setTerritoryTranslation(territoryCode, 'x', value)
 }
 
-function updateScale(territoryCode: string, event: Event) {
-  const value = Number.parseFloat((event.target as HTMLInputElement).value)
+function updateTranslationY(territoryCode: string, value: number) {
+  setTerritoryTranslation(territoryCode, 'y', value)
+}
+
+function updateScale(territoryCode: string, value: number) {
   setTerritoryScale(territoryCode, value)
 }
 
@@ -71,10 +75,9 @@ function useRecommendedProjection(territoryCode: string) {
 <template>
   <div>
     <!-- Message when no territories are available (and no mainland in individual mode) -->
-    <div v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" class="alert alert-info">
-      <i class="ri-information-line" />
-      <span>{{ t('territory.noOverseas') }}</span>
-    </div>
+    <Alert v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" type="info">
+      {{ t('territory.noOverseas') }}
+    </Alert>
 
     <!-- Accordion for all territories -->
     <div v-else class="join join-vertical w-full">
@@ -160,74 +163,47 @@ function useRecommendedProjection(territoryCode: string) {
           <template v-if="props.showTransformControls">
             <!-- X Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
-              <label class="label">
-                <span class="label-text">
-                  <i class="ri-arrow-left-right-line" />
-                  {{ t('territory.positionX') }}: {{ Math.round(translations[territory.code]?.x || 0) }}px
-                </span>
-              </label>
-              <input
-                type="range"
+              <RangeSlider
+                :model-value="translations[territory.code]?.x || 0"
+                :label="t('territory.positionX')"
+                icon="ri-arrow-left-right-line"
                 :min="TRANSLATION_RANGES.x.min"
                 :max="TRANSLATION_RANGES.x.max"
                 :step="TRANSLATION_RANGES.x.step"
-                :value="translations[territory.code]?.x || 0"
-                class="range range-primary range-xs"
-                @input="updateTranslation(territory.code, 'x', $event)"
-              >
-              <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-                <span>{{ TRANSLATION_RANGES.x.min }}px</span>
-                <span>0</span>
-                <span>{{ TRANSLATION_RANGES.x.max }}px</span>
-              </div>
+                unit="px"
+                @update:model-value="(value) => updateTranslationX(territory.code, value)"
+              />
             </div>
 
             <!-- Y Translation (in pixels relative to mainland center) -->
             <div class="mb-4">
-              <label class="label">
-                <span class="label-text">
-                  <i class="ri-arrow-up-down-line" />
-                  {{ t('territory.positionY') }}: {{ Math.round(translations[territory.code]?.y || 0) }}px
-                </span>
-              </label>
-              <input
-                type="range"
+              <RangeSlider
+                :model-value="translations[territory.code]?.y || 0"
+                :label="t('territory.positionY')"
+                icon="ri-arrow-up-down-line"
                 :min="TRANSLATION_RANGES.y.min"
                 :max="TRANSLATION_RANGES.y.max"
                 :step="TRANSLATION_RANGES.y.step"
-                :value="translations[territory.code]?.y || 0"
-                class="range range-secondary range-xs"
-                @input="updateTranslation(territory.code, 'y', $event)"
-              >
-              <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-                <span>{{ TRANSLATION_RANGES.y.min }}px</span>
-                <span>0</span>
-                <span>{{ TRANSLATION_RANGES.y.max }}px</span>
-              </div>
+                unit="px"
+                color="secondary"
+                @update:model-value="(value) => updateTranslationY(territory.code, value)"
+              />
             </div>
 
             <!-- Scale -->
             <div class="mb-2">
-              <label class="label">
-                <span class="label-text">
-                  <i class="ri-expand-diagonal-line" />
-                  {{ t('territory.scale') }}: {{ scales[territory.code]?.toFixed(2) }}×
-                </span>
-              </label>
-              <input
-                type="range"
+              <RangeSlider
+                :model-value="scales[territory.code] || SCALE_RANGE.default"
+                :label="t('territory.scale')"
+                icon="ri-expand-diagonal-line"
                 :min="SCALE_RANGE.min"
                 :max="SCALE_RANGE.max"
                 :step="SCALE_RANGE.step"
-                :value="scales[territory.code] || SCALE_RANGE.default"
-                class="range range-accent range-xs"
-                @input="updateScale(territory.code, $event)"
-              >
-              <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-                <span>{{ SCALE_RANGE.min }}×</span>
-                <span>{{ SCALE_RANGE.default }}×</span>
-                <span>{{ SCALE_RANGE.max }}×</span>
-              </div>
+                unit="×"
+                color="accent"
+                :decimals="2"
+                @update:model-value="(value) => updateScale(territory.code, value)"
+              />
             </div>
           </template>
         </div>

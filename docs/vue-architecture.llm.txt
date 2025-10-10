@@ -20,9 +20,11 @@ src/
 │   └── AboutView.vue         # About page
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
-│   ├── TerritoryControls.vue # Territory controls (119 lines)
+│   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
 │   ├── ProjectionSelector.vue # Projection selection (114 lines)
-│   └── ui/                   # 13 reusable UI components
+│   └── ui/                   # 19 reusable UI components
+│       ├── Core primitives: RangeSlider, ButtonGroup, Modal, Alert, AccordionItem, LabelWithIcon
+│       └── Specialized: ProjectionParamsControls, FormControl, etc.
 ├── composables/              # 9 composition functions
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
@@ -84,12 +86,26 @@ App.vue
 - Recommendation badges
 - Uses: useProjectionFiltering, useProjectionRecommendations
 
-### UI Components (13 components)
-**Reusable primitives**:
+### UI Components (19 components)
+**Core Primitives** (New - Template Refactoring):
+- **RangeSlider**: Range input with label, icon, value display, and customizable styling
+- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
+- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
+- **Alert**: Status/notification messages with type variants (info, success, warning, error)
+- **AccordionItem**: Collapsible content item with title/subtitle
+- **LabelWithIcon**: Label wrapper with optional icon
+
+**Reusable Components**:
 - ViewModeSection, ProjectionInfo, ProjectionParamsControls
 - ProjectionConfirmDialog, LoadingModal, ToastNotification
 - AppHeader, AppFooter, ThemeSelector, LanguageSelector
 - CardContainer, FormControl, SectionHeader
+
+**Composition Patterns**:
+- RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)
+- ButtonGroup used in CompositeExportDialog (3 instances)
+- Modal used in CompositeExportDialog for standardized dialogs
+- Alert used in ProjectionParamsControls and TerritoryControls for status messages
 
 ## Composables (9 functions)
 
