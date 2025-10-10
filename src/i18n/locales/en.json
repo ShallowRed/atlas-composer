@@ -103,7 +103,7 @@
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."
   },
-  "common": {
+  "actions": {
     "loading": "Loading...",
     "loadingData": "Loading data...",
     "preparingMaps": "Preparing geographic maps",
@@ -121,6 +121,23 @@
     "noProjectionsFound": "No projections found matching your search",
     "showProjectionInformation": "Show projection information",
     "projectionInformation": "Projection Information"
+  },
+  "export": {
+    "title": "Export Composite Projection",
+    "formatLabel": "Export Format",
+    "formatJson": "JSON Configuration",
+    "formatCode": "JavaScript/TypeScript Code",
+    "targetLibrary": "Target Library",
+    "language": "Language",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "includeComments": "Include comments",
+    "includeExamples": "Include usage examples",
+    "preview": "Preview",
+    "copyToClipboard": "Copy to Clipboard",
+    "downloadFile": "Download File",
+    "copiedSuccess": "Copied to clipboard!",
+    "copyFailed": "Failed to copy to clipboard"
   },
   "about": {
     "title": "About",

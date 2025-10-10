@@ -103,7 +103,7 @@
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
     "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
   },
-  "common": {
+  "actions": {
     "loading": "Chargement...",
     "loadingData": "Chargement des données...",
     "preparingMaps": "Préparation des cartes géographiques",
@@ -121,6 +121,23 @@
     "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche",
     "showProjectionInformation": "Afficher les informations de projection",
     "projectionInformation": "Informations de Projection"
+  },
+  "export": {
+    "title": "Exporter la Projection Composite",
+    "formatLabel": "Format d'Export",
+    "formatJson": "Configuration JSON",
+    "formatCode": "Code JavaScript/TypeScript",
+    "targetLibrary": "Bibliothèque Cible",
+    "language": "Langage",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "includeComments": "Inclure les commentaires",
+    "includeExamples": "Inclure les exemples d'utilisation",
+    "preview": "Aperçu",
+    "copyToClipboard": "Copier dans le Presse-papiers",
+    "downloadFile": "Télécharger le Fichier",
+    "copiedSuccess": "Copié dans le presse-papiers !",
+    "copyFailed": "Échec de la copie dans le presse-papiers"
   },
   "about": {
     "title": "À propos",

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CompositeExportDialog from '@/components/ui/CompositeExportDialog.vue'
 import FormControl from '@/components/ui/FormControl.vue'
 import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
@@ -8,6 +10,8 @@ import { useConfigStore } from '@/stores/config'
 defineProps<Props>()
 const { t } = useI18n()
 const configStore = useConfigStore()
+
+const showExportDialog = ref(false)
 
 interface Props {
   compositeProjectionOptions: Array<{ value: string, label: string }>
@@ -72,5 +76,18 @@ interface Props {
     <div v-if="configStore.viewMode === 'unified'" class="border-t border-base-300 pt-4">
       <ProjectionParamsControls />
     </div>
+
+    <!-- Export Button (for composite-custom mode) -->
+    <button
+      v-if="configStore.viewMode === 'composite-custom'"
+      class="btn btn-outline btn-block"
+      @click="showExportDialog = true"
+    >
+      <i class="ri-download-2-line" />
+      {{ t('actions.export') }}
+    </button>
+
+    <!-- Export Dialog -->
+    <CompositeExportDialog v-model="showExportDialog" />
   </div>
 </template>

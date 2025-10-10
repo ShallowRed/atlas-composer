@@ -1,0 +1,507 @@
+import type { ExportedCompositeConfig } from '@/types/export-config'
+import { describe, expect, it } from 'vitest'
+
+import { CodeGenerator } from '../code-generator'
+
+describe('codeGenerator', () => {
+  const generator = new CodeGenerator()
+
+  const singleFocusConfig: ExportedCompositeConfig = {
+    version: '1.0',
+    metadata: {
+      atlasId: 'france',
+      atlasName: 'France',
+      exportDate: '2025-10-10T10:00:00.000Z',
+      createdWith: 'Atlas Composer v1.0',
+    },
+    pattern: 'single-focus',
+    referenceScale: 2700,
+    territories: [
+      {
+        code: 'FR-MET',
+        name: 'France Métropolitaine',
+        role: 'primary',
+        projectionId: 'conic-conformal',
+        projectionFamily: 'conic',
+        parameters: {
+          center: [2.5, 46.5],
+          rotate: [-3, -46.2, 0],
+          parallels: [0, 60],
+          scale: 2700,
+          baseScale: 2700,
+          scaleMultiplier: 1.0,
+        },
+        layout: {
+          translateOffset: [0, 0],
+          clipExtent: null,
+        },
+        bounds: [
+          [-5, 41],
+          [10, 51],
+        ],
+      },
+      {
+        code: 'FR-GP',
+        name: 'Guadeloupe',
+        role: 'secondary',
+        projectionId: 'mercator',
+        projectionFamily: 'cylindrical',
+        parameters: {
+          center: [-61.46, 16.14],
+          scale: 3240,
+          baseScale: 3240,
+          scaleMultiplier: 1.0,
+        },
+        layout: {
+          translateOffset: [100, -50],
+          clipExtent: null,
+        },
+        bounds: [
+          [-61.81, 15.83],
+          [-61, 16.52],
+        ],
+      },
+    ],
+  }
+
+  const equalMembersConfig: ExportedCompositeConfig = {
+    version: '1.0',
+    metadata: {
+      atlasId: 'portugal',
+      atlasName: 'Portugal',
+      exportDate: '2025-10-10T10:00:00.000Z',
+      createdWith: 'Atlas Composer v1.0',
+    },
+    pattern: 'equal-members',
+    referenceScale: 5400,
+    territories: [
+      {
+        code: 'PT-MAIN',
+        name: 'Portugal Continental',
+        role: 'member',
+        projectionId: 'conic-conformal',
+        projectionFamily: 'conic',
+        parameters: {
+          center: [-8, 39.5],
+          rotate: [8, -39.5, 0],
+          parallels: [0, 60],
+          scale: 5400,
+          baseScale: 5400,
+          scaleMultiplier: 1.0,
+        },
+        layout: {
+          translateOffset: [0, 0],
+          clipExtent: null,
+        },
+        bounds: [
+          [-10, 37],
+          [-6, 42],
+        ],
+      },
+      {
+        code: 'PT-MAD',
+        name: 'Madeira',
+        role: 'secondary',
+        projectionId: 'mercator',
+        projectionFamily: 'cylindrical',
+        parameters: {
+          center: [-16.9, 32.7],
+          scale: 6480,
+          baseScale: 6480,
+          scaleMultiplier: 1.0,
+        },
+        layout: {
+          translateOffset: [-100, 150],
+          clipExtent: null,
+        },
+        bounds: [
+          [-17.3, 32.4],
+          [-16.5, 33],
+        ],
+      },
+    ],
+  }
+
+  describe('generate', () => {
+    it('should generate D3 JavaScript code', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('Composite Projection for France')
+      expect(code).toContain('import { geoConicConformal, geoMercator }')
+      expect(code).toContain('export function createFranceProjection()')
+      expect(code).toContain('const primary = geoConicConformal()')
+      expect(code).toContain('.center([2.5, 46.5])')
+      expect(code).toContain('.rotate([-3, -46.2, 0])')
+      expect(code).toContain('.parallels([0, 60])')
+      expect(code).toContain('.scale(2700)')
+    })
+
+    it('should generate D3 TypeScript code', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'typescript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('type GeoProjection')
+      expect(code).toContain(': GeoProjection')
+      expect(code).toContain('export function createFranceProjection(): GeoProjection')
+    })
+
+    it('should generate Observable Plot code', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'plot',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('Observable Plot')
+      expect(code).toContain('import * as Plot from "@observablehq/plot"')
+      expect(code).toContain('import * as d3 from "d3"')
+      expect(code).toContain('export function createFranceProjection()')
+      expect(code).toContain('d3.geoConicConformal()')
+    })
+
+    it('should include usage examples when requested', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: true,
+      })
+
+      expect(code).toContain('Usage Example')
+      expect(code).toContain('const projection = createFranceProjection()')
+      expect(code).toContain('const path = d3.geoPath(projection)')
+    })
+
+    it('should handle equal-members pattern', () => {
+      const code = generator.generate(equalMembersConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('Composite Projection for Portugal')
+      expect(code).toContain('const mainland1 = geoConicConformal()')
+      expect(code).toContain('const overseas1 = geoMercator()')
+    })
+
+    it('should throw error for unsupported format', () => {
+      expect(() =>
+        generator.generate(singleFocusConfig, {
+          format: 'unsupported' as never,
+          language: 'javascript',
+          includeComments: true,
+          includeExamples: false,
+        }),
+      ).toThrow('Unsupported format')
+    })
+  })
+
+  describe('d3 JavaScript generation', () => {
+    it('should include header with metadata', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('/**')
+      expect(code).toContain('Composite Projection for France')
+      expect(code).toContain('Generated by Atlas Composer v1.0')
+      expect(code).toContain('Pattern: single-focus')
+      expect(code).toContain('Territories: France Métropolitaine, Guadeloupe')
+      expect(code).toContain('Language: JavaScript')
+    })
+
+    it('should import required D3 projections', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('import { geoConicConformal, geoMercator } from \'d3-geo\'')
+    })
+
+    it('should create projection function with correct name', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('export function createFranceProjection()')
+    })
+
+    it('should create primary and secondary projections', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('// Primary: France Métropolitaine')
+      expect(code).toContain('const primary = geoConicConformal()')
+      expect(code).toContain('// Secondary territories')
+      expect(code).toContain('const secondary1 = geoMercator()')
+    })
+
+    it('should configure projection parameters correctly', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('.center([2.5, 46.5])')
+      expect(code).toContain('.rotate([-3, -46.2, 0])')
+      expect(code).toContain('.parallels([0, 60])')
+      expect(code).toContain('.scale(2700)')
+    })
+
+    it('should create composite function', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('const composite = (coordinates) =>')
+      expect(code).toContain('return primary(coordinates)')
+      expect(code).toContain('Object.setPrototypeOf(composite, primary)')
+      expect(code).toContain('return composite')
+    })
+  })
+
+  describe('d3 TypeScript generation', () => {
+    it('should include type imports', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'typescript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('import { geoConicConformal, geoMercator, type GeoProjection } from \'d3-geo\'')
+    })
+
+    it('should add return type to function', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'typescript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('export function createFranceProjection(): GeoProjection')
+    })
+
+    it('should include header with TypeScript language', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'typescript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('Language: TypeScript')
+    })
+  })
+
+  describe('observable Plot generation', () => {
+    it('should import Plot and d3', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'plot',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('import * as Plot from "@observablehq/plot"')
+      expect(code).toContain('import * as d3 from "d3"')
+    })
+
+    it('should use d3 prefix for projections', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'plot',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('d3.geoConicConformal()')
+    })
+
+    it('should include Plot usage example when requested', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'plot',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: true,
+      })
+
+      expect(code).toContain('Usage Example with Observable Plot')
+      expect(code).toContain('Plot.plot({')
+      expect(code).toContain('projection: projectionFn,')
+      expect(code).toContain('Plot.geo(features')
+    })
+  })
+
+  describe('projection mapping', () => {
+    it('should correctly map conic projections', () => {
+      const territory = singleFocusConfig.territories[0]!
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        territories: [
+          {
+            ...territory,
+            projectionId: 'conic-equal-area',
+          },
+        ],
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: false,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('geoConicEqualArea')
+    })
+
+    it('should correctly map cylindrical projections', () => {
+      const territory = singleFocusConfig.territories[0]!
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        territories: [
+          {
+            ...territory,
+            projectionId: 'transverse-mercator',
+          },
+        ],
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: false,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('geoTransverseMercator')
+    })
+
+    it('should correctly map azimuthal projections', () => {
+      const territory = singleFocusConfig.territories[0]!
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        territories: [
+          {
+            ...territory,
+            projectionId: 'azimuthal-equal-area',
+          },
+        ],
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: false,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('geoAzimuthalEqualArea')
+    })
+  })
+
+  describe('function naming', () => {
+    it('should convert kebab-case atlas ID to PascalCase', () => {
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        metadata: {
+          ...singleFocusConfig.metadata,
+          atlasId: 'united-states',
+        },
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: false,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('export function createUnitedStatesProjection()')
+    })
+
+    it('should handle single-word atlas IDs', () => {
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        metadata: {
+          ...singleFocusConfig.metadata,
+          atlasId: 'portugal',
+        },
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: false,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('export function createPortugalProjection()')
+    })
+  })
+
+  describe('comments and documentation', () => {
+    it('should include comments when option is enabled', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('// Create projections for each territory')
+      expect(code).toContain('// Primary:')
+      expect(code).toContain('// Secondary territories')
+    })
+
+    it('should include notes from metadata if present', () => {
+      const config: ExportedCompositeConfig = {
+        ...singleFocusConfig,
+        metadata: {
+          ...singleFocusConfig.metadata,
+          notes: 'Custom projection for special use case',
+        },
+      }
+
+      const code = generator.generate(config, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('Custom projection for special use case')
+    })
+  })
+})

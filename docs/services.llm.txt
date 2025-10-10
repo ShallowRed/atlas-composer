@@ -128,6 +128,27 @@ Factory for creating region-specific Cartographer instances.
 Static factory pattern with instance caching.
 - `create()` - Create or retrieve cached Cartographer
 - `getInstance()` - Get cached instance
+
+## Export Services (src/services/export/)
+
+### ConfigExporter
+Serialize composite projection configuration for export.
+- `export()` - Extract and serialize projection configuration
+- Reads from configStore and territoryStore
+- Rounds numeric values to 6 decimals
+- Returns ExportedCompositeConfig type
+
+### CodeGenerator
+Generate standalone code for composite projections.
+- `generateD3JS()` - Generate D3.js JavaScript code
+- `generateD3TS()` - Generate D3.js TypeScript code
+- `generateObservablePlot()` - Generate Observable Plot code
+- `getD3ProjectionFunction()` - Map projection ID to D3 function name
+- Implements D3 stream protocol with state machine
+- Geographic bounds routing for stream multiplexing
+- Number rounding for floating point precision
+
+See docs/export.llm.txt for detailed D3 stream protocol implementation.
 - `clear()` - Clear cached instance
 - `clearAll()` - Clear all instances
 

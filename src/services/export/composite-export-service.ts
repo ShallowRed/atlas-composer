@@ -21,6 +21,8 @@ import type {
 } from '@/types/export-config'
 import { projectionRegistry } from '@/core/projections/registry'
 
+import { CodeGenerator } from './code-generator'
+
 /**
  * Application version for metadata
  * TODO: Import from package.json
@@ -234,9 +236,8 @@ export class CompositeExportService {
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
   ): string {
-    // TODO: Implement code generation in Phase 2
-    // This will be implemented in code-generator.ts
-    return `// Code generation will be implemented in Phase 2\n// Configuration: ${config.metadata.atlasId}\n// Format: ${options.format}\n// Language: ${options.language}`
+    const generator = new CodeGenerator()
+    return generator.generate(config, options)
   }
 
   /**

@@ -47,7 +47,16 @@ File: docs/vue-architecture.llm.txt
 - Comprehensive type safety (370 lines of types)
 - Test coverage (122 tests, 100% passing)
 
-### 5. Build System
+### 5. Export System
+Domain: Code generation for composite projections
+File: docs/export.llm.txt
+- Configuration serialization
+- D3.js code generation (JavaScript/TypeScript)
+- Observable Plot code generation
+- D3 stream protocol implementation
+- Geographic bounds routing and stream multiplexing
+
+### 6. Build System
 Domain: Data preparation and validation
 File: docs/scripts.llm.txt
 - prepare-geodata.ts: Natural Earth processing

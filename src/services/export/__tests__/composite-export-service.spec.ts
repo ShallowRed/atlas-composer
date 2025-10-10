@@ -61,7 +61,7 @@ describe('compositeExportService', () => {
   describe('exportToJSON', () => {
     it('should export a single-focus composite projection', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
@@ -79,7 +79,7 @@ describe('compositeExportService', () => {
 
     it('should export an equal-members composite projection', () => {
       const compositeProj = new CompositeProjection(mockEqualMembersConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'eu',
@@ -95,7 +95,7 @@ describe('compositeExportService', () => {
 
     it('should include all territory information', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
@@ -115,7 +115,7 @@ describe('compositeExportService', () => {
 
     it('should include projection parameters', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
@@ -132,7 +132,7 @@ describe('compositeExportService', () => {
 
     it('should include layout information', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
@@ -148,7 +148,7 @@ describe('compositeExportService', () => {
 
     it('should include metadata with timestamp', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
@@ -160,7 +160,7 @@ describe('compositeExportService', () => {
       expect(exported.metadata.exportDate).toBeDefined()
       expect(exported.metadata.createdWith).toBeDefined()
       expect(exported.metadata.notes).toBe('Test export')
-      
+
       // Verify timestamp is valid ISO format
       const date = new Date(exported.metadata.exportDate)
       expect(date.toString()).not.toBe('Invalid Date')
@@ -168,7 +168,7 @@ describe('compositeExportService', () => {
 
     it('should calculate reference scale from first territory', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
-      
+
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
         'france',
