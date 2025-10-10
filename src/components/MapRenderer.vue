@@ -115,6 +115,7 @@ async function renderMap() {
         area: props.area,
         preserveScale: props.preserveScale,
         showGraticule: configStore.showGraticule,
+        showSphere: configStore.showSphere,
         showCompositionBorders: configStore.showCompositionBorders,
         showMapLimits: configStore.showMapLimits,
       })
@@ -174,6 +175,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     width,
     height,
     showGraticule: configStore.showGraticule,
+    showSphere: configStore.showSphere,
     showCompositionBorders: configStore.showCompositionBorders,
     showMapLimits: configStore.showMapLimits,
     currentAtlasConfig: configStore.currentAtlasConfig,
@@ -195,6 +197,7 @@ watch(() => {
       configStore.territoryMode,
       configStore.scalePreservation,
       configStore.showGraticule,
+      configStore.showSphere,
       configStore.showCompositionBorders,
       configStore.showMapLimits,
       configStore.territoryTranslations,
@@ -209,6 +212,7 @@ watch(() => {
     configStore.selectedProjection,
     props.preserveScale,
     configStore.showGraticule,
+    configStore.showSphere,
     configStore.showCompositionBorders,
     configStore.showMapLimits,
   ]

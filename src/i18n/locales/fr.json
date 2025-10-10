@@ -84,6 +84,7 @@
     "resolution": "Résolution des données",
     "region": "Atlas",
     "graticule": "Afficher le graticule",
+    "sphere": "Afficher le contour du globe",
     "compositionBorders": "Afficher les bordures de composition",
     "mapLimits": "Afficher les limites de la carte"
   },
@@ -102,7 +103,9 @@
     "closeSearch": "Fermer la recherche",
     "searchProjections": "Rechercher des projections...",
     "clear": "Effacer",
-    "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche"
+    "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche",
+    "showProjectionInformation": "Afficher les informations de projection",
+    "projectionInformation": "Informations de Projection"
   },
   "about": {
     "title": "À propos",

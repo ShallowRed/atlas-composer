@@ -33,7 +33,7 @@ withDefaults(defineProps<Props>(), {
         <i v-if="icon" :class="icon" />
         {{ title }}
       </h2>
-      <div class="overflow-y-auto p-2">
+      <div class="overflow-y-auto p-2 pb-8">
         <slot />
       </div>
     </div>

@@ -17,6 +17,7 @@ export const useConfigStore = defineStore('config', () => {
 
   const initialMapDisplay = getAtlasConfig(DEFAULT_ATLAS).mapDisplayDefaults || {}
   const showGraticule = ref(initialMapDisplay.showGraticule ?? false)
+  const showSphere = ref(initialMapDisplay.showSphere ?? false)
   const showCompositionBorders = ref(initialMapDisplay.showCompositionBorders ?? false)
   const showMapLimits = ref(initialMapDisplay.showMapLimits ?? false)
 
@@ -191,6 +192,7 @@ export const useConfigStore = defineStore('config', () => {
     territoryScales.value = updates.scales
     selectedProjection.value = updates.selectedProjection
     showGraticule.value = updates.mapDisplay.showGraticule
+    showSphere.value = updates.mapDisplay.showSphere
     showCompositionBorders.value = updates.mapDisplay.showCompositionBorders
     showMapLimits.value = updates.mapDisplay.showMapLimits
 
@@ -204,6 +206,7 @@ export const useConfigStore = defineStore('config', () => {
     selectedAtlas,
     scalePreservation,
     showGraticule,
+    showSphere,
     showCompositionBorders,
     showMapLimits,
     selectedProjection,

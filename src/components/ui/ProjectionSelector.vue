@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ProjectionConfirmDialog from '@/components/ui/ProjectionConfirmDialog.vue'
+import ProjectionInfo from '@/components/ui/ProjectionInfo.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
 import { useProjectionValidation } from '@/composables/useProjectionValidation'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -48,6 +49,10 @@ const { t } = useI18n()
 // Search/filter state
 const searchQuery = ref('')
 const isSearching = ref(false)
+
+// Projection info modal state
+const showInfoModal = ref(false)
+const infoProjection = ref<ProjectionDefinition | null>(null)
 
 const localValue = computed({
   get: () => props.modelValue,
@@ -122,6 +127,22 @@ function toggleSearch() {
 // Clear search
 function clearSearch() {
   searchQuery.value = ''
+}
+
+// Show projection info modal
+function showProjectionInfo() {
+  if (localValue.value) {
+    const projection = projectionRegistry.get(localValue.value)
+    if (projection) {
+      infoProjection.value = projection
+      showInfoModal.value = true
+    }
+  }
+}
+
+// Close projection info modal
+function closeInfoModal() {
+  showInfoModal.value = false
 }
 
 // Get recommendation for a projection
@@ -256,14 +277,25 @@ function handleCancelProhibited() {
         <i v-if="icon" :class="icon" />
         {{ label }}
       </span>
-      <button
-        type="button"
-        class="btn btn-ghost btn-xs btn-circle ml-auto"
-        :aria-label="isSearching ? t('common.closeSearch') : t('common.search')"
-        @click="toggleSearch"
-      >
-        <i class="text-base" :class="[isSearching ? 'ri-close-line' : 'ri-search-line']" />
-      </button>
+      <div class="flex items-center gap-1 ml-auto">
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs btn-circle"
+          :aria-label="t('common.showProjectionInformation')"
+          :disabled="!modelValue"
+          @click="showProjectionInfo"
+        >
+          <i class="text-base ri-information-line" />
+        </button>
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs btn-circle"
+          :aria-label="isSearching ? t('common.closeSearch') : t('common.search')"
+          @click="toggleSearch"
+        >
+          <i class="text-base" :class="[isSearching ? 'ri-close-line' : 'ri-search-line']" />
+        </button>
+      </div>
     </legend>
 
     <!-- Search input -->
@@ -367,6 +399,28 @@ function handleCancelProhibited() {
       @confirm="handleConfirmProhibited"
       @cancel="handleCancelProhibited"
     />
+
+    <!-- Projection info modal -->
+    <dialog :id="`projection-info-modal-${label}`" class="modal" :class="{ 'modal-open': showInfoModal }">
+      <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">
+          {{ t('common.projectionInformation') }}
+        </h3>
+        <ProjectionInfo
+          v-if="infoProjection"
+          :projection="infoProjection"
+          :show-metadata="true"
+        />
+        <div class="modal-action">
+          <button class="btn" @click="closeInfoModal">
+            {{ t('common.close') }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop" @click="closeInfoModal">
+        <button>close</button>
+      </form>
+    </dialog>
   </fieldset>
 </template>
 

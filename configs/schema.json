@@ -91,6 +91,11 @@
           "description": "Display latitude/longitude graticule overlay.",
           "default": false
         },
+        "showSphere": {
+          "type": "boolean",
+          "description": "Display the sphere outline (globe boundary) when using global projections.",
+          "default": false
+        },
         "showCompositionBorders": {
           "type": "boolean",
           "description": "Display composition borders for composite projections when available.",

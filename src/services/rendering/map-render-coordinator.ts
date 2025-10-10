@@ -36,6 +36,7 @@ export interface SimpleMapConfig {
   area?: number
   preserveScale?: boolean
   showGraticule: boolean
+  showSphere: boolean
   showCompositionBorders: boolean
   showMapLimits: boolean
 }
@@ -52,6 +53,7 @@ export interface CompositeMapConfig {
   width: number
   height: number
   showGraticule: boolean
+  showSphere: boolean
   showCompositionBorders: boolean
   showMapLimits: boolean
   // For composite-custom mode
@@ -91,6 +93,7 @@ export class MapRenderCoordinator {
       area: config.area,
       preserveScale: config.preserveScale,
       showGraticule: config.showGraticule,
+      showSphere: config.showSphere,
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
     }
@@ -143,6 +146,7 @@ export class MapRenderCoordinator {
       height: config.height,
       settings: customSettings,
       showGraticule: config.showGraticule,
+      showSphere: config.showSphere,
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
     }

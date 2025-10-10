@@ -17,6 +17,7 @@ import type { GeoDataConfig } from '@/types/geo-data'
  */
 export interface MapDisplayDefaults {
   showGraticule?: boolean
+  showSphere?: boolean
   showCompositionBorders?: boolean
   showMapLimits?: boolean
 }

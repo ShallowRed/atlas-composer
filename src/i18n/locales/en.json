@@ -84,6 +84,7 @@
     "resolution": "Data resolution",
     "region": "Atlas",
     "graticule": "Show graticule",
+    "sphere": "Show sphere outline",
     "compositionBorders": "Display composition borders",
     "mapLimits": "Display map limits"
   },
@@ -102,7 +103,9 @@
     "closeSearch": "Close search",
     "searchProjections": "Search projections...",
     "clear": "Clear",
-    "noProjectionsFound": "No projections found matching your search"
+    "noProjectionsFound": "No projections found matching your search",
+    "showProjectionInformation": "Show projection information",
+    "projectionInformation": "Projection Information"
   },
   "about": {
     "title": "About",

@@ -160,9 +160,3 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     </div>
   </div>
 </template>
-
-<style scoped>
-.projection-info.compact {
-  @apply space-y-1;
-}
-</style>

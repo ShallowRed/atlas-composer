@@ -21,6 +21,7 @@ export interface SimpleRenderOptions extends RenderOptions {
   area?: number
   preserveScale?: boolean
   showGraticule?: boolean
+  showSphere?: boolean
   showCompositionBorders?: boolean
   showMapLimits?: boolean
 }
@@ -34,6 +35,7 @@ export interface CompositeRenderOptions extends RenderOptions {
   height: number
   settings?: CustomCompositeSettings
   showGraticule?: boolean
+  showSphere?: boolean
   showCompositionBorders?: boolean
   showMapLimits?: boolean
 }
@@ -112,11 +114,19 @@ export class Cartographer {
     height: number,
     inset: number,
     showGraticule = true,
+    showSphere = false,
   ): Plot.Plot {
     const { mainlandCode } = this.geoDataService.config
     const geoDataMainlandCode = this.geoDataService.config.mainlandCode
 
     const marks: any[] = []
+
+    // Add sphere outline if enabled (should be rendered first, behind other elements)
+    if (showSphere) {
+      marks.push(
+        Plot.sphere({ stroke: 'currentColor', strokeWidth: 1.5 }),
+      )
+    }
 
     // Add graticule if enabled
     if (showGraticule) {
@@ -172,9 +182,18 @@ export class Cartographer {
    * Data is provided directly in options
    */
   private renderSimple(options: SimpleRenderOptions): Plot.Plot {
-    const { geoData, projection, width, height, inset, showGraticule } = options
-    const projectionFn = this.projectionService.getProjection(projection, geoData)
-    return this.createPlot(geoData, projectionFn, width, height, inset, showGraticule)
+    const { geoData, projection, width, height, inset, showGraticule, showSphere } = options
+    let projectionFn = this.projectionService.getProjection(projection, geoData)
+
+    // When showing sphere, use sphere as domain instead of data for proper fitting
+    if (showSphere && typeof projectionFn === 'object' && 'domain' in projectionFn) {
+      projectionFn = {
+        ...projectionFn,
+        domain: { type: 'Sphere' },
+      }
+    }
+
+    return this.createPlot(geoData, projectionFn, width, height, inset, showGraticule, showSphere)
   }
 
   /**
@@ -182,10 +201,19 @@ export class Cartographer {
    * Fetches raw data and applies a pre-configured composite projection
    */
   private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, projection, width, height, showGraticule } = options
+    const { territoryMode, territoryCodes, projection, width, height, showGraticule, showSphere } = options
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
-    const projectionFn = this.projectionService.getProjection(projection, rawData)
-    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule)
+    let projectionFn = this.projectionService.getProjection(projection, rawData)
+
+    // When showing sphere, use sphere as domain instead of data for proper fitting
+    if (showSphere && typeof projectionFn === 'object' && 'domain' in projectionFn) {
+      projectionFn = {
+        ...projectionFn,
+        domain: { type: 'Sphere' },
+      }
+    }
+
+    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule, showSphere)
   }
 
   /**
@@ -193,7 +221,7 @@ export class Cartographer {
    * Fetches raw data, applies custom settings, and uses CompositeProjection
    */
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, width, height, settings, showGraticule } = options
+    const { territoryMode, territoryCodes, width, height, settings, showGraticule, showSphere } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -211,7 +239,7 @@ export class Cartographer {
       return this.customComposite!.build(w, h, true)
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule)
+    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule, showSphere)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {

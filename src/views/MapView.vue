@@ -198,13 +198,13 @@ watch(() => configStore.territoryMode, async () => {
 <template>
   <div class="flex-1 flex flex-col lg:flex-row gap-6">
     <section
-      class="lg:w-1/4 max-h-[calc(100vh-8rem)]"
+      class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
     >
       <!-- Controls Card -->
       <CardContainer
         :title="t('settings.title')"
         icon="ri-settings-3-line"
-        class="h-full overflow-y-auto"
+        class="overflow-y-auto"
         has-overflow
       >
         <div class="flex flex-col gap-6">
@@ -228,7 +228,15 @@ watch(() => configStore.territoryMode, async () => {
             type="select"
             :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
           />
-          <div class="divider my-2" />
+        </div>
+      </CardContainer>
+      <CardContainer
+        :title="t('settings.title')"
+        icon="ri-settings-3-line"
+        class="overflow-y-auto"
+        has-overflow
+      >
+        <div class="flex flex-col gap-6">
           <!-- Main View Mode Selector -->
           <FormControl
             v-model="configStore.viewMode"
@@ -285,6 +293,13 @@ watch(() => configStore.territoryMode, async () => {
             v-model="configStore.showGraticule"
             :label="t('settings.graticule')"
             icon="ri-grid-line"
+            type="toggle"
+          />
+          <!-- Sphere Outline Toggle -->
+          <FormControl
+            v-model="configStore.showSphere"
+            :label="t('settings.sphere')"
+            icon="ri-earth-line"
             type="toggle"
           />
           <FormControl

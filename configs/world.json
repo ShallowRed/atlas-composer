@@ -35,5 +35,11 @@
       "territories": ["*"],
       "exclude": ["WD-010"]
     }
-  ]
+  ],
+  "mapDisplayDefaults": {
+    "showGraticule": true,
+    "showSphere": true,
+    "showCompositionBorders": false,
+    "showMapLimits": false
+  }
 }

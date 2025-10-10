@@ -17,6 +17,7 @@ export interface AtlasChangeResult {
   selectedProjection: string
   mapDisplay: {
     showGraticule: boolean
+    showSphere: boolean
     showCompositionBorders: boolean
     showMapLimits: boolean
   }
@@ -70,6 +71,7 @@ export class AtlasCoordinator {
     const mapDisplayDefaults = config.mapDisplayDefaults || {}
     const mapDisplay = {
       showGraticule: mapDisplayDefaults.showGraticule ?? false,
+      showSphere: mapDisplayDefaults.showSphere ?? false,
       showCompositionBorders: mapDisplayDefaults.showCompositionBorders ?? false,
       showMapLimits: mapDisplayDefaults.showMapLimits ?? false,
     }
