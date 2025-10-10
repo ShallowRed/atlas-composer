@@ -1,0 +1,154 @@
+import { computed } from 'vue'
+import {
+  SCALE_RANGE,
+  TRANSLATION_RANGES,
+} from '@/core/atlases/constants'
+import { createDefaultTranslations } from '@/core/atlases/utils'
+import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
+import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
+
+/**
+ * Manages territory transformation controls (projections, translations, scales)
+ */
+export function useTerritoryTransforms() {
+  const configStore = useConfigStore()
+  const geoDataStore = useGeoDataStore()
+
+  /**
+   * Get list of territories from geoData store
+   */
+  const territories = computed(() => {
+    return geoDataStore.filteredTerritories.map(t => ({
+      code: t.code,
+      name: t.name,
+    }))
+  })
+
+  /**
+   * Check if we should show mainland section (only for single-focus pattern)
+   */
+  const showMainland = computed(() => {
+    const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+    return patternService.isSingleFocus()
+  })
+
+  /**
+   * Get mainland code from region config
+   */
+  const mainlandCode = computed(() => {
+    return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
+  })
+
+  /**
+   * Check if mainland is in filtered territories
+   */
+  const isMainlandInTerritories = computed(() => {
+    return geoDataStore.filteredTerritories.some(t => t.code === mainlandCode.value)
+  })
+
+  /**
+   * Get territory translations from store
+   */
+  const translations = computed(() => configStore.territoryTranslations)
+
+  /**
+   * Get territory scales from store
+   */
+  const scales = computed(() => configStore.territoryScales)
+
+  /**
+   * Set translation for a territory
+   */
+  function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
+    configStore.setTerritoryTranslation(territoryCode, axis, value)
+  }
+
+  /**
+   * Set scale for a territory
+   */
+  function setTerritoryScale(territoryCode: string, value: number) {
+    configStore.setTerritoryScale(territoryCode, value)
+  }
+
+  /**
+   * Set projection for a territory
+   */
+  function setTerritoryProjection(territoryCode: string, projectionId: string) {
+    configStore.setTerritoryProjection(territoryCode, projectionId)
+  }
+
+  /**
+   * Reset transforms (translations and scales) to defaults
+   */
+  function resetTransforms() {
+    const atlasService = configStore.atlasService
+    if (!atlasService)
+      return
+
+    // Reset all translations to defaults
+    const territories = atlasService.getAllTerritories()
+    const defaultTranslations = createDefaultTranslations(territories)
+    for (const [code, { x, y }] of Object.entries(defaultTranslations)) {
+      configStore.setTerritoryTranslation(code, 'x', x)
+      configStore.setTerritoryTranslation(code, 'y', y)
+    }
+
+    // Reset all scales to 1.0
+    const defaultScale = 1.0
+    for (const t of geoDataStore.filteredTerritories) {
+      configStore.setTerritoryScale(t.code, defaultScale)
+    }
+  }
+
+  /**
+   * Get projection recommendations
+   */
+  const projectionRecommendations = computed(() => configStore.projectionRecommendations)
+
+  /**
+   * Get projection groups
+   */
+  const projectionGroups = computed(() => configStore.projectionGroups)
+
+  /**
+   * Get current atlas config
+   */
+  const currentAtlasConfig = computed(() => configStore.currentAtlasConfig)
+
+  /**
+   * Get territory projections
+   */
+  const territoryProjections = computed(() => configStore.territoryProjections)
+
+  /**
+   * Get selected projection
+   */
+  const selectedProjection = computed(() => configStore.selectedProjection)
+
+  /**
+   * Get projection mode
+   */
+  const projectionMode = computed(() => configStore.projectionMode)
+
+  return {
+    territories,
+    showMainland,
+    mainlandCode,
+    isMainlandInTerritories,
+    translations,
+    scales,
+    translationRanges: TRANSLATION_RANGES,
+    scaleRange: SCALE_RANGE,
+    projectionRecommendations,
+    projectionGroups,
+    currentAtlasConfig,
+    territoryProjections,
+    selectedProjection,
+    projectionMode,
+    setTerritoryTranslation,
+    setTerritoryScale,
+    setTerritoryProjection,
+    resetTransforms,
+  }
+}

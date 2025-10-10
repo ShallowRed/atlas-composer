@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
-import {
-  SCALE_RANGE,
-  TRANSLATION_RANGES,
-} from '@/core/atlases/constants'
-import { createDefaultTranslations } from '@/core/atlases/utils'
-import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
-import { useConfigStore } from '@/stores/config'
-import { useGeoDataStore } from '@/stores/geoData'
+import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -22,83 +14,56 @@ interface Props {
   showTransformControls?: boolean // Show translation/scale controls (false for split mode)
 }
 
-const configStore = useConfigStore()
-const geoDataStore = useGeoDataStore()
+// Use composable for all territory transform logic
+const {
+  territories,
+  showMainland,
+  mainlandCode,
+  isMainlandInTerritories,
+  translations,
+  scales,
+  translationRanges: TRANSLATION_RANGES,
+  scaleRange: SCALE_RANGE,
+  projectionRecommendations,
+  projectionGroups,
+  currentAtlasConfig,
+  territoryProjections,
+  selectedProjection,
+  projectionMode,
+  setTerritoryTranslation,
+  setTerritoryScale,
+  setTerritoryProjection,
+  resetTransforms,
+} = useTerritoryTransforms()
 
-// Use territories from geoData store (works for all regions)
-const territories = computed(() => {
-  return geoDataStore.filteredTerritories.map(t => ({
-    code: t.code,
-    name: t.name,
-  }))
-})
-
-// Check if we should show primary section (only for single-focus pattern atlases)
-const showMainland = computed(() => {
-  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
-  return patternService.isSingleFocus()
-})
-
-// Get mainland code dynamically from region config
-const mainlandCode = computed(() => {
-  return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
-})
-
-// Check if the mainland is in the filtered territories list (for modes like "Contiguous US only")
-const isMainlandInTerritories = computed(() => {
-  return geoDataStore.filteredTerritories.some(t => t.code === mainlandCode.value)
-})
-
-const translations = computed(() => configStore.territoryTranslations)
-const scales = computed(() => configStore.territoryScales)
-
+// Event handlers that extract values and call composable functions
 function updateTranslation(territoryCode: string, axis: 'x' | 'y', event: Event) {
   const value = Number.parseFloat((event.target as HTMLInputElement).value)
-  configStore.setTerritoryTranslation(territoryCode, axis, value)
+  setTerritoryTranslation(territoryCode, axis, value)
 }
 
 function updateScale(territoryCode: string, event: Event) {
   const value = Number.parseFloat((event.target as HTMLInputElement).value)
-  configStore.setTerritoryScale(territoryCode, value)
+  setTerritoryScale(territoryCode, value)
 }
 
-function resetToDefaults() {
-  // Get default translations from region service
-  const atlasService = configStore.atlasService
-  const defaultTranslations = createDefaultTranslations(
-    atlasService.getOverseasTerritories(),
-  )
-
-  // Reset translations for all territories to their default offset values
-  Object.entries(defaultTranslations).forEach(([code, { x, y }]) => {
-    configStore.setTerritoryTranslation(code, 'x', x)
-    configStore.setTerritoryTranslation(code, 'y', y)
-  })
-
-  // Reset scales for all territories to their baseScaleMultiplier (or 1.0 if not defined)
-  const allTerritoryConfigs = atlasService.getAllTerritories()
-  territories.value.forEach((t) => {
-    const territoryConfig = allTerritoryConfigs.find(tc => tc.code === t.code)
-    const defaultScale = territoryConfig?.baseScaleMultiplier ?? SCALE_RANGE.default
-    configStore.setTerritoryScale(t.code, defaultScale)
-  })
-}
+// Alias for better naming in template
+const resetToDefaults = resetTransforms
 
 // Get the best recommended projection
 const bestRecommendation = computed(() => {
-  const recommendations = configStore.projectionRecommendations
-  if (!recommendations || recommendations.length === 0)
+  if (!projectionRecommendations.value || projectionRecommendations.value.length === 0)
     return null
 
   // Sort by score and return the best one
-  const sorted = [...recommendations].sort((a, b) => b.score - a.score)
+  const sorted = [...projectionRecommendations.value].sort((a, b) => b.score - a.score)
   return sorted[0]
 })
 
 // Apply the best recommended projection to a territory
 function useRecommendedProjection(territoryCode: string) {
   if (bestRecommendation.value) {
-    configStore.setTerritoryProjection(territoryCode, bestRecommendation.value.projection.id)
+    setTerritoryProjection(territoryCode, bestRecommendation.value.projection.id)
   }
 }
 </script>
@@ -106,7 +71,7 @@ function useRecommendedProjection(territoryCode: string) {
 <template>
   <div>
     <!-- Message when no territories are available (and no mainland in individual mode) -->
-    <div v-if="territories.length === 0 && !(configStore.projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" class="alert alert-info">
+    <div v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" class="alert alert-info">
       <i class="ri-information-line" />
       <span>{{ t('territory.noOverseas') }}</span>
     </div>
@@ -115,7 +80,7 @@ function useRecommendedProjection(territoryCode: string) {
     <div v-else class="join join-vertical w-full">
       <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
       <div
-        v-if="configStore.projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
+        v-if="projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
         class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
       >
         <input
@@ -124,17 +89,17 @@ function useRecommendedProjection(territoryCode: string) {
           checked
         >
         <div class="collapse-title text-sm font-semibold">
-          {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-base-content/50">({{ mainlandCode }})</span>
+          {{ currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-base-content/50">({{ mainlandCode }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector -->
           <div class="mb-4">
             <ProjectionSelector
-              :model-value="configStore.territoryProjections[mainlandCode] || configStore.selectedProjection"
+              :model-value="territoryProjections[mainlandCode] || selectedProjection"
               :label="t('projection.cartographic')"
-              :projection-groups="configStore.projectionGroups"
-              :recommendations="configStore.projectionRecommendations"
-              @update:model-value="(value) => configStore.setTerritoryProjection(mainlandCode, value)"
+              :projection-groups="projectionGroups"
+              :recommendations="projectionRecommendations"
+              @update:model-value="(value) => setTerritoryProjection(mainlandCode, value)"
             />
             <!-- Quick action button to apply best recommendation -->
             <button
@@ -158,20 +123,20 @@ function useRecommendedProjection(territoryCode: string) {
         <input
           type="radio"
           name="territory-accordion"
-          :checked="configStore.projectionMode === 'uniform' && index === 0"
+          :checked="projectionMode === 'uniform' && index === 0"
         >
         <div class="collapse-title text-sm font-semibold text-sm font-semibold">
           {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
         </div>
         <div class="collapse-content">
           <!-- Projection Selector (always shown in individual mode) -->
-          <div v-if="configStore.projectionMode === 'individual'" class="mb-4">
+          <div v-if="projectionMode === 'individual'" class="mb-4">
             <ProjectionSelector
-              :model-value="configStore.territoryProjections[territory.code] || configStore.selectedProjection"
+              :model-value="territoryProjections[territory.code] || selectedProjection"
               :label="t('projection.cartographic')"
-              :projection-groups="configStore.projectionGroups"
-              :recommendations="configStore.projectionRecommendations"
-              @update:model-value="(value) => configStore.setTerritoryProjection(territory.code, value)"
+              :projection-groups="projectionGroups"
+              :recommendations="projectionRecommendations"
+              @update:model-value="(value) => setTerritoryProjection(territory.code, value)"
             />
             <!-- Quick action button to apply best recommendation -->
             <Transition
