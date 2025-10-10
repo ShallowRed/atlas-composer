@@ -1,8 +1,27 @@
 import type * as Plot from '@observablehq/plot'
-import type { Territory } from '@/services/data/geo-data-service'
-import type { Cartographer, CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
+import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
+
+/**
+ * Territory type from store (simplified version)
+ */
+export interface Territory {
+  name: string
+  code: string
+  area: number
+  region: string
+  data: GeoJSON.FeatureCollection
+}
+
+/**
+ * Minimal cartographer interface for rendering
+ * Accepts what the store provides (simplified interface)
+ */
+export interface CartographerLike {
+  render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<Plot.Plot>
+  customComposite?: any
+}
 
 /**
  * Configuration for simple map rendering
@@ -58,7 +77,7 @@ export class MapRenderCoordinator {
    * Render a simple territory map
    */
   static async renderSimpleMap(
-    cartographer: Cartographer,
+    cartographer: CartographerLike,
     config: SimpleMapConfig,
   ): Promise<Plot.Plot> {
     const options: SimpleRenderOptions = {
@@ -83,7 +102,7 @@ export class MapRenderCoordinator {
    * Render a composite map (custom or existing projection)
    */
   static async renderCompositeMap(
-    cartographer: Cartographer,
+    cartographer: CartographerLike,
     config: CompositeMapConfig,
   ): Promise<Plot.Plot> {
     // Build custom settings if in custom mode

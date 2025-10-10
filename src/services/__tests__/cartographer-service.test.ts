@@ -1,6 +1,6 @@
 import type { GeoDataConfig } from '@/types'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { Cartographer } from '../cartographer-service'
+import { Cartographer } from '@/services/rendering/cartographer-service'
 
 describe('cartographer service integration', () => {
   let cartographer: Cartographer
