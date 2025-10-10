@@ -277,11 +277,42 @@ UI Integration:
 
 ### Purpose
 Pure JavaScript/TypeScript module for using exported configurations outside Atlas Composer.
-Can be packaged as standalone npm package with minimal dependencies (d3-geo, d3-geo-projection).
+**Zero-dependency** plugin architecture - users register projection factories at runtime.
+
+### Architecture: Zero Dependencies
+The loader has NO dependencies on d3-geo or d3-geo-projection. Instead, users register projection factories before loading configurations. This approach provides:
+- No version conflicts
+- Smaller bundle size (user includes only needed projections)
+- Tree-shakeable imports
+- Support for custom projection implementations
+- Future-proof design
 
 ### API
+
+#### Registration (Required First Step)
 ```typescript
-import { loadFromJSON, loadCompositeProjection, validateConfig } from './standalone-projection-loader'
+import * as d3 from 'd3-geo'
+import { 
+  registerProjection, 
+  registerProjections,
+  loadCompositeProjection 
+} from './standalone-projection-loader'
+
+// Option 1: Register projections individually
+registerProjection('mercator', () => d3.geoMercator())
+registerProjection('albers', () => d3.geoAlbers())
+
+// Option 2: Bulk registration using helper
+import { d3ProjectionFactories } from './d3-projection-helpers'
+registerProjections(d3ProjectionFactories)
+
+// Now load configuration
+const projection = loadCompositeProjection(config, { width: 800, height: 600 })
+```
+
+#### Loading Projections
+```typescript
+import { loadFromJSON, validateConfig } from './standalone-projection-loader'
 
 // Load from JSON string
 const projection = loadFromJSON(jsonString, { width: 800, height: 600 })
@@ -299,13 +330,63 @@ const projection = loadCompositeProjection(config, {
 const path = d3.geoPath(projection)
 ```
 
+#### Registry Management
+```typescript
+import { 
+  getRegisteredProjections,
+  isProjectionRegistered,
+  unregisterProjection,
+  clearProjections 
+} from './standalone-projection-loader'
+
+// Check what's registered
+const projections = getRegisteredProjections()  // ['mercator', 'albers', ...]
+
+// Check if specific projection is registered
+if (!isProjectionRegistered('mercator')) {
+  registerProjection('mercator', () => d3.geoMercator())
+}
+
+// Cleanup
+unregisterProjection('mercator')
+clearProjections()  // remove all
+```
+
 ### Features
+- **Zero dependencies** - no d3-geo, no d3-geo-projection
+- Plugin architecture with runtime registration
 - No Atlas Composer dependencies
 - Works in browser, Node.js, Observable notebooks
 - D3 stream multiplexing for geometry routing
 - Geographic bounds-based territory selection
-- Supports 14+ projection types
+- Supports 14+ standard D3 projections + custom projections
 - Type-safe with TypeScript definitions
+- Tree-shakeable - import only needed projections
+
+### Type Definitions
+Self-contained types without external dependencies:
+- `ProjectionLike` - D3-compatible projection interface with getter/setter pattern
+- `ProjectionFactory` - Factory function type `() => ProjectionLike`
+- `StreamLike` - D3 stream protocol interface
+- `LoaderOptions` - Configuration options (width, height, debug, etc.)
+
+### D3 Projection Helpers (Optional Companion)
+`d3-projection-helpers.ts` provides ready-to-use D3 mappings:
+```typescript
+import { 
+  d3ProjectionFactories,    // All projections
+  mercator,                  // Individual (tree-shakeable)
+  albers,
+  registerAllD3Projections 
+} from './d3-projection-helpers'
+
+// Use bulk registration
+registerProjections(d3ProjectionFactories)
+
+// Or tree-shakeable individual imports
+registerProjection('mercator', mercator)
+registerProjection('albers', albers)
+```
 
 ### Use Cases
 - Embed Atlas Composer projections in custom D3 visualizations
@@ -313,22 +394,30 @@ const path = d3.geoPath(projection)
 - Observable notebooks and interactive documents
 - Static site generation
 - Sharing projections with users who don't have Atlas Composer
+- Custom projection implementations for specialized use cases
 
 ### NPM Package Structure
 ```
-atlas-composite-projection-loader/
-├── package.json
-├── README.md (user-facing documentation)
+@atlas-composer/projection-loader/
+├── package.json (ZERO dependencies)
+├── README.md
 ├── src/
-│   └── index.ts (standalone-projection-loader.ts)
+│   ├── index.ts (standalone-projection-loader.ts)
+│   └── d3-helpers.ts (d3-projection-helpers.ts) [optional]
 ├── dist/
-│   ├── index.js (CommonJS)
-│   ├── index.mjs (ES modules)
+│   ├── index.js (ESM)
+│   ├── index.cjs (CommonJS)
 │   └── index.d.ts (TypeScript types)
+└── examples/
+    ├── browser-basic.html
+    ├── node-usage.js
+    └── tree-shakeable.js
 ```
 
-Dependencies: d3-geo, d3-geo-projection
-Peer dependencies strategy ensures user controls D3 version
+**Dependencies**: NONE
+**devDependencies**: d3-geo, d3-geo-projection (for types and optional helpers)
+
+User controls D3 version and includes only needed projections.
 
 ## Testing
 - CompositeExportService: 15 tests covering export, validation, file creation

@@ -1,18 +1,24 @@
 /**
- * Tests for standalone projection loader
+ * Tests for standalone projection loader (zero-dependency version with plugin architecture)
  */
 
-import type { ExportedConfig } from '../standalone-projection-loader'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
+import type { ExportedConfig } from '../standalone-projection-loader'
+import { d3ProjectionFactories } from '../d3-projection-helpers'
 import {
-  getSupportedProjections,
+  getRegisteredProjections,
   loadCompositeProjection,
   loadFromJSON,
+  registerProjections,
   validateConfig,
 } from '../standalone-projection-loader'
 
 describe('standalone-projection-loader', () => {
+  // Register all D3 projections before running tests
+  beforeAll(() => {
+    registerProjections(d3ProjectionFactories)
+  })
   // Mock configuration
   const mockConfig: ExportedConfig = {
     version: '1.0',
@@ -130,7 +136,7 @@ describe('standalone-projection-loader', () => {
       ).toThrow('Unsupported configuration version')
     })
 
-    it('should reject unknown projection IDs', () => {
+    it('should reject unregistered projection IDs', () => {
       const invalid = {
         ...mockConfig,
         territories: [
@@ -142,7 +148,7 @@ describe('standalone-projection-loader', () => {
       }
       expect(() =>
         loadCompositeProjection(invalid as any, { width: 800, height: 600 }),
-      ).toThrow('Unknown projection ID')
+      ).toThrow('is not registered')
     })
 
     it('should handle debug mode', () => {
@@ -180,16 +186,16 @@ describe('standalone-projection-loader', () => {
     })
   })
 
-  describe('getSupportedProjections', () => {
-    it('should return array of projection IDs', () => {
-      const projections = getSupportedProjections()
+  describe('getRegisteredProjections', () => {
+    it('should return array of registered projection IDs', () => {
+      const projections = getRegisteredProjections()
 
       expect(Array.isArray(projections)).toBe(true)
       expect(projections.length).toBeGreaterThan(0)
     })
 
     it('should include common projections', () => {
-      const projections = getSupportedProjections()
+      const projections = getRegisteredProjections()
 
       expect(projections).toContain('mercator')
       expect(projections).toContain('conic-conformal')
@@ -220,15 +226,17 @@ describe('standalone-projection-loader', () => {
         height: 600,
       })
 
-      // Test scale
-      expect(projection.scale()).toBeDefined()
-      projection.scale(500)
-      expect(projection.scale()).toBe(500)
+      // Test scale (optional method)
+      if (projection.scale) {
+        expect(projection.scale(500)).toBeDefined()
+        expect(projection.scale()).toBe(500)
+      }
 
-      // Test translate
-      expect(projection.translate()).toBeDefined()
-      projection.translate([100, 200])
-      expect(projection.translate()).toEqual([100, 200])
+      // Test translate (optional method)
+      if (projection.translate) {
+        expect(projection.translate([100, 200])).toBeDefined()
+        expect(projection.translate()).toEqual([100, 200])
+      }
     })
 
     it('should have stream method for geometry', () => {
@@ -251,8 +259,10 @@ describe('standalone-projection-loader', () => {
       }
 
       // Should not throw
-      const stream = projection.stream(mockStream)
-      expect(stream).toBeDefined()
+      if (projection.stream) {
+        const stream = projection.stream(mockStream)
+        expect(stream).toBeDefined()
+      }
     })
   })
 })

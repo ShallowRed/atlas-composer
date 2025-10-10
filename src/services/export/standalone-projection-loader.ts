@@ -1,19 +1,88 @@
 /**
- * Standalone Composite Projection Loader
+ * Standalone Composite Projection Loader (Zero Dependencies)
  *
- * This is a pure JavaScript/TypeScript module that can consume exported
- * composite projection configurations and create D3 projections.
+ * A pure JavaScript/TypeScript module that consumes exported composite projection
+ * configurations and creates D3-compatible projections using a plugin architecture.
  *
- * Can be extracted as a standalone npm package.
+ * This package has ZERO dependencies. Users must register projection factories
+ * before loading configurations.
  *
- * Dependencies: d3-geo, d3-geo-projection
+ * @example
+ * ```typescript
+ * // Register projections first
+ * import * as d3 from 'd3-geo'
+ * import { registerProjection, loadCompositeProjection } from './standalone-projection-loader'
+ *
+ * registerProjection('mercator', () => d3.geoMercator())
+ * registerProjection('albers', () => d3.geoAlbers())
+ *
+ * // Then load your configuration
+ * const projection = loadCompositeProjection(config, { width: 800, height: 600 })
+ * ```
  *
  * @packageDocumentation
  */
 
-import type { GeoProjection } from 'd3-geo'
-import * as d3Geo from 'd3-geo'
-import * as d3GeoProjection from 'd3-geo-projection'
+/**
+ * Generic projection-like interface that matches D3 projections
+ * without requiring d3-geo as a dependency
+ *
+ * Note: D3 projections use getter/setter pattern where calling without
+ * arguments returns the current value, and with arguments sets and returns this.
+ */
+export interface ProjectionLike {
+  (coordinates: [number, number]): [number, number] | null
+  center?: {
+    (): [number, number]
+    (center: [number, number]): ProjectionLike
+  }
+  rotate?: {
+    (): [number, number, number]
+    (angles: [number, number, number]): ProjectionLike
+  }
+  parallels?: {
+    (): [number, number]
+    (parallels: [number, number]): ProjectionLike
+  }
+  scale?: {
+    (): number
+    (scale: number): ProjectionLike
+  }
+  translate?: {
+    (): [number, number]
+    (translate: [number, number]): ProjectionLike
+  }
+  clipExtent?: {
+    (): [[number, number], [number, number]] | null
+    (extent: [[number, number], [number, number]] | null): ProjectionLike
+  }
+  stream?: (stream: StreamLike) => StreamLike
+  precision?: {
+    (): number
+    (precision: number): ProjectionLike
+  }
+  fitExtent?: (extent: [[number, number], [number, number]], object: any) => ProjectionLike
+  fitSize?: (size: [number, number], object: any) => ProjectionLike
+  fitWidth?: (width: number, object: any) => ProjectionLike
+  fitHeight?: (height: number, object: any) => ProjectionLike
+}
+
+/**
+ * Stream protocol interface for D3 geographic transforms
+ */
+export interface StreamLike {
+  point: (x: number, y: number) => void
+  lineStart: () => void
+  lineEnd: () => void
+  polygonStart: () => void
+  polygonEnd: () => void
+  sphere?: () => void
+}
+
+/**
+ * Factory function that creates a projection instance
+ */
+export type ProjectionFactory = () => ProjectionLike
 
 /**
  * Exported configuration format (subset needed for loading)
@@ -69,40 +138,138 @@ export interface LoaderOptions {
 }
 
 /**
- * Map projection IDs to D3 projection factory functions
+ * Runtime registry for projection factories
+ * Users must register projections before loading configurations
  */
-const PROJECTION_FACTORIES: Record<string, () => any> = {
-  // Azimuthal
-  'azimuthal-equal-area': () => d3Geo.geoAzimuthalEqualArea(),
-  'azimuthal-equidistant': () => d3Geo.geoAzimuthalEquidistant(),
-  'gnomonic': () => d3Geo.geoGnomonic(),
-  'orthographic': () => d3Geo.geoOrthographic(),
-  'stereographic': () => d3Geo.geoStereographic(),
+const projectionRegistry = new Map<string, ProjectionFactory>()
 
-  // Conic
-  'conic-conformal': () => d3Geo.geoConicConformal(),
-  'conic-equal-area': () => d3Geo.geoConicEqualArea(),
-  'conic-equidistant': () => d3Geo.geoConicEquidistant(),
-  'albers': () => d3Geo.geoAlbers(),
-
-  // Cylindrical
-  'mercator': () => d3Geo.geoMercator(),
-  'transverse-mercator': () => d3Geo.geoTransverseMercator(),
-  'equirectangular': () => d3Geo.geoEquirectangular(),
-  'natural-earth-1': () => (d3GeoProjection as any).geoNaturalEarth1(),
-
-  // Other
-  'equal-earth': () => d3Geo.geoEqualEarth(),
+/**
+ * Register a projection factory with a given ID
+ *
+ * @example
+ * ```typescript
+ * import * as d3 from 'd3-geo'
+ * import { registerProjection } from '@atlas-composer/projection-loader'
+ *
+ * registerProjection('mercator', () => d3.geoMercator())
+ * registerProjection('albers', () => d3.geoAlbers())
+ * ```
+ *
+ * @param id - Projection identifier (e.g., 'mercator', 'albers')
+ * @param factory - Function that creates a new projection instance
+ */
+export function registerProjection(id: string, factory: ProjectionFactory): void {
+  projectionRegistry.set(id, factory)
 }
 
 /**
- * Create a D3 projection from an exported composite projection configuration
+ * Register multiple projections at once
  *
  * @example
- * ```javascript
- * import { loadCompositeProjection } from './standalone-projection-loader'
+ * ```typescript
+ * import * as d3 from 'd3-geo'
+ * import { registerProjections } from '@atlas-composer/projection-loader'
  *
- * // Load configuration from JSON file or string
+ * registerProjections({
+ *   'mercator': () => d3.geoMercator(),
+ *   'albers': () => d3.geoAlbers(),
+ *   'conic-equal-area': () => d3.geoConicEqualArea()
+ * })
+ * ```
+ *
+ * @param factories - Object mapping projection IDs to factory functions
+ */
+export function registerProjections(factories: Record<string, ProjectionFactory>): void {
+  for (const [id, factory] of Object.entries(factories)) {
+    registerProjection(id, factory)
+  }
+}
+
+/**
+ * Unregister a projection
+ *
+ * @param id - Projection identifier to remove
+ * @returns True if the projection was removed, false if it wasn't registered
+ */
+export function unregisterProjection(id: string): boolean {
+  return projectionRegistry.delete(id)
+}
+
+/**
+ * Clear all registered projections
+ */
+export function clearProjections(): void {
+  projectionRegistry.clear()
+}
+
+/**
+ * Get list of currently registered projection IDs
+ *
+ * @returns Array of registered projection identifiers
+ */
+export function getRegisteredProjections(): string[] {
+  return Array.from(projectionRegistry.keys())
+}
+
+/**
+ * Check if a projection is registered
+ *
+ * @param id - Projection identifier to check
+ * @returns True if the projection is registered
+ */
+export function isProjectionRegistered(id: string): boolean {
+  return projectionRegistry.has(id)
+}
+
+/**
+ * Create a minimal projection wrapper (similar to d3.geoProjection)
+ * This allows us to avoid the d3-geo dependency
+ */
+function createProjectionWrapper(
+  project: (lambda: number, phi: number) => [number, number] | null,
+): ProjectionLike {
+  let _scale = 150
+  let _translate: [number, number] = [480, 250]
+
+  const projection = function (coordinates: [number, number]): [number, number] | null {
+    const point = project(coordinates[0] * Math.PI / 180, coordinates[1] * Math.PI / 180)
+    if (!point)
+      return null
+    return [point[0] * _scale + _translate[0], point[1] * _scale + _translate[1]]
+  } as ProjectionLike
+
+  // D3-style getter/setter for scale
+  projection.scale = ((s?: number): any => {
+    if (arguments.length === 0)
+      return _scale
+    _scale = s!
+    return projection
+  }) as any
+
+  // D3-style getter/setter for translate
+  projection.translate = ((t?: [number, number]): any => {
+    if (arguments.length === 0)
+      return _translate
+    _translate = t!
+    return projection
+  }) as any
+
+  return projection
+}
+
+/**
+ * Create a D3-compatible projection from an exported composite projection configuration
+ *
+ * @example
+ * ```typescript
+ * import * as d3 from 'd3-geo'
+ * import { registerProjection, loadCompositeProjection } from '@atlas-composer/projection-loader'
+ *
+ * // Register projections first
+ * registerProjection('mercator', () => d3.geoMercator())
+ * registerProjection('albers', () => d3.geoAlbers())
+ *
+ * // Load configuration
  * const config = JSON.parse(jsonString)
  *
  * // Create projection
@@ -121,12 +288,12 @@ const PROJECTION_FACTORIES: Record<string, () => any> = {
  *
  * @param config - Exported composite projection configuration
  * @param options - Canvas dimensions and options
- * @returns D3 GeoProjection that routes geometry to appropriate sub-projections
+ * @returns D3-compatible projection that routes geometry to appropriate sub-projections
  */
 export function loadCompositeProjection(
   config: ExportedConfig,
   options: LoaderOptions,
-): GeoProjection {
+): ProjectionLike {
   const { width, height, debug = false } = options
 
   // Validate configuration version
@@ -156,8 +323,8 @@ export function loadCompositeProjection(
     })
   }
 
-  // Create composite projection using D3 stream multiplexing
-  const compositeProjection = d3Geo.geoProjection((lambda, phi) => {
+  // Create composite projection using custom stream multiplexing
+  const compositeProjection = createProjectionWrapper((lambda: number, phi: number) => {
     // Convert radians to degrees for bounds checking
     const lon = (lambda * 180) / Math.PI
     const lat = (phi * 180) / Math.PI
@@ -184,10 +351,10 @@ export function loadCompositeProjection(
   })
 
   // Implement stream multiplexing for proper geometry routing
-  const originalStream = compositeProjection.stream
-  compositeProjection.stream = function (stream) {
-    let activeStream: any = null
+  compositeProjection.stream = function (stream: StreamLike): StreamLike {
+    let activeStream: StreamLike | null = null
     let bufferedPoints: Array<[number, number]> = []
+    let activeTerritoryCode = ''
 
     return {
       point(lon: number, lat: number) {
@@ -200,7 +367,7 @@ export function loadCompositeProjection(
           const latDeg = (lat * 180) / Math.PI
 
           if (debug) {
-            console.log(`[Stream] Point: [${lonDeg.toFixed(2)}, ${latDeg.toFixed(2)}] → ${activeStream.territoryCode}`)
+            console.log(`[Stream] Point: [${lonDeg.toFixed(2)}, ${latDeg.toFixed(2)}] → ${activeTerritoryCode}`)
           }
 
           activeStream.point(lon, lat)
@@ -220,8 +387,11 @@ export function loadCompositeProjection(
               lonDeg >= bounds[0][0] && lonDeg <= bounds[1][0]
               && latDeg >= bounds[0][1] && latDeg <= bounds[1][1]
             ) {
-              activeStream = originalStream.call(projection, stream)
-              activeStream.territoryCode = territory.code
+              // Use the projection's stream if available
+              if (projection.stream) {
+                activeStream = projection.stream(stream)
+                activeTerritoryCode = territory.code
+              }
 
               if (debug) {
                 console.log(`[Stream] Line started in territory: ${territory.code}`)
@@ -232,11 +402,14 @@ export function loadCompositeProjection(
 
           // Fallback to first projection
           if (!activeStream && subProjections[0]) {
-            activeStream = originalStream.call(subProjections[0].projection, stream)
-            activeStream.territoryCode = subProjections[0].territory.code
+            const firstProj = subProjections[0].projection
+            if (firstProj.stream) {
+              activeStream = firstProj.stream(stream)
+              activeTerritoryCode = subProjections[0].territory.code
+            }
 
             if (debug) {
-              console.log(`[Stream] Line started (fallback): ${activeStream.territoryCode}`)
+              console.log(`[Stream] Line started (fallback): ${activeTerritoryCode}`)
             }
           }
         }
@@ -282,11 +455,14 @@ export function loadCompositeProjection(
 
   // Set reasonable defaults for the composite projection
   // Note: Individual territories handle their own scale/translate
-  compositeProjection
-    .scale(1)
-    .translate([width / 2, height / 2])
+  if (compositeProjection.scale) {
+    compositeProjection.scale(1)
+  }
+  if (compositeProjection.translate) {
+    compositeProjection.translate([width / 2, height / 2])
+  }
 
-  return compositeProjection as GeoProjection
+  return compositeProjection
 }
 
 /**
@@ -296,13 +472,19 @@ function createSubProjection(
   territory: Territory,
   width: number,
   height: number,
-): any {
+): ProjectionLike {
   const { projectionId, parameters, layout } = territory
 
-  // Get projection factory
-  const factory = PROJECTION_FACTORIES[projectionId]
+  // Get projection factory from registry
+  const factory = projectionRegistry.get(projectionId)
   if (!factory) {
-    throw new Error(`Unknown projection ID: ${projectionId}. Available: ${Object.keys(PROJECTION_FACTORIES).join(', ')}`)
+    const registered = getRegisteredProjections()
+    const availableList = registered.length > 0 ? registered.join(', ') : 'none'
+    throw new Error(
+      `Projection "${projectionId}" is not registered. ` +
+      `Available projections: ${availableList}. ` +
+      `Use registerProjection('${projectionId}', factory) to register it.`,
+    )
   }
 
   // Create projection instance
@@ -387,7 +569,14 @@ export function validateConfig(config: any): config is ExportedConfig {
  * Load composite projection from JSON string
  *
  * @example
- * ```javascript
+ * ```typescript
+ * import * as d3 from 'd3-geo'
+ * import { registerProjection, loadFromJSON } from '@atlas-composer/projection-loader'
+ *
+ * // Register projections first
+ * registerProjection('mercator', () => d3.geoMercator())
+ *
+ * // Load from JSON
  * const jsonString = fs.readFileSync('france-composite.json', 'utf-8')
  * const projection = loadFromJSON(jsonString, { width: 800, height: 600 })
  * ```
@@ -395,7 +584,7 @@ export function validateConfig(config: any): config is ExportedConfig {
 export function loadFromJSON(
   jsonString: string,
   options: LoaderOptions,
-): GeoProjection {
+): ProjectionLike {
   let config: any
 
   try {
@@ -409,17 +598,18 @@ export function loadFromJSON(
   return loadCompositeProjection(config, options)
 }
 
-/**
- * Get list of supported projection IDs
- */
-export function getSupportedProjections(): string[] {
-  return Object.keys(PROJECTION_FACTORIES)
-}
-
 // Default export
 export default {
+  // Core loading functions
   loadCompositeProjection,
   loadFromJSON,
   validateConfig,
-  getSupportedProjections,
+
+  // Registry management
+  registerProjection,
+  registerProjections,
+  unregisterProjection,
+  clearProjections,
+  getRegisteredProjections,
+  isProjectionRegistered,
 }

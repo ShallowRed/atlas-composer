@@ -1,12 +1,20 @@
 import type {
   CodeGenerationOptions,
   ExportedCompositeConfig,
-  ExportedTerritory,
 } from '@/types/export-config'
 
 /**
  * Generates executable code from exported composite projection configuration
  * Supports D3.js (JavaScript/TypeScript) and Observable Plot code generation
+ *
+ * Code Generation Strategy (Zero-Dependency Architecture):
+ * - Generated code imports from @atlas-composer/projection-loader (zero dependencies)
+ * - Includes projection registration calls (registerProjection) for required projections
+ * - Uses loadCompositeProjection() to build the composite from configuration
+ * - Much simpler than manually constructing projections (reduced from 500+ to ~50 lines)
+ * - Self-documenting: teaches users the plugin registration pattern
+ *
+ * @since 2025-10-11 Updated to use zero-dependency projection loader architecture
  */
 export class CodeGenerator {
   /**
@@ -100,6 +108,7 @@ export class CodeGenerator {
     // Add imports
     lines.push('import * as Plot from "@observablehq/plot";')
     lines.push('import * as d3 from "d3";')
+    lines.push('import { loadCompositeProjection, registerProjection } from "@atlas-composer/projection-loader";')
     lines.push('')
 
     // Generate projection function
@@ -142,6 +151,7 @@ export class CodeGenerator {
    * Generate D3 imports
    */
   private generateD3Imports(config: ExportedCompositeConfig, typescript: boolean): string {
+    const lines: string[] = []
     const projections = new Set<string>()
 
     // Collect unique projections
@@ -151,12 +161,22 @@ export class CodeGenerator {
 
     const imports = Array.from(projections).sort()
 
+    // Add D3 imports
     if (typescript) {
-      return `import { ${imports.join(', ')}, type GeoProjection } from 'd3-geo';`
+      lines.push(`import { ${imports.join(', ')} } from 'd3-geo';`)
     }
     else {
-      return `import { ${imports.join(', ')} } from 'd3-geo';`
+      lines.push(`import { ${imports.join(', ')} } from 'd3-geo';`)
     }
+
+    // Add standalone projection loader imports
+    const loaderImports = typescript
+      ? 'loadCompositeProjection, registerProjection, type ProjectionLike'
+      : 'loadCompositeProjection, registerProjection'
+
+    lines.push(`import { ${loaderImports} } from '@atlas-composer/projection-loader';`)
+
+    return lines.join('\n')
   }
 
   /**
@@ -168,17 +188,16 @@ export class CodeGenerator {
     typescript: boolean,
   ): string {
     const lines: string[] = []
-    const returnType = typescript ? ': GeoProjection' : ''
+    const returnType = typescript ? ': ProjectionLike' : ''
 
     // Function signature
     lines.push(`export function create${this.toPascalCase(config.metadata.atlasId)}Projection()${returnType} {`)
 
-    if (config.pattern === 'single-focus') {
-      lines.push(...this.generateSingleFocusProjection(config, options, typescript))
-    }
-    else {
-      lines.push(...this.generateEqualMembersProjection(config, options, typescript))
-    }
+    // Add registration code
+    lines.push(...this.generateProjectionRegistration(config, options))
+
+    // Add composite projection loading
+    lines.push(...this.generateCompositeLoading(config, options))
 
     lines.push('}')
 
@@ -186,173 +205,81 @@ export class CodeGenerator {
   }
 
   /**
-   * Generate single-focus pattern projection
+   * Generate projection registration code
    */
-  private generateSingleFocusProjection(
+  private generateProjectionRegistration(
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
-    _typescript: boolean,
   ): string[] {
     const lines: string[] = []
-    const primary = config.territories.find(t => t.role === 'primary')
-    const secondaries = config.territories.filter(t => t.role === 'secondary')
+    const projections = new Set<string>()
+    const projectionIdToD3: Map<string, string> = new Map()
 
-    if (!primary) {
-      throw new Error('Single-focus pattern requires a primary territory')
+    // Collect unique projections and their mappings
+    config.territories.forEach((territory) => {
+      const d3FuncName = this.getD3ProjectionFunction(territory.projectionId)
+      projections.add(territory.projectionId)
+      projectionIdToD3.set(territory.projectionId, d3FuncName)
+    })
+
+    if (options.includeComments) {
+      lines.push('  // Step 1: Register projections used in this configuration')
+      lines.push('  // The standalone projection loader requires projections to be registered')
+      lines.push('  // before loading a composite configuration.')
+    }
+    else {
+      lines.push('  // Register projections')
     }
 
-    lines.push('  // Create projections for each territory')
-    lines.push(`  const projections = [];`)
+    // Generate registration calls
+    Array.from(projections).sort().forEach((projectionId) => {
+      const d3FuncName = projectionIdToD3.get(projectionId)
+      lines.push(`  registerProjection('${projectionId}', () => ${d3FuncName}());`)
+    })
+
     lines.push('')
 
-    // Primary projection
-    lines.push(`  // Primary: ${primary.name}`)
-    lines.push(`  const primary = ${this.generateProjectionCreation(primary, 2)};`)
-    lines.push(`  projections.push(primary);`)
-    lines.push('')
+    return lines
+  }
 
-    // Secondary projections
-    if (secondaries.length > 0) {
-      lines.push('  // Secondary territories')
-      secondaries.forEach((territory, index) => {
-        lines.push(`  const secondary${index + 1} = ${this.generateProjectionCreation(territory, 2)};`)
-        lines.push(`  projections.push(secondary${index + 1});`)
-        if (index < secondaries.length - 1) {
-          lines.push('')
-        }
-      })
-      lines.push('')
+  /**
+   * Generate composite projection loading code
+   */
+  private generateCompositeLoading(
+    config: ExportedCompositeConfig,
+    options: CodeGenerationOptions,
+  ): string[] {
+    const lines: string[] = []
+
+    if (options.includeComments) {
+      lines.push('  // Step 2: Define the composite projection configuration')
+      lines.push('  // This configuration was exported from Atlas Composer')
+    }
+    else {
+      lines.push('  // Composite projection configuration')
     }
 
-    // Composite function
-    lines.push('  // Create composite projection')
-    lines.push('  const composite = (coordinates) => {')
-    lines.push('    // Use primary projection for all points')
-    lines.push('    return primary(coordinates);')
-    lines.push('  };')
-    lines.push('')
-
-    // Copy properties from primary
-    lines.push('  // Copy projection methods from primary')
-    lines.push('  Object.setPrototypeOf(composite, primary);')
+    lines.push(`  const config = ${JSON.stringify(config, null, 2).split('\n').join('\n  ')};`)
     lines.push('')
 
     if (options.includeComments) {
-      lines.push('  // Note: Full composite behavior with territory switching')
-      lines.push('  // requires additional implementation based on your needs.')
+      lines.push('  // Step 3: Load the composite projection')
+      lines.push('  // Specify the target dimensions for the projection')
+      lines.push('  // Adjust width and height as needed for your use case')
+    }
+    else {
+      lines.push('  // Load composite projection')
     }
 
-    lines.push('  return composite;')
+    lines.push('  const projection = loadCompositeProjection(config, {')
+    lines.push('    width: 800,')
+    lines.push('    height: 600')
+    lines.push('  });')
+    lines.push('')
+    lines.push('  return projection;')
 
     return lines
   }
-
-  /**
-   * Generate equal-members pattern projection
-   */
-  private generateEqualMembersProjection(
-    config: ExportedCompositeConfig,
-    _options: CodeGenerationOptions,
-    _typescript: boolean,
-  ): string[] {
-    const lines: string[] = []
-    const mainlands = config.territories.filter(t => t.role === 'member')
-    const overseas = config.territories.filter(t => t.role === 'secondary')
-
-    lines.push('  // Create projections for each territory')
-    lines.push(`  const projections = [];`)
-    lines.push('')
-
-    // Mainland projections
-    if (mainlands.length > 0) {
-      lines.push('  // Mainland territories')
-      mainlands.forEach((territory, index) => {
-        lines.push(`  const mainland${index + 1} = ${this.generateProjectionCreation(territory, 2)};`)
-        lines.push(`  projections.push(mainland${index + 1});`)
-        if (index < mainlands.length - 1) {
-          lines.push('')
-        }
-      })
-      lines.push('')
-    }
-
-    // Overseas projections
-    if (overseas.length > 0) {
-      lines.push('  // Overseas territories')
-      overseas.forEach((territory, index) => {
-        lines.push(`  const overseas${index + 1} = ${this.generateProjectionCreation(territory, 2)};`)
-        lines.push(`  projections.push(overseas${index + 1});`)
-        if (index < overseas.length - 1) {
-          lines.push('')
-        }
-      })
-      lines.push('')
-    }
-
-    // Composite function
-    lines.push('  // Create composite projection')
-    lines.push('  // Note: This simplified version uses the first mainland projection')
-    lines.push('  // Implement territory-based projection switching as needed')
-    lines.push('  const composite = (coordinates) => {')
-    lines.push('    return mainland1(coordinates);')
-    lines.push('  };')
-    lines.push('')
-
-    // Copy properties
-    lines.push('  Object.setPrototypeOf(composite, mainland1);')
-    lines.push('')
-    lines.push('  return composite;')
-
-    return lines
-  }
-
-  /**
-   * Generate projection creation code
-   */
-  private generateProjectionCreation(territory: ExportedTerritory, indent: number): string {
-    const indentStr = ' '.repeat(indent)
-    const lines: string[] = []
-    const func = this.getD3ProjectionFunction(territory.projectionId)
-
-    lines.push(`${func}()`)
-
-    const params = territory.parameters
-
-    // Center and rotate
-    if (params.center) {
-      lines.push(`${indentStr}  .center([${params.center[0]}, ${params.center[1]}])`)
-    }
-    if (params.rotate) {
-      lines.push(`${indentStr}  .rotate([${params.rotate.join(', ')}])`)
-    }
-
-    // Parallels (for conic projections)
-    if (params.parallels) {
-      lines.push(`${indentStr}  .parallels([${params.parallels.join(', ')}])`)
-    }
-
-    // Scale
-    if (params.scale) {
-      lines.push(`${indentStr}  .scale(${params.scale})`)
-    }
-
-    return lines.join(`\n${indentStr}`)
-  }
-
-  /**
-   * Round number to avoid floating point precision issues
-   */
-  private roundNumber(num: number, decimals: number = 6): number {
-    return Math.round(num * 10 ** decimals) / 10 ** decimals
-  }
-
-  /**
-   * Format array of numbers with proper rounding
-   */
-  private formatNumberArray(arr: number[]): string {
-    return arr.map(n => this.roundNumber(n)).join(', ')
-  }
-
   /**
    * Generate D3 usage example
    */
@@ -362,16 +289,24 @@ export class CodeGenerator {
 
     lines.push('/**')
     lines.push(' * Usage Example')
+    lines.push(' *')
+    lines.push(' * The generated function handles projection registration and loading automatically.')
+    lines.push(' * Simply call the function and use the returned projection with D3.')
     lines.push(' */')
     lines.push('/*')
+    lines.push(`// Create the composite projection`)
     lines.push(`const projection = ${funcName}();`)
+    lines.push('')
+    lines.push('// Use with D3 geoPath')
     lines.push('const path = d3.geoPath(projection);')
     lines.push('')
-    lines.push('// Use with SVG')
+    lines.push('// Render features')
     lines.push('svg.selectAll("path")')
     lines.push('  .data(features)')
     lines.push('  .join("path")')
-    lines.push('  .attr("d", path);')
+    lines.push('  .attr("d", path)')
+    lines.push('  .attr("fill", "lightgray")')
+    lines.push('  .attr("stroke", "white");')
     lines.push('*/')
 
     return lines.join('\n')
@@ -382,165 +317,37 @@ export class CodeGenerator {
    */
   private generatePlotProjectionFunction(
     config: ExportedCompositeConfig,
-    _options: CodeGenerationOptions,
+    options: CodeGenerationOptions,
   ): string {
     const lines: string[] = []
     const funcName = `create${this.toPascalCase(config.metadata.atlasId)}Projection`
 
     lines.push(`export function ${funcName}() {`)
-    lines.push('  // Composite projection function compatible with Observable Plot')
-    lines.push('  // Returns a function that takes {width, height} and builds the projection')
+
+    // Add registration code (same as D3)
+    lines.push(...this.generateProjectionRegistration(config, options))
+
+    if (options.includeComments) {
+      lines.push('  // Step 2: Define the composite projection configuration')
+    }
+    else {
+      lines.push('  // Composite projection configuration')
+    }
+
+    lines.push(`  const config = ${JSON.stringify(config, null, 2).split('\n').join('\n  ')};`)
+    lines.push('')
+
+    if (options.includeComments) {
+      lines.push('  // Step 3: Return a function compatible with Observable Plot')
+      lines.push('  // Plot calls this function with { width, height } to build the projection')
+    }
+    else {
+      lines.push('  // Return Plot-compatible projection function')
+    }
+
     lines.push('  return ({ width = 800, height = 600 }) => {')
-    lines.push('    const subProjections = []')
-    lines.push('    const epsilon = 1e-6  // For geographic bounds calculations')
-    lines.push('')
-
-    // Generate sub-projections for each territory with bounds
-    config.territories.forEach((territory, index) => {
-      const func = this.getD3ProjectionFunction(territory.projectionId)
-      const varName = `proj${index}`
-
-      lines.push(`    // ${territory.name} (${territory.code})`)
-      lines.push(`    const ${varName} = d3.${func}()`)
-
-      if (territory.parameters.center) {
-        lines.push(`      .center([${this.formatNumberArray(territory.parameters.center)}])`)
-      }
-      if (territory.parameters.rotate) {
-        lines.push(`      .rotate([${this.formatNumberArray(territory.parameters.rotate)}])`)
-      }
-      if (territory.parameters.parallels) {
-        lines.push(`      .parallels([${this.formatNumberArray(territory.parameters.parallels)}])`)
-      }
-
-      // Calculate final scale based on reference
-      const finalScale = this.roundNumber(territory.parameters.scale)
-      lines.push(`      .scale(${finalScale})`)
-
-      // Apply translation offset
-      const [tx, ty] = territory.layout.translateOffset
-      const roundedTx = this.roundNumber(tx)
-      const roundedTy = this.roundNumber(ty)
-      lines.push(`      .translate([width / 2 + ${roundedTx}, height / 2 + ${roundedTy}])`)
-
-      lines.push('')
-
-      // Calculate and apply clipExtent based on geographic bounds
-      const [[minLon, minLat], [maxLon, maxLat]] = territory.bounds
-      const roundedMinLon = this.roundNumber(minLon)
-      const roundedMinLat = this.roundNumber(minLat)
-      const roundedMaxLon = this.roundNumber(maxLon)
-      const roundedMaxLat = this.roundNumber(maxLat)
-      lines.push(`    // Set clip extent based on geographic bounds`)
-      lines.push(`    const topLeft${index} = ${varName}([${roundedMinLon} + epsilon, ${roundedMaxLat} - epsilon])`)
-      lines.push(`    const bottomRight${index} = ${varName}([${roundedMaxLon} - epsilon, ${roundedMinLat} + epsilon])`)
-      lines.push(`    if (topLeft${index} && bottomRight${index}) {`)
-      lines.push(`      ${varName}.clipExtent([topLeft${index}, bottomRight${index}])`)
-      lines.push(`    }`)
-      lines.push('')
-
-      // Store projection with its geographic bounds for point delegation
-      const boundsStr = `bounds: [[${roundedMinLon}, ${roundedMinLat}], [${roundedMaxLon}, ${roundedMaxLat}]]`
-      lines.push(`    subProjections.push({ projection: ${varName}, ${boundsStr} })`)
-      lines.push('')
-    }) // Create point capture mechanism (like albersUsa)
-    lines.push('    // Point capture mechanism for coordinate delegation')
-    lines.push('    let capturedPoint = null')
-    lines.push('    const pointStream = {')
-    lines.push('      point: (x, y) => { capturedPoint = [x, y] },')
-    lines.push('      lineStart: () => {},')
-    lines.push('      lineEnd: () => {},')
-    lines.push('      polygonStart: () => {},')
-    lines.push('      polygonEnd: () => {},')
-    lines.push('      sphere: () => {}')
-    lines.push('    }')
-    lines.push('')
-    lines.push('    // Create point capture streams for each sub-projection')
-    lines.push('    const subProjPoints = subProjections.map(sp => ({')
-    lines.push('      subProj: sp,')
-    lines.push('      stream: sp.projection.stream(pointStream)')
-    lines.push('    }))')
-    lines.push('')
-
-    // Create composite projection function with proper bounds checking
-    lines.push('    // Composite projection that delegates based on geographic bounds')
-    lines.push('    function composite(coordinates) {')
-    lines.push('      const [lon, lat] = coordinates')
-    lines.push('      capturedPoint = null')
-    lines.push('')
-    lines.push('      // Try each sub-projection based on bounds')
-    lines.push('      for (const { subProj, stream } of subProjPoints) {')
-    lines.push('        if (subProj.bounds) {')
-    lines.push('          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds')
-    lines.push('          if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {')
-    lines.push('            stream.point(lon, lat)')
-    lines.push('            if (capturedPoint) return capturedPoint')
-    lines.push('          }')
-    lines.push('        }')
-    lines.push('      }')
-    lines.push('      return null')
-    lines.push('    }')
-    lines.push('')
-
-    // Multiplex stream for rendering with bounds checking
-    lines.push('    // Stream multiplexing implementation for D3 stream protocol')
-    lines.push('    // Routes geometry to appropriate sub-projections based on geographic bounds')
-    lines.push('    composite.stream = (stream) => {')
-    lines.push('      const streams = subProjections.map(sp => ({')
-    lines.push('        stream: sp.projection.stream(stream),')
-    lines.push('        bounds: sp.bounds')
-    lines.push('      }))')
-    lines.push('')
-    lines.push('      // State machine for tracking stream routing:')
-    lines.push('      // - activeStream: currently selected sub-projection stream (null = undecided)')
-    lines.push('      // - polygonActive: true between polygonStart() and polygonEnd()')
-    lines.push('      // - polygonStarted: true after polygonStart() was called on activeStream')
-    lines.push('      // - ringActive: true between lineStart() and lineEnd()')
-    lines.push('      let activeStream = null')
-    lines.push('      let polygonActive = false')
-    lines.push('      let polygonStarted = false')
-    lines.push('      let ringActive = false')
-    lines.push('')
-    lines.push('      return {')
-    lines.push('        point: (lon, lat) => {')
-    lines.push('          // Route point to appropriate sub-projection by checking geographic bounds')
-    lines.push('          for (const { stream: s, bounds } of streams) {')
-    lines.push('            if (bounds) {')
-    lines.push('              const [[minLon, minLat], [maxLon, maxLat]] = bounds')
-    lines.push(`              // Check if point falls within this territory's bounds`)
-    lines.push('              if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {')
-    lines.push('                // First point of a ring: select stream and call lineStart()')
-    lines.push('                if (!ringActive) {')
-    lines.push('                  activeStream = s')
-    lines.push('                  ringActive = true')
-    lines.push(`                  // If in polygon and haven't called polygonStart yet, call it now`)
-    lines.push('                  // (Must wait for first point to determine which stream to use)')
-    lines.push('                  if (polygonActive && !polygonStarted) {')
-    lines.push('                    s.polygonStart()')
-    lines.push('                    polygonStarted = true')
-    lines.push('                  }')
-    lines.push('                  s.lineStart()')
-    lines.push('                }')
-    lines.push('                s.point(lon, lat)')
-    lines.push('                return')
-    lines.push('              }')
-    lines.push('            }')
-    lines.push('          }')
-    lines.push('        },')
-    lines.push('        sphere: () => { streams.forEach(({ stream: s }) => s.sphere && s.sphere()) },')
-    lines.push('        // lineStart: Reset ring tracking (stream selected by first point)')
-    lines.push('        lineStart: () => { ringActive = false },')
-    lines.push('        // lineEnd: End ring, reset activeStream if not in polygon (single-ring feature)')
-    lines.push('        lineEnd: () => { if (activeStream && ringActive) { activeStream.lineEnd(); ringActive = false; if (!polygonActive) activeStream = null } },')
-    lines.push('        // polygonStart: Mark polygon start, reset activeStream for feature independence')
-    lines.push('        polygonStart: () => { polygonActive = true; polygonStarted = false; activeStream = null },')
-    lines.push('        // polygonEnd: End polygon and cleanup all state')
-    lines.push('        polygonEnd: () => { if (activeStream && polygonActive) { activeStream.polygonEnd(); polygonActive = false; polygonStarted = false; activeStream = null } }')
-    lines.push('      }')
-    lines.push('    }')
-    lines.push('')
-    lines.push('    return composite')
-    lines.push('  }')
+    lines.push('    return loadCompositeProjection(config, { width, height });')
+    lines.push('  };')
     lines.push('}')
 
     return lines.join('\n')
@@ -555,20 +362,26 @@ export class CodeGenerator {
 
     lines.push('/**')
     lines.push(' * Usage Example with Observable Plot')
+    lines.push(' *')
+    lines.push(' * The generated function returns a Plot-compatible projection factory.')
+    lines.push(' * Observable Plot will call it with { width, height } to build the projection.')
     lines.push(' */')
     lines.push('/*')
+    lines.push(`// Create the projection factory`)
     lines.push(`const projectionFn = ${funcName}();`)
     lines.push('')
+    lines.push('// Use with Observable Plot')
     lines.push('Plot.plot({')
     lines.push('  width: 975,')
     lines.push('  height: 610,')
-    lines.push('  projection: projectionFn,  // Plot will call this with {width, height}')
+    lines.push('  projection: projectionFn,  // Plot calls this with {width, height}')
     lines.push('  marks: [')
-    lines.push('    Plot.geo(features, {')
+    lines.push('    Plot.geo(countries, {')
     lines.push('      fill: "lightgray",')
     lines.push('      stroke: "white",')
     lines.push('      strokeWidth: 0.5')
-    lines.push('    })')
+    lines.push('    }),')
+    lines.push('    Plot.sphere()')
     lines.push('  ]')
     lines.push('});')
     lines.push('*/')
