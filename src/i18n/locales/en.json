@@ -79,6 +79,9 @@
   },
   "settings": {
     "title": "Configuration",
+    "atlasConfigTitle": "Atlas Configuration",
+    "viewConfigTitle": "View Configuration",
+    "territoryConfigTitle": "Territory Configuration",
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
@@ -87,6 +90,17 @@
     "sphere": "Show sphere outline",
     "compositionBorders": "Display composition borders",
     "mapLimits": "Display map limits"
+  },
+  "projectionParams": {
+    "title": "Projection Parameters",
+    "rotateLongitude": "Rotate Longitude",
+    "rotateLatitude": "Rotate Latitude",
+    "centerLongitude": "Center Longitude",
+    "centerLatitude": "Center Latitude",
+    "parallel1": "Standard Parallel 1",
+    "parallel2": "Standard Parallel 2",
+    "reset": "Reset",
+    "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings."
   },
   "common": {
     "loading": "Loading...",

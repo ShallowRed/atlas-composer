@@ -89,6 +89,15 @@ export class Cartographer {
     }
   }
 
+  /**
+   * Update projection parameters
+   * Call this when custom projection parameters change
+   */
+  updateProjectionParams(params: ProjectionParams): void {
+    console.log('[Cartographer] updateProjectionParams called with:', params)
+    this.projectionService.setProjectionParams(params)
+  }
+
   // Unified rendering API
   async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<Plot.Plot> {
     switch (options.mode) {
@@ -183,6 +192,7 @@ export class Cartographer {
    */
   private renderSimple(options: SimpleRenderOptions): Plot.Plot {
     const { geoData, projection, width, height, inset, showGraticule, showSphere } = options
+    console.log('[Cartographer] renderSimple: About to get projection for:', projection)
     let projectionFn = this.projectionService.getProjection(projection, geoData)
 
     // When showing sphere, use sphere as domain instead of data for proper fitting

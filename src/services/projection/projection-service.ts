@@ -18,6 +18,7 @@ export class ProjectionService {
    * Must be called before using getProjection for region-specific projections
    */
   setProjectionParams(params: ProjectionParams): void {
+    console.log('[ProjectionService] setProjectionParams called with:', params)
     this.projectionParams = params
   }
 
@@ -25,12 +26,15 @@ export class ProjectionService {
    * Get projection parameters (or use default France params as fallback)
    */
   private getParams(): ProjectionParams {
-    // Default fallback to France params for backward compatibility
-    return this.projectionParams || {
+    console.log('[ProjectionService] getParams() called. this.projectionParams =', this.projectionParams)
+    const result = this.projectionParams || {
       center: { longitude: 2.5, latitude: 46.5 },
       rotate: { mainland: [-2, 0], azimuthal: [-2, -46.5] },
       parallels: { conic: [44, 49] },
     }
+    console.log('[ProjectionService] getParams() returning:', result)
+    // Default fallback to France params for backward compatibility
+    return result
   }
 
   /**
@@ -41,6 +45,7 @@ export class ProjectionService {
    */
   getProjection(type: string, data: any) {
     const params = this.getParams()
+    console.log('[ProjectionService] getProjection called for type:', type, 'with params:', params)
 
     // Get projection definition from registry
     const definition = projectionRegistry.get(type)

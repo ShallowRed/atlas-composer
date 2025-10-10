@@ -8,7 +8,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div v-show="viewMode === activeMode">
+  <div v-if="viewMode === activeMode">
     <slot />
   </div>
 </template>

@@ -88,7 +88,7 @@ When sphere outline is enabled, the projection domain is automatically set to `{
 ```typescript
 export interface MapDisplayDefaults {
   showGraticule?: boolean
-  showSphere?: boolean      // NEW
+  showSphere?: boolean // NEW
   showCompositionBorders?: boolean
   showMapLimits?: boolean
 }
@@ -195,7 +195,7 @@ const plot = await cartographer.render({
   height: 600,
   inset: 20,
   showGraticule: true,
-  showSphere: true,  // Enable sphere outline
+  showSphere: true, // Enable sphere outline
   showCompositionBorders: false,
   showMapLimits: false,
 })
@@ -207,7 +207,7 @@ const plot = await cartographer.render({
 if (showSphere && typeof projectionFn === 'object' && 'domain' in projectionFn) {
   projectionFn = {
     ...projectionFn,
-    domain: { type: 'Sphere' },  // Use sphere instead of data
+    domain: { type: 'Sphere' }, // Use sphere instead of data
   }
 }
 ```

@@ -43,6 +43,20 @@ const isRendering = ref(false)
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
 
+// Watch for projection parameter changes and update cartographer
+watch(
+  () => configStore.effectiveProjectionParams,
+  async (newParams) => {
+    console.log('[MapRenderer] effectiveProjectionParams changed:', newParams)
+    if (cartographer.value && newParams) {
+      cartographer.value.updateProjectionParams(newParams)
+      // Trigger a re-render with the updated parameters
+      await renderMap()
+    }
+  },
+  { deep: true },
+)
+
 // Render map on mount
 onMounted(async () => {
   // Wait for DOM to be ready
@@ -215,6 +229,9 @@ watch(() => {
     configStore.showSphere,
     configStore.showCompositionBorders,
     configStore.showMapLimits,
+    // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
+    // watcher that calls updateProjectionParams() which updates the existing cartographer
+    // Watching it here would trigger a full re-render which is unnecessary
   ]
 }, async () => {
   await renderMap()

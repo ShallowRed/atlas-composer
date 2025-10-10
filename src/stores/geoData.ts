@@ -68,7 +68,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // Use the geo data config from the selected region
       const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
       const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
-      const projectionParams = configStore.atlasService?.getProjectionParams()
+      const projectionParams = configStore.effectiveProjectionParams
       cartographer.value = new Cartographer(geoDataConfig, compositeConfig, projectionParams)
       await cartographer.value.init()
 

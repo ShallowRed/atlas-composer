@@ -5,6 +5,7 @@ import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
 import FormControl from '@/components/ui/FormControl.vue'
+import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
@@ -202,7 +203,7 @@ watch(() => configStore.territoryMode, async () => {
     >
       <!-- Controls Card -->
       <CardContainer
-        :title="t('settings.title')"
+        :title="t('settings.atlasConfigTitle')"
         icon="ri-settings-3-line"
         class="overflow-y-auto"
         has-overflow
@@ -231,7 +232,7 @@ watch(() => configStore.territoryMode, async () => {
         </div>
       </CardContainer>
       <CardContainer
-        :title="t('settings.title')"
+        :title="t('settings.viewConfigTitle')"
         icon="ri-settings-3-line"
         class="overflow-y-auto"
         has-overflow
@@ -302,6 +303,12 @@ watch(() => configStore.territoryMode, async () => {
             icon="ri-earth-line"
             type="toggle"
           />
+
+          <!-- Projection Parameters (for unified mode) -->
+          <div v-if="configStore.viewMode === 'unified'" class="border-t border-base-300 pt-4">
+            <ProjectionParamsControls />
+          </div>
+
           <FormControl
             v-show="configStore.viewMode === 'composite-custom' || configStore.viewMode === 'composite-existing'"
             v-model="configStore.showCompositionBorders"
@@ -499,7 +506,7 @@ watch(() => configStore.territoryMode, async () => {
       <!-- Territory Parameters (projections, translations, scales) -->
       <CardContainer
         v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
-        :title="t('territory.byTerritory')"
+        :title="t('settings.territoryConfigTitle')"
         icon="ri-settings-4-line"
         class="h-full"
         has-overflow

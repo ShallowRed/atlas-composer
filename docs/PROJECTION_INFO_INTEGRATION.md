@@ -210,7 +210,8 @@ Show detailed info about the currently selected projection below the selector.
 import ProjectionInfo from '@/components/ui/ProjectionInfo.vue'
 
 const selectedProjectionInfo = computed(() => {
-  if (!configStore.selectedProjection) return null
+  if (!configStore.selectedProjection)
+    return null
   return projectionRegistry.get(configStore.selectedProjection)
 })
 </script>
@@ -265,7 +266,7 @@ const allProjections = computed(() => {
 
 const projectionsByCategory = computed(() => {
   const grouped = new Map()
-  allProjections.value.forEach(proj => {
+  allProjections.value.forEach((proj) => {
     if (!grouped.has(proj.category)) {
       grouped.set(proj.category, [])
     }

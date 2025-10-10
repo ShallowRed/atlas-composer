@@ -79,6 +79,9 @@
   },
   "settings": {
     "title": "Configuration",
+    "atlasConfigTitle": "Configuration de l'atlas",
+    "viewConfigTitle": "Configuration de la vue",
+    "territoryConfigTitle": "Configuration des territoires",
     "theme": "Thème",
     "language": "Langue",
     "resolution": "Résolution des données",
@@ -87,6 +90,17 @@
     "sphere": "Afficher le contour du globe",
     "compositionBorders": "Afficher les bordures de composition",
     "mapLimits": "Afficher les limites de la carte"
+  },
+  "projectionParams": {
+    "title": "Paramètres de projection",
+    "rotateLongitude": "Rotation longitude",
+    "rotateLatitude": "Rotation latitude",
+    "centerLongitude": "Centre longitude",
+    "centerLatitude": "Centre latitude",
+    "parallel1": "Parallèle standard 1",
+    "parallel2": "Parallèle standard 2",
+    "reset": "Réinitialiser",
+    "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas."
   },
   "common": {
     "loading": "Chargement...",
