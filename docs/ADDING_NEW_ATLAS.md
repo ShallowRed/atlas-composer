@@ -225,19 +225,19 @@ Copy info from the `analyze` output for polygon #0 (largest):
   "territories": [
     {
       "id": "528",
-      "role": "mainland",
+      "role": "primary",
       "code": "NL-MET",
       "name": "Netherlands (European)",
       "shortName": "Nederland",
       "iso": "NLD",
-      "center": [5.28, 52.15],
+      "center": [5.29, 52.13],
       "bounds": [[3.36, 50.75], [7.21, 53.55]],
       "extraction": {
         "mainlandPolygon": 0
       },
       "rendering": {
         "offset": [0, 0],
-        "projectionType": "conic-confable",
+        "projectionType": "conic-conformal",
         "parallels": [51.0, 53.5]
       }
     }
@@ -250,7 +250,7 @@ Copy info from the `analyze` output for polygon #0 (largest):
 | Field | Source | Notes |
 |-------|--------|-------|
 | `id` | Natural Earth ID from lookup | "528" |
-| `role` | Always "mainland" for main territory | Fixed value |
+| `role` | Always "primary" for main territory | Fixed value |
 | `code` | Your choice - ISO + suffix | "NL-MET" (NL = ISO, MET = Metropolitan) |
 | `name` | Full display name | "Netherlands (European)" |
 | `shortName` | Short display name (optional) | "Nederland" |
@@ -258,36 +258,21 @@ Copy info from the `analyze` output for polygon #0 (largest):
 | `center` | From analyze output | Exact values `[lon, lat]` |
 | `bounds` | From analyze output | `[[minLon, minLat], [maxLon, maxLat]]` (nested arrays) |
 | `extraction.mainlandPolygon` | Polygon index from analyze | `0` for the main/largest polygon |
-| `rendering.offset` | Visual position in composite view | `[0, 0]` for mainland (no offset) |
+| `rendering.offset` | Visual position in composite view | `[0, 0]` for primary territory (no offset) |
 | `rendering.projectionType` | Projection for this territory | From `projectionPreferences.default.mainland` |
 | `rendering.parallels` | Conic projection parallels | `[southParallel, northParallel]` for your latitude range |
 
-### 2.4 Add overseas territories
+### 2.4 Add secondary territories
 
-For each overseas territory, use the polygon index from `analyze` output:
+For each secondary (overseas) territory, use the polygon index from `analyze` output:
 
 ```json
 {
   "territories": [
-    {
-      "id": "528",
-      "role": "mainland",
-      "code": "NL-MET",
-      "name": "Netherlands (European)",
-      "iso": "NLD",
-      "center": [5.28, 52.15],
-      "bounds": [[3.36, 50.75], [7.21, 53.55]],
-      "extraction": {
-        "mainlandPolygon": 0
-      },
-      "rendering": {
-        "offset": [0, 0],
-        "projectionType": "conic-confable"
-      }
-    },
+    // ... primary territory
     {
       "id": "528-1",
-      "role": "overseas",
+      "role": "secondary",
       "code": "NL-AW",
       "name": "Aruba",
       "iso": "ABW",
@@ -325,12 +310,12 @@ For each overseas territory, use the polygon index from `analyze` output:
 }
 ```
 
-**Field guide for overseas territories:**
+**Field guide for secondary territories:**
 
 | Field | Source | Notes |
 |-------|--------|-------|
 | `id` | Parent ID + suffix | "528-1" (parent ID + sequential number) |
-| `role` | "overseas" for distant territories | Or "island", "archipelago", etc. |
+| `role` | "secondary" for distant territories | Or "member" for equal-members atlases (EU, world) |
 | `code` | Your choice - ISO + suffix | "NL-AW" (NL-AWE, NL-CUR, etc.) |
 | `region` | Geographic region | "Caribbean", "Pacific", "Indian Ocean", etc. |
 | `extraction.extractFrom` | Parent Natural Earth ID | "528" (the parent country ID) |
@@ -340,54 +325,28 @@ For each overseas territory, use the polygon index from `analyze` output:
 
 ### 2.5 Understanding extraction methods
 
-**Method 1: Keep mainland only (removes all other polygons)**
+**Method 1: Keep primary territory only (removes all other polygons)**
 
 ```json
 {
   "extraction": {
-    "mainlandPolygon": 0 // Keeps polygon #0, discards others
+    "mainlandPolygon": 0
   }
 }
 ```
+*Use this for primary territories to filter out islands and secondary polygons*
 
 **Method 2: Extract specific polygon(s) by index**
 
 ```json
 {
   "extraction": {
-    "extractFrom": "528", // Parent country ID
-    "polygonIndices": [1] // Extract polygon #1 from parent
-  }
-}
-```
-
-**Method 3: Extract multiple polygons (archipelago)**
-
-```json
-{
-  "extraction": {
     "extractFrom": "528",
-    "polygonIndices": [5, 6, 7, 8, 9] // Extract multiple polygons as one territory
+    "polygonIndices": [1]
   }
 }
 ```
-
-**Method 4: Extract by geographic bounds (alternative to indices)**
-
-```json
-{
-  "extraction": {
-    "extractFrom": "528",
-    "polygonBounds": [[-69.99, 12.41], [-69.84, 12.63]] // Geographic bounding box
-  }
-}
-```
-
-**Which method to use?**
-
-- ✅ **Use `polygonIndices`** when the analyze script gives you polygon numbers (RECOMMENDED)
-- ✅ **Use `polygonBounds`** when you need to match by geography (less common)
-- ✅ **Use `mainlandPolygon`** to keep only the main landmass
+*Use this for secondary territories when you know the polygon index*
 
 ### 2.6 Add territory modes (optional but recommended)
 
@@ -477,9 +436,9 @@ pnpm geodata:prepare netherlands
 
 [i] Processing territories...
 [✓] Found Natural Earth feature: 528 (Netherlands)
-[i] Extracting mainland (polygon #0)
-[i] Extracting overseas territory: NL-AW (polygon #1)
-[i] Extracting overseas territory: NL-CW (polygon #2)
+[i] Extracting primary territory (polygon #0)
+[i] Extracting secondary territory: NL-AW (polygon #1)
+[i] Extracting secondary territory: NL-CW (polygon #2)
 
 [✓] Generated netherlands-territories-50m.json (243 KB)
 [✓] Generated netherlands-metadata-50m.json (8 KB)

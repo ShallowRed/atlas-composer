@@ -19,7 +19,7 @@ The Atlas System is the foundation of Atlas Composer, providing a robust, auto-d
 - **Auto-Discovery**: Automatically loads all atlas configs from `configs/` folder
 - **JSON-Driven**: Define atlases declaratively with JSON Schema validation
 - **Type Safety**: Full TypeScript support with compile-time checking
-- **Multi-Pattern Support**: Traditional (1+N) and multi-mainland (N+M) patterns
+- **Multi-Pattern Support**: Single-focus, equal-members, and hierarchical patterns
 - **Zero Code Changes**: Add new atlases without touching application code
 - **Projection Intelligence**: Context-aware projection recommendations
 
@@ -101,25 +101,28 @@ src/public/data/
 
 ### Atlas Patterns
 
-Atlas Composer supports two fundamental territory organization patterns:
+Atlas Composer supports three fundamental territory organization patterns:
 
-#### 1. Traditional Pattern (1 Mainland + N Overseas)
+#### 1. Single-Focus Pattern (1 Primary + N Secondary)
 
-**Structure:** Single primary mainland territory with multiple overseas territories
+**Structure:** Single primary territory with multiple secondary territories
 
-**Examples:** France, Portugal, Netherlands
+**Pattern ID:** `single-focus`
+
+**Examples:** France, Portugal, Netherlands, USA
 
 **Configuration:**
 ```json
 {
+  "pattern": "single-focus",
   "territories": [
     {
-      "role": "mainland",
+      "role": "primary",
       "code": "FR-MET",
       "name": "France Métropolitaine"
     },
     {
-      "role": "overseas",
+      "role": "secondary",
       "code": "FR-GP",
       "name": "Guadeloupe"
     }
@@ -132,23 +135,26 @@ Atlas Composer supports two fundamental territory organization patterns:
 - Nations with overseas departments
 - States with island territories
 
-#### 2. Multi-Mainland Pattern (N Member States + M Overseas)
+#### 2. Equal-Members Pattern (N Equal Territories)
 
-**Structure:** Multiple equal mainland territories (member states) with optional overseas
+**Structure:** Multiple equal territories with no hierarchy
 
-**Examples:** European Union, ASEAN, Benelux
+**Pattern ID:** `equal-members`
+
+**Examples:** European Union, World, ASEAN, Benelux
 
 **Configuration:**
 ```json
 {
+  "pattern": "equal-members",
   "territories": [
     {
-      "role": "member-state",
+      "role": "member",
       "code": "BE",
       "name": "Belgium"
     },
     {
-      "role": "member-state",
+      "role": "member",
       "code": "NL",
       "name": "Netherlands"
     }
@@ -158,19 +164,26 @@ Atlas Composer supports two fundamental territory organization patterns:
 
 **Use Cases:**
 - Regional unions (EU, ASEAN)
+- World maps (all countries equal)
 - Country groups (Benelux, Nordic Council)
 - Federal systems with equal states
+
+#### 3. Hierarchical Pattern (Future)
+
+**Structure:** Complex multi-level territory relationships
+
+**Pattern ID:** `hierarchical`
+
+**Status:** Reserved for future use
 
 ### Territory Roles
 
 | Role | Description | Example | Pattern |
 |------|-------------|---------|---------|
-| `mainland` | Primary territory | France Métropolitaine | Traditional |
-| `overseas` | Distant territory | French Guiana | Traditional |
-| `island` | Island territory | Corsica | Traditional |
-| `archipelago` | Island group | Azores | Traditional |
-| `embedded` | Enclave/exclave | Monaco (in France) | Traditional |
-| `member-state` | Equal member | EU countries | Multi-mainland |
+| `primary` | Primary territory | France Métropolitaine | Single-focus |
+| `secondary` | Distant/remote territory | French Guiana | Single-focus |
+| `member` | Equal member | EU countries, World countries | Equal-members |
+| `embedded` | Enclave/exclave | Monaco (in France) | Any |
 
 ### View Modes
 
@@ -198,15 +211,16 @@ Atlas Composer supports four view modes for displaying territories:
   "$schema": "./schema.json",
   "id": "atlas-id",
   "name": "Atlas Name",
+  "pattern": "single-focus",
   "territories": [
     {
       "id": "250",
-      "role": "mainland",
+      "role": "primary",
       "code": "FR-MET",
       "name": "Territory Name",
       "center": [2.5, 46.5],
       "bounds": [[-5, 41], [10, 51]],
-      "extraction": { "mainlandPolygon": 1 }
+      "extraction": { "mainlandPolygon": 0 }
     }
   ]
 }
@@ -220,6 +234,7 @@ Atlas Composer supports four view modes for displaying territories:
   "id": "atlas-id",
   "name": "Atlas Name",
   "description": "Brief description",
+  "pattern": "single-focus",
 
   "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
   "defaultViewMode": "composite-custom",

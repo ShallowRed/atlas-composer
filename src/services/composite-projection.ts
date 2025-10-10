@@ -64,8 +64,9 @@ export class CompositeProjection {
    * Initialize single-focus pattern: 1 primary + N secondary territories
    */
   private initializeSingleFocus() {
-    if (this.config.type !== 'single-focus')
+    if (this.config.type !== 'single-focus') {
       return
+    }
     const { mainland, overseasTerritories } = this.config
 
     // Reference scale for all territories (like d3-composite-projections does)
@@ -141,8 +142,9 @@ export class CompositeProjection {
    * All members are treated equally with no hierarchy
    */
   private initializeEqualMembers() {
-    if (this.config.type !== 'equal-members')
+    if (this.config.type !== 'equal-members') {
       return
+    }
     const { mainlands, overseasTerritories } = this.config
 
     // Reference scale for all territories
@@ -249,9 +251,9 @@ export class CompositeProjection {
    * Add or update a sub-projection configuration
    */
   addSubProjection(config: SubProjectionConfig) {
-    const existingIndex = this.subProjections.findIndex(
-      sp => sp.territoryCode === config.territoryCode,
-    )
+    const existingIndex = this.subProjections.findIndex((sp) => {
+      return sp.territoryCode === config.territoryCode
+    })
 
     if (existingIndex >= 0) {
       this.subProjections[existingIndex] = config
@@ -272,9 +274,12 @@ export class CompositeProjection {
     territoryCode: string,
     projectionType: string,
   ) {
-    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
-    if (!subProj)
+    const subProj = this.subProjections.find((sp) => {
+      return sp.territoryCode === territoryCode
+    })
+    if (!subProj) {
       return
+    }
 
     // Save current settings
     const currentScale = subProj.projection.scale()

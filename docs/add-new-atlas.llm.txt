@@ -52,9 +52,9 @@ Create `configs/<atlas-id>.json` with this structure:
   "territories": [
     {
       "id": "<natural-earth-id>",
-      "role": "mainland",
+      "role": "primary",
       "code": "XX-MET",
-      "name": "Mainland Name",
+      "name": "Primary Territory Name",
       "iso": "XXX",
       "center": [lon, lat],
       "bounds": [[minLon, minLat], [maxLon, maxLat]],
@@ -68,9 +68,9 @@ Create `configs/<atlas-id>.json` with this structure:
     },
     {
       "id": "<natural-earth-id>-1",
-      "role": "overseas",
+      "role": "secondary",
       "code": "XX-OVS",
-      "name": "Overseas Territory Name",
+      "name": "Secondary Territory Name",
       "iso": "XXX",
       "region": "Region Name",
       "center": [lon, lat],
@@ -133,7 +133,7 @@ Check:
 
 ### Territory Extraction Methods
 
-**Mainland only (removes other polygons):**
+**Primary territory only (removes other polygons):**
 ```json
 "extraction": {
   "mainlandPolygon": 0
@@ -164,14 +164,18 @@ Check:
 }
 ```
 
+### Atlas Patterns
+
+- `single-focus` - 1 primary + N secondary territories (France, Portugal, Netherlands, USA)
+- `equal-members` - N equal territories (EU, World, ASEAN)
+- `hierarchical` - Complex multi-level structures (future use)
+
 ### Territory Roles
 
-- `mainland` - Main territory (single primary landmass)
-- `overseas` - Distant territory
-- `island` - Island territory
-- `archipelago` - Island group
-- `embedded` - Enclave/exclave
-- `member-state` - Equal member (for multi-mainland like EU)
+- `primary` - Main territory (for single-focus atlases)
+- `secondary` - Distant/remote territory (for single-focus atlases)
+- `member` - Equal member territory (for equal-members atlases like EU, world)
+- `embedded` - Enclave/exclave within another territory
 
 ### Projection Preferences by Region
 
@@ -205,12 +209,15 @@ Check:
 - Add other atlas composites to `prohibited` list
 - Use `polygonIndices` (plural, array)
 - Validate after every change
+- Use `primary` role for single-focus primary territory
+- Use `member` role for equal-members atlases (EU, world)
 
 ❌ DON'T:
 - Guess polygon indices
 - Use `polygonIndex` (singular)
 - Forget validation step
-- Mix `mainland` and `member-state` roles
+- Use old role names (`mainland`, `overseas`, `member-state`)
+- Mix `primary`/`secondary` with `member` roles
 - Edit generated TopoJSON files manually
 
 ## Complete Example

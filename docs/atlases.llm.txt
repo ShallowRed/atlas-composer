@@ -28,20 +28,22 @@ src/public/data/
 
 ## Territory Patterns
 
-### Pattern 1: Traditional (1 Mainland + N Overseas)
-**Examples**: France, Portugal, Netherlands
-**Structure**: Single primary mainland + multiple overseas territories
+### Pattern 1: Single-Focus (1 Primary + N Secondary)
+**Pattern ID**: `single-focus`
+**Examples**: France, Portugal, Netherlands, USA
+**Structure**: Single primary territory + multiple secondary territories
 
 ```json
 {
+  "pattern": "single-focus",
   "territories": [
     {
-      "role": "mainland",
+      "role": "primary",
       "code": "FR-MET",
       "name": "France Métropolitaine"
     },
     {
-      "role": "overseas",
+      "role": "secondary",
       "code": "FR-GP",
       "name": "Guadeloupe"
     }
@@ -49,20 +51,22 @@ src/public/data/
 }
 ```
 
-### Pattern 2: Multi-Mainland (N Member States + M Overseas)
-**Examples**: EU, ASEAN, Benelux
-**Structure**: Multiple equal mainland territories (member states)
+### Pattern 2: Equal-Members (N Equal Territories)
+**Pattern ID**: `equal-members`
+**Examples**: EU, World, ASEAN, Benelux
+**Structure**: Multiple equal territories (no hierarchy)
 
 ```json
 {
+  "pattern": "equal-members",
   "territories": [
     {
-      "role": "member-state",
+      "role": "member",
       "code": "BE",
       "name": "Belgium"
     },
     {
-      "role": "member-state",
+      "role": "member",
       "code": "NL",
       "name": "Netherlands"
     }
@@ -70,14 +74,17 @@ src/public/data/
 }
 ```
 
+### Pattern 3: Hierarchical (Future)
+**Pattern ID**: `hierarchical`
+**Status**: Reserved for future use
+**Structure**: Complex multi-level territory relationships
+
 ## Territory Roles
 
-- `mainland` - Primary territory (single primary landmass)
-- `overseas` - Distant territory
-- `island` - Island territory
-- `archipelago` - Island group
-- `embedded` - Enclave/exclave
-- `member-state` - Equal member (for multi-mainland like EU)
+- `primary` - Primary territory (for single-focus atlases)
+- `secondary` - Distant/remote territory (for single-focus atlases)
+- `member` - Equal member territory (for equal-members atlases like EU, world)
+- `embedded` - Enclave/exclave within another territory
 
 ## View Modes
 
@@ -95,15 +102,16 @@ src/public/data/
   "$schema": "./schema.json",
   "id": "atlas-id",
   "name": "Atlas Name",
+  "pattern": "single-focus",
   "territories": [
     {
       "id": "250",
-      "role": "mainland",
+      "role": "primary",
       "code": "FR-MET",
       "name": "Territory Name",
       "center": [2.5, 46.5],
       "bounds": [[-5, 41], [10, 51]],
-      "extraction": { "mainlandPolygon": 1 }
+      "extraction": { "mainlandPolygon": 0 }
     }
   ]
 }
@@ -117,6 +125,7 @@ src/public/data/
   "id": "atlas-id",
   "name": "Atlas Name",
   "description": "Brief description",
+  "pattern": "single-focus",
 
   "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
   "defaultViewMode": "composite-custom",
@@ -166,11 +175,12 @@ src/public/data/
 | `$schema` | ✅ | Reference to schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name |
+| `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
-| `territories` | ✅ | Territory definitions |
+| `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
 | `modes` | ⏩ | Territory selection presets |
 | `groups` | ⏩ | Territory groupings |
