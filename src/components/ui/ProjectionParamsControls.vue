@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionFamily } from '@/core/projections/types'
 import { useConfigStore } from '@/stores/config'
 
 const { t } = useI18n()
@@ -15,6 +17,53 @@ const RANGES = {
   parallel1: { min: 0, max: 90, step: 1, default: 30 },
   parallel2: { min: 0, max: 90, step: 1, default: 60 },
 }
+
+// Get current projection definition
+const currentProjection = computed(() => {
+  if (!configStore.selectedProjection) {
+    return undefined
+  }
+  return projectionRegistry.get(configStore.selectedProjection)
+})
+
+// Determine which parameters are relevant for the current projection
+const relevantParams = computed(() => {
+  const projection = currentProjection.value
+  if (!projection) {
+    return {
+      rotateLongitude: false,
+      rotateLatitude: false,
+      centerLongitude: false,
+      centerLatitude: false,
+      parallels: false,
+    }
+  }
+
+  const family = projection.family
+
+  return {
+    // Rotation longitude is useful for most projections except purely regional ones
+    rotateLongitude: family === ProjectionFamily.CYLINDRICAL
+      || family === ProjectionFamily.PSEUDOCYLINDRICAL
+      || family === ProjectionFamily.AZIMUTHAL
+      || family === ProjectionFamily.CONIC,
+
+    // Rotation latitude is primarily for azimuthal projections
+    rotateLatitude: family === ProjectionFamily.AZIMUTHAL,
+
+    // Center parameters are primarily for azimuthal and conic projections
+    centerLongitude: family === ProjectionFamily.AZIMUTHAL || family === ProjectionFamily.CONIC,
+    centerLatitude: family === ProjectionFamily.AZIMUTHAL || family === ProjectionFamily.CONIC,
+
+    // Parallels are ONLY for conic projections
+    parallels: family === ProjectionFamily.CONIC,
+  }
+})
+
+// Check if there are any parameters to show
+const hasAnyRelevantParams = computed(() => {
+  return Object.values(relevantParams.value).some(value => value === true)
+})
 
 // Get current values or defaults from atlas
 const currentRotateLongitude = computed(() => {
@@ -118,7 +167,7 @@ function reset() {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div v-if="hasAnyRelevantParams" class="space-y-4">
     <!-- Header with reset button -->
     <div class="flex items-center justify-between">
       <h3 class="text-sm font-semibold flex items-center gap-2">
@@ -136,7 +185,7 @@ function reset() {
     </div>
 
     <!-- Rotate Longitude -->
-    <div>
+    <div v-if="relevantParams.rotateLongitude">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-compass-3-line" />
@@ -160,7 +209,7 @@ function reset() {
     </div>
 
     <!-- Rotate Latitude -->
-    <div>
+    <div v-if="relevantParams.rotateLatitude">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-compass-4-line" />
@@ -184,7 +233,7 @@ function reset() {
     </div>
 
     <!-- Center Longitude -->
-    <div>
+    <div v-if="relevantParams.centerLongitude">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-map-pin-line" />
@@ -208,7 +257,7 @@ function reset() {
     </div>
 
     <!-- Center Latitude -->
-    <div>
+    <div v-if="relevantParams.centerLatitude">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-map-pin-2-line" />
@@ -232,7 +281,7 @@ function reset() {
     </div>
 
     <!-- Parallel 1 (for conic projections) -->
-    <div>
+    <div v-if="relevantParams.parallels">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-subtract-line" />
@@ -256,7 +305,7 @@ function reset() {
     </div>
 
     <!-- Parallel 2 (for conic projections) -->
-    <div>
+    <div v-if="relevantParams.parallels">
       <label class="label">
         <span class="label-text text-xs">
           <i class="ri-subtract-line" />
@@ -284,5 +333,11 @@ function reset() {
       <i class="ri-information-line" />
       <span>{{ t('projectionParams.info') }}</span>
     </div>
+  </div>
+
+  <!-- No parameters available message -->
+  <div v-else class="alert alert-warning text-xs">
+    <i class="ri-information-line" />
+    <span>{{ t('projectionParams.noParams') }}</span>
   </div>
 </template>
