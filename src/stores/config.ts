@@ -5,21 +5,20 @@ import { computed, ref, watch } from 'vue'
 import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
-import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
+import { useTerritoryStore } from '@/stores/territory'
+import { useUIStore } from '@/stores/ui'
 
 export type ProjectionMode = 'uniform' | 'individual'
 
 export const useConfigStore = defineStore('config', () => {
+  // Initialize new stores for UI and territory state
+  const uiStore = useUIStore()
+  const territoryStore = useTerritoryStore()
+
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
-
-  const initialMapDisplay = getAtlasConfig(DEFAULT_ATLAS).mapDisplayDefaults || {}
-  const showGraticule = ref(initialMapDisplay.showGraticule ?? false)
-  const showSphere = ref(initialMapDisplay.showSphere ?? false)
-  const showCompositionBorders = ref(initialMapDisplay.showCompositionBorders ?? false)
-  const showMapLimits = ref(initialMapDisplay.showMapLimits ?? false)
 
   // Projection parameters - custom overrides (null = use atlas defaults)
   const customRotateLongitude = ref<number | null>(null)
@@ -71,7 +70,6 @@ export const useConfigStore = defineStore('config', () => {
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
   const compositeProjection = ref<string>(currentAtlasConfig.value.defaultCompositeProjection || 'conic-conformal-france')
-  const theme = ref('light')
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -79,16 +77,23 @@ export const useConfigStore = defineStore('config', () => {
     return config.supportedViewModes.length === 1
   })
 
-  // Use TerritoryDefaultsService for territory initialization
+  // Initialize UI store with atlas display defaults
+  const initialMapDisplay = getAtlasConfig(DEFAULT_ATLAS).mapDisplayDefaults || {}
+  uiStore.initializeDisplayOptions({
+    showGraticule: initialMapDisplay.showGraticule ?? false,
+    showSphere: initialMapDisplay.showSphere ?? false,
+    showCompositionBorders: initialMapDisplay.showCompositionBorders ?? false,
+    showMapLimits: initialMapDisplay.showMapLimits ?? false,
+  })
+
+  // Initialize territory defaults in the territory store
   const initializeTerritoryDefaults = () => {
     const all = atlasService.value.getAllTerritories()
-    return TerritoryDefaultsService.initializeAll(all, 'mercator')
+    territoryStore.initializeDefaults(all, 'mercator')
   }
 
-  const initialDefaults = initializeTerritoryDefaults()
-  const territoryProjections = ref<Record<string, string>>(initialDefaults.projections)
-  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initialDefaults.translations)
-  const territoryScales = ref<Record<string, number>>(initialDefaults.scales)
+  // Call initialization
+  initializeTerritoryDefaults()
 
   // Computed
   // Use ProjectionUIService for all UI visibility and grouping logic
@@ -254,21 +259,6 @@ export const useConfigStore = defineStore('config', () => {
     compositeProjection.value = projection
   }
 
-  const setTerritoryProjection = (territoryCode: string, projection: string) => {
-    territoryProjections.value[territoryCode] = projection
-  }
-
-  const setTerritoryTranslation = (territoryCode: string, axis: 'x' | 'y', value: number) => {
-    if (!territoryTranslations.value[territoryCode]) {
-      territoryTranslations.value[territoryCode] = { x: 0, y: 0 }
-    }
-    territoryTranslations.value[territoryCode][axis] = value
-  }
-
-  const setTerritoryScale = (territoryCode: string, value: number) => {
-    territoryScales.value[territoryCode] = value
-  }
-
   const setCustomRotate = (longitude: number | null, latitude: number | null) => {
     console.log('[ConfigStore] setCustomRotate:', longitude, latitude)
     customRotateLongitude.value = longitude
@@ -295,36 +285,29 @@ export const useConfigStore = defineStore('config', () => {
     customParallel2.value = null
   }
 
-  const setTheme = (newTheme: string) => {
-    theme.value = newTheme
-
-    // Apply theme to HTML element
-    document.documentElement.setAttribute('data-theme', newTheme)
-
-    // Save theme preference to localStorage
-    localStorage.setItem('daisyui-theme', newTheme)
-  }
-
   const initializeTheme = () => {
-    const savedTheme = localStorage.getItem('daisyui-theme') || 'light'
-    setTheme(savedTheme)
+    uiStore.initializeTheme()
   }
 
   // Watch for atlas changes - use AtlasCoordinator for complex orchestration
   watch(selectedAtlas, (newAtlasId) => {
     const updates = AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
 
-    // Apply all updates from coordinator
+    // Apply all updates from coordinator to config store
     viewMode.value = updates.viewMode
     territoryMode.value = updates.territoryMode
-    territoryProjections.value = updates.projections
-    territoryTranslations.value = updates.translations
-    territoryScales.value = updates.scales
     selectedProjection.value = updates.selectedProjection
-    showGraticule.value = updates.mapDisplay.showGraticule
-    showSphere.value = updates.mapDisplay.showSphere
-    showCompositionBorders.value = updates.mapDisplay.showCompositionBorders
-    showMapLimits.value = updates.mapDisplay.showMapLimits
+
+    // Update territory store
+    territoryStore.territoryProjections = updates.projections
+    territoryStore.territoryTranslations = updates.translations
+    territoryStore.territoryScales = updates.scales
+
+    // Update UI store
+    uiStore.showGraticule = updates.mapDisplay.showGraticule
+    uiStore.showSphere = updates.mapDisplay.showSphere
+    uiStore.showCompositionBorders = updates.mapDisplay.showCompositionBorders
+    uiStore.showMapLimits = updates.mapDisplay.showMapLimits
 
     if (updates.compositeProjection) {
       compositeProjection.value = updates.compositeProjection
@@ -335,19 +318,11 @@ export const useConfigStore = defineStore('config', () => {
     // State
     selectedAtlas,
     scalePreservation,
-    showGraticule,
-    showSphere,
-    showCompositionBorders,
-    showMapLimits,
     selectedProjection,
     territoryMode,
     viewMode,
     projectionMode,
     compositeProjection,
-    territoryProjections,
-    theme,
-    territoryTranslations,
-    territoryScales,
     customRotateLongitude,
     customRotateLatitude,
     customCenterLongitude,
@@ -377,14 +352,10 @@ export const useConfigStore = defineStore('config', () => {
     setViewMode,
     setProjectionMode,
     setCompositeProjection,
-    setTerritoryProjection,
     setCustomRotate,
     setCustomCenter,
     setCustomParallels,
     resetProjectionParams,
-    setTheme,
-    setTerritoryTranslation,
-    setTerritoryScale,
     initializeTheme,
   }
 })

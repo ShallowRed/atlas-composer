@@ -17,7 +17,18 @@ export const useUIStore = defineStore('ui', () => {
 
   // Actions
   function initializeTheme() {
-    // Check for saved theme preference
+    // Migration: Check for old 'atlas-theme' key from config store
+    const oldThemeKey = localStorage.getItem('atlas-theme')
+    if (oldThemeKey) {
+      // Migrate to new key
+      localStorage.setItem('theme', oldThemeKey)
+      localStorage.removeItem('atlas-theme')
+      theme.value = oldThemeKey
+      applyTheme(oldThemeKey)
+      return
+    }
+
+    // Check for saved theme preference (new key)
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme) {
       theme.value = savedTheme

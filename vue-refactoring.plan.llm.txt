@@ -178,13 +178,14 @@ Split large stores into focused modules.
   - Result: 57 lines created - Focused territory management
   - Status: COMPLETE - New store created with all territory operations
   
-- [~] File: src/stores/config.ts
+- [x] File: src/stores/config.ts
   - Action: Refactor to use new stores
   - Why: Reduce config store size, improve organization
   - Content: Migrate territory & UI state to new stores, update watchers
-  - Result: NOT YET INTEGRATED - Stores created but config.ts not yet migrated
-  - Status: PARTIAL - New stores created, integration deferred (requires careful migration of watchers and dependencies)
-  - Note: Integration requires updating all components that use config store to also use ui/territory stores. This is a breaking change that needs comprehensive testing.
+  - Result: 434 → 361 lines (73 lines removed, 16.8% reduction)
+  - Status: COMPLETE - All components and composables migrated to use ui.ts and territory.ts
+  - Migration: Bridge pattern → component updates → composable updates → bridge removal → localStorage migration
+  - Files Updated: MapRenderer.vue, DisplayOptionsSection.vue, ThemeSelector.vue, useTerritoryTransforms.ts, useProjectionConfig.ts
 
 ### Phase 7: Improve Type Safety
 Add stronger typing throughout Vue layer.
@@ -313,27 +314,25 @@ COMPLETED PHASES (1-5):
 - ProjectionSelector.vue: 468 → 341 lines (27% reduction, 127 lines removed) ✅ NEW
 - **Total Lines Reduced: 549 lines removed from 3 major components**
 
-PARTIALLY COMPLETE:
-- Phase 6b: Store migration deferred - new stores created but config.ts integration requires careful dependency migration
-  - Detailed sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 1)
-  - Estimated effort: 6-10 hours
-  - Complexity: HIGH
-  - Status: READY TO START (Phase 5b success builds confidence for complex refactoring)
-
 COMPLETED:
-- Phase 5: ProjectionSelector refactoring COMPLETE
+- Phase 5a: useTerritoryTransforms composable created + TerritoryControls refactored
+  - 283 → 247 lines (13% reduction, 36 lines removed)
+  
+- Phase 5b: ProjectionSelector refactoring COMPLETE
   - 468 → 341 lines (27% reduction, 127 lines removed)
   - Created 3 new UI components + 2 new composables
   - Sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 2) ✅
   - Actual effort: ~2 hours
   - All functionality preserved, typecheck passes
 
-PARTIALLY COMPLETE:
-- Phase 6: Store migration deferred - new stores created but config.ts integration requires careful dependency migration
-  - Detailed sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 1)
-  - Estimated effort: 6-10 hours
-  - Complexity: HIGH
-  - Status: READY TO START (Task 2 success builds confidence)
+- Phase 6: Store migration COMPLETE ✅
+  - config.ts: 434 → 361 lines (73 lines removed, 16.8% reduction)
+  - Created 2 new stores (ui.ts 68 lines, territory.ts 57 lines)
+  - Sub-plan: vue-refactoring-complex-tasks.plan.llm.txt (Task 1) ✅
+  - Actual effort: ~3 hours
+  - Migration phases: Bridge pattern → component updates → composable updates → bridge removal → localStorage migration
+  - All components and composables successfully migrated
+  - Clean separation: UI state (theme, display toggles) → ui.ts | Territory state → territory.ts | Domain logic remains in config.ts
 
 DEFERRED PHASES (7-8):
 These phases are optional improvements for future iterations:

@@ -5,6 +5,8 @@ import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinato
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useTerritoryStore } from '@/stores/territory'
+import { useUIStore } from '@/stores/ui'
 
 interface Props {
   // For simple territory maps
@@ -33,6 +35,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
+const territoryStore = useTerritoryStore()
+const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
 
 const isLoading = ref(false)
@@ -128,10 +132,10 @@ async function renderMap() {
         isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
-        showGraticule: configStore.showGraticule,
-        showSphere: configStore.showSphere,
-        showCompositionBorders: configStore.showCompositionBorders,
-        showMapLimits: configStore.showMapLimits,
+        showGraticule: uiStore.showGraticule,
+        showSphere: uiStore.showSphere,
+        showCompositionBorders: uiStore.showCompositionBorders,
+        showMapLimits: uiStore.showMapLimits,
       })
     }
 
@@ -153,8 +157,8 @@ async function renderMap() {
         svg,
         configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
         {
-          showBorders: configStore.showCompositionBorders,
-          showLimits: configStore.showMapLimits,
+          showBorders: uiStore.showCompositionBorders,
+          showLimits: uiStore.showMapLimits,
           projectionId: (configStore.compositeProjection || configStore.selectedProjection) as string,
           width,
           height,
@@ -188,14 +192,14 @@ async function renderComposite(): Promise<Plot.Plot> {
     compositeProjection: configStore.compositeProjection as string | undefined,
     width,
     height,
-    showGraticule: configStore.showGraticule,
-    showSphere: configStore.showSphere,
-    showCompositionBorders: configStore.showCompositionBorders,
-    showMapLimits: configStore.showMapLimits,
+    showGraticule: uiStore.showGraticule,
+    showSphere: uiStore.showSphere,
+    showCompositionBorders: uiStore.showCompositionBorders,
+    showMapLimits: uiStore.showMapLimits,
     currentAtlasConfig: configStore.currentAtlasConfig,
-    territoryProjections: configStore.territoryProjections,
-    territoryTranslations: configStore.territoryTranslations,
-    territoryScales: configStore.territoryScales,
+    territoryProjections: territoryStore.territoryProjections,
+    territoryTranslations: territoryStore.territoryTranslations,
+    territoryScales: territoryStore.territoryScales,
     filteredTerritories: geoDataStore.filteredTerritories,
   })
 }
@@ -210,13 +214,13 @@ watch(() => {
       configStore.selectedProjection,
       configStore.territoryMode,
       configStore.scalePreservation,
-      configStore.showGraticule,
-      configStore.showSphere,
-      configStore.showCompositionBorders,
-      configStore.showMapLimits,
-      configStore.territoryTranslations,
-      configStore.territoryScales,
-      configStore.territoryProjections,
+      uiStore.showGraticule,
+      uiStore.showSphere,
+      uiStore.showCompositionBorders,
+      uiStore.showMapLimits,
+      territoryStore.territoryTranslations,
+      territoryStore.territoryScales,
+      territoryStore.territoryProjections,
       geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
     ]
   }
@@ -225,10 +229,10 @@ watch(() => {
     props.projection,
     configStore.selectedProjection,
     props.preserveScale,
-    configStore.showGraticule,
-    configStore.showSphere,
-    configStore.showCompositionBorders,
-    configStore.showMapLimits,
+    uiStore.showGraticule,
+    uiStore.showSphere,
+    uiStore.showCompositionBorders,
+    uiStore.showMapLimits,
     // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
     // watcher that calls updateProjectionParams() which updates the existing cartographer
     // Watching it here would trigger a full re-render which is unnecessary

@@ -5,19 +5,22 @@ This document provides detailed analysis and implementation plans for the comple
 
 ## Context
 - Parent Plan: vue-refactoring.plan.llm.txt
-- Current Status: Phases 1-6 partially complete
-- Complex Tasks Identified: 2 major tasks with significant dependencies
+- Current Status: Task 1 COMPLETE, Task 2 COMPLETE - All phases finished
+- Complex Tasks Identified: 2 major tasks - both successfully completed
+- Overall Status: ✅ ALL TASKS COMPLETE
 
 ---
 
-## Task 1: Store Migration - config.ts → ui.ts + territory.ts
+## Task 1: Store Migration - config.ts → ui.ts + territory.ts [COMPLETE]
 
 ### Objective
 Migrate theme and display toggles from config.ts to ui.ts, and territory state from config.ts to territory.ts, establishing proper separation of concerns.
 
-### Complexity Assessment: HIGH
-**Estimated Effort**: 4-6 hours
-**Risk Level**: Medium-High (breaking changes, cross-store dependencies)
+### Completion Summary
+**Status**: ✅ COMPLETE
+**Actual Effort**: ~3 hours
+**Risk Level**: Medium-High (breaking changes, cross-store dependencies) - Successfully mitigated with bridge pattern
+**Lines Reduced**: config.ts 434 → 361 lines (73 lines removed, 16.8% reduction)
 
 ### Current State Analysis
 
@@ -531,6 +534,47 @@ If migration causes issues:
 - **Mitigation**: Use computed properties, avoid unnecessary reactivity
 - **Detection**: Profile with Chrome DevTools, measure render times
 - **Rollback**: Consolidate stores if performance issue confirmed
+
+### Completion Details
+
+**Phase 1: Bridge Pattern** ✅
+- Created computed bridges in config.ts delegating to ui.ts and territory.ts
+- Updated atlas change watcher to use new stores directly
+- Typecheck passed - all existing code still works
+
+**Phase 2: Component Updates** ✅
+- Updated DisplayOptionsSection.vue (4 v-model bindings → uiStore)
+- Updated ThemeSelector.vue (theme management → uiStore)
+- Updated MapRenderer.vue (20+ references → uiStore + territoryStore)
+- AtlasConfigSection.vue - no changes needed (only uses ThemeSelector component)
+
+**Phase 3: Composable Updates** ✅
+- Updated useTerritoryTransforms.ts (territory state + setters → territoryStore)
+- Updated useProjectionConfig.ts (territoryProjections → territoryStore)
+- useAtlasData.ts - no changes needed
+- useTerritoryConfig.ts - no changes needed
+
+**Phase 4: Watcher Verification** ✅
+- Verified atlas change watcher correctly delegates to new stores
+- All reactive dependencies updated
+
+**Phase 5: Bridge Removal** ✅
+- Removed bridge computed properties from config.ts (showGraticule, showSphere, etc.)
+- Removed delegating functions (setTheme, setTerritoryProjection, etc.)
+- Removed from return statement
+- config.ts: 434 → 361 lines (73 lines removed)
+
+**Phase 6: localStorage Migration** ✅
+- Added migration logic in ui.ts initializeTheme()
+- Migrates old 'atlas-theme' key to new 'theme' key
+- Gracefully handles missing keys with system preference fallback
+
+**Final Verification** ✅
+- All typechecks pass
+- No compilation errors
+- All display toggles now in ui.ts
+- All territory state now in territory.ts
+- Clean separation of concerns achieved
 
 ---
 

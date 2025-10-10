@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { useConfigStore } from '@/stores/config'
+import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Manages projection configuration and provides projection helper functions
@@ -10,6 +11,7 @@ import { useConfigStore } from '@/stores/config'
 export function useProjectionConfig() {
   const { t } = useI18n()
   const configStore = useConfigStore()
+  const territoryStore = useTerritoryStore()
 
   /**
    * Get available composite projections for current atlas
@@ -32,7 +34,7 @@ export function useProjectionConfig() {
     if (configStore.projectionMode === 'individual') {
       const mainlandCode = configStore.currentAtlasConfig.splitModeConfig?.mainlandCode
       if (mainlandCode) {
-        return configStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+        return territoryStore.territoryProjections[mainlandCode] || configStore.selectedProjection
       }
     }
     return configStore.selectedProjection
@@ -44,7 +46,7 @@ export function useProjectionConfig() {
   function getTerritoryProjection(territoryCode: string) {
     if (configStore.projectionMode === 'individual') {
       // Use territory-specific projection if defined, otherwise use default
-      return configStore.territoryProjections[territoryCode] || configStore.selectedProjection
+      return territoryStore.territoryProjections[territoryCode] || configStore.selectedProjection
     }
     // Use uniform projection
     return configStore.selectedProjection

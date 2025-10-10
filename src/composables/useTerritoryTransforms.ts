@@ -7,6 +7,7 @@ import { createDefaultTranslations } from '@/core/atlases/utils'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Manages territory transformation controls (projections, translations, scales)
@@ -14,6 +15,7 @@ import { useGeoDataStore } from '@/stores/geoData'
 export function useTerritoryTransforms() {
   const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
+  const territoryStore = useTerritoryStore()
 
   /**
    * Get list of territories from geoData store
@@ -50,32 +52,32 @@ export function useTerritoryTransforms() {
   /**
    * Get territory translations from store
    */
-  const translations = computed(() => configStore.territoryTranslations)
+  const translations = computed(() => territoryStore.territoryTranslations)
 
   /**
    * Get territory scales from store
    */
-  const scales = computed(() => configStore.territoryScales)
+  const scales = computed(() => territoryStore.territoryScales)
 
   /**
    * Set translation for a territory
    */
   function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
-    configStore.setTerritoryTranslation(territoryCode, axis, value)
+    territoryStore.setTerritoryTranslation(territoryCode, axis, value)
   }
 
   /**
    * Set scale for a territory
    */
   function setTerritoryScale(territoryCode: string, value: number) {
-    configStore.setTerritoryScale(territoryCode, value)
+    territoryStore.setTerritoryScale(territoryCode, value)
   }
 
   /**
    * Set projection for a territory
    */
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
-    configStore.setTerritoryProjection(territoryCode, projectionId)
+    territoryStore.setTerritoryProjection(territoryCode, projectionId)
   }
 
   /**
@@ -90,14 +92,14 @@ export function useTerritoryTransforms() {
     const territories = atlasService.getAllTerritories()
     const defaultTranslations = createDefaultTranslations(territories)
     for (const [code, { x, y }] of Object.entries(defaultTranslations)) {
-      configStore.setTerritoryTranslation(code, 'x', x)
-      configStore.setTerritoryTranslation(code, 'y', y)
+      territoryStore.setTerritoryTranslation(code, 'x', x)
+      territoryStore.setTerritoryTranslation(code, 'y', y)
     }
 
     // Reset all scales to 1.0
     const defaultScale = 1.0
     for (const t of geoDataStore.filteredTerritories) {
-      configStore.setTerritoryScale(t.code, defaultScale)
+      territoryStore.setTerritoryScale(t.code, defaultScale)
     }
   }
 
@@ -119,7 +121,7 @@ export function useTerritoryTransforms() {
   /**
    * Get territory projections
    */
-  const territoryProjections = computed(() => configStore.territoryProjections)
+  const territoryProjections = computed(() => territoryStore.territoryProjections)
 
   /**
    * Get selected projection
