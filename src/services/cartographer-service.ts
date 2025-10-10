@@ -68,6 +68,14 @@ export class Cartographer {
     }
   }
 
+  /**
+   * Public getter for GeoDataService
+   * Provides type-safe access to geo data operations
+   */
+  get geoData(): GeoDataService {
+    return this.geoDataService
+  }
+
   async init(): Promise<void> {
     try {
       await this.geoDataService.loadData()

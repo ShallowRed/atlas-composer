@@ -8,6 +8,7 @@ import {
   TRANSLATION_RANGES,
 } from '@/core/atlases/constants'
 import { createDefaultTranslations } from '@/core/atlases/utils'
+import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -34,7 +35,8 @@ const territories = computed(() => {
 
 // Check if we should show primary section (only for single-focus pattern atlases)
 const showMainland = computed(() => {
-  return configStore.currentAtlasConfig.pattern === 'single-focus'
+  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+  return patternService.isSingleFocus()
 })
 
 // Get mainland code dynamically from region config

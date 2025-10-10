@@ -4,6 +4,7 @@ import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/car
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
+import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -52,42 +53,17 @@ onMounted(async () => {
   await renderMap()
 })
 
-const computedSize = computed(() => {
-  // For composite maps, use fixed larger dimensions
-  if (props.mode === 'composite') {
-    return { width: 800, height: 600 }
-  }
-
-  // Si des dimensions sont explicitement fournies, les utiliser
-  if (props.width && props.height && !props.preserveScale) {
-    return { width: props.width, height: props.height }
-  }
-
-  // Pour la France métropolitaine, utiliser des dimensions fixes
-  if (props.isMainland) {
-    return { width: 500, height: 400 }
-  }
-
-  // Pour les territoires avec préservation d'échelle
-  if (props.preserveScale && props.area) {
-    const franceMetropoleArea = 550000
-    const scaleFactor = Math.sqrt(props.area / franceMetropoleArea)
-
-    const baseWidth = 500
-    const baseHeight = 400
-
-    const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
-    const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
-
-    return {
-      width: Math.round(proportionalWidth),
-      height: Math.round(proportionalHeight),
-    }
-  }
-
-  // Dimensions par défaut
-  return { width: props.width, height: props.height }
-})
+// Use MapSizeCalculator service for size calculation
+const computedSize = computed(() =>
+  MapSizeCalculator.calculateSize({
+    mode: props.mode === 'composite' ? 'composite' : 'territory',
+    isMainland: props.isMainland,
+    preserveScale: props.preserveScale,
+    area: props.area,
+    width: props.width,
+    height: props.height,
+  }),
+)
 
 const insetValue = computed(() => {
   return props.isMainland ? 20 : 5

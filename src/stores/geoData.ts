@@ -1,9 +1,9 @@
-import type { TerritoryConfig } from '@/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import { getTerritoriesForMode } from '@/core/atlases/utils'
-import { Cartographer } from '@/services/cartographer-service' // Updated import path
+import { Cartographer } from '@/services/cartographer-service'
+import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
+import { TerritoryFilterService } from '@/services/data/territory-filter-service'
 import { useConfigStore } from '@/stores/config'
 
 export interface Territory {
@@ -33,48 +33,25 @@ export const useGeoDataStore = defineStore('geoData', () => {
     const configStore = useConfigStore()
     const territories = overseasTerritoriesData.value
 
-    if (!territories || territories.length === 0)
+    if (!territories || territories.length === 0) {
       return []
+    }
 
     const atlasConfig = configStore.currentAtlasConfig
     const atlasService = configStore.atlasService
 
-    // Check if there are territory modes defined for filtering
-    const hasTerritoryModes = atlasConfig.hasTerritorySelector
-
-    // If no territory modes, return all territories (no filtering available)
-    if (!hasTerritoryModes) {
-      return territories
-    }
-
-    // Get allowed territories for the current mode
-    const allTerritories = atlasService.getAllTerritories()
-    const territoryModes = atlasService.getTerritoryModes()
-    const allowedTerritories = getTerritoriesForMode(
-      allTerritories,
-      configStore.territoryMode,
-      territoryModes,
-    )
-    const allowedCodes = allowedTerritories.map(t => t.code)
-
-    // Filter territories based on mode
-    return territories.filter(territory =>
-      territory && territory.code && allowedCodes.includes(territory.code),
-    )
+    // Use TerritoryFilterService to filter territories
+    return TerritoryFilterService.filterTerritories(territories, {
+      hasTerritorySelector: atlasConfig.hasTerritorySelector ?? false,
+      territoryMode: configStore.territoryMode,
+      allTerritories: atlasService.getAllTerritories(),
+      territoryModes: atlasService.getTerritoryModes() as any,
+    })
   })
 
   const territoryGroups = computed(() => {
-    const groups = new Map<string, Territory[]>()
-
-    for (const territory of filteredTerritories.value) {
-      const region = territory.region || 'Other'
-      if (!groups.has(region)) {
-        groups.set(region, [])
-      }
-      groups.get(region)!.push(territory)
-    }
-
-    return groups
+    // Use TerritoryFilterService to group territories
+    return TerritoryFilterService.groupByRegion(filteredTerritories.value)
   })
 
   // Actions
@@ -118,42 +95,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      // Access the geoDataService through the cartographer
-      const service = (cartographer.value as any).geoDataService
-
-      // For equal-members atlases (EU): all countries are treated as individual territories
-      // For single-focus atlases (France): primary is separate from secondary territories
-      const isSingleFocusPattern = configStore.currentAtlasConfig.pattern === 'single-focus'
-
-      if (isSingleFocusPattern) {
-        // Single-focus pattern: load primary and secondary separately
-        const [mainland, overseas] = await Promise.all([
-          service.getMainLandData(),
-          service.getOverseasData(),
-        ])
-
-        mainlandData.value = mainland
-        overseasTerritoriesData.value = overseas || []
+      // Access the geoDataService through the cartographer's public API
+      if (!cartographer.value) {
+        throw new Error('Cartographer not initialized')
       }
-      else {
-        // Equal-members pattern: load all territories as equal individual territories
-        const allTerritoriesData = await service.getAllTerritories()
+      const service = cartographer.value.geoData
 
-        // Transform to the format expected by the UI
-        const territories = allTerritoriesData.map((territoryData: any) => ({
-          name: territoryData.territory.name,
-          code: territoryData.territory.code,
-          area: territoryData.territory.area,
-          region: territoryData.territory.region || 'Unknown', // Generic region
-          data: {
-            type: 'FeatureCollection' as const,
-            features: [territoryData.feature],
-          },
-        }))
+      // Use TerritoryDataLoader with strategy pattern to load data
+      const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig.pattern)
+      const result = await loader.loadTerritories(service)
 
-        mainlandData.value = null
-        overseasTerritoriesData.value = territories
-      }
+      mainlandData.value = result.mainlandData
+      overseasTerritoriesData.value = result.territories
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'
@@ -175,52 +128,21 @@ export const useGeoDataStore = defineStore('geoData', () => {
       error.value = null
 
       const configStore = useConfigStore()
-      const service = (cartographer.value as any).geoDataService
-
-      // Get territory codes based on current region and mode using TerritoryService
-      const atlasService = configStore.atlasService
-      const atlasConfig = configStore.currentAtlasConfig
-
-      let territoryCodes: readonly string[] | undefined
-
-      // Check if atlas has territory modes for filtering
-      if (!atlasConfig.hasTerritorySelector) {
-        // No territory modes defined: include all territories
-        territoryCodes = undefined
+      if (!cartographer.value) {
+        throw new Error('Cartographer not initialized')
       }
-      else {
-        // For wildcard atlases, get territories from GeoDataService (loaded from data file)
-        // For regular atlases, get territories from registry (static config)
-        let allTerritories: TerritoryConfig[]
+      const service = cartographer.value.geoData
 
-        if (atlasConfig.isWildcard) {
-          // Load data first to ensure territories are available
-          const geoTerritories = await service.getAllTerritories()
-          // Convert Territory to TerritoryConfig format
-          allTerritories = geoTerritories.map((gt: any) => ({
-            code: gt.territory.code,
-            name: gt.territory.name,
-            center: gt.territory.center || [0, 0],
-            offset: [0, 0],
-            bounds: gt.territory.bounds
-              ? [[gt.territory.bounds[0], gt.territory.bounds[1]], [gt.territory.bounds[2], gt.territory.bounds[3]]]
-              : [[-180, -90], [180, 90]],
-          }))
-        }
-        else {
-          allTerritories = atlasService.getAllTerritories()
-        }
+      // Use TerritoryDataLoader to handle unified data loading
+      const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig.pattern)
+      const result = await loader.loadUnifiedData(service, mode, {
+        atlasConfig: configStore.currentAtlasConfig,
+        atlasService: configStore.atlasService,
+        hasTerritorySelector: configStore.currentAtlasConfig.hasTerritorySelector ?? false,
+        isWildcard: configStore.currentAtlasConfig.isWildcard ?? false,
+      })
 
-        const territoryModes = atlasService.getTerritoryModes()
-        const allowedTerritories = getTerritoriesForMode(
-          allTerritories,
-          mode,
-          territoryModes,
-        )
-        territoryCodes = allowedTerritories.map(t => t.code)
-      }
-
-      rawUnifiedData.value = await service.getRawUnifiedData(mode, territoryCodes)
+      rawUnifiedData.value = result.data
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading raw unified data'

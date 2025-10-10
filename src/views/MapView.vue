@@ -12,6 +12,7 @@ import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
+import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -103,8 +104,14 @@ const hasTerritoriesForProjectionConfig = computed(() => {
   }
 
   // Or has mainland with single-focus pattern configuration
-  const isSingleFocusPattern = configStore.currentAtlasConfig.pattern === 'single-focus'
-  return isSingleFocusPattern && geoDataStore.mainlandData !== null
+  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+  return patternService.isSingleFocus() && geoDataStore.mainlandData !== null
+})
+
+// Check if current atlas uses single-focus pattern (for template v-if)
+const isSingleFocusPattern = computed(() => {
+  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+  return patternService.isSingleFocus()
 })
 
 // Lifecycle
@@ -325,7 +332,7 @@ watch(() => configStore.territoryMode, async () => {
             active-mode="split"
           >
             <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
-            <div v-if="configStore.currentAtlasConfig.pattern === 'single-focus'" class="flex flex-row gap-12">
+            <div v-if="isSingleFocusPattern" class="flex flex-row gap-12">
               <!-- Primary territory -->
               <div>
                 <SectionHeader

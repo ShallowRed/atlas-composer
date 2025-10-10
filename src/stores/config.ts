@@ -3,9 +3,10 @@ import type { ViewMode } from '@/types'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
-import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
-import { projectionRegistry } from '@/core/projections/registry'
 import { AtlasService } from '@/services/atlas-service'
+import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
+import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
+import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 
 export type ProjectionMode = 'uniform' | 'individual'
 
@@ -69,123 +70,54 @@ export const useConfigStore = defineStore('config', () => {
     return config.supportedViewModes.length === 1
   })
 
-  // Per-territory projections (for individual mode)
-  // Initialize from current region's territories (including mainland)
-  const initializeTerritoryProjections = () => {
+  // Use TerritoryDefaultsService for territory initialization
+  const initializeTerritoryDefaults = () => {
     const all = atlasService.value.getAllTerritories()
-    return calculateDefaultProjections(all, 'mercator')
+    return TerritoryDefaultsService.initializeAll(all, 'mercator')
   }
-  const territoryProjections = ref<Record<string, string>>(initializeTerritoryProjections())
 
-  // Territory translations (x, y offsets in pixels relative to mainland center)
-  // Initialize from current region's territories
-  // Positive X = right, Negative X = left
-  // Positive Y = down, Negative Y = up
-  const initializeTerritoryTranslations = () => {
-    const all = atlasService.value.getAllTerritories()
-    return createDefaultTranslations(all)
-  }
-  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initializeTerritoryTranslations())
-
-  // Territory scales (scale multipliers for territoires ultramarins sizing)
-  // Initialize from current region's territories - all start with default 1.0 multiplier
-  const initializeTerritoryScales = () => {
-    const all = atlasService.value.getAllTerritories()
-    return calculateDefaultScales(all)
-  }
-  const territoryScales = ref<Record<string, number>>(initializeTerritoryScales())
+  const initialDefaults = initializeTerritoryDefaults()
+  const territoryProjections = ref<Record<string, string>>(initialDefaults.projections)
+  const territoryTranslations = ref<Record<string, { x: number, y: number }>>(initialDefaults.translations)
+  const territoryScales = ref<Record<string, number>>(initialDefaults.scales)
 
   // Computed
-  const showProjectionSelector = computed(() => {
-    // Show uniform projection selector when:
-    // - In unified mode (single projection for all territories)
-    if (viewMode.value === 'unified') {
-      return true
-    }
-    // - In split or custom composite mode with uniform projection
-    if (viewMode.value === 'split' || viewMode.value === 'composite-custom') {
-      return projectionMode.value === 'uniform'
-    }
-    return false
-  })
+  // Use ProjectionUIService for all UI visibility and grouping logic
+  const showProjectionSelector = computed(() =>
+    ProjectionUIService.shouldShowProjectionSelector(viewMode.value, projectionMode.value),
+  )
 
-  const showProjectionModeToggle = computed(() => {
-    // Show projection mode toggle (uniform/individual) for split and custom composite modes
-    // Split: Can switch between uniform and individual projections per territory
-    // Custom composite: Can use individual projections with D3 composite projection pattern
-    // Existing composite: Uses predefined projections (no toggle)
-    return viewMode.value === 'split' || viewMode.value === 'composite-custom'
-  })
+  const showProjectionModeToggle = computed(() =>
+    ProjectionUIService.shouldShowProjectionModeToggle(viewMode.value),
+  )
 
-  const showIndividualProjectionSelectors = computed(() => {
-    // Show per-territory projection selectors in individual mode
-    // Split: Renders each territory separately with its own projection
-    // Custom composite: Uses D3 composite projection with sub-projections per territory
-    return (viewMode.value === 'split' || viewMode.value === 'composite-custom')
-      && projectionMode.value === 'individual'
-  })
+  const showIndividualProjectionSelectors = computed(() =>
+    ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value, projectionMode.value),
+  )
 
-  const showTerritorySelector = computed(() => {
-    // Hide territory selector for composite-existing mode
-    // Built-in composite projections render all territories as a monolithic unit
-    // and cannot selectively hide/show individual territories
-    return viewMode.value !== 'composite-existing'
-  })
+  const showTerritorySelector = computed(() =>
+    ProjectionUIService.shouldShowTerritorySelector(viewMode.value),
+  )
 
-  const showScalePreservation = computed(() => {
-    // Show scale preservation only in split view mode
-    return viewMode.value === 'split'
-  })
+  const showScalePreservation = computed(() =>
+    ProjectionUIService.shouldShowScalePreservation(viewMode.value),
+  )
 
-  const showTerritoryControls = computed(() => {
-    // Show territory translation/scale controls in custom composite mode
-    return viewMode.value === 'composite-custom'
-  })
+  const showTerritoryControls = computed(() =>
+    ProjectionUIService.shouldShowTerritoryControls(viewMode.value),
+  )
 
-  const showCompositeProjectionSelector = computed(() => {
-    // Show composite projection selector when using existing composite projections
-    return viewMode.value === 'composite-existing'
-  })
+  const showCompositeProjectionSelector = computed(() =>
+    ProjectionUIService.shouldShowCompositeProjectionSelector(viewMode.value),
+  )
 
-  const projectionGroups = computed(() => {
-    // Use new projection registry for context-aware filtering
-    const filteredProjections = projectionRegistry.filter({
-      atlasId: selectedAtlas.value,
-      viewMode: viewMode.value,
-      // Exclude composite projections - they're shown in separate selector
-      excludeCategories: ['COMPOSITE'],
-    })
+  const projectionGroups = computed(() =>
+    ProjectionUIService.getProjectionGroups(selectedAtlas.value, viewMode.value),
+  )
 
-    // Group projections by category
-    const groups: { [key: string]: any[] } = {}
-
-    filteredProjections.forEach((projection) => {
-      const category = projection.category
-      if (!groups[category]) {
-        groups[category] = []
-      }
-      // Convert projection definition to legacy format for UI compatibility
-      groups[category]!.push({
-        value: projection.id,
-        label: projection.name,
-        category: projection.category,
-      })
-    })
-
-    return Object.keys(groups).map(category => ({
-      category,
-      options: groups[category],
-    }))
-  })
-
-  const projectionRecommendations = computed(() => {
-    // Get projection recommendations based on current context
-    return projectionRegistry.recommend({
-      atlasId: selectedAtlas.value,
-      viewMode: viewMode.value,
-      excludeCategories: ['COMPOSITE'],
-    })
-  })
+  const projectionRecommendations = computed(() =>
+    ProjectionUIService.getProjectionRecommendations(selectedAtlas.value, viewMode.value),
+  )
 
   // Actions
   const setScalePreservation = (value: boolean) => {
@@ -247,63 +179,23 @@ export const useConfigStore = defineStore('config', () => {
     setTheme(savedTheme)
   }
 
-  // Watch for region changes and enforce view mode restrictions
-  watch(selectedAtlas, (newRegion) => {
-    const config = getAtlasConfig(newRegion)
+  // Watch for atlas changes - use AtlasCoordinator for complex orchestration
+  watch(selectedAtlas, (newAtlasId) => {
+    const updates = AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
 
-    // If the current view mode is not supported by the new region, switch to default
-    if (!config.supportedViewModes.includes(viewMode.value)) {
-      viewMode.value = config.defaultViewMode
-    }
+    // Apply all updates from coordinator
+    viewMode.value = updates.viewMode
+    territoryMode.value = updates.territoryMode
+    territoryProjections.value = updates.projections
+    territoryTranslations.value = updates.translations
+    territoryScales.value = updates.scales
+    selectedProjection.value = updates.selectedProjection
+    showGraticule.value = updates.mapDisplay.showGraticule
+    showCompositionBorders.value = updates.mapDisplay.showCompositionBorders
+    showMapLimits.value = updates.mapDisplay.showMapLimits
 
-    // Update territory mode for the new region
-    if (config.hasTerritorySelector) {
-      // Use configured default territory mode if available
-      if (config.defaultTerritoryMode) {
-        territoryMode.value = config.defaultTerritoryMode
-      }
-      // Otherwise use first option from territoryModeOptions
-      else if (config.territoryModeOptions && config.territoryModeOptions.length > 0) {
-        territoryMode.value = config.territoryModeOptions[0]!.value as any
-      }
-    }
-
-    // Reinitialize territory configurations for the new region
-    territoryProjections.value = initializeTerritoryProjections()
-    territoryTranslations.value = initializeTerritoryTranslations()
-    territoryScales.value = initializeTerritoryScales()
-
-    // Load default composite configuration if available (overrides calculated defaults)
-    if (config.defaultCompositeConfig) {
-      Object.assign(territoryProjections.value, config.defaultCompositeConfig.territoryProjections)
-      Object.assign(territoryTranslations.value, config.defaultCompositeConfig.territoryTranslations)
-      Object.assign(territoryScales.value, config.defaultCompositeConfig.territoryScales)
-    }
-
-    // Update composite projection to match the new region
-    if (config.defaultCompositeProjection) {
-      compositeProjection.value = config.defaultCompositeProjection
-    }
-
-    // Update map display options from atlas defaults
-    const mapDisplayDefaults = config.mapDisplayDefaults || {}
-    showGraticule.value = mapDisplayDefaults.showGraticule ?? false
-    showCompositionBorders.value = mapDisplayDefaults.showCompositionBorders ?? false
-    showMapLimits.value = mapDisplayDefaults.showMapLimits ?? false
-
-    // Update view mode to match the new atlas default
-    viewMode.value = config.defaultViewMode
-
-    // Update selected projection based on atlas preferences or mainland
-    const specificConfig = getAtlasSpecificConfig(selectedAtlas.value)
-    const projectionPrefs = specificConfig.projectionPreferences
-    if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
-      selectedProjection.value = projectionPrefs.recommended[0]
-    }
-    else {
-      const atlasService = new AtlasService(selectedAtlas.value)
-      const mainland = atlasService.getMainland()
-      selectedProjection.value = mainland?.projectionType || 'natural-earth'
+    if (updates.compositeProjection) {
+      compositeProjection.value = updates.compositeProjection
     }
   })
 
