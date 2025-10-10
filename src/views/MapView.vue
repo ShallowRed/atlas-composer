@@ -3,9 +3,9 @@ import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
-import ViewConfigSection from '@/components/configuration/ViewConfigSection.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
+import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
 import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import CompositeCustomView from '@/components/views/CompositeCustomView.vue'
 import CompositeExistingView from '@/components/views/CompositeExistingView.vue'
@@ -44,26 +44,28 @@ onMounted(async () => {
       class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
     >
       <!-- Atlas Configuration -->
-      <AtlasConfigSection :allow-theme-selection="allowThemeSelection" />
-
-      <!-- View Configuration -->
-      <ViewConfigSection
-        :view-mode-options="viewModeOptions"
-        :composite-projection-options="compositeProjectionOptions"
-      />
-
-      <!-- Display Options -->
-      <DisplayOptionsSection />
+      <CardContainer
+        :title="t('settings.atlasConfigTitle')"
+        icon="ri-settings-4-line"
+        class="h-full"
+        has-overflow
+      >
+        <AtlasConfigSection
+          :allow-theme-selection="allowThemeSelection"
+          :view-mode-options="viewModeOptions"
+          :composite-projection-options="compositeProjectionOptions"
+        />
+      </CardContainer>
     </section>
     <section
-      class="lg:w-1/2 max-h-[calc(100vh-8rem)]"
+      class="lg:w-1/2 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
     >
       <!-- Main Content Area (Single Tab) -->
       <CardContainer
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
         icon="ri-map-line"
-        class="h-full"
         has-overflow
+        class="max-h-[65vh]"
       >
         <!-- Loading state for main content -->
         <div v-if="showSkeleton || geoDataStore.isLoading" class="space-y-6">
@@ -114,10 +116,30 @@ onMounted(async () => {
           </ViewModeSection>
         </template>
       </CardContainer>
+      <!-- View Configuration -->
+      <CardContainer
+        :title="t('settings.displayOptionsTitle')"
+        icon="ri-map-line"
+        has-overflow
+        class="flex-1"
+      >
+        <!-- Display Options -->
+        <DisplayOptionsSection />
+      </CardContainer>
     </section>
     <section
-      class="lg:w-1/4  max-h-[calc(100vh-8rem)]"
+      class="lg:w-1/4  max-h-[calc(100vh-8rem)] flex flex-col gap-6"
     >
+      <!-- Projection Parameters (only for unified view mode) -->
+      <CardContainer
+        v-if="configStore.viewMode === 'unified' || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)"
+        :title="t('settings.projectionConfigTitle')"
+        icon="ri-settings-4-line"
+        has-overflow
+        class="h-full"
+      >
+        <ProjectionParamsControls />
+      </CardContainer>
       <!-- Territory Parameters (projections, translations, scales) -->
       <CardContainer
         v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
@@ -131,11 +153,13 @@ onMounted(async () => {
           v-if="showSkeleton || geoDataStore.isLoading"
           class="skeleton h-64 rounded-sm opacity-50"
         />
-        <!-- Territory controls -->
-        <TerritoryControls
-          v-else
-          :show-transform-controls="configStore.viewMode === 'composite-custom'"
-        />
+
+        <div v-else class="flex flex-col gap-4">
+          <!-- Territory controls -->
+          <TerritoryControls
+            :show-transform-controls="configStore.viewMode === 'composite-custom'"
+          />
+        </div>
       </CardContainer>
     </section>
   </div>

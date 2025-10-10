@@ -7,12 +7,12 @@ import { useConfigStore } from '@/stores/config'
 
 interface Props {
   allowThemeSelection?: boolean
+  compositeProjectionOptions: Array<{ value: string, label: string }>
+  viewModeOptions: Array<{ value: string, label: string }>
 }
-
 withDefaults(defineProps<Props>(), {
   allowThemeSelection: false,
 })
-
 const { t } = useI18n()
 const configStore = useConfigStore()
 </script>
@@ -39,6 +39,38 @@ const configStore = useConfigStore()
       icon="ri-map-pin-range-line"
       type="select"
       :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
+    />
+    <!-- Main View Mode Selector -->
+    <FormControl
+      v-model="configStore.viewMode"
+      :label="t('mode.view')"
+      icon="ri-layout-grid-line"
+      type="select"
+      :disabled="configStore.isViewModeLocked"
+      :options="viewModeOptions"
+    />
+
+    <!-- Composite Projection Selector (for composite-existing mode) -->
+    <FormControl
+      v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
+      v-model="configStore.compositeProjection"
+      :label="t('projection.composite')"
+      icon="ri-global-line"
+      type="select"
+      :options="compositeProjectionOptions"
+    />
+
+    <!-- Projection Mode Toggle (for split and composite-custom modes) -->
+    <FormControl
+      v-show="configStore.showProjectionModeToggle"
+      v-model="configStore.projectionMode"
+      :label="t('projection.mode')"
+      icon="ri-global-line"
+      type="select"
+      :options="[
+        { value: 'uniform', label: t('projection.uniform') },
+        { value: 'individual', label: t('projection.individual') },
+      ]"
     />
   </div>
 </template>

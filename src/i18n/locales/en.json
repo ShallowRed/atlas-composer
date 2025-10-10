@@ -81,7 +81,11 @@
     "title": "Configuration",
     "atlasConfigTitle": "Atlas Configuration",
     "viewConfigTitle": "View Configuration",
-    "territoryConfigTitle": "Territory Configuration",
+    "displayOptionsTitle": "Display Options",
+    "projectionConfigTitle": "Projection Configuration",
+    "projectionParamsTitle": "Projection Parameters",
+    "territoryConfigTitle": "Projection configuration per territory",
+    "projectionTitle": "Projection Selector",
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
@@ -90,6 +94,10 @@
     "sphere": "Show sphere outline",
     "compositionBorders": "Display composition borders",
     "mapLimits": "Display map limits"
+  },
+  "common": {
+    "close": "Close",
+    "searchProjections": "Search projections..."
   },
   "projectionParams": {
     "title": "Projection Parameters",

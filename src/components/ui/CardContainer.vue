@@ -29,11 +29,11 @@ withDefaults(defineProps<Props>(), {
         'overflow-hidden': hasOverflow,
       }]"
     >
-      <h2 v-if="title" class="card-title px-2 ">
+      <h2 v-if="title" class="card-title px-2">
         <i v-if="icon" :class="icon" />
         {{ title }}
       </h2>
-      <div class="overflow-y-auto p-2 pb-8">
+      <div class="overflow-y-auto p-2">
         <slot />
       </div>
     </div>

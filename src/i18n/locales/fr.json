@@ -77,11 +77,19 @@
     "individual": "Territoires individuels",
     "split": "Territoires séparés"
   },
+  "common": {
+    "close": "Fermer",
+    "searchProjections": "Rechercher des projections..."
+  },
   "settings": {
     "title": "Configuration",
     "atlasConfigTitle": "Configuration de l'atlas",
     "viewConfigTitle": "Configuration de la vue",
-    "territoryConfigTitle": "Configuration des territoires",
+    "displayOptionsTitle": "Options d'affichage",
+    "territoryConfigTitle": "Configuration de la projection par territoire",
+    "projectionConfigTitle": "Configuration de la projection",
+    "projectionParamsTitle": "Paramètres de la projection",
+    "projectionTitle": "Sélecteur de projection",
     "theme": "Thème",
     "language": "Langue",
     "resolution": "Résolution des données",

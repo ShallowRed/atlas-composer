@@ -10,7 +10,7 @@ const uiStore = useUIStore()
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="grid grid-cols-2 gap-2">
     <!-- Graticule Toggle -->
     <FormControl
       v-model="uiStore.showGraticule"
