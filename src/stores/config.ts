@@ -206,27 +206,6 @@ export const useConfigStore = defineStore('config', () => {
         ] as [number, number],
       },
     }
-    const result = {
-      center: {
-        longitude: customCenterLongitude.value ?? atlasParams.center?.longitude ?? 0,
-        latitude: customCenterLatitude.value ?? atlasParams.center?.latitude ?? 0,
-      },
-      rotate: {
-        mainland: [
-          customRotateLongitude.value ?? mainlandRotate[0],
-          customRotateLatitude.value ?? mainlandRotate[1],
-        ] as [number, number],
-        azimuthal: atlasParams.rotate?.azimuthal ?? [0, 0],
-      },
-      parallels: {
-        conic: [
-          customParallel1.value ?? atlasParams.parallels?.conic?.[0] ?? 30,
-          customParallel2.value ?? atlasParams.parallels?.conic?.[1] ?? 60,
-        ] as [number, number],
-      },
-    }
-    console.log('[ConfigStore] effectiveProjectionParams result:', result)
-    return result
   })
 
   // Actions

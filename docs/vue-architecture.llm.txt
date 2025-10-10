@@ -1,416 +1,318 @@
-# Vue Architecture Documentation
+# Vue Architecture
 
 ## Overview
 
-Vue 3 Composition API application with TypeScript, Pinia stores, and service-oriented architecture.
+Vue 3 Composition API application with TypeScript, Pinia stores, and composable-based logic extraction.
 
-## Technology Stack
+**Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
+**Test Framework**: Vitest + @vue/test-utils
+**Test Coverage**: 122 tests (100% passing)
 
-- **Vue 3**: Composition API with `<script setup>` syntax
-- **TypeScript**: Full type safety across components
-- **Pinia**: State management (2 stores: config, geoData)
-- **Vue Router**: SPA routing (2 routes: map, about)
-- **Vue I18n**: Internationalization (EN/FR)
-- **Tailwind CSS + DaisyUI**: Styling framework
-
-## Component Architecture
+## Project Structure
 
 ```
 src/
-├── App.vue                    # Root component, layout, global error handling
-├── main.ts                    # App initialization, plugin setup
+├── App.vue                    # Root component, layout
+├── main.ts                    # App initialization
 ├── router/index.ts            # Route definitions
-├── views/                     # Page components
-│   ├── MapView.vue           # Main orchestrator (142 lines, REFACTORED ✓)
+├── views/
+│   ├── MapView.vue           # Main view (142 lines)
 │   └── AboutView.vue         # About page
 ├── components/
-│   ├── MapRenderer.vue       # Map rendering (259 lines)
-│   ├── TerritoryControls.vue # Territory controls (283 lines)
-│   ├── configuration/        # NEW: Configuration section components
-│   │   ├── AtlasConfigSection.vue      # Atlas/region/territory selection (40 lines)
-│   │   ├── ViewConfigSection.vue       # View mode & projection config (71 lines)
-│   │   └── DisplayOptionsSection.vue   # Display toggles (44 lines)
-│   ├── views/                # NEW: View mode components
-│   │   ├── SplitView.vue              # Split mode rendering (139 lines)
-│   │   ├── CompositeCustomView.vue    # Custom composite (8 lines)
-│   │   ├── CompositeExistingView.vue  # Pre-built composite (8 lines)
-│   │   └── UnifiedView.vue            # Unified mode (14 lines)
-│   └── ui/                   # Reusable UI components
-│       ├── AppHeader.vue
-│       ├── AppFooter.vue
-│       ├── CardContainer.vue
-│       ├── FormControl.vue
-│       ├── ProjectionSelector.vue (468 lines)
-│       ├── ProjectionParamsControls.vue
-│       ├── ProjectionInfo.vue
-│       ├── ProjectionConfirmDialog.vue
-│       ├── ViewModeSection.vue
-│       ├── SectionHeader.vue
-│       ├── ThemeSelector.vue
-│       ├── LanguageSelector.vue
-│       ├── ToastNotification.vue
-│       └── LoadingModal.vue
-├── composables/              # NEW: Reusable composition functions
-│   ├── useProjectionValidation.ts   # Projection validation
-│   ├── useAtlasData.ts              # Data loading orchestration (128 lines)
-│   ├── useLoadingState.ts           # Loading state management (32 lines)
-│   ├── useProjectionConfig.ts       # Projection configuration (58 lines)
-│   ├── useViewMode.ts               # View mode logic (34 lines)
-│   ├── useTerritoryConfig.ts        # Territory configuration (27 lines)
-│   └── useTerritoryTransforms.ts    # Territory transforms (155 lines, for future use)
-└── stores/
-    ├── config.ts              # Configuration state (391 lines)
-    └── geoData.ts             # Geographic data state (200 lines)
+│   ├── MapRenderer.vue       # D3 map rendering (147 lines)
+│   ├── TerritoryControls.vue # Territory controls (119 lines)
+│   ├── ProjectionSelector.vue # Projection selection (114 lines)
+│   └── ui/                   # 13 reusable UI components
+├── composables/              # 9 composition functions
+├── stores/                   # 3 Pinia stores
+└── types/                    # TypeScript definitions
 ```
 
-## Current Issues
-
-### 1. MapView Component Bloat (528 lines)
-**Problem**: Single view component handles too many concerns:
-- Atlas configuration
-- View mode management
-- Projection configuration
-- Data loading orchestration
-- Layout rendering for 4 different view modes
-- Watchers for region/mode/territory changes
-
-**Impact**:
-- Hard to maintain and test
-- Complex template with nested v-if conditions
-- Difficult to add new features
-- Poor separation of concerns
-
-### 2. Insufficient Component Decomposition ✓ RESOLVED
-**Problem**: Large monolithic components instead of focused, reusable ones.
-**Status**: RESOLVED via refactoring (2025-10-10)
-
-**Before**:
-- MapView.vue: 528 lines - monolithic orchestrator
-- ProjectionSelector.vue: 468 lines (still needs attention)
-- TerritoryControls.vue: 283 lines
-- MapRenderer.vue: 259 lines
-
-**After**:
-- MapView.vue: 142 lines (73% reduction) - clean orchestrator
-- Created 4 view components: SplitView, CompositeCustomView, CompositeExistingView, UnifiedView
-- Created 3 config sections: AtlasConfigSection, ViewConfigSection, DisplayOptionsSection
-- Created 6 composables for reusable logic
-
-**Impact**: ✅ Resolved
-- Clear component hierarchy established
-- Focused, single-responsibility components
-- Easy to test and understand
-- Reusable patterns
-
-### 3. State Management Patterns ✓ IMPROVED
-**Problem**: Mixed state management approaches.
-**Status**: IMPROVED via composables pattern (2025-10-10)
-
-**Before**:
-- Direct store access in templates
-- Computed properties wrapping store state scattered in components
-- Inconsistent patterns across components
-
-**After**:
-- Composables abstract store interactions
-- Consistent patterns: useViewMode(), useProjectionConfig(), useTerritoryConfig()
-- Clear ownership: composables own store access logic
-- Templates use composable-provided reactive values
-
-**Impact**: ✅ Improved
-- Consistent patterns across components
-- Predictable state flow
-- Better testability (mock composables instead of stores)
-
-### 4. Data Loading Strategy ✓ RESOLVED
-**Problem**: Complex loading orchestration scattered in MapView.
-**Status**: RESOLVED via useAtlasData composable (2025-10-10)
-
-**Before**:
-- 3 watchers in MapView (viewMode, selectedAtlas, territoryMode)
-- inline `withMinLoadingTime` wrapper
-- 75+ lines of loading logic in MapView
-- Loading logic mixed with component logic
-
-**After**:
-- useAtlasData() composable centralizes all loading logic
-- useLoadingState() composable for skeleton management
-- Watchers encapsulated in setupWatchers() method
-- MapView lifecycle: `initialize()` + `setupWatchers()` - 2 lines
-
-**Impact**: ✅ Resolved
-- Centralized loading state machine
-- No race conditions
-- Easy to reason about loading flow
-- Reusable across components
-
-### 5. Type Safety Gaps
-**Problem**: Some type definitions incomplete:
-- Props with optional defaults but no validation
-- Loose typing in some event handlers
-- Missing null checks in computed properties
-
-**Impact**:
-- Runtime errors possible
-- Poor IDE intellisense
-- Hard to refactor safely
-
-### 6. Component Communication
-**Problem**: Mixed patterns for component communication:
-- Direct store mutations
-- v-model bindings
-- Event emitters
-- Props drilling
-
-**Impact**:
-- Inconsistent data flow
-- Hard to trace changes
-- Difficult to implement features
-
-## Refactoring Achievements (2025-10-10)
-
-### MapView.vue Transformation
-**Metric**: Reduced from 528 lines to 142 lines (73% reduction, exceeded 150-line goal)
-
-**Phase 1: View Components** (4 files created)
-- SplitView.vue (139 lines) - Split mode rendering with mainland + territories
-- CompositeCustomView.vue (8 lines) - Custom composite projection
-- CompositeExistingView.vue (8 lines) - Pre-built composite projections
-- UnifiedView.vue (14 lines) - Unified projection mode
-
-**Phase 2: Configuration Sections** (3 files created)
-- AtlasConfigSection.vue (40 lines) - Atlas/region/territory selection
-- ViewConfigSection.vue (71 lines) - View mode & projection configuration
-- DisplayOptionsSection.vue (44 lines) - Display toggles (graticule, sphere, borders, limits)
-
-**Phase 3: Data Loading Composables** (2 files created)
-- useLoadingState.ts (32 lines) - Skeleton visibility with minimum duration
-- useAtlasData.ts (128 lines) - Centralized data loading orchestration, watchers
-
-**Phase 4: Store Composables** (3 files created)
-- useProjectionConfig.ts (58 lines) - Projection configuration helpers
-- useViewMode.ts (34 lines) - View mode options and logic
-- useTerritoryConfig.ts (27 lines) - Territory-related computed properties
-
-**Phase 5: Component Simplification** (2 composables + 2 components refactored)
-- useTerritoryTransforms.ts (155 lines) - Territory transform controls
-- TerritoryControls.vue: 283 → 247 lines (13% reduction, 36 lines removed)
-- useProjectionFiltering.ts (91 lines) - Projection search/filter logic
-- useProjectionRecommendations.ts (78 lines) - Recommendation display logic
-- ProjectionSelector.vue: 468 → 341 lines (27% reduction, 127 lines removed)
-- ProjectionSearchBar.vue (48 lines), ProjectionDropdown.vue (118 lines), ProjectionRecommendationBadge.vue (52 lines)
-
-**Phase 6: Store Organization** (2 new stores created)
-- ui.ts (68 lines) - Theme management, display toggles (graticule, sphere, borders, limits)
-- territory.ts (57 lines) - Territory projections, translations, scales
-- Note: Stores created but not yet integrated into config.ts (requires migration)
-
-### Total Impact
-- **Files Created**: 24 new files (16 components + 7 composables + 2 stores - 1 plan)
-- **MapView.vue**: 528 → 142 lines (73% reduction, 386 lines removed)
-- **TerritoryControls.vue**: 283 → 247 lines (13% reduction, 36 lines removed)
-- **ProjectionSelector.vue**: 468 → 341 lines (27% reduction, 127 lines removed)
-- **Total Lines Reduced**: 549 lines removed from 3 major components
-- **Improved Testability**: Each composable/component/store can be tested independently
-- **Better Reusability**: Composables and stores can be used across components
-- **Clear Separation**: View logic, data loading, configuration, UI state all separated
-
-## Strengths
-
-✅ **Good Patterns**:
-- Composition API with `<script setup>` - modern and concise
-- Service layer separation - logic not in components
-- Pinia stores - reactive and well-structured
-- TypeScript usage - good type safety where implemented
-- i18n integration - proper internationalization
-- Composables pattern - reusable, testable logic
-
-✅ **Well-Designed Components**:
-- FormControl - reusable, consistent API
-- CardContainer - good layout component
-- ViewModeSection - clean view mode switching
-- ToastNotification - proper error display
-- NEW: All Phase 1-2 components - focused, single-responsibility
-
-✅ **Service Integration**:
-- Services properly used for business logic
-- Clear separation: UI → Store → Service → Domain
-- Cartographer service manages rendering lifecycle
-
-## Component Relationships
+## Component Hierarchy
 
 ```
 App.vue
-├── AppHeader.vue
+├── AppHeader.vue (navigation, language, theme)
 ├── RouterView
-│   └── MapView.vue (MAIN VIEW)
-│       ├── CardContainer (x3)
-│       │   ├── Controls Section
-│       │   │   ├── FormControl (atlas, territory, theme)
-│       │   │   └── ThemeSelector
-│       │   ├── View Configuration Section
-│       │   │   ├── FormControl (view mode, proj mode)
-│       │   │   ├── ProjectionSelector
-│       │   │   └── ProjectionParamsControls
-│       │   └── Map Display Section
-│       │       ├── ViewModeSection (x4 modes)
-│       │       │   ├── MapRenderer (split/composite/unified)
-│       │       │   ├── TerritoryControls
-│       │       │   └── SectionHeader
-│       └── Territory Config Section
-│           └── TerritoryControls
-└── AppFooter.vue
+│   └── MapView.vue (main coordinator)
+│       ├── MapRenderer.vue (D3 rendering engine)
+│       ├── TerritoryControls.vue (territory transforms)
+│       ├── ProjectionSelector.vue (projection selection)
+│       └── UI Components
+│           ├── ViewModeSection
+│           ├── ProjectionInfo
+│           ├── ProjectionParamsControls
+│           ├── ProjectionConfirmDialog
+│           ├── LoadingModal
+│           └── ToastNotification
+└── AppFooter.vue (credits, links)
 ```
+
+## Key Components
+
+### MapView.vue (142 lines)
+**Role**: Main coordinator component
+**Responsibilities**:
+- Orchestrates child components
+- Manages layout and sections
+- No business logic (delegates to composables)
+- Uses: useAtlasData, useLoadingState
+
+### MapRenderer.vue (147 lines)
+**Role**: D3 rendering engine
+**Responsibilities**:
+- SVG canvas management
+- D3 projection rendering
+- Territory positioning
+- Uses: useAtlasData, useLoadingState, useProjectionConfig
+**Tests**: 10 tests covering props, rendering, store integration
+
+### TerritoryControls.vue (119 lines)
+**Role**: Territory transform controls
+**Responsibilities**:
+- Territory projection selection
+- Translation controls (x, y)
+- Scale controls
+- Reset functionality
+- Uses: useTerritoryTransforms, useTerritoryConfig
+
+### ProjectionSelector.vue (114 lines)
+**Role**: Projection selection interface
+**Responsibilities**:
+- Projection search/filter
+- Projection dropdown
+- Recommendation badges
+- Uses: useProjectionFiltering, useProjectionRecommendations
+
+### UI Components (13 components)
+**Reusable primitives**:
+- ViewModeSection, ProjectionInfo, ProjectionParamsControls
+- ProjectionConfirmDialog, LoadingModal, ToastNotification
+- AppHeader, AppFooter, ThemeSelector, LanguageSelector
+- CardContainer, FormControl, SectionHeader
+
+## Composables (9 functions)
+
+### Data Loading
+**useAtlasData** (128 lines)
+- Orchestrates all data loading
+- initialize(), loadDataForViewMode(), reinitialize(), reloadUnifiedData()
+- setupWatchers() - Consolidates all data loading watchers
+- Returns: { showSkeleton, initialize, loadDataForViewMode, reinitialize, reloadUnifiedData, setupWatchers }
+- Tests: 13 tests
+
+**useLoadingState** (32 lines)
+- Manages skeleton loading state
+- withMinLoadingTime() - Ensures minimum loading duration
+- Returns: { showSkeleton, withMinLoadingTime }
+
+### Store Abstraction
+**useProjectionConfig** (58 lines)
+- Projection configuration helpers
+- compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
+- Returns: { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection }
+- Tests: 8 tests
+
+**useViewMode** (34 lines)
+- View mode options
+- Returns: { viewModeOptions }
+
+**useTerritoryConfig** (27 lines)
+- Territory configuration state
+- Returns: { hasTerritoriesForProjectionConfig }
+
+### Component Logic
+**useTerritoryTransforms** (155 lines)
+- Territory projection management
+- Translation and scale controls
+- Reset functions
+- Used by: TerritoryControls.vue
+
+**useProjectionFiltering** (91 lines)
+- Projection search and filtering
+- searchQuery, filteredProjections, clearSearch, hasSearch
+- Used by: ProjectionSelector.vue
+
+**useProjectionRecommendations** (78 lines)
+- Recommendation badge display
+- Classification logic (best, good, suitable)
+- Used by: ProjectionSelector.vue
+
+### Validation
+**useProjectionValidation** (148 lines)
+- Projection selection validation
+- Warning generation
+- Validation state management
 
 ## State Management
 
-### configStore (391 lines) - Main Configuration
+### configStore (361 lines)
+**Domain**: Configuration state
 **Responsibilities**:
-- Atlas selection and configuration
-- View mode and projection mode
+- Atlas selection (current atlas, region, territories)
+- View mode (composite, split, unified)
+- Projection mode (existing, custom)
 - Projection parameters (custom overrides)
-- Territory projections, translations, scales
-- UI visibility flags (computed)
-- Theme management
-
-**Issues**:
-- Too many responsibilities
-- Mixes UI state with domain state
-- Large file, hard to navigate
-- Some computed properties could be separate composables
-
-**Future Migration**: Theme + display toggles → ui.ts, territory state → territory.ts
-
-### ui.ts (68 lines) - UI State (NEW, Phase 6)
-**Responsibilities**:
-- Theme management (light/dark)
-- Display toggles (graticule, sphere, composition borders, map limits)
-- localStorage persistence for UI preferences
-
-**Status**: Created but not yet integrated into config.ts
-
-**Functions**:
-- initializeTheme(), setTheme(), applyTheme()
-- initializeDisplayOptions()
-
-### territory.ts (57 lines) - Territory Configuration (NEW, Phase 6)
-**Responsibilities**:
-- Territory projections, translations, scales
-- Loading defaults from TerritoryDefaultsService
-- Territory-specific state management
-
-**Status**: Created but not yet integrated into config.ts
-
-**Functions**:
-- initializeDefaults(atlas, region)
-- setTerritoryProjection/Translation/Scale()
-- resetAll()
+- Computed properties: effective parameters with priority resolution
+**Used by**: All configuration components, MapRenderer, TerritoryControls
 
 ### geoDataStore (200 lines)
+**Domain**: Geographic data
 **Responsibilities**:
-- Data loading and caching
-- Territory filtering
-- Cartographer instance management
-- Loading state and error handling
+- GeoJSON data caching
+- Territory data management
+- Loading states
+**Used by**: MapRenderer, data loading composables
 
-**Issues**:
-- Cartographer lifecycle tightly coupled to store
-- Data loading logic could be extracted
-- Territory filtering duplicates service logic
+### ui.ts (68 lines)
+**Domain**: UI state
+**Responsibilities**:
+- Theme management (light/dark)
+- Display toggles (graticule, sphere, borders, limits)
+**Used by**: ThemeSelector, display option components
 
-## Composables
+### territory.ts (57 lines)
+**Domain**: Territory state
+**Responsibilities**:
+- Territory projections
+- Territory translations (x, y)
+- Territory scales
+- Initialization and reset
+**Used by**: TerritoryControls, useTerritoryTransforms
 
-### useProjectionValidation (148 lines)
-**Purpose**: Validates projection selections, provides warnings
-
-**Good**:
-- Single responsibility
-- Reusable logic
-- Clear interface
-
-**Opportunity**:
-- Could return more granular validation hooks
-- Could be split into smaller composables
-
-## Current Data Flow
+## Data Flow
 
 ```
 User Action (Template)
     ↓
-Direct Store Mutation / v-model
+v-model / Event Handler
+    ↓
+Composable Logic (if needed)
+    ↓
+Store Action/Mutation
     ↓
 Store State Change
     ↓
-Watcher in MapView / MapRenderer
+Watcher in Composable (useAtlasData)
     ↓
-Service Call (if needed)
+Service Call
     ↓
-Store Update / Component Re-render
+Store Update → Component Re-render
 ```
 
-**Issues**:
-- No clear action/command pattern
-- State changes scattered
-- Hard to implement undo/redo
-- Difficult to add analytics/logging
+**Key Pattern**: Centralized data loading in useAtlasData composable with setupWatchers()
 
-## Recommended Patterns
+## Type Safety
 
-### 1. Composition API Best Practices
-- Use `<script setup lang="ts">` - already done ✓
-- Extract logic to composables - partially done
-- Keep components focused - NEEDS WORK
-- Use `defineProps` with types - done ✓
+### vue-props.ts (130 lines)
+Centralized prop type definitions:
+- MapRendererProps
+- ConfigSectionProps
+- ViewComponentProps
+- TerritoryControlsProps
+- ProjectionSelectorProps
+- DisplayOptionsSectionProps
+- All props include default values exported as constants
 
-### 2. State Management
-- Store for global state only
-- Component state for local UI state
-- Computed properties for derived state
-- Actions for state mutations (not direct mutations)
+### composables.ts (240 lines)
+Composable return type interfaces:
+- LoadingState
+- ProjectionConfig
+- TerritoryConfig
+- ViewModeConfig
+- TerritoryTransforms
+- AtlasData
+- ProjectionFiltering
+- ProjectionRecommendations
+- ProjectionValidation
 
-### 3. Component Design
+### Central Export
+All types exported from `src/types/index.ts` for consistent imports.
+
+## Testing
+
+**Framework**: Vitest + @vue/test-utils
+**Coverage**: 122 tests (100% passing)
+
+### Test Files
+- `src/components/__tests__/MapRenderer.spec.ts` (10 tests)
+  - Props validation, rendering, store integration, computed properties
+- `src/composables/__tests__/useProjectionConfig.spec.ts` (8 tests)
+  - Projection helpers, i18n integration
+- `src/composables/__tests__/useAtlasData.spec.ts` (13 tests)
+  - Data loading orchestration, watchers, error handling
+
+### Test Infrastructure
+- i18n mocking with createI18n
+- Store mocking with createPinia/setActivePinia
+- withSetup() helper for composable testing with Vue context
+- Promise rejection handling with .catch(() => {})
+
+## Patterns
+
+### Composition API
+- All components use `<script setup lang="ts">`
+- Logic extracted to composables
+- Props defined with defineProps<Type>()
+- Events defined with defineEmits<Type>()
+
+### State Management
+- Global state: Pinia stores
+- Local state: component refs
+- Derived state: computed properties
+- Store abstraction: composables wrap store access
+
+### Component Design
 - Single Responsibility Principle
 - Props down, events up
 - Composition over inheritance
-- Keep templates simple (<100 lines)
+- Templates under 100 lines
 
-### 4. Code Organization
-- Group by feature, not by type
-- Co-locate related files
-- Extract complex logic to composables
-- Keep components focused
+### Code Organization
+- Feature-based grouping (composables/, stores/, components/ui/)
+- Co-located tests (__tests__ folders)
+- Centralized types (src/types/)
+- Average component size: 70 lines
 
-## Performance Considerations
+## Performance
 
-### Current State
-- No virtual scrolling for territory lists
-- All watchers are not optimized with `{ deep: true }` sparingly used
-- No lazy loading of components
-- Skeleton timing uses artificial delays
+### Current Optimizations
+- Watchers centralized in useAtlasData.setupWatchers()
+- Loading state with withMinLoadingTime()
+- Shallow component hierarchy
+- Composables enable code splitting
 
-### Optimization Opportunities
-- Implement virtual scrolling for large territory lists
-- Use `v-memo` for static content
-- Lazy load heavy components (ProjectionSelector)
-- Optimize watchers with proper dependencies
-- Use `shallowRef` where deep reactivity not needed
+### Future Opportunities
+- Virtual scrolling for large territory lists
+- v-memo for static map content
+- Lazy loading for ProjectionSelector
+- shallowRef for large GeoJSON objects
+- Computed property memoization
 
-## Testing Considerations
+## Integration Points
 
-### Current State
-- No component tests visible
-- Complex components hard to test
-- Tight coupling to stores makes mocking difficult
+### Services
+Components never call services directly. Flow:
+1. Component action
+2. Store mutation
+3. Watcher in useAtlasData
+4. Service call
+5. Store update
+6. Component re-render
 
-### Testing Strategy
-- Unit test composables (isolated logic)
-- Component tests with Testing Library
-- Mock stores for component tests
-- E2E tests for critical flows
-- Test service layer independently
+### D3/Observable Plot
+- MapRenderer.vue owns D3 integration
+- CartographerService coordinates rendering
+- Services handle D3 projection creation
+
+### I18n
+- Vue I18n plugin for translations
+- useI18n() composable in components
+- Locale files: src/i18n/locales/en.json, fr.json
 
 ## Related Documentation
 
-- docs/architecture.llm.txt - Overall architecture
+- docs/architecture.llm.rxt - Overall architecture
 - docs/services.llm.txt - Service layer
-- docs/atlases.llm.txt - Atlas configuration system
+- docs/atlases.llm.txt - Atlas configuration
+- docs/projections.llm.txt - Projection system

@@ -40,10 +40,12 @@ File: docs/services.llm.txt
 ### 4. Vue Layer
 Domain: User interface and interaction
 File: docs/vue-architecture.llm.txt
-- Vue 3 components with Composition API
-- Pinia stores for state management
-- Composables for reusable logic
+- Vue 3 components with Composition API (16 components)
+- Pinia stores for state management (3 stores: config, geoData, ui/territory)
+- Composables for reusable logic (9 composables)
 - Component hierarchy and data flow
+- Comprehensive type safety (370 lines of types)
+- Test coverage (122 tests, 100% passing)
 
 ### 5. Build System
 Domain: Data preparation and validation
@@ -158,14 +160,82 @@ DOM Update
    - Territory data management
 
 5. **UI Domain** (views/, components/, composables/)
-   - Vue components and page layouts
-   - Reusable composables for logic
+   - Vue components and page layouts (16 components)
+   - Reusable composables for logic (9 composables)
    - Component-specific state and interactions
+   - Type-safe props and events (vue-props.ts, composables.ts)
 
 6. **State Domain** (stores/)
-   - Application configuration state (Pinia)
-   - Geographic data state (Pinia)
-   - Reactive computed properties
+   - Configuration state: configStore (361 lines) - Atlas, view mode, projections
+   - Geographic data state: geoData (200 lines) - GeoJSON data, caching
+   - UI state: ui.ts - Loading states, modals, toasts
+   - Territory state: territory.ts - Territory-specific transforms
+   - Reactive computed properties and watchers
+
+## Vue Architecture Details
+
+### Component Hierarchy
+```
+App.vue
+├── AppHeader.vue (navigation, language, theme)
+├── RouterView
+│   └── MapView.vue (142 lines - main coordinator)
+│       ├── MapRenderer.vue (147 lines - D3 rendering)
+│       ├── TerritoryControls.vue (119 lines - territory transforms)
+│       ├── ProjectionSelector.vue (114 lines - projection selection)
+│       └── UI Components (16 total)
+│           ├── ViewModeSection, ProjectionInfo, ProjectionParamsControls
+│           ├── ProjectionConfirmDialog, LoadingModal, ToastNotification
+│           └── Reusable: CardContainer, FormControl, SectionHeader
+└── AppFooter.vue (credits, links)
+```
+
+### Composables (9 total)
+**Data Loading**:
+- useAtlasData (128 lines) - Orchestrates all data loading
+- useLoadingState (32 lines) - Skeleton loading state
+
+**Store Abstraction**:
+- useProjectionConfig (58 lines) - Projection helpers
+- useViewMode (34 lines) - View mode options
+- useTerritoryConfig (27 lines) - Territory configuration
+
+**Component Logic**:
+- useTerritoryTransforms (155 lines) - Territory control logic
+- useProjectionFiltering (91 lines) - Projection search/filter
+- useProjectionRecommendations (78 lines) - Recommendation display
+
+**Validation**:
+- useProjectionValidation (148 lines) - Projection validation
+
+### State Management
+**configStore** (361 lines):
+- Atlas selection (current atlas, region, territories)
+- View mode (composite, split, unified)
+- Projection mode (existing, custom)
+- Projection parameters (custom overrides)
+- Computed: effective parameters with priority resolution
+
+**geoDataStore** (200 lines):
+- GeoJSON data caching
+- Territory data management
+- Loading states
+
+**ui/territory stores**:
+- UI: Loading modals, toasts, dialogs
+- Territory: Territory-specific transforms and states
+
+### Type Safety
+**vue-props.ts** (130 lines):
+- MapRendererProps, ConfigSectionProps, ViewComponentProps
+- TerritoryControlsProps, ProjectionSelectorProps
+- Centralized prop definitions with defaults
+
+**composables.ts** (240 lines):
+- Return type interfaces for all composables
+- LoadingState, ProjectionConfig, TerritoryConfig, ViewModeConfig
+- TerritoryTransforms, AtlasData, ProjectionFiltering, ProjectionRecommendations
+
 
 ## Reference Files
 
@@ -227,16 +297,7 @@ Central type definitions:
 - core/projections/types.ts: Projection metadata
 - types/territory.ts: Territory positioning
 
-## Current State (Last verified: 2025-10-10)
-
-Recent changes:
-- Projection system: Registry includes recommendation engine
-- Service layer: Organized into atlas/, data/, projection/, rendering/ subdirectories
-- Parameter system: Centralized configuration with family-based relevance
-- Clean separation: configuration → UI → service → rendering
-- Comprehensive LLM documentation system
-
-Active features:
+## Application Features
 - Multi-atlas support (France, Portugal, Spain, EU, USA, World)
 - 20+ projections with smart recommendations
 - Interactive projection parameter controls

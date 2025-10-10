@@ -39,6 +39,9 @@ WORKFLOW:
   - For major refactoring: Ask user whether to update documentation now or continue editing
   - Always keep documentation synchronized with code reality
   - ONLY work with .llm.txt files - do NOT create, edit, or reference .md files
+  - IMPORTANT: .llm.txt files are STATIC REFERENCE docs - remove all historical/temporal language
+    - Remove: "before/after", "resolved", "completed", dates, objectives, problems
+    - Keep: current state, how it works, what it does
 
 DOCUMENTATION MAINTENANCE:
 - Treat .llm.txt files as source of truth for architecture and patterns
@@ -46,6 +49,23 @@ DOCUMENTATION MAINTENANCE:
 - Keep files concise: focus on "what" and "why", not implementation details
 - Use references between files to avoid duplication
 - Structure information hierarchically: architecture.llm.txt → domain files → code
+
+CRITICAL - Documentation Types:
+1. **Reference Documentation (.llm.txt)**: Static, current-state focused
+   - Describes HOW the system works NOW
+   - No historical information (no "before/after", "resolved", "completed", dates)
+   - No problem descriptions or objectives
+   - Timeless reference material
+   - Example: "MapView.vue coordinates child components"
+   - NOT: "MapView.vue was reduced from 528 to 142 lines"
+
+2. **Plan Documentation (.plan.llm.txt)**: Historical, change-tracking
+   - Records objectives, problems, and solutions
+   - Includes "before/after" states
+   - Tracks completion status with dates
+   - Documents the journey and decisions
+   - Kept as historical record after completion
+   - Example: "Objective: Reduce MapView from 528 to 142 lines"
 
 TOKEN OPTIMIZATION:
 - Read only necessary files based on task context

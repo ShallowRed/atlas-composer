@@ -22,6 +22,23 @@ export type {
   TerritoryModeOption,
 } from '@/types/atlas'
 
+// Composable return types
+export type {
+  AtlasData,
+  LoadingState,
+  ProjectionConfig,
+  ProjectionFiltering,
+  ProjectionRecommendations,
+  ProjectionValidation,
+  RecommendationBadge,
+  ScaleRange,
+  TerritoryConfig as TerritoryConfigComposable,
+  TerritoryInfo,
+  TerritoryTransforms,
+  TranslationRange,
+  ViewModeConfig,
+} from '@/types/composables'
+
 // Composite layout types
 export type {
   CompositeProjectionConfig,
@@ -46,3 +63,15 @@ export type {
   TerritoryGroupConfig,
   TerritoryModeConfig,
 } from '@/types/territory'
+
+// Vue component prop types
+export type {
+  ConfigSectionProps,
+  DisplayOptionsSectionProps,
+  mapRendererDefaults,
+  MapRendererProps,
+  ProjectionSelectorEmits,
+  ProjectionSelectorProps,
+  TerritoryControlsProps,
+  ViewComponentProps,
+} from '@/types/vue-props'
