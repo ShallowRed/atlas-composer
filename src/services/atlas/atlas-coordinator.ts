@@ -1,7 +1,7 @@
 import type { ViewMode } from '@/types'
 
 import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
-import { AtlasService } from '@/services/atlas-service'
+import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 
 /**
