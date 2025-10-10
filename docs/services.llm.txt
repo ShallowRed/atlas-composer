@@ -131,26 +131,54 @@ Static factory pattern with instance caching.
 
 ## Export Services (src/services/export/)
 
-### ConfigExporter
-Serialize composite projection configuration for export.
-- `export()` - Extract and serialize projection configuration
-- Reads from configStore and territoryStore
-- Rounds numeric values to 6 decimals
-- Returns ExportedCompositeConfig type
+### CompositeExportService
+Export composite projection configurations to JSON format.
+Static methods for configuration serialization:
+- `exportToJSON()` - Serialize CompositeProjection to ExportedCompositeConfig
+- `validateExportedConfig()` - Validate exported configuration structure
+- `exportToFile()` - Create downloadable JSON file
+- Applies rounding to all numeric values (6 decimal places)
+- Includes metadata (atlasId, exportDate, version)
+- Exports territories with projection parameters, layout, and bounds
+
+### CompositeImportService  
+Import and restore composite projection configurations from JSON.
+Static methods for configuration import:
+- `importFromJSON()` - Parse and validate JSON string
+- `importFromFile()` - Handle File API objects
+- `checkAtlasCompatibility()` - Validate atlas ID matching
+- `applyToStores()` - Apply imported config to stores and CompositeProjection
+- Validates required fields and data integrity
+- Warns if atlas mismatch but allows import
 
 ### CodeGenerator
-Generate standalone code for composite projections.
-- `generateD3JS()` - Generate D3.js JavaScript code
-- `generateD3TS()` - Generate D3.js TypeScript code
-- `generateObservablePlot()` - Generate Observable Plot code
-- `getD3ProjectionFunction()` - Map projection ID to D3 function name
-- Implements D3 stream protocol with state machine
-- Geographic bounds routing for stream multiplexing
-- Number rounding for floating point precision
+Generate standalone executable code from exported configurations.
+Supports multiple formats and languages:
+- `generate()` - Main entry point with format/language options
+- `generateD3JavaScript()` - D3.js JavaScript code
+- `generateD3TypeScript()` - D3.js TypeScript code with type annotations
+- `generatePlotCode()` - Observable Plot code
+- Implements D3 stream protocol with state machine for geometry routing
+- Geographic bounds-based stream multiplexing
+- Applies number rounding for floating-point precision (6 decimals)
 
 See docs/export.llm.txt for detailed D3 stream protocol implementation.
-- `clear()` - Clear cached instance
-- `clearAll()` - Clear all instances
+
+### Standalone Projection Loader (standalone-projection-loader.ts)
+Pure JavaScript/TypeScript module for loading exported configurations.
+Can be extracted as standalone npm package with only d3-geo dependencies.
+Exported functions:
+- `loadCompositeProjection()` - Create D3 projection from ExportedConfig
+- `loadFromJSON()` - Parse JSON and create projection in one step
+- `validateConfig()` - Validate configuration before loading
+- `getSupportedProjections()` - List supported projection IDs
+Features:
+- No Vue or Atlas Composer dependencies
+- D3 stream multiplexing for proper geometry routing
+- Geographic bounds-based territory selection
+- Debug mode for logging territory selection
+- Supports 14+ projection types (azimuthal, conic, cylindrical)
+Usage: Standalone D3 projects, Observable notebooks, Node.js rendering
 
 ## Design Patterns
 

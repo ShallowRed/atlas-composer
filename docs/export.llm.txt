@@ -255,9 +255,91 @@ svg.selectAll("path")
   .attr("d", path)
 ```
 
+## Import Support
+
+### CompositeImportService
+Re-imports exported JSON configurations back into Atlas Composer.
+Process:
+1. Parse and validate JSON structure
+2. Check version compatibility (currently v1.0)
+3. Validate required fields (metadata, territories, parameters)
+4. Warn if atlas ID mismatch (but allows import)
+5. Apply configuration to stores (configStore, territoryStore)
+6. Reconstruct CompositeProjection from imported data
+
+UI Integration:
+- ImportModal.vue component with drag-drop file upload
+- Validation result display (errors/warnings)
+- Configuration preview before applying
+- Integrated in ViewConfigSection.vue alongside Export button
+
+## Standalone Projection Loader
+
+### Purpose
+Pure JavaScript/TypeScript module for using exported configurations outside Atlas Composer.
+Can be packaged as standalone npm package with minimal dependencies (d3-geo, d3-geo-projection).
+
+### API
+```typescript
+import { loadFromJSON, loadCompositeProjection, validateConfig } from './standalone-projection-loader'
+
+// Load from JSON string
+const projection = loadFromJSON(jsonString, { width: 800, height: 600 })
+
+// Or parse first, then load
+const config = JSON.parse(jsonString)
+validateConfig(config)  // throws if invalid
+const projection = loadCompositeProjection(config, { 
+  width: 800, 
+  height: 600,
+  debug: true  // log territory selection
+})
+
+// Use with D3
+const path = d3.geoPath(projection)
+```
+
+### Features
+- No Atlas Composer dependencies
+- Works in browser, Node.js, Observable notebooks
+- D3 stream multiplexing for geometry routing
+- Geographic bounds-based territory selection
+- Supports 14+ projection types
+- Type-safe with TypeScript definitions
+
+### Use Cases
+- Embed Atlas Composer projections in custom D3 visualizations
+- Server-side rendering with Node.js
+- Observable notebooks and interactive documents
+- Static site generation
+- Sharing projections with users who don't have Atlas Composer
+
+### NPM Package Structure
+```
+atlas-composite-projection-loader/
+├── package.json
+├── README.md (user-facing documentation)
+├── src/
+│   └── index.ts (standalone-projection-loader.ts)
+├── dist/
+│   ├── index.js (CommonJS)
+│   ├── index.mjs (ES modules)
+│   └── index.d.ts (TypeScript types)
+```
+
+Dependencies: d3-geo, d3-geo-projection
+Peer dependencies strategy ensures user controls D3 version
+
+## Testing
+- CompositeExportService: 15 tests covering export, validation, file creation
+- CompositeImportService: 13 tests covering import, validation, store integration
+- CodeGenerator: 25 tests covering all formats and code generation
+- Standalone Loader: 19 tests covering loading, validation, projection functionality
+Total: 72 tests for export/import system
+
 ## Future Enhancements
-- Import support (apply exported config back to app)
-- Additional formats (Leaflet, Mapbox GL JS)
-- Code minification option
-- Validation of generated code
+- Additional export formats (Leaflet, Mapbox GL JS adapters)
+- Code minification option for generated code
 - Browser preview of exported projection
+- Version migration for config format upgrades
+- Batch export for multiple configurations

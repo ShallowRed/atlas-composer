@@ -36,7 +36,8 @@ const APP_VERSION = 'Atlas Composer v1.0'
  * @returns Rounded number
  */
 function roundNumber(n: number | undefined, decimals = 6): number {
-  if (n === undefined) return 0
+  if (n === undefined)
+    return 0
   return Math.round(n * 10 ** decimals) / 10 ** decimals
 }
 
@@ -50,7 +51,8 @@ function roundTuple2(
   arr: [number, number] | number[] | undefined,
   decimals = 6,
 ): [number, number] {
-  if (!arr || arr.length < 2) return [0, 0]
+  if (!arr || arr.length < 2)
+    return [0, 0]
   return [roundNumber(arr[0], decimals), roundNumber(arr[1], decimals)]
 }
 
@@ -64,7 +66,8 @@ function roundTuple3(
   arr: [number, number, number] | number[] | undefined,
   decimals = 6,
 ): [number, number, number] {
-  if (!arr || arr.length < 3) return [0, 0, 0]
+  if (!arr || arr.length < 3)
+    return [0, 0, 0]
   return [
     roundNumber(arr[0], decimals),
     roundNumber(arr[1], decimals),
@@ -82,7 +85,8 @@ function roundBounds(
   bounds: [[number, number], [number, number]] | undefined,
   decimals = 6,
 ): [[number, number], [number, number]] {
-  if (!bounds) return [[0, 0], [0, 0]]
+  if (!bounds)
+    return [[0, 0], [0, 0]]
   return [
     [roundNumber(bounds[0][0], decimals), roundNumber(bounds[0][1], decimals)],
     [roundNumber(bounds[1][0], decimals), roundNumber(bounds[1][1], decimals)],
