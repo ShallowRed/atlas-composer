@@ -10,7 +10,6 @@ import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 interface Props {
   allowThemeSelection?: boolean
-  compositeProjectionOptions: Array<{ value: string, label: string }>
   viewModeOptions: Array<{ value: string, label: string }>
 }
 const props = withDefaults(defineProps<Props>(), {
@@ -37,6 +36,21 @@ const viewModeOptionsWithIcons = computed(() => {
     icon: getViewModeIcon(mode.value as any),
   }))
 })
+
+// Determine if territory selector should be disabled
+const isTerritorySelectDisabled = computed(() => {
+  // Disable if atlas doesn't have territory selector capability
+  if (!configStore.currentAtlasConfig?.hasTerritorySelector) {
+    return true
+  }
+  // Disable for composite-existing mode (built-in projections don't support selective territories)
+  return !configStore.showTerritorySelector
+})
+
+// Determine if projection mode toggle should be disabled
+const isProjectionModeDisabled = computed(() => {
+  return !configStore.showProjectionModeToggle
+})
 </script>
 
 <template>
@@ -54,10 +68,11 @@ const viewModeOptionsWithIcons = computed(() => {
 
     <!-- Territory Selection (for composite modes) -->
     <DropdownControl
-      v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
+      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
+      :disabled="isTerritorySelectDisabled"
       :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
     />
     <!-- Main View Mode Selector -->
@@ -69,24 +84,15 @@ const viewModeOptionsWithIcons = computed(() => {
       :options="viewModeOptionsWithIcons"
     />
 
-    <!-- Composite Projection Selector (for composite-existing mode) -->
-    <DropdownControl
-      v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
-      v-model="configStore.compositeProjection"
-      :label="t('projection.composite')"
-      icon="ri-global-line"
-      :options="compositeProjectionOptions"
-    />
-
     <!-- Projection Mode Toggle (for split and composite-custom modes) -->
     <DropdownControl
-      v-show="configStore.showProjectionModeToggle"
       v-model="configStore.projectionMode"
       :label="t('projection.mode')"
       icon="ri-global-line"
+      :disabled="isProjectionModeDisabled"
       :options="[
-        { value: 'uniform', label: t('projection.uniform') },
-        { value: 'individual', label: t('projection.individual') },
+        { value: 'uniform', label: t('projection.uniform'), translated: true, icon: 'ri-equal-line' },
+        { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },
       ]"
     />
   </div>

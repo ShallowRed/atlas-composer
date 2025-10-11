@@ -23,9 +23,9 @@ const allowThemeSelection = false
 const configStore = useConfigStore()
 
 // Composables
+const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
 const { viewModeOptions } = useViewMode()
-const { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 
 // Track if this is the first load
 const hasLoadedOnce = ref(false)
@@ -53,7 +53,6 @@ onMounted(async () => {
         <AtlasConfigSection
           :allow-theme-selection="allowThemeSelection"
           :view-mode-options="viewModeOptions"
-          :composite-projection-options="compositeProjectionOptions"
         />
       </CardContainer>
     </template>
@@ -124,6 +123,7 @@ onMounted(async () => {
       <CardContainer
         v-show="(
           configStore.viewMode === 'unified'
+          || configStore.viewMode === 'composite-existing'
           || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
           || configStore.showProjectionSelector
           || configStore.showIndividualProjectionSelectors
@@ -140,6 +140,7 @@ onMounted(async () => {
           <ProjectionParamsControls
             v-if="(
               configStore.viewMode === 'unified'
+              || configStore.viewMode === 'composite-existing'
               || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
               || configStore.showProjectionSelector
             )"

@@ -253,15 +253,6 @@ watch(() => {
       'h-fit': !props.fullHeight,
     }"
   >
-    <component
-      :is="hLevel"
-      v-if="title"
-      class="text-md font-semibold mb-2"
-    >
-      {{ title }}
-      <span v-if="area">({{ area.toLocaleString() }} km²)</span>
-    </component>
-
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"

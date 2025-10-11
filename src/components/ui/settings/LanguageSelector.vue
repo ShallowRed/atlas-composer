@@ -13,7 +13,8 @@ const { locale } = useI18n()
 const languageOptions = computed<DropdownOption[]>(() => {
   return Object.entries(SUPPORTED_LOCALES).map(([code, label]) => ({
     value: code,
-    label, // Already translated labels
+    label, // Language names (English, Français)
+    translated: true, // Labels are plain strings, not translation keys
   }))
 })
 

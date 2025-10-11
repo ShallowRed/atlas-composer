@@ -27,12 +27,18 @@
   "modes": [
     {
       "id": "all-countries",
-      "label": "All Countries",
+      "label": {
+        "en": "All Countries",
+        "fr": "Tous les pays"
+      },
       "territories": ["*"]
     },
     {
       "id": "without-antarctica",
-      "label": "Without Antarctica",
+      "label": {
+        "en": "Without Antarctica",
+        "fr": "Sans l'Antarctique"
+      },
       "territories": ["*"],
       "exclude": ["WD-010"]
     }

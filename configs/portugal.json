@@ -171,14 +171,20 @@
   "modes": [
     {
       "id": "mainland-only",
-      "label": "Portugal continental uniquement",
+      "label": {
+        "en": "Continental Portugal only",
+        "fr": "Portugal continental uniquement"
+      },
       "territories": [
         "PT-CONT"
       ]
     },
     {
       "id": "with-madeira",
-      "label": "Continental + Madeira",
+      "label": {
+        "en": "Continental + Madeira",
+        "fr": "Continental + Madère"
+      },
       "territories": [
         "PT-CONT",
         "PT-20"
@@ -186,7 +192,10 @@
     },
     {
       "id": "all-territories",
-      "label": "Toutes les régions autonomes",
+      "label": {
+        "en": "All autonomous regions",
+        "fr": "Toutes les régions autonomes"
+      },
       "territories": [
         "PT-CONT",
         "PT-20",
@@ -197,14 +206,20 @@
   "groups": [
     {
       "id": "mainland",
-      "label": "Portugal Continental",
+      "label": {
+        "en": "Continental Portugal",
+        "fr": "Portugal continental"
+      },
       "territories": [
         "PT-CONT"
       ]
     },
     {
       "id": "atlantic",
-      "label": "Régions Autonomes Atlantique",
+      "label": {
+        "en": "Atlantic autonomous regions",
+        "fr": "Régions autonomes atlantique"
+      },
       "territories": [
         "PT-20",
         "PT-30"

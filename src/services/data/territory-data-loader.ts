@@ -64,7 +64,7 @@ export class EqualMembersLoadStrategy implements TerritoryLoadStrategy {
       name: territoryData.territory.name,
       code: territoryData.territory.code,
       area: territoryData.territory.area,
-      region: territoryData.territory.region || 'Unknown',
+      region: territoryData.territory.region || 'Other',
       data: {
         type: 'FeatureCollection' as const,
         features: [territoryData.feature],

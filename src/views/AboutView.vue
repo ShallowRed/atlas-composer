@@ -78,15 +78,15 @@ const { t } = useI18n()
         {{ t('about.cta') }}
         <i class="ri-flask-line" />
       </RouterLink>
-      <RouterLink
-        to="https://github.com/shallowred/atlas-composer"
+      <a
+        href="https://github.com/shallowred/atlas-composer"
         target="_blank"
         rel="noopener noreferrer"
         class="btn btn-primary btn-outline btn-lg w-48 join-item"
       >
         GitHub
         <i class="ri-github-line" />
-      </RouterLink>
+      </a>
     </div>
   </div>
 </template>

@@ -102,47 +102,38 @@ const isSingleFocusPattern = computed(() => {
       {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.territories') }}
     </h3>
 
-    <!-- Territories Grid -->
-    <div class="flex flex-col gap-4">
-      <!-- Region Groups -->
+    <!-- Territories Grid (flat, no region grouping) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div
-        v-for="[regionName, territories] in geoDataStore.territoryGroups"
-        :key="regionName"
-        class="bg-base-200 border border-base-300 p-4 rounded-lg"
+        v-for="territory in geoDataStore.filteredTerritories"
+        :key="territory.code"
+        class="flex flex-col"
       >
-        <h3 class="text-lg font-semibold mb-4 text-gray-700">
-          {{ regionName }}
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div
-            v-for="territory in territories"
-            :key="territory.code"
-            class="bg-base-100 border border-base-300 p-4 rounded-md"
-          >
-            <MapRenderer
-              :geo-data="territory.data"
-              :title="territory.name"
-              :area="territory.area"
-              :region="territory.region"
-              :preserve-scale="configStore.scalePreservation"
-              :projection="props.getTerritoryProjection(territory.code)"
-              :width="200"
-              :height="160"
-            />
-          </div>
-        </div>
+        <h4 class="text-sm font-medium mb-1">
+          {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
+        </h4>
+        <MapRenderer
+          :geo-data="territory.data"
+          :title="territory.name"
+          :area="territory.area"
+          :region="territory.region"
+          :preserve-scale="configStore.scalePreservation"
+          :projection="props.getTerritoryProjection(territory.code)"
+          :width="200"
+          :height="160"
+        />
       </div>
+    </div>
 
-      <!-- Empty State -->
-      <div
-        v-if="geoDataStore.filteredTerritories.length === 0"
-        class="text-gray-500"
-      >
-        <p>{{ t('territory.noTerritories') }}</p>
-        <p class="text-sm mt-2">
-          {{ t('territory.checkData') }}
-        </p>
-      </div>
+    <!-- Empty State -->
+    <div
+      v-if="geoDataStore.filteredTerritories.length === 0"
+      class="text-gray-500"
+    >
+      <p>{{ t('territory.noTerritories') }}</p>
+      <p class="text-sm mt-2">
+        {{ t('territory.checkData') }}
+      </p>
     </div>
   </div>
 </template>

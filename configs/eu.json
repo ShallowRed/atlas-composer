@@ -1351,7 +1351,10 @@
   "modes": [
     {
       "id": "continental-europe",
-      "label": "Continental Europe (Geographic Region)",
+      "label": {
+        "en": "Continental Europe (Geographic Region)",
+        "fr": "Europe continentale (région géographique)"
+      },
       "territories": [
         "AT",
         "BE",
@@ -1393,7 +1396,10 @@
     },
     {
       "id": "continental-eu",
-      "label": "Continental EU (27 Members)",
+      "label": {
+        "en": "Continental EU (27 Members)",
+        "fr": "UE continentale (27 membres)"
+      },
       "territories": [
         "AT",
         "BE",
@@ -1426,7 +1432,10 @@
     },
     {
       "id": "eu-overseas",
-      "label": "EU + Overseas Territories",
+      "label": {
+        "en": "EU + Overseas Territories",
+        "fr": "UE + territoires d'outre-mer"
+      },
       "territories": [
         "AT",
         "BE",

@@ -204,6 +204,7 @@ export function getAvailableAtlasesGrouped(): AtlasGroup[] {
           .map(atlas => ({
             value: atlas.id,
             label: atlas.name,
+            translated: true, // Names from config are already translated via resolveI18nValue
           })),
       }
     })

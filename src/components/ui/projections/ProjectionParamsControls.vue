@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
@@ -141,123 +143,133 @@ const hasAnyRelevantParams = computed(() => {
 
   return hasRelevantParameters(projection.family)
 })
+const { compositeProjectionOptions } = useProjectionConfig()
 </script>
 
 <template>
   <div>
-    <!-- Uniform Projection Selector (for uniform projection mode) -->
-    <ProjectionDropdown
-      v-show="configStore.showProjectionSelector"
-      v-model="configStore.selectedProjection"
-      :label="t('projection.cartographic')"
-      :projection-groups="configStore.projectionGroups"
-      :recommendations="configStore.projectionRecommendations"
+    <!-- Composite Projection Selector (for composite-existing mode) -->
+    <DropdownControl
+      v-model="configStore.compositeProjection"
+      :label="t('projection.composite')"
+      icon="ri-global-line"
+      :options="compositeProjectionOptions"
     />
+    <template v-if="configStore.viewMode !== 'composite-existing'">
+      <!-- Uniform Projection Selector (for uniform projection mode) -->
+      <ProjectionDropdown
+        v-show="configStore.showProjectionSelector"
+        v-model="configStore.selectedProjection"
+        :label="t('projection.cartographic')"
+        :projection-groups="configStore.projectionGroups"
+        :recommendations="configStore.projectionRecommendations"
+      />
 
-    <template
-      v-if="hasAnyRelevantParams"
-    >
-      <div class="divider" />
-      <!-- Header with reset button -->
-      <h3 class="card-title">
-        <i class="ri-equalizer-2-line" />
-        {{ t('settings.projectionParamsTitle') }}
-      </h3>
-      <div
-        class="flex flex-col gap-4 pt-6"
+      <template
+        v-if="hasAnyRelevantParams"
       >
-        <button
-          class="btn btn-sm btn-soft w-full gap-1 mb-4"
-          :disabled="!hasCustomParams"
-          @click="reset"
+        <div class="divider" />
+        <!-- Header with reset button -->
+        <h3 class="card-title">
+          <i class="ri-equalizer-2-line" />
+          {{ t('settings.projectionParamsTitle') }}
+        </h3>
+        <div
+          class="flex flex-col gap-4 pt-6"
         >
-          <i class="ri-refresh-line" />
-          {{ t('projectionParams.reset') }}
-        </button>
+          <button
+            class="btn btn-sm btn-soft w-full gap-1 mb-4"
+            :disabled="!hasCustomParams"
+            @click="reset"
+          >
+            <i class="ri-refresh-line" />
+            {{ t('projectionParams.reset') }}
+          </button>
 
-        <!-- Rotate Longitude -->
-        <RangeSlider
-          v-if="relevantParams.rotateLongitude"
-          :model-value="currentRotateLongitude"
-          :label="t('projectionParams.rotateLongitude')"
-          icon="ri-compass-3-line"
-          size="xs"
-          :min="RANGES.rotateLongitude.min"
-          :max="RANGES.rotateLongitude.max"
-          :step="RANGES.rotateLongitude.step"
-          unit="°"
-          @update:model-value="updateRotateLongitude"
-        />
+          <!-- Rotate Longitude -->
+          <RangeSlider
+            v-if="relevantParams.rotateLongitude"
+            :model-value="currentRotateLongitude"
+            :label="t('projectionParams.rotateLongitude')"
+            icon="ri-compass-3-line"
+            size="xs"
+            :min="RANGES.rotateLongitude.min"
+            :max="RANGES.rotateLongitude.max"
+            :step="RANGES.rotateLongitude.step"
+            unit="°"
+            @update:model-value="updateRotateLongitude"
+          />
 
-        <!-- Rotate Latitude -->
-        <RangeSlider
-          v-if="relevantParams.rotateLatitude"
-          :model-value="currentRotateLatitude"
-          :label="t('projectionParams.rotateLatitude')"
-          icon="ri-compass-4-line"
-          size="xs"
-          :min="RANGES.rotateLatitude.min"
-          :max="RANGES.rotateLatitude.max"
-          :step="RANGES.rotateLatitude.step"
-          unit="°"
-          @update:model-value="updateRotateLatitude"
-        />
+          <!-- Rotate Latitude -->
+          <RangeSlider
+            v-if="relevantParams.rotateLatitude"
+            :model-value="currentRotateLatitude"
+            :label="t('projectionParams.rotateLatitude')"
+            icon="ri-compass-4-line"
+            size="xs"
+            :min="RANGES.rotateLatitude.min"
+            :max="RANGES.rotateLatitude.max"
+            :step="RANGES.rotateLatitude.step"
+            unit="°"
+            @update:model-value="updateRotateLatitude"
+          />
 
-        <!-- Center Longitude -->
-        <RangeSlider
-          v-if="relevantParams.centerLongitude"
-          :model-value="currentCenterLongitude"
-          :label="t('projectionParams.centerLongitude')"
-          icon="ri-map-pin-line"
-          size="xs"
-          :min="RANGES.centerLongitude.min"
-          :max="RANGES.centerLongitude.max"
-          :step="RANGES.centerLongitude.step"
-          unit="°"
-          @update:model-value="updateCenterLongitude"
-        />
+          <!-- Center Longitude -->
+          <RangeSlider
+            v-if="relevantParams.centerLongitude"
+            :model-value="currentCenterLongitude"
+            :label="t('projectionParams.centerLongitude')"
+            icon="ri-map-pin-line"
+            size="xs"
+            :min="RANGES.centerLongitude.min"
+            :max="RANGES.centerLongitude.max"
+            :step="RANGES.centerLongitude.step"
+            unit="°"
+            @update:model-value="updateCenterLongitude"
+          />
 
-        <!-- Center Latitude -->
-        <RangeSlider
-          v-if="relevantParams.centerLatitude"
-          :model-value="currentCenterLatitude"
-          :label="t('projectionParams.centerLatitude')"
-          icon="ri-map-pin-2-line"
-          :min="RANGES.centerLatitude.min"
-          :max="RANGES.centerLatitude.max"
-          :step="RANGES.centerLatitude.step"
-          unit="°"
-          @update:model-value="updateCenterLatitude"
-        />
+          <!-- Center Latitude -->
+          <RangeSlider
+            v-if="relevantParams.centerLatitude"
+            :model-value="currentCenterLatitude"
+            :label="t('projectionParams.centerLatitude')"
+            icon="ri-map-pin-2-line"
+            :min="RANGES.centerLatitude.min"
+            :max="RANGES.centerLatitude.max"
+            :step="RANGES.centerLatitude.step"
+            unit="°"
+            @update:model-value="updateCenterLatitude"
+          />
 
-        <!-- Parallel 1 (for conic projections) -->
-        <RangeSlider
-          v-if="relevantParams.parallels"
-          :model-value="currentParallel1"
-          :label="t('projectionParams.parallel1')"
-          icon="ri-subtract-line"
-          :min="RANGES.parallel1.min"
-          :max="RANGES.parallel1.max"
-          :step="RANGES.parallel1.step"
-          unit="°"
-          show-midpoint
-          @update:model-value="updateParallel1"
-        />
+          <!-- Parallel 1 (for conic projections) -->
+          <RangeSlider
+            v-if="relevantParams.parallels"
+            :model-value="currentParallel1"
+            :label="t('projectionParams.parallel1')"
+            icon="ri-subtract-line"
+            :min="RANGES.parallel1.min"
+            :max="RANGES.parallel1.max"
+            :step="RANGES.parallel1.step"
+            unit="°"
+            show-midpoint
+            @update:model-value="updateParallel1"
+          />
 
-        <!-- Parallel 2 (for conic projections) -->
-        <RangeSlider
-          v-if="relevantParams.parallels"
-          :model-value="currentParallel2"
-          :label="t('projectionParams.parallel2')"
-          icon="ri-subtract-line"
-          :min="RANGES.parallel2.min"
-          :max="RANGES.parallel2.max"
-          :step="RANGES.parallel2.step"
-          unit="°"
-          show-midpoint
-          @update:model-value="updateParallel2"
-        />
-      </div>
+          <!-- Parallel 2 (for conic projections) -->
+          <RangeSlider
+            v-if="relevantParams.parallels"
+            :model-value="currentParallel2"
+            :label="t('projectionParams.parallel2')"
+            icon="ri-subtract-line"
+            :min="RANGES.parallel2.min"
+            :max="RANGES.parallel2.max"
+            :step="RANGES.parallel2.step"
+            unit="°"
+            show-midpoint
+            @update:model-value="updateParallel2"
+          />
+        </div>
+      </template>
     </template>
   </div>
 </template>

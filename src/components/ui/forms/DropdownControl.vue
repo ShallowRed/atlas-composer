@@ -9,6 +9,8 @@ export interface DropdownOption {
   label: string
   icon?: string
   badge?: string
+  /** If true, label is already translated and should not be passed through $t(). Defaults to false (label is a translation key) */
+  translated?: boolean
 }
 
 export interface DropdownOptionGroup {
@@ -391,7 +393,7 @@ watch(focusedIndex, (newIndex) => {
 }
 
 /* Visible focus state for button - Thick outline for visibility */
-.btn:focus-visible {
+.btn:focus, .btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }

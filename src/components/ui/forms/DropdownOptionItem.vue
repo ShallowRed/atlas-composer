@@ -70,7 +70,7 @@ function handleKeyDown(event: KeyboardEvent, value: string) {
           v-else
           class="badge badge-soft badge-xs"
         >{{ option.badge }}</span>
-        {{ $t(option.label) }}
+        {{ option.translated ? option.label : $t(option.label) }}
       </span>
     </div>
 
@@ -85,7 +85,7 @@ function handleKeyDown(event: KeyboardEvent, value: string) {
         v-else-if="option.badge"
         class="badge badge-soft badge-xs"
       >{{ option.badge }}</span>
-      {{ $t(option.label) }}
+      {{ option.translated ? option.label : $t(option.label) }}
     </template>
   </button>
 </template>

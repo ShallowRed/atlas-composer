@@ -351,6 +351,7 @@ function createAtlasConfig(
     territoryModeOptions: (config.modes || []).map(mode => ({
       value: mode.id,
       label: territoryModes[mode.id]!.label,
+      translated: true, // Labels from config are already translated via resolveI18nValue
     })),
     mapDisplayDefaults,
   }

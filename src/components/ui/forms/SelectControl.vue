@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n'
 interface Option {
   value: string
   label: string
+  /** If true, label is already translated and should not be passed through $t(). Defaults to false (label is a translation key) */
+  translated?: boolean
 }
 
 interface OptionGroup {
@@ -93,7 +95,7 @@ function getCategoryLabel(group: OptionGroup): string {
             :key="option.value"
             :value="option.value"
           >
-            {{ $t(option.label) }}
+            {{ option.translated ? option.label : $t(option.label) }}
           </option>
         </optgroup>
       </select>
@@ -120,7 +122,7 @@ function getCategoryLabel(group: OptionGroup): string {
           :key="option.value"
           :value="option.value"
         >
-          {{ option.label }}
+          {{ option.translated ? option.label : $t(option.label) }}
         </option>
       </select>
     </template>

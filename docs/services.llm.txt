@@ -17,7 +17,7 @@ Pattern detection and behavioral decisions for different atlas types.
 
 ### AtlasCoordinator
 Orchestrates atlas changes and configuration updates.
-- `handleAtlasChange()` - Coordinate all updates when changing atlas
+- `handleAtlasChange()` - Coordinate all updates when changing atlas (always uses atlas's default view mode)
 - `getInitialConfiguration()` - Build initial config for atlas
 
 ### TerritoryDefaultsService
