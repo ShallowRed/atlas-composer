@@ -1,0 +1,322 @@
+# Atlas Composer - Architectural Analysis & Improvement Plan
+
+## Objective
+Maximize Atlas Composer's value proposition through targeted improvements in architecture, user experience, performance, and maintainability while keeping complexity and code length manageable.
+
+## Current State Analysis
+
+### Strengths
+1. **Clean Architecture**: Well-organized service layer with clear domain boundaries
+2. **Type Safety**: Comprehensive TypeScript coverage (100% type check passing)
+3. **Test Coverage**: 251 tests passing (100% success rate)
+4. **Modern Stack**: Vue 3 Composition API, Pinia, Observable Plot, D3.js
+5. **Export System**: Zero-dependency projection loader with plugin architecture
+6. **Documentation**: Excellent LLM-optimized documentation system
+7. **Configuration-Driven**: JSON-based atlas system with validation
+
+### Current Metrics
+- Total Lines: ~20,761 (TS + Vue)
+- Components: 35 Vue components
+- Services: 28 TypeScript files
+- Composables: 11 composition functions
+- Stores: 4 Pinia stores
+- Atlases: 6 configurations (France, Portugal, Spain, EU, USA, World)
+- Projections: 20+ with smart recommendations
+- Test Files: 13 test suites, 251 tests
+
+### Areas for Improvement
+
+#### 1. Value Proposition Enhancement
+**Current**: Tool for creating composite projections
+**Opportunity**: Position as complete cartography toolkit with multiple use cases
+
+#### 2. User Experience Gaps
+- No undo/redo functionality for projection adjustments
+- Limited preset/template system for common configurations
+- No comparison view for different projections side-by-side
+- Export flow could be more discoverable
+- Missing quick-start tutorials or guided tours
+
+#### 3. Performance Opportunities
+- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
+- No virtual scrolling for territory lists in split view
+- No lazy loading for projection definitions
+- No memoization for expensive projection calculations
+
+#### 4. Code Organization
+- Some services still using instance pattern (could standardize)
+- Mixed naming conventions (some camelCase, some kebab-case in files)
+- Test file organization could be more consistent
+- Some duplication between export/import services
+
+#### 5. Feature Gaps
+- No projection history/favorites
+- No collaborative sharing (shareable URLs with state)
+- No batch operations for territories
+- Limited customization for export styling
+- No integration with external mapping services
+
+#### 6. Documentation Gaps
+- No user-facing documentation (only LLM docs)
+- Missing migration guides for major versions
+- No contribution guidelines
+- Limited examples for developers
+
+## Affected Domains
+- [ ] Vue Architecture (docs/vue-architecture.llm.txt) - UX improvements, new components
+- [ ] Services (docs/services.llm.txt) - Service layer refactoring
+- [ ] Export System (docs/export.llm.txt) - Enhanced export features
+- [ ] Atlas System (docs/atlases.llm.txt) - Preset system
+- [ ] Architecture (docs/architecture.llm.txt) - Overall structural changes
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Vue Layer: docs/vue-architecture.llm.txt
+- Services: docs/services.llm.txt
+- Export System: docs/export.llm.txt
+- Projections: docs/projections.llm.txt
+
+## Proposed Improvements
+
+### Phase 1: High-Value UX Improvements (Maximize Impact)
+
+#### 1.1 Shareable URLs with State Persistence
+**Value**: Enables collaboration, bookmarking, sharing
+**Complexity**: Medium
+**Files**: New composable, router update
+- [ ] Create useUrlState composable for state serialization
+- [ ] Add URL parameter encoding/decoding for configuration
+- [ ] Update router to support state in query parameters
+- [ ] Add "Copy Share Link" button to UI
+- [ ] Add URL state restoration on page load
+
+#### 1.2 Projection Comparison View
+**Value**: Helps users choose the best projection
+**Complexity**: Medium
+**Files**: New component, new composable
+- [ ] Create ComparisonView.vue component
+- [ ] Add side-by-side rendering with synchronized controls
+- [ ] Add visual difference highlighting
+- [ ] Add comparison mode to view mode selector
+- [ ] Create useProjectionComparison composable
+
+#### 1.3 Configuration Presets/Templates
+**Value**: Accelerates common workflows
+**Complexity**: Low-Medium
+**Files**: New service, new component, config files
+- [ ] Create PresetService for managing presets
+- [ ] Add preset configuration files (presets/*.json)
+- [ ] Create PresetSelector.vue component
+- [ ] Add "Save as Preset" functionality
+- [ ] Add preset categories (geographic, thematic, statistical)
+
+#### 1.4 Undo/Redo System
+**Value**: Essential for iterative design process
+**Complexity**: Medium-High
+**Files**: New store, new composable, UI updates
+- [ ] Create historyStore for state snapshots
+- [ ] Add useHistory composable with undo/redo methods
+- [ ] Implement keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+- [ ] Add undo/redo buttons to UI
+- [ ] Limit history to last 50 actions (memory management)
+
+### Phase 2: Performance Optimizations (Reduce Complexity)
+
+#### 2.1 Code Splitting and Lazy Loading
+**Value**: Faster initial load, better performance
+**Complexity**: Low
+**Files**: Router, component imports
+- [ ] Lazy load projection definitions by family
+- [ ] Use Vue's defineAsyncComponent for heavy components
+- [ ] Split export system into separate chunk
+- [ ] Implement route-based code splitting
+
+#### 2.2 Computation Memoization
+**Value**: Reduce redundant calculations
+**Complexity**: Low
+**Files**: Services, composables
+- [ ] Add memoization to ProjectionFactory.create()
+- [ ] Cache projection recommendations by context
+- [ ] Memoize territory bounds calculations
+- [ ] Add cache invalidation strategy
+
+#### 2.3 Rendering Optimizations
+**Value**: Smoother interactions
+**Complexity**: Medium
+**Files**: MapRenderer.vue, services
+- [ ] Add debouncing to projection parameter changes
+- [ ] Implement virtual scrolling in SplitView
+- [ ] Use v-memo for static territory cards
+- [ ] Optimize SVG overlay rendering
+
+### Phase 3: Architecture Refinements (Clean Patterns)
+
+#### 3.1 Service Layer Standardization
+**Value**: Consistent patterns, easier maintenance
+**Complexity**: Medium
+**Files**: All service files
+- [ ] Standardize on static methods for stateless operations
+- [ ] Document service patterns in services.llm.txt
+- [ ] Refactor mixed pattern services (if beneficial)
+- [ ] Add service composition examples
+
+#### 3.2 File Size Reduction
+**Value**: Better maintainability
+**Complexity**: Medium
+**Files**: Large files (>400 lines)
+- [ ] Split composite-projection.ts (618 lines) into modules
+- [ ] Extract rendering strategies from code-generator.ts
+- [ ] Refactor DropdownControl.spec.ts (944 lines) into focused tests
+- [ ] Create projection-utils.ts for shared utilities
+
+#### 3.3 Type System Enhancements
+**Value**: Better developer experience
+**Complexity**: Low
+**Files**: Type definitions
+- [ ] Add branded types for IDs (AtlasId, ProjectionId)
+- [ ] Create discriminated unions for view modes
+- [ ] Add utility types for common patterns
+- [ ] Document type architecture
+
+### Phase 4: Feature Additions (Extend Value)
+
+#### 4.1 Projection History/Favorites
+**Value**: Personalization, workflow efficiency
+**Complexity**: Low-Medium
+**Files**: New store, localStorage integration
+- [ ] Create favoritesStore for user preferences
+- [ ] Add localStorage persistence
+- [ ] Create RecentProjections component
+- [ ] Add star/favorite buttons to projection selector
+- [ ] Add "Recently Used" section
+
+#### 4.2 Enhanced Export Options
+**Value**: More use cases for generated code
+**Complexity**: Medium
+**Files**: Export services, code generator
+- [ ] Add export format for Leaflet
+- [ ] Add export format for Mapbox GL JS
+- [ ] Add styling options for generated code
+- [ ] Add SVG export with embedded projection
+- [ ] Add preview mode before export
+
+#### 4.3 Batch Territory Operations
+**Value**: Efficiency for complex atlases
+**Complexity**: Medium
+**Files**: New composable, territory controls
+- [ ] Add "Apply to All" functionality
+- [ ] Add "Apply to Region" functionality
+- [ ] Create BatchOperations component
+- [ ] Add batch undo/redo support
+
+#### 4.4 Guided Tour / Onboarding
+**Value**: Reduce learning curve
+**Complexity**: Low-Medium
+**Files**: New component, new assets
+- [ ] Create TourGuide component using shepherd.js or similar
+- [ ] Define tour steps for key features
+- [ ] Add "Help" button to trigger tour
+- [ ] Add "Skip Tour" with localStorage preference
+- [ ] Create welcome modal for first-time users
+
+### Phase 5: Documentation & DX Improvements
+
+#### 5.1 User-Facing Documentation
+**Value**: Better user adoption
+**Complexity**: Low
+**Files**: New docs folder, website integration
+- [ ] Create user guide (getting started, features, examples)
+- [ ] Add video tutorials or animated GIFs
+- [ ] Create projection selection guide
+- [ ] Document export/import workflows
+- [ ] Add FAQ section
+
+#### 5.2 Developer Documentation
+**Value**: Enable contributions
+**Complexity**: Low
+**Files**: New markdown files
+- [ ] Create CONTRIBUTING.md with guidelines
+- [ ] Add architecture diagrams (mermaid.js)
+- [ ] Document testing strategy
+- [ ] Add examples for common customizations
+- [ ] Create API reference for services
+
+#### 5.3 Example Configurations
+**Value**: Learning resource, quality assurance
+**Complexity**: Low
+**Files**: New examples folder
+- [ ] Add example configurations for common use cases
+- [ ] Create gallery of exported projections
+- [ ] Add interactive examples in documentation
+- [ ] Create reusable code snippets
+
+## Priority Recommendations (MVP)
+
+Based on value-to-complexity ratio, recommend implementing in this order:
+
+### Tier 1: Quick Wins (High Value, Low Complexity)
+1. **Configuration Presets** - Accelerates 80% of use cases
+2. **Shareable URLs** - Enables collaboration with minimal code
+3. **Code Splitting** - Immediate performance improvement
+4. **Projection Favorites** - Simple localStorage feature
+
+### Tier 2: High-Impact Features (High Value, Medium Complexity)
+5. **Undo/Redo System** - Essential for iterative workflows
+6. **Projection Comparison View** - Helps decision-making
+7. **Enhanced Export Options** - Expands use cases
+8. **Guided Tour** - Reduces onboarding time
+
+### Tier 3: Refinements (Medium Value, Various Complexity)
+9. **Service Layer Standardization** - Long-term maintainability
+10. **File Size Reduction** - Better code organization
+11. **Batch Operations** - Power user feature
+12. **Documentation** - Essential for growth
+
+## Anti-Patterns to Avoid
+
+1. **Over-engineering**: Don't add abstraction layers without clear benefit
+2. **Feature Creep**: Each feature must serve the core value proposition
+3. **Premature Optimization**: Profile before optimizing
+4. **Breaking Changes**: Maintain backward compatibility for exports
+5. **State Explosion**: Keep state management simple and focused
+
+## Success Metrics
+
+### User Experience
+- Time to first projection: < 30 seconds
+- Configuration save/load time: < 1 second
+- Export generation time: < 2 seconds
+
+### Code Quality
+- Test coverage: Maintain 100% passing
+- Type coverage: Maintain 100%
+- Average file size: Keep < 400 lines
+- Bundle size: Stay < 500KB gzipped
+
+### Performance
+- Initial page load: < 2 seconds
+- Projection render time: < 500ms
+- Smooth interactions: 60 FPS
+
+## Documentation Updates
+
+After implementation:
+- [ ] docs/architecture.llm.txt - Update with new patterns
+- [ ] docs/vue-architecture.llm.txt - Document new components
+- [ ] docs/services.llm.txt - Update service patterns
+- [ ] docs/export.llm.txt - Add new export formats
+- [ ] Create docs/presets.llm.txt for preset system
+- [ ] Create docs/state-management.llm.txt for undo/redo
+
+## Verification Checklist
+
+- [ ] All existing tests pass
+- [ ] New features have test coverage
+- [ ] TypeScript compilation succeeds
+- [ ] Performance benchmarks pass
+- [ ] Documentation updated
+- [ ] No regression in existing functionality
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-11
