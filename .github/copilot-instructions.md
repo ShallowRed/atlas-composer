@@ -1,5 +1,5 @@
 ## Project Overview
-- Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
+- Project: Atlas composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
 - Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
 - Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
 - composite projections, interactive territory positioning, JSON-driven configuration
@@ -156,15 +156,21 @@ EXTERNAL TOOLS:
   - Action: <what to change>
   - Why: <rationale>
 
-## Documentation Updates
-- [ ] docs/domain1.llm.txt - Update section X with new behavior
-- [ ] docs/domain2.llm.txt - Add new component Y documentation
-- [ ] docs/architecture.llm.txt - Update if structural changes
+## Documentation Updates (CRITICAL - See .github/copilot-critical-rules.md)
+REMEMBER: .llm.txt files are STATIC REFERENCE docs
+- Remove: "before/after", "resolved", "completed", dates, objectives, problems
+- Keep: current state, how it works, what it does
+- Use: present tense only ("handles", "provides", "uses")
+
+- [ ] docs/domain1.llm.txt - [describe what to update in present tense]
+- [ ] docs/domain2.llm.txt - [describe what to add in present tense]
+- [ ] docs/architecture.llm.txt - [update if structural changes]
 
 ## Verification
 - [ ] Code compiles without errors
 - [ ] Tests pass (if applicable)
-- [ ] All documentation updated
+- [ ] All .llm.txt documentation updated (check with: pnpm check:docs)
+- [ ] No temporal language in .llm.txt files
 - [ ] Plan file marked complete
 
 ## Status
@@ -200,6 +206,12 @@ DEVELOPMENT RULES:
 - Use VS Code API tool only for VS Code extension projects.
 - Once the project is created, it is already opened in Visual Studio Code—do not suggest commands to open this project in Visual Studio again.
 - If the project setup information has additional rules, follow them strictly.
+
+TERMINAL COMMAND RULES:
+- ALWAYS use `isBackground=true` for long-running processes (dev servers, watch modes, etc.)
+- Commands like `pnpm dev`, `npm run dev`, `vite`, or any server process MUST run in background
+- Only use `isBackground=false` for commands that complete quickly (build, test, validation)
+- Interactive commands (those requiring user input) MUST run in background to avoid blocking
 
 FOLDER CREATION RULES:
 - Always use the current directory as the project root.

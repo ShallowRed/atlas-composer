@@ -11,4 +11,19 @@ export default antfu({
     'eslint-comments/no-unlimited-disable': 'off',
     'ts/ban-ts-comment': 'off',
   },
+}, {
+  files: ['**/*.vue'],
+  rules: {
+    'vue/max-attributes-per-line': [
+      'error',
+      {
+        singleline: {
+          max: 1,
+        },
+        multiline: {
+          max: 1,
+        },
+      },
+    ],
+  },
 })

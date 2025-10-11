@@ -3,6 +3,7 @@
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, Hawaii, and territories",
+  "category": "country",
   "dataSources": {
     "territories": "usa-territories-50m.json",
     "metadata": "usa-metadata-50m.json"
@@ -473,14 +474,20 @@
   "modes": [
     {
       "id": "mainland-only",
-      "label": "Contiguous US only",
+      "label": {
+        "en": "Contiguous US only",
+        "fr": "États-Unis contigus uniquement"
+      },
       "territories": [
         "US-CONT"
       ]
     },
     {
       "id": "fifty-states",
-      "label": "50 states (AK + HI)",
+      "label": {
+        "en": "50 states (Alaska + Hawaii)",
+        "fr": "50 états (Alaska + Hawaï)"
+      },
       "territories": [
         "US-CONT",
         "US-AK",
@@ -489,7 +496,10 @@
     },
     {
       "id": "states-territories",
-      "label": "States + Major territories",
+      "label": {
+        "en": "States + Major territories",
+        "fr": "États + territoires majeurs"
+      },
       "territories": [
         "US-CONT",
         "US-AK",
@@ -500,7 +510,10 @@
     },
     {
       "id": "all-territories",
-      "label": "All US territories",
+      "label": {
+        "en": "All US territories",
+        "fr": "Tous les territoires américains"
+      },
       "territories": [
         "US-CONT",
         "US-AK",
@@ -514,7 +527,10 @@
     },
     {
       "id": "everything",
-      "label": "Complete (inc. Aleutians)",
+      "label": {
+        "en": "Complete (inc. Aleutians)",
+        "fr": "Complet (inc. Aléoutiennes)"
+      },
       "territories": [
         "US-CONT",
         "US-AK",

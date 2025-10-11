@@ -6,7 +6,7 @@ Vue 3 Composition API application with TypeScript, Pinia stores, and composable-
 
 **Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
 **Test Framework**: Vitest + @vue/test-utils
-**Test Coverage**: 122 tests (100% passing)
+**Test Coverage**: 164 tests (100% passing)
 
 ## Project Structure
 
@@ -21,11 +21,15 @@ src/
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
-│   ├── ProjectionSelector.vue # Projection selection (114 lines)
-│   └── ui/                   # 19 reusable UI components
-│       ├── Core primitives: RangeSlider, ButtonGroup, Modal, Alert, AccordionItem, LabelWithIcon
-│       └── Specialized: ProjectionParamsControls, FormControl, etc.
-├── composables/              # 9 composition functions
+│   └── ui/                   # 24 reusable UI components organized in subdirectories
+│       ├── layout/           # Layout and page structure components
+│       ├── primitives/       # Core reusable UI elements
+│       ├── forms/            # Form controls and inputs
+│       ├── settings/         # Settings and preferences
+│       ├── projections/      # Projection-related components (3 components)
+│       ├── import/           # Import-related components
+│       └── export/           # Export-related components
+├── composables/              # 8 composition functions
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -39,13 +43,11 @@ App.vue
 │   └── MapView.vue (main coordinator)
 │       ├── MapRenderer.vue (D3 rendering engine)
 │       ├── TerritoryControls.vue (territory transforms)
-│       ├── ProjectionSelector.vue (projection selection)
+│       ├── ProjectionDropdown.vue (projection selection with info modal)
 │       └── UI Components
 │           ├── ViewModeSection
 │           ├── ProjectionInfo
 │           ├── ProjectionParamsControls
-│           ├── ProjectionConfirmDialog
-│           ├── LoadingModal
 │           └── ToastNotification
 └── AppFooter.vue (credits, links)
 ```
@@ -86,26 +88,94 @@ App.vue
 - Recommendation badges
 - Uses: useProjectionFiltering, useProjectionRecommendations
 
-### UI Components (19 components)
-**Core Primitives** (New - Template Refactoring):
-- **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
-- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
-- **Alert**: Status/notification messages with type variants (info, success, warning, error)
-- **AccordionItem**: Collapsible content item with title/subtitle
-- **LabelWithIcon**: Label wrapper with optional icon
+### UI Components (27 components organized in 7 subdirectories)
 
-**Reusable Components**:
-- ViewModeSection, ProjectionInfo, ProjectionParamsControls
-- ProjectionConfirmDialog, LoadingModal, ToastNotification
-- AppHeader, AppFooter, ThemeSelector, LanguageSelector
-- CardContainer, FormControl, SectionHeader
+**Layout Components** (src/components/ui/layout/):
+- **AppHeader**: Application header with navigation and language selector
+- **AppFooter**: Application footer with credits and links
+- **MainLayout**: Main application layout structure
+- **ScrollableContent**: Scrollable content wrapper
+
+**Primitive Components** (src/components/ui/primitives/):
+- **AccordionItem**: Collapsible content item with title/subtitle
+- **Alert**: Status/notification messages with type variants (info, success, warning, error)
+- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
+- **CardContainer**: Card wrapper with title, icon, and scrollable content
+- **LabelWithIcon**: Label wrapper with optional icon
+- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
+
+**Form Controls** (src/components/ui/forms/):
+- **CheckboxControl**: Checkboxes for boolean settings (42 lines)
+- **RangeSlider**: Range input with label, icon, value display, and customizable styling
+- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (590 lines, 42 tests)
+  - Two modes: standard (fieldset wrapper) and inline (for navbar use)
+  - Manual JS-controlled dropdown (overrides DaisyUI CSS focus behavior)
+  - Supports emoji/text icons and icon classes (detects 'ri-' prefix)
+  - Supports badges for visual indicators (e.g., projection recommendations)
+  - Supports option groups with category labels
+  - Full keyboard navigation:
+    - Up/Down arrows: when open only, immediately select previous/next option and stay open
+    - Left/Right arrows: when closed only, cycle through options with looping (first↔last)
+    - Enter/Space: select focused option and close dropdown (or open if closed)
+    - Escape: close dropdown
+    - Home/End: jump to first/last option (when open)
+    - Tab: close dropdown and move focus
+    - Click: select option and close dropdown
+  - Automatic scroll behavior: focused option scrolls into view during keyboard navigation
+  - ARIA attributes for screen readers (role, aria-expanded, aria-selected, aria-activedescendant)
+  - Focus management with CSS highlighting (no DOM focus to avoid blur conflicts)
+  - Thick visible focus state (2px outline + background color) for accessibility
+  - Selected option highlighted with primary color when dropdown open
+  - Translation support with Vue I18n ($t() integration)
+  - isNavigating flag prevents blur events during arrow navigation
+  - Exports DropdownOption and DropdownOptionGroup interfaces
+  - Comprehensive test suite covers rendering, state management, selection, keyboard navigation, accessibility, and edge cases
+- **ToggleControl**: Toggle switches for boolean settings (42 lines)
+
+**Settings Components** (src/components/ui/settings/):
+- **LanguageSelector**: Language selection dropdown using DropdownControl in inline mode
+  - Uses inline prop for navbar integration (no fieldset wrapper)
+  - Converts SUPPORTED_LOCALES to DropdownOption format
+  - Uses setLocale() for language switching
+  - Ghost button style with translate icon
+- **ThemeSelector**: Theme selection interface using DropdownControl with option groups
+  - Groups themes into light and dark categories
+  - 35 theme options across 2 groups
+
+**Projection Components** (src/components/ui/projections/):
+- **ProjectionDropdown**: Projection selection component with info modal
+  - Uses DropdownControl with recommendation badges (Remix icons)
+  - Displays badge icons to left of projection names
+  - Badge system: ri-star-fill (excellent), ri-star-line (good), ri-star-half-line (usable)
+  - Includes info button that opens ProjectionInfo modal
+  - Supports loading skeleton state
+  - Automatically transforms recommendation badges with CSS classes (text-success, text-info, text-base-content)
+- **ProjectionInfo**: Projection information display
+- **ProjectionParamsControls**: Projection parameter adjustment controls
+
+**Import Components** (src/components/ui/import/):
+- **ImportControls**: Import and export control buttons
+- **ImportModal**: Modal for importing configurations
+
+**Export Components** (src/components/ui/export/):
+- **CompositeExportDialog**: Dialog for exporting composite configurations
+- **ToastNotification**: Toast notification display
 
 **Composition Patterns**:
 - RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)
 - ButtonGroup used in CompositeExportDialog (3 instances)
 - Modal used in CompositeExportDialog for standardized dialogs
 - Alert used in ProjectionParamsControls and TerritoryControls for status messages
+- DropdownControl used in AtlasConfigSection (5 instances), ThemeSelector (1 instance), LanguageSelector (1 instance), ProjectionDropdown (1 instance)
+  - Supports emoji/text icons (flag emojis: 🇫🇷, 🇵🇹, 🇪🇸, 🇪🇺, 🇺🇸, 🌍)
+  - Supports icon classes (remix icons: ri-layout-grid-line, etc.)
+  - Supports icon badges (projection recommendations: ri-star-fill, ri-star-line, ri-star-half-line)
+  - Icon badges positioned to left of option label
+  - Badge CSS classes automatically applied (text-success, text-info, text-base-content)
+  - Full a11y: ARIA attributes, keyboard navigation (Arrow keys, Enter, Space, Escape, Home, End, Tab)
+  - Focus management with visible focus states (WCAG AA compliant)
+  - Translation support with Vue I18n integration
+- ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
 ## Composables (9 functions)
 
@@ -144,15 +214,13 @@ App.vue
 - Reset functions
 - Used by: TerritoryControls.vue
 
-**useProjectionFiltering** (91 lines)
-- Projection search and filtering
-- searchQuery, filteredProjections, clearSearch, hasSearch
-- Used by: ProjectionSelector.vue
-
 **useProjectionRecommendations** (78 lines)
-- Recommendation badge display
-- Classification logic (best, good, suitable)
-- Used by: ProjectionSelector.vue
+- Projection recommendation badge system
+- getBadge(): Returns Remix icon class (ri-star-fill, ri-star-line, ri-star-half-line)
+- getCssClass(): Returns color class (text-success, text-info, text-base-content)
+- getTooltip(): Returns localized recommendation reason
+- getRecommendation(): Returns full recommendation object
+- Used by: ProjectionDropdown.vue
 
 ### Validation
 **useProjectionValidation** (148 lines)
@@ -180,12 +248,16 @@ App.vue
 - Loading states
 **Used by**: MapRenderer, data loading composables
 
-### ui.ts (68 lines)
+### ui.ts (81 lines)
 **Domain**: UI state
 **Responsibilities**:
 - Theme management (light/dark)
-- Display toggles (graticule, sphere, borders, limits)
-**Used by**: ThemeSelector, display option components
+- Display toggles (graticule, sphere, composition borders, map limits)
+  - showGraticule: Display coordinate grid lines
+  - showSphere: Display sphere outline
+  - showCompositionBorders: Display territory region borders (composite views only)
+  - showMapLimits: Display viewport bounds rectangle
+**Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
 ### territory.ts (57 lines)
 **Domain**: Territory state

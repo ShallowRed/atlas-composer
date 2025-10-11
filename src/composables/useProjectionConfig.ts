@@ -24,7 +24,7 @@ export function useProjectionConfig() {
     // Get all composite projections from registry and filter by region
     return projectionRegistry.getAll()
       .filter(def => def.family === ProjectionFamily.COMPOSITE && availableProjections.includes(def.id))
-      .map(def => ({ value: def.id, label: t(def.name) }))
+      .map(def => ({ value: def.id, label: t(def.name), translated: true }))
   })
 
   /**

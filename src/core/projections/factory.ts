@@ -23,6 +23,8 @@ import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConfor
 import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjSpain from 'd3-composite-projections/src/conicConformalSpain.js'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -290,6 +292,12 @@ export class ProjectionFactory {
       case 'portugal-composite':
       case 'composite-portugal':
         projectionFn = d3CompositeProjPortugal.default
+        break
+
+      case 'conic-conformal-spain':
+      case 'spain-composite':
+      case 'composite-spain':
+        projectionFn = d3CompositeProjSpain.default
         break
 
       case 'conic-conformal-europe':

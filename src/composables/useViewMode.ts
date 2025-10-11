@@ -18,10 +18,10 @@ export function useViewMode() {
 
     // All possible view mode options
     const allOptions = [
-      { value: 'composite-custom', label: t('mode.compositeCustom') },
-      { value: 'split', label: t('mode.split') },
-      { value: 'composite-existing', label: t('mode.compositeExisting') },
-      { value: 'unified', label: t('mode.unified') },
+      { value: 'composite-custom', label: t('mode.compositeCustom'), translated: true },
+      { value: 'split', label: t('mode.split'), translated: true },
+      { value: 'composite-existing', label: t('mode.compositeExisting'), translated: true },
+      { value: 'unified', label: t('mode.unified'), translated: true },
     ]
 
     // Filter to only supported modes for this region

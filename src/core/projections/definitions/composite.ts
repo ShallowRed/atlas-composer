@@ -3,7 +3,7 @@
  *
  * These are the main composite projections that combine multiple projections
  * to create optimal representations of countries with geographically-scattered territories.
- * This is the core feature of Atlas Composer.
+ * This is the core feature of Atlas composer.
  */
 
 import type { ProjectionDefinition } from '../types'
@@ -95,6 +95,52 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     requiresCustomFit: true,
     customFit: {
       defaultScale: 4200, // Adjusted for better fill (was 3500)
+      referenceWidth: 960, // Configured for 960×500
+    },
+  },
+}
+
+/**
+ * Conic Conformal Spain - Composite projection for Spain
+ * Optimized for Spain's mainland, Balearic Islands, and Canary Islands
+ */
+export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
+  id: 'conic-conformal-spain',
+  name: 'projections.conicConformalSpain.name',
+  description: 'projections.conicConformalSpain.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'europe' },
+      { territoryType: 'archipelago', region: 'europe' },
+      { territoryType: 'archipelago', region: 'africa' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [-3, 40], // Approximate center of Spain
+  },
+
+  aliases: ['spain-composite', 'composite-spain'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 3500, // Adjusted for Spain's extent
       referenceWidth: 960, // Configured for 960×500
     },
   },
@@ -292,6 +338,7 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
 export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL_FRANCE,
   CONIC_CONFORMAL_PORTUGAL,
+  CONIC_CONFORMAL_SPAIN,
   CONIC_CONFORMAL_EUROPE,
   ALBERS_USA,
   ALBERS_USA_COMPOSITE,

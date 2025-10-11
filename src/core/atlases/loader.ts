@@ -3,7 +3,7 @@
  * Adapter to transform shared JSON configs into complete atlas configurations
  */
 
-import type { JSONAtlasConfig, JSONTerritoryConfig } from '#types'
+import type { I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
   CompositeProjectionDefaults,
@@ -12,6 +12,7 @@ import type {
   TerritoryGroupConfig,
   TerritoryModeConfig,
 } from '@/types'
+import { getCurrentLocale, resolveI18nValue } from './i18n-utils'
 
 // Internal loader types - defined here to avoid separation of concerns violations
 export interface ProjectionParams {
@@ -33,6 +34,9 @@ export interface AtlasSpecificConfig {
   territoryGroups?: Record<string, TerritoryGroupConfig>
   defaultCompositeConfig?: CompositeProjectionDefaults
   projectionPreferences?: ProjectionPreferences
+  // Raw i18n values for reactive translation
+  rawModeLabels: Record<string, I18nValue>
+  rawGroupLabels?: Record<string, I18nValue>
 }
 
 export interface LoadedTerritories {
@@ -55,13 +59,14 @@ export type { CompositeProjectionDefaults } from '@/types'
 
 /**
  * Transform territory from JSON to TerritoryConfig
+ * Resolves i18n values to strings for the current locale
  */
-function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
+function transformTerritory(territory: JSONTerritoryConfig, locale: string): TerritoryConfig {
   return {
     code: territory.code,
-    name: territory.name,
-    ...(territory.shortName && { shortName: territory.shortName }),
-    ...(territory.region && { region: territory.region }),
+    name: resolveI18nValue(territory.name, locale),
+    ...(territory.shortName && { shortName: resolveI18nValue(territory.shortName, locale) }),
+    ...(territory.region && { region: resolveI18nValue(territory.region, locale) }),
     center: territory.center,
     offset: territory.rendering?.offset || [0, 0],
     bounds: territory.bounds,
@@ -81,7 +86,7 @@ function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
 /**
  * Extract territories and detect pattern type from role usage
  */
-function extractTerritories(config: JSONAtlasConfig) {
+function extractTerritories(config: JSONAtlasConfig, locale: string) {
   // Handle wildcard "*" - return placeholder for dynamic loading
   // Territories will be loaded by geo-data service from topology data
   if (config.territories === '*') {
@@ -130,8 +135,8 @@ function extractTerritories(config: JSONAtlasConfig) {
       )
     }
 
-    const mainland = transformTerritory(primaryTerritories[0]!)
-    const overseas = secondaryTerritories.map(transformTerritory)
+    const mainland = transformTerritory(primaryTerritories[0]!, locale)
+    const overseas = secondaryTerritories.map(t => transformTerritory(t, locale))
     const all = [mainland, ...overseas]
 
     return {
@@ -145,8 +150,8 @@ function extractTerritories(config: JSONAtlasConfig) {
 
   // Equal-members pattern: N equal members + optional secondary territories
   else {
-    const mainlands = memberTerritories.map(transformTerritory)
-    const overseas = secondaryTerritories.map(transformTerritory)
+    const mainlands = memberTerritories.map(t => transformTerritory(t, locale))
+    const overseas = secondaryTerritories.map(t => transformTerritory(t, locale))
     const all = [...mainlands, ...overseas]
 
     // Use first member as representative (for backward compatibility)
@@ -164,11 +169,13 @@ function extractTerritories(config: JSONAtlasConfig) {
 
 /**
  * Create territory mode configurations
+ * Resolves i18n values for mode labels
  */
 function createTerritoryModes(
   config: JSONAtlasConfig,
   mainlandCode: string,
   isSingleFocusPattern: boolean,
+  locale: string,
   allTerritoryCodes?: string[],
 ): Record<string, TerritoryModeConfig> {
   return Object.fromEntries(
@@ -201,7 +208,7 @@ function createTerritoryModes(
       return [
         mode.id,
         {
-          label: mode.label,
+          label: resolveI18nValue(mode.label, locale),
           codes,
           exclude: mode.exclude, // Store exclusions for runtime resolution
         },
@@ -212,13 +219,14 @@ function createTerritoryModes(
 
 /**
  * Create territory group configurations
+ * Resolves i18n values for group labels
  */
-function createTerritoryGroups(config: JSONAtlasConfig): Record<string, TerritoryGroupConfig> {
+function createTerritoryGroups(config: JSONAtlasConfig, locale: string): Record<string, TerritoryGroupConfig> {
   return Object.fromEntries(
     (config.groups || []).map(group => [
       group.id.toUpperCase(),
       {
-        label: group.label,
+        label: resolveI18nValue(group.label, locale),
         codes: group.territories,
       },
     ]),
@@ -273,6 +281,7 @@ function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerrito
  */
 /**
  * Create the main atlas configuration object
+ * Resolves i18n values for atlas-level fields
  */
 function createAtlasConfig(
   config: JSONAtlasConfig,
@@ -280,6 +289,7 @@ function createAtlasConfig(
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryModeConfig>,
   defaultCompositeConfig: CompositeProjectionDefaults | undefined,
+  locale: string,
 ): AtlasConfig {
   // Use view modes from config if specified, otherwise default to all modes
   const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
@@ -305,7 +315,8 @@ function createAtlasConfig(
 
   return {
     id: config.id,
-    name: typeof config.name === 'string' ? config.name : config.name.en,
+    name: resolveI18nValue(config.name, locale),
+    category: config.category,
     pattern: territories.type,
     geoDataConfig,
     supportedViewModes,
@@ -330,15 +341,20 @@ function createAtlasConfig(
             overseasTerritories: territories.overseas,
           },
     splitModeConfig: {
-      mainlandTitle: territories.mainland.name,
-      mainlandCode: territories.mainland.code,
-      territoriesTitle: 'Overseas Territories',
+      mainlandTitle: territories.type === 'single-focus'
+        ? `atlas.territories.${config.id}.mainland`
+        : `atlas.territories.${config.id}.territories`,
+      mainlandCode: territories.mainland?.code,
+      territoriesTitle: territories.type === 'single-focus'
+        ? `atlas.territories.${config.id}.overseas`
+        : `atlas.territories.${config.id}.territories`,
     },
     hasTerritorySelector: (config.modes || []).length > 0,
     isWildcard: territories.isWildcard === true,
     territoryModeOptions: (config.modes || []).map(mode => ({
       value: mode.id,
       label: territoryModes[mode.id]!.label,
+      translated: true, // Labels from config are already translated via resolveI18nValue
     })),
     mapDisplayDefaults,
   }
@@ -349,10 +365,15 @@ function createAtlasConfig(
  *
  * This is the main entry point that transforms a JSON config
  * into all necessary configuration objects for the application.
+ *
+ * Resolves i18n values based on current locale.
  */
 export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig {
+  // Get current locale for i18n resolution
+  const locale = getCurrentLocale()
+
   // Extract territories
-  const territories = extractTerritories(jsonConfig)
+  const territories = extractTerritories(jsonConfig, locale)
 
   // Create projection parameters
   const projectionParams: ProjectionParams = jsonConfig.projection as ProjectionParams
@@ -368,9 +389,10 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     jsonConfig,
     territories.mainland.code,
     isSingleFocusPattern,
+    locale,
     allTerritoryCodes,
   )
-  const territoryGroups = createTerritoryGroups(jsonConfig)
+  const territoryGroups = createTerritoryGroups(jsonConfig, locale)
 
   // Create composite defaults (not needed for wildcard atlases)
   const defaultCompositeConfig = territories.isWildcard
@@ -387,10 +409,19 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     geoDataConfig,
     territoryModes,
     defaultCompositeConfig,
+    locale,
   )
 
   // Extract projection preferences if provided
   const projectionPreferences: ProjectionPreferences | undefined = jsonConfig.projectionPreferences
+
+  // Store raw i18n values for reactive translation
+  const rawModeLabels = Object.fromEntries(
+    (jsonConfig.modes || []).map(mode => [mode.id, mode.label]),
+  )
+  const rawGroupLabels = Object.fromEntries(
+    (jsonConfig.groups || []).map(group => [group.id.toUpperCase(), group.label]),
+  )
 
   // Create atlas-specific config
   const atlasSpecificConfig: AtlasSpecificConfig = {
@@ -399,6 +430,8 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     territoryGroups,
     defaultCompositeConfig,
     projectionPreferences,
+    rawModeLabels,
+    rawGroupLabels: Object.keys(rawGroupLabels).length > 0 ? rawGroupLabels : undefined,
   }
 
   return {

@@ -204,7 +204,7 @@ A: Yes, use `unregisterProjection(name)` or `clearProjections()`.
 ## 🔗 Additional Resources
 
 - [Main README](../README.md) - Complete API documentation
-- [Atlas Composer](https://atlas-composer.example.com) - Visual configuration creator
+- [Atlas composer](https://atlas-composer.example.com) - Visual configuration creator
 - [D3 Projections](https://d3js.org/d3-geo) - Standard projection library
 - [D3 Extended Projections](https://d3js.org/d3-geo-projection) - Additional projections
 

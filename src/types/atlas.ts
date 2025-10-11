@@ -53,6 +53,11 @@ export interface TerritoryModeOption {
 }
 
 /**
+ * Atlas category for UI grouping
+ */
+export type AtlasCategory = 'country' | 'region' | 'world'
+
+/**
  * Complete atlas configuration
  *
  * Central configuration object that defines all settings for a
@@ -67,6 +72,9 @@ export interface AtlasConfig {
 
   /** Display name (e.g., 'France', 'Portugal', 'European Union') */
   name: string
+
+  /** Category for UI grouping (country, region, world). Defaults to 'country' if not specified. */
+  category?: AtlasCategory
 
   /** Data loading configuration */
   geoDataConfig: GeoDataConfig

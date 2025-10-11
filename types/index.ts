@@ -1,5 +1,5 @@
 /**
- * Shared Types for Atlas Composer
+ * Shared Types for Atlas composer
  * Domain-agnostic types used by both backend (scripts/) and frontend (src/)
  *
  * IMPORTANT: This directory should NOT re-export from src/ or scripts/
@@ -10,6 +10,7 @@
 
 // JSON Configuration (raw data from configs/*.json)
 export type {
+  I18nValue,
   JSONAtlasConfig,
   JSONTerritoryConfig,
 } from './atlas-config.js'

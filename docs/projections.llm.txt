@@ -91,21 +91,41 @@ src/core/projections/
 - `world` - Best for global maps: Natural Earth, Robinson, Mollweide
 - `composite` - Multi-projection layouts: France, Portugal, EU
 
-## Recommendation Context
+## Recommendation System
+
+The recommendation engine evaluates projections based on geographic context matching.
+
+### Context Matching
+Suitability levels (excellent, good, usable, avoid) contain `GeographicContext` objects with criteria:
+- `territoryType`: mainland, overseas, island, archipelago, peninsula
+- `region`: europe, africa, asia, oceania, americas, polar, world
+- `scale`: local, regional, continental, global
+- `latitudeRange`: { min, max } for latitude-based matching
+
+The registry matches these criteria against territory properties to determine suitability.
+
+### Recommendation Levels
+- **excellent** (ri-star-fill): Atlas recommended list OR matches excellent suitability
+- **good** (ri-star-line): Matches good suitability criteria
+- **usable** (ri-star-half-line): Matches usable suitability OR default level
+- **not-recommended**: Atlas prohibited list OR matches avoid criteria
+
+### Filter Context
 
 ```typescript
 interface ProjectionFilterContext {
   atlasId?: string              // 'france' | 'portugal' | 'spain' | 'eu'
   viewMode?: ViewMode           // 'composite' | 'split' | 'individual'
+  territory?: {                 // Territory being configured
+    id: string
+    type: 'mainland' | 'overseas' | 'island' | 'archipelago' | 'peninsula'
+    region?: string
+  }
   category?: ProjectionCategory
   family?: ProjectionFamily
   capabilities?: {
     preservesArea?: boolean
     preservesAngles?: boolean
-  }
-  suitability?: {
-    midLatitude?: { min?: number, max?: number }
-    equatorial?: { min?: number, max?: number }
   }
   limit?: number                // Max results
 }

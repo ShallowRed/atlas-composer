@@ -1,8 +1,15 @@
 {
   "$schema": "./schema.json",
   "id": "france",
-  "name": "France",
-  "description": "France métropolitaine et territoires d'outre-mer",
+  "name": {
+    "en": "France",
+    "fr": "France"
+  },
+  "description": {
+    "en": "Metropolitan France and overseas territories",
+    "fr": "France métropolitaine et territoires d'outre-mer"
+  },
+  "category": "country",
   "dataSources": {
     "territories": "france-territories-50m.json",
     "metadata": "france-metadata-50m.json"
@@ -567,14 +574,20 @@
   "modes": [
     {
       "id": "metropole-only",
-      "label": "Métropole uniquement",
+      "label": {
+        "en": "Mainland only",
+        "fr": "Métropole uniquement"
+      },
       "territories": [
         "FR-MET"
       ]
     },
     {
       "id": "metropole-drom",
-      "label": "Métropole + DROM",
+      "label": {
+        "en": "Mainland + Overseas Departments",
+        "fr": "Métropole + DROM"
+      },
       "territories": [
         "FR-MET",
         "FR-GF",
@@ -586,7 +599,10 @@
     },
     {
       "id": "metropole-drom-com",
-      "label": "Métropole + DROM + COM",
+      "label": {
+        "en": "Mainland + Overseas Departments + Collectivities",
+        "fr": "Métropole + DROM + COM"
+      },
       "territories": [
         "FR-MET",
         "FR-GF",
@@ -602,7 +618,10 @@
     },
     {
       "id": "all-territories",
-      "label": "Tous les territoires",
+      "label": {
+        "en": "All territories",
+        "fr": "Tous les territoires"
+      },
       "territories": [
         "FR-MET",
         "FR-GF",
@@ -623,14 +642,20 @@
   "groups": [
     {
       "id": "mainland",
-      "label": "France Métropolitaine",
+      "label": {
+        "en": "Metropolitan France",
+        "fr": "France Métropolitaine"
+      },
       "territories": [
         "FR-MET"
       ]
     },
     {
       "id": "caribbean",
-      "label": "Caraïbes",
+      "label": {
+        "en": "Caribbean",
+        "fr": "Caraïbes"
+      },
       "territories": [
         "FR-GP",
         "FR-MQ",
@@ -640,7 +665,10 @@
     },
     {
       "id": "indian-ocean",
-      "label": "Océan Indien",
+      "label": {
+        "en": "Indian Ocean",
+        "fr": "Océan Indien"
+      },
       "territories": [
         "FR-RE",
         "FR-YT",
@@ -649,7 +677,10 @@
     },
     {
       "id": "pacific",
-      "label": "Océan Pacifique",
+      "label": {
+        "en": "Pacific Ocean",
+        "fr": "Océan Pacifique"
+      },
       "territories": [
         "FR-NC",
         "FR-PF",
@@ -659,7 +690,10 @@
     },
     {
       "id": "north-atlantic",
-      "label": "Atlantique Nord",
+      "label": {
+        "en": "North Atlantic",
+        "fr": "Atlantique Nord"
+      },
       "territories": [
         "FR-PM"
       ]

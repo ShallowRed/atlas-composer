@@ -135,14 +135,6 @@ export const useConfigStore = defineStore('config', () => {
 
   // Compute effective projection params (custom overrides or atlas defaults)
   const effectiveProjectionParams = computed(() => {
-    console.log('[ConfigStore] effectiveProjectionParams recomputing. Custom values:', {
-      rotateLon: customRotateLongitude.value,
-      rotateLat: customRotateLatitude.value,
-      centerLon: customCenterLongitude.value,
-      centerLat: customCenterLatitude.value,
-      parallel1: customParallel1.value,
-      parallel2: customParallel2.value,
-    })
     const atlasParams = atlasService.value?.getProjectionParams()
 
     // Provide sensible defaults if atlas params are not available

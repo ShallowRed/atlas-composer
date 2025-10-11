@@ -4,18 +4,22 @@
  * Handles importing composite projection configurations from JSON format.
  * Provides functionality to:
  * - Parse and validate imported JSON files
+ * - Migrate configurations to current version
  * - Convert exported configs back to application format
  * - Apply imported configurations to stores
  */
 
-import type { ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
+import type { AnyVersionConfig, ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
 import { CompositeExportService } from './composite-export-service'
+import { ConfigMigrator } from './config-migrator'
 
 export interface ImportResult {
   success: boolean
   config?: ExportedCompositeConfig
   errors: string[]
   warnings: string[]
+  migrated?: boolean
+  fromVersion?: string
 }
 
 /**
@@ -24,6 +28,7 @@ export interface ImportResult {
 export class CompositeImportService {
   /**
    * Parse and validate a JSON string as ExportedCompositeConfig
+   * Automatically migrates old versions to current version
    *
    * @param jsonString - JSON string to parse
    * @returns Import result with parsed config and validation messages
@@ -31,11 +36,13 @@ export class CompositeImportService {
   static importFromJSON(jsonString: string): ImportResult {
     const errors: string[] = []
     const warnings: string[] = []
+    let migrated = false
+    let fromVersion: string | undefined
 
     // Try to parse JSON
-    let config: ExportedCompositeConfig
+    let parsedConfig: AnyVersionConfig
     try {
-      config = JSON.parse(jsonString)
+      parsedConfig = JSON.parse(jsonString)
     }
     catch (error) {
       return {
@@ -45,7 +52,47 @@ export class CompositeImportService {
       }
     }
 
-    // Validate the parsed configuration
+    // Check if migration is needed
+    let config: ExportedCompositeConfig
+    if (ConfigMigrator.needsMigration(parsedConfig)) {
+      fromVersion = parsedConfig.version
+
+      // Check if migration is possible
+      if (!ConfigMigrator.canMigrate(parsedConfig)) {
+        return {
+          success: false,
+          errors: [`Cannot migrate configuration from version ${parsedConfig.version}`],
+          warnings: [],
+          fromVersion,
+        }
+      }
+
+      // Perform migration
+      const migrationResult = ConfigMigrator.migrateToCurrentVersion(parsedConfig)
+
+      if (!migrationResult.success) {
+        return {
+          success: false,
+          errors: migrationResult.errors,
+          warnings: migrationResult.warnings,
+          fromVersion,
+        }
+      }
+
+      config = migrationResult.config!
+      migrated = true
+      warnings.push(...migrationResult.warnings)
+
+      // Add info message about migration
+      if (migrationResult.messages.length > 0) {
+        warnings.push(`Configuration migrated from v${fromVersion} to v${config.version}`)
+      }
+    }
+    else {
+      config = parsedConfig as ExportedCompositeConfig
+    }
+
+    // Validate the configuration (after migration if needed)
     const validation = CompositeExportService.validateExportedConfig(config)
 
     errors.push(...validation.errors)
@@ -59,6 +106,8 @@ export class CompositeImportService {
       config: success ? config : undefined,
       errors,
       warnings,
+      migrated,
+      fromVersion,
     }
   }
 
@@ -136,34 +185,34 @@ export class CompositeImportService {
    */
   static applyToStores(
     config: ExportedCompositeConfig,
-    configStore: any, // Using any to avoid circular dependency
-    territoryStore: any,
-    compositeProjection: any,
+    configStore: ReturnType<typeof import('@/stores/config').useConfigStore>,
+    territoryStore: ReturnType<typeof import('@/stores/territory').useTerritoryStore>,
+    compositeProjection: import('@/services/projection/composite-projection').CompositeProjection,
   ): void {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
 
     // Apply each territory configuration
     config.territories.forEach((territory) => {
-      // Set projection for territory
-      compositeProjection.setTerritoryProjection(territory.code, territory.projectionId)
+      // 1. Set projection for territory
+      territoryStore.setTerritoryProjection(territory.code, territory.projectionId)
 
-      // Apply projection parameters
-      territoryStore.updateTerritory(territory.code, {
-        projectionType: territory.projectionId,
-        center: territory.parameters.center,
-        rotate: territory.parameters.rotate,
-        parallels: territory.parameters.parallels,
-        scale: territory.parameters.scale,
-        baseScale: territory.parameters.baseScale,
-        scaleMultiplier: territory.parameters.scaleMultiplier,
-        translateOffset: territory.layout.translateOffset,
-        clipExtent: territory.layout.clipExtent,
-        bounds: territory.bounds,
-      })
+      // 2. Apply scale multiplier
+      // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
+      territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
+
+      // 3. Apply translation offsets
+      territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
+      territoryStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
+
+      // 4. Update the composite projection with new settings
+      // This will trigger recalculation of projection parameters
+      if (compositeProjection.updateTerritoryProjection) {
+        compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+      }
     })
 
-    // Switch to custom composite view mode
+    // Switch to custom composite view mode to show the imported configuration
     configStore.viewMode = 'composite-custom'
   }
 }

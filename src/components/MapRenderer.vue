@@ -17,9 +17,10 @@ interface Props {
   isMainland?: boolean
   preserveScale?: boolean
   width?: number
+  hLevel?: number
   height?: number
   projection?: string // Optional projection override for individual mode
-
+  fullHeight?: boolean
   // For composite maps
   mode?: 'simple' | 'composite'
 }
@@ -30,7 +31,9 @@ const props = withDefaults(defineProps<Props>(), {
   preserveScale: false,
   width: 200,
   height: 160,
+  hLevel: 3,
   mode: 'simple',
+  fullHeight: true,
 })
 
 const configStore = useConfigStore()
@@ -243,20 +246,18 @@ watch(() => {
 </script>
 
 <template>
-  <div class="map-renderer">
-    <h4
-      v-if="title"
-      class="font-medium mb-2 text-sm text-gray-600"
-    >
-      {{ title }}
-      <span v-if="area">({{ area.toLocaleString() }} km²)</span>
-    </h4>
-
+  <div
+    class="map-renderer"
+    :class="{
+      'h-full': props.fullHeight,
+      'h-fit': !props.fullHeight,
+    }"
+  >
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"
-      class="map-plot bg-base-200 w-fit rounded-sm border border-base-300"
-      :style="{ display: isLoading || error ? 'none' : 'block' }"
+      class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
+      :style="{ display: isLoading || error ? 'none' : 'flex' }"
     />
   </div>
 </template>

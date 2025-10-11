@@ -1,20 +1,60 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import FormControl from '@/components/ui/FormControl.vue'
-import ThemeSelector from '@/components/ui/ThemeSelector.vue'
-import { getAvailableAtlases } from '@/core/atlases/registry'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
+import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
+import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
+import { getAtlasFlag } from '@/utils/atlas-icons'
+import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 interface Props {
   allowThemeSelection?: boolean
-  compositeProjectionOptions: Array<{ value: string, label: string }>
   viewModeOptions: Array<{ value: string, label: string }>
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   allowThemeSelection: false,
 })
 const { t } = useI18n()
 const configStore = useConfigStore()
+
+// Get territory mode options with reactive translation
+const { options: territoryModeOptions } = useTerritoryModeOptions()
+
+// Get grouped atlases with translated category labels and flags
+const atlasGroupsWithIcons = computed(() => {
+  return getAvailableAtlasesGrouped().map(group => ({
+    label: t(`atlas.categories.${group.category}`),
+    options: group.options.map(atlas => ({
+      ...atlas,
+      icon: getAtlasFlag(atlas.value),
+    })),
+  }))
+})
+
+// Add icons to view mode options
+const viewModeOptionsWithIcons = computed(() => {
+  return props.viewModeOptions.map(mode => ({
+    ...mode,
+    icon: getViewModeIcon(mode.value as any),
+  }))
+})
+
+// Determine if territory selector should be disabled
+const isTerritorySelectDisabled = computed(() => {
+  // Disable if atlas doesn't have territory selector capability
+  if (!configStore.currentAtlasConfig?.hasTerritorySelector) {
+    return true
+  }
+  // Disable for composite-existing mode (built-in projections don't support selective territories)
+  return !configStore.showTerritorySelector
+})
+
+// Determine if projection mode toggle should be disabled
+const isProjectionModeDisabled = computed(() => {
+  return !configStore.showProjectionModeToggle
+})
 </script>
 
 <template>
@@ -23,53 +63,40 @@ const configStore = useConfigStore()
     <ThemeSelector v-if="allowThemeSelection" />
 
     <!-- Region Selector -->
-    <FormControl
+    <DropdownControl
       v-model="configStore.selectedAtlas"
       :label="t('settings.region')"
       icon="ri-map-2-line"
-      type="select"
-      :options="getAvailableAtlases()"
+      :option-groups="atlasGroupsWithIcons"
     />
 
     <!-- Territory Selection (for composite modes) -->
-    <FormControl
-      v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
+    <DropdownControl
+      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
-      type="select"
-      :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
+      :disabled="isTerritorySelectDisabled"
+      :options="territoryModeOptions"
     />
     <!-- Main View Mode Selector -->
-    <FormControl
+    <DropdownControl
       v-model="configStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
-      type="select"
       :disabled="configStore.isViewModeLocked"
-      :options="viewModeOptions"
-    />
-
-    <!-- Composite Projection Selector (for composite-existing mode) -->
-    <FormControl
-      v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
-      v-model="configStore.compositeProjection"
-      :label="t('projection.composite')"
-      icon="ri-global-line"
-      type="select"
-      :options="compositeProjectionOptions"
+      :options="viewModeOptionsWithIcons"
     />
 
     <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-    <FormControl
-      v-show="configStore.showProjectionModeToggle"
+    <DropdownControl
       v-model="configStore.projectionMode"
       :label="t('projection.mode')"
       icon="ri-global-line"
-      type="select"
+      :disabled="isProjectionModeDisabled"
       :options="[
-        { value: 'uniform', label: t('projection.uniform') },
-        { value: 'individual', label: t('projection.individual') },
+        { value: 'uniform', label: t('projection.uniform'), translated: true, icon: 'ri-equal-line' },
+        { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },
       ]"
     />
   </div>

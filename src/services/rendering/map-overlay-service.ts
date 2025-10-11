@@ -70,33 +70,25 @@ export class MapOverlayService {
   }
 
   /**
-   * Compute bounding box of all rendered paths in SVG
-   * Uses D3 selection for querying and native SVG getBBox for accurate bounds
+   * Compute bounding box based on SVG viewport and insets
+   * Observable Plot applies insets to the rendering, so we account for those
    */
-  static computeSceneBBox(svg: SVGSVGElement): Rect | null {
-    const paths = select(svg).selectAll<SVGPathElement, unknown>('path').nodes()
-
-    if (paths.length === 0) {
-      return null
+  static computeSceneBBox(width: number, height: number, inset: number = 20): Rect | null {
+    // Use the provided dimensions with inset
+    // This matches how Observable Plot renders content within the SVG viewport
+    const bounds = {
+      x: inset,
+      y: inset,
+      width: width - 2 * inset,
+      height: height - 2 * inset,
     }
 
-    let bounds: Rect | null = null
-
-    for (const path of paths) {
-      const bbox = path.getBBox()
-      if (!Number.isFinite(bbox.width) || !Number.isFinite(bbox.height) || bbox.width === 0 || bbox.height === 0) {
-        continue
-      }
-
-      bounds = this.unionRect(bounds, {
-        x: bbox.x,
-        y: bbox.y,
-        width: bbox.width,
-        height: bbox.height,
-      })
+    // Validate bounds
+    if (bounds.width > 0 && bounds.height > 0) {
+      return bounds
     }
 
-    return bounds
+    return null
   }
 
   /**
@@ -230,7 +222,9 @@ export class MapOverlayService {
       .attr('class', 'map-overlays')
       .attr('pointer-events', 'none')
 
-    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(svg) : null
+    // Determine inset based on view mode (composite maps use 20px inset, simple maps vary)
+    const inset = config.viewMode === 'individual' ? 0 : 20
+    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(config.width, config.height, inset) : null
     let mapBounds: Rect | null = null
 
     // Render composition borders

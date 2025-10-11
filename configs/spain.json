@@ -1,0 +1,178 @@
+{
+  "$schema": "./schema.json",
+  "id": "spain",
+  "name": "Spain",
+  "description": "Spain with Balearic Islands and Canary Islands",
+  "category": "country",
+  "dataSources": {
+    "territories": "spain-territories-50m.json",
+    "metadata": "spain-metadata-50m.json"
+  },
+  "compositeProjections": [
+    "conic-conformal-spain"
+  ],
+  "projectionPreferences": {
+    "recommended": [
+      "conic-conformal-spain",
+      "conic-conformal",
+      "albers",
+      "conic-equal-area"
+    ],
+    "default": {
+      "mainland": "conic-conformal",
+      "overseas": "mercator"
+    },
+    "prohibited": [
+      "gnomonic",
+      "orthographic",
+      "conic-conformal-france",
+      "conic-conformal-portugal",
+      "conic-conformal-europe"
+    ]
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      724
+    ],
+    "iso3": "ESP",
+    "region": "Europe"
+  },
+  "projection": {
+    "center": {
+      "longitude": -3,
+      "latitude": 40
+    },
+    "rotate": {
+      "mainland": [
+        3,
+        0
+      ],
+      "azimuthal": [
+        3,
+        -40
+      ]
+    },
+    "parallels": {
+      "conic": [
+        38,
+        42
+      ]
+    }
+  },
+  "territories": [
+    {
+      "id": "724",
+      "code": "ES-CONT",
+      "name": "Spain Continental",
+      "role": "primary",
+      "iso": "ESP",
+      "bounds": [
+        [
+          -9.24,
+          36.03
+        ],
+        [
+          3.31,
+          43.77
+        ]
+      ],
+      "center": [
+        -3,
+        40
+      ],
+      "extraction": {
+        "mainlandPolygon": 4
+      },
+      "rendering": {
+        "offset": [
+          0,
+          0
+        ],
+        "projectionType": "conic-conformal"
+      }
+    },
+    {
+      "id": "724-IB",
+      "code": "ES-IB",
+      "name": "Balearic Islands",
+      "shortName": "Balearics",
+      "role": "secondary",
+      "iso": "ESP",
+      "region": "Mediterranean",
+      "bounds": [
+        [
+          1.22,
+          38.66
+        ],
+        [
+          4.32,
+          40.07
+        ]
+      ],
+      "center": [
+        2.9,
+        39.5
+      ],
+      "extraction": {
+        "extractFrom": "724",
+        "polygonIndices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "rendering": {
+        "offset": [
+          150,
+          -50
+        ],
+        "baseScaleMultiplier": 1.5,
+        "projectionType": "mercator"
+      }
+    },
+    {
+      "id": "724-CN",
+      "code": "ES-CN",
+      "name": "Canary Islands",
+      "shortName": "Canaries",
+      "role": "secondary",
+      "iso": "ESP",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -18.16,
+          27.65
+        ],
+        [
+          -13.42,
+          29.24
+        ]
+      ],
+      "center": [
+        -15.5,
+        28.3
+      ],
+      "extraction": {
+        "extractFrom": "724",
+        "polygonIndices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "rendering": {
+        "offset": [
+          -400,
+          250
+        ],
+        "baseScaleMultiplier": 2.0,
+        "projectionType": "mercator"
+      }
+    }
+  ]
+}

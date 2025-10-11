@@ -3,6 +3,7 @@
   "id": "world",
   "name": "World",
   "description": "World atlas with wildcard territory loading (work in progress)",
+  "category": "world",
   "dataSources": {
     "territories": "world-countries-110m.json",
     "metadata": "world-metadata-110m.json"
@@ -26,12 +27,18 @@
   "modes": [
     {
       "id": "all-countries",
-      "label": "All Countries",
+      "label": {
+        "en": "All Countries",
+        "fr": "Tous les pays"
+      },
       "territories": ["*"]
     },
     {
       "id": "without-antarctica",
-      "label": "Without Antarctica",
+      "label": {
+        "en": "Without Antarctica",
+        "fr": "Sans l'Antarctique"
+      },
       "territories": ["*"],
       "exclude": ["WD-010"]
     }

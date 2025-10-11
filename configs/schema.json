@@ -23,10 +23,11 @@
             "en": { "type": "string" },
             "fr": { "type": "string" }
           },
-          "required": ["en"]
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
         }
       ],
-      "description": "Human-readable name (string or i18n object)"
+      "description": "Human-readable name (string or i18n object with language codes as keys, e.g., {en: 'France', fr: 'France'}). String is used as fallback for all languages."
     },
     "description": {
       "oneOf": [
@@ -37,10 +38,16 @@
             "en": { "type": "string" },
             "fr": { "type": "string" }
           },
-          "required": ["en"]
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
         }
       ],
-      "description": "Brief description of the atlas (string or i18n object)"
+      "description": "Brief description of the atlas (string or i18n object with language codes as keys). String is used as fallback for all languages."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["country", "region", "world"],
+      "description": "Atlas category for UI grouping: 'country' for individual nation-states, 'region' for regional groups/unions, 'world' for global atlases. Defaults to 'country' if not specified."
     },
     "dataSources": {
       "type": "object",
@@ -249,8 +256,34 @@
                 "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
               },
               "name": {
-                "type": "string",
-                "description": "Territory name"
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Territory name (string or i18n object with language codes as keys)"
+              },
+              "shortName": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Short territory name (string or i18n object with language codes as keys)"
               },
               "role": {
                 "type": "string",
@@ -263,8 +296,19 @@
                 "description": "ISO 3166-1 alpha-3 code"
               },
               "region": {
-                "type": "string",
-                "description": "Geographic sub-region (e.g., 'Atlantic', 'Indian Ocean')"
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Geographic sub-region (string or i18n object with language codes as keys, e.g., 'Atlantic', 'Indian Ocean')"
               },
               "bounds": {
                 "type": "array",
@@ -371,8 +415,19 @@
             "pattern": "^[a-z][a-z0-9-]*$"
           },
           "label": {
-            "type": "string",
-            "description": "UI label"
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"],
+                "additionalProperties": { "type": "string" }
+              }
+            ],
+            "description": "UI label (string or i18n object with language codes as keys)"
           },
           "territories": {
             "type": "array",
@@ -404,10 +459,11 @@
                   "en": { "type": "string" },
                   "fr": { "type": "string" }
                 },
-                "required": ["en"]
+                "required": ["en"],
+                "additionalProperties": { "type": "string" }
               }
             ],
-            "description": "UI label (string or i18n object)"
+            "description": "UI label (string or i18n object with language codes as keys). String is used as fallback for all languages."
           },
           "territoryCodes": {
             "oneOf": [
@@ -454,8 +510,19 @@
             "pattern": "^[a-z][a-z0-9-]*$"
           },
           "label": {
-            "type": "string",
-            "description": "UI label"
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"],
+                "additionalProperties": { "type": "string" }
+              }
+            ],
+            "description": "UI label (string or i18n object with language codes as keys)"
           },
           "territories": {
             "type": "array",

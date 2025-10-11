@@ -1,8 +1,8 @@
-# Quick Guide: Adding a New Atlas to Atlas Composer
+# Quick Guide: Adding a New Atlas to Atlas composer
 
 ## Essential Instructions for LLMs
 
-When adding a new atlas to Atlas Composer, follow these steps in order:
+When adding a new atlas to Atlas composer, follow these steps in order:
 
 ### Step 1: Research Natural Earth Data
 

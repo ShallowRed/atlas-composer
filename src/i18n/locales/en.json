@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "Atlas Composer",
-    "subtitle": "Interactive Geographic Visualizations"
+    "title": "Atlas composer",
+    "subtitle": "Interactive cartographic visualizations for scattered territories"
   },
   "nav": {
     "map": "App",
@@ -9,11 +9,37 @@
   },
   "atlas": {
     "select": "Select Atlas",
+    "categories": {
+      "country": "Country",
+      "region": "Region & union",
+      "world": "World"
+    },
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
     "eu": "European Union",
-    "usa": "United States"
+    "usa": "United States",
+    "territories": {
+      "france": {
+        "mainland": "Metropolitan France",
+        "overseas": "Overseas territories"
+      },
+      "portugal": {
+        "mainland": "Continental Portugal",
+        "overseas": "Autonomous Regions"
+      },
+      "spain": {
+        "mainland": "Peninsular Spain",
+        "overseas": "Overseas territories"
+      },
+      "eu": {
+        "territories": "Member States"
+      },
+      "usa": {
+        "mainland": "Continental United States",
+        "overseas": "Territories"
+      }
+    }
   },
   "projection": {
     "select": "Select projection",
@@ -25,23 +51,11 @@
     "mercator": "Mercator",
     "naturalEarth": "Natural Earth",
     "equalEarth": "Equal Earth",
-    "composite": "Composite (conic conformal)",
+    "composite": "Composite projection",
     "compositeCustom": "Custom composite projection",
     "compositeExisting": "Existing composite projection",
     "unified": "Unified projection",
-    "custom": "Custom",
-    "useRecommended": "Use {projection}",
-    "validation": {
-      "prohibited": "{projection} is not recommended: {reason}",
-      "poorChoice": "{projection} may not be ideal for this atlas",
-      "betterOptionsAvailable": "Better projection options are available",
-      "notSuitable": "Not suitable for this atlas",
-      "alternatives": "Consider using: {projections}",
-      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?",
-      "warningTitle": "Projection Warning",
-      "suggestedAlternatives": "Suggested alternatives:",
-      "useAnyway": "Use Anyway"
-    }
+    "custom": "Custom"
   },
   "mode": {
     "select": "Territories to include",
@@ -65,6 +79,7 @@
     "resetButton": "Reset",
     "mainland": "Mainland",
     "overseas": "Overseas territories",
+    "territories": "Territories",
     "noOverseas": "No overseas territories to adjust. Select a mode that includes overseas territories in \"Territories to include\".",
     "noTerritories": "No territories available.",
     "checkData": "Check the data or change region.",
@@ -79,13 +94,13 @@
   },
   "settings": {
     "title": "Configuration",
-    "atlasConfigTitle": "Atlas Configuration",
-    "viewConfigTitle": "View Configuration",
-    "displayOptionsTitle": "Display Options",
-    "projectionConfigTitle": "Projection Configuration",
-    "projectionParamsTitle": "Projection Parameters",
-    "territoryConfigTitle": "Projection configuration per territory",
-    "projectionTitle": "Projection Selector",
+    "atlasConfigTitle": "Atlas configuration",
+    "viewConfigTitle": "View configuration",
+    "displayOptionsTitle": "Display options",
+    "projectionConfigTitle": "Projection configuration",
+    "projectionParamsTitle": "Projection parameters",
+    "territoryConfigTitle": "Projection configuration",
+    "projectionTitle": "Projection selector",
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
@@ -97,16 +112,20 @@
   },
   "common": {
     "close": "Close",
+    "cancel": "Cancel",
+    "search": "Search",
+    "showProjectionInformation": "Show projection information",
+    "projectionInformation": "Projection information",
     "searchProjections": "Search projections..."
   },
   "projectionParams": {
     "title": "Projection Parameters",
-    "rotateLongitude": "Rotate Longitude",
-    "rotateLatitude": "Rotate Latitude",
-    "centerLongitude": "Center Longitude",
-    "centerLatitude": "Center Latitude",
-    "parallel1": "Standard Parallel 1",
-    "parallel2": "Standard Parallel 2",
+    "rotateLongitude": "Rotate longitude",
+    "rotateLatitude": "Rotate latitude",
+    "centerLongitude": "Center longitude",
+    "centerLatitude": "Center latitude",
+    "parallel1": "Standard parallel 1",
+    "parallel2": "Standard parallel 2",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."
@@ -128,55 +147,64 @@
     "clear": "Clear",
     "noProjectionsFound": "No projections found matching your search",
     "showProjectionInformation": "Show projection information",
-    "projectionInformation": "Projection Information"
+    "projectionInformation": "Projection information"
   },
   "export": {
-    "title": "Export Composite Projection",
-    "formatLabel": "Export Format",
-    "formatJson": "JSON Configuration",
+    "title": "Export composite projection",
+    "formatLabel": "Export format",
+    "formatJson": "JSON configuration",
     "formatCode": "JavaScript/TypeScript Code",
-    "targetLibrary": "Target Library",
+    "options": "Options",
+    "targetLibrary": "Target library",
     "language": "Language",
     "javascript": "JavaScript",
     "typescript": "TypeScript",
     "includeComments": "Include comments",
     "includeExamples": "Include usage examples",
     "preview": "Preview",
-    "copyToClipboard": "Copy to Clipboard",
+    "copyToClipboard": "Copy to clipboard",
     "downloadFile": "Download File",
     "copiedSuccess": "Copied to clipboard!",
-    "copyFailed": "Failed to copy to clipboard"
+    "copyFailed": "Failed to copy to clipboard",
+    "copySuccess": "Configuration copied to clipboard successfully!",
+    "copyError": "Failed to copy to clipboard. Please try again.",
+    "downloadSuccess": "File downloaded successfully!",
+    "downloadError": "Failed to download file. Please try again."
   },
   "about": {
-    "title": "About",
+    "title": "About Atlas composer",
     "pageTitle": "About",
-    "intro": "Atlas composer is an interactive tool for visualizing countries with geographically-scattered territories using composite projections.",
+    "intro": "An interactive tool for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.",
     "why": {
       "title": "Why this tool?",
       "description": "Displaying a country and its distant territories on the same map is a cartographic challenge. How do you show regions separated by thousands of kilometers while maintaining visual coherence? This tool explores different solutions using composite projections, similar to how the Albers USA projection displays Alaska and Hawaii alongside the continental United States."
     },
     "features": {
-      "title": "Features",
-      "compositeExisting": "Apply pre-configured composite projections from d3-composite-projections",
-      "compositeCustom": "Build custom layouts by positioning each territory individually",
-      "split": "View each territory with its own projection",
-      "unified": "Display all territories in a single global projection"
+      "title": "Key Features",
+      "compositeExisting": "Apply pre-configured composite projections",
+      "compositeCustom": "Build custom layouts by positioning territories interactively",
+      "split": "View territories separately with optimized projections",
+      "unified": "Display all territories in a single global projection",
+      "export": "Export configurations as JSON or ready-to-use code"
     },
     "atlases": {
-      "title": "Available atlases",
-      "france": "France (mainland + overseas territories)",
-      "portugal": "Portugal (continental + Azores, Madeira)",
-      "eu": "European Union (27 member states)"
+      "title": "Available atlases (for now)",
+      "france": "France",
+      "portugal": "Portugal",
+      "spain": "Spain",
+      "eu": "European Union",
+      "usa": "United States"
     },
     "technologies": {
-      "title": "Built with",
-      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
+      "title": "Built With",
+      "description": "Vue 3, TypeScript, D3.js, Observable Plot, Pinia, Tailwind CSS, and daisyUI. Powered by Natural Earth geodata."
     },
     "cta": "Start exploring",
     "footer": {
-      "title": "Atlas Composer",
-      "built": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
-      "license": "License MIT",
+      "title": "Atlas composer",
+      "description": "Interactive cartographic visualizations for scattered territories",
+      "builtWith": "Built with Vue 3, D3.js, Observable Plot, and daisyUI",
+      "license": "Open source under",
       "madeWith": "Made with",
       "by": "by"
     }
@@ -198,6 +226,10 @@
     "conicConformalPortugal": {
       "name": "Conic Conformal Portugal (Composite)",
       "description": "Optimized composite projection for Portugal, including mainland and Atlantic archipelagos (Azores, Madeira)"
+    },
+    "conicConformalSpain": {
+      "name": "Conic Conformal Spain (Composite)",
+      "description": "Optimized composite projection for Spain, including mainland, Balearic Islands, and Canary Islands"
     },
     "conicConformalEurope": {
       "name": "Conic Conformal Europe (Composite)",

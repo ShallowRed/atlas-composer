@@ -5,6 +5,13 @@ import { ref } from 'vue'
  * UI Store - Manages user interface state and preferences
  * Separated from domain logic (config store) for better organization
  */
+export interface ToastMessage {
+  id: string
+  message: string
+  type: 'error' | 'success' | 'warning' | 'info'
+  duration?: number
+}
+
 export const useUIStore = defineStore('ui', () => {
   // Theme
   const theme = ref('light')
@@ -14,6 +21,10 @@ export const useUIStore = defineStore('ui', () => {
   const showSphere = ref(false)
   const showCompositionBorders = ref(false)
   const showMapLimits = ref(false)
+
+  // Toast notifications
+  const toasts = ref<ToastMessage[]>([])
+  let toastIdCounter = 0
 
   // Actions
   function initializeTheme() {
@@ -64,6 +75,36 @@ export const useUIStore = defineStore('ui', () => {
     showMapLimits.value = defaults.showMapLimits ?? false
   }
 
+  function showToast(
+    message: string,
+    type: ToastMessage['type'] = 'info',
+    duration = 3000,
+  ) {
+    const id = `toast-${toastIdCounter++}`
+    const toast: ToastMessage = { id, message, type, duration }
+    toasts.value.push(toast)
+
+    // Auto-dismiss after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        dismissToast(id)
+      }, duration)
+    }
+
+    return id
+  }
+
+  function dismissToast(id: string) {
+    const index = toasts.value.findIndex(t => t.id === id)
+    if (index > -1) {
+      toasts.value.splice(index, 1)
+    }
+  }
+
+  function clearAllToasts() {
+    toasts.value = []
+  }
+
   return {
     // State
     theme,
@@ -71,10 +112,14 @@ export const useUIStore = defineStore('ui', () => {
     showSphere,
     showCompositionBorders,
     showMapLimits,
+    toasts,
 
     // Actions
     initializeTheme,
     setTheme,
     initializeDisplayOptions,
+    showToast,
+    dismissToast,
+    clearAllToasts,
   }
 })

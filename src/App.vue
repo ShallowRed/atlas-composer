@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import AppFooter from '@/components/ui/AppFooter.vue'
-import AppHeader from '@/components/ui/AppHeader.vue'
-import ToastNotification from '@/components/ui/ToastNotification.vue'
+import ToastNotification from '@/components/ui/export/ToastNotification.vue'
+import AppFooter from '@/components/ui/layout/AppFooter.vue'
+import AppHeader from '@/components/ui/layout/AppHeader.vue'
 import { useGeoDataStore } from '@/stores/geoData'
 
 const geoDataStore = useGeoDataStore()
@@ -10,7 +10,7 @@ const geoDataStore = useGeoDataStore()
 
 <template>
   <div class="bg-base-200">
-    <AppHeader class="h-[4rem]" />
+    <AppHeader class="h-[4.5rem]" />
     <main class="min-h-[calc(100vh-4rem)] container mx-auto py-8 flex flex-col">
       <RouterView class="flex-1" />
     </main>
