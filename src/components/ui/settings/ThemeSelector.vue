@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SelectControl from '@/components/ui/forms/SelectControl.vue'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useUIStore } from '@/stores/ui'
 
 const uiStore = useUIStore()
@@ -63,7 +63,7 @@ const themes: Array<{
 </script>
 
 <template>
-  <SelectControl
+  <DropdownControl
     v-model="uiStore.theme"
     label="Thème"
     icon="ri-palette-line"

@@ -9,7 +9,7 @@
     "#scripts/*": "./scripts/*.ts"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite &",
     "build": "pnpm build:loader && tsc && vite build",
     "build:analyze": "ANALYZE=true pnpm build",
     "build:loader": "pnpm --filter @atlas-composer/projection-loader build",

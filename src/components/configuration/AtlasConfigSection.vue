@@ -1,20 +1,39 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import SelectControl from '@/components/ui/forms/SelectControl.vue'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
+import { getAtlasFlag } from '@/utils/atlas-icons'
+import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 interface Props {
   allowThemeSelection?: boolean
   compositeProjectionOptions: Array<{ value: string, label: string }>
   viewModeOptions: Array<{ value: string, label: string }>
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   allowThemeSelection: false,
 })
 const { t } = useI18n()
 const configStore = useConfigStore()
+
+// Add flags to atlas options
+const atlasOptionsWithIcons = computed(() => {
+  return getAvailableAtlases().map(atlas => ({
+    ...atlas,
+    icon: getAtlasFlag(atlas.value),
+  }))
+})
+
+// Add icons to view mode options
+const viewModeOptionsWithIcons = computed(() => {
+  return props.viewModeOptions.map(mode => ({
+    ...mode,
+    icon: getViewModeIcon(mode.value as any),
+  }))
+})
 </script>
 
 <template>
@@ -23,15 +42,15 @@ const configStore = useConfigStore()
     <ThemeSelector v-if="allowThemeSelection" />
 
     <!-- Region Selector -->
-    <SelectControl
+    <DropdownControl
       v-model="configStore.selectedAtlas"
       :label="t('settings.region')"
       icon="ri-map-2-line"
-      :options="getAvailableAtlases()"
+      :options="atlasOptionsWithIcons"
     />
 
     <!-- Territory Selection (for composite modes) -->
-    <SelectControl
+    <DropdownControl
       v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
@@ -39,16 +58,16 @@ const configStore = useConfigStore()
       :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
     />
     <!-- Main View Mode Selector -->
-    <SelectControl
+    <DropdownControl
       v-model="configStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
       :disabled="configStore.isViewModeLocked"
-      :options="viewModeOptions"
+      :options="viewModeOptionsWithIcons"
     />
 
     <!-- Composite Projection Selector (for composite-existing mode) -->
-    <SelectControl
+    <DropdownControl
       v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
       v-model="configStore.compositeProjection"
       :label="t('projection.composite')"
@@ -57,7 +76,7 @@ const configStore = useConfigStore()
     />
 
     <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-    <SelectControl
+    <DropdownControl
       v-show="configStore.showProjectionModeToggle"
       v-model="configStore.projectionMode"
       :label="t('projection.mode')"

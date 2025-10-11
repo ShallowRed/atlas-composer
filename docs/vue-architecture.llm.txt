@@ -108,7 +108,10 @@ App.vue
 **Form Controls** (src/components/ui/forms/):
 - **CheckboxControl**: Checkboxes for boolean settings (42 lines)
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **SelectControl**: Dropdown selections with option groups support (126 lines)
+- **DropdownControl**: DaisyUI dropdown selections with icon/badge support (193 lines)
+  - Uses CSS focus method for dropdown behavior
+  - Supports icons and badges in options for visual indicators
+  - Supports option groups with category labels
 - **ToggleControl**: Toggle switches for boolean settings (42 lines)
 
 **Settings Components** (src/components/ui/settings/):
@@ -137,7 +140,9 @@ App.vue
 - ButtonGroup used in CompositeExportDialog (3 instances)
 - Modal used in CompositeExportDialog for standardized dialogs
 - Alert used in ProjectionParamsControls and TerritoryControls for status messages
-- SelectControl used in AtlasConfigSection (5 instances) and ThemeSelector (1 instance)
+- DropdownControl used in AtlasConfigSection (5 instances) and ThemeSelector (1 instance)
+  - Atlas options display flag emojis (🇫🇷, 🇵🇹, 🇪🇸, 🇪🇺, 🇺🇸, 🌍)
+  - View mode options display remix icons (ri-layout-grid-line, etc.)
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
 ## Composables (9 functions)
