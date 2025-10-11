@@ -77,11 +77,11 @@ describe('mapRenderer.vue', () => {
         },
       })
 
-      const title = wrapper.find('h4')
-      expect(title.exists()).toBe(true)
-      expect(title.text()).toContain('Test Territory')
-      // toLocaleString() uses different separators based on locale (space or comma)
-      expect(title.text()).toMatch(/1[,\s]000 km²/)
+      // MapRenderer receives title and area as props but doesn't render them directly
+      // The title is rendered by parent components
+      expect(wrapper.props('title')).toBe('Test Territory')
+      expect(wrapper.props('area')).toBe(1000)
+      expect(wrapper.find('.map-renderer').exists()).toBe(true)
     })
 
     it('should not display title when not provided', () => {

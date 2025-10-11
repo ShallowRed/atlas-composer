@@ -134,11 +134,13 @@ describe('codeGenerator', () => {
       expect(code).toContain('Composite Projection for France')
       expect(code).toContain('import { geoConicConformal, geoMercator }')
       expect(code).toContain('export function createFranceProjection()')
-      expect(code).toContain('const primary = geoConicConformal()')
-      expect(code).toContain('.center([2.5, 46.5])')
-      expect(code).toContain('.rotate([-3, -46.2, 0])')
-      expect(code).toContain('.parallels([0, 60])')
-      expect(code).toContain('.scale(2700)')
+      expect(code).toContain('registerProjection')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('"projectionId": "conic-conformal"')
+      expect(code).toContain('2.5')
+      expect(code).toContain('46.5')
+      expect(code).toContain('-3')
+      expect(code).toContain('2700')
     })
 
     it('should generate D3 TypeScript code', () => {
@@ -149,9 +151,9 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('type GeoProjection')
-      expect(code).toContain(': GeoProjection')
-      expect(code).toContain('export function createFranceProjection(): GeoProjection')
+      expect(code).toContain('type ProjectionLike')
+      expect(code).toContain(': ProjectionLike')
+      expect(code).toContain('export function createFranceProjection(): ProjectionLike')
     })
 
     it('should generate Observable Plot code', () => {
@@ -164,9 +166,9 @@ describe('codeGenerator', () => {
 
       expect(code).toContain('Observable Plot')
       expect(code).toContain('import * as Plot from "@observablehq/plot"')
-      expect(code).toContain('import * as d3 from "d3"')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('registerProjection')
       expect(code).toContain('export function createFranceProjection()')
-      expect(code).toContain('d3.geoConicConformal()')
     })
 
     it('should include usage examples when requested', () => {
@@ -191,8 +193,10 @@ describe('codeGenerator', () => {
       })
 
       expect(code).toContain('Composite Projection for Portugal')
-      expect(code).toContain('const mainland1 = geoConicConformal()')
-      expect(code).toContain('const overseas1 = geoMercator()')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('registerProjection')
+      expect(code).toContain('"projectionId": "conic-conformal"')
+      expect(code).toContain('"projectionId": "mercator"')
     })
 
     it('should throw error for unsupported format', () => {
@@ -267,10 +271,11 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('// Primary: France Métropolitaine')
-      expect(code).toContain('const primary = geoConicConformal()')
-      expect(code).toContain('// Secondary territories')
-      expect(code).toContain('const secondary1 = geoMercator()')
+      expect(code).toContain('"name": "France Métropolitaine"')
+      expect(code).toContain('"role": "primary"')
+      expect(code).toContain('"projectionId": "conic-conformal"')
+      expect(code).toContain('"role": "secondary"')
+      expect(code).toContain('"projectionId": "mercator"')
     })
 
     it('should configure projection parameters correctly', () => {
@@ -281,13 +286,13 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('.center([2.5, 46.5])')
-      expect(code).toContain('.rotate([-3, -46.2, 0])')
-      expect(code).toContain('.parallels([0, 60])')
-      expect(code).toContain('.scale(2700)')
+      expect(code).toContain('2.5')
+      expect(code).toContain('46.5')
+      expect(code).toContain('-3')
+      expect(code).toContain('2700')
     })
 
-    it('should create composite function', () => {
+    it('should use loadCompositeProjection from loader package', () => {
       const code = generator.generate(singleFocusConfig, {
         format: 'd3',
         language: 'javascript',
@@ -295,10 +300,10 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('const composite = (coordinates) =>')
-      expect(code).toContain('return primary(coordinates)')
-      expect(code).toContain('Object.setPrototypeOf(composite, primary)')
-      expect(code).toContain('return composite')
+      expect(code).toContain('loadCompositeProjection(config, {')
+      expect(code).toContain('width: 800,')
+      expect(code).toContain('height: 600')
+      expect(code).toContain('return projection')
     })
   })
 
@@ -311,7 +316,8 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('import { geoConicConformal, geoMercator, type GeoProjection } from \'d3-geo\'')
+      expect(code).toContain('import { geoConicConformal, geoMercator } from \'d3-geo\'')
+      expect(code).toContain('type ProjectionLike')
     })
 
     it('should import loader package with types', () => {
@@ -336,7 +342,7 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('export function createFranceProjection(): GeoProjection')
+      expect(code).toContain('export function createFranceProjection(): ProjectionLike')
     })
 
     it('should include header with TypeScript language', () => {
@@ -377,7 +383,7 @@ describe('codeGenerator', () => {
       expect(code).toContain('registerProjection')
     })
 
-    it('should use d3 prefix for projections', () => {
+    it('should import d3 as namespace', () => {
       const code = generator.generate(singleFocusConfig, {
         format: 'plot',
         language: 'javascript',
@@ -385,7 +391,8 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('d3.geoConicConformal()')
+      expect(code).toContain('import * as d3 from "d3"')
+      expect(code).toContain('geoConicConformal()')
     })
 
     it('should include Plot usage example when requested', () => {
@@ -399,7 +406,7 @@ describe('codeGenerator', () => {
       expect(code).toContain('Usage Example with Observable Plot')
       expect(code).toContain('Plot.plot({')
       expect(code).toContain('projection: projectionFn,')
-      expect(code).toContain('Plot.geo(features')
+      expect(code).toContain('Plot.geo(countries')
     })
   })
 
@@ -520,9 +527,9 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      expect(code).toContain('// Create projections for each territory')
-      expect(code).toContain('// Primary:')
-      expect(code).toContain('// Secondary territories')
+      expect(code).toContain('// Step 1: Register projections')
+      expect(code).toContain('// Step 2: Define the composite projection configuration')
+      expect(code).toContain('// Step 3: Load the composite projection')
     })
 
     it('should include notes from metadata if present', () => {

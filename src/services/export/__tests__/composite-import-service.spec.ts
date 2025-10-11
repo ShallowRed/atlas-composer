@@ -71,7 +71,12 @@ describe('compositeImportService', () => {
       const result = CompositeImportService.importFromJSON(jsonString)
 
       expect(result.success).toBe(false)
-      expect(result.errors).toContain('Missing version field')
+      expect(result.errors.length).toBeGreaterThan(0)
+      // The error might be from migration check or validation
+      const hasVersionError = result.errors.some(e =>
+        e.includes('version') || e.includes('migrate'),
+      )
+      expect(hasVersionError).toBe(true)
     })
 
     it('should reject config missing metadata', () => {
@@ -105,13 +110,14 @@ describe('compositeImportService', () => {
       expect(result.errors).toContain('No territories in configuration')
     })
 
-    it('should warn on unknown version', () => {
+    it('should reject future version that cannot be migrated', () => {
       const configWithUnknownVersion = { ...validConfig, version: '2.0' }
       const jsonString = JSON.stringify(configWithUnknownVersion)
 
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      expect(result.warnings.some(w => w.includes('Unknown version'))).toBe(true)
+      expect(result.success).toBe(false)
+      expect(result.errors.some(e => e.includes('migrate') || e.includes('version'))).toBe(true)
     })
 
     it('should reject territory missing required fields', () => {

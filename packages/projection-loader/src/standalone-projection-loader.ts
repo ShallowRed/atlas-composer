@@ -231,30 +231,42 @@ function createProjectionWrapper(
   let _scale = 150
   let _translate: [number, number] = [480, 250]
 
-  const projection = function (coordinates: [number, number]): [number, number] | null {
+  const projection: any = function (coordinates: [number, number]): [number, number] | null {
     const point = project(coordinates[0] * Math.PI / 180, coordinates[1] * Math.PI / 180)
     if (!point)
       return null
     return [point[0] * _scale + _translate[0], point[1] * _scale + _translate[1]]
-  } as ProjectionLike
+  }
 
   // D3-style getter/setter for scale
-  projection.scale = ((s?: number): any => {
-    if (arguments.length === 0)
+  Object.defineProperty(projection, 'scale', {
+    value(...args: any[]): any {
+      if (args.length > 0) {
+        _scale = args[0]
+        return projection
+      }
       return _scale
-    _scale = s!
-    return projection
-  }) as any
+    },
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  })
 
   // D3-style getter/setter for translate
-  projection.translate = ((t?: [number, number]): any => {
-    if (arguments.length === 0)
+  Object.defineProperty(projection, 'translate', {
+    value(...args: any[]): any {
+      if (args.length > 0) {
+        _translate = args[0]
+        return projection
+      }
       return _translate
-    _translate = t!
-    return projection
-  }) as any
+    },
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  })
 
-  return projection
+  return projection as ProjectionLike
 }
 
 /**
