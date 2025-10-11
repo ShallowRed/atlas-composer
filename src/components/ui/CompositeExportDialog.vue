@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ButtonGroup from '@/components/ui/ButtonGroup.vue'
+import LabelWithIcon from '@/components/ui/LabelWithIcon.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useConfigStore } from '@/stores/config'
@@ -127,9 +128,9 @@ async function copyToClipboard() {
   >
     <!-- Export Format Selection -->
     <div class="mb-4">
-      <label class="label">
-        <span class="label-text">{{ t('export.formatLabel') }}</span>
-      </label>
+      <LabelWithIcon size="sm">
+        {{ t('export.formatLabel') }}
+      </LabelWithIcon>
       <ButtonGroup
         v-model="exportFormat"
         :options="[
@@ -144,9 +145,9 @@ async function copyToClipboard() {
     <div v-if="exportFormat === 'code'" class="mb-4 space-y-4">
       <!-- Target Library -->
       <div>
-        <label class="label">
-          <span class="label-text">{{ t('export.targetLibrary') }}</span>
-        </label>
+        <LabelWithIcon size="sm">
+          {{ t('export.targetLibrary') }}
+        </LabelWithIcon>
         <ButtonGroup
           v-model="codeFormat"
           :options="[
@@ -159,9 +160,9 @@ async function copyToClipboard() {
 
       <!-- Language -->
       <div>
-        <label class="label">
-          <span class="label-text">{{ t('export.language') }}</span>
-        </label>
+        <LabelWithIcon size="sm">
+          {{ t('export.language') }}
+        </LabelWithIcon>
         <ButtonGroup
           v-model="codeLanguage"
           :options="[
@@ -187,10 +188,12 @@ async function copyToClipboard() {
 
     <!-- Preview -->
     <div class="mb-4">
-      <label class="label">
-        <span class="label-text">{{ t('export.preview') }}</span>
+      <div class="label">
+        <LabelWithIcon size="sm">
+          {{ t('export.preview') }}
+        </LabelWithIcon>
         <span class="label-text-alt">{{ fileName }}</span>
-      </label>
+      </div>
       <div class="mockup-code max-h-96 overflow-auto">
         <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
       </div>

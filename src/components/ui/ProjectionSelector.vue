@@ -276,7 +276,7 @@ function handleCancelProhibited() {
 
     <!-- Projection info modal -->
     <dialog :id="`projection-info-modal-${label}`" class="modal" :class="{ 'modal-open': showInfoModal }">
-      <div class="modal-box max-w-2xl">
+      <div class="modal-box max-w-4xl">
         <h3 class="font-bold text-lg mb-4">
           {{ t('common.projectionInformation') }}
         </h3>
