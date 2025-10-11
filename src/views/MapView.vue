@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
@@ -30,10 +30,17 @@ const { viewModeOptions } = useViewMode()
 const { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 const { hasTerritoriesForProjectionConfig } = useTerritoryConfig()
 
+// Track if this is the first load
+const hasLoadedOnce = ref(false)
+
+// Use instant transition only on first load, fade afterwards
+const skeletonTransition = computed(() => hasLoadedOnce.value ? 'fade' : 'fade-instant')
+
 // Lifecycle
 onMounted(async () => {
   await initialize()
   setupWatchers()
+  hasLoadedOnce.value = true
 })
 </script>
 
@@ -67,34 +74,45 @@ onMounted(async () => {
         class="min-h-0 flex-1"
       >
         <!-- Loading state for main content -->
-        <template v-if="showSkeleton || geoDataStore.isLoading">
-          <!-- Skeleton for main map area -->
-          <div class="h-full rounded-sm border border-base-300">
-            <div class="skeleton rounded-none h-full w-full opacity-50" />
-          </div>
-        </template>
+        <div class="relative h-full">
+          <Transition :name="skeletonTransition">
+            <div
+              v-if="showSkeleton || geoDataStore.isLoading"
+              key="skeleton"
+              class="absolute inset-0 rounded-sm border border-base-300"
+            >
+              <div class="skeleton rounded-none h-full w-full opacity-50" />
+            </div>
+          </Transition>
 
-        <!-- Content when loaded -->
-        <template v-else>
-          <!-- Split Territories Mode -->
-          <template
-            v-if="configStore.viewMode === 'split'"
-          >
-            <SplitView
-              :get-mainland-projection="getMainlandProjection"
-              :get-territory-projection="getTerritoryProjection"
-            />
-          </template>
+          <!-- Content when loaded -->
+          <Transition name="fade">
+            <div
+              v-if="!showSkeleton && !geoDataStore.isLoading"
+              key="content"
+              class="h-full"
+            >
+              <!-- Split Territories Mode -->
+              <template
+                v-if="configStore.viewMode === 'split'"
+              >
+                <SplitView
+                  :get-mainland-projection="getMainlandProjection"
+                  :get-territory-projection="getTerritoryProjection"
+                />
+              </template>
 
-          <!-- Composite Existing Mode -->
-          <CompositeExistingView v-if="configStore.viewMode === 'composite-existing'" />
+              <!-- Composite Existing Mode -->
+              <CompositeExistingView v-if="configStore.viewMode === 'composite-existing'" />
 
-          <!-- Composite Custom Mode -->
-          <CompositeCustomView v-if="configStore.viewMode === 'composite-custom'" />
+              <!-- Composite Custom Mode -->
+              <CompositeCustomView v-if="configStore.viewMode === 'composite-custom'" />
 
-          <!-- Unified Mode -->
-          <UnifiedView v-if="configStore.viewMode === 'unified'" />
-        </template>
+              <!-- Unified Mode -->
+              <UnifiedView v-if="configStore.viewMode === 'unified'" />
+            </div>
+          </Transition>
+        </div>
       </CardContainer>
       <!-- View Configuration -->
       <CardContainer
@@ -127,19 +145,30 @@ onMounted(async () => {
         class="h-full"
         has-overflow
       >
-        <!-- Loading state -->
-        <div
-          v-if="showSkeleton || geoDataStore.isLoading"
-          class="h-full rounded-sm border border-base-300"
-        >
-          <div class="skeleton rounded-none h-full w-full opacity-50" />
-        </div>
+        <!-- Loading state with transition -->
+        <div class="relative h-full">
+          <Transition :name="skeletonTransition">
+            <div
+              v-if="showSkeleton || geoDataStore.isLoading"
+              key="skeleton"
+              class="absolute inset-0 rounded-sm border border-base-300"
+            >
+              <div class="skeleton rounded-none h-full w-full opacity-50" />
+            </div>
+          </Transition>
 
-        <div v-else class="flex flex-col gap-4">
-          <!-- Territory controls -->
-          <TerritoryControls
-            :show-transform-controls="configStore.viewMode === 'composite-custom'"
-          />
+          <Transition name="fade">
+            <div
+              v-if="!showSkeleton && !geoDataStore.isLoading"
+              key="content"
+              class="flex flex-col gap-4"
+            >
+              <!-- Territory controls -->
+              <TerritoryControls
+                :show-transform-controls="configStore.viewMode === 'composite-custom'"
+              />
+            </div>
+          </Transition>
         </div>
       </CardContainer>
     </section>
