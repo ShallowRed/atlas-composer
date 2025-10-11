@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "Composeur d'Atlas",
-    "subtitle": "Visualisations géographiques interactives"
+    "title": "Atlas composer",
+    "subtitle": "Visualisations cartographiques interactives pour territoires dispersés"
   },
   "nav": {
     "map": "App",
@@ -172,35 +172,39 @@
     "downloadError": "Échec du téléchargement du fichier. Veuillez réessayer."
   },
   "about": {
-    "title": "À propos",
+    "title": "À propos d'Atlas composer",
     "pageTitle": "À propos",
-    "intro": "Le composeur d'atlas est un outil interactif pour visualiser des pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
+    "intro": "Un outil interactif pour créer des visualisations cartographiques personnalisées de pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
     "why": {
       "title": "Pourquoi cet outil ?",
       "description": "Afficher un pays et ses territoires distants sur une même carte est un défi cartographique. Comment représenter des régions séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ? Cet outil explore différentes solutions en utilisant des projections composites, à l'image de la projection Albers USA qui affiche l'Alaska et Hawaï aux côtés des États-Unis continentaux."
     },
     "features": {
-      "title": "Fonctionnalités",
-      "compositeExisting": "Appliquer des projections composites préconfigurées de d3-composite-projections",
-      "compositeCustom": "Créer des compositions personnalisées en positionnant chaque territoire individuellement",
-      "split": "Voir chaque territoire avec sa propre projection",
-      "unified": "Afficher tous les territoires dans une projection globale unique"
+      "title": "Fonctionnalités clés",
+      "compositeExisting": "Appliquer des projections composites préconfigurées",
+      "compositeCustom": "Créer des compositions personnalisées en positionnant les territoires de manière interactive",
+      "split": "Voir les territoires séparément avec des projections optimisées",
+      "unified": "Afficher tous les territoires dans une projection globale unique",
+      "export": "Exporter les configurations en JSON ou code prêt à l'emploi"
     },
     "atlases": {
-      "title": "Atlas disponibles",
-      "france": "France (métropole + territoires d'outre-mer)",
-      "portugal": "Portugal (continental + Açores, Madère)",
-      "eu": "Union Européenne (27 états membres)"
+      "title": "Atlas disponibles (pour l'instant)",
+      "france": "France",
+      "portugal": "Portugal",
+      "spain": "Espagne",
+      "eu": "Union Européenne",
+      "usa": "États-Unis"
     },
     "technologies": {
-      "title": "Construit avec",
-      "stack": "Vue 3, TypeScript, D3.js, Observable Plot, daisyUI"
+      "title": "Construit Avec",
+      "description": "Vue 3, TypeScript, D3.js, Observable Plot, Pinia, Tailwind CSS et daisyUI. Alimenté par les géodonnées Natural Earth."
     },
-    "cta": "Commencer l'exploration",
+    "cta": "Explorer",
     "footer": {
-      "title": "Composeur d'Atlas",
-      "built": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
-      "license": "Licence MIT",
+      "title": "Atlas composer",
+      "description": "Visualisations cartographiques interactives pour territoires dispersés",
+      "builtWith": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
+      "license": "Code source ouvert sous licence",
       "madeWith": "Réalisé avec",
       "by": "par"
     }

@@ -13,7 +13,7 @@ describe('compositeImportService', () => {
       atlasId: 'france',
       atlasName: 'France',
       exportDate: '2025-10-10T12:00:00.000Z',
-      createdWith: 'Atlas Composer v1.0',
+      createdWith: 'Atlas composer v1.0',
     },
     pattern: 'single-focus',
     referenceScale: 2700,

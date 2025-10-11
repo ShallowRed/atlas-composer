@@ -57,7 +57,7 @@ export const equalEarth: ProjectionFactory = () => d3Geo.geoEqualEarth()
 
 /**
  * Object containing all standard D3 projection factories
- * Keyed by the projection ID used in Atlas Composer configurations
+ * Keyed by the projection ID used in Atlas composer configurations
  */
 export const d3ProjectionFactories: Record<string, ProjectionFactory> = {
   // Azimuthal

@@ -14,21 +14,17 @@ const { t } = useI18n()
       <div class="container max-w-auto m-auto">
         <nav class="navbar">
           <div class="flex-1">
-            <RouterLink
-              v-if="route.path !== '/'"
-              to="/"
-              class="btn btn-ghost text-lg"
+            <div
+              class="flex flex-col items-start justify-center px-4 py-2 gap-0 h-12 box-content size-auto"
             >
-              <i class="ri-map-2-fill" />
-              {{ t('app.title') }}
-            </RouterLink>
-            <span
-              v-else
-              class="text-lg font-semibold flex items-center gap-2 px-4"
-            >
-              <i class="ri-map-2-fill" />
-              {{ t('app.title') }}
-            </span>
+              <span class="text-lg font-bold flex items-center gap-2">
+                <i class="ri-map-2-fill" />
+                {{ t('app.title') }}
+              </span>
+              <span class="text-xs opacity-70 font-normal">
+                {{ t('app.subtitle') }}
+              </span>
+            </div>
           </div>
           <div class="flex-none">
             <ul class="menu menu-horizontal px-1">

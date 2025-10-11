@@ -135,7 +135,7 @@ export interface BaseExportedConfig {
  * Complete serialization of a custom composite projection that can be:
  * - Saved as JSON file
  * - Shared with other users
- * - Imported back into Atlas Composer
+ * - Imported back into Atlas composer
  * - Used to generate D3/Plot code
  */
 export interface ExportedCompositeConfigV1 extends BaseExportedConfig {

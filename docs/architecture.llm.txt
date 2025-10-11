@@ -1,4 +1,4 @@
-# Atlas Composer - Architecture Overview
+# Atlas composer - Architecture Overview
 
 ## Purpose
 Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.

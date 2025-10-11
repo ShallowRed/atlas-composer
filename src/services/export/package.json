@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Zero-dependency composite projection loader for D3.js with plugin architecture",
-  "author": "Atlas Composer Contributors",
+  "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",
   "homepage": "https://github.com/ShallowRed/atlas-composer#readme",
   "repository": {

@@ -10,7 +10,7 @@ const router = createRouter({
       name: 'map',
       component: MapView,
       meta: {
-        title: 'Atlas Composer',
+        title: 'Atlas composer',
       },
     },
     {
@@ -18,7 +18,7 @@ const router = createRouter({
       name: 'about',
       component: AboutView,
       meta: {
-        title: 'À propos - Atlas Composer',
+        title: 'À propos - Atlas composer',
       },
     },
   ],
@@ -26,7 +26,7 @@ const router = createRouter({
 
 // Update page title on navigation
 router.beforeEach((to, _from, next) => {
-  document.title = (to.meta.title as string) || 'Atlas Composer'
+  document.title = (to.meta.title as string) || 'Atlas composer'
   next()
 })
 

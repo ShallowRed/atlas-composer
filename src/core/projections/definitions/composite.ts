@@ -3,7 +3,7 @@
  *
  * These are the main composite projections that combine multiple projections
  * to create optimal representations of countries with geographically-scattered territories.
- * This is the core feature of Atlas Composer.
+ * This is the core feature of Atlas composer.
  */
 
 import type { ProjectionDefinition } from '../types'

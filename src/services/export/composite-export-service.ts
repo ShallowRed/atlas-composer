@@ -27,7 +27,7 @@ import { CodeGenerator } from './code-generator'
  * Application version for metadata
  * TODO: Import from package.json
  */
-const APP_VERSION = 'Atlas Composer v1.0'
+const APP_VERSION = 'Atlas composer v1.0'
 
 /**
  * Round a number to specified decimal places, removing floating-point artifacts

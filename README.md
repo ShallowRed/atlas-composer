@@ -1,8 +1,8 @@
-# Atlas Composer
+# Atlas composer
 
 A web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections. Design and test different map projections interactively, par## 📐 Projection System
 
-Atlas Composer includes a comprehensive projection ## � Documentation
+Atlas composer includes a comprehensive projection ## � Documentation
 
 Complete guides and API references:
 
@@ -33,7 +33,7 @@ Each atlas is defined in a JSON file following this structure:m with intelligent
 
 ## 🎯 Purpose
 
-**Atlas Composer** helps you create accurate map visualizations that:
+**Atlas composer** helps you create accurate map visualizations that:
 - Display mainland and overseas territories side-by-side
 - Preserve true size relationships between territories
 - Use optimized geographic projections for each territory
@@ -41,7 +41,7 @@ Each atlas is defined in a JSON file following this structure:m with intelligent
 
 ## ✨ Features
 
-- 🗺️ **Interactive Atlas Composer** - Adjust territory positions and scales in real-time
+- 🗺️ **Interactive Atlas composer** - Adjust territory positions and scales in real-time
 - 📐 **Smart Projection System** - 20+ projections with intelligent recommendations
 - 🎯 **Context-Aware Selection** - Automatic filtering based on atlas and view mode
 - 🎨 **Visual Territory Controls** - Sliders for fine-tuning X/Y position and scale
@@ -101,7 +101,7 @@ pnpm geodata:analyze <id>      # Analyze country polygon structure
 
 ### Standalone Projection Loader Package
 
-Atlas Composer includes `@atlas-composer/projection-loader`, a zero-dependency NPM package for using your custom composite projections outside the application.
+Atlas composer includes `@atlas-composer/projection-loader`, a zero-dependency NPM package for using your custom composite projections outside the application.
 
 #### Features
 
@@ -121,7 +121,7 @@ pnpm add @atlas-composer/projection-loader d3-geo d3-geo-projection
 
 #### Usage
 
-The export dialog in Atlas Composer generates ready-to-use code:
+The export dialog in Atlas composer generates ready-to-use code:
 
 ```typescript
 import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
@@ -132,7 +132,7 @@ export function createFranceProjection() {
   registerProjection('conic-conformal', () => geoConicConformal())
   registerProjection('mercator', () => geoMercator())
 
-  // Configuration exported from Atlas Composer
+  // Configuration exported from Atlas composer
   const config = { /* ...exported JSON... */ }
 
   // Load the composite projection
@@ -193,7 +193,7 @@ See its [README](./packages/projection-loader/README.md) for complete documentat
 
 ## 📁 Project Architecture
 
-Atlas Composer follows a layered architecture with clear separation of concerns:
+Atlas composer follows a layered architecture with clear separation of concerns:
 
 ```
 atlas-composer/
@@ -343,7 +343,7 @@ For detailed information about the core domain systems:
 
 ## � Projection System
 
-Atlas Composer includes a comprehensive projection system with intelligent recommendations and context-aware filtering.
+Atlas composer includes a comprehensive projection system with intelligent recommendations and context-aware filtering.
 
 ### Features
 

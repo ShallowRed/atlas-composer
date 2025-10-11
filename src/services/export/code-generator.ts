@@ -253,7 +253,7 @@ export class CodeGenerator {
 
     if (options.includeComments) {
       lines.push('  // Step 2: Define the composite projection configuration')
-      lines.push('  // This configuration was exported from Atlas Composer')
+      lines.push('  // This configuration was exported from Atlas composer')
     }
     else {
       lines.push('  // Composite projection configuration')

@@ -1,5 +1,5 @@
 ## Project Overview
-- Project: Atlas Composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
+- Project: Atlas composer - Interactive web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.
 - Technologies: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI
 - Key Features: Multi-atlas support (France, Portugal, Spain, EU), Natural Earth integration,
 - composite projections, interactive territory positioning, JSON-driven configuration

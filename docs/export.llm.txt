@@ -1,7 +1,7 @@
 # Export System
 
 ## Overview
-The export system enables users to use their custom composite projections outside Atlas Composer:
+The export system enables users to use their custom composite projections outside Atlas composer:
 - **JSON Export** - Configuration data for import/backup/version control
 - **Code Export** - Ready-to-use code in D3.js (JS/TS) or Observable Plot
 - **NPM Package** - `@atlas-composer/projection-loader` for runtime loading
@@ -268,7 +268,7 @@ svg.selectAll("path")
 ## Import System
 
 ### CompositeImportService
-Re-imports exported JSON configurations back into Atlas Composer with full type safety.
+Re-imports exported JSON configurations back into Atlas composer with full type safety.
 
 **Features**:
 - ✅ Schema validation with detailed error messages
@@ -583,7 +583,7 @@ clearProjections()  // remove all
 ### Features
 - **Zero dependencies** - no d3-geo, no d3-geo-projection
 - Plugin architecture with runtime registration
-- No Atlas Composer dependencies
+- No Atlas composer dependencies
 - Works in browser, Node.js, Observable notebooks
 - D3 stream multiplexing for geometry routing
 - Geographic bounds-based territory selection
@@ -617,11 +617,11 @@ registerProjection('albers', albers)
 ```
 
 ### Use Cases
-- Embed Atlas Composer projections in custom D3 visualizations
+- Embed Atlas composer projections in custom D3 visualizations
 - Server-side rendering with Node.js
 - Observable notebooks and interactive documents
 - Static site generation
-- Sharing projections with users who don't have Atlas Composer
+- Sharing projections with users who don't have Atlas composer
 - Custom projection implementations for specialized use cases
 
 ### NPM Package Preparation (Ready for Publishing)

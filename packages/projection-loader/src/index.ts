@@ -4,7 +4,7 @@
  * Zero-dependency standalone loader for composite map projections.
  *
  * This package provides a plugin architecture for loading composite projections
- * exported from Atlas Composer. Users register only the projections they need,
+ * exported from Atlas composer. Users register only the projections they need,
  * resulting in optimal bundle sizes (94% smaller than including all D3 projections).
  *
  * @example

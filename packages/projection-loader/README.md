@@ -2,7 +2,7 @@
 
 > Zero-dependency standalone loader for composite map projections with plugin architecture
 
-A lightweight, framework-agnostic library for loading composite map projections exported from [Atlas Composer](https://github.com/ShallowRed/atlas-composer). Features a plugin architecture that lets you register only the projections you need, achieving **94% smaller bundle sizes** compared to including all D3 projections.
+A lightweight, framework-agnostic library for loading composite map projections exported from [Atlas composer](https://github.com/ShallowRed/atlas-composer). Features a plugin architecture that lets you register only the projections you need, achieving **94% smaller bundle sizes** compared to including all D3 projections.
 
 ## Features
 
@@ -187,7 +187,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <svg ref="svgRef" width="800" height="600" />
+  <svg
+    ref="svgRef"
+    width="800"
+    height="600"
+  />
 </template>
 ```
 
@@ -392,14 +396,14 @@ Works in all modern browsers that support ES2020+. For older browsers, transpile
 
 ## Contributing
 
-Contributions are welcome! This package is part of the [Atlas Composer](https://github.com/ShallowRed/atlas-composer) monorepo.
+Contributions are welcome! This package is part of the [Atlas composer](https://github.com/ShallowRed/atlas-composer) monorepo.
 
 ## License
 
-MIT © Atlas Composer Contributors
+MIT © 2025 Lucas Poulain
 
 ## Related
 
-- [Atlas Composer](https://github.com/ShallowRed/atlas-composer) - Create custom composite projections
+- [Atlas composer](https://github.com/ShallowRed/atlas-composer) - Create custom composite projections
 - [D3.js](https://d3js.org/) - Data visualization library
 - [Observable Plot](https://observablehq.com/plot/) - High-level plotting library

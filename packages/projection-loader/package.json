@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Zero-dependency standalone loader for composite map projections with plugin architecture",
-  "author": "Atlas Composer Contributors",
+  "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",
   "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/projection-loader#readme",
   "repository": {

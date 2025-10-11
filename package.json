@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "imports": {
     "#types": "./types/index.ts",
     "#types/*": "./types/*.ts",

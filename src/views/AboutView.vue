@@ -10,16 +10,6 @@ const { t } = useI18n()
 <template>
   <div class="flex flex-col gap-6">
     <!-- Introduction -->
-    <!-- <CardContainer
-      :title="t('about.pageTitle')"
-      icon="ri-map-2-line"
-    >
-      <div class="prose max-w-none">
-        <p class="text-xl">
-          {{ t('about.intro') }}
-        </p>
-      </div>
-    </CardContainer> -->
     <div class="hero">
       <div class="hero-content text-center">
         <div class="max-w-2xl">
@@ -32,13 +22,14 @@ const { t } = useI18n()
         </div>
       </div>
     </div>
-    <div class="grid gap-6 md:grid-cols-3">
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <!-- Why this tool -->
       <CardContainer
         :title="t('about.why.title')"
         icon="ri-lightbulb-line"
       >
-        <div class="prose max-w-none text-lg">
+        <div class="prose max-w-none text-base">
           <p>
             {{ t('about.why.description') }}
           </p>
@@ -51,11 +42,12 @@ const { t } = useI18n()
         icon="ri-list-check"
       >
         <div class="prose max-w-none">
-          <ul class="list-disc pl-6 space-y-2 text-lg">
+          <ul class="list-disc text-base pl-6 space-y-2">
             <li>{{ t('about.features.compositeExisting') }}</li>
             <li>{{ t('about.features.compositeCustom') }}</li>
             <li>{{ t('about.features.split') }}</li>
             <li>{{ t('about.features.unified') }}</li>
+            <li>{{ t('about.features.export') }}</li>
           </ul>
         </div>
       </CardContainer>
@@ -65,24 +57,35 @@ const { t } = useI18n()
         :title="t('about.atlases.title')"
         icon="ri-global-line"
       >
-        <div class="prose max-w-none text-lg">
-          <ul class="list-disc pl-6 space-y-2">
+        <div class="prose max-w-none">
+          <ul class="list-disc pl-6 space-y-2 text-base">
             <li>{{ t('about.atlases.france') }}</li>
             <li>{{ t('about.atlases.portugal') }}</li>
+            <li>{{ t('about.atlases.spain') }}</li>
             <li>{{ t('about.atlases.eu') }}</li>
+            <li>{{ t('about.atlases.usa') }}</li>
           </ul>
         </div>
       </CardContainer>
     </div>
 
     <!-- CTA -->
-    <div class="text-center py-6">
+    <div class="join py-6 mx-auto">
       <RouterLink
         to="/"
-        class="btn btn-primary btn-lg"
+        class="btn btn-primary btn-lg w-48 join-item"
       >
-        <i class="ri-flask-line" />
         {{ t('about.cta') }}
+        <i class="ri-flask-line" />
+      </RouterLink>
+      <RouterLink
+        to="https://github.com/shallowred/atlas-composer"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-primary btn-outline btn-lg w-48 join-item"
+      >
+        GitHub
+        <i class="ri-github-line" />
       </RouterLink>
     </div>
   </div>
