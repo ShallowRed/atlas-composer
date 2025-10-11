@@ -27,7 +27,8 @@ function changeLanguage(newLocale: string) {
     :model-value="locale"
     :options="languageOptions"
     icon="ri-translate-2"
-    label=""
+    label="Language"
+    inline
     @update:model-value="changeLanguage"
   />
 </template>

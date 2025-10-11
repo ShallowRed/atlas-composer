@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 // Export interfaces for use in other components
 export interface DropdownOption {
@@ -27,6 +27,7 @@ interface Props {
   disabled?: boolean
   options?: Option[]
   optionGroups?: OptionGroup[]
+  inline?: boolean // For inline use (e.g., in navbar) - removes fieldset wrapper
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   options: undefined,
   optionGroups: undefined,
+  inline: false,
 })
 
 const emit = defineEmits<{
@@ -46,6 +48,7 @@ const isOpen = ref(false)
 const buttonRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
+const isNavigating = ref(false) // Track if we're actively navigating with arrows
 
 const localValue = computed({
   get: () => props.modelValue,
@@ -53,11 +56,6 @@ const localValue = computed({
     if (value !== undefined) {
       emit('update:modelValue', value)
       emit('change', value)
-      isOpen.value = false
-      // Return focus to button after selection
-      nextTick(() => {
-        buttonRef.value?.focus()
-      })
     }
   },
 })
@@ -95,11 +93,19 @@ const allOptions = computed<Option[]>(() => {
   return []
 })
 
-function selectOption(value: string) {
+function selectOption(value: string, keepOpen = false) {
   localValue.value = value
+  if (!keepOpen) {
+    closeDropdown()
+  }
 }
 
 function handleBlur(event: FocusEvent) {
+  // Don't close if we're actively navigating with arrow keys
+  if (isNavigating.value) {
+    return
+  }
+
   // Check if the new focus target is within the dropdown
   const relatedTarget = event.relatedTarget as Node | null
   if (dropdownRef.value && relatedTarget && dropdownRef.value.contains(relatedTarget)) {
@@ -107,8 +113,10 @@ function handleBlur(event: FocusEvent) {
   }
 
   setTimeout(() => {
-    isOpen.value = false
-    focusedIndex.value = -1
+    if (!isNavigating.value) {
+      isOpen.value = false
+      focusedIndex.value = -1
+    }
   }, 150)
 }
 
@@ -139,21 +147,69 @@ function handleKeyDown(event: KeyboardEvent) {
       break
 
     case 'ArrowDown':
-    case 'ArrowRight': // Right arrow also moves to next option
+      event.preventDefault()
+      // Only navigate when dropdown is open
+      if (isOpen.value) {
+        // Navigate and immediately select the next option (keep dropdown open)
+        isNavigating.value = true
+        const nextIndex = Math.min(focusedIndex.value + 1, allOptions.value.length - 1)
+        focusedIndex.value = nextIndex
+        const nextOption = allOptions.value[nextIndex]
+        if (nextOption) {
+          selectOption(nextOption.value, true) // Keep dropdown open
+        }
+        setTimeout(() => {
+          isNavigating.value = false
+        }, 50)
+      }
+      break
+
+    case 'ArrowUp':
+      event.preventDefault()
+      // Only navigate when dropdown is open
+      if (isOpen.value) {
+        // Navigate and immediately select the previous option (keep dropdown open)
+        isNavigating.value = true
+        const prevIndex = Math.max(focusedIndex.value - 1, 0)
+        focusedIndex.value = prevIndex
+        const prevOption = allOptions.value[prevIndex]
+        if (prevOption) {
+          selectOption(prevOption.value, true) // Keep dropdown open
+        }
+        setTimeout(() => {
+          isNavigating.value = false
+        }, 50)
+      }
+      break
+
+    case 'ArrowRight':
+      // Right arrow changes selection without opening (with looping)
       event.preventDefault()
       if (!isOpen.value) {
-        openDropdown()
+        const currentIndex = allOptions.value.findIndex(opt => opt.value === localValue.value)
+        // Loop to start if at the end
+        const nextIndex = currentIndex >= allOptions.value.length - 1 ? 0 : currentIndex + 1
+        const nextOption = allOptions.value[nextIndex]
+        if (nextOption) {
+          selectOption(nextOption.value)
+        }
       }
       else {
         focusedIndex.value = Math.min(focusedIndex.value + 1, allOptions.value.length - 1)
       }
       break
 
-    case 'ArrowUp':
-    case 'ArrowLeft': // Left arrow also moves to previous option
+    case 'ArrowLeft':
+      // Left arrow changes selection without opening (with looping)
       event.preventDefault()
       if (!isOpen.value) {
-        openDropdown()
+        const currentIndex = allOptions.value.findIndex(opt => opt.value === localValue.value)
+        // Loop to end if at the start
+        const prevIndex = currentIndex <= 0 ? allOptions.value.length - 1 : currentIndex - 1
+        const prevOption = allOptions.value[prevIndex]
+        if (prevOption) {
+          selectOption(prevOption.value)
+        }
       }
       else {
         focusedIndex.value = Math.max(focusedIndex.value - 1, 0)
@@ -212,7 +268,87 @@ function getOptionId(index: number): string {
 </script>
 
 <template>
-  <fieldset class="fieldset form-control flex flex-col">
+  <!-- Inline version (for navbar, etc.) -->
+  <div
+    v-if="inline"
+    ref="dropdownRef"
+    class="dropdown dropdown-end"
+    :class="{ 'dropdown-open': isOpen }"
+  >
+    <button
+      ref="buttonRef"
+      type="button"
+      class="btn btn-ghost"
+      :class="{ 'btn-disabled': disabled }"
+      :disabled="disabled"
+      :aria-haspopup="true"
+      :aria-expanded="isOpen"
+      :aria-label="label || 'Select option'"
+      :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
+      @click="isOpen ? closeDropdown() : openDropdown()"
+      @keydown="handleKeyDown"
+      @blur="handleBlur"
+    >
+      <i
+        v-if="icon"
+        :class="icon"
+      />
+      <span
+        v-if="selectedOption && selectedOption.icon && !selectedOption.icon.startsWith('ri-')"
+      >
+        {{ selectedOption.icon }}
+      </span>
+    </button>
+
+    <!-- Dropdown content for inline version -->
+    <ul
+      v-if="options && isOpen"
+      role="listbox"
+      :aria-label="label || 'Options'"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 p-2 shadow-lg border border-base-300"
+    >
+      <li
+        v-for="(option, index) in options"
+        :key="option.value"
+        role="presentation"
+      >
+        <button
+          :id="getOptionId(index)"
+          type="button"
+          role="option"
+          :aria-selected="localValue === option.value"
+          :class="{
+            'bg-primary text-primary-content': localValue === option.value,
+            'bg-base-200': focusedIndex === index && localValue !== option.value,
+          }"
+          @click="selectOption(option.value)"
+          @keydown="handleOptionKeyDown($event, option.value)"
+        >
+          <span
+            v-if="option.icon && !option.icon.startsWith('ri-')"
+            class="text-base"
+          >
+            {{ option.icon }}
+          </span>
+          <i
+            v-else-if="option.icon"
+            :class="option.icon"
+          />
+          <span
+            v-if="option.badge"
+            class="badge badge-primary badge-sm"
+          >{{ option.badge }}</span>
+          {{ $t(option.label) }}
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Standard fieldset version -->
+  <fieldset
+    v-else
+    class="fieldset form-control flex flex-col"
+  >
     <legend
       id="dropdown-label"
       class="fieldset-legend text-xl"
@@ -260,7 +396,7 @@ function getOptionId(index: number): string {
             v-else-if="selectedOption.icon"
             :class="selectedOption.icon"
           />
-          
+
           <!-- Badge -->
           <span
             v-if="selectedOption.badge"
@@ -306,8 +442,8 @@ function getOptionId(index: number): string {
               role="option"
               :aria-selected="localValue === option.value"
               :class="{
-                'active': localValue === option.value,
-                'bg-base-200': focusedIndex === allOptions.findIndex(o => o.value === option.value),
+                'bg-primary text-primary-content': localValue === option.value,
+                'bg-base-200': focusedIndex === allOptions.findIndex(o => o.value === option.value) && localValue !== option.value,
               }"
               @click="selectOption(option.value)"
               @keydown="handleOptionKeyDown($event, option.value)"
@@ -323,7 +459,7 @@ function getOptionId(index: number): string {
                 v-else-if="option.icon"
                 :class="option.icon"
               />
-              
+
               <!-- Badge -->
               <span
                 v-if="option.badge"
@@ -353,8 +489,8 @@ function getOptionId(index: number): string {
             role="option"
             :aria-selected="localValue === option.value"
             :class="{
-              'active': localValue === option.value,
-              'bg-base-200': focusedIndex === index,
+              'bg-primary text-primary-content': localValue === option.value,
+              'bg-base-200': focusedIndex === index && localValue !== option.value,
             }"
             @click="selectOption(option.value)"
             @keydown="handleOptionKeyDown($event, option.value)"
@@ -370,7 +506,7 @@ function getOptionId(index: number): string {
               v-else-if="option.icon"
               :class="option.icon"
             />
-            
+
             <!-- Badge -->
             <span
               v-if="option.badge"
@@ -393,22 +529,26 @@ function getOptionId(index: number): string {
   transform: rotate(180deg);
 }
 
-/* Visible focus state for button - WCAG AA compliant */
+/* Override DaisyUI CSS focus behavior - we control open/close with JS */
+.dropdown:not(.dropdown-open) .dropdown-content {
+  display: none !important;
+}
+
+.dropdown.dropdown-open .dropdown-content {
+  display: block !important;
+}
+
+/* Visible focus state for button - Thick outline for visibility */
 .btn:focus-visible {
-  outline: 2px solid hsl(var(--p));
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px hsl(var(--p) / 0.2);
 }
 
-/* Smooth focus indicator for options */
-button[role="option"]:focus {
-  outline: 2px solid hsl(var(--p));
-  outline-offset: -2px;
-}
-
-/* Keyboard-focused option highlight */
+/* Keyboard-focused option highlight - more visible */
 button[role="option"].bg-base-200 {
   background-color: hsl(var(--b2));
+  outline: 2px solid hsl(var(--p));
+  outline-offset: -2px;
 }
 
 /* Ensure dropdown animations are smooth */

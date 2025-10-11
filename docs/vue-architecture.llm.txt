@@ -108,23 +108,35 @@ App.vue
 **Form Controls** (src/components/ui/forms/):
 - **CheckboxControl**: Checkboxes for boolean settings (42 lines)
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (425 lines)
-  - Uses CSS focus method for dropdown behavior (daisyUI method 3)
+- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (580 lines)
+  - Two modes: standard (fieldset wrapper) and inline (for navbar use)
+  - Manual JS-controlled dropdown (overrides DaisyUI CSS focus behavior)
   - Supports emoji/text icons and icon classes (detects 'ri-' prefix)
   - Supports badges for visual indicators (e.g., projection recommendations)
   - Supports option groups with category labels
-  - Full keyboard navigation (Arrow Up/Down/Left/Right, Enter, Space, Escape, Home, End, Tab)
+  - Full keyboard navigation:
+    - Up/Down arrows: when open only, immediately select previous/next option and stay open
+    - Left/Right arrows: when closed only, cycle through options with looping (first↔last)
+    - Enter/Space: select focused option and close dropdown (or open if closed)
+    - Escape: close dropdown
+    - Home/End: jump to first/last option (when open)
+    - Tab: close dropdown and move focus
+    - Click: select option and close dropdown
   - ARIA attributes for screen readers (role, aria-expanded, aria-selected, aria-activedescendant)
   - Focus management with proper return to button after selection
-  - Visible focus state with ring and outline (WCAG AA compliant)
+  - Thick visible focus state (4px outline) for accessibility
+  - Selected option highlighted with primary color when dropdown open
   - Translation support with Vue I18n ($t() integration)
+  - isNavigating flag prevents blur events during arrow navigation
   - Exports DropdownOption and DropdownOptionGroup interfaces
 - **ToggleControl**: Toggle switches for boolean settings (42 lines)
 
 **Settings Components** (src/components/ui/settings/):
-- **LanguageSelector**: Language selection dropdown using DropdownControl with translate icon
+- **LanguageSelector**: Language selection dropdown using DropdownControl in inline mode
+  - Uses inline prop for navbar integration (no fieldset wrapper)
   - Converts SUPPORTED_LOCALES to DropdownOption format
   - Uses setLocale() for language switching
+  - Ghost button style with translate icon
 - **ThemeSelector**: Theme selection interface using DropdownControl with option groups
   - Groups themes into light and dark categories
   - 35 theme options across 2 groups
