@@ -250,7 +250,10 @@ function openDropdown() {
 function closeDropdown() {
   isOpen.value = false
   focusedIndex.value = -1
-  buttonRef.value?.focus()
+  // Focus the button so we can immediately use arrow keys to navigate
+  nextTick(() => {
+    buttonRef.value?.focus()
+  })
 }
 
 function handleOptionKeyDown(event: KeyboardEvent, value: string) {

@@ -5,6 +5,7 @@ import { computed, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import Modal from '@/components/ui/primitives/Modal.vue'
 import ProjectionInfo from '@/components/ui/projections/ProjectionInfo.vue'
 import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -128,37 +129,27 @@ function handleUpdate(value: string) {
   </div>
 
   <!-- Projection info modal -->
-  <dialog
-    :id="`projection-info-modal-${label}`"
-    class="modal"
-    :class="{ 'modal-open': showInfoModal }"
+  <Modal
+    v-model="showInfoModal"
+    icon="ri-information-line"
+    :title="t('common.projectionInformation')"
+    max-width="4xl"
   >
-    <div class="modal-box max-w-4xl">
-      <h3 class="font-bold text-lg mb-4">
-        {{ t('common.projectionInformation') }}
-      </h3>
-      <ProjectionInfo
-        v-if="infoProjection"
-        :projection="infoProjection"
-        :show-metadata="true"
-      />
-      <div class="modal-action">
-        <button
-          class="btn"
-          @click="closeInfoModal"
-        >
-          {{ t('common.close') }}
-        </button>
-      </div>
-    </div>
-    <form
-      method="dialog"
-      class="modal-backdrop"
-      @click="closeInfoModal"
-    >
-      <button>close</button>
-    </form>
-  </dialog>
+    <ProjectionInfo
+      v-if="infoProjection"
+      :projection="infoProjection"
+      :show-metadata="true"
+    />
+
+    <template #actions>
+      <button
+        class="btn btn-soft btn-primary"
+        @click="closeInfoModal"
+      >
+        {{ t('common.close') }}
+      </button>
+    </template>
+  </Modal>
 </template>
 
 <style scoped>

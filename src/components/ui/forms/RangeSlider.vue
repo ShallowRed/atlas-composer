@@ -69,7 +69,7 @@ const labelSizeClass = computed(() => `text-${props.size}`)
   <div>
     <label class="label">
       <span
-        class="label-text"
+        class="label-text mb-1 flex items-center gap-2 font-medium"
         :class="labelSizeClass"
       >
         <i
