@@ -184,16 +184,78 @@ src/public/data/
 }
 ```
 
+## Internationalization (i18n)
+
+All user-facing text fields support both simple strings and i18n objects.
+
+### Resolution Strategy
+
+The loader (`src/core/atlases/loader.ts`) resolves i18n values during config loading:
+1. Gets current locale from localStorage or browser (via `getCurrentLocale()`)
+2. Resolves all i18n values to strings using `resolveI18nValue()`
+3. Creates runtime configs with resolved strings
+
+The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
+- `resolveI18nValue(value, locale)` - Non-composable for services/loaders
+- `useResolveI18nValue(value)` - Vue composable for components
+- `getCurrentLocale()` - Gets locale from localStorage/browser
+
+### Config Format
+
+**Simple String** (fallback for all languages):
+```json
+{
+  "name": "France",
+  "description": "France métropolitaine et territoires d'outre-mer"
+}
+```
+
+**i18n Object** (multi-language support):
+```json
+{
+  "name": {
+    "en": "France",
+    "fr": "France"
+  },
+  "description": {
+    "en": "Metropolitan France and overseas territories",
+    "fr": "France métropolitaine et territoires d'outre-mer"
+  }
+}
+```
+
+### Supported Fields
+
+- **Atlas level**: `name`, `description`
+- **Territory level**: `name`, `shortName`, `region`
+- **Modes** (legacy): `label`
+- **Territory Modes**: `name`
+- **Groups**: `label`
+
+### Resolution Rules
+
+1. If value is a string → return as-is (fallback for all locales)
+2. If value is an object → try current locale key
+3. If current locale missing → fallback to `en`
+4. If `en` missing → return first available value
+
+### Type System
+
+- `I18nValue` type: `string | Record<string, string>`
+- TypeScript types in `types/atlas-config.ts` support both formats
+- Loader transforms i18n values to resolved strings at load time
+- Runtime configs contain only resolved strings (no i18n objects)
+
 ## Key Fields Reference
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `$schema` | ✅ | Reference to schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
-| `name` | ✅ | Display name |
+| `name` | ✅ | Display name (string or i18n object) |
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
-| `description` | ⏩ | Brief description |
+| `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |

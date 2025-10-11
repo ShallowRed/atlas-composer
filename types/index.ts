@@ -10,6 +10,7 @@
 
 // JSON Configuration (raw data from configs/*.json)
 export type {
+  I18nValue,
   JSONAtlasConfig,
   JSONTerritoryConfig,
 } from './atlas-config.js'
