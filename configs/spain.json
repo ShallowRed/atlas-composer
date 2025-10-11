@@ -3,6 +3,7 @@
   "id": "spain",
   "name": "Spain",
   "description": "Spain with Balearic Islands and Canary Islands",
+  "category": "country",
   "dataSources": {
     "territories": "spain-territories-50m.json",
     "metadata": "spain-metadata-50m.json"

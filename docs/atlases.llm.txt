@@ -5,6 +5,20 @@
 **Registry Pattern**: Auto-discovers all configs from `configs/` folder
 **Adapter Pattern**: Transforms JSON → TypeScript configs
 **Zero Code Changes**: Add new atlas by creating JSON file only
+**Category Grouping**: Atlases are grouped by geographic scope in UI dropdowns
+
+## Atlas Categories
+
+Atlases are organized into three categories for UI grouping:
+
+| Category | Description | Examples |
+|----------|-------------|----------|
+| `country` | Individual nation-states | France, Portugal, Spain, USA |
+| `region` | Regional groups, unions, alliances | European Union |
+| `world` | Global/world atlases | World |
+
+Categories are optional in config - defaults to `country` if not specified.
+Groups display in order: Country → Region & Union → World.
 
 ## Directory Structure
 
@@ -102,6 +116,7 @@ src/public/data/
   "$schema": "./schema.json",
   "id": "atlas-id",
   "name": "Atlas Name",
+  "category": "country",
   "pattern": "single-focus",
   "territories": [
     {
@@ -125,6 +140,7 @@ src/public/data/
   "id": "atlas-id",
   "name": "Atlas Name",
   "description": "Brief description",
+  "category": "country",
   "pattern": "single-focus",
 
   "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
@@ -175,6 +191,7 @@ src/public/data/
 | `$schema` | ✅ | Reference to schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name |
+| `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description |
 | `viewModes` | ⏩ | Supported view modes (default: all) |

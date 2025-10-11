@@ -159,6 +159,57 @@ export function getAvailableAtlases() {
 }
 
 /**
+ * Atlas group for UI selector
+ */
+export interface AtlasGroup {
+  category: string
+  options: Array<{
+    value: string
+    label: string
+    icon?: string
+  }>
+}
+
+/**
+ * Get available atlases grouped by category for UI selector
+ * Groups atlases by their category field (country, region, world)
+ * Returns groups in order: country → region → world
+ */
+export function getAvailableAtlasesGrouped(): AtlasGroup[] {
+  const atlases = Object.values(REGISTRY).map(loaded => loaded.atlasConfig)
+
+  // Group by category (default to 'country' if not specified)
+  const groups: Record<string, typeof atlases> = {}
+
+  atlases.forEach((atlas) => {
+    const category = atlas.category || 'country'
+    if (!groups[category]) {
+      groups[category] = []
+    }
+    groups[category].push(atlas)
+  })
+
+  // Define category order: country → region → world
+  const categoryOrder: Array<'country' | 'region' | 'world'> = ['country', 'region', 'world']
+
+  // Build grouped result
+  return categoryOrder
+    .filter(cat => groups[cat] && groups[cat].length > 0)
+    .map((category) => {
+      const categoryAtlases = groups[category]!
+      return {
+        category,
+        options: categoryAtlases
+          .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically within each group
+          .map(atlas => ({
+            value: atlas.id,
+            label: atlas.name,
+          })),
+      }
+    })
+}
+
+/**
  * Check if an atlas exists in the registry
  */
 export function hasAtlas(atlasId: string): boolean {

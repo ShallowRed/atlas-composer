@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
-import { getAvailableAtlases } from '@/core/atlases/registry'
+import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
@@ -19,11 +19,14 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const configStore = useConfigStore()
 
-// Add flags to atlas options
-const atlasOptionsWithIcons = computed(() => {
-  return getAvailableAtlases().map(atlas => ({
-    ...atlas,
-    icon: getAtlasFlag(atlas.value),
+// Get grouped atlases with translated category labels and flags
+const atlasGroupsWithIcons = computed(() => {
+  return getAvailableAtlasesGrouped().map(group => ({
+    label: t(`atlas.categories.${group.category}`),
+    options: group.options.map(atlas => ({
+      ...atlas,
+      icon: getAtlasFlag(atlas.value),
+    })),
   }))
 })
 
@@ -46,7 +49,7 @@ const viewModeOptionsWithIcons = computed(() => {
       v-model="configStore.selectedAtlas"
       :label="t('settings.region')"
       icon="ri-map-2-line"
-      :options="atlasOptionsWithIcons"
+      :option-groups="atlasGroupsWithIcons"
     />
 
     <!-- Territory Selection (for composite modes) -->

@@ -3,6 +3,7 @@
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
+  "category": "country",
   "dataSources": {
     "territories": "portugal-territories-50m.json",
     "metadata": "portugal-metadata-50m.json"

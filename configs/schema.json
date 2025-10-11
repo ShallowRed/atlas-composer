@@ -42,6 +42,11 @@
       ],
       "description": "Brief description of the atlas (string or i18n object)"
     },
+    "category": {
+      "type": "string",
+      "enum": ["country", "region", "world"],
+      "description": "Atlas category for UI grouping: 'country' for individual nation-states, 'region' for regional groups/unions, 'world' for global atlases. Defaults to 'country' if not specified."
+    },
     "dataSources": {
       "type": "object",
       "description": "Data source files for territories and metadata",

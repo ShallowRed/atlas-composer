@@ -3,6 +3,7 @@
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, Hawaii, and territories",
+  "category": "country",
   "dataSources": {
     "territories": "usa-territories-50m.json",
     "metadata": "usa-metadata-50m.json"

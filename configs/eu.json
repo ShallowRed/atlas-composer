@@ -3,6 +3,7 @@
   "id": "eu",
   "name": "Europe",
   "description": "European countries including EU members (27), non-EU states, and overseas territories",
+  "category": "region",
   "dataSources": {
     "territories": "eu-territories-50m.json",
     "metadata": "eu-metadata-50m.json"

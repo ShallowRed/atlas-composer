@@ -306,6 +306,7 @@ function createAtlasConfig(
   return {
     id: config.id,
     name: typeof config.name === 'string' ? config.name : config.name.en,
+    category: config.category,
     pattern: territories.type,
     geoDataConfig,
     supportedViewModes,

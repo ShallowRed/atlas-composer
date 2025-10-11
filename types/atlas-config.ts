@@ -47,6 +47,7 @@ export interface JSONAtlasConfig {
   id: string
   name: string | { en: string, fr?: string }
   description: string | { en: string, fr?: string }
+  category?: 'country' | 'region' | 'world'
   pattern?: 'single-focus' | 'equal-members' | 'hierarchical'
   territories: '*' | JSONTerritoryConfig[]
   dataSources: {

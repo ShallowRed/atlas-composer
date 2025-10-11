@@ -9,6 +9,11 @@
   },
   "atlas": {
     "select": "Select Atlas",
+    "categories": {
+      "country": "Country",
+      "region": "Region & Union",
+      "world": "World"
+    },
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
