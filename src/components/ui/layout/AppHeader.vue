@@ -65,6 +65,16 @@ const { t } = useI18n()
                 </span>
               </li>
               <li>
+                <a
+                  href="https://github.com/shallowred/atlas-composer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="ri-github-line" />
+                  GitHub
+                </a>
+              </li>
+              <li>
                 <LanguageSelector />
               </li>
             </ul>
