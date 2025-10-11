@@ -161,6 +161,7 @@
     "formatLabel": "Export Format",
     "formatJson": "JSON Configuration",
     "formatCode": "JavaScript/TypeScript Code",
+    "options": "Options",
     "targetLibrary": "Target Library",
     "language": "Language",
     "javascript": "JavaScript",

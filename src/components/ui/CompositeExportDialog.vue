@@ -136,12 +136,16 @@ function downloadSuccess() {
   <Modal
     :model-value="modelValue"
     :title="t('export.title')"
+    icon="ri-file-download-line"
     max-width="4xl"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <!-- Export Format Selection -->
     <div class="mb-4">
-      <LabelWithIcon size="sm">
+      <LabelWithIcon
+        size="sm"
+        icon="ri-file-list-3-line"
+      >
         {{ t('export.formatLabel') }}
       </LabelWithIcon>
       <ButtonGroup
@@ -161,7 +165,10 @@ function downloadSuccess() {
     >
       <!-- Target Library -->
       <div>
-        <LabelWithIcon size="sm">
+        <LabelWithIcon
+          size="sm"
+          icon="ri-code-line"
+        >
           {{ t('export.targetLibrary') }}
         </LabelWithIcon>
         <ButtonGroup
@@ -176,7 +183,10 @@ function downloadSuccess() {
 
       <!-- Language -->
       <div>
-        <LabelWithIcon size="sm">
+        <LabelWithIcon
+          size="sm"
+          icon="ri-code-line"
+        >
           {{ t('export.language') }}
         </LabelWithIcon>
         <ButtonGroup
@@ -190,12 +200,18 @@ function downloadSuccess() {
       </div>
 
       <!-- Options -->
+      <LabelWithIcon
+        size="sm"
+        icon="ri-settings-3-line"
+      >
+        {{ t('export.options') }}
+      </LabelWithIcon>
       <div class="flex gap-4">
         <label class="label flex cursor-pointer items-center gap-2">
           <input
             v-model="includeComments"
             type="checkbox"
-            class="checkbox"
+            class="toggle"
           >
           <span class="label-text">{{ t('export.includeComments') }}</span>
         </label>
@@ -203,7 +219,7 @@ function downloadSuccess() {
           <input
             v-model="includeExamples"
             type="checkbox"
-            class="checkbox"
+            class="toggle"
           >
           <span class="label-text">{{ t('export.includeExamples') }}</span>
         </label>
@@ -211,13 +227,18 @@ function downloadSuccess() {
     </div>
 
     <!-- Preview -->
-    <div class="mb-4">
+    <div class="mb-4 flex flex-col">
       <div class="label">
-        <LabelWithIcon size="sm">
+        <LabelWithIcon
+          size="sm"
+          icon="ri-eye-line"
+        >
           {{ t('export.preview') }}
         </LabelWithIcon>
-        <span class="label-text-alt">{{ fileName }}</span>
       </div>
+      <p class="badge mb-2">
+        {{ fileName }}
+      </p>
       <div class="mockup-code max-h-96 overflow-auto">
         <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
       </div>
@@ -226,22 +247,25 @@ function downloadSuccess() {
     <!-- Actions -->
     <template #actions>
       <button
-        class="btn btn-ghost"
+        class="btn btn-ghost flex gap-2"
         @click="close"
       >
         {{ t('actions.cancel') }}
+        <i class="ri-close-line" />
       </button>
       <button
-        class="btn btn-outline"
+        class="btn btn-outline flex gap-2"
         @click="copyToClipboard"
       >
         {{ t('export.copyToClipboard') }}
+        <i class="ri-file-copy-line" />
       </button>
       <button
-        class="btn btn-primary"
+        class="btn btn-primary flex gap-2"
         @click="downloadFile"
       >
         {{ t('export.downloadFile') }}
+        <i class="ri-download-line" />
       </button>
     </template>
   </Modal>

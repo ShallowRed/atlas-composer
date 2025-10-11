@@ -163,6 +163,7 @@
     "formatCode": "Code JavaScript/TypeScript",
     "targetLibrary": "Bibliothèque Cible",
     "language": "Langage",
+    "options": "Options",
     "javascript": "JavaScript",
     "typescript": "TypeScript",
     "includeComments": "Inclure les commentaires",

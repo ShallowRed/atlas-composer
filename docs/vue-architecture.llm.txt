@@ -46,7 +46,6 @@ App.vue
 │           ├── ProjectionInfo
 │           ├── ProjectionParamsControls
 │           ├── ProjectionConfirmDialog
-│           ├── LoadingModal
 │           └── ToastNotification
 └── AppFooter.vue (credits, links)
 ```
@@ -103,7 +102,7 @@ App.vue
 
 **Reusable Components**:
 - ViewModeSection, ProjectionInfo, ProjectionParamsControls
-- ProjectionConfirmDialog, LoadingModal, ToastNotification
+- ProjectionConfirmDialog, ToastNotification
 - AppHeader, AppFooter, ThemeSelector, LanguageSelector
 - CardContainer, SectionHeader
 

@@ -13,12 +13,14 @@
 
 interface Props {
   modelValue: boolean
+  icon?: string
   title?: string
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl'
   showCloseButton?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
+  icon: undefined,
   title: undefined,
   maxWidth: '2xl',
   showCloseButton: true,
@@ -47,6 +49,10 @@ function close() {
       <div class="mb-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">
           <slot name="title">
+            <i
+              v-if="icon"
+              :class="`${icon} mr-1`"
+            />
             {{ title }}
           </slot>
         </h3>

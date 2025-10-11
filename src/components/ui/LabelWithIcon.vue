@@ -21,12 +21,19 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <label class="label">
-    <span :class="`label-text text-${size}`">
-      <i
-        v-if="icon"
-        :class="`${icon}`"
-      />
+  <label
+    class="fieldset-legend flex justify-start gap-1 mb-1"
+    :class="{
+      'text-xs': size === 'xs',
+      'text-sm': size === 'sm',
+      'text-md': size === 'md',
+    }"
+  >
+    <i
+      v-if="icon"
+      :class="`${icon}`"
+    />
+    <span>
       <slot />
     </span>
   </label>

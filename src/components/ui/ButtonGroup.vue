@@ -19,10 +19,12 @@ interface Props {
   modelValue: string
   options: Option[]
   fullWidth?: boolean
+  size?: 'xs' | 'sm' | 'md'
 }
 
 withDefaults(defineProps<Props>(), {
   fullWidth: false,
+  size: 'sm',
 })
 
 const emit = defineEmits<{
@@ -47,6 +49,9 @@ function selectOption(value: string) {
       :class="{
         'btn-active': modelValue === option.value,
         'flex-1': fullWidth,
+        'btn-xs': size === 'xs',
+        'btn-sm': size === 'sm',
+        'btn-md': size === 'md',
       }"
       @click="selectOption(option.value)"
     >
