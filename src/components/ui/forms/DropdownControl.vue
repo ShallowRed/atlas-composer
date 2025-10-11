@@ -47,10 +47,13 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
-const buttonRef = ref<HTMLElement | null>(null)
+const buttonComponentRef = ref<InstanceType<typeof DropdownButton> | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
 const isNavigating = ref(false) // Track if we're actively navigating with arrows
+
+// Computed to get the actual button element from the component ref
+const buttonRef = computed(() => buttonComponentRef.value?.buttonRef || null)
 
 const localValue = computed({
   get: () => props.modelValue,
@@ -252,7 +255,7 @@ function closeDropdown() {
   focusedIndex.value = -1
   // Focus the button so we can immediately use arrow keys to navigate
   nextTick(() => {
-    buttonRef.value?.focus()
+    buttonComponentRef.value?.buttonRef?.focus()
   })
 }
 
@@ -299,7 +302,7 @@ watch(focusedIndex, (newIndex) => {
     :class="{ 'dropdown-open': isOpen }"
   >
     <DropdownButton
-      ref="buttonRef"
+      ref="buttonComponentRef"
       :is-open="isOpen"
       :disabled="disabled"
       :selected-option="selectedOption ?? null"
@@ -349,7 +352,7 @@ watch(focusedIndex, (newIndex) => {
       :class="{ 'dropdown-open': isOpen }"
     >
       <DropdownButton
-        ref="buttonRef"
+        ref="buttonComponentRef"
         :is-open="isOpen"
         :disabled="disabled"
         :selected-option="selectedOption ?? null"
@@ -368,6 +371,7 @@ watch(focusedIndex, (newIndex) => {
         :local-value="localValue"
         aria-labelledby="dropdown-label"
         :focused-index="focusedIndex"
+        :button-ref="buttonRef"
         @select="selectOption"
         @keydown="handleOptionKeyDown"
       />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownOptionGroup } from './DropdownControl.vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import DropdownOptionItem from './DropdownOptionItem.vue'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   ariaLabel?: string
   inline?: boolean
   focusedIndex: number
+  buttonRef?: HTMLElement | null
 }
 
 const props = defineProps<Props>()
@@ -20,8 +22,59 @@ const emit = defineEmits<{
   keydown: [event: KeyboardEvent, value: string]
 }>()
 
+const menuPosition = ref({ top: 0, left: 0, width: 0 })
+
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
+}
+
+function updateMenuPosition() {
+  if (!props.buttonRef || !props.isOpen)
+    return
+
+  const buttonRect = props.buttonRef.getBoundingClientRect()
+  menuPosition.value = {
+    top: buttonRect.bottom + 8, // 8px gap (mt-2)
+    left: buttonRect.left,
+    width: buttonRect.width,
+  }
+}
+
+// Watch for open state changes to update position
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    updateMenuPosition()
+  }
+})
+
+// Update position on scroll or resize
+onMounted(() => {
+  if (!props.inline) {
+    window.addEventListener('scroll', updateMenuPosition, true)
+    window.addEventListener('resize', updateMenuPosition)
+  }
+})
+
+onUnmounted(() => {
+  if (!props.inline) {
+    window.removeEventListener('scroll', updateMenuPosition, true)
+    window.removeEventListener('resize', updateMenuPosition)
+  }
+})
+
+const menuStyle = computed(() => ({
+  top: `${menuPosition.value.top}px`,
+  left: `${menuPosition.value.left}px`,
+  minWidth: `${menuPosition.value.width}px`,
+  maxWidth: '400px', // Prevent menu from getting too wide
+  maxHeight: '24rem', // 96 * 0.25rem = 24rem (same as max-h-96)
+  overflowY: 'auto' as const,
+  overflowX: 'hidden' as const,
+}))
+
+// Prevent menu clicks from bubbling (so it doesn't trigger outside click handlers)
+function handleMenuClick(event: MouseEvent) {
+  event.stopPropagation()
 }
 
 function getOptionIndex(option: DropdownOption): number {
@@ -79,59 +132,88 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   </ul>
 
   <!-- Standard dropdown with option groups -->
-  <ul
-    v-else-if="!inline && optionGroups && isOpen"
-    role="listbox"
-    :aria-labelledby="ariaLabelledby"
-    class="dropdown-content menu bg-base-100 rounded-box z-[100] w-full max-h-96 overflow-y-auto p-2 shadow-lg border border-base-300 mt-2 gap-1"
+  <Teleport
+    v-if="!inline && optionGroups && isOpen"
+    to="body"
   >
-    <template
-      v-for="group in optionGroups"
-      :key="group.key || group.category"
+    <ul
+      role="listbox"
+      :aria-labelledby="ariaLabelledby"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] p-2 shadow-lg border border-base-300 gap-1"
+      style="position: fixed;"
+      :style="menuStyle"
+      @click="handleMenuClick"
+    >
+      <template
+        v-for="group in optionGroups"
+        :key="group.key || group.category"
+      >
+        <li
+          class="menu-title translate-y-2"
+          role="presentation"
+        >
+          {{ group.label || group.category }}
+        </li>
+        <li
+          v-for="option in group.options || []"
+          :key="option.value"
+          role="presentation"
+        >
+          <DropdownOptionItem
+            :option="option"
+            :option-id="getOptionId(getOptionIndex(option))"
+            :is-selected="localValue === option.value"
+            :show-badge-inline="true"
+            @select="handleSelect"
+            @keydown="handleKeydown"
+          />
+        </li>
+      </template>
+    </ul>
+  </Teleport>
+
+  <!-- Standard dropdown with simple options -->
+  <Teleport
+    v-if="!inline && options && isOpen"
+    to="body"
+  >
+    <ul
+      role="listbox"
+      :aria-labelledby="ariaLabelledby"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] px-2 pt-0 shadow-lg border border-base-300"
+      style="position: fixed;"
+      :style="menuStyle"
+      @click="handleMenuClick"
     >
       <li
-        class="menu-title translate-y-2"
-        role="presentation"
-      >
-        {{ group.label || group.category }}
-      </li>
-      <li
-        v-for="option in group.options || []"
+        v-for="(option, index) in options"
         :key="option.value"
         role="presentation"
       >
         <DropdownOptionItem
           :option="option"
-          :option-id="getOptionId(getOptionIndex(option))"
+          :option-id="getOptionId(index)"
           :is-selected="localValue === option.value"
-          :show-badge-inline="true"
+          :is-focused="isOptionFocused(option, index)"
           @select="handleSelect"
           @keydown="handleKeydown"
         />
       </li>
-    </template>
-  </ul>
-
-  <!-- Standard dropdown with simple options -->
-  <ul
-    v-else-if="!inline && options && isOpen"
-    role="listbox"
-    :aria-labelledby="ariaLabelledby"
-    class="dropdown-content menu bg-base-100 rounded-box z-[100] w-full max-h-96 overflow-y-auto px-2 pt-0 shadow-lg border border-base-300 mt-2"
-  >
-    <li
-      v-for="(option, index) in options"
-      :key="option.value"
-      role="presentation"
-    >
-      <DropdownOptionItem
-        :option="option"
-        :option-id="getOptionId(index)"
-        :is-selected="localValue === option.value"
-        :is-focused="isOptionFocused(option, index)"
-        @select="handleSelect"
-        @keydown="handleKeydown"
-      />
-    </li>
-  </ul>
+    </ul>
+  </Teleport>
 </template>
+
+<style scoped>
+/* Force single column layout and proper scrolling for teleported menus */
+.dropdown-content.menu {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap !important;
+}
+
+/* Ensure menu items don't wrap */
+.dropdown-content.menu li {
+  width: 100%;
+  flex-shrink: 0;
+}
+</style>
