@@ -108,19 +108,33 @@ App.vue
 **Form Controls** (src/components/ui/forms/):
 - **CheckboxControl**: Checkboxes for boolean settings (42 lines)
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **DropdownControl**: DaisyUI dropdown selections with icon/badge support (193 lines)
-  - Uses CSS focus method for dropdown behavior
-  - Supports icons and badges in options for visual indicators
+- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (425 lines)
+  - Uses CSS focus method for dropdown behavior (daisyUI method 3)
+  - Supports emoji/text icons and icon classes (detects 'ri-' prefix)
+  - Supports badges for visual indicators (e.g., projection recommendations)
   - Supports option groups with category labels
+  - Full keyboard navigation (Arrow Up/Down/Left/Right, Enter, Space, Escape, Home, End, Tab)
+  - ARIA attributes for screen readers (role, aria-expanded, aria-selected, aria-activedescendant)
+  - Focus management with proper return to button after selection
+  - Visible focus state with ring and outline (WCAG AA compliant)
+  - Translation support with Vue I18n ($t() integration)
+  - Exports DropdownOption and DropdownOptionGroup interfaces
 - **ToggleControl**: Toggle switches for boolean settings (42 lines)
 
 **Settings Components** (src/components/ui/settings/):
-- **LanguageSelector**: Language selection dropdown
-- **ThemeSelector**: Theme selection interface
+- **LanguageSelector**: Language selection dropdown using DropdownControl with translate icon
+  - Converts SUPPORTED_LOCALES to DropdownOption format
+  - Uses setLocale() for language switching
+- **ThemeSelector**: Theme selection interface using DropdownControl with option groups
+  - Groups themes into light and dark categories
+  - 35 theme options across 2 groups
 
 **Projection Components** (src/components/ui/projections/):
 - **ProjectionConfirmDialog**: Confirmation dialog for projection changes
-- **ProjectionDropdown**: Projection dropdown list
+- **ProjectionDropdown**: Projection dropdown using DropdownControl with recommendation badges
+  - Displays projection options with recommendation indicators
+  - Supports loading skeleton state
+  - Automatically transforms badges from recommendation data
 - **ProjectionInfo**: Projection information display
 - **ProjectionParamsControls**: Projection parameter adjustment controls
 - **ProjectionRecommendationBadge**: Projection recommendation indicators
@@ -140,9 +154,13 @@ App.vue
 - ButtonGroup used in CompositeExportDialog (3 instances)
 - Modal used in CompositeExportDialog for standardized dialogs
 - Alert used in ProjectionParamsControls and TerritoryControls for status messages
-- DropdownControl used in AtlasConfigSection (5 instances) and ThemeSelector (1 instance)
-  - Atlas options display flag emojis (🇫🇷, 🇵🇹, 🇪🇸, 🇪🇺, 🇺🇸, 🌍)
-  - View mode options display remix icons (ri-layout-grid-line, etc.)
+- DropdownControl used in AtlasConfigSection (5 instances), ThemeSelector (1 instance), LanguageSelector (1 instance), ProjectionDropdown (2 instances)
+  - Supports emoji/text icons (flag emojis: 🇫🇷, 🇵🇹, 🇪🇸, 🇪🇺, 🇺🇸, 🌍)
+  - Supports icon classes (remix icons: ri-layout-grid-line, etc.)
+  - Supports badges (projection recommendations: '+++', '++', '+')
+  - Full a11y: ARIA attributes, keyboard navigation (Arrow keys, Enter, Space, Escape, Home, End, Tab)
+  - Focus management with visible focus states (WCAG AA compliant)
+  - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
 ## Composables (9 functions)

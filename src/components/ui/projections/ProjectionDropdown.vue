@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ProjectionRecommendation } from '@/core/projections/types'
 
-import { toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed, toRef } from 'vue'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
 
 interface ProjectionOption {
@@ -23,6 +23,7 @@ interface Props {
   showRecommendations?: boolean
   disabled?: boolean
   loading?: boolean
+  label?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,18 +32,28 @@ const props = withDefaults(defineProps<Props>(), {
   showRecommendations: true,
   disabled: false,
   loading: false,
+  label: 'Projection',
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const { t } = useI18n()
-
 // Import recommendation helpers
-const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
+const { getBadge } = useProjectionRecommendations(
   toRef(props, 'recommendations'),
 )
+
+// Transform projection groups to include badges
+const projectionGroupsWithBadges = computed(() => {
+  return props.projectionGroups.map(group => ({
+    ...group,
+    options: group.options?.map(option => ({
+      ...option,
+      badge: props.showRecommendations ? getBadge(option.value) : undefined,
+    })),
+  }))
+})
 </script>
 
 <template>
@@ -53,45 +64,18 @@ const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
   />
 
   <!-- Dropdown -->
-  <select
+  <DropdownControl
     v-else
-    :value="modelValue"
-    class="select cursor-pointer border bg-base-200/30"
+    :model-value="modelValue"
+    :label="label"
+    icon="ri-global-line"
     :disabled="disabled"
-    @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
-  >
-    <optgroup
-      v-for="group in projectionGroups"
-      :key="group.category"
-      :label="group.category"
-    >
-      <option
-        v-for="option in group.options"
-        :key="option.value"
-        :value="option.value"
-        :class="getCssClass(option.value)"
-        :title="getTooltip(option.value)"
-      >
-        {{ t(option.label) }}{{ showRecommendations && getBadge(option.value) ? ` ${getBadge(option.value)}` : '' }}
-      </option>
-    </optgroup>
-  </select>
+    :option-groups="projectionGroupsWithBadges"
+    @update:model-value="emit('update:modelValue', $event)"
+  />
 </template>
 
 <style scoped>
-.select {
-  transition: all 0.2s ease;
-}
-
-.select:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.select:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
 /* Loading skeleton animation */
 .skeleton {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -104,18 +88,5 @@ const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
   50% {
     opacity: 0.5;
   }
-}
-
-/* Enhance recommendation badges visibility */
-.text-success {
-  font-weight: 600;
-}
-
-.text-info {
-  font-weight: 500;
-}
-
-.text-error {
-  font-style: italic;
 }
 </style>

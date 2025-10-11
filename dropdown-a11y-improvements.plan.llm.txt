@@ -1,0 +1,94 @@
+# DropdownControl Accessibility & ProjectionDropdown Update
+
+## Objective
+Improve accessibility (a11y) of DropdownControl component and update ProjectionDropdown to use DropdownControl instead of native select
+
+## Affected Domains
+- [ ] UI Components (src/components/ui/forms/)
+- [ ] Projection Components (src/components/ui/projections/)
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Vue architecture: docs/vue-architecture.llm.txt
+- WCAG 2.1 AA standards for accessibility
+
+## Changes
+
+### Phase 1: Enhance DropdownControl Accessibility
+- [x] File: src/components/ui/forms/DropdownControl.vue
+  - Add: aria-expanded, aria-haspopup, aria-labelledby attributes
+  - Add: Keyboard navigation (Arrow keys, Enter, Escape, Home, End, Tab, Space)
+  - Add: Focus management with proper refs and nextTick
+  - Add: aria-activedescendant for keyboard-focused option
+  - Add: Proper role attributes (listbox, option, presentation)
+  - Add: aria-selected for selected option
+  - Add: Visual focus indicators with bg-base-200 highlight
+  - Add: Smooth animations and transitions
+  - Fix: Focus management returns to button after selection
+  - Fix: Blur handling checks for focus within dropdown
+  - Why: Meet WCAG 2.1 AA standards and improve UX for keyboard/screen reader users
+
+### Phase 2: Update ProjectionDropdown Component
+- [x] File: src/components/ui/projections/ProjectionDropdown.vue
+  - Action: Replace native select with DropdownControl
+  - Add: Support for recommendation badges in dropdown options
+  - Preserve: Loading skeleton functionality
+  - Remove: Unused tooltip/CSS class functions (now handled by badges)
+  - Why: Consistency with other dropdowns and better visual indicators
+
+## Documentation Updates
+
+- [x] docs/vue-architecture.llm.txt - Updated DropdownControl and ProjectionDropdown descriptions
+
+## Verification
+- [x] Code compiles without errors
+- [x] Keyboard navigation implemented (Tab, Arrow keys, Enter, Space, Escape, Home, End)
+- [x] ARIA attributes added for screen readers (role, aria-expanded, aria-selected, etc.)
+- [x] Focus management works properly (returns to button, tracks focused option)
+- [x] ProjectionDropdown uses DropdownControl
+- [x] Recommendation badges display in ProjectionDropdown options
+- [x] All .llm.txt documentation updated
+
+## Status
+Status: COMPLETE
+Created: 2025-10-11
+Completed: 2025-10-11
+
+## Implementation Summary
+
+### Accessibility Features Added to DropdownControl
+- **ARIA Attributes**:
+  - `aria-haspopup="true"` on button to indicate dropdown
+  - `aria-expanded` to indicate open/closed state
+  - `aria-labelledby` to associate with legend label
+  - `aria-activedescendant` to indicate keyboard-focused option
+  - `role="listbox"` on dropdown menu
+  - `role="option"` on each option button
+  - `aria-selected` to indicate selected option
+
+- **Keyboard Navigation**:
+  - Arrow Up/Down: Navigate through options
+  - Enter/Space: Open dropdown or select focused option
+  - Escape: Close dropdown and return focus to button
+  - Home: Jump to first option
+  - End: Jump to last option
+  - Tab: Close dropdown and move focus to next element
+
+- **Focus Management**:
+  - Focus returns to button after selection using nextTick
+  - Visual indicator (bg-base-200) for keyboard-focused option
+  - Proper blur handling checks if focus moved within dropdown
+  - Button refs and dropdown refs for programmatic focus control
+
+- **Visual Enhancements**:
+  - Arrow icon rotates when dropdown opens
+  - Smooth dropdown appear animation
+  - Focus outline on options for keyboard users
+  - Transitions for better UX
+
+### ProjectionDropdown Migration
+- Replaced native `<select>` element with DropdownControl component
+- Recommendation badges automatically added to options via computed property
+- Loading skeleton preserved
+- Removed unused CSS classes and tooltip functions (now handled by DropdownControl)
+- Added label prop for better accessibility

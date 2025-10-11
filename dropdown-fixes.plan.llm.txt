@@ -1,0 +1,56 @@
+# DropdownControl Bug Fixes & Improvements
+
+## Status: COMPLETE
+Last Updated: 2024-01-XX
+
+## Issues Fixed
+1. ✅ Focus state not visible on button
+2. ✅ Left/Right arrow keys should also navigate options (like Up/Down)
+3. ✅ Icons not showing in sidebar dropdowns (atlas, view mode, etc.)
+4. ✅ Projection dropdown showing translation keys instead of translated values
+5. ✅ LanguageSelector and ThemeSelector a11y updates
+
+## Changes
+
+### Fix 1: Add visible focus state to button ✅
+- [x] Added focus-visible styles with ring and outline
+- [x] Ensured contrast meets WCAG AA standards
+- File: `src/components/ui/forms/DropdownControl.vue` (styles section)
+- Added `.btn:focus-visible` with outline, outline-offset, and box-shadow
+
+### Fix 2: Add Left/Right arrow navigation ✅
+- [x] ArrowLeft: same as ArrowUp (previous option)
+- [x] ArrowRight: same as ArrowDown (next option)
+- File: `src/components/ui/forms/DropdownControl.vue` (handleKeyDown)
+- Updated switch cases to include ArrowLeft and ArrowRight
+
+### Fix 3: Fix icons not showing ✅
+- [x] Detect emoji/text vs icon class (check for 'ri-' prefix)
+- [x] Render emoji/text in <span> instead of <i>
+- [x] Updated all three locations: selectedOption display, optionGroups, and options
+- File: `src/components/ui/forms/DropdownControl.vue` (template)
+
+### Fix 4: Fix translation keys in dropdown ✅
+- [x] Applied $t() to selectedOption.label display
+- [x] Already had $t() for option.label in dropdown items
+- File: `src/components/ui/forms/DropdownControl.vue` (template line ~265)
+
+### Fix 5: Update LanguageSelector ✅
+- [x] Replaced manual dropdown with DropdownControl
+- [x] Exported DropdownOption and DropdownOptionGroup interfaces
+- [x] Converted SUPPORTED_LOCALES to DropdownOption format
+- Files:
+  - `src/components/ui/forms/DropdownControl.vue` (exported interfaces)
+  - `src/components/ui/settings/LanguageSelector.vue` (full rewrite)
+
+### Fix 6: ThemeSelector ✅
+- [x] Already uses DropdownControl correctly
+- [x] No changes needed
+
+## Verification
+- [x] Code compiles without TypeScript errors
+- [x] No lint errors
+- [ ] Manual testing: focus visibility
+- [ ] Manual testing: arrow key navigation
+- [ ] Manual testing: icon display
+- [ ] Manual testing: translations

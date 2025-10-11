@@ -1,39 +1,33 @@
 <script setup lang="ts">
+import type { DropdownOption } from '@/components/ui/forms/DropdownControl.vue'
 import type { SupportedLocale } from '@/i18n'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { setLocale, SUPPORTED_LOCALES } from '@/i18n'
 
 const { locale } = useI18n()
 
-function changeLanguage(newLocale: SupportedLocale) {
-  setLocale(newLocale)
+// Convert SUPPORTED_LOCALES to DropdownOption format
+const languageOptions = computed<DropdownOption[]>(() => {
+  return Object.entries(SUPPORTED_LOCALES).map(([code, label]) => ({
+    value: code,
+    label, // Already translated labels
+  }))
+})
+
+function changeLanguage(newLocale: string) {
+  setLocale(newLocale as SupportedLocale)
 }
 </script>
 
 <template>
-  <div class="dropdown dropdown-end">
-    <div
-      tabindex="0"
-      role="button"
-      class="btn btn-ghost"
-    >
-      <i class="ri-translate-2" />
-    </div>
-    <ul
-      tabindex="0"
-      class="menu dropdown-content z-[1] mt-1 w-52 rounded-box bg-base-100 shadow border border-base-300"
-    >
-      <li
-        v-for="(label, code) in SUPPORTED_LOCALES"
-        :key="code"
-      >
-        <a
-          :class="{ active: locale === code }"
-          @click="changeLanguage(code as SupportedLocale)"
-        >
-          {{ label }}
-        </a>
-      </li>
-    </ul>
-  </div>
+  <DropdownControl
+    :model-value="locale"
+    :options="languageOptions"
+    icon="ri-translate-2"
+    label=""
+    @update:model-value="changeLanguage"
+  />
 </template>
