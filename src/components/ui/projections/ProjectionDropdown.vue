@@ -133,7 +133,7 @@ function handleUpdate(value: string) {
     v-model="showInfoModal"
     icon="ri-information-line"
     :title="t('common.projectionInformation')"
-    max-width="4xl"
+    max-width="2xl"
   >
     <ProjectionInfo
       v-if="infoProjection"

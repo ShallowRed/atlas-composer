@@ -2,8 +2,8 @@
 import type { ProjectionDefinition } from '@/core/projections/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-import { getCategoryIcon, getPropertyIcon } from '@/utils/projection-icons'
+import { getCategoryIcon } from '@/utils/projection-icons'
+import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 interface Props {
   projection: ProjectionDefinition
@@ -38,36 +38,36 @@ const categoryLabel = computed(() => {
   return t(`projections.categories.${props.projection.category}`)
 })
 
-// Get projection properties badges
-const propertyBadges = computed(() => {
-  const badges: Array<{ label: string, icon: string, class: string }> = []
+// // Get projection properties badges
+// const propertyBadges = computed(() => {
+//   const badges: Array<{ label: string, icon: string, class: string }> = []
 
-  if (props.projection.capabilities.preserves.includes('area')) {
-    badges.push({
-      label: t('projections.properties.area'),
-      icon: getPropertyIcon('area'),
-      class: 'badge-success',
-    })
-  }
+//   if (props.projection.capabilities.preserves.includes('area')) {
+//     badges.push({
+//       label: t('projections.properties.area'),
+//       icon: getPropertyIcon('area'),
+//       class: 'badge-success',
+//     })
+//   }
 
-  if (props.projection.capabilities.preserves.includes('angle')) {
-    badges.push({
-      label: t('projections.properties.angle'),
-      icon: getPropertyIcon('angle'),
-      class: 'badge-info',
-    })
-  }
+//   if (props.projection.capabilities.preserves.includes('angle')) {
+//     badges.push({
+//       label: t('projections.properties.angle'),
+//       icon: getPropertyIcon('angle'),
+//       class: 'badge-info',
+//     })
+//   }
 
-  if (props.projection.capabilities.isInterrupted) {
-    badges.push({
-      label: t('projections.properties.interrupted'),
-      icon: getPropertyIcon('interrupted'),
-      class: 'badge-warning',
-    })
-  }
+//   if (props.projection.capabilities.isInterrupted) {
+//     badges.push({
+//       label: t('projections.properties.interrupted'),
+//       icon: getPropertyIcon('interrupted'),
+//       class: 'badge-warning',
+//     })
+//   }
 
-  return badges
-})
+//   return badges
+// })
 
 // Get category icon
 const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
@@ -78,106 +78,131 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     class="projection-info"
     :class="{ compact }"
   >
-    <!-- Header -->
-    <div class="flex items-start justify-between gap-2 mb-2">
-      <div class="flex-1">
-        <h3 class="font-semibold text-base">
-          {{ $t(projection.name) }}
-        </h3>
-        <p class="text-xs opacity-70 flex items-center gap-1">
-          <i :class="categoryIcon" />
-          {{ categoryLabel }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Description -->
-    <p
-      v-if="projection.description && !compact"
-      class="text-sm opacity-80 mb-3"
-    >
-      {{ $t(projection.description) }}
-    </p>
-
-    <!-- Property Badges -->
     <div
-      v-if="propertyBadges.length > 0"
-      class="flex flex-wrap gap-1 mb-3"
-    >
-      <span
-        v-for="badge in propertyBadges"
-        :key="badge.label"
-        class="badge badge-sm gap-1"
-        :class="badge.class"
+      class="divider"
+    />
+    <div class="px-2">
+      <!-- Header Section -->
+      <div class="mb-4">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 flex flex-row items-center justify-between gap-3">
+            <h3 class="text-2xl font-medium">
+              {{ $t(projection.name) }}
+            </h3>
+            <div class="badge badge-outline gap-1.5">
+              <i :class="categoryIcon" />
+              {{ categoryLabel }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <p
+        v-if="projection.description && !compact"
+        class="text-lg leading-relaxed mb-4"
       >
-        <i :class="badge.icon" />
-        {{ badge.label }}
-      </span>
-    </div>
+        {{ $t(projection.description) }}
+      </p>
 
-    <!-- Capabilities -->
-    <div
-      v-if="!compact"
-      class="text-sm space-y-1"
-    >
-      <div class="flex items-start gap-2">
-        <i class="ri-check-line text-success mt-0.5" />
-        <span>
-          <strong>{{ t('projections.info.preserves') }}:</strong> {{ preserves }}
-        </span>
-      </div>
+      <!-- Capabilities Section -->
       <div
-        v-if="distorts"
-        class="flex items-start gap-2"
+        v-if="!compact"
+        class="flex flex-row gap-12 mb-4"
       >
-        <i class="ri-close-line text-error mt-0.5" />
-        <span>
-          <strong>{{ t('projections.info.distorts') }}:</strong> {{ distorts }}
-        </span>
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <i class="ri-check-line text-success text-lg" />
+          </div>
+          <div class="flex-1">
+            <div class="font-medium text-sm mb-1">
+              {{ t('projections.info.preserves') }}
+            </div>
+            <div class="text-sm opacity-80">
+              {{ preserves }}
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="distorts"
+          class="flex items-start gap-3"
+        >
+          <div class="flex-shrink-0">
+            <i class="ri-close-line text-error text-lg" />
+          </div>
+          <div class="flex-1">
+            <div class="font-medium text-sm mb-1">
+              {{ t('projections.info.distorts') }}
+            </div>
+            <div class="text-sm opacity-80">
+              {{ distorts }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Mode Compatibility Section -->
+      <div
+        v-if="!compact"
+        class="mb-8 mt-8"
+      >
+        <div class="font-medium text-sm mb-3">
+          {{ t('projections.info.compatibility') }}
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-if="projection.capabilities.supportsComposite"
+            class="badge badge-soft"
+          >
+            <i :class="getViewModeIcon('composite-custom')" />
+            {{ t('mode.compositeCustom') }}
+          </span>
+          <span
+            v-if="projection.capabilities.supportsSplit"
+            class="badge badge-soft"
+          >
+            <i :class="getViewModeIcon('split')" />
+            {{ t('mode.split') }}
+          </span>
+          <span
+            v-if="projection.capabilities.supportsUnified"
+            class="badge badge-soft"
+          >
+            <i :class="getViewModeIcon('unified')" />
+            {{ t('mode.unified') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Metadata Footer -->
+      <div
+        v-if="showMetadata && (projection.creator || projection.year) && !compact"
+        class="mt-auto pt-4"
+      >
+        <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-70">
+          <div
+            v-if="projection.creator"
+            class="flex items-center gap-2"
+          >
+            <i class="ri-user-line" />
+            <span>{{ projection.creator }}</span>
+          </div>
+          <div
+            v-if="projection.year"
+            class="flex items-center gap-2"
+          >
+            <i class="ri-calendar-line" />
+            <span>{{ projection.year }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- View Mode Compatibility -->
+    <!-- Divider -->
     <div
       v-if="!compact"
-      class="mt-3 text-sm"
-    >
-      <div class="font-medium mb-1">
-        {{ t('projections.info.compatibility') }}:
-      </div>
-      <div class="flex flex-wrap gap-1">
-        <span
-          v-if="projection.capabilities.supportsComposite"
-          class="badge badge-sm badge-outline"
-        >
-          {{ t('mode.compositeCustom') }}
-        </span>
-        <span
-          v-if="projection.capabilities.supportsSplit"
-          class="badge badge-sm badge-outline"
-        >
-          {{ t('mode.split') }}
-        </span>
-        <span
-          v-if="projection.capabilities.supportsUnified"
-          class="badge badge-sm badge-outline"
-        >
-          {{ t('mode.unified') }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Metadata -->
-    <div
-      v-if="showMetadata && (projection.creator || projection.year)"
-      class="mt-3 pt-3 border-t border-base-300 text-xs opacity-70"
-    >
-      <div v-if="projection.creator">
-        <strong>{{ t('projections.info.creator') }}:</strong> {{ projection.creator }}
-      </div>
-      <div v-if="projection.year">
-        <strong>{{ t('projections.info.year') }}:</strong> {{ projection.year }}
-      </div>
-    </div>
+      class="divider my-4"
+    />
   </div>
 </template>
