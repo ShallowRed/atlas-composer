@@ -156,15 +156,21 @@ EXTERNAL TOOLS:
   - Action: <what to change>
   - Why: <rationale>
 
-## Documentation Updates
-- [ ] docs/domain1.llm.txt - Update section X with new behavior
-- [ ] docs/domain2.llm.txt - Add new component Y documentation
-- [ ] docs/architecture.llm.txt - Update if structural changes
+## Documentation Updates (CRITICAL - See .github/copilot-critical-rules.md)
+REMEMBER: .llm.txt files are STATIC REFERENCE docs
+- Remove: "before/after", "resolved", "completed", dates, objectives, problems
+- Keep: current state, how it works, what it does
+- Use: present tense only ("handles", "provides", "uses")
+
+- [ ] docs/domain1.llm.txt - [describe what to update in present tense]
+- [ ] docs/domain2.llm.txt - [describe what to add in present tense]
+- [ ] docs/architecture.llm.txt - [update if structural changes]
 
 ## Verification
 - [ ] Code compiles without errors
 - [ ] Tests pass (if applicable)
-- [ ] All documentation updated
+- [ ] All .llm.txt documentation updated (check with: pnpm check:docs)
+- [ ] No temporal language in .llm.txt files
 - [ ] Plan file marked complete
 
 ## Status
