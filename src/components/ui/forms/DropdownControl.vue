@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import DropdownButton from './DropdownButton.vue'
+import DropdownMenu from './DropdownMenu.vue'
 
 // Export interfaces for use in other components
 export interface DropdownOption {
@@ -293,73 +295,31 @@ watch(focusedIndex, (newIndex) => {
     class="dropdown dropdown-end"
     :class="{ 'dropdown-open': isOpen }"
   >
-    <button
+    <DropdownButton
       ref="buttonRef"
-      type="button"
-      class="btn btn-ghost"
-      :class="{ 'btn-disabled': disabled }"
+      :is-open="isOpen"
       :disabled="disabled"
-      :aria-haspopup="true"
+      :selected-option="selectedOption ?? null"
       :aria-expanded="isOpen"
       :aria-label="label || 'Select option'"
       :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
+      :inline="true"
+      :icon="icon"
       @click="isOpen ? closeDropdown() : openDropdown()"
       @keydown="handleKeyDown"
       @blur="handleBlur"
-    >
-      <i
-        v-if="icon"
-        :class="icon"
-      />
-      <span
-        v-if="selectedOption && selectedOption.icon && !selectedOption.icon.startsWith('ri-')"
-      >
-        {{ selectedOption.icon }}
-      </span>
-    </button>
+    />
 
-    <!-- Dropdown content for inline version -->
-    <ul
-      v-if="options && isOpen"
-      role="listbox"
+    <DropdownMenu
+      :options="options"
+      :is-open="isOpen"
+      :local-value="localValue"
       :aria-label="label || 'Options'"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 p-2 shadow-lg border border-base-300"
-    >
-      <li
-        v-for="(option, index) in options"
-        :key="option.value"
-        role="presentation"
-      >
-        <button
-          :id="getOptionId(index)"
-          type="button"
-          role="option"
-          :aria-selected="localValue === option.value"
-          :class="{
-            'bg-primary text-primary-content': localValue === option.value,
-            'bg-base-200': focusedIndex === index && localValue !== option.value,
-          }"
-          @click="selectOption(option.value)"
-          @keydown="handleOptionKeyDown($event, option.value)"
-        >
-          <span
-            v-if="option.icon && !option.icon.startsWith('ri-')"
-            class="text-base"
-          >
-            {{ option.icon }}
-          </span>
-          <i
-            v-else-if="option.icon"
-            :class="option.icon"
-          />
-          <span
-            v-if="option.badge"
-            class="badge badge-primary badge-sm"
-          >{{ option.badge }}</span>
-          {{ $t(option.label) }}
-        </button>
-      </li>
-    </ul>
+      :inline="true"
+      :focused-index="focusedIndex"
+      @select="selectOption"
+      @keydown="handleOptionKeyDown"
+    />
   </div>
 
   <!-- Standard fieldset version -->
@@ -369,7 +329,7 @@ watch(focusedIndex, (newIndex) => {
   >
     <legend
       id="dropdown-label"
-      class="fieldset-legend text-xl"
+      class="fieldset-legend text-sm"
     >
       <span class="label-text flex items-center gap-2">
         <i
@@ -385,174 +345,41 @@ watch(focusedIndex, (newIndex) => {
       class="dropdown w-full"
       :class="{ 'dropdown-open': isOpen }"
     >
-      <button
+      <DropdownButton
         ref="buttonRef"
-        type="button"
-        class="btn w-full justify-between border bg-base-200/30"
-        :class="{ 'btn-disabled': disabled }"
+        :is-open="isOpen"
         :disabled="disabled"
-        :aria-haspopup="true"
+        :selected-option="selectedOption ?? null"
         :aria-expanded="isOpen"
         aria-labelledby="dropdown-label"
         :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
         @click="isOpen ? closeDropdown() : openDropdown()"
         @keydown="handleKeyDown"
         @blur="handleBlur"
-      >
-        <span
-          v-if="selectedOption"
-          class="flex items-center gap-2"
-        >
-          <!-- Icon (emoji/text or icon class) -->
-          <span
-            v-if="selectedOption.icon && !selectedOption.icon.startsWith('ri-')"
-            class="text-base"
-          >
-            {{ selectedOption.icon }}
-          </span>
-          <i
-            v-else-if="selectedOption.icon"
-            :class="selectedOption.icon"
-          />
+      />
 
-          <!-- Badge -->
-          <span
-            v-if="selectedOption.badge"
-            class="badge badge-primary badge-sm"
-          >{{ selectedOption.badge }}</span>
-          {{ $t(selectedOption.label) }}
-        </span>
-        <span
-          v-else
-          class="text-base-content/50"
-        >Select...</span>
-        <i
-          class="ri-arrow-down-s-line text-lg"
-          :class="{ 'rotate-180': isOpen }"
-        />
-      </button>
-
-      <!-- Dropdown with Option Groups -->
-      <ul
-        v-if="optionGroups && isOpen"
-        role="listbox"
+      <DropdownMenu
+        :options="options"
+        :option-groups="optionGroups"
+        :is-open="isOpen"
+        :local-value="localValue"
         aria-labelledby="dropdown-label"
-        class="dropdown-content menu bg-base-100 rounded-box z-[100] w-full max-h-96 overflow-y-auto p-2 shadow-lg border border-base-300"
-      >
-        <template
-          v-for="group in optionGroups"
-          :key="group.key || group.category"
-        >
-          <li
-            class="menu-title"
-            role="presentation"
-          >
-            {{ group.label || group.category }}
-          </li>
-          <li
-            v-for="option in group.options || []"
-            :key="option.value"
-            role="presentation"
-          >
-            <button
-              :id="getOptionId(allOptions.findIndex(o => o.value === option.value))"
-              type="button"
-              role="option"
-              :aria-selected="localValue === option.value"
-              :class="{
-                'bg-primary text-primary-content': localValue === option.value,
-                'bg-base-200': focusedIndex === allOptions.findIndex(o => o.value === option.value) && localValue !== option.value,
-              }"
-              @click="selectOption(option.value)"
-              @keydown="handleOptionKeyDown($event, option.value)"
-            >
-              <!-- Icon (emoji/text or icon class) -->
-              <span
-                v-if="option.icon && !option.icon.startsWith('ri-')"
-                class="text-base"
-              >
-                {{ option.icon }}
-              </span>
-              <i
-                v-else-if="option.icon"
-                :class="option.icon"
-              />
-
-              <!-- Badge -->
-              <span
-                v-if="option.badge"
-                class="badge badge-primary badge-sm"
-              >{{ option.badge }}</span>
-              {{ $t(option.label) }}
-            </button>
-          </li>
-        </template>
-      </ul>
-
-      <!-- Dropdown with Simple Options -->
-      <ul
-        v-else-if="options && isOpen"
-        role="listbox"
-        aria-labelledby="dropdown-label"
-        class="dropdown-content menu bg-base-100 rounded-box z-[100] w-full max-h-96 overflow-y-auto p-2 shadow-lg border border-base-300"
-      >
-        <li
-          v-for="(option, index) in options"
-          :key="option.value"
-          role="presentation"
-        >
-          <button
-            :id="getOptionId(index)"
-            type="button"
-            role="option"
-            :aria-selected="localValue === option.value"
-            :class="{
-              'bg-primary text-primary-content': localValue === option.value,
-              'bg-base-200': focusedIndex === index && localValue !== option.value,
-            }"
-            @click="selectOption(option.value)"
-            @keydown="handleOptionKeyDown($event, option.value)"
-          >
-            <!-- Icon (emoji/text or icon class) -->
-            <span
-              v-if="option.icon && !option.icon.startsWith('ri-')"
-              class="text-base"
-            >
-              {{ option.icon }}
-            </span>
-            <i
-              v-else-if="option.icon"
-              :class="option.icon"
-            />
-
-            <!-- Badge -->
-            <span
-              v-if="option.badge"
-              class="badge badge-primary badge-sm"
-            >{{ option.badge }}</span>
-            {{ $t(option.label) }}
-          </button>
-        </li>
-      </ul>
+        :focused-index="focusedIndex"
+        @select="selectOption"
+        @keydown="handleOptionKeyDown"
+      />
     </div>
   </fieldset>
 </template>
 
 <style scoped>
-.ri-arrow-down-s-line {
-  transition: transform 0.2s ease;
-}
-
-.rotate-180 {
-  transform: rotate(180deg);
-}
-
 /* Override DaisyUI CSS focus behavior - we control open/close with JS */
 .dropdown:not(.dropdown-open) .dropdown-content {
   display: none !important;
 }
 
 .dropdown.dropdown-open .dropdown-content {
+  /* position: static; */
   display: block !important;
 }
 
@@ -562,22 +389,15 @@ watch(focusedIndex, (newIndex) => {
   outline-offset: 2px;
 }
 
-/* Keyboard-focused option highlight - more visible */
-button[role="option"].bg-base-200 {
-  background-color: hsl(var(--b2));
-  outline: 2px solid hsl(var(--p));
-  outline-offset: -2px;
-}
-
 /* Ensure dropdown animations are smooth */
-.dropdown-content {
+/* .dropdown-content {
   animation: dropdown-appear 0.2s ease-out;
-}
+} */
 
 @keyframes dropdown-appear {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-1rem);
   }
   to {
     opacity: 1;

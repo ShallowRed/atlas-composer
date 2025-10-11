@@ -168,7 +168,7 @@ const hasAnyRelevantParams = computed(() => {
         class="flex flex-col gap-4 pt-6"
       >
         <button
-          class="btn btn-sm btn-outline w-full gap-1 mb-4"
+          class="btn btn-sm btn-soft w-full gap-1 mb-4"
           :disabled="!hasCustomParams"
           @click="reset"
         >

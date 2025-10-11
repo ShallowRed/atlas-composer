@@ -91,7 +91,7 @@ function useRecommendedProjection(territoryCode: string) {
     >
       <ImportControls />
       <button
-        class="btn btn-sm btn-outline"
+        class="btn btn-sm btn-soft"
         @click="resetToDefaults"
       >
         <i class="ri-restart-line" />

@@ -29,14 +29,14 @@ function handleImported(_config: ExportedCompositeConfig) {
     class="join w-full"
   >
     <button
-      class="btn btn-outline btn-sm join-item flex-1"
+      class="btn btn-soft btn-sm join-item flex-1"
       @click="showImportDialog = true"
     >
       <i class="ri-upload-2-line" />
       {{ t('actions.import') }}
     </button>
     <button
-      class="btn btn-outline btn-sm join-item flex-1"
+      class="btn btn-soft btn-sm join-item flex-1"
       @click="showExportDialog = true"
     >
       <i class="ri-download-2-line" />

@@ -14,6 +14,7 @@ import { useAtlasData } from '@/composables/useAtlasData'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useViewMode } from '@/composables/useViewMode'
 import { useConfigStore } from '@/stores/config'
+import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 const { t } = useI18n()
 const allowThemeSelection = false
@@ -61,7 +62,7 @@ onMounted(async () => {
       <CardContainer
         class="flex-1"
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
-        :icon="configStore.viewMode === 'split' ? 'ri-layout-grid-2-fill' : configStore.viewMode === 'composite-existing' ? 'ri-layout-4-line' : configStore.viewMode === 'unified' ? 'ri-globe-line' : 'ri-drag-move-2-line'"
+        :icon="getViewModeIcon(configStore.viewMode)"
       >
         <!-- Loading state for main content -->
         <div class="relative h-full w-full">
