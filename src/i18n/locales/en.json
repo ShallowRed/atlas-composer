@@ -13,7 +13,28 @@
     "portugal": "Portugal",
     "spain": "Spain",
     "eu": "European Union",
-    "usa": "United States"
+    "usa": "United States",
+    "territories": {
+      "france": {
+        "mainland": "Metropolitan France",
+        "overseas": "Overseas Territories"
+      },
+      "portugal": {
+        "mainland": "Continental Portugal",
+        "overseas": "Autonomous Regions"
+      },
+      "spain": {
+        "mainland": "Peninsular Spain",
+        "overseas": "Overseas Territories"
+      },
+      "eu": {
+        "territories": "Member States"
+      },
+      "usa": {
+        "mainland": "Continental United States",
+        "overseas": "Territories"
+      }
+    }
   },
   "projection": {
     "select": "Select projection",
