@@ -47,7 +47,7 @@ defineExpose({
     v-if="inline"
     ref="buttonRef"
     type="button"
-    class="btn btn-ghost"
+    class="btn btn-sm btn-ghost font-normal text-lg"
     :class="{ 'btn-disabled': disabled }"
     :disabled="disabled"
     :aria-haspopup="ariaHaspopup"
@@ -73,7 +73,7 @@ defineExpose({
     v-else
     ref="buttonRef"
     type="button"
-    class="btn w-full justify-between border bg-base-200/30 text-sm font-normal"
+    class="btn btn-soft w-full justify-between border bg-base-200/30 text-sm font-normal"
     :class="{ 'btn-disabled': disabled }"
     :disabled="disabled"
     :aria-haspopup="ariaHaspopup"
