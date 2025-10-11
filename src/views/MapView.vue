@@ -11,7 +11,6 @@ import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
-import { useTerritoryConfig } from '@/composables/useTerritoryConfig'
 import { useViewMode } from '@/composables/useViewMode'
 import { useConfigStore } from '@/stores/config'
 
@@ -25,7 +24,6 @@ const configStore = useConfigStore()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
 const { viewModeOptions } = useViewMode()
 const { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
-const { hasTerritoriesForProjectionConfig } = useTerritoryConfig()
 
 // Track if this is the first load
 const hasLoadedOnce = ref(false)
@@ -99,34 +97,32 @@ onMounted(async () => {
       </CardContainer>
     </section>
     <section class="lg:w-1/4  max-h-[calc(100vh-8rem)] flex flex-col gap-6">
-      <Transition name="fade" mode="out-in">
-        <CardContainer
-          v-if="(
-            configStore.viewMode === 'unified'
-            || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
-            || configStore.showProjectionSelector
-            || configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig
-          )" :title="t('settings.projectionConfigTitle')" icon="ri-settings-4-line" has-overflow class="h-full"
-        >
-          <Transition name="fade" mode="out-in">
-            <!-- Projection Parameters (only for unified view mode) -->
-            <ProjectionParamsControls
-              v-if="(
-                configStore.viewMode === 'unified'
-                || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
-                || configStore.showProjectionSelector
-              )"
-            />
-          </Transition>
-          <Transition name="fade" mode="out-in">
-            <!-- Territory Parameters (projections, translations, scales) -->
-            <TerritoryControls
-              v-if="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
-              :show-transform-controls="configStore.viewMode === 'composite-custom'"
-            />
-          </Transition>
-        </CardContainer>
-      </Transition>
+      <CardContainer
+        v-show="(
+          configStore.viewMode === 'unified'
+          || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+          || configStore.showProjectionSelector
+          || configStore.showIndividualProjectionSelectors
+        )" :title="t('settings.projectionConfigTitle')" icon="ri-settings-4-line" has-overflow class="h-full"
+      >
+        <Transition name="fade" mode="out-in">
+          <!-- Projection Parameters (only for unified view mode) -->
+          <ProjectionParamsControls
+            v-if="(
+              configStore.viewMode === 'unified'
+              || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+              || configStore.showProjectionSelector
+            )"
+            key="projection-params"
+          />
+          <!-- Territory Parameters (projections, translations, scales) -->
+          <TerritoryControls
+            v-else-if="configStore.showIndividualProjectionSelectors"
+            key="territory-controls"
+            :show-transform-controls="configStore.viewMode === 'composite-custom'"
+          />
+        </Transition>
+      </CardContainer>
     </section>
   </div>
 </template>
