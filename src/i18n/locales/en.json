@@ -171,6 +171,15 @@
     "downloadSuccess": "File downloaded successfully!",
     "downloadError": "Failed to download file. Please try again."
   },
+  "share": {
+    "button": "Share",
+    "title": "Share Configuration",
+    "description": "Copy this URL to share your current configuration with others. The link includes all your settings.",
+    "copyButton": "Copy Link",
+    "copiedButton": "Copied!",
+    "copied": "Link copied to clipboard",
+    "copyFailed": "Failed to copy link"
+  },
   "about": {
     "title": "About Atlas composer",
     "pageTitle": "About",

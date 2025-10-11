@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
+import ShareButton from '@/components/ui/actions/ShareButton.vue'
 import LanguageSelector from '@/components/ui/settings/LanguageSelector.vue'
 
 const route = useRoute()
@@ -63,6 +64,9 @@ const { t } = useI18n()
                   <i class="ri-information-line" />
                   {{ t('nav.about') }}
                 </span>
+              </li>
+              <li v-if="route.path === '/'">
+                <ShareButton />
               </li>
               <li>
                 <a

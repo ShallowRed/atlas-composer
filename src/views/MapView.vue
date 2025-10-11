@@ -12,6 +12,7 @@ import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
+import { useUrlState } from '@/composables/useUrlState'
 import { useViewMode } from '@/composables/useViewMode'
 import { useConfigStore } from '@/stores/config'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
@@ -26,6 +27,7 @@ const configStore = useConfigStore()
 const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
 const { viewModeOptions } = useViewMode()
+const { restoreFromUrl } = useUrlState()
 
 // Track if this is the first load
 const hasLoadedOnce = ref(false)
@@ -35,6 +37,12 @@ const skeletonTransition = computed(() => hasLoadedOnce.value ? 'fade' : 'fade-i
 
 // Lifecycle
 onMounted(async () => {
+  // Try to restore state from URL before initializing
+  const restoredFromUrl = restoreFromUrl()
+  if (restoredFromUrl) {
+    console.log('[MapView] State restored from URL')
+  }
+
   await initialize()
   setupWatchers()
   hasLoadedOnce.value = true
