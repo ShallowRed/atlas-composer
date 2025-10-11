@@ -6,6 +6,7 @@ import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSect
 import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
+import MainLayout from '@/components/ui/MainLayout.vue'
 import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
@@ -40,34 +41,47 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col lg:flex-row gap-6">
-    <section class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6">
+  <MainLayout>
+    <template #left-sidebar>
       <!-- Atlas Configuration -->
-      <CardContainer :title="t('settings.atlasConfigTitle')" icon="ri-settings-4-line" class="h-full" has-overflow>
+      <CardContainer
+        :title="t('settings.atlasConfigTitle')"
+        icon="ri-settings-4-line"
+        class="flex-1"
+      >
         <AtlasConfigSection
-          :allow-theme-selection="allowThemeSelection" :view-mode-options="viewModeOptions"
+          :allow-theme-selection="allowThemeSelection"
+          :view-mode-options="viewModeOptions"
           :composite-projection-options="compositeProjectionOptions"
         />
       </CardContainer>
-    </section>
-    <section class="lg:w-1/2 max-h-[calc(100vh-8rem)] flex flex-col gap-6">
+    </template>
+    <template #main-content>
       <!-- Main Content Area (Single Tab) -->
       <CardContainer
+        class="flex-1"
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
         :icon="configStore.viewMode === 'split' ? 'ri-layout-grid-2-fill' : configStore.viewMode === 'composite-existing' ? 'ri-layout-4-line' : configStore.viewMode === 'unified' ? 'ri-globe-line' : 'ri-drag-move-2-line'"
-        has-overflow class="min-h-0 flex-1"
       >
         <!-- Loading state for main content -->
-        <div class="relative h-full">
+        <div class="relative h-full w-full">
           <Transition :name="skeletonTransition">
-            <div v-if="showSkeleton" key="skeleton" class="absolute inset-0 rounded-sm border border-base-300">
+            <div
+              v-if="showSkeleton"
+              key="skeleton"
+              class="absolute inset-0 rounded-sm border border-base-300"
+            >
               <div class="skeleton rounded-none h-full w-full opacity-50" />
             </div>
           </Transition>
 
           <!-- Content when loaded -->
           <Transition name="fade">
-            <div v-if="!showSkeleton" key="content" class="h-full">
+            <div
+              v-if="!showSkeleton"
+              key="content"
+              class="h-full"
+            >
               <!-- Split Territories Mode -->
               <template v-if="configStore.viewMode === 'split'">
                 <SplitView
@@ -77,7 +91,10 @@ onMounted(async () => {
               </template>
 
               <!-- Composite Existing Mode -->
-              <MapRenderer v-if="configStore.viewMode === 'composite-existing'" mode="composite" />
+              <MapRenderer
+                v-if="configStore.viewMode === 'composite-existing'"
+                mode="composite"
+              />
 
               <!-- Composite Custom Mode -->
               <MapRenderer
@@ -90,22 +107,34 @@ onMounted(async () => {
           </Transition>
         </div>
       </CardContainer>
-      <!-- View Configuration -->
-      <CardContainer :title="t('settings.displayOptionsTitle')" icon="ri-eye-line" has-overflow>
-        <!-- Display Options -->
+    </template>
+    <template #bottom-bar>
+      <!-- Display Options -->
+      <CardContainer
+        :title="t('settings.displayOptionsTitle')"
+        icon="ri-eye-line"
+        class="flex-1"
+      >
         <DisplayOptionsSection />
       </CardContainer>
-    </section>
-    <section class="lg:w-1/4  max-h-[calc(100vh-8rem)] flex flex-col gap-6">
+    </template>
+    <template #right-sidebar>
+      <!-- Projection Configuration -->
       <CardContainer
         v-show="(
           configStore.viewMode === 'unified'
           || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
           || configStore.showProjectionSelector
           || configStore.showIndividualProjectionSelectors
-        )" :title="t('settings.projectionConfigTitle')" icon="ri-settings-4-line" has-overflow class="h-full"
+        )"
+        class="flex-1"
+        :title="t('settings.projectionConfigTitle')"
+        icon="ri-settings-4-line"
       >
-        <Transition name="fade" mode="out-in">
+        <Transition
+          name="fade"
+          mode="out-in"
+        >
           <!-- Projection Parameters (only for unified view mode) -->
           <ProjectionParamsControls
             v-if="(
@@ -123,6 +152,6 @@ onMounted(async () => {
           />
         </Transition>
       </CardContainer>
-    </section>
-  </div>
+    </template>
+  </MainLayout>
 </template>

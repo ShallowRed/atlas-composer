@@ -48,7 +48,10 @@ const hasOverflowTop = computed(() => {
       'scrollable-content--has-overflow-top': hasOverflowTop && showGradient,
     }"
   >
-    <div ref="scrollContainerRef" class="scrollable-content__container">
+    <div
+      ref="scrollContainerRef"
+      class="scrollable-content__container"
+    >
       <slot />
     </div>
   </div>
