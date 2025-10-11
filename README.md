@@ -46,7 +46,9 @@ Each atlas is defined in a JSON file following this structure:m with intelligent
 - 🎯 **Context-Aware Selection** - Automatic filtering based on atlas and view mode
 - 🎨 **Visual Territory Controls** - Sliders for fine-tuning X/Y position and scale
 - 🌍 **Multiple Countries** - Pre-configured atlases for France, Portugal, Spain, and EU
-- 🔧 **Natural Earth Integration** - Automated geodata preparation from Natural Earth datasets
+- � **Export & Import** - Save/restore configurations as JSON or generate ready-to-use code
+- 📦 **Standalone NPM Package** - Use exported projections in any JavaScript project
+- �🔧 **Natural Earth Integration** - Automated geodata preparation from Natural Earth datasets
 - 📊 **Data Validation** - Scripts to ensure config/data consistency
 - 🧪 **Comprehensive Testing** - 79 unit & integration tests with 100% pass rate
 
@@ -95,7 +97,88 @@ pnpm geodata:analyze <id>      # Analyze country polygon structure
 
 > **📖 [Full Scripts Documentation](./docs/SCRIPTS.md)** - Complete guide to build tools, geodata pipeline, and developer utilities
 
-## 🛠️ Technology Stack
+## � Using Exported Projections
+
+### Standalone Projection Loader Package
+
+Atlas Composer includes `@atlas-composer/projection-loader`, a zero-dependency NPM package for using your custom composite projections outside the application.
+
+#### Features
+
+- ✅ **Zero Runtime Dependencies** - Only peer deps on d3-geo/d3-geo-projection
+- ✅ **Tree-Shakeable** - ESM-only build with optimal bundling
+- ✅ **TypeScript Support** - Full type definitions included
+- ✅ **Plugin Architecture** - Register only the projections you need
+- ✅ **Framework Agnostic** - Works with D3, Observable Plot, React, Vue, vanilla JS
+
+#### Installation
+
+```bash
+npm install @atlas-composer/projection-loader d3-geo d3-geo-projection
+# or
+pnpm add @atlas-composer/projection-loader d3-geo d3-geo-projection
+```
+
+#### Usage
+
+The export dialog in Atlas Composer generates ready-to-use code:
+
+```typescript
+import { geoConicConformal, geoMercator } from 'd3-geo'
+import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+
+export function createFranceProjection() {
+  // Register the projections used
+  registerProjection('conic-conformal', () => geoConicConformal())
+  registerProjection('mercator', () => geoMercator())
+  
+  // Configuration exported from Atlas Composer
+  const config = { /* ...exported JSON... */ }
+  
+  // Load the composite projection
+  return loadCompositeProjection(config, {
+    width: 800,
+    height: 600
+  })
+}
+```
+
+#### In D3.js
+
+```javascript
+import * as d3 from 'd3'
+import { createFranceProjection } from './france-projection'
+
+const projection = createFranceProjection()
+const path = d3.geoPath(projection)
+
+d3.select('svg')
+  .selectAll('path')
+  .data(features)
+  .join('path')
+  .attr('d', path)
+```
+
+#### In Observable Plot
+
+```javascript
+import * as Plot from '@observablehq/plot'
+import { createFranceProjection } from './france-projection'
+
+Plot.plot({
+  projection: createFranceProjection,
+  marks: [
+    Plot.geo(world, { stroke: 'currentColor' })
+  ]
+})
+```
+
+#### Package Location
+
+The package is maintained in this monorepo at `packages/projection-loader/`. 
+See its [README](./packages/projection-loader/README.md) for complete documentation.
+
+## �🛠️ Technology Stack
 
 - **[Vite](https://vitejs.dev/)** - Build tool and dev server
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe programming

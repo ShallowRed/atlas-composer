@@ -136,34 +136,34 @@ export class CompositeImportService {
    */
   static applyToStores(
     config: ExportedCompositeConfig,
-    configStore: any, // Using any to avoid circular dependency
-    territoryStore: any,
-    compositeProjection: any,
+    configStore: ReturnType<typeof import('@/stores/config').useConfigStore>,
+    territoryStore: ReturnType<typeof import('@/stores/territory').useTerritoryStore>,
+    compositeProjection: import('@/services/projection/composite-projection').CompositeProjection,
   ): void {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
 
     // Apply each territory configuration
     config.territories.forEach((territory) => {
-      // Set projection for territory
-      compositeProjection.setTerritoryProjection(territory.code, territory.projectionId)
+      // 1. Set projection for territory
+      territoryStore.setTerritoryProjection(territory.code, territory.projectionId)
 
-      // Apply projection parameters
-      territoryStore.updateTerritory(territory.code, {
-        projectionType: territory.projectionId,
-        center: territory.parameters.center,
-        rotate: territory.parameters.rotate,
-        parallels: territory.parameters.parallels,
-        scale: territory.parameters.scale,
-        baseScale: territory.parameters.baseScale,
-        scaleMultiplier: territory.parameters.scaleMultiplier,
-        translateOffset: territory.layout.translateOffset,
-        clipExtent: territory.layout.clipExtent,
-        bounds: territory.bounds,
-      })
+      // 2. Apply scale multiplier
+      // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
+      territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
+
+      // 3. Apply translation offsets
+      territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
+      territoryStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
+
+      // 4. Update the composite projection with new settings
+      // This will trigger recalculation of projection parameters
+      if (compositeProjection.updateTerritoryProjection) {
+        compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+      }
     })
 
-    // Switch to custom composite view mode
+    // Switch to custom composite view mode to show the imported configuration
     configStore.viewMode = 'composite-custom'
   }
 }

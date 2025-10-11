@@ -171,7 +171,11 @@
     "copyToClipboard": "Copy to Clipboard",
     "downloadFile": "Download File",
     "copiedSuccess": "Copied to clipboard!",
-    "copyFailed": "Failed to copy to clipboard"
+    "copyFailed": "Failed to copy to clipboard",
+    "copySuccess": "Configuration copied to clipboard successfully!",
+    "copyError": "Failed to copy to clipboard. Please try again.",
+    "downloadSuccess": "File downloaded successfully!",
+    "downloadError": "Failed to download file. Please try again."
   },
   "about": {
     "title": "About",

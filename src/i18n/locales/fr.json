@@ -171,7 +171,11 @@
     "copyToClipboard": "Copier dans le Presse-papiers",
     "downloadFile": "Télécharger le Fichier",
     "copiedSuccess": "Copié dans le presse-papiers !",
-    "copyFailed": "Échec de la copie dans le presse-papiers"
+    "copyFailed": "Échec de la copie dans le presse-papiers",
+    "copySuccess": "Configuration copiée dans le presse-papiers avec succès !",
+    "copyError": "Échec de la copie dans le presse-papiers. Veuillez réessayer.",
+    "downloadSuccess": "Fichier téléchargé avec succès !",
+    "downloadError": "Échec du téléchargement du fichier. Veuillez réessayer."
   },
   "about": {
     "title": "À propos",

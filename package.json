@@ -10,11 +10,13 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm build:loader && tsc && vite build",
+    "build:loader": "pnpm --filter @atlas-composer/projection-loader build",
     "preview": "vite preview",
-    "typecheck": "pnpm typecheck:frontend && pnpm typecheck:scripts",
+    "typecheck": "pnpm typecheck:frontend && pnpm typecheck:scripts && pnpm typecheck:loader",
     "typecheck:frontend": "vue-tsc --noEmit -p src/tsconfig.json",
     "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.json",
+    "typecheck:loader": "pnpm --filter @atlas-composer/projection-loader typecheck",
     "lint": "eslint --ext .ts,.tsx,.vue src",
     "lint:fix": "eslint --fix --ext .ts,.tsx,.vue src",
     "test": "vitest",
@@ -25,7 +27,10 @@
     "geodata:analyze": "tsx scripts/dev/analyze-country.ts",
     "geodata:lookup": "tsx scripts/dev/lookup-country.ts",
     "geodata:prepare": "tsx scripts/prepare-geodata.ts",
-    "geodata:validate": "tsx scripts/validate-configs.ts"
+    "geodata:validate": "tsx scripts/validate-configs.ts",
+    "export:config": "tsx scripts/export-config.ts",
+    "export:all": "tsx scripts/export-all.ts",
+    "import:config": "tsx scripts/import-config.ts"
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.17",

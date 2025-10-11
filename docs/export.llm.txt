@@ -1,23 +1,33 @@
 # Export System
 
 ## Overview
-The export system generates standalone code for composite projections in multiple formats:
-- D3.js (JavaScript and TypeScript)
-- Observable Plot (JavaScript)
-
-Exports allow users to use their custom composite projections outside Atlas Composer.
+The export system enables users to use their custom composite projections outside Atlas Composer:
+- **JSON Export** - Configuration data for import/backup/version control
+- **Code Export** - Ready-to-use code in D3.js (JS/TS) or Observable Plot
+- **NPM Package** - `@atlas-composer/projection-loader` for runtime loading
 
 ## Architecture
 
-### Code Generation Pipeline
-1. **Configuration Export** - Serialize composite projection state
-2. **Code Generation** - Generate projection code in target format
-3. **User Delivery** - Copy to clipboard with notifications
+### Export Pipeline
+1. **Configuration Serialization** - Convert projection state to JSON
+2. **Code Generation** - Generate code that uses NPM loader package
+3. **User Delivery** - Copy to clipboard or download file
+4. **User Feedback** - Toast notifications for success/error
 
-### Files
-- `src/services/export/config-exporter.ts` - Configuration serialization
+### Import Pipeline
+1. **File Upload** - JSON file via modal dialog
+2. **Validation** - Schema validation, version check, atlas compatibility
+3. **Preview** - Show configuration details before applying
+4. **Application** - Apply to stores (projection, scale, translation)
+
+### Key Files
+- `src/services/export/composite-export-service.ts` - Export orchestration
+- `src/services/export/composite-import-service.ts` - Import validation & application
 - `src/services/export/code-generator.ts` - Code generation (D3/Plot)
-- `src/components/ui/ExportModal.vue` - UI component
+- `src/services/export/standalone-projection-loader.ts` - Runtime loader (copied to package)
+- `src/components/ui/CompositeExportDialog.vue` - Export UI
+- `src/components/ui/ImportModal.vue` - Import UI
+- `packages/projection-loader/` - Standalone NPM package
 
 ## Configuration Export (config-exporter.ts)
 
@@ -255,29 +265,152 @@ svg.selectAll("path")
   .attr("d", path)
 ```
 
-## Import Support
+## Import System
 
 ### CompositeImportService
-Re-imports exported JSON configurations back into Atlas Composer.
-Process:
-1. Parse and validate JSON structure
-2. Check version compatibility (currently v1.0)
-3. Validate required fields (metadata, territories, parameters)
-4. Warn if atlas ID mismatch (but allows import)
-5. Apply configuration to stores (configStore, territoryStore)
-6. Reconstruct CompositeProjection from imported data
+Re-imports exported JSON configurations back into Atlas Composer with full type safety.
 
-UI Integration:
-- ImportModal.vue component with drag-drop file upload
-- Validation result display (errors/warnings)
-- Configuration preview before applying
-- Integrated in ViewConfigSection.vue alongside Export button
+**Features**:
+- ✅ Schema validation with detailed error messages
+- ✅ Version compatibility checking (currently v1.0)
+- ✅ Atlas compatibility warnings (allows cross-atlas import with warnings)
+- ✅ Complete parameter restoration (projection + scale + translation)
+- ✅ Type-safe store integration
 
-## Standalone Projection Loader
+**Import Process**:
+1. **Parse JSON** - `importFromJSON(jsonString)`
+2. **Validate Structure** - Check required fields, data types
+3. **Check Compatibility** - Version and atlas ID validation
+4. **Return Result** - `{ config?, errors[], warnings[] }`
 
-### Purpose
-Pure JavaScript/TypeScript module for using exported configurations outside Atlas Composer.
-**Zero-dependency** plugin architecture - users register projection factories at runtime.
+**Application Process**:
+5. **Apply to Stores** - `applyToStores(config, stores)`
+   - Sets territory projection via CompositeProjection service
+   - Applies scale multiplier to territory store
+   - Applies translation offset to territory store
+   - Maintains state consistency
+
+**Type Safety Improvements** (completed):
+- Replaced all `any` types with proper store types
+- Uses `ReturnType<typeof useConfigStore>` pattern
+- Proper CompositeProjection API usage (`updateTerritoryProjection`)
+- Store methods: `setTerritoryProjection`, `setTerritoryScale`, `setTerritoryTranslation`
+
+### ImportModal Component
+File: `src/components/ui/ImportModal.vue`
+
+**Features**:
+- Drag-and-drop file upload
+- File picker fallback
+- JSON validation with error display
+- Configuration preview (atlas, territories, parameters)
+- Inline alert notifications for errors/warnings
+- Apply button to commit changes
+
+**User Flow**:
+1. Open modal from map view
+2. Drop JSON file or click to browse
+3. View validation results (errors prevent import)
+4. Review configuration details
+5. Click "Import" to apply
+6. Modal closes, map updates
+
+### UI Feedback System
+
+**Toast Notifications** (added to UIStore):
+- Success messages (green) for completed operations
+- Error messages (red) for failures
+- Auto-dismiss after 3 seconds (configurable)
+- Manual dismiss option
+- Bilingual support (EN/FR)
+
+**Toast API**:
+```typescript
+// In ui.ts store
+showToast(message: string, type: 'info' | 'success' | 'error', duration = 3000): string
+dismissToast(id: string): void
+clearAllToasts(): void
+```
+
+**Integration Points**:
+- ✅ Export dialog: Copy success/error, download success/error
+- ⏸️ Import modal: Deferred (uses inline alerts currently)
+
+**Translations** (in i18n/locales/):
+```json
+{
+  "export": {
+    "copySuccess": "Configuration copied to clipboard successfully!",
+    "copyError": "Failed to copy to clipboard. Please try again.",
+    "downloadSuccess": "File downloaded successfully!",
+    "downloadError": "Failed to download file. Please try again."
+  }
+}
+```
+
+## NPM Package: @atlas-composer/projection-loader
+
+### Overview
+Standalone package for loading exported composite projection configurations.
+Published at `packages/projection-loader/` with **zero runtime dependencies**.
+
+### Package Architecture
+- **ESM-only** build with tree-shaking support
+- **Plugin architecture** - users register projection factories at runtime
+- **Peer dependencies** - d3-geo, d3-geo-projection (user's choice of version)
+- **TypeScript support** - Full type definitions included
+
+### Build Configuration
+- Built with **tsup** (fast TypeScript bundler)
+- Output: ESM + Type declarations (.d.ts)
+- Source maps included for debugging
+- Bundle size: ~8KB (ESM), ~8KB (types)
+
+### Exports
+```typescript
+// Main loader function
+loadCompositeProjection(config: ExportedCompositeConfig, options: LoaderOptions): ProjectionLike
+
+// Plugin registration
+registerProjection(id: string, factory: ProjectionFactory): void
+clearProjections(): void
+
+// Optional D3 helpers (separate entry point)
+import { createD3Projections } from '@atlas-composer/projection-loader/d3-helpers'
+```
+
+### Usage Pattern
+Generated code follows this pattern:
+```typescript
+import { geoConicConformal } from 'd3-geo'
+import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+
+export function createFranceProjection() {
+  // Register projection factories
+  registerProjection('conic-conformal', () => geoConicConformal())
+  
+  // Embedded JSON configuration
+  const config = { /* ExportedCompositeConfig */ }
+  
+  // Load composite projection
+  return loadCompositeProjection(config, { width: 800, height: 600 })
+}
+```
+
+### Plugin Architecture Benefits
+1. **Zero dependencies** - Package doesn't bundle D3
+2. **Version flexibility** - Users choose their D3 version
+3. **Tree-shaking** - Only projections used are included
+4. **Custom projections** - Users can register custom projection functions
+
+### Files in Package
+- `src/index.ts` - Main exports (loader + registration)
+- `src/standalone-projection-loader.ts` - Core loader implementation
+- `src/d3-projection-helpers.ts` - Optional D3 projection factories
+- `README.md` - Usage documentation with examples
+- `package.json` - Package metadata, exports, peer deps
+- `tsconfig.json` - TypeScript configuration
+- `tsup.config.ts` - Build configuration
 
 ### Architecture: Zero Dependencies
 The loader has NO dependencies on d3-geo or d3-geo-projection. Instead, users register projection factories before loading configurations. This approach provides:

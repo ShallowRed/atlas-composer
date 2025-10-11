@@ -235,6 +235,19 @@ describe('codeGenerator', () => {
       expect(code).toContain('import { geoConicConformal, geoMercator } from \'d3-geo\'')
     })
 
+    it('should import from projection-loader package', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('@atlas-composer/projection-loader')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('registerProjection')
+    })
+
     it('should create projection function with correct name', () => {
       const code = generator.generate(singleFocusConfig, {
         format: 'd3',
@@ -301,6 +314,20 @@ describe('codeGenerator', () => {
       expect(code).toContain('import { geoConicConformal, geoMercator, type GeoProjection } from \'d3-geo\'')
     })
 
+    it('should import loader package with types', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'd3',
+        language: 'typescript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('@atlas-composer/projection-loader')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('registerProjection')
+      expect(code).toContain('type ProjectionLike')
+    })
+
     it('should add return type to function', () => {
       const code = generator.generate(singleFocusConfig, {
         format: 'd3',
@@ -335,6 +362,19 @@ describe('codeGenerator', () => {
 
       expect(code).toContain('import * as Plot from "@observablehq/plot"')
       expect(code).toContain('import * as d3 from "d3"')
+    })
+
+    it('should import from projection-loader package', () => {
+      const code = generator.generate(singleFocusConfig, {
+        format: 'plot',
+        language: 'javascript',
+        includeComments: true,
+        includeExamples: false,
+      })
+
+      expect(code).toContain('@atlas-composer/projection-loader')
+      expect(code).toContain('loadCompositeProjection')
+      expect(code).toContain('registerProjection')
     })
 
     it('should use d3 prefix for projections', () => {

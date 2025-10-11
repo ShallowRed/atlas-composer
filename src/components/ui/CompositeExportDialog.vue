@@ -9,6 +9,7 @@ import Modal from '@/components/ui/Modal.vue'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useUIStore } from '@/stores/ui'
 
 interface Props {
   modelValue: boolean
@@ -24,6 +25,7 @@ const { t } = useI18n()
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
+const uiStore = useUIStore()
 
 // Export options
 const exportFormat = ref<'json' | 'code'>('json')
@@ -95,27 +97,38 @@ function close() {
 }
 
 function downloadFile() {
-  const content = exportContent.value
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName.value
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  try {
+    const content = exportContent.value
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName.value
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    downloadSuccess()
+  }
+  catch (error) {
+    console.error('Failed to download file:', error)
+    uiStore.showToast(t('export.downloadError'), 'error')
+  }
 }
 
 async function copyToClipboard() {
   try {
     await navigator.clipboard.writeText(exportContent.value)
-    // TODO: Show success toast notification
+    uiStore.showToast(t('export.copySuccess'), 'success')
   }
   catch (error) {
     console.error('Failed to copy to clipboard:', error)
-    // TODO: Show error toast notification
+    uiStore.showToast(t('export.copyError'), 'error')
   }
+}
+
+function downloadSuccess() {
+  uiStore.showToast(t('export.downloadSuccess'), 'success')
 }
 </script>
 

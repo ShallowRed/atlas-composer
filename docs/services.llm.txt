@@ -82,6 +82,99 @@ Instance-based service managing sub-projections.
 - `getProjection()` - Get composite projection function
 - `rebuild()` - Rebuild composite projection
 
+## Export/Import Services (src/services/export/)
+
+### CompositeExportService
+Orchestrates export of composite projection configurations.
+Static methods for configuration serialization and code generation.
+
+**Export Methods**:
+- `exportToJSON()` - Serialize projection to ExportedCompositeConfig
+- `generateCode()` - Generate code using CodeGenerator
+- `validateExportedConfig()` - Validate exported configuration
+
+**Configuration Format**:
+- `version` - Schema version (currently '1.0')
+- `metadata` - Atlas info, export date, creator
+- `pattern` - Atlas pattern (single-focus/equal-members)
+- `referenceScale` - Base scale for all territories
+- `territories[]` - Array of territory configurations
+  - `code, name, role` - Territory identification
+  - `projectionId, projectionFamily` - Projection info
+  - `parameters` - All projection parameters (center, rotate, parallels, scale, scaleMultiplier)
+  - `layout` - Territory positioning (translateOffset, clipExtent)
+  - `bounds` - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
+
+### CompositeImportService
+Re-imports exported configurations with validation and type safety.
+Static methods for JSON parsing and store application.
+
+**Import Methods**:
+- `importFromJSON()` - Parse and validate JSON string
+- `checkAtlasCompatibility()` - Check atlas ID compatibility
+- `applyToStores()` - Apply configuration to stores (type-safe)
+
+**Import Flow**:
+1. Parse JSON string
+2. Validate structure (required fields, data types)
+3. Check version compatibility
+4. Return `{ config?, errors[], warnings[] }`
+
+**Application Flow**:
+1. Apply projection to each territory via CompositeProjection service
+2. Apply scale multiplier to territory store
+3. Apply translation offset to territory store
+4. Maintain state consistency
+
+**Type Safety** (completed improvements):
+- Replaced all `any` types with proper store types
+- Uses `ReturnType<typeof useConfigStore>` pattern
+- Proper CompositeProjection API: `updateTerritoryProjection()`
+- Store methods: `setTerritoryProjection`, `setTerritoryScale`, `setTerritoryTranslation`
+
+### CodeGenerator
+Generates ready-to-use code in multiple formats.
+Static methods for D3.js (JS/TS) and Observable Plot code generation.
+
+**Code Formats**:
+- D3 JavaScript - Standalone projection function
+- D3 TypeScript - With full type annotations
+- Observable Plot - Plot-compatible projection
+
+**Generated Code Pattern**:
+```javascript
+import { geoConicConformal } from 'd3-geo'
+import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+
+export function create[Atlas]Projection() {
+  registerProjection('projection-id', () => geoProjectionFunction())
+  const config = { /* embedded JSON */ }
+  return loadCompositeProjection(config, { width: 800, height: 600 })
+}
+```
+
+**Features**:
+- Uses `@atlas-composer/projection-loader` NPM package
+- Embeds full configuration as JSON
+- Includes usage examples (optional)
+- Includes header comments with metadata
+- Number precision: 6 decimals for all coordinates
+
+### StandaloneProjectionLoader
+Core loader implementation (copied to NPM package).
+Zero-dependency module for loading exported configurations.
+
+**Features**:
+- Plugin architecture - users register projection factories
+- Stream multiplexing for routing geometry to sub-projections
+- D3 stream protocol compliance
+- Geographic bounds-based routing
+
+**Public API**:
+- `loadCompositeProjection(config, options)` - Main loader function
+- `registerProjection(id, factory)` - Register projection factory
+- `clearProjections()` - Clear all registered projections
+
 ## Rendering Services (src/services/rendering/)
 
 ### MapSizeCalculator

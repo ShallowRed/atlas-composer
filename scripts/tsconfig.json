@@ -5,6 +5,12 @@
     "rootDir": "..",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["src/*"],
+      "#configs/*": ["configs/*"],
+      "#types/*": ["types/*"]
+    },
     "types": ["node"],
     "strict": true,
     "noFallthroughCasesInSwitch": true,
