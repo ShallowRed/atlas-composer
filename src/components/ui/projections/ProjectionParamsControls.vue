@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
-import RangeSlider from '@/components/ui/RangeSlider.vue'
+import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+import ProjectionSelector from '@/components/ui/projections/ProjectionSelector.vue'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'

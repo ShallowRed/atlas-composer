@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AccordionItem from '@/components/ui/AccordionItem.vue'
-import Alert from '@/components/ui/Alert.vue'
-import ImportControls from '@/components/ui/ImportControls.vue'
-import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
-import RangeSlider from '@/components/ui/RangeSlider.vue'
-import ToggleControl from '@/components/ui/ToggleControl.vue'
+import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
+import ImportControls from '@/components/ui/import/ImportControls.vue'
+import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
+import Alert from '@/components/ui/primitives/Alert.vue'
+import ProjectionSelector from '@/components/ui/projections/ProjectionSelector.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useConfigStore } from '@/stores/config'
 

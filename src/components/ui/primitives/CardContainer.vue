@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrollableContent from '@/components/ui/ScrollableContent.vue'
+import ScrollableContent from '@/components/ui/layout/ScrollableContent.vue'
 
 interface Props {
   title: string

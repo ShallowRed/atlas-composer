@@ -2,8 +2,8 @@
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CompositeExportDialog from '@/components/ui/CompositeExportDialog.vue'
-import ImportModal from '@/components/ui/ImportModal.vue'
+import CompositeExportDialog from '@/components/ui/export/CompositeExportDialog.vue'
+import ImportModal from '@/components/ui/import/ImportModal.vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 

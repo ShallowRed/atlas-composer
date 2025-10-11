@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import AppFooter from '@/components/ui/AppFooter.vue'
-import AppHeader from '@/components/ui/AppHeader.vue'
-import ToastNotification from '@/components/ui/ToastNotification.vue'
+import ToastNotification from '@/components/ui/export/ToastNotification.vue'
+import AppFooter from '@/components/ui/layout/AppFooter.vue'
+import AppHeader from '@/components/ui/layout/AppHeader.vue'
 import { useGeoDataStore } from '@/stores/geoData'
 
 const geoDataStore = useGeoDataStore()

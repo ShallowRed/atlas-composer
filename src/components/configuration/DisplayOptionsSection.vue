@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import ToggleControl from '@/components/ui/ToggleControl.vue'
+import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import { useConfigStore } from '@/stores/config'
 import { useUIStore } from '@/stores/ui'
 

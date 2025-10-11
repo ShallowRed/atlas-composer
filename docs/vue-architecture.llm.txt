@@ -21,11 +21,14 @@ src/
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
-│   ├── ProjectionSelector.vue # Projection selection (114 lines)
-│   └── ui/                   # 21 reusable UI components
-│       ├── Core primitives: RangeSlider, ButtonGroup, Modal, Alert, AccordionItem, LabelWithIcon
-│       ├── Form controls: SelectControl, ToggleControl, CheckboxControl
-│       └── Specialized: ProjectionParamsControls, ThemeSelector, etc.
+│   └── ui/                   # 27 reusable UI components organized in subdirectories
+│       ├── layout/           # Layout and page structure components
+│       ├── primitives/       # Core reusable UI elements
+│       ├── forms/            # Form controls and inputs
+│       ├── settings/         # Settings and preferences
+│       ├── projections/      # Projection-related components
+│       ├── import/           # Import-related components
+│       └── export/           # Export-related components
 ├── composables/              # 9 composition functions
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
@@ -86,25 +89,48 @@ App.vue
 - Recommendation badges
 - Uses: useProjectionFiltering, useProjectionRecommendations
 
-### UI Components (21 components)
-**Core Primitives**:
-- **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
-- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
-- **Alert**: Status/notification messages with type variants (info, success, warning, error)
-- **AccordionItem**: Collapsible content item with title/subtitle
-- **LabelWithIcon**: Label wrapper with optional icon
+### UI Components (27 components organized in 7 subdirectories)
 
-**Form Controls** (Specialized):
+**Layout Components** (src/components/ui/layout/):
+- **AppHeader**: Application header with navigation and language selector
+- **AppFooter**: Application footer with credits and links
+- **MainLayout**: Main application layout structure
+- **ScrollableContent**: Scrollable content wrapper
+
+**Primitive Components** (src/components/ui/primitives/):
+- **AccordionItem**: Collapsible content item with title/subtitle
+- **Alert**: Status/notification messages with type variants (info, success, warning, error)
+- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
+- **CardContainer**: Card wrapper with title, icon, and scrollable content
+- **LabelWithIcon**: Label wrapper with optional icon
+- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
+
+**Form Controls** (src/components/ui/forms/):
+- **CheckboxControl**: Checkboxes for boolean settings (42 lines)
+- **RangeSlider**: Range input with label, icon, value display, and customizable styling
 - **SelectControl**: Dropdown selections with option groups support (126 lines)
 - **ToggleControl**: Toggle switches for boolean settings (42 lines)
-- **CheckboxControl**: Checkboxes for boolean settings (42 lines)
 
-**Reusable Components**:
-- ViewModeSection, ProjectionInfo, ProjectionParamsControls
-- ProjectionConfirmDialog, ToastNotification
-- AppHeader, AppFooter, ThemeSelector, LanguageSelector
-- CardContainer, SectionHeader
+**Settings Components** (src/components/ui/settings/):
+- **LanguageSelector**: Language selection dropdown
+- **ThemeSelector**: Theme selection interface
+
+**Projection Components** (src/components/ui/projections/):
+- **ProjectionConfirmDialog**: Confirmation dialog for projection changes
+- **ProjectionDropdown**: Projection dropdown list
+- **ProjectionInfo**: Projection information display
+- **ProjectionParamsControls**: Projection parameter adjustment controls
+- **ProjectionRecommendationBadge**: Projection recommendation indicators
+- **ProjectionSearchBar**: Projection search input
+- **ProjectionSelector**: Main projection selection interface (114 lines)
+
+**Import Components** (src/components/ui/import/):
+- **ImportControls**: Import and export control buttons
+- **ImportModal**: Modal for importing configurations
+
+**Export Components** (src/components/ui/export/):
+- **CompositeExportDialog**: Dialog for exporting composite configurations
+- **ToastNotification**: Toast notification display
 
 **Composition Patterns**:
 - RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)

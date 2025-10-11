@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
-import CardContainer from '@/components/ui/CardContainer.vue'
+import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 
 const { t } = useI18n()
 </script>

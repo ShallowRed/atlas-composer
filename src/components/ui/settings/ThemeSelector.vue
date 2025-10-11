@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SelectControl from '@/components/ui/SelectControl.vue'
+import SelectControl from '@/components/ui/forms/SelectControl.vue'
 import { useUIStore } from '@/stores/ui'
 
 const uiStore = useUIStore()

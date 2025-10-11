@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import SelectControl from '@/components/ui/SelectControl.vue'
-import ThemeSelector from '@/components/ui/ThemeSelector.vue'
+import SelectControl from '@/components/ui/forms/SelectControl.vue'
+import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 
