@@ -106,19 +106,21 @@ Static methods for configuration serialization and code generation.
   - `bounds` - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
 
 ### CompositeImportService
-Re-imports exported configurations with validation and type safety.
+Re-imports exported configurations with validation, automatic version migration, and type safety.
 Static methods for JSON parsing and store application.
 
 **Import Methods**:
-- `importFromJSON()` - Parse and validate JSON string
+- `importFromJSON()` - Parse, migrate (if needed), and validate JSON string
+- `importFromFile()` - Import from File object (browser File API)
 - `checkAtlasCompatibility()` - Check atlas ID compatibility
 - `applyToStores()` - Apply configuration to stores (type-safe)
 
 **Import Flow**:
 1. Parse JSON string
-2. Validate structure (required fields, data types)
-3. Check version compatibility
-4. Return `{ config?, errors[], warnings[] }`
+2. Check version and migrate automatically if needed (via ConfigMigrator)
+3. Validate structure (required fields, data types)
+4. Check atlas compatibility
+5. Return `{ success, config?, errors[], warnings[], migrated?, fromVersion? }`
 
 **Application Flow**:
 1. Apply projection to each territory via CompositeProjection service
@@ -126,8 +128,30 @@ Static methods for JSON parsing and store application.
 3. Apply translation offset to territory store
 4. Maintain state consistency
 
-**Type Safety** (completed improvements):
+**Type Safety**:
 - Replaced all `any` types with proper store types
+
+### ConfigMigrator
+Handles automatic migration of exported configurations between schema versions.
+Static methods for version detection, migration chain execution, and validation.
+
+**Current Version**: `1.0`
+
+**Migration Methods**:
+- `needsMigration()` - Check if config needs migration to current version
+- `canMigrate()` - Check if migration is possible (version supported)
+- `migrateToCurrentVersion()` - Execute migration chain
+- `isCurrentVersion()` - Check if config is already current version
+- `compareVersions()` - Compare two version strings
+
+**Migration Architecture**:
+- Plugin-based chain (v1.0 → v1.1 → v1.2)
+- Pure functions with no side effects
+- Automatic integration in import flow
+- Detailed logging with messages, errors, warnings
+
+**Adding New Versions**:
+Add migration function and update chain in `performMigrationChain()`
 - Uses `ReturnType<typeof useConfigStore>` pattern
 - Proper CompositeProjection API: `updateTerritoryProjection()`
 - Store methods: `setTerritoryProjection`, `setTerritoryScale`, `setTerritoryTranslation`
@@ -304,7 +328,7 @@ Usage: Standalone D3 projects, Observable notebooks, Node.js rendering
 ## Design Patterns
 
 ### Static Methods
-New services (Phase 1-4) use static methods for:
+Export/import services use static methods for:
 - Testability without Vue context
 - Functional programming style
 - No state management in services

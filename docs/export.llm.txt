@@ -279,22 +279,117 @@ Re-imports exported JSON configurations back into Atlas Composer with full type 
 
 **Import Process**:
 1. **Parse JSON** - `importFromJSON(jsonString)`
-2. **Validate Structure** - Check required fields, data types
-3. **Check Compatibility** - Version and atlas ID validation
-4. **Return Result** - `{ config?, errors[], warnings[] }`
+2. **Check Version** - Automatically migrate if needed
+3. **Validate Structure** - Check required fields, data types
+4. **Check Compatibility** - Atlas ID validation
+5. **Return Result** - `{ config?, errors[], warnings[], migrated?, fromVersion? }`
 
 **Application Process**:
-5. **Apply to Stores** - `applyToStores(config, stores)`
+6. **Apply to Stores** - `applyToStores(config, stores)`
    - Sets territory projection via CompositeProjection service
    - Applies scale multiplier to territory store
    - Applies translation offset to territory store
    - Maintains state consistency
 
-**Type Safety Improvements** (completed):
+**Type Safety Improvements**:
 - Replaced all `any` types with proper store types
 - Uses `ReturnType<typeof useConfigStore>` pattern
 - Proper CompositeProjection API usage (`updateTerritoryProjection`)
 - Store methods: `setTerritoryProjection`, `setTerritoryScale`, `setTerritoryTranslation`
+
+## Version Management System
+
+### ConfigMigrator Service
+File: `src/services/export/config-migrator.ts`
+
+Handles automatic migration of exported configurations between schema versions.
+
+**Current Version**: `1.0`
+
+**Architecture**:
+- **Plugin-based chain** - Migrations execute sequentially (v1.0 → v1.1 → v1.2)
+- **Pure functions** - No side effects, detailed logging
+- **Automatic integration** - Import service calls migrator transparently
+- **Type-safe** - `AnyVersionConfig` union type for all supported versions
+
+**Core API**:
+```typescript
+// Check if config needs migration
+ConfigMigrator.needsMigration(config: AnyVersionConfig): boolean
+
+// Check if migration is possible
+ConfigMigrator.canMigrate(config: AnyVersionConfig): boolean
+
+// Perform migration to current version
+ConfigMigrator.migrateToCurrentVersion(config: AnyVersionConfig): MigrationResult
+
+// Migration result type
+interface MigrationResult {
+  success: boolean
+  config?: ExportedCompositeConfig  // Current version
+  messages: string[]                 // Info messages
+  errors: string[]                   // Critical errors
+  warnings: string[]                 // Non-critical issues
+}
+```
+
+**Migration Flow**:
+1. **Version Detection** - Parse `config.version` field
+2. **Support Check** - Verify version is in `SUPPORTED_VERSIONS`
+3. **Chain Execution** - Apply migrations sequentially
+4. **Validation** - Verify result matches current schema
+5. **Result Return** - Success/failure with detailed messages
+
+**Automatic Integration**:
+The import service automatically detects and migrates old configurations:
+```typescript
+// In CompositeImportService.importFromJSON()
+if (ConfigMigrator.needsMigration(parsedConfig)) {
+  const migrationResult = ConfigMigrator.migrateToCurrentVersion(parsedConfig)
+  if (migrationResult.success) {
+    config = migrationResult.config!
+    warnings.push(`Configuration migrated from v${fromVersion} to v${config.version}`)
+  }
+}
+```
+
+**Adding New Versions**:
+When the export schema changes, add a migration function:
+```typescript
+// In config-migrator.ts
+function migrateV1ToV2(config: ExportedCompositeConfigV1): ExportedCompositeConfigV2 {
+  // Transform config structure
+  // Add new required fields with defaults
+  // Update version field
+  return migratedConfig
+}
+
+// Update performMigrationChain()
+if (fromVersion === '1.0' && toVersion === '2.0') {
+  config = migrateV1ToV2(config)
+  currentVersion = '2.0'
+}
+```
+
+**Version Type System**:
+File: `src/types/export-config.ts`
+```typescript
+export type ConfigVersion = '1.0' // Add '1.1' | '1.2' as needed
+
+export interface BaseExportedConfig {
+  version: ConfigVersion
+  metadata: ExportMetadata
+  territories: TerritoryConfig[]
+}
+
+export type ExportedCompositeConfigV1 = BaseExportedConfig & {
+  version: '1.0'
+  // v1.0 specific fields
+}
+
+// Union type for all versions
+export type AnyVersionConfig = ExportedCompositeConfigV1 // | ExportedCompositeConfigV2
+```
 
 ### ImportModal Component
 File: `src/components/ui/ImportModal.vue`
@@ -571,5 +666,5 @@ Total: 72 tests for export/import system
 - Additional export formats (Leaflet, Mapbox GL JS adapters)
 - Code minification option for generated code
 - Browser preview of exported projection
-- Version migration for config format upgrades
 - Batch export for multiple configurations
+- CLI export/import tools (currently deferred due to module resolution issues)

@@ -247,10 +247,10 @@ When adding v1.1, uncomment template in config-migrator.ts and implement migrati
 - ✅ Tree-shaking verified
 
 ## Documentation Updates
-- [ ] docs/export.llm.txt - Add NPM package section, CLI usage, version migration
-- [ ] docs/services.llm.txt - Update import service documentation
-- [ ] docs/scripts.llm.txt - Add new CLI export/import scripts
-- [ ] README.md - Add standalone loader package section
+- [x] docs/export.llm.txt - Add NPM package section, CLI usage, version migration
+- [x] docs/services.llm.txt - Update import service and ConfigMigrator documentation
+- [ ] docs/scripts.llm.txt - Add new CLI export/import scripts (deferred - Phase 4 blocked)
+- [x] README.md - Add standalone loader package section
 
 ## Verification
 
