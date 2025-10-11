@@ -12,15 +12,15 @@
  *   pnpm export:config eu --format d3 --lang js --comments --examples
  */
 
-import type { CodeGenerationOptions, ExportedCompositeConfig } from '../src/types/export-config'
 import type { CompositeProjectionConfig } from '../src/types'
+import type { CodeGenerationOptions, ExportedCompositeConfig } from '../src/types/export-config'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
-import { CompositeProjection } from '../src/services/projection/composite-projection'
 import { CompositeExportService } from '../src/services/export/composite-export-service'
-import { loadAtlasConfig } from './utils/export-helpers'
+import { CompositeProjection } from '../src/services/projection/composite-projection'
 import { parseCliArgs } from './utils/cli-args'
+import { loadAtlasConfig } from './utils/export-helpers'
 import { logger } from './utils/logger'
 
 interface ExportOptions {

@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig({
   entry: {
-    index: 'src/index.ts',
+    'index': 'src/index.ts',
     'd3-projection-helpers': 'src/d3-projection-helpers.ts',
   },
   format: ['esm'],

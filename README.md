@@ -124,17 +124,17 @@ pnpm add @atlas-composer/projection-loader d3-geo d3-geo-projection
 The export dialog in Atlas Composer generates ready-to-use code:
 
 ```typescript
-import { geoConicConformal, geoMercator } from 'd3-geo'
 import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+import { geoConicConformal, geoMercator } from 'd3-geo'
 
 export function createFranceProjection() {
   // Register the projections used
   registerProjection('conic-conformal', () => geoConicConformal())
   registerProjection('mercator', () => geoMercator())
-  
+
   // Configuration exported from Atlas Composer
   const config = { /* ...exported JSON... */ }
-  
+
   // Load the composite projection
   return loadCompositeProjection(config, {
     width: 800,
@@ -175,7 +175,7 @@ Plot.plot({
 
 #### Package Location
 
-The package is maintained in this monorepo at `packages/projection-loader/`. 
+The package is maintained in this monorepo at `packages/projection-loader/`.
 See its [README](./packages/projection-loader/README.md) for complete documentation.
 
 ## �🛠️ Technology Stack

@@ -7,8 +7,8 @@
 import type { AtlasConfig } from '../../types/atlas-config'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { validateAtlasConfig } from './schema-validator'
 import { logger } from './logger'
+import { validateAtlasConfig } from './schema-validator'
 
 /**
  * Load and validate an atlas configuration file

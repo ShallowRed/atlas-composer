@@ -26,15 +26,15 @@ yarn add @atlas-composer/projection-loader d3-geo d3-geo-projection
 ## Quick Start
 
 ```typescript
+import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
 import * as d3 from 'd3-geo'
-import { registerProjection, loadCompositeProjection } from '@atlas-composer/projection-loader'
+
+// 2. Load your exported configuration
+import config from './france-composite.json'
 
 // 1. Register projections (only what you need!)
 registerProjection('mercator', () => d3.geoMercator())
 registerProjection('conic-conformal', () => d3.geoConicConformal())
-
-// 2. Load your exported configuration
-import config from './france-composite.json'
 
 const projection = loadCompositeProjection(config, {
   width: 800,
@@ -72,8 +72,8 @@ const projection = loadCompositeProjection(config, { width: 800, height: 600 })
 For optimal bundle sizes, import only what you need:
 
 ```typescript
-import { geoMercator, geoConicConformal } from 'd3-geo'
-import { registerProjections, loadCompositeProjection } from '@atlas-composer/projection-loader'
+import { loadCompositeProjection, registerProjections } from '@atlas-composer/projection-loader'
+import { geoConicConformal, geoMercator } from 'd3-geo'
 
 // Only these two projections will be in your bundle
 registerProjections({
@@ -89,9 +89,9 @@ const projection = loadCompositeProjection(config, { width: 800, height: 600 })
 ## Observable Plot Integration
 
 ```typescript
+import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
 import * as Plot from '@observablehq/plot'
 import * as d3 from 'd3-geo'
-import { registerProjection, loadCompositeProjection } from '@atlas-composer/projection-loader'
 
 // Register projections
 registerProjection('mercator', () => d3.geoMercator())
@@ -118,9 +118,9 @@ Plot.plot({
 ### React
 
 ```tsx
+import { loadCompositeProjection, registerProjections } from '@atlas-composer/projection-loader'
 import * as d3 from 'd3-geo'
 import { useEffect, useRef } from 'react'
-import { loadCompositeProjection, registerProjections } from '@atlas-composer/projection-loader'
 
 function MapComponent({ config }) {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -141,7 +141,7 @@ function MapComponent({ config }) {
     // Render map
     const path = d3.geoPath(projection)
     const svg = d3.select(svgRef.current)
-    
+
     svg.selectAll('path')
       .data(features)
       .join('path')
@@ -157,9 +157,9 @@ function MapComponent({ config }) {
 
 ```vue
 <script setup lang="ts">
+import { loadCompositeProjection, registerProjections } from '@atlas-composer/projection-loader'
 import * as d3 from 'd3-geo'
 import { onMounted, ref } from 'vue'
-import { loadCompositeProjection, registerProjections } from '@atlas-composer/projection-loader'
 
 const props = defineProps<{ config: any }>()
 const svgRef = ref<SVGSVGElement>()
@@ -177,7 +177,7 @@ onMounted(() => {
 
   const path = d3.geoPath(projection)
   const svg = d3.select(svgRef.value)
-  
+
   svg.selectAll('path')
     .data(features)
     .join('path')
@@ -216,7 +216,7 @@ onMount(() => {
 
   const path = d3.geoPath(projection)
   const svg = d3.select(svgElement)
-  
+
   svg.selectAll('path')
     .data(features)
     .join('path')
@@ -278,8 +278,8 @@ Register multiple projections at once.
 
 ```typescript
 registerProjections({
-  'mercator': () => d3.geoMercator(),
-  'albers': () => d3.geoAlbers()
+  mercator: () => d3.geoMercator(),
+  albers: () => d3.geoAlbers()
 })
 ```
 
@@ -291,8 +291,8 @@ Load a composite projection from an exported configuration.
 const projection = loadCompositeProjection(config, {
   width: 800,
   height: 600,
-  enableClipping: true,  // optional, default: true
-  debug: false           // optional, default: false
+  enableClipping: true, // optional, default: true
+  debug: false // optional, default: false
 })
 ```
 

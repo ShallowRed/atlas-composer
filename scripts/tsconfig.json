@@ -2,10 +2,10 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
+    "baseUrl": "..",
     "rootDir": "..",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": "..",
     "paths": {
       "@/*": ["src/*"],
       "#configs/*": ["configs/*"],
