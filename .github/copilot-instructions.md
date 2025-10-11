@@ -207,6 +207,12 @@ DEVELOPMENT RULES:
 - Once the project is created, it is already opened in Visual Studio Code—do not suggest commands to open this project in Visual Studio again.
 - If the project setup information has additional rules, follow them strictly.
 
+TERMINAL COMMAND RULES:
+- ALWAYS use `isBackground=true` for long-running processes (dev servers, watch modes, etc.)
+- Commands like `pnpm dev`, `npm run dev`, `vite`, or any server process MUST run in background
+- Only use `isBackground=false` for commands that complete quickly (build, test, validation)
+- Interactive commands (those requiring user input) MUST run in background to avoid blocking
+
 FOLDER CREATION RULES:
 - Always use the current directory as the project root.
 - If you are running any terminal commands, use the '.' argument to ensure that the current working directory is used ALWAYS.

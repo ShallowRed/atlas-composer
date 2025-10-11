@@ -229,6 +229,10 @@
       "name": "Conic Conformal Portugal (Composite)",
       "description": "Optimized composite projection for Portugal, including mainland and Atlantic archipelagos (Azores, Madeira)"
     },
+    "conicConformalSpain": {
+      "name": "Conic Conformal Spain (Composite)",
+      "description": "Optimized composite projection for Spain, including mainland, Balearic Islands, and Canary Islands"
+    },
     "conicConformalEurope": {
       "name": "Conic Conformal Europe (Composite)",
       "description": "Optimized composite projection for the European Union and its overseas territories"
