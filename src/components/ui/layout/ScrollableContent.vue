@@ -77,7 +77,7 @@ const hasOverflowTop = computed(() => {
   position: absolute;
   left: 0;
   right: 0;
-  height: 4rem;
+  height: 2rem;
   pointer-events: none;
   z-index: 10;
 }

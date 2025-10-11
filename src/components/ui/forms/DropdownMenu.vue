@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownOptionGroup } from './DropdownControl.vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DropdownOptionItem from './DropdownOptionItem.vue'
 
 interface Props {
@@ -22,7 +23,25 @@ const emit = defineEmits<{
   keydown: [event: KeyboardEvent, value: string]
 }>()
 
+const { t } = useI18n()
+
 const menuPosition = ref({ top: 0, left: 0, width: 0 })
+
+// Translate category to label
+function getCategoryLabel(group: DropdownOptionGroup): string {
+  // If label is provided, use it directly
+  if (group.label) {
+    return group.label
+  }
+
+  // If category is provided, translate it
+  if (group.category) {
+    const translationKey = `projections.categories.${group.category}`
+    return t(translationKey)
+  }
+
+  return ''
+}
 
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
@@ -152,7 +171,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
           class="menu-title translate-y-2"
           role="presentation"
         >
-          {{ group.label || group.category }}
+          {{ getCategoryLabel(group) }}
         </li>
         <li
           v-for="option in group.options || []"

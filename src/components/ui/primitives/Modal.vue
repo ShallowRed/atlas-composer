@@ -45,7 +45,7 @@ watch(() => props.modelValue, async (isOpen) => {
     // Use multiple nextTick calls to ensure Teleport has completed
     await nextTick()
     await nextTick()
-    
+
     // Additional fallback with setTimeout for Teleport
     setTimeout(() => {
       modalBoxRef.value?.focus()

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Option {
   value: string
@@ -35,6 +36,8 @@ const emit = defineEmits<{
   'change': [value: string]
 }>()
 
+const { t } = useI18n()
+
 const localValue = computed({
   get: () => props.modelValue,
   set: (value: string | undefined) => {
@@ -44,6 +47,22 @@ const localValue = computed({
     }
   },
 })
+
+// Translate category to label
+function getCategoryLabel(group: OptionGroup): string {
+  // If label is provided, use it directly
+  if (group.label) {
+    return group.label
+  }
+
+  // If category is provided, translate it
+  if (group.category) {
+    const translationKey = `projections.categories.${group.category}`
+    return t(translationKey)
+  }
+
+  return ''
+}
 </script>
 
 <template>
@@ -67,7 +86,7 @@ const localValue = computed({
         <optgroup
           v-for="group in optionGroups"
           :key="group.key || group.category"
-          :label="group.label || group.category"
+          :label="getCategoryLabel(group)"
         >
           <option
             v-for="option in group.options || []"
