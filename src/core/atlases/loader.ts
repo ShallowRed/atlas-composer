@@ -3,7 +3,7 @@
  * Adapter to transform shared JSON configs into complete atlas configurations
  */
 
-import type { JSONAtlasConfig, JSONTerritoryConfig } from '#types'
+import type { I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
   CompositeProjectionDefaults,
@@ -34,6 +34,9 @@ export interface AtlasSpecificConfig {
   territoryGroups?: Record<string, TerritoryGroupConfig>
   defaultCompositeConfig?: CompositeProjectionDefaults
   projectionPreferences?: ProjectionPreferences
+  // Raw i18n values for reactive translation
+  rawModeLabels: Record<string, I18nValue>
+  rawGroupLabels?: Record<string, I18nValue>
 }
 
 export interface LoadedTerritories {
@@ -412,6 +415,14 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
   // Extract projection preferences if provided
   const projectionPreferences: ProjectionPreferences | undefined = jsonConfig.projectionPreferences
 
+  // Store raw i18n values for reactive translation
+  const rawModeLabels = Object.fromEntries(
+    (jsonConfig.modes || []).map(mode => [mode.id, mode.label]),
+  )
+  const rawGroupLabels = Object.fromEntries(
+    (jsonConfig.groups || []).map(group => [group.id.toUpperCase(), group.label]),
+  )
+
   // Create atlas-specific config
   const atlasSpecificConfig: AtlasSpecificConfig = {
     projectionParams,
@@ -419,6 +430,8 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     territoryGroups,
     defaultCompositeConfig,
     projectionPreferences,
+    rawModeLabels,
+    rawGroupLabels: Object.keys(rawGroupLabels).length > 0 ? rawGroupLabels : undefined,
   }
 
   return {

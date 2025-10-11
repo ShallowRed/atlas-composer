@@ -51,7 +51,7 @@
     "mercator": "Mercator",
     "naturalEarth": "Natural Earth",
     "equalEarth": "Equal Earth",
-    "composite": "Projection composite",
+    "composite": "Composite projection",
     "compositeCustom": "Custom composite projection",
     "compositeExisting": "Existing composite projection",
     "unified": "Unified projection",

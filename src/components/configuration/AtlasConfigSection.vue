@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
+import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
@@ -17,6 +18,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const { t } = useI18n()
 const configStore = useConfigStore()
+
+// Get territory mode options with reactive translation
+const { options: territoryModeOptions } = useTerritoryModeOptions()
 
 // Get grouped atlases with translated category labels and flags
 const atlasGroupsWithIcons = computed(() => {
@@ -73,7 +77,7 @@ const isProjectionModeDisabled = computed(() => {
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
       :disabled="isTerritorySelectDisabled"
-      :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
+      :options="territoryModeOptions"
     />
     <!-- Main View Mode Selector -->
     <DropdownControl

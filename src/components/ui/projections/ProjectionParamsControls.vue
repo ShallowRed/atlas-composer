@@ -150,12 +150,13 @@ const { compositeProjectionOptions } = useProjectionConfig()
   <div>
     <!-- Composite Projection Selector (for composite-existing mode) -->
     <DropdownControl
+      v-if="configStore.viewMode === 'composite-existing'"
       v-model="configStore.compositeProjection"
       :label="t('projection.composite')"
       icon="ri-global-line"
       :options="compositeProjectionOptions"
     />
-    <template v-if="configStore.viewMode !== 'composite-existing'">
+    <template v-else>
       <!-- Uniform Projection Selector (for uniform projection mode) -->
       <ProjectionDropdown
         v-show="configStore.showProjectionSelector"
