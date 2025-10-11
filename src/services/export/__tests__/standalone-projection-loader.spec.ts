@@ -2,9 +2,9 @@
  * Tests for standalone projection loader (zero-dependency version with plugin architecture)
  */
 
-import { beforeAll, describe, expect, it } from 'vitest'
-
 import type { ExportedConfig } from '../standalone-projection-loader'
+
+import { beforeAll, describe, expect, it } from 'vitest'
 import { d3ProjectionFactories } from '../d3-projection-helpers'
 import {
   getRegisteredProjections,

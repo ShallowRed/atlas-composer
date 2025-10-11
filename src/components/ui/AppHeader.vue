@@ -37,11 +37,11 @@ const { t } = useI18n()
                   v-if="route.path !== '/'"
                   to="/"
                 >
-                  <i class="ri-map-line" />
+                  <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </RouterLink>
                 <span v-else class="text-primary font-semibold flex items-center gap-2">
-                  <i class="ri-map-line" />
+                  <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </span>
               </li>

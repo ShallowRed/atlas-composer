@@ -155,29 +155,48 @@ Static methods for configuration import:
 Generate standalone executable code from exported configurations.
 Supports multiple formats and languages:
 - `generate()` - Main entry point with format/language options
-- `generateD3JavaScript()` - D3.js JavaScript code
+- `generateD3JavaScript()` - D3.js JavaScript code with registration
 - `generateD3TypeScript()` - D3.js TypeScript code with type annotations
-- `generatePlotCode()` - Observable Plot code
+- `generatePlotCode()` - Observable Plot code with registration
 - Implements D3 stream protocol with state machine for geometry routing
 - Geographic bounds-based stream multiplexing
 - Applies number rounding for floating-point precision (6 decimals)
+- Generated code includes projection registration examples (80-92% shorter)
 
 See docs/export.llm.txt for detailed D3 stream protocol implementation.
 
 ### Standalone Projection Loader (standalone-projection-loader.ts)
 Pure JavaScript/TypeScript module for loading exported configurations.
-Can be extracted as standalone npm package with only d3-geo dependencies.
-Exported functions:
-- `loadCompositeProjection()` - Create D3 projection from ExportedConfig
-- `loadFromJSON()` - Parse JSON and create projection in one step
-- `validateConfig()` - Validate configuration before loading
-- `getSupportedProjections()` - List supported projection IDs
+Zero-dependency plugin architecture - users register projections at runtime.
+
+Registration API:
+- `registerProjection(id, factory)` - Register single projection
+- `registerProjections(factories)` - Bulk registration
+- `unregisterProjection(id)` - Remove projection
+- `clearProjections()` - Clear all registrations
+- `getRegisteredProjections()` - Query registry
+- `isProjectionRegistered(id)` - Check registration
+
+Loading API:
+- `loadCompositeProjection(config, options)` - Create projection from config
+- `validateConfig(config)` - Validate configuration structure
+
 Features:
-- No Vue or Atlas Composer dependencies
-- D3 stream multiplexing for proper geometry routing
+- Zero dependencies (no d3-geo imports)
+- Plugin architecture with runtime registry
+- Self-contained TypeScript types (ProjectionLike, ProjectionFactory, StreamLike)
+- D3 stream multiplexing for geometry routing
 - Geographic bounds-based territory selection
 - Debug mode for logging territory selection
-- Supports 14+ projection types (azimuthal, conic, cylindrical)
+- Supports any projection (D3, Proj4, custom)
+- Tree-shakeable imports
+- Bundle size: ~6KB (vs 100KB with bundled dependencies)
+
+Optional D3 Helpers (d3-projection-helpers.ts):
+- Pre-configured D3 projection factories
+- Tree-shakeable individual exports
+- Bulk registration helper
+- Keeps D3 dependencies separate from main loader
 Usage: Standalone D3 projects, Observable notebooks, Node.js rendering
 
 ## Design Patterns

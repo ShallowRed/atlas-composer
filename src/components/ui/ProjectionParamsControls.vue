@@ -190,6 +190,7 @@ const hasAnyRelevantParams = computed(() => {
           :model-value="currentRotateLongitude"
           :label="t('projectionParams.rotateLongitude')"
           icon="ri-compass-3-line"
+          size="xs"
           :min="RANGES.rotateLongitude.min"
           :max="RANGES.rotateLongitude.max"
           :step="RANGES.rotateLongitude.step"

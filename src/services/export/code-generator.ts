@@ -280,6 +280,7 @@ export class CodeGenerator {
 
     return lines
   }
+
   /**
    * Generate D3 usage example
    */

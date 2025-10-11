@@ -481,9 +481,9 @@ function createSubProjection(
     const registered = getRegisteredProjections()
     const availableList = registered.length > 0 ? registered.join(', ') : 'none'
     throw new Error(
-      `Projection "${projectionId}" is not registered. ` +
-      `Available projections: ${availableList}. ` +
-      `Use registerProjection('${projectionId}', factory) to register it.`,
+      `Projection "${projectionId}" is not registered. `
+      + `Available projections: ${availableList}. `
+      + `Use registerProjection('${projectionId}', factory) to register it.`,
     )
   }
 
