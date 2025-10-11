@@ -24,7 +24,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="collapse collapse-arrow join-item border bg-base-100 border-base-300 border bg-base-200/30">
+  <div class="collapse collapse-arrow join-item border bg-base-100 border-base-300">
     <input
       v-if="groupName"
       type="radio"

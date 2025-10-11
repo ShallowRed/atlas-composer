@@ -36,46 +36,48 @@ function close() {
 </script>
 
 <template>
-  <dialog
-    :open="modelValue"
-    class="modal"
-    @click.self="close"
-  >
+  <Teleport to="body">
     <div
-      class="modal-box"
-      :class="`max-w-${maxWidth}`"
+      v-if="modelValue"
+      class="modal modal-open"
+      @click.self="close"
     >
-      <!-- Header -->
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-bold">
-          <slot name="title">
-            <i
-              v-if="icon"
-              :class="`${icon} mr-1`"
-            />
-            {{ title }}
-          </slot>
-        </h3>
-        <button
-          v-if="showCloseButton"
-          class="btn btn-circle btn-ghost btn-sm"
-          aria-label="Close"
-          @click="close"
-        >
-          ✕
-        </button>
-      </div>
-
-      <!-- Content -->
-      <slot />
-
-      <!-- Actions -->
       <div
-        v-if="$slots.actions"
-        class="modal-action"
+        class="modal-box"
+        :class="`max-w-${maxWidth}`"
       >
-        <slot name="actions" />
+        <!-- Header -->
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-lg font-bold">
+            <slot name="title">
+              <i
+                v-if="icon"
+                :class="`${icon} mr-1`"
+              />
+              {{ title }}
+            </slot>
+          </h3>
+          <button
+            v-if="showCloseButton"
+            class="btn btn-circle btn-ghost btn-sm"
+            aria-label="Close"
+            @click="close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Content -->
+        <slot />
+
+        <!-- Actions -->
+        <div
+          v-if="$slots.actions"
+          class="modal-action"
+        >
+          <slot name="actions" />
+        </div>
       </div>
     </div>
-  </dialog>
+  </Teleport>
 </template>
