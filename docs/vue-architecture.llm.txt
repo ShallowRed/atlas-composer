@@ -6,7 +6,7 @@ Vue 3 Composition API application with TypeScript, Pinia stores, and composable-
 
 **Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
 **Test Framework**: Vitest + @vue/test-utils
-**Test Coverage**: 122 tests (100% passing)
+**Test Coverage**: 164 tests (100% passing)
 
 ## Project Structure
 
@@ -108,7 +108,7 @@ App.vue
 **Form Controls** (src/components/ui/forms/):
 - **CheckboxControl**: Checkboxes for boolean settings (42 lines)
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
-- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (580 lines)
+- **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (590 lines, 42 tests)
   - Two modes: standard (fieldset wrapper) and inline (for navbar use)
   - Manual JS-controlled dropdown (overrides DaisyUI CSS focus behavior)
   - Supports emoji/text icons and icon classes (detects 'ri-' prefix)
@@ -122,13 +122,15 @@ App.vue
     - Home/End: jump to first/last option (when open)
     - Tab: close dropdown and move focus
     - Click: select option and close dropdown
+  - Automatic scroll behavior: focused option scrolls into view during keyboard navigation
   - ARIA attributes for screen readers (role, aria-expanded, aria-selected, aria-activedescendant)
-  - Focus management with proper return to button after selection
-  - Thick visible focus state (4px outline) for accessibility
+  - Focus management with CSS highlighting (no DOM focus to avoid blur conflicts)
+  - Thick visible focus state (2px outline + background color) for accessibility
   - Selected option highlighted with primary color when dropdown open
   - Translation support with Vue I18n ($t() integration)
   - isNavigating flag prevents blur events during arrow navigation
   - Exports DropdownOption and DropdownOptionGroup interfaces
+  - Comprehensive test suite covers rendering, state management, selection, keyboard navigation, accessibility, and edge cases
 - **ToggleControl**: Toggle switches for boolean settings (42 lines)
 
 **Settings Components** (src/components/ui/settings/):

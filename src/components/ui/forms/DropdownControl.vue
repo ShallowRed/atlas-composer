@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 // Export interfaces for use in other components
 export interface DropdownOption {
@@ -265,6 +265,24 @@ function handleOptionKeyDown(event: KeyboardEvent, value: string) {
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
 }
+
+// Watch focusedIndex to scroll the option into view
+watch(focusedIndex, (newIndex) => {
+  if (newIndex >= 0 && isOpen.value) {
+    // Use nextTick to ensure the DOM has been updated with new focus state
+    nextTick(() => {
+      const optionElement = document.getElementById(getOptionId(newIndex))
+      if (optionElement) {
+        // Scroll the option into view smoothly
+        optionElement.scrollIntoView({
+          // behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest',
+        })
+      }
+    })
+  }
+})
 </script>
 
 <template>
