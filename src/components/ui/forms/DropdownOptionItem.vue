@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption } from './DropdownControl.vue'
+import { computed } from 'vue'
 import DropdownOptionIcon from './DropdownOptionIcon.vue'
 
 interface Props {
@@ -10,12 +11,24 @@ interface Props {
   showBadgeInline?: boolean // When true, badge is shown inline with label (for option groups)
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   select: [value: string]
   keydown: [event: KeyboardEvent, value: string]
 }>()
+
+// Check if badge is a Remix icon class (starts with 'ri-')
+const isBadgeIcon = computed(() => {
+  return props.option.badge?.startsWith('ri-')
+})
+
+// Extract all classes from badge string (may contain icon class + color classes)
+const badgeClasses = computed(() => {
+  if (!props.option.badge)
+    return ''
+  return props.option.badge
+})
 
 function handleClick(value: string) {
   emit('select', value)
@@ -47,14 +60,29 @@ function handleKeyDown(event: KeyboardEvent, value: string) {
       v-if="option.badge && showBadgeInline"
       class="width-full flex items-center justify-between gap-2"
     >
-      {{ $t(option.label) }}
-      <span class="badge badge-soft badge-xs">{{ option.badge }}</span>
+      <span class="flex items-center gap-1.5">
+        <i
+          v-if="isBadgeIcon"
+          :class="badgeClasses"
+          class="text-sm"
+        />
+        <span
+          v-else
+          class="badge badge-soft badge-xs"
+        >{{ option.badge }}</span>
+        {{ $t(option.label) }}
+      </span>
     </div>
 
-    <!-- Standard layout: icon, badge, label -->
+    <!-- Standard layout: badge icon (left), label -->
     <template v-else>
+      <i
+        v-if="option.badge && isBadgeIcon"
+        :class="badgeClasses"
+        class="text-sm shrink-0"
+      />
       <span
-        v-if="option.badge"
+        v-else-if="option.badge"
         class="badge badge-soft badge-xs"
       >{{ option.badge }}</span>
       {{ $t(option.label) }}

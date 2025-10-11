@@ -34,11 +34,11 @@ export function useProjectionRecommendations(
 
     switch (rec.level) {
       case 'excellent':
-        return '+++'
+        return 'ri-star-fill'
       case 'good':
-        return '++'
+        return 'ri-star-line'
       case 'usable':
-        return '+'
+        return 'ri-star-half-line'
       default:
         return ''
     }
@@ -54,8 +54,8 @@ export function useProjectionRecommendations(
         return 'text-success'
       case 'good':
         return 'text-info'
-      case 'not-recommended':
-        return 'text-error opacity-60'
+      case 'usable':
+        return 'text-base-content opacity-60'
       default:
         return ''
     }

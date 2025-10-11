@@ -50,19 +50,7 @@
     "compositeCustom": "Custom composite projection",
     "compositeExisting": "Existing composite projection",
     "unified": "Unified projection",
-    "custom": "Custom",
-    "useRecommended": "Use {projection}",
-    "validation": {
-      "prohibited": "{projection} is not recommended: {reason}",
-      "poorChoice": "{projection} may not be ideal for this atlas",
-      "betterOptionsAvailable": "Better projection options are available",
-      "notSuitable": "Not suitable for this atlas",
-      "alternatives": "Consider using: {projections}",
-      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?",
-      "warningTitle": "Projection Warning",
-      "suggestedAlternatives": "Suggested alternatives:",
-      "useAnyway": "Use Anyway"
-    }
+    "custom": "Custom"
   },
   "mode": {
     "select": "Territories to include",

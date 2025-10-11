@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
-import ProjectionSelector from '@/components/ui/projections/ProjectionSelector.vue'
+import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
@@ -146,11 +146,10 @@ const hasAnyRelevantParams = computed(() => {
 <template>
   <div>
     <!-- Uniform Projection Selector (for uniform projection mode) -->
-    <ProjectionSelector
+    <ProjectionDropdown
       v-show="configStore.showProjectionSelector"
       v-model="configStore.selectedProjection"
       :label="t('projection.cartographic')"
-      icon="ri-global-line"
       :projection-groups="configStore.projectionGroups"
       :recommendations="configStore.projectionRecommendations"
     />

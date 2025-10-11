@@ -90,7 +90,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
       :key="group.key || group.category"
     >
       <li
-        class="menu-title"
+        class="menu-title translate-y-2"
         role="presentation"
       >
         {{ group.label || group.category }}

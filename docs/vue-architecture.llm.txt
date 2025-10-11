@@ -21,15 +21,15 @@ src/
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
-│   └── ui/                   # 27 reusable UI components organized in subdirectories
+│   └── ui/                   # 24 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
 │       ├── forms/            # Form controls and inputs
 │       ├── settings/         # Settings and preferences
-│       ├── projections/      # Projection-related components
+│       ├── projections/      # Projection-related components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 9 composition functions
+├── composables/              # 8 composition functions
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -43,7 +43,7 @@ App.vue
 │   └── MapView.vue (main coordinator)
 │       ├── MapRenderer.vue (D3 rendering engine)
 │       ├── TerritoryControls.vue (territory transforms)
-│       ├── ProjectionSelector.vue (projection selection)
+│       ├── ProjectionDropdown.vue (projection selection with info modal)
 │       └── UI Components
 │           ├── ViewModeSection
 │           ├── ProjectionInfo
@@ -145,15 +145,15 @@ App.vue
 
 **Projection Components** (src/components/ui/projections/):
 - **ProjectionConfirmDialog**: Confirmation dialog for projection changes
-- **ProjectionDropdown**: Projection dropdown using DropdownControl with recommendation badges
-  - Displays projection options with recommendation indicators
+- **ProjectionDropdown**: Projection selection component with info modal
+  - Uses DropdownControl with recommendation badges (Remix icons)
+  - Displays badge icons to left of projection names
+  - Badge system: ri-star-fill (excellent), ri-star-line (good), ri-star-half-line (usable)
+  - Includes info button that opens ProjectionInfo modal
   - Supports loading skeleton state
-  - Automatically transforms badges from recommendation data
+  - Automatically transforms recommendation badges with CSS classes (text-success, text-info, text-base-content)
 - **ProjectionInfo**: Projection information display
 - **ProjectionParamsControls**: Projection parameter adjustment controls
-- **ProjectionRecommendationBadge**: Projection recommendation indicators
-- **ProjectionSearchBar**: Projection search input
-- **ProjectionSelector**: Main projection selection interface (114 lines)
 
 **Import Components** (src/components/ui/import/):
 - **ImportControls**: Import and export control buttons
@@ -168,10 +168,12 @@ App.vue
 - ButtonGroup used in CompositeExportDialog (3 instances)
 - Modal used in CompositeExportDialog for standardized dialogs
 - Alert used in ProjectionParamsControls and TerritoryControls for status messages
-- DropdownControl used in AtlasConfigSection (5 instances), ThemeSelector (1 instance), LanguageSelector (1 instance), ProjectionDropdown (2 instances)
+- DropdownControl used in AtlasConfigSection (5 instances), ThemeSelector (1 instance), LanguageSelector (1 instance), ProjectionDropdown (1 instance)
   - Supports emoji/text icons (flag emojis: 🇫🇷, 🇵🇹, 🇪🇸, 🇪🇺, 🇺🇸, 🌍)
   - Supports icon classes (remix icons: ri-layout-grid-line, etc.)
-  - Supports badges (projection recommendations: '+++', '++', '+')
+  - Supports icon badges (projection recommendations: ri-star-fill, ri-star-line, ri-star-half-line)
+  - Icon badges positioned to left of option label
+  - Badge CSS classes automatically applied (text-success, text-info, text-base-content)
   - Full a11y: ARIA attributes, keyboard navigation (Arrow keys, Enter, Space, Escape, Home, End, Tab)
   - Focus management with visible focus states (WCAG AA compliant)
   - Translation support with Vue I18n integration
@@ -214,15 +216,13 @@ App.vue
 - Reset functions
 - Used by: TerritoryControls.vue
 
-**useProjectionFiltering** (91 lines)
-- Projection search and filtering
-- searchQuery, filteredProjections, clearSearch, hasSearch
-- Used by: ProjectionSelector.vue
-
 **useProjectionRecommendations** (78 lines)
-- Recommendation badge display
-- Classification logic (best, good, suitable)
-- Used by: ProjectionSelector.vue
+- Projection recommendation badge system
+- getBadge(): Returns Remix icon class (ri-star-fill, ri-star-line, ri-star-half-line)
+- getCssClass(): Returns color class (text-success, text-info, text-base-content)
+- getTooltip(): Returns localized recommendation reason
+- getRecommendation(): Returns full recommendation object
+- Used by: ProjectionDropdown.vue
 
 ### Validation
 **useProjectionValidation** (148 lines)

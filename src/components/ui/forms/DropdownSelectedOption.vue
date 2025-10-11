@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption } from './DropdownControl.vue'
+import { computed } from 'vue'
 import DropdownOptionIcon from './DropdownOptionIcon.vue'
 
 interface Props {
@@ -7,8 +8,20 @@ interface Props {
   showBadge?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   showBadge: true,
+})
+
+// Check if badge is a Remix icon class (starts with 'ri-')
+const isBadgeIcon = computed(() => {
+  return props.selectedOption?.badge?.startsWith('ri-')
+})
+
+// Extract all classes from badge string (may contain icon class + color classes)
+const badgeClasses = computed(() => {
+  if (!props.selectedOption?.badge)
+    return ''
+  return props.selectedOption.badge
 })
 </script>
 
@@ -19,8 +32,13 @@ withDefaults(defineProps<Props>(), {
   >
     <DropdownOptionIcon :icon="selectedOption.icon" />
 
+    <i
+      v-if="showBadge && selectedOption.badge && isBadgeIcon"
+      :class="badgeClasses"
+      class="text-sm"
+    />
     <span
-      v-if="showBadge && selectedOption.badge"
+      v-else-if="showBadge && selectedOption.badge"
       class="badge badge-soft badge-xs"
     >{{ selectedOption.badge }}</span>
     {{ $t(selectedOption.label) }}

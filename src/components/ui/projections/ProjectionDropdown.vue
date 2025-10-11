@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type { ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
 
-import { computed, toRef } from 'vue'
+import { computed, ref, toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import ProjectionInfo from '@/components/ui/projections/ProjectionInfo.vue'
 import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
+import { projectionRegistry } from '@/core/projections/registry'
 
 interface ProjectionOption {
   value: string
@@ -17,13 +21,13 @@ interface ProjectionGroup {
 }
 
 interface Props {
+  label: string
   modelValue?: string
   projectionGroups: ProjectionGroup[]
   recommendations?: ProjectionRecommendation[]
   showRecommendations?: boolean
   disabled?: boolean
   loading?: boolean
-  label?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,47 +36,129 @@ const props = withDefaults(defineProps<Props>(), {
   showRecommendations: true,
   disabled: false,
   loading: false,
-  label: 'Projection',
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'change': [value: string]
 }>()
 
+const { t } = useI18n()
+
 // Import recommendation helpers
-const { getBadge } = useProjectionRecommendations(
+const { getBadge, getCssClass } = useProjectionRecommendations(
   toRef(props, 'recommendations'),
 )
 
-// Transform projection groups to include badges
+// Projection info modal state
+const showInfoModal = ref(false)
+const infoProjection = ref<ProjectionDefinition | null>(null)
+
+// Transform projection groups to include badges with styling
 const projectionGroupsWithBadges = computed(() => {
   return props.projectionGroups.map(group => ({
     ...group,
-    options: group.options?.map(option => ({
-      ...option,
-      badge: props.showRecommendations ? getBadge(option.value) : undefined,
-    })),
+    options: group.options?.map((option) => {
+      const badge = props.showRecommendations ? getBadge(option.value) : undefined
+      const cssClass = badge ? getCssClass(option.value) : undefined
+
+      // Combine badge icon with CSS class if both exist
+      const badgeWithClass = badge && cssClass ? `${badge} ${cssClass}` : badge
+
+      return {
+        ...option,
+        badge: badgeWithClass,
+      }
+    }),
   }))
 })
+
+// Show projection info modal
+function showProjectionInfo() {
+  if (props.modelValue) {
+    const projection = projectionRegistry.get(props.modelValue)
+    if (projection) {
+      infoProjection.value = projection
+      showInfoModal.value = true
+    }
+  }
+}
+
+// Close projection info modal
+function closeInfoModal() {
+  showInfoModal.value = false
+}
+
+function handleUpdate(value: string) {
+  emit('update:modelValue', value)
+  emit('change', value)
+}
 </script>
 
 <template>
-  <!-- Loading skeleton -->
-  <div
-    v-if="loading"
-    class="skeleton h-12 w-full"
-  />
+  <div class="relative">
+    <!-- Loading skeleton -->
+    <div
+      v-if="loading"
+      class="skeleton h-12 w-full"
+    />
 
-  <!-- Dropdown -->
-  <DropdownControl
-    v-else
-    :model-value="modelValue"
-    :label="label"
-    icon="ri-global-line"
-    :disabled="disabled"
-    :option-groups="projectionGroupsWithBadges"
-    @update:model-value="emit('update:modelValue', $event)"
-  />
+    <!-- Dropdown -->
+    <DropdownControl
+      v-else
+      :model-value="modelValue"
+      :label="label"
+      icon="ri-global-line"
+      :disabled="disabled"
+      :option-groups="projectionGroupsWithBadges"
+      @update:model-value="handleUpdate"
+    />
+
+    <!-- Info button -->
+    <button
+      v-if="!loading"
+      type="button"
+      class="btn btn-ghost btn-xs btn-circle absolute top-1 right-1"
+      :aria-label="t('common.showProjectionInformation')"
+      :disabled="!modelValue"
+      @click="showProjectionInfo"
+    >
+      <i class="text-base ri-information-line" />
+    </button>
+  </div>
+
+  <!-- Projection info modal -->
+  <dialog
+    :id="`projection-info-modal-${label}`"
+    class="modal"
+    :class="{ 'modal-open': showInfoModal }"
+  >
+    <div class="modal-box max-w-4xl">
+      <h3 class="font-bold text-lg mb-4">
+        {{ t('common.projectionInformation') }}
+      </h3>
+      <ProjectionInfo
+        v-if="infoProjection"
+        :projection="infoProjection"
+        :show-metadata="true"
+      />
+      <div class="modal-action">
+        <button
+          class="btn"
+          @click="closeInfoModal"
+        >
+          {{ t('common.close') }}
+        </button>
+      </div>
+    </div>
+    <form
+      method="dialog"
+      class="modal-backdrop"
+      @click="closeInfoModal"
+    >
+      <button>close</button>
+    </form>
+  </dialog>
 </template>
 
 <style scoped>

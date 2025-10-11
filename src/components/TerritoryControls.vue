@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import ProjectionSelector from '@/components/ui/projections/ProjectionSelector.vue'
+import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useConfigStore } from '@/stores/config'
 
@@ -57,23 +56,6 @@ function updateScale(territoryCode: string, value: number) {
 
 // Alias for better naming in template
 const resetToDefaults = resetTransforms
-
-// Get the best recommended projection
-const bestRecommendation = computed(() => {
-  if (!projectionRecommendations.value || projectionRecommendations.value.length === 0)
-    return null
-
-  // Sort by score and return the best one
-  const sorted = [...projectionRecommendations.value].sort((a, b) => b.score - a.score)
-  return sorted[0]
-})
-
-// Apply the best recommended projection to a territory
-function useRecommendedProjection(territoryCode: string) {
-  if (bestRecommendation.value) {
-    setTerritoryProjection(territoryCode, bestRecommendation.value.projection.id)
-  }
-}
 </script>
 
 <template>
@@ -114,22 +96,13 @@ function useRecommendedProjection(territoryCode: string) {
         >
           <!-- Projection Selector -->
           <div class="mb-4">
-            <ProjectionSelector
+            <ProjectionDropdown
               :model-value="territoryProjections[mainlandCode] || selectedProjection"
               :label="t('projection.cartographic')"
               :projection-groups="projectionGroups"
               :recommendations="projectionRecommendations"
-              @update:model-value="(value) => setTerritoryProjection(mainlandCode, value)"
+              @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
             />
-            <!-- Quick action button to apply best recommendation -->
-            <button
-              v-if="bestRecommendation"
-              class="btn btn-xs btn-outline w-full mt-2 gap-2"
-              @click="useRecommendedProjection(mainlandCode)"
-            >
-              <i class="ri-magic-line" />
-              {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
-            </button>
           </div>
         </AccordionItem>
 
@@ -147,29 +120,13 @@ function useRecommendedProjection(territoryCode: string) {
             v-if="projectionMode === 'individual'"
             class="mb-4"
           >
-            <ProjectionSelector
+            <ProjectionDropdown
               :model-value="territoryProjections[territory.code] || selectedProjection"
               :label="t('projection.cartographic')"
               :projection-groups="projectionGroups"
               :recommendations="projectionRecommendations"
-              @update:model-value="(value) => setTerritoryProjection(territory.code, value)"
+              @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
             />
-            <!-- Quick action button to apply best recommendation -->
-            <Transition
-              enter-active-class="transition-all duration-300"
-              leave-active-class="transition-all duration-300"
-              enter-from-class="opacity-0 translate-y-2"
-              leave-to-class="opacity-0 translate-y-2"
-            >
-              <button
-                v-if="bestRecommendation"
-                class="btn btn-xs btn-outline w-full mt-2 gap-2"
-                @click="useRecommendedProjection(territory.code)"
-              >
-                <i class="ri-magic-line" />
-                {{ t('projection.useRecommended', { projection: $t(bestRecommendation.projection.name) }) }}
-              </button>
-            </Transition>
           </div>
 
           <!-- Transform Controls (hidden in split mode) -->

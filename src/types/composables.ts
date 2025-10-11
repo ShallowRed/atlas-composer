@@ -221,31 +221,6 @@ export interface AtlasData {
 }
 
 /**
- * Return type for useProjectionFiltering composable
- */
-export interface ProjectionFiltering {
-  /**
-   * Search query
-   */
-  searchQuery: Ref<string>
-
-  /**
-   * Filtered projection list based on search
-   */
-  filteredProjections: ComputedRef<string[]>
-
-  /**
-   * Clear search query
-   */
-  clearSearch: () => void
-
-  /**
-   * Whether search is active
-   */
-  hasSearch: ComputedRef<boolean>
-}
-
-/**
  * Recommendation badge information
  */
 export interface RecommendationBadge {

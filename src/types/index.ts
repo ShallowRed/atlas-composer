@@ -27,7 +27,6 @@ export type {
   AtlasData,
   LoadingState,
   ProjectionConfig,
-  ProjectionFiltering,
   ProjectionRecommendations,
   ProjectionValidation,
   RecommendationBadge,
