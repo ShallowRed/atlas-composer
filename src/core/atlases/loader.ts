@@ -330,9 +330,9 @@ function createAtlasConfig(
             overseasTerritories: territories.overseas,
           },
     splitModeConfig: {
-      mainlandTitle: 'territory.mainland',
+      mainlandTitle: `atlas.territories.${config.id}.mainland`,
       mainlandCode: territories.mainland.code,
-      territoriesTitle: 'territory.overseas',
+      territoriesTitle: `atlas.territories.${config.id}.overseas`,
     },
     hasTerritorySelector: (config.modes || []).length > 0,
     isWildcard: territories.isWildcard === true,
