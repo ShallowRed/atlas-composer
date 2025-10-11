@@ -53,7 +53,7 @@ const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
   <select
     v-else
     :value="modelValue"
-    class="select cursor-pointer"
+    class="select cursor-pointer border bg-base-200/30"
     :disabled="disabled"
     @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
   >

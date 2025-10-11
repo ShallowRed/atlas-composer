@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import FormControl from '@/components/ui/FormControl.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import RangeSlider from '@/components/ui/RangeSlider.vue'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
@@ -156,13 +155,6 @@ const hasAnyRelevantParams = computed(() => {
       :recommendations="configStore.projectionRecommendations"
     />
 
-    <!-- Scale Preservation (for split mode only) -->
-    <FormControl
-      v-show="configStore.showScalePreservation"
-      v-model="configStore.scalePreservation"
-      :label="t('territory.scalePreservation')"
-      type="toggle"
-    />
     <template
       v-if="hasAnyRelevantParams"
     >

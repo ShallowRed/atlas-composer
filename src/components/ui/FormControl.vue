@@ -53,7 +53,7 @@ const localValue = computed({
       </legend>
       <select
         v-model="localValue"
-        class="select cursor-pointer"
+        class="select cursor-pointer border bg-base-200/30"
         :disabled="disabled"
       >
         <optgroup
@@ -82,7 +82,7 @@ const localValue = computed({
       </legend>
       <select
         v-model="localValue"
-        class="select cursor-pointer"
+        class="select cursor-pointer border bg-base-200/30"
         :disabled="disabled"
       >
         <option
@@ -105,7 +105,7 @@ const localValue = computed({
       </legend>
       <select
         v-model="localValue"
-        class="select cursor-pointer"
+        class="select cursor-pointer border bg-base-200/30"
         :disabled="disabled"
       >
         <slot />

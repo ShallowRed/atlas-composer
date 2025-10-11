@@ -24,12 +24,12 @@ const isSingleFocusPattern = computed(() => {
 
 <template>
   <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
-  <div v-if="isSingleFocusPattern" class="flex flex-row gap-12">
+  <div v-if="isSingleFocusPattern" class="flex flex-row flex flex-wrap gap-4">
     <!-- Primary territory -->
-    <div>
+    <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-map-2-line" />
-        {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }}
+        {{ t(configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle ?? 'territory.mainland') }}
       </h3>
       <MapRenderer
         :geo-data="geoDataStore.mainlandData"
@@ -41,27 +41,30 @@ const isSingleFocusPattern = computed(() => {
       />
     </div>
 
-    <div>
+    <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-earth-line" />
-        {{ configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories' }}
+        {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.overseas') }}
       </h3>
 
-      <div class="flex flex-col gap-4">
+      <div class="join join-vertical">
         <!-- Region Groups -->
         <div
           v-for="[regionName, territories] in geoDataStore.territoryGroups"
           :key="regionName"
-          class="border border-base-300 p-3 rounded-md"
+          class="join-item border border-base-300 p-3 bg-base-200/25"
         >
           <h4 class="text-sm font-semibold mb-2">
             {{ regionName }}
           </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="flex flex-wrap gap-4">
             <div
               v-for="territory in territories"
               :key="territory.code"
             >
+              <h5 class="text-xs font-medium mb-1">
+                {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
+              </h5>
               <MapRenderer
                 :geo-data="territory.data"
                 :title="territory.name"

@@ -15,14 +15,12 @@ import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useTerritoryConfig } from '@/composables/useTerritoryConfig'
 import { useViewMode } from '@/composables/useViewMode'
 import { useConfigStore } from '@/stores/config'
-import { useGeoDataStore } from '@/stores/geoData'
 
 const { t } = useI18n()
 const allowThemeSelection = false
 
 // Stores
 const configStore = useConfigStore()
-const geoDataStore = useGeoDataStore()
 
 // Composables
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
@@ -77,7 +75,7 @@ onMounted(async () => {
         <div class="relative h-full">
           <Transition :name="skeletonTransition">
             <div
-              v-if="showSkeleton || geoDataStore.isLoading"
+              v-if="showSkeleton"
               key="skeleton"
               class="absolute inset-0 rounded-sm border border-base-300"
             >
@@ -88,7 +86,7 @@ onMounted(async () => {
           <!-- Content when loaded -->
           <Transition name="fade">
             <div
-              v-if="!showSkeleton && !geoDataStore.isLoading"
+              v-if="!showSkeleton"
               key="content"
               class="h-full"
             >
@@ -129,7 +127,8 @@ onMounted(async () => {
     >
       <!-- Projection Parameters (only for unified view mode) -->
       <CardContainer
-        v-if="configStore.viewMode === 'unified' || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)"
+        v-if="configStore.viewMode === 'unified' || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+          || configStore.showProjectionSelector"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
         has-overflow
@@ -138,28 +137,17 @@ onMounted(async () => {
         <ProjectionParamsControls />
       </CardContainer>
       <!-- Territory Parameters (projections, translations, scales) -->
-      <CardContainer
-        v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
-        :title="t('settings.territoryConfigTitle')"
-        icon="ri-settings-4-line"
-        class="h-full"
-        has-overflow
-      >
-        <!-- Loading state with transition -->
-        <div class="relative h-full">
-          <Transition :name="skeletonTransition">
+      <Transition name="fade" mode="out-in">
+        <CardContainer
+          v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
+          :title="t('settings.territoryConfigTitle')"
+          icon="ri-settings-4-line"
+          class="h-full"
+          has-overflow
+        >
+          <Transition name="fade" mode="out-in">
             <div
-              v-if="showSkeleton || geoDataStore.isLoading"
-              key="skeleton"
-              class="absolute inset-0 rounded-sm border border-base-300"
-            >
-              <div class="skeleton rounded-none h-full w-full opacity-50" />
-            </div>
-          </Transition>
-
-          <Transition name="fade">
-            <div
-              v-if="!showSkeleton && !geoDataStore.isLoading"
+              v-if="!showSkeleton"
               key="content"
               class="flex flex-col gap-4"
             >
@@ -169,8 +157,8 @@ onMounted(async () => {
               />
             </div>
           </Transition>
-        </div>
-      </CardContainer>
+        </CardContainer>
+      </Transition>
     </section>
   </div>
 </template>
