@@ -47,7 +47,10 @@ const { getBadge, getCssClass, getTooltip } = useProjectionRecommendations(
 
 <template>
   <!-- Loading skeleton -->
-  <div v-if="loading" class="skeleton h-12 w-full" />
+  <div
+    v-if="loading"
+    class="skeleton h-12 w-full"
+  />
 
   <!-- Dropdown -->
   <select

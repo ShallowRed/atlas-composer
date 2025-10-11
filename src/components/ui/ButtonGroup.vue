@@ -35,7 +35,10 @@ function selectOption(value: string) {
 </script>
 
 <template>
-  <div class="join" :class="{ 'w-full': fullWidth }">
+  <div
+    class="join"
+    :class="{ 'w-full': fullWidth }"
+  >
     <button
       v-for="option in options"
       :key="option.value"
@@ -47,7 +50,10 @@ function selectOption(value: string) {
       }"
       @click="selectOption(option.value)"
     >
-      <i v-if="option.icon" :class="option.icon" />
+      <i
+        v-if="option.icon"
+        :class="option.icon"
+      />
       {{ option.label }}
     </button>
   </div>

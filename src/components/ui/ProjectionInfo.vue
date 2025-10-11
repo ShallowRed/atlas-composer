@@ -74,7 +74,10 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
 </script>
 
 <template>
-  <div class="projection-info" :class="{ compact }">
+  <div
+    class="projection-info"
+    :class="{ compact }"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between gap-2 mb-2">
       <div class="flex-1">
@@ -89,12 +92,18 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     </div>
 
     <!-- Description -->
-    <p v-if="projection.description && !compact" class="text-sm opacity-80 mb-3">
+    <p
+      v-if="projection.description && !compact"
+      class="text-sm opacity-80 mb-3"
+    >
       {{ $t(projection.description) }}
     </p>
 
     <!-- Property Badges -->
-    <div v-if="propertyBadges.length > 0" class="flex flex-wrap gap-1 mb-3">
+    <div
+      v-if="propertyBadges.length > 0"
+      class="flex flex-wrap gap-1 mb-3"
+    >
       <span
         v-for="badge in propertyBadges"
         :key="badge.label"
@@ -107,14 +116,20 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     </div>
 
     <!-- Capabilities -->
-    <div v-if="!compact" class="text-sm space-y-1">
+    <div
+      v-if="!compact"
+      class="text-sm space-y-1"
+    >
       <div class="flex items-start gap-2">
         <i class="ri-check-line text-success mt-0.5" />
         <span>
           <strong>{{ t('projections.info.preserves') }}:</strong> {{ preserves }}
         </span>
       </div>
-      <div v-if="distorts" class="flex items-start gap-2">
+      <div
+        v-if="distorts"
+        class="flex items-start gap-2"
+      >
         <i class="ri-close-line text-error mt-0.5" />
         <span>
           <strong>{{ t('projections.info.distorts') }}:</strong> {{ distorts }}
@@ -123,7 +138,10 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     </div>
 
     <!-- View Mode Compatibility -->
-    <div v-if="!compact" class="mt-3 text-sm">
+    <div
+      v-if="!compact"
+      class="mt-3 text-sm"
+    >
       <div class="font-medium mb-1">
         {{ t('projections.info.compatibility') }}:
       </div>
@@ -150,7 +168,10 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
     </div>
 
     <!-- Metadata -->
-    <div v-if="showMetadata && (projection.creator || projection.year)" class="mt-3 pt-3 border-t border-base-300 text-xs opacity-70">
+    <div
+      v-if="showMetadata && (projection.creator || projection.year)"
+      class="mt-3 pt-3 border-t border-base-300 text-xs opacity-70"
+    >
       <div v-if="projection.creator">
         <strong>{{ t('projections.info.creator') }}:</strong> {{ projection.creator }}
       </div>

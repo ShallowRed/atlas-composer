@@ -79,10 +79,16 @@ function useRecommendedProjection(territoryCode: string) {
 <template>
   <div>
     <!-- Message when no territories are available (and no mainland in individual mode) -->
-    <Alert v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))" type="info">
+    <Alert
+      v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))"
+      type="info"
+    >
       {{ t('territory.noOverseas') }}
     </Alert>
-    <div v-else class="flex flex-col gap-4">
+    <div
+      v-else
+      class="flex flex-col gap-4"
+    >
       <ImportControls />
       <button
         class="btn btn-sm btn-outline"
@@ -137,7 +143,10 @@ function useRecommendedProjection(territoryCode: string) {
           :checked="projectionMode === 'uniform' && index === 0"
         >
           <!-- Projection Selector (always shown in individual mode) -->
-          <div v-if="projectionMode === 'individual'" class="mb-4">
+          <div
+            v-if="projectionMode === 'individual'"
+            class="mb-4"
+          >
             <ProjectionSelector
               :model-value="territoryProjections[territory.code] || selectedProjection"
               :label="t('projection.cartographic')"

@@ -33,7 +33,10 @@ withDefaults(defineProps<Props>(), {
     >
     <div class="collapse-title text-sm font-semibold">
       {{ title }}
-      <span v-if="subtitle" class="text-base-content/50">({{ subtitle }})</span>
+      <span
+        v-if="subtitle"
+        class="text-base-content/50"
+      >({{ subtitle }})</span>
     </div>
     <div class="collapse-content">
       <slot />

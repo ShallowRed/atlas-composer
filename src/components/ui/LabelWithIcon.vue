@@ -23,7 +23,10 @@ withDefaults(defineProps<Props>(), {
 <template>
   <label class="label">
     <span :class="`label-text text-${size}`">
-      <i v-if="icon" :class="`${icon}`" />
+      <i
+        v-if="icon"
+        :class="`${icon}`"
+      />
       <slot />
     </span>
   </label>

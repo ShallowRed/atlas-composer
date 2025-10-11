@@ -181,7 +181,10 @@ function handleCancelProhibited() {
   <fieldset class="form-control fieldset flex flex-col">
     <legend class="fieldset-legend text-sm flex items-center justify-between w-full">
       <span class="flex items-center gap-2">
-        <i v-if="icon" :class="icon" />
+        <i
+          v-if="icon"
+          :class="icon"
+        />
         {{ label }}
       </span>
       <div class="flex items-center gap-1 ml-auto">
@@ -200,7 +203,10 @@ function handleCancelProhibited() {
           :aria-label="isSearching ? t('common.closeSearch') : t('common.search')"
           @click="toggleSearch"
         >
-          <i class="text-base" :class="[isSearching ? 'ri-close-line' : 'ri-search-line']" />
+          <i
+            class="text-base"
+            :class="[isSearching ? 'ri-close-line' : 'ri-search-line']"
+          />
         </button>
       </div>
     </legend>
@@ -275,7 +281,11 @@ function handleCancelProhibited() {
     />
 
     <!-- Projection info modal -->
-    <dialog :id="`projection-info-modal-${label}`" class="modal" :class="{ 'modal-open': showInfoModal }">
+    <dialog
+      :id="`projection-info-modal-${label}`"
+      class="modal"
+      :class="{ 'modal-open': showInfoModal }"
+    >
       <div class="modal-box max-w-4xl">
         <h3 class="font-bold text-lg mb-4">
           {{ t('common.projectionInformation') }}
@@ -286,12 +296,19 @@ function handleCancelProhibited() {
           :show-metadata="true"
         />
         <div class="modal-action">
-          <button class="btn" @click="closeInfoModal">
+          <button
+            class="btn"
+            @click="closeInfoModal"
+          >
             {{ t('common.close') }}
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop" @click="closeInfoModal">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+        @click="closeInfoModal"
+      >
         <button>close</button>
       </form>
     </dialog>

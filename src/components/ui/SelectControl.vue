@@ -52,7 +52,10 @@ const localValue = computed({
     <template v-if="optionGroups">
       <legend class="fieldset-legend text-xl">
         <span class="label-text flex items-center gap-2">
-          <i v-if="icon" :class="icon" />
+          <i
+            v-if="icon"
+            :class="icon"
+          />
           {{ label }}
         </span>
       </legend>
@@ -81,7 +84,10 @@ const localValue = computed({
     <template v-else-if="options">
       <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
-          <i v-if="icon" :class="icon" />
+          <i
+            v-if="icon"
+            :class="icon"
+          />
           {{ label }}
         </span>
       </legend>
@@ -104,7 +110,10 @@ const localValue = computed({
     <template v-else>
       <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
-          <i v-if="icon" :class="icon" />
+          <i
+            v-if="icon"
+            :class="icon"
+          />
           {{ label }}
         </span>
       </legend>

@@ -39,7 +39,10 @@ function close() {
     class="modal"
     @click.self="close"
   >
-    <div class="modal-box" :class="`max-w-${maxWidth}`">
+    <div
+      class="modal-box"
+      :class="`max-w-${maxWidth}`"
+    >
       <!-- Header -->
       <div class="mb-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">
@@ -61,7 +64,10 @@ function close() {
       <slot />
 
       <!-- Actions -->
-      <div v-if="$slots.actions" class="modal-action">
+      <div
+        v-if="$slots.actions"
+        class="modal-action"
+      >
         <slot name="actions" />
       </div>
     </div>

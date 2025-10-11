@@ -66,7 +66,10 @@ function handleCancel() {
         <div class="flex flex-col gap-1">
           <span class="font-medium">{{ t('projection.validation.suggestedAlternatives') }}</span>
           <ul class="list-disc list-inside">
-            <li v-for="alt in alternatives" :key="alt.id">
+            <li
+              v-for="alt in alternatives"
+              :key="alt.id"
+            >
               {{ t(alt.name) }}
             </li>
           </ul>
@@ -91,7 +94,10 @@ function handleCancel() {
     </div>
 
     <!-- Backdrop -->
-    <form method="dialog" class="modal-backdrop">
+    <form
+      method="dialog"
+      class="modal-backdrop"
+    >
       <button @click="handleCancel">
         close
       </button>

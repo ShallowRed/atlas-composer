@@ -25,7 +25,10 @@ const { t } = useI18n()
     enter-from-class="opacity-0 -translate-y-2"
     leave-to-class="opacity-0 -translate-y-2"
   >
-    <div v-if="isSearching" class="relative mb-2">
+    <div
+      v-if="isSearching"
+      class="relative mb-2"
+    >
       <input
         :value="modelValue"
         type="text"

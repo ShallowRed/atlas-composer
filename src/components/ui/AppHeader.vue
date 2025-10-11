@@ -40,7 +40,10 @@ const { t } = useI18n()
                   <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </RouterLink>
-                <span v-else class="text-primary font-semibold flex items-center gap-2">
+                <span
+                  v-else
+                  class="text-primary font-semibold flex items-center gap-2"
+                >
                   <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </span>
@@ -53,7 +56,10 @@ const { t } = useI18n()
                   <i class="ri-information-line" />
                   {{ t('nav.about') }}
                 </RouterLink>
-                <span v-else class="text-primary font-semibold flex items-center gap-2">
+                <span
+                  v-else
+                  class="text-primary font-semibold flex items-center gap-2"
+                >
                   <i class="ri-information-line" />
                   {{ t('nav.about') }}
                 </span>

@@ -68,8 +68,14 @@ const labelSizeClass = computed(() => `text-${props.size}`)
 <template>
   <div>
     <label class="label">
-      <span class="label-text" :class="labelSizeClass">
-        <i v-if="icon" :class="icon" />
+      <span
+        class="label-text"
+        :class="labelSizeClass"
+      >
+        <i
+          v-if="icon"
+          :class="icon"
+        />
         {{ label }}: {{ formatValue(modelValue) }}{{ unit }}
       </span>
     </label>

@@ -22,7 +22,6 @@ import type {
   AnyVersionConfig,
   ConfigVersion,
   ExportedCompositeConfig,
-  ExportedCompositeConfigV1,
   MigrationResult,
 } from '@/types/export-config'
 
@@ -144,7 +143,7 @@ export class ConfigMigrator {
    * Perform migration through chain of versions
    */
   private static performMigrationChain(config: AnyVersionConfig): MigrationResult {
-    let currentConfig: AnyVersionConfig = config
+    const currentConfig: AnyVersionConfig = config
     const messages: string[] = []
     const warnings: string[] = []
 

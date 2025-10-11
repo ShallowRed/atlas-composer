@@ -23,7 +23,10 @@ const route = useRoute()
         <i class="ri-layout-line" />
         {{ t('nav.map') }}
       </RouterLink>
-      <span v-else class="opacity-70 cursor-default">
+      <span
+        v-else
+        class="opacity-70 cursor-default"
+      >
         <i class="ri-layout-line" />
         {{ t('nav.map') }}
       </span>
@@ -37,7 +40,10 @@ const route = useRoute()
 
         {{ t('nav.about') }}
       </RouterLink>
-      <span v-else class="opacity-70 cursor-default">
+      <span
+        v-else
+        class="opacity-70 cursor-default"
+      >
         <i class="ri-information-2-line" />
 
         {{ t('nav.about') }}

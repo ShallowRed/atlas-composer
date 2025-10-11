@@ -39,11 +39,21 @@ const toastClass = props.position.split('-').map(p => `toast-${p}`).join(' ')
       enter-from-class="opacity-0 translate-y-2"
       leave-to-class="opacity-0 translate-y-2"
     >
-      <div v-if="message" class="toast" :class="toastClass">
-        <div class="alert" :class="alertClass[type]">
+      <div
+        v-if="message"
+        class="toast"
+        :class="toastClass"
+      >
+        <div
+          class="alert"
+          :class="alertClass[type]"
+        >
           <i :class="iconClass[type]" />
           <span>{{ message }}</span>
-          <button class="btn btn-sm btn-ghost" @click="emit('close')">
+          <button
+            class="btn btn-sm btn-ghost"
+            @click="emit('close')"
+          >
             <i class="ri-close-line" />
           </button>
         </div>

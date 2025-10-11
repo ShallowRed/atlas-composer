@@ -155,7 +155,10 @@ function downloadSuccess() {
     </div>
 
     <!-- Code Options (shown when format is 'code') -->
-    <div v-if="exportFormat === 'code'" class="mb-4 space-y-4">
+    <div
+      v-if="exportFormat === 'code'"
+      class="mb-4 space-y-4"
+    >
       <!-- Target Library -->
       <div>
         <LabelWithIcon size="sm">
@@ -189,11 +192,19 @@ function downloadSuccess() {
       <!-- Options -->
       <div class="flex gap-4">
         <label class="label flex cursor-pointer items-center gap-2">
-          <input v-model="includeComments" type="checkbox" class="checkbox">
+          <input
+            v-model="includeComments"
+            type="checkbox"
+            class="checkbox"
+          >
           <span class="label-text">{{ t('export.includeComments') }}</span>
         </label>
         <label class="label flex cursor-pointer items-center gap-2">
-          <input v-model="includeExamples" type="checkbox" class="checkbox">
+          <input
+            v-model="includeExamples"
+            type="checkbox"
+            class="checkbox"
+          >
           <span class="label-text">{{ t('export.includeExamples') }}</span>
         </label>
       </div>
@@ -214,13 +225,22 @@ function downloadSuccess() {
 
     <!-- Actions -->
     <template #actions>
-      <button class="btn btn-ghost" @click="close">
+      <button
+        class="btn btn-ghost"
+        @click="close"
+      >
         {{ t('actions.cancel') }}
       </button>
-      <button class="btn btn-outline" @click="copyToClipboard">
+      <button
+        class="btn btn-outline"
+        @click="copyToClipboard"
+      >
         {{ t('export.copyToClipboard') }}
       </button>
-      <button class="btn btn-primary" @click="downloadFile">
+      <button
+        class="btn btn-primary"
+        @click="downloadFile"
+      >
         {{ t('export.downloadFile') }}
       </button>
     </template>

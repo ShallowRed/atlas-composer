@@ -48,7 +48,10 @@ const displayIcon = props.icon || defaultIcons[props.type]
       size && `text-${size}`,
     ]"
   >
-    <i v-if="displayIcon" :class="displayIcon" />
+    <i
+      v-if="displayIcon"
+      :class="displayIcon"
+    />
     <div class="flex-1">
       <slot />
     </div>

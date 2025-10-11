@@ -24,7 +24,10 @@ const isSingleFocusPattern = computed(() => {
 
 <template>
   <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
-  <div v-if="isSingleFocusPattern" class="flex flex-row flex flex-wrap gap-4">
+  <div
+    v-if="isSingleFocusPattern"
+    class="flex flex-row flex flex-wrap gap-4"
+  >
     <!-- Primary territory -->
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
@@ -82,7 +85,10 @@ const isSingleFocusPattern = computed(() => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
+        <div
+          v-if="geoDataStore.filteredTerritories.length === 0"
+          class="text-gray-500"
+        >
           <p>{{ t('territory.noTerritories') }}</p>
         </div>
       </div>
@@ -128,7 +134,10 @@ const isSingleFocusPattern = computed(() => {
       </div>
 
       <!-- Empty State -->
-      <div v-if="geoDataStore.filteredTerritories.length === 0" class="text-gray-500">
+      <div
+        v-if="geoDataStore.filteredTerritories.length === 0"
+        class="text-gray-500"
+      >
         <p>{{ t('territory.noTerritories') }}</p>
         <p class="text-sm mt-2">
           {{ t('territory.checkData') }}

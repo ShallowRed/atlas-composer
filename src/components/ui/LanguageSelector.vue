@@ -12,7 +12,11 @@ function changeLanguage(newLocale: SupportedLocale) {
 
 <template>
   <div class="dropdown dropdown-end">
-    <div tabindex="0" role="button" class="btn btn-ghost">
+    <div
+      tabindex="0"
+      role="button"
+      class="btn btn-ghost"
+    >
       <i class="ri-translate-2" />
     </div>
     <ul
