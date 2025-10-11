@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { nextTick, ref, watch } from 'vue'
+
 /**
  * Modal - Standardized dialog wrapper component
  *
@@ -9,6 +11,7 @@
  * - Named slots for title, content, and actions
  * - Click outside to close
  * - Accessible with proper ARIA attributes
+ * - Auto-focus on open
  */
 
 interface Props {
@@ -19,7 +22,7 @@ interface Props {
   showCloseButton?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   icon: undefined,
   title: undefined,
   maxWidth: '2xl',
@@ -30,9 +33,25 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+const modalBoxRef = ref<HTMLElement | null>(null)
+
 function close() {
   emit('update:modelValue', false)
 }
+
+// Focus the modal when it opens
+watch(() => props.modelValue, async (isOpen) => {
+  if (isOpen) {
+    // Use multiple nextTick calls to ensure Teleport has completed
+    await nextTick()
+    await nextTick()
+    
+    // Additional fallback with setTimeout for Teleport
+    setTimeout(() => {
+      modalBoxRef.value?.focus()
+    }, 0)
+  }
+})
 </script>
 
 <template>
@@ -43,8 +62,10 @@ function close() {
       @click.self="close"
     >
       <div
+        ref="modalBoxRef"
         class="modal-box"
         :class="`max-w-${maxWidth}`"
+        tabindex="-1"
       >
         <!-- Header -->
         <div class="mb-4 flex items-center justify-between">

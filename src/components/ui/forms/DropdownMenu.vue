@@ -114,7 +114,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     v-if="inline && options && isOpen"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 px-2 pb-2 pt-0 shadow-lg border border-base-300 gap-1"
+    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 px-2 pb-2 pt-0 shadow-lg border border-base-300"
   >
     <li
       v-for="(option, index) in options"
@@ -139,7 +139,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     <ul
       role="listbox"
       :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] p-2 shadow-lg border border-base-300 gap-1"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] p-2 shadow-lg border border-base-300"
       style="position: fixed;"
       :style="menuStyle"
       @click="handleMenuClick"

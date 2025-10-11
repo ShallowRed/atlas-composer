@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
-import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
-import { useConfigStore } from '@/stores/config'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -18,7 +16,6 @@ const { t } = useI18n()
 interface Props {
   showTransformControls?: boolean // Show translation/scale controls (false for split mode)
 }
-const configStore = useConfigStore()
 // Use composable for all territory transform logic
 const {
   territories,
@@ -69,7 +66,7 @@ const resetToDefaults = resetTransforms
     </Alert>
     <div
       v-else
-      class="flex flex-col gap-4"
+      class="flex flex-col gap-3 mb-8"
     >
       <ImportControls />
       <button
@@ -79,11 +76,8 @@ const resetToDefaults = resetTransforms
         <i class="ri-restart-line" />
         {{ t('territory.resetButton') }}
       </button>
-      <ToggleControl
-        v-show="configStore.showScalePreservation"
-        v-model="configStore.scalePreservation"
-        :label="t('territory.scalePreservation')"
-      />
+    </div>
+    <div class="mb-4">
       <!-- Accordion for all territories -->
       <div class="join join-vertical w-full">
         <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->

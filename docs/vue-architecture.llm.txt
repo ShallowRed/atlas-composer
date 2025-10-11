@@ -48,7 +48,6 @@ App.vue
 │           ├── ViewModeSection
 │           ├── ProjectionInfo
 │           ├── ProjectionParamsControls
-│           ├── ProjectionConfirmDialog
 │           └── ToastNotification
 └── AppFooter.vue (credits, links)
 ```
@@ -144,7 +143,6 @@ App.vue
   - 35 theme options across 2 groups
 
 **Projection Components** (src/components/ui/projections/):
-- **ProjectionConfirmDialog**: Confirmation dialog for projection changes
 - **ProjectionDropdown**: Projection selection component with info modal
   - Uses DropdownControl with recommendation badges (Remix icons)
   - Displays badge icons to left of projection names

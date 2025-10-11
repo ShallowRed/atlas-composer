@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { computed, ref } from 'vue'
+import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
 
 const props = defineProps<{
-  isOpen: boolean
+  modelValue: boolean
   atlasId: string
   compositeProjection: any
 }>()
 
 const emit = defineEmits<{
-  close: []
+  'update:modelValue': [value: boolean]
   imported: [config: ExportedCompositeConfig]
 }>()
 
@@ -124,7 +125,7 @@ function handleClose() {
   isDragging.value = false
   isProcessing.value = false
 
-  emit('close')
+  emit('update:modelValue', false)
 }
 
 function clearFile() {
@@ -135,48 +136,26 @@ function clearFile() {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-opacity duration-300"
-      leave-active-class="transition-opacity duration-300"
-      enter-from-class="opacity-0"
-      leave-to-class="opacity-0"
+  <Modal
+    :model-value="modelValue"
+    title="Import Configuration"
+    max-width="2xl"
+    @update:model-value="handleClose"
+  >
+    <!-- Description -->
+    <p class="text-sm text-base-content/70 mb-6">
+      Import a previously exported composite projection configuration.
+    </p>
+
+    <!-- File Upload Area -->
+    <div
+      v-if="!selectedFile"
+      class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+      :class="isDragging ? 'border-primary bg-primary/10' : 'border-base-300'"
+      @drop.prevent="handleDrop"
+      @dragover.prevent="handleDragOver"
+      @dragleave="handleDragLeave"
     >
-      <div
-        v-if="isOpen"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-        @click.self="handleClose"
-      >
-        <div class="card bg-base-100 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div class="card-body">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="card-title text-2xl">
-                Import Configuration
-              </h2>
-              <button
-                class="btn btn-sm btn-circle btn-ghost"
-                aria-label="Close"
-                @click="handleClose"
-              >
-                ✕
-              </button>
-            </div>
-
-            <!-- Description -->
-            <p class="text-sm text-base-content/70 mb-6">
-              Import a previously exported composite projection configuration.
-            </p>
-
-            <!-- File Upload Area -->
-            <div
-              v-if="!selectedFile"
-              class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
-              :class="isDragging ? 'border-primary bg-primary/10' : 'border-base-300'"
-              @drop.prevent="handleDrop"
-              @dragover.prevent="handleDragOver"
-              @dragleave="handleDragLeave"
-            >
               <div class="mb-4">
                 <svg
                   class="w-16 h-16 mx-auto text-base-content/30"
@@ -206,14 +185,14 @@ function clearFile() {
                   class="hidden"
                   @change="handleFileSelect"
                 >
-              </label>
-            </div>
+      </label>
+    </div>
 
-            <!-- Selected File Info -->
-            <div
-              v-else-if="!isProcessing"
-              class="alert"
-            >
+    <!-- Selected File Info -->
+    <div
+      v-else-if="!isProcessing"
+      class="alert"
+    >
               <div class="flex items-center gap-2 flex-1">
                 <svg
                   class="w-6 h-6"
@@ -237,26 +216,26 @@ function clearFile() {
                 class="btn btn-sm btn-ghost"
                 @click="clearFile"
               >
-                Remove
-              </button>
-            </div>
+        Remove
+      </button>
+    </div>
 
-            <!-- Processing -->
-            <div
-              v-if="isProcessing"
-              class="flex items-center justify-center py-8"
-            >
-              <div class="loading loading-spinner loading-lg text-primary" />
-              <span class="ml-4">Processing file...</span>
-            </div>
+    <!-- Processing -->
+    <div
+      v-if="isProcessing"
+      class="flex items-center justify-center py-8"
+    >
+      <div class="loading loading-spinner loading-lg text-primary" />
+      <span class="ml-4">Processing file...</span>
+    </div>
 
-            <!-- Validation Results -->
-            <div v-if="importResult && !isProcessing">
-              <!-- Success -->
-              <div
-                v-if="importResult.success"
-                class="alert alert-success mb-4"
-              >
+    <!-- Validation Results -->
+    <div v-if="importResult && !isProcessing">
+      <!-- Success -->
+      <div
+        v-if="importResult.success"
+        class="alert alert-success mb-4"
+      >
                 <svg
                   class="w-6 h-6"
                   fill="none"
@@ -269,136 +248,132 @@ function clearFile() {
                     stroke-width="2"
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
-                </svg>
-                <span>Configuration is valid and ready to import</span>
-              </div>
+        </svg>
+        <span>Configuration is valid and ready to import</span>
+      </div>
 
-              <!-- Errors -->
-              <div
-                v-if="hasErrors"
-                class="alert alert-error mb-4"
+      <!-- Errors -->
+      <div
+        v-if="hasErrors"
+        class="alert alert-error mb-4"
+      >
+        <div class="flex-1">
+          <svg
+            class="w-6 h-6 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 class="font-bold">
+              Validation Errors
+            </h3>
+            <ul class="list-disc list-inside text-sm mt-2">
+              <li
+                v-for="(error, index) in importResult.errors"
+                :key="index"
               >
-                <div class="flex-1">
-                  <svg
-                    class="w-6 h-6 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div>
-                    <h3 class="font-bold">
-                      Validation Errors
-                    </h3>
-                    <ul class="list-disc list-inside text-sm mt-2">
-                      <li
-                        v-for="(error, index) in importResult.errors"
-                        :key="index"
-                      >
-                        {{ error }}
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Warnings -->
-              <div
-                v-if="hasWarnings"
-                class="alert alert-warning mb-4"
-              >
-                <div class="flex-1">
-                  <svg
-                    class="w-6 h-6 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  <div>
-                    <h3 class="font-bold">
-                      Warnings
-                    </h3>
-                    <ul class="list-disc list-inside text-sm mt-2">
-                      <li
-                        v-for="(warning, index) in importResult.warnings"
-                        :key="index"
-                      >
-                        {{ warning }}
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Configuration Preview -->
-              <div
-                v-if="importedConfig"
-                class="border border-base-300 rounded-lg p-4 mb-4"
-              >
-                <h3 class="font-bold mb-2">
-                  Configuration Details
-                </h3>
-                <dl class="grid grid-cols-2 gap-2 text-sm">
-                  <dt class="text-base-content/70">
-                    Atlas:
-                  </dt>
-                  <dd class="font-medium">
-                    {{ importedConfig.metadata.atlasName }}
-                  </dd>
-                  <dt class="text-base-content/70">
-                    Pattern:
-                  </dt>
-                  <dd class="font-medium">
-                    {{ importedConfig.pattern }}
-                  </dd>
-                  <dt class="text-base-content/70">
-                    Territories:
-                  </dt>
-                  <dd class="font-medium">
-                    {{ importedConfig.territories.length }}
-                  </dd>
-                  <dt class="text-base-content/70">
-                    Export Date:
-                  </dt>
-                  <dd class="font-medium">
-                    {{ new Date(importedConfig.metadata.exportDate).toLocaleString() }}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="card-actions justify-end mt-6">
-              <button
-                class="btn btn-ghost"
-                @click="handleClose"
-              >
-                Cancel
-              </button>
-              <button
-                class="btn btn-primary"
-                :disabled="!canApply"
-                @click="applyImport"
-              >
-                Apply Configuration
-              </button>
-            </div>
+                {{ error }}
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+
+      <!-- Warnings -->
+      <div
+        v-if="hasWarnings"
+        class="alert alert-warning mb-4"
+      >
+        <div class="flex-1">
+          <svg
+            class="w-6 h-6 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <div>
+            <h3 class="font-bold">
+              Warnings
+            </h3>
+            <ul class="list-disc list-inside text-sm mt-2">
+              <li
+                v-for="(warning, index) in importResult.warnings"
+                :key="index"
+              >
+                {{ warning }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Preview -->
+      <div
+        v-if="importedConfig"
+        class="border border-base-300 rounded-lg p-4 mb-4"
+      >
+        <h3 class="font-bold mb-2">
+          Configuration Details
+        </h3>
+        <dl class="grid grid-cols-2 gap-2 text-sm">
+          <dt class="text-base-content/70">
+            Atlas:
+          </dt>
+          <dd class="font-medium">
+            {{ importedConfig.metadata.atlasName }}
+          </dd>
+          <dt class="text-base-content/70">
+            Pattern:
+          </dt>
+          <dd class="font-medium">
+            {{ importedConfig.pattern }}
+          </dd>
+          <dt class="text-base-content/70">
+            Territories:
+          </dt>
+          <dd class="font-medium">
+            {{ importedConfig.territories.length }}
+          </dd>
+          <dt class="text-base-content/70">
+            Export Date:
+          </dt>
+          <dd class="font-medium">
+            {{ new Date(importedConfig.metadata.exportDate).toLocaleString() }}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <template #actions>
+      <button
+        class="btn btn-ghost"
+        @click="handleClose"
+      >
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        :disabled="!canApply"
+        @click="applyImport"
+      >
+        Apply Configuration
+      </button>
+    </template>
+  </Modal>
 </template>

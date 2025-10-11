@@ -46,10 +46,9 @@ function handleImported(_config: ExportedCompositeConfig) {
 
   <!-- Import Dialog -->
   <ImportModal
-    :is-open="showImportDialog"
+    v-model="showImportDialog"
     :atlas-id="configStore.selectedAtlas"
     :composite-projection="geoDataStore.cartographer?.customComposite"
-    @close="showImportDialog = false"
     @imported="handleImported"
   />
 

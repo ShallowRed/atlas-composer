@@ -39,5 +39,12 @@ const uiStore = useUIStore()
       :label="t('settings.mapLimits')"
       icon="ri-crop-line"
     />
+
+    <!-- Scale Preservation Toggle -->
+    <ToggleControl
+      v-show="configStore.showScalePreservation"
+      v-model="configStore.scalePreservation"
+      :label="t('territory.scalePreservation')"
+    />
   </div>
 </template>

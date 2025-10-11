@@ -194,7 +194,6 @@ App.vue
 │       ├── ProjectionSelector.vue (114 lines - projection selection)
 │       └── UI Components (16 total)
 │           ├── ViewModeSection, ProjectionInfo, ProjectionParamsControls
-│           ├── ProjectionConfirmDialog, ToastNotification
 │           └── Reusable: CardContainer, FormControl, SectionHeader
 └── AppFooter.vue (credits, links)
 ```
