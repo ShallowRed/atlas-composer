@@ -3,11 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
+import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
 import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
-import CompositeCustomView from '@/components/views/CompositeCustomView.vue'
-import CompositeExistingView from '@/components/views/CompositeExistingView.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
@@ -80,11 +79,13 @@ onMounted(async () => {
               </template>
 
               <!-- Composite Existing Mode -->
-              <CompositeExistingView v-if="configStore.viewMode === 'composite-existing'" />
+              <MapRenderer v-if="configStore.viewMode === 'composite-existing'" mode="composite" />
 
               <!-- Composite Custom Mode -->
-              <CompositeCustomView v-if="configStore.viewMode === 'composite-custom'" />
-
+              <MapRenderer
+                v-if="configStore.viewMode === 'composite-custom'"
+                mode="composite"
+              />
               <!-- Unified Mode -->
               <UnifiedView v-if="configStore.viewMode === 'unified'" />
             </div>
