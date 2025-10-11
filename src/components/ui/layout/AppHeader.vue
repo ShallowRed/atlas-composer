@@ -28,17 +28,20 @@ const { t } = useI18n()
           </div>
           <div class="flex-none">
             <ul class="menu menu-horizontal px-1 gap-2 items-center">
-              <li :class="{ 'disabled pointer-events-none': route.path === '/' }">
+              <li
+                :class="{ 'disabled pointer-events-none': route.path === '/' }"
+              >
                 <RouterLink
                   v-if="route.path !== '/'"
                   to="/"
+                  class="flex items-center justify-center gap-2"
                 >
                   <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </RouterLink>
                 <span
                   v-else
-                  class="text-primary font-semibold flex items-center gap-2"
+                  class="text-primary font-semibold flex items-center gap-2 justify-center"
                 >
                   <i class="ri-layout-line" />
                   {{ t('nav.map') }}
@@ -48,13 +51,14 @@ const { t } = useI18n()
                 <RouterLink
                   v-if="route.path !== '/about'"
                   to="/about"
+                  class="flex items-center gap-2 justify-center"
                 >
                   <i class="ri-information-line" />
                   {{ t('nav.about') }}
                 </RouterLink>
                 <span
                   v-else
-                  class="text-primary font-semibold flex items-center gap-2"
+                  class="text-primary font-semibold flex items-center gap-2 justify-center"
                 >
                   <i class="ri-information-line" />
                   {{ t('nav.about') }}

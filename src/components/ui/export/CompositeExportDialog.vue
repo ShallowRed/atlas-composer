@@ -137,7 +137,7 @@ function downloadSuccess() {
     :model-value="modelValue"
     :title="t('export.title')"
     icon="ri-file-download-line"
-    max-width="4xl"
+    max-width="2xl"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <!-- Export Format Selection -->
@@ -211,17 +211,17 @@ function downloadSuccess() {
           <input
             v-model="includeComments"
             type="checkbox"
-            class="toggle"
+            class="toggle toggle-sm"
           >
-          <span class="label-text">{{ t('export.includeComments') }}</span>
+          <span class="label-text text-sm">{{ t('export.includeComments') }}</span>
         </label>
         <label class="label flex cursor-pointer items-center gap-2">
           <input
             v-model="includeExamples"
             type="checkbox"
-            class="toggle"
+            class="toggle toggle-sm"
           >
-          <span class="label-text">{{ t('export.includeExamples') }}</span>
+          <span class="label-text text-sm">{{ t('export.includeExamples') }}</span>
         </label>
       </div>
     </div>

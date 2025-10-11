@@ -11,7 +11,7 @@
     "select": "Select Atlas",
     "categories": {
       "country": "Country",
-      "region": "Region & Union",
+      "region": "Region & union",
       "world": "World"
     },
     "france": "France",
@@ -22,7 +22,7 @@
     "territories": {
       "france": {
         "mainland": "Metropolitan France",
-        "overseas": "Overseas Territories"
+        "overseas": "Overseas territories"
       },
       "portugal": {
         "mainland": "Continental Portugal",
@@ -30,7 +30,7 @@
       },
       "spain": {
         "mainland": "Peninsular Spain",
-        "overseas": "Overseas Territories"
+        "overseas": "Overseas territories"
       },
       "eu": {
         "territories": "Member States"
@@ -94,13 +94,13 @@
   },
   "settings": {
     "title": "Configuration",
-    "atlasConfigTitle": "Atlas Configuration",
-    "viewConfigTitle": "View Configuration",
-    "displayOptionsTitle": "Display Options",
-    "projectionConfigTitle": "Projection Configuration",
-    "projectionParamsTitle": "Projection Parameters",
+    "atlasConfigTitle": "Atlas configuration",
+    "viewConfigTitle": "View configuration",
+    "displayOptionsTitle": "Display options",
+    "projectionConfigTitle": "Projection configuration",
+    "projectionParamsTitle": "Projection parameters",
     "territoryConfigTitle": "Projection configuration",
-    "projectionTitle": "Projection Selector",
+    "projectionTitle": "Projection selector",
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
@@ -120,12 +120,12 @@
   },
   "projectionParams": {
     "title": "Projection Parameters",
-    "rotateLongitude": "Rotate Longitude",
-    "rotateLatitude": "Rotate Latitude",
-    "centerLongitude": "Center Longitude",
-    "centerLatitude": "Center Latitude",
-    "parallel1": "Standard Parallel 1",
-    "parallel2": "Standard Parallel 2",
+    "rotateLongitude": "Rotate longitude",
+    "rotateLatitude": "Rotate latitude",
+    "centerLongitude": "Center longitude",
+    "centerLatitude": "Center latitude",
+    "parallel1": "Standard parallel 1",
+    "parallel2": "Standard parallel 2",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."
@@ -147,22 +147,22 @@
     "clear": "Clear",
     "noProjectionsFound": "No projections found matching your search",
     "showProjectionInformation": "Show projection information",
-    "projectionInformation": "Projection Information"
+    "projectionInformation": "Projection information"
   },
   "export": {
-    "title": "Export Composite Projection",
-    "formatLabel": "Export Format",
-    "formatJson": "JSON Configuration",
+    "title": "Export composite projection",
+    "formatLabel": "Export format",
+    "formatJson": "JSON configuration",
     "formatCode": "JavaScript/TypeScript Code",
     "options": "Options",
-    "targetLibrary": "Target Library",
+    "targetLibrary": "Target library",
     "language": "Language",
     "javascript": "JavaScript",
     "typescript": "TypeScript",
     "includeComments": "Include comments",
     "includeExamples": "Include usage examples",
     "preview": "Preview",
-    "copyToClipboard": "Copy to Clipboard",
+    "copyToClipboard": "Copy to clipboard",
     "downloadFile": "Download File",
     "copiedSuccess": "Copied to clipboard!",
     "copyFailed": "Failed to copy to clipboard",
