@@ -22,9 +22,10 @@ src/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
 │   ├── ProjectionSelector.vue # Projection selection (114 lines)
-│   └── ui/                   # 19 reusable UI components
+│   └── ui/                   # 21 reusable UI components
 │       ├── Core primitives: RangeSlider, ButtonGroup, Modal, Alert, AccordionItem, LabelWithIcon
-│       └── Specialized: ProjectionParamsControls, FormControl, etc.
+│       ├── Form controls: SelectControl, ToggleControl, CheckboxControl
+│       └── Specialized: ProjectionParamsControls, ThemeSelector, etc.
 ├── composables/              # 9 composition functions
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
@@ -86,8 +87,8 @@ App.vue
 - Recommendation badges
 - Uses: useProjectionFiltering, useProjectionRecommendations
 
-### UI Components (19 components)
-**Core Primitives** (New - Template Refactoring):
+### UI Components (21 components)
+**Core Primitives**:
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
 - **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
 - **Modal**: Standardized dialog wrapper with slots for title, content, and actions
@@ -95,17 +96,24 @@ App.vue
 - **AccordionItem**: Collapsible content item with title/subtitle
 - **LabelWithIcon**: Label wrapper with optional icon
 
+**Form Controls** (Specialized):
+- **SelectControl**: Dropdown selections with option groups support (126 lines)
+- **ToggleControl**: Toggle switches for boolean settings (42 lines)
+- **CheckboxControl**: Checkboxes for boolean settings (42 lines)
+
 **Reusable Components**:
 - ViewModeSection, ProjectionInfo, ProjectionParamsControls
 - ProjectionConfirmDialog, LoadingModal, ToastNotification
 - AppHeader, AppFooter, ThemeSelector, LanguageSelector
-- CardContainer, FormControl, SectionHeader
+- CardContainer, SectionHeader
 
 **Composition Patterns**:
 - RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)
 - ButtonGroup used in CompositeExportDialog (3 instances)
 - Modal used in CompositeExportDialog for standardized dialogs
 - Alert used in ProjectionParamsControls and TerritoryControls for status messages
+- SelectControl used in AtlasConfigSection (5 instances) and ThemeSelector (1 instance)
+- ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
 ## Composables (9 functions)
 
