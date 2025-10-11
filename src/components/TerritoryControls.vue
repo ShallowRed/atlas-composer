@@ -2,10 +2,12 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Alert from '@/components/ui/Alert.vue'
+import FormControl from '@/components/ui/FormControl.vue'
 import ImportControls from '@/components/ui/ImportControls.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import RangeSlider from '@/components/ui/RangeSlider.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { useConfigStore } from '@/stores/config'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -16,7 +18,7 @@ const { t } = useI18n()
 interface Props {
   showTransformControls?: boolean // Show translation/scale controls (false for split mode)
 }
-
+const configStore = useConfigStore()
 // Use composable for all territory transform logic
 const {
   territories,
@@ -88,12 +90,18 @@ function useRecommendedProjection(territoryCode: string) {
         <i class="ri-restart-line" />
         {{ t('territory.resetButton') }}
       </button>
+      <FormControl
+        v-show="configStore.showScalePreservation"
+        v-model="configStore.scalePreservation"
+        :label="t('territory.scalePreservation')"
+        type="toggle"
+      />
       <!-- Accordion for all territories -->
       <div class="join join-vertical w-full">
         <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
         <div
           v-if="projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
-          class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
+          class="collapse collapse-arrow join-item border bg-base-200/30 border-base-300 "
         >
           <input
             type="radio"
@@ -101,7 +109,7 @@ function useRecommendedProjection(territoryCode: string) {
             checked
           >
           <div class="collapse-title text-sm font-semibold">
-            {{ currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }} <span class="text-base-content/50">({{ mainlandCode }})</span>
+            {{ t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland') }} <span class="text-base-content/50">({{ mainlandCode }})</span>
           </div>
           <div class="collapse-content">
             <!-- Projection Selector -->
@@ -130,7 +138,7 @@ function useRecommendedProjection(territoryCode: string) {
         <div
           v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
           :key="territory.code"
-          class="collapse collapse-arrow join-item border bg-base-100 border-base-300"
+          class="collapse collapse-arrow join-item border border bg-base-200/30 border-base-300"
         >
           <input
             type="radio"

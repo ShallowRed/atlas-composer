@@ -262,12 +262,11 @@ watch(() => {
       <span v-if="area">({{ area.toLocaleString() }} km²)</span>
     </component>
 
-    <Transition name="fade">
-      <div
-        v-show="!isLoading && !error"
-        ref="mapContainer"
-        class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
-      />
-    </Transition>
+    <div
+      v-show="!isLoading && !error"
+      ref="mapContainer"
+      class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
+      :style="{ display: isLoading || error ? 'none' : 'flex' }"
+    />
   </div>
 </template>

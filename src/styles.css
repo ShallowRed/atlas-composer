@@ -7,6 +7,10 @@
   /* themes: light --default, dark --prefersdark; */
 }
 
+:root {
+  --bg-base-150: oklch(50% var(--base-200));
+}
+
 /* Fade transition for smooth loading/rendering */
 .fade-enter-active,
 .fade-leave-active {
