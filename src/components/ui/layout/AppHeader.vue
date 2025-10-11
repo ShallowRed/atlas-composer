@@ -27,7 +27,7 @@ const { t } = useI18n()
             </div>
           </div>
           <div class="flex-none">
-            <ul class="menu menu-horizontal px-1">
+            <ul class="menu menu-horizontal px-1 gap-2 items-center">
               <li :class="{ 'disabled pointer-events-none': route.path === '/' }">
                 <RouterLink
                   v-if="route.path !== '/'"
@@ -60,8 +60,10 @@ const { t } = useI18n()
                   {{ t('nav.about') }}
                 </span>
               </li>
+              <li>
+                <LanguageSelector />
+              </li>
             </ul>
-            <LanguageSelector />
           </div>
         </nav>
       </div>

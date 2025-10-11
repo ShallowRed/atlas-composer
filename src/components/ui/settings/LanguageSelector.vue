@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { setLocale, SUPPORTED_LOCALES } from '@/i18n'
+import { getLanguageFlag } from '@/utils/language-icons'
 
 const { locale } = useI18n()
 
@@ -14,6 +15,7 @@ const languageOptions = computed<DropdownOption[]>(() => {
   return Object.entries(SUPPORTED_LOCALES).map(([code, label]) => ({
     value: code,
     label, // Language names (English, Français)
+    icon: getLanguageFlag(code),
     translated: true, // Labels are plain strings, not translation keys
   }))
 })
