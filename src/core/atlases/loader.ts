@@ -330,9 +330,13 @@ function createAtlasConfig(
             overseasTerritories: territories.overseas,
           },
     splitModeConfig: {
-      mainlandTitle: `atlas.territories.${config.id}.mainland`,
-      mainlandCode: territories.mainland.code,
-      territoriesTitle: `atlas.territories.${config.id}.overseas`,
+      mainlandTitle: territories.type === 'single-focus'
+        ? `atlas.territories.${config.id}.mainland`
+        : `atlas.territories.${config.id}.territories`,
+      mainlandCode: territories.mainland?.code,
+      territoriesTitle: territories.type === 'single-focus'
+        ? `atlas.territories.${config.id}.overseas`
+        : `atlas.territories.${config.id}.territories`,
     },
     hasTerritorySelector: (config.modes || []).length > 0,
     isWildcard: territories.isWildcard === true,

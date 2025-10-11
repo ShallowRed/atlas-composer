@@ -28,7 +28,7 @@ const isSingleFocusPattern = computed(() => {
     <!-- Primary territory -->
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
-        <i class="ri-map-2-line" />
+        <i class="ri-map-pin-range-line" />
         {{ t(configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle ?? 'territory.mainland') }}
       </h3>
       <MapRenderer
@@ -43,7 +43,7 @@ const isSingleFocusPattern = computed(() => {
 
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
-        <i class="ri-earth-line" />
+        <i class="ri-map-pin-add-line" />
         {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.overseas') }}
       </h3>
 
@@ -92,8 +92,8 @@ const isSingleFocusPattern = computed(() => {
   <!-- Multi-mainland pattern: All territories in a single grid (EU, ASEAN, etc.) -->
   <div v-else>
     <h3 class="text-base font-semibold mb-4">
-      <i class="ri-earth-line" />
-      {{ configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories' }}
+      <i class="ri-map-pin-line" />
+      {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.territories') }}
     </h3>
 
     <!-- Territories Grid -->

@@ -44,56 +44,35 @@ onMounted(async () => {
 
 <template>
   <div class="flex-1 flex flex-col lg:flex-row gap-6">
-    <section
-      class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
-    >
+    <section class="lg:w-1/4 max-h-[calc(100vh-8rem)] flex flex-col gap-6">
       <!-- Atlas Configuration -->
-      <CardContainer
-        :title="t('settings.atlasConfigTitle')"
-        icon="ri-settings-4-line"
-        class="h-full"
-        has-overflow
-      >
+      <CardContainer :title="t('settings.atlasConfigTitle')" icon="ri-settings-4-line" class="h-full" has-overflow>
         <AtlasConfigSection
-          :allow-theme-selection="allowThemeSelection"
-          :view-mode-options="viewModeOptions"
+          :allow-theme-selection="allowThemeSelection" :view-mode-options="viewModeOptions"
           :composite-projection-options="compositeProjectionOptions"
         />
       </CardContainer>
     </section>
-    <section
-      class="lg:w-1/2 max-h-[calc(100vh-8rem)] flex flex-col gap-6"
-    >
+    <section class="lg:w-1/2 max-h-[calc(100vh-8rem)] flex flex-col gap-6">
       <!-- Main Content Area (Single Tab) -->
       <CardContainer
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
-        icon="ri-map-line"
-        has-overflow
-        class="min-h-0 flex-1"
+        :icon="configStore.viewMode === 'split' ? 'ri-layout-grid-2-fill' : configStore.viewMode === 'composite-existing' ? 'ri-layout-4-line' : configStore.viewMode === 'unified' ? 'ri-globe-line' : 'ri-drag-move-2-line'"
+        has-overflow class="min-h-0 flex-1"
       >
         <!-- Loading state for main content -->
         <div class="relative h-full">
           <Transition :name="skeletonTransition">
-            <div
-              v-if="showSkeleton"
-              key="skeleton"
-              class="absolute inset-0 rounded-sm border border-base-300"
-            >
+            <div v-if="showSkeleton" key="skeleton" class="absolute inset-0 rounded-sm border border-base-300">
               <div class="skeleton rounded-none h-full w-full opacity-50" />
             </div>
           </Transition>
 
           <!-- Content when loaded -->
           <Transition name="fade">
-            <div
-              v-if="!showSkeleton"
-              key="content"
-              class="h-full"
-            >
+            <div v-if="!showSkeleton" key="content" class="h-full">
               <!-- Split Territories Mode -->
-              <template
-                v-if="configStore.viewMode === 'split'"
-              >
+              <template v-if="configStore.viewMode === 'split'">
                 <SplitView
                   :get-mainland-projection="getMainlandProjection"
                   :get-territory-projection="getTerritoryProjection"
@@ -113,49 +92,37 @@ onMounted(async () => {
         </div>
       </CardContainer>
       <!-- View Configuration -->
-      <CardContainer
-        :title="t('settings.displayOptionsTitle')"
-        icon="ri-map-line"
-        has-overflow
-      >
+      <CardContainer :title="t('settings.displayOptionsTitle')" icon="ri-eye-line" has-overflow>
         <!-- Display Options -->
         <DisplayOptionsSection />
       </CardContainer>
     </section>
-    <section
-      class="lg:w-1/4  max-h-[calc(100vh-8rem)] flex flex-col gap-6"
-    >
-      <!-- Projection Parameters (only for unified view mode) -->
-      <CardContainer
-        v-if="configStore.viewMode === 'unified' || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
-          || configStore.showProjectionSelector"
-        :title="t('settings.projectionConfigTitle')"
-        icon="ri-settings-4-line"
-        has-overflow
-        class="h-full"
-      >
-        <ProjectionParamsControls />
-      </CardContainer>
-      <!-- Territory Parameters (projections, translations, scales) -->
+    <section class="lg:w-1/4  max-h-[calc(100vh-8rem)] flex flex-col gap-6">
       <Transition name="fade" mode="out-in">
         <CardContainer
-          v-show="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
-          :title="t('settings.territoryConfigTitle')"
-          icon="ri-settings-4-line"
-          class="h-full"
-          has-overflow
+          v-if="(
+            configStore.viewMode === 'unified'
+            || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+            || configStore.showProjectionSelector
+            || configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig
+          )" :title="t('settings.projectionConfigTitle')" icon="ri-settings-4-line" has-overflow class="h-full"
         >
           <Transition name="fade" mode="out-in">
-            <div
-              v-if="!showSkeleton"
-              key="content"
-              class="flex flex-col gap-4"
-            >
-              <!-- Territory controls -->
-              <TerritoryControls
-                :show-transform-controls="configStore.viewMode === 'composite-custom'"
-              />
-            </div>
+            <!-- Projection Parameters (only for unified view mode) -->
+            <ProjectionParamsControls
+              v-if="(
+                configStore.viewMode === 'unified'
+                || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+                || configStore.showProjectionSelector
+              )"
+            />
+          </Transition>
+          <Transition name="fade" mode="out-in">
+            <!-- Territory Parameters (projections, translations, scales) -->
+            <TerritoryControls
+              v-if="configStore.showIndividualProjectionSelectors && hasTerritoriesForProjectionConfig"
+              :show-transform-controls="configStore.viewMode === 'composite-custom'"
+            />
           </Transition>
         </CardContainer>
       </Transition>
