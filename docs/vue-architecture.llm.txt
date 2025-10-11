@@ -1,0 +1,334 @@
+# Vue Architecture
+
+## Overview
+
+Vue 3 Composition API application with TypeScript, Pinia stores, and composable-based logic extraction.
+
+**Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
+**Test Framework**: Vitest + @vue/test-utils
+**Test Coverage**: 122 tests (100% passing)
+
+## Project Structure
+
+```
+src/
+├── App.vue                    # Root component, layout
+├── main.ts                    # App initialization
+├── router/index.ts            # Route definitions
+├── views/
+│   ├── MapView.vue           # Main view (142 lines)
+│   └── AboutView.vue         # About page
+├── components/
+│   ├── MapRenderer.vue       # D3 map rendering (147 lines)
+│   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
+│   ├── ProjectionSelector.vue # Projection selection (114 lines)
+│   └── ui/                   # 19 reusable UI components
+│       ├── Core primitives: RangeSlider, ButtonGroup, Modal, Alert, AccordionItem, LabelWithIcon
+│       └── Specialized: ProjectionParamsControls, FormControl, etc.
+├── composables/              # 9 composition functions
+├── stores/                   # 3 Pinia stores
+└── types/                    # TypeScript definitions
+```
+
+## Component Hierarchy
+
+```
+App.vue
+├── AppHeader.vue (navigation, language, theme)
+├── RouterView
+│   └── MapView.vue (main coordinator)
+│       ├── MapRenderer.vue (D3 rendering engine)
+│       ├── TerritoryControls.vue (territory transforms)
+│       ├── ProjectionSelector.vue (projection selection)
+│       └── UI Components
+│           ├── ViewModeSection
+│           ├── ProjectionInfo
+│           ├── ProjectionParamsControls
+│           ├── ProjectionConfirmDialog
+│           ├── LoadingModal
+│           └── ToastNotification
+└── AppFooter.vue (credits, links)
+```
+
+## Key Components
+
+### MapView.vue (142 lines)
+**Role**: Main coordinator component
+**Responsibilities**:
+- Orchestrates child components
+- Manages layout and sections
+- No business logic (delegates to composables)
+- Uses: useAtlasData, useLoadingState
+
+### MapRenderer.vue (147 lines)
+**Role**: D3 rendering engine
+**Responsibilities**:
+- SVG canvas management
+- D3 projection rendering
+- Territory positioning
+- Uses: useAtlasData, useLoadingState, useProjectionConfig
+**Tests**: 10 tests covering props, rendering, store integration
+
+### TerritoryControls.vue (119 lines)
+**Role**: Territory transform controls
+**Responsibilities**:
+- Territory projection selection
+- Translation controls (x, y)
+- Scale controls
+- Reset functionality
+- Uses: useTerritoryTransforms, useTerritoryConfig
+
+### ProjectionSelector.vue (114 lines)
+**Role**: Projection selection interface
+**Responsibilities**:
+- Projection search/filter
+- Projection dropdown
+- Recommendation badges
+- Uses: useProjectionFiltering, useProjectionRecommendations
+
+### UI Components (19 components)
+**Core Primitives** (New - Template Refactoring):
+- **RangeSlider**: Range input with label, icon, value display, and customizable styling
+- **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
+- **Modal**: Standardized dialog wrapper with slots for title, content, and actions
+- **Alert**: Status/notification messages with type variants (info, success, warning, error)
+- **AccordionItem**: Collapsible content item with title/subtitle
+- **LabelWithIcon**: Label wrapper with optional icon
+
+**Reusable Components**:
+- ViewModeSection, ProjectionInfo, ProjectionParamsControls
+- ProjectionConfirmDialog, LoadingModal, ToastNotification
+- AppHeader, AppFooter, ThemeSelector, LanguageSelector
+- CardContainer, FormControl, SectionHeader
+
+**Composition Patterns**:
+- RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)
+- ButtonGroup used in CompositeExportDialog (3 instances)
+- Modal used in CompositeExportDialog for standardized dialogs
+- Alert used in ProjectionParamsControls and TerritoryControls for status messages
+
+## Composables (9 functions)
+
+### Data Loading
+**useAtlasData** (128 lines)
+- Orchestrates all data loading
+- initialize(), loadDataForViewMode(), reinitialize(), reloadUnifiedData()
+- setupWatchers() - Consolidates all data loading watchers
+- Returns: { showSkeleton, initialize, loadDataForViewMode, reinitialize, reloadUnifiedData, setupWatchers }
+- Tests: 13 tests
+
+**useLoadingState** (32 lines)
+- Manages skeleton loading state
+- withMinLoadingTime() - Ensures minimum loading duration
+- Returns: { showSkeleton, withMinLoadingTime }
+
+### Store Abstraction
+**useProjectionConfig** (58 lines)
+- Projection configuration helpers
+- compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
+- Returns: { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection }
+- Tests: 8 tests
+
+**useViewMode** (34 lines)
+- View mode options
+- Returns: { viewModeOptions }
+
+**useTerritoryConfig** (27 lines)
+- Territory configuration state
+- Returns: { hasTerritoriesForProjectionConfig }
+
+### Component Logic
+**useTerritoryTransforms** (155 lines)
+- Territory projection management
+- Translation and scale controls
+- Reset functions
+- Used by: TerritoryControls.vue
+
+**useProjectionFiltering** (91 lines)
+- Projection search and filtering
+- searchQuery, filteredProjections, clearSearch, hasSearch
+- Used by: ProjectionSelector.vue
+
+**useProjectionRecommendations** (78 lines)
+- Recommendation badge display
+- Classification logic (best, good, suitable)
+- Used by: ProjectionSelector.vue
+
+### Validation
+**useProjectionValidation** (148 lines)
+- Projection selection validation
+- Warning generation
+- Validation state management
+
+## State Management
+
+### configStore (361 lines)
+**Domain**: Configuration state
+**Responsibilities**:
+- Atlas selection (current atlas, region, territories)
+- View mode (composite, split, unified)
+- Projection mode (existing, custom)
+- Projection parameters (custom overrides)
+- Computed properties: effective parameters with priority resolution
+**Used by**: All configuration components, MapRenderer, TerritoryControls
+
+### geoDataStore (200 lines)
+**Domain**: Geographic data
+**Responsibilities**:
+- GeoJSON data caching
+- Territory data management
+- Loading states
+**Used by**: MapRenderer, data loading composables
+
+### ui.ts (68 lines)
+**Domain**: UI state
+**Responsibilities**:
+- Theme management (light/dark)
+- Display toggles (graticule, sphere, borders, limits)
+**Used by**: ThemeSelector, display option components
+
+### territory.ts (57 lines)
+**Domain**: Territory state
+**Responsibilities**:
+- Territory projections
+- Territory translations (x, y)
+- Territory scales
+- Initialization and reset
+**Used by**: TerritoryControls, useTerritoryTransforms
+
+## Data Flow
+
+```
+User Action (Template)
+    ↓
+v-model / Event Handler
+    ↓
+Composable Logic (if needed)
+    ↓
+Store Action/Mutation
+    ↓
+Store State Change
+    ↓
+Watcher in Composable (useAtlasData)
+    ↓
+Service Call
+    ↓
+Store Update → Component Re-render
+```
+
+**Key Pattern**: Centralized data loading in useAtlasData composable with setupWatchers()
+
+## Type Safety
+
+### vue-props.ts (130 lines)
+Centralized prop type definitions:
+- MapRendererProps
+- ConfigSectionProps
+- ViewComponentProps
+- TerritoryControlsProps
+- ProjectionSelectorProps
+- DisplayOptionsSectionProps
+- All props include default values exported as constants
+
+### composables.ts (240 lines)
+Composable return type interfaces:
+- LoadingState
+- ProjectionConfig
+- TerritoryConfig
+- ViewModeConfig
+- TerritoryTransforms
+- AtlasData
+- ProjectionFiltering
+- ProjectionRecommendations
+- ProjectionValidation
+
+### Central Export
+All types exported from `src/types/index.ts` for consistent imports.
+
+## Testing
+
+**Framework**: Vitest + @vue/test-utils
+**Coverage**: 122 tests (100% passing)
+
+### Test Files
+- `src/components/__tests__/MapRenderer.spec.ts` (10 tests)
+  - Props validation, rendering, store integration, computed properties
+- `src/composables/__tests__/useProjectionConfig.spec.ts` (8 tests)
+  - Projection helpers, i18n integration
+- `src/composables/__tests__/useAtlasData.spec.ts` (13 tests)
+  - Data loading orchestration, watchers, error handling
+
+### Test Infrastructure
+- i18n mocking with createI18n
+- Store mocking with createPinia/setActivePinia
+- withSetup() helper for composable testing with Vue context
+- Promise rejection handling with .catch(() => {})
+
+## Patterns
+
+### Composition API
+- All components use `<script setup lang="ts">`
+- Logic extracted to composables
+- Props defined with defineProps<Type>()
+- Events defined with defineEmits<Type>()
+
+### State Management
+- Global state: Pinia stores
+- Local state: component refs
+- Derived state: computed properties
+- Store abstraction: composables wrap store access
+
+### Component Design
+- Single Responsibility Principle
+- Props down, events up
+- Composition over inheritance
+- Templates under 100 lines
+
+### Code Organization
+- Feature-based grouping (composables/, stores/, components/ui/)
+- Co-located tests (__tests__ folders)
+- Centralized types (src/types/)
+- Average component size: 70 lines
+
+## Performance
+
+### Current Optimizations
+- Watchers centralized in useAtlasData.setupWatchers()
+- Loading state with withMinLoadingTime()
+- Shallow component hierarchy
+- Composables enable code splitting
+
+### Future Opportunities
+- Virtual scrolling for large territory lists
+- v-memo for static map content
+- Lazy loading for ProjectionSelector
+- shallowRef for large GeoJSON objects
+- Computed property memoization
+
+## Integration Points
+
+### Services
+Components never call services directly. Flow:
+1. Component action
+2. Store mutation
+3. Watcher in useAtlasData
+4. Service call
+5. Store update
+6. Component re-render
+
+### D3/Observable Plot
+- MapRenderer.vue owns D3 integration
+- CartographerService coordinates rendering
+- Services handle D3 projection creation
+
+### I18n
+- Vue I18n plugin for translations
+- useI18n() composable in components
+- Locale files: src/i18n/locales/en.json, fr.json
+
+## Related Documentation
+
+- docs/architecture.llm.rxt - Overall architecture
+- docs/services.llm.txt - Service layer
+- docs/atlases.llm.txt - Atlas configuration
+- docs/projections.llm.txt - Projection system

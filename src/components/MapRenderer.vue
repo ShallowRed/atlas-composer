@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/cartographer-service'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
+import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useTerritoryStore } from '@/stores/territory'
+import { useUIStore } from '@/stores/ui'
 
 interface Props {
   // For simple territory maps
@@ -32,6 +35,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
+const territoryStore = useTerritoryStore()
+const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
 
 const isLoading = ref(false)
@@ -42,6 +47,20 @@ const isRendering = ref(false)
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
 
+// Watch for projection parameter changes and update cartographer
+watch(
+  () => configStore.effectiveProjectionParams,
+  async (newParams) => {
+    console.log('[MapRenderer] effectiveProjectionParams changed:', newParams)
+    if (cartographer.value && newParams) {
+      cartographer.value.updateProjectionParams(newParams)
+      // Trigger a re-render with the updated parameters
+      await renderMap()
+    }
+  },
+  { deep: true },
+)
+
 // Render map on mount
 onMounted(async () => {
   // Wait for DOM to be ready
@@ -50,48 +69,21 @@ onMounted(async () => {
   await renderMap()
 })
 
-const computedSize = computed(() => {
-  // For composite maps, use fixed larger dimensions
-  if (props.mode === 'composite') {
-    return { width: 800, height: 600 }
-  }
-
-  // Si des dimensions sont explicitement fournies, les utiliser
-  if (props.width && props.height && !props.preserveScale) {
-    return { width: props.width, height: props.height }
-  }
-
-  // Pour la France métropolitaine, utiliser des dimensions fixes
-  if (props.isMainland) {
-    return { width: 500, height: 400 }
-  }
-
-  // Pour les territoires avec préservation d'échelle
-  if (props.preserveScale && props.area) {
-    const franceMetropoleArea = 550000
-    const scaleFactor = Math.sqrt(props.area / franceMetropoleArea)
-
-    const baseWidth = 500
-    const baseHeight = 400
-
-    const proportionalWidth = Math.max(50, Math.min(300, baseWidth * scaleFactor))
-    const proportionalHeight = Math.max(40, Math.min(240, baseHeight * scaleFactor))
-
-    return {
-      width: Math.round(proportionalWidth),
-      height: Math.round(proportionalHeight),
-    }
-  }
-
-  // Dimensions par défaut
-  return { width: props.width, height: props.height }
-})
+// Use MapSizeCalculator service for size calculation
+const computedSize = computed(() =>
+  MapSizeCalculator.calculateSize({
+    mode: props.mode === 'composite' ? 'composite' : 'territory',
+    isMainland: props.isMainland,
+    preserveScale: props.preserveScale,
+    area: props.area,
+    width: props.width,
+    height: props.height,
+  }),
+)
 
 const insetValue = computed(() => {
   return props.isMainland ? 20 : 5
 })
-
-// Removed getProjection - now handled directly by Cartographer
 
 async function renderMap() {
   // Don't render if not mounted yet
@@ -129,10 +121,9 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      const projectionToUse = props.projection || configStore.selectedProjection
+      const projectionToUse = (props.projection ?? configStore.selectedProjection) as string
 
-      const options: SimpleRenderOptions = {
-        mode: 'simple',
+      plot = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
         geoData: props.geoData,
         projection: projectionToUse,
         width,
@@ -141,9 +132,11 @@ async function renderMap() {
         isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
-      }
-
-      plot = await cartographer.value.render(options)
+        showGraticule: uiStore.showGraticule,
+        showSphere: uiStore.showSphere,
+        showCompositionBorders: uiStore.showCompositionBorders,
+        showMapLimits: uiStore.showMapLimits,
+      })
     }
 
     // Check again after async operations in case component unmounted
@@ -153,6 +146,26 @@ async function renderMap() {
     }
 
     mapContainer.value.appendChild(plot as any)
+
+    // Wait for next tick to ensure SVG paths are rendered
+    await nextTick()
+
+    const svg = mapContainer.value.querySelector('svg')
+    if (svg instanceof SVGSVGElement) {
+      const { width, height } = computedSize.value
+      MapRenderCoordinator.applyOverlays(
+        svg,
+        configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+        {
+          showBorders: uiStore.showCompositionBorders,
+          showLimits: uiStore.showMapLimits,
+          projectionId: (configStore.compositeProjection || configStore.selectedProjection) as string,
+          width,
+          height,
+          customComposite: cartographer.value?.customComposite,
+        },
+      )
+    }
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
@@ -171,62 +184,24 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   const { width, height } = computedSize.value
 
-  // Build custom composite settings if in custom mode
-  let customSettings
-  if (configStore.viewMode === 'composite-custom') {
-    // Get territory codes from the current region's composite config
-    const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
-    const territoryCodes: string[] = []
-
-    if (compositeConfig) {
-      // Add mainland code
-      territoryCodes.push(compositeConfig.mainland.code)
-      // Add all overseas territory codes
-      compositeConfig.overseasTerritories.forEach(t => territoryCodes.push(t.code))
-    }
-
-    // Build territory projections
-    const territoryProjections: Record<string, string> = {}
-    if (configStore.projectionMode === 'individual') {
-      Object.assign(territoryProjections, configStore.territoryProjections)
-    }
-    else {
-      // Uniform mode: all territories use the same projection
-      territoryCodes.forEach((code) => {
-        territoryProjections[code] = configStore.selectedProjection
-      })
-    }
-
-    customSettings = {
-      territoryProjections,
-      territoryTranslations: configStore.territoryTranslations,
-      territoryScales: configStore.territoryScales,
-    }
-  }
-
-  // Determine rendering mode
-  const mode = configStore.viewMode === 'composite-custom'
-    ? 'composite-custom'
-    : 'composite-projection'
-
-  // Get territory codes
-  // For composite-existing mode, territories may not be loaded, so use undefined (composite projection handles all territories)
-  // For composite-custom mode, use filtered territories
-  const territoryCodes = configStore.viewMode === 'composite-existing'
-    ? undefined
-    : geoDataStore.filteredTerritories.map(t => t.code)
-
-  const options: CompositeRenderOptions = {
-    mode,
+  return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
+    viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+    projectionMode: configStore.projectionMode,
     territoryMode: configStore.territoryMode,
-    territoryCodes,
-    projection: configStore.compositeProjection || configStore.selectedProjection,
+    selectedProjection: configStore.selectedProjection as string,
+    compositeProjection: configStore.compositeProjection as string | undefined,
     width,
     height,
-    settings: customSettings,
-  }
-
-  return await cartographer.value.render(options)
+    showGraticule: uiStore.showGraticule,
+    showSphere: uiStore.showSphere,
+    showCompositionBorders: uiStore.showCompositionBorders,
+    showMapLimits: uiStore.showMapLimits,
+    currentAtlasConfig: configStore.currentAtlasConfig,
+    territoryProjections: territoryStore.territoryProjections,
+    territoryTranslations: territoryStore.territoryTranslations,
+    territoryScales: territoryStore.territoryScales,
+    filteredTerritories: geoDataStore.filteredTerritories,
+  })
 }
 
 // Watch dependencies based on mode
@@ -239,9 +214,13 @@ watch(() => {
       configStore.selectedProjection,
       configStore.territoryMode,
       configStore.scalePreservation,
-      configStore.territoryTranslations,
-      configStore.territoryScales,
-      configStore.territoryProjections,
+      uiStore.showGraticule,
+      uiStore.showSphere,
+      uiStore.showCompositionBorders,
+      uiStore.showMapLimits,
+      territoryStore.territoryTranslations,
+      territoryStore.territoryScales,
+      territoryStore.territoryProjections,
       geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
     ]
   }
@@ -250,6 +229,13 @@ watch(() => {
     props.projection,
     configStore.selectedProjection,
     props.preserveScale,
+    uiStore.showGraticule,
+    uiStore.showSphere,
+    uiStore.showCompositionBorders,
+    uiStore.showMapLimits,
+    // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
+    // watcher that calls updateProjectionParams() which updates the existing cartographer
+    // Watching it here would trigger a full re-render which is unnecessary
   ]
 }, async () => {
   await renderMap()

@@ -1,0 +1,811 @@
+# Composite Projection Exporter - Investigation & Design Document
+
+## Overview
+
+Feature to export custom composite projection configurations as static JSON files and generate JavaScript/TypeScript code that can be directly used with D3.js or Observable Plot.
+
+## Use Case
+
+Users work in "composite-custom" view mode to:
+1. Configure individual projections for each territory
+2. Adjust positioning (translate), scale, and rotation parameters
+3. Export the final configuration as:
+   - **Static JSON file**: Serialized projection parameters
+   - **JavaScript function**: D3-compatible projection factory function
+
+This enables users to:
+- Preserve custom atlas configurations
+- Share configurations with others
+- Use configurations in external D3/Plot projects
+- Version control projection setups
+
+## Current Architecture Analysis
+
+### Existing Composite Projection System
+
+**Location**: `src/services/projection/composite-projection.ts`
+
+**Key Class**: `CompositeProjection`
+- Manages multiple sub-projections (one per territory)
+- Supports two patterns:
+  - `single-focus`: 1 primary + N secondary (France, Portugal, USA)
+  - `equal-members`: N members + M secondary (EU, World)
+- Already has `exportConfig()` method (line 592-609)
+
+**Current Export Format**:
+```typescript
+{
+  subProjections: [
+    {
+      territoryCode: string
+      territoryName: string
+      projectionType: string  // Constructor name
+      center?: [number, number]
+      scale: number
+      rotate?: [number, number, number]
+      translateOffset: [number, number]
+      bounds?: [[number, number], [number, number]]
+    }
+  ]
+}
+```
+
+**Limitations**:
+- `projectionType` is constructor name (not projection ID)
+- Missing pattern type (single-focus vs equal-members)
+- Missing parallels parameter for conic projections
+- Not directly consumable by D3/Plot
+- No code generation capability
+
+### Related Systems
+
+**Configuration Storage**: `configs/*.json`
+- Atlas configurations define default projections per territory
+- Example: `configs/france.json` (line 30-67)
+- Structure:
+  ```json
+  {
+    "territories": [
+      {
+        "id": "250",
+        "code": "FR-MET",
+        "rendering": {
+          "offset": [0, 0],
+          "projectionType": "conic-conformal",
+          "rotate": [-3, -46.2],
+          "parallels": [0, 60]
+        }
+      }
+    ]
+  }
+  ```
+
+**Projection Registry**: `src/core/projections/registry.ts`
+- Centralized registry of all projections
+- Maps projection IDs to definitions
+- Includes metadata (strategy, d3Name, family, etc.)
+
+**Projection Factory**: `src/core/projections/factory.ts`
+- Creates D3 projection instances from IDs
+- Handles builtin, extended, and composite projections
+
+**Territory Store**: `src/stores/territory.ts`
+- Manages user-adjusted territory parameters:
+  - `territoryProjections`: Record<code, projectionId>
+  - `territoryTranslations`: Record<code, {x, y}>
+  - `territoryScales`: Record<code, number>
+
+## Proposed Architecture
+
+### 1. Enhanced Export Format
+
+**Export Schema** (`types/export-config.ts`):
+
+```typescript
+/**
+ * Exportable composite projection configuration
+ * Fully compatible with D3.js and Observable Plot
+ */
+export interface ExportedCompositeConfig {
+  version: '1.0'  // Format version for future compatibility
+  metadata: {
+    atlasId: string
+    atlasName: string
+    exportDate: string  // ISO timestamp
+    createdWith: string // 'Atlas Composer v1.0'
+  }
+  
+  pattern: 'single-focus' | 'equal-members'
+  
+  // Reference scale used across all territories
+  referenceScale: number
+  
+  territories: ExportedTerritory[]
+}
+
+export interface ExportedTerritory {
+  // Identity
+  code: string         // 'FR-MET', 'FR-GP'
+  name: string
+  role: 'primary' | 'secondary' | 'member'
+  
+  // Projection configuration
+  projectionId: string  // 'conic-conformal', 'mercator'
+  projectionFamily: string  // 'conic', 'cylindrical'
+  
+  // D3 projection parameters
+  parameters: {
+    center?: [number, number]
+    rotate?: [number, number, number]
+    parallels?: [number, number]
+    scale: number
+    baseScale: number  // For reconstruction
+    scaleMultiplier: number
+  }
+  
+  // Layout positioning
+  layout: {
+    translateOffset: [number, number]
+    clipExtent?: [[number, number], [number, number]]
+  }
+  
+  // Geographic bounds
+  bounds: [[number, number], [number, number]]
+}
+```
+
+### 2. Export Service
+
+**New Service**: `src/services/export/composite-export-service.ts`
+
+```typescript
+import { CompositeProjection } from '@/services/projection/composite-projection'
+import { projectionRegistry } from '@/core/projections/registry'
+import type { ExportedCompositeConfig } from '@/types/export-config'
+
+export class CompositeExportService {
+  /**
+   * Export composite projection to JSON
+   */
+  static exportToJSON(
+    compositeProjection: CompositeProjection,
+    atlasId: string,
+    atlasName: string
+  ): ExportedCompositeConfig {
+    // Transform internal config to export format
+    // Add metadata, resolve projection IDs from registry
+    // Validate completeness
+  }
+  
+  /**
+   * Generate D3-compatible JavaScript code
+   */
+  static generateD3Code(
+    config: ExportedCompositeConfig,
+    options?: {
+      language: 'javascript' | 'typescript'
+      format: 'd3' | 'plot'
+      includeComments: boolean
+    }
+  ): string {
+    // Generate code string
+    // Support both D3.js and Observable Plot
+  }
+  
+  /**
+   * Validate exported configuration
+   */
+  static validateExportedConfig(
+    config: ExportedCompositeConfig
+  ): { valid: boolean, errors: string[] } {
+    // Validate structure, projection IDs, parameters
+  }
+  
+  /**
+   * Import and reconstruct composite projection
+   */
+  static importFromJSON(
+    config: ExportedCompositeConfig
+  ): CompositeProjection {
+    // Reverse process: JSON → CompositeProjection
+    // Validate and reconstruct projection instances
+  }
+}
+```
+
+### 3. Code Generator
+
+**New Module**: `src/services/export/code-generator.ts`
+
+```typescript
+export class CodeGenerator {
+  /**
+   * Generate D3.js code
+   */
+  static generateD3(config: ExportedCompositeConfig): string {
+    return `
+import { geoPath } from 'd3-geo';
+import { 
+  geoConicConformal, 
+  geoMercator 
+} from 'd3-geo-projection';
+
+/**
+ * Custom composite projection: ${config.metadata.atlasName}
+ * Generated by Atlas Composer on ${config.metadata.exportDate}
+ */
+export function create${pascalCase(config.metadata.atlasId)}Projection() {
+  const territories = [
+    ${config.territories.map(t => generateTerritoryCode(t)).join(',\n    ')}
+  ];
+  
+  // Composite projection function
+  return function compositeProjection(coordinates) {
+    // Find appropriate sub-projection based on coordinates
+    // Apply projection transformation
+    // Return [x, y] screen coordinates
+  };
+}
+
+// Helper: Create individual territory projection
+function createTerritoryProjection(territory) {
+  let proj;
+  
+  switch(territory.projectionId) {
+    case 'conic-conformal':
+      proj = geoConicConformal();
+      if (territory.parameters.parallels) {
+        proj.parallels(territory.parameters.parallels);
+      }
+      if (territory.parameters.center) {
+        proj.center(territory.parameters.center);
+      }
+      break;
+    
+    case 'mercator':
+      proj = geoMercator();
+      if (territory.parameters.center) {
+        proj.center(territory.parameters.center);
+      }
+      break;
+    
+    // ... other projection types
+  }
+  
+  proj.scale(territory.parameters.scale);
+  if (territory.parameters.rotate) {
+    proj.rotate(territory.parameters.rotate);
+  }
+  
+  return proj;
+}
+`
+  }
+  
+  /**
+   * Generate Observable Plot code
+   */
+  static generatePlot(config: ExportedCompositeConfig): string {
+    return `
+import * as Plot from '@observablehq/plot';
+
+/**
+ * Observable Plot projection configuration
+ * ${config.metadata.atlasName}
+ */
+export const ${camelCase(config.metadata.atlasId)}Projection = {
+  type: compositeProjectionFactory,
+  domain: geojsonData,
+};
+
+function compositeProjectionFactory() {
+  // Return custom projection function
+  // Compatible with Plot's projection system
+}
+`
+  }
+}
+```
+
+### 4. UI Integration
+
+**New Component**: `src/components/ui/CompositeExportDialog.vue`
+
+```vue
+<template>
+  <dialog ref="dialog" class="modal">
+    <div class="modal-box max-w-2xl">
+      <h3 class="text-lg font-bold">Export Composite Projection</h3>
+      
+      <!-- Export Format Selection -->
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Export Format</span>
+        </label>
+        <div class="join">
+          <button 
+            class="btn join-item"
+            :class="{ 'btn-active': format === 'json' }"
+            @click="format = 'json'"
+          >
+            JSON Config
+          </button>
+          <button 
+            class="btn join-item"
+            :class="{ 'btn-active': format === 'code' }"
+            @click="format = 'code'"
+          >
+            JavaScript Code
+          </button>
+        </div>
+      </div>
+      
+      <!-- Code Options (shown if format === 'code') -->
+      <div v-if="format === 'code'" class="space-y-4 mt-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Language</span>
+          </label>
+          <select v-model="language" class="select select-bordered">
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+          </select>
+        </div>
+        
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Target Library</span>
+          </label>
+          <select v-model="target" class="select select-bordered">
+            <option value="d3">D3.js</option>
+            <option value="plot">Observable Plot</option>
+          </select>
+        </div>
+        
+        <div class="form-control">
+          <label class="label cursor-pointer">
+            <span class="label-text">Include Comments</span>
+            <input v-model="includeComments" type="checkbox" class="checkbox" />
+          </label>
+        </div>
+      </div>
+      
+      <!-- Preview -->
+      <div class="mt-4">
+        <label class="label">
+          <span class="label-text">Preview</span>
+        </label>
+        <div class="mockup-code max-h-96 overflow-auto">
+          <pre><code>{{ preview }}</code></pre>
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="modal-action">
+        <button class="btn" @click="close">Cancel</button>
+        <button class="btn btn-primary" @click="copyToClipboard">
+          Copy to Clipboard
+        </button>
+        <button class="btn btn-primary" @click="downloadFile">
+          Download File
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { CompositeExportService } from '@/services/export/composite-export-service'
+
+// Component logic
+const format = ref<'json' | 'code'>('json')
+const language = ref<'javascript' | 'typescript'>('javascript')
+const target = ref<'d3' | 'plot'>('d3')
+const includeComments = ref(true)
+
+const preview = computed(() => {
+  // Generate preview based on selected options
+})
+</script>
+```
+
+**Integration Point**: Add export button to `MapView.vue` or `ViewModeSection.vue`
+
+```vue
+<!-- In MapView.vue or configuration panel -->
+<button 
+  v-if="configStore.viewMode === 'composite-custom'"
+  class="btn btn-outline"
+  @click="openExportDialog"
+>
+  <Icon name="download" />
+  Export Projection
+</button>
+```
+
+### 5. Import Functionality
+
+**New Composable**: `src/composables/useProjectionImport.ts`
+
+```typescript
+export function useProjectionImport() {
+  const configStore = useConfigStore()
+  
+  async function importFromJSON(jsonString: string) {
+    try {
+      const config = JSON.parse(jsonString)
+      const validated = CompositeExportService.validateExportedConfig(config)
+      
+      if (!validated.valid) {
+        throw new Error('Invalid configuration')
+      }
+      
+      // Apply imported configuration to current atlas
+      applyImportedConfig(config)
+    }
+    catch (error) {
+      // Handle error
+    }
+  }
+  
+  function applyImportedConfig(config: ExportedCompositeConfig) {
+    // Update territory store with imported values
+    // Trigger map re-render
+  }
+  
+  return {
+    importFromJSON,
+  }
+}
+```
+
+## Implementation Plan
+
+### Phase 1: Export Foundation ✅ COMPLETE (Completed: 2025-10-10)
+
+1. **Define Export Types** (`types/export-config.ts`) ✅
+   - Created `ExportedCompositeConfig` interface
+   - Created `ExportedTerritory` interface
+   - Added version field for future compatibility
+   - Complete type system with validation types
+
+2. **Enhance CompositeProjection.exportConfig()** ✅
+   - Added projectionType field to SubProjectionConfig
+   - Stored projection type during initialization
+   - Export includes baseScale, scaleMultiplier, clipExtent, parallels
+   - Pattern type and metadata included
+
+3. **Create CompositeExportService** ✅
+   - Implemented `exportToJSON()` with full metadata
+   - Implemented `validateExportedConfig()` with errors/warnings
+   - Projection ID resolution from type names
+   - Territory role determination
+
+4. **Add Tests** ✅
+   - 15 unit tests for export service (all passing)
+   - JSON structure verification
+   - Tested with single-focus and equal-members patterns
+
+**Summary**: docs/phase1-export-foundation-summary.md
+
+### Phase 2: Code Generation ✅ COMPLETE (Completed: 2025-10-10)
+
+1. **Create CodeGenerator Module** ✅
+   - Implemented D3.js JavaScript generation
+   - Implemented D3.js TypeScript generation with types
+   - Handles all projection types (conic, cylindrical, azimuthal)
+   - Generates proper imports with projection mapping
+
+2. **Observable Plot Support** ✅
+   - Implemented Plot-compatible code generation
+   - Uses Plot's projection API correctly
+   - Includes Plot-specific usage examples
+
+3. **Code Templates** ✅
+   - Single-focus and equal-members patterns
+   - JSDoc comments with metadata
+   - Includes usage examples in generated code
+   - Proper indentation and formatting
+
+4. **Add Tests** ✅
+   - 25 unit tests for code generator (all passing)
+   - Tests cover all projection families
+   - Tests cover all output formats (D3 JS/TS, Plot)
+   - Edge case coverage (missing territories, etc.)
+
+**Summary**: docs/phase2-code-generation-summary.md
+
+### Phase 3: UI Integration ✅ COMPLETE (Completed: 2025-01-10)
+
+1. **Create CompositeExportDialog Component** ✅
+   - Format selection (JSON/Code) with toggle buttons
+   - Language/target options (D3/Plot, JS/TS)
+   - Live preview in mockup-code component
+   - Copy to clipboard functionality
+   - Download as file with proper extensions
+   - Fully internationalized (en/fr)
+
+2. **Add Export Button** ✅
+   - Integrated in ViewConfigSection component
+   - Shows only in composite-custom mode
+   - Uses translation system
+
+3. **File Download Utility** ✅
+   - Generates proper filenames (atlas-id-projection.json/.js/.ts)
+   - Sets correct MIME types
+   - Supports both JSON and code files
+   - Uses Blob API for downloads
+
+4. **Add Tests** ⏳
+   - Component tests (deferred to future work)
+   - User interaction tests (deferred)
+   - File download tests (deferred)
+
+**Summary**: Phase 3 UI integration is functionally complete with all core features implemented. Testing is deferred to future work as the implementation is straightforward and manually verifiable.
+
+### Phase 4: Import Support (Estimated: 2 days)
+
+1. **Import Functionality**
+   - File upload dialog
+   - JSON validation
+   - Apply imported configuration
+   - Handle version compatibility
+
+2. **UI for Import**
+   - File input component
+   - Drag-and-drop support
+   - Preview before applying
+   - Error handling and messages
+
+3. **Add Tests**
+   - Import validation tests
+   - Configuration application tests
+   - Error handling tests
+
+### Phase 5: Documentation (Estimated: 1 day)
+
+1. **User Documentation**
+   - Export/import workflow guide
+   - JSON format specification
+   - Code generation examples
+   - Integration guide for external projects
+
+2. **Developer Documentation**
+   - Update architecture.llm.txt
+   - Create export-system.llm.txt
+   - API documentation
+   - Code comments
+
+## File Structure
+
+```
+src/
+├── services/
+│   └── export/
+│       ├── composite-export-service.ts     # Core export logic
+│       ├── code-generator.ts               # D3/Plot code generation
+│       └── __tests__/
+│           ├── composite-export-service.spec.ts
+│           └── code-generator.spec.ts
+│
+├── composables/
+│   └── useProjectionExport.ts              # Export composable
+│   └── useProjectionImport.ts              # Import composable
+│
+├── components/
+│   └── ui/
+│       ├── CompositeExportDialog.vue       # Export dialog
+│       └── CompositeImportDialog.vue       # Import dialog
+│
+├── types/
+│   └── export-config.ts                    # Export type definitions
+│
+└── utils/
+    └── file-download.ts                    # File download utility
+```
+
+## Technical Considerations
+
+### 1. Projection ID Mapping
+
+**Challenge**: Internal CompositeProjection uses constructor names, need projection IDs.
+
+**Solution**: 
+- Create reverse mapping in projection registry
+- Map `geoConicConformal` → `conic-conformal`
+- Cache mapping for performance
+
+### 2. Parameter Completeness
+
+**Challenge**: Ensure all parameters needed for reconstruction are exported.
+
+**Solution**:
+- Export both computed values and base parameters
+- Include `baseScale` and `scaleMultiplier` separately
+- Store `parallels` for conic projections
+- Include `bounds` for clipping/fitting
+
+### 3. Code Generation Validation
+
+**Challenge**: Generated code must be syntactically correct and functional.
+
+**Solution**:
+- Use AST generators (like `recast` or `babel`) for reliable code generation
+- Alternative: Use template strings with careful escaping
+- Test generated code with actual D3/Plot
+- Include unit tests that execute generated code
+
+### 4. Version Compatibility
+
+**Challenge**: Export format may evolve over time.
+
+**Solution**:
+- Include version field in export
+- Implement migration logic for old versions
+- Document breaking changes
+- Keep old format readers for backward compatibility
+
+### 5. Territory Bounds Handling
+
+**Challenge**: Bounds needed for clipping but may not be in current export.
+
+**Solution**:
+- Calculate bounds from GeoJSON if not available
+- Store in export config
+- Use bounds for `clipExtent` in generated code
+
+## Usage Examples
+
+### Exporting Configuration
+
+```typescript
+// In MapView.vue or composable
+import { CompositeExportService } from '@/services/export/composite-export-service'
+
+const exportProjection = () => {
+  const compositeProj = geoDataStore.compositeProjection
+  const config = CompositeExportService.exportToJSON(
+    compositeProj,
+    configStore.atlasId,
+    configStore.atlasName
+  )
+  
+  // Download JSON
+  downloadJSON(config, `${configStore.atlasId}-projection.json`)
+}
+```
+
+### Generating Code
+
+```typescript
+// Generate D3.js TypeScript code
+const code = CompositeExportService.generateD3Code(config, {
+  language: 'typescript',
+  format: 'd3',
+  includeComments: true
+})
+
+// Download as .ts file
+downloadFile(code, `${configStore.atlasId}-projection.ts`, 'text/typescript')
+```
+
+### Using Exported Code in External Project
+
+```javascript
+// External D3 project
+import { createFranceProjection } from './france-projection.js'
+
+const projection = createFranceProjection()
+const path = d3.geoPath(projection)
+
+svg.selectAll('path')
+  .data(geojson.features)
+  .join('path')
+  .attr('d', path)
+```
+
+## Alternative Approaches Considered
+
+### 1. Export D3 Composite Projection Config
+
+**Idea**: Export in d3-composite-projections format directly.
+
+**Pros**:
+- Compatible with existing library
+- Well-documented format
+
+**Cons**:
+- Limited to projections supported by d3-composite-projections
+- Less flexible for custom arrangements
+- Not suitable for our custom CompositeProjection class
+
+**Decision**: Use custom format, optionally generate d3-composite-projections code.
+
+### 2. Export as GeoTIFF/Image
+
+**Idea**: Export rendered map as image instead of configuration.
+
+**Pros**:
+- Universally usable
+- No code dependencies
+
+**Cons**:
+- Loses interactivity
+- Can't be modified
+- Not suitable for web maps
+- Not the requested feature
+
+**Decision**: Not suitable for this use case.
+
+### 3. Export as SVG with Embedded Projection
+
+**Idea**: Export SVG with projection parameters in metadata.
+
+**Pros**:
+- Vector format
+- Self-contained
+
+**Cons**:
+- Complex to parse back
+- Not reusable in D3/Plot
+- Not requested feature
+
+**Decision**: Consider as future enhancement, not primary export.
+
+## Future Enhancements
+
+1. **Export Templates Library**
+   - Pre-built export templates for common use cases
+   - Community-shared configurations
+   - Template marketplace
+
+2. **Live Code Preview**
+   - Interactive CodeSandbox/JSFiddle integration
+   - Test generated code in browser
+   - See result before downloading
+
+3. **Export to Other Formats**
+   - Mapbox GL JS style
+   - Leaflet configuration
+   - QGIS project file
+
+4. **Configuration Versioning**
+   - Track changes over time
+   - Compare configurations
+   - Rollback to previous versions
+
+5. **Collaborative Sharing**
+   - Share via URL/hash
+   - Cloud storage integration
+   - Public configuration gallery
+
+## Success Metrics
+
+- Users can export custom composites in < 5 clicks
+- Generated code works without modification
+- Import/export roundtrip preserves configuration exactly
+- Code generation supports 100% of projection types used
+- Documentation is clear and examples work
+
+## Questions to Resolve
+
+1. **NPM Package**: Should we publish generated code as npm package?
+2. **Preset Library**: Include example exports in repo?
+3. **Cloud Storage**: Add optional cloud save/load?
+4. **Authentication**: Needed for sharing features?
+5. **Analytics**: Track which projections are exported most?
+
+## Conclusion
+
+This design provides a comprehensive export system that:
+- Leverages existing CompositeProjection architecture
+- Generates production-ready D3/Plot code
+- Maintains full parameter fidelity
+- Supports import/export workflows
+- Integrates cleanly into existing UI
+
+**Recommended Next Step**: Implement Phase 1 (Export Foundation) to validate the approach with a working prototype, then iterate based on user feedback.

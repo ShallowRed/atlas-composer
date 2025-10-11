@@ -1,0 +1,215 @@
+# Projection System Quick Reference
+
+## Core Features
+
+- **Type Safety**: Full TypeScript support
+- **Metadata-Rich**: Capabilities, suitability scores, recommendations
+- **Smart Recommendations**: Context-aware scoring (atlas, view mode, geography)
+- **20+ Projections**: D3 builtin, extended, and composite projections
+- **Extensible**: Simple definition files for new projections
+
+## Architecture
+
+```
+src/core/projections/
+├── types.ts           # TypeScript types
+├── registry.ts        # Singleton projection registry with recommendation engine
+├── factory.ts         # Projection factory
+├── parameters.ts      # Parameter configuration and defaults
+└── definitions/       # Projection definitions by category
+    ├── composite.ts   # France, Portugal, EU composites
+    ├── conic.ts       # Conic projections
+    ├── azimuthal.ts   # Azimuthal projections
+    ├── cylindrical.ts # Cylindrical projections
+    ├── compromise.ts  # Compromise projections
+    ├── world.ts       # World projections
+    └── artistic.ts    # Artistic/historical projections
+```
+
+## Projection Definition Structure
+
+```typescript
+{
+  // Identification
+  id: string                    // 'mercator', 'conic-conformal'
+  name: string                  // 'Mercator', 'Lambert Conformal Conic'
+  aliases?: string[]            // Alternative names
+
+  // Classification
+  category: 'RECOMMENDED' | 'STANDARD' | 'SPECIALIZED' | 'ARTISTIC'
+  family: 'conic' | 'azimuthal' | 'cylindrical' | 'world' | 'composite'
+  strategy: 'D3_BUILTIN' | 'D3_EXTENDED' | 'D3_COMPOSITE'
+
+  // Technical
+  d3Name: string                // D3 function name
+  defaultParameters?: object    // Default projection parameters
+
+  // Context awareness
+  capabilities: {
+    preservesArea?: boolean
+    preservesAngles?: boolean
+    preservesDistance?: boolean
+    preservesDirection?: boolean
+    supportsSplit?: boolean
+    supportsGraticule?: boolean
+    supportsClipping?: boolean
+  }
+
+  suitability: {
+    polar?: number              // 0-100 for Arctic/Antarctic
+    midLatitude?: number        // 0-100 for temperate zones (30-60°)
+    equatorial?: number         // 0-100 for tropical zones (±30°)
+    global?: number             // 0-100 for world maps
+    regional?: number           // 0-100 for country/region maps
+    france?: number             // Atlas-specific scores
+    portugal?: number
+    eu?: number
+  }
+
+  recommendedForAtlases?: string[]  // ['france', 'portugal']
+
+  // Documentation
+  description: string
+  useCases?: string[]
+}
+```
+
+## Projection Categories
+
+| Category | Description | Examples |
+|----------|-------------|----------|
+| `RECOMMENDED` | Best for common use cases | Mercator, Conic Conformal, Albers |
+| `STANDARD` | General-purpose projections | Equirectangular, Stereographic |
+| `SPECIALIZED` | Specific purposes | Gnomonic (navigation), Orthographic (globe view) |
+| `ARTISTIC` | Creative/historical | Waterman Butterfly, Baker Dinomic |
+
+## Projection Families
+
+- `conic` - Best for mid-latitudes (30-60°): Conic Conformal, Albers, Conic Equal Area
+- `azimuthal` - Best for polar regions (60°+): Stereographic, Azimuthal Equal Area, Orthographic
+- `cylindrical` - Best for equatorial (±30°): Mercator, Equirectangular
+- `world` - Best for global maps: Natural Earth, Robinson, Mollweide
+- `composite` - Multi-projection layouts: France, Portugal, EU
+
+## Recommendation Context
+
+```typescript
+interface ProjectionFilterContext {
+  atlasId?: string              // 'france' | 'portugal' | 'spain' | 'eu'
+  viewMode?: ViewMode           // 'composite' | 'split' | 'individual'
+  category?: ProjectionCategory
+  family?: ProjectionFamily
+  capabilities?: {
+    preservesArea?: boolean
+    preservesAngles?: boolean
+  }
+  suitability?: {
+    midLatitude?: { min?: number, max?: number }
+    equatorial?: { min?: number, max?: number }
+  }
+  limit?: number                // Max results
+}
+```
+
+## Quick Selection Guide
+
+### By Latitude
+
+- **60°+ (Polar)**: `azimuthal-equal-area`, `stereographic`
+- **30°-60° (Mid-latitude)**: `conic-conformal`, `albers`, `conic-equal-area`
+- **±30° (Equatorial)**: `mercator`, `equirectangular`
+- **Global**: `natural-earth`, `robinson`, `mollweide`
+
+### By Use Case
+
+- **Country/Regional Maps**: `conic-conformal`, `albers`
+- **Navigation**: `mercator`, `gnomonic`
+- **Area Comparison**: `albers`, `azimuthal-equal-area`, `mollweide`
+- **Globe View**: `orthographic`, `perspective`
+- **Creative/Artistic**: `waterman-butterfly`, `baker-dinomic`
+
+### By Atlas
+
+- **France**: `conic-conformal-france` (composite), `conic-conformal`, `albers`
+- **Portugal**: `conic-conformal-portugal` (composite), `conic-conformal`, `mercator`
+- **EU**: `conic-conformal-europe` (composite), `conic-conformal`, `albers`
+
+## Capabilities Reference
+
+| Capability | Preserves | Best For |
+|------------|-----------|----------|
+| `preservesArea` | Area/size | Statistical maps, choropleth |
+| `preservesAngles` | Angles/shapes | Navigation, city maps |
+| `preservesDistance` | Distance from center | Distance measurement |
+| `preservesDirection` | Direction from center | Navigation, polar maps |
+
+## Projection Parameters
+
+### Common Parameters
+
+```typescript
+{
+  center?: [longitude, latitude]     // Projection center
+  rotate?: [lambda, phi, gamma]      // Rotation angles
+  parallels?: [south, north]         // Standard parallels (conic)
+  scale?: number                     // Zoom level
+  translate?: [x, y]                 // Pan position
+  clipAngle?: number                 // Clipping angle (degrees)
+}
+```
+
+### Parameter Relevance by Family
+
+Defined in `parameters.ts` - determines which parameters are applicable:
+
+| Family | rotateLon | rotateLat | centerLon | centerLat | parallels |
+|--------|-----------|-----------|-----------|-----------|-----------|
+| `cylindrical` | ✓ | - | - | - | - |
+| `conic` | - | - | ✓ | ✓ | ✓ |
+| `azimuthal` | ✓ | ✓ | - | - | - |
+| `world` | ✓ | - | - | - | - |
+| `compromise` | ✓ | - | - | - | - |
+| `composite` | - | - | - | - | - |
+
+**Rules**:
+- Conic: Uses `center` + `parallels`, ignores `rotate`
+- Azimuthal: Uses `rotate` for both axes (longitude/latitude)
+- Cylindrical/World/Compromise: Uses `rotate` for longitude only
+- Composite: Parameters managed per sub-projection
+
+## Adding New Projection
+
+1. Add definition to appropriate file in `definitions/`:
+
+```typescript
+export const myProjection: ProjectionDefinition = {
+  id: 'my-projection',
+  name: 'My Projection',
+  category: 'STANDARD',
+  family: 'conic',
+  strategy: 'D3_BUILTIN',
+  d3Name: 'geoConicConformal',
+  
+  capabilities: {
+    preservesAngles: true,
+    supportsSplit: true
+  },
+  
+  suitability: {
+    midLatitude: 85,
+    regional: 90
+  },
+  
+  description: 'Description of projection'
+}
+```
+
+2. Export from `definitions/index.ts`
+3. Registry auto-discovers on load
+4. Run tests: `pnpm test src/projections/__tests__/`
+
+## Related Docs
+
+- `add-new-atlas.llm.txt` - Guide for configuring projections in atlas configs
+- `atlases.llm.txt` - Atlas system architecture
+- `scripts.llm.txt` - CLI tools reference

@@ -1,0 +1,245 @@
+# Service Layer Architecture
+
+## Overview
+The service layer contains business logic extracted from Vue components and Pinia stores.
+Services are organized by concern into subdirectories: atlas/, data/, projection/, rendering/.
+All services use static methods for testability without Vue context.
+
+## Atlas Services (src/services/atlas/)
+
+### AtlasPatternService
+Pattern detection and behavioral decisions for different atlas types.
+- `isSingleFocus()` - Check if atlas has single mainland
+- `isEqualMembers()` - Check if atlas has equal member states
+- `supportsSplitView()` - Check if split view is supported
+- `getDefaultViewMode()` - Get recommended view mode
+- `getPrimaryTerritoryRole()` - Determine mainland vs member role
+
+### AtlasCoordinator
+Orchestrates atlas changes and configuration updates.
+- `handleAtlasChange()` - Coordinate all updates when changing atlas
+- `getInitialConfiguration()` - Build initial config for atlas
+
+### TerritoryDefaultsService
+Initialize territory projections, translations, and scales.
+- `initializeAll()` - Initialize all territory defaults
+- `mergeCustomConfig()` - Merge custom configuration
+
+### AtlasService
+Atlas-aware facade for accessing territory data and configuration.
+Instance-based service providing unified API for components.
+- `getTerritories()` - Get filtered/grouped territories
+- `getTerritoryModes()` - Get available display modes
+- `getTerritoryGroups()` - Get territory groupings
+- `getProjectionParams()` - Get projection parameters
+
+## Data Services (src/services/data/)
+
+### TerritoryDataLoader
+Strategy pattern for loading territory data based on atlas pattern.
+- `loadTerritoryData()` - Load data using appropriate strategy
+Strategies: SingleFocusLoadStrategy, EqualMembersLoadStrategy
+
+### TerritoryFilterService
+Filter and group territories based on display modes.
+- `filterTerritories()` - Filter territories by mode
+- `groupByRegion()` - Group territories by region
+
+### GeoDataService
+Geographic data loading and processing from TopoJSON sources.
+Instance-based service managing territory data cache.
+- `loadData()` - Load TopoJSON and metadata
+- `getAllTerritoriesGeoData()` - Get all territory data
+- `getTerritoriesGeoData()` - Get filtered territory data
+- `getTerritoryInfo()` - Get territory metadata
+- `calculateBounds()` - Calculate geographic bounds
+
+## Projection Services (src/services/projection/)
+
+### ProjectionUIService
+Projection grouping and UI visibility logic.
+- `getProjectionGroups()` - Group projections by category
+- `shouldShowProjectionSelector()` - Visibility for projection selector
+- `shouldShowProjectionModeSelector()` - Visibility for mode selector
+- `shouldShowCompositeProjectionSelector()` - Visibility for composite selector
+
+### ProjectionService
+Projection creation and management using factory/registry pattern.
+Instance-based service with region-specific parameters.
+- `setProjectionParams()` - Set region parameters
+- `getProjection()` - Create projection using factory
+- `getAvailableProjections()` - Get filtered projections
+- `groupProjectionsByCategory()` - Group projections
+- `recommendProjection()` - Get projection recommendation
+
+### CompositeProjection
+Custom composite projection with manual territory positioning.
+Instance-based service managing sub-projections.
+- `initialize()` - Initialize sub-projections
+- `setTerritoryProjection()` - Change territory projection
+- `setTerritoryTranslation()` - Set territory position
+- `setTerritoryScale()` - Set territory scale
+- `getProjection()` - Get composite projection function
+- `rebuild()` - Rebuild composite projection
+
+## Rendering Services (src/services/rendering/)
+
+### MapSizeCalculator
+Calculate map dimensions with configurable defaults.
+- `calculateSize()` - Calculate map size
+- `calculateProportionalSize()` - Calculate proportional size
+
+### MapOverlayService
+Render map overlays (composition borders and limits) using D3 selection API.
+- `applyOverlays()` - Apply overlays to SVG
+- `boundsToRect()` - Convert bounds to rectangle
+- `unionRect()` - Compute union of rectangles
+- `computeSceneBBox()` - Compute bounding box of paths
+- `createCompositeBorderPath()` - Create border path for composite projections
+
+### CompositeSettingsBuilder
+Build custom composite settings from configuration.
+- `extractTerritoryCodes()` - Extract territory codes from config
+- `buildTerritoryProjections()` - Build projections map
+- `buildSettings()` - Build complete settings
+
+### MapRenderCoordinator
+Coordinate map rendering by building options and orchestrating services.
+- `renderSimpleMap()` - Render simple territory map
+- `renderCompositeMap()` - Render composite map
+- `applyOverlays()` - Apply overlays to rendered map
+
+### BorderRenderer
+Border rendering strategies for different modes.
+Classes: CustomCompositeBorderRenderer, ExistingCompositeBorderRenderer
+Currently deferred integration, not fully used.
+
+### CartographerService
+Main rendering coordinator with unified API.
+Instance-based service orchestrating projection, geo-data, and rendering.
+- `render()` - Unified rendering API (simple/composite modes)
+- `renderSimple()` - Simple projection rendering
+- `renderCustomComposite()` - Custom composite rendering
+- `renderProjectionComposite()` - Projection-based composite
+- `createPlot()` - Common Plot creation logic
+
+### CartographerFactory
+Factory for creating region-specific Cartographer instances.
+Static factory pattern with instance caching.
+- `create()` - Create or retrieve cached Cartographer
+- `getInstance()` - Get cached instance
+
+## Export Services (src/services/export/)
+
+### CompositeExportService
+Export composite projection configurations to JSON format.
+Static methods for configuration serialization:
+- `exportToJSON()` - Serialize CompositeProjection to ExportedCompositeConfig
+- `validateExportedConfig()` - Validate exported configuration structure
+- `exportToFile()` - Create downloadable JSON file
+- Applies rounding to all numeric values (6 decimal places)
+- Includes metadata (atlasId, exportDate, version)
+- Exports territories with projection parameters, layout, and bounds
+
+### CompositeImportService  
+Import and restore composite projection configurations from JSON.
+Static methods for configuration import:
+- `importFromJSON()` - Parse and validate JSON string
+- `importFromFile()` - Handle File API objects
+- `checkAtlasCompatibility()` - Validate atlas ID matching
+- `applyToStores()` - Apply imported config to stores and CompositeProjection
+- Validates required fields and data integrity
+- Warns if atlas mismatch but allows import
+
+### CodeGenerator
+Generate standalone executable code from exported configurations.
+Supports multiple formats and languages:
+- `generate()` - Main entry point with format/language options
+- `generateD3JavaScript()` - D3.js JavaScript code with registration
+- `generateD3TypeScript()` - D3.js TypeScript code with type annotations
+- `generatePlotCode()` - Observable Plot code with registration
+- Implements D3 stream protocol with state machine for geometry routing
+- Geographic bounds-based stream multiplexing
+- Applies number rounding for floating-point precision (6 decimals)
+- Generated code includes projection registration examples (80-92% shorter)
+
+See docs/export.llm.txt for detailed D3 stream protocol implementation.
+
+### Standalone Projection Loader (standalone-projection-loader.ts)
+Pure JavaScript/TypeScript module for loading exported configurations.
+Zero-dependency plugin architecture - users register projections at runtime.
+
+Registration API:
+- `registerProjection(id, factory)` - Register single projection
+- `registerProjections(factories)` - Bulk registration
+- `unregisterProjection(id)` - Remove projection
+- `clearProjections()` - Clear all registrations
+- `getRegisteredProjections()` - Query registry
+- `isProjectionRegistered(id)` - Check registration
+
+Loading API:
+- `loadCompositeProjection(config, options)` - Create projection from config
+- `validateConfig(config)` - Validate configuration structure
+
+Features:
+- Zero dependencies (no d3-geo imports)
+- Plugin architecture with runtime registry
+- Self-contained TypeScript types (ProjectionLike, ProjectionFactory, StreamLike)
+- D3 stream multiplexing for geometry routing
+- Geographic bounds-based territory selection
+- Debug mode for logging territory selection
+- Supports any projection (D3, Proj4, custom)
+- Tree-shakeable imports
+- Bundle size: ~6KB (vs 100KB with bundled dependencies)
+
+Optional D3 Helpers (d3-projection-helpers.ts):
+- Pre-configured D3 projection factories
+- Tree-shakeable individual exports
+- Bulk registration helper
+- Keeps D3 dependencies separate from main loader
+Usage: Standalone D3 projects, Observable notebooks, Node.js rendering
+
+## Design Patterns
+
+### Static Methods
+New services (Phase 1-4) use static methods for:
+- Testability without Vue context
+- Functional programming style
+- No state management in services
+
+### Instance-Based Services
+Existing services use instance pattern for:
+- Stateful operations (caching, configuration)
+- Complex initialization requirements
+- Legacy compatibility
+
+### Strategy Pattern
+TerritoryDataLoader uses strategies for pattern-specific loading logic.
+
+### Coordinator Pattern
+AtlasCoordinator and MapRenderCoordinator orchestrate complex multi-step operations.
+
+### Facade Pattern
+AtlasService provides simplified API hiding complexity from components.
+
+### Factory Pattern
+CartographerFactory and ProjectionFactory create configured instances.
+
+## Usage Guidelines
+
+1. Import services from organized subdirectories
+2. Use static methods for stateless operations
+3. Use instance methods for stateful operations
+4. Services handle business logic, not presentation
+5. Components coordinate service calls
+6. Stores use services for complex operations
+7. Keep services focused on single responsibility
+
+## Benefits
+
+- Clear separation of concerns by domain
+- Testable without Vue dependencies
+- Reusable across components
+- Consistent patterns and conventions
+- Easy to navigate and discover
+- Reduced component complexity

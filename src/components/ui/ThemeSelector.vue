@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import FormControl from '@/components/ui/FormControl.vue'
-import { useConfigStore } from '@/stores/config'
+import { useUIStore } from '@/stores/ui'
 
-const configStore = useConfigStore()
+const uiStore = useUIStore()
 
 const themes: Array<{
   key: string
@@ -64,11 +64,11 @@ const themes: Array<{
 
 <template>
   <FormControl
-    v-model="configStore.theme"
+    v-model="uiStore.theme"
     label="Thème"
     icon="ri-palette-line"
     type="select"
     :option-groups="themes"
-    @change="configStore.setTheme(configStore.theme)"
+    @change="uiStore.setTheme(uiStore.theme)"
   />
 </template>

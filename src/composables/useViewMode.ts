@@ -1,0 +1,34 @@
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useConfigStore } from '@/stores/config'
+
+/**
+ * Manages view mode configuration and provides view mode options
+ */
+export function useViewMode() {
+  const { t } = useI18n()
+  const configStore = useConfigStore()
+
+  /**
+   * Get available view modes for current atlas
+   */
+  const viewModeOptions = computed(() => {
+    const atlasConfig = configStore.currentAtlasConfig
+    const supportedModes = atlasConfig.supportedViewModes || []
+
+    // All possible view mode options
+    const allOptions = [
+      { value: 'composite-custom', label: t('mode.compositeCustom') },
+      { value: 'split', label: t('mode.split') },
+      { value: 'composite-existing', label: t('mode.compositeExisting') },
+      { value: 'unified', label: t('mode.unified') },
+    ]
+
+    // Filter to only supported modes for this region
+    return allOptions.filter(option => supportedModes.includes(option.value as any))
+  })
+
+  return {
+    viewModeOptions,
+  }
+}

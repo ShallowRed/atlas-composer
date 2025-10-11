@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
-import LanguageSelector from './LanguageSelector.vue'
+import LanguageSelector from '@/components/ui/LanguageSelector.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -37,11 +37,11 @@ const { t } = useI18n()
                   v-if="route.path !== '/'"
                   to="/"
                 >
-                  <i class="ri-map-line" />
+                  <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </RouterLink>
                 <span v-else class="text-primary font-semibold flex items-center gap-2">
-                  <i class="ri-map-line" />
+                  <i class="ri-layout-line" />
                   {{ t('nav.map') }}
                 </span>
               </li>

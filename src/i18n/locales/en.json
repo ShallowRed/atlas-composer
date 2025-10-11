@@ -4,7 +4,7 @@
     "subtitle": "Interactive Geographic Visualizations"
   },
   "nav": {
-    "map": "Map",
+    "map": "App",
     "about": "About"
   },
   "atlas": {
@@ -12,7 +12,8 @@
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
-    "eu": "European Union"
+    "eu": "European Union",
+    "usa": "United States"
   },
   "projection": {
     "select": "Select projection",
@@ -28,7 +29,19 @@
     "compositeCustom": "Custom composite projection",
     "compositeExisting": "Existing composite projection",
     "unified": "Unified projection",
-    "custom": "Custom"
+    "custom": "Custom",
+    "useRecommended": "Use {projection}",
+    "validation": {
+      "prohibited": "{projection} is not recommended: {reason}",
+      "poorChoice": "{projection} may not be ideal for this atlas",
+      "betterOptionsAvailable": "Better projection options are available",
+      "notSuitable": "Not suitable for this atlas",
+      "alternatives": "Consider using: {projections}",
+      "confirmProhibited": "This projection is not recommended for this atlas. Are you sure you want to use it?",
+      "warningTitle": "Projection Warning",
+      "suggestedAlternatives": "Suggested alternatives:",
+      "useAnyway": "Use Anyway"
+    }
   },
   "mode": {
     "select": "Territories to include",
@@ -66,12 +79,39 @@
   },
   "settings": {
     "title": "Configuration",
+    "atlasConfigTitle": "Atlas Configuration",
+    "viewConfigTitle": "View Configuration",
+    "displayOptionsTitle": "Display Options",
+    "projectionConfigTitle": "Projection Configuration",
+    "projectionParamsTitle": "Projection Parameters",
+    "territoryConfigTitle": "Projection configuration per territory",
+    "projectionTitle": "Projection Selector",
     "theme": "Theme",
     "language": "Language",
     "resolution": "Data resolution",
-    "region": "Region"
+    "region": "Atlas",
+    "graticule": "Show graticule",
+    "sphere": "Show sphere outline",
+    "compositionBorders": "Display composition borders",
+    "mapLimits": "Display map limits"
   },
   "common": {
+    "close": "Close",
+    "searchProjections": "Search projections..."
+  },
+  "projectionParams": {
+    "title": "Projection Parameters",
+    "rotateLongitude": "Rotate Longitude",
+    "rotateLatitude": "Rotate Latitude",
+    "centerLongitude": "Center Longitude",
+    "centerLatitude": "Center Latitude",
+    "parallel1": "Standard Parallel 1",
+    "parallel2": "Standard Parallel 2",
+    "reset": "Reset",
+    "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
+    "noParams": "This projection type doesn't have adjustable parameters in unified mode."
+  },
+  "actions": {
     "loading": "Loading...",
     "loadingData": "Loading data...",
     "preparingMaps": "Preparing geographic maps",
@@ -81,7 +121,31 @@
     "cancel": "Cancel",
     "apply": "Apply",
     "export": "Export",
-    "import": "Import"
+    "import": "Import",
+    "search": "Search",
+    "closeSearch": "Close search",
+    "searchProjections": "Search projections...",
+    "clear": "Clear",
+    "noProjectionsFound": "No projections found matching your search",
+    "showProjectionInformation": "Show projection information",
+    "projectionInformation": "Projection Information"
+  },
+  "export": {
+    "title": "Export Composite Projection",
+    "formatLabel": "Export Format",
+    "formatJson": "JSON Configuration",
+    "formatCode": "JavaScript/TypeScript Code",
+    "targetLibrary": "Target Library",
+    "language": "Language",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "includeComments": "Include comments",
+    "includeExamples": "Include usage examples",
+    "preview": "Preview",
+    "copyToClipboard": "Copy to Clipboard",
+    "downloadFile": "Download File",
+    "copiedSuccess": "Copied to clipboard!",
+    "copyFailed": "Failed to copy to clipboard"
   },
   "about": {
     "title": "About",
@@ -115,6 +179,176 @@
       "license": "License MIT",
       "madeWith": "Made with",
       "by": "by"
+    }
+  },
+  "projections": {
+    "categories": {
+      "COMPOSITE": "Composite Projections",
+      "CONIC": "Conic Projections",
+      "AZIMUTHAL": "Azimuthal Projections",
+      "CYLINDRICAL": "Cylindrical Projections",
+      "WORLD": "World Projections",
+      "COMPROMISE": "Compromise Projections",
+      "ARTISTIC": "Artistic Projections"
+    },
+    "conicConformalFrance": {
+      "name": "Conic Conformal France (Composite)",
+      "description": "Optimized composite projection for France, integrating metropolitan territory and overseas departments"
+    },
+    "conicConformalPortugal": {
+      "name": "Conic Conformal Portugal (Composite)",
+      "description": "Optimized composite projection for Portugal, including mainland and Atlantic archipelagos (Azores, Madeira)"
+    },
+    "conicConformalEurope": {
+      "name": "Conic Conformal Europe (Composite)",
+      "description": "Optimized composite projection for the European Union and its overseas territories"
+    },
+    "albersUsa": {
+      "name": "Albers USA (D3 Native)",
+      "description": "D3's built-in composite projection for the United States with fixed positioning"
+    },
+    "albersUsaComposite": {
+      "name": "Albers USA (Composite)",
+      "description": "Enhanced composite projection from d3-composite-projections with better customization"
+    },
+    "albersUsaTerritories": {
+      "name": "Albers USA with Territories",
+      "description": "Extended composite projection including Puerto Rico, US Virgin Islands, Guam, American Samoa, and Northern Mariana Islands"
+    },
+    "conicConformal": {
+      "name": "Conic Conformal (Lambert)",
+      "description": "Preserves angles and shapes. Ideal for mid-latitude regions"
+    },
+    "conicEqualArea": {
+      "name": "Conic Equal Area (Albers)",
+      "description": "Preserves area. Perfect for thematic maps of mid-latitude regions"
+    },
+    "mercator": {
+      "name": "Mercator",
+      "description": "Preserves angles and direction. Commonly used for navigation and tropical regions"
+    },
+    "conicEquidistant": {
+      "name": "Conic Equidistant",
+      "description": "Preserves distance along meridians. Good for regions with large north-south extent"
+    },
+    "azimuthalEqualArea": {
+      "name": "Azimuthal Equal Area (Lambert)",
+      "description": "Preserves area. Excellent for polar regions and hemispheric views"
+    },
+    "azimuthalEquidistant": {
+      "name": "Azimuthal Equidistant",
+      "description": "Preserves distance from center point. Ideal for polar navigation and radio coverage maps"
+    },
+    "stereographic": {
+      "name": "Stereographic",
+      "description": "Conformal azimuthal projection. Excellent for polar regions"
+    },
+    "orthographic": {
+      "name": "Orthographic",
+      "description": "Simulates view from space. Globe-like visualization"
+    },
+    "gnomonic": {
+      "name": "Gnomonic",
+      "description": "Great circles appear as straight lines. Useful for navigation route planning"
+    },
+    "equirectangular": {
+      "name": "Equirectangular (Plate Carrée)",
+      "description": "Simple rectangular projection. Evenly spaced meridians and parallels"
+    },
+    "naturalEarth": {
+      "name": "Natural Earth",
+      "description": "Visually appealing world projection with balanced distortions"
+    },
+    "robinson": {
+      "name": "Robinson",
+      "description": "Classic world map projection. Used by National Geographic"
+    },
+    "eckert4": {
+      "name": "Eckert IV",
+      "description": "Equal-area pseudocylindrical projection for world maps"
+    },
+    "winkelTripel": {
+      "name": "Winkel Tripel",
+      "description": "Compromise projection for general reference world maps"
+    },
+    "mollweide": {
+      "name": "Mollweide",
+      "description": "Equal-area pseudocylindrical. Widely used for world maps"
+    },
+    "miller": {
+      "name": "Miller Cylindrical",
+      "description": "Modified Mercator with reduced polar distortion"
+    },
+    "sinusoidal": {
+      "name": "Sinusoidal",
+      "description": "Equal-area pseudocylindrical. Simple and widely recognized"
+    },
+    "wagner6": {
+      "name": "Wagner VI",
+      "description": "Popular pseudocylindrical compromise projection"
+    },
+    "hammer": {
+      "name": "Hammer",
+      "description": "Equal-area azimuthal variant. Excellent for world maps"
+    },
+    "eckert1": {
+      "name": "Eckert I",
+      "description": "Pseudocylindrical with straight parallels"
+    },
+    "eckert2": {
+      "name": "Eckert II",
+      "description": "Equal-area pseudocylindrical with straight parallels"
+    },
+    "eckert3": {
+      "name": "Eckert III",
+      "description": "Pseudocylindrical with elliptical parallels"
+    },
+    "eckert5": {
+      "name": "Eckert V",
+      "description": "Equal-area pseudocylindrical with elliptical parallels"
+    },
+    "eckert6": {
+      "name": "Eckert VI",
+      "description": "Equal-area pseudocylindrical with sinusoidal parallels"
+    },
+    "armadillo": {
+      "name": "Armadillo",
+      "description": "Artistic polyhedral projection with unique visual appearance"
+    },
+    "polyhedralButterfly": {
+      "name": "Polyhedral Butterfly",
+      "description": "Unfolded globe in butterfly shape. Educational and artistic"
+    },
+    "loximuthal": {
+      "name": "Loximuthal",
+      "description": "Rhumb lines from center are straight. Maritime navigation"
+    },
+    "polyhedralWaterman": {
+      "name": "Waterman Butterfly",
+      "description": "Polyhedral projection with minimal area distortion"
+    },
+    "recommendations": {
+      "general": "Suitable projection",
+      "atlasOptimized": "Optimized for this atlas",
+      "atlasRecommended": "Recommended by atlas configuration",
+      "atlasProhibited": "Not suitable for this atlas",
+      "territoryExcellent": "Excellent for this type of territory",
+      "territoryGood": "Good for this type of territory",
+      "notSuitable": "Not recommended for this context"
+    },
+    "properties": {
+      "area": "Area",
+      "angle": "Angles",
+      "distance": "Distance",
+      "direction": "Direction",
+      "interrupted": "Interrupted"
+    },
+    "info": {
+      "preserves": "Preserves",
+      "distorts": "Distorts",
+      "compatibility": "Compatible with",
+      "creator": "Creator",
+      "year": "Year"
     }
   }
 }

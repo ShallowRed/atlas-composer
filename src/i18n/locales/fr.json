@@ -4,7 +4,7 @@
     "subtitle": "Visualisations géographiques interactives"
   },
   "nav": {
-    "map": "Carte",
+    "map": "App",
     "about": "À propos"
   },
   "atlas": {
@@ -12,7 +12,8 @@
     "france": "France",
     "portugal": "Portugal",
     "spain": "Espagne",
-    "eu": "Union Européenne"
+    "eu": "Union Européenne",
+    "usa": "États-Unis"
   },
   "projection": {
     "select": "Sélectionner une projection",
@@ -28,7 +29,19 @@
     "compositeCustom": "Projection composite personnalisée",
     "compositeExisting": "Projection composite existante",
     "unified": "Projection unifiée",
-    "custom": "Personnalisée"
+    "custom": "Personnalisée",
+    "useRecommended": "Utiliser {projection}",
+    "validation": {
+      "prohibited": "{projection} n'est pas recommandée : {reason}",
+      "poorChoice": "{projection} n'est peut-être pas idéale pour cet atlas",
+      "betterOptionsAvailable": "De meilleures projections sont disponibles",
+      "notSuitable": "Non adaptée à cet atlas",
+      "alternatives": "Considérez d'utiliser : {projections}",
+      "confirmProhibited": "Cette projection n'est pas recommandée pour cet atlas. Êtes-vous sûr de vouloir l'utiliser ?",
+      "warningTitle": "Avertissement de projection",
+      "suggestedAlternatives": "Alternatives suggérées :",
+      "useAnyway": "Utiliser quand même"
+    }
   },
   "mode": {
     "select": "Territoires à inclure",
@@ -64,14 +77,41 @@
     "individual": "Territoires individuels",
     "split": "Territoires séparés"
   },
+  "common": {
+    "close": "Fermer",
+    "searchProjections": "Rechercher des projections..."
+  },
   "settings": {
     "title": "Configuration",
+    "atlasConfigTitle": "Configuration de l'atlas",
+    "viewConfigTitle": "Configuration de la vue",
+    "displayOptionsTitle": "Options d'affichage",
+    "territoryConfigTitle": "Configuration de la projection par territoire",
+    "projectionConfigTitle": "Configuration de la projection",
+    "projectionParamsTitle": "Paramètres de la projection",
+    "projectionTitle": "Sélecteur de projection",
     "theme": "Thème",
     "language": "Langue",
     "resolution": "Résolution des données",
-    "region": "Région"
+    "region": "Atlas",
+    "graticule": "Afficher le graticule",
+    "sphere": "Afficher le contour du globe",
+    "compositionBorders": "Afficher les bordures de composition",
+    "mapLimits": "Afficher les limites de la carte"
   },
-  "common": {
+  "projectionParams": {
+    "title": "Paramètres de projection",
+    "rotateLongitude": "Rotation longitude",
+    "rotateLatitude": "Rotation latitude",
+    "centerLongitude": "Centre longitude",
+    "centerLatitude": "Centre latitude",
+    "parallel1": "Parallèle standard 1",
+    "parallel2": "Parallèle standard 2",
+    "reset": "Réinitialiser",
+    "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
+    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
+  },
+  "actions": {
     "loading": "Chargement...",
     "loadingData": "Chargement des données...",
     "preparingMaps": "Préparation des cartes géographiques",
@@ -81,7 +121,31 @@
     "cancel": "Annuler",
     "apply": "Appliquer",
     "export": "Exporter",
-    "import": "Importer"
+    "import": "Importer",
+    "search": "Rechercher",
+    "closeSearch": "Fermer la recherche",
+    "searchProjections": "Rechercher des projections...",
+    "clear": "Effacer",
+    "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche",
+    "showProjectionInformation": "Afficher les informations de projection",
+    "projectionInformation": "Informations de Projection"
+  },
+  "export": {
+    "title": "Exporter la Projection Composite",
+    "formatLabel": "Format d'Export",
+    "formatJson": "Configuration JSON",
+    "formatCode": "Code JavaScript/TypeScript",
+    "targetLibrary": "Bibliothèque Cible",
+    "language": "Langage",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "includeComments": "Inclure les commentaires",
+    "includeExamples": "Inclure les exemples d'utilisation",
+    "preview": "Aperçu",
+    "copyToClipboard": "Copier dans le Presse-papiers",
+    "downloadFile": "Télécharger le Fichier",
+    "copiedSuccess": "Copié dans le presse-papiers !",
+    "copyFailed": "Échec de la copie dans le presse-papiers"
   },
   "about": {
     "title": "À propos",
@@ -115,6 +179,176 @@
       "license": "Licence MIT",
       "madeWith": "Réalisé avec",
       "by": "par"
+    }
+  },
+  "projections": {
+    "categories": {
+      "COMPOSITE": "Projections Composites",
+      "CONIC": "Projections Coniques",
+      "AZIMUTHAL": "Projections Azimutales",
+      "CYLINDRICAL": "Projections Cylindriques",
+      "WORLD": "Projections Mondiales",
+      "COMPROMISE": "Projections de Compromis",
+      "ARTISTIC": "Projections Artistiques"
+    },
+    "conicConformalFrance": {
+      "name": "Conic Conformal France (Composite)",
+      "description": "Projection composite optimisée pour la France, intégrant le territoire métropolitain et les départements d'outre-mer"
+    },
+    "conicConformalPortugal": {
+      "name": "Conic Conformal Portugal (Composite)",
+      "description": "Projection composite optimisée pour le Portugal, incluant le continent et les archipels atlantiques (Açores, Madère)"
+    },
+    "conicConformalEurope": {
+      "name": "Conic Conformal Europe (Composite)",
+      "description": "Projection composite optimisée pour l'Union Européenne et ses territoires d'outre-mer"
+    },
+    "albersUsa": {
+      "name": "Albers États-Unis (D3 Native)",
+      "description": "Projection composite native de D3 pour les États-Unis avec positionnement fixe"
+    },
+    "albersUsaComposite": {
+      "name": "Albers États-Unis (Composite)",
+      "description": "Projection composite améliorée de d3-composite-projections avec meilleure personnalisation"
+    },
+    "albersUsaTerritories": {
+      "name": "Albers États-Unis avec Territoires",
+      "description": "Projection composite étendue incluant Porto Rico, Îles Vierges américaines, Guam, Samoa américaines et Îles Mariannes du Nord"
+    },
+    "conicConformal": {
+      "name": "Conique Conforme (Lambert)",
+      "description": "Préserve les angles et les formes. Idéale pour les régions de latitudes moyennes"
+    },
+    "conicEqualArea": {
+      "name": "Conique Équivalente (Albers)",
+      "description": "Préserve les surfaces. Parfaite pour les cartes thématiques des régions de latitudes moyennes"
+    },
+    "mercator": {
+      "name": "Mercator",
+      "description": "Préserve les angles et les directions. Couramment utilisée pour la navigation et les régions tropicales"
+    },
+    "conicEquidistant": {
+      "name": "Conique Équidistante",
+      "description": "Préserve les distances le long des méridiens. Bonne pour les régions à grande étendue nord-sud"
+    },
+    "azimuthalEqualArea": {
+      "name": "Azimutale Équivalente (Lambert)",
+      "description": "Préserve les surfaces. Excellente pour les régions polaires et vues hémisphériques"
+    },
+    "azimuthalEquidistant": {
+      "name": "Azimutale Équidistante",
+      "description": "Préserve les distances depuis le centre. Idéale pour la navigation polaire et cartes de couverture radio"
+    },
+    "stereographic": {
+      "name": "Stéréographique",
+      "description": "Projection azimutale conforme. Excellente pour les régions polaires"
+    },
+    "orthographic": {
+      "name": "Orthographique",
+      "description": "Simule une vue depuis l'espace. Visualisation en forme de globe"
+    },
+    "gnomonic": {
+      "name": "Gnomonique",
+      "description": "Les grands cercles apparaissent comme des lignes droites. Utile pour la planification de routes de navigation"
+    },
+    "equirectangular": {
+      "name": "Équirectangulaire (Plate Carrée)",
+      "description": "Projection rectangulaire simple. Méridiens et parallèles régulièrement espacés"
+    },
+    "naturalEarth": {
+      "name": "Natural Earth",
+      "description": "Projection mondiale visuellement attrayante avec distorsions équilibrées"
+    },
+    "robinson": {
+      "name": "Robinson",
+      "description": "Projection mondiale classique. Utilisée par National Geographic"
+    },
+    "eckert4": {
+      "name": "Eckert IV",
+      "description": "Projection pseudocylindrique équivalente pour cartes mondiales"
+    },
+    "winkelTripel": {
+      "name": "Winkel Tripel",
+      "description": "Projection de compromis pour cartes mondiales de référence générale"
+    },
+    "mollweide": {
+      "name": "Mollweide",
+      "description": "Pseudocylindrique équivalente. Largement utilisée pour les cartes mondiales"
+    },
+    "miller": {
+      "name": "Cylindrique de Miller",
+      "description": "Mercator modifiée avec distorsion polaire réduite"
+    },
+    "sinusoidal": {
+      "name": "Sinusoïdale",
+      "description": "Pseudocylindrique équivalente. Simple et largement reconnue"
+    },
+    "wagner6": {
+      "name": "Wagner VI",
+      "description": "Projection pseudocylindrique de compromis populaire"
+    },
+    "hammer": {
+      "name": "Hammer",
+      "description": "Variante azimutale équivalente. Excellente pour les cartes mondiales"
+    },
+    "eckert1": {
+      "name": "Eckert I",
+      "description": "Pseudocylindrique avec parallèles rectilignes"
+    },
+    "eckert2": {
+      "name": "Eckert II",
+      "description": "Pseudocylindrique équivalente avec parallèles rectilignes"
+    },
+    "eckert3": {
+      "name": "Eckert III",
+      "description": "Pseudocylindrique avec parallèles elliptiques"
+    },
+    "eckert5": {
+      "name": "Eckert V",
+      "description": "Pseudocylindrique équivalente avec parallèles elliptiques"
+    },
+    "eckert6": {
+      "name": "Eckert VI",
+      "description": "Pseudocylindrique équivalente avec parallèles sinusoïdaux"
+    },
+    "armadillo": {
+      "name": "Armadillo",
+      "description": "Projection polyédrique artistique avec apparence visuelle unique"
+    },
+    "polyhedralButterfly": {
+      "name": "Papillon Polyédrique",
+      "description": "Globe déplié en forme de papillon. Éducatif et artistique"
+    },
+    "loximuthal": {
+      "name": "Loximuthal",
+      "description": "Les loxodromies depuis le centre sont droites. Navigation maritime"
+    },
+    "polyhedralWaterman": {
+      "name": "Papillon de Waterman",
+      "description": "Projection polyédrique avec distorsion minimale des surfaces"
+    },
+    "recommendations": {
+      "general": "Projection appropriée",
+      "atlasOptimized": "Optimisée pour cet atlas",
+      "atlasRecommended": "Recommandée par la configuration de l'atlas",
+      "atlasProhibited": "Non adaptée pour cet atlas",
+      "territoryExcellent": "Excellente pour ce type de territoire",
+      "territoryGood": "Bonne pour ce type de territoire",
+      "notSuitable": "Non recommandée pour ce contexte"
+    },
+    "properties": {
+      "area": "Superficie",
+      "angle": "Angles",
+      "distance": "Distance",
+      "direction": "Direction",
+      "interrupted": "Interrompue"
+    },
+    "info": {
+      "preserves": "Préserve",
+      "distorts": "Déforme",
+      "compatibility": "Compatible avec",
+      "creator": "Créateur",
+      "year": "Année"
     }
   }
 }

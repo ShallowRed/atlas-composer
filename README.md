@@ -1,6 +1,35 @@
 # Atlas Composer
 
-A web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections. Design and test different map projections interactively, particularly useful for countries with overseas territories (France, Portugal, Spain, etc.).
+A web application for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections. Design and test different map projections interactively, par## 📐 Projection System
+
+Atlas Composer includes a comprehensive projection ## � Documentation
+
+Complete guides and API references:
+
+- **[📖 ATLASES.md](./docs/ATLASES.md)** - Atlas system architecture, API reference, and core concepts
+- **[📖 PROJECTIONS.md](./docs/PROJECTIONS.md)** - Projection system, catalog, and recommendations
+- **[📖 SCRIPTS.md](./docs/SCRIPTS.md)** - CLI tools, geodata pipeline, and developer utilities
+- **[📖 ADDING_NEW_ATLAS.md](./docs/ADDING_NEW_ATLAS.md)** - Step-by-step guide to adding new atlases
+
+## 🗸 Architecture
+
+Atlas-Focused Structure
+
+> **📖 [Full Atlas Documentation](./docs/ATLASES.md)** - Complete guide to atlas configuration, API reference, and adding new atlases
+
+### Configuration Structure
+
+Each atlas is defined in a JSON file following this structure:m with intelligent recommendations and context-aware filtering.
+
+> **📖 [Full Projection Documentation](./docs/PROJECTIONS.md)** - Complete API reference, projection catalog, and usage guide
+
+### Features
+
+- **20+ Projections**: From standard D3 projections to composite projections
+- **Smart Recommendations**: Automatic scoring based on atlas, view mode, and geographic suitability
+- **Type Safety**: Compile-time validation with TypeScript
+- **Metadata-Rich**: Each projection includes capabilities, suitability, and usage recommendations
+- **Extensible**: Easy to add new projections with definition filesseful for countries with overseas territories (France, Portugal, Spain, etc.).
 
 ## 🎯 Purpose
 
@@ -13,11 +42,13 @@ A web application for creating custom cartographic visualizations of countries w
 ## ✨ Features
 
 - 🗺️ **Interactive Atlas Composer** - Adjust territory positions and scales in real-time
-- 📐 **Multiple Projection Types** - D3 projections, composite projections, and custom projections
+- 📐 **Smart Projection System** - 20+ projections with intelligent recommendations
+- 🎯 **Context-Aware Selection** - Automatic filtering based on atlas and view mode
 - 🎨 **Visual Territory Controls** - Sliders for fine-tuning X/Y position and scale
 - 🌍 **Multiple Countries** - Pre-configured atlases for France, Portugal, Spain, and EU
 - 🔧 **Natural Earth Integration** - Automated geodata preparation from Natural Earth datasets
 - 📊 **Data Validation** - Scripts to ensure config/data consistency
+- 🧪 **Comprehensive Testing** - 79 unit & integration tests with 100% pass rate
 
 ## 🚀 Quick Start
 
@@ -62,6 +93,8 @@ pnpm geodata:lookup <country>  # Look up Natural Earth country data
 pnpm geodata:analyze <id>      # Analyze country polygon structure
 ```
 
+> **📖 [Full Scripts Documentation](./docs/SCRIPTS.md)** - Complete guide to build tools, geodata pipeline, and developer utilities
+
 ## 🛠️ Technology Stack
 
 - **[Vite](https://vitejs.dev/)** - Build tool and dev server
@@ -101,20 +134,34 @@ atlas-composer/
 │       └── analyze-country.js  # Analyze country polygon structure
 │
 └── src/                          # 🎨 Vue.js Application
-    ├── core/                     # 🏗️ Core Infrastructure
-    │   └── atlases/             # Atlas loading and registry
-    │       ├── loader.ts        # Dynamic atlas config loader
-    │       ├── registry.ts      # Central atlas registry
-    │       ├── utils.ts         # Territory utility functions
-    │       └── constants.ts     # Atlas-related constants
+    ├── core/                     # 🏗️ Domain Layer (Core Business Logic)
+    │   ├── atlases/             # Atlas domain definitions
+    │   │   ├── loader.ts        # JSON-to-config transformation
+    │   │   ├── registry.ts      # Auto-discovery atlas registry
+    │   │   ├── utils.ts         # Territory helper functions
+    │   │   └── constants.ts     # Atlas-related constants
+    │   │
+    │   └── projections/         # Projection domain definitions
+    │       ├── types.ts         # Type definitions
+    │       ├── registry.ts      # Projection registry (singleton)
+    │       ├── factory.ts       # Projection factory
+    │       ├── recommender.ts   # Smart recommendation engine
+    │       ├── definitions/     # Projection definitions by category
+    │       │   ├── composite.ts # Composite projections
+    │       │   ├── conic.ts     # Conic projections
+    │       │   ├── azimuthal.ts # Azimuthal projections
+    │       │   ├── cylindrical.ts # Cylindrical projections
+    │       │   ├── world.ts     # World projections
+    │       │   └── artistic.ts  # Artistic projections
+    │       └── __tests__/       # Test suite (170 tests passing)
     │
-    ├── services/                 # 🔧 Business Logic Layer
-    │   ├── atlas.ts             # AtlasService - atlas operations facade
-    │   ├── cartographer.ts      # Cartographer - map rendering engine
-    │   ├── cartographer-factory.ts  # Factory for creating Cartographer instances
-    │   ├── geo-data.ts          # GeoDataService - TopoJSON loading
-    │   ├── projections.ts       # ProjectionService - D3 projection factory
-    │   └── composite-projection.ts  # CompositeProjection - custom composite builder
+    ├── services/                 # 🔧 Application Services
+    │   ├── atlas-service.ts     # Atlas operations facade
+    │   ├── cartographer-service.ts # Map rendering engine
+    │   ├── cartographer-factory.ts # Cartographer factory
+    │   ├── geo-data-service.ts  # TopoJSON loading
+    │   ├── projection-service.ts # Legacy projection service
+    │   └── composite-projection.ts # Custom composite builder
     │
     ├── stores/                   # 💾 State Management (Pinia)
     │   ├── config.ts            # UI configuration store
@@ -157,35 +204,125 @@ atlas-composer/
 
 ### Architecture Principles
 
-#### 1. **Atlas-Driven Design**
+#### 1. **Domain-Driven Design**
+   - **Core Domain Layer** (`core/`): Contains pure domain logic for atlases and projections
+   - **Application Layer** (`services/`, `stores/`): Coordinates domain objects and application concerns
+   - **Presentation Layer** (`components/`, `views/`): UI and user interaction
+   - **Infrastructure** (`scripts/`): Build tools and data generation
+
+#### 2. **Atlas-Driven Configuration**
    - Each atlas (France, Portugal, EU) is defined in a JSON config file
    - Configs specify territories, projections, and display modes
+   - **Auto-discovery**: New atlases are automatically loaded from `configs/` folder
+   - **Schema validation**: JSON Schema ensures config correctness
    - Data is generated from Natural Earth based on config definitions
 
-#### 2. **Service Layer Pattern**
-   - **AtlasService**: Facade for atlas-specific operations (territories, modes, projections)
-   - **GeoDataService**: Handles TopoJSON loading and geographic data manipulation
-   - **ProjectionService**: Factory for D3 projection instances
-   - **Cartographer**: Orchestrates map rendering with territories and projections
+#### 3. **Registry Pattern for Domain Definitions**
+   - **AtlasRegistry**: Auto-discovers and provides access to all atlas configurations
+   - **ProjectionRegistry**: Centralizes all projection definitions with intelligent recommendations
+   - Both registries use singleton pattern for consistent access
+   - Lazy loading and caching for performance optimization
 
-#### 3. **Factory Pattern**
-   - `CartographerFactory` creates `Cartographer` instances for specific atlases
-   - Built-in caching for performance optimization
-   - Automatic configuration based on selected atlas
+#### 4. **Multi-Pattern Atlas Support**
+   - **Traditional Pattern**: 1 mainland + N overseas territories (France, Portugal)
+   - **Multi-Mainland Pattern**: N equal member-states + optional overseas (EU)
+   - Type-safe discriminated unions ensure correct handling of both patterns
+   - Seamless support for different territorial structures
 
-#### 4. **Separation of Concerns**
-   - **configs/**: Pure data definitions (JSON)
-   - **core/atlases/**: Infrastructure for loading and accessing configs
-   - **services/**: Business logic (projections, data loading, rendering)
-   - **stores/**: Reactive state management
-   - **components/**: UI presentation layer
+#### 5. **Service Layer Pattern**
+   - **AtlasService**: Facade for atlas-specific operations
+   - **GeoDataService**: Handles TopoJSON loading and geographic data
+   - **ProjectionFactory**: Creates D3 projection instances with parameters
+   - **CartographerFactory**: Creates rendering engines for specific atlases
+   - **CompositeProjection**: Custom composite projection builder
 
-#### 5. **Type Safety**
-   - Complete TypeScript coverage
+#### 6. **Type Safety Throughout**
+   - Complete TypeScript coverage across all layers
    - Strict typing for atlas configs, territories, and projections
    - JSON Schema validation for config files
+   - Compile-time validation of projection IDs and parameters
+   - Discriminated unions for pattern matching
 
-## 📊 Atlas Configuration System
+#### 7. **Intelligent Projection System**
+   - Context-aware projection filtering based on atlas and view mode
+   - Smart scoring algorithm considering suitability, capabilities, and usage
+   - Atlas-specific projection preferences (recommended, default, prohibited)
+   - Automatic fallback to best alternatives
+   - 20+ projections from standard to composite
+
+### Domain Documentation
+
+For detailed information about the core domain systems:
+
+- **[Atlas System](./docs/ATLASES.md)** - Complete guide to atlas configuration, territory management, and multi-pattern support
+- **[Projection System](./docs/PROJECTIONS.md)** - Comprehensive projection documentation with API reference and recommendations
+- **[Scripts & Build Tools](./docs/SCRIPTS.md)** - Complete guide to geodata preparation, validation, and developer utilities
+
+## � Projection System
+
+Atlas Composer includes a comprehensive projection system with intelligent recommendations and context-aware filtering.
+
+### Features
+
+- **20+ Projections**: From standard D3 projections to composite projections
+- **Smart Recommendations**: Automatic scoring based on atlas, view mode, and geographic suitability
+- **Type Safety**: Compile-time validation with TypeScript
+- **Metadata-Rich**: Each projection includes capabilities, suitability, and usage recommendations
+- **Extensible**: Easy to add new projections with definition files
+
+### Projection Categories
+
+1. **Composite Projections** (Recommended)
+   - `conic-conformal-france` - Optimized for France with overseas territories
+   - `conic-conformal-portugal` - Optimized for Portugal with Azores & Madeira
+   - `conic-conformal-europe` - Optimized for European Union
+
+2. **Conic Projections** (Mid-latitudes)
+   - `conic-conformal` - Lambert Conformal Conic
+   - `albers` - Albers Equal Area
+
+3. **Azimuthal Projections** (Polar & centered views)
+   - `azimuthal-equal-area` - Equal area
+   - `azimuthal-equidistant` - Preserves distances from center
+   - `stereographic` - Conformal polar view
+
+4. **Cylindrical Projections** (World maps)
+   - `mercator` - Standard web mapping
+   - `equirectangular` - Simple rectangular
+
+5. **World Projections** (Global context)
+   - `natural-earth` - Visually appealing compromise
+   - `robinson` - National Geographic standard
+
+6. **Artistic Projections** (Historical/aesthetic)
+   - `armadillo`, `polyhedral`, `loximuthal`
+
+### Usage Example
+
+```typescript
+import { ProjectionFactory } from '@/projections/factory'
+import { ProjectionRegistry } from '@/projections/registry'
+
+// Get recommended projections for France in split view
+const registry = ProjectionRegistry.getInstance()
+const recommendations = registry.recommend({
+  atlasId: 'france',
+  viewMode: 'split',
+  limit: 5
+})
+
+// Create a projection instance
+const factory = ProjectionFactory.getInstance()
+const projection = factory.create({
+  projection: recommendations[0].definition,
+  center: [2.5, 46.5],
+  scale: 2500
+})
+```
+
+For detailed documentation, see [docs/PROJECTIONS.md](docs/PROJECTIONS.md).
+
+## �📊 Atlas Configuration System
 
 ### Configuration Structure
 
@@ -216,7 +353,7 @@ Each atlas is defined in a JSON file following this structure:
   "modes": {
     "all": {
       "label": "All territories",
-      "territories": ["250", "250-gf", ...]
+      "territories": ["250", "250-gf", "250-gp", "250-mq"]
     }
   },
   "projections": {
@@ -289,47 +426,63 @@ Output includes:
 
 ### Data Flow
 
-1. **Configuration Loading**
-   - Atlas JSON configs are loaded from `configs/`
-   - Registry provides centralized access to all atlases
-   - Frontend-specific configs add UI-specific settings
+1. **Configuration Discovery & Loading** (Build Time + Runtime)
+   - **Auto-discovery**: Vite's `import.meta.glob` automatically finds all JSON configs in `configs/`
+   - **Loader transformation**: `core/atlases/loader` transforms JSON into typed application configs
+   - **Registry initialization**: `core/atlases/registry` builds the atlas registry on module load
+   - **Pattern detection**: Loader automatically detects traditional vs multi-mainland patterns
 
-2. **Data Preparation**
-   - Natural Earth data is downloaded and filtered
-   - TopoJSON files are generated for each atlas
-   - Metadata is extracted (names, codes, areas)
+2. **Data Preparation** (Build Time)
+   - Natural Earth data is downloaded and filtered using scripts
+   - TopoJSON files are generated for each atlas based on JSON config
+   - Metadata is extracted (names, codes, areas, bounds)
+   - Validation ensures config/data consistency
 
-3. **Runtime Loading**
-   - User selects an atlas (France, Portugal, etc.)
-   - TopoJSON data is loaded dynamically
-   - AtlasService provides access to territories and modes
+3. **Runtime Initialization**
+   - User selects an atlas from auto-discovered options
+   - **AtlasRegistry** provides immediate access to configuration (no async loading)
+   - **ProjectionRegistry** recommends suitable projections based on atlas and view mode
+   - TopoJSON geodata is loaded dynamically via **GeoDataService**
 
-4. **Rendering**
-   - Cartographer receives atlas config and geodata
-   - Projections are applied to territories
-   - Observable Plot renders the final visualization
+4. **Rendering Pipeline**
+   - **CartographerFactory** creates a cartographer for the selected atlas
+   - **ProjectionFactory** creates D3 projection instances with atlas-specific parameters
+   - **Cartographer** orchestrates projection application and territory rendering
+   - Observable Plot or D3 renders the final visualization
 
 ### Key Concepts
 
 #### Atlas
-A collection of related territories (e.g., "France" includes mainland + DOM-TOM)
+A complete cartographic configuration for a country or region (e.g., "France", "EU"):
+- **Traditional pattern**: 1 mainland + N overseas territories (France, Portugal)
+- **Multi-mainland pattern**: N equal member-states + optional overseas (EU)
+- Auto-discovered from `configs/` folder - no code changes needed to add new atlases
 
 #### Territory
-A geographic entity with its own geometry:
+A geographic entity with its own geometry and rendering configuration:
 - Can be a complete country (Natural Earth ID like `250`)
-- Can be extracted polygons from a country (e.g., `250-gf` for French Guiana)
+- Can be extracted polygons from a country (e.g., `250-GP` for Guadeloupe)
+- Includes projection preferences, rendering parameters, and positioning
 
-#### Mode
-A display mode that shows specific territories:
-- `all`: All territories
-- `mainland`: Only mainland
-- `overseas`: Only overseas territories
-- Custom modes defined in config
+#### Territory Role
+Defines the type and function of a territory:
+- **`mainland`**: Principal territory (traditional pattern)
+- **`overseas`**: Overseas territories distant from mainland
+- **`embedded`**: Territories embedded within another (e.g., enclaves)
+- **`member-state`**: Equal member states (multi-mainland pattern, e.g., EU countries)
 
-#### Region
-A geographic classification for territories (e.g., "Caraïbes", "Océan Indien")
-- Used for grouping and filtering
-- Not to be confused with "atlas" (which was called "region" in older versions)
+#### View Mode
+Display mode determining how territories are rendered:
+- **`split`**: Separate maps for each territory
+- **`composite-existing`**: Pre-built composite projection (e.g., `conicConformalFrance`)
+- **`composite-custom`**: Custom composite with adjustable territory positions
+- **`unified`**: Single projection for all territories
+
+#### Territory Mode
+Pre-defined territory selections (e.g., "All territories", "Caribbean only"):
+- Configurable per atlas in JSON
+- Used for filtering which territories to display
+- Enables region-based visualization
 
 ## 🎨 UI Features
 

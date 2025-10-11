@@ -3,7 +3,7 @@
  * Pure data structure operations for territories (no business logic)
  */
 
-import type { TerritoryConfig } from '@/types/territory'
+import type { TerritoryConfig } from '@/types'
 
 /**
  * Create a territory lookup map by code
@@ -122,7 +122,7 @@ export function calculateDefaultScales(
   territories: TerritoryConfig[],
 ): Record<string, number> {
   return Object.fromEntries(
-    territories.map(t => [t.code, 1.0]),
+    territories.map(t => [t.code, t.baseScaleMultiplier ?? 1.0]),
   )
 }
 
@@ -176,7 +176,75 @@ export function getTerritoriesForMode(
     return []
   }
 
+  // Resolve wildcards: check if codes include "*"
+  let codes = modeDefinition.codes
+  if (codes.includes('*')) {
+    // Replace wildcard with all territory codes
+    codes = territories.map(t => t.code)
+
+    // Handle exclusions from the mode config
+    if (modeDefinition.exclude && Array.isArray(modeDefinition.exclude)) {
+      codes = codes.filter((code: string) => !modeDefinition.exclude.includes(code))
+    }
+  }
+
   // Return territories matching the codes in this mode
-  const codesSet = new Set(modeDefinition.codes)
+  const codesSet = new Set(codes)
   return territories.filter(t => codesSet.has(t.code))
+}
+
+/**
+ * Pattern Utilities
+ * Helper functions for working with atlas patterns
+ */
+
+/**
+ * Check if an atlas pattern supports split view (primary vs secondary)
+ * @param pattern - Atlas pattern type
+ * @returns True if split view is supported
+ */
+export function supportsSplitView(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): boolean {
+  return pattern === 'single-focus'
+}
+
+/**
+ * Check if primary territory should be filtered from territory mode codes
+ * (Only single-focus has a separate primary that shouldn't be in the mode selector)
+ * @param pattern - Atlas pattern type
+ * @returns True if primary code should be filtered
+ */
+export function shouldFilterPrimaryFromModes(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): boolean {
+  return pattern === 'single-focus'
+}
+
+/**
+ * Get the primary territory role(s) for a given pattern
+ * @param pattern - Atlas pattern type
+ * @returns Array of roles considered "primary" for this pattern
+ */
+export function getPrimaryRolesForPattern(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): Array<'primary' | 'member'> {
+  switch (pattern) {
+    case 'single-focus':
+      return ['primary']
+    case 'equal-members':
+      return ['member']
+    case 'hierarchical':
+      return ['primary'] // Future: may also include hierarchical parent role
+  }
+}
+
+/**
+ * Get the secondary territory role(s) for a given pattern
+ * @param pattern - Atlas pattern type
+ * @returns Array of roles considered "secondary" for this pattern
+ */
+export function getSecondaryRolesForPattern(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): Array<'secondary' | 'embedded' | 'member'> {
+  switch (pattern) {
+    case 'single-focus':
+      return ['secondary', 'embedded']
+    case 'equal-members':
+      return ['secondary', 'embedded'] // Equal-members can have secondary territories too
+    case 'hierarchical':
+      return ['member', 'embedded'] // Future: children are "members" in hierarchical
+  }
 }
