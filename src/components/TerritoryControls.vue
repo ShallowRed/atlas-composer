@@ -3,10 +3,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AccordionItem from '@/components/ui/AccordionItem.vue'
 import Alert from '@/components/ui/Alert.vue'
-import FormControl from '@/components/ui/FormControl.vue'
 import ImportControls from '@/components/ui/ImportControls.vue'
 import ProjectionSelector from '@/components/ui/ProjectionSelector.vue'
 import RangeSlider from '@/components/ui/RangeSlider.vue'
+import ToggleControl from '@/components/ui/ToggleControl.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useConfigStore } from '@/stores/config'
 
@@ -91,11 +91,10 @@ function useRecommendedProjection(territoryCode: string) {
         <i class="ri-restart-line" />
         {{ t('territory.resetButton') }}
       </button>
-      <FormControl
+      <ToggleControl
         v-show="configStore.showScalePreservation"
         v-model="configStore.scalePreservation"
         :label="t('territory.scalePreservation')"
-        type="toggle"
       />
       <!-- Accordion for all territories -->
       <div class="join join-vertical w-full">

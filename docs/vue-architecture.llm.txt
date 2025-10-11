@@ -180,12 +180,16 @@ App.vue
 - Loading states
 **Used by**: MapRenderer, data loading composables
 
-### ui.ts (68 lines)
+### ui.ts (81 lines)
 **Domain**: UI state
 **Responsibilities**:
 - Theme management (light/dark)
-- Display toggles (graticule, sphere, borders, limits)
-**Used by**: ThemeSelector, display option components
+- Display toggles (graticule, sphere, composition borders, map limits)
+  - showGraticule: Display coordinate grid lines
+  - showSphere: Display sphere outline
+  - showCompositionBorders: Display territory region borders (composite views only)
+  - showMapLimits: Display viewport bounds rectangle
+**Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
 ### territory.ts (57 lines)
 **Domain**: Territory state

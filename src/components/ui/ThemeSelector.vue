@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormControl from '@/components/ui/FormControl.vue'
+import SelectControl from '@/components/ui/SelectControl.vue'
 import { useUIStore } from '@/stores/ui'
 
 const uiStore = useUIStore()
@@ -63,11 +63,10 @@ const themes: Array<{
 </script>
 
 <template>
-  <FormControl
+  <SelectControl
     v-model="uiStore.theme"
     label="Thème"
     icon="ri-palette-line"
-    type="select"
     :option-groups="themes"
     @change="uiStore.setTheme(uiStore.theme)"
   />

@@ -90,12 +90,21 @@ Calculate map dimensions with configurable defaults.
 - `calculateProportionalSize()` - Calculate proportional size
 
 ### MapOverlayService
-Render map overlays (composition borders and limits) using D3 selection API.
-- `applyOverlays()` - Apply overlays to SVG
-- `boundsToRect()` - Convert bounds to rectangle
-- `unionRect()` - Compute union of rectangles
-- `computeSceneBBox()` - Compute bounding box of paths
+Render map overlays (composition borders and map limits) using D3 selection API.
+Static methods for SVG overlay rendering:
+- `applyOverlays()` - Apply overlays to rendered SVG map
+- `computeSceneBBox()` - Compute viewport-based bounding box with insets
+- `boundsToRect()` - Convert projection bounds to SVG rectangle
+- `unionRect()` - Compute union of rectangles for accumulated bounds
 - `createCompositeBorderPath()` - Create border path for composite projections
+- `appendRectOverlay()` - Append dashed rectangle overlay to SVG
+
+Overlay Features:
+- **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
+- **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
+- Viewport-based bounds calculation using SVG dimensions and insets
+- Inset handling: 20px for composite maps, 0px for individual territory maps
+- Automatic overlay group management (removes empty groups)
 
 ### CompositeSettingsBuilder
 Build custom composite settings from configuration.

@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+interface Option {
+  value: string
+  label: string
+}
+
+interface OptionGroup {
+  key?: string
+  label?: string
+  category?: string
+  options?: Option[]
+}
+
 interface Props {
   label: string
   icon?: string
-  modelValue?: string | boolean
-  type?: 'select' | 'checkbox' | 'toggle'
+  modelValue?: string
   disabled?: boolean
-  options?: Array<{ value: string, label: string }>
-  optionGroups?: Array<{
-    key?: string
-    label?: string
-    category?: string
-    options?: Array<{ value: string, label: string }>
-  }>
+  options?: Option[]
+  optionGroups?: OptionGroup[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  type: 'select',
   icon: undefined,
   modelValue: undefined,
   disabled: false,
@@ -26,13 +31,13 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | boolean]
-  'change': [value: string | boolean]
+  'update:modelValue': [value: string]
+  'change': [value: string]
 }>()
 
 const localValue = computed({
   get: () => props.modelValue,
-  set: (value: string | boolean | undefined) => {
+  set: (value: string | undefined) => {
     if (value !== undefined) {
       emit('update:modelValue', value)
       emit('change', value)
@@ -44,7 +49,7 @@ const localValue = computed({
 <template>
   <fieldset class="fieldset form-control flex flex-col">
     <!-- Select with Option Groups -->
-    <template v-if="type === 'select' && optionGroups">
+    <template v-if="optionGroups">
       <legend class="fieldset-legend text-xl">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
@@ -73,7 +78,7 @@ const localValue = computed({
     </template>
 
     <!-- Select with Simple Options -->
-    <template v-else-if="type === 'select' && options">
+    <template v-else-if="options">
       <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
@@ -96,7 +101,7 @@ const localValue = computed({
     </template>
 
     <!-- Select with Default Slot -->
-    <template v-else-if="type === 'select'">
+    <template v-else>
       <legend class="fieldset-legend text-sm">
         <span class="label-text flex items-center gap-2">
           <i v-if="icon" :class="icon" />
@@ -110,19 +115,6 @@ const localValue = computed({
       >
         <slot />
       </select>
-    </template>
-
-    <!-- Toggle/Checkbox -->
-    <template v-else-if="type === 'toggle' || type === 'checkbox'">
-      <label class="label cursor-pointer flex flex-row-reverse justify-end gap-2">
-        <span>{{ label }}</span>
-        <input
-          v-model="localValue"
-          type="checkbox"
-          :disabled="disabled"
-          :class="type === 'toggle' ? 'toggle toggle-sm' : 'checkbox'"
-        >
-      </label>
     </template>
   </fieldset>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import FormControl from '@/components/ui/FormControl.vue'
+import SelectControl from '@/components/ui/SelectControl.vue'
 import ThemeSelector from '@/components/ui/ThemeSelector.vue'
 import { getAvailableAtlases } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
@@ -23,50 +23,45 @@ const configStore = useConfigStore()
     <ThemeSelector v-if="allowThemeSelection" />
 
     <!-- Region Selector -->
-    <FormControl
+    <SelectControl
       v-model="configStore.selectedAtlas"
       :label="t('settings.region')"
       icon="ri-map-2-line"
-      type="select"
       :options="getAvailableAtlases()"
     />
 
     <!-- Territory Selection (for composite modes) -->
-    <FormControl
+    <SelectControl
       v-show="configStore.showTerritorySelector && configStore.currentAtlasConfig?.hasTerritorySelector"
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
-      type="select"
       :options="configStore.currentAtlasConfig?.territoryModeOptions || []"
     />
     <!-- Main View Mode Selector -->
-    <FormControl
+    <SelectControl
       v-model="configStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
-      type="select"
       :disabled="configStore.isViewModeLocked"
       :options="viewModeOptions"
     />
 
     <!-- Composite Projection Selector (for composite-existing mode) -->
-    <FormControl
+    <SelectControl
       v-show="configStore.showCompositeProjectionSelector && compositeProjectionOptions.length > 0"
       v-model="configStore.compositeProjection"
       :label="t('projection.composite')"
       icon="ri-global-line"
-      type="select"
       :options="compositeProjectionOptions"
     />
 
     <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-    <FormControl
+    <SelectControl
       v-show="configStore.showProjectionModeToggle"
       v-model="configStore.projectionMode"
       :label="t('projection.mode')"
       icon="ri-global-line"
-      type="select"
       :options="[
         { value: 'uniform', label: t('projection.uniform') },
         { value: 'individual', label: t('projection.individual') },
