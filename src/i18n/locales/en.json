@@ -97,6 +97,10 @@
   },
   "common": {
     "close": "Close",
+    "cancel": "Cancel",
+    "search": "Search",
+    "showProjectionInformation": "Show projection information",
+    "projectionInformation": "Projection information",
     "searchProjections": "Search projections..."
   },
   "projectionParams": {

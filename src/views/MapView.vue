@@ -6,7 +6,6 @@ import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSect
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import CardContainer from '@/components/ui/CardContainer.vue'
 import ProjectionParamsControls from '@/components/ui/ProjectionParamsControls.vue'
-import ViewModeSection from '@/components/ui/ViewModeSection.vue'
 import CompositeCustomView from '@/components/views/CompositeCustomView.vue'
 import CompositeExistingView from '@/components/views/CompositeExistingView.vue'
 import SplitView from '@/components/views/SplitView.vue'
@@ -65,55 +64,36 @@ onMounted(async () => {
         :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
         icon="ri-map-line"
         has-overflow
-        class="max-h-[65vh]"
+        class="min-h-0 flex-1"
       >
         <!-- Loading state for main content -->
-        <div v-if="showSkeleton || geoDataStore.isLoading" class="space-y-6">
+        <template v-if="showSkeleton || geoDataStore.isLoading">
           <!-- Skeleton for main map area -->
-          <div class="skeleton h-96 w-full rounded-sm opacity-50" />
-
-          <!-- Skeleton for grid of territories (split mode) -->
-          <div v-if="configStore.viewMode === 'split'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div v-for="i in 6" :key="i" class="skeleton h-48 rounded-sm opacity-50" />
+          <div class="h-full rounded-sm border border-base-300">
+            <div class="skeleton rounded-none h-full w-full opacity-50" />
           </div>
-        </div>
+        </template>
 
         <!-- Content when loaded -->
         <template v-else>
           <!-- Split Territories Mode -->
-          <ViewModeSection
-            :view-mode="configStore.viewMode"
-            active-mode="split"
+          <template
+            v-if="configStore.viewMode === 'split'"
           >
             <SplitView
               :get-mainland-projection="getMainlandProjection"
               :get-territory-projection="getTerritoryProjection"
             />
-          </ViewModeSection>
+          </template>
 
           <!-- Composite Existing Mode -->
-          <ViewModeSection
-            :view-mode="configStore.viewMode"
-            active-mode="composite-existing"
-          >
-            <CompositeExistingView />
-          </ViewModeSection>
+          <CompositeExistingView v-if="configStore.viewMode === 'composite-existing'" />
 
           <!-- Composite Custom Mode -->
-          <ViewModeSection
-            :view-mode="configStore.viewMode"
-            active-mode="composite-custom"
-          >
-            <CompositeCustomView />
-          </ViewModeSection>
+          <CompositeCustomView v-if="configStore.viewMode === 'composite-custom'" />
 
           <!-- Unified Mode -->
-          <ViewModeSection
-            :view-mode="configStore.viewMode"
-            active-mode="unified"
-          >
-            <UnifiedView />
-          </ViewModeSection>
+          <UnifiedView v-if="configStore.viewMode === 'unified'" />
         </template>
       </CardContainer>
       <!-- View Configuration -->
@@ -121,7 +101,6 @@ onMounted(async () => {
         :title="t('settings.displayOptionsTitle')"
         icon="ri-map-line"
         has-overflow
-        class="flex-1"
       >
         <!-- Display Options -->
         <DisplayOptionsSection />
@@ -151,8 +130,10 @@ onMounted(async () => {
         <!-- Loading state -->
         <div
           v-if="showSkeleton || geoDataStore.isLoading"
-          class="skeleton h-64 rounded-sm opacity-50"
-        />
+          class="h-full rounded-sm border border-base-300"
+        >
+          <div class="skeleton rounded-none h-full w-full opacity-50" />
+        </div>
 
         <div v-else class="flex flex-col gap-4">
           <!-- Territory controls -->

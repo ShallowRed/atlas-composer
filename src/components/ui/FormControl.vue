@@ -120,7 +120,7 @@ const localValue = computed({
           v-model="localValue"
           type="checkbox"
           :disabled="disabled"
-          :class="type === 'toggle' ? 'toggle toggle-primary' : 'checkbox'"
+          :class="type === 'toggle' ? 'toggle toggle-sm' : 'checkbox'"
         >
       </label>
     </template>

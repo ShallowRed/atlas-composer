@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
-import SectionHeader from '@/components/ui/SectionHeader.vue'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -28,42 +27,40 @@ const isSingleFocusPattern = computed(() => {
   <div v-if="isSingleFocusPattern" class="flex flex-row gap-12">
     <!-- Primary territory -->
     <div>
-      <SectionHeader
-        :title="configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland'"
-        icon="ri-map-pin-line"
-        :level="3"
-      />
+      <h3 class="text-base font-semibold mb-4">
+        <i class="ri-map-2-line" />
+        {{ configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle || 'Mainland' }}
+      </h3>
       <MapRenderer
         :geo-data="geoDataStore.mainlandData"
         is-mainland
         :projection="props.getMainlandProjection()"
+        :full-height="false"
         :width="500"
         :height="400"
       />
     </div>
 
     <div>
-      <SectionHeader
-        :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
-        icon="ri-earth-line"
-        :level="3"
-      />
+      <h3 class="text-base font-semibold mb-4">
+        <i class="ri-earth-line" />
+        {{ configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories' }}
+      </h3>
 
       <div class="flex flex-col gap-4">
         <!-- Region Groups -->
         <div
           v-for="[regionName, territories] in geoDataStore.territoryGroups"
           :key="regionName"
-          class="bg-base-200 border border-base-300 p-4 rounded-lg"
+          class="border border-base-300 p-3 rounded-md"
         >
-          <h3 class="text-lg font-semibold mb-4 text-gray-700">
+          <h4 class="text-sm font-semibold mb-2">
             {{ regionName }}
-          </h3>
+          </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               v-for="territory in territories"
               :key="territory.code"
-              class="bg-base-100 border border-base-300 p-4 rounded-md"
             >
               <MapRenderer
                 :geo-data="territory.data"
@@ -72,6 +69,8 @@ const isSingleFocusPattern = computed(() => {
                 :region="territory.region"
                 :preserve-scale="configStore.scalePreservation"
                 :projection="props.getTerritoryProjection(territory.code)"
+                :full-height="false"
+                :h-level="4"
                 :width="200"
                 :height="160"
               />
@@ -89,11 +88,10 @@ const isSingleFocusPattern = computed(() => {
 
   <!-- Multi-mainland pattern: All territories in a single grid (EU, ASEAN, etc.) -->
   <div v-else>
-    <SectionHeader
-      :title="configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories'"
-      icon="ri-earth-line"
-      :level="3"
-    />
+    <h3 class="text-base font-semibold mb-4">
+      <i class="ri-earth-line" />
+      {{ configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'Territories' }}
+    </h3>
 
     <!-- Territories Grid -->
     <div class="flex flex-col gap-4">

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 /**
  * RangeSlider - Reusable range input component with label, icon, and value display
  *
@@ -51,13 +53,23 @@ function formatValue(value: number): string {
 
 // Calculate midpoint for display
 const midpoint = () => formatValue((props.max + props.min) / 2)
+
+// Computed classes for proper reactivity
+const rangeClasses = computed(() => [
+  'range',
+  `range-${props.color}`,
+  `range-xs`,
+  `range-${props.size}`, // not working?
+])
+
+const labelSizeClass = computed(() => `text-${props.size}`)
 </script>
 
 <template>
   <div>
     <label class="label">
-      <span :class="`label-text text-${size}`">
-        <i v-if="icon" :class="`${icon}`" />
+      <span class="label-text" :class="labelSizeClass">
+        <i v-if="icon" :class="icon" />
         {{ label }}: {{ formatValue(modelValue) }}{{ unit }}
       </span>
     </label>
@@ -67,7 +79,7 @@ const midpoint = () => formatValue((props.max + props.min) / 2)
       :max="max"
       :step="step"
       :value="modelValue"
-      :class="`range range-${color} range-${size}`"
+      :class="rangeClasses"
       @input="handleInput"
     >
     <div class="flex justify-between px-2 text-xs opacity-50 mt-1">

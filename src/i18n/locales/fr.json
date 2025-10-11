@@ -79,6 +79,10 @@
   },
   "common": {
     "close": "Fermer",
+    "cancel": "Annuler",
+    "search": "Rechercher",
+    "showProjectionInformation": "Afficher les informations sur la projection",
+    "projectionInformation": "Informations sur la projection",
     "searchProjections": "Rechercher des projections..."
   },
   "settings": {

@@ -1,58 +1,36 @@
 <script setup lang="ts">
+import ScrollableContent from '@/components/ui/ScrollableContent.vue'
+
 interface Props {
-  title?: string
-  icon?: string
-  bordered?: boolean
-  shadow?: boolean
-  hasOverflow?: boolean
+  title: string
+  icon: string
 }
 
-withDefaults(defineProps<Props>(), {
-  title: undefined,
-  icon: undefined,
-  bordered: true,
-  shadow: true,
-  hasOverflow: false,
-})
+defineProps<Props>()
 </script>
 
 <template>
   <div
-    class="card card-sm bg-base-100"
-    :class="[
-      bordered && 'card-border border-base-300',
-      shadow && 'shadow-lg',
-    ]"
+    class="card card-sm bg-base-100 card-border border-base-300"
   >
-    <div
-      class="card-body" :class="[{
-        'overflow-hidden': hasOverflow,
-      }]"
-    >
-      <h2 v-if="title" class="card-title px-2">
-        <i v-if="icon" :class="icon" />
+    <div class="card-body pb-6">
+      <h2 class="card-title px-2 mb-4">
+        <i :class="icon" />
         {{ title }}
       </h2>
-      <div class="overflow-y-auto p-2">
-        <slot />
-      </div>
+      <ScrollableContent show-gradient>
+        <div class="px-2 h-full">
+          <slot />
+        </div>
+      </ScrollableContent>
     </div>
   </div>
 </template>
 
 <style scoped>
-.card-body.overflow-hidden {
-  position: relative;
-}
-.card-body.overflow-hidden::after {
-  --p: var(--card-p, 1.5rem);
-  content: '';
-  position: absolute;
-  bottom: var(--p);
-  left: var(--p);
-  right: var(--p);
-  height: 2rem;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+.card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 </style>
