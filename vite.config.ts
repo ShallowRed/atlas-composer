@@ -2,6 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 import eslint from 'vite-plugin-eslint'
 
@@ -16,6 +17,17 @@ export default defineConfig(env => ({
   build: {
     outDir,
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks for better caching
+          'd3': ['d3', 'd3-geo', 'd3-geo-projection', 'd3-composite-projections'],
+          'vue-core': ['vue', 'vue-router', 'pinia'],
+          'plot': ['@observablehq/plot'],
+          'geo-data': ['topojson-client'],
+        },
+      },
+    },
   },
   plugins: [
     vue(),
@@ -24,6 +36,17 @@ export default defineConfig(env => ({
       failOnError: false,
       failOnWarning: false,
     }),
+    // Bundle analyzer - run with ANALYZE=true
+    ...(process.env.ANALYZE
+      ? [
+          visualizer({
+            open: true,
+            filename: path.resolve(__dirname, 'dist/stats.html'),
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {

@@ -105,17 +105,16 @@ export interface ExportMetadata {
 export type CompositePattern = 'single-focus' | 'equal-members'
 
 /**
- * Exportable composite projection configuration
- *
- * Complete serialization of a custom composite projection that can be:
- * - Saved as JSON file
- * - Shared with other users
- * - Imported back into Atlas Composer
- * - Used to generate D3/Plot code
+ * Supported configuration versions
  */
-export interface ExportedCompositeConfig {
+export type ConfigVersion = '1.0'
+
+/**
+ * Base configuration interface (shared across versions)
+ */
+export interface BaseExportedConfig {
   /** Format version for future compatibility */
-  version: '1.0'
+  version: ConfigVersion
 
   /** Export metadata */
   metadata: ExportMetadata
@@ -131,6 +130,31 @@ export interface ExportedCompositeConfig {
 }
 
 /**
+ * Version 1.0 configuration (current)
+ *
+ * Complete serialization of a custom composite projection that can be:
+ * - Saved as JSON file
+ * - Shared with other users
+ * - Imported back into Atlas Composer
+ * - Used to generate D3/Plot code
+ */
+export interface ExportedCompositeConfigV1 extends BaseExportedConfig {
+  version: '1.0'
+}
+
+/**
+ * Current exportable composite projection configuration
+ * This type alias points to the latest version
+ */
+export type ExportedCompositeConfig = ExportedCompositeConfigV1
+
+/**
+ * Union of all supported configuration versions
+ * Used for migration and backward compatibility
+ */
+export type AnyVersionConfig = ExportedCompositeConfigV1 // Add future versions here: | ExportedCompositeConfigV2
+
+/**
  * Validation result for exported configuration
  */
 export interface ExportValidationResult {
@@ -141,6 +165,32 @@ export interface ExportValidationResult {
   errors: string[]
 
   /** Array of warning messages (non-critical issues) */
+  warnings: string[]
+}
+
+/**
+ * Migration result for version upgrades
+ */
+export interface MigrationResult {
+  /** Whether migration was successful */
+  success: boolean
+
+  /** Migrated configuration (only if successful) */
+  config?: ExportedCompositeConfig
+
+  /** Original version */
+  fromVersion: ConfigVersion
+
+  /** Target version */
+  toVersion: ConfigVersion
+
+  /** Migration messages (changes applied) */
+  messages: string[]
+
+  /** Errors encountered during migration */
+  errors: string[]
+
+  /** Warnings about potential issues */
   warnings: string[]
 }
 

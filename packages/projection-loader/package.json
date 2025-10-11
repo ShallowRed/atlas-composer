@@ -49,8 +49,24 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "size": "size-limit",
+    "size:why": "size-limit --why"
   },
+  "size-limit": [
+    {
+      "name": "Main bundle (ESM)",
+      "path": "dist/index.js",
+      "limit": "10 KB",
+      "gzip": true
+    },
+    {
+      "name": "D3 helpers (optional)",
+      "path": "dist/d3-projection-helpers.js",
+      "limit": "3 KB",
+      "gzip": true
+    }
+  ],
   "peerDependencies": {
     "d3-geo": ">=3.0.0",
     "d3-geo-projection": ">=4.0.0"
@@ -64,6 +80,7 @@
     }
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.2.0",
     "@types/d3-geo": "^3.1.0",
     "tsup": "^8.0.0",
     "typescript": "~5.9.3"

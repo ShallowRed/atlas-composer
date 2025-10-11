@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm build:loader && tsc && vite build",
+    "build:analyze": "ANALYZE=true pnpm build",
     "build:loader": "pnpm --filter @atlas-composer/projection-loader build",
     "preview": "vite preview",
     "typecheck": "pnpm typecheck:frontend && pnpm typecheck:scripts && pnpm typecheck:loader",
@@ -68,6 +69,7 @@
     "ajv-formats": "^3.0.1",
     "eslint": "^9.36.0",
     "happy-dom": "^19.0.2",
+    "rollup-plugin-visualizer": "^6.0.4",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "vite": "^7.1.7",
