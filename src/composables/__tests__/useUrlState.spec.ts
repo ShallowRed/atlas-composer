@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useUrlState } from '../useUrlState'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useRoute, useRouter } from 'vue-router'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
-import { createPinia, setActivePinia } from 'pinia'
-import { useRouter, useRoute } from 'vue-router'
+import { useUrlState } from '../useUrlState'
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -35,13 +35,13 @@ describe('useUrlState', () => {
     it('should serialize basic configuration without default territory settings', () => {
       const configStore = useConfigStore()
       const territoryStore = useTerritoryStore()
-      
+
       configStore.selectedAtlas = 'france'
       configStore.viewMode = 'composite-custom'
       configStore.selectedProjection = 'azimuthal-equal-area'
       configStore.projectionMode = 'individual'
       configStore.territoryMode = 'all'
-      
+
       // Initialize with defaults (this happens in the app)
       const atlasService = configStore.atlasService
       const territories = atlasService.getAllTerritories()
@@ -91,14 +91,14 @@ describe('useUrlState', () => {
     it('should include territory scales when different from atlas defaults', () => {
       const configStore = useConfigStore()
       const territoryStore = useTerritoryStore()
-      
+
       configStore.selectedAtlas = 'france'
-      
+
       // Initialize with defaults first
       const atlasService = configStore.atlasService
       const territories = atlasService.getAllTerritories()
       territoryStore.initializeDefaults(territories, configStore.selectedProjection || 'mercator')
-      
+
       // Now change some values to be different from defaults
       const currentScale = territoryStore.territoryScales['FR-GP'] ?? 1
       territoryStore.setTerritoryScale('FR-GP', currentScale * 1.5)
@@ -117,14 +117,14 @@ describe('useUrlState', () => {
     it('should include territory translations when different from atlas defaults', () => {
       const configStore = useConfigStore()
       const territoryStore = useTerritoryStore()
-      
+
       configStore.selectedAtlas = 'france'
-      
+
       // Initialize with defaults first
       const atlasService = configStore.atlasService
       const territories = atlasService.getAllTerritories()
       territoryStore.initializeDefaults(territories, configStore.selectedProjection || 'mercator')
-      
+
       // Now change translation to be different from defaults
       const currentTranslation = territoryStore.territoryTranslations['FR-GP'] ?? { x: 0, y: 0 }
       territoryStore.setTerritoryTranslation('FR-GP', 'x', currentTranslation.x + 100)
@@ -143,9 +143,9 @@ describe('useUrlState', () => {
     it('should not include territory settings when all match atlas defaults', () => {
       const configStore = useConfigStore()
       const territoryStore = useTerritoryStore()
-      
+
       configStore.selectedAtlas = 'france'
-      
+
       // Initialize with atlas defaults
       const atlasService = configStore.atlasService
       const territories = atlasService.getAllTerritories()

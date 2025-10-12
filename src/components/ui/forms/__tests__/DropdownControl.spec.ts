@@ -297,7 +297,7 @@ describe('dropdownControl', () => {
 
       const menu = wrapper.findComponent({ name: 'DropdownMenu' })
       expect(menu.exists()).toBe(true)
-      
+
       // Simulate selecting an option by emitting the select event from the menu
       menu.vm.$emit('select', 'option2')
       await nextTick()
