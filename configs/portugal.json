@@ -11,6 +11,20 @@
   "compositeProjections": [
     "conic-conformal-portugal"
   ],
+  "defaultCompositeConfig": {
+    "territoryProjections": {
+      "PT-20": "conic-conformal",
+      "PT-30": "conic-conformal"
+    },
+    "territoryTranslations": {
+      "PT-20": { "x": -111, "y": 105 },
+      "PT-30": { "x": -189, "y": -84 }
+    },
+    "territoryScales": {
+      "PT-20": 1.0,
+      "PT-30": 0.6
+    }
+  },
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",
@@ -118,11 +132,11 @@
       },
       "rendering": {
         "offset": [
-          400,
-          -200
+          -111,
+          105
         ],
-        "projectionType": "mercator",
-        "scale": 1
+        "projectionType": "conic-conformal",
+        "baseScaleMultiplier": 1.0
       }
     },
     {
@@ -160,11 +174,11 @@
       },
       "rendering": {
         "offset": [
-          -400,
-          -100
+          -189,
+          -84
         ],
-        "projectionType": "mercator",
-        "scale": 1
+        "projectionType": "conic-conformal",
+        "baseScaleMultiplier": 0.6
       }
     }
   ],
