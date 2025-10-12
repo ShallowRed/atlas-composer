@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 import LanguageSelector from '@/components/ui/settings/LanguageSelector.vue'
+import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 
 const route = useRoute()

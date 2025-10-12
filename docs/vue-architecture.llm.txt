@@ -141,6 +141,14 @@ App.vue
 - **ThemeSelector**: Theme selection interface using DropdownControl with option groups
   - Groups themes into light and dark categories
   - 35 theme options across 2 groups
+- **ShareButton**: Shareable URL generator with clipboard copy functionality
+  - Uses useUrlState composable to generate shareable URLs
+  - One-click copy to clipboard with visual feedback
+  - Three states: default (Share), success (Copied!), error (Failed to copy)
+  - Auto-resets after 2 seconds (success) or 3 seconds (error)
+  - Displays full URL in tooltip on hover
+  - Ghost button style with share/check/error icons (Remix icons)
+  - Fully tested (9 tests covering rendering, copy, state transitions, timeout handling)
 
 **Projection Components** (src/components/ui/projections/):
 - **ProjectionDropdown**: Projection selection component with info modal
@@ -233,6 +241,19 @@ App.vue
 - getTooltip(): Returns localized recommendation reason
 - getRecommendation(): Returns full recommendation object
 - Used by: ProjectionDropdown.vue
+
+**useUrlState** (220 lines)
+- URL state serialization/deserialization for shareable links
+- serializeState(): Encodes current configuration to URL query parameters
+- deserializeState(): Restores configuration from URL parameters
+- updateUrl(): Updates browser URL with current state
+- restoreFromUrl(): Restores state from URL on page load
+- shareableUrl: Computed property with full shareable URL
+- copyShareableUrl(): Copies URL to clipboard
+- enableAutoSync(): Optional automatic URL syncing on state changes
+- Territory settings optimization: Only includes values different from atlas-specific defaults
+- Comprehensive test suite: 11 tests covering serialization round-trips, edge cases, malformed input
+- Used by: MapView.vue (restoration), ShareButton.vue (URL generation)
 
 ### Validation
 **useProjectionValidation** (148 lines)

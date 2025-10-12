@@ -3,15 +3,14 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
+import { useViewMode } from '@/composables/useViewMode'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
-interface Props {
-  viewModeOptions: Array<{ value: string, label: string }>
-}
-const props = defineProps<Props>()
+const { viewModeOptions } = useViewMode()
+
 const { t } = useI18n()
 const configStore = useConfigStore()
 
@@ -31,7 +30,7 @@ const atlasGroupsWithIcons = computed(() => {
 
 // Add icons to view mode options
 const viewModeOptionsWithIcons = computed(() => {
-  return props.viewModeOptions.map(mode => ({
+  return viewModeOptions.value.map(mode => ({
     ...mode,
     icon: getViewModeIcon(mode.value as any),
   }))

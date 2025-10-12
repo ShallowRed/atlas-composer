@@ -11,16 +11,14 @@ import ProjectionParamsControls from '@/components/ui/projections/ProjectionPara
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
-import { useProjectionConfig } from '@/composables/useProjectionConfig'
-import { useViewMode } from '@/composables/useViewMode'
+import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
 
 const { t } = useI18n()
 
 // Composables
-const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
-const { viewModeOptions } = useViewMode()
+const { restoreFromUrl } = useUrlState()
 const {
   isSplitMode,
   isCompositeExistingMode,
@@ -41,6 +39,9 @@ const skeletonTransition = computed(() => hasLoadedOnce.value ? 'fade' : 'fade-i
 
 // Lifecycle
 onMounted(async () => {
+  // Restore state from URL first (before initialization)
+  restoreFromUrl()
+
   await initialize()
   setupWatchers()
   hasLoadedOnce.value = true
@@ -56,9 +57,7 @@ onMounted(async () => {
         icon="ri-settings-4-line"
         class="flex-1"
       >
-        <AtlasConfigSection
-          :view-mode-options="viewModeOptions"
-        />
+        <AtlasConfigSection />
       </CardContainer>
     </template>
     <template #main-content>
@@ -89,10 +88,7 @@ onMounted(async () => {
             >
               <!-- Split Territories Mode -->
               <template v-if="isSplitMode">
-                <SplitView
-                  :get-mainland-projection="getMainlandProjection"
-                  :get-territory-projection="getTerritoryProjection"
-                />
+                <SplitView />
               </template>
 
               <!-- Composite Existing Mode -->
