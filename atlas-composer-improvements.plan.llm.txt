@@ -31,36 +31,36 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 **Opportunity**: Position as complete cartography toolkit with multiple use cases
 
 #### 2. User Experience Gaps
-- No undo/redo functionality for projection adjustments
-- Limited preset/template system for common configurations
-- No comparison view for different projections side-by-side
-- Export flow could be more discoverable
-- Missing quick-start tutorials or guided tours
+- No undo/redo functionality for projection adjustments = [review => really secondary]
+- Limited preset/template system for common configurations [review => need more details]
+- No comparison view for different projections side-by-side [review => not needed]
+- Export flow could be more discoverable [review => not needed]
+- Missing quick-start tutorials or guided tours [review => not needed]
 
 #### 3. Performance Opportunities
-- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
-- No virtual scrolling for territory lists in split view
-- No lazy loading for projection definitions
-- No memoization for expensive projection calculations
+- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines) [review => need more details]
+- No virtual scrolling for territory lists in split view [review => need more details]
+- No lazy loading for projection definitions [review => need more details]
+- No memoization for expensive projection calculations [review => need more details and relevance verification]
 
 #### 4. Code Organization
-- Some services still using instance pattern (could standardize)
-- Mixed naming conventions (some camelCase, some kebab-case in files)
-- Test file organization could be more consistent
-- Some duplication between export/import services
+- Some services still using instance pattern (could standardize) [review => need more details]
+- Mixed naming conventions (some camelCase, some kebab-case in files) [review => need more details]
+- Test file organization could be more consistent [review => need more details]
+- Some duplication between export/import services [review => need more details]
 
 #### 5. Feature Gaps
-- No projection history/favorites
-- No collaborative sharing (shareable URLs with state)
-- No batch operations for territories
-- Limited customization for export styling
-- No integration with external mapping services
+- No projection history/favorites [review => not needed, already done, should be removed]
+- No collaborative sharing (shareable URLs with state) [review => already started, cool idea, not really working yet]
+- No batch operations for territories [review => need more details]
+- Limited customization for export styling [review => need more details]
+- No integration with external mapping services [review => need more details]
 
 #### 6. Documentation Gaps
-- No user-facing documentation (only LLM docs)
-- Missing migration guides for major versions
-- No contribution guidelines
-- Limited examples for developers
+- No user-facing documentation (only LLM docs) [review => need more details]
+- Missing migration guides for major versions [review => need more details]
+- No contribution guidelines [review => not needed]
+- Limited examples for developers [not needed]
 
 ## Affected Domains
 - [ ] Vue Architecture (docs/vue-architecture.llm.txt) - UX improvements, new components
