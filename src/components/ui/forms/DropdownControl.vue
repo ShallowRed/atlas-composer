@@ -408,7 +408,7 @@ watch(focusedIndex, (newIndex) => {
 
 /* Visible focus state for button - Thick outline for visibility */
 .btn:focus, .btn:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-neutral);
   outline-offset: 2px;
 }
 

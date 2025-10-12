@@ -46,7 +46,7 @@ function handleKeyDown(event: KeyboardEvent, value: string) {
     role="option"
     :aria-selected="isSelected"
     :class="{
-      'bg-primary text-primary-content': isSelected,
+      'bg-primary/10': isSelected,
       'bg-base-200': isFocused,
     }"
     @click="handleClick(option.value)"
