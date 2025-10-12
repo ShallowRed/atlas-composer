@@ -91,7 +91,7 @@ App.vue
 ### UI Components (27 components organized in 7 subdirectories)
 
 **Layout Components** (src/components/ui/layout/):
-- **AppHeader**: Application header with navigation and language selector
+- **AppHeader**: Application header with navigation, language selector, and theme selector
 - **AppFooter**: Application footer with credits and links
 - **MainLayout**: Main application layout structure
 - **ScrollableContent**: Scrollable content wrapper
@@ -100,7 +100,7 @@ App.vue
 - **AccordionItem**: Collapsible content item with title/subtitle
 - **Alert**: Status/notification messages with type variants (info, success, warning, error)
 - **ButtonGroup**: Toggle button group for exclusive selection with full-width layout
-- **CardContainer**: Card wrapper with title, icon, and scrollable content
+- **CardContainer**: Card wrapper with title, icon, and scrollable content. Supports optional actions slot for buttons in header (e.g., ShareButton in MapView main card)
 - **LabelWithIcon**: Label wrapper with optional icon
 - **Modal**: Standardized dialog wrapper with slots for title, content, and actions
 
@@ -148,6 +148,7 @@ App.vue
   - Auto-resets after 2 seconds (success) or 3 seconds (error)
   - Displays full URL in tooltip on hover
   - Ghost button style with share/check/error icons (Remix icons)
+  - Positioned in MapView main content card header (top right corner)
   - Fully tested (9 tests covering rendering, copy, state transitions, timeout handling)
 
 **Projection Components** (src/components/ui/projections/):

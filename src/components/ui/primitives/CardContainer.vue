@@ -17,6 +17,9 @@ defineProps<Props>()
       <h2 class="card-title px-2 mb-4">
         <i :class="icon" />
         {{ title }}
+        <div class="ml-auto">
+          <slot name="actions" />
+        </div>
       </h2>
       <ScrollableContent
         show-gradient

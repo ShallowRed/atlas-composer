@@ -8,6 +8,7 @@ import TerritoryControls from '@/components/TerritoryControls.vue'
 import MainLayout from '@/components/ui/layout/MainLayout.vue'
 import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 import ProjectionParamsControls from '@/components/ui/projections/ProjectionParamsControls.vue'
+import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
@@ -67,6 +68,9 @@ onMounted(async () => {
         :title="cardTitle"
         :icon="cardIcon"
       >
+        <template #actions>
+          <ShareButton />
+        </template>
         <!-- Loading state for main content -->
         <div class="relative h-full w-full">
           <Transition :name="skeletonTransition">
