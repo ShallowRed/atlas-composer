@@ -85,6 +85,9 @@ const allowThemeSelection = true
                 <!-- Theme Selector -->
                 <ThemeSelector />
               </li>
+              <li v-if="route.path === '/'">
+                <ShareButton />
+              </li>
             </ul>
           </div>
         </nav>
