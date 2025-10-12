@@ -18,7 +18,7 @@ import { geoNaturalEarth1 } from 'd3-geo-projection'
 import {
   loadCompositeProjection,
   registerProjection,
-} from '../standalone-projection-loader.js'
+} from '../src/standalone-projection-loader.js'
 
 console.log('🌳 Tree-Shakeable Imports Example\n')
 

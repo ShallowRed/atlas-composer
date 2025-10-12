@@ -8,8 +8,8 @@ const route = useRoute()
 
 <template>
   <footer class="footer footer-center bg-neutral text-neutral-content py-10">
-    <aside>
-      <p class="font-bold text-lg">
+    <aside class="!justify-items-start">
+      <p class="font-bold text-lg text-right">
         {{ t('about.footer.title') }}
       </p>
       <p class="text-sm opacity-80">
@@ -61,7 +61,7 @@ const route = useRoute()
       </a>
     </nav>
 
-    <aside class="text-xs opacity-80">
+    <aside class="text-xs opacity-80 !justify-items-end">
       <p>{{ t('about.footer.builtWith') }}</p>
       <p>
         {{ t('about.footer.license') }}

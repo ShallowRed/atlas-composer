@@ -24,10 +24,9 @@ The export system enables users to use their custom composite projections outsid
 - `src/services/export/composite-export-service.ts` - Export orchestration
 - `src/services/export/composite-import-service.ts` - Import validation & application
 - `src/services/export/code-generator.ts` - Code generation (D3/Plot)
-- `src/services/export/standalone-projection-loader.ts` - Runtime loader (copied to package)
 - `src/components/ui/CompositeExportDialog.vue` - Export UI
 - `src/components/ui/ImportModal.vue` - Import UI
-- `packages/projection-loader/` - Standalone NPM package
+- `packages/projection-loader/` - Standalone NPM package (loader implementation)
 
 ## Configuration Export (config-exporter.ts)
 
@@ -210,6 +209,28 @@ const projectionMap: Record<string, string> = {
 Function: `getD3ProjectionFunction(projectionId: string): string`
 - Returns D3 function name for projection ID
 - Used in code generation templates
+
+## Composite Export Service (composite-export-service.ts)
+
+### Version Management
+The service imports version information from `package.json` for embedded configuration metadata:
+```typescript
+import packageJson from '../../../package.json'
+const version = packageJson.version || '1.0'
+```
+
+This ensures:
+- Single source of truth for version numbers
+- Automatic version updates with package releases
+- Fallback to '1.0' for development builds
+- Consistent versioning across exported configurations
+
+### Export Orchestration
+Coordinates the export pipeline:
+- Serializes configuration via ConfigExporter
+- Generates code via CodeGenerator
+- Handles file downloads and clipboard operations
+- Manages export format selection (JSON, D3 JS/TS, Observable Plot)
 
 ## UI Integration (ExportModal.vue)
 
@@ -412,8 +433,8 @@ File: `src/components/ui/ImportModal.vue`
 
 ### UI Feedback System
 
-**Toast Notifications** (added to UIStore):
-- Success messages (green) for completed operations
+**Toast Notifications** (in UIStore):
+- Success messages (green) for successful operations
 - Error messages (red) for failures
 - Auto-dismiss after 3 seconds (configurable)
 - Manual dismiss option
@@ -500,8 +521,10 @@ export function createFranceProjection() {
 
 ### Files in Package
 - `src/index.ts` - Main exports (loader + registration)
-- `src/standalone-projection-loader.ts` - Core loader implementation
-- `src/d3-projection-helpers.ts` - Optional D3 projection factories
+- `src/standalone-projection-loader.ts` - Core loader implementation (628 lines)
+- `src/d3-projection-helpers.ts` - Optional D3 projection factories (134 lines)
+- `__tests__/standalone-projection-loader.spec.ts` - Test suite (19 tests)
+- `examples/` - Usage examples (node-basic, tree-shakeable, custom-projection, etc.)
 - `README.md` - Usage documentation with examples
 - `package.json` - Package metadata, exports, peer deps
 - `tsconfig.json` - TypeScript configuration
@@ -624,30 +647,24 @@ registerProjection('albers', albers)
 - Sharing projections with users who don't have Atlas composer
 - Custom projection implementations for specialized use cases
 
-### NPM Package Preparation (Ready for Publishing)
-Location: `src/services/export/`
-
-Files:
-- `package.json` - Zero dependencies, ESM/CJS exports
-- `standalone-projection-loader.ts` - Main loader (616 lines)
-- `d3-projection-helpers.ts` - Optional D3 mappings (140 lines)
-- `README.md` - Comprehensive documentation (700+ lines)
-- `LICENSE` - MIT License
-- `PUBLISHING.md` - Publishing guide
-- `examples/` - 4 working examples
-  - `browser-d3.html` - Browser usage with CDN
-  - `node-basic.js` - Node.js basic usage
-  - `tree-shakeable.js` - Bundle optimization
-  - `custom-projection.js` - Custom projections
-  - `README.md` - Examples documentation
+### NPM Package (Workspace Package)
+Location: `packages/projection-loader/`
 
 **Package Details**:
-- Name: `standalone-projection-loader`
+- Name: `@atlas-composer/projection-loader`
 - Version: 1.0.0
-- Dependencies: 0 (zero)
-- devDependencies: TypeScript, D3 types only
-- Bundle size: ~6KB (vs 100KB with bundled dependencies)
-- Exports: Dual ESM/CJS with TypeScript definitions
+- Dependencies: 0 (zero runtime dependencies)
+- peerDependencies: d3-geo, d3-geo-projection (optional)
+- devDependencies: TypeScript, D3 libs, vitest
+- Bundle size: ~8KB ESM (vs 100KB with bundled dependencies)
+- Exports: ESM with TypeScript definitions
+- Tests: 19 tests, 100% passing
+- Examples: 5 usage examples (node-basic, tree-shakeable, custom-projection, browser-d3, france-example)
+
+**Build Integration**:
+- Built separately: `pnpm --filter @atlas-composer/projection-loader build`
+- Integrated in main build: `pnpm build` runs `build:loader` first
+- Independent test suite: `pnpm --filter @atlas-composer/projection-loader test`
 
 **Ready for Publishing**:
 Build system needed (Rollup/esbuild) to generate .js/.cjs files.
@@ -658,9 +675,10 @@ User controls D3 version and includes only needed projections.
 ## Testing
 - CompositeExportService: 15 tests covering export, validation, file creation
 - CompositeImportService: 13 tests covering import, validation, store integration
-- CodeGenerator: 25 tests covering all formats and code generation
+- CodeGenerator: 28 tests covering all formats, code generation, and import validation
+  - Includes 3 tests validating generated imports match projection-loader package exports
 - Standalone Loader: 19 tests covering loading, validation, projection functionality
-Total: 72 tests for export/import system
+Total: 75 tests for export/import system
 
 ## Future Enhancements
 - Additional export formats (Leaflet, Mapbox GL JS adapters)

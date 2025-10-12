@@ -19,7 +19,7 @@ import {
   loadCompositeProjection,
   registerProjection,
   registerProjections,
-} from '../standalone-projection-loader.js'
+} from '../src/standalone-projection-loader.js'
 
 console.log('🗺️  Standalone Projection Loader - Node.js Example\n')
 

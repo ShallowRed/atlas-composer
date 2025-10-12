@@ -73,7 +73,7 @@ const { t } = useI18n()
     <div class="join py-6 mx-auto">
       <RouterLink
         to="/"
-        class="btn btn-primary btn-lg w-48 join-item"
+        class="btn btn-wide btn-primary btn-lg w-48 join-item"
       >
         {{ t('about.cta') }}
         <i class="ri-flask-line" />
@@ -82,7 +82,7 @@ const { t } = useI18n()
         href="https://github.com/shallowred/atlas-composer"
         target="_blank"
         rel="noopener noreferrer"
-        class="btn btn-primary btn-outline btn-lg w-48 join-item"
+        class="btn btn-wide btn-primary btn-outline btn-lg w-48 join-item"
       >
         GitHub
         <i class="ri-github-line" />
@@ -90,29 +90,3 @@ const { t } = useI18n()
     </div>
   </div>
 </template>
-
-<style scoped>
-.prose {
-  color: oklch(var(--bc));
-}
-
-.prose strong {
-  color: oklch(var(--bc));
-  font-weight: 600;
-}
-
-.prose .lead {
-  color: oklch(var(--bc) / 0.8);
-}
-
-.alert-info {
-  background-color: oklch(var(--in) / 0.1);
-  border: 1px solid oklch(var(--in) / 0.3);
-  color: oklch(var(--inc));
-  border-radius: 0.5rem;
-  padding: 1rem;
-  display: flex;
-  gap: 0.75rem;
-  align-items: start;
-}
-</style>
