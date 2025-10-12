@@ -2,8 +2,53 @@
 
 ## Overview
 The service layer contains business logic extracted from Vue components and Pinia stores.
-Services are organized by concern into subdirectories: atlas/, data/, projection/, rendering/.
-All services use static methods for testability without Vue context.
+Services are organized by concern into subdirectories: atlas/, data/, projection/, rendering/, export/.
+Services follow two main patterns: instance-based (for stateful operations) and static (for pure functions).
+
+## Service Patterns
+
+### Instance-Based Pattern
+Used when service maintains state, requires initialization, or represents domain objects.
+
+**Characteristics**:
+- Has private state (properties)
+- Requires instantiation with `new`
+- May have complex initialization
+- Often caches data or configuration
+
+**Use Cases**:
+- Service holds configuration or loaded data
+- Service coordinates multiple stateful dependencies
+- Service represents a domain object with behavior
+- Multiple instances with different configurations needed
+
+**Examples**: GeoDataService (caching), CompositeProjection (domain object), Cartographer (orchestrator)
+
+### Static Pattern
+Used when service provides pure transformations, utility functions, or stateless orchestration.
+
+**Characteristics**:
+- No instance state
+- All methods are static
+- Pure functions or stateless coordinators
+- Testable without instantiation
+
+**Use Cases**:
+- Pure data transformations
+- Stateless business rule evaluation
+- Orchestration of other services
+- Utility calculations
+- Factory with singleton caching
+
+**Examples**: TerritoryFilterService (pure functions), AtlasCoordinator (orchestration), MapOverlayService (utilities)
+
+### Pattern Decision Guide
+- **Need state?** → Instance pattern
+- **Pure function?** → Static pattern
+- **Orchestration without state?** → Static pattern
+- **Domain object with behavior?** → Instance pattern
+- **Factory with caching?** → Static pattern with instance cache
+- **Strategy pattern?** → Instance strategies with static coordinator
 
 ## Atlas Services (src/services/atlas/)
 
