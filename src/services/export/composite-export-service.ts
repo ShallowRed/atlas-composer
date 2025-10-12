@@ -20,14 +20,15 @@ import type {
   TerritoryRole,
 } from '@/types/export-config'
 import { projectionRegistry } from '@/core/projections/registry'
+import packageJson from '../../../package.json'
 
 import { CodeGenerator } from './code-generator'
 
 /**
  * Application version for metadata
- * TODO: Import from package.json
+ * Note: Version "0.0.0" in package.json indicates development version
  */
-const APP_VERSION = 'Atlas composer v1.0'
+const APP_VERSION = `Atlas composer v${packageJson.version === '0.0.0' ? '1.0' : packageJson.version}`
 
 /**
  * Round a number to specified decimal places, removing floating-point artifacts
