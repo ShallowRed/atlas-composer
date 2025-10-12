@@ -13,7 +13,7 @@ Atlases are organized into three categories for UI grouping:
 
 | Category | Description | Examples |
 |----------|-------------|----------|
-| `country` | Individual nation-states | France, Portugal, Spain, USA |
+| `country` | Individual nation-states | France, Portugal, Spain, USA, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark |
 | `region` | Regional groups, unions, alliances | European Union |
 | `world` | Global/world atlases | World |
 
@@ -44,7 +44,7 @@ src/public/data/
 
 ### Pattern 1: Single-Focus (1 Primary + N Secondary)
 **Pattern ID**: `single-focus`
-**Examples**: France, Portugal, Netherlands, USA
+**Examples**: France, Portugal, Netherlands, USA, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark
 **Structure**: Single primary territory + multiple secondary territories
 
 ```json

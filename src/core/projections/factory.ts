@@ -14,6 +14,8 @@ import type {
   ProjectionParameters,
 } from '@/core/projections/types'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjUK from 'd3-composite-projections/src/albersUk.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjAlbersUsa from 'd3-composite-projections/src/albersUsa.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjAlbersUsaTerritories from 'd3-composite-projections/src/albersUsaTerritories.js'
@@ -22,9 +24,23 @@ import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConfor
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjNetherlands from 'd3-composite-projections/src/conicConformalNetherlands.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjSpain from 'd3-composite-projections/src/conicConformalSpain.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjJapan from 'd3-composite-projections/src/conicEquidistantJapan.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEcuador from 'd3-composite-projections/src/mercatorEcuador.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEquatorialGuinea from 'd3-composite-projections/src/mercatorEquatorialGuinea.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjMalaysia from 'd3-composite-projections/src/mercatorMalaysia.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjChile from 'd3-composite-projections/src/transverseMercatorChile.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjDenmark from 'd3-composite-projections/src/transverseMercatorDenmark.js'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -323,6 +339,55 @@ export class ProjectionFactory {
       case 'usa-territories':
         // Use d3-composite-projections albersUsaTerritories
         projectionFn = d3CompositeProjAlbersUsaTerritories.default
+        break
+
+      case 'conic-conformal-netherlands':
+      case 'netherlands-composite':
+      case 'composite-netherlands':
+        projectionFn = d3CompositeProjNetherlands.default
+        break
+
+      case 'conic-equidistant-japan':
+      case 'japan-composite':
+      case 'composite-japan':
+        projectionFn = d3CompositeProjJapan.default
+        break
+
+      case 'mercator-ecuador':
+      case 'ecuador-composite':
+      case 'composite-ecuador':
+        projectionFn = d3CompositeProjEcuador.default
+        break
+
+      case 'transverse-mercator-chile':
+      case 'chile-composite':
+      case 'composite-chile':
+        projectionFn = d3CompositeProjChile.default
+        break
+
+      case 'mercator-malaysia':
+      case 'malaysia-composite':
+      case 'composite-malaysia':
+        projectionFn = d3CompositeProjMalaysia.default
+        break
+
+      case 'mercator-equatorial-guinea':
+      case 'equatorial-guinea-composite':
+      case 'composite-equatorial-guinea':
+        projectionFn = d3CompositeProjEquatorialGuinea.default
+        break
+
+      case 'albers-uk':
+      case 'uk-composite':
+      case 'composite-uk':
+      case 'united-kingdom-composite':
+        projectionFn = d3CompositeProjUK.default
+        break
+
+      case 'transverse-mercator-denmark':
+      case 'denmark-composite':
+      case 'composite-denmark':
+        projectionFn = d3CompositeProjDenmark.default
         break
 
       default:

@@ -252,6 +252,38 @@
       "name": "Albers USA with Territories",
       "description": "Extended composite projection including Puerto Rico, US Virgin Islands, Guam, American Samoa, and Northern Mariana Islands"
     },
+    "conicConformalNetherlands": {
+      "name": "Conic Conformal Netherlands (Composite)",
+      "description": "Optimized composite projection for the Netherlands, including mainland and Caribbean territories (Bonaire, Saba, Sint Eustatius)"
+    },
+    "conicEquidistantJapan": {
+      "name": "Conic Equidistant Japan (Composite)",
+      "description": "Optimized composite projection for Japan, including Honshu, Hokkaido, Kyushu, and Okinawa"
+    },
+    "mercatorEcuador": {
+      "name": "Mercator Ecuador (Composite)",
+      "description": "Optimized composite projection for Ecuador, including mainland and Galápagos Islands"
+    },
+    "transverseMercatorChile": {
+      "name": "Transverse Mercator Chile (Composite)",
+      "description": "Optimized composite projection for Chile, including long mainland, Easter Island, and Juan Fernández"
+    },
+    "mercatorMalaysia": {
+      "name": "Mercator Malaysia (Composite)",
+      "description": "Optimized composite projection for Malaysia, including Peninsular Malaysia and East Malaysia (Borneo)"
+    },
+    "mercatorEquatorialGuinea": {
+      "name": "Mercator Equatorial Guinea (Composite)",
+      "description": "Optimized composite projection for Equatorial Guinea, including Río Muni and Bioko"
+    },
+    "albersUk": {
+      "name": "Albers UK (Composite)",
+      "description": "Optimized composite projection for the United Kingdom, including Great Britain and Shetland Islands"
+    },
+    "transverseMercatorDenmark": {
+      "name": "Transverse Mercator Denmark (Composite)",
+      "description": "Optimized composite projection for Denmark, including Jutland, Zealand, and Bornholm"
+    },
     "conicConformal": {
       "name": "Conic Conformal (Lambert)",
       "description": "Preserves angles and shapes. Ideal for mid-latitude regions"
