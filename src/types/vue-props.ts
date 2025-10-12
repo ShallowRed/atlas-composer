@@ -36,17 +36,6 @@ export const mapRendererDefaults: Required<Omit<MapRendererProps, 'geoData' | 't
 }
 
 /**
- * Props for configuration section components
- */
-export interface ConfigSectionProps {
-  /**
-   * Whether to allow theme selection
-   * @default false
-   */
-  allowThemeSelection?: boolean
-}
-
-/**
  * Props for view mode components (SplitView, CompositeView, etc.)
  */
 export interface ViewComponentProps {

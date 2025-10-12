@@ -11,21 +11,25 @@ import ProjectionParamsControls from '@/components/ui/projections/ProjectionPara
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
-import { useProjectionConfig } from '@/composables/useProjectionConfig'
-import { useViewMode } from '@/composables/useViewMode'
-import { useConfigStore } from '@/stores/config'
-import { getViewModeIcon } from '@/utils/view-mode-icons'
+import { useUrlState } from '@/composables/useUrlState'
+import { useViewState } from '@/composables/useViewState'
 
 const { t } = useI18n()
-const allowThemeSelection = false
-
-// Stores
-const configStore = useConfigStore()
 
 // Composables
-const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
-const { viewModeOptions } = useViewMode()
+const { restoreFromUrl } = useUrlState()
+const {
+  isSplitMode,
+  isCompositeExistingMode,
+  isCompositeCustomMode,
+  isUnifiedMode,
+  cardTitle,
+  cardIcon,
+  shouldShowRightSidebar,
+  shouldShowProjectionParams,
+  shouldShowTerritoryControls,
+} = useViewState()
 
 // Track if this is the first load
 const hasLoadedOnce = ref(false)
@@ -35,6 +39,9 @@ const skeletonTransition = computed(() => hasLoadedOnce.value ? 'fade' : 'fade-i
 
 // Lifecycle
 onMounted(async () => {
+  // Restore state from URL first (before initialization)
+  restoreFromUrl()
+
   await initialize()
   setupWatchers()
   hasLoadedOnce.value = true
@@ -50,18 +57,15 @@ onMounted(async () => {
         icon="ri-settings-4-line"
         class="flex-1"
       >
-        <AtlasConfigSection
-          :allow-theme-selection="allowThemeSelection"
-          :view-mode-options="viewModeOptions"
-        />
+        <AtlasConfigSection />
       </CardContainer>
     </template>
     <template #main-content>
       <!-- Main Content Area (Single Tab) -->
       <CardContainer
         class="flex-1"
-        :title="configStore.viewMode === 'split' ? 'Territoires séparés' : configStore.viewMode === 'composite-existing' ? 'Projection composite existante' : configStore.viewMode === 'unified' ? 'Projection unifiée' : 'Projection composite personnalisée'"
-        :icon="getViewModeIcon(configStore.viewMode)"
+        :title="cardTitle"
+        :icon="cardIcon"
       >
         <!-- Loading state for main content -->
         <div class="relative h-full w-full">
@@ -83,26 +87,23 @@ onMounted(async () => {
               class="h-full"
             >
               <!-- Split Territories Mode -->
-              <template v-if="configStore.viewMode === 'split'">
-                <SplitView
-                  :get-mainland-projection="getMainlandProjection"
-                  :get-territory-projection="getTerritoryProjection"
-                />
+              <template v-if="isSplitMode">
+                <SplitView />
               </template>
 
               <!-- Composite Existing Mode -->
               <MapRenderer
-                v-if="configStore.viewMode === 'composite-existing'"
+                v-if="isCompositeExistingMode"
                 mode="composite"
               />
 
               <!-- Composite Custom Mode -->
               <MapRenderer
-                v-if="configStore.viewMode === 'composite-custom'"
+                v-if="isCompositeCustomMode"
                 mode="composite"
               />
               <!-- Unified Mode -->
-              <UnifiedView v-if="configStore.viewMode === 'unified'" />
+              <UnifiedView v-if="isUnifiedMode" />
             </div>
           </Transition>
         </div>
@@ -121,13 +122,7 @@ onMounted(async () => {
     <template #right-sidebar>
       <!-- Projection Configuration -->
       <CardContainer
-        v-show="(
-          configStore.viewMode === 'unified'
-          || configStore.viewMode === 'composite-existing'
-          || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
-          || configStore.showProjectionSelector
-          || configStore.showIndividualProjectionSelectors
-        )"
+        v-show="shouldShowRightSidebar"
         class="flex-1"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
@@ -138,19 +133,14 @@ onMounted(async () => {
         >
           <!-- Projection Parameters (only for unified view mode) -->
           <ProjectionParamsControls
-            v-if="(
-              configStore.viewMode === 'unified'
-              || configStore.viewMode === 'composite-existing'
-              || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
-              || configStore.showProjectionSelector
-            )"
+            v-if="shouldShowProjectionParams"
             key="projection-params"
           />
           <!-- Territory Parameters (projections, translations, scales) -->
           <TerritoryControls
-            v-else-if="configStore.showIndividualProjectionSelectors"
+            v-else-if="shouldShowTerritoryControls"
             key="territory-controls"
-            :show-transform-controls="configStore.viewMode === 'composite-custom'"
+            :show-transform-controls="isCompositeCustomMode"
           />
         </Transition>
       </CardContainer>

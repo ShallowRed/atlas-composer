@@ -2,20 +2,15 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
+import { useViewMode } from '@/composables/useViewMode'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
-interface Props {
-  allowThemeSelection?: boolean
-  viewModeOptions: Array<{ value: string, label: string }>
-}
-const props = withDefaults(defineProps<Props>(), {
-  allowThemeSelection: false,
-})
+const { viewModeOptions } = useViewMode()
+
 const { t } = useI18n()
 const configStore = useConfigStore()
 
@@ -35,7 +30,7 @@ const atlasGroupsWithIcons = computed(() => {
 
 // Add icons to view mode options
 const viewModeOptionsWithIcons = computed(() => {
-  return props.viewModeOptions.map(mode => ({
+  return viewModeOptions.value.map(mode => ({
     ...mode,
     icon: getViewModeIcon(mode.value as any),
   }))
@@ -59,9 +54,6 @@ const isProjectionModeDisabled = computed(() => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <!-- Theme Selector -->
-    <ThemeSelector v-if="allowThemeSelection" />
-
     <!-- Region Selector -->
     <DropdownControl
       v-model="configStore.selectedAtlas"

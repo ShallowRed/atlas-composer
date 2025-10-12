@@ -2,20 +2,23 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
+import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
-const props = defineProps<Props>()
 const { t } = useI18n()
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 
-interface Props {
-  getMainlandProjection: () => string | undefined
-  getTerritoryProjection: (code: string) => string | undefined
-}
+const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
 
+/**
+ * Pattern detection - kept local to this component
+ * This computed property determines if the atlas uses a single-focus pattern
+ * (one primary + N secondary territories) to render appropriate layout.
+ * Not extracted to composable as it's only used here.
+ */
 const isSingleFocusPattern = computed(() => {
   const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
   return patternService.isSingleFocus()
@@ -37,7 +40,7 @@ const isSingleFocusPattern = computed(() => {
       <MapRenderer
         :geo-data="geoDataStore.mainlandData"
         is-mainland
-        :projection="props.getMainlandProjection()"
+        :projection="getMainlandProjection()"
         :full-height="false"
         :width="500"
         :height="400"
@@ -74,7 +77,7 @@ const isSingleFocusPattern = computed(() => {
                 :area="territory.area"
                 :region="territory.region"
                 :preserve-scale="configStore.scalePreservation"
-                :projection="props.getTerritoryProjection(territory.code)"
+                :projection="getTerritoryProjection(territory.code)"
                 :full-height="false"
                 :h-level="4"
                 :width="200"
@@ -118,7 +121,7 @@ const isSingleFocusPattern = computed(() => {
           :area="territory.area"
           :region="territory.region"
           :preserve-scale="configStore.scalePreservation"
-          :projection="props.getTerritoryProjection(territory.code)"
+          :projection="getTerritoryProjection(territory.code)"
           :width="200"
           :height="160"
         />

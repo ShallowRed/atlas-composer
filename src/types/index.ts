@@ -28,7 +28,6 @@ export type {
   LoadingState,
   ProjectionConfig,
   ProjectionRecommendations,
-  ProjectionValidation,
   RecommendationBadge,
   ScaleRange,
   TerritoryConfig as TerritoryConfigComposable,
@@ -78,7 +77,6 @@ export type {
 
 // Vue component prop types
 export type {
-  ConfigSectionProps,
   DisplayOptionsSectionProps,
   mapRendererDefaults,
   MapRendererProps,

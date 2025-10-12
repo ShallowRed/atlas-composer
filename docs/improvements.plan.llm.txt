@@ -1,0 +1,184 @@
+# Atlas Composer - Improvement Plan
+
+## Objective
+Targeted improvements in architecture, user experience, performance, and maintainability while keeping complexity manageable.
+
+## Affected Domains
+- [ ] Vue Architecture (docs/vue-architecture.llm.txt)
+- [ ] Services (docs/services.llm.txt)
+- [ ] Export System (docs/export.llm.txt)
+- [ ] Atlas System (docs/atlases.llm.txt)
+- [ ] Architecture (docs/architecture.llm.txt)
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Vue Layer: docs/vue-architecture.llm.txt
+- Services: docs/services.llm.txt
+- Export System: docs/export.llm.txt
+- Projections: docs/projections.llm.txt
+
+## Current State
+
+### Project Metrics
+- Total Lines: ~20,761 (TS + Vue)
+- Components: 35 Vue components
+- Services: 28 TypeScript files
+- Composables: 11 composition functions
+- Stores: 4 Pinia stores
+- Atlases: 6 configurations
+- Test Suites: 13 suites, 251 tests (100% passing)
+- Type Coverage: 100%
+
+### Strengths
+- Clean service layer with clear domain boundaries
+- Comprehensive TypeScript coverage
+- Modern Vue 3 Composition API + Pinia
+- Zero-dependency projection loader
+- LLM-optimized documentation
+- JSON-driven atlas system with validation
+
+## Implementation Phases
+
+### Phase 1: Shareable URLs Fix (PRIORITY)
+**Status**: COMPLETED ✓
+**Effort**: 3 hours
+**Completion Date**: 2025-10-12
+
+Implementation summary:
+- Created ShareButton component with visual feedback (Share → Copied! → Share)
+- Added i18n translations (en, fr) for share feature
+- Integrated URL restoration in MapView.vue (restoreFromUrl() before initialize())
+- Added comprehensive unit tests (9 tests for ShareButton, existing tests for useUrlState)
+- Updated documentation (vue-architecture.llm.txt)
+
+Components created:
+- [x] src/components/ui/settings/ShareButton.vue (62 lines)
+  - Tooltip displays full URL on hover
+  - Three visual states with icons and colors
+  - Auto-reset timers (2s success, 3s error)
+  - Fully tested with edge cases
+
+Changes made:
+- [x] src/views/MapView.vue
+  - Added useUrlState import
+  - Call restoreFromUrl() in onMounted before initialize()
+  
+- [x] src/i18n/locales/{en,fr}.json
+  - Added share.button, share.copied, share.error translations
+
+- [x] src/components/ui/settings/__tests__/ShareButton.spec.ts (9 tests)
+  - Rendering, copy functionality, state transitions, timeout handling
+
+- [x] docs/vue-architecture.llm.txt
+  - Added ShareButton to Settings Components section
+  - Added useUrlState to Composables section with full API documentation
+
+Testing:
+- All 9 ShareButton tests passing
+- All 11 useUrlState tests passing (existing)
+- Manual testing via http://localhost:5173
+
+Known limitations:
+- URL length limited by browser (typically 2048 chars)
+- Territory settings only included when different from atlas defaults (keeps URLs short)
+- No server-side short URL generation (could be future enhancement)
+
+### Phase 2: Code Quality (OPTIONAL)
+**Status**: ON-DEMAND
+**Note**: Current code is working well - only refactor if clear benefit
+
+#### 2.1 Service Layer Audit
+- [ ] Audit: Document current service patterns (instance vs static)
+- [ ] Analysis: Identify when each pattern is appropriate
+- [ ] Review: Are there actual inconsistencies causing issues?
+- [ ] Decision: Refactor only if clear benefit demonstrated
+
+#### 2.2 File Organization Review
+- [ ] Review: Are large files (618 lines, 435 lines) problematic?
+- [ ] Check: Do they violate single responsibility?
+- [ ] Assess: Would splitting improve maintainability?
+- [ ] Decision: Only split if improves understanding
+
+#### 2.3 Naming Conventions
+- [ ] Document: Current naming patterns (camelCase vs kebab-case)
+- [ ] Identify: Actual inconsistencies vs domain differences
+- [ ] Propose: Guidelines for new code only
+- [ ] Decision: Refactor only if causing confusion
+
+### Phase 3: Performance (CONDITIONAL)
+**Status**: PROFILE FIRST
+**Prerequisite**: ALL items require benchmarking before implementation
+
+#### 3.1 Memoization
+**Prerequisites**: Performance profiling of projection calculations
+- [ ] Profile projection calculation times
+- [ ] Identify hotspots (>50ms)
+- [ ] If needed: Add memoization to slow operations only
+- [ ] Implement cache invalidation strategy
+
+#### 3.2 Rendering
+**Prerequisites**: Frame rate monitoring, user feedback
+- [ ] Monitor frame rates during interactions
+- [ ] Identify rendering bottlenecks
+- [ ] Test with maximum territories (stress test)
+- [ ] If needed: Add debouncing to parameter changes
+- [ ] If needed: Implement virtual scrolling (>50 items)
+- [ ] If needed: Use v-memo for static content
+
+#### 3.3 Code Splitting
+**Prerequisites**: Bundle size analysis, load time profiling
+- [ ] Measure current bundle size and load times
+- [ ] Identify heavy components/chunks (>100KB)
+- [ ] If needed: Lazy load projection definitions by family
+- [ ] If needed: Use defineAsyncComponent for heavy components
+- [ ] If needed: Split export system into separate chunk
+
+### Phase 4: Extended Features (LOW PRIORITY)
+
+#### 4.1 Enhanced Export Options
+**Status**: REQUIREMENTS NEEDED
+- [ ] User research: What formats are actually needed?
+- [ ] Requirements: Styling options (colors, stroke width, labels)?
+- [ ] Complexity: Balance features vs overwhelming users
+- [ ] Implementation: Based on validated user needs
+
+#### 4.2 User Documentation
+**Status**: NEEDS ASSESSMENT
+- [ ] Assess: Is lack of docs blocking users?
+- [ ] Research: What format would be most valuable?
+- [ ] Decision: Implement based on user feedback
+
+## Guidelines
+
+### Anti-Patterns to Avoid
+1. Over-engineering: No abstraction layers without clear benefit
+2. Feature creep: Each feature must serve core value proposition
+3. Premature optimization: Profile before optimizing
+4. Breaking changes: Maintain backward compatibility for exports
+5. State explosion: Keep state management simple
+
+### Success Metrics
+- User Experience: Time to first projection < 30s, config save/load < 1s
+- Code Quality: 100% tests passing, 100% type coverage, files < 400 lines
+- Performance: Page load < 2s, projection render < 500ms, 60 FPS interactions
+
+## Documentation Updates
+
+After implementation:
+- [ ] docs/architecture.llm.txt - Update with new patterns
+- [ ] docs/vue-architecture.llm.txt - Document new components
+- [ ] docs/services.llm.txt - Update service patterns
+- [ ] docs/export.llm.txt - Add new export features
+
+## Verification
+
+- [ ] All existing tests pass
+- [ ] New features have test coverage
+- [ ] TypeScript compilation succeeds
+- [ ] Performance benchmarks pass (if applicable)
+- [ ] Documentation updated
+- [ ] No regression in existing functionality
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-12

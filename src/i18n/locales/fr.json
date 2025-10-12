@@ -149,6 +149,11 @@
     "showProjectionInformation": "Afficher les informations de projection",
     "projectionInformation": "Informations de Projection"
   },
+  "share": {
+    "button": "Partager",
+    "copied": "Copié !",
+    "error": "Échec de la copie"
+  },
   "export": {
     "title": "Exporter la Projection Composite",
     "formatLabel": "Format d'Export",

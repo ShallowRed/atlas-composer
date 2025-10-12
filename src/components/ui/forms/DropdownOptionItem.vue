@@ -45,7 +45,6 @@ function handleKeyDown(event: KeyboardEvent, value: string) {
     type="button"
     role="option"
     :aria-selected="isSelected"
-    class="mt-2"
     :class="{
       'bg-primary text-primary-content': isSelected,
       'bg-base-200': isFocused,

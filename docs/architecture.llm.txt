@@ -235,14 +235,14 @@ App.vue
 
 ### Type Safety
 **vue-props.ts** (130 lines):
-- MapRendererProps, ConfigSectionProps, ViewComponentProps
+- MapRendererProps, ViewComponentProps
 - TerritoryControlsProps, ProjectionSelectorProps
 - Centralized prop definitions with defaults
 
 **composables.ts** (240 lines):
 - Return type interfaces for all composables
 - LoadingState, ProjectionConfig, TerritoryConfig, ViewModeConfig
-- TerritoryTransforms, AtlasData, ProjectionFiltering, ProjectionRecommendations
+- TerritoryTransforms, AtlasData, ProjectionFiltering
 
 
 ## Reference Files

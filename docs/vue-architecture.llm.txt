@@ -16,11 +16,11 @@ src/
 ├── main.ts                    # App initialization
 ├── router/index.ts            # Route definitions
 ├── views/
-│   ├── MapView.vue           # Main view (142 lines)
+│   ├── MapView.vue           # Main view (simplified with useViewState)
 │   └── AboutView.vue         # About page
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
-│   ├── TerritoryControls.vue # Territory controls (refactored with RangeSlider, Alert)
+│   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
 │   └── ui/                   # 24 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
@@ -29,7 +29,7 @@ src/
 │       ├── projections/      # Projection-related components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 8 composition functions
+├── composables/              # 9 composition functions (added useViewState)
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -141,6 +141,14 @@ App.vue
 - **ThemeSelector**: Theme selection interface using DropdownControl with option groups
   - Groups themes into light and dark categories
   - 35 theme options across 2 groups
+- **ShareButton**: Shareable URL generator with clipboard copy functionality
+  - Uses useUrlState composable to generate shareable URLs
+  - One-click copy to clipboard with visual feedback
+  - Three states: default (Share), success (Copied!), error (Failed to copy)
+  - Auto-resets after 2 seconds (success) or 3 seconds (error)
+  - Displays full URL in tooltip on hover
+  - Ghost button style with share/check/error icons (Remix icons)
+  - Fully tested (9 tests covering rendering, copy, state transitions, timeout handling)
 
 **Projection Components** (src/components/ui/projections/):
 - **ProjectionDropdown**: Projection selection component with info modal
@@ -172,6 +180,7 @@ App.vue
   - Supports icon badges (projection recommendations: ri-star-fill, ri-star-line, ri-star-half-line)
   - Icon badges positioned to left of option label
   - Badge CSS classes automatically applied (text-success, text-info, text-base-content)
+  - Group titles display category icons (via PROJECTION_CATEGORY_ICONS from projection-icons.ts)
   - Full a11y: ARIA attributes, keyboard navigation (Arrow keys, Enter, Space, Escape, Home, End, Tab)
   - Focus management with visible focus states (WCAG AA compliant)
   - Translation support with Vue I18n integration
@@ -212,7 +221,18 @@ App.vue
 - Territory projection management
 - Translation and scale controls
 - Reset functions
+- Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
 - Used by: TerritoryControls.vue
+
+**useViewState** (110 lines) - NEW
+- View mode boolean flags for template readability
+- Card UI helpers (title, icon)
+- Compound visibility conditions
+- Exports: isCompositeMode, isCompositeCustomMode, isCompositeExistingMode, isSplitMode, isUnifiedMode
+- Exports: cardTitle, cardIcon, shouldShowRightSidebar, shouldShowProjectionParams, shouldShowTerritoryControls
+- Tests: 13 tests (100% passing)
+- Used by: MapView.vue, DisplayOptionsSection.vue
+- Pattern: Wraps configStore.viewMode checks with semantic computed properties
 
 **useProjectionRecommendations** (78 lines)
 - Projection recommendation badge system
@@ -221,6 +241,19 @@ App.vue
 - getTooltip(): Returns localized recommendation reason
 - getRecommendation(): Returns full recommendation object
 - Used by: ProjectionDropdown.vue
+
+**useUrlState** (220 lines)
+- URL state serialization/deserialization for shareable links
+- serializeState(): Encodes current configuration to URL query parameters
+- deserializeState(): Restores configuration from URL parameters
+- updateUrl(): Updates browser URL with current state
+- restoreFromUrl(): Restores state from URL on page load
+- shareableUrl: Computed property with full shareable URL
+- copyShareableUrl(): Copies URL to clipboard
+- enableAutoSync(): Optional automatic URL syncing on state changes
+- Territory settings optimization: Only includes values different from atlas-specific defaults
+- Comprehensive test suite: 11 tests covering serialization round-trips, edge cases, malformed input
+- Used by: MapView.vue (restoration), ShareButton.vue (URL generation)
 
 ### Validation
 **useProjectionValidation** (148 lines)
@@ -295,7 +328,6 @@ Store Update → Component Re-render
 ### vue-props.ts (130 lines)
 Centralized prop type definitions:
 - MapRendererProps
-- ConfigSectionProps
 - ViewComponentProps
 - TerritoryControlsProps
 - ProjectionSelectorProps
@@ -311,8 +343,6 @@ Composable return type interfaces:
 - TerritoryTransforms
 - AtlasData
 - ProjectionFiltering
-- ProjectionRecommendations
-- ProjectionValidation
 
 ### Central Export
 All types exported from `src/types/index.ts` for consistent imports.
@@ -397,6 +427,46 @@ Components never call services directly. Flow:
 - Vue I18n plugin for translations
 - useI18n() composable in components
 - Locale files: src/i18n/locales/en.json, fr.json
+
+## Conditional Rendering Patterns
+
+### Template Readability Guidelines
+
+**Pattern**: Extract complex conditionals into computed properties
+**Rationale**: Improves template readability and maintainability
+
+**Before** (inline conditionals):
+```vue
+<CardContainer
+  v-show="(
+    configStore.viewMode === 'unified'
+    || configStore.viewMode === 'composite-existing'
+    || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+    || configStore.showProjectionSelector
+    || configStore.showIndividualProjectionSelectors
+  )"
+>
+```
+
+**After** (composable with semantic flags):
+```vue
+<CardContainer v-show="shouldShowRightSidebar">
+```
+
+### Visibility Logic Architecture
+
+**configStore**: Provides computed properties via ProjectionUIService
+- `showProjectionSelector`, `showIndividualProjectionSelectors`, `showProjectionModeToggle`
+- These delegate to ProjectionUIService.shouldShow*() methods
+- Single source of truth for component visibility rules
+
+**useViewState**: Provides view mode flags and UI helpers
+- Boolean flags: `isCompositeMode`, `isSplitMode`, `isUnifiedMode`, etc.
+- Compound conditions: `shouldShowRightSidebar`, `shouldShowProjectionParams`
+- Card helpers: `cardTitle`, `cardIcon`
+- Does NOT duplicate configStore logic
+
+**Best Practice**: Use configStore.show* for component visibility, useViewState for view mode checks
 
 ## Related Documentation
 

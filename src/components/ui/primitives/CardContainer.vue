@@ -18,7 +18,10 @@ defineProps<Props>()
         <i :class="icon" />
         {{ title }}
       </h2>
-      <ScrollableContent show-gradient>
+      <ScrollableContent
+        show-gradient
+        gradient-color="var(--color-base-100)"
+      >
         <div class="px-2 h-full">
           <slot />
         </div>
