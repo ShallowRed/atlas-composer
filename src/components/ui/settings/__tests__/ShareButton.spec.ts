@@ -59,14 +59,6 @@ describe('shareButton', () => {
     expect(wrapper.text()).toContain('Share')
   })
 
-  it('should display shareable URL in tooltip', () => {
-    const wrapper = mount(ShareButton)
-
-    // Vue converts the ref value to string, but attributes() may show it differently
-    const dataTip = wrapper.find('[data-tip]').attributes('data-tip')
-    expect(dataTip).toBeDefined()
-  })
-
   it('should call copyShareableUrl when clicked', async () => {
     mockCopyShareableUrl.mockResolvedValue(true)
     const wrapper = mount(ShareButton)

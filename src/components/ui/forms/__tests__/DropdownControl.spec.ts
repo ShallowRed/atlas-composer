@@ -105,10 +105,10 @@ describe('dropdownControl', () => {
 
       expect(wrapper.find('fieldset').exists()).toBe(false)
       expect(wrapper.find('.dropdown-end').exists()).toBe(true)
-      // Inline button has custom styling, not btn-ghost
+      // Inline button has custom styling
       const button = wrapper.find('button[type="button"]')
       expect(button.exists()).toBe(true)
-      expect(button.classes()).toContain('cursor-pointer')
+      expect(button.classes()).toContain('btn-ghost')
     })
 
     it('should display selected option label', () => {

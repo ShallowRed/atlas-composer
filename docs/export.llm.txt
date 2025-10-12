@@ -211,6 +211,28 @@ Function: `getD3ProjectionFunction(projectionId: string): string`
 - Returns D3 function name for projection ID
 - Used in code generation templates
 
+## Composite Export Service (composite-export-service.ts)
+
+### Version Management
+The service imports version information from `package.json` for embedded configuration metadata:
+```typescript
+import packageJson from '../../../package.json'
+const version = packageJson.version || '1.0'
+```
+
+This ensures:
+- Single source of truth for version numbers
+- Automatic version updates with package releases
+- Fallback to '1.0' for development builds
+- Consistent versioning across exported configurations
+
+### Export Orchestration
+Coordinates the export pipeline:
+- Serializes configuration via ConfigExporter
+- Generates code via CodeGenerator
+- Handles file downloads and clipboard operations
+- Manages export format selection (JSON, D3 JS/TS, Observable Plot)
+
 ## UI Integration (ExportModal.vue)
 
 ### Features
@@ -634,12 +656,9 @@ Files:
 - `README.md` - Comprehensive documentation (700+ lines)
 - `LICENSE` - MIT License
 - `PUBLISHING.md` - Publishing guide
-- `examples/` - 4 working examples
-  - `browser-d3.html` - Browser usage with CDN
-  - `node-basic.js` - Node.js basic usage
-  - `tree-shakeable.js` - Bundle optimization
-  - `custom-projection.js` - Custom projections
-  - `README.md` - Examples documentation
+- `examples/` - Working examples demonstrating end-to-end workflow
+  - `france-example.js` - Complete France atlas projection example
+  - `README.md` - Examples documentation with usage instructions
 
 **Package Details**:
 - Name: `standalone-projection-loader`
@@ -658,9 +677,10 @@ User controls D3 version and includes only needed projections.
 ## Testing
 - CompositeExportService: 15 tests covering export, validation, file creation
 - CompositeImportService: 13 tests covering import, validation, store integration
-- CodeGenerator: 25 tests covering all formats and code generation
+- CodeGenerator: 28 tests covering all formats, code generation, and import validation
+  - Includes 3 tests validating generated imports match projection-loader package exports
 - Standalone Loader: 19 tests covering loading, validation, projection functionality
-Total: 72 tests for export/import system
+Total: 75 tests for export/import system
 
 ## Future Enhancements
 - Additional export formats (Leaflet, Mapbox GL JS adapters)
