@@ -31,36 +31,84 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 **Opportunity**: Position as complete cartography toolkit with multiple use cases
 
 #### 2. User Experience Gaps
-- No undo/redo functionality for projection adjustments = [review => really secondary]
-- Limited preset/template system for common configurations [review => need more details]
-- No comparison view for different projections side-by-side [review => not needed]
-- Export flow could be more discoverable [review => not needed]
-- Missing quick-start tutorials or guided tours [review => not needed]
+- Undo/redo functionality for projection adjustments [PRIORITY: LOW - marked as really secondary]
+- Limited preset/template system for common configurations [NEEDS INVESTIGATION - see details below]
 
 #### 3. Performance Opportunities
-- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines) [review => need more details]
-- No virtual scrolling for territory lists in split view [review => need more details]
-- No lazy loading for projection definitions [review => need more details]
-- No memoization for expensive projection calculations [review => need more details and relevance verification]
+**Note: All items require detailed investigation and benchmarking before implementation**
+
+- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
+  * Analysis needed: Are these files actually problematic or just naturally comprehensive?
+  * Impact assessment: Would splitting improve maintainability or just scatter related logic?
+  
+- Virtual scrolling for territory lists in split view
+  * Current state: How many territories are typically displayed? Is scrolling actually slow?
+  * Threshold: Only needed if performance degrades with >50 territories
+  
+- Lazy loading for projection definitions
+  * Analysis needed: Current bundle size and projection data weight
+  * Benefit verification: Measure actual load time improvement
+  
+- Memoization for expensive projection calculations
+  * Profiling required: Identify actual performance bottlenecks first
+  * ROI assessment: Are calculations truly expensive or fast enough?
 
 #### 4. Code Organization
-- Some services still using instance pattern (could standardize) [review => need more details]
-- Mixed naming conventions (some camelCase, some kebab-case in files) [review => need more details]
-- Test file organization could be more consistent [review => need more details]
-- Some duplication between export/import services [review => need more details]
+**Note: All items require detailed audit before refactoring**
+
+- Service patterns standardization
+  * Audit needed: Identify which services use instance vs static patterns
+  * Decision criteria: When is instance pattern beneficial vs static?
+  * Risk: Unnecessary refactoring could introduce bugs without clear benefit
+  
+- File naming conventions
+  * Investigation needed: Document current naming patterns (camelCase vs kebab-case)
+  * Consistency check: Are there actual inconsistencies or just different domains?
+  * Standard proposal: Define convention for new files
+  
+- Test file organization
+  * Analysis needed: What inconsistencies exist? Co-located vs separate __tests__?
+  * Current coverage: 251 tests, 100% passing - don't break what works
+  
+- Export/import service duplication
+  * Code review needed: Identify specific duplicated logic
+  * Refactoring opportunity: Can shared logic be extracted without over-abstracting?
 
 #### 5. Feature Gaps
-- No projection history/favorites [review => not needed, already done, should be removed]
-- No collaborative sharing (shareable URLs with state) [review => already started, cool idea, not really working yet]
-- No batch operations for territories [review => need more details]
-- Limited customization for export styling [review => need more details]
-- No integration with external mapping services [review => need more details]
+
+- Shareable URLs with state [STATUS: IMPLEMENTED BUT NEEDS VERIFICATION]
+  * Implementation: useUrlState composable, ShareButton component, i18n support ✓
+  * Issue: User reports "not really working yet" - needs investigation
+  * Testing needed: Verify state serialization/deserialization works correctly
+  * Potential issues: Timing of state restoration, missing parameters, URL length limits?
+  
+- Batch operations for territories
+  * Use case clarification needed: What operations? (scale, translate, projection change?)
+  * Scope: Apply to all territories vs region-specific vs manual selection
+  * UX design: How should users select territories for batch operations?
+  
+- Export styling customization
+  * Current state: Export generates D3/Plot code with default styling
+  * Requirements: What styling options? (colors, stroke width, labels?)
+  * Complexity assessment: How much configuration without overwhelming users?
+  
+- External mapping service integration
+  * Services in scope: Leaflet? Mapbox? Google Maps? OpenLayers?
+  * Value proposition: What would this enable that export doesn't provide?
+  * Maintenance burden: APIs change, requires ongoing updates
 
 #### 6. Documentation Gaps
-- No user-facing documentation (only LLM docs) [review => need more details]
-- Missing migration guides for major versions [review => need more details]
-- No contribution guidelines [review => not needed]
-- Limited examples for developers [not needed]
+
+- User-facing documentation
+  * Audience: End users vs developers using exported code?
+  * Format: In-app help, external wiki, video tutorials?
+  * Priority assessment: Is lack of docs actually blocking users?
+  * Quick wins: Tooltips, help icons, better placeholder text
+  
+- Migration guides for major versions
+  * Current state: What breaking changes exist between versions?
+  * Necessity: Is there a user base that needs migration support?
+  * Timing: Premature if version 1.0 not yet released
 
 ## Affected Domains
 - [ ] Vue Architecture (docs/vue-architecture.llm.txt) - UX improvements, new components
@@ -76,206 +124,237 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - Export System: docs/export.llm.txt
 - Projections: docs/projections.llm.txt
 
+## Investigation Required: Shareable URLs Feature
+
+**User Feedback**: "already started, cool idea, not really working yet"
+
+**Current Implementation Status**:
+- ✓ useUrlState composable exists (src/composables/useUrlState.ts)
+- ✓ ShareButton component exists (src/components/ui/actions/ShareButton.vue)
+- ✓ Integrated into AppHeader
+- ✓ i18n translations complete (EN/FR)
+- ✓ URL state restoration called in MapView.vue onMounted
+
+**Potential Issues to Investigate**:
+1. **State Restoration Timing**
+   - restoreFromUrl() called before initialize() - is data overwritten?
+   - Watch triggers during restoration - do they cause unwanted reloads?
+   - Race conditions between URL restoration and default initialization?
+
+2. **Incomplete State Serialization**
+   - Missing parameters? (check all store state is captured)
+   - Composite projection territory-specific settings?
+   - UI state (theme, display options)?
+
+3. **URL Length Limits**
+   - Browser URL length limits (2048 chars typical)
+   - Complex states with many territories could exceed limits
+   - Need compression or state storage service?
+
+4. **User Experience Issues**
+   - URL copied but state doesn't restore when pasted?
+   - Some config changes not reflected in shareable URL?
+   - Missing feedback/validation that sharing worked?
+
+**Investigation Steps**:
+1. Manual testing: Create complex config → copy share URL → paste in new tab → verify all settings restored
+2. Add console logging to track state restoration flow
+3. Check if all store mutations are captured in serializeState()
+4. Test edge cases: long territory names, many territories, special characters
+5. Add unit tests for serialization/deserialization
+
+**Resolution Approach**:
+- Add comprehensive unit tests for useUrlState
+- Fix any identified serialization/restoration bugs
+- Document known limitations (e.g., URL length)
+- Consider alternative: localStorage with short URL hash
+
 ## Proposed Improvements
 
-### Phase 1: High-Value UX Improvements (Maximize Impact)
+### Priority 1: Fix and Validate Existing Features
 
-#### 1.1 Shareable URLs with State Persistence
-**Value**: Enables collaboration, bookmarking, sharing
-**Complexity**: Medium
-**Status**: COMPLETE ✓
-**Files**: New composable, router update
-- [x] Create useUrlState composable for state serialization
-- [x] Add URL parameter encoding/decoding for configuration
-- [x] Update router to support state in query parameters  
-- [x] Add "Copy Share Link" button to UI (ShareButton.vue component)
-- [x] Add URL state restoration on page load
-- [x] Add i18n translations (EN/FR)
+#### 1.1 Shareable URLs - Investigation and Fix
+**Status**: NEEDS INVESTIGATION
+**Priority**: HIGH (user reported as not working)
+**Effort**: 2-4 hours
+- [ ] Write unit tests for useUrlState composable
+- [ ] Manual testing with complex configurations
+- [ ] Identify and fix state restoration issues
+- [ ] Add error handling and user feedback
+- [ ] Document limitations (URL length, browser compatibility)
 
-#### 1.2 Projection Comparison View
-**Value**: Helps users choose the best projection
-**Complexity**: Medium
-**Files**: New component, new composable
-- [ ] Create ComparisonView.vue component
-- [ ] Add side-by-side rendering with synchronized controls
-- [ ] Add visual difference highlighting
-- [ ] Add comparison mode to view mode selector
-- [ ] Create useProjectionComparison composable
+#### 1.2 Favorites & Recent Projections - Complete UI Integration
+**Status**: Backend complete, UI integration pending
+**Priority**: MEDIUM
+**Effort**: 4-6 hours
+- [x] favoritesStore implemented with localStorage
+- [x] Recent projections tracking (max 10)
+- [x] Per-atlas filtering
+- [ ] Integrate into ProjectionDropdown UI
+- [ ] Add star/favorite buttons to projection selector
+- [ ] Add "Recent" section in projection selector
+- [ ] Test localStorage persistence across sessions
 
-#### 1.3 Configuration Presets/Templates
+### Priority 2: High-Value Features (If requested after investigation)
+
+#### 2.1 Configuration Presets/Templates
 **Value**: Accelerates common workflows
 **Complexity**: Low-Medium
+**Requires**: Detailed use case analysis
 **Files**: New service, new component, config files
+
+**Investigation needed**:
+- What are the common use cases? (geographic regions, map types, purposes)
+- Should presets be global or per-atlas?
+- User-created vs built-in presets?
+- Export/import presets functionality?
+
+**Implementation** (if approved):
+- [ ] Define preset schema and validation
 - [ ] Create PresetService for managing presets
-- [ ] Add preset configuration files (presets/*.json)
+- [ ] Add built-in preset configurations (presets/*.json)
 - [ ] Create PresetSelector.vue component
 - [ ] Add "Save as Preset" functionality
 - [ ] Add preset categories (geographic, thematic, statistical)
+- [ ] Add preset export/import
 
-#### 1.4 Projection Favorites & Recent
-**Value**: Personalization, workflow efficiency
-**Complexity**: Low
-**Status**: COMPLETE ✓
-**Files**: New store, localStorage integration
-- [x] Create favoritesStore for user preferences
-- [x] Add localStorage persistence
-- [x] Add favorite/unfavorite functionality
-- [x] Add recent projections tracking (last 10)
-- [x] Per-atlas favorites management
-- [ ] Integrate into ProjectionDropdown UI
-- [ ] Add star/favorite buttons to projection selector
+### Priority 3: Features Removed (Per User Feedback)
 
-### Phase 2: Performance Optimizations (Reduce Complexity)
+**The following features have been removed from the plan as "not needed"**:
+- ~~Projection Comparison View~~ - marked as not needed
+- ~~Export flow discoverability improvements~~ - marked as not needed  
+- ~~Quick-start tutorials or guided tours~~ - marked as not needed
+- ~~Contribution guidelines~~ - marked as not needed
+- ~~Developer examples~~ - marked as not needed
 
-#### 2.1 Code Splitting and Lazy Loading
-**Value**: Faster initial load, better performance
-**Complexity**: Low
-**Files**: Router, component imports
-- [ ] Lazy load projection definitions by family
-- [ ] Use Vue's defineAsyncComponent for heavy components
-- [ ] Split export system into separate chunk
-- [ ] Implement route-based code splitting
+### Priority 4: Performance Optimizations (If Benchmarking Shows Need)
 
-#### 2.2 Computation Memoization
-**Value**: Reduce redundant calculations
-**Complexity**: Low
-**Files**: Services, composables
-- [ ] Add memoization to ProjectionFactory.create()
-- [ ] Cache projection recommendations by context
-- [ ] Memoize territory bounds calculations
+**Note**: ALL performance optimizations require profiling FIRST
+- Measure current performance baseline
+- Identify actual bottlenecks (not assumptions)
+- Verify optimization provides measurable benefit
+- Don't optimize prematurely
+
+#### 4.1 Code Splitting and Lazy Loading
+**Status**: INVESTIGATE FIRST
+**Prerequisites**: Bundle size analysis, load time profiling
+- [ ] Measure current bundle size and load times
+- [ ] Identify heavy components/chunks (>100KB)
+- [ ] Profile: Is load time actually a problem?
+- [ ] If yes: Implement lazy loading for projection definitions by family
+- [ ] If yes: Use Vue's defineAsyncComponent for heavy components
+- [ ] If yes: Split export system into separate chunk
+
+#### 4.2 Computation Memoization  
+**Status**: PROFILE FIRST
+**Prerequisites**: Performance profiling of projection calculations
+- [ ] Profile projection calculation times
+- [ ] Identify calculation hotspots (>50ms)
+- [ ] Measure: Are calculations actually expensive?
+- [ ] If yes: Add memoization to slow operations only
 - [ ] Add cache invalidation strategy
 
-#### 2.3 Rendering Optimizations
-**Value**: Smoother interactions
-**Complexity**: Medium
-**Files**: MapRenderer.vue, services
-- [ ] Add debouncing to projection parameter changes
-- [ ] Implement virtual scrolling in SplitView
-- [ ] Use v-memo for static territory cards
-- [ ] Optimize SVG overlay rendering
+#### 4.3 Rendering Optimizations
+**Status**: MEASURE FIRST
+**Prerequisites**: Frame rate monitoring, user feedback
+- [ ] Monitor frame rates during interactions
+- [ ] Identify rendering bottlenecks (if any)
+- [ ] Test with maximum territories (stress test)
+- [ ] If needed: Add debouncing to parameter changes
+- [ ] If needed: Implement virtual scrolling (>50 items)
+- [ ] If needed: Use v-memo for static content
 
-### Phase 3: Architecture Refinements (Clean Patterns)
+### Priority 5: Code Quality Improvements (If Requested)
 
-#### 3.1 Service Layer Standardization
-**Value**: Consistent patterns, easier maintenance
-**Complexity**: Medium
-**Files**: All service files
-- [ ] Standardize on static methods for stateless operations
-- [ ] Document service patterns in services.llm.txt
-- [ ] Refactor mixed pattern services (if beneficial)
-- [ ] Add service composition examples
+**Note**: These are optional refactorings - current code is working well
 
-#### 3.2 File Size Reduction
-**Value**: Better maintainability
-**Complexity**: Medium
-**Files**: Large files (>400 lines)
-- [ ] Split composite-projection.ts (618 lines) into modules
-- [ ] Extract rendering strategies from code-generator.ts
-- [ ] Refactor DropdownControl.spec.ts (944 lines) into focused tests
-- [ ] Create projection-utils.ts for shared utilities
+#### 5.1 Service Layer Standardization
+**Status**: AUDIT FIRST
+- [ ] Audit current service patterns (instance vs static)
+- [ ] Document when each pattern is appropriate
+- [ ] Identify inconsistencies (if any actually exist)
+- [ ] Propose standardization guidelines
+- [ ] Refactor only if clear benefit
 
-#### 3.3 Type System Enhancements
-**Value**: Better developer experience
-**Complexity**: Low
-**Files**: Type definitions
-- [ ] Add branded types for IDs (AtlasId, ProjectionId)
-- [ ] Create discriminated unions for view modes
-- [ ] Add utility types for common patterns
-- [ ] Document type architecture
+#### 5.2 File Size Reduction
+**Status**: REVIEW FIRST  
+- [ ] Review "large" files: Are they actually problematic?
+- [ ] Check: Do they violate single responsibility?
+- [ ] Assess: Would splitting improve understanding?
+- [ ] Only split if improves maintainability
 
-### Phase 4: Feature Additions (Extend Value)
+#### 5.3 Naming Convention Standardization
+**Status**: DOCUMENT FIRST
+- [ ] Document current naming conventions
+- [ ] Identify actual inconsistencies (not just preferences)
+- [ ] Propose guidelines for new code
+- [ ] Refactor only if causing confusion
 
-#### 4.1 Projection History/Favorites
-**Value**: Personalization, workflow efficiency
-**Complexity**: Low-Medium
-**Files**: New store, localStorage integration
-- [ ] Create favoritesStore for user preferences
-- [ ] Add localStorage persistence
-- [ ] Create RecentProjections component
-- [ ] Add star/favorite buttons to projection selector
-- [ ] Add "Recently Used" section
+### Priority 6: Extended Features (Low Priority / Nice to Have)
 
-#### 4.2 Enhanced Export Options
-**Value**: More use cases for generated code
-**Complexity**: Medium
-**Files**: Export services, code generator
-- [ ] Add export format for Leaflet
-- [ ] Add export format for Mapbox GL JS
-- [ ] Add styling options for generated code
-- [ ] Add SVG export with embedded projection
-- [ ] Add preview mode before export
+#### 6.1 Batch Territory Operations
+**Status**: NEEDS USE CASE VALIDATION
+- Requires detailed requirements before implementation
+- See "Feature Gaps" section for investigation points
 
-#### 4.3 Batch Territory Operations
-**Value**: Efficiency for complex atlases
-**Complexity**: Medium
-**Files**: New composable, territory controls
-- [ ] Add "Apply to All" functionality
-- [ ] Add "Apply to Region" functionality
-- [ ] Create BatchOperations component
-- [ ] Add batch undo/redo support
+#### 6.2 Enhanced Export Options
+**Status**: NEEDS REQUIREMENTS
+- Requires user research: What formats are actually needed?
+- See "Feature Gaps" section for investigation points
 
-#### 4.4 Guided Tour / Onboarding
-**Value**: Reduce learning curve
-**Complexity**: Low-Medium
-**Files**: New component, new assets
-- [ ] Create TourGuide component using shepherd.js or similar
-- [ ] Define tour steps for key features
-- [ ] Add "Help" button to trigger tour
-- [ ] Add "Skip Tour" with localStorage preference
-- [ ] Create welcome modal for first-time users
+#### 6.3 User Documentation
+**Status**: ASSESS NEED FIRST
+- Is lack of docs actually blocking users?
+- What format would be most valuable?
+- See "Documentation Gaps" section for details
 
-### Phase 5: Documentation & DX Improvements
+### Features Explicitly REMOVED (Not Needed)
 
-#### 5.1 User-Facing Documentation
-**Value**: Better user adoption
-**Complexity**: Low
-**Files**: New docs folder, website integration
-- [ ] Create user guide (getting started, features, examples)
-- [ ] Add video tutorials or animated GIFs
-- [ ] Create projection selection guide
-- [ ] Document export/import workflows
-- [ ] Add FAQ section
+Based on user feedback, the following have been removed from consideration:
+- ~~Undo/redo system~~ (marked as "really secondary")
+- ~~Projection comparison view~~ (not needed)
+- ~~Export flow improvements~~ (not needed)
+- ~~Quick-start tutorials~~ (not needed)
+- ~~Contribution guidelines~~ (not needed)
+- ~~Developer examples~~ (not needed)
 
-#### 5.2 Developer Documentation
-**Value**: Enable contributions
-**Complexity**: Low
-**Files**: New markdown files
-- [ ] Create CONTRIBUTING.md with guidelines
-- [ ] Add architecture diagrams (mermaid.js)
-- [ ] Document testing strategy
-- [ ] Add examples for common customizations
-- [ ] Create API reference for services
+## Revised Priority Recommendations
 
-#### 5.3 Example Configurations
-**Value**: Learning resource, quality assurance
-**Complexity**: Low
-**Files**: New examples folder
-- [ ] Add example configurations for common use cases
-- [ ] Create gallery of exported projections
-- [ ] Add interactive examples in documentation
-- [ ] Create reusable code snippets
+Based on user feedback and current implementation status:
 
-## Priority Recommendations (MVP)
+### Immediate Actions (Do First)
+1. **Investigate and Fix Shareable URLs** [2-4 hours]
+   - User reports "not really working yet"
+   - Feature is implemented but needs validation/fixes
+   - High impact for collaboration
+   
+2. **Complete Favorites/Recent UI Integration** [4-6 hours]
+   - Backend complete, just needs UI hookup
+   - Low effort, high user value
+   - Simple localStorage feature
 
-Based on value-to-complexity ratio, recommend implementing in this order:
+### Requires Investigation Before Implementation
+3. **Configuration Presets** 
+   - Need detailed requirements
+   - What are common use cases?
+   - User-created vs built-in?
+   
+4. **Performance Optimizations**
+   - Requires profiling FIRST
+   - Don't optimize without measuring
+   - May not be needed at all
 
-### Tier 1: Quick Wins (High Value, Low Complexity)
-1. **Configuration Presets** - Accelerates 80% of use cases
-2. **Shareable URLs** - Enables collaboration with minimal code
-3. **Code Splitting** - Immediate performance improvement
-4. **Projection Favorites** - Simple localStorage feature
+5. **Code Organization Improvements**
+   - Need audit to identify actual issues
+   - Current code is working well (251 tests passing)
+   - Only refactor if clear benefit
 
-### Tier 2: High-Impact Features (High Value, Medium Complexity)
-5. **Undo/Redo System** - Essential for iterative workflows
-6. **Projection Comparison View** - Helps decision-making
-7. **Enhanced Export Options** - Expands use cases
-8. **Guided Tour** - Reduces onboarding time
-
-### Tier 3: Refinements (Medium Value, Various Complexity)
-9. **Service Layer Standardization** - Long-term maintainability
-10. **File Size Reduction** - Better code organization
-11. **Batch Operations** - Power user feature
-12. **Documentation** - Essential for growth
+### Explicitly Not Doing (Per User Feedback)
+- ~~Undo/redo~~ - marked as "really secondary"
+- ~~Projection comparison~~ - not needed
+- ~~Export flow improvements~~ - not needed  
+- ~~Guided tours~~ - not needed
+- ~~Contribution guidelines~~ - not needed
 
 ## Anti-Patterns to Avoid
 
@@ -322,31 +401,42 @@ After implementation:
 - [ ] Documentation updated
 - [ ] No regression in existing functionality
 
-## Implementation Progress
+## Current Implementation Status
 
-### Completed (Phase 1 - Quick Wins)
-1. ✓ Shareable URLs with State Persistence
-   - Full state serialization to URL query parameters
-   - ShareButton component with copy functionality
-   - Automatic state restoration on page load
-   - I18n support (EN/FR)
+### Features Implemented (Pending Validation)
+1. **Shareable URLs** [NEEDS INVESTIGATION]
+   - ✓ useUrlState composable (src/composables/useUrlState.ts)
+   - ✓ ShareButton component (src/components/ui/actions/ShareButton.vue)
+   - ✓ Integrated into AppHeader
+   - ✓ i18n translations (EN/FR)
+   - ✓ URL state restoration in MapView
+   - ⚠ User reports "not really working yet" - requires investigation
    
-2. ✓ Favorites & Recent Projections System
-   - favoritesStore with localStorage persistence
-   - Recent projections tracking (max 10)
-   - Per-atlas filtering
-   - Ready for UI integration
+2. **Favorites & Recent Projections** [BACKEND COMPLETE]
+   - ✓ favoritesStore with localStorage persistence (src/stores/favorites.ts)
+   - ✓ Recent projections tracking (max 10)
+   - ✓ Per-atlas filtering
+   - ⏳ UI integration pending (add to ProjectionDropdown)
+   - ⏳ Star/favorite buttons needed
 
-### In Progress
-3. Configuration Presets - Next priority
+### Next Actions (In Priority Order)
+1. Fix/validate shareable URLs feature
+2. Complete favorites UI integration  
+3. Gather requirements for configuration presets (if still desired)
 
-### Pending
-- Code Splitting & Lazy Loading
-- Undo/Redo System
-- Projection Comparison View
-- Enhanced Export Options
-- Documentation improvements
+### Features Removed from Plan
+Based on user feedback marked as "not needed":
+- Projection comparison view
+- Export flow improvements
+- Quick-start tutorials  
+- Contribution guidelines
+- Developer examples
+
+### Features Deprioritized
+Based on user feedback marked as "really secondary":
+- Undo/redo system (low priority)
 
 ## Status
-Status: IN_PROGRESS
-Last Updated: 2025-10-11T23:25:00Z
+Status: AWAITING_FEEDBACK
+Last Updated: 2025-10-12
+Next: Investigate shareable URLs issue and complete favorites UI integration

@@ -2,6 +2,7 @@ import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
+import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 
 /**
  * Composable for managing application state in URL parameters
@@ -15,6 +16,7 @@ export function useUrlState() {
 
   /**
    * Serialize current state to URL-safe string
+   * Only includes territory settings that differ from atlas-specific defaults
    */
   function serializeState(): Record<string, string> {
     const state: Record<string, string> = {
@@ -44,20 +46,30 @@ export function useUrlState() {
       state.composite = configStore.compositeProjection
     }
 
+    // Get atlas-specific defaults to compare against
+    const atlasService = configStore.atlasService
+    const territories = atlasService.getAllTerritories()
+    const defaults = TerritoryDefaultsService.initializeAll(
+      territories,
+      configStore.selectedProjection || 'mercator',
+    )
+
     // Encode territory-specific settings (scales, translations)
-    // Only include if not default values
+    // Only include if different from atlas-specific defaults
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
 
     for (const [code, scale] of Object.entries(territoryStore.territoryScales)) {
-      if (scale !== 1) {
+      const defaultScale = defaults.scales[code] ?? 1
+      if (scale !== defaultScale) {
         territorySettings[`s_${code}`] = scale
         hasSettings = true
       }
     }
 
     for (const [code, translation] of Object.entries(territoryStore.territoryTranslations)) {
-      if (translation.x !== 0 || translation.y !== 0) {
+      const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
+      if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
         territorySettings[`tx_${code}`] = translation.x
         territorySettings[`ty_${code}`] = translation.y
         hasSettings = true
