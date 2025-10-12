@@ -66,9 +66,14 @@ const themes: Array<{
 <template>
   <DropdownControl
     v-model="uiStore.theme"
+    inline
     label="Thème"
     icon="ri-palette-line"
     :option-groups="themes"
+    size="sm"
+    :show-selected-icon="true"
+    :show-static-icon="true"
+    :show-selected-label="false"
     @change="uiStore.setTheme(uiStore.theme)"
   />
 </template>

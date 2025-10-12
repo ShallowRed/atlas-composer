@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
-import ShareButton from '@/components/ui/actions/ShareButton.vue'
 import LanguageSelector from '@/components/ui/settings/LanguageSelector.vue'
+import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 
 const route = useRoute()
 const { t } = useI18n()
+
+const allowThemeSelection = true
 </script>
 
 <template>
@@ -65,9 +67,6 @@ const { t } = useI18n()
                   {{ t('nav.about') }}
                 </span>
               </li>
-              <li v-if="route.path === '/'">
-                <ShareButton />
-              </li>
               <li>
                 <a
                   href="https://github.com/shallowred/atlas-composer"
@@ -79,7 +78,12 @@ const { t } = useI18n()
                 </a>
               </li>
               <li>
+                <!-- Language Selector -->
                 <LanguageSelector />
+              </li>
+              <li v-if="allowThemeSelection">
+                <!-- Theme Selector -->
+                <ThemeSelector />
               </li>
             </ul>
           </div>

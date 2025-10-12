@@ -16,6 +16,12 @@ interface Props {
   getTerritoryProjection: (code: string) => string | undefined
 }
 
+/**
+ * Pattern detection - kept local to this component
+ * This computed property determines if the atlas uses a single-focus pattern
+ * (one primary + N secondary territories) to render appropriate layout.
+ * Not extracted to composable as it's only used here.
+ */
 const isSingleFocusPattern = computed(() => {
   const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
   return patternService.isSingleFocus()

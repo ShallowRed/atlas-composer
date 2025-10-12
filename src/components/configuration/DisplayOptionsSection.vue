@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
+import { useViewState } from '@/composables/useViewState'
 import { useConfigStore } from '@/stores/config'
 import { useUIStore } from '@/stores/ui'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
 const uiStore = useUIStore()
+const { isCompositeMode } = useViewState()
 </script>
 
 <template>
@@ -27,7 +29,7 @@ const uiStore = useUIStore()
 
     <!-- Composition Borders Toggle -->
     <ToggleControl
-      v-show="configStore.viewMode === 'composite-custom' || configStore.viewMode === 'composite-existing'"
+      v-show="isCompositeMode"
       v-model="uiStore.showCompositionBorders"
       :label="t('settings.compositionBorders')"
       icon="ri-shape-2-line"

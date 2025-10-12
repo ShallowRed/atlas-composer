@@ -32,6 +32,7 @@ const {
   territoryProjections,
   selectedProjection,
   projectionMode,
+  shouldShowEmptyState,
   setTerritoryTranslation,
   setTerritoryScale,
   setTerritoryProjection,
@@ -59,7 +60,7 @@ const resetToDefaults = resetTransforms
   <div>
     <!-- Message when no territories are available (and no mainland in individual mode) -->
     <Alert
-      v-if="territories.length === 0 && !(projectionMode === 'individual' && (showMainland || isMainlandInTerritories))"
+      v-if="shouldShowEmptyState"
       type="info"
     >
       {{ t('territory.noOverseas') }}

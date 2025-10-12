@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownOptionGroup } from './DropdownControl.vue'
+import type { ProjectionCategoryType } from '@/core/projections/types'
+
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import { getCategoryIcon } from '@/utils/projection-icons'
+
 import DropdownOptionItem from './DropdownOptionItem.vue'
 
 interface Props {
@@ -14,6 +19,7 @@ interface Props {
   inline?: boolean
   focusedIndex: number
   buttonRef?: HTMLElement | null
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 }
 
 const props = defineProps<Props>()
@@ -41,6 +47,15 @@ function getCategoryLabel(group: DropdownOptionGroup): string {
   }
 
   return ''
+}
+
+// Get icon class for category
+function getCategoryIconClass(group: DropdownOptionGroup): string | undefined {
+  // Only add icon if category is provided (projection categories)
+  if (group.category) {
+    return getCategoryIcon(group.category as ProjectionCategoryType)
+  }
+  return undefined
 }
 
 function getOptionId(index: number): string {
@@ -128,12 +143,12 @@ function handleKeydown(event: KeyboardEvent, value: string) {
 </script>
 
 <template>
-  <!-- Inline dropdown menu -->
+  <!-- Inline dropdown menu with simple options -->
   <ul
     v-if="inline && options && isOpen"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 px-2 pb-2 pt-0 shadow-lg border border-base-300"
+    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 px-2 pb-2 pt-0 shadow-lg border border-base-300 gap-2"
   >
     <li
       v-for="(option, index) in options"
@@ -150,29 +165,27 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     </li>
   </ul>
 
-  <!-- Standard dropdown with option groups -->
-  <Teleport
-    v-if="!inline && optionGroups && isOpen"
-    to="body"
+  <!-- Inline dropdown menu with option groups -->
+  <ul
+    v-if="inline && optionGroups && isOpen"
+    role="listbox"
+    :aria-label="ariaLabel"
+    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 px-2 pb-2 pt-0 shadow-lg border border-base-300 max-h-96 overflow-y-auto gap-2"
   >
-    <ul
-      role="listbox"
-      :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] p-2 shadow-lg border border-base-300"
-      style="position: fixed;"
-      :style="menuStyle"
-      @click="handleMenuClick"
+    <template
+      v-for="group in optionGroups"
+      :key="group.key || group.category"
     >
-      <template
-        v-for="group in optionGroups"
-        :key="group.key || group.category"
-      >
-        <li
-          class="menu-title translate-y-2"
-          role="presentation"
-        >
+      <li>
+        <h2 class="menu-title flex items-center gap-2">
+          <i
+            v-if="getCategoryIconClass(group)"
+            :class="getCategoryIconClass(group)"
+          />
           {{ getCategoryLabel(group) }}
-        </li>
+        </h2>
+      </li>
+      <ul class="flex flex-col gap-2">
         <li
           v-for="option in group.options || []"
           :key="option.value"
@@ -187,6 +200,52 @@ function handleKeydown(event: KeyboardEvent, value: string) {
             @keydown="handleKeydown"
           />
         </li>
+      </ul>
+    </template>
+  </ul>
+
+  <!-- Standard dropdown with option groups -->
+  <Teleport
+    v-if="!inline && optionGroups && isOpen"
+    to="body"
+  >
+    <ul
+      role="listbox"
+      :aria-labelledby="ariaLabelledby"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] p-2 shadow-lg border border-base-300 gap-4"
+      style="position: fixed;"
+      :style="menuStyle"
+      @click="handleMenuClick"
+    >
+      <template
+        v-for="group in optionGroups"
+        :key="group.key || group.category"
+      >
+        <li>
+          <h2 class="menu-title flex items-center gap-2">
+            <i
+              v-if="getCategoryIconClass(group)"
+              :class="getCategoryIconClass(group)"
+            />
+            {{ getCategoryLabel(group) }}
+          </h2>
+          <ul class="flex flex-col gap-2">
+            <li
+              v-for="option in group.options || []"
+              :key="option.value"
+              role="presentation"
+            >
+              <DropdownOptionItem
+                :option="option"
+                :option-id="getOptionId(getOptionIndex(option))"
+                :is-selected="localValue === option.value"
+                :show-badge-inline="true"
+                @select="handleSelect"
+                @keydown="handleKeydown"
+              />
+            </li>
+          </ul>
+        </li>
       </template>
     </ul>
   </Teleport>
@@ -199,7 +258,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     <ul
       role="listbox"
       :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] px-2 pt-0 shadow-lg border border-base-300"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] px-2 pt-0 shadow-lg border border-base-300 gap-2"
       style="position: fixed;"
       :style="menuStyle"
       @click="handleMenuClick"

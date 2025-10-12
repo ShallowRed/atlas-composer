@@ -171,15 +171,6 @@
     "downloadSuccess": "Fichier téléchargé avec succès !",
     "downloadError": "Échec du téléchargement du fichier. Veuillez réessayer."
   },
-  "share": {
-    "button": "Partager",
-    "title": "Partager la Configuration",
-    "description": "Copiez cette URL pour partager votre configuration actuelle. Le lien inclut tous vos paramètres.",
-    "copyButton": "Copier le Lien",
-    "copiedButton": "Copié !",
-    "copied": "Lien copié dans le presse-papiers",
-    "copyFailed": "Échec de la copie du lien"
-  },
   "about": {
     "title": "À propos d'Atlas composer",
     "pageTitle": "À propos",

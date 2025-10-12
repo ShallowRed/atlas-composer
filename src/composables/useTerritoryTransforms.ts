@@ -133,6 +133,18 @@ export function useTerritoryTransforms() {
    */
   const projectionMode = computed(() => configStore.projectionMode)
 
+  /**
+   * Determine if empty state alert should be shown in TerritoryControls
+   * Shows when no territories AND not in individual mode with mainland
+   */
+  const shouldShowEmptyState = computed(() => {
+    const hasNoTerritories = territories.value.length === 0
+    const hasMainlandInIndividualMode = projectionMode.value === 'individual'
+      && (showMainland.value || isMainlandInTerritories.value)
+
+    return hasNoTerritories && !hasMainlandInIndividualMode
+  })
+
   return {
     territories,
     showMainland,
@@ -148,6 +160,7 @@ export function useTerritoryTransforms() {
     territoryProjections,
     selectedProjection,
     projectionMode,
+    shouldShowEmptyState,
     setTerritoryTranslation,
     setTerritoryScale,
     setTerritoryProjection,

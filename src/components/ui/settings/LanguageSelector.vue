@@ -32,6 +32,10 @@ function changeLanguage(newLocale: string) {
     icon="ri-translate-2"
     label="Language"
     inline
+    size="sm"
+    :show-selected-icon="false"
+    :show-static-icon="true"
+    :show-selected-label="false"
     @update:model-value="changeLanguage"
   />
 </template>

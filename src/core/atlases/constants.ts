@@ -3,15 +3,6 @@
  */
 
 /**
- * Default projection types for different territory categories
- */
-export const DEFAULT_PROJECTION_TYPES = {
-  MAINLAND: 'conic-conformal',
-  OVERSEAS: 'mercator',
-  POLAR: 'azimuthal-equal-area',
-} as const
-
-/**
  * Default translation ranges for territory controls (in pixels)
  */
 export const TRANSLATION_RANGES = {

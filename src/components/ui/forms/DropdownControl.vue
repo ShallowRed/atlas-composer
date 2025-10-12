@@ -32,6 +32,10 @@ interface Props {
   options?: Option[]
   optionGroups?: OptionGroup[]
   inline?: boolean // For inline use (e.g., in navbar) - removes fieldset wrapper
+  showSelectedIcon?: boolean // For inline buttons - whether to show selected option's icon (default: true)
+  showStaticIcon?: boolean // For inline buttons - whether to show the static icon (default: true)
+  showSelectedLabel?: boolean // For inline buttons - whether to show selected option's label (default: true)
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' // Button size for inline buttons (default: 'md')
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +45,10 @@ const props = withDefaults(defineProps<Props>(), {
   options: undefined,
   optionGroups: undefined,
   inline: false,
+  showSelectedIcon: true,
+  showStaticIcon: true,
+  showSelectedLabel: true,
+  size: 'md',
 })
 
 const emit = defineEmits<{
@@ -313,6 +321,10 @@ watch(focusedIndex, (newIndex) => {
       :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
       :inline="true"
       :icon="icon"
+      :show-selected-icon="showSelectedIcon"
+      :show-static-icon="showStaticIcon"
+      :show-selected-label="showSelectedLabel"
+      :size="size"
       @click="isOpen ? closeDropdown() : openDropdown()"
       @keydown="handleKeyDown"
       @blur="handleBlur"
@@ -320,11 +332,13 @@ watch(focusedIndex, (newIndex) => {
 
     <DropdownMenu
       :options="options"
+      :option-groups="optionGroups"
       :is-open="isOpen"
       :local-value="localValue"
       :aria-label="label || 'Options'"
       :inline="true"
       :focused-index="focusedIndex"
+      :size="size"
       @select="selectOption"
       @keydown="handleOptionKeyDown"
     />
@@ -396,6 +410,12 @@ watch(focusedIndex, (newIndex) => {
 .btn:focus, .btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+/* Remove dropdown wrapper hover effect for inline dropdowns - button handles its own hover */
+.dropdown:where(.dropdown-end) {
+  background: none !important;
+  padding: 0 !important;
 }
 
 /* Ensure dropdown animations are smooth */
