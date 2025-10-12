@@ -1,0 +1,79 @@
+# Phase 2 Improvements - Implementation Plan
+
+## Objective
+Improve and finalize the Phase 2 code generation system to ensure the generated code works correctly with the `@atlas-composer/projection-loader` package and prepare the package for potential NPM publication.
+
+## Affected Domains
+- [ ] Export System (docs/export.llm.txt) - Code generation improvements
+- [ ] Architecture (docs/architecture.llm.txt) - If structural changes needed
+- [ ] Composite Projection Exporter (docs/composite-projection-exporter.llm.txt) - Phase 2 status updates
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Export System: docs/export.llm.txt
+- Composite Exporter: docs/composite-projection-exporter.llm.txt
+
+## Changes
+
+### Phase 1: Package Preparation and Fixes
+- [ ] File: src/services/export/composite-export-service.ts
+  - Action: Fix TODO - Import version from package.json instead of hardcoded string
+  - Why: Maintain single source of truth for version numbers
+
+- [ ] File: packages/projection-loader/package.json
+  - Action: Verify package.json configuration is correct for publication
+  - Why: Ensure package can be published to NPM or used locally
+
+- [ ] File: pnpm-workspace.yaml
+  - Action: Verify workspace configuration includes projection-loader
+  - Why: Ensure monorepo setup works correctly
+
+### Phase 2: Generated Code Validation
+- [ ] File: Create test file to validate generated code actually works
+  - Action: Create integration test that imports and runs generated code
+  - Why: Ensure generated code is not just syntactically correct but functionally correct
+
+- [ ] File: src/services/export/__tests__/code-generator.spec.ts
+  - Action: Add test that checks generated imports match package exports
+  - Why: Prevent mismatch between generated code and actual package API
+
+### Phase 3: Documentation Updates
+- [ ] File: packages/projection-loader/README.md
+  - Action: Verify README matches current implementation
+  - Why: Ensure users have accurate documentation
+
+- [ ] File: docs/export.llm.txt
+  - Action: Update with current state of projection-loader integration
+  - Why: Keep documentation synchronized with implementation
+
+- [ ] File: docs/composite-projection-exporter.llm.txt
+  - Action: Update Phase 2 status if needed, remove temporal language
+  - Why: Maintain reference documentation standards per critical rules
+
+### Phase 4: Examples and Usage
+- [ ] File: Add example usage in packages/projection-loader/examples/
+  - Action: Create example that uses generated code from Atlas composer
+  - Why: Demonstrate end-to-end workflow
+
+## Documentation Updates (CRITICAL - See .github/copilot-critical-rules.md)
+REMEMBER: .llm.txt files are STATIC REFERENCE docs
+- Remove: "before/after", "resolved", "completed", dates, objectives, problems
+- Keep: current state, how it works, what it does
+- Use: present tense only ("handles", "provides", "uses")
+
+- [ ] docs/export.llm.txt - Update projection-loader integration details (present tense)
+- [ ] docs/composite-projection-exporter.llm.txt - Update Phase 2 implementation status (present tense)
+- [ ] docs/architecture.llm.txt - Update if structural changes made (present tense)
+
+## Verification
+- [ ] Code compiles without errors
+- [ ] All existing tests pass
+- [ ] New tests pass (if applicable)
+- [ ] Generated code can be actually used (manual verification)
+- [ ] All .llm.txt documentation updated (check with visual inspection)
+- [ ] No temporal language in .llm.txt files
+- [ ] Plan file marked complete
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-12
