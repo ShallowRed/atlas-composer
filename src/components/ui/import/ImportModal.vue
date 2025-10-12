@@ -156,28 +156,17 @@ function clearFile() {
       @dragover.prevent="handleDragOver"
       @dragleave="handleDragLeave"
     >
-      <div class="mb-4">
-        <svg
-          class="w-16 h-16 mx-auto text-base-content/30"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-          />
-        </svg>
+      <div class="flex flex-row items-center justify-center gap-2 mb-4">
+        <i class="ri-file-upload-line text-3xl" />
+        <p class="text-lg font-medium">
+          Drag and drop a JSON file here
+        </p>
       </div>
-      <p class="text-lg font-medium mb-2">
-        Drag and drop a JSON file here
-      </p>
       <p class="text-sm text-base-content/70 mb-4">
         or
       </p>
-      <label class="btn btn-primary">
+      <label class="btn btn-primary btn-soft btn-wide">
+        <i class="ri-folder-3-line" />
         Choose File
         <input
           type="file"
@@ -191,22 +180,10 @@ function clearFile() {
     <!-- Selected File Info -->
     <div
       v-else-if="!isProcessing"
-      class="alert"
+      class="alert alert-info alert-soft mb-4 flex items-center justify-between"
     >
       <div class="flex items-center gap-2 flex-1">
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
+        <i class="ri-file-3-line text-xl" />
         <span class="font-medium">{{ selectedFile.name }}</span>
         <span class="text-sm text-base-content/70">
           ({{ (selectedFile.size / 1024).toFixed(2) }} KB)
@@ -216,6 +193,7 @@ function clearFile() {
         class="btn btn-sm btn-ghost"
         @click="clearFile"
       >
+        <i class="ri-close-line" />
         Remove
       </button>
     </div>
@@ -234,56 +212,30 @@ function clearFile() {
       <!-- Success -->
       <div
         v-if="importResult.success"
-        class="alert alert-success mb-4"
+        class="alert alert-success alert-soft my-4"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        <i class="ri-check-line text-xl" />
         <span>Configuration is valid and ready to import</span>
       </div>
 
       <!-- Errors -->
       <div
         v-if="hasErrors"
-        class="alert alert-error mb-4"
+        class="alert alert-error alert-soft mb-4"
       >
         <div class="flex-1">
-          <svg
-            class="w-6 h-6 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div>
-            <h3 class="font-bold">
-              Validation Errors
-            </h3>
-            <ul class="list-disc list-inside text-sm mt-2">
-              <li
-                v-for="(error, index) in importResult.errors"
-                :key="index"
-              >
-                {{ error }}
-              </li>
-            </ul>
-          </div>
+          <h3 class="font-bold mb-2 flex items-center gap-2">
+            <i class="ri-error-warning-line text-xl" />
+            Validation Errors
+          </h3>
+          <ul class="list-disc list-inside text-sm mt-2">
+            <li
+              v-for="(error, index) in importResult.errors"
+              :key="index"
+            >
+              {{ error }}
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -293,19 +245,7 @@ function clearFile() {
         class="alert alert-warning mb-4"
       >
         <div class="flex-1">
-          <svg
-            class="w-6 h-6 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
+          <i class="ri-alert-line text-xl flex-shrink-0" />
           <div>
             <h3 class="font-bold">
               Warnings
@@ -362,9 +302,10 @@ function clearFile() {
     <!-- Actions -->
     <template #actions>
       <button
-        class="btn btn-ghost"
+        class="btn btn-primary btn-outline"
         @click="handleClose"
       >
+        <i class="ri-close-line" />
         Cancel
       </button>
       <button
@@ -372,6 +313,7 @@ function clearFile() {
         :disabled="!canApply"
         @click="applyImport"
       >
+        <i class="ri-check-line" />
         Apply Configuration
       </button>
     </template>

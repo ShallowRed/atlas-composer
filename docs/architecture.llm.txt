@@ -314,20 +314,35 @@ Central type definitions:
 - Responsive design with theme support
 - Internationalization (EN/FR)
 
-## Zero-Dependency Projection Loader (October 2025)
+## Projection Loader Package (packages/projection-loader/)
 
-The standalone projection loader (src/services/export/standalone-projection-loader.ts) was refactored to use a zero-dependency plugin architecture:
+The standalone projection loader is published as `@atlas-composer/projection-loader` workspace package:
 
 ### Architecture
-- **Runtime Registry**: Map-based projection storage instead of hardcoded factories
+- **Runtime Registry**: Map-based projection storage
 - **Plugin Pattern**: Users register projection factories at runtime
-- **Zero Dependencies**: No d3-geo or d3-geo-projection imports (was peer dependencies)
+- **Zero Dependencies**: No d3-geo or d3-geo-projection bundled
 - **Self-Contained Types**: ProjectionLike, ProjectionFactory, StreamLike without external imports
-- **Custom Wrapper**: createProjectionWrapper() replaces d3.geoProjection()
+- **Workspace Package**: Built independently, tested separately
+
+### Package Structure
+```
+packages/projection-loader/
+├── src/
+│   ├── standalone-projection-loader.ts    # Core loader (628 lines)
+│   ├── d3-projection-helpers.ts           # Optional D3 factories (134 lines)
+│   └── index.ts                           # Public exports
+├── __tests__/                             # Test suite (19 tests)
+├── examples/                              # Usage examples (5 examples)
+├── package.json                           # Independent package config
+└── README.md                              # User-facing documentation
+```
 
 ### Benefits
 - No version conflicts with user's D3 installation
 - 94% smaller bundle size (~6KB vs ~100KB with bundled deps)
+- Tree-shakeable exports
+- Independent versioning and publishing
 - Tree-shakeable (import only needed projections)
 - Works with any D3 version (v7, v8, future)
 - Supports custom projection implementations
@@ -340,23 +355,23 @@ The standalone projection loader (src/services/export/standalone-projection-load
 - clearProjections() - Clear registry
 
 ### D3 Helpers (Optional)
-File: src/services/export/d3-projection-helpers.ts
+File: packages/projection-loader/src/d3-projection-helpers.ts
 - Tree-shakeable D3 projection factories
 - Bulk registration helper
 - Keeps D3 dependencies isolated from main loader
 
 ### Code Generation
-The code generator (src/services/export/code-generator.ts) was updated to produce loader-based exports:
+The code generator (src/services/export/code-generator.ts) produces loader-based exports:
 - Includes projection registration code
 - Embeds configuration as JSON
 - Calls loadCompositeProjection() with dimensions
-- 80-92% shorter generated code
+- Generates compact code (80-92% smaller than manual implementations)
 - Self-documenting (shows registration pattern)
 
-### Documentation
-- Complete README: src/services/export/README.md (700+ lines)
-- API reference with examples
-- TypeScript type documentation
-- Troubleshooting guide
+### Build Integration
+- Built independently: `pnpm --filter @atlas-composer/projection-loader build`
+- Integrated in main build: `pnpm build` runs `build:loader` first
+- Independent test suite with 19 tests
+- Examples demonstrate usage patterns
 
 See docs/export.llm.txt for detailed documentation.

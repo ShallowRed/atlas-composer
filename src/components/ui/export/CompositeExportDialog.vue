@@ -138,6 +138,7 @@ function downloadSuccess() {
     :title="t('export.title')"
     icon="ri-file-download-line"
     max-width="2xl"
+    class="max-h-60vh"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <!-- Export Format Selection -->

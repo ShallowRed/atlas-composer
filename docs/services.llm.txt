@@ -336,17 +336,9 @@ Supports multiple formats and languages:
 
 See docs/export.llm.txt for detailed D3 stream protocol implementation.
 
-### Standalone Projection Loader (standalone-projection-loader.ts)
-Pure JavaScript/TypeScript module for loading exported configurations.
-Zero-dependency plugin architecture - users register projections at runtime.
-
-Registration API:
-- `registerProjection(id, factory)` - Register single projection
-- `registerProjections(factories)` - Bulk registration
-- `unregisterProjection(id)` - Remove projection
-- `clearProjections()` - Clear all registrations
-- `getRegisteredProjections()` - Query registry
-- `isProjectionRegistered(id)` - Check registration
+**Note**: Standalone projection loader implementation moved to `packages/projection-loader/`.
+Code generator references the published package `@atlas-composer/projection-loader` in generated code.
+See docs/export.llm.txt for loader API and architecture details.
 
 Loading API:
 - `loadCompositeProjection(config, options)` - Create projection from config

@@ -1,81 +1,226 @@
-# Projection Loader Examples
+# Examples - Standalone Projection Loader
 
-This directory contains examples demonstrating how to use the `@atlas-composer/projection-loader` package with code generated from Atlas composer.
+This directory contains practical examples demonstrating different usage patterns of the standalone projection loader.
 
-## Examples
+## 📁 Available Examples
 
-### france-example.js
+### 1. **browser-d3.html** - Browser Usage
+Complete HTML example using D3 from CDN. Shows:
+- Loading D3 from CDN
+- Manual projection registration
+- Rendering a composite map in the browser
+- Interactive visualization
 
-Demonstrates using a generated composite projection for France with overseas territories.
-
-**Key Concepts:**
-- Importing D3 projection functions
-- Registering projections with the loader
-- Loading composite projection from configuration
-- Using the projection with D3's geoPath
-
-**Running the example:**
-
+**Usage:**
 ```bash
-# From the projection-loader directory
-node examples/france-example.js
+# Open directly in browser or serve with a local server
+npx serve examples
+# Then open http://localhost:3000/browser-d3.html
 ```
 
-**Expected Output:**
+### 2. **node-basic.js** - Node.js Basics
+Fundamental Node.js example covering:
+- ESM/CommonJS imports
+- Individual vs bulk registration
+- Loading composite projections
+- Testing projected coordinates
+- Registry utilities
+
+**Usage:**
+```bash
+node examples/node-basic.js
 ```
-Projection created successfully!
-Projection center: [2.5, 46.5]
-Projection scale: 2700
-Paris projected: [400, 300]
+
+### 3. **tree-shakeable.js** - Bundle Size Optimization
+Demonstrates tree-shaking for production builds:
+- Selective projection imports
+- Minimal bundle size (94% reduction)
+- Best practices for modern bundlers
+- Bundle analysis tips
+
+**Usage:**
+```bash
+node examples/tree-shakeable.js
 ```
 
-## Usage Pattern
+### 4. **custom-projection.js** - Custom Projections
+Advanced example showing custom projection implementations:
+- Simple custom projection
+- Full D3-compatible interface
+- Proj4 wrapper pattern
+- Custom defaults for standard projections
 
-All examples follow the same pattern that Atlas composer generates:
+**Usage:**
+```bash
+node examples/custom-projection.js
+```
 
-1. **Import D3 projections** - Only the projections you actually use
-2. **Import loader functions** - `registerProjection` and `loadCompositeProjection`
-3. **Register projections** - Tell the loader which projection factories to use
-4. **Load configuration** - Pass the exported JSON configuration to the loader
-5. **Use projection** - Use with D3's geoPath or Observable Plot
+## 🎯 Use Cases
 
-## Creating Your Own
+| Example | Best For | Complexity |
+|---------|----------|------------|
+| `browser-d3.html` | Web visualization, learning | Beginner |
+| `node-basic.js` | Server-side rendering, CLI tools | Beginner |
+| `tree-shakeable.js` | Production builds, performance | Intermediate |
+| `custom-projection.js` | Custom algorithms, Proj4 integration | Advanced |
 
-To create your own projection:
+## 🚀 Quick Start
 
-1. Open [Atlas composer](https://shallowred.github.io/atlas-composer/)
-2. Configure your custom composite projection
-3. Export as code (JavaScript, TypeScript, or Observable Plot)
-4. Copy the generated code into your project
-5. Install dependencies:
-   ```bash
-   npm install @atlas-composer/projection-loader d3-geo d3-geo-projection
-   ```
-6. Use the generated projection function
+1. **Install dependencies** (for Node.js examples):
+```bash
+npm install standalone-projection-loader d3-geo d3-geo-projection
+```
 
-## Tree-Shaking
+2. **Run an example**:
+```bash
+# Node.js examples
+node examples/node-basic.js
+node examples/tree-shakeable.js
+node examples/custom-projection.js
 
-The projection-loader uses a plugin architecture, so your bundle only includes:
-- The loader core (~6KB)
-- The D3 projections you register
-- Your configuration data
+# Browser example
+npx serve examples
+# Open browser-d3.html
+```
 
-Result: **94% smaller** than including all D3 projections!
+## 📚 Learning Path
 
-## Framework Integration
+1. Start with **node-basic.js** to understand the core concepts
+2. Try **browser-d3.html** for visual feedback
+3. Study **tree-shakeable.js** for production optimization
+4. Explore **custom-projection.js** for advanced customization
 
-The generated code works with any JavaScript framework:
+## 💡 Key Concepts Demonstrated
 
-- **Vanilla JS** - Use directly with D3
-- **React** - Use in useEffect hooks
-- **Vue** - Use in onMounted lifecycle
-- **Svelte** - Use in onMount
-- **Observable** - Use with Plot.plot()
+### Plugin Architecture
+All examples show how the loader uses a **plugin pattern** where you register only what you need:
+```javascript
+registerProjection('mercator', () => d3.geoMercator())
+registerProjection('albers', () => d3.geoAlbers())
+```
 
-See the main [README](../README.md) for framework-specific examples.
+### Zero Dependencies
+The loader itself has **no dependencies**. You bring your own projections:
+- D3 projections (d3-geo, d3-geo-projection)
+- Proj4 projections
+- Custom algorithms
+- Any other projection library
 
-## Notes
+### Tree-Shaking Benefits
+By registering projections manually, bundlers can eliminate unused code:
+- **Before**: 100KB (all D3 projections)
+- **After**: 6KB (only what you use)
+- **Savings**: 94% 🎉
 
-- Examples use ESM imports (Node.js 14+ required)
-- For older Node versions, transpile with your build tool
-- For browser usage, use a bundler (Vite, Webpack, Rollup, etc.)
+## 🔧 Adapting Examples
+
+### For Your Project
+1. Copy the example closest to your use case
+2. Replace the configuration with your own
+3. Register the projections you need
+4. Adjust layout and positions
+
+### For Different Frameworks
+
+**React:**
+```jsx
+import * as d3 from 'd3-geo'
+import { useEffect } from 'react'
+import { loadCompositeProjection, registerProjections } from 'standalone-projection-loader'
+
+function MapComponent({ config }) {
+  useEffect(() => {
+    registerProjections({
+      mercator: () => d3.geoMercator(),
+      albers: () => d3.geoAlbers(),
+    })
+  }, [])
+
+  const projection = loadCompositeProjection(config, { width: 800, height: 600 })
+  // ... render map
+}
+```
+
+**Vue:**
+```vue
+<script setup>
+import * as d3 from 'd3-geo'
+import { loadCompositeProjection, registerProjections } from 'standalone-projection-loader'
+import { onMounted } from 'vue'
+
+const props = defineProps(['config'])
+
+onMounted(() => {
+  registerProjections({
+    mercator: () => d3.geoMercator(),
+    albers: () => d3.geoAlbers(),
+  })
+})
+
+const projection = loadCompositeProjection(props.config, { width: 800, height: 600 })
+</script>
+```
+
+**Svelte:**
+```svelte
+<script>
+import { onMount } from 'svelte';
+import { registerProjections, loadCompositeProjection } from 'standalone-projection-loader';
+import * as d3 from 'd3-geo';
+
+export let config;
+
+onMount(() => {
+  registerProjections({
+    mercator: () => d3.geoMercator(),
+    albers: () => d3.geoAlbers(),
+  });
+});
+
+const projection = loadCompositeProjection(config, { width: 800, height: 600 });
+</script>
+```
+
+## ❓ Common Questions
+
+**Q: Do I need all these dependencies?**
+A: No! Install only what you use:
+- Core loader: Zero dependencies
+- D3 projections: `npm install d3-geo d3-geo-projection`
+- Custom projections: No additional dependencies
+
+**Q: Can I use this with Observable Plot?**
+A: Yes! See the main README for Observable Plot examples.
+
+**Q: How do I add more projections?**
+A: Just register them before loading:
+```javascript
+registerProjection('newProjection', () => createProjection())
+```
+
+**Q: Can I unregister projections?**
+A: Yes, use `unregisterProjection(name)` or `clearProjections()`.
+
+## 🔗 Additional Resources
+
+- [Main README](../README.md) - Complete API documentation
+- [Atlas composer](https://atlas-composer.example.com) - Visual configuration creator
+- [D3 Projections](https://d3js.org/d3-geo) - Standard projection library
+- [D3 Extended Projections](https://d3js.org/d3-geo-projection) - Additional projections
+
+## 📝 Contributing Examples
+
+Have a useful example? Contributions welcome!
+
+1. Create a new `.js` or `.html` file
+2. Add clear comments explaining the pattern
+3. Include it in this README
+4. Submit a pull request
+
+Good candidates:
+- TypeScript usage
+- Observable Plot integration
+- Express.js server-side rendering
+- Canvas rendering
+- WebGL integration
+- Testing examples

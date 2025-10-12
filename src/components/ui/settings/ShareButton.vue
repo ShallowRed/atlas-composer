@@ -42,8 +42,8 @@ async function handleCopy() {
   <button
     class="btn btn-ghost btn-sm gap-2"
     :class="{
-      'btn-success': copied,
-      'btn-error': error,
+      'btn-success btn-soft': copied,
+      'btn-error btn-soft': error,
     }"
     @click="handleCopy"
   >

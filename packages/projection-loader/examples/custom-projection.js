@@ -12,7 +12,7 @@
  */
 
 import { geoMercator } from 'd3-geo'
-import { loadCompositeProjection, registerProjection } from '../standalone-projection-loader.js'
+import { loadCompositeProjection, registerProjection } from '../src/standalone-projection-loader.js'
 
 console.log('🎨 Custom Projection Example\n')
 
