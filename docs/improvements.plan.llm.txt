@@ -26,34 +26,7 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 
 ### Areas for Improvement
 
-#### 1. Value Proposition Enhancement
-**Current**: Tool for creating composite projections
-**Opportunity**: Position as complete cartography toolkit with multiple use cases
-
-#### 2. User Experience Gaps
-- Undo/redo functionality for projection adjustments [PRIORITY: LOW - marked as really secondary]
-- Limited preset/template system for common configurations [NEEDS INVESTIGATION - see details below]
-
-#### 3. Performance Opportunities
-**Note: All items require detailed investigation and benchmarking before implementation**
-
-- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
-  * Analysis needed: Are these files actually problematic or just naturally comprehensive?
-  * Impact assessment: Would splitting improve maintainability or just scatter related logic?
-  
-- Virtual scrolling for territory lists in split view
-  * Current state: How many territories are typically displayed? Is scrolling actually slow?
-  * Threshold: Only needed if performance degrades with >50 territories
-  
-- Lazy loading for projection definitions
-  * Analysis needed: Current bundle size and projection data weight
-  * Benefit verification: Measure actual load time improvement
-  
-- Memoization for expensive projection calculations
-  * Profiling required: Identify actual performance bottlenecks first
-  * ROI assessment: Are calculations truly expensive or fast enough?
-
-#### 4. Code Organization
+#### 1. Code Organization
 **Note: All items require detailed audit before refactoring**
 
 - Service patterns standardization
@@ -74,18 +47,13 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
   * Code review needed: Identify specific duplicated logic
   * Refactoring opportunity: Can shared logic be extracted without over-abstracting?
 
-#### 5. Feature Gaps
+#### 2. Feature Gaps
 
 - Shareable URLs with state [STATUS: IMPLEMENTED BUT NEEDS VERIFICATION]
   * Implementation: useUrlState composable, ShareButton component, i18n support ✓
   * Issue: User reports "not really working yet" - needs investigation
   * Testing needed: Verify state serialization/deserialization works correctly
   * Potential issues: Timing of state restoration, missing parameters, URL length limits?
-  
-- Batch operations for territories
-  * Use case clarification needed: What operations? (scale, translate, projection change?)
-  * Scope: Apply to all territories vs region-specific vs manual selection
-  * UX design: How should users select territories for batch operations?
   
 - Export styling customization
   * Current state: Export generates D3/Plot code with default styling
@@ -97,13 +65,28 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
   * Value proposition: What would this enable that export doesn't provide?
   * Maintenance burden: APIs change, requires ongoing updates
 
+#### 3. Performance Opportunities [DEFERRED]
+**Note: All items require detailed investigation and benchmarking before implementation**
+
+- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
+  * Analysis needed: Are these files actually problematic or just naturally comprehensive?
+  * Impact assessment: Would splitting improve maintainability or just scatter related logic?
+  
+- Virtual scrolling for territory lists in split view
+  * Current state: How many territories are typically displayed? Is scrolling actually slow?
+  * Threshold: Only needed if performance degrades with >50 territories
+  
+- Lazy loading for projection definitions
+  * Analysis needed: Current bundle size and projection data weight
+  * Benefit verification: Measure actual load time improvement
+  
+- Memoization for expensive projection calculations
+  * Profiling required: Identify actual performance bottlenecks first
+  * ROI assessment: Are calculations truly expensive or fast enough?
+
 #### 6. Documentation Gaps
 
-- User-facing documentation
-  * Audience: End users vs developers using exported code?
-  * Format: In-app help, external wiki, video tutorials?
-  * Priority assessment: Is lack of docs actually blocking users?
-  * Quick wins: Tooltips, help icons, better placeholder text
+- User-facing documentation [DEFERRED]
   
 - Migration guides for major versions
   * Current state: What breaking changes exist between versions?
@@ -171,9 +154,7 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 
 ## Proposed Improvements
 
-### Priority 1: Fix and Validate Existing Features
-
-#### 1.1 Shareable URLs - Investigation and Fix
+### Priority 1 Shareable URLs - Investigation and Fix
 **Status**: NEEDS INVESTIGATION
 **Priority**: HIGH (user reported as not working)
 **Effort**: 2-4 hours
@@ -183,51 +164,33 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - [ ] Add error handling and user feedback
 - [ ] Document limitations (URL length, browser compatibility)
 
-#### 1.2 Favorites & Recent Projections - Complete UI Integration
-**Status**: Backend complete, UI integration pending
-**Priority**: MEDIUM
-**Effort**: 4-6 hours
-- [x] favoritesStore implemented with localStorage
-- [x] Recent projections tracking (max 10)
-- [x] Per-atlas filtering
-- [ ] Integrate into ProjectionDropdown UI
-- [ ] Add star/favorite buttons to projection selector
-- [ ] Add "Recent" section in projection selector
-- [ ] Test localStorage persistence across sessions
+### Priority 2: Code Quality Improvements (If Requested)
 
-### Priority 2: High-Value Features (If requested after investigation)
+**Note**: These are optional refactorings - current code is working well
 
-#### 2.1 Configuration Presets/Templates
-**Value**: Accelerates common workflows
-**Complexity**: Low-Medium
-**Requires**: Detailed use case analysis
-**Files**: New service, new component, config files
+#### 2.1 Service Layer Standardization
+**Status**: AUDIT FIRST
+- [ ] Audit current service patterns (instance vs static)
+- [ ] Document when each pattern is appropriate
+- [ ] Identify inconsistencies (if any actually exist)
+- [ ] Propose standardization guidelines
+- [ ] Refactor only if clear benefit
 
-**Investigation needed**:
-- What are the common use cases? (geographic regions, map types, purposes)
-- Should presets be global or per-atlas?
-- User-created vs built-in presets?
-- Export/import presets functionality?
+#### 2.2 File Size Reduction
+**Status**: REVIEW FIRST  
+- [ ] Review "large" files: Are they actually problematic?
+- [ ] Check: Do they violate single responsibility?
+- [ ] Assess: Would splitting improve understanding?
+- [ ] Only split if improves maintainability
 
-**Implementation** (if approved):
-- [ ] Define preset schema and validation
-- [ ] Create PresetService for managing presets
-- [ ] Add built-in preset configurations (presets/*.json)
-- [ ] Create PresetSelector.vue component
-- [ ] Add "Save as Preset" functionality
-- [ ] Add preset categories (geographic, thematic, statistical)
-- [ ] Add preset export/import
+#### 2.3 Naming Convention Standardization
+**Status**: DOCUMENT FIRST
+- [ ] Document current naming conventions
+- [ ] Identify actual inconsistencies (not just preferences)
+- [ ] Propose guidelines for new code
+- [ ] Refactor only if causing confusion
 
-### Priority 3: Features Removed (Per User Feedback)
-
-**The following features have been removed from the plan as "not needed"**:
-- ~~Projection Comparison View~~ - marked as not needed
-- ~~Export flow discoverability improvements~~ - marked as not needed  
-- ~~Quick-start tutorials or guided tours~~ - marked as not needed
-- ~~Contribution guidelines~~ - marked as not needed
-- ~~Developer examples~~ - marked as not needed
-
-### Priority 4: Performance Optimizations (If Benchmarking Shows Need)
+### Priority 3: Performance Optimizations (If Benchmarking Shows Need)
 
 **Note**: ALL performance optimizations require profiling FIRST
 - Measure current performance baseline
@@ -235,17 +198,7 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - Verify optimization provides measurable benefit
 - Don't optimize prematurely
 
-#### 4.1 Code Splitting and Lazy Loading
-**Status**: INVESTIGATE FIRST
-**Prerequisites**: Bundle size analysis, load time profiling
-- [ ] Measure current bundle size and load times
-- [ ] Identify heavy components/chunks (>100KB)
-- [ ] Profile: Is load time actually a problem?
-- [ ] If yes: Implement lazy loading for projection definitions by family
-- [ ] If yes: Use Vue's defineAsyncComponent for heavy components
-- [ ] If yes: Split export system into separate chunk
-
-#### 4.2 Computation Memoization  
+#### 3.1 Computation Memoization  
 **Status**: PROFILE FIRST
 **Prerequisites**: Performance profiling of projection calculations
 - [ ] Profile projection calculation times
@@ -254,7 +207,7 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - [ ] If yes: Add memoization to slow operations only
 - [ ] Add cache invalidation strategy
 
-#### 4.3 Rendering Optimizations
+#### 3.2 Rendering Optimizations
 **Status**: MEASURE FIRST
 **Prerequisites**: Frame rate monitoring, user feedback
 - [ ] Monitor frame rates during interactions
@@ -264,38 +217,17 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - [ ] If needed: Implement virtual scrolling (>50 items)
 - [ ] If needed: Use v-memo for static content
 
-### Priority 5: Code Quality Improvements (If Requested)
+#### 3.3 Code Splitting and Lazy Loading
+**Status**: INVESTIGATE FIRST
+**Prerequisites**: Bundle size analysis, load time profiling
+- [ ] Measure current bundle size and load times
+- [ ] Identify heavy components/chunks (>100KB)
+- [ ] Profile: Is load time actually a problem?
+- [ ] If yes: Implement lazy loading for projection definitions by family
+- [ ] If yes: Use Vue's defineAsyncComponent for heavy components
+- [ ] If yes: Split export system into separate chunk
 
-**Note**: These are optional refactorings - current code is working well
-
-#### 5.1 Service Layer Standardization
-**Status**: AUDIT FIRST
-- [ ] Audit current service patterns (instance vs static)
-- [ ] Document when each pattern is appropriate
-- [ ] Identify inconsistencies (if any actually exist)
-- [ ] Propose standardization guidelines
-- [ ] Refactor only if clear benefit
-
-#### 5.2 File Size Reduction
-**Status**: REVIEW FIRST  
-- [ ] Review "large" files: Are they actually problematic?
-- [ ] Check: Do they violate single responsibility?
-- [ ] Assess: Would splitting improve understanding?
-- [ ] Only split if improves maintainability
-
-#### 5.3 Naming Convention Standardization
-**Status**: DOCUMENT FIRST
-- [ ] Document current naming conventions
-- [ ] Identify actual inconsistencies (not just preferences)
-- [ ] Propose guidelines for new code
-- [ ] Refactor only if causing confusion
-
-### Priority 6: Extended Features (Low Priority / Nice to Have)
-
-#### 6.1 Batch Territory Operations
-**Status**: NEEDS USE CASE VALIDATION
-- Requires detailed requirements before implementation
-- See "Feature Gaps" section for investigation points
+### Priority 4: Extended Features (Low Priority / Nice to Have)
 
 #### 6.2 Enhanced Export Options
 **Status**: NEEDS REQUIREMENTS
@@ -306,55 +238,6 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 **Status**: ASSESS NEED FIRST
 - Is lack of docs actually blocking users?
 - What format would be most valuable?
-- See "Documentation Gaps" section for details
-
-### Features Explicitly REMOVED (Not Needed)
-
-Based on user feedback, the following have been removed from consideration:
-- ~~Undo/redo system~~ (marked as "really secondary")
-- ~~Projection comparison view~~ (not needed)
-- ~~Export flow improvements~~ (not needed)
-- ~~Quick-start tutorials~~ (not needed)
-- ~~Contribution guidelines~~ (not needed)
-- ~~Developer examples~~ (not needed)
-
-## Revised Priority Recommendations
-
-Based on user feedback and current implementation status:
-
-### Immediate Actions (Do First)
-1. **Investigate and Fix Shareable URLs** [2-4 hours]
-   - User reports "not really working yet"
-   - Feature is implemented but needs validation/fixes
-   - High impact for collaboration
-   
-2. **Complete Favorites/Recent UI Integration** [4-6 hours]
-   - Backend complete, just needs UI hookup
-   - Low effort, high user value
-   - Simple localStorage feature
-
-### Requires Investigation Before Implementation
-3. **Configuration Presets** 
-   - Need detailed requirements
-   - What are common use cases?
-   - User-created vs built-in?
-   
-4. **Performance Optimizations**
-   - Requires profiling FIRST
-   - Don't optimize without measuring
-   - May not be needed at all
-
-5. **Code Organization Improvements**
-   - Need audit to identify actual issues
-   - Current code is working well (251 tests passing)
-   - Only refactor if clear benefit
-
-### Explicitly Not Doing (Per User Feedback)
-- ~~Undo/redo~~ - marked as "really secondary"
-- ~~Projection comparison~~ - not needed
-- ~~Export flow improvements~~ - not needed  
-- ~~Guided tours~~ - not needed
-- ~~Contribution guidelines~~ - not needed
 
 ## Anti-Patterns to Avoid
 
@@ -400,43 +283,3 @@ After implementation:
 - [ ] Performance benchmarks pass
 - [ ] Documentation updated
 - [ ] No regression in existing functionality
-
-## Current Implementation Status
-
-### Features Implemented (Pending Validation)
-1. **Shareable URLs** [NEEDS INVESTIGATION]
-   - ✓ useUrlState composable (src/composables/useUrlState.ts)
-   - ✓ ShareButton component (src/components/ui/actions/ShareButton.vue)
-   - ✓ Integrated into AppHeader
-   - ✓ i18n translations (EN/FR)
-   - ✓ URL state restoration in MapView
-   - ⚠ User reports "not really working yet" - requires investigation
-   
-2. **Favorites & Recent Projections** [BACKEND COMPLETE]
-   - ✓ favoritesStore with localStorage persistence (src/stores/favorites.ts)
-   - ✓ Recent projections tracking (max 10)
-   - ✓ Per-atlas filtering
-   - ⏳ UI integration pending (add to ProjectionDropdown)
-   - ⏳ Star/favorite buttons needed
-
-### Next Actions (In Priority Order)
-1. Fix/validate shareable URLs feature
-2. Complete favorites UI integration  
-3. Gather requirements for configuration presets (if still desired)
-
-### Features Removed from Plan
-Based on user feedback marked as "not needed":
-- Projection comparison view
-- Export flow improvements
-- Quick-start tutorials  
-- Contribution guidelines
-- Developer examples
-
-### Features Deprioritized
-Based on user feedback marked as "really secondary":
-- Undo/redo system (low priority)
-
-## Status
-Status: AWAITING_FEEDBACK
-Last Updated: 2025-10-12
-Next: Investigate shareable URLs issue and complete favorites UI integration
