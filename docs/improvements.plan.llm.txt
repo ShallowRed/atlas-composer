@@ -1,104 +1,14 @@
-# Atlas Composer - Architectural Analysis & Improvement Plan
+# Atlas Composer - Improvement Plan
 
 ## Objective
-Maximize Atlas Composer's value proposition through targeted improvements in architecture, user experience, performance, and maintainability while keeping complexity and code length manageable.
-
-## Current State Analysis
-
-### Strengths
-1. **Clean Architecture**: Well-organized service layer with clear domain boundaries
-2. **Type Safety**: Comprehensive TypeScript coverage (100% type check passing)
-3. **Test Coverage**: 251 tests passing (100% success rate)
-4. **Modern Stack**: Vue 3 Composition API, Pinia, Observable Plot, D3.js
-5. **Export System**: Zero-dependency projection loader with plugin architecture
-6. **Documentation**: Excellent LLM-optimized documentation system
-7. **Configuration-Driven**: JSON-based atlas system with validation
-
-### Current Metrics
-- Total Lines: ~20,761 (TS + Vue)
-- Components: 35 Vue components
-- Services: 28 TypeScript files
-- Composables: 11 composition functions
-- Stores: 4 Pinia stores
-- Atlases: 6 configurations (France, Portugal, Spain, EU, USA, World)
-- Projections: 20+ with smart recommendations
-- Test Files: 13 test suites, 251 tests
-
-### Areas for Improvement
-
-#### 1. Code Organization
-**Note: All items require detailed audit before refactoring**
-
-- Service patterns standardization
-  * Audit needed: Identify which services use instance vs static patterns
-  * Decision criteria: When is instance pattern beneficial vs static?
-  * Risk: Unnecessary refactoring could introduce bugs without clear benefit
-  
-- File naming conventions
-  * Investigation needed: Document current naming patterns (camelCase vs kebab-case)
-  * Consistency check: Are there actual inconsistencies or just different domains?
-  * Standard proposal: Define convention for new files
-  
-- Test file organization
-  * Analysis needed: What inconsistencies exist? Co-located vs separate __tests__?
-  * Current coverage: 251 tests, 100% passing - don't break what works
-  
-- Export/import service duplication
-  * Code review needed: Identify specific duplicated logic
-  * Refactoring opportunity: Can shared logic be extracted without over-abstracting?
-
-#### 2. Feature Gaps
-
-- Shareable URLs with state [STATUS: IMPLEMENTED BUT NEEDS VERIFICATION]
-  * Implementation: useUrlState composable, ShareButton component, i18n support ✓
-  * Issue: User reports "not really working yet" - needs investigation
-  * Testing needed: Verify state serialization/deserialization works correctly
-  * Potential issues: Timing of state restoration, missing parameters, URL length limits?
-  
-- Export styling customization
-  * Current state: Export generates D3/Plot code with default styling
-  * Requirements: What styling options? (colors, stroke width, labels?)
-  * Complexity assessment: How much configuration without overwhelming users?
-  
-- External mapping service integration
-  * Services in scope: Leaflet? Mapbox? Google Maps? OpenLayers?
-  * Value proposition: What would this enable that export doesn't provide?
-  * Maintenance burden: APIs change, requires ongoing updates
-
-#### 3. Performance Opportunities [DEFERRED]
-**Note: All items require detailed investigation and benchmarking before implementation**
-
-- Large files: composite-projection.ts (618 lines), code-generator.ts (435 lines)
-  * Analysis needed: Are these files actually problematic or just naturally comprehensive?
-  * Impact assessment: Would splitting improve maintainability or just scatter related logic?
-  
-- Virtual scrolling for territory lists in split view
-  * Current state: How many territories are typically displayed? Is scrolling actually slow?
-  * Threshold: Only needed if performance degrades with >50 territories
-  
-- Lazy loading for projection definitions
-  * Analysis needed: Current bundle size and projection data weight
-  * Benefit verification: Measure actual load time improvement
-  
-- Memoization for expensive projection calculations
-  * Profiling required: Identify actual performance bottlenecks first
-  * ROI assessment: Are calculations truly expensive or fast enough?
-
-#### 6. Documentation Gaps
-
-- User-facing documentation [DEFERRED]
-  
-- Migration guides for major versions
-  * Current state: What breaking changes exist between versions?
-  * Necessity: Is there a user base that needs migration support?
-  * Timing: Premature if version 1.0 not yet released
+Targeted improvements in architecture, user experience, performance, and maintainability while keeping complexity manageable.
 
 ## Affected Domains
-- [ ] Vue Architecture (docs/vue-architecture.llm.txt) - UX improvements, new components
-- [ ] Services (docs/services.llm.txt) - Service layer refactoring
-- [ ] Export System (docs/export.llm.txt) - Enhanced export features
-- [ ] Atlas System (docs/atlases.llm.txt) - Preset system
-- [ ] Architecture (docs/architecture.llm.txt) - Overall structural changes
+- [ ] Vue Architecture (docs/vue-architecture.llm.txt)
+- [ ] Services (docs/services.llm.txt)
+- [ ] Export System (docs/export.llm.txt)
+- [ ] Atlas System (docs/atlases.llm.txt)
+- [ ] Architecture (docs/architecture.llm.txt)
 
 ## Context
 - Architecture: docs/architecture.llm.txt
@@ -107,163 +17,139 @@ Maximize Atlas Composer's value proposition through targeted improvements in arc
 - Export System: docs/export.llm.txt
 - Projections: docs/projections.llm.txt
 
-## Investigation Required: Shareable URLs Feature
+## Current State
 
-**User Feedback**: "already started, cool idea, not really working yet"
+### Project Metrics
+- Total Lines: ~20,761 (TS + Vue)
+- Components: 35 Vue components
+- Services: 28 TypeScript files
+- Composables: 11 composition functions
+- Stores: 4 Pinia stores
+- Atlases: 6 configurations
+- Test Suites: 13 suites, 251 tests (100% passing)
+- Type Coverage: 100%
 
-**Current Implementation Status**:
-- ✓ useUrlState composable exists (src/composables/useUrlState.ts)
-- ✓ ShareButton component exists (src/components/ui/actions/ShareButton.vue)
-- ✓ Integrated into AppHeader
-- ✓ i18n translations complete (EN/FR)
-- ✓ URL state restoration called in MapView.vue onMounted
+### Strengths
+- Clean service layer with clear domain boundaries
+- Comprehensive TypeScript coverage
+- Modern Vue 3 Composition API + Pinia
+- Zero-dependency projection loader
+- LLM-optimized documentation
+- JSON-driven atlas system with validation
 
-**Potential Issues to Investigate**:
-1. **State Restoration Timing**
-   - restoreFromUrl() called before initialize() - is data overwritten?
-   - Watch triggers during restoration - do they cause unwanted reloads?
-   - Race conditions between URL restoration and default initialization?
+## Implementation Phases
 
-2. **Incomplete State Serialization**
-   - Missing parameters? (check all store state is captured)
-   - Composite projection territory-specific settings?
-   - UI state (theme, display options)?
-
-3. **URL Length Limits**
-   - Browser URL length limits (2048 chars typical)
-   - Complex states with many territories could exceed limits
-   - Need compression or state storage service?
-
-4. **User Experience Issues**
-   - URL copied but state doesn't restore when pasted?
-   - Some config changes not reflected in shareable URL?
-   - Missing feedback/validation that sharing worked?
-
-**Investigation Steps**:
-1. Manual testing: Create complex config → copy share URL → paste in new tab → verify all settings restored
-2. Add console logging to track state restoration flow
-3. Check if all store mutations are captured in serializeState()
-4. Test edge cases: long territory names, many territories, special characters
-5. Add unit tests for serialization/deserialization
-
-**Resolution Approach**:
-- Add comprehensive unit tests for useUrlState
-- Fix any identified serialization/restoration bugs
-- Document known limitations (e.g., URL length)
-- Consider alternative: localStorage with short URL hash
-
-## Proposed Improvements
-
-### Priority 1 Shareable URLs - Investigation and Fix
-**Status**: NEEDS INVESTIGATION
-**Priority**: HIGH (user reported as not working)
+### Phase 1: Shareable URLs Fix (PRIORITY)
+**Status**: INVESTIGATION REQUIRED
 **Effort**: 2-4 hours
-- [ ] Write unit tests for useUrlState composable
-- [ ] Manual testing with complex configurations
-- [ ] Identify and fix state restoration issues
-- [ ] Add error handling and user feedback
-- [ ] Document limitations (URL length, browser compatibility)
+**User Feedback**: "not really working yet"
 
-### Priority 2: Code Quality Improvements (If Requested)
+Current implementation:
+- useUrlState composable exists
+- ShareButton component integrated but missing
+- i18n translations complete
+- URL state restoration in MapView.vue
 
-**Note**: These are optional refactorings - current code is working well
+Investigation tasks:
+- [ ] File: src/composables/useUrlState.ts
+  - Add unit tests for serialization/deserialization
+  - Test edge cases: long names, many territories, special chars
+  - Verify all store state is captured in serializeState()
+  
+- [ ] File: src/views/MapView.vue
+  - Check timing: restoreFromUrl() vs initialize() order
+  - Verify no race conditions with URL restoration
+  - Add console logging to track state restoration flow
 
-#### 2.1 Service Layer Standardization
-**Status**: AUDIT FIRST
-- [ ] Audit current service patterns (instance vs static)
-- [ ] Document when each pattern is appropriate
-- [ ] Identify inconsistencies (if any actually exist)
-- [ ] Propose standardization guidelines
-- [ ] Refactor only if clear benefit
+- [ ] Manual testing
+  - Create complex config → copy URL → paste in new tab
+  - Verify all settings restored correctly
+  - Test URL length limits (2048 chars browser limit)
 
-#### 2.2 File Size Reduction
-**Status**: REVIEW FIRST  
-- [ ] Review "large" files: Are they actually problematic?
+- [ ] Resolution
+  - Fix identified serialization/restoration bugs
+  - Add error handling and user feedback
+  - Document known limitations
+  - Consider localStorage with short hash if URL length is issue
+
+### Phase 2: Code Quality (OPTIONAL)
+**Status**: ON-DEMAND
+**Note**: Current code is working well - only refactor if clear benefit
+
+#### 2.1 Service Layer Audit
+- [ ] Audit: Document current service patterns (instance vs static)
+- [ ] Analysis: Identify when each pattern is appropriate
+- [ ] Review: Are there actual inconsistencies causing issues?
+- [ ] Decision: Refactor only if clear benefit demonstrated
+
+#### 2.2 File Organization Review
+- [ ] Review: Are large files (618 lines, 435 lines) problematic?
 - [ ] Check: Do they violate single responsibility?
-- [ ] Assess: Would splitting improve understanding?
-- [ ] Only split if improves maintainability
+- [ ] Assess: Would splitting improve maintainability?
+- [ ] Decision: Only split if improves understanding
 
-#### 2.3 Naming Convention Standardization
-**Status**: DOCUMENT FIRST
-- [ ] Document current naming conventions
-- [ ] Identify actual inconsistencies (not just preferences)
-- [ ] Propose guidelines for new code
-- [ ] Refactor only if causing confusion
+#### 2.3 Naming Conventions
+- [ ] Document: Current naming patterns (camelCase vs kebab-case)
+- [ ] Identify: Actual inconsistencies vs domain differences
+- [ ] Propose: Guidelines for new code only
+- [ ] Decision: Refactor only if causing confusion
 
-### Priority 3: Performance Optimizations (If Benchmarking Shows Need)
-
-**Note**: ALL performance optimizations require profiling FIRST
-- Measure current performance baseline
-- Identify actual bottlenecks (not assumptions)
-- Verify optimization provides measurable benefit
-- Don't optimize prematurely
-
-#### 3.1 Computation Memoization  
+### Phase 3: Performance (CONDITIONAL)
 **Status**: PROFILE FIRST
+**Prerequisite**: ALL items require benchmarking before implementation
+
+#### 3.1 Memoization
 **Prerequisites**: Performance profiling of projection calculations
 - [ ] Profile projection calculation times
-- [ ] Identify calculation hotspots (>50ms)
-- [ ] Measure: Are calculations actually expensive?
-- [ ] If yes: Add memoization to slow operations only
-- [ ] Add cache invalidation strategy
+- [ ] Identify hotspots (>50ms)
+- [ ] If needed: Add memoization to slow operations only
+- [ ] Implement cache invalidation strategy
 
-#### 3.2 Rendering Optimizations
-**Status**: MEASURE FIRST
+#### 3.2 Rendering
 **Prerequisites**: Frame rate monitoring, user feedback
 - [ ] Monitor frame rates during interactions
-- [ ] Identify rendering bottlenecks (if any)
+- [ ] Identify rendering bottlenecks
 - [ ] Test with maximum territories (stress test)
 - [ ] If needed: Add debouncing to parameter changes
 - [ ] If needed: Implement virtual scrolling (>50 items)
 - [ ] If needed: Use v-memo for static content
 
-#### 3.3 Code Splitting and Lazy Loading
-**Status**: INVESTIGATE FIRST
+#### 3.3 Code Splitting
 **Prerequisites**: Bundle size analysis, load time profiling
 - [ ] Measure current bundle size and load times
 - [ ] Identify heavy components/chunks (>100KB)
-- [ ] Profile: Is load time actually a problem?
-- [ ] If yes: Implement lazy loading for projection definitions by family
-- [ ] If yes: Use Vue's defineAsyncComponent for heavy components
-- [ ] If yes: Split export system into separate chunk
+- [ ] If needed: Lazy load projection definitions by family
+- [ ] If needed: Use defineAsyncComponent for heavy components
+- [ ] If needed: Split export system into separate chunk
 
-### Priority 4: Extended Features (Low Priority / Nice to Have)
+### Phase 4: Extended Features (LOW PRIORITY)
 
-#### 6.2 Enhanced Export Options
-**Status**: NEEDS REQUIREMENTS
-- Requires user research: What formats are actually needed?
-- See "Feature Gaps" section for investigation points
+#### 4.1 Enhanced Export Options
+**Status**: REQUIREMENTS NEEDED
+- [ ] User research: What formats are actually needed?
+- [ ] Requirements: Styling options (colors, stroke width, labels)?
+- [ ] Complexity: Balance features vs overwhelming users
+- [ ] Implementation: Based on validated user needs
 
-#### 6.3 User Documentation
-**Status**: ASSESS NEED FIRST
-- Is lack of docs actually blocking users?
-- What format would be most valuable?
+#### 4.2 User Documentation
+**Status**: NEEDS ASSESSMENT
+- [ ] Assess: Is lack of docs blocking users?
+- [ ] Research: What format would be most valuable?
+- [ ] Decision: Implement based on user feedback
 
-## Anti-Patterns to Avoid
+## Guidelines
 
-1. **Over-engineering**: Don't add abstraction layers without clear benefit
-2. **Feature Creep**: Each feature must serve the core value proposition
-3. **Premature Optimization**: Profile before optimizing
-4. **Breaking Changes**: Maintain backward compatibility for exports
-5. **State Explosion**: Keep state management simple and focused
+### Anti-Patterns to Avoid
+1. Over-engineering: No abstraction layers without clear benefit
+2. Feature creep: Each feature must serve core value proposition
+3. Premature optimization: Profile before optimizing
+4. Breaking changes: Maintain backward compatibility for exports
+5. State explosion: Keep state management simple
 
-## Success Metrics
-
-### User Experience
-- Time to first projection: < 30 seconds
-- Configuration save/load time: < 1 second
-- Export generation time: < 2 seconds
-
-### Code Quality
-- Test coverage: Maintain 100% passing
-- Type coverage: Maintain 100%
-- Average file size: Keep < 400 lines
-- Bundle size: Stay < 500KB gzipped
-
-### Performance
-- Initial page load: < 2 seconds
-- Projection render time: < 500ms
-- Smooth interactions: 60 FPS
+### Success Metrics
+- User Experience: Time to first projection < 30s, config save/load < 1s
+- Code Quality: 100% tests passing, 100% type coverage, files < 400 lines
+- Performance: Page load < 2s, projection render < 500ms, 60 FPS interactions
 
 ## Documentation Updates
 
@@ -271,15 +157,17 @@ After implementation:
 - [ ] docs/architecture.llm.txt - Update with new patterns
 - [ ] docs/vue-architecture.llm.txt - Document new components
 - [ ] docs/services.llm.txt - Update service patterns
-- [ ] docs/export.llm.txt - Add new export formats
-- [ ] Create docs/presets.llm.txt for preset system
-- [ ] Create docs/state-management.llm.txt for undo/redo
+- [ ] docs/export.llm.txt - Add new export features
 
-## Verification Checklist
+## Verification
 
 - [ ] All existing tests pass
 - [ ] New features have test coverage
 - [ ] TypeScript compilation succeeds
-- [ ] Performance benchmarks pass
+- [ ] Performance benchmarks pass (if applicable)
 - [ ] Documentation updated
 - [ ] No regression in existing functionality
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-12
