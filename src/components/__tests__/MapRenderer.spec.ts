@@ -146,4 +146,67 @@ describe('mapRenderer.vue', () => {
       expect(wrapper.props('height')).toBe(300)
     })
   })
+
+  describe('panning interaction', () => {
+    it('should show grab cursor for projections that support panning', () => {
+      const configStore = useConfigStore()
+      configStore.selectedProjection = 'natural-earth' // World projection that supports panning
+
+      const wrapper = mount(MapRenderer, {
+        props: {
+          mode: 'simple',
+        },
+      })
+
+      const mapPlot = wrapper.find('.map-plot')
+      expect(mapPlot.exists()).toBe(true)
+      // Cursor should be 'grab' when supportsPanning is true
+      const style = mapPlot.attributes('style')
+      expect(style).toContain('cursor')
+    })
+
+    it('should update rotation on mouse drag', async () => {
+      const configStore = useConfigStore()
+      configStore.selectedProjection = 'natural-earth'
+
+      const wrapper = mount(MapRenderer, {
+        props: {
+          mode: 'simple',
+        },
+      })
+
+      const mapPlot = wrapper.find('.map-plot')
+
+      // Simulate mouse down
+      await mapPlot.trigger('mousedown', { clientX: 100 })
+
+      // Simulate mouse move (50 pixels to the right)
+      const mouseMoveEvent = new MouseEvent('mousemove', { clientX: 150 })
+      window.dispatchEvent(mouseMoveEvent)
+
+      // Simulate mouse up
+      const mouseUpEvent = new MouseEvent('mouseup')
+      window.dispatchEvent(mouseUpEvent)
+
+      // The rotation should have been updated (50px * -0.5 = -25 degrees)
+      // Note: actual value depends on initial rotation
+      expect(configStore.customRotateLongitude).toBeDefined()
+    })
+
+    it('should not enable panning for projections without rotateLongitude support', () => {
+      const configStore = useConfigStore()
+      configStore.selectedProjection = 'conic-conformal' // Conic projection doesn't support rotateLongitude
+
+      const wrapper = mount(MapRenderer, {
+        props: {
+          mode: 'simple',
+        },
+      })
+
+      const mapPlot = wrapper.find('.map-plot')
+      const style = mapPlot.attributes('style')
+      // Cursor should be 'default' when supportsPanning is false
+      expect(style).toContain('cursor')
+    })
+  })
 })

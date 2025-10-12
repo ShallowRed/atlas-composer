@@ -178,6 +178,16 @@ interface ProjectionFilterContext {
 }
 ```
 
+### Interactive Panning
+
+MapRenderer.vue supports interactive mouse panning for projections with rotateLongitude support:
+- **Supported families**: World, Compromise, Cylindrical, Pseudocylindrical
+- **Interaction**: Click and drag on the map to rotate the projection
+- **Visual feedback**: Cursor changes to grab/grabbing during interaction
+- **Scaling**: 0.5 degrees per pixel for smooth control
+- **Range**: Rotation wraps between -180° and 180°
+- **Updates**: Changes flow through configStore.setCustomRotate and trigger re-render via effectiveProjectionParams watcher
+
 ### Parameter Relevance by Family
 
 Defined in `parameters.ts` - determines which parameters are applicable:

@@ -63,13 +63,16 @@ App.vue
 - Uses: useAtlasData, useLoadingState
 
 ### MapRenderer.vue (147 lines)
-**Role**: D3 rendering engine
+**Role**: D3 rendering engine with interactive panning
 **Responsibilities**:
 - SVG canvas management
 - D3 projection rendering
 - Territory positioning
-- Uses: useAtlasData, useLoadingState, useProjectionConfig
+- Interactive panning for world projections (mouse drag to rotate)
+- Cursor feedback (grab/grabbing) during interaction
+- Uses: useAtlasData, useLoadingState, useProjectionConfig, projectionRegistry, getRelevantParameters
 **Tests**: 10 tests covering props, rendering, store integration
+**Interaction**: Supports mouse drag panning for projections with rotateLongitude support (world, compromise, cylindrical families)
 
 ### TerritoryControls.vue (119 lines)
 **Role**: Territory transform controls
