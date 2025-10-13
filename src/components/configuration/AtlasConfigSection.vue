@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import CompositeParamsControls from '@/components/ui/projections/CompositeParamsControls.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
@@ -91,5 +92,8 @@ const isProjectionModeDisabled = computed(() => {
         { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },
       ]"
     />
+
+    <!-- Composite Projection Settings (for composite-custom mode) -->
+    <CompositeParamsControls v-if="configStore.viewMode === 'composite-custom'" />
   </div>
 </template>

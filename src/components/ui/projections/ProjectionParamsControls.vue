@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CompositeParamsControls from '@/components/ui/projections/CompositeParamsControls.vue'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
@@ -157,10 +156,6 @@ const { compositeProjectionOptions } = useProjectionConfig()
       icon="ri-global-line"
       :options="compositeProjectionOptions"
     />
-
-    <!-- Composite Projection Settings (for composite-custom mode) -->
-    <CompositeParamsControls v-if="configStore.viewMode === 'composite-custom'" />
-
     <template v-else>
       <!-- Uniform Projection Selector (for uniform projection mode) -->
       <ProjectionDropdown
