@@ -130,6 +130,18 @@
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
     "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
   },
+  "compositeParams": {
+    "title": "Paramètres de projection composite",
+    "scale": "Facteur d'échelle principal",
+    "width": "Largeur de la carte",
+    "height": "Hauteur de la carte",
+    "reset": "Réinitialiser les paramètres composites",
+    "info": "Ajustez l'échelle globale et les dimensions de la carte composite."
+  },
+  "territoryParams": {
+    "title": "Paramètres de projection du territoire",
+    "info": "Ajustez les paramètres de projection pour ce territoire spécifique."
+  },
   "actions": {
     "loading": "Chargement...",
     "loadingData": "Chargement des données...",

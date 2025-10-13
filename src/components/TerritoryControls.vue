@@ -5,6 +5,7 @@ import ImportControls from '@/components/ui/import/ImportControls.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import TerritoryProjectionParams from '@/components/ui/projections/TerritoryProjectionParams.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -99,6 +100,12 @@ const resetToDefaults = resetTransforms
               @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
             />
           </div>
+
+          <!-- Territory Projection Parameters -->
+          <TerritoryProjectionParams
+            :territory-code="mainlandCode"
+            :projection-id="territoryProjections[mainlandCode] || selectedProjection"
+          />
         </AccordionItem>
 
         <!-- Overseas territories (excluding mainland to avoid duplication) -->
@@ -123,6 +130,13 @@ const resetToDefaults = resetTransforms
               @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
             />
           </div>
+
+          <!-- Territory Projection Parameters (shown in individual mode) -->
+          <TerritoryProjectionParams
+            v-if="projectionMode === 'individual'"
+            :territory-code="territory.code"
+            :projection-id="territoryProjections[territory.code] || selectedProjection"
+          />
 
           <!-- Transform Controls (hidden in split mode) -->
           <template v-if="props.showTransformControls">

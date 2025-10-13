@@ -28,6 +28,11 @@ export const useConfigStore = defineStore('config', () => {
   const customParallel1 = ref<number | null>(null)
   const customParallel2 = ref<number | null>(null)
 
+  // Composite projection parameters (for composite-custom mode)
+  const customCompositeScale = ref<number | null>(null)
+  const customCompositeWidth = ref<number | null>(null)
+  const customCompositeHeight = ref<number | null>(null)
+
   // Initialize selectedProjection from the default atlas's projection preferences or mainland
   const getInitialProjection = () => {
     const specificConfig = getAtlasSpecificConfig(DEFAULT_ATLAS)
@@ -247,6 +252,18 @@ export const useConfigStore = defineStore('config', () => {
     customParallel2.value = parallel2
   }
 
+  const setCustomCompositeScale = (scale: number | null) => {
+    customCompositeScale.value = scale
+  }
+
+  const setCustomCompositeWidth = (width: number | null) => {
+    customCompositeWidth.value = width
+  }
+
+  const setCustomCompositeHeight = (height: number | null) => {
+    customCompositeHeight.value = height
+  }
+
   const resetProjectionParams = () => {
     customRotateLongitude.value = null
     customRotateLatitude.value = null
@@ -254,6 +271,12 @@ export const useConfigStore = defineStore('config', () => {
     customCenterLatitude.value = null
     customParallel1.value = null
     customParallel2.value = null
+  }
+
+  const resetCompositeParams = () => {
+    customCompositeScale.value = null
+    customCompositeWidth.value = null
+    customCompositeHeight.value = null
   }
 
   const initializeTheme = () => {
@@ -300,6 +323,9 @@ export const useConfigStore = defineStore('config', () => {
     customCenterLatitude,
     customParallel1,
     customParallel2,
+    customCompositeScale,
+    customCompositeWidth,
+    customCompositeHeight,
 
     // Computed
     atlasService,
@@ -326,7 +352,11 @@ export const useConfigStore = defineStore('config', () => {
     setCustomRotate,
     setCustomCenter,
     setCustomParallels,
+    setCustomCompositeScale,
+    setCustomCompositeWidth,
+    setCustomCompositeHeight,
     resetProjectionParams,
+    resetCompositeParams,
     initializeTheme,
   }
 })

@@ -130,6 +130,18 @@
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."
   },
+  "compositeParams": {
+    "title": "Composite Projection Settings",
+    "scale": "Main scale factor",
+    "width": "Map width",
+    "height": "Map height",
+    "reset": "Reset composite settings",
+    "info": "Adjust the overall scale and dimensions of the composite map."
+  },
+  "territoryParams": {
+    "title": "Territory Projection Parameters",
+    "info": "Adjust projection parameters for this specific territory."
+  },
   "actions": {
     "loading": "Loading...",
     "loadingData": "Loading data...",
