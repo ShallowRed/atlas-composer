@@ -62,13 +62,23 @@ Pattern detection and behavioral decisions for different atlas types.
 
 ### AtlasCoordinator
 Orchestrates atlas changes and configuration updates.
-- `handleAtlasChange()` - Coordinate all updates when changing atlas (always uses atlas's default view mode)
-- `getInitialConfiguration()` - Build initial config for atlas
+Loads presets automatically when defaultPreset is configured.
+- `handleAtlasChange()` - Coordinate all updates when changing atlas (async - loads preset if available)
+- `getInitialConfiguration()` - Build initial config for atlas (async)
 
 ### TerritoryDefaultsService
 Initialize territory projections, translations, and scales.
 - `initializeAll()` - Initialize all territory defaults
-- `mergeCustomConfig()` - Merge custom configuration
+
+### PresetLoader
+Loads preset composite projection configurations from configs/presets/ directory.
+Static service providing preset loading and validation.
+- `loadPreset()` - Load and validate preset file (async)
+- `convertToDefaults()` - Convert preset to TerritoryDefaults format
+- `validatePreset()` - Validate preset configuration
+- `listAvailablePresets()` - List available presets (placeholder)
+
+Delegates validation to CompositeImportService for consistency.
 
 ### AtlasService
 Atlas-aware facade for accessing territory data and configuration.
