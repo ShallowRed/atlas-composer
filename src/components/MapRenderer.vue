@@ -78,6 +78,11 @@ const { isDragging, currentHoveredTerritory, attachListeners, detachListeners } 
     // Only enable dragging in composite-custom mode
     return props.mode === 'composite' && configStore.viewMode === 'composite-custom'
   },
+  isTerritoryDraggable: (territoryCode: string) => {
+    // Don't allow dragging the mainland
+    const mainlandCode = configStore.currentAtlasConfig?.territories?.mainland?.code
+    return territoryCode !== mainlandCode
+  },
 })
 
 // Watch for projection parameter changes and update cartographer
@@ -253,21 +258,34 @@ async function renderComposite(): Promise<Plot.Plot> {
 /**
  * Add data-territory attributes to SVG paths for territory identification
  * This enables the cursor composable to identify which territory is being dragged
+ *
+ * Observable Plot renders paths with aria-label attributes containing the territory name
+ * and stores data in __data__ property on the path element
  */
 function addTerritoryDataAttributes(svg: SVGSVGElement) {
-  // Find all path elements in the SVG
-  const paths = svg.querySelectorAll('path')
+  // Find all path elements in the SVG that are part of the map (not graticule or sphere)
+  const paths = svg.querySelectorAll('path[aria-label]')
 
   paths.forEach((path) => {
-    // Check if this path has a title element (which contains the territory code)
-    const title = path.querySelector('title')
-    if (title && title.textContent) {
-      const territoryCode = title.textContent.trim()
-      // Only add attribute if it's not already present
-      if (!path.hasAttribute('data-territory')) {
+    // Try to get territory code from the path's bound data (Observable Plot pattern)
+    const element = path as any
+    const territoryData = element.__data__
+
+    if (territoryData?.properties) {
+      // Extract territory code from properties
+      const territoryCode = territoryData.properties.code
+        || territoryData.properties.INSEE_DEP
+        || territoryData.properties.name
+
+      if (territoryCode && !path.hasAttribute('data-territory')) {
         path.setAttribute('data-territory', territoryCode)
-        // Add cursor style to indicate draggability
-        path.style.cursor = 'grab'
+
+        // Check if this is the mainland (don't make it draggable)
+        const isMainland = configStore.currentAtlasConfig?.territories?.mainland?.code === territoryCode
+        if (!isMainland) {
+          // Add cursor style to indicate draggability for overseas territories
+          path.style.cursor = 'grab'
+        }
       }
     }
   })

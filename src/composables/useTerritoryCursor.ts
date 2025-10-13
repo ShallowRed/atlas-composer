@@ -25,6 +25,11 @@ export interface TerritoryCursorConfig {
    * Check if dragging is enabled (e.g., only in composite-custom mode)
    */
   isDraggingEnabled: () => boolean
+
+  /**
+   * Optional: Check if a territory should be draggable (e.g., exclude mainland)
+   */
+  isTerritoryDraggable?: (territoryCode: string) => boolean
 }
 
 export function useTerritoryCursor(config: TerritoryCursorConfig) {
@@ -46,6 +51,11 @@ export function useTerritoryCursor(config: TerritoryCursorConfig) {
     const territoryCode = config.getTerritoryCode(target)
 
     if (territoryCode) {
+      // Check if territory is draggable (if checker is provided)
+      if (config.isTerritoryDraggable && !config.isTerritoryDraggable(territoryCode)) {
+        return
+      }
+
       isDragging.value = true
       draggedTerritory.value = territoryCode
       dragStartX.value = event.clientX
