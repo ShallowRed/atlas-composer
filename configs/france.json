@@ -17,6 +17,50 @@
   "compositeProjections": [
     "conic-conformal-france"
   ],
+  "defaultCompositeConfig": {
+    "territoryProjections": {
+      "FR-GP": "mercator",
+      "FR-MQ": "mercator",
+      "FR-GF": "mercator",
+      "FR-RE": "mercator",
+      "FR-YT": "mercator",
+      "FR-MF": "mercator",
+      "FR-PM": "mercator",
+      "FR-WF": "mercator",
+      "FR-PF": "mercator",
+      "FR-PF-2": "mercator",
+      "FR-NC": "mercator",
+      "FR-TF": "mercator"
+    },
+    "territoryTranslations": {
+      "FR-GP": { "x": -324, "y": -38 },
+      "FR-MQ": { "x": -324, "y": 35 },
+      "FR-GF": { "x": -324, "y": 155 },
+      "FR-RE": { "x": 313, "y": -96 },
+      "FR-YT": { "x": 316, "y": -173 },
+      "FR-MF": { "x": -324, "y": -119 },
+      "FR-PM": { "x": -324, "y": -176 },
+      "FR-WF": { "x": 313, "y": 59 },
+      "FR-PF": { "x": 311, "y": 203 },
+      "FR-PF-2": { "x": 297, "y": 122 },
+      "FR-NC": { "x": 313, "y": -13 },
+      "FR-TF": { "x": 0, "y": 250 }
+    },
+    "territoryScales": {
+      "FR-GP": 1.4,
+      "FR-MQ": 1.6,
+      "FR-GF": 0.6,
+      "FR-RE": 1.2,
+      "FR-YT": 1.6,
+      "FR-MF": 5.0,
+      "FR-PM": 1.3,
+      "FR-WF": 2.7,
+      "FR-PF": 0.5,
+      "FR-PF-2": 0.06,
+      "FR-NC": 0.3,
+      "FR-TF": 0.1
+    }
+  },
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",
@@ -319,7 +363,7 @@
           -0.0996,
           -0.032
         ],
-        "baseScaleMultiplier": 2.5
+        "baseScaleMultiplier": 5.0
       }
     },
     {
