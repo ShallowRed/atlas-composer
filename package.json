@@ -10,7 +10,7 @@
     "#scripts/*": "./scripts/*.ts"
   },
   "scripts": {
-    "dev": "vite &",
+    "dev": "vite",
     "kill-all-dev": "pkill -f 'vite'",
     "build": "pnpm build:loader && tsc && vite build",
     "build:analyze": "ANALYZE=true pnpm build",

@@ -38,8 +38,9 @@ Two specialized modes available (user switches via Chat view dropdown):
 2. Choose approach:
    - **Direct** (1-3 files): Make changes immediately
    - **Plan-First** (4+ files): Switch to Plan chatmode, create `.plan.llm.txt`, then implement
-3. Update affected `.llm.txt` docs after code changes
-4. Verify compilation
+3. **WAIT FOR USER VALIDATION** before updating any documentation in case of bug fixes
+4. Update affected `.llm.txt` docs (ONLY after user confirms fix works in case of bugs)
+5. Verify compilation
 
 ## Plan File Structure
 Create `<descriptive-name>.plan.llm.txt` in project root:

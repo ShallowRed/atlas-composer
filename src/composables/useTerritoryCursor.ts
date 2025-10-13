@@ -219,34 +219,6 @@ export function useTerritoryCursor() {
   }
 
   /**
-   * Calculate responsive scaling factor based on actual vs logical map dimensions
-   * This ensures 1:1 cursor-to-territory movement regardless of viewport scaling
-   */
-  function calculateResponsiveScaling(): number {
-    // Find the SVG element to get actual rendered dimensions
-    const svgElement = document.querySelector('svg')
-    if (!svgElement) {
-      // Fallback to the hardcoded value for backwards compatibility
-      return 1.8
-    }
-
-    // Get actual rendered dimensions
-    const rect = svgElement.getBoundingClientRect()
-    const actualWidth = rect.width
-
-    // Logical composite map dimensions (from MapSizeCalculator)
-    const logicalCompositeWidth = 800
-
-    // Calculate scaling factor based on actual vs logical dimensions
-    // If map is rendered smaller than logical size, territories need to move more per pixel
-    // If map is rendered larger than logical size, territories need to move less per pixel
-    const scalingFactor = logicalCompositeWidth / actualWidth
-
-    // Clamp to reasonable bounds to prevent extreme scaling
-    return Math.max(0.1, Math.min(10.0, scalingFactor))
-  }
-
-  /**
    * Handle mouse move during drag
    */
   function handleMouseMove(event: MouseEvent) {
@@ -256,18 +228,12 @@ export function useTerritoryCursor() {
     const dx = event.clientX - dragStartX.value
     const dy = event.clientY - dragStartY.value
 
-    // CompositeProjection applies translateOffset directly as pixel offsets: centerX + offset[0]
-    // Use responsive scaling for proper 1:1 cursor-to-territory movement
-    const responsiveScaling = calculateResponsiveScaling()
-    const pixelDx = dx * responsiveScaling
-    const pixelDy = dy * responsiveScaling
-
-    // Update territory translation in store with direct pixel coordinates
-    const newOffsetX = dragStartOffsetX.value + pixelDx
-    const newOffsetY = dragStartOffsetY.value + pixelDy
+    // Pure 1:1 movement: CompositeProjection handles translateOffset directly as screen pixels
+    // No scaling needed - direct cursor movement to territory movement
+    const newOffsetX = dragStartOffsetX.value + dx
+    const newOffsetY = dragStartOffsetY.value + dy
 
     // Update territory store with new position
-
     territoryStore.setTerritoryTranslation(dragTerritoryCode.value, 'x', newOffsetX)
     territoryStore.setTerritoryTranslation(dragTerritoryCode.value, 'y', newOffsetY)
   }
