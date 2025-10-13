@@ -6,7 +6,7 @@ Vue 3 Composition API application with TypeScript, Pinia stores, and composable-
 
 **Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
 **Test Framework**: Vitest + @vue/test-utils
-**Test Coverage**: 164 tests (100% passing)
+**Test Coverage**: 296 tests (100% passing)
 
 ## Project Structure
 
@@ -19,8 +19,8 @@ src/
 │   ├── MapView.vue           # Main view (simplified with useViewState)
 │   └── AboutView.vue         # About page
 ├── components/
-│   ├── MapRenderer.vue       # D3 map rendering (147 lines)
-│   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
+│   ├── MapRenderer.vue       # D3 map rendering with mouse-based territory dragging (280 lines)
+│   ├── TerritoryControls.vue # Territory controls with drag hint (125 lines)
 │   └── ui/                   # 24 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
@@ -29,7 +29,7 @@ src/
 │       ├── projections/      # Projection-related components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 9 composition functions (added useViewState)
+├── composables/              # 10 composition functions (includes useTerritoryCursor for drag-to-move)
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -62,22 +62,26 @@ App.vue
 - No business logic (delegates to composables)
 - Uses: useAtlasData, useLoadingState
 
-### MapRenderer.vue (147 lines)
-**Role**: D3 rendering engine
+### MapRenderer.vue (280 lines)
+**Role**: D3 rendering engine with interactive territory dragging
 **Responsibilities**:
 - SVG canvas management
 - D3 projection rendering
 - Territory positioning
-- Uses: useAtlasData, useLoadingState, useProjectionConfig
+- Mouse-based territory dragging (composite-custom mode only)
+- Territory identification via Observable Plot data
+- Visual feedback (hover badge, cursor changes)
+- Uses: useAtlasData, useLoadingState, useProjectionConfig, useTerritoryCursor
 **Tests**: 10 tests covering props, rendering, store integration
 
-### TerritoryControls.vue (119 lines)
+### TerritoryControls.vue (125 lines)
 **Role**: Territory transform controls
 **Responsibilities**:
 - Territory projection selection
 - Translation controls (x, y)
 - Scale controls
 - Reset functionality
+- Drag-to-move hint for user guidance
 - Uses: useTerritoryTransforms, useTerritoryConfig
 
 ### ProjectionSelector.vue (114 lines)
@@ -187,7 +191,7 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (9 functions)
+## Composables (10 functions)
 
 ### Data Loading
 **useAtlasData** (128 lines)
@@ -225,13 +229,23 @@ App.vue
 - Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
 - Used by: TerritoryControls.vue
 
-**useViewState** (110 lines) - NEW
+**useTerritoryCursor** (162 lines)
+- Mouse-based territory dragging for offset adjustment
+- Drag-to-move functionality in composite-custom mode
+- Tracks dragging state, hovered territory
+- Territory filtering (mainland exclusion)
+- Event management (mousedown, mousemove, mouseup)
+- Returns: { isDragging, draggedTerritory, currentHoveredTerritory, attachListeners, detachListeners }
+- Tests: 4 tests
+- Used by: MapRenderer.vue
+
+**useViewState** (110 lines)
 - View mode boolean flags for template readability
 - Card UI helpers (title, icon)
 - Compound visibility conditions
 - Exports: isCompositeMode, isCompositeCustomMode, isCompositeExistingMode, isSplitMode, isUnifiedMode
 - Exports: cardTitle, cardIcon, shouldShowRightSidebar, shouldShowProjectionParams, shouldShowTerritoryControls
-- Tests: 13 tests (100% passing)
+- Tests: 13 tests
 - Used by: MapView.vue, DisplayOptionsSection.vue
 - Pattern: Wraps configStore.viewMode checks with semantic computed properties
 
