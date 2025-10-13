@@ -169,7 +169,7 @@ describe('presetLoader', () => {
   describe('loadPreset', () => {
     it('should handle fetch errors', async () => {
       // Mock fetch to throw an error
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
 
       const result = await PresetLoader.loadPreset('test-preset')
 
@@ -180,7 +180,7 @@ describe('presetLoader', () => {
 
     it('should handle 404 response', async () => {
       // Mock fetch to return 404
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         statusText: 'Not Found',
       })
@@ -195,7 +195,7 @@ describe('presetLoader', () => {
 
     it('should handle invalid JSON', async () => {
       // Mock fetch to return invalid JSON
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         text: vi.fn().mockResolvedValue('invalid json {'),
       })
@@ -238,7 +238,7 @@ describe('presetLoader', () => {
       }
 
       // Mock fetch to return valid preset
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         text: vi.fn().mockResolvedValue(JSON.stringify(validPreset)),
       })

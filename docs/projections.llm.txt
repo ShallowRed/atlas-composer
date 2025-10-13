@@ -199,6 +199,10 @@ MapRenderer.vue supports interactive mouse panning for projections with rotation
   - Longitude: Wraps between -180° and 180°
   - Latitude: Clamped between -90° and 90° (prevents pole flipping)
 - **Updates**: Changes flow through configStore.setCustomRotate and trigger re-render via effectiveProjectionParams watcher
+- **Latitude Lock**: Latitude rotation locked by default, unlockable via toggle in ProjectionParamsControls
+  - When locked: Mouse panning only affects longitude rotation
+  - When unlocked: Mouse panning affects both longitude and latitude rotation
+  - Lock state stored in configStore.rotateLatitudeLocked
 
 ### Parameter Relevance by Family
 
@@ -206,12 +210,14 @@ Defined in `parameters.ts` - determines which parameters are applicable:
 
 | Family | rotateLon | rotateLat | centerLon | centerLat | parallels |
 |--------|-----------|-----------|-----------|-----------|-----------|
-| `cylindrical` | ✓ | ✓ | - | - | - |
-| `pseudocylindrical` | ✓ | ✓ | - | - | - |
+| `cylindrical` | ✓ | ✓* | - | - | - |
+| `pseudocylindrical` | ✓ | ✓* | - | - | - |
 | `conic` | ✓ | - | ✓ | ✓ | ✓ |
-| `azimuthal` | ✓ | ✓ | - | - | - |
-| `polyhedral` | ✓ | ✓ | - | - | - |
+| `azimuthal` | ✓ | ✓* | - | - | - |
+| `polyhedral` | ✓ | ✓* | - | - | - |
 | `composite` | - | - | - | - | - |
+
+*✓ = Available but controlled by latitude lock (rotateLatitudeLocked in configStore)*
 
 **Rules**:
 - Conic: Uses `centerLongitude` + `centerLatitude` + `parallels` (rotation merged into center in UI)

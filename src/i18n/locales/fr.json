@@ -125,6 +125,8 @@
     "title": "Paramètres de projection",
     "rotateLongitude": "Rotation longitude",
     "rotateLatitude": "Rotation latitude",
+    "unlockLatitude": "Déverrouiller la rotation latitude",
+    "lockLatitude": "Verrouiller la rotation latitude",
     "centerLongitude": "Centre longitude",
     "centerLatitude": "Centre latitude",
     "parallel1": "Parallèle standard 1",

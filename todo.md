@@ -1,5 +1,2 @@
-- lock Rotation latitude on projections (by defaults: render but disable the slider, prevent latitude pan with move), allow unlocking it with a toggle
-- sliders to setup composite map width and height
-- sliders to setup projection params in custom composite
-- fix individual projection params in custom composite
+- improve test coverage (in both direction, make sure we don't miss anything, and remove useless tests)
 - new feature : add a zoomed inset in composition

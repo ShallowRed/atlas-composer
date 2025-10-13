@@ -29,6 +29,9 @@ export const useConfigStore = defineStore('config', () => {
   const customParallel2 = ref<number | null>(null)
   const customScale = ref<number | null>(null)
 
+  // Projection control options
+  const rotateLatitudeLocked = ref<boolean>(true) // Default to locked
+
   // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
   const projectionFittingMode = ref<'auto' | 'manual'>('auto')
 
@@ -270,6 +273,10 @@ export const useConfigStore = defineStore('config', () => {
     projectionFittingMode.value = mode
   }
 
+  const setRotateLatitudeLocked = (locked: boolean) => {
+    rotateLatitudeLocked.value = locked
+  }
+
   const resetProjectionParams = () => {
     customRotateLongitude.value = null
     customRotateLatitude.value = null
@@ -278,6 +285,7 @@ export const useConfigStore = defineStore('config', () => {
     customParallel1.value = null
     customParallel2.value = null
     customScale.value = null
+    rotateLatitudeLocked.value = true // Reset to locked state
   }
 
   const initializeTheme = () => {
@@ -325,6 +333,7 @@ export const useConfigStore = defineStore('config', () => {
     customParallel1,
     customParallel2,
     customScale,
+    rotateLatitudeLocked,
     projectionFittingMode,
 
     // Computed
@@ -354,6 +363,7 @@ export const useConfigStore = defineStore('config', () => {
     setCustomParallels,
     setCustomScale,
     setProjectionFittingMode,
+    setRotateLatitudeLocked,
     resetProjectionParams,
     initializeTheme,
   }

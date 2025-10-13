@@ -196,7 +196,7 @@ describe('compositeProjection - invert/forward chain', () => {
       // with different territory translation offsets
       const guianaGeo = [-53, 4] as [number, number] // French Guiana center
 
-      // First: Set offset to [0, 0] and get screen position  
+      // First: Set offset to [0, 0] and get screen position
       compositeProjection.updateTranslationOffset('FR-GF', [0, 0])
       const projection1 = compositeProjection.build(800, 600, true)
       const screen1 = projection1(guianaGeo)

@@ -90,6 +90,20 @@ const supportsPanning = computed(() => {
   return relevantParams.rotateLongitude
 })
 
+// Check if current projection supports latitude panning (rotateLatitude and not locked)
+const supportsLatitudePanning = computed(() => {
+  const projectionId = props.projection ?? configStore.selectedProjection
+  if (!projectionId)
+    return false
+
+  const projection = projectionRegistry.get(projectionId as string)
+  if (!projection)
+    return false
+
+  const relevantParams = getRelevantParameters(projection.family)
+  return relevantParams.rotateLatitude && !configStore.rotateLatitudeLocked
+})
+
 // Get current cursor style based on territory dragging and projection panning
 const cursorStyle = computed(() => {
   // Territory dragging takes precedence
@@ -404,7 +418,7 @@ function handleMouseMove(event: MouseEvent) {
   // Y-axis: Negative dy means dragging up, which should rotate map down (decrease latitude)
   // Scale factor: ~0.5 degrees per pixel for smooth interaction
   const lonDelta = -dx * 0.5
-  const latDelta = -dy * 0.5
+  const latDelta = supportsLatitudePanning.value ? -dy * 0.5 : 0
 
   const newRotationLon = panStartRotationLon.value + lonDelta
   const newRotationLat = panStartRotationLat.value + latDelta

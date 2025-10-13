@@ -83,6 +83,10 @@ App.vue
 - Automatically determines panning support based on projection family (via getRelevantParameters)
 - Cursor changes to 'grab' when panning available, 'grabbing' while dragging
 - Works with azimuthal, cylindrical, pseudocylindrical, and polyhedral projection families
+- **Latitude Lock**: Respects configStore.rotateLatitudeLocked state
+  - When locked: Only longitude panning (latDelta = 0)
+  - When unlocked: Full 2-axis panning
+  - Uses supportsLatitudePanning computed for conditional logic
 
 ### TerritoryControls.vue (119 lines)
 **Role**: Territory transform controls
@@ -173,7 +177,7 @@ App.vue
   - Supports loading skeleton state
   - Automatically transforms recommendation badges with CSS classes (text-success, text-info, text-base-content)
 - **ProjectionInfo**: Projection information display
-- **ProjectionParamsControls**: Projection parameter adjustment controls
+- **ProjectionParamsControls**: Projection parameter adjustment controls with latitude lock toggle
 
 **Import Components** (src/components/ui/import/):
 - **ImportControls**: Import and export control buttons
@@ -299,6 +303,7 @@ App.vue
 - View mode (composite, split, unified)
 - Projection mode (existing, custom)
 - Projection parameters (custom overrides)
+- Projection control options (rotateLatitudeLocked)
 - Computed properties: effective parameters with priority resolution
 **Used by**: All configuration components, MapRenderer, TerritoryControls
 
