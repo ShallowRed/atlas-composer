@@ -214,6 +214,7 @@ async function renderMap() {
           width,
           height,
           customComposite: cartographer.value?.customComposite,
+          isMainland: props.isMainland,
         },
       )
     }

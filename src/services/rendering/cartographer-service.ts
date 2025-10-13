@@ -5,6 +5,7 @@ import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
+import { InsetCalculator } from './inset-calculator'
 // Unified rendering options
 export interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -229,7 +230,8 @@ export class Cartographer {
       }
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule, showSphere)
+    const inset = InsetCalculator.calculateInset('composite-existing')
+    return this.createPlot(rawData, projectionFn, width, height, inset, showGraticule, showSphere)
   }
 
   /**
@@ -255,7 +257,8 @@ export class Cartographer {
       return this.customComposite!.build(w, h, true)
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule, showSphere)
+    const inset = InsetCalculator.calculateInset('composite-custom')
+    return this.createPlot(rawData, projectionFn, width, height, inset, showGraticule, showSphere)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {

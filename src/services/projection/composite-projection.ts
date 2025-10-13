@@ -543,14 +543,19 @@ export class CompositeProjection {
 
   /**
    * Get composition borders for visualization
+   *
+   * Note: The sub-projections have already been built with translate() applied,
+   * so the projected coordinates already include baseTranslate + translateOffset.
+   * We should NOT add them again here.
+   *
+   * @param _width - Unused, kept for API compatibility
+   * @param _height - Unused, kept for API compatibility
    */
-  getCompositionBorders(width = 800, height = 600): Array<{
+  getCompositionBorders(_width = 800, _height = 600): Array<{
     territoryCode: string
     territoryName: string
     bounds: [[number, number], [number, number]]
   }> {
-    const baseTranslate: [number, number] = [width / 2, height / 2]
-
     // Get primary/member code(s) to exclude from borders
     const mainlandCodes = this.config.type === 'single-focus'
       ? [this.config.mainland.code]
@@ -564,7 +569,8 @@ export class CompositeProjection {
 
         const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
-        // Project all corners
+        // Project all corners - the projection already has translate() applied
+        // so these coordinates are in the final screen space
         const topLeft = subProj.projection([minLon, maxLat])
         const bottomRight = subProj.projection([maxLon, minLat])
 
@@ -575,14 +581,8 @@ export class CompositeProjection {
           territoryCode: subProj.territoryCode,
           territoryName: subProj.territoryName,
           bounds: [
-            [
-              topLeft[0] + baseTranslate[0] + subProj.translateOffset[0],
-              topLeft[1] + baseTranslate[1] + subProj.translateOffset[1],
-            ],
-            [
-              bottomRight[0] + baseTranslate[0] + subProj.translateOffset[0],
-              bottomRight[1] + baseTranslate[1] + subProj.translateOffset[1],
-            ],
+            topLeft as [number, number],
+            bottomRight as [number, number],
           ] as [[number, number], [number, number]],
         }
       })

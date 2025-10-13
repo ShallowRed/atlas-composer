@@ -24,6 +24,8 @@ export interface OverlayConfig {
   width: number
   height: number
   customComposite?: CompositeProjection | null
+  inset: number
+  isMainland?: boolean
 }
 
 /**
@@ -222,9 +224,8 @@ export class MapOverlayService {
       .attr('class', 'map-overlays')
       .attr('pointer-events', 'none')
 
-    // Determine inset based on view mode (composite maps use 20px inset, simple maps vary)
-    const inset = config.viewMode === 'individual' ? 0 : 20
-    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(config.width, config.height, inset) : null
+    // Use inset from config (calculated by InsetCalculator in coordinator)
+    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(config.width, config.height, config.inset) : null
     let mapBounds: Rect | null = null
 
     // Render composition borders
@@ -293,10 +294,9 @@ export class MapOverlayService {
       return null
     }
 
-    // Plot applies a 20px inset for composite maps, account for this in border path
-    const inset = 20
-    const adjustedWidth = config.width - 2 * inset
-    const adjustedHeight = config.height - 2 * inset
+    // Use inset from config (calculated by InsetCalculator in coordinator)
+    const adjustedWidth = config.width - 2 * config.inset
+    const adjustedHeight = config.height - 2 * config.inset
 
     const pathData = this.createCompositeBorderPath(
       overlayProjectionId,
@@ -319,7 +319,7 @@ export class MapOverlayService {
       .attr('stroke-dasharray', '8 4')
       .attr('stroke-linejoin', 'round')
       .attr('opacity', '0.5')
-      .attr('transform', `translate(${inset}, ${inset})`)
+      .attr('transform', `translate(${config.inset}, ${config.inset})`)
 
     // Try to get bbox for map limits calculation
     try {
