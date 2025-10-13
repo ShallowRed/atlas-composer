@@ -13,7 +13,7 @@ Atlases are organized into three categories for UI grouping:
 
 | Category | Description | Examples |
 |----------|-------------|----------|
-| `country` | Individual nation-states | France, Portugal, Spain, USA |
+| `country` | Individual nation-states | France, Portugal, Spain, USA, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark |
 | `region` | Regional groups, unions, alliances | European Union |
 | `world` | Global/world atlases | World |
 
@@ -44,7 +44,7 @@ src/public/data/
 
 ### Pattern 1: Single-Focus (1 Primary + N Secondary)
 **Pattern ID**: `single-focus`
-**Examples**: France, Portugal, Netherlands, USA
+**Examples**: France, Portugal, Netherlands, USA, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark
 **Structure**: Single primary territory + multiple secondary territories
 
 ```json
@@ -258,11 +258,45 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
+| `defaultPreset` | ⏩ | Default preset file to load (e.g., 'france-default') |
+| `availablePresets` | ⏩ | List of preset files for UI selector |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
 | `modes` | ⏩ | Territory selection presets |
 | `groups` | ⏩ | Territory groupings |
+
+## Preset System
+
+**Purpose**: Provide high-quality default territory positioning for composite-custom mode
+
+**Location**: `configs/presets/` directory
+
+**Format**: ExportedCompositeConfig JSON (same as export/import format)
+
+**Workflow**:
+1. Atlas references preset via `defaultPreset` field (e.g., "france-default")
+2. PresetLoader loads preset from `configs/presets/{preset-id}.json`
+3. Preset provides default projections, translations, and scales for territories
+4. Applied automatically on atlas initialization in composite-custom mode
+
+**Benefits**:
+- Users get professional defaults without manual adjustment
+- Consistent layouts across sessions
+- Easier onboarding for new users
+- Presets can be shared and versioned
+
+**Configuration**:
+```json
+{
+  "defaultPreset": "france-default",
+  "availablePresets": ["france-default", "france-compact"]
+}
+```
+
+**Creating Presets**:
+Presets are created by exporting manually-adjusted compositions from the running application.
+See `configs/presets/README.md` for detailed instructions.
 
 ## Auto-Discovery Flow
 
@@ -277,3 +311,4 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 - `add-new-atlas.llm.txt` - Step-by-step guide for adding new atlas
 - `projections.llm.txt` - Projection system reference
 - `scripts.llm.txt` - CLI tools for geodata preparation
+- `export.llm.txt` - Export system and preset creation

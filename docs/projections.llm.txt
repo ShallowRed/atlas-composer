@@ -89,7 +89,7 @@ src/core/projections/
 - `azimuthal` - Best for polar regions (60°+): Stereographic, Azimuthal Equal Area, Orthographic
 - `cylindrical` - Best for equatorial (±30°): Mercator, Equirectangular
 - `world` - Best for global maps: Natural Earth, Robinson, Mollweide
-- `composite` - Multi-projection layouts: France, Portugal, EU
+- `composite` - Multi-projection layouts: France, Portugal, Spain, USA, EU, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark
 
 ## Recommendation System
 
@@ -152,7 +152,17 @@ interface ProjectionFilterContext {
 
 - **France**: `conic-conformal-france` (composite), `conic-conformal`, `albers`
 - **Portugal**: `conic-conformal-portugal` (composite), `conic-conformal`, `mercator`
+- **Spain**: `conic-conformal-spain` (composite), `conic-conformal`, `albers`
+- **USA**: `albers-usa` (composite), `albers-usa-territories` (composite), `albers`, `conic-conformal`
 - **EU**: `conic-conformal-europe` (composite), `conic-conformal`, `albers`
+- **Netherlands**: `conic-conformal-netherlands` (composite), `conic-conformal`, `mercator`
+- **Japan**: `conic-equidistant-japan` (composite), `conic-conformal`, `conic-equal-area`
+- **Ecuador**: `mercator-ecuador` (composite), `mercator`, `equirectangular`
+- **Chile**: `transverse-mercator-chile` (composite), `transverse-mercator`, `mercator`
+- **Malaysia**: `mercator-malaysia` (composite), `mercator`, `equirectangular`
+- **Equatorial Guinea**: `mercator-equatorial-guinea` (composite), `mercator`, `equirectangular`
+- **United Kingdom**: `albers-uk` (composite), `albers`, `conic-conformal`
+- **Denmark**: `transverse-mercator-denmark` (composite), `transverse-mercator`, `conic-conformal`
 
 ## Capabilities Reference
 

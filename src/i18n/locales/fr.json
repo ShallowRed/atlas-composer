@@ -154,6 +154,10 @@
     "copied": "Copié !",
     "error": "Échec de la copie"
   },
+  "presets": {
+    "label": "Disposition prédéfinie",
+    "loading": "Chargement du preset..."
+  },
   "export": {
     "title": "Exporter la Projection Composite",
     "formatLabel": "Format d'Export",
@@ -251,6 +255,38 @@
     "albersUsaTerritories": {
       "name": "Albers États-Unis avec Territoires",
       "description": "Projection composite étendue incluant Porto Rico, Îles Vierges américaines, Guam, Samoa américaines et Îles Mariannes du Nord"
+    },
+    "conicConformalNetherlands": {
+      "name": "Conique Conforme Pays-Bas (Composite)",
+      "description": "Projection composite optimisée pour les Pays-Bas, incluant le territoire métropolitain et les territoires caribéens (Bonaire, Saba, Sint Eustatius)"
+    },
+    "conicEquidistantJapan": {
+      "name": "Conique Équidistante Japon (Composite)",
+      "description": "Projection composite optimisée pour le Japon, incluant Honshu, Hokkaido, Kyushu et Okinawa"
+    },
+    "mercatorEcuador": {
+      "name": "Mercator Équateur (Composite)",
+      "description": "Projection composite optimisée pour l'Équateur, incluant le territoire continental et les îles Galápagos"
+    },
+    "transverseMercatorChile": {
+      "name": "Mercator Transverse Chili (Composite)",
+      "description": "Projection composite optimisée pour le Chili, incluant le territoire continental, l'île de Pâques et Juan Fernández"
+    },
+    "mercatorMalaysia": {
+      "name": "Mercator Malaisie (Composite)",
+      "description": "Projection composite optimisée pour la Malaisie, incluant la péninsule malaise et la Malaisie orientale (Bornéo)"
+    },
+    "mercatorEquatorialGuinea": {
+      "name": "Mercator Guinée Équatoriale (Composite)",
+      "description": "Projection composite optimisée pour la Guinée équatoriale, incluant le Río Muni et Bioko"
+    },
+    "albersUk": {
+      "name": "Albers Royaume-Uni (Composite)",
+      "description": "Projection composite optimisée pour le Royaume-Uni, incluant la Grande-Bretagne et les îles Shetland"
+    },
+    "transverseMercatorDenmark": {
+      "name": "Mercator Transverse Danemark (Composite)",
+      "description": "Projection composite optimisée pour le Danemark, incluant le Jutland, la Zélande et Bornholm"
     },
     "conicConformal": {
       "name": "Conique Conforme (Lambert)",

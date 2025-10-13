@@ -49,7 +49,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 3000,
+      defaultScale: 2700,
       referenceWidth: 960, // Configured for 960×500
     },
   },
@@ -333,6 +333,367 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
 }
 
 /**
+ * Conic Conformal Netherlands - Composite projection for Netherlands
+ * Optimized for Netherlands mainland and Caribbean territories
+ */
+export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
+  id: 'conic-conformal-netherlands',
+  name: 'projections.conicConformalNetherlands.name',
+  description: 'projections.conicConformalNetherlands.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'europe' },
+      { territoryType: 'overseas', region: 'americas' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [5.5, 52.2],
+  },
+
+  aliases: ['netherlands-composite', 'composite-netherlands'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 6500,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Conic Equidistant Japan - Composite projection for Japan
+ * Optimized for Japan's main islands including Hokkaido and Okinawa
+ */
+export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
+  id: 'conic-equidistant-japan',
+  name: 'projections.conicEquidistantJapan.name',
+  description: 'projections.conicEquidistantJapan.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['distance'],
+    distorts: ['area', 'angle'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'asia' },
+      { territoryType: 'archipelago', region: 'asia' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [136, 38],
+  },
+
+  aliases: ['japan-composite', 'composite-japan'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 2000,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Mercator Ecuador - Composite projection for Ecuador
+ * Optimized for Ecuador mainland and Galápagos Islands
+ */
+export const MERCATOR_ECUADOR: ProjectionDefinition = {
+  id: 'mercator-ecuador',
+  name: 'projections.mercatorEcuador.name',
+  description: 'projections.mercatorEcuador.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'americas' },
+      { territoryType: 'archipelago', region: 'americas' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [-78.5, -1.5],
+  },
+
+  aliases: ['ecuador-composite', 'composite-ecuador'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 3500,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Transverse Mercator Chile - Composite projection for Chile
+ * Optimized for Chile's long mainland, Easter Island, and Juan Fernández
+ */
+export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
+  id: 'transverse-mercator-chile',
+  name: 'projections.transverseMercatorChile.name',
+  description: 'projections.transverseMercatorChile.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'americas' },
+      { territoryType: 'overseas', region: 'americas' },
+      { territoryType: 'overseas', region: 'oceania' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [-72, -37],
+  },
+
+  aliases: ['chile-composite', 'composite-chile'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 1000,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Mercator Malaysia - Composite projection for Malaysia
+ * Optimized for Peninsular Malaysia and East Malaysia (Borneo)
+ */
+export const MERCATOR_MALAYSIA: ProjectionDefinition = {
+  id: 'mercator-malaysia',
+  name: 'projections.mercatorMalaysia.name',
+  description: 'projections.mercatorMalaysia.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'asia' },
+      { territoryType: 'overseas', region: 'asia' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [112, 4],
+  },
+
+  aliases: ['malaysia-composite', 'composite-malaysia'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 2500,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Mercator Equatorial Guinea - Composite projection for Equatorial Guinea
+ * Optimized for mainland Río Muni and Bioko island
+ */
+export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
+  id: 'mercator-equatorial-guinea',
+  name: 'projections.mercatorEquatorialGuinea.name',
+  description: 'projections.mercatorEquatorialGuinea.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'africa' },
+      { territoryType: 'overseas', region: 'africa' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [10, 1.5],
+  },
+
+  aliases: ['equatorial-guinea-composite', 'composite-equatorial-guinea'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 7000,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Albers UK - Composite projection for United Kingdom
+ * Optimized for Great Britain and Shetland Islands
+ */
+export const ALBERS_UK: ProjectionDefinition = {
+  id: 'albers-uk',
+  name: 'projections.albersUk.name',
+  description: 'projections.albersUk.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['area'],
+    distorts: ['angle', 'distance'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'europe' },
+      { territoryType: 'archipelago', region: 'europe' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [-2, 55.4],
+  },
+
+  aliases: ['uk-composite', 'composite-uk', 'united-kingdom-composite'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 4500,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
+ * Transverse Mercator Denmark - Composite projection for Denmark
+ * Optimized for Jutland, Zealand, and Bornholm
+ */
+export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
+  id: 'transverse-mercator-denmark',
+  name: 'projections.transverseMercatorDenmark.name',
+  description: 'projections.transverseMercatorDenmark.description',
+  category: ProjectionCategory.COMPOSITE,
+  family: ProjectionFamily.COMPOSITE,
+  strategy: ProjectionStrategy.D3_COMPOSITE,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: false,
+    supportsSplit: true,
+    supportsUnified: true,
+    isInterrupted: false,
+  },
+
+  suitability: {
+    excellent: [
+      { territoryType: 'mainland', region: 'europe' },
+      { territoryType: 'archipelago', region: 'europe' },
+    ],
+  },
+
+  defaultParameters: {
+    center: [10.5, 56],
+  },
+
+  aliases: ['denmark-composite', 'composite-denmark'],
+
+  metadata: {
+    infoUrl: 'https://github.com/rveciana/d3-composite-projections',
+    experimental: false,
+    requiresCustomFit: true,
+    customFit: {
+      defaultScale: 6000,
+      referenceWidth: 960,
+    },
+  },
+}
+
+/**
  * Array of all composite projection definitions
  */
 export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
@@ -343,4 +704,12 @@ export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   ALBERS_USA,
   ALBERS_USA_COMPOSITE,
   ALBERS_USA_TERRITORIES,
+  CONIC_CONFORMAL_NETHERLANDS,
+  CONIC_EQUIDISTANT_JAPAN,
+  MERCATOR_ECUADOR,
+  TRANSVERSE_MERCATOR_CHILE,
+  MERCATOR_MALAYSIA,
+  MERCATOR_EQUATORIAL_GUINEA,
+  ALBERS_UK,
+  TRANSVERSE_MERCATOR_DENMARK,
 ]

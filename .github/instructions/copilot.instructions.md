@@ -1,3 +1,8 @@
+---
+description: Copilot instructions
+applyTo: "**"
+---
+
 # Atlas Composer - Copilot Instructions
 
 ## Project Overview

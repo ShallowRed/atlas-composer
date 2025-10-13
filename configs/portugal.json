@@ -11,6 +11,8 @@
   "compositeProjections": [
     "conic-conformal-portugal"
   ],
+  "defaultPreset": "portugal-default",
+  "availablePresets": ["portugal-default"],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",
@@ -118,11 +120,11 @@
       },
       "rendering": {
         "offset": [
-          400,
-          -200
+          -111,
+          105
         ],
-        "projectionType": "mercator",
-        "scale": 1
+        "projectionType": "conic-conformal",
+        "baseScaleMultiplier": 1.0
       }
     },
     {
@@ -160,11 +162,11 @@
       },
       "rendering": {
         "offset": [
-          -400,
-          -100
+          -189,
+          -84
         ],
-        "projectionType": "mercator",
-        "scale": 1
+        "projectionType": "conic-conformal",
+        "baseScaleMultiplier": 0.6
       }
     }
   ],

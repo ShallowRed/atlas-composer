@@ -112,13 +112,6 @@ export class AtlasService {
   }
 
   /**
-   * Get default composite settings (projections, translations, scales)
-   */
-  getDefaultCompositeSettings() {
-    return this.specificConfig.defaultCompositeConfig
-  }
-
-  /**
    * Get territory by code
    */
   getTerritoryByCode(code: string): TerritoryConfig | undefined {

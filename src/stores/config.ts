@@ -285,8 +285,8 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   // Watch for atlas changes - use AtlasCoordinator for complex orchestration
-  watch(selectedAtlas, (newAtlasId) => {
-    const updates = AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
+  watch(selectedAtlas, async (newAtlasId) => {
+    const updates = await AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
 
     // Apply all updates from coordinator to config store
     viewMode.value = updates.viewMode

@@ -11,6 +11,8 @@
   "compositeProjections": [
     "conic-conformal-spain"
   ],
+  "defaultPreset": "spain-default",
+  "availablePresets": ["spain-default"],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal-spain",
@@ -167,11 +169,11 @@
       },
       "rendering": {
         "offset": [
-          -400,
-          250
+          270,
+          -254
         ],
-        "baseScaleMultiplier": 2.0,
-        "projectionType": "mercator"
+        "baseScaleMultiplier": 1.0,
+        "projectionType": "conic-conformal"
       }
     }
   ]

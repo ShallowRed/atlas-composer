@@ -107,7 +107,9 @@ export class CompositeProjection {
       baseScale: mainlandScale,
       scaleMultiplier: 1.0,
       baseTranslate: [0, 0],
-      clipExtent: null,
+      clipExtent: mainland.clipExtent
+        ? [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
+        : null,
       translateOffset: mainland.offset,
       bounds: mainland.bounds,
     })
@@ -133,7 +135,9 @@ export class CompositeProjection {
         baseScale: territoryScale,
         scaleMultiplier: 1.0, // User adjustments start at 1.0
         baseTranslate: [0, 0],
-        clipExtent: null,
+        clipExtent: territory.clipExtent
+          ? [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]
+          : null,
         translateOffset: territory.offset,
         bounds: territory.bounds,
       })
@@ -187,7 +191,9 @@ export class CompositeProjection {
         baseScale: mainlandScale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
-        clipExtent: null,
+        clipExtent: mainland.clipExtent
+          ? [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
+          : null,
         translateOffset: mainland.offset,
         bounds: mainland.bounds,
       })
@@ -212,7 +218,9 @@ export class CompositeProjection {
         baseScale: territoryScale,
         scaleMultiplier: 1.0,
         baseTranslate: [0, 0],
-        clipExtent: null,
+        clipExtent: territory.clipExtent
+          ? [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]
+          : null,
         translateOffset: territory.offset,
         bounds: territory.bounds,
       })
@@ -415,7 +423,30 @@ export class CompositeProjection {
       ]
       subProj.projection.translate(newTranslate)
 
-      if (subProj.bounds) {
+      // If territory has a predefined clipExtent (from config), use it
+      // This is the case for d3-composite-projections style definitions
+      // Check if predefined clipExtent exists and is valid
+      if (
+        subProj.clipExtent
+        && subProj.clipExtent[0]?.[0] !== undefined
+        && subProj.clipExtent[0]?.[1] !== undefined
+        && subProj.clipExtent[1]?.[0] !== undefined
+        && subProj.clipExtent[1]?.[1] !== undefined
+      ) {
+        const k = subProj.projection.scale()
+        const [x, y] = newTranslate
+        const [[x1, y1], [x2, y2]] = subProj.clipExtent
+
+        // Convert normalized clipExtent to pixel coordinates
+        // clipExtent values are normalized fractions of scale
+        const pixelClipExtent: [[number, number], [number, number]] = [
+          [x + x1 * k, y + y1 * k],
+          [x + x2 * k, y + y2 * k],
+        ]
+        subProj.projection.clipExtent(pixelClipExtent)
+      }
+      // Otherwise, calculate clipExtent from geographic bounds
+      else if (subProj.bounds) {
         const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
         // Project the bounds corners to get clip extent in screen coordinates
@@ -543,14 +574,19 @@ export class CompositeProjection {
 
   /**
    * Get composition borders for visualization
+   *
+   * Note: The sub-projections have already been built with translate() applied,
+   * so the projected coordinates already include baseTranslate + translateOffset.
+   * We should NOT add them again here.
+   *
+   * @param _width - Unused, kept for API compatibility
+   * @param _height - Unused, kept for API compatibility
    */
-  getCompositionBorders(width = 800, height = 600): Array<{
+  getCompositionBorders(_width = 800, _height = 600): Array<{
     territoryCode: string
     territoryName: string
     bounds: [[number, number], [number, number]]
   }> {
-    const baseTranslate: [number, number] = [width / 2, height / 2]
-
     // Get primary/member code(s) to exclude from borders
     const mainlandCodes = this.config.type === 'single-focus'
       ? [this.config.mainland.code]
@@ -564,7 +600,8 @@ export class CompositeProjection {
 
         const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
-        // Project all corners
+        // Project all corners - the projection already has translate() applied
+        // so these coordinates are in the final screen space
         const topLeft = subProj.projection([minLon, maxLat])
         const bottomRight = subProj.projection([maxLon, minLat])
 
@@ -575,14 +612,8 @@ export class CompositeProjection {
           territoryCode: subProj.territoryCode,
           territoryName: subProj.territoryName,
           bounds: [
-            [
-              topLeft[0] + baseTranslate[0] + subProj.translateOffset[0],
-              topLeft[1] + baseTranslate[1] + subProj.translateOffset[1],
-            ],
-            [
-              bottomRight[0] + baseTranslate[0] + subProj.translateOffset[0],
-              bottomRight[1] + baseTranslate[1] + subProj.translateOffset[1],
-            ],
+            topLeft as [number, number],
+            bottomRight as [number, number],
           ] as [[number, number], [number, number]],
         }
       })

@@ -1,0 +1,108 @@
+{
+  "$schema": "./schema.json",
+  "id": "japan",
+  "name": {
+    "en": "Japan",
+    "fr": "Japon"
+  },
+  "description": {
+    "en": "Japan (Honshu, Hokkaido, Kyushu, Okinawa)",
+    "fr": "Japon (Honshu, Hokkaido, Kyushu, Okinawa)"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "japan-territories-50m.json",
+    "metadata": "japan-metadata-50m.json"
+  },
+  "compositeProjections": [
+    "conic-equidistant-japan"
+  ],
+  "projectionPreferences": {
+    "recommended": [
+      "conic-equidistant-japan",
+      "conic-equidistant",
+      "mercator"
+    ],
+    "default": {
+      "mainland": "conic-equidistant",
+      "overseas": "conic-equidistant"
+    },
+    "prohibited": [
+      "gnomonic",
+      "orthographic"
+    ]
+  },
+  "metadata": {
+    "naturalEarthIds": [392],
+    "iso3": "JPN",
+    "region": "East Asia"
+  },
+  "projection": {
+    "center": {
+      "longitude": 136,
+      "latitude": 38
+    },
+    "rotate": {
+      "mainland": [-136, 22],
+      "azimuthal": [-136, -38]
+    },
+    "parallels": {
+      "conic": [34, 40]
+    }
+  },
+  "territories": [
+    {
+      "id": "392",
+      "role": "primary",
+      "code": "JP-HON",
+      "name": "Honshu, Shikoku, Kyushu",
+      "iso": "JPN",
+      "center": [136, 36],
+      "bounds": [[129.47, 30.25], [145.82, 41.54]],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [23, 24, 25]
+      },
+      "rendering": {
+        "offset": [0, 0],
+        "projectionType": "conic-equidistant"
+      }
+    },
+    {
+      "id": "392-hokkaido",
+      "role": "secondary",
+      "code": "JP-HOK",
+      "name": "Hokkaido",
+      "iso": "JPN",
+      "region": "Hokkaido",
+      "center": [143, 43.5],
+      "bounds": [[139.35, 41.38], [145.82, 45.52]],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [22]
+      },
+      "rendering": {
+        "offset": [200, -250],
+        "baseScaleMultiplier": 1.0
+      }
+    },
+    {
+      "id": "392-okinawa",
+      "role": "secondary",
+      "code": "JP-OKI",
+      "name": "Okinawa",
+      "iso": "JPN",
+      "region": "Okinawa",
+      "center": [128, 26.5],
+      "bounds": [[123.70, 24.05], [131.33, 28.52]],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [26, 27, 28, 29, 30, 31, 32]
+      },
+      "rendering": {
+        "offset": [-200, 250],
+        "baseScaleMultiplier": 1.0
+      }
+    }
+  ]
+}

@@ -39,7 +39,6 @@ function buildRegistry(): AtlasRegistry {
 
       // Skip excluded files
       if (excludeFiles.includes(filename)) {
-        console.info(`[Registry] Skipping non-atlas file: ${filename}`)
         continue
       }
 
@@ -53,8 +52,6 @@ function buildRegistry(): AtlasRegistry {
       }
 
       registry[atlasId] = loadAtlasConfig(jsonConfig)
-
-      console.info(`[Registry] Loaded atlas config: ${atlasId}`)
     }
     catch (error) {
       const filename = path.split('/').pop() || path
