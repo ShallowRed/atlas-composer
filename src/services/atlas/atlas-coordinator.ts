@@ -3,6 +3,7 @@ import type { ViewMode } from '@/types'
 import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
+import { PresetLoader } from '@/services/presets/preset-loader'
 
 /**
  * Configuration updates to apply when atlas changes
@@ -35,10 +36,10 @@ export class AtlasCoordinator {
    * @param currentViewMode - Current view mode (to check if supported)
    * @returns Complete configuration updates to apply
    */
-  static handleAtlasChange(
+  static async handleAtlasChange(
     newAtlasId: string,
     currentViewMode: ViewMode,
-  ): AtlasChangeResult {
+  ): Promise<AtlasChangeResult> {
     const config = getAtlasConfig(newAtlasId)
     const specificConfig = getAtlasSpecificConfig(newAtlasId)
     const atlasService = new AtlasService(newAtlasId)
@@ -53,7 +54,31 @@ export class AtlasCoordinator {
 
     // Initialize territory defaults
     const territories = atlasService.getAllTerritories()
-    const finalDefaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
+    let finalDefaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
+
+    // Load preset if available and in composite-custom mode
+    if (config.defaultPreset && viewMode === 'composite-custom') {
+      try {
+        const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
+        if (presetResult.success && presetResult.preset) {
+          // Convert preset to defaults and merge with territory defaults
+          const presetDefaults = PresetLoader.convertToDefaults(presetResult.preset)
+          finalDefaults = {
+            projections: { ...finalDefaults.projections, ...presetDefaults.projections },
+            translations: { ...finalDefaults.translations, ...presetDefaults.translations },
+            scales: { ...finalDefaults.scales, ...presetDefaults.scales },
+          }
+        }
+        else {
+          // Log warning but continue with fallback defaults
+          console.warn(`Failed to load preset '${config.defaultPreset}':`, presetResult.errors)
+        }
+      }
+      catch (error) {
+        // Log error but continue with fallback defaults
+        console.error(`Error loading preset '${config.defaultPreset}':`, error)
+      }
+    }
 
     // Determine composite projection
     const compositeProjection = config.defaultCompositeProjection
@@ -87,7 +112,7 @@ export class AtlasCoordinator {
    *
    * @returns Initial configuration
    */
-  static getInitialConfiguration(): AtlasChangeResult {
+  static async getInitialConfiguration(): Promise<AtlasChangeResult> {
     return this.handleAtlasChange(DEFAULT_ATLAS, getAtlasConfig(DEFAULT_ATLAS).defaultViewMode)
   }
 
