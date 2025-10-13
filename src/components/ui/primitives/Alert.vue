@@ -12,6 +12,7 @@
 
 interface Props {
   type?: 'info' | 'success' | 'warning' | 'error'
+  soft?: boolean
   icon?: string
   size?: 'xs' | 'sm' | 'md'
   dismissible?: boolean
@@ -19,6 +20,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'info',
+  soft: true,
   icon: undefined,
   size: undefined,
   dismissible: false,
@@ -44,8 +46,9 @@ const displayIcon = props.icon || defaultIcons[props.type]
   <div
     class="alert"
     :class="[
-      type && `alert-${type}`,
-      size && `text-${size}`,
+      { 'alert-soft': soft },
+      type ? `alert-${type}` : '',
+      size ? `alert-${size}` : '',
     ]"
   >
     <i

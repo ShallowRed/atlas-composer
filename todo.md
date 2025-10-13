@@ -1,0 +1,2 @@
+- lock Rotation latitude on projections (bu defaults: disable the slider, prevent latitude pan with move), allow unlocking it with a toggle
+- allow local zoom atlas features (e.g. inset maps) in composite mode
