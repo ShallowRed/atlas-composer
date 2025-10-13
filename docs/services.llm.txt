@@ -127,13 +127,19 @@ Instance-based service with region-specific parameters.
 
 ### CompositeProjection
 Custom composite projection with manual territory positioning.
-Instance-based service managing sub-projections.
-- `initialize()` - Initialize sub-projections
-- `setTerritoryProjection()` - Change territory projection
-- `setTerritoryTranslation()` - Set territory position
-- `setTerritoryScale()` - Set territory scale
-- `getProjection()` - Get composite projection function
-- `rebuild()` - Rebuild composite projection
+Instance-based service managing sub-projections in final screen coordinates.
+
+**Core Methods**:
+- `initialize()` - Initialize sub-projections with base settings
+- `build()` - Build composite projection with translate() applied to all sub-projections
+- `updateTerritoryProjection()` - Change territory projection type
+- `updateTranslationOffset()` - Set territory position offset
+- `updateScale()` - Set territory scale multiplier
+- `getCompositionBorders()` - Get projected border rectangles for visualization
+- `exportConfig()` - Export configuration as JSON
+
+**Coordinate Space**:
+Sub-projections have translate() applied during build(), so projected coordinates are in final screen space. The getCompositionBorders() method projects geographic bounds directly without adding additional translation offsets.
 
 ## Export/Import Services (src/services/export/)
 
@@ -259,10 +265,18 @@ Calculate map dimensions with configurable defaults.
 - `calculateSize()` - Calculate map size
 - `calculateProportionalSize()` - Calculate proportional size
 
+### InsetCalculator
+Centralized service for calculating Observable Plot inset values.
+Static methods providing single source of truth for inset calculations:
+- `calculateInset(viewMode, isMainland?)` - Calculate inset for any view mode
+- `calculateSimpleInset(isMainland)` - Calculate inset for simple rendering
+
+**Purpose**: Ensures consistent padding between Observable Plot rendering (graticules, sphere, geography) and overlay rendering (borders, limits). Observable Plot applies inset by adjusting render dimensions and offsetting content.
+
 ### MapOverlayService
 Render map overlays (composition borders and map limits) using D3 selection API.
 Static methods for SVG overlay rendering:
-- `applyOverlays()` - Apply overlays to rendered SVG map
+- `applyOverlays()` - Apply overlays to rendered SVG map (uses inset from config)
 - `computeSceneBBox()` - Compute viewport-based bounding box with insets
 - `boundsToRect()` - Convert projection bounds to SVG rectangle
 - `unionRect()` - Compute union of rectangles for accumulated bounds
@@ -273,7 +287,7 @@ Overlay Features:
 - **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
 - **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
 - Viewport-based bounds calculation using SVG dimensions and insets
-- Inset handling: 20px for composite maps, 0px for individual territory maps
+- Receives inset value from OverlayConfig (calculated by InsetCalculator in coordinator)
 - Automatic overlay group management (removes empty groups)
 
 ### CompositeSettingsBuilder
@@ -286,7 +300,7 @@ Build custom composite settings from configuration.
 Coordinate map rendering by building options and orchestrating services.
 - `renderSimpleMap()` - Render simple territory map
 - `renderCompositeMap()` - Render composite map
-- `applyOverlays()` - Apply overlays to rendered map
+- `applyOverlays()` - Apply overlays to rendered map (calculates inset using InsetCalculator and passes to MapOverlayService)
 
 ### BorderRenderer
 Border rendering strategies for different modes.
@@ -298,8 +312,8 @@ Main rendering coordinator with unified API.
 Instance-based service orchestrating projection, geo-data, and rendering.
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
-- `renderCustomComposite()` - Custom composite rendering
-- `renderProjectionComposite()` - Projection-based composite
+- `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
+- `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
 - `createPlot()` - Common Plot creation logic
 
 ### CartographerFactory
