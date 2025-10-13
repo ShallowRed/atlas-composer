@@ -65,6 +65,9 @@ Where reference_scale is the default scale from d3-composite-projections:
 Atlas-composer offsets are stored in the territory.rendering.offset field in the JSON config,
 which are then copied to territoryTranslations during initialization.
 
+**Territory Dragging**: The useTerritoryCursor composable handles mouse-based territory repositioning by applying reference scale conversion:
+`normalized_mouse_delta = pixel_mouse_delta / reference_scale`. This ensures proper 1:1 cursor-to-territory movement responsiveness.
+
 ### Projection Type
 **d3 → atlas-composer**: Direct string mapping
 - d3: Uses d3-geo projection constructors (conicConformal(), mercator())

@@ -318,13 +318,18 @@ Classes: CustomCompositeBorderRenderer, ExistingCompositeBorderRenderer
 Currently deferred integration, not fully used.
 
 ### CartographerService
-Main rendering coordinator with unified API.
+Main rendering coordinator with unified API and D3.js integration.
 Instance-based service orchestrating projection, geo-data, and rendering.
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
 - `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
 - `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
 - `createPlot()` - Common Plot creation logic
+- `addTerritoryAttributes()` - Static method using D3 selections to add data-territory attributes to SVG paths
+  - Uses D3 pathSelection.each() for efficient DOM traversal
+  - Leverages Observable Plot bound data (__data__) for territory identification
+  - Fallback indexing for edge cases where bound data unavailable
+  - Debug logging for development troubleshooting
 
 ### CartographerFactory
 Factory for creating region-specific Cartographer instances.

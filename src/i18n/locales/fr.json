@@ -84,7 +84,10 @@
     "noTerritories": "Aucun territoire disponible.",
     "checkData": "Vérifiez les données ou changez de région.",
     "adjustPosition": "Ajustez la position et l'échelle des territoires à l'aide des curseurs ci-dessous",
-    "scalePreservation": "Préserver les rapports de taille"
+    "scalePreservation": "Préserver les rapports de taille",
+    "dragToMove": "Glisser pour déplacer",
+    "dragHint": "Faites glisser les territoires sur la carte pour les repositionner, ou utilisez les contrôles ci-dessous pour des ajustements précis",
+    "grabToMove": "Cliquer et glisser pour déplacer le territoire"
   },
   "view": {
     "unified": "Vue unifiée",

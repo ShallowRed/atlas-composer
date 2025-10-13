@@ -276,3 +276,58 @@ export interface ProjectionValidation {
    */
   isSafeProjectionChange: (newProjection: string) => boolean
 }
+
+/**
+ * Return type for useTerritoryCursor composable
+ */
+export interface TerritoryCursor {
+  /**
+   * Whether territory dragging is enabled (composite-custom mode)
+   */
+  isDragEnabled: ComputedRef<boolean>
+
+  /**
+   * Whether a territory is currently being dragged
+   */
+  isDragging: ComputedRef<boolean>
+
+  /**
+   * Code of the territory currently being dragged
+   */
+  dragTerritoryCode: ComputedRef<string | null>
+
+  /**
+   * Code of the territory currently hovered for visual feedback
+   */
+  hoveredTerritoryCode: ComputedRef<string | null>
+
+  /**
+   * Check if a territory can be dragged (excludes mainland)
+   */
+  isTerritoryDraggable: (territoryCode: string) => boolean
+
+  /**
+   * Get cursor style for territory element
+   */
+  getCursorStyle: (territoryCode: string | null) => string
+
+  /**
+   * Handle mouse down on territory element
+   */
+  handleTerritoryMouseDown: (event: MouseEvent) => void
+
+  /**
+   * Handle mouse enter on territory element for hover feedback
+   */
+  handleTerritoryMouseEnter: (event: MouseEvent) => void
+
+  /**
+   * Handle mouse leave on territory element
+   */
+  handleTerritoryMouseLeave: () => void
+
+  /**
+   * Cleanup function to remove event listeners
+   */
+  cleanup: () => void
+}

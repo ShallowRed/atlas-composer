@@ -29,7 +29,7 @@ src/
 │       ├── projections/      # Projection-related components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 9 composition functions (added useViewState)
+├── composables/              # 10 composition functions (added useViewState, useTerritoryCursor)
 ├── stores/                   # 3 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -200,7 +200,7 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (9 functions)
+## Composables (10 functions)
 
 ### Data Loading
 **useAtlasData** (128 lines)
@@ -255,6 +255,20 @@ App.vue
 - getTooltip(): Returns localized recommendation reason
 - getRecommendation(): Returns full recommendation object
 - Used by: ProjectionDropdown.vue
+
+**useTerritoryCursor** (482 lines)
+- Territory drag-to-move functionality for composite-custom mode with D3.js integration
+- D3 DOM manipulation: Uses D3 selections for all SVG element interaction and styling
+- Visual feedback system: updateTerritoryVisualFeedback() with hover/drag states using D3 styling
+- Temporary border creation: createTemporaryBorder() generates borders when composition borders disabled
+- Smart border detection: Detects existing borders vs. creating temporary ones for consistent UX
+- D3-based overlay system: createBorderZoneOverlays() uses D3 data binding for interactive zones
+- Mouse event handling: startDrag(), handleMouseMove(), stopDrag() with proper coordinate transformation
+- Territory validation: isTerritoryDraggable() prevents mainland territory dragging
+- Cursor management: getCursorStyle() provides grab/grabbing feedback
+- Tooltip interference prevention: disableTooltipPointerEvents() using D3 selections and MutationObserver
+- Clean resource management: Automatic cleanup of temporary borders and observers
+- Used by: MapRenderer.vue for territory dragging interaction
 
 **useUrlState** (220 lines)
 - URL state serialization/deserialization for shareable links
