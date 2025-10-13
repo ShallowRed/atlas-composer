@@ -49,7 +49,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 3000,
+      defaultScale: 2700,
       referenceWidth: 960, // Configured for 960×500
     },
   },

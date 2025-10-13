@@ -111,6 +111,12 @@
           0,
           0
         ],
+        "clipExtent": {
+          "x1": -0.0996,
+          "y1": -0.0908,
+          "x2": 0.0967,
+          "y2": 0.0864
+        },
         "projectionType": "conic-conformal",
         "rotate": [
           -3,
