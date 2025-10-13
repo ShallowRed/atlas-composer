@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
@@ -41,6 +42,7 @@ const geoDataStore = useGeoDataStore()
 const territoryStore = useTerritoryStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
+const svgElement = ref<SVGSVGElement>()
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -49,6 +51,34 @@ const isRendering = ref(false)
 
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
+
+// Territory cursor composable for drag-to-move functionality
+const { isDragging, currentHoveredTerritory, attachListeners, detachListeners } = useTerritoryCursor({
+  svgElement,
+  onOffsetChange: (territoryCode: string, deltaX: number, deltaY: number) => {
+    // Get current translation
+    const current = territoryStore.territoryTranslations[territoryCode] || { x: 0, y: 0 }
+
+    // Update with delta
+    territoryStore.setTerritoryTranslation(territoryCode, 'x', current.x + deltaX)
+    territoryStore.setTerritoryTranslation(territoryCode, 'y', current.y + deltaY)
+  },
+  getTerritoryCode: (element: SVGElement) => {
+    // Find the parent path element with data-territory attribute
+    let current: SVGElement | null = element
+    while (current && current.tagName !== 'svg') {
+      if (current.hasAttribute('data-territory')) {
+        return current.getAttribute('data-territory')
+      }
+      current = current.parentElement as SVGElement
+    }
+    return null
+  },
+  isDraggingEnabled: () => {
+    // Only enable dragging in composite-custom mode
+    return props.mode === 'composite' && configStore.viewMode === 'composite-custom'
+  },
+})
 
 // Watch for projection parameter changes and update cartographer
 watch(
@@ -155,6 +185,9 @@ async function renderMap() {
 
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
+      // Store SVG reference for cursor composable
+      svgElement.value = svg
+
       const { width, height } = computedSize.value
       MapRenderCoordinator.applyOverlays(
         svg,
@@ -168,6 +201,16 @@ async function renderMap() {
           customComposite: cartographer.value?.customComposite,
         },
       )
+
+      // Attach territory drag listeners if in composite mode
+      if (props.mode === 'composite' && configStore.viewMode === 'composite-custom') {
+        // Detach old listeners first to avoid duplicates
+        detachListeners()
+        // Add data-territory attributes to paths for territory identification
+        addTerritoryDataAttributes(svg)
+        // Attach new listeners
+        attachListeners()
+      }
     }
   }
   catch (err) {
@@ -204,6 +247,29 @@ async function renderComposite(): Promise<Plot.Plot> {
     territoryTranslations: territoryStore.territoryTranslations,
     territoryScales: territoryStore.territoryScales,
     filteredTerritories: geoDataStore.filteredTerritories,
+  })
+}
+
+/**
+ * Add data-territory attributes to SVG paths for territory identification
+ * This enables the cursor composable to identify which territory is being dragged
+ */
+function addTerritoryDataAttributes(svg: SVGSVGElement) {
+  // Find all path elements in the SVG
+  const paths = svg.querySelectorAll('path')
+
+  paths.forEach((path) => {
+    // Check if this path has a title element (which contains the territory code)
+    const title = path.querySelector('title')
+    if (title && title.textContent) {
+      const territoryCode = title.textContent.trim()
+      // Only add attribute if it's not already present
+      if (!path.hasAttribute('data-territory')) {
+        path.setAttribute('data-territory', territoryCode)
+        // Add cursor style to indicate draggability
+        path.style.cursor = 'grab'
+      }
+    }
   })
 }
 
@@ -247,7 +313,7 @@ watch(() => {
 
 <template>
   <div
-    class="map-renderer"
+    class="map-renderer relative"
     :class="{
       'h-full': props.fullHeight,
       'h-fit': !props.fullHeight,
@@ -257,7 +323,18 @@ watch(() => {
       v-show="!isLoading && !error"
       ref="mapContainer"
       class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
+      :class="{
+        'cursor-grabbing': isDragging,
+      }"
       :style="{ display: isLoading || error ? 'none' : 'flex' }"
     />
+    <!-- Show territory name when hovering in composite-custom mode -->
+    <div
+      v-if="currentHoveredTerritory && props.mode === 'composite' && configStore.viewMode === 'composite-custom'"
+      class="absolute bottom-4 left-4 badge badge-primary badge-lg"
+    >
+      <i class="ri-drag-move-2-line mr-1" />
+      {{ currentHoveredTerritory }}
+    </div>
   </div>
 </template>
