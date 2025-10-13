@@ -256,14 +256,15 @@ App.vue
 - getRecommendation(): Returns full recommendation object
 - Used by: ProjectionDropdown.vue
 
-**useTerritoryCursor** (482 lines)
+**useTerritoryCursor** (477 lines)
 - Territory drag-to-move functionality for composite-custom mode with D3.js integration
+- Pure 1:1 cursor movement: Direct cursor delta to territory translation offset without scaling factors
 - D3 DOM manipulation: Uses D3 selections for all SVG element interaction and styling
 - Visual feedback system: updateTerritoryVisualFeedback() with hover/drag states using D3 styling
 - Temporary border creation: createTemporaryBorder() generates borders when composition borders disabled
 - Smart border detection: Detects existing borders vs. creating temporary ones for consistent UX
 - D3-based overlay system: createBorderZoneOverlays() uses D3 data binding for interactive zones
-- Mouse event handling: startDrag(), handleMouseMove(), stopDrag() with proper coordinate transformation
+- Mouse event handling: startDrag(), handleMouseMove(), stopDrag() with direct coordinate application
 - Territory validation: isTerritoryDraggable() prevents mainland territory dragging
 - Cursor management: getCursorStyle() provides grab/grabbing feedback
 - Tooltip interference prevention: disableTooltipPointerEvents() using D3 selections and MutationObserver

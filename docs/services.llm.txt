@@ -151,6 +151,9 @@ Instance-based service managing sub-projections in final screen coordinates.
 **Coordinate Space**:
 Sub-projections have translate() applied during build(), so projected coordinates are in final screen space. The getCompositionBorders() method projects geographic bounds directly without adding additional translation offsets.
 
+**Invert Method**:
+Uses pure D3 projection.invert() approach without manual coordinate adjustments. Each sub-projection's invert method handles the translate() transformation internally, ensuring accurate coordinate conversion for territory boundary detection.
+
 ## Export/Import Services (src/services/export/)
 
 ### CompositeExportService
