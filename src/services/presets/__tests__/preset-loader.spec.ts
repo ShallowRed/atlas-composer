@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ExportedCompositeConfig } from '@/types/export-config'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PresetLoader } from '../preset-loader'
 
-describe('PresetLoader', () => {
+describe('presetLoader', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks()
