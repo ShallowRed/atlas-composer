@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
+import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
@@ -39,6 +41,11 @@ const {
   resetTransforms,
 } = useTerritoryTransforms()
 
+// Check if presets are available for current atlas
+const hasPresets = computed(() => {
+  return (currentAtlasConfig.value.availablePresets?.length ?? 0) > 0
+})
+
 // Event handlers that call composable functions directly
 function updateTranslationX(territoryCode: string, value: number) {
   setTerritoryTranslation(territoryCode, 'x', value)
@@ -69,6 +76,9 @@ const resetToDefaults = resetTransforms
       v-else
       class="flex flex-col gap-3 mb-8"
     >
+      <!-- Preset Selector (shown when presets are available) -->
+      <PresetSelector v-if="hasPresets" />
+
       <ImportControls />
       <button
         class="btn btn-sm btn-soft"

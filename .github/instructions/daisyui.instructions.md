@@ -1,6 +1,6 @@
 ---
 description: daisyUI 5
-applyTo: "**"
+applyTo: "**/*.{vue,html,js,ts,jsx,tsx}"
 ---
 
 # daisyUI 5

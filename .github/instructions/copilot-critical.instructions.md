@@ -1,3 +1,8 @@
+---
+description: Copilot critical rules checklist
+applyTo: "**"
+---
+
 # Critical Rules Checklist
 
 > **Purpose**: Quick-reference checklist for every task. For detailed workflows, see `copilot.instructions.md`.

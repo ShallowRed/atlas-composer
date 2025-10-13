@@ -154,6 +154,10 @@
     "copied": "Copied!",
     "error": "Failed to copy"
   },
+  "presets": {
+    "label": "Preset layout",
+    "loading": "Loading preset..."
+  },
   "export": {
     "title": "Export composite projection",
     "formatLabel": "Export format",

@@ -154,6 +154,10 @@
     "copied": "Copié !",
     "error": "Échec de la copie"
   },
+  "presets": {
+    "label": "Disposition prédéfinie",
+    "loading": "Chargement du preset..."
+  },
   "export": {
     "title": "Exporter la Projection Composite",
     "formatLabel": "Format d'Export",

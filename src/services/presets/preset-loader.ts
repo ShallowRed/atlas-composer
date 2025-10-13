@@ -11,9 +11,11 @@
  * - List available presets for an atlas
  */
 
-import type { ExportedCompositeConfig } from '@/types/export-config'
-import { CompositeImportService, type ImportResult } from '@/services/export/composite-import-service'
 import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
+import type { ImportResult } from '@/services/export/composite-import-service'
+import type { ExportedCompositeConfig } from '@/types/export-config'
+
+import { CompositeImportService } from '@/services/export/composite-import-service'
 
 export interface PresetLoadResult {
   success: boolean
@@ -38,10 +40,13 @@ export class PresetLoader {
       const baseUrl = import.meta.env.BASE_URL
       const presetPath = `${baseUrl}configs/presets/${presetId}.json`
 
+      console.info(`[PresetLoader] Loading preset from: ${presetPath}`)
+
       // Fetch preset file
       const response = await fetch(presetPath)
 
       if (!response.ok) {
+        console.error(`[PresetLoader] HTTP ${response.status}: ${response.statusText}`)
         return {
           success: false,
           errors: [`Failed to load preset '${presetId}': ${response.statusText}`],
@@ -51,6 +56,7 @@ export class PresetLoader {
 
       // Parse JSON
       const jsonText = await response.text()
+      console.info(`[PresetLoader] Preset file loaded, validating...`)
 
       // Validate using CompositeImportService
       const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)

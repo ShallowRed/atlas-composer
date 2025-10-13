@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset.json",
+  "title": "Atlas Composer Preset Configuration",
+  "description": "JSON schema for composite projection preset files. Presets use the same format as exported configurations.",
+  "type": "object",
+  "required": ["version", "metadata", "pattern", "referenceScale", "territories"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Format version for future compatibility"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["atlasId", "atlasName", "exportDate", "createdWith"],
+      "properties": {
+        "atlasId": {
+          "type": "string",
+          "description": "Source atlas ID (e.g., 'france', 'portugal', 'eu')"
+        },
+        "atlasName": {
+          "type": "string",
+          "description": "Atlas display name"
+        },
+        "exportDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of export"
+        },
+        "createdWith": {
+          "type": "string",
+          "description": "Application version that created the export"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional user notes or description"
+        }
+      }
+    },
+    "pattern": {
+      "type": "string",
+      "enum": ["single-focus", "equal-members"],
+      "description": "Composite pattern type"
+    },
+    "referenceScale": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Reference scale used across all territories"
+    },
+    "territories": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of territory configurations",
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "role", "projectionId", "projectionFamily", "parameters", "layout", "bounds"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}(-[A-Z0-9]+)*$",
+            "description": "Territory code (e.g., 'FR-MET', 'FR-GP')"
+          },
+          "name": {
+            "type": "string",
+            "description": "Territory display name"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["primary", "secondary", "member"],
+            "description": "Role in the composite structure"
+          },
+          "projectionId": {
+            "type": "string",
+            "description": "Projection ID from registry (e.g., 'conic-conformal', 'mercator')"
+          },
+          "projectionFamily": {
+            "type": "string",
+            "description": "Projection family (e.g., 'conic', 'cylindrical', 'azimuthal')"
+          },
+          "parameters": {
+            "type": "object",
+            "required": ["scale", "baseScale", "scaleMultiplier"],
+            "properties": {
+              "center": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Geographic center point [longitude, latitude]"
+              },
+              "rotate": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Rotation angles [lambda, phi, gamma]"
+              },
+              "parallels": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Standard parallels for conic projections [south, north]"
+              },
+              "scale": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Current scale value"
+              },
+              "baseScale": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Base scale before user adjustments"
+              },
+              "scaleMultiplier": {
+                "type": "number",
+                "minimum": 0,
+                "description": "User's scale multiplier (scale = baseScale * scaleMultiplier)"
+              }
+            }
+          },
+          "layout": {
+            "type": "object",
+            "required": ["translateOffset"],
+            "properties": {
+              "translateOffset": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Translation offset [x, y] in pixels from computed position"
+              },
+              "clipExtent": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "number" },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "Clipping extent [[x0, y0], [x1, y1]]"
+                  },
+                  { "type": "null" }
+                ]
+              }
+            }
+          },
+          "bounds": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Geographic bounds [[west, south], [east, north]]"
+          }
+        }
+      }
+    }
+  }
+}
