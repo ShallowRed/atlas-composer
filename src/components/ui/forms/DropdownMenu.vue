@@ -148,7 +148,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     v-if="inline && options && isOpen"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 shadow-lg border border-base-300 gap-2"
+    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 shadow-lg border border-base-300 gap-1"
   >
     <li
       v-for="(option, index) in options"
@@ -170,14 +170,14 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     v-if="inline && optionGroups && isOpen"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-56 shadow-lg border border-base-300 max-h-96 overflow-y-auto gap-2"
+    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-56 shadow-lg border border-base-300 max-h-96 overflow-y-auto gap-1"
   >
     <template
       v-for="group in optionGroups"
       :key="group.key || group.category"
     >
       <li>
-        <h2 class="menu-title flex items-center gap-2">
+        <h2 class="menu-title flex items-center gap-1">
           <i
             v-if="getCategoryIconClass(group)"
             :class="getCategoryIconClass(group)"
@@ -185,7 +185,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
           {{ getCategoryLabel(group) }}
         </h2>
       </li>
-      <ul class="flex flex-col gap-2">
+      <ul class="flex flex-col gap-1">
         <li
           v-for="option in group.options || []"
           :key="option.value"
@@ -222,14 +222,14 @@ function handleKeydown(event: KeyboardEvent, value: string) {
         :key="group.key || group.category"
       >
         <li>
-          <h2 class="menu-title flex items-center gap-2">
+          <h2 class="menu-title flex items-center gap-1">
             <i
               v-if="getCategoryIconClass(group)"
               :class="getCategoryIconClass(group)"
             />
             {{ getCategoryLabel(group) }}
           </h2>
-          <ul class="flex flex-col gap-2">
+          <ul class="flex flex-col gap-1">
             <li
               v-for="option in group.options || []"
               :key="option.value"
@@ -258,7 +258,7 @@ function handleKeydown(event: KeyboardEvent, value: string) {
     <ul
       role="listbox"
       :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] shadow-lg border border-base-300 gap-2"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1000] shadow-lg border border-base-300 gap-1"
       style="position: fixed;"
       :style="menuStyle"
       @click="handleMenuClick"

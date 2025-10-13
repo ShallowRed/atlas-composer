@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
@@ -20,6 +21,7 @@ const RANGES = {
   centerLatitude: { min: -90, max: 90, step: 1, default: 0 },
   parallel1: { min: 0, max: 90, step: 1, default: 30 },
   parallel2: { min: 0, max: 90, step: 1, default: 60 },
+  scale: { min: 100, max: 5000, step: 50, default: 1000 },
 }
 
 // Get current projection definition
@@ -95,6 +97,10 @@ const currentParallel2 = computed(() => {
     ?? RANGES.parallel2.default
 })
 
+const currentScale = computed(() => {
+  return configStore.customScale ?? RANGES.scale.default
+})
+
 // Check if any custom parameters are set
 const hasCustomParams = computed(() => {
   return configStore.customRotateLongitude !== null
@@ -128,6 +134,10 @@ function updateParallel1(value: number) {
 
 function updateParallel2(value: number) {
   configStore.setCustomParallels(currentParallel1.value, value)
+}
+
+function updateScale(value: number) {
+  configStore.setCustomScale(value)
 }
 
 function reset() {
@@ -178,6 +188,14 @@ const { compositeProjectionOptions } = useProjectionConfig()
         <div
           class="flex flex-col gap-4 pt-6"
         >
+          <!-- Fitting Mode Toggle -->
+          <ToggleControl
+            :model-value="configStore.projectionFittingMode === 'manual'"
+            label="Manual Control"
+            icon="ri-settings-3-line"
+            @update:model-value="(value) => configStore.setProjectionFittingMode(value ? 'manual' : 'auto')"
+          />
+
           <button
             class="btn btn-sm btn-soft w-full gap-1 mb-4"
             :disabled="!hasCustomParams"
@@ -240,6 +258,19 @@ const { compositeProjectionOptions } = useProjectionConfig()
             :step="RANGES.centerLatitude.step"
             unit="°"
             @update:model-value="updateCenterLatitude"
+          />
+
+          <!-- Scale (manual mode only) -->
+          <RangeSlider
+            v-if="configStore.projectionFittingMode === 'manual'"
+            :model-value="currentScale"
+            label="Scale"
+            icon="ri-zoom-in-line"
+            size="xs"
+            :min="RANGES.scale.min"
+            :max="RANGES.scale.max"
+            :step="RANGES.scale.step"
+            @update:model-value="updateScale"
           />
 
           <!-- Parallel 1 (for conic projections) -->

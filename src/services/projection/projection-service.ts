@@ -12,6 +12,7 @@ export interface ProjectionOption {
 
 export class ProjectionService {
   private projectionParams: ProjectionParams | null = null
+  private fittingMode: 'auto' | 'manual' = 'auto'
 
   /**
    * Set region-specific projection parameters
@@ -19,6 +20,14 @@ export class ProjectionService {
    */
   setProjectionParams(params: ProjectionParams): void {
     this.projectionParams = params
+  }
+
+  /**
+   * Set projection fitting mode
+   * @param mode - 'auto' for domain fitting, 'manual' for center+scale control
+   */
+  setFittingMode(mode: 'auto' | 'manual'): void {
+    this.fittingMode = mode
   }
 
   /**
@@ -41,14 +50,14 @@ export class ProjectionService {
    * @returns Projection configuration object
    */
   getProjection(type: string, data: any) {
-    const params = this.getParams()
+    const fittingMode = this.fittingMode
+    // CRITICAL: Don't capture params here - access this.projectionParams directly
+    // in the projection function to get latest values
 
-    // Get projection definition from registry
     const definition = projectionRegistry.get(type)
-
     if (!definition) {
-      console.warn(`[ProjectionService] Unknown projection type: ${type}. Falling back to conic-equal-area.`)
-      // Fallback to albers/conic-equal-area for backward compatibility
+      console.error(`[ProjectionService] Projection not found: ${type}`)
+      const params = this.getParams()
       return {
         type: 'conic-equal-area' as const,
         parallels: params.parallels.conic,
@@ -61,6 +70,7 @@ export class ProjectionService {
     if (definition.strategy === ProjectionStrategy.D3_COMPOSITE) {
       const projection = ProjectionFactory.createById(type)
       if (!projection) {
+        const params = this.getParams()
         return {
           type: 'conic-equal-area' as const,
           parallels: params.parallels.conic,
@@ -103,74 +113,84 @@ export class ProjectionService {
       }
     }
 
-    // For D3 builtin projections, check if Plot supports the name directly
+    // For D3 builtin projections, always create a D3 projection function
+    // This gives us full control over parameter application (center, rotate, parallels)
+    // Plot accepts: projection: ({width, height}) => d3Projection
     if (definition.strategy === ProjectionStrategy.D3_BUILTIN) {
-      // Observable Plot built-in projection names (kebab-case)
-      const plotBuiltins = new Set([
-        'equirectangular',
-        'mercator',
-        'transverse-mercator',
-        'equal-earth',
-        'orthographic',
-        'stereographic',
-        'azimuthal-equal-area',
-        'azimuthal-equidistant',
-        'conic-conformal',
-        'conic-equal-area',
-        'conic-equidistant',
-        'albers',
-        'albers-usa',
-        'gnomonic',
-      ])
+      this.getParams()
 
-      // If Plot supports this projection name, use string type
-      if (plotBuiltins.has(definition.id)) {
-        const config: any = {
-          type: definition.id as any,
-          domain: data,
-        }
-
-        // Apply parameters based on projection family
-        if (definition.family === ProjectionFamily.CONIC) {
-          config.parallels = params.parallels.conic
-          config.rotate = params.rotate.mainland
-        }
-        else if (definition.family === ProjectionFamily.AZIMUTHAL) {
-          config.rotate = params.rotate.azimuthal
-        }
-        else if (definition.family === ProjectionFamily.CYLINDRICAL || definition.family === ProjectionFamily.PSEUDOCYLINDRICAL) {
-          config.rotate = [params.rotate.mainland[0], 0, 0]
-        }
-
-        return config
-      }
-
-      // Otherwise, create a D3 projection function for Plot
-      // Plot accepts: projection: ({width, height}) => d3Projection
       const config: any = {
-        type: ({ width: _width, height: _height }: { width: number, height: number }) => {
+        type: ({ width, height }: { width: number, height: number }) => {
+          // CRITICAL: Get fresh params each time the function is called to get latest values
+          const params = this.getParams()
+
+          // Determine parameter strategy based on projection family
+          // D3 projection behavior (from documentation):
+          // - AZIMUTHAL: Primary positioning via rotate(), center() is secondary
+          // - CONIC: Uses both center() AND rotate(), plus parallels()
+          // - CYLINDRICAL/PSEUDOCYLINDRICAL: Primary positioning via rotate()
+          let rotateParams: [number, number] | undefined
+          let centerParams: [number, number] | undefined
+          let parallelsParams: [number, number] | undefined
+
+          if (definition.family === ProjectionFamily.AZIMUTHAL) {
+            // Azimuthal projections: Use rotation for positioning
+            // rotate[0] = longitude rotation (negated for correct direction)
+            // rotate[1] = latitude rotation (negated for correct direction)
+            rotateParams = [-params.rotate.azimuthal[0], -params.rotate.azimuthal[1]]
+            centerParams = undefined // Don't use center for azimuthal
+          }
+          else if (definition.family === ProjectionFamily.CONIC) {
+            // Conic projections behavior depends on fitting mode:
+            // AUTO mode (domain fitting): Use rotate() for positioning (center is overridden by fitExtent)
+            // MANUAL mode: Use center() for positioning directly
+            parallelsParams = params.parallels.conic
+
+            if (fittingMode === 'auto') {
+              // With domain fitting: rotate() controls what's visible
+              // Only use center longitude/latitude (rotation is disabled in UI for conic)
+              const rotateLon = -params.center.longitude
+              const rotateLat = -params.center.latitude
+              rotateParams = [rotateLon, rotateLat]
+              centerParams = undefined // Domain fitting will override center
+            }
+            else {
+              // Manual mode: center() works directly
+              centerParams = [params.center.longitude, params.center.latitude]
+              rotateParams = undefined
+            }
+          }
+          else {
+            // Cylindrical, Pseudocylindrical, Polyhedral: Use rotation
+            rotateParams = [params.rotate.mainland[0], params.rotate.mainland[1]]
+            centerParams = undefined // Don't use center
+          }
+
           const projection = ProjectionFactory.createById(definition.id, {
-            center: [params.center.longitude, params.center.latitude],
-            rotate: params.rotate.mainland,
+            center: centerParams,
+            rotate: rotateParams,
+            parallels: parallelsParams,
           })
 
           if (!projection) {
             throw new Error(`Failed to create projection: ${definition.id}`)
           }
 
-          // Apply parameters based on projection family
-          if (definition.family === ProjectionFamily.CONIC && 'parallels' in projection) {
-            ;(projection as any).parallels(params.parallels.conic)
-            projection.rotate?.(params.rotate.mainland)
-          }
-          else if (definition.family === ProjectionFamily.AZIMUTHAL) {
-            projection.rotate?.(params.rotate.azimuthal)
+          // Apply custom scale and translate in manual mode
+          if (fittingMode === 'manual') {
+            // Center the projection on the canvas
+            projection.translate([width / 2, height / 2])
+
+            if (params.scale) {
+              projection.scale(params.scale)
+            }
           }
 
-          // Let Plot handle fitExtent
+          // Parameters are already applied by the factory
           return projection
         },
-        domain: data,
+        // Use domain for auto-fitting, omit for manual center+scale control
+        domain: fittingMode === 'auto' ? data : undefined,
       }
 
       return config
@@ -178,29 +198,67 @@ export class ProjectionService {
 
     // For D3 extended projections, return factory function
     if (definition.strategy === ProjectionStrategy.D3_EXTENDED) {
-      const projection = ProjectionFactory.createById(type, {
-        center: [params.center.longitude, params.center.latitude],
-        rotate: params.rotate.mainland,
-      })
-
-      if (!projection) {
-        console.error(`[ProjectionService] Failed to create extended projection: ${type}`)
-        return {
-          type: 'conic-equal-area' as const,
-          parallels: params.parallels.conic,
-          rotate: params.rotate.mainland,
-          domain: data,
-        }
-      }
-
       return {
-        type: () => projection,
-        domain: data,
+        type: ({ width, height }: { width: number, height: number }) => {
+          // CRITICAL: Get fresh params each time Plot calls this function
+          const params = this.getParams()
+
+          // Determine parameter strategy based on projection family (same as D3_BUILTIN)
+          let rotateParams: [number, number] | undefined
+          let centerParams: [number, number] | undefined
+          let parallelsParams: [number, number] | undefined
+
+          if (definition.family === ProjectionFamily.AZIMUTHAL) {
+            rotateParams = [-params.rotate.azimuthal[0], -params.rotate.azimuthal[1]]
+            centerParams = undefined
+          }
+          else if (definition.family === ProjectionFamily.CONIC) {
+            parallelsParams = params.parallels.conic
+            if (fittingMode === 'auto') {
+              rotateParams = [-params.center.longitude, -params.center.latitude]
+              centerParams = undefined
+            }
+            else {
+              centerParams = [params.center.longitude, params.center.latitude]
+              rotateParams = undefined
+            }
+          }
+          else {
+            rotateParams = [params.rotate.mainland[0], params.rotate.mainland[1]]
+            centerParams = undefined
+          }
+
+          const projection = ProjectionFactory.createById(type, {
+            center: centerParams,
+            rotate: rotateParams,
+            parallels: parallelsParams,
+          })
+
+          if (!projection) {
+            console.error(`[ProjectionService] Failed to create extended projection: ${type}`)
+            throw new Error(`Failed to create extended projection: ${type}`)
+          }
+
+          // Apply custom scale and translate in manual mode
+          if (fittingMode === 'manual') {
+            // Center the projection on the canvas
+            projection.translate([width / 2, height / 2])
+
+            if (params.scale) {
+              projection.scale(params.scale)
+            }
+          }
+
+          return projection
+        },
+        // Use domain for auto-fitting, omit for manual center+scale control
+        domain: fittingMode === 'auto' ? data : undefined,
       }
     }
 
     // Should never reach here, but fallback just in case
     console.warn(`[ProjectionService] Unknown projection strategy for ${type}. Falling back to conic-equal-area.`)
+    const params = this.getParams()
     return {
       type: 'conic-equal-area' as const,
       parallels: params.parallels.conic,

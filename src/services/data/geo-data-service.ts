@@ -186,8 +186,6 @@ export class GeoDataService {
 
       this.territoryData.set(territory.code, territoryData)
     }
-
-    console.log(`[GeoDataService] Loaded ${this.territoryData.size} territories`)
   }
 
   /**

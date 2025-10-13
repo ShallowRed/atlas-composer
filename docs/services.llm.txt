@@ -112,10 +112,18 @@ Projection grouping and UI visibility logic.
 Projection creation and management using factory/registry pattern.
 Instance-based service with region-specific parameters.
 - `setProjectionParams()` - Set region parameters
-- `getProjection()` - Create projection using factory
+- `setFittingMode()` - Set auto or manual fitting mode
+- `getProjection()` - Create projection using factory with dynamic parameter application
 - `getAvailableProjections()` - Get filtered projections
 - `groupProjectionsByCategory()` - Group projections
 - `recommendProjection()` - Get projection recommendation
+
+**Parameter Application Strategy**:
+- Azimuthal projections: Uses rotation parameters for positioning
+- Conic projections: Uses center (as rotation) in auto mode, direct center in manual mode
+- Cylindrical/Pseudocylindrical: Uses rotation parameters
+- Domain fitting (auto mode): Observable Plot's `fitExtent` calculates scale automatically
+- Manual mode: User controls scale and center directly
 
 ### CompositeProjection
 Custom composite projection with manual territory positioning.

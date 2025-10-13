@@ -27,6 +27,10 @@ export const useConfigStore = defineStore('config', () => {
   const customCenterLatitude = ref<number | null>(null)
   const customParallel1 = ref<number | null>(null)
   const customParallel2 = ref<number | null>(null)
+  const customScale = ref<number | null>(null)
+
+  // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
+  const projectionFittingMode = ref<'auto' | 'manual'>('auto')
 
   // Initialize selectedProjection from the default atlas's projection preferences or mainland
   const getInitialProjection = () => {
@@ -159,7 +163,10 @@ export const useConfigStore = defineStore('config', () => {
             customRotateLongitude.value ?? defaultParams.rotate.mainland[0],
             customRotateLatitude.value ?? defaultParams.rotate.mainland[1],
           ] as [number, number],
-          azimuthal: defaultParams.rotate.azimuthal,
+          azimuthal: [
+            customRotateLongitude.value ?? defaultParams.rotate.azimuthal[0],
+            customRotateLatitude.value ?? defaultParams.rotate.azimuthal[1],
+          ] as [number, number],
         },
         parallels: {
           conic: [
@@ -168,7 +175,6 @@ export const useConfigStore = defineStore('config', () => {
           ] as [number, number],
         },
       }
-      console.log('[ConfigStore] No atlas params, using defaults with custom overrides:', result)
       return result
     }
 
@@ -179,7 +185,12 @@ export const useConfigStore = defineStore('config', () => {
         ? [atlasParams.rotate.mainland, 0]
         : [0, 0]
 
-    return {
+    // Extract azimuthal rotate values safely
+    const azimuthalRotate = Array.isArray(atlasParams.rotate?.azimuthal)
+      ? atlasParams.rotate.azimuthal
+      : [0, 0]
+
+    const result = {
       center: {
         longitude: customCenterLongitude.value ?? atlasParams.center?.longitude ?? 0,
         latitude: customCenterLatitude.value ?? atlasParams.center?.latitude ?? 0,
@@ -189,7 +200,10 @@ export const useConfigStore = defineStore('config', () => {
           customRotateLongitude.value ?? mainlandRotate[0],
           customRotateLatitude.value ?? mainlandRotate[1],
         ] as [number, number],
-        azimuthal: atlasParams.rotate?.azimuthal ?? [0, 0], // Keep azimuthal unchanged
+        azimuthal: [
+          customRotateLongitude.value ?? azimuthalRotate[0],
+          customRotateLatitude.value ?? azimuthalRotate[1],
+        ] as [number, number],
       },
       parallels: {
         conic: [
@@ -197,7 +211,10 @@ export const useConfigStore = defineStore('config', () => {
           customParallel2.value ?? atlasParams.parallels?.conic?.[1] ?? 60,
         ] as [number, number],
       },
+      scale: customScale.value ?? undefined,
     }
+
+    return result
   })
 
   // Actions
@@ -231,13 +248,11 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const setCustomRotate = (longitude: number | null, latitude: number | null) => {
-    console.log('[ConfigStore] setCustomRotate:', longitude, latitude)
     customRotateLongitude.value = longitude
     customRotateLatitude.value = latitude
   }
 
   const setCustomCenter = (longitude: number | null, latitude: number | null) => {
-    console.log('[ConfigStore] setCustomCenter:', longitude, latitude)
     customCenterLongitude.value = longitude
     customCenterLatitude.value = latitude
   }
@@ -247,6 +262,14 @@ export const useConfigStore = defineStore('config', () => {
     customParallel2.value = parallel2
   }
 
+  const setCustomScale = (scale: number | null) => {
+    customScale.value = scale
+  }
+
+  const setProjectionFittingMode = (mode: 'auto' | 'manual') => {
+    projectionFittingMode.value = mode
+  }
+
   const resetProjectionParams = () => {
     customRotateLongitude.value = null
     customRotateLatitude.value = null
@@ -254,6 +277,7 @@ export const useConfigStore = defineStore('config', () => {
     customCenterLatitude.value = null
     customParallel1.value = null
     customParallel2.value = null
+    customScale.value = null
   }
 
   const initializeTheme = () => {
@@ -300,6 +324,8 @@ export const useConfigStore = defineStore('config', () => {
     customCenterLatitude,
     customParallel1,
     customParallel2,
+    customScale,
+    projectionFittingMode,
 
     // Computed
     atlasService,
@@ -326,6 +352,8 @@ export const useConfigStore = defineStore('config', () => {
     setCustomRotate,
     setCustomCenter,
     setCustomParallels,
+    setCustomScale,
+    setProjectionFittingMode,
     resetProjectionParams,
     initializeTheme,
   }
