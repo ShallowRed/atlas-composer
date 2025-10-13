@@ -11,7 +11,8 @@
   "compositeProjections": [
     "conic-conformal-spain"
   ],
-
+  "defaultPreset": "spain-default",
+  "availablePresets": ["spain-default"],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal-spain",

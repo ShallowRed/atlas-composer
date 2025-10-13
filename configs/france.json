@@ -17,7 +17,8 @@
   "compositeProjections": [
     "conic-conformal-france"
   ],
-
+  "defaultPreset": "france-default",
+  "availablePresets": ["france-default"],
   "projectionPreferences": {
     "recommended": [
       "conic-conformal",
