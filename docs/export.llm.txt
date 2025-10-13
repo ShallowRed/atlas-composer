@@ -5,6 +5,7 @@ The export system enables users to use their custom composite projections outsid
 - **JSON Export** - Configuration data for import/backup/version control
 - **Code Export** - Ready-to-use code in D3.js (JS/TS) or Observable Plot
 - **NPM Package** - `@atlas-composer/projection-loader` for runtime loading
+- **Preset Creation** - Export configurations as presets for default atlas layouts
 
 ## Architecture
 
@@ -246,11 +247,39 @@ Coordinates the export pipeline:
 - Uses `useToast` composable for notifications
 - Integrates with `uiStore` for modal state
 
+## Preset Creation Workflow
+
+Presets provide high-quality default layouts for atlases. The export system is used to create presets:
+
+### Process
+1. **Manual Adjustment** - User adjusts territory positions, projections, and scales in composite-custom mode
+2. **Export Configuration** - User exports via Export Configuration dialog (JSON format)
+3. **Save as Preset** - Exported JSON is saved to `configs/presets/{atlas-id}-{variant}.json`
+4. **Validate** - Preset is validated against `configs/presets/schema.json`
+5. **Configure Atlas** - Atlas config references preset via `defaultPreset` field
+6. **Auto-Load** - Preset loads automatically when atlas is selected
+
+### Preset Format
+Presets use the ExportedCompositeConfig format:
+- Same structure as exported configurations
+- Validated by CompositeImportService
+- Loaded by PresetLoader service
+- Applied to stores on atlas initialization
+
+### Benefits
+- Consistent default layouts across sessions
+- Professional starting points for users
+- Sharable and version-controlled
+- No code changes required
+
+See `configs/presets/README.md` for detailed preset creation instructions.
+
 ## Testing
 
 ### Test Coverage
 - ✅ 15 tests for config export (config-exporter.spec.ts)
 - ✅ 25 tests for code generation (code-generator.spec.ts)
+- ✅ 10 tests for preset loading (preset-loader.spec.ts)
 - Tests validate:
   - Configuration serialization
   - D3 JS/TS code generation
@@ -258,6 +287,7 @@ Coordinates the export pipeline:
   - Projection name mapping
   - Number formatting and rounding
   - Stream multiplexing logic
+  - Preset loading and conversion
 
 ### Known Limitations
 - No validation of generated code syntax (future: AST parsing)

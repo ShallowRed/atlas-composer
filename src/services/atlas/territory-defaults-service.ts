@@ -74,34 +74,4 @@ export class TerritoryDefaultsService {
   ): Record<string, number> {
     return calculateDefaultScales(territories)
   }
-
-  /**
-   * Merge custom configuration into defaults
-   * Used when an atlas provides custom composite config
-   *
-   * @param defaults - Default territory configuration
-   * @param customConfig - Custom configuration to merge
-   * @param customConfig.territoryProjections - Custom projection overrides
-   * @param customConfig.territoryTranslations - Custom translation overrides
-   * @param customConfig.territoryScales - Custom scale overrides
-   * @returns Merged configuration
-   */
-  static mergeCustomConfig(
-    defaults: TerritoryDefaults,
-    customConfig?: {
-      territoryProjections?: Record<string, string>
-      territoryTranslations?: Record<string, { x: number, y: number }>
-      territoryScales?: Record<string, number>
-    },
-  ): TerritoryDefaults {
-    if (!customConfig) {
-      return defaults
-    }
-
-    return {
-      projections: { ...defaults.projections, ...customConfig.territoryProjections },
-      translations: { ...defaults.translations, ...customConfig.territoryTranslations },
-      scales: { ...defaults.scales, ...customConfig.territoryScales },
-    }
-  }
 }
