@@ -40,10 +40,23 @@ export interface CompositeRenderOptions extends RenderOptions {
   showMapLimits?: boolean
 }
 
+export interface TerritoryProjectionParams {
+  rotateLongitude?: number
+  rotateLatitude?: number
+  centerLongitude?: number
+  centerLatitude?: number
+  parallel1?: number
+  parallel2?: number
+}
+
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
   territoryTranslations: Record<string, { x: number, y: number }>
   territoryScales: Record<string, number>
+  territoryProjectionParams?: Record<string, TerritoryProjectionParams>
+  compositeScale?: number
+  compositeWidth?: number
+  compositeHeight?: number
 }
 
 export class Cartographer {
@@ -244,12 +257,18 @@ export class Cartographer {
 
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
+    // Use custom dimensions if provided in settings, otherwise use defaults
+    const effectiveWidth = settings?.compositeWidth ?? width
+    const effectiveHeight = settings?.compositeHeight ?? height
+
     // Dynamic projection that rebuilds on resize
-    const projectionFn = ({ width: w, height: h }: { width: number, height: number }) => {
-      return this.customComposite!.build(w, h, true)
+    const projectionFn = () => {
+      // Use the effective dimensions for building the projection
+      // This ensures the composite projection uses custom dimensions
+      return this.customComposite!.build(effectiveWidth, effectiveHeight, true)
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, 20, showGraticule, showSphere)
+    return this.createPlot(rawData, projectionFn, effectiveWidth, effectiveHeight, 20, showGraticule, showSphere)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
@@ -258,12 +277,17 @@ export class Cartographer {
     }
 
     const composite = this.customComposite
-    const { territoryProjections, territoryTranslations, territoryScales } = settings
+    const { territoryProjections, territoryTranslations, territoryScales, territoryProjectionParams, compositeScale } = settings
+
+    // Apply global reference scale if provided
+    if (compositeScale !== undefined) {
+      composite.updateReferenceScale(compositeScale)
+    }
 
     // Apply to customComposite instance
     if (territoryProjections) {
       for (const [code, proj] of Object.entries(territoryProjections)) {
-        composite.updateTerritoryProjection(code, proj as any)
+        composite.updateTerritoryProjection(code, proj as any, territoryProjectionParams?.[code])
       }
     }
 

@@ -278,6 +278,14 @@ export class CompositeProjection {
   updateTerritoryProjection(
     territoryCode: string,
     projectionType: string,
+    projectionParams?: {
+      rotateLongitude?: number
+      rotateLatitude?: number
+      centerLongitude?: number
+      centerLatitude?: number
+      parallel1?: number
+      parallel2?: number
+    },
   ) {
     const subProj = this.subProjections.find((sp) => {
       return sp.territoryCode === territoryCode
@@ -347,14 +355,42 @@ export class CompositeProjection {
       }
     }
 
-    // Restore settings
+    // Restore settings or apply custom parameters
     newProjection.scale(currentScale)
-    if (currentCenter && newProjection.center) {
+
+    // Apply custom center parameters if provided
+    if (projectionParams?.centerLongitude !== undefined || projectionParams?.centerLatitude !== undefined) {
+      const centerLon = projectionParams.centerLongitude ?? currentCenter?.[0] ?? 0
+      const centerLat = projectionParams.centerLatitude ?? currentCenter?.[1] ?? 0
+      if (newProjection.center) {
+        newProjection.center([centerLon, centerLat])
+      }
+    }
+    else if (currentCenter && newProjection.center) {
       newProjection.center(currentCenter)
     }
-    if (currentRotate && newProjection.rotate) {
+
+    // Apply custom rotate parameters if provided
+    if (projectionParams?.rotateLongitude !== undefined || projectionParams?.rotateLatitude !== undefined) {
+      const rotateLon = projectionParams.rotateLongitude ?? currentRotate?.[0] ?? 0
+      const rotateLat = projectionParams.rotateLatitude ?? currentRotate?.[1] ?? 0
+      if (newProjection.rotate) {
+        newProjection.rotate([rotateLon, rotateLat, currentRotate?.[2] ?? 0])
+      }
+    }
+    else if (currentRotate && newProjection.rotate) {
       newProjection.rotate(currentRotate)
     }
+
+    // Apply custom parallel parameters if provided (for conic projections)
+    if (projectionParams?.parallel1 !== undefined || projectionParams?.parallel2 !== undefined) {
+      const parallel1 = projectionParams.parallel1 ?? 30
+      const parallel2 = projectionParams.parallel2 ?? 60
+      if ('parallels' in newProjection) {
+        (newProjection as any).parallels([parallel1, parallel2])
+      }
+    }
+
     newProjection.translate(currentTranslate)
 
     // Update the projection
@@ -387,6 +423,24 @@ export class CompositeProjection {
       subProj.projection.scale(subProj.baseScale * scaleMultiplier)
       this.compositeProjection = null
     }
+  }
+
+  /**
+   * Update the global reference scale for all territories
+   * This adjusts the base scale proportionally for all territories
+   */
+  updateReferenceScale(newReferenceScale: number) {
+    const DEFAULT_REFERENCE_SCALE = 2700
+    const scaleFactor = newReferenceScale / DEFAULT_REFERENCE_SCALE
+
+    this.subProjections.forEach((subProj) => {
+      // Update base scale proportionally
+      subProj.baseScale = subProj.baseScale * scaleFactor
+      // Reapply the scale with the multiplier
+      subProj.projection.scale(subProj.baseScale * subProj.scaleMultiplier)
+    })
+
+    this.compositeProjection = null // Force rebuild
   }
 
   /**

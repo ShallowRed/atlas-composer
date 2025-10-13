@@ -203,6 +203,10 @@ async function renderComposite(): Promise<Plot.Plot> {
     territoryProjections: territoryStore.territoryProjections,
     territoryTranslations: territoryStore.territoryTranslations,
     territoryScales: territoryStore.territoryScales,
+    territoryProjectionParams: territoryStore.territoryProjectionParams,
+    compositeScale: configStore.customCompositeScale ?? undefined,
+    compositeWidth: configStore.customCompositeWidth ?? undefined,
+    compositeHeight: configStore.customCompositeHeight ?? undefined,
     filteredTerritories: geoDataStore.filteredTerritories,
   })
 }

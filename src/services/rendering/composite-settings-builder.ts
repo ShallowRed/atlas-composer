@@ -1,12 +1,28 @@
 import type { CompositeProjectionConfig } from '@/types'
 
 /**
+ * Territory-specific projection parameters
+ */
+export interface TerritoryProjectionParams {
+  rotateLongitude?: number
+  rotateLatitude?: number
+  centerLongitude?: number
+  centerLatitude?: number
+  parallel1?: number
+  parallel2?: number
+}
+
+/**
  * Custom composite settings for rendering
  */
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
   territoryTranslations: Record<string, { x: number, y: number }>
   territoryScales: Record<string, number>
+  territoryProjectionParams?: Record<string, TerritoryProjectionParams>
+  compositeScale?: number
+  compositeWidth?: number
+  compositeHeight?: number
 }
 
 /**
@@ -75,6 +91,10 @@ export class CompositeSettingsBuilder {
     territoryProjections: Record<string, string>,
     territoryTranslations: Record<string, { x: number, y: number }>,
     territoryScales: Record<string, number>,
+    territoryProjectionParams?: Record<string, TerritoryProjectionParams>,
+    compositeScale?: number,
+    compositeWidth?: number,
+    compositeHeight?: number,
   ): CustomCompositeSettings {
     const territoryCodes = this.extractTerritoryCodes(compositeConfig)
 
@@ -89,6 +109,10 @@ export class CompositeSettingsBuilder {
       territoryProjections: projections,
       territoryTranslations,
       territoryScales,
+      territoryProjectionParams,
+      compositeScale,
+      compositeWidth,
+      compositeHeight,
     }
   }
 }

@@ -42,6 +42,18 @@ export interface SimpleMapConfig {
 }
 
 /**
+ * Territory-specific projection parameters
+ */
+export interface TerritoryProjectionParams {
+  rotateLongitude?: number
+  rotateLatitude?: number
+  centerLongitude?: number
+  centerLatitude?: number
+  parallel1?: number
+  parallel2?: number
+}
+
+/**
  * Configuration for composite map rendering
  */
 export interface CompositeMapConfig {
@@ -61,6 +73,10 @@ export interface CompositeMapConfig {
   territoryProjections?: Record<string, string>
   territoryTranslations?: Record<string, { x: number, y: number }>
   territoryScales?: Record<string, number>
+  territoryProjectionParams?: Record<string, TerritoryProjectionParams>
+  compositeScale?: number
+  compositeWidth?: number
+  compositeHeight?: number
   filteredTerritories?: Territory[]
 }
 
@@ -120,6 +136,10 @@ export class MapRenderCoordinator {
         config.territoryProjections || {},
         config.territoryTranslations || {},
         config.territoryScales || {},
+        config.territoryProjectionParams,
+        config.compositeScale,
+        config.compositeWidth,
+        config.compositeHeight,
       )
     }
 
