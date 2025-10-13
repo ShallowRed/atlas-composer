@@ -311,6 +311,8 @@ function createAtlasConfig(
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
     compositeProjections,
     defaultCompositeProjection,
+    defaultPreset: config.defaultPreset,
+    availablePresets: config.availablePresets || [],
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
     compositeProjectionConfig: territories.isWildcard
       ? undefined

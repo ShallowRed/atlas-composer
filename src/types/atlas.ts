@@ -103,6 +103,12 @@ export interface AtlasConfig {
   /** Default composite projection to use for composite-existing mode */
   defaultCompositeProjection?: string
 
+  /** Default preset to load for composite-custom mode (e.g., 'france-default') */
+  defaultPreset?: string
+
+  /** Available presets for UI selector */
+  availablePresets?: string[]
+
   /** Configuration for CompositeProjection class (mainland/overseas structure) */
   compositeProjectionConfig?: CompositeProjectionConfig
 

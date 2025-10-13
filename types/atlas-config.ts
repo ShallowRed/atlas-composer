@@ -66,6 +66,8 @@ export interface JSONAtlasConfig {
   }
   compositeProjections?: string[]
   defaultCompositeProjection?: string
+  defaultPreset?: string
+  availablePresets?: string[]
   defaultProjection?: string
   modes?: Array<{
     id: string

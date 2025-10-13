@@ -132,6 +132,20 @@
       "description": "Default composite projection ID to use in composite-existing mode. If not specified, uses the first projection from compositeProjections array.",
       "examples": ["albers-usa", "conic-conformal-france"]
     },
+    "defaultPreset": {
+      "type": "string",
+      "description": "Preset file to load by default (e.g., 'france-default'). Presets are loaded from configs/presets/ directory and provide default territory positioning for composite-custom mode.",
+      "examples": ["france-default", "portugal-default", "spain-default"]
+    },
+    "availablePresets": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of available preset files for UI selector. When multiple presets are available, users can switch between them.",
+      "examples": [
+        ["france-default", "france-compact"],
+        ["portugal-default"]
+      ]
+    },
 
     "metadata": {
       "type": "object",
