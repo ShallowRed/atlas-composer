@@ -11,20 +11,7 @@
   "compositeProjections": [
     "conic-conformal-spain"
   ],
-  "defaultCompositeConfig": {
-    "territoryProjections": {
-      "ES-IB": "mercator",
-      "ES-CN": "conic-conformal"
-    },
-    "territoryTranslations": {
-      "ES-IB": { "x": 150, "y": -50 },
-      "ES-CN": { "x": 270, "y": -254 }
-    },
-    "territoryScales": {
-      "ES-IB": 1.5,
-      "ES-CN": 1.0
-    }
-  },
+
   "projectionPreferences": {
     "recommended": [
       "conic-conformal-spain",

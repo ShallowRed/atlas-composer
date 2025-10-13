@@ -6,7 +6,6 @@
 import type { I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
-  CompositeProjectionDefaults,
   GeoDataConfig,
   TerritoryConfig,
   TerritoryGroupConfig,
@@ -33,7 +32,6 @@ export interface AtlasSpecificConfig {
   projectionParams: ProjectionParams
   territoryModes: Record<string, TerritoryModeConfig>
   territoryGroups?: Record<string, TerritoryGroupConfig>
-  defaultCompositeConfig?: CompositeProjectionDefaults
   projectionPreferences?: ProjectionPreferences
   // Raw i18n values for reactive translation
   rawModeLabels: Record<string, I18nValue>
@@ -237,18 +235,6 @@ function createTerritoryGroups(config: JSONAtlasConfig, locale: string): Record<
 /**
  * Create composite projection defaults
  */
-function createCompositeDefaults(territories: TerritoryConfig[]): CompositeProjectionDefaults {
-  return {
-    territoryProjections: Object.fromEntries(
-      territories.map(t => [t.code, t.projectionType || 'mercator']),
-    ),
-    territoryTranslations: Object.fromEntries(
-      territories.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
-    ),
-    territoryScales: Object.fromEntries(territories.map(t => [t.code, t.baseScaleMultiplier ?? 1.0])),
-  }
-}
-
 /**
  * Create GeoDataConfig
  */
@@ -289,7 +275,6 @@ function createAtlasConfig(
   territories: LoadedTerritories,
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryModeConfig>,
-  defaultCompositeConfig: CompositeProjectionDefaults | undefined,
   locale: string,
 ): AtlasConfig {
   // Use view modes from config if specified, otherwise default to all modes
@@ -324,7 +309,6 @@ function createAtlasConfig(
     defaultViewMode,
     defaultTerritoryMode:
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
-    defaultCompositeConfig,
     compositeProjections,
     defaultCompositeProjection,
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
@@ -395,11 +379,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
   )
   const territoryGroups = createTerritoryGroups(jsonConfig, locale)
 
-  // Create composite defaults (not needed for wildcard atlases)
-  const defaultCompositeConfig = territories.isWildcard
-    ? undefined
-    : createCompositeDefaults(territories.all)
-
   // Create geo data config
   const geoDataConfig = createGeoDataConfig(jsonConfig, territories)
 
@@ -409,7 +388,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     territories,
     geoDataConfig,
     territoryModes,
-    defaultCompositeConfig,
     locale,
   )
 
@@ -429,7 +407,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     projectionParams,
     territoryModes,
     territoryGroups,
-    defaultCompositeConfig,
     projectionPreferences,
     rawModeLabels,
     rawGroupLabels: Object.keys(rawGroupLabels).length > 0 ? rawGroupLabels : undefined,

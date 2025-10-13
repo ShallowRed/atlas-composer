@@ -132,51 +132,7 @@
       "description": "Default composite projection ID to use in composite-existing mode. If not specified, uses the first projection from compositeProjections array.",
       "examples": ["albers-usa", "conic-conformal-france"]
     },
-    "defaultCompositeConfig": {
-      "type": "object",
-      "description": "Default configuration for composite-custom mode, specifying projection types, translations, and scales for each territory. These defaults are based on d3-composite-projections parameters.",
-      "properties": {
-        "territoryProjections": {
-          "type": "object",
-          "description": "Map of territory code to projection type (e.g., { 'FR-GP': 'mercator' })",
-          "patternProperties": {
-            "^[A-Z]{2}(-[A-Z0-9]+)*$": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        },
-        "territoryTranslations": {
-          "type": "object",
-          "description": "Map of territory code to pixel translation offset (e.g., { 'FR-GP': { x: 100, y: -50 } })",
-          "patternProperties": {
-            "^[A-Z]{2}(-[A-Z0-9]+)*$": {
-              "type": "object",
-              "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" }
-              },
-              "required": ["x", "y"],
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "territoryScales": {
-          "type": "object",
-          "description": "Map of territory code to scale multiplier (e.g., { 'FR-GP': 1.2 })",
-          "patternProperties": {
-            "^[A-Z]{2}(-[A-Z0-9]+)*$": {
-              "type": "number",
-              "minimum": 0
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "required": ["territoryProjections", "territoryTranslations", "territoryScales"],
-      "additionalProperties": false
-    },
+
     "metadata": {
       "type": "object",
       "properties": {

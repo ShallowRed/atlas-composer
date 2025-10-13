@@ -53,13 +53,7 @@ export class AtlasCoordinator {
 
     // Initialize territory defaults
     const territories = atlasService.getAllTerritories()
-    const defaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
-
-    // Merge with custom composite config if available
-    const finalDefaults = TerritoryDefaultsService.mergeCustomConfig(
-      defaults,
-      config.defaultCompositeConfig,
-    )
+    const finalDefaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
 
     // Determine composite projection
     const compositeProjection = config.defaultCompositeProjection
