@@ -56,6 +56,7 @@ export class CustomCompositeBorderRenderer implements BorderRenderer {
         .attr('width', rect.width.toFixed(2))
         .attr('height', rect.height.toFixed(2))
         .attr('class', 'composition-border')
+        .attr('data-territory', border.territoryCode)
         .attr('fill', 'none')
         .attr('stroke', 'currentColor')
         .attr('stroke-width', '1.25')

@@ -19,14 +19,15 @@ applyTo: "**"
 3. Never use emojis in code, comments, docs, or responses
 
 ## After Code Changes (CRITICAL - Most Often Forgotten)
-1. Update affected `.llm.txt` documentation files IMMEDIATELY
-2. Use STATIC REFERENCE style in `.llm.txt` files:
+1. **WAIT FOR USER VALIDATION** - When investigating a bug or issue, do NOT update documentation until user confirms fix works
+2. Update affected `.llm.txt` documentation files ONLY after user validates in case of bug fixes
+3. Use STATIC REFERENCE style in `.llm.txt` files:
 - Present tense only ("handles", "provides", "uses")
 - NO temporal language: "before/after", "completed", "resolved", "Phase X"
 - NO dates, objectives, or problem descriptions
 - Describe HOW it works NOW, not how it changed
-3. Plan files (`.plan.llm.txt`) CAN use historical language
-4. Verify changes compile/run correctly
+4. Plan files (`.plan.llm.txt`) CAN use historical language
+5. Verify changes compile/run correctly
 
 ## Documentation Types
 - **`.llm.txt`** = Static reference (timeless, current state only)
@@ -57,12 +58,13 @@ Ask yourself after completing work:
 - Did I use appropriate chatmode for the task?
 
 ## Common Violations to Avoid
-1. Implementing feature but not updating `.llm.txt` docs
-2. Adding "completed" or "Phase X" markers to `.llm.txt` files
-3. Leaving future enhancements in docs when feature is implemented
-4. Using "we added" or "this was changed" in reference docs
-5. Forgetting to mark plan file tasks as complete
-6. Making edits in Plan chatmode (read-only!)
+1. **UPDATING DOCS BEFORE USER VALIDATES FIX** - NEVER document until user confirms it works
+2. Implementing feature but not updating `.llm.txt` docs (after validation)
+3. Adding "completed" or "Phase X" markers to `.llm.txt` files
+4. Leaving future enhancements in docs when feature is implemented
+5. Using "we added" or "this was changed" in reference docs
+6. Forgetting to mark plan file tasks as complete
+7. Making edits in Plan chatmode (read-only!)
 
 ## Token Budget Management
 When conversation grows long:

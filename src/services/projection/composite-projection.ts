@@ -551,11 +551,10 @@ export class CompositeProjection {
       const [x, y] = coordinates
 
       // Try each sub-projection's invert
+      // No need to manually adjust coordinates - D3 projection.invert() already
+      // handles the translate() that was applied in build()
       for (const subProj of this.subProjections) {
-        const adjustedX = x - subProj.translateOffset[0]
-        const adjustedY = y - subProj.translateOffset[1]
-
-        const inverted = subProj.projection.invert?.([adjustedX, adjustedY])
+        const inverted = subProj.projection.invert?.([x, y])
         if (inverted && subProj.bounds) {
           const [lon, lat] = inverted
           const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds

@@ -1,6 +1,6 @@
 ---
 description: Generate an implementation plan for new features or refactoring. Read-only mode, no code edits.
-tools: ['fetch', 'githubRepo', 'search', 'usages']
+tools: ['runCommands', 'runTasks', 'edit', 'runNotebooks', 'search', 'new', 'console-ninja/*', 'my-mcp-server-2ca9e635/*', 'extensions', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'wallabyjs.console-ninja/console-ninja_runtimeErrors', 'wallabyjs.console-ninja/console-ninja_runtimeLogs', 'wallabyjs.console-ninja/console-ninja_runtimeLogsByLocation', 'wallabyjs.console-ninja/console-ninja_runtimeLogsAndErrors', 'todos', 'runTests']
 model: Claude Sonnet 4
 ---
 
@@ -85,9 +85,9 @@ Before finalizing plan, verify:
 ## Deliverables
 1. Complete `.plan.llm.txt` file in project root
 2. Summary of:
-   - What will be changed and why
-   - Estimated scope (number of files/lines)
-   - Key risks or considerations
+- What will be changed and why
+- Estimated scope (number of files/lines)
+- Key risks or considerations
 3. Recommendation: Use **Edit chatmode** for implementation
 
 ## Next Steps

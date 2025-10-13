@@ -151,6 +151,9 @@ Instance-based service managing sub-projections in final screen coordinates.
 **Coordinate Space**:
 Sub-projections have translate() applied during build(), so projected coordinates are in final screen space. The getCompositionBorders() method projects geographic bounds directly without adding additional translation offsets.
 
+**Invert Method**:
+Uses pure D3 projection.invert() approach without manual coordinate adjustments. Each sub-projection's invert method handles the translate() transformation internally, ensuring accurate coordinate conversion for territory boundary detection.
+
 ## Export/Import Services (src/services/export/)
 
 ### CompositeExportService
@@ -318,13 +321,18 @@ Classes: CustomCompositeBorderRenderer, ExistingCompositeBorderRenderer
 Currently deferred integration, not fully used.
 
 ### CartographerService
-Main rendering coordinator with unified API.
+Main rendering coordinator with unified API and D3.js integration.
 Instance-based service orchestrating projection, geo-data, and rendering.
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
 - `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
 - `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
 - `createPlot()` - Common Plot creation logic
+- `addTerritoryAttributes()` - Static method using D3 selections to add data-territory attributes to SVG paths
+  - Uses D3 pathSelection.each() for efficient DOM traversal
+  - Leverages Observable Plot bound data (__data__) for territory identification
+  - Fallback indexing for edge cases where bound data unavailable
+  - Debug logging for development troubleshooting
 
 ### CartographerFactory
 Factory for creating region-specific Cartographer instances.

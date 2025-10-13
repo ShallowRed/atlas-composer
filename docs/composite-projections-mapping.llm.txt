@@ -65,6 +65,12 @@ Where reference_scale is the default scale from d3-composite-projections:
 Atlas-composer offsets are stored in the territory.rendering.offset field in the JSON config,
 which are then copied to territoryTranslations during initialization.
 
+**Territory Dragging**: The useTerritoryCursor composable handles mouse-based territory repositioning by applying dynamic scaling based on atlas reference scale:
+`scaling_factor = base_composite_width / reference_scale`. This ensures proper 1:1 cursor-to-territory movement responsiveness across different atlases:
+- France (reference scale 2700): scaling factor ≈ 0.296
+- Portugal (reference scale 4200): scaling factor ≈ 0.190  
+- Equal-members like EU (reference scale 200): scaling factor = 4.0
+
 ### Projection Type
 **d3 → atlas-composer**: Direct string mapping
 - d3: Uses d3-geo projection constructors (conicConformal(), mercator())

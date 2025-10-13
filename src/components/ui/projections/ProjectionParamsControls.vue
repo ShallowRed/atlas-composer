@@ -35,13 +35,21 @@ const currentProjection = computed(() => {
 /**
  * Get the relevant parameters for the current projection
  * Uses centralized configuration from parameters.ts
+ * Conditionally disables rotateLatitude based on lock state
  */
 const relevantParams = computed(() => {
   const projection = currentProjection.value
-  if (!projection)
+  if (!projection) {
     return getRelevantParameters('OTHER')
+  }
 
-  return getRelevantParameters(projection.family)
+  const baseParams = getRelevantParameters(projection.family)
+
+  // Override rotateLatitude based on lock state
+  return {
+    ...baseParams,
+    rotateLatitude: baseParams.rotateLatitude && !configStore.rotateLatitudeLocked,
+  }
 })
 
 // Get current values or defaults from atlas
@@ -153,6 +161,18 @@ const hasAnyRelevantParams = computed(() => {
 
   return hasRelevantParameters(projection.family)
 })
+
+/**
+ * Check if the current projection supports latitude rotation (regardless of lock state)
+ */
+const supportsLatitudeRotation = computed(() => {
+  const projection = currentProjection.value
+  if (!projection)
+    return false
+
+  const baseParams = getRelevantParameters(projection.family)
+  return baseParams.rotateLatitude
+})
 const { compositeProjectionOptions } = useProjectionConfig()
 </script>
 
@@ -219,19 +239,29 @@ const { compositeProjectionOptions } = useProjectionConfig()
             @update:model-value="updateRotateLongitude"
           />
 
-          <!-- Rotate Latitude -->
-          <RangeSlider
-            v-if="relevantParams.rotateLatitude"
-            :model-value="currentRotateLatitude"
-            :label="t('projectionParams.rotateLatitude')"
-            icon="ri-compass-4-line"
-            size="xs"
-            :min="RANGES.rotateLatitude.min"
-            :max="RANGES.rotateLatitude.max"
-            :step="RANGES.rotateLatitude.step"
-            unit="°"
-            @update:model-value="updateRotateLatitude"
-          />
+          <div class="flex flex-col gap-1">
+            <!-- Latitude Lock Toggle (only show for projections that support latitude rotation) -->
+            <ToggleControl
+              v-if="supportsLatitudeRotation"
+              :model-value="!configStore.rotateLatitudeLocked"
+              :label="t(configStore.rotateLatitudeLocked ? 'projectionParams.unlockLatitude' : 'projectionParams.lockLatitude')"
+              icon="ri-lock-unlock-line"
+              @update:model-value="(value) => configStore.setRotateLatitudeLocked(!value)"
+            />
+            <!-- Rotate Latitude -->
+            <RangeSlider
+              v-if="relevantParams.rotateLatitude"
+              :model-value="currentRotateLatitude"
+              :label="t('projectionParams.rotateLatitude')"
+              icon="ri-compass-4-line"
+              size="xs"
+              :min="RANGES.rotateLatitude.min"
+              :max="RANGES.rotateLatitude.max"
+              :step="RANGES.rotateLatitude.step"
+              unit="°"
+              @update:model-value="updateRotateLatitude"
+            />
+          </div>
 
           <!-- Center Longitude -->
           <RangeSlider

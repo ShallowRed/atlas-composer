@@ -6,12 +6,14 @@ interface Props {
   icon?: string
   modelValue?: boolean
   disabled?: boolean
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   icon: undefined,
   modelValue: false,
   disabled: false,
+  size: 'sm',
 })
 
 const emit = defineEmits<{
@@ -38,7 +40,13 @@ const localValue = computed({
         v-model="localValue"
         type="checkbox"
         :disabled="disabled"
-        class="toggle toggle-sm"
+        class="toggle"
+        :class="{
+          'toggle-xs': size === 'xs',
+          'toggle-sm': size === 'sm',
+          'toggle-md': size === 'md',
+          'toggle-lg': size === 'lg',
+        }"
       >
     </label>
   </fieldset>

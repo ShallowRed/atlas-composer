@@ -1,6 +1,7 @@
 import type { ProjectionParams } from '@/core/atlases/loader'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import * as Plot from '@observablehq/plot'
+import { select } from 'd3'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
@@ -287,5 +288,44 @@ export class Cartographer {
         composite.updateScale(code, scale)
       }
     }
+  }
+
+  /**
+   * Add data-territory attributes to SVG paths for territory identification using D3.js
+   * Should be called after plot is rendered and appended to DOM
+   */
+  static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection) {
+    const svgSelection = select(svg)
+    const pathSelection = svgSelection.selectAll('path')
+
+    console.log(`Found ${pathSelection.size()} paths in SVG`) // Debug log
+
+    // Use D3 selection to process paths and add territory attributes
+    pathSelection.each(function (_d, i) {
+      const path = this as SVGPathElement
+
+      // Check if Observable Plot has bound data to this element
+      const boundData = (path as any).__data__
+
+      if (boundData?.properties) {
+        const territoryCode = boundData.properties.code || boundData.properties.INSEE_DEP
+        if (territoryCode) {
+          select(path).attr('data-territory', territoryCode)
+          return // Exit early if we successfully added the attribute
+        }
+      }
+
+      // Fallback: try to match by index if bound data approach failed
+      if (i < data.features.length) {
+        const feature = data.features[i]
+        if (feature) {
+          const territoryCode = feature.properties?.code || feature.properties?.INSEE_DEP
+
+          if (territoryCode) {
+            select(path).attr('data-territory', territoryCode)
+          }
+        }
+      }
+    })
   }
 }

@@ -1,0 +1,2 @@
+- improve test coverage (in both direction, make sure we don't miss anything, and remove useless tests)
+- new feature : add a zoomed inset in composition

@@ -8,6 +8,7 @@ import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { useViewState } from '@/composables/useViewState'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -46,6 +47,14 @@ const hasPresets = computed(() => {
   return (currentAtlasConfig.value.availablePresets?.length ?? 0) > 0
 })
 
+// View state for drag info display
+const { isCompositeCustomMode } = useViewState()
+
+// Show drag info when in composite-custom mode and have overseas territories
+const shouldShowDragInfo = computed(() => {
+  return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
+})
+
 // Event handlers that call composable functions directly
 function updateTranslationX(territoryCode: string, value: number) {
   setTerritoryTranslation(territoryCode, 'x', value)
@@ -72,8 +81,18 @@ const resetToDefaults = resetTransforms
     >
       {{ t('territory.noOverseas') }}
     </Alert>
+
+    <!-- Drag-to-move info for composite-custom mode -->
+    <Alert
+      v-if="shouldShowDragInfo"
+      type="info"
+      class="mb-4"
+    >
+      {{ t('territory.dragHint') }}
+    </Alert>
+
     <div
-      v-else
+      v-else-if="!shouldShowEmptyState"
       class="flex flex-col gap-3 mb-8"
     >
       <!-- Preset Selector (shown when presets are available) -->

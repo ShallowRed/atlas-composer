@@ -1,6 +1,7 @@
 ---
 description: Implementation mode for executing code changes. Full tool access for editing and testing.
 model: Claude Sonnet 4
+tools: ['runCommands', 'runTasks', 'edit', 'runNotebooks', 'search', 'new', 'console-ninja/*', 'my-mcp-server-2ca9e635/*', 'extensions', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'wallabyjs.console-ninja/console-ninja_runtimeErrors', 'wallabyjs.console-ninja/console-ninja_runtimeLogs', 'wallabyjs.console-ninja/console-ninja_runtimeLogsByLocation', 'wallabyjs.console-ninja/console-ninja_runtimeLogsAndErrors', 'todos', 'runTests']
 ---
 
 # Edit Mode
