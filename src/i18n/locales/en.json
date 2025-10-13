@@ -84,7 +84,9 @@
     "noTerritories": "No territories available.",
     "checkData": "Check the data or change region.",
     "adjustPosition": "Adjust territory positions and scale using the sliders below",
-    "scalePreservation": "Preserve size ratios"
+    "scalePreservation": "Preserve size ratios",
+    "dragToMove": "Drag territories to adjust position",
+    "dragging": "Dragging"
   },
   "view": {
     "unified": "Unified view",

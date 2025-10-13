@@ -65,6 +65,15 @@ const resetToDefaults = resetTransforms
     >
       {{ t('territory.noOverseas') }}
     </Alert>
+    <!-- Hint about drag-to-move feature in composite-custom mode -->
+    <Alert
+      v-else-if="props.showTransformControls"
+      type="info"
+      class="mb-4"
+    >
+      <i class="ri-drag-move-2-line mr-1" />
+      {{ t('territory.dragToMove') }}
+    </Alert>
     <div
       v-else
       class="flex flex-col gap-3 mb-8"
