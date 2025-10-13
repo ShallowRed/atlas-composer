@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { getRelevantParameters } from '@/core/projections/parameters'
+import { projectionRegistry } from '@/core/projections/registry'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
@@ -47,21 +49,59 @@ const error = ref<string | null>(null)
 const isMounted = ref(false)
 const isRendering = ref(false)
 
+// Pan interaction state
+const isPanning = ref(false)
+const panStartX = ref(0)
+const panStartY = ref(0)
+const panStartRotationLon = ref(0)
+const panStartRotationLat = ref(0)
+
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
+
+// Check if current projection supports panning (rotateLongitude)
+const supportsPanning = computed(() => {
+  const projectionId = props.projection ?? configStore.selectedProjection
+  if (!projectionId)
+    return false
+
+  const projection = projectionRegistry.get(projectionId as string)
+  if (!projection)
+    return false
+
+  const relevantParams = getRelevantParameters(projection.family)
+  return relevantParams.rotateLongitude
+})
+
+// Get current cursor style based on panning support and state
+const cursorStyle = computed(() => {
+  if (!supportsPanning.value)
+    return 'default'
+  return isPanning.value ? 'grabbing' : 'grab'
+})
 
 // Watch for projection parameter changes and update cartographer
 watch(
   () => configStore.effectiveProjectionParams,
   async (newParams) => {
-    console.log('[MapRenderer] effectiveProjectionParams changed:', newParams)
     if (cartographer.value && newParams) {
       cartographer.value.updateProjectionParams(newParams)
-      // Trigger a re-render with the updated parameters
       await renderMap()
     }
   },
   { deep: true },
+)
+
+// Watch for fitting mode changes
+watch(
+  () => configStore.projectionFittingMode,
+  async (newMode) => {
+    if (cartographer.value) {
+      cartographer.value.updateFittingMode(newMode)
+      // Trigger a re-render with the updated mode
+      await renderMap()
+    }
+  },
 )
 
 // Render map on mount
@@ -70,6 +110,14 @@ onMounted(async () => {
   await nextTick()
   isMounted.value = true
   await renderMap()
+})
+
+// Cleanup event listeners on unmount
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', handleMouseMove)
+    window.removeEventListener('mouseup', handleMouseUp)
+  }
 })
 
 // Use MapSizeCalculator service for size calculation
@@ -207,6 +255,73 @@ async function renderComposite(): Promise<Plot.Plot> {
   })
 }
 
+// Pan interaction handlers
+function handleMouseDown(event: MouseEvent) {
+  if (!supportsPanning.value)
+    return
+
+  isPanning.value = true
+  panStartX.value = event.clientX
+  panStartY.value = event.clientY
+
+  // Get current rotation values
+  const currentRotationLon = configStore.customRotateLongitude
+    ?? configStore.effectiveProjectionParams?.rotate?.mainland?.[0]
+    ?? 0
+  const currentRotationLat = configStore.customRotateLatitude
+    ?? configStore.effectiveProjectionParams?.rotate?.mainland?.[1]
+    ?? 0
+
+  panStartRotationLon.value = currentRotationLon
+  panStartRotationLat.value = currentRotationLat
+
+  // Add global mouse move and mouse up listeners
+  window.addEventListener('mousemove', handleMouseMove)
+  window.addEventListener('mouseup', handleMouseUp)
+
+  // Prevent text selection during drag
+  event.preventDefault()
+}
+
+function handleMouseMove(event: MouseEvent) {
+  if (!isPanning.value)
+    return
+
+  const dx = event.clientX - panStartX.value
+  const dy = event.clientY - panStartY.value
+
+  // Convert pixel movement to rotation degrees
+  // X-axis: Negative dx means dragging left, which should rotate map right (increase longitude)
+  // Y-axis: Negative dy means dragging up, which should rotate map down (decrease latitude)
+  // Scale factor: ~0.5 degrees per pixel for smooth interaction
+  const lonDelta = -dx * 0.5
+  const latDelta = -dy * 0.5
+
+  const newRotationLon = panStartRotationLon.value + lonDelta
+  const newRotationLat = panStartRotationLat.value + latDelta
+
+  // Wrap longitude rotation to -180 to 180 range
+  let wrappedLon = newRotationLon % 360
+  if (wrappedLon > 180)
+    wrappedLon -= 360
+  if (wrappedLon < -180)
+    wrappedLon += 360
+
+  // Clamp latitude rotation to -90 to 90 range (avoid flipping over poles)
+  const clampedLat = Math.max(-90, Math.min(90, newRotationLat))
+
+  // Update both rotation axes through the config store
+  configStore.setCustomRotate(wrappedLon, clampedLat)
+}
+
+function handleMouseUp() {
+  isPanning.value = false
+
+  // Remove global listeners
+  window.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('mouseup', handleMouseUp)
+}
+
 // Watch dependencies based on mode
 watch(() => {
   if (props.mode === 'composite') {
@@ -257,7 +372,11 @@ watch(() => {
       v-show="!isLoading && !error"
       ref="mapContainer"
       class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
-      :style="{ display: isLoading || error ? 'none' : 'flex' }"
+      :style="{
+        display: isLoading || error ? 'none' : 'flex',
+        cursor: cursorStyle,
+      }"
+      @mousedown="handleMouseDown"
     />
   </div>
 </template>

@@ -136,7 +136,7 @@ export const WINKEL_TRIPEL: ProjectionDefinition = {
   name: 'projections.winkelTripel.name',
   description: 'projections.winkelTripel.description',
   category: ProjectionCategory.WORLD,
-  family: ProjectionFamily.OTHER,
+  family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
 
   capabilities: {

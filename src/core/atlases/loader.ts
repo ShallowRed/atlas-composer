@@ -19,6 +19,7 @@ export interface ProjectionParams {
   center: { longitude: number, latitude: number }
   rotate: { mainland: [number, number], azimuthal: [number, number] }
   parallels: { conic: [number, number] }
+  scale?: number // Optional custom scale for manual mode
 }
 
 export interface ProjectionPreferences {

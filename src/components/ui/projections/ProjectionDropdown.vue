@@ -126,30 +126,30 @@ function handleUpdate(value: string) {
     >
       <i class="text-base ri-information-line" />
     </button>
+
+    <!-- Projection info modal -->
+    <Modal
+      v-model="showInfoModal"
+      icon="ri-information-line"
+      :title="t('common.projectionInformation')"
+      max-width="2xl"
+    >
+      <ProjectionInfo
+        v-if="infoProjection"
+        :projection="infoProjection"
+        :show-metadata="true"
+      />
+
+      <template #actions>
+        <button
+          class="btn btn-soft btn-primary"
+          @click="closeInfoModal"
+        >
+          {{ t('common.close') }}
+        </button>
+      </template>
+    </Modal>
   </div>
-
-  <!-- Projection info modal -->
-  <Modal
-    v-model="showInfoModal"
-    icon="ri-information-line"
-    :title="t('common.projectionInformation')"
-    max-width="2xl"
-  >
-    <ProjectionInfo
-      v-if="infoProjection"
-      :projection="infoProjection"
-      :show-metadata="true"
-    />
-
-    <template #actions>
-      <button
-        class="btn btn-soft btn-primary"
-        @click="closeInfoModal"
-      >
-        {{ t('common.close') }}
-      </button>
-    </template>
-  </Modal>
 </template>
 
 <style scoped>

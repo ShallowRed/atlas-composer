@@ -64,7 +64,7 @@ watch(() => props.modelValue, async (isOpen) => {
       <div
         ref="modalBoxRef"
         class="modal-box"
-        :class="`max-w-${maxWidth}`"
+        :class="`max-w-${maxWidth} max-h-60vh`"
         tabindex="-1"
       >
         <!-- Header -->

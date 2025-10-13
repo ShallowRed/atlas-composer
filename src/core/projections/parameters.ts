@@ -57,7 +57,7 @@ export interface ProjectionParameterSet {
 export const PROJECTION_PARAMETERS_BY_FAMILY: Record<ProjectionFamilyType, ProjectionParameterSet> = {
   [ProjectionFamily.CYLINDRICAL]: {
     rotateLongitude: true, // Rotate to center on different meridians
-    rotateLatitude: false, // Not meaningful for cylindrical projections
+    rotateLatitude: true, // Rotate vertically for alternative viewpoints
     centerLongitude: false, // Rotation is preferred for cylindrical
     centerLatitude: false, // Fixed at equator for standard cylindrical
     parallels: false, // No standard parallels in cylindrical
@@ -65,16 +65,16 @@ export const PROJECTION_PARAMETERS_BY_FAMILY: Record<ProjectionFamilyType, Proje
 
   [ProjectionFamily.PSEUDOCYLINDRICAL]: {
     rotateLongitude: true, // Rotate to center on different meridians
-    rotateLatitude: false, // Not meaningful for pseudocylindrical
+    rotateLatitude: true, // Rotate vertically for alternative viewpoints
     centerLongitude: false, // Rotation is preferred
     centerLatitude: false, // Fixed at equator for standard pseudocylindrical
     parallels: false, // No standard parallels
   },
 
   [ProjectionFamily.CONIC]: {
-    rotateLongitude: true, // Rotate to center the cone
-    rotateLatitude: false, // Center latitude is used instead
-    centerLongitude: true, // Sets the central meridian
+    rotateLongitude: false, // Merged with center longitude in implementation
+    rotateLatitude: false, // Not used for conic
+    centerLongitude: true, // Sets the central meridian (includes rotation)
     centerLatitude: true, // Sets the origin parallel
     parallels: true, // Two standard parallels define the cone
   },
@@ -82,8 +82,8 @@ export const PROJECTION_PARAMETERS_BY_FAMILY: Record<ProjectionFamilyType, Proje
   [ProjectionFamily.AZIMUTHAL]: {
     rotateLongitude: true, // Rotate around vertical axis
     rotateLatitude: true, // Rotate around horizontal axis (unique to azimuthal)
-    centerLongitude: true, // Alternative to rotation
-    centerLatitude: true, // Alternative to rotation
+    centerLongitude: false, // Don't show - rotation handles this
+    centerLatitude: false, // Don't show - rotation handles this
     parallels: false, // No parallels in azimuthal
   },
 
@@ -96,11 +96,11 @@ export const PROJECTION_PARAMETERS_BY_FAMILY: Record<ProjectionFamilyType, Proje
   },
 
   [ProjectionFamily.POLYHEDRAL]: {
-    rotateLongitude: false, // Polyhedral projections have fixed geometry
-    rotateLatitude: false,
-    centerLongitude: false,
-    centerLatitude: false,
-    parallels: false,
+    rotateLongitude: true, // Polyhedral projections can rotate to change viewpoint
+    rotateLatitude: true, // Polyhedral projections can rotate vertically
+    centerLongitude: false, // Rotation is used instead of center
+    centerLatitude: false, // Rotation is used instead of center
+    parallels: false, // No parallels in polyhedral
   },
 
   [ProjectionFamily.OTHER]: {
