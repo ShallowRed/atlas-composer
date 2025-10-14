@@ -11,7 +11,7 @@ import type {
   TerritoryGroupConfig,
   TerritoryModeConfig,
 } from '@/types'
-import { getCurrentLocale, resolveI18nValue } from './i18n-utils'
+import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 // Internal loader types - defined here to avoid separation of concerns violations
 export interface ProjectionParams {
