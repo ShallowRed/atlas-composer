@@ -15,8 +15,6 @@ import type {
   ProjectionStrategyType,
 } from './types'
 import type { ProjectionPreferences } from '@/core/atlases/loader'
-import { getAtlasSpecificConfig } from '@/core/atlases/registry'
-
 import { ALL_PROJECTIONS } from '@/core/projections/definitions'
 
 /**
@@ -55,6 +53,34 @@ class ProjectionRegistry {
     ALL_PROJECTIONS.forEach((definition) => {
       this.register(definition)
     })
+  }
+
+  /**
+   * Get projection preferences for an atlas with fallback defaults
+   * Uses sync fallback logic to maintain compatibility
+   * 
+   * @param atlasId - Atlas identifier
+   * @returns Projection preferences or fallback defaults
+   */
+  private getProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
+    // Provide fallback defaults based on atlas ID
+    // AtlasMetadataService can be used asynchronously to update these later
+    switch (atlasId) {
+      case 'world':
+        return { recommended: ['natural-earth', 'robinson'], prohibited: [] }
+      case 'france':
+        return { recommended: ['conic-conformal-france'], prohibited: [] }
+      case 'spain': 
+        return { recommended: ['conic-conformal-spain'], prohibited: [] }
+      case 'portugal':
+        return { recommended: ['conic-conformal-portugal'], prohibited: [] }
+      case 'usa':
+        return { recommended: ['albers-usa', 'albers-usa-composite'], prohibited: [] }
+      case 'eu':
+        return { recommended: ['conic-conformal-europe'], prohibited: [] }
+      default:
+        return { recommended: [`conic-conformal-${atlasId}`], prohibited: [] }
+    }
   }
 
   /**
@@ -159,8 +185,8 @@ class ProjectionRegistry {
 
     // Filter by atlas
     if (context.atlasId) {
-      const atlasSpecificConfig = getAtlasSpecificConfig(context.atlasId)
-      const prohibitedProjections = atlasSpecificConfig.projectionPreferences?.prohibited || []
+      const projectionPreferences = this.getProjectionPreferences(context.atlasId)
+      const prohibitedProjections = projectionPreferences?.prohibited || []
 
       projections = projections.filter((def) => {
         // Exclude if prohibited in atlas config
@@ -269,8 +295,7 @@ class ProjectionRegistry {
     // Get atlas projection preferences if atlas ID is provided
     let atlasPreferences: ProjectionPreferences | undefined
     if (context.atlasId) {
-      const atlasSpecificConfig = getAtlasSpecificConfig(context.atlasId)
-      atlasPreferences = atlasSpecificConfig.projectionPreferences
+      atlasPreferences = this.getProjectionPreferences(context.atlasId)
     }
 
     projections.forEach((projection) => {

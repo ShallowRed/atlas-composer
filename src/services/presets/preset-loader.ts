@@ -78,8 +78,6 @@ export class PresetLoader {
       const baseUrl = import.meta.env.BASE_URL
       const presetPath = `${baseUrl}configs/presets/${presetId}.json`
 
-      console.info(`[PresetLoader] Loading preset from: ${presetPath}`)
-
       // Fetch preset file
       const response = await fetch(presetPath)
 
@@ -95,7 +93,6 @@ export class PresetLoader {
       // Parse JSON
       const jsonText = await response.text()
       const rawPreset = JSON.parse(jsonText) as ExtendedPresetConfig
-      console.info(`[PresetLoader] Preset file loaded, validating...`)
 
       // Validate using CompositeImportService
       const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
