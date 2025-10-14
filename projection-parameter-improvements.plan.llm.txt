@@ -1,0 +1,217 @@
+# Projection Parameter System Improvements - Implementation Plan
+
+## Objective
+Implement improvements to the projection parameter system based on the comprehensive lifecycle analysis, focusing on custom composite mode enhancements, unified parameter management, and reusable UI patterns.
+
+## Affected Domains
+- [ ] Projections (docs/projections.llm.txt) - Enhanced parameter management patterns
+- [ ] Vue Architecture (docs/vue-architecture.llm.txt) - New reusable parameter control components
+- [ ] Services (docs/services.llm.txt) - Unified parameter management service
+- [ ] Atlas System (docs/atlases.llm.txt) - Parameter inheritance and validation
+
+## Context
+- Analysis: projection-parameters-lifecycle-analysis.plan.llm.txt
+- Architecture: docs/architecture.llm.txt
+- Current limitations: Custom composite mode lacks territory-specific parameter controls
+
+## Implementation Phases
+
+### Phase 1: Type System Unification
+Priority: High - Foundation for all other improvements
+
+- [ ] File: src/types/projection-parameters.ts (NEW)
+  - Action: Create unified parameter type system
+  - Why: Eliminate type inconsistencies between core, export, and atlas parameter interfaces
+  - Impact: Type safety, reduced confusion, better export/import fidelity
+
+- [ ] File: src/core/projections/types.ts
+  - Action: Refactor to use unified parameter types
+  - Why: Ensure consistency with new unified system
+  - Impact: Simplified type imports, consistent parameter handling
+
+- [ ] File: src/types/export-config.ts
+  - Action: Update to extend unified parameter types
+  - Why: Maintain export compatibility while using unified base types
+  - Impact: Better export/import round-trip fidelity
+
+### Phase 2: Unified Parameter Management Service
+Priority: High - Enables territory-specific parameter controls
+
+- [ ] File: src/services/parameters/projection-parameter-manager.ts (NEW)
+  - Action: Create unified parameter management service
+  - Why: Handle both global and territory-specific parameters with inheritance
+  - Impact: Consistent parameter handling across all modes
+
+- [ ] File: src/services/parameters/parameter-validator.ts (NEW)
+  - Action: Create parameter validation pipeline
+  - Why: Validate parameter compatibility, constraints, and dependencies
+  - Impact: Better error handling, user feedback on invalid parameters
+
+- [ ] File: src/stores/parameters.ts (NEW)
+  - Action: Create dedicated parameter store
+  - Why: Centralize parameter state management separate from general config
+  - Impact: Cleaner state organization, better reactivity control
+
+### Phase 3: Territory-Specific Parameter Controls
+Priority: High - Main user-facing improvement for custom composite mode
+
+- [ ] File: src/components/ui/parameters/TerritoryParameterControls.vue (NEW)
+  - Action: Create territory-specific parameter control component
+  - Why: Enable per-territory parameter adjustment in custom composite mode
+  - Impact: Users can fine-tune individual territory projections
+
+- [ ] File: src/components/ui/parameters/ParameterControlGroup.vue (NEW)
+  - Action: Create reusable parameter control group component
+  - Why: Shared UI pattern for both global and territory parameters
+  - Impact: Consistent UX, reduced code duplication
+
+- [ ] File: src/components/ui/parameters/ParameterInheritanceIndicator.vue (NEW)
+  - Action: Create parameter inheritance visualization component
+  - Why: Show users which parameters are inherited vs overridden
+  - Impact: Clear understanding of parameter sources and hierarchy
+
+### Phase 4: Enhanced TerritoryControls Integration
+Priority: High - Integrate new controls into existing UI
+
+- [ ] File: src/components/TerritoryControls.vue
+  - Action: Integrate territory-specific parameter controls
+  - Why: Add missing parameter controls to custom composite mode
+  - Impact: Complete parameter editing capabilities per territory
+
+- [ ] File: src/composables/useTerritoryParameters.ts (NEW)
+  - Action: Create composable for territory parameter management
+  - Why: Encapsulate territory parameter logic and state
+  - Impact: Reusable parameter management patterns
+
+### Phase 5: Parameter Validation and Feedback
+Priority: Medium - Enhanced user experience
+
+- [ ] File: src/components/ui/parameters/ParameterValidationFeedback.vue (NEW)
+  - Action: Create parameter validation feedback component
+  - Why: Provide real-time validation and constraint feedback
+  - Impact: Better user guidance, prevented invalid configurations
+
+- [ ] File: src/utils/parameter-constraints.ts (NEW)
+  - Action: Create parameter constraint definitions
+  - Why: Define parameter limits and dependencies by projection family
+  - Impact: Consistent validation rules across all parameter controls
+
+### Phase 6: Export/Import Improvements
+Priority: Medium - Better configuration preservation
+
+- [ ] File: src/services/export/parameter-export-service.ts (NEW)
+  - Action: Create dedicated parameter export service
+  - Why: Ensure complete parameter state capture in exports
+  - Impact: Perfect round-trip fidelity for configurations
+
+- [ ] File: src/services/import/parameter-import-service.ts (NEW)
+  - Action: Create parameter import validation service  
+  - Why: Validate and migrate parameter configurations on import
+  - Impact: Robust configuration loading and backwards compatibility
+
+### Phase 7: Performance Optimizations
+Priority: Low - Optimization after core functionality
+
+- [ ] File: src/utils/parameter-memoization.ts (NEW)
+  - Action: Create parameter computation memoization utilities
+  - Why: Reduce reactive update cascades and expensive recomputations
+  - Impact: Better performance during parameter changes
+
+- [ ] File: src/composables/useParameterBatching.ts (NEW)
+  - Action: Create parameter update batching composable
+  - Why: Batch multiple parameter changes to reduce re-renders
+  - Impact: Smoother UX during rapid parameter adjustments
+
+## Technical Specifications
+
+### Unified Parameter Interface
+```typescript
+interface UnifiedProjectionParameters {
+  // Position parameters
+  center?: [number, number]
+  rotate?: [number, number, number]
+  
+  // Projection-specific parameters
+  parallels?: [number, number]
+  
+  // Scale parameters
+  scale?: number
+  baseScale?: number
+  scaleMultiplier?: number
+  
+  // Metadata
+  family?: ProjectionFamilyType
+  projectionId?: string
+}
+```
+
+### Parameter Manager Interface
+```typescript
+interface ProjectionParameterManager {
+  // Global parameter management
+  getGlobalParameters(): UnifiedProjectionParameters
+  setGlobalParameter(key: keyof UnifiedProjectionParameters, value: any): void
+  
+  // Territory parameter management
+  getTerritoryParameters(territoryCode: string): UnifiedProjectionParameters
+  setTerritoryParameter(territoryCode: string, key: keyof UnifiedProjectionParameters, value: any): void
+  
+  // Inheritance management
+  getEffectiveParameters(territoryCode?: string): UnifiedProjectionParameters
+  getParameterSource(territoryCode: string, key: keyof UnifiedProjectionParameters): 'global' | 'territory' | 'default'
+  clearTerritoryOverride(territoryCode: string, key: keyof UnifiedProjectionParameters): void
+  
+  // Validation
+  validateParameter(family: ProjectionFamilyType, key: keyof UnifiedProjectionParameters, value: any): ValidationResult
+  getParameterConstraints(family: ProjectionFamilyType): ParameterConstraints
+}
+```
+
+### Territory Parameter Controls Component
+```vue
+<TerritoryParameterControls
+  :territory-code="territoryCode"
+  :projection-family="projectionFamily"
+  :show-inheritance-indicators="true"
+  :allow-parameter-overrides="true"
+  @parameter-changed="handleParameterChange"
+  @override-cleared="handleOverrideCleared"
+/>
+```
+
+## Success Criteria
+
+### Custom Composite Mode Enhancements
+- [x] Territory-specific center point adjustment controls
+- [x] Territory-specific rotation controls (longitude, latitude)
+- [x] Territory-specific parallel controls (conic projections)
+- [x] Parameter inheritance visualization (global vs territory-specific)
+- [x] Territory parameter reset/override functionality
+
+### Code Quality Improvements
+- [x] Unified parameter type system eliminates inconsistencies
+- [x] Reusable parameter control components reduce duplication
+- [x] Comprehensive parameter validation prevents invalid states
+- [x] Better export/import fidelity preserves all parameter state
+
+### Performance Improvements
+- [x] Reduced reactive update cascades through batching
+- [x] Memoized expensive parameter computations
+- [x] Optimized re-rendering patterns for parameter changes
+
+## Documentation Updates
+- [ ] docs/projections.llm.txt - Document unified parameter system and territory controls
+- [ ] docs/vue-architecture.llm.txt - Document new parameter control components and patterns
+- [ ] docs/services.llm.txt - Document parameter management services and validation
+
+## Verification
+- [ ] All parameter types unified and consistent
+- [ ] Territory parameter controls functional in custom composite mode
+- [ ] Parameter inheritance clearly visualized in UI
+- [ ] Export/import maintains complete parameter fidelity
+- [ ] Performance benchmarks show improved reactivity
+- [ ] Comprehensive test coverage for new parameter system
+
+## Status
+Status: PLANNED
+Last Updated: 2025-01-14
