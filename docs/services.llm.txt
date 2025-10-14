@@ -154,6 +154,53 @@ Sub-projections have translate() applied during build(), so projected coordinate
 **Invert Method**:
 Uses pure D3 projection.invert() approach without manual coordinate adjustments. Each sub-projection's invert method handles the translate() transformation internally, ensuring accurate coordinate conversion for territory boundary detection.
 
+## Parameter Management Services (src/services/parameters/)
+
+### ProjectionParameterManager
+Unified parameter management service for both global and territory-specific parameters.
+Instance-based service with parameter inheritance and validation.
+
+**Parameter Management**:
+- `getGlobalParameters()` - Get global parameter state
+- `setGlobalParameter()` - Set global parameter value
+- `getTerritoryParameters()` - Get territory-specific parameter overrides  
+- `setTerritoryParameter()` - Set territory-specific parameter override
+- `getEffectiveParameters()` - Resolve parameters with inheritance (territory > global > default)
+- `clearTerritoryOverride()` - Remove territory-specific parameter override
+
+**Validation Integration**:
+- `validateParameter()` - Validate parameter value against projection family constraints
+- `validateTerritoryParameters()` - Validate all parameters for a territory
+- `getParameterConstraints()` - Get constraint definitions for projection family
+
+### UnifiedParameterConstraints
+Single source of truth for all projection parameter constraints, validation rules, and relevance definitions.
+Consolidates the previous dual constraint system architecture into a unified approach.
+
+**Core API**:
+- `getParameterConstraints()` - Get complete constraint information for projection family
+- `isParameterRelevant()` - Check if parameter applies to projection family  
+- `getParameterDefault()` - Get default value for parameter in projection family
+- `validateParameter()` - Single parameter validation with constraint checking
+- `validateParameterSet()` - Batch validation for complete parameter set
+
+**Constraint System**:
+- Comprehensive family-based parameter relevance (CONIC supports center/rotate/parallels, AZIMUTHAL supports center/rotate/clipAngle)
+- Range validation for scalar parameters (scale: 1-100000, precision: 0.01-10, clipAngle: 0-180)
+- Array validation for coordinate parameters (center/parallels: [lat,lon], rotate: [lon,lat,gamma?], translate: [x,y])
+- Custom validation functions with contextual error messages and dependency checking
+- Unified parameter defaults across all projection families
+
+### ParameterValidator
+@deprecated Legacy parameter validation wrapper that delegates to UnifiedParameterConstraints.
+Maintained for backward compatibility only - use UnifiedParameterConstraints directly for new code.
+
+**Delegation Methods**:
+- `validateParameter()` - Delegates to UnifiedParameterConstraints.validateParameter()
+- `validateParameterSet()` - Delegates to UnifiedParameterConstraints.validateParameterSet()
+- `getParameterConstraints()` - Delegates to UnifiedParameterConstraints.getParameterConstraints()
+- `isParameterRelevant()` - Delegates to UnifiedParameterConstraints.isParameterRelevant()
+
 ## Export/Import Services (src/services/export/)
 
 ### CompositeExportService

@@ -233,6 +233,33 @@ Defined in `parameters.ts` - determines which parameters are applicable:
 - Cylindrical/Pseudocylindrical: Uses `rotate([lon, lat])` without negation
 - Scale: Only applied in MANUAL mode (AUTO mode calculates automatically)
 
+### Territory-Specific Parameter Management
+
+Custom composite mode supports territory-specific parameter overrides with inheritance system:
+
+**Parameter Inheritance Priority**:
+1. Territory-specific overrides (highest priority)
+2. Global parameter defaults 
+3. Projection family defaults (lowest priority)
+
+**Dynamic Projection Family Detection**:
+- Parameter validation uses actual selected projection family per territory
+- Prevents validation errors when switching between projection types
+- Supports all projection families: CONIC, AZIMUTHAL, CYLINDRICAL, PSEUDOCYLINDRICAL, POLYHEDRAL
+
+**Parameter Validation System**:
+- Family-based parameter relevance checking
+- Range validation for scalar parameters (scale: 1-100000, precision: 0.01-10)
+- Array validation for coordinate parameters (center, rotate, parallels, translate)
+- Real-time validation feedback with error and warning messages
+- Constraint checking prevents invalid parameter combinations
+
+**UI Components**:
+- TerritoryParameterControls: Territory-specific parameter editing interface
+- Parameter groups: Position (center/rotate), Projection-specific (parallels), View (scale/clipAngle), Advanced (precision/translate)
+- Parameter inheritance indicators show override status
+- Reset controls for clearing territory-specific overrides
+
 ## Projection Fitting Modes
 
 Two fitting modes control how projections display data:

@@ -21,16 +21,17 @@ src/
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
-│   └── ui/                   # 24 reusable UI components organized in subdirectories
+│   └── ui/                   # 27 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
 │       ├── forms/            # Form controls and inputs
 │       ├── settings/         # Settings and preferences
 │       ├── projections/      # Projection-related components (3 components)
+│       ├── parameters/       # Parameter control components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 10 composition functions (added useViewState, useTerritoryCursor)
-├── stores/                   # 3 Pinia stores
+├── composables/              # 11 composition functions (added useViewState, useTerritoryCursor, useTerritoryParameters)
+├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
 
@@ -88,14 +89,17 @@ App.vue
   - When unlocked: Full 2-axis panning
   - Uses supportsLatitudePanning computed for conditional logic
 
-### TerritoryControls.vue (119 lines)
-**Role**: Territory transform controls
+### TerritoryControls.vue (264 lines)
+**Role**: Territory transform and parameter controls
 **Responsibilities**:
-- Territory projection selection
+- Territory projection selection with dynamic family detection
+- Territory-specific parameter controls (custom composite mode)
 - Translation controls (x, y)
 - Scale controls
 - Reset functionality
-- Uses: useTerritoryTransforms, useTerritoryConfig
+- Parameter inheritance and validation feedback
+- Uses: useTerritoryTransforms, useTerritoryConfig, projectionRegistry
+- Components: TerritoryParameterControls for parameter editing per territory
 
 ### ProjectionSelector.vue (114 lines)
 **Role**: Projection selection interface
@@ -105,7 +109,7 @@ App.vue
 - Recommendation badges
 - Uses: useProjectionFiltering, useProjectionRecommendations
 
-### UI Components (27 components organized in 7 subdirectories)
+### UI Components (30 components organized in 8 subdirectories)
 
 **Layout Components** (src/components/ui/layout/):
 - **AppHeader**: Application header with navigation, language selector, and theme selector
@@ -179,6 +183,22 @@ App.vue
 - **ProjectionInfo**: Projection information display
 - **ProjectionParamsControls**: Projection parameter adjustment controls with latitude lock toggle
 
+**Parameter Components** (src/components/ui/parameters/):
+- **TerritoryParameterControls**: Territory-specific parameter editing interface
+  - Provides parameter controls for individual territories in custom composite mode
+  - Uses dynamic projection family detection via projectionRegistry
+  - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
+  - Parameter groups: Position (center/rotate), Projection-specific (parallels), View (scale/clipAngle), Advanced (precision/translate)
+  - Validation feedback with real-time error/warning display
+  - Parameter inheritance indicators and override functionality
+  - Reset controls for clearing territory-specific overrides
+- **ParameterControlGroup**: Reusable parameter control group wrapper
+  - Provides consistent styling and layout for parameter sections
+  - Supports title, description, and collapsible content areas
+- **ParameterValidationFeedback**: Parameter validation feedback display
+  - Shows validation errors and warnings with contextual messaging
+  - Integrates with parameter validation system for real-time feedback
+
 **Import Components** (src/components/ui/import/):
 - **ImportControls**: Import and export control buttons
 - **ImportModal**: Modal for importing configurations
@@ -204,7 +224,7 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (10 functions)
+## Composables (11 functions)
 
 ### Data Loading
 **useAtlasData** (128 lines)
@@ -241,6 +261,13 @@ App.vue
 - Reset functions
 - Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
 - Used by: TerritoryControls.vue
+
+**useTerritoryParameters** (72 lines)
+- Territory-specific parameter management for custom composite mode
+- Encapsulates parameter state, validation, and inheritance logic
+- Integrates with parameter store for reactive parameter updates
+- Provides parameter constraints and validation results by projection family
+- Used by: TerritoryParameterControls.vue
 
 **useViewState** (110 lines) - NEW
 - View mode boolean flags for template readability
@@ -334,6 +361,17 @@ App.vue
 - Territory scales
 - Initialization and reset
 **Used by**: TerritoryControls, useTerritoryTransforms
+
+### parameterStore (290 lines)
+**Domain**: Projection parameter management
+**Responsibilities**:
+- Global parameter state management
+- Territory-specific parameter overrides
+- Parameter inheritance and effective parameter resolution
+- Parameter validation with constraint checking
+- Integration with ProjectionParameterManager and ParameterValidator services
+- Support for all projection families with dynamic constraint resolution
+**Used by**: TerritoryParameterControls, useTerritoryParameters, parameter management workflows
 
 ## Data Flow
 
