@@ -599,6 +599,7 @@ export class UnifiedParameterConstraints {
 
   /**
    * Validate a complete parameter set
+   * Only validates relevant parameters for the given projection family
    */
   static validateParameterSet(
     family: ProjectionFamilyType,
@@ -608,6 +609,13 @@ export class UnifiedParameterConstraints {
 
     Object.entries(parameters).forEach(([key, value]) => {
       const paramKey = key as keyof BaseProjectionParameters
+
+      // Skip validation for irrelevant parameters (inherited from atlas/global defaults)
+      // Only validate parameters that are actually relevant for this projection family
+      if (!this.isParameterRelevant(family, paramKey)) {
+        return // Skip this parameter
+      }
+
       const result = this.validateParameter(family, paramKey, value)
 
       if (!result.isValid || result.warning) {

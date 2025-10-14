@@ -56,19 +56,11 @@
       "code": "GB-SHE",
       "name": "Shetland Islands",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -1.3,
-          60.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          1.3,
+          -60.5,
           0
         ],
         "scale": 2700,

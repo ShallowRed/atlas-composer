@@ -181,6 +181,49 @@ export class PresetLoader {
   }
 
   /**
+   * Extract territory-specific projection parameters from preset
+   *
+   * Returns a map of territory code to projection parameters that should be
+   * loaded into the parameter store for each territory.
+   *
+   * @param preset - Validated preset configuration
+   * @returns Map of territory code to projection parameters
+   */
+  static extractTerritoryParameters(
+    preset: ExportedCompositeConfig,
+  ): Record<string, Record<string, unknown>> {
+    const territoryParams: Record<string, Record<string, unknown>> = {}
+
+    preset.territories.forEach((territory) => {
+      const params: Record<string, unknown> = {}
+
+      // Extract only the projection parameters (not scale/translate which are handled separately)
+      if (territory.parameters.center) {
+        params.center = territory.parameters.center
+      }
+      if (territory.parameters.rotate) {
+        params.rotate = territory.parameters.rotate
+      }
+      if (territory.parameters.parallels) {
+        params.parallels = territory.parameters.parallels
+      }
+      if (territory.parameters.clipAngle !== undefined) {
+        params.clipAngle = territory.parameters.clipAngle
+      }
+      if (territory.parameters.precision !== undefined) {
+        params.precision = territory.parameters.precision
+      }
+
+      // Only add if there are parameters to set
+      if (Object.keys(params).length > 0) {
+        territoryParams[territory.code] = params
+      }
+    })
+
+    return territoryParams
+  }
+
+  /**
    * Validate a preset configuration
    *
    * Uses the same validation as CompositeImportService to ensure

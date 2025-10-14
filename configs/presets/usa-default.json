@@ -143,17 +143,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -157.5,
-          20.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          157.5,
+          -20.5,
           0
         ],
         "scale": 2700,
@@ -185,17 +177,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -66.5,
-          18.2
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          66.5,
+          -18.2,
           0
         ],
         "scale": 2700,
@@ -227,17 +211,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -64.8,
-          18.3
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          64.8,
+          -18.3,
           0
         ],
         "scale": 2700,
@@ -269,17 +245,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          144.8,
-          13.4
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -144.8,
+          -13.4,
           0
         ],
         "scale": 2700,
@@ -311,17 +279,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -170.7,
-          -14.3
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          170.7,
+          14.3,
           0
         ],
         "scale": 2700,
@@ -353,17 +313,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          145.7,
-          15.2
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -145.7,
+          -15.2,
           0
         ],
         "scale": 2700,

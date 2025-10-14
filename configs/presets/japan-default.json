@@ -56,19 +56,11 @@
       "code": "JP-HOK",
       "name": "Hokkaido",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          143,
-          43.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -143,
+          -43.5,
           0
         ],
         "scale": 2700,
@@ -97,19 +89,11 @@
       "code": "JP-OKI",
       "name": "Okinawa",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          128,
-          26.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -128,
+          -26.5,
           0
         ],
         "scale": 2700,

@@ -17,17 +17,9 @@
       "projectionId": "transverse-mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -71,
-          -35
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          71,
+          35,
           0
         ],
         "scale": 2700,
@@ -56,19 +48,11 @@
       "code": "CL-EAS",
       "name": "Easter Island",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -109.35,
-          -27.12
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          109.35,
+          27.12,
           0
         ],
         "scale": 2700,
@@ -97,19 +81,11 @@
       "code": "CL-JUA",
       "name": "Juan Fernández Islands",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -79,
-          -33.6
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          79,
+          33.6,
           0
         ],
         "scale": 2700,

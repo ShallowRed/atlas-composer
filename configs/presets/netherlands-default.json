@@ -56,19 +56,11 @@
       "code": "NL-BQ1",
       "name": "Bonaire",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -68.25,
-          12.2
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          68.25,
+          -12.2,
           0
         ],
         "scale": 2700,
@@ -97,19 +89,11 @@
       "code": "NL-BQ2",
       "name": "Saba and Sint Eustatius",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -63.1,
-          17.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          63.1,
+          -17.5,
           0
         ],
         "scale": 2700,

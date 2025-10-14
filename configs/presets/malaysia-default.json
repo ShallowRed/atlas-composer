@@ -17,17 +17,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          102,
-          4
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -102,
+          -4,
           0
         ],
         "scale": 2700,
@@ -56,19 +48,11 @@
       "code": "MY-BOR",
       "name": "East Malaysia (Borneo)",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          114,
-          4
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -114,
+          -4,
           0
         ],
         "scale": 2700,

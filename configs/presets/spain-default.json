@@ -59,17 +59,9 @@
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          2.9,
-          39.5
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -2.9,
+          -39.5,
           0
         ],
         "scale": 2700,

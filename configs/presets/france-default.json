@@ -65,19 +65,11 @@
       "code": "FR-GP",
       "name": "Guadeloupe",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -61.46,
-          16.14
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          61.46,
+          -16.14,
           0
         ],
         "scale": 2700,
@@ -115,19 +107,11 @@
       "code": "FR-MQ",
       "name": "Martinique",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -61.03,
-          14.67
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          61.03,
+          -14.67,
           0
         ],
         "scale": 2700,
@@ -165,19 +149,11 @@
       "code": "FR-GF",
       "name": "Guyane",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -53.2,
-          3.9
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          53.2,
+          -3.9,
           0
         ],
         "scale": 2700,
@@ -215,19 +191,11 @@
       "code": "FR-RE",
       "name": "La Réunion",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          55.52,
-          -21.13
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -55.52,
+          21.13,
           0
         ],
         "scale": 2700,
@@ -265,19 +233,11 @@
       "code": "FR-YT",
       "name": "Mayotte",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          45.16,
-          -12.8
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -45.16,
+          12.8,
           0
         ],
         "scale": 2700,
@@ -315,19 +275,11 @@
       "code": "FR-MF",
       "name": "Saint-Martin",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -63.082,
-          18.067
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          63.082,
+          -18.067,
           0
         ],
         "scale": 2700,
@@ -365,19 +317,11 @@
       "code": "FR-PM",
       "name": "Saint-Pierre-et-Miquelon",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -56.23,
-          46.93
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          56.23,
+          -46.93,
           0
         ],
         "scale": 2700,
@@ -415,19 +359,11 @@
       "code": "FR-WF",
       "name": "Wallis-et-Futuna",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -178.1,
-          -14.3
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          178.1,
+          14.3,
           0
         ],
         "scale": 2700,
@@ -465,19 +401,11 @@
       "code": "FR-PF",
       "name": "Polynésie française",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -150.55,
-          -17.11
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          150.55,
+          17.11,
           0
         ],
         "scale": 2700,
@@ -515,19 +443,11 @@
       "code": "FR-PF-2",
       "name": "Polynésie française (îles éloignées)",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          -150.55,
-          -17.11
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          150.55,
+          17.11,
           0
         ],
         "scale": 2700,
@@ -565,19 +485,11 @@
       "code": "FR-NC",
       "name": "Nouvelle-Calédonie",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          165.8,
-          -21.07
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -165.8,
+          21.07,
           0
         ],
         "scale": 2700,
@@ -615,19 +527,11 @@
       "code": "FR-TF",
       "name": "Terres australes et antarctiques françaises",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          69.348,
-          -49.28
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -69.348,
+          49.28,
           0
         ],
         "scale": 2700,

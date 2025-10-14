@@ -7,6 +7,7 @@ import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
+import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
@@ -16,6 +17,7 @@ export const useConfigStore = defineStore('config', () => {
   // Initialize new stores for UI and territory state
   const uiStore = useUIStore()
   const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
 
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
@@ -336,6 +338,13 @@ export const useConfigStore = defineStore('config', () => {
     territoryStore.territoryProjections = updates.projections
     territoryStore.territoryTranslations = updates.translations
     territoryStore.territoryScales = updates.scales
+
+    // Load territory-specific projection parameters into parameter store
+    if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
+      Object.entries(updates.territoryParameters).forEach(([territoryCode, params]) => {
+        parameterStore.setTerritoryParameters(territoryCode, params as any)
+      })
+    }
 
     // Update UI store
     uiStore.showGraticule = updates.mapDisplay.showGraticule

@@ -1,5 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjectionConfig } from '@/types'
+import type { BaseProjectionParameters } from '@/types/projection-parameters'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
@@ -11,6 +12,14 @@ import {
 
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
+
+/**
+ * Parameter provider interface for dependency injection
+ * Allows CompositeProjection to get dynamic parameters without direct store coupling
+ */
+export interface ProjectionParameterProvider {
+  getEffectiveParameters(territoryCode: string): BaseProjectionParameters
+}
 
 /**
  * Configuration for a sub-projection within a composite projection
@@ -37,10 +46,34 @@ export class CompositeProjection {
   private subProjections: SubProjectionConfig[] = []
   private compositeProjection: GeoProjection | null = null
   private config: CompositeProjectionConfig
+  private parameterProvider?: ProjectionParameterProvider
 
-  constructor(config: CompositeProjectionConfig) {
+  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider) {
     this.config = config
+    this.parameterProvider = parameterProvider
     this.initialize()
+  }
+
+  /**
+   * Get projection parameters for a territory
+   * Uses parameter provider if available, otherwise falls back to config
+   */
+  private getParametersForTerritory(territoryCode: string, configParams: any): BaseProjectionParameters {
+    if (this.parameterProvider) {
+      const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
+      // Merge config params with dynamic params (dynamic params take precedence)
+      return {
+        center: dynamicParams.center || configParams.center,
+        rotate: dynamicParams.rotate || configParams.rotate,
+        parallels: dynamicParams.parallels || configParams.parallels,
+        scale: dynamicParams.scale || configParams.scale,
+        translate: dynamicParams.translate || configParams.translate,
+        clipAngle: dynamicParams.clipAngle || configParams.clipAngle,
+        precision: dynamicParams.precision || configParams.precision,
+      }
+    }
+    // Fallback to config params if no parameter provider
+    return configParams
   }
 
   /**
@@ -79,20 +112,23 @@ export class CompositeProjection {
     const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
       .translate([0, 0])
 
+    // Get parameters from parameter provider or config
+    const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+
     // For conic projections, use rotate instead of center (as d3-composite-projections does)
     // For mercator/other projections, use center
-    if (mainlandProjection.rotate && mainland.rotate) {
+    if (mainlandProjection.rotate && mainlandParams.rotate) {
       // Conic projection: use rotate to position
-      mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+      mainlandProjection.rotate(mainlandParams.rotate as [number, number] | [number, number, number])
     }
-    else {
+    else if (mainlandParams.center) {
       // Mercator/other: use center to position
-      mainlandProjection.center(mainland.center)
+      mainlandProjection.center(mainlandParams.center as [number, number])
     }
 
-    // Apply parallels if supported and provided in config
-    if ((mainlandProjection as any).parallels && mainland.parallels) {
-      (mainlandProjection as any).parallels(mainland.parallels)
+    // Apply parallels if supported and provided
+    if ((mainlandProjection as any).parallels && mainlandParams.parallels) {
+      (mainlandProjection as any).parallels(mainlandParams.parallels)
     }
 
     // Mainland always uses the reference scale (multiplier = 1.0)

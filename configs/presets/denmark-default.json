@@ -17,17 +17,9 @@
       "projectionId": "transverse-mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          10,
-          56
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -10,
+          -56,
           0
         ],
         "scale": 2700,
@@ -56,19 +48,11 @@
       "code": "DK-BOR",
       "name": "Bornholm",
       "role": "secondary",
-      "projectionFamily": "MISCELLANEOUS",
+      "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "center": [
-          15,
-          55.15
-        ],
         "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          0,
+          -15,
+          -55.15,
           0
         ],
         "scale": 2700,
