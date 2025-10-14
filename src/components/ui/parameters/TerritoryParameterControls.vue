@@ -14,7 +14,7 @@ import type {
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import ParameterControlGroup from '@/components/ui/parameters/ParameterControlGroup.vue'
+import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import { useParameterStore } from '@/stores/parameters'
@@ -48,6 +48,20 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const parameterStore = useParameterStore()
+
+// Parameter ranges for sliders
+const PARAMETER_RANGES = {
+  centerLongitude: { min: -180, max: 180, step: 1 },
+  centerLatitude: { min: -90, max: 90, step: 1 },
+  rotateLongitude: { min: -180, max: 180, step: 1 },
+  rotateLatitude: { min: -90, max: 90, step: 1 },
+  rotateGamma: { min: -180, max: 180, step: 1 },
+  parallel1: { min: -90, max: 90, step: 1 },
+  parallel2: { min: -90, max: 90, step: 1 },
+  scale: { min: 100, max: 10000, step: 50 },
+  clipAngle: { min: 0, max: 180, step: 1 },
+  precision: { min: 0.01, max: 10, step: 0.01 },
+}
 
 // Get parameter constraints for this projection family
 const parameterConstraints = computed(() => {
@@ -168,53 +182,73 @@ onUnmounted(() => {
 
         <div class="space-y-4">
           <!-- Center Controls (for conic projections) -->
-          <!-- Center Controls (for conic projections) -->
           <template v-if="relevantParameters.includes('center')">
-            <ParameterControlGroup
-              :title="t('parameters.center.title')"
-              :description="t('parameters.center.description')"
-            >
-              <!-- Center parameter control would go here -->
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">{{ t('parameters.center.label') }}</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  :value="effectiveParameters.center?.join(', ')"
-                  @input="(e) => {
-                    const target = e.target as HTMLInputElement
-                    const values = target.value.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v))
-                    if (values.length === 2) handleParameterChange('center', values)
-                  }"
-                >
-              </div>
-            </ParameterControlGroup>
+            <!-- Center Longitude -->
+            <RangeSlider
+              :model-value="effectiveParameters.center?.[0] ?? 0"
+              :label="t('projectionParams.centerLongitude')"
+              icon="ri-map-pin-line"
+              size="xs"
+              :min="PARAMETER_RANGES.centerLongitude.min"
+              :max="PARAMETER_RANGES.centerLongitude.max"
+              :step="PARAMETER_RANGES.centerLongitude.step"
+              unit="°"
+              @update:model-value="(value: number) => {
+                const currentCenter = effectiveParameters.center ?? [0, 0]
+                handleParameterChange('center', [value, currentCenter[1]])
+              }"
+            />
+
+            <!-- Center Latitude -->
+            <RangeSlider
+              :model-value="effectiveParameters.center?.[1] ?? 0"
+              :label="t('projectionParams.centerLatitude')"
+              icon="ri-map-pin-2-line"
+              size="xs"
+              :min="PARAMETER_RANGES.centerLatitude.min"
+              :max="PARAMETER_RANGES.centerLatitude.max"
+              :step="PARAMETER_RANGES.centerLatitude.step"
+              unit="°"
+              @update:model-value="(value: number) => {
+                const currentCenter = effectiveParameters.center ?? [0, 0]
+                handleParameterChange('center', [currentCenter[0], value])
+              }"
+            />
           </template>
 
           <!-- Rotate Controls -->
           <template v-if="relevantParameters.includes('rotate')">
-            <ParameterControlGroup
-              :title="t('parameters.rotate.title')"
-              :description="t('parameters.rotate.description')"
-            >
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">{{ t('parameters.rotate.label') }}</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  :value="effectiveParameters.rotate?.join(', ')"
-                  @input="(e) => {
-                    const target = e.target as HTMLInputElement
-                    const values = target.value.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v))
-                    if (values.length >= 2) handleParameterChange('rotate', values)
-                  }"
-                >
-              </div>
-            </ParameterControlGroup>
+            <!-- Rotate Longitude -->
+            <RangeSlider
+              :model-value="effectiveParameters.rotate?.[0] ?? 0"
+              :label="t('projectionParams.rotateLongitude')"
+              icon="ri-compass-3-line"
+              size="xs"
+              :min="PARAMETER_RANGES.rotateLongitude.min"
+              :max="PARAMETER_RANGES.rotateLongitude.max"
+              :step="PARAMETER_RANGES.rotateLongitude.step"
+              unit="°"
+              @update:model-value="(value: number) => {
+                const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
+                handleParameterChange('rotate', [value, currentRotate[1], currentRotate[2] ?? 0])
+              }"
+            />
+
+            <!-- Rotate Latitude -->
+            <RangeSlider
+              :model-value="effectiveParameters.rotate?.[1] ?? 0"
+              :label="t('projectionParams.rotateLatitude')"
+              icon="ri-compass-4-line"
+              size="xs"
+              :min="PARAMETER_RANGES.rotateLatitude.min"
+              :max="PARAMETER_RANGES.rotateLatitude.max"
+              :step="PARAMETER_RANGES.rotateLatitude.step"
+              unit="°"
+              @update:model-value="(value: number) => {
+                const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
+                handleParameterChange('rotate', [currentRotate[0], value, currentRotate[2] ?? 0])
+              }"
+            />
           </template>
         </div>
       </div>
@@ -228,27 +262,36 @@ onUnmounted(() => {
 
         <div class="space-y-4">
           <!-- Parallels (for conic projections) -->
-          <ParameterControlGroup
-            :title="t('parameters.parallels.title')"
-            :description="t('parameters.parallels.description')"
-          >
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">{{ t('parameters.parallels.label') }}</span>
-              </label>
-              <input
-                type="text"
-                class="input input-bordered"
-                :value="effectiveParameters.parallels?.join(', ')"
-                @input="(e) => {
-                  const target = e.target as HTMLInputElement
-                  const values = target.value.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v))
-                  if (values.length === 2) handleParameterChange('parallels', values)
-                }"
-              >
-            </div>
-          </ParameterControlGroup>
-          @override-cleared="() => handleOverrideCleared('parallels')"
+          <!-- Parallel 1 (Standard parallel) -->
+          <RangeSlider
+            :model-value="effectiveParameters.parallels?.[0] ?? 30"
+            :label="t('projectionParams.parallel1')"
+            icon="ri-equalizer-line"
+            size="xs"
+            :min="PARAMETER_RANGES.parallel1.min"
+            :max="PARAMETER_RANGES.parallel1.max"
+            :step="PARAMETER_RANGES.parallel1.step"
+            unit="°"
+            @update:model-value="(value: number) => {
+              const currentParallels = effectiveParameters.parallels ?? [30, 60]
+              handleParameterChange('parallels', [value, currentParallels[1]])
+            }"
+          />
+
+          <!-- Parallel 2 (Standard parallel) -->
+          <RangeSlider
+            :model-value="effectiveParameters.parallels?.[1] ?? 60"
+            :label="t('projectionParams.parallel2')"
+            icon="ri-equalizer-line"
+            size="xs"
+            :min="PARAMETER_RANGES.parallel2.min"
+            :max="PARAMETER_RANGES.parallel2.max"
+            :step="PARAMETER_RANGES.parallel2.step"
+            unit="°"
+            @update:model-value="(value: number) => {
+              const currentParallels = effectiveParameters.parallels ?? [30, 60]
+              handleParameterChange('parallels', [currentParallels[0], value])
+            }"
           />
         </div>
       </div>
@@ -263,50 +306,31 @@ onUnmounted(() => {
         <div class="space-y-4">
           <!-- Scale Control -->
           <template v-if="relevantParameters.includes('scale')">
-            <ParameterControlGroup
-              :title="t('parameters.scale.title')"
-              :description="t('parameters.scale.description')"
-            >
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">{{ t('parameters.scale.label') }}</span>
-                </label>
-                <input
-                  type="number"
-                  class="input input-bordered"
-                  :value="effectiveParameters.scale"
-                  @input="(e) => {
-                    const target = e.target as HTMLInputElement
-                    const value = parseFloat(target.value)
-                    if (!isNaN(value)) handleParameterChange('scale', value)
-                  }"
-                >
-              </div>
-            </ParameterControlGroup>
+            <RangeSlider
+              :model-value="effectiveParameters.scale ?? 1000"
+              label="Scale"
+              icon="ri-zoom-in-line"
+              size="xs"
+              :min="PARAMETER_RANGES.scale.min"
+              :max="PARAMETER_RANGES.scale.max"
+              :step="PARAMETER_RANGES.scale.step"
+              @update:model-value="(value: number) => handleParameterChange('scale', value)"
+            />
           </template>
 
           <!-- Clip Angle (for azimuthal projections) -->
           <template v-if="relevantParameters.includes('clipAngle')">
-            <ParameterControlGroup
-              :title="t('parameters.clipAngle.title')"
-              :description="t('parameters.clipAngle.description')"
-            >
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">{{ t('parameters.clipAngle.label') }}</span>
-                </label>
-                <input
-                  type="number"
-                  class="input input-bordered"
-                  :value="effectiveParameters.clipAngle"
-                  @input="(e) => {
-                    const target = e.target as HTMLInputElement
-                    const value = parseFloat(target.value)
-                    if (!isNaN(value)) handleParameterChange('clipAngle', value)
-                  }"
-                >
-              </div>
-            </ParameterControlGroup>
+            <RangeSlider
+              :model-value="effectiveParameters.clipAngle ?? 90"
+              label="Clip Angle"
+              icon="ri-crop-line"
+              size="xs"
+              :min="PARAMETER_RANGES.clipAngle.min"
+              :max="PARAMETER_RANGES.clipAngle.max"
+              :step="PARAMETER_RANGES.clipAngle.step"
+              unit="°"
+              @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
+            />
           </template>
         </div>
       </div>
@@ -322,50 +346,51 @@ onUnmounted(() => {
           <div class="collapse-content space-y-4">
             <!-- Precision Control -->
             <template v-if="relevantParameters.includes('precision')">
-              <ParameterControlGroup
-                :title="t('parameters.precision.title')"
-                :description="t('parameters.precision.description')"
-              >
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">{{ t('parameters.precision.label') }}</span>
-                  </label>
-                  <input
-                    type="number"
-                    class="input input-bordered"
-                    :value="effectiveParameters.precision"
-                    @input="(e) => {
-                      const target = e.target as HTMLInputElement
-                      const value = parseFloat(target.value)
-                      if (!isNaN(value)) handleParameterChange('precision', value)
-                    }"
-                  >
-                </div>
-              </ParameterControlGroup>
+              <RangeSlider
+                :model-value="effectiveParameters.precision ?? 0.1"
+                label="Precision"
+                icon="ri-focus-3-line"
+                size="xs"
+                :min="PARAMETER_RANGES.precision.min"
+                :max="PARAMETER_RANGES.precision.max"
+                :step="PARAMETER_RANGES.precision.step"
+                @update:model-value="(value: number) => handleParameterChange('precision', value)"
+              />
             </template>
 
             <!-- Translate Control -->
             <template v-if="relevantParameters.includes('translate')">
-              <ParameterControlGroup
-                :title="t('parameters.translate.title')"
-                :description="t('parameters.translate.description')"
-              >
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">{{ t('parameters.translate.label') }}</span>
-                  </label>
-                  <input
-                    type="text"
-                    class="input input-bordered"
-                    :value="effectiveParameters.translate?.join(', ')"
-                    @input="(e) => {
-                      const target = e.target as HTMLInputElement
-                      const values = target.value.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v))
-                      if (values.length === 2) handleParameterChange('translate', values)
-                    }"
-                  >
-                </div>
-              </ParameterControlGroup>
+              <!-- Translate X -->
+              <RangeSlider
+                :model-value="effectiveParameters.translate?.[0] ?? 0"
+                label="Translate X"
+                icon="ri-arrow-left-right-line"
+                size="xs"
+                :min="-1000"
+                :max="1000"
+                :step="10"
+                unit="px"
+                @update:model-value="(value: number) => {
+                  const currentTranslate = effectiveParameters.translate ?? [0, 0]
+                  handleParameterChange('translate', [value, currentTranslate[1]])
+                }"
+              />
+
+              <!-- Translate Y -->
+              <RangeSlider
+                :model-value="effectiveParameters.translate?.[1] ?? 0"
+                label="Translate Y"
+                icon="ri-arrow-up-down-line"
+                size="xs"
+                :min="-1000"
+                :max="1000"
+                :step="10"
+                unit="px"
+                @update:model-value="(value: number) => {
+                  const currentTranslate = effectiveParameters.translate ?? [0, 0]
+                  handleParameterChange('translate', [currentTranslate[0], value])
+                }"
+              />
             </template>
           </div>
         </details>
