@@ -63,7 +63,9 @@ Pattern detection and behavioral decisions for different atlas types.
 ### AtlasCoordinator
 Orchestrates atlas changes and configuration updates.
 Loads presets automatically when defaultPreset is configured.
+Extracts territory-specific projection parameters from presets for rendering.
 - `handleAtlasChange()` - Coordinate all updates when changing atlas (async - loads preset if available)
+- Returns territoryParameters map in AtlasChangeResult for parameter store initialization
 - `getInitialConfiguration()` - Build initial config for atlas (async)
 
 ### TerritoryDefaultsService
@@ -74,11 +76,13 @@ Initialize territory projections, translations, and scales.
 Loads preset composite projection configurations from configs/presets/ directory.
 Static service providing preset loading and validation.
 - `loadPreset()` - Load and validate preset file (async)
-- `convertToDefaults()` - Convert preset to TerritoryDefaults format
+- `convertToDefaults()` - Convert preset to TerritoryDefaults format (projections, translations, scales)
+- `extractTerritoryParameters()` - Extract projection parameters (rotate, center, parallels) from preset
 - `validatePreset()` - Validate preset configuration
 - `listAvailablePresets()` - List available presets (placeholder)
 
 Delegates validation to CompositeImportService for consistency.
+Extracts both layout properties (translation/scale) and projection parameters (rotate/center/parallels) separately.
 
 ### AtlasMetadataService
 Provides clean API for accessing atlas-level projection metadata from preset files.
@@ -150,15 +154,26 @@ Instance-based service with region-specific parameters.
 ### CompositeProjection
 Custom composite projection with manual territory positioning.
 Instance-based service managing sub-projections in final screen coordinates.
+Supports parameter provider pattern for dynamic projection parameter updates.
+
+**Constructor**:
+- Accepts optional `ProjectionParameterProvider` for dependency injection
+- Enables dynamic parameter updates from parameter store without direct coupling
 
 **Core Methods**:
-- `initialize()` - Initialize sub-projections with base settings
+- `initialize()` - Initialize sub-projections with base settings (uses parameter provider if available)
 - `build()` - Build composite projection with translate() applied to all sub-projections
 - `updateTerritoryProjection()` - Change territory projection type
+- `updateTerritoryParameters()` - Update projection parameters (rotate, center, parallels) for a territory
 - `updateTranslationOffset()` - Set territory position offset
 - `updateScale()` - Set territory scale multiplier
 - `getCompositionBorders()` - Get projected border rectangles for visualization
 - `exportConfig()` - Export configuration as JSON
+
+**Parameter Integration**:
+- `getParametersForTerritory()` - Merges config parameters with dynamic parameters from provider
+- Uses nullish coalescing (`??`) to properly handle arrays and zero values
+- Dynamic parameters take precedence over static config values
 
 **Coordinate Space**:
 Sub-projections have translate() applied during build(), so projected coordinates are in final screen space. The getCompositionBorders() method projects geographic bounds directly without adding additional translation offsets.
@@ -194,7 +209,7 @@ Consolidates the previous dual constraint system architecture into a unified app
 - `isParameterRelevant()` - Check if parameter applies to projection family  
 - `getParameterDefault()` - Get default value for parameter in projection family
 - `validateParameter()` - Single parameter validation with constraint checking
-- `validateParameterSet()` - Batch validation for complete parameter set
+- `validateParameterSet()` - Batch validation for complete parameter set (validates only relevant parameters)
 
 **Constraint System**:
 - Comprehensive family-based parameter relevance (CONIC supports center/rotate/parallels, AZIMUTHAL supports center/rotate/clipAngle)
@@ -202,6 +217,7 @@ Consolidates the previous dual constraint system architecture into a unified app
 - Array validation for coordinate parameters (center/parallels: [lat,lon], rotate: [lon,lat,gamma?], translate: [x,y])
 - Custom validation functions with contextual error messages and dependency checking
 - Unified parameter defaults across all projection families
+- Parameter inheritance aware: skips validation for irrelevant parameters to prevent false errors on inherited values
 
 ### ParameterValidator
 @deprecated Legacy parameter validation wrapper that delegates to UnifiedParameterConstraints.
@@ -382,12 +398,26 @@ Currently deferred integration, not fully used.
 ### CartographerService
 Main rendering coordinator with unified API and D3.js integration.
 Instance-based service orchestrating projection, geo-data, and rendering.
+Integrates with parameter provider for dynamic projection parameter updates.
+
+**Constructor**:
+- Accepts optional `ProjectionParameterProvider` parameter
+- Passes provider to CompositeProjection for parameter integration
+
+**Rendering Methods**:
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
 - `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
 - `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
 - `createPlot()` - Common Plot creation logic
 - `addTerritoryAttributes()` - Static method using D3 selections to add data-territory attributes to SVG paths
+
+**Parameter Update Methods**:
+- `updateProjectionParams()` - Update global projection parameters
+- `updateFittingMode()` - Update projection fitting mode
+- `updateTerritoryParameters()` - Update territory-specific projection parameters (triggers projection rebuild)
+
+**Territory Attributes**:
   - Uses D3 pathSelection.each() for efficient DOM traversal
   - Leverages Observable Plot bound data (__data__) for territory identification
   - Fallback indexing for edge cases where bound data unavailable

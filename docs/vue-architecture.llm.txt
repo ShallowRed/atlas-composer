@@ -323,7 +323,7 @@ App.vue
 
 ## State Management
 
-### configStore (361 lines)
+### configStore (375 lines)
 **Domain**: Configuration state
 **Responsibilities**:
 - Atlas selection (current atlas, region, territories)
@@ -332,14 +332,18 @@ App.vue
 - Projection parameters (custom overrides)
 - Projection control options (rotateLatitudeLocked)
 - Computed properties: effective parameters with priority resolution
+- Territory parameter initialization on atlas change via AtlasCoordinator
+- Loads preset parameters into parameter store
 **Used by**: All configuration components, MapRenderer, TerritoryControls
 
-### geoDataStore (200 lines)
-**Domain**: Geographic data
+### geoDataStore (215 lines)
+**Domain**: Geographic data and rendering coordination
 **Responsibilities**:
 - GeoJSON data caching
 - Territory data management
 - Loading states
+- Cartographer initialization with parameter provider injection
+- Parameter provider adapter for connecting parameter store to rendering
 **Used by**: MapRenderer, data loading composables
 
 ### ui.ts (81 lines)
@@ -362,16 +366,18 @@ App.vue
 - Initialization and reset
 **Used by**: TerritoryControls, useTerritoryTransforms
 
-### parameterStore (290 lines)
+### parameterStore (295 lines)
 **Domain**: Projection parameter management
 **Responsibilities**:
 - Global parameter state management
 - Territory-specific parameter overrides
-- Parameter inheritance and effective parameter resolution
-- Parameter validation with constraint checking
-- Integration with ProjectionParameterManager and ParameterValidator services
+- Parameter inheritance and effective parameter resolution (territory > global > atlas > default)
+- Parameter validation with constraint checking (validates only relevant parameters per projection family)
+- Reactive version tracking via territoryParametersVersion for triggering re-renders
+- Integration with ProjectionParameterManager and UnifiedParameterConstraints services
 - Support for all projection families with dynamic constraint resolution
-**Used by**: TerritoryParameterControls, useTerritoryParameters, parameter management workflows
+- Provides ProjectionParameterProvider interface for rendering integration
+**Used by**: TerritoryParameterControls, useTerritoryParameters, MapRenderer (watches version), geoDataStore (parameter provider)
 
 ## Data Flow
 
@@ -394,6 +400,47 @@ Store Update → Component Re-render
 ```
 
 **Key Pattern**: Centralized data loading in useAtlasData composable with setupWatchers()
+
+## Parameter Flow Architecture
+
+### Parameter Store to Rendering Integration
+
+```
+Parameter Edit (TerritoryParameterControls)
+    ↓
+parameterStore.setTerritoryParameter()
+    • Stores value
+    • Increments territoryParametersVersion
+    • Emits @parameter-changed event
+    ↓                                    ↓
+Event Handler                      MapRenderer Watch
+(handleParameterChange)            (territoryParametersVersion)
+    ↓                                    ↓
+cartographer.updateTerritoryParameters() triggers renderMap()
+    ↓
+CompositeProjection.updateTerritoryParameters()
+    • Calls parameterProvider.getEffectiveParameters()
+    • Applies rotate/center/parallels to D3 projection
+    • Sets compositeProjection = null (forces rebuild)
+    ↓
+renderMap() with updated projection
+```
+
+### Parameter Provider Pattern
+
+**Purpose**: Connect parameter store to rendering without direct coupling
+
+**Implementation**:
+- `ProjectionParameterProvider` interface with `getEffectiveParameters(territoryCode)` method
+- geoDataStore creates adapter connecting parameterStore to Cartographer
+- Cartographer passes provider to CompositeProjection
+- CompositeProjection uses provider in initialization and updates
+
+**Benefits**:
+- No circular dependencies
+- Clean separation of concerns
+- Testable via dependency injection
+- Parameter inheritance handled by parameter store
 
 ## Type Safety
 

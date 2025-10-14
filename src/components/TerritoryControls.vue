@@ -12,6 +12,7 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useViewState } from '@/composables/useViewState'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
+import { useGeoDataStore } from '@/stores/geoData'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -86,12 +87,20 @@ function getProjectionFamily(territoryCode: string) {
 
 // Parameter control event handlers
 function handleParameterChange(territoryCode: string, key: string, value: unknown) {
-  // TODO: Implement parameter change handling
+  // Notify cartographer to update projection parameters for this territory
+  const geoDataStore = useGeoDataStore()
+  if (geoDataStore.cartographer) {
+    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  }
   console.log('Parameter changed:', { territoryCode, key, value })
 }
 
 function handleOverrideCleared(territoryCode: string, key: string) {
-  // TODO: Implement parameter override clearing
+  // Notify cartographer to update projection parameters for this territory
+  const geoDataStore = useGeoDataStore()
+  if (geoDataStore.cartographer) {
+    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  }
   console.log('Override cleared:', { territoryCode, key })
 }
 </script>

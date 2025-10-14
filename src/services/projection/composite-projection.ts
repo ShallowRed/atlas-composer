@@ -62,14 +62,15 @@ export class CompositeProjection {
     if (this.parameterProvider) {
       const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
       // Merge config params with dynamic params (dynamic params take precedence)
+      // Use ?? instead of || to properly handle arrays and zero values
       return {
-        center: dynamicParams.center || configParams.center,
-        rotate: dynamicParams.rotate || configParams.rotate,
-        parallels: dynamicParams.parallels || configParams.parallels,
-        scale: dynamicParams.scale || configParams.scale,
-        translate: dynamicParams.translate || configParams.translate,
-        clipAngle: dynamicParams.clipAngle || configParams.clipAngle,
-        precision: dynamicParams.precision || configParams.precision,
+        center: dynamicParams.center ?? configParams.center,
+        rotate: dynamicParams.rotate ?? configParams.rotate,
+        parallels: dynamicParams.parallels ?? configParams.parallels,
+        scale: dynamicParams.scale ?? configParams.scale,
+        translate: dynamicParams.translate ?? configParams.translate,
+        clipAngle: dynamicParams.clipAngle ?? configParams.clipAngle,
+        precision: dynamicParams.precision ?? configParams.precision,
       }
     }
     // Fallback to config params if no parameter provider
@@ -154,8 +155,23 @@ export class CompositeProjection {
     overseasTerritories.forEach((territory) => {
       const projectionType = territory.projectionType || 'mercator'
       const projection = this.createProjectionByType(projectionType)
-        .center(territory.center)
         .translate([0, 0])
+
+      // Get parameters from parameter provider or config
+      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+
+      // Apply center/rotate based on projection type
+      if (projection.rotate && territoryParams.rotate) {
+        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
+      }
+      else if (territoryParams.center) {
+        projection.center(territoryParams.center as [number, number])
+      }
+
+      // Apply parallels if supported
+      if ((projection as any).parallels && territoryParams.parallels) {
+        (projection as any).parallels(territoryParams.parallels)
+      }
 
       // Use territory's baseScaleMultiplier (defaults to 1.0 if not specified)
       // This is the "artistic adjustment" multiplier from d3-composite-projections
@@ -199,20 +215,23 @@ export class CompositeProjection {
       const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
         .translate([0, 0])
 
+      // Get parameters from parameter provider or config
+      const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+
       // For conic projections, use rotate instead of center (as d3-composite-projections does)
       // For mercator/other projections, use center
-      if (mainlandProjection.rotate && mainland.rotate) {
+      if (mainlandProjection.rotate && mainlandParams.rotate) {
         // Conic projection: use rotate to position
-        mainlandProjection.rotate(mainland.rotate as [number, number] | [number, number, number])
+        mainlandProjection.rotate(mainlandParams.rotate as [number, number] | [number, number, number])
       }
-      else {
+      else if (mainlandParams.center) {
         // Mercator/other: use center to position
-        mainlandProjection.center(mainland.center)
+        mainlandProjection.center(mainlandParams.center as [number, number])
       }
 
-      // Apply parallels if supported and provided in config
-      if ((mainlandProjection as any).parallels && mainland.parallels) {
-        (mainlandProjection as any).parallels(mainland.parallels)
+      // Apply parallels if supported and provided
+      if ((mainlandProjection as any).parallels && mainlandParams.parallels) {
+        (mainlandProjection as any).parallels(mainlandParams.parallels)
       }
 
       // Each mainland uses the reference scale
@@ -239,8 +258,23 @@ export class CompositeProjection {
     overseasTerritories.forEach((territory) => {
       const projectionType = territory.projectionType || 'mercator'
       const projection = this.createProjectionByType(projectionType)
-        .center(territory.center)
         .translate([0, 0])
+
+      // Get parameters from parameter provider or config
+      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+
+      // Apply center/rotate based on projection type
+      if (projection.rotate && territoryParams.rotate) {
+        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
+      }
+      else if (territoryParams.center) {
+        projection.center(territoryParams.center as [number, number])
+      }
+
+      // Apply parallels if supported
+      if ((projection as any).parallels && territoryParams.parallels) {
+        (projection as any).parallels(territoryParams.parallels)
+      }
 
       const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
       const territoryScale = REFERENCE_SCALE * baseMultiplier
@@ -431,6 +465,46 @@ export class CompositeProjection {
       subProj.projection.scale(subProj.baseScale * scaleMultiplier)
       this.compositeProjection = null
     }
+  }
+
+  /**
+   * Update projection parameters for a territory
+   * Uses parameter provider to get updated parameters and applies them to the projection
+   */
+  updateTerritoryParameters(territoryCode: string) {
+    if (!this.parameterProvider) {
+      return // No parameter provider, nothing to update
+    }
+
+    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
+    if (!subProj) {
+      return
+    }
+
+    // Get updated parameters from parameter provider
+    const params = this.parameterProvider.getEffectiveParameters(territoryCode)
+    const projection = subProj.projection
+
+    // Apply center/rotate based on what's available
+    if (projection.rotate && params.rotate) {
+      projection.rotate(params.rotate as [number, number] | [number, number, number])
+    }
+    else if (params.center) {
+      projection.center(params.center as [number, number])
+    }
+
+    // Apply parallels if supported
+    if ((projection as any).parallels && params.parallels) {
+      (projection as any).parallels(params.parallels)
+    }
+
+    // Apply precision if supported
+    if (projection.precision && params.precision !== undefined) {
+      projection.precision(params.precision)
+    }
+
+    // Force rebuild of composite projection
+    this.compositeProjection = null
   }
 
   /**

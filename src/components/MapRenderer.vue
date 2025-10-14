@@ -9,6 +9,7 @@ import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinato
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
@@ -43,6 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 const territoryStore = useTerritoryStore()
+const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
 
@@ -462,6 +464,7 @@ watch(() => {
       territoryStore.territoryTranslations,
       territoryStore.territoryScales,
       territoryStore.territoryProjections,
+      parameterStore.territoryParametersVersion, // Watch for parameter changes to trigger re-render
       geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
     ]
   }

@@ -244,6 +244,7 @@ export const useParameterStore = defineStore('parameters', () => {
     isInitialized,
     lastChangeEvent,
     validationErrors,
+    territoryParametersVersion, // Reactive version for watching parameter changes
 
     // Computed
     globalParameters,

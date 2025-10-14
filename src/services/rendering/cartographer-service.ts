@@ -1,5 +1,6 @@
 import type { ProjectionParams } from '@/core/atlases/loader'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
+import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import * as Plot from '@observablehq/plot'
 import { select } from 'd3'
 import { GeoDataService } from '@/services/data/geo-data-service'
@@ -51,15 +52,18 @@ export interface CustomCompositeSettings {
 export class Cartographer {
   private projectionService: ProjectionService
   private geoDataService: GeoDataService
+  private parameterProvider?: ProjectionParameterProvider
   public customComposite: CompositeProjection | null = null
 
   constructor(
     geoDataConfig: GeoDataConfig,
     compositeConfig?: CompositeProjectionConfig,
     projectionParams?: ProjectionParams,
+    parameterProvider?: ProjectionParameterProvider,
   ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
+    this.parameterProvider = parameterProvider
 
     // Set projection parameters if provided
     if (projectionParams) {
@@ -68,7 +72,7 @@ export class Cartographer {
 
     // Only create CompositeProjection if config is provided
     if (compositeConfig) {
-      this.customComposite = new CompositeProjection(compositeConfig)
+      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider)
     }
   }
 
@@ -105,6 +109,17 @@ export class Cartographer {
    */
   updateFittingMode(mode: 'auto' | 'manual'): void {
     this.projectionService.setFittingMode(mode)
+  }
+
+  /**
+   * Update territory projection parameters
+   * Call this when territory-specific projection parameters change (rotate, center, parallels, etc.)
+   * @param territoryCode - Territory code to update
+   */
+  updateTerritoryParameters(territoryCode: string): void {
+    if (this.customComposite) {
+      this.customComposite.updateTerritoryParameters(territoryCode)
+    }
   }
 
   // Unified rendering API

@@ -4,7 +4,9 @@ import { computed, ref } from 'vue'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
 import { Cartographer } from '@/services/rendering/cartographer-service'
+import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import { useConfigStore } from '@/stores/config'
+import { useParameterStore } from '@/stores/parameters'
 
 export interface Territory {
   name: string
@@ -69,7 +71,21 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
       const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
       const projectionParams = configStore.effectiveProjectionParams
-      cartographer.value = new Cartographer(geoDataConfig, compositeConfig, projectionParams)
+
+      // Create parameter provider adapter to connect parameter store to rendering
+      const parameterStore = useParameterStore()
+      const parameterProvider: ProjectionParameterProvider = {
+        getEffectiveParameters: (territoryCode: string) => {
+          return parameterStore.getEffectiveParameters(territoryCode)
+        },
+      }
+
+      cartographer.value = new Cartographer(
+        geoDataConfig,
+        compositeConfig,
+        projectionParams,
+        parameterProvider,
+      )
       await cartographer.value.init()
 
       isInitialized.value = true
