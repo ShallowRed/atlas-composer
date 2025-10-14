@@ -1,17 +1,17 @@
 /**
  * Unified Projection Parameter Types
  *
- * Consolidates parameter interfaces across the application to eliminate
- * type inconsistencies between core projections, export/import, and atlas systems.
+ * Single consolidated interface for all projection parameter needs across the application.
+ * Eliminates type inconsistencies between core projections, export/import, and atlas systems.
  */
 
 import type { ProjectionFamilyType } from '@/core/projections/types'
 
 /**
- * Base projection parameters interface
- * Common parameters used across all projection types
+ * Unified projection parameters interface
+ * Consolidates all parameter types into a single interface with optional metadata
  */
-export interface BaseProjectionParameters {
+export interface ProjectionParameters {
   /** Geographic center point [longitude, latitude] */
   center?: [number, number]
 
@@ -32,40 +32,25 @@ export interface BaseProjectionParameters {
 
   /** Precision for adaptive sampling */
   precision?: number
-}
 
-/**
- * Extended projection parameters with scale metadata
- * Used for export/import and composite projection management
- */
-export interface ExtendedProjectionParameters extends BaseProjectionParameters {
-  /** Base scale before user adjustments (required for export/import) */
-  baseScale: number
-
-  /** User's scale multiplier (scale = baseScale * scaleMultiplier) */
-  scaleMultiplier: number
-
-  /** Current scale value (required for consistency) */
-  scale: number
-}
-
-/**
- * Projection parameters with metadata
- * Used for territory-specific parameter management
- */
-export interface ProjectionParametersWithMetadata extends BaseProjectionParameters {
+  // Optional metadata fields (for backward compatibility and extended functionality)
   /** Projection family for parameter validation */
   family?: ProjectionFamilyType
 
   /** Projection ID from registry */
   projectionId?: string
 
-  /** Base scale (optional for compatibility) */
+  /** Base scale before user adjustments (used in export/import) */
   baseScale?: number
 
-  /** Scale multiplier (optional for compatibility) */
+  /** User's scale multiplier (scale = baseScale * scaleMultiplier) */
   scaleMultiplier?: number
+
+  // Index signature to allow dynamic property access (for parameter management)
+  [key: string]: any
 }
+
+// Legacy interface removed - functionality merged into ProjectionParameters
 
 /**
  * Atlas-specific projection parameters
@@ -106,7 +91,7 @@ export type ParameterSource = 'default' | 'projection' | 'atlas' | 'global' | 't
  */
 export interface ParameterInheritance {
   /** Parameter key */
-  key: keyof BaseProjectionParameters
+  key: keyof ProjectionParameters
   /** Current value */
   value: any
   /** Source of the parameter value */
@@ -140,7 +125,7 @@ export interface ParameterValidationResult {
  */
 export interface ParameterConstraints {
   /** Parameter key */
-  parameter: keyof BaseProjectionParameters
+  parameter: keyof ProjectionParameters
   /** Minimum allowed value */
   min?: number
   /** Maximum allowed value */
@@ -164,7 +149,7 @@ export interface ProjectionFamilyConstraints {
   /** Projection family */
   family: ProjectionFamilyType
   /** Constraints for each parameter */
-  constraints: Record<keyof BaseProjectionParameters, ParameterConstraints>
+  constraints: Record<keyof ProjectionParameters, ParameterConstraints>
 }
 
 /**
@@ -172,7 +157,7 @@ export interface ProjectionFamilyConstraints {
  */
 export interface ParameterChangeEvent {
   /** Parameter key that changed */
-  key: keyof BaseProjectionParameters
+  key: keyof ProjectionParameters
   /** New parameter value */
   value: any
   /** Previous parameter value */
@@ -186,14 +171,14 @@ export interface ParameterChangeEvent {
 /**
  * Utility type for parameter update operations
  */
-export type ParameterUpdate = Partial<BaseProjectionParameters>
+export type ParameterUpdate = Partial<ProjectionParameters>
 
 /**
- * Type guard to check if parameters are extended (have scale metadata)
+ * Type guard to check if parameters have scale metadata (extended functionality)
  */
-export function isExtendedParameters(
-  params: BaseProjectionParameters,
-): params is ExtendedProjectionParameters {
+export function hasScaleMetadata(
+  params: ProjectionParameters,
+): params is ProjectionParameters & { baseScale: number, scaleMultiplier: number, scale: number } {
   return 'baseScale' in params && 'scaleMultiplier' in params && typeof params.scale === 'number'
 }
 
@@ -201,15 +186,15 @@ export function isExtendedParameters(
  * Type guard to check if parameters have metadata
  */
 export function hasParameterMetadata(
-  params: BaseProjectionParameters,
-): params is ProjectionParametersWithMetadata {
+  params: ProjectionParameters,
+): params is ProjectionParameters & { family: ProjectionFamilyType, projectionId: string } {
   return 'family' in params || 'projectionId' in params
 }
 
 /**
- * Convert atlas parameters to base parameters format
+ * Convert atlas parameters to unified parameters format
  */
-export function atlasToBaseParameters(atlasParams: AtlasProjectionParameters): BaseProjectionParameters {
+export function atlasToProjectionParameters(atlasParams: AtlasProjectionParameters): ProjectionParameters {
   return {
     center: [atlasParams.center.longitude, atlasParams.center.latitude],
     rotate: [atlasParams.rotate.mainland[0], atlasParams.rotate.mainland[1]],
@@ -219,15 +204,15 @@ export function atlasToBaseParameters(atlasParams: AtlasProjectionParameters): B
 }
 
 /**
- * Convert base parameters to atlas parameters format
+ * Convert unified parameters to atlas parameters format
  */
-export function baseToAtlasParameters(
-  baseParams: BaseProjectionParameters,
+export function projectionToAtlasParameters(
+  params: ProjectionParameters,
   fallbackValues?: Partial<AtlasProjectionParameters>,
 ): AtlasProjectionParameters {
-  const center = baseParams.center || [0, 0]
-  const rotate = baseParams.rotate || [0, 0]
-  const parallels = baseParams.parallels || [30, 60]
+  const center = params.center || [0, 0]
+  const rotate = params.rotate || [0, 0]
+  const parallels = params.parallels || [30, 60]
 
   return {
     center: {
@@ -243,7 +228,7 @@ export function baseToAtlasParameters(
       conic: parallels,
       ...fallbackValues?.parallels,
     },
-    scale: baseParams.scale,
+    scale: params.scale,
     ...fallbackValues,
   }
 }
@@ -253,10 +238,10 @@ export function baseToAtlasParameters(
  * Later parameters override earlier ones
  */
 export function mergeParameters(
-  ...parameterSets: (BaseProjectionParameters | undefined)[]
-): BaseProjectionParameters {
+  ...parameterSets: (ProjectionParameters | undefined)[]
+): ProjectionParameters {
   return parameterSets
-    .filter((params): params is BaseProjectionParameters => params !== undefined)
+    .filter((params): params is ProjectionParameters => params !== undefined)
     .reduce((merged, params) => {
       return {
         ...merged,
@@ -267,5 +252,22 @@ export function mergeParameters(
         parallels: params.parallels ? [...params.parallels] as [number, number] : merged.parallels,
         translate: params.translate ? [...params.translate] as [number, number] : merged.translate,
       }
-    }, {} as BaseProjectionParameters)
+    }, {} as ProjectionParameters)
 }
+
+// Backward compatibility aliases (deprecated - use ProjectionParameters instead)
+/** @deprecated Use ProjectionParameters instead */
+export type BaseProjectionParameters = ProjectionParameters
+
+/** @deprecated Use ProjectionParameters with optional metadata fields instead */
+export type ExtendedProjectionParameters = ProjectionParameters & { baseScale: number, scaleMultiplier: number, scale: number }
+
+/** @deprecated Use ProjectionParameters with optional metadata fields instead */
+export type ProjectionParametersWithMetadata = ProjectionParameters & { family?: ProjectionFamilyType, projectionId?: string }
+
+// Backward compatibility functions (deprecated)
+/** @deprecated Use atlasToProjectionParameters instead */
+export const atlasToBaseParameters = atlasToProjectionParameters
+
+/** @deprecated Use projectionToAtlasParameters instead */
+export const baseToAtlasParameters = projectionToAtlasParameters

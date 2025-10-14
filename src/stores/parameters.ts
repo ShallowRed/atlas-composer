@@ -8,12 +8,12 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
   AtlasProjectionParameters,
-  BaseProjectionParameters,
   ParameterChangeEvent,
   ParameterInheritance,
   ParameterSource,
   ParameterUpdate,
   ParameterValidationResult,
+  ProjectionParameters,
 } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
@@ -71,7 +71,7 @@ export const useParameterStore = defineStore('parameters', () => {
     return parameterManager.getGlobalParameters()
   })
 
-  function setGlobalParameter(key: keyof BaseProjectionParameters, value: any) {
+  function setGlobalParameter(key: keyof ProjectionParameters, value: any) {
     parameterManager.setGlobalParameter(key, value)
     globalParametersVersion.value++
   }
@@ -82,13 +82,13 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   // Territory parameter management
-  function getTerritoryParameters(territoryCode: string): BaseProjectionParameters {
+  function getTerritoryParameters(territoryCode: string): ProjectionParameters {
     // Access version to trigger reactivity
     void territoryParametersVersion.value
     return parameterManager.getTerritoryParameters(territoryCode)
   }
 
-  function setTerritoryParameter(territoryCode: string, key: keyof BaseProjectionParameters, value: any) {
+  function setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any) {
     parameterManager.setTerritoryParameter(territoryCode, key, value)
     territoryParametersVersion.value++
   }
@@ -99,7 +99,7 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   // Effective parameters (with inheritance)
-  function getEffectiveParameters(territoryCode?: string): BaseProjectionParameters {
+  function getEffectiveParameters(territoryCode?: string): ProjectionParameters {
     // Access versions to trigger reactivity
     void globalParametersVersion.value
     void territoryParametersVersion.value
@@ -107,19 +107,19 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   // Parameter inheritance information
-  function getParameterInheritance(territoryCode: string, key: keyof BaseProjectionParameters): ParameterInheritance {
+  function getParameterInheritance(territoryCode: string, key: keyof ProjectionParameters): ParameterInheritance {
     // Access versions to trigger reactivity
     void globalParametersVersion.value
     void territoryParametersVersion.value
     return parameterManager.getParameterInheritance(territoryCode, key)
   }
 
-  function getParameterSource(territoryCode: string, key: keyof BaseProjectionParameters): ParameterSource {
+  function getParameterSource(territoryCode: string, key: keyof ProjectionParameters): ParameterSource {
     return parameterManager.getParameterSource(territoryCode, key)
   }
 
   // Parameter override management
-  function clearTerritoryOverride(territoryCode: string, key: keyof BaseProjectionParameters) {
+  function clearTerritoryOverride(territoryCode: string, key: keyof ProjectionParameters) {
     parameterManager.clearTerritoryOverride(territoryCode, key)
     territoryParametersVersion.value++
   }
@@ -132,13 +132,13 @@ export const useParameterStore = defineStore('parameters', () => {
   // Parameter validation
   function validateParameter(
     family: ProjectionFamilyType,
-    key: keyof BaseProjectionParameters,
+    key: keyof ProjectionParameters,
     value: any,
   ): ParameterValidationResult {
     return UnifiedParameterConstraints.validateParameter(family, key, value)
   }
 
-  function validateParameters(family: ProjectionFamilyType, parameters: BaseProjectionParameters): ParameterValidationResult[] {
+  function validateParameters(family: ProjectionFamilyType, parameters: ProjectionParameters): ParameterValidationResult[] {
     return UnifiedParameterConstraints.validateParameterSet(family, parameters)
   }
 
@@ -161,7 +161,7 @@ export const useParameterStore = defineStore('parameters', () => {
     return UnifiedParameterConstraints.getParameterConstraints(family)
   }
 
-  function isParameterRelevant(family: ProjectionFamilyType, key: keyof BaseProjectionParameters): boolean {
+  function isParameterRelevant(family: ProjectionFamilyType, key: keyof ProjectionParameters): boolean {
     return UnifiedParameterConstraints.isParameterRelevant(family, key)
   }
 
@@ -192,7 +192,7 @@ export const useParameterStore = defineStore('parameters', () => {
     return computed(() => getEffectiveParameters(territoryCode))
   }
 
-  function createParameterInheritanceComputed(territoryCode: string, key: keyof BaseProjectionParameters) {
+  function createParameterInheritanceComputed(territoryCode: string, key: keyof ProjectionParameters) {
     return computed(() => getParameterInheritance(territoryCode, key))
   }
 
@@ -210,7 +210,7 @@ export const useParameterStore = defineStore('parameters', () => {
       const errors = validationErrors.value.get(event.territoryCode)
       if (errors) {
         const filteredErrors = errors.filter(error =>
-          !error.error?.includes(event.key),
+          !error.error?.includes(String(event.key)),
         )
         if (filteredErrors.length === 0) {
           validationErrors.value.delete(event.territoryCode)

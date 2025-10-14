@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
-  BaseProjectionParameters,
+  ProjectionParameters,
 } from '@/types/projection-parameters'
 
 import { computed, onMounted, onUnmounted } from 'vue'
@@ -35,8 +35,8 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'parameterChanged', territoryCode: string, key: keyof BaseProjectionParameters, value: unknown): void
-  (e: 'overrideCleared', territoryCode: string, key: keyof BaseProjectionParameters): void
+  (e: 'parameterChanged', territoryCode: string, key: keyof ProjectionParameters, value: unknown): void
+  (e: 'overrideCleared', territoryCode: string, key: keyof ProjectionParameters): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -92,7 +92,7 @@ const hasOverrides = computed(() => {
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
     .filter(([, constraint]) => constraint.relevant)
-    .map(([key]) => key as keyof BaseProjectionParameters)
+    .map(([key]) => key as keyof ProjectionParameters)
 })
 
 // Get validation errors for display
@@ -105,7 +105,7 @@ const validationWarnings = computed(() => {
 })
 
 // Handle parameter value changes
-function handleParameterChange(key: keyof BaseProjectionParameters, value: unknown) {
+function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
   // Validate the parameter before setting
   const validationResult = parameterStore.validateParameter(props.projectionFamily, key, value)
 
@@ -124,9 +124,50 @@ function clearAllOverrides() {
 
   // Emit cleared events for all overridden parameters
   Object.keys(territoryParameters.value).forEach((key) => {
-    emit('overrideCleared', props.territoryCode, key as keyof BaseProjectionParameters)
+    emit('overrideCleared', props.territoryCode, key as keyof ProjectionParameters)
   })
 }
+
+// Helper computed properties for parameter groups
+const hasPositionParameters = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'center' || String(p) === 'rotate')
+})
+
+const hasProjectionSpecificParameters = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'parallels')
+})
+
+const hasViewParameters = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'scale' || String(p) === 'clipAngle')
+})
+
+const hasAdvancedParameters = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'precision' || String(p) === 'translate')
+})
+
+const hasCenterParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'center')
+})
+
+const hasRotateParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'rotate')
+})
+
+const hasScaleParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'scale')
+})
+
+const hasClipAngleParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'clipAngle')
+})
+
+const hasPrecisionParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'precision')
+})
+
+const hasTranslateParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'translate')
+})
 
 // Lifecycle hooks for validation
 onMounted(() => {
@@ -174,7 +215,7 @@ onUnmounted(() => {
     <!-- Parameter controls grouped by type -->
     <div class="space-y-6">
       <!-- Position Parameters (Center/Rotation) -->
-      <div v-if="relevantParameters.some(p => ['center', 'rotate'].includes(p))">
+      <div v-if="hasPositionParameters">
         <h5 class="text-sm font-medium mb-3 text-base-content/70">
           <i class="ri-compass-3-line mr-1" />
           {{ t('territory.parameters.position') }}
@@ -182,7 +223,7 @@ onUnmounted(() => {
 
         <div class="space-y-4">
           <!-- Center Controls (for conic projections) -->
-          <template v-if="relevantParameters.includes('center')">
+          <template v-if="hasCenterParameter">
             <!-- Center Longitude -->
             <RangeSlider
               :model-value="effectiveParameters.center?.[0] ?? 0"
@@ -217,7 +258,7 @@ onUnmounted(() => {
           </template>
 
           <!-- Rotate Controls -->
-          <template v-if="relevantParameters.includes('rotate')">
+          <template v-if="hasRotateParameter">
             <!-- Rotate Longitude -->
             <RangeSlider
               :model-value="effectiveParameters.rotate?.[0] ?? 0"
@@ -254,7 +295,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Projection-Specific Parameters -->
-      <div v-if="relevantParameters.includes('parallels')">
+      <div v-if="hasProjectionSpecificParameters">
         <h5 class="text-sm font-medium mb-3 text-base-content/70">
           <i class="ri-equalizer-line mr-1" />
           {{ t('territory.parameters.projectionSpecific') }}
@@ -297,7 +338,7 @@ onUnmounted(() => {
       </div>
 
       <!-- View Parameters -->
-      <div v-if="relevantParameters.some(p => ['scale', 'clipAngle'].includes(p))">
+      <div v-if="hasViewParameters">
         <h5 class="text-sm font-medium mb-3 text-base-content/70">
           <i class="ri-zoom-in-line mr-1" />
           {{ t('territory.parameters.view') }}
@@ -305,7 +346,7 @@ onUnmounted(() => {
 
         <div class="space-y-4">
           <!-- Scale Control -->
-          <template v-if="relevantParameters.includes('scale')">
+          <template v-if="hasScaleParameter">
             <RangeSlider
               :model-value="effectiveParameters.scale ?? 1000"
               label="Scale"
@@ -319,7 +360,7 @@ onUnmounted(() => {
           </template>
 
           <!-- Clip Angle (for azimuthal projections) -->
-          <template v-if="relevantParameters.includes('clipAngle')">
+          <template v-if="hasClipAngleParameter">
             <RangeSlider
               :model-value="effectiveParameters.clipAngle ?? 90"
               label="Clip Angle"
@@ -336,7 +377,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Advanced Parameters -->
-      <div v-if="relevantParameters.some(p => ['precision', 'translate'].includes(p))">
+      <div v-if="hasAdvancedParameters">
         <details class="collapse collapse-arrow">
           <summary class="collapse-title text-sm font-medium">
             <i class="ri-settings-3-line mr-1" />
@@ -345,7 +386,7 @@ onUnmounted(() => {
 
           <div class="collapse-content space-y-4">
             <!-- Precision Control -->
-            <template v-if="relevantParameters.includes('precision')">
+            <template v-if="hasPrecisionParameter">
               <RangeSlider
                 :model-value="effectiveParameters.precision ?? 0.1"
                 label="Precision"
@@ -359,7 +400,7 @@ onUnmounted(() => {
             </template>
 
             <!-- Translate Control -->
-            <template v-if="relevantParameters.includes('translate')">
+            <template v-if="hasTranslateParameter">
               <!-- Translate X -->
               <RangeSlider
                 :model-value="effectiveParameters.translate?.[0] ?? 0"

@@ -8,19 +8,18 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
   AtlasProjectionParameters,
-  BaseProjectionParameters,
-  ExtendedProjectionParameters,
   ParameterChangeEvent,
   ParameterConstraints,
   ParameterInheritance,
   ParameterSource,
   ParameterUpdate,
   ParameterValidationResult,
+  ProjectionParameters,
 } from '@/types/projection-parameters'
 
 import { getRelevantParameters } from '@/core/projections/parameters'
 import {
-  atlasToBaseParameters,
+  atlasToProjectionParameters,
   mergeParameters,
 } from '@/types/projection-parameters'
 
@@ -46,8 +45,8 @@ type ParameterChangeListener = (event: ParameterChangeEvent) => void
  * Handles global and territory-specific parameters with inheritance and validation
  */
 export class ProjectionParameterManager {
-  private globalParameters: BaseProjectionParameters = {}
-  private territoryParameters: Map<string, BaseProjectionParameters> = new Map()
+  private globalParameters: ProjectionParameters = {}
+  private territoryParameters: Map<string, ProjectionParameters> = new Map()
   private atlasParameters: AtlasProjectionParameters | null = null
   private listeners: Set<ParameterChangeListener> = new Set()
   private config: ParameterManagerConfig
@@ -72,14 +71,14 @@ export class ProjectionParameterManager {
   /**
    * Get global parameters
    */
-  getGlobalParameters(): BaseProjectionParameters {
+  getGlobalParameters(): ProjectionParameters {
     return { ...this.globalParameters }
   }
 
   /**
    * Set global parameter
    */
-  setGlobalParameter(key: keyof BaseProjectionParameters, value: any): void {
+  setGlobalParameter(key: keyof ProjectionParameters, value: any): void {
     const previousValue = this.globalParameters[key]
     this.globalParameters = { ...this.globalParameters, [key]: value }
 
@@ -95,22 +94,22 @@ export class ProjectionParameterManager {
 
     // Emit change events for each modified parameter
     Object.entries(parameters).forEach(([key, value]) => {
-      const paramKey = key as keyof BaseProjectionParameters
-      this.emitChangeEvent(paramKey, value, previousParams[paramKey], undefined, 'global')
+      const paramKey = key as keyof ProjectionParameters
+      this.emitChangeEvent(paramKey, value, previousParams[key], undefined, 'global')
     })
   }
 
   /**
    * Get territory-specific parameters
    */
-  getTerritoryParameters(territoryCode: string): BaseProjectionParameters {
+  getTerritoryParameters(territoryCode: string): ProjectionParameters {
     return { ...(this.territoryParameters.get(territoryCode) || {}) }
   }
 
   /**
    * Set territory-specific parameter
    */
-  setTerritoryParameter(territoryCode: string, key: keyof BaseProjectionParameters, value: any): void {
+  setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     const previousValue = currentParams[key]
 
@@ -130,7 +129,7 @@ export class ProjectionParameterManager {
 
     // Emit change events for each modified parameter
     Object.entries(parameters).forEach(([key, value]) => {
-      const paramKey = key as keyof BaseProjectionParameters
+      const paramKey = key as keyof ProjectionParameters
       this.emitChangeEvent(paramKey, value, currentParams[paramKey], territoryCode, 'territory')
     })
   }
@@ -138,8 +137,8 @@ export class ProjectionParameterManager {
   /**
    * Get effective parameters for a territory (with inheritance)
    */
-  getEffectiveParameters(territoryCode?: string): BaseProjectionParameters {
-    const atlasParams = this.atlasParameters ? atlasToBaseParameters(this.atlasParameters) : {}
+  getEffectiveParameters(territoryCode?: string): ProjectionParameters {
+    const atlasParams = this.atlasParameters ? atlasToProjectionParameters(this.atlasParameters) : {}
     const territoryParams = territoryCode ? this.territoryParameters.get(territoryCode) || {} : {}
 
     return mergeParameters(
@@ -153,22 +152,22 @@ export class ProjectionParameterManager {
   /**
    * Get parameter inheritance information
    */
-  getParameterInheritance(territoryCode: string, key: keyof BaseProjectionParameters): ParameterInheritance {
+  getParameterInheritance(territoryCode: string, key: keyof ProjectionParameters): ParameterInheritance {
     const territoryParams = this.territoryParameters.get(territoryCode) || {}
-    const atlasParams = this.atlasParameters ? atlasToBaseParameters(this.atlasParameters) : {}
-    const effectiveValue = this.getEffectiveParameters(territoryCode)[key]
+    const atlasParams = this.atlasParameters ? atlasToProjectionParameters(this.atlasParameters) : {}
+    const effectiveValue = this.getEffectiveParameters(territoryCode)[key as string]
 
     let source: ParameterSource = 'default'
     let isOverridden = false
 
-    if (territoryParams[key] !== undefined) {
+    if (territoryParams[key as string] !== undefined) {
       source = 'territory'
       isOverridden = true
     }
-    else if (this.globalParameters[key] !== undefined) {
+    else if (this.globalParameters[key as string] !== undefined) {
       source = 'global'
     }
-    else if (atlasParams[key] !== undefined) {
+    else if (atlasParams[key as string] !== undefined) {
       source = 'atlas'
     }
 
@@ -177,28 +176,29 @@ export class ProjectionParameterManager {
       value: effectiveValue,
       source,
       isOverridden,
-      atlasValue: atlasParams[key],
-      globalValue: this.globalParameters[key],
+      atlasValue: atlasParams[key as string],
+      globalValue: this.globalParameters[key as string],
     }
   }
 
   /**
    * Get parameter source for a territory
    */
-  getParameterSource(territoryCode: string, key: keyof BaseProjectionParameters): ParameterSource {
+  getParameterSource(territoryCode: string, key: keyof ProjectionParameters): ParameterSource {
     return this.getParameterInheritance(territoryCode, key).source
   }
 
   /**
    * Clear territory parameter override
    */
-  clearTerritoryOverride(territoryCode: string, key: keyof BaseProjectionParameters): void {
+  clearTerritoryOverride(territoryCode: string, key: keyof ProjectionParameters): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
-    if (currentParams[key] === undefined)
+    if (currentParams[key as string] === undefined)
       return
 
-    const previousValue = currentParams[key]
-    const { [key]: removed, ...remainingParams } = currentParams
+    const previousValue = currentParams[key as string]
+    const keyStr = key as string
+    const { [keyStr]: removed, ...remainingParams } = currentParams
 
     if (Object.keys(remainingParams).length === 0) {
       this.territoryParameters.delete(territoryCode)
@@ -220,9 +220,9 @@ export class ProjectionParameterManager {
 
     // Emit change events for each cleared parameter
     Object.keys(currentParams).forEach((key) => {
-      const paramKey = key as keyof BaseProjectionParameters
-      const previousValue = currentParams[paramKey]
-      const newValue = this.getEffectiveParameters(territoryCode)[paramKey]
+      const paramKey = key as keyof ProjectionParameters
+      const previousValue = currentParams[key]
+      const newValue = this.getEffectiveParameters(territoryCode)[key]
       this.emitChangeEvent(paramKey, newValue, previousValue, territoryCode, 'global')
     })
   }
@@ -232,7 +232,7 @@ export class ProjectionParameterManager {
    */
   validateParameter(
     family: ProjectionFamilyType,
-    key: keyof BaseProjectionParameters,
+    key: keyof ProjectionParameters,
     value: any,
   ): ParameterValidationResult {
     if (!this.config.enableValidation) {
@@ -246,7 +246,7 @@ export class ProjectionParameterManager {
     if (!parameterConfig) {
       return {
         isValid: false,
-        error: `Parameter ${key} is not relevant for ${family} projections`,
+        error: `Parameter ${String(key)} is not relevant for ${family} projections`,
       }
     }
 
@@ -295,12 +295,12 @@ export class ProjectionParameterManager {
   /**
    * Get parameter constraints for a projection family
    */
-  getParameterConstraints(family: ProjectionFamilyType): Record<keyof BaseProjectionParameters, ParameterConstraints> {
+  getParameterConstraints(family: ProjectionFamilyType): Record<keyof ProjectionParameters, ParameterConstraints> {
     const relevantParams = getRelevantParameters(family)
-    const constraints: Partial<Record<keyof BaseProjectionParameters, ParameterConstraints>> = {}
+    const constraints: Partial<Record<keyof ProjectionParameters, ParameterConstraints>> = {}
 
     // Define constraints for each parameter
-    const parameterKeys: Array<keyof BaseProjectionParameters> = [
+    const parameterKeys: Array<keyof ProjectionParameters> = [
       'center',
       'rotate',
       'parallels',
@@ -314,7 +314,7 @@ export class ProjectionParameterManager {
       const relevant = relevantParams[key as keyof typeof relevantParams] || false
 
       constraints[key] = {
-        parameter: key,
+        parameter: key as keyof ProjectionParameters,
         relevant,
         required: false,
         defaultValue: this.getDefaultValue(key),
@@ -351,7 +351,7 @@ export class ProjectionParameterManager {
       }
     })
 
-    return constraints as Record<keyof BaseProjectionParameters, ParameterConstraints>
+    return constraints as Record<keyof ProjectionParameters, ParameterConstraints>
   }
 
   /**
@@ -369,9 +369,9 @@ export class ProjectionParameterManager {
   }
 
   /**
-   * Export parameters to extended format for configuration export
+   * Export parameters with scale metadata for configuration export
    */
-  exportParameters(territoryCode?: string): ExtendedProjectionParameters {
+  exportParameters(territoryCode?: string): ProjectionParameters {
     const params = this.getEffectiveParameters(territoryCode)
 
     return {
@@ -395,7 +395,7 @@ export class ProjectionParameterManager {
    * Private method to emit parameter change events
    */
   private emitChangeEvent(
-    key: keyof BaseProjectionParameters,
+    key: keyof ProjectionParameters,
     value: any,
     previousValue: any,
     territoryCode?: string,
@@ -418,7 +418,7 @@ export class ProjectionParameterManager {
   /**
    * Private method to get default value for a parameter
    */
-  private getDefaultValue(key: keyof BaseProjectionParameters): any {
+  private getDefaultValue(key: keyof ProjectionParameters): any {
     switch (key) {
       case 'center':
         return [0, 0]
