@@ -5,6 +5,8 @@
  * These types ensure full parameter fidelity for roundtrip import/export operations.
  */
 
+import type { ExtendedProjectionParameters } from './projection-parameters'
+
 /**
  * Role of a territory in the composite projection
  */
@@ -13,25 +15,11 @@ export type TerritoryRole = 'primary' | 'secondary' | 'member'
 /**
  * Exported projection parameters
  * Contains all parameters needed to reconstruct a D3 projection
+ * Extends the unified parameter system for consistency
  */
-export interface ExportedProjectionParameters {
-  /** Geographic center point [longitude, latitude] */
-  center?: [number, number]
-
-  /** Rotation angles [lambda, phi, gamma] */
-  rotate?: [number, number, number]
-
-  /** Standard parallels for conic projections [south, north] */
-  parallels?: [number, number]
-
-  /** Current scale value */
-  scale: number
-
-  /** Base scale before user adjustments */
-  baseScale: number
-
-  /** User's scale multiplier (scale = baseScale * scaleMultiplier) */
-  scaleMultiplier: number
+export interface ExportedProjectionParameters extends ExtendedProjectionParameters {
+  // All properties inherited from ExtendedProjectionParameters
+  // This ensures export/import uses the same parameter structure as the rest of the app
 }
 
 /**

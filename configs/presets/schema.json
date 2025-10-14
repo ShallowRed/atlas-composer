@@ -164,6 +164,131 @@
           }
         }
       }
+    },
+    "atlasMetadata": {
+      "type": "object",
+      "description": "Optional atlas-level projection metadata extracted from atlas configuration",
+      "properties": {
+        "compositeProjections": {
+          "type": "array",
+          "description": "List of composite projection IDs available for this atlas",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["albers-usa", "albers-usa-composite"],
+            ["conic-conformal-france"]
+          ]
+        },
+        "defaultCompositeProjection": {
+          "type": "string",
+          "description": "Default composite projection ID to use for composite-existing mode"
+        },
+        "projectionPreferences": {
+          "type": "object",
+          "description": "Projection preferences and recommendations for this atlas",
+          "properties": {
+            "recommended": {
+              "type": "array",
+              "description": "Array of recommended projection IDs for this atlas",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {
+              "type": "object",
+              "description": "Default projections for different territory types",
+              "properties": {
+                "mainland": {
+                  "type": "string",
+                  "description": "Default projection ID for mainland territory"
+                },
+                "overseas": {
+                  "type": "string",
+                  "description": "Default projection ID for overseas territories"
+                }
+              }
+            },
+            "prohibited": {
+              "type": "array",
+              "description": "Array of projection IDs that are not suitable for this atlas",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "projectionParameters": {
+          "type": "object",
+          "description": "Atlas-level projection parameters",
+          "properties": {
+            "center": {
+              "type": "object",
+              "properties": {
+                "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+                "latitude": { "type": "number", "minimum": -90, "maximum": 90 }
+              },
+              "required": ["longitude", "latitude"]
+            },
+            "rotate": {
+              "type": "object",
+              "properties": {
+                "mainland": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "azimuthal": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 3
+                }
+              }
+            },
+            "parallels": {
+              "type": "object",
+              "properties": {
+                "conic": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            }
+          }
+        },
+        "mapDisplayDefaults": {
+          "type": "object",
+          "description": "Default display options applied to maps when loading this atlas",
+          "properties": {
+            "showGraticule": {
+              "type": "boolean",
+              "description": "Display latitude/longitude graticule overlay",
+              "default": false
+            },
+            "showSphere": {
+              "type": "boolean",
+              "description": "Display the sphere outline (globe boundary) when using global projections",
+              "default": false
+            },
+            "showCompositionBorders": {
+              "type": "boolean",
+              "description": "Display composition borders for composite projections when available",
+              "default": false
+            },
+            "showMapLimits": {
+              "type": "boolean",
+              "description": "Display the bounding box outlining the map extent",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

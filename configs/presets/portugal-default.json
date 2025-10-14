@@ -1,0 +1,184 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "portugal",
+    "atlasName": "Portugal",
+    "exportDate": "2025-10-14T13:04:45.673Z",
+    "createdWith": "Migration Script v1.0",
+    "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
+  },
+  "pattern": "single-focus",
+  "referenceScale": 2700,
+  "territories": [
+    {
+      "code": "PT-CONT",
+      "name": "Portugal Continental",
+      "role": "primary",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
+      "parameters": {
+        "center": [
+          -8,
+          39.5
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -9.5,
+          37
+        ],
+        [
+          -6.2,
+          42.2
+        ]
+      ]
+    },
+    {
+      "code": "PT-20",
+      "name": "Madeira",
+      "role": "secondary",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
+      "parameters": {
+        "center": [
+          -16.9,
+          32.75
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -111,
+          105
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ]
+    },
+    {
+      "code": "PT-30",
+      "name": "Azores",
+      "role": "secondary",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
+      "parameters": {
+        "center": [
+          -28,
+          38.5
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -189,
+          -84
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ]
+    }
+  ],
+  "atlasMetadata": {
+    "compositeProjections": [
+      "conic-conformal-portugal"
+    ],
+    "projectionPreferences": {
+      "recommended": [
+        "conic-conformal",
+        "albers",
+        "azimuthal-equal-area"
+      ],
+      "default": {
+        "mainland": "conic-conformal",
+        "overseas": "azimuthal-equal-area"
+      },
+      "prohibited": [
+        "gnomonic",
+        "orthographic",
+        "conic-conformal-france",
+        "conic-conformal-europe"
+      ]
+    },
+    "projectionParameters": {
+      "center": {
+        "longitude": -8,
+        "latitude": 39.5
+      },
+      "rotate": {
+        "mainland": [
+          8,
+          0
+        ],
+        "azimuthal": [
+          8,
+          -39.5
+        ]
+      },
+      "parallels": {
+        "conic": [
+          37,
+          42
+        ]
+      }
+    }
+  }
+}

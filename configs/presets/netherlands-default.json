@@ -1,0 +1,180 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "netherlands",
+    "atlasName": "Netherlands",
+    "exportDate": "2025-10-14T13:04:45.673Z",
+    "createdWith": "Migration Script v1.0",
+    "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
+  },
+  "pattern": "single-focus",
+  "referenceScale": 2700,
+  "territories": [
+    {
+      "code": "NL-NLD",
+      "name": "Netherlands",
+      "role": "primary",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
+      "parameters": {
+        "center": [
+          5.5,
+          52.2
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          3.36,
+          50.75
+        ],
+        [
+          7.23,
+          53.56
+        ]
+      ]
+    },
+    {
+      "code": "NL-BQ1",
+      "name": "Bonaire",
+      "role": "secondary",
+      "projectionFamily": "MISCELLANEOUS",
+      "parameters": {
+        "center": [
+          -68.25,
+          12.2
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -250,
+          -100
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -68.42,
+          12.02
+        ],
+        [
+          -68.19,
+          12.31
+        ]
+      ]
+    },
+    {
+      "code": "NL-BQ2",
+      "name": "Saba and Sint Eustatius",
+      "role": "secondary",
+      "projectionFamily": "MISCELLANEOUS",
+      "parameters": {
+        "center": [
+          -63.1,
+          17.5
+        ],
+        "rotate": [
+          0,
+          0,
+          0
+        ],
+        "parallels": [
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -250,
+          -200
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -63.28,
+          17.47
+        ],
+        [
+          -62.97,
+          17.64
+        ]
+      ]
+    }
+  ],
+  "atlasMetadata": {
+    "compositeProjections": [
+      "conic-conformal-netherlands"
+    ],
+    "projectionPreferences": {
+      "recommended": [
+        "conic-conformal-netherlands",
+        "conic-conformal",
+        "mercator"
+      ],
+      "default": {
+        "mainland": "conic-conformal",
+        "overseas": "mercator"
+      },
+      "prohibited": [
+        "gnomonic",
+        "orthographic"
+      ]
+    },
+    "projectionParameters": {
+      "center": {
+        "longitude": 5.5,
+        "latitude": 52.2
+      },
+      "rotate": {
+        "mainland": [
+          -5.5,
+          0
+        ],
+        "azimuthal": [
+          -5.5,
+          -52.2
+        ]
+      },
+      "parallels": {
+        "conic": [
+          50,
+          54
+        ]
+      }
+    }
+  }
+}

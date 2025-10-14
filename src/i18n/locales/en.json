@@ -91,7 +91,7 @@
     "parameters": {
       "position": "Position",
       "projectionSpecific": "Projection Parameters",
-      "view": "View & Scale", 
+      "view": "View & Scale",
       "advanced": "Advanced",
       "reset": "Reset",
       "resetOverrides": "Reset all parameter overrides for this territory",

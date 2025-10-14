@@ -8,21 +8,10 @@
     "territories": "world-countries-110m.json",
     "metadata": "world-metadata-110m.json"
   },
-  "viewModes": ["unified"],
+  "viewModes": [
+    "unified"
+  ],
   "defaultViewMode": "unified",
-  "projectionPreferences": {
-    "recommended": [
-      "natural-earth",
-      "robinson",
-      "mercator",
-      "miller",
-      "eckert4"
-    ],
-    "default": {
-      "mainland": "natural-earth",
-      "overseas": "natural-earth"
-    }
-  },
   "territories": "*",
   "modes": [
     {
@@ -31,7 +20,9 @@
         "en": "All Countries",
         "fr": "Tous les pays"
       },
-      "territories": ["*"]
+      "territories": [
+        "*"
+      ]
     },
     {
       "id": "without-antarctica",
@@ -39,14 +30,12 @@
         "en": "Without Antarctica",
         "fr": "Sans l'Antarctique"
       },
-      "territories": ["*"],
-      "exclude": ["WD-010"]
+      "territories": [
+        "*"
+      ],
+      "exclude": [
+        "WD-010"
+      ]
     }
-  ],
-  "mapDisplayDefaults": {
-    "showGraticule": true,
-    "showSphere": true,
-    "showCompositionBorders": false,
-    "showMapLimits": false
-  }
+  ]
 }

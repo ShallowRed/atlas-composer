@@ -1,8 +1,9 @@
 import type { ViewMode } from '@/types'
 
-import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
+import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 
 /**
@@ -41,7 +42,6 @@ export class AtlasCoordinator {
     currentViewMode: ViewMode,
   ): Promise<AtlasChangeResult> {
     const config = getAtlasConfig(newAtlasId)
-    const specificConfig = getAtlasSpecificConfig(newAtlasId)
     const atlasService = new AtlasService(newAtlasId)
 
     // Determine new view mode (use default if current is not supported)
@@ -80,19 +80,22 @@ export class AtlasCoordinator {
       }
     }
 
-    // Determine composite projection
-    const compositeProjection = config.defaultCompositeProjection
+    // Get atlas metadata from preset system
+    const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, config.defaultPreset)
 
-    // Determine selected projection
-    const selectedProjection = this.getSelectedProjection(specificConfig, atlasService)
+    // Determine composite projection from preset metadata
+    const compositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
 
-    // Get map display defaults
-    const mapDisplayDefaults = config.mapDisplayDefaults || {}
+    // Determine selected projection from preset metadata or mainland
+    const selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
+
+    // Get map display defaults from preset metadata
+    const mapDisplayDefaults = await AtlasMetadataService.getMapDisplayDefaults(newAtlasId, config.defaultPreset)
     const mapDisplay = {
-      showGraticule: mapDisplayDefaults.showGraticule ?? false,
-      showSphere: mapDisplayDefaults.showSphere ?? false,
-      showCompositionBorders: mapDisplayDefaults.showCompositionBorders ?? false,
-      showMapLimits: mapDisplayDefaults.showMapLimits ?? false,
+      showGraticule: mapDisplayDefaults?.showGraticule ?? false,
+      showSphere: mapDisplayDefaults?.showSphere ?? false,
+      showCompositionBorders: mapDisplayDefaults?.showCompositionBorders ?? false,
+      showMapLimits: mapDisplayDefaults?.showMapLimits ?? false,
     }
 
     return {
@@ -137,18 +140,20 @@ export class AtlasCoordinator {
   /**
    * Get selected projection based on preferences or mainland
    *
-   * @param specificConfig - Atlas-specific configuration
+   * @param atlasId - Atlas identifier
+   * @param defaultPreset - Default preset name
    * @param atlasService - Atlas service instance
    * @returns Projection ID to use
    */
-  private static getSelectedProjection(
-    specificConfig: any,
+  private static async getSelectedProjection(
+    atlasId: string,
+    defaultPreset: string | undefined,
     atlasService: AtlasService,
-  ): string {
+  ): Promise<string> {
     // First, try to get from projection preferences (for wildcard atlases like world)
-    const projectionPrefs = specificConfig.projectionPreferences
+    const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(atlasId, defaultPreset)
     if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
-      return projectionPrefs.recommended[0]
+      return projectionPrefs.recommended[0]!
     }
 
     // Otherwise, use mainland territory projection

@@ -13,6 +13,57 @@ import type {
 } from '@/types'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
+/**
+ * Get fallback projection parameters for atlas (sync version)
+ */
+function getFallbackProjectionParameters(atlasId: string): ProjectionParams {
+  // Basic fallback parameters - these will be updated async in background
+  const baseParams: ProjectionParams = {
+    center: { longitude: 0, latitude: 0 },
+    rotate: { mainland: [0, 0], azimuthal: [0, 0] },
+    parallels: { conic: [30, 60] },
+  }
+
+  // Atlas-specific overrides
+  switch (atlasId) {
+    case 'world':
+      return { ...baseParams, center: { longitude: 0, latitude: 20 } }
+    case 'france':
+      return { ...baseParams, center: { longitude: 2, latitude: 46 } }
+    case 'spain':
+      return { ...baseParams, center: { longitude: -3, latitude: 40 } }
+    case 'portugal':
+      return { ...baseParams, center: { longitude: -8, latitude: 39 } }
+    case 'usa':
+      return { ...baseParams, center: { longitude: -96, latitude: 40 } }
+    default:
+      return baseParams
+  }
+}
+
+/**
+ * Get fallback projection preferences for atlas (sync version)
+ */
+function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
+  // Basic fallback preferences - these will be updated async in background
+  switch (atlasId) {
+    case 'world':
+      return { recommended: ['natural-earth', 'robinson'] }
+    case 'france':
+      return { recommended: ['conic-conformal-france'] }
+    case 'spain':
+      return { recommended: ['conic-conformal-spain'] }
+    case 'portugal':
+      return { recommended: ['conic-conformal-portugal'] }
+    case 'usa':
+      return { recommended: ['albers-usa', 'albers-usa-composite'] }
+    case 'eu':
+      return { recommended: ['conic-conformal-europe'] }
+    default:
+      return { recommended: [`conic-conformal-${atlasId}`] }
+  }
+}
+
 // Internal loader types - defined here to avoid separation of concerns violations
 export interface ProjectionParams {
   center: { longitude: number, latitude: number }
@@ -67,17 +118,12 @@ function transformTerritory(territory: JSONTerritoryConfig, locale: string): Ter
     ...(territory.shortName && { shortName: resolveI18nValue(territory.shortName, locale) }),
     ...(territory.region && { region: resolveI18nValue(territory.region, locale) }),
     center: territory.center,
-    offset: territory.rendering?.offset || [0, 0],
     bounds: territory.bounds,
+    // Default offset - rendering configuration is now handled by preset files
+    offset: [0, 0],
+    // Legacy rendering property support (deprecated - remove after full preset migration)
     ...(territory.rendering?.projectionType && {
       projectionType: territory.rendering.projectionType,
-    }),
-    ...(territory.rendering?.scale && { scale: territory.rendering.scale }),
-    ...(territory.rendering?.rotate && { rotate: territory.rendering.rotate }),
-    ...(territory.rendering?.parallels && { parallels: territory.rendering.parallels }),
-    ...(territory.rendering?.clipExtent && { clipExtent: territory.rendering.clipExtent }),
-    ...(territory.rendering?.baseScaleMultiplier && {
-      baseScaleMultiplier: territory.rendering.baseScaleMultiplier,
     }),
   }
 }
@@ -281,24 +327,6 @@ function createAtlasConfig(
   const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
-  const mapDisplayDefaults = {
-    showGraticule: false,
-    showCompositionBorders: false,
-    showMapLimits: false,
-    ...(config.mapDisplayDefaults || {}),
-  }
-
-  // Composite projections: explicitly defined in config or empty array
-  // For wildcard atlases (like world), no composite projections (unified view only)
-  // For other atlases, use config.compositeProjections if provided
-  const compositeProjections = territories.isWildcard
-    ? []
-    : (config.compositeProjections || [])
-
-  const defaultCompositeProjection = territories.isWildcard
-    ? undefined
-    : (config.defaultCompositeProjection || compositeProjections[0])
-
   return {
     id: config.id,
     name: resolveI18nValue(config.name, locale),
@@ -309,8 +337,6 @@ function createAtlasConfig(
     defaultViewMode,
     defaultTerritoryMode:
       config.modes?.[config.modes.length - 1]?.id || 'all-territories',
-    compositeProjections,
-    defaultCompositeProjection,
     defaultPreset: config.defaultPreset,
     availablePresets: config.availablePresets || [],
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
@@ -343,7 +369,6 @@ function createAtlasConfig(
       label: territoryModes[mode.id]!.label,
       translated: true, // Labels from config are already translated via resolveI18nValue
     })),
-    mapDisplayDefaults,
   }
 }
 
@@ -362,8 +387,18 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
   // Extract territories
   const territories = extractTerritories(jsonConfig, locale)
 
-  // Create projection parameters
-  const projectionParams: ProjectionParams = jsonConfig.projection as ProjectionParams
+  // Get projection parameters with fallback defaults (sync version)
+  const projectionParameters = getFallbackProjectionParameters(jsonConfig.id)
+  const projectionParams: ProjectionParams = {
+    center: projectionParameters?.center || { longitude: 0, latitude: 0 },
+    rotate: {
+      mainland: projectionParameters?.rotate?.mainland || [0, 0],
+      azimuthal: projectionParameters?.rotate?.azimuthal || [0, 0],
+    },
+    parallels: {
+      conic: projectionParameters?.parallels?.conic || [0, 0],
+    },
+  }
 
   // Create territory modes and groups
   const isSingleFocusPattern = territories.type === 'single-focus'
@@ -393,8 +428,8 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     locale,
   )
 
-  // Extract projection preferences if provided
-  const projectionPreferences: ProjectionPreferences | undefined = jsonConfig.projectionPreferences
+  // Get projection preferences with fallback defaults (sync version)
+  const projectionPreferences = getFallbackProjectionPreferences(jsonConfig.id)
 
   // Store raw i18n values for reactive translation
   const rawModeLabels = Object.fromEntries(

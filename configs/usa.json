@@ -15,44 +15,6 @@
     "unified"
   ],
   "defaultViewMode": "composite-existing",
-  "compositeProjections": [
-    "albers-usa",
-    "albers-usa-composite",
-    "albers-usa-territories"
-  ],
-  "defaultCompositeProjection": "albers-usa",
-  "projection": {
-    "center": {
-      "longitude": -98.5,
-      "latitude": 39.8
-    },
-    "rotate": {
-      "mainland": [
-        98.5,
-        0
-      ],
-      "azimuthal": [
-        98.5,
-        -39.8
-      ]
-    },
-    "parallels": {
-      "conic": [
-        29.5,
-        45.5
-      ]
-    }
-  },
-  "projectionPreferences": {
-    "recommended": [
-      "conic-conformal",
-      "conic-equal-area"
-    ],
-    "default": {
-      "mainland": "albers",
-      "overseas": "albers"
-    }
-  },
   "territories": [
     {
       "id": "840",
@@ -543,5 +505,9 @@
         "US-MP"
       ]
     }
+  ],
+  "defaultPreset": "usa-default",
+  "availablePresets": [
+    "usa-default"
   ]
 }

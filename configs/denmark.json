@@ -14,38 +14,12 @@
     "territories": "denmark-territories-50m.json",
     "metadata": "denmark-metadata-50m.json"
   },
-  "compositeProjections": [
-    "transverse-mercator-denmark"
-  ],
-  "projectionPreferences": {
-    "recommended": [
-      "transverse-mercator-denmark",
-      "transverse-mercator",
-      "mercator"
-    ],
-    "default": {
-      "mainland": "transverse-mercator",
-      "overseas": "transverse-mercator"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic"
-    ]
-  },
   "metadata": {
-    "naturalEarthIds": [208],
+    "naturalEarthIds": [
+      208
+    ],
     "iso3": "DNK",
     "region": "Europe"
-  },
-  "projection": {
-    "center": {
-      "longitude": 10.5,
-      "latitude": 56
-    },
-    "rotate": {
-      "mainland": [-10.5, 56],
-      "azimuthal": [-10.5, -56]
-    }
   },
   "territories": [
     {
@@ -54,14 +28,41 @@
       "code": "DK-JUT",
       "name": "Jutland and Zealand",
       "iso": "DNK",
-      "center": [10, 56],
-      "bounds": [[8.07, 54.55], [12.69, 57.75]],
+      "center": [
+        10,
+        56
+      ],
+      "bounds": [
+        [
+          8.07,
+          54.55
+        ],
+        [
+          12.69,
+          57.75
+        ]
+      ],
       "extraction": {
         "extractFrom": "208",
-        "polygonIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        "polygonIndices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
       },
       "rendering": {
-        "offset": [0, 0],
+        "offset": [
+          0,
+          0
+        ],
         "projectionType": "transverse-mercator"
       }
     },
@@ -72,16 +73,37 @@
       "name": "Bornholm",
       "iso": "DNK",
       "region": "Bornholm",
-      "center": [15, 55.15],
-      "bounds": [[14.68, 54.98], [15.19, 55.31]],
+      "center": [
+        15,
+        55.15
+      ],
+      "bounds": [
+        [
+          14.68,
+          54.98
+        ],
+        [
+          15.19,
+          55.31
+        ]
+      ],
       "extraction": {
         "extractFrom": "208",
-        "polygonIndices": [11]
+        "polygonIndices": [
+          11
+        ]
       },
       "rendering": {
-        "offset": [300, 50],
+        "offset": [
+          300,
+          50
+        ],
         "baseScaleMultiplier": 1.5
       }
     }
+  ],
+  "defaultPreset": "denmark-default",
+  "availablePresets": [
+    "denmark-default"
   ]
 }

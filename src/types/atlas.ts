@@ -94,15 +94,6 @@ export interface AtlasConfig {
   /** Default territory mode (e.g., 'all-territories', 'metropole-only') */
   defaultTerritoryMode?: string
 
-  /**
-   * Built-in D3 composite projections available for this atlas
-   * Examples: ['conic-conformal-france', 'conic-conformal-portugal']
-   */
-  compositeProjections?: string[]
-
-  /** Default composite projection to use for composite-existing mode */
-  defaultCompositeProjection?: string
-
   /** Default preset to load for composite-custom mode (e.g., 'france-default') */
   defaultPreset?: string
 
@@ -114,9 +105,6 @@ export interface AtlasConfig {
 
   /** Whether to show the territory selector in the UI */
   hasTerritorySelector?: boolean
-
-  /** Default map display options sourced from atlas configuration */
-  mapDisplayDefaults?: MapDisplayDefaults
 
   /**
    * Atlas pattern type - defines structural relationship between territories

@@ -14,27 +14,6 @@
     "split"
   ],
   "defaultViewMode": "composite-existing",
-  "compositeProjections": [
-    "conic-conformal-europe"
-  ],
-  "projectionPreferences": {
-    "recommended": [
-      "conic-conformal",
-      "albers",
-      "azimuthal-equal-area"
-    ],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic",
-      "stereographic",
-      "conic-conformal-france",
-      "conic-conformal-portugal"
-    ]
-  },
   "territories": [
     {
       "id": "40",
@@ -1326,28 +1305,6 @@
       "rendering": {}
     }
   ],
-  "projection": {
-    "center": {
-      "longitude": 10,
-      "latitude": 51
-    },
-    "rotate": {
-      "mainland": [
-        -10,
-        0
-      ],
-      "azimuthal": [
-        -10,
-        -51
-      ]
-    },
-    "parallels": {
-      "conic": [
-        43,
-        62
-      ]
-    }
-  },
   "modes": [
     {
       "id": "continental-europe",
@@ -1480,5 +1437,9 @@
       ]
     }
   ],
-  "groups": []
+  "groups": [],
+  "defaultPreset": "eu-default",
+  "availablePresets": [
+    "eu-default"
+  ]
 }

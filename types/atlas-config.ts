@@ -59,13 +59,6 @@ export interface JSONAtlasConfig {
     territories: string
     metadata: string
   }
-  projection: {
-    center: { longitude: number, latitude: number }
-    rotate: { mainland: [number, number], azimuthal: [number, number] }
-    parallels: { conic: [number, number] }
-  }
-  compositeProjections?: string[]
-  defaultCompositeProjection?: string
   defaultPreset?: string
   availablePresets?: string[]
   defaultProjection?: string
@@ -102,23 +95,6 @@ export interface JSONAtlasConfig {
         metadata?: string
       }
     }
-  }
-  projectionPreferences?: {
-    exclude?: string[]
-    categoryOrder?: string[]
-    recommended?: string[]
-    prohibited?: string[]
-    defaultProjection?: string
-    compositeModes?: string[]
-    default?: {
-      mainland?: string
-      overseas?: string
-    }
-  }
-  mapDisplayDefaults?: {
-    showGraticule?: boolean
-    showCompositionBorders?: boolean
-    showMapLimits?: boolean
   }
   splitModeConfig?: {
     mainlandTitle?: string

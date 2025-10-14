@@ -8,56 +8,16 @@
     "territories": "portugal-territories-50m.json",
     "metadata": "portugal-metadata-50m.json"
   },
-  "compositeProjections": [
-    "conic-conformal-portugal"
-  ],
   "defaultPreset": "portugal-default",
-  "availablePresets": ["portugal-default"],
-  "projectionPreferences": {
-    "recommended": [
-      "conic-conformal",
-      "albers",
-      "azimuthal-equal-area"
-    ],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "azimuthal-equal-area"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic",
-      "conic-conformal-france",
-      "conic-conformal-europe"
-    ]
-  },
+  "availablePresets": [
+    "portugal-default"
+  ],
   "metadata": {
     "naturalEarthIds": [
       620
     ],
     "iso3": "PRT",
     "region": "Europe"
-  },
-  "projection": {
-    "center": {
-      "longitude": -8,
-      "latitude": 39.5
-    },
-    "rotate": {
-      "mainland": [
-        8,
-        0
-      ],
-      "azimuthal": [
-        8,
-        -39.5
-      ]
-    },
-    "parallels": {
-      "conic": [
-        37,
-        42
-      ]
-    }
   },
   "territories": [
     {
@@ -124,7 +84,7 @@
           105
         ],
         "projectionType": "conic-conformal",
-        "baseScaleMultiplier": 1.0
+        "baseScaleMultiplier": 1
       }
     },
     {

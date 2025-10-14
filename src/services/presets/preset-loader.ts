@@ -17,9 +17,47 @@ import type { ExportedCompositeConfig } from '@/types/export-config'
 
 import { CompositeImportService } from '@/services/export/composite-import-service'
 
+/**
+ * Atlas projection metadata extracted from atlas configuration
+ */
+export interface AtlasProjectionMetadata {
+  compositeProjections?: string[]
+  defaultCompositeProjection?: string
+  projectionPreferences?: {
+    recommended?: string[]
+    default?: {
+      mainland?: string
+      overseas?: string
+    }
+    prohibited?: string[]
+  }
+  projectionParameters?: {
+    center?: { longitude: number, latitude: number }
+    rotate?: {
+      mainland?: [number, number]
+      azimuthal?: [number, number]
+    }
+    parallels?: { conic?: [number, number] }
+  }
+  mapDisplayDefaults?: {
+    showGraticule?: boolean
+    showSphere?: boolean
+    showCompositionBorders?: boolean
+    showMapLimits?: boolean
+  }
+}
+
+/**
+ * Extended preset configuration with atlas metadata
+ */
+export interface ExtendedPresetConfig extends ExportedCompositeConfig {
+  /** Optional atlas-level projection metadata */
+  atlasMetadata?: AtlasProjectionMetadata
+}
+
 export interface PresetLoadResult {
   success: boolean
-  preset?: ExportedCompositeConfig
+  preset?: ExtendedPresetConfig
   errors: string[]
   warnings: string[]
 }
@@ -56,6 +94,7 @@ export class PresetLoader {
 
       // Parse JSON
       const jsonText = await response.text()
+      const rawPreset = JSON.parse(jsonText) as ExtendedPresetConfig
       console.info(`[PresetLoader] Preset file loaded, validating...`)
 
       // Validate using CompositeImportService
@@ -69,10 +108,16 @@ export class PresetLoader {
         }
       }
 
+      // Combine validated preset with atlas metadata
+      const extendedPreset: ExtendedPresetConfig = {
+        ...importResult.config!,
+        atlasMetadata: rawPreset.atlasMetadata,
+      }
+
       // Return validated preset
       return {
         success: true,
-        preset: importResult.config,
+        preset: extendedPreset,
         errors: [],
         warnings: importResult.warnings,
       }
@@ -147,12 +192,17 @@ export class PresetLoader {
    * @param preset - Preset configuration to validate
    * @returns Validation result with errors and warnings
    */
-  static validatePreset(preset: ExportedCompositeConfig): PresetLoadResult {
+  static validatePreset(preset: ExtendedPresetConfig): PresetLoadResult {
     const validationResult = CompositeImportService.importFromJSON(JSON.stringify(preset))
+
+    const extendedPreset: ExtendedPresetConfig = {
+      ...validationResult.config!,
+      atlasMetadata: preset.atlasMetadata,
+    }
 
     return {
       success: validationResult.success,
-      preset: validationResult.config,
+      preset: extendedPreset,
       errors: validationResult.errors,
       warnings: validationResult.warnings,
     }

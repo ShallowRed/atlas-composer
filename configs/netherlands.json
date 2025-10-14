@@ -14,41 +14,12 @@
     "territories": "netherlands-territories-50m.json",
     "metadata": "netherlands-metadata-50m.json"
   },
-  "compositeProjections": [
-    "conic-conformal-netherlands"
-  ],
-  "projectionPreferences": {
-    "recommended": [
-      "conic-conformal-netherlands",
-      "conic-conformal",
-      "mercator"
-    ],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic"
-    ]
-  },
   "metadata": {
-    "naturalEarthIds": [528],
+    "naturalEarthIds": [
+      528
+    ],
     "iso3": "NLD",
     "region": "Europe"
-  },
-  "projection": {
-    "center": {
-      "longitude": 5.5,
-      "latitude": 52.2
-    },
-    "rotate": {
-      "mainland": [-5.5, 0],
-      "azimuthal": [-5.5, -52.2]
-    },
-    "parallels": {
-      "conic": [50, 54]
-    }
   },
   "territories": [
     {
@@ -57,13 +28,28 @@
       "code": "NL-NLD",
       "name": "Netherlands",
       "iso": "NLD",
-      "center": [5.5, 52.2],
-      "bounds": [[3.36, 50.75], [7.23, 53.56]],
+      "center": [
+        5.5,
+        52.2
+      ],
+      "bounds": [
+        [
+          3.36,
+          50.75
+        ],
+        [
+          7.23,
+          53.56
+        ]
+      ],
       "extraction": {
         "mainlandPolygon": 0
       },
       "rendering": {
-        "offset": [0, 0],
+        "offset": [
+          0,
+          0
+        ],
         "projectionType": "conic-conformal"
       }
     },
@@ -74,15 +60,32 @@
       "name": "Bonaire",
       "iso": "NLD",
       "region": "Caribbean Netherlands",
-      "center": [-68.25, 12.2],
-      "bounds": [[-68.42, 12.02], [-68.19, 12.31]],
+      "center": [
+        -68.25,
+        12.2
+      ],
+      "bounds": [
+        [
+          -68.42,
+          12.02
+        ],
+        [
+          -68.19,
+          12.31
+        ]
+      ],
       "extraction": {
         "extractFrom": "528",
-        "polygonIndices": [9]
+        "polygonIndices": [
+          9
+        ]
       },
       "rendering": {
-        "offset": [-250, -100],
-        "baseScaleMultiplier": 3.0
+        "offset": [
+          -250,
+          -100
+        ],
+        "baseScaleMultiplier": 3
       }
     },
     {
@@ -92,16 +95,38 @@
       "name": "Saba and Sint Eustatius",
       "iso": "NLD",
       "region": "Caribbean Netherlands",
-      "center": [-63.1, 17.5],
-      "bounds": [[-63.28, 17.47], [-62.97, 17.64]],
+      "center": [
+        -63.1,
+        17.5
+      ],
+      "bounds": [
+        [
+          -63.28,
+          17.47
+        ],
+        [
+          -62.97,
+          17.64
+        ]
+      ],
       "extraction": {
         "extractFrom": "528",
-        "polygonIndices": [10, 11]
+        "polygonIndices": [
+          10,
+          11
+        ]
       },
       "rendering": {
-        "offset": [-250, -200],
-        "baseScaleMultiplier": 8.0
+        "offset": [
+          -250,
+          -200
+        ],
+        "baseScaleMultiplier": 8
       }
     }
+  ],
+  "defaultPreset": "netherlands-default",
+  "availablePresets": [
+    "netherlands-default"
   ]
 }

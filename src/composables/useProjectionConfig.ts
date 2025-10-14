@@ -1,7 +1,8 @@
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
+import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
 
@@ -13,17 +14,27 @@ export function useProjectionConfig() {
   const configStore = useConfigStore()
   const territoryStore = useTerritoryStore()
 
+  // Reactive state for composite projections
+  const availableCompositeProjections = ref<string[]>([])
+
+  // Load composite projections when atlas changes
+  watch(() => configStore.selectedAtlas, async (atlasId) => {
+    if (atlasId) {
+      const compositeProjections = await AtlasMetadataService.getCompositeProjections(
+        atlasId,
+        configStore.currentAtlasConfig.defaultPreset,
+      )
+      availableCompositeProjections.value = compositeProjections || []
+    }
+  }, { immediate: true })
+
   /**
    * Get available composite projections for current atlas
    */
   const compositeProjectionOptions = computed(() => {
-    // Get the current region's available composite projections
-    const atlasConfig = configStore.currentAtlasConfig
-    const availableProjections = atlasConfig.compositeProjections || []
-
     // Get all composite projections from registry and filter by region
     return projectionRegistry.getAll()
-      .filter(def => def.family === ProjectionFamily.COMPOSITE && availableProjections.includes(def.id))
+      .filter(def => def.family === ProjectionFamily.COMPOSITE && availableCompositeProjections.value.includes(def.id))
       .map(def => ({ value: def.id, label: t(def.name), translated: true }))
   })
 

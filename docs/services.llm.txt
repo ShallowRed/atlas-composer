@@ -80,6 +80,18 @@ Static service providing preset loading and validation.
 
 Delegates validation to CompositeImportService for consistency.
 
+### AtlasMetadataService
+Provides clean API for accessing atlas-level projection metadata from preset files.
+Static service with metadata caching for performance.
+- `getAtlasMetadata()` - Get complete atlas metadata from presets (async)
+- `getCompositeProjections()` - Get composite projection configurations (async)
+- `getProjectionPreferences()` - Get projection preferences (async)
+- `getProjectionParameters()` - Get projection parameters (async)
+- `getMapDisplayDefaults()` - Get map display defaults (async)
+- `clearCache()` - Clear metadata cache
+
+Uses PresetLoader internally, provides fallback defaults for atlases without presets.
+
 ### AtlasService
 Atlas-aware facade for accessing territory data and configuration.
 Instance-based service providing unified API for components.

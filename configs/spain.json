@@ -8,58 +8,16 @@
     "territories": "spain-territories-50m.json",
     "metadata": "spain-metadata-50m.json"
   },
-  "compositeProjections": [
-    "conic-conformal-spain"
-  ],
   "defaultPreset": "spain-default",
-  "availablePresets": ["spain-default"],
-  "projectionPreferences": {
-    "recommended": [
-      "conic-conformal-spain",
-      "conic-conformal",
-      "albers",
-      "conic-equal-area"
-    ],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic",
-      "conic-conformal-france",
-      "conic-conformal-portugal",
-      "conic-conformal-europe"
-    ]
-  },
+  "availablePresets": [
+    "spain-default"
+  ],
   "metadata": {
     "naturalEarthIds": [
       724
     ],
     "iso3": "ESP",
     "region": "Europe"
-  },
-  "projection": {
-    "center": {
-      "longitude": -3,
-      "latitude": 40
-    },
-    "rotate": {
-      "mainland": [
-        3,
-        0
-      ],
-      "azimuthal": [
-        3,
-        -40
-      ]
-    },
-    "parallels": {
-      "conic": [
-        38,
-        42
-      ]
-    }
   },
   "territories": [
     {
@@ -172,7 +130,7 @@
           270,
           -254
         ],
-        "baseScaleMultiplier": 1.0,
+        "baseScaleMultiplier": 1,
         "projectionType": "conic-conformal"
       }
     }

@@ -14,38 +14,12 @@
     "territories": "chile-territories-50m.json",
     "metadata": "chile-metadata-50m.json"
   },
-  "compositeProjections": [
-    "transverse-mercator-chile"
-  ],
-  "projectionPreferences": {
-    "recommended": [
-      "transverse-mercator-chile",
-      "transverse-mercator",
-      "mercator"
-    ],
-    "default": {
-      "mainland": "transverse-mercator",
-      "overseas": "stereographic"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic"
-    ]
-  },
   "metadata": {
-    "naturalEarthIds": [152],
+    "naturalEarthIds": [
+      152
+    ],
     "iso3": "CHL",
     "region": "South America"
-  },
-  "projection": {
-    "center": {
-      "longitude": -72,
-      "latitude": -37
-    },
-    "rotate": {
-      "mainland": [72, -37],
-      "azimuthal": [72, 37]
-    }
   },
   "territories": [
     {
@@ -54,14 +28,31 @@
       "code": "CL-MAIN",
       "name": "Chile Mainland",
       "iso": "CHL",
-      "center": [-71, -35],
-      "bounds": [[-75.71, -53.88], [-67.01, -17.51]],
+      "center": [
+        -71,
+        -35
+      ],
+      "bounds": [
+        [
+          -75.71,
+          -53.88
+        ],
+        [
+          -67.01,
+          -17.51
+        ]
+      ],
       "extraction": {
         "extractFrom": "152",
-        "polygonIndices": [2]
+        "polygonIndices": [
+          2
+        ]
       },
       "rendering": {
-        "offset": [0, 0],
+        "offset": [
+          0,
+          0
+        ],
         "projectionType": "transverse-mercator"
       }
     },
@@ -72,15 +63,32 @@
       "name": "Easter Island",
       "iso": "CHL",
       "region": "Easter Island",
-      "center": [-109.35, -27.12],
-      "bounds": [[-109.48, -27.20], [-109.21, -27.05]],
+      "center": [
+        -109.35,
+        -27.12
+      ],
+      "bounds": [
+        [
+          -109.48,
+          -27.2
+        ],
+        [
+          -109.21,
+          -27.05
+        ]
+      ],
       "extraction": {
         "extractFrom": "152",
-        "polygonIndices": [0]
+        "polygonIndices": [
+          0
+        ]
       },
       "rendering": {
-        "offset": [-500, 100],
-        "baseScaleMultiplier": 15.0
+        "offset": [
+          -500,
+          100
+        ],
+        "baseScaleMultiplier": 15
       }
     },
     {
@@ -90,16 +98,37 @@
       "name": "Juan Fernández Islands",
       "iso": "CHL",
       "region": "Juan Fernández",
-      "center": [-79, -33.6],
-      "bounds": [[-80.77, -33.77], [-78.70, -33.44]],
+      "center": [
+        -79,
+        -33.6
+      ],
+      "bounds": [
+        [
+          -80.77,
+          -33.77
+        ],
+        [
+          -78.7,
+          -33.44
+        ]
+      ],
       "extraction": {
         "extractFrom": "152",
-        "polygonIndices": [1]
+        "polygonIndices": [
+          1
+        ]
       },
       "rendering": {
-        "offset": [-300, 0],
-        "baseScaleMultiplier": 10.0
+        "offset": [
+          -300,
+          0
+        ],
+        "baseScaleMultiplier": 10
       }
     }
+  ],
+  "defaultPreset": "chile-default",
+  "availablePresets": [
+    "chile-default"
   ]
 }

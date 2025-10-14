@@ -2,9 +2,10 @@ import type { ViewMode } from '@/types'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { DEFAULT_ATLAS, getAtlasConfig, getAtlasSpecificConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
+import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
@@ -35,17 +36,10 @@ export const useConfigStore = defineStore('config', () => {
   // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
   const projectionFittingMode = ref<'auto' | 'manual'>('auto')
 
-  // Initialize selectedProjection from the default atlas's projection preferences or mainland
+  // Initialize selectedProjection - use fallback, will be updated async with preset data
   const getInitialProjection = () => {
-    const specificConfig = getAtlasSpecificConfig(DEFAULT_ATLAS)
-
-    // First, try to get from projection preferences (for wildcard atlases like world)
-    const projectionPrefs = specificConfig.projectionPreferences
-    if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
-      return projectionPrefs.recommended[0]
-    }
-
-    // Otherwise, use mainland territory projection
+    // Use fallback default for immediate initialization
+    // AtlasMetadataService will update this asynchronously with preset data
     const atlasService = new AtlasService(DEFAULT_ATLAS)
     const mainland = atlasService.getMainland()
     return mainland?.projectionType || 'natural-earth'
@@ -76,7 +70,8 @@ export const useConfigStore = defineStore('config', () => {
   const viewMode = ref<ViewMode>(currentAtlasConfig.value.defaultViewMode)
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
-  const compositeProjection = ref<string>(currentAtlasConfig.value.defaultCompositeProjection || 'conic-conformal-france')
+  // Initialize with fallback, will be updated async with preset data
+  const compositeProjection = ref<string>('conic-conformal-france')
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -84,13 +79,12 @@ export const useConfigStore = defineStore('config', () => {
     return config.supportedViewModes.length === 1
   })
 
-  // Initialize UI store with atlas display defaults
-  const initialMapDisplay = getAtlasConfig(DEFAULT_ATLAS).mapDisplayDefaults || {}
+  // Initialize UI store with fallback defaults - will be updated async with preset data
   uiStore.initializeDisplayOptions({
-    showGraticule: initialMapDisplay.showGraticule ?? false,
-    showSphere: initialMapDisplay.showSphere ?? false,
-    showCompositionBorders: initialMapDisplay.showCompositionBorders ?? false,
-    showMapLimits: initialMapDisplay.showMapLimits ?? false,
+    showGraticule: false,
+    showSphere: false,
+    showCompositionBorders: false,
+    showMapLimits: false,
   })
 
   // Initialize territory defaults in the territory store
@@ -101,6 +95,43 @@ export const useConfigStore = defineStore('config', () => {
 
   // Call initialization
   initializeTerritoryDefaults()
+
+  // Async initialization to load metadata from presets
+  const initializeWithPresetMetadata = async () => {
+    try {
+      const currentAtlasId = selectedAtlas.value
+      const currentPreset = currentAtlasConfig.value.defaultPreset
+
+      // Load projection preferences to update selectedProjection
+      const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(currentAtlasId, currentPreset)
+      if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
+        selectedProjection.value = projectionPrefs.recommended[0]!
+      }
+
+      // Load default composite projection
+      const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(currentAtlasId, currentPreset)
+      if (atlasMetadata.metadata?.defaultCompositeProjection) {
+        compositeProjection.value = atlasMetadata.metadata.defaultCompositeProjection
+      }
+
+      // Load map display defaults
+      const mapDisplayDefaults = await AtlasMetadataService.getMapDisplayDefaults(currentAtlasId, currentPreset)
+      if (mapDisplayDefaults) {
+        uiStore.initializeDisplayOptions({
+          showGraticule: mapDisplayDefaults.showGraticule ?? false,
+          showSphere: mapDisplayDefaults.showSphere ?? false,
+          showCompositionBorders: mapDisplayDefaults.showCompositionBorders ?? false,
+          showMapLimits: mapDisplayDefaults.showMapLimits ?? false,
+        })
+      }
+    }
+    catch (error) {
+      console.warn('[ConfigStore] Failed to load preset metadata:', error)
+    }
+  }
+
+  // Initialize with preset metadata
+  initializeWithPresetMetadata()
 
   // Computed
   // Use ProjectionUIService for all UI visibility and grouping logic

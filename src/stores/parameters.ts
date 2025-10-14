@@ -19,8 +19,8 @@ import type {
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
-import { ParameterValidator } from '@/services/parameters/parameter-validator'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
+import { UnifiedParameterConstraints } from '@/services/parameters/unified-parameter-constraints'
 
 export const useParameterStore = defineStore('parameters', () => {
   // Internal parameter manager instance
@@ -135,11 +135,11 @@ export const useParameterStore = defineStore('parameters', () => {
     key: keyof BaseProjectionParameters,
     value: any,
   ): ParameterValidationResult {
-    return ParameterValidator.validateParameter(family, key, value)
+    return UnifiedParameterConstraints.validateParameter(family, key, value)
   }
 
   function validateParameters(family: ProjectionFamilyType, parameters: BaseProjectionParameters): ParameterValidationResult[] {
-    return ParameterValidator.validateParameterSet(family, parameters)
+    return UnifiedParameterConstraints.validateParameterSet(family, parameters)
   }
 
   function validateTerritoryParameters(territoryCode: string, family: ProjectionFamilyType) {
@@ -158,11 +158,11 @@ export const useParameterStore = defineStore('parameters', () => {
 
   // Parameter constraints
   function getParameterConstraints(family: ProjectionFamilyType) {
-    return ParameterValidator.getParameterConstraints(family)
+    return UnifiedParameterConstraints.getParameterConstraints(family)
   }
 
   function isParameterRelevant(family: ProjectionFamilyType, key: keyof BaseProjectionParameters): boolean {
-    return ParameterValidator.isParameterRelevant(family, key)
+    return UnifiedParameterConstraints.isParameterRelevant(family, key)
   }
 
   // Computed properties for common use cases

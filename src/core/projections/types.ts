@@ -13,6 +13,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
+import type { BaseProjectionParameters } from '@/types/projection-parameters'
 
 /**
  * Geographic context for a territory or region
@@ -65,26 +66,14 @@ export interface ProjectionSuitability {
 }
 
 /**
- * Projection parameter configuration
+ * Re-export unified parameter types for convenience
+ * These are the recommended types to use going forward
  */
-export interface ProjectionParameters {
-  /** Center point [longitude, latitude] */
-  center?: [number, number]
-  /** Rotation [lambda, phi, gamma] */
-  rotate?: [number, number, number?]
-  /** Standard parallels for conic projections */
-  parallels?: [number, number]
-  /** Scale factor */
-  scale?: number
-  /** Translation offset [x, y] */
-  translate?: [number, number]
-  /** Clipping angle for azimuthal projections */
-  clipAngle?: number
-  /** Precision for adaptive sampling */
-  precision?: number
-  /** Additional projection-specific parameters */
-  [key: string]: any
-}
+export type {
+  BaseProjectionParameters,
+  ExtendedProjectionParameters,
+  ProjectionParametersWithMetadata,
+} from '@/types/projection-parameters'
 
 /**
  * Projection strategy - how the projection is created
@@ -166,7 +155,7 @@ export interface ProjectionDefinition {
   suitability: ProjectionSuitability
 
   /** Default parameters */
-  defaultParameters?: ProjectionParameters
+  defaultParameters?: BaseProjectionParameters
 
   /** Alternative names/aliases */
   aliases?: string[]
@@ -241,7 +230,7 @@ export interface ProjectionRecommendation {
   reason: string
 
   /** Suggested parameters for this context */
-  suggestedParameters?: ProjectionParameters
+  suggestedParameters?: BaseProjectionParameters
 }
 
 /**
@@ -257,7 +246,7 @@ export interface CreateProjectionOptions {
   projection: string | ProjectionDefinition
 
   /** Override default parameters */
-  parameters?: ProjectionParameters
+  parameters?: BaseProjectionParameters
 
   /** Territory-specific configuration */
   territory?: {

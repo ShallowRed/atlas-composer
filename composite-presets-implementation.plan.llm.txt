@@ -234,13 +234,24 @@ REMEMBER: .llm.txt files are STATIC REFERENCE docs
 - [ ] Plan file marked complete
 
 ## Status
-Status: COMPLETE
+Status: SUPERSEDED - ALTERNATIVE IMPLEMENTATION COMPLETED
 Started: 2025-10-13
-Completed: 2025-10-13
+Completed: 2025-01-24
 
-## Notes
-- Phase 1 can proceed immediately (removes unused code)
-- Phases 2-6 are the core implementation (preset system)
-- Phase 7 is optional enhancement (UI selector for multiple presets)
-- All phases maintain backward compatibility
-- Presets reuse 100% of export/import infrastructure
+## Implementation Notes
+This original plan was superseded by a different approach requested by user: "Should'nt we use preset for that ?" - Instead of creating composite projection defaults, we leveraged the existing preset system to handle atlas-level projection metadata that was previously embedded in atlas configurations.
+
+### Actual Implementation (Alternative Approach):
+1. ✅ Extended configs/presets/schema.json with atlasMetadata section
+2. ✅ Created migration script scripts/migrate-atlas-projection-metadata.ts
+3. ✅ Migrated projection metadata from 13/14 atlas configs to preset files
+4. ✅ Created AtlasMetadataService for clean API access to preset-based atlas metadata
+5. ✅ Updated atlas schema (configs/schema.json) to remove projection properties
+6. ✅ Updated atlas types to remove projection fields
+7. ✅ Updated atlas loader (src/core/atlases/loader.ts) to async pattern using AtlasMetadataService
+8. ✅ All builds successful, application loads correctly
+
+### Original vs Implemented:
+- **Original Goal**: Composite projection defaults for improved UX
+- **Implemented Goal**: Clean architectural separation using presets for atlas projection metadata
+- **Outcome**: Cleaner atlas configs, better separation of concerns, leveraged existing infrastructure
