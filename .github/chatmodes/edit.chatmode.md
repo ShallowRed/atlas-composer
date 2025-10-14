@@ -86,7 +86,7 @@ Before completing:
 ```
 
 ### Updating Documentation
-```markdown
+
 # Before (temporal language - WRONG)
 The MapView component was refactored to reduce complexity.
 It now delegates rendering to child components.
@@ -105,7 +105,7 @@ It delegates rendering to MapRenderer and controls to TerritoryControls.
 
 ## External Tools
 - Context7 MCP: For library documentation
-- Do NOT use Console Ninja (not working)
+- Console Ninja: For runtime logs/errors
 
 ## Switching Modes
 If task becomes complex (4+ files):
