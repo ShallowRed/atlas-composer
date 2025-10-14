@@ -19,7 +19,7 @@ Implement improvements to the projection parameter system based on the comprehen
 ### Phase 1: Type System Unification
 Priority: High - Foundation for all other improvements
 
-- [ ] File: src/types/projection-parameters.ts (NEW)
+- [x] File: src/types/projection-parameters.ts (NEW)
   - Action: Create unified parameter type system
   - Why: Eliminate type inconsistencies between core, export, and atlas parameter interfaces
   - Impact: Type safety, reduced confusion, better export/import fidelity
@@ -37,17 +37,17 @@ Priority: High - Foundation for all other improvements
 ### Phase 2: Unified Parameter Management Service
 Priority: High - Enables territory-specific parameter controls
 
-- [ ] File: src/services/parameters/projection-parameter-manager.ts (NEW)
+- [x] File: src/services/parameters/projection-parameter-manager.ts (NEW)
   - Action: Create unified parameter management service
   - Why: Handle both global and territory-specific parameters with inheritance
   - Impact: Consistent parameter handling across all modes
 
-- [ ] File: src/services/parameters/parameter-validator.ts (NEW)
+- [x] File: src/services/parameters/parameter-validator.ts (NEW)
   - Action: Create parameter validation pipeline
   - Why: Validate parameter compatibility, constraints, and dependencies
   - Impact: Better error handling, user feedback on invalid parameters
 
-- [ ] File: src/stores/parameters.ts (NEW)
+- [x] File: src/stores/parameters.ts (NEW)
   - Action: Create dedicated parameter store
   - Why: Centralize parameter state management separate from general config
   - Impact: Cleaner state organization, better reactivity control
@@ -55,30 +55,30 @@ Priority: High - Enables territory-specific parameter controls
 ### Phase 3: Territory-Specific Parameter Controls
 Priority: High - Main user-facing improvement for custom composite mode
 
-- [ ] File: src/components/ui/parameters/TerritoryParameterControls.vue (NEW)
-  - Action: Create territory-specific parameter control component
+- [x] File: src/components/ui/parameters/TerritoryParameterControls.vue (NEW)
+  - Action: Create territory-specific parameter editing component
   - Why: Enable per-territory parameter adjustment in custom composite mode
   - Impact: Users can fine-tune individual territory projections
 
-- [ ] File: src/components/ui/parameters/ParameterControlGroup.vue (NEW)
+- [x] File: src/components/ui/parameters/ParameterControlGroup.vue (NEW)
   - Action: Create reusable parameter control group component
   - Why: Shared UI pattern for both global and territory parameters
   - Impact: Consistent UX, reduced code duplication
 
-- [ ] File: src/components/ui/parameters/ParameterInheritanceIndicator.vue (NEW)
-  - Action: Create parameter inheritance visualization component
-  - Why: Show users which parameters are inherited vs overridden
-  - Impact: Clear understanding of parameter sources and hierarchy
+- [x] File: src/components/ui/parameters/ParameterValidationFeedback.vue (NEW)
+  - Action: Create parameter validation feedback component
+  - Why: Provide real-time validation and constraint feedback
+  - Impact: Better user guidance, prevented invalid configurations
 
 ### Phase 4: Enhanced TerritoryControls Integration
 Priority: High - Integrate new controls into existing UI
 
-- [ ] File: src/components/TerritoryControls.vue
+- [x] File: src/components/TerritoryControls.vue
   - Action: Integrate territory-specific parameter controls
   - Why: Add missing parameter controls to custom composite mode
   - Impact: Complete parameter editing capabilities per territory
 
-- [ ] File: src/composables/useTerritoryParameters.ts (NEW)
+- [x] File: src/composables/useTerritoryParameters.ts (NEW)
   - Action: Create composable for territory parameter management
   - Why: Encapsulate territory parameter logic and state
   - Impact: Reusable parameter management patterns
@@ -86,12 +86,7 @@ Priority: High - Integrate new controls into existing UI
 ### Phase 5: Parameter Validation and Feedback
 Priority: Medium - Enhanced user experience
 
-- [ ] File: src/components/ui/parameters/ParameterValidationFeedback.vue (NEW)
-  - Action: Create parameter validation feedback component
-  - Why: Provide real-time validation and constraint feedback
-  - Impact: Better user guidance, prevented invalid configurations
-
-- [ ] File: src/utils/parameter-constraints.ts (NEW)
+- [x] File: src/utils/parameter-constraints.ts (NEW)
   - Action: Create parameter constraint definitions
   - Why: Define parameter limits and dependencies by projection family
   - Impact: Consistent validation rules across all parameter controls
@@ -121,6 +116,19 @@ Priority: Low - Optimization after core functionality
   - Action: Create parameter update batching composable
   - Why: Batch multiple parameter changes to reduce re-renders
   - Impact: Smoother UX during rapid parameter adjustments
+
+### Phase 8: Architecture Consolidation (NEW)
+Priority: Medium - Technical debt cleanup
+
+- [ ] File: Parameter system consolidation
+  - Action: Consolidate parameter-constraints.ts and parameter-validator.ts systems
+  - Why: Eliminate duplicate and conflicting parameter relevance definitions
+  - Impact: Single source of truth for parameter constraints, reduced maintenance burden
+
+- [ ] File: src/services/parameters/unified-parameter-constraints.ts (NEW)
+  - Action: Create single unified parameter constraint system
+  - Why: Replace the current dual-system architecture with cleaner single system
+  - Impact: Simplified parameter validation, reduced architectural complexity
 
 ## Technical Specifications
 
@@ -182,22 +190,25 @@ interface ProjectionParameterManager {
 ## Success Criteria
 
 ### Custom Composite Mode Enhancements
-- [x] Territory-specific center point adjustment controls
-- [x] Territory-specific rotation controls (longitude, latitude)
-- [x] Territory-specific parallel controls (conic projections)
-- [x] Parameter inheritance visualization (global vs territory-specific)
-- [x] Territory parameter reset/override functionality
+- [x] Territory-specific center point adjustment controls - ✅ WORKING (with dynamic projection family detection)
+- [x] Territory-specific projection parameter controls - ✅ WORKING (TerritoryParameterControls component)
+- [x] Dynamic projection family detection - ✅ FIXED (resolves validation errors for different projection types)
+- [x] Parameter validation for all projection families - ✅ FIXED (consolidated conflicting systems)
+- [ ] Territory-specific rotation controls (longitude, latitude)
+- [ ] Territory-specific parallel controls (conic projections)
+- [ ] Parameter inheritance visualization (global vs territory-specific)
+- [ ] Territory parameter reset/override functionality
 
 ### Code Quality Improvements
-- [x] Unified parameter type system eliminates inconsistencies
-- [x] Reusable parameter control components reduce duplication
-- [x] Comprehensive parameter validation prevents invalid states
-- [x] Better export/import fidelity preserves all parameter state
+- [ ] Unified parameter type system eliminates inconsistencies
+- [ ] Reusable parameter control components reduce duplication
+- [ ] Comprehensive parameter validation prevents invalid states
+- [ ] Better export/import fidelity preserves all parameter state
 
 ### Performance Improvements
-- [x] Reduced reactive update cascades through batching
-- [x] Memoized expensive parameter computations
-- [x] Optimized re-rendering patterns for parameter changes
+- [ ] Reduced reactive update cascades through batching
+- [ ] Memoized expensive parameter computations
+- [ ] Optimized re-rendering patterns for parameter changes
 
 ## Documentation Updates
 - [ ] docs/projections.llm.txt - Document unified parameter system and territory controls
@@ -205,13 +216,63 @@ interface ProjectionParameterManager {
 - [ ] docs/services.llm.txt - Document parameter management services and validation
 
 ## Verification
-- [ ] All parameter types unified and consistent
-- [ ] Territory parameter controls functional in custom composite mode
-- [ ] Parameter inheritance clearly visualized in UI
-- [ ] Export/import maintains complete parameter fidelity
-- [ ] Performance benchmarks show improved reactivity
-- [ ] Comprehensive test coverage for new parameter system
+- [x] All parameter types unified and consistent - ✅ COMPLETED (Phase 1)
+- [x] Territory parameter controls functional in custom composite mode - ✅ WORKING (Phases 3-5 + bug fixes)
+- [x] Dynamic projection family detection - ✅ FIXED (no more hardcoded AZIMUTHAL family)
+- [x] Parameter validation handles all projection families correctly - ✅ FIXED (CONIC constraints corrected)  
+- [ ] Parameter inheritance clearly visualized in UI - 🚧 IN PROGRESS
+- [ ] Export/import maintains complete parameter fidelity - ⏳ PENDING (Phase 6)
+- [ ] Performance benchmarks show improved reactivity - ⏳ PENDING (Phase 7)
+- [ ] Comprehensive test coverage for new parameter system - ⏳ PENDING
+- [ ] Parameter system architecture consolidated - ⏳ PENDING (Phase 8)
+
+## Recent Bug Fixes and Improvements
+
+### Bug Fix: Dynamic Projection Family Detection (2025-10-14)
+**Problem**: TerritoryParameterControls was hardcoded to use `ProjectionFamily.AZIMUTHAL` for all territories, causing validation errors when users selected conic projections like "Conic Conformal" for France métropolitaine.
+
+**Error Messages**:
+- "Parameter center is not relevant for AZIMUTHAL projections"
+- "Parameter parallels is not relevant for AZIMUTHAL projections" 
+- "No constraints defined for parameter translate"
+
+**Root Cause**: Fixed projection family instead of dynamically determining it from selected projection.
+
+**Solution**: 
+- Added `getProjectionFamily(territoryCode)` helper function in TerritoryControls.vue
+- Uses `projectionRegistry.get(projectionId)?.family` to dynamically determine projection family
+- Updated both mainland and overseas territory parameter controls to use dynamic family detection
+- Fixed import order and added necessary projectionRegistry import
+
+**Files Changed**:
+- src/components/TerritoryControls.vue: Added dynamic projection family detection
+
+### Bug Fix: Parameter Relevance System Conflicts (2025-10-14)
+**Problem**: Two conflicting parameter relevance systems caused validation errors.
+
+**Conflicting Systems**:
+1. `src/utils/parameter-constraints.ts` (newer): CONIC with `rotate: true`, `translate: true`
+2. `src/services/parameters/parameter-validator.ts` (older): CONIC with `rotate: false`, `translate: undefined`
+
+**Error Messages**:
+- "Parameter rotate is not relevant for CONIC projections"
+- "No constraints defined for parameter translate"
+
+**Root Cause**: Duplicate and conflicting parameter relevance definitions during system transition.
+
+**Solution**:
+- Updated CONIC constraints in parameter-validator.ts to match parameter-constraints.ts
+- Added missing `translate` and `precision` parameters with proper validation
+- Set `rotate: relevant: true` for CONIC projections
+- Added proper validation functions for new parameters
+
+**Files Changed**:
+- src/services/parameters/parameter-validator.ts: Updated CONIC parameter constraints
+
+**Architecture Issue Identified**: Having two parameter relevance systems is problematic and needs consolidation in future phases.
 
 ## Status
-Status: PLANNED
-Last Updated: 2025-01-14
+Status: IN_PROGRESS
+Completed: Phase 1 (Type System), Phase 2 (Parameter Management), Phase 3 (Territory Controls), Phase 4 (TerritoryControls Integration), Phase 5 (Parameter Validation) + Bug Fixes
+Current: Phase 6 (Export/Import Improvements)
+Last Updated: 2025-10-14

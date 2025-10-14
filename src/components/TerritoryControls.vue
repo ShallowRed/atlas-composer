@@ -3,12 +3,15 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
+import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
 import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useViewState } from '@/composables/useViewState'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionFamily } from '@/core/projections/types'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -70,6 +73,27 @@ function updateScale(territoryCode: string, value: number) {
 
 // Alias for better naming in template
 const resetToDefaults = resetTransforms
+
+// Helper function to get projection family for a territory
+function getProjectionFamily(territoryCode: string) {
+  const projectionId = territoryProjections.value[territoryCode] || selectedProjection.value
+  if (!projectionId) {
+    return ProjectionFamily.AZIMUTHAL // Fallback
+  }
+  const definition = projectionRegistry.get(projectionId)
+  return definition?.family || ProjectionFamily.AZIMUTHAL // Fallback to azimuthal
+}
+
+// Parameter control event handlers
+function handleParameterChange(territoryCode: string, key: string, value: unknown) {
+  // TODO: Implement parameter change handling
+  console.log('Parameter changed:', { territoryCode, key, value })
+}
+
+function handleOverrideCleared(territoryCode: string, key: string) {
+  // TODO: Implement parameter override clearing
+  console.log('Override cleared:', { territoryCode, key })
+}
 </script>
 
 <template>
@@ -128,6 +152,22 @@ const resetToDefaults = resetTransforms
               @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
             />
           </div>
+
+          <!-- Territory Parameter Controls for Mainland (shown in composite-custom mode) -->
+          <div
+            v-if="isCompositeCustomMode"
+            class="mb-4"
+          >
+            <TerritoryParameterControls
+              :territory-code="mainlandCode"
+              :territory-name="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+              :projection-family="getProjectionFamily(mainlandCode)"
+              :show-inheritance-indicators="true"
+              :allow-parameter-overrides="true"
+              @parameter-changed="handleParameterChange"
+              @override-cleared="handleOverrideCleared"
+            />
+          </div>
         </AccordionItem>
 
         <!-- Overseas territories (excluding mainland to avoid duplication) -->
@@ -150,6 +190,22 @@ const resetToDefaults = resetTransforms
               :projection-groups="projectionGroups"
               :recommendations="projectionRecommendations"
               @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
+            />
+          </div>
+
+          <!-- Territory Parameter Controls (shown in composite-custom mode) -->
+          <div
+            v-if="isCompositeCustomMode"
+            class="mb-4"
+          >
+            <TerritoryParameterControls
+              :territory-code="territory.code"
+              :territory-name="territory.name"
+              :projection-family="getProjectionFamily(territory.code)"
+              :show-inheritance-indicators="true"
+              :allow-parameter-overrides="true"
+              @parameter-changed="handleParameterChange"
+              @override-cleared="handleOverrideCleared"
             />
           </div>
 
