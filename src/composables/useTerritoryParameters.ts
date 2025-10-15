@@ -1,5 +1,5 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
-import type { BaseProjectionParameters } from '@/types/projection-parameters'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { computed } from 'vue'
 import { useParameterStore } from '@/stores/parameters'
@@ -28,11 +28,11 @@ export function useTerritoryParameters(territoryCode: string) {
   })
 
   // Parameter operations
-  function setParameter(key: keyof BaseProjectionParameters, value: unknown) {
+  function setParameter(key: keyof ProjectionParameters, value: unknown) {
     parameterStore.setTerritoryParameter(territoryCode, key, value)
   }
 
-  function clearOverride(key: keyof BaseProjectionParameters) {
+  function clearOverride(key: keyof ProjectionParameters) {
     parameterStore.clearTerritoryOverride(territoryCode, key)
   }
 
@@ -41,18 +41,18 @@ export function useTerritoryParameters(territoryCode: string) {
   }
 
   // Parameter inheritance
-  function getParameterInheritance(key: keyof BaseProjectionParameters) {
+  function getParameterInheritance(key: keyof ProjectionParameters) {
     return parameterStore.getParameterInheritance(territoryCode, key)
   }
 
-  function getParameterSource(key: keyof BaseProjectionParameters) {
+  function getParameterSource(key: keyof ProjectionParameters) {
     return parameterStore.getParameterSource(territoryCode, key)
   }
 
   // Validation
   function validateParameter(
     projectionFamily: ProjectionFamilyType,
-    key: keyof BaseProjectionParameters,
+    key: keyof ProjectionParameters,
     value: unknown,
   ) {
     return parameterStore.validateParameter(projectionFamily, key, value)

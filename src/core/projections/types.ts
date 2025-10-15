@@ -13,7 +13,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import type { BaseProjectionParameters } from '@/types/projection-parameters'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 
 /**
  * Geographic context for a territory or region
@@ -70,8 +70,8 @@ export interface ProjectionSuitability {
  * These are the recommended types to use going forward
  */
 export type {
-  BaseProjectionParameters,
   ExtendedProjectionParameters,
+  ProjectionParameters,
   ProjectionParametersWithMetadata,
 } from '@/types/projection-parameters'
 
@@ -155,7 +155,7 @@ export interface ProjectionDefinition {
   suitability: ProjectionSuitability
 
   /** Default parameters */
-  defaultParameters?: BaseProjectionParameters
+  defaultParameters?: ProjectionParameters
 
   /** Alternative names/aliases */
   aliases?: string[]
@@ -230,7 +230,7 @@ export interface ProjectionRecommendation {
   reason: string
 
   /** Suggested parameters for this context */
-  suggestedParameters?: BaseProjectionParameters
+  suggestedParameters?: ProjectionParameters
 }
 
 /**
@@ -246,7 +246,7 @@ export interface CreateProjectionOptions {
   projection: string | ProjectionDefinition
 
   /** Override default parameters */
-  parameters?: BaseProjectionParameters
+  parameters?: ProjectionParameters
 
   /** Territory-specific configuration */
   territory?: {

@@ -7,16 +7,16 @@
 
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
-  BaseProjectionParameters,
   ParameterConstraints,
   ParameterValidationResult,
   ProjectionFamilyConstraints,
+  ProjectionParameters,
 } from '@/types/projection-parameters'
 
 /**
  * Comprehensive parameter constraint definition
  */
-interface UnifiedParameterConstraint extends ParameterConstraints {
+interface ParameterConstraint extends ParameterConstraints {
   /** Default value for the parameter */
   defaultValue?: unknown
   /** Custom validation function */
@@ -29,7 +29,7 @@ interface UnifiedParameterConstraint extends ParameterConstraints {
  * This is the single source of truth for all parameter relevance,
  * constraints, defaults, and validation logic.
  */
-const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record<keyof BaseProjectionParameters, UnifiedParameterConstraint>>> = {
+const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record<keyof ProjectionParameters, ParameterConstraint>>> = {
   CYLINDRICAL: {
     center: {
       parameter: 'center',
@@ -480,7 +480,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
 /**
  * Standard parameter keys for all projection families
  */
-const PARAMETER_KEYS: Array<keyof BaseProjectionParameters> = [
+const PARAMETER_KEYS: Array<keyof ProjectionParameters> = [
   'center',
   'rotate',
   'parallels',
@@ -501,7 +501,7 @@ export class UnifiedParameterConstraints {
    */
   static getParameterConstraints(family: ProjectionFamilyType): ProjectionFamilyConstraints {
     const familyConstraints = UNIFIED_PARAMETER_CONSTRAINTS[family] || UNIFIED_PARAMETER_CONSTRAINTS.OTHER
-    const constraints: Record<keyof BaseProjectionParameters, ParameterConstraints> = {} as any
+    const constraints: Record<keyof ProjectionParameters, ParameterConstraints> = {} as any
 
     PARAMETER_KEYS.forEach((key) => {
       const constraint = familyConstraints[key]
@@ -526,7 +526,7 @@ export class UnifiedParameterConstraints {
   /**
    * Check if a parameter is relevant for a projection family
    */
-  static isParameterRelevant(family: ProjectionFamilyType, key: keyof BaseProjectionParameters): boolean {
+  static isParameterRelevant(family: ProjectionFamilyType, key: keyof ProjectionParameters): boolean {
     const familyConstraints = UNIFIED_PARAMETER_CONSTRAINTS[family] || UNIFIED_PARAMETER_CONSTRAINTS.OTHER
     const constraint = familyConstraints[key]
     return constraint?.relevant ?? true
@@ -535,7 +535,7 @@ export class UnifiedParameterConstraints {
   /**
    * Get default value for a parameter
    */
-  static getParameterDefault(family: ProjectionFamilyType, key: keyof BaseProjectionParameters): unknown {
+  static getParameterDefault(family: ProjectionFamilyType, key: keyof ProjectionParameters): unknown {
     const familyConstraints = UNIFIED_PARAMETER_CONSTRAINTS[family] || UNIFIED_PARAMETER_CONSTRAINTS.OTHER
     const constraint = familyConstraints[key]
     return constraint?.defaultValue ?? this.getDefaultValue(key)
@@ -546,7 +546,7 @@ export class UnifiedParameterConstraints {
    */
   static validateParameter(
     family: ProjectionFamilyType,
-    key: keyof BaseProjectionParameters,
+    key: keyof ProjectionParameters,
     value: any,
   ): ParameterValidationResult {
     const familyConstraints = UNIFIED_PARAMETER_CONSTRAINTS[family] || UNIFIED_PARAMETER_CONSTRAINTS.OTHER
@@ -603,12 +603,12 @@ export class UnifiedParameterConstraints {
    */
   static validateParameterSet(
     family: ProjectionFamilyType,
-    parameters: BaseProjectionParameters,
+    parameters: ProjectionParameters,
   ): ParameterValidationResult[] {
     const results: ParameterValidationResult[] = []
 
     Object.entries(parameters).forEach(([key, value]) => {
-      const paramKey = key as keyof BaseProjectionParameters
+      const paramKey = key as keyof ProjectionParameters
 
       // Skip validation for irrelevant parameters (inherited from atlas/global defaults)
       // Only validate parameters that are actually relevant for this projection family
@@ -633,7 +633,7 @@ export class UnifiedParameterConstraints {
   /**
    * Get fallback default value for a parameter
    */
-  private static getDefaultValue(key: keyof BaseProjectionParameters): any {
+  private static getDefaultValue(key: keyof ProjectionParameters): any {
     switch (key) {
       case 'center':
         return [0, 0]
@@ -657,7 +657,7 @@ export class UnifiedParameterConstraints {
   /**
    * Get suggested alternative parameter for irrelevant parameters
    */
-  private static getSuggestedAlternative(family: ProjectionFamilyType, key: keyof BaseProjectionParameters): any {
+  private static getSuggestedAlternative(family: ProjectionFamilyType, key: keyof ProjectionParameters): any {
     // Suggest alternatives based on family and parameter
     if (family === 'CONIC' && key === 'rotate') {
       return 'Use center instead of rotate for conic projections'
@@ -673,7 +673,7 @@ export class UnifiedParameterConstraints {
    */
   private static validateParameterDependencies(
     family: ProjectionFamilyType,
-    parameters: BaseProjectionParameters,
+    parameters: ProjectionParameters,
   ): ParameterValidationResult[] {
     const results: ParameterValidationResult[] = []
 

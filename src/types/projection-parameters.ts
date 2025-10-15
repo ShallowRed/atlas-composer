@@ -255,10 +255,6 @@ export function mergeParameters(
     }, {} as ProjectionParameters)
 }
 
-// Backward compatibility aliases (deprecated - use ProjectionParameters instead)
-/** @deprecated Use ProjectionParameters instead */
-export type BaseProjectionParameters = ProjectionParameters
-
 /** @deprecated Use ProjectionParameters with optional metadata fields instead */
 export type ExtendedProjectionParameters = ProjectionParameters & { baseScale: number, scaleMultiplier: number, scale: number }
 

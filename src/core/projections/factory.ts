@@ -8,10 +8,10 @@
 
 import type { GeoProjection } from 'd3-geo'
 import type {
-  BaseProjectionParameters,
   CreateProjectionOptions,
   D3ProjectionFunction,
   ProjectionDefinition,
+  ProjectionParameters,
 } from '@/core/projections/types'
 // @ts-expect-error - d3-composite-projections has module resolution issues in tests
 import * as d3CompositeProjUK from 'd3-composite-projections/src/albersUk.js'
@@ -84,7 +84,7 @@ export class ProjectionFactory {
     }
 
     // Merge default parameters with overrides
-    const finalParams: BaseProjectionParameters = {
+    const finalParams: ProjectionParameters = {
       ...definition.defaultParameters,
       ...parameters,
     }
@@ -119,7 +119,7 @@ export class ProjectionFactory {
    */
   public static createById(
     id: string,
-    parameters?: BaseProjectionParameters,
+    parameters?: ProjectionParameters,
   ): GeoProjection | null {
     return this.create({ projection: id, parameters })
   }
@@ -129,7 +129,7 @@ export class ProjectionFactory {
    */
   private static createD3Builtin(
     id: string,
-    params: BaseProjectionParameters,
+    params: ProjectionParameters,
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
@@ -198,7 +198,7 @@ export class ProjectionFactory {
    */
   private static createD3Extended(
     id: string,
-    params: BaseProjectionParameters,
+    params: ProjectionParameters,
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
@@ -292,7 +292,7 @@ export class ProjectionFactory {
    */
   private static createD3Composite(
     id: string,
-    params: BaseProjectionParameters,
+    params: ProjectionParameters,
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
@@ -411,7 +411,7 @@ export class ProjectionFactory {
    */
   private static applyParameters(
     projection: GeoProjection,
-    params: BaseProjectionParameters,
+    params: ProjectionParameters,
     compositeMode = false,
   ): GeoProjection {
     // Apply center
