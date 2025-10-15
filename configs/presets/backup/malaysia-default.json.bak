@@ -1,9 +1,9 @@
 {
   "version": "1.0",
   "metadata": {
-    "atlasId": "ecuador",
-    "atlasName": "Ecuador",
-    "exportDate": "2025-10-14T13:04:45.671Z",
+    "atlasId": "malaysia",
+    "atlasName": "Malaysia",
+    "exportDate": "2025-10-14T13:04:45.673Z",
     "createdWith": "Migration Script v1.0",
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
@@ -11,38 +11,20 @@
   "referenceScale": 2700,
   "territories": [
     {
-      "code": "EC-MAIN",
-      "name": "Ecuador Mainland",
+      "code": "MY-PEN",
+      "name": "Peninsular Malaysia",
       "role": "primary",
       "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          78.5,
-          1.5,
+          -102,
+          -4,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          0,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -53,74 +35,56 @@
       },
       "bounds": [
         [
-          -81.08,
-          -5.01
+          99.64,
+          1.22
         ],
         [
-          -75.19,
-          1.68
+          104.28,
+          6.73
         ]
       ]
     },
     {
-      "code": "EC-GAL",
-      "name": "Galápagos Islands",
+      "code": "MY-BOR",
+      "name": "East Malaysia (Borneo)",
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          90.73,
-          1,
+          -114,
+          -4,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -400,
-          100
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
-          -400,
-          100
+          300,
+          0
         ],
         "clipExtent": null
       },
       "bounds": [
         [
-          -91.81,
-          -1.4
+          109.64,
+          0.85
         ],
         [
-          -89.14,
-          0.74
+          119.27,
+          7.36
         ]
       ]
     }
   ],
   "atlasMetadata": {
     "compositeProjections": [
-      "mercator-ecuador"
+      "mercator-malaysia"
     ],
     "projectionPreferences": {
       "recommended": [
-        "mercator-ecuador",
+        "mercator-malaysia",
         "mercator",
         "equirectangular"
       ],
@@ -135,17 +99,17 @@
     },
     "projectionParameters": {
       "center": {
-        "longitude": -78.5,
-        "latitude": -1.5
+        "longitude": 112,
+        "latitude": 4
       },
       "rotate": {
         "mainland": [
-          80,
-          -1.5
+          -112,
+          -4
         ],
         "azimuthal": [
-          80,
-          1.5
+          -112,
+          -4
         ]
       }
     }

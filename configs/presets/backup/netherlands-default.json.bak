@@ -1,8 +1,8 @@
 {
   "version": "1.0",
   "metadata": {
-    "atlasId": "malaysia",
-    "atlasName": "Malaysia",
+    "atlasId": "netherlands",
+    "atlasName": "Netherlands",
     "exportDate": "2025-10-14T13:04:45.673Z",
     "createdWith": "Migration Script v1.0",
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
@@ -11,38 +11,28 @@
   "referenceScale": 2700,
   "territories": [
     {
-      "code": "MY-PEN",
-      "name": "Peninsular Malaysia",
+      "code": "NL-NLD",
+      "name": "Netherlands",
       "role": "primary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
       "parameters": {
-        "rotate": [
-          -102,
-          -4,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          0,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
         "center": [
+          5.5,
+          52.2
+        ],
+        "rotate": [
+          0,
           0,
           0
         ],
         "parallels": [
-          30,
-          60
-        ]
+          0,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -53,79 +43,94 @@
       },
       "bounds": [
         [
-          99.64,
-          1.22
+          3.36,
+          50.75
         ],
         [
-          104.28,
-          6.73
+          7.23,
+          53.56
         ]
       ]
     },
     {
-      "code": "MY-BOR",
-      "name": "East Malaysia (Borneo)",
+      "code": "NL-BQ1",
+      "name": "Bonaire",
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          -114,
-          -4,
+          68.25,
+          -12.2,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
-          300,
-          0
+          -250,
+          -100
         ],
         "clipExtent": null
       },
       "bounds": [
         [
-          109.64,
-          0.85
+          -68.42,
+          12.02
         ],
         [
-          119.27,
-          7.36
+          -68.19,
+          12.31
+        ]
+      ]
+    },
+    {
+      "code": "NL-BQ2",
+      "name": "Saba and Sint Eustatius",
+      "role": "secondary",
+      "projectionFamily": "CYLINDRICAL",
+      "parameters": {
+        "rotate": [
+          63.1,
+          -17.5,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -250,
+          -200
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -63.28,
+          17.47
+        ],
+        [
+          -62.97,
+          17.64
         ]
       ]
     }
   ],
   "atlasMetadata": {
     "compositeProjections": [
-      "mercator-malaysia"
+      "conic-conformal-netherlands"
     ],
     "projectionPreferences": {
       "recommended": [
-        "mercator-malaysia",
-        "mercator",
-        "equirectangular"
+        "conic-conformal-netherlands",
+        "conic-conformal",
+        "mercator"
       ],
       "default": {
-        "mainland": "mercator",
+        "mainland": "conic-conformal",
         "overseas": "mercator"
       },
       "prohibited": [
@@ -135,17 +140,23 @@
     },
     "projectionParameters": {
       "center": {
-        "longitude": 112,
-        "latitude": 4
+        "longitude": 5.5,
+        "latitude": 52.2
       },
       "rotate": {
         "mainland": [
-          -112,
-          -4
+          -5.5,
+          0
         ],
         "azimuthal": [
-          -112,
-          -4
+          -5.5,
+          -52.2
+        ]
+      },
+      "parallels": {
+        "conic": [
+          50,
+          54
         ]
       }
     }

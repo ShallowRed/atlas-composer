@@ -32,17 +32,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          100,
-          -50
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -84,17 +74,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -240,
-          140
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -136,17 +116,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -340,
-          160
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -180,25 +150,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -140,
-          200
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -232,25 +184,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          100,
-          200
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -284,25 +218,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          120,
-          190
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -336,25 +252,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          250
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -388,25 +286,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -200,
-          280
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -440,25 +320,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -320,
-          240
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [

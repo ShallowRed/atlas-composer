@@ -80,7 +80,7 @@
           },
           "parameters": {
             "type": "object",
-            "required": ["scale", "baseScale", "scaleMultiplier"],
+            "required": ["center", "rotate", "parallels", "baseScale", "scaleMultiplier", "translateOffset"],
             "properties": {
               "center": {
                 "type": "array",
@@ -105,32 +105,51 @@
               },
               "scale": {
                 "type": "number",
-                "minimum": 0,
+                "minimum": 100,
                 "description": "Current scale value"
               },
               "baseScale": {
                 "type": "number",
-                "minimum": 0,
+                "minimum": 100,
                 "description": "Base scale before user adjustments"
               },
               "scaleMultiplier": {
                 "type": "number",
-                "minimum": 0,
+                "minimum": 0.1,
+                "maximum": 10,
                 "description": "User's scale multiplier (scale = baseScale * scaleMultiplier)"
-              }
-            }
-          },
-          "layout": {
-            "type": "object",
-            "required": ["translateOffset"],
-            "properties": {
+              },
               "translateOffset": {
                 "type": "array",
                 "items": { "type": "number" },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "Translation offset [x, y] in pixels from computed position"
+                "description": "Territory position offset from map center [x, y]"
               },
+              "translate": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Additional translation adjustment [x, y] in pixels"
+              },
+              "clipAngle": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 180,
+                "description": "Clipping angle for azimuthal projections (degrees)"
+              },
+              "precision": {
+                "type": "number",
+                "minimum": 0.01,
+                "maximum": 10,
+                "description": "Adaptive sampling precision"
+              }
+            }
+          },
+          "layout": {
+            "type": "object",
+            "properties": {
               "clipExtent": {
                 "oneOf": [
                   {

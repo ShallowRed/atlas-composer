@@ -27,6 +27,9 @@ export interface ProjectionParameters {
   /** Translation offset [x, y] in pixels */
   translate?: [number, number]
 
+  /** Territory position offset from map center [x, y] in pixels */
+  translateOffset?: [number, number]
+
   /** Clipping angle for azimuthal projections (degrees) */
   clipAngle?: number
 

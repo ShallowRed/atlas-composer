@@ -1,9 +1,9 @@
 {
   "version": "1.0",
   "metadata": {
-    "atlasId": "ecuador",
-    "atlasName": "Ecuador",
-    "exportDate": "2025-10-14T13:04:45.671Z",
+    "atlasId": "denmark",
+    "atlasName": "Denmark",
+    "exportDate": "2025-10-14T13:04:45.670Z",
     "createdWith": "Migration Script v1.0",
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
@@ -11,38 +11,20 @@
   "referenceScale": 2700,
   "territories": [
     {
-      "code": "EC-MAIN",
-      "name": "Ecuador Mainland",
+      "code": "DK-JUT",
+      "name": "Jutland and Zealand",
       "role": "primary",
-      "projectionId": "mercator",
+      "projectionId": "transverse-mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          78.5,
-          1.5,
+          -10,
+          -56,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          0,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -53,80 +35,62 @@
       },
       "bounds": [
         [
-          -81.08,
-          -5.01
+          8.07,
+          54.55
         ],
         [
-          -75.19,
-          1.68
+          12.69,
+          57.75
         ]
       ]
     },
     {
-      "code": "EC-GAL",
-      "name": "Galápagos Islands",
+      "code": "DK-BOR",
+      "name": "Bornholm",
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          90.73,
-          1,
+          -15,
+          -55.15,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -400,
-          100
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
-          -400,
-          100
+          300,
+          50
         ],
         "clipExtent": null
       },
       "bounds": [
         [
-          -91.81,
-          -1.4
+          14.68,
+          54.98
         ],
         [
-          -89.14,
-          0.74
+          15.19,
+          55.31
         ]
       ]
     }
   ],
   "atlasMetadata": {
     "compositeProjections": [
-      "mercator-ecuador"
+      "transverse-mercator-denmark"
     ],
     "projectionPreferences": {
       "recommended": [
-        "mercator-ecuador",
-        "mercator",
-        "equirectangular"
+        "transverse-mercator-denmark",
+        "transverse-mercator",
+        "mercator"
       ],
       "default": {
-        "mainland": "mercator",
-        "overseas": "mercator"
+        "mainland": "transverse-mercator",
+        "overseas": "transverse-mercator"
       },
       "prohibited": [
         "gnomonic",
@@ -135,17 +99,17 @@
     },
     "projectionParameters": {
       "center": {
-        "longitude": -78.5,
-        "latitude": -1.5
+        "longitude": 10.5,
+        "latitude": 56
       },
       "rotate": {
         "mainland": [
-          80,
-          -1.5
+          -10.5,
+          56
         ],
         "azimuthal": [
-          80,
-          1.5
+          -10.5,
+          -56
         ]
       }
     }

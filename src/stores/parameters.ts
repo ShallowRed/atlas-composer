@@ -5,6 +5,7 @@
  * Integrates with ProjectionParameterManager for unified parameter handling
  */
 
+import type { ValidationResult } from '@/core/parameters/parameter-registry'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
   AtlasProjectionParameters,
@@ -19,6 +20,7 @@ import type {
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
+import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
 import { UnifiedParameterConstraints } from '@/services/parameters/unified-parameter-constraints'
 
@@ -252,6 +254,67 @@ export const useParameterStore = defineStore('parameters', () => {
     { deep: true },
   )
 
+  /**
+   * Initialize from preset with validation using parameter registry
+   */
+  function initializeFromPreset(
+    atlasParams: AtlasProjectionParameters,
+    territoryParams: Record<string, ProjectionParameters>
+  ): ValidationResult[] {
+    const errors: ValidationResult[] = []
+
+    // Validate all required parameters are present
+    const required = parameterRegistry.getRequired()
+    for (const def of required) {
+      for (const [code, params] of Object.entries(territoryParams)) {
+        if (!(def.key in params)) {
+          errors.push({
+            isValid: false,
+            error: `Missing required parameter ${def.key} for territory ${code}`
+          })
+        }
+      }
+    }
+
+    // Set atlas parameters
+    if (atlasParams) {
+      parameterManager.setAtlasParameters(atlasParams)
+    }
+
+    // Set territory parameters with validation
+    for (const [code, params] of Object.entries(territoryParams)) {
+      // We need to determine the projection family somehow - for now, assume it's available in params
+      const family = (params as any).family || 'OTHER' as ProjectionFamilyType
+      const validationResults = parameterRegistry.validateParameters(params, family)
+      errors.push(...validationResults.filter(r => !r.isValid))
+
+      // Set parameters using existing method
+      setTerritoryParameters(code, params)
+    }
+
+    // Mark as initialized
+    isInitialized.value = true
+
+    return errors
+  }
+
+  /**
+   * Get complete parameters for export using parameter registry
+   */
+  function getExportableParameters(territoryCode: string): ProjectionParameters {
+    const params = getEffectiveParameters(territoryCode)
+    const exportable = parameterRegistry.getExportable()
+
+    const result: ProjectionParameters = {}
+    for (const def of exportable) {
+      if (def.key in params) {
+        result[def.key] = params[def.key]
+      }
+    }
+
+    return result
+  }
+
   return {
     // State
     isInitialized,
@@ -303,5 +366,9 @@ export const useParameterStore = defineStore('parameters', () => {
 
     // Export
     exportParameters,
+
+    // Registry Integration
+    initializeFromPreset,
+    getExportableParameters,
   }
 })

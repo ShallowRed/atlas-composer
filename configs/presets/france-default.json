@@ -31,7 +31,17 @@
         "parallels": [
           -2,
           2
-        ]
+        ],
+        "translateOffset": [
+          0,
+          0
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -82,7 +92,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          -324,
+          -38
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -133,7 +153,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          -324,
+          35
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -184,7 +214,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          -324,
+          160
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -235,7 +275,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          313,
+          -96
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -286,7 +336,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          316,
+          -173
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -337,7 +397,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          -324,
+          -119
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -388,7 +458,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          -324,
+          -176
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -439,7 +519,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          313,
+          59
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -490,7 +580,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          311,
+          203
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -541,7 +641,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          297,
+          122
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -592,7 +702,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          313,
+          -13
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [
@@ -643,7 +763,17 @@
         "parallels": [
           0,
           0
-        ]
+        ],
+        "translateOffset": [
+          0,
+          250
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1
       },
       "layout": {
         "translateOffset": [

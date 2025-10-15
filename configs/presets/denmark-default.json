@@ -24,7 +24,25 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1,
+        "translateOffset": [
+          0,
+          0
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1,
+        "center": [
+          0,
+          0
+        ],
+        "parallels": [
+          30,
+          60
+        ]
       },
       "layout": {
         "translateOffset": [
@@ -57,7 +75,25 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1,
+        "translateOffset": [
+          300,
+          50
+        ],
+        "translate": [
+          0,
+          0
+        ],
+        "clipAngle": null,
+        "precision": 0.1,
+        "center": [
+          0,
+          0
+        ],
+        "parallels": [
+          30,
+          60
+        ]
       },
       "layout": {
         "translateOffset": [

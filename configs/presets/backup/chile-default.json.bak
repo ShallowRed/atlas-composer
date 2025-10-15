@@ -1,9 +1,9 @@
 {
   "version": "1.0",
   "metadata": {
-    "atlasId": "ecuador",
-    "atlasName": "Ecuador",
-    "exportDate": "2025-10-14T13:04:45.671Z",
+    "atlasId": "chile",
+    "atlasName": "Chile",
+    "exportDate": "2025-10-14T13:04:45.669Z",
     "createdWith": "Migration Script v1.0",
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
@@ -11,38 +11,20 @@
   "referenceScale": 2700,
   "territories": [
     {
-      "code": "EC-MAIN",
-      "name": "Ecuador Mainland",
+      "code": "CL-MAIN",
+      "name": "Chile Mainland",
       "role": "primary",
-      "projectionId": "mercator",
+      "projectionId": "transverse-mercator",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          78.5,
-          1.5,
+          71,
+          35,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          0,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -53,80 +35,95 @@
       },
       "bounds": [
         [
-          -81.08,
-          -5.01
+          -75.71,
+          -53.88
         ],
         [
-          -75.19,
-          1.68
+          -67.01,
+          -17.51
         ]
       ]
     },
     {
-      "code": "EC-GAL",
-      "name": "Galápagos Islands",
+      "code": "CL-EAS",
+      "name": "Easter Island",
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
         "rotate": [
-          90.73,
-          1,
+          109.35,
+          27.12,
           0
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -400,
-          100
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
-          -400,
+          -500,
           100
         ],
         "clipExtent": null
       },
       "bounds": [
         [
-          -91.81,
-          -1.4
+          -109.48,
+          -27.2
         ],
         [
-          -89.14,
-          0.74
+          -109.21,
+          -27.05
+        ]
+      ]
+    },
+    {
+      "code": "CL-JUA",
+      "name": "Juan Fernández Islands",
+      "role": "secondary",
+      "projectionFamily": "CYLINDRICAL",
+      "parameters": {
+        "rotate": [
+          79,
+          33.6,
+          0
+        ],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      },
+      "layout": {
+        "translateOffset": [
+          -300,
+          0
+        ],
+        "clipExtent": null
+      },
+      "bounds": [
+        [
+          -80.77,
+          -33.77
+        ],
+        [
+          -78.7,
+          -33.44
         ]
       ]
     }
   ],
   "atlasMetadata": {
     "compositeProjections": [
-      "mercator-ecuador"
+      "transverse-mercator-chile"
     ],
     "projectionPreferences": {
       "recommended": [
-        "mercator-ecuador",
-        "mercator",
-        "equirectangular"
+        "transverse-mercator-chile",
+        "transverse-mercator",
+        "mercator"
       ],
       "default": {
-        "mainland": "mercator",
-        "overseas": "mercator"
+        "mainland": "transverse-mercator",
+        "overseas": "stereographic"
       },
       "prohibited": [
         "gnomonic",
@@ -135,17 +132,17 @@
     },
     "projectionParameters": {
       "center": {
-        "longitude": -78.5,
-        "latitude": -1.5
+        "longitude": -72,
+        "latitude": -37
       },
       "rotate": {
         "mainland": [
-          80,
-          -1.5
+          72,
+          -37
         ],
         "azimuthal": [
-          80,
-          1.5
+          72,
+          37
         ]
       }
     }

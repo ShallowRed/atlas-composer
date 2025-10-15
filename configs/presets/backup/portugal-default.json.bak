@@ -32,17 +32,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          0,
-          0
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -84,17 +74,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -111,
-          105
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -136,17 +116,7 @@
         ],
         "scale": 2700,
         "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -189,
-          -84
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
