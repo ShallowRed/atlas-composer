@@ -1,0 +1,551 @@
+# Preset Management System
+
+## Overview
+
+The preset system manages saved composite projection configurations that define how territories are projected, positioned, and scaled in composite atlas views. Presets store complete projection state including projection types, parameters (rotate, center, parallels, scale), layout (translation offsets, clip extents), and geographic bounds for each territory.
+
+## Architecture
+
+### Core Components
+
+**PresetLoader** (`src/services/presets/preset-loader.ts`)
+- Static service for loading and validating preset files
+- Loads JSON preset files from `configs/presets/` directory
+- Extracts territory parameters (projection parameters and layout properties)
+- Validates preset structure and data integrity
+- Converts preset format to internal application formats
+
+**AtlasCoordinator** (`src/services/atlas/atlas-coordinator.ts`)
+- Orchestrates preset loading during atlas initialization
+- Integrates preset data into atlas configuration
+- Coordinates parameter store and territory store initialization
+- Returns extracted territory parameters for rendering
+
+**Parameter Store** (`src/stores/parameters.ts`)
+- Manages projection parameters (center, rotate, parallels, scale, etc.)
+- Supports parameter inheritance (territory overrides global defaults)
+- Provides effective parameter resolution for each territory
+- Tracks parameter changes and triggers re-renders
+
+**Territory Store** (`src/stores/territory.ts`)
+- Manages territory-level state (projections, translations, scales)
+- Stores projection type selection per territory
+- Maintains translation offsets (x, y pixel positions)
+- Tracks scale multipliers for territory sizing
+
+**Config Store** (`src/stores/config.ts`)
+- Coordinates preset metadata initialization
+- Calls `initializeWithPresetMetadata()` on application startup
+- Applies preset projections, translations, scales, and parameters to stores
+- Ensures preset loads before first render to prevent race conditions
+
+### Data Flow
+
+```
+Application Startup
+  ↓
+useAtlasData.initialize()
+  ↓
+configStore.initializeWithPresetMetadata()
+  ↓
+AtlasCoordinator.handleAtlasChange()
+  ↓
+PresetLoader.loadPreset()
+  ↓
+PresetLoader.convertToDefaults()
+PresetLoader.extractTerritoryParameters()
+  ↓
+Apply to Stores:
+  - territoryStore.setTerritoryProjection()
+  - territoryStore.setTerritoryTranslation()
+  - territoryStore.setTerritoryScale()
+  - parameterStore.setTerritoryParameters()
+  ↓
+geoDataStore.initialize()
+  ↓
+CompositeProjection.initialize()
+  → Reads parameters via ProjectionParameterProvider
+  → Applies preset scale, rotation, center to D3 projections
+  ↓
+First Render (preset values applied)
+```
+
+## Preset File Format
+
+### Structure
+
+```json
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "france",
+    "atlasName": "France",
+    "exportDate": "2025-10-13T09:01:03.526Z",
+    "createdWith": "Atlas composer v1.0"
+  },
+  "pattern": "single-focus",
+  "referenceScale": 2700,
+  "territories": [
+    {
+      "code": "FR-MET",
+      "name": "France Métropolitaine",
+      "role": "primary",
+      "projectionId": "conic-conformal",
+      "projectionFamily": "CONIC",
+      "parameters": {
+        "center": [0, 0],
+        "rotate": [-3, -46.2, 0],
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1,
+        "parallels": [-2, 2]
+      },
+      "layout": {
+        "translateOffset": [0, 0],
+        "clipExtent": [[-0.0996, -0.0908], [0.0967, 0.0864]]
+      },
+      "bounds": [[-5, 41], [10, 51]]
+    }
+  ]
+}
+```
+
+### Field Definitions
+
+**Metadata**
+- `version`: Preset format version
+- `metadata.atlasId`: Target atlas identifier
+- `metadata.atlasName`: Human-readable atlas name
+- `metadata.exportDate`: Creation/export timestamp
+- `metadata.createdWith`: Application version
+
+**Composite Configuration**
+- `pattern`: Composite pattern type ("single-focus" or "equal-members")
+- `referenceScale`: Base scale for all territories
+
+**Territory Configuration**
+- `code`: Territory ISO code or identifier
+- `name`: Human-readable territory name
+- `role`: Territory role ("primary" or "secondary")
+- `projectionId`: Projection identifier from projection registry
+- `projectionFamily`: Projection family type
+
+**Projection Parameters** (`parameters`)
+- `center`: [longitude, latitude] - Projection center for cylindrical/azimuthal projections
+- `rotate`: [λ, φ, γ] - Three-axis rotation for conic projections
+- `parallels`: [φ1, φ2] - Standard parallels for conic projections
+- `scale`: Calculated final scale value (baseScale × scaleMultiplier)
+- `baseScale`: Base scale before multiplier application
+- `scaleMultiplier`: Scale adjustment factor (typically 0.5 - 2.0)
+
+**Layout Properties** (`layout`)
+- `translateOffset`: [x, y] - Pixel offset from map center
+- `clipExtent`: [[x1, y1], [x2, y2]] - Normalized clipping bounds (or null)
+
+**Geographic Bounds** (`bounds`)
+- `bounds`: [[west, south], [east, north]] - Territory bounding box in degrees
+
+## Parameter Extraction
+
+### PresetLoader.extractTerritoryParameters()
+
+Extracts projection parameters from preset territories into parameter store format.
+
+**Extracted Parameters:**
+- `center`: Geographic center point
+- `rotate`: Three-axis rotation
+- `parallels`: Standard parallels for conic projections
+- `baseScale`: Base scale value before multiplier
+- `scaleMultiplier`: Scale adjustment multiplier
+
+**Priority Logic:**
+- If preset provides `baseScale` and `scaleMultiplier`, extracts both for proper composite projection initialization
+- Falls back to `scale` parameter if baseScale not provided
+- Preserves all projection-specific parameters (center, rotate, parallels)
+
+### PresetLoader.convertToDefaults()
+
+Converts preset format to TerritoryDefaults format for store initialization.
+
+**Returns:**
+- `projections`: Map of territory code → projection ID
+- `translations`: Map of territory code → {x, y} pixel offsets
+- `scales`: Map of territory code → scale multiplier
+
+**Translation Handling:**
+Extracts `translateOffset` from preset layout and stores as x/y translation values.
+
+**Scale Handling:**
+Extracts `scaleMultiplier` as territory scale (not absolute scale value).
+
+## Scale Management
+
+The scale system has three interconnected values that work together:
+
+### Scale Value Types
+
+**1. baseScale** (from preset parameters)
+- Base scale value before any multiplier applied
+- Represents the "reference" scale for the territory
+- Stored in CompositeProjection subprojection metadata
+- Example: 3780 for Guadeloupe
+
+**2. scaleMultiplier** (from preset parameters or territory store)
+- Adjustment factor applied to baseScale
+- Range: typically 0.5 - 2.0 (50% to 200%)
+- Modified by "advanced parameters" scale slider (Échelle: 1.20×)
+- Example: 1.4 for Guadeloupe
+
+**3. scale** (calculated or from parameter store)
+- Final scale value applied to D3 projection
+- Calculated as: `scale = baseScale × scaleMultiplier`
+- Can be overridden by "view parameters" scale slider (Scale: 100-10000)
+- Example: 3780 × 1.4 = 5292 for Guadeloupe
+
+### Scale Application Flow
+
+**Initialization (from preset):**
+```
+Preset provides:
+  baseScale: 3780
+  scaleMultiplier: 1.4
+  scale: 5292 (= 3780 × 1.4)
+
+CompositeProjection.initialize():
+  1. Extracts baseScale and scaleMultiplier from params
+  2. Applies: projection.scale(baseScale × scaleMultiplier)
+  3. Stores both values in subprojection metadata
+```
+
+**User Changes Advanced Scale Slider (scaleMultiplier):**
+```
+User moves slider to 1.6×
+
+updateScale(territoryCode, 1.6):
+  1. Checks if scale parameter differs from baseScale × scaleMultiplier
+  2. If not overridden: updates scaleMultiplier to 1.6
+  3. Applies: projection.scale(baseScale × 1.6) = 6048
+  4. Updates scale parameter to match: paramStore.setTerritoryParameter('scale', 6048)
+  5. Keeps baseScale and scaleMultiplier in sync
+```
+
+**User Changes View Parameters Scale Slider (absolute scale):**
+```
+User moves slider to 8000
+
+updateTerritoryParameters(territoryCode):
+  1. Reads params.scale = 8000 from parameter store
+  2. Applies: projection.scale(8000)
+  3. Does NOT modify baseScale or scaleMultiplier
+  4. Future scaleMultiplier updates blocked (8000 ≠ 3780 × 1.4)
+```
+
+### Scale Override Detection
+
+**updateScale() logic:**
+```typescript
+const expectedScale = subProj.baseScale * subProj.scaleMultiplier
+if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) {
+  // User has overridden scale parameter - don't overwrite with multiplier
+  return
+}
+// Otherwise: allow multiplier to update scale
+```
+
+**updateTerritoryParameters() logic:**
+```typescript
+if (params.scale !== undefined) {
+  // User set scale parameter directly - use it
+  correctScale = params.scale
+} else {
+  // Use calculated scale from baseScale × scaleMultiplier
+  correctScale = subProj.baseScale * subProj.scaleMultiplier
+}
+projection.scale(correctScale)
+```
+
+### Scale Slider Behaviors
+
+**Advanced Parameters Scale Slider** (Échelle: 0.5× - 2.0×)
+- Modifies `scaleMultiplier` in CompositeProjection
+- Updates territory scale in territory store
+- Recalculates and syncs `scale` parameter to match
+- Blocked if user has overridden scale parameter directly
+- Used for relative adjustments to preset baseline
+
+**View Parameters Scale Slider** (Scale: 100-10000)
+- Sets `scale` parameter directly in parameter store
+- Overrides calculated scale (baseScale × scaleMultiplier)
+- Blocks future scaleMultiplier updates for that territory
+- Used for absolute scale values independent of preset
+
+## Projection Parameter Handling
+
+### Parameter Types
+
+**Center vs Rotate:**
+- **Cylindrical/Azimuthal projections** (mercator, stereographic): Use `center` for positioning
+- **Conic projections** (conic-conformal, albers): Use `rotate` for positioning
+
+**CompositeProjection.initialize() applies parameters by projection type:**
+```typescript
+const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
+
+if (isConicProjection && projection.rotate && params.rotate) {
+  projection.rotate(params.rotate)  // For conic: use rotate
+} else if (params.center) {
+  projection.center(params.center)   // For cylindrical: use center
+} else if (projection.rotate && params.rotate) {
+  projection.rotate(params.rotate)   // Fallback to rotate
+}
+```
+
+### Parameter Provider Pattern
+
+CompositeProjection receives parameters through ProjectionParameterProvider interface:
+- Abstracts parameter source (parameter store, config, or defaults)
+- Provides `getEffectiveParameters(territoryCode)` for parameter resolution
+- Supports parameter inheritance (territory → global → default)
+
+**getParametersForTerritory()** merges config and dynamic parameters:
+```typescript
+private getParametersForTerritory(territoryCode: string, configParams: TerritoryConfig) {
+  if (this.parameterProvider) {
+    const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
+    return {
+      center: dynamicParams.center ?? configParams.center,
+      rotate: dynamicParams.rotate ?? configParams.rotate,
+      parallels: dynamicParams.parallels ?? configParams.parallels,
+      scale: dynamicParams.scale,
+      baseScale: dynamicParams.baseScale,
+      scaleMultiplier: dynamicParams.scaleMultiplier,
+      // ... other parameters
+    }
+  }
+  // Fallback to config params
+}
+```
+
+### Parameter Updates
+
+**updateTerritoryParameters()** applies parameter changes:
+1. Reads updated parameters from parameter provider
+2. Applies center/rotate based on projection type
+3. Applies parallels if supported
+4. Re-applies scale (respects parameter overrides)
+5. Applies precision if supported
+6. Forces composite projection rebuild
+
+**Parameter change flow:**
+```
+User changes parameter slider
+  ↓
+handleParameterChange() in TerritoryParameterControls
+  ↓
+parameterStore.setTerritoryParameter(code, key, value)
+  ↓
+emit('parameterChanged', code, key, value)
+  ↓
+handleParameterChange() in TerritoryControls
+  ↓
+cartographer.updateTerritoryParameters(code)
+  ↓
+compositeProjection.updateTerritoryParameters(code)
+  → Reads latest parameters
+  → Applies to D3 projection
+  → Sets compositeProjection = null (force rebuild)
+  ↓
+Next render: build() uses updated projection
+```
+
+## Initialization Sequence
+
+### Race Condition Prevention
+
+The initialization sequence prevents race conditions where CompositeProjection initializes before preset parameters load:
+
+**Problem:** Without proper sequencing, territories render with default parameters before preset loads, causing incorrect initial scales and positions.
+
+**Solution:** `useAtlasData.initialize()` awaits preset loading:
+```typescript
+async function initialize() {
+  const configStore = useConfigStore()
+  const geoDataStore = useGeoDataStore()
+
+  // CRITICAL: Wait for preset metadata to load before initializing geodata
+  // This ensures territory projections from presets are available before first render
+  if (typeof configStore.initializeWithPresetMetadata === 'function') {
+    await configStore.initializeWithPresetMetadata()
+  }
+
+  // Now initialize geodata with preset parameters available
+  if (!geoDataStore.isInitialized) {
+    await geoDataStore.initialize()
+  }
+}
+```
+
+### Reentrant Initialization Guard
+
+`initializeWithPresetMetadata()` uses promise guard to prevent multiple simultaneous loads:
+```typescript
+let initializationPromise: Promise<void> | null = null
+
+const initializeWithPresetMetadata = async () => {
+  // If already initializing, return the existing promise
+  if (initializationPromise) {
+    return initializationPromise
+  }
+
+  // Create and store the initialization promise
+  initializationPromise = (async () => {
+    // Load preset and apply to stores
+  })()
+
+  return initializationPromise
+}
+```
+
+### Store Application Order
+
+Preset data applies to stores in this order:
+1. **Territory projections** - Sets projection type per territory
+2. **Territory translations** - Sets x/y pixel offsets
+3. **Territory scales** - Sets scale multipliers
+4. **Parameter store** - Sets projection parameters (center, rotate, parallels, scale, baseScale, scaleMultiplier)
+
+## Rendering Integration
+
+### CompositeProjection Initialization
+
+During `CompositeProjection.initialize()`:
+1. Iterates through territories (mainland + overseas)
+2. Calls `getParametersForTerritory()` to merge preset parameters
+3. Applies projection type (creates D3 projection)
+4. Applies positioning parameters (center or rotate)
+5. Applies scale: `projection.scale(baseScale × scaleMultiplier)`
+6. Stores projection with metadata in `subProjections` array
+
+### Build-time Processing
+
+During `CompositeProjection.build(width, height)`:
+1. Calculates map center from viewport dimensions
+2. Applies translation offsets to each territory projection
+3. Reads translate parameter from parameter store if set
+4. Combines territory offset + parameter translate + viewport center
+5. Applies final translate to D3 projection: `projection.translate([x, y])`
+6. Applies clip extents if defined in preset
+7. Returns composite projection function for Observable Plot
+
+### Cartographer Coordination
+
+`CartographerService.renderCustomComposite()`:
+1. Receives custom composite settings from territory store
+2. Calls `applyCustomCompositeSettings()` to apply territory-specific overrides
+3. Creates projection function: `({ width, height }) => composite.build(width, height)`
+4. Passes projection function to Observable Plot
+5. Plot calls projection function with actual viewport dimensions
+6. CompositeProjection builds and returns multi-territory projection
+
+## Parameter Validation
+
+### Constraint System
+
+Parameter constraints define valid ranges and relevance per projection family:
+- Defined in `unified-parameter-constraints.ts`
+- Includes `baseScale` and `scaleMultiplier` in PARAMETER_KEYS array
+- Provides constraints for all 7 projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
+
+### Validation Flow
+
+Parameter validation occurs at multiple points:
+1. **User input** - Before setting parameter in parameter store
+2. **Parameter store** - When calling `setTerritoryParameter()`
+3. **Territory controls** - Real-time validation feedback in UI
+4. **Preset loading** - Validates preset structure via CompositeImportService
+
+## Export System Integration
+
+### Preset Generation
+
+When exporting composite projection configuration:
+1. Captures current projection state from stores
+2. Serializes projection types, parameters, layout, and bounds
+3. Calculates final scale from projection instances
+4. Generates JSON preset file with metadata
+5. Stores in `configs/presets/{atlasId}-{presetName}.json`
+
+### Export Format
+
+Exported presets match import format:
+- Include all three scale values: `scale`, `baseScale`, `scaleMultiplier`
+- Preserve projection parameters exactly as configured
+- Store layout properties (translateOffset, clipExtent)
+- Include geographic bounds for each territory
+- Add metadata (exportDate, createdWith, version)
+
+## Troubleshooting
+
+### Common Issues
+
+**Territories render at incorrect scale on load:**
+- Verify preset has `baseScale` and `scaleMultiplier` defined
+- Check `PresetLoader.extractTerritoryParameters()` extracts both values
+- Ensure `CompositeProjection.getParametersForTerritory()` includes baseScale and scaleMultiplier
+- Verify `initializeWithPresetMetadata()` completes before `geoDataStore.initialize()`
+
+**Scale sliders not working:**
+- Advanced slider: Check if scale parameter override exists (blocks multiplier updates)
+- View parameters slider: Verify `updateTerritoryParameters()` respects params.scale
+- Both: Ensure `compositeProjection = null` triggers rebuild after changes
+
+**Mainland uses wrong projection type:**
+- Verify preset projection type matches expected value
+- Check `configStore.initializeWithPresetMetadata()` applies projections to territory store
+- Ensure `cartographer.applyCustomCompositeSettings()` doesn't override projection unnecessarily
+
+**Overseas territories positioned incorrectly:**
+- Verify projection uses correct positioning method (center vs rotate)
+- Check `isConicProjection` logic in initialization
+- Ensure cylindrical projections use `.center()` not `.rotate()`
+- Verify `translateOffset` values are appropriate for scale
+
+**Parameters not loading from preset:**
+- Check `parameterStore.setTerritoryParameters()` receives extracted parameters
+- Verify parameter provider returns correct effective parameters
+- Ensure no race condition (preset loads after first render)
+
+### Debug Logging
+
+Key logging points:
+- `[ConfigStore] initializeWithPresetMetadata` - Preset loading start/completion
+- `[CompositeProjection] init {CODE} territoryParams` - Parameters received during initialization
+- `[CompositeProjection] updateTerritoryParameters` - Parameter updates with current/new values
+- `[CompositeProjection] updateScale` - Scale multiplier updates and override detection
+- `[ParameterStore] Setting {key}` - Parameter changes in store
+
+## File References
+
+**Core Services:**
+- `src/services/presets/preset-loader.ts` - Preset loading and extraction
+- `src/services/atlas/atlas-coordinator.ts` - Preset orchestration
+- `src/services/projection/composite-projection.ts` - Projection initialization and updates
+
+**State Management:**
+- `src/stores/config.ts` - Preset metadata initialization
+- `src/stores/parameters.ts` - Projection parameter management
+- `src/stores/territory.ts` - Territory state (projections, translations, scales)
+
+**UI Components:**
+- `src/components/TerritoryControls.vue` - Main territory control container
+- `src/components/ui/parameters/TerritoryParameterControls.vue` - Projection parameter sliders
+- `src/components/ui/presets/PresetSelector.vue` - Preset selection UI
+
+**Initialization:**
+- `src/composables/useAtlasData.ts` - Atlas data initialization with preset sequencing
+
+**Validation:**
+- `src/services/parameters/unified-parameter-constraints.ts` - Parameter validation rules
+
+**Preset Files:**
+- `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations

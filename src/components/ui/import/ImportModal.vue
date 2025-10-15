@@ -5,6 +5,7 @@ import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 
 const props = defineProps<{
   modelValue: boolean
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const configStore = useConfigStore()
 const territoryStore = useTerritoryStore()
+const parameterStore = useParameterStore()
 
 // State
 const isDragging = ref(false)
@@ -121,12 +123,13 @@ function applyImport() {
   }
 
   try {
-    // Apply to stores
+    // Apply to stores (including parameter store for projection parameters)
     CompositeImportService.applyToStores(
       importedConfig.value,
       configStore,
       territoryStore,
       props.compositeProjection,
+      parameterStore,
     )
 
     // Emit success and close

@@ -188,9 +188,15 @@ export class CompositeImportService {
     configStore: ReturnType<typeof import('@/stores/config').useConfigStore>,
     territoryStore: ReturnType<typeof import('@/stores/territory').useTerritoryStore>,
     compositeProjection: import('@/services/projection/composite-projection').CompositeProjection,
+    parameterStore?: ReturnType<typeof import('@/stores/parameters').useParameterStore>,
   ): void {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
+
+    // Parameter store is optional - if not provided, projection parameters won't be imported
+    if (!parameterStore) {
+      console.warn('[CompositeImportService] Parameter store not provided - projection parameters will not be imported')
+    }
 
     // FIRST: Set baseScale values in composite projection before any other operations
     // This prevents scale calculation mismatches during import
@@ -223,14 +229,43 @@ export class CompositeImportService {
       // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
       territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
 
-      // 4. Update the composite projection with new settings
-      // This will trigger recalculation of projection parameters
-      if (compositeProjection && typeof compositeProjection.updateTerritoryProjection === 'function') {
+      // 4. Apply projection parameters to parameter store (if available)
+      // This includes center, rotate, parallels, scale, baseScale, scaleMultiplier
+      if (parameterStore) {
         try {
-          compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+          const params = {
+            center: territory.parameters.center,
+            rotate: territory.parameters.rotate,
+            parallels: territory.parameters.parallels,
+            scale: territory.parameters.scale,
+            baseScale: territory.parameters.baseScale,
+            scaleMultiplier: territory.parameters.scaleMultiplier,
+          }
+          console.log(`[CompositeImportService] Applying parameters for ${territory.code}:`, params)
+          parameterStore.setTerritoryParameters(territory.code, params)
         }
         catch (error) {
-          console.warn(`[CompositeImportService] Failed to update territory projection for ${territory.code}:`, error)
+          console.warn(`[CompositeImportService] Failed to set parameters for ${territory.code}:`, error)
+        }
+      }
+
+      // 5. Update projection type, then apply parameters from parameter store
+      if (compositeProjection) {
+        try {
+          // First update projection type (may have changed during import)
+          // This preserves the current center/rotate/scale but updates the projection algorithm
+          if (typeof compositeProjection.updateTerritoryProjection === 'function') {
+            compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+          }
+
+          // Then apply parameters from parameter store (which now has the imported values)
+          // This will overwrite the preserved values with the imported ones
+          if (typeof compositeProjection.updateTerritoryParameters === 'function') {
+            compositeProjection.updateTerritoryParameters(territory.code)
+          }
+        }
+        catch (error) {
+          console.warn(`[CompositeImportService] Failed to update projection for ${territory.code}:`, error)
         }
       }
     })

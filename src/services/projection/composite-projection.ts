@@ -539,10 +539,19 @@ export class CompositeProjection {
 
     // Update the projection
     subProj.projection = newProjection
-    // currentScale = baseScale * multiplier, so we need to extract the base scale
-    subProj.baseScale = currentScale / subProj.scaleMultiplier
 
-    console.log(`[CompositeProjection] After projection change - newBaseScale=${subProj.baseScale} (= ${currentScale} / ${subProj.scaleMultiplier})`)
+    // Recalculate baseScale only if needed
+    // Check if current scale matches baseScale * multiplier (within tolerance)
+    const expectedScale = subProj.baseScale * subProj.scaleMultiplier
+    if (Math.abs(currentScale - expectedScale) > 0.1) {
+      // Scale doesn't match expected value - recalculate baseScale
+      // currentScale = baseScale * multiplier, so we need to extract the base scale
+      subProj.baseScale = currentScale / subProj.scaleMultiplier
+      console.log(`[CompositeProjection] After projection change - recalculated baseScale=${subProj.baseScale} (= ${currentScale} / ${subProj.scaleMultiplier})`)
+    } else {
+      // Scale matches expected value - preserve existing baseScale
+      console.log(`[CompositeProjection] After projection change - preserved baseScale=${subProj.baseScale} (currentScale=${currentScale} matches expected)`)
+    }
 
     this.compositeProjection = null // Force rebuild
   }
@@ -564,12 +573,15 @@ export class CompositeProjection {
   updateScale(territoryCode: string, scaleMultiplier: number) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
-      // Check if there's a scale parameter override from parameter store
+      // Check if user has manually overridden the scale parameter
       if (this.parameterProvider) {
         const params = this.parameterProvider.getEffectiveParameters(territoryCode)
-        if (params.scale !== undefined) {
-          // User has set a scale parameter override - don't overwrite it with multiplier
-          console.log(`[CompositeProjection] updateScale skipped for ${territoryCode} - scale parameter override exists (${params.scale})`)
+        const expectedScale = subProj.baseScale * subProj.scaleMultiplier
+
+        // If params.scale exists and differs from expected scale, user has overridden it
+        // We should not overwrite it with the multiplier
+        if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) {
+          console.log(`[CompositeProjection] updateScale skipped for ${territoryCode} - scale parameter override detected (expected=${expectedScale}, actual=${params.scale})`)
           return
         }
       }
@@ -577,8 +589,18 @@ export class CompositeProjection {
       // Store the multiplier so it's preserved when changing projection type
       subProj.scaleMultiplier = scaleMultiplier
       // Apply multiplier to base scale (not current scale to avoid accumulation)
-      subProj.projection.scale(subProj.baseScale * scaleMultiplier)
-      console.log(`[CompositeProjection] updateScale for ${territoryCode}: multiplier=${scaleMultiplier}, newScale=${subProj.baseScale * scaleMultiplier}`)
+      const newScale = subProj.baseScale * scaleMultiplier
+      subProj.projection.scale(newScale)
+
+      // Also update the scale parameter in the parameter store to keep them in sync
+      if (this.parameterProvider) {
+        const paramStore = (this.parameterProvider as any).parameterStore
+        if (paramStore && paramStore.setTerritoryParameter) {
+          paramStore.setTerritoryParameter(territoryCode, 'scale', newScale)
+        }
+      }
+
+      console.log(`[CompositeProjection] updateScale for ${territoryCode}: multiplier=${scaleMultiplier}, newScale=${newScale}`)
       this.compositeProjection = null
     }
   }
