@@ -84,7 +84,7 @@ export function useViewState() {
   )
 
   const shouldShowTerritoryControls = computed(() =>
-    configStore.showIndividualProjectionSelectors,
+    configStore.showIndividualProjectionSelectors || configStore.viewMode === 'composite-custom',
   )
 
   return {

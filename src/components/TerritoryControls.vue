@@ -87,7 +87,7 @@ function getProjectionFamily(territoryCode: string) {
 }
 
 // Parameter control event handlers
-function handleParameterChange(territoryCode: string, key: keyof ProjectionParameters, value: unknown) {
+function handleParameterChange(territoryCode: string, _key: keyof ProjectionParameters, _value: unknown) {
   // Notify cartographer to update projection parameters for this territory
   const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
@@ -95,7 +95,7 @@ function handleParameterChange(territoryCode: string, key: keyof ProjectionParam
   }
 }
 
-function handleOverrideCleared(territoryCode: string, key: keyof ProjectionParameters) {
+function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionParameters) {
   // Notify cartographer to update projection parameters for this territory
   const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
@@ -124,11 +124,11 @@ function handleOverrideCleared(territoryCode: string, key: keyof ProjectionParam
     </Alert>
 
     <div
-      v-else-if="!shouldShowEmptyState"
+      v-if="!shouldShowEmptyState || isCompositeCustomMode"
       class="flex flex-col gap-3 mb-8"
     >
-      <!-- Preset Selector (shown when presets are available) -->
-      <PresetSelector v-if="hasPresets" />
+      <!-- Preset Selector (shown in composite-custom mode when presets are available) -->
+      <PresetSelector v-if="hasPresets && isCompositeCustomMode" />
 
       <ImportControls />
       <button
