@@ -1,6 +1,6 @@
 import type { ProjectionParams } from '@/core/atlases/loader'
-import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
+import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import * as Plot from '@observablehq/plot'
 import { select } from 'd3'
 import { GeoDataService } from '@/services/data/geo-data-service'

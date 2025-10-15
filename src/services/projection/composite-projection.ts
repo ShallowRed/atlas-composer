@@ -18,7 +18,7 @@ import { projectionRegistry } from '@/core/projections/registry'
  * Allows CompositeProjection to get dynamic parameters without direct store coupling
  */
 export interface ProjectionParameterProvider {
-  getEffectiveParameters(territoryCode: string): BaseProjectionParameters
+  getEffectiveParameters: (territoryCode: string) => BaseProjectionParameters
 }
 
 /**

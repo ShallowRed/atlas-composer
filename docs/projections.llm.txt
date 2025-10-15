@@ -175,16 +175,26 @@ interface ProjectionFilterContext {
 
 ## Projection Parameters
 
-### Common Parameters
+### Unified Parameter Interface
+
+Uses single `ProjectionParameters` interface across all systems:
 
 ```typescript
-{
-  center?: [longitude, latitude]     // Projection center
-  rotate?: [lambda, phi, gamma]      // Rotation angles
-  parallels?: [south, north]         // Standard parallels (conic)
-  scale?: number                     // Zoom level
-  translate?: [x, y]                 // Pan position
-  clipAngle?: number                 // Clipping angle (degrees)
+interface ProjectionParameters {
+  center?: [number, number]         // Geographic center [longitude, latitude]
+  rotate?: [number, number, number?] // Rotation angles [lambda, phi, gamma]
+  parallels?: [number, number]      // Standard parallels [south, north] for conic
+  scale?: number                    // Current scale value
+  translate?: [number, number]      // Translation offset [x, y] in pixels
+  clipAngle?: number                // Clipping angle for azimuthal (degrees)
+  precision?: number                // Precision for adaptive sampling
+  
+  // Optional metadata fields
+  family?: ProjectionFamilyType     // Projection family for validation
+  projectionId?: string             // Projection ID from registry
+  baseScale?: number                // Base scale before user adjustments
+  scaleMultiplier?: number          // User's scale multiplier
+  [key: string]: any                // Index signature for dynamic access
 }
 ```
 
@@ -198,7 +208,7 @@ MapRenderer.vue supports interactive mouse panning for projections with rotation
 - **Range**: 
   - Longitude: Wraps between -180° and 180°
   - Latitude: Clamped between -90° and 90° (prevents pole flipping)
-- **Updates**: Changes flow through configStore.setCustomRotate and trigger re-render via effectiveProjectionParams watcher
+- **Updates**: Changes flow through configStore.setCustomRotate which delegates to parameterStore.setGlobalParameter and trigger re-render via effectiveProjectionParams watcher
 - **Latitude Lock**: Latitude rotation locked by default, unlockable via toggle in ProjectionParamsControls
   - When locked: Mouse panning only affects longitude rotation
   - When unlocked: Mouse panning affects both longitude and latitude rotation
@@ -233,14 +243,20 @@ Defined in `parameters.ts` - determines which parameters are applicable:
 - Cylindrical/Pseudocylindrical: Uses `rotate([lon, lat])` without negation
 - Scale: Only applied in MANUAL mode (AUTO mode calculates automatically)
 
-### Territory-Specific Parameter Management
+### Unified Parameter Management
 
-Custom composite mode supports territory-specific parameter overrides with inheritance system:
+Parameter system uses centralized `ProjectionParameterManager` with inheritance and validation:
+
+**Parameter Store Architecture**:
+- `parameterStore` (Pinia): Reactive parameter management with global and territory-specific parameters
+- `ProjectionParameterManager`: Core parameter logic with inheritance, validation, and constraints
+- `UnifiedParameterConstraints`: Centralized parameter ranges and validation rules
+- Config store delegates parameter operations to parameter store for unified handling
 
 **Parameter Inheritance Priority**:
 1. Territory-specific overrides (highest priority)
 2. Global parameter defaults 
-3. Projection family defaults (lowest priority)
+3. Atlas parameter defaults (lowest priority)
 
 **Dynamic Projection Family Detection**:
 - Parameter validation uses actual selected projection family per territory
@@ -248,7 +264,7 @@ Custom composite mode supports territory-specific parameter overrides with inher
 - Supports all projection families: CONIC, AZIMUTHAL, CYLINDRICAL, PSEUDOCYLINDRICAL, POLYHEDRAL
 
 **Parameter Validation System**:
-- Family-based parameter relevance checking
+- Family-based parameter relevance checking through `UnifiedParameterConstraints`
 - Range validation for scalar parameters (scale: 1-100000, precision: 0.01-10)
 - Array validation for coordinate parameters (center, rotate, parallels, translate)
 - Real-time validation feedback with error and warning messages

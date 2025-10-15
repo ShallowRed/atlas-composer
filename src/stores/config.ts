@@ -23,14 +23,8 @@ export const useConfigStore = defineStore('config', () => {
   const selectedAtlas = ref(DEFAULT_ATLAS)
   const scalePreservation = ref(true)
 
-  // Projection parameters - custom overrides (null = use atlas defaults)
-  const customRotateLongitude = ref<number | null>(null)
-  const customRotateLatitude = ref<number | null>(null)
-  const customCenterLongitude = ref<number | null>(null)
-  const customCenterLatitude = ref<number | null>(null)
-  const customParallel1 = ref<number | null>(null)
-  const customParallel2 = ref<number | null>(null)
-  const customScale = ref<number | null>(null)
+  // Projection parameters now managed through parameter store
+  // Custom overrides are handled via parameterStore.setGlobalParameter()
 
   // Projection control options
   const rotateLatitudeLocked = ref<boolean>(true) // Default to locked
@@ -173,84 +167,36 @@ export const useConfigStore = defineStore('config', () => {
     ProjectionUIService.getProjectionRecommendations(selectedAtlas.value, viewMode.value),
   )
 
-  // Compute effective projection params (custom overrides or atlas defaults)
+  // Compute effective projection params by merging atlas defaults with global parameter overrides
   const effectiveProjectionParams = computed(() => {
     const atlasParams = atlasService.value?.getProjectionParams()
+    const globalParams = parameterStore.globalParameters
 
-    // Provide sensible defaults if atlas params are not available
-    const defaultParams = {
-      center: { longitude: 0, latitude: 0 },
-      rotate: {
-        mainland: [0, 0] as [number, number],
-        azimuthal: [0, 0] as [number, number],
-      },
-      parallels: { conic: [30, 60] as [number, number] },
-    }
+    // Extract individual parameter values with proper fallbacks
+    const centerLon = globalParams.center?.[0] ?? atlasParams?.center?.longitude ?? 0
+    const centerLat = globalParams.center?.[1] ?? atlasParams?.center?.latitude ?? 0
 
-    if (!atlasParams) {
-      // Even without atlas params, apply custom overrides
-      const result = {
-        center: {
-          longitude: customCenterLongitude.value ?? defaultParams.center.longitude,
-          latitude: customCenterLatitude.value ?? defaultParams.center.latitude,
-        },
-        rotate: {
-          mainland: [
-            customRotateLongitude.value ?? defaultParams.rotate.mainland[0],
-            customRotateLatitude.value ?? defaultParams.rotate.mainland[1],
-          ] as [number, number],
-          azimuthal: [
-            customRotateLongitude.value ?? defaultParams.rotate.azimuthal[0],
-            customRotateLatitude.value ?? defaultParams.rotate.azimuthal[1],
-          ] as [number, number],
-        },
-        parallels: {
-          conic: [
-            customParallel1.value ?? defaultParams.parallels.conic[0],
-            customParallel2.value ?? defaultParams.parallels.conic[1],
-          ] as [number, number],
-        },
-      }
-      return result
-    }
+    const rotateLon = globalParams.rotate?.[0] ?? 0
+    const rotateLat = globalParams.rotate?.[1] ?? 0
 
-    // Extract mainland rotate values safely
-    const mainlandRotate = Array.isArray(atlasParams.rotate?.mainland)
-      ? atlasParams.rotate.mainland
-      : typeof atlasParams.rotate?.mainland === 'number'
-        ? [atlasParams.rotate.mainland, 0]
-        : [0, 0]
+    const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.conic?.[0] ?? 30
+    const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.conic?.[1] ?? 60
 
-    // Extract azimuthal rotate values safely
-    const azimuthalRotate = Array.isArray(atlasParams.rotate?.azimuthal)
-      ? atlasParams.rotate.azimuthal
-      : [0, 0]
-
-    const result = {
+    // Build result with atlas-compatible structure
+    return {
       center: {
-        longitude: customCenterLongitude.value ?? atlasParams.center?.longitude ?? 0,
-        latitude: customCenterLatitude.value ?? atlasParams.center?.latitude ?? 0,
+        longitude: centerLon,
+        latitude: centerLat,
       },
       rotate: {
-        mainland: [
-          customRotateLongitude.value ?? mainlandRotate[0],
-          customRotateLatitude.value ?? mainlandRotate[1],
-        ] as [number, number],
-        azimuthal: [
-          customRotateLongitude.value ?? azimuthalRotate[0],
-          customRotateLatitude.value ?? azimuthalRotate[1],
-        ] as [number, number],
+        mainland: [rotateLon, rotateLat] as [number, number],
+        azimuthal: [rotateLon, rotateLat] as [number, number],
       },
       parallels: {
-        conic: [
-          customParallel1.value ?? atlasParams.parallels?.conic?.[0] ?? 30,
-          customParallel2.value ?? atlasParams.parallels?.conic?.[1] ?? 60,
-        ] as [number, number],
+        conic: [parallel1, parallel2] as [number, number],
       },
-      scale: customScale.value ?? undefined,
+      scale: globalParams.scale ?? undefined,
     }
-
-    return result
   })
 
   // Actions
@@ -284,22 +230,32 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const setCustomRotate = (longitude: number | null, latitude: number | null) => {
-    customRotateLongitude.value = longitude
-    customRotateLatitude.value = latitude
+    // Convert null values to undefined to remove parameter overrides
+    const rotateValue = longitude !== null || latitude !== null
+      ? [longitude ?? 0, latitude ?? 0] as [number, number]
+      : undefined
+    parameterStore.setGlobalParameter('rotate', rotateValue)
   }
 
   const setCustomCenter = (longitude: number | null, latitude: number | null) => {
-    customCenterLongitude.value = longitude
-    customCenterLatitude.value = latitude
+    // Convert null values to undefined to remove parameter overrides
+    const centerValue = longitude !== null || latitude !== null
+      ? [longitude ?? 0, latitude ?? 0] as [number, number]
+      : undefined
+    parameterStore.setGlobalParameter('center', centerValue)
   }
 
   const setCustomParallels = (parallel1: number | null, parallel2: number | null) => {
-    customParallel1.value = parallel1
-    customParallel2.value = parallel2
+    // Convert null values to undefined to remove parameter overrides
+    const parallelsValue = parallel1 !== null || parallel2 !== null
+      ? [parallel1 ?? 30, parallel2 ?? 60] as [number, number]
+      : undefined
+    parameterStore.setGlobalParameter('parallels', parallelsValue)
   }
 
   const setCustomScale = (scale: number | null) => {
-    customScale.value = scale
+    // Convert null to undefined to remove parameter override
+    parameterStore.setGlobalParameter('scale', scale ?? undefined)
   }
 
   const setProjectionFittingMode = (mode: 'auto' | 'manual') => {
@@ -311,13 +267,11 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const resetProjectionParams = () => {
-    customRotateLongitude.value = null
-    customRotateLatitude.value = null
-    customCenterLongitude.value = null
-    customCenterLatitude.value = null
-    customParallel1.value = null
-    customParallel2.value = null
-    customScale.value = null
+    // Reset all global parameter overrides by setting to undefined
+    parameterStore.setGlobalParameter('rotate', undefined)
+    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameter('parallels', undefined)
+    parameterStore.setGlobalParameter('scale', undefined)
     rotateLatitudeLocked.value = true // Reset to locked state
   }
 
@@ -366,13 +320,14 @@ export const useConfigStore = defineStore('config', () => {
     viewMode,
     projectionMode,
     compositeProjection,
-    customRotateLongitude,
-    customRotateLatitude,
-    customCenterLongitude,
-    customCenterLatitude,
-    customParallel1,
-    customParallel2,
-    customScale,
+    // Legacy parameter accessors - delegate to parameter store for backward compatibility
+    customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
+    customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),
+    customCenterLongitude: computed(() => parameterStore.globalParameters.center?.[0] ?? null),
+    customCenterLatitude: computed(() => parameterStore.globalParameters.center?.[1] ?? null),
+    customParallel1: computed(() => parameterStore.globalParameters.parallels?.[0] ?? null),
+    customParallel2: computed(() => parameterStore.globalParameters.parallels?.[1] ?? null),
+    customScale: computed(() => parameterStore.globalParameters.scale ?? null),
     rotateLatitudeLocked,
     projectionFittingMode,
 

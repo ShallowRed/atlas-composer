@@ -58,7 +58,7 @@ class ProjectionRegistry {
   /**
    * Get projection preferences for an atlas with fallback defaults
    * Uses sync fallback logic to maintain compatibility
-   * 
+   *
    * @param atlasId - Atlas identifier
    * @returns Projection preferences or fallback defaults
    */
@@ -70,7 +70,7 @@ class ProjectionRegistry {
         return { recommended: ['natural-earth', 'robinson'], prohibited: [] }
       case 'france':
         return { recommended: ['conic-conformal-france'], prohibited: [] }
-      case 'spain': 
+      case 'spain':
         return { recommended: ['conic-conformal-spain'], prohibited: [] }
       case 'portugal':
         return { recommended: ['conic-conformal-portugal'], prohibited: [] }

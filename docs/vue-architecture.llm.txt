@@ -30,7 +30,7 @@ src/
 │       ├── parameters/       # Parameter control components (3 components)
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 11 composition functions (added useViewState, useTerritoryCursor, useTerritoryParameters)
+├── composables/              # 11 composition functions including useViewState, useTerritoryCursor, useTerritoryParameters
 ├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -185,11 +185,14 @@ App.vue
 
 **Parameter Components** (src/components/ui/parameters/):
 - **TerritoryParameterControls**: Territory-specific parameter editing interface
+  - Uses unified `ProjectionParameters` interface across all parameter operations
+  - Integrates with `parameterStore` for reactive parameter management
+  - Template conditions use computed properties for parameter group visibility
   - Provides parameter controls for individual territories in custom composite mode
   - Uses dynamic projection family detection via projectionRegistry
   - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
   - Parameter groups: Position (center/rotate), Projection-specific (parallels), View (scale/clipAngle), Advanced (precision/translate)
-  - Validation feedback with real-time error/warning display
+  - Validation feedback with real-time error/warning display via `UnifiedParameterConstraints`
   - Parameter inheritance indicators and override functionality
   - Reset controls for clearing territory-specific overrides
 - **ParameterControlGroup**: Reusable parameter control group wrapper
@@ -323,15 +326,16 @@ App.vue
 
 ## State Management
 
-### configStore (375 lines)
-**Domain**: Configuration state
+### configStore (357 lines)
+**Domain**: Configuration state and UI control
 **Responsibilities**:
 - Atlas selection (current atlas, region, territories)
 - View mode (composite, split, unified)
 - Projection mode (existing, custom)
-- Projection parameters (custom overrides)
-- Projection control options (rotateLatitudeLocked)
-- Computed properties: effective parameters with priority resolution
+- Projection parameter delegation to parameterStore (setCustomRotate, setCustomCenter, etc.)
+- Projection control options (rotateLatitudeLocked, projectionFittingMode)
+- Computed properties: effectiveProjectionParams merges atlas defaults with parameterStore.globalParameters
+- Legacy parameter accessors via computed properties for backward compatibility
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
 **Used by**: All configuration components, MapRenderer, TerritoryControls

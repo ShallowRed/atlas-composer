@@ -1,10 +1,10 @@
+import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
 
+import { computed, ref } from 'vue'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
 import { Cartographer } from '@/services/rendering/cartographer-service'
-import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
 
