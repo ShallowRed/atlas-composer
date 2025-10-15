@@ -197,7 +197,8 @@ export class PresetLoader {
     preset.territories.forEach((territory) => {
       const params: Record<string, unknown> = {}
 
-      // Extract only the projection parameters (not scale/translate which are handled separately)
+      // Extract projection parameters that should be set at territory level
+      // Note: scale is included here because it's a projection parameter, not a territory scale multiplier
       if (territory.parameters.center) {
         params.center = territory.parameters.center
       }
@@ -206,6 +207,10 @@ export class PresetLoader {
       }
       if (territory.parameters.parallels) {
         params.parallels = territory.parameters.parallels
+      }
+      if (territory.parameters.scale !== undefined) {
+        // This is the D3 projection scale parameter, not the territory scale multiplier
+        params.scale = territory.parameters.scale
       }
       if (territory.parameters.clipAngle !== undefined) {
         params.clipAngle = territory.parameters.clipAngle

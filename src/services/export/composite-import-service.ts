@@ -192,18 +192,36 @@ export class CompositeImportService {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
 
-    // Apply each territory configuration
+    // FIRST: Set baseScale values in composite projection before any other operations
+    // This prevents scale calculation mismatches during import
+    if (compositeProjection) {
+      try {
+        config.territories.forEach((territory) => {
+          const subProj = (compositeProjection as any).subProjections?.find((sp: any) => sp.territoryCode === territory.code)
+          if (subProj) {
+            // Critical: Set the baseScale to match the exported baseScale FIRST
+            // This ensures the correct base value is used for all subsequent scale calculations
+            subProj.baseScale = territory.parameters.baseScale
+          }
+        })
+      }
+      catch (error) {
+        console.warn('[CompositeImportService] Error setting baseScale values:', error)
+      }
+    }
+
+    // SECOND: Apply each territory configuration to stores
     config.territories.forEach((territory) => {
       // 1. Set projection for territory
       territoryStore.setTerritoryProjection(territory.code, territory.projectionId)
 
-      // 2. Apply scale multiplier
-      // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
-      territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
-
-      // 3. Apply translation offsets
+      // 2. Apply translation offsets
       territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
       territoryStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
+
+      // 3. Apply scale multiplier (AFTER baseScale is set above)
+      // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
+      territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
 
       // 4. Update the composite projection with new settings
       // This will trigger recalculation of projection parameters
@@ -217,25 +235,19 @@ export class CompositeImportService {
       }
     })
 
-    // After setting all territory values, sync them with the composite projection
+    // THIRD: Sync final values with the composite projection
     // This mimics what the cartographer does in applyCustomCompositeSettings
     if (compositeProjection) {
       try {
-        // Get all territory values from config and apply them to composite
+        // Apply translation offsets and scale multipliers
         config.territories.forEach((territory) => {
           if (typeof compositeProjection.updateTranslationOffset === 'function') {
             compositeProjection.updateTranslationOffset(territory.code, territory.layout.translateOffset)
           }
 
-          // For scales, we need to ensure baseScale matches the exported value
-          const subProj = (compositeProjection as any).subProjections?.find((sp: any) => sp.territoryCode === territory.code)
-          if (subProj) {
-            // Set the baseScale to match the exported baseScale
-            subProj.baseScale = territory.parameters.baseScale
-            // Then apply the scale multiplier
-            if (typeof compositeProjection.updateScale === 'function') {
-              compositeProjection.updateScale(territory.code, territory.parameters.scaleMultiplier)
-            }
+          // Apply the scale multiplier (baseScale was already set above)
+          if (typeof compositeProjection.updateScale === 'function') {
+            compositeProjection.updateScale(territory.code, territory.parameters.scaleMultiplier)
           }
         })
       }

@@ -159,6 +159,121 @@ describe('presetLoader', () => {
     })
   })
 
+  describe('extractTerritoryParameters', () => {
+    it('should extract territory projection parameters including scale', () => {
+      const mockPreset: ExportedCompositeConfig = {
+        version: '1.0',
+        metadata: {
+          atlasId: 'france',
+          atlasName: 'France',
+          exportDate: '2024-01-01T00:00:00Z',
+          createdWith: 'Atlas Composer 1.0',
+        },
+        pattern: 'single-focus',
+        referenceScale: 2700,
+        territories: [
+          {
+            code: 'FR-MET',
+            name: 'France Métropolitaine',
+            role: 'primary',
+            projectionId: 'conic-conformal',
+            projectionFamily: 'conic',
+            parameters: {
+              center: [2.5, 46.5],
+              rotate: [-3, -46.2, 0],
+              parallels: [42, 49],
+              scale: 2700,
+              baseScale: 2700,
+              scaleMultiplier: 1.0,
+              precision: 0.1,
+            },
+            layout: {
+              translateOffset: [0, 0],
+            },
+            bounds: [[-5, 42], [10, 51]],
+          },
+          {
+            code: 'FR-GP',
+            name: 'Guadeloupe',
+            role: 'secondary',
+            projectionId: 'mercator',
+            projectionFamily: 'cylindrical',
+            parameters: {
+              center: [-61.46, 16.14],
+              scale: 3780,
+              baseScale: 2700,
+              scaleMultiplier: 1.4,
+            },
+            layout: {
+              translateOffset: [-324, -38],
+            },
+            bounds: [[-61.8, 15.8], [-61.0, 16.5]],
+          },
+        ],
+      }
+
+      const result = PresetLoader.extractTerritoryParameters(mockPreset)
+
+      // Should extract parameters for FR-MET (has center, rotate, parallels, scale, precision)
+      expect(result).toHaveProperty('FR-MET')
+      expect(result['FR-MET']).toEqual({
+        center: [2.5, 46.5],
+        rotate: [-3, -46.2, 0],
+        parallels: [42, 49],
+        scale: 2700, // This should now be included
+        precision: 0.1,
+      })
+
+      // Should extract parameters for FR-GP (has center, scale)
+      expect(result).toHaveProperty('FR-GP')
+      expect(result['FR-GP']).toEqual({
+        center: [-61.46, 16.14],
+        scale: 3780, // This should now be included
+      })
+    })
+
+    it('should handle territory without projection parameters', () => {
+      const mockPreset: ExportedCompositeConfig = {
+        version: '1.0',
+        metadata: {
+          atlasId: 'test',
+          atlasName: 'Test',
+          exportDate: '2024-01-01T00:00:00Z',
+          createdWith: 'Atlas Composer 1.0',
+        },
+        pattern: 'single-focus',
+        referenceScale: 1000,
+        territories: [
+          {
+            code: 'T1',
+            name: 'Territory 1',
+            role: 'primary',
+            projectionId: 'mercator',
+            projectionFamily: 'cylindrical',
+            parameters: {
+              // Only has scale values, no projection parameters
+              scale: 1000,
+              baseScale: 1000,
+              scaleMultiplier: 1.0,
+            },
+            layout: {
+              translateOffset: [0, 0],
+            },
+            bounds: [[0, 0], [10, 10]],
+          },
+        ],
+      }
+
+      const result = PresetLoader.extractTerritoryParameters(mockPreset)
+
+      // Should extract scale parameter for T1
+      expect(result).toHaveProperty('T1')
+      expect(result.T1).toEqual({
+        scale: 1000,
+      })
+    })
+  })
+
   describe('listAvailablePresets', () => {
     it('should return empty array for now', () => {
       const result = PresetLoader.listAvailablePresets()
