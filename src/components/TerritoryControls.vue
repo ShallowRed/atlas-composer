@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
@@ -86,7 +87,7 @@ function getProjectionFamily(territoryCode: string) {
 }
 
 // Parameter control event handlers
-function handleParameterChange(territoryCode: string, key: string, value: unknown) {
+function handleParameterChange(territoryCode: string, key: keyof ProjectionParameters, value: unknown) {
   // Notify cartographer to update projection parameters for this territory
   const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
@@ -95,7 +96,7 @@ function handleParameterChange(territoryCode: string, key: string, value: unknow
   console.log('Parameter changed:', { territoryCode, key, value })
 }
 
-function handleOverrideCleared(territoryCode: string, key: string) {
+function handleOverrideCleared(territoryCode: string, key: keyof ProjectionParameters) {
   // Notify cartographer to update projection parameters for this territory
   const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {

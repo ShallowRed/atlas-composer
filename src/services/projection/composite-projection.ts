@@ -1,6 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
-import type { CompositeProjectionConfig } from '@/types'
-import type { BaseProjectionParameters } from '@/types/projection-parameters'
+import type { CompositeProjectionConfig, TerritoryConfig } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import {
   geoAzimuthalEqualArea,
   geoAzimuthalEquidistant,
@@ -18,7 +18,7 @@ import { projectionRegistry } from '@/core/projections/registry'
  * Allows CompositeProjection to get dynamic parameters without direct store coupling
  */
 export interface ProjectionParameterProvider {
-  getEffectiveParameters: (territoryCode: string) => BaseProjectionParameters
+  getEffectiveParameters: (territoryCode: string) => ProjectionParameters
 }
 
 /**
@@ -58,7 +58,7 @@ export class CompositeProjection {
    * Get projection parameters for a territory
    * Uses parameter provider if available, otherwise falls back to config
    */
-  private getParametersForTerritory(territoryCode: string, configParams: any): BaseProjectionParameters {
+  private getParametersForTerritory(territoryCode: string, configParams: TerritoryConfig): ProjectionParameters {
     if (this.parameterProvider) {
       const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
       // Merge config params with dynamic params (dynamic params take precedence)
@@ -67,14 +67,23 @@ export class CompositeProjection {
         center: dynamicParams.center ?? configParams.center,
         rotate: dynamicParams.rotate ?? configParams.rotate,
         parallels: dynamicParams.parallels ?? configParams.parallels,
-        scale: dynamicParams.scale ?? configParams.scale,
-        translate: dynamicParams.translate ?? configParams.translate,
-        clipAngle: dynamicParams.clipAngle ?? configParams.clipAngle,
-        precision: dynamicParams.precision ?? configParams.precision,
+        scale: dynamicParams.scale, // configParams doesn't have scale
+        translate: dynamicParams.translate, // configParams doesn't have translate
+        clipAngle: dynamicParams.clipAngle, // configParams doesn't have clipAngle
+        precision: dynamicParams.precision, // configParams doesn't have precision
       }
     }
-    // Fallback to config params if no parameter provider
-    return configParams
+    // Fallback to config params - convert TerritoryConfig to ProjectionParameters
+    return {
+      center: configParams.center,
+      rotate: configParams.rotate,
+      parallels: configParams.parallels,
+      // These are parameter-only properties, not in TerritoryConfig
+      scale: undefined,
+      translate: undefined,
+      clipAngle: undefined,
+      precision: undefined,
+    }
   }
 
   /**
@@ -506,10 +515,7 @@ export class CompositeProjection {
       projection.scale(params.scale * subProj.scaleMultiplier)
     }
 
-    // Apply translate if provided
-    if (params.translate) {
-      projection.translate(params.translate as [number, number])
-    }
+    // Note: translate parameter is applied during build() to combine with territory positioning
 
     // Apply precision if supported
     if (projection.precision && params.precision !== undefined) {
@@ -537,12 +543,25 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
+      // Get current translate parameter if set via parameter controls
+      const parameterProvider = this.parameterProvider
+      let parameterTranslate: [number, number] = [0, 0]
+      if (parameterProvider) {
+        const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
+        if (params.translate) {
+          parameterTranslate = params.translate as [number, number]
+        }
+      }
+
+      console.log(`CompositeProjection build - ${subProj.territoryCode}: parameterTranslate=${JSON.stringify(parameterTranslate)}, centerX=${centerX}, centerY=${centerY}, translateOffset=${JSON.stringify(subProj.translateOffset)}`) // Debug log
+
       // All territories are positioned relative to the map center
       // Mainland has offset [0,0] or close to it, so it will be centered
       // Others have their configured offsets relative to center
+      // Add any parameter-based translate offset to the territory positioning
       const newTranslate: [number, number] = [
-        centerX + subProj.translateOffset[0],
-        centerY + subProj.translateOffset[1],
+        centerX + subProj.translateOffset[0] + parameterTranslate[0],
+        centerY + subProj.translateOffset[1] + parameterTranslate[1],
       ]
       subProj.projection.translate(newTranslate)
 
