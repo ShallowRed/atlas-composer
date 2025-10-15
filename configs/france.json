@@ -15,7 +15,8 @@
     "metadata": "france-metadata-50m.json"
   },
   "availablePresets": [
-    "france-default"
+    "france-default",
+    "france-test"
   ],
   "defaultPreset": "france-default",
   "territories": [

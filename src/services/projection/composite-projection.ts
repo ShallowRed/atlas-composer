@@ -141,17 +141,36 @@ export class CompositeProjection {
       (mainlandProjection as any).parallels(mainlandParams.parallels)
     }
 
-    // Mainland always uses the reference scale (multiplier = 1.0)
-    const mainlandScale = REFERENCE_SCALE
-    mainlandProjection.scale(mainlandScale)
+    // Determine scale values with proper preset support
+    // Priority: preset baseScale + scaleMultiplier > preset scale > reference scale
+    let mainlandBaseScale: number
+    let mainlandScaleMultiplier: number
+
+    if (mainlandParams.baseScale !== undefined && mainlandParams.scaleMultiplier !== undefined) {
+      // Preset provides both baseScale and scaleMultiplier - use them directly
+      mainlandBaseScale = mainlandParams.baseScale
+      mainlandScaleMultiplier = mainlandParams.scaleMultiplier
+    }
+    else if (mainlandParams.scale !== undefined) {
+      // Preset provides only scale - use it as baseScale with multiplier of 1.0
+      mainlandBaseScale = mainlandParams.scale
+      mainlandScaleMultiplier = 1.0
+    }
+    else {
+      // No preset - use reference scale
+      mainlandBaseScale = REFERENCE_SCALE
+      mainlandScaleMultiplier = 1.0
+    }
+
+    mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
     this.addSubProjection({
       territoryCode: mainland.code,
       territoryName: mainland.name,
       projection: mainlandProjection,
       projectionType: mainlandProjectionType,
-      baseScale: mainlandScale,
-      scaleMultiplier: 1.0,
+      baseScale: mainlandBaseScale,
+      scaleMultiplier: mainlandScaleMultiplier,
       baseTranslate: [0, 0],
       clipExtent: mainland.clipExtent
         ? [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
@@ -182,19 +201,37 @@ export class CompositeProjection {
         (projection as any).parallels(territoryParams.parallels)
       }
 
-      // Use territory's baseScaleMultiplier (defaults to 1.0 if not specified)
-      // This is the "artistic adjustment" multiplier from d3-composite-projections
-      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-      const territoryScale = REFERENCE_SCALE * baseMultiplier
-      projection.scale(territoryScale)
+      // Determine scale values with proper preset support
+      // Priority: preset baseScale + scaleMultiplier > preset scale > reference scale * baseScaleMultiplier
+      let territoryBaseScale: number
+      let territoryScaleMultiplier: number
+
+      if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
+        // Preset provides both baseScale and scaleMultiplier - use them directly
+        territoryBaseScale = territoryParams.baseScale
+        territoryScaleMultiplier = territoryParams.scaleMultiplier
+      }
+      else if (territoryParams.scale !== undefined) {
+        // Preset provides only scale - use it as baseScale with multiplier of 1.0
+        territoryBaseScale = territoryParams.scale
+        territoryScaleMultiplier = 1.0
+      }
+      else {
+        // No preset - calculate from reference scale and territory's baseScaleMultiplier
+        const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+        territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+        territoryScaleMultiplier = 1.0
+      }
+
+      projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
         projection,
         projectionType,
-        baseScale: territoryScale,
-        scaleMultiplier: 1.0, // User adjustments start at 1.0
+        baseScale: territoryBaseScale,
+        scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
         clipExtent: territory.clipExtent
           ? [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]
@@ -243,17 +280,32 @@ export class CompositeProjection {
         (mainlandProjection as any).parallels(mainlandParams.parallels)
       }
 
-      // Each mainland uses the reference scale
-      const mainlandScale = REFERENCE_SCALE
-      mainlandProjection.scale(mainlandScale)
+      // Determine scale values with proper preset support
+      let mainlandBaseScale: number
+      let mainlandScaleMultiplier: number
+
+      if (mainlandParams.baseScale !== undefined && mainlandParams.scaleMultiplier !== undefined) {
+        mainlandBaseScale = mainlandParams.baseScale
+        mainlandScaleMultiplier = mainlandParams.scaleMultiplier
+      }
+      else if (mainlandParams.scale !== undefined) {
+        mainlandBaseScale = mainlandParams.scale
+        mainlandScaleMultiplier = 1.0
+      }
+      else {
+        mainlandBaseScale = REFERENCE_SCALE
+        mainlandScaleMultiplier = 1.0
+      }
+
+      mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
       this.addSubProjection({
         territoryCode: mainland.code,
         territoryName: mainland.name,
         projection: mainlandProjection,
         projectionType: mainlandProjectionType,
-        baseScale: mainlandScale,
-        scaleMultiplier: 1.0,
+        baseScale: mainlandBaseScale,
+        scaleMultiplier: mainlandScaleMultiplier,
         baseTranslate: [0, 0],
         clipExtent: mainland.clipExtent
           ? [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
@@ -285,17 +337,33 @@ export class CompositeProjection {
         (projection as any).parallels(territoryParams.parallels)
       }
 
-      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-      const territoryScale = REFERENCE_SCALE * baseMultiplier
-      projection.scale(territoryScale)
+      // Determine scale values with proper preset support
+      let territoryBaseScale: number
+      let territoryScaleMultiplier: number
+
+      if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
+        territoryBaseScale = territoryParams.baseScale
+        territoryScaleMultiplier = territoryParams.scaleMultiplier
+      }
+      else if (territoryParams.scale !== undefined) {
+        territoryBaseScale = territoryParams.scale
+        territoryScaleMultiplier = 1.0
+      }
+      else {
+        const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+        territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+        territoryScaleMultiplier = 1.0
+      }
+
+      projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
         projection,
         projectionType,
-        baseScale: territoryScale,
-        scaleMultiplier: 1.0,
+        baseScale: territoryBaseScale,
+        scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
         clipExtent: territory.clipExtent
           ? [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]

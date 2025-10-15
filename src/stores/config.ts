@@ -101,6 +101,9 @@ export const useConfigStore = defineStore('config', () => {
       const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
       // Apply territory updates (same as atlas change watcher)
+      Object.entries(updates.projections).forEach(([code, projection]) => {
+        territoryStore.setTerritoryProjection(code, projection)
+      })
       Object.entries(updates.translations).forEach(([code, translation]) => {
         territoryStore.setTerritoryTranslation(code, 'x', translation.x)
         territoryStore.setTerritoryTranslation(code, 'y', translation.y)

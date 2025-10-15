@@ -435,5 +435,10 @@
       "creator": "Créateur",
       "year": "Année"
     }
+  },
+  "validation": {
+    "errors": {
+      "title": "Erreur de validation"
+    }
   }
 }

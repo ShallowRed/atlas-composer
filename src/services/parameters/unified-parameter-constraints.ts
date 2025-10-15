@@ -98,6 +98,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       required: false,
       defaultValue: [30, 60],
     },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true, // Used internally for composite projections
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true, // Used for user scale adjustments
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
+    },
   },
 
   PSEUDOCYLINDRICAL: {
@@ -154,6 +172,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       relevant: false,
       required: false,
       defaultValue: [30, 60],
+    },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
     },
   },
 
@@ -245,6 +281,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       required: false,
       defaultValue: 90,
     },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
+    },
   },
 
   AZIMUTHAL: {
@@ -318,6 +372,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       required: false,
       defaultValue: [30, 60],
     },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
+    },
   },
 
   POLYHEDRAL: {
@@ -369,6 +441,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       required: false,
       defaultValue: [30, 60],
     },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
+    },
   },
 
   COMPOSITE: {
@@ -419,6 +509,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       relevant: false,
       required: false,
       defaultValue: [30, 60],
+    },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
     },
   },
 
@@ -474,6 +582,24 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       required: false,
       defaultValue: [30, 60],
     },
+    baseScale: {
+      parameter: 'baseScale',
+      relevant: true,
+      required: false,
+      min: 1,
+      max: 100000,
+      step: 1,
+      defaultValue: 2700,
+    },
+    scaleMultiplier: {
+      parameter: 'scaleMultiplier',
+      relevant: true,
+      required: false,
+      min: 0.1,
+      max: 10,
+      step: 0.1,
+      defaultValue: 1.0,
+    },
   },
 }
 
@@ -488,6 +614,8 @@ const PARAMETER_KEYS: Array<keyof ProjectionParameters> = [
   'translate',
   'clipAngle',
   'precision',
+  'baseScale',
+  'scaleMultiplier',
 ]
 
 /**

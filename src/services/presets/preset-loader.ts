@@ -212,6 +212,11 @@ export class PresetLoader {
         // This is the D3 projection scale parameter, not the territory scale multiplier
         params.scale = territory.parameters.scale
       }
+      if (territory.parameters.baseScale !== undefined) {
+        // Extract baseScale for proper initialization of composite projections
+        // The baseScale is the scale value before applying the scaleMultiplier
+        params.baseScale = territory.parameters.baseScale
+      }
       if (territory.parameters.clipAngle !== undefined) {
         params.clipAngle = territory.parameters.clipAngle
       }
