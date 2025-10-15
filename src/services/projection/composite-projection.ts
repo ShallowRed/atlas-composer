@@ -71,6 +71,8 @@ export class CompositeProjection {
         translate: dynamicParams.translate, // configParams doesn't have translate
         clipAngle: dynamicParams.clipAngle, // configParams doesn't have clipAngle
         precision: dynamicParams.precision, // configParams doesn't have precision
+        baseScale: dynamicParams.baseScale, // Extract baseScale from preset parameters
+        scaleMultiplier: dynamicParams.scaleMultiplier, // Extract scaleMultiplier from preset parameters
       }
     }
     // Fallback to config params - convert TerritoryConfig to ProjectionParameters
@@ -189,11 +191,17 @@ export class CompositeProjection {
       const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
       // Apply center/rotate based on projection type
-      if (projection.rotate && territoryParams.rotate) {
+      // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
+      const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
+
+      if (isConicProjection && projection.rotate && territoryParams.rotate) {
         projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
       }
       else if (territoryParams.center) {
         projection.center(territoryParams.center as [number, number])
+      }
+      else if (projection.rotate && territoryParams.rotate) {
+        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
       }
 
       // Apply parallels if supported
@@ -206,10 +214,17 @@ export class CompositeProjection {
       let territoryBaseScale: number
       let territoryScaleMultiplier: number
 
+      if (territory.code === 'FR-GP') {
+        console.log(`[CompositeProjection] init FR-GP territoryParams:`, territoryParams)
+      }
+
       if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
         // Preset provides both baseScale and scaleMultiplier - use them directly
         territoryBaseScale = territoryParams.baseScale
         territoryScaleMultiplier = territoryParams.scaleMultiplier
+        if (territory.code === 'FR-GP') {
+          console.log(`[CompositeProjection] init FR-GP using baseScale=${territoryBaseScale}, scaleMultiplier=${territoryScaleMultiplier}`)
+        }
       }
       else if (territoryParams.scale !== undefined) {
         // Preset provides only scale - use it as baseScale with multiplier of 1.0
@@ -325,11 +340,17 @@ export class CompositeProjection {
       const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
       // Apply center/rotate based on projection type
-      if (projection.rotate && territoryParams.rotate) {
+      // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
+      const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
+
+      if (isConicProjection && projection.rotate && territoryParams.rotate) {
         projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
       }
       else if (territoryParams.center) {
         projection.center(territoryParams.center as [number, number])
+      }
+      else if (projection.rotate && territoryParams.rotate) {
+        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
       }
 
       // Apply parallels if supported
@@ -434,6 +455,8 @@ export class CompositeProjection {
     territoryCode: string,
     projectionType: string,
   ) {
+    console.log(`[CompositeProjection] updateTerritoryProjection called for ${territoryCode}, newType=${projectionType}`)
+
     const subProj = this.subProjections.find((sp) => {
       return sp.territoryCode === territoryCode
     })
@@ -446,6 +469,8 @@ export class CompositeProjection {
     const currentCenter = subProj.projection.center ? subProj.projection.center() : null
     const currentRotate = subProj.projection.rotate ? subProj.projection.rotate() : null
     const currentTranslate = subProj.projection.translate()
+
+    console.log(`[CompositeProjection] Before projection change - currentScale=${currentScale}, baseScale=${subProj.baseScale}, scaleMultiplier=${subProj.scaleMultiplier}`)
 
     // Create new projection based on type
     let newProjection: GeoProjection
@@ -516,6 +541,9 @@ export class CompositeProjection {
     subProj.projection = newProjection
     // currentScale = baseScale * multiplier, so we need to extract the base scale
     subProj.baseScale = currentScale / subProj.scaleMultiplier
+
+    console.log(`[CompositeProjection] After projection change - newBaseScale=${subProj.baseScale} (= ${currentScale} / ${subProj.scaleMultiplier})`)
+
     this.compositeProjection = null // Force rebuild
   }
 
@@ -565,6 +593,18 @@ export class CompositeProjection {
       const params = this.parameterProvider.getEffectiveParameters(territoryCode)
       const projection = subProj.projection
 
+      if (territoryCode === 'FR-MET') {
+        console.log(`[CompositeProjection] updateTerritoryParameters for ${territoryCode}:`, {
+          currentBaseScale: subProj.baseScale,
+          currentScaleMultiplier: subProj.scaleMultiplier,
+          currentProjectionScale: projection.scale(),
+          paramsScale: params.scale,
+          paramsRotate: params.rotate,
+          paramsCenter: params.center,
+          paramsParallels: params.parallels,
+        })
+      }
+
       if (!projection) {
         console.error(`[CompositeProjection] Projection not found for territory ${territoryCode}`)
         return
@@ -603,18 +643,14 @@ export class CompositeProjection {
         }
       }
 
-      // Apply scale if provided
-      if (params.scale !== undefined && typeof params.scale === 'number' && !Number.isNaN(params.scale) && params.scale > 0) {
-        // Update baseScale to reflect the new projection scale parameter
-        subProj.baseScale = params.scale
-        // Apply both the new base scale and the existing territory scale multiplier
-        const finalScale = params.scale * subProj.scaleMultiplier
-        if (finalScale > 0) {
-          projection.scale(finalScale)
-        }
-        else {
-          console.warn(`[CompositeProjection] Invalid final scale for ${territoryCode}: ${finalScale}`)
-        }
+      // CRITICAL: Re-apply scale after updating parameters
+      // Some D3 projections may reset scale when rotate/center/parallels are changed
+      // We must preserve the correct scale: baseScale * scaleMultiplier
+      const correctScale = subProj.baseScale * subProj.scaleMultiplier
+      projection.scale(correctScale)
+
+      if (territoryCode === 'FR-MET') {
+        console.log(`[CompositeProjection] Re-applied scale for ${territoryCode}: baseScale=${subProj.baseScale} * multiplier=${subProj.scaleMultiplier} = ${correctScale}`)
       }
 
       // Note: translate parameter is applied during build() to combine with territory positioning
@@ -650,6 +686,9 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
+      if (subProj.territoryCode === 'FR-MET' || subProj.territoryCode === 'FR-GP') {
+        console.log(`[CompositeProjection] build() processing ${subProj.territoryCode}: baseScale=${subProj.baseScale}, scaleMultiplier=${subProj.scaleMultiplier}, projection.scale()=${subProj.projection.scale()}, projectionType=${subProj.projectionType}, translateOffset=${JSON.stringify(subProj.translateOffset)}`)
+      }
       // Get current translate parameter if set via parameter controls
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
@@ -669,6 +708,16 @@ export class CompositeProjection {
         centerY + subProj.translateOffset[1] + parameterTranslate[1],
       ]
       subProj.projection.translate(newTranslate)
+
+      if (subProj.territoryCode === 'FR-GP') {
+        console.log(`[CompositeProjection] build() FR-GP translate: center=${centerX},${centerY}, offset=${subProj.translateOffset}, paramTranslate=${parameterTranslate}, final=${newTranslate}`)
+        // Test projection of bounds
+        if (subProj.bounds) {
+          const projected1 = subProj.projection(subProj.bounds[0] as [number, number])
+          const projected2 = subProj.projection(subProj.bounds[1] as [number, number])
+          console.log(`[CompositeProjection] build() FR-GP bounds projection: [${subProj.bounds[0]}] -> [${projected1}], [${subProj.bounds[1]}] -> [${projected2}]`)
+        }
+      }
 
       // If territory has a predefined clipExtent (from config), use it
       // This is the case for d3-composite-projections style definitions

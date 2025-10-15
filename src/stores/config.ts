@@ -92,16 +92,30 @@ export const useConfigStore = defineStore('config', () => {
   // Call initialization
   initializeTerritoryDefaults()
 
+  // Guard to prevent multiple simultaneous initializations
+  let initializationPromise: Promise<void> | null = null
+
   // Async initialization to load metadata and territory defaults from presets
   const initializeWithPresetMetadata = async () => {
-    try {
-      const currentAtlasId = selectedAtlas.value
+    // If already initializing, return the existing promise
+    if (initializationPromise) {
+      return initializationPromise
+    }
 
-      // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
-      const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
+    // Create and store the initialization promise
+    initializationPromise = (async () => {
+      try {
+        const currentAtlasId = selectedAtlas.value
+
+        // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
+        const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
       // Apply territory updates (same as atlas change watcher)
+      console.log('[ConfigStore] initializeWithPresetMetadata - Preset projection for FR-MET:', updates.projections['FR-MET'])
       Object.entries(updates.projections).forEach(([code, projection]) => {
+        if (code === 'FR-MET') {
+          console.log(`[ConfigStore] Setting projection for ${code} to ${projection}`)
+        }
         territoryStore.setTerritoryProjection(code, projection)
       })
       Object.entries(updates.translations).forEach(([code, translation]) => {
@@ -132,10 +146,14 @@ export const useConfigStore = defineStore('config', () => {
         showCompositionBorders: updates.mapDisplay.showCompositionBorders,
         showMapLimits: updates.mapDisplay.showMapLimits,
       })
-    }
-    catch (error) {
-      console.warn('[ConfigStore] Failed to load preset metadata:', error)
-    }
+      }
+      catch (error) {
+        console.warn('[ConfigStore] Failed to load preset metadata:', error)
+        throw error // Re-throw to propagate to awaiting code
+      }
+    })()
+
+    return initializationPromise
   }
 
   // Initialize with preset metadata
@@ -380,5 +398,6 @@ export const useConfigStore = defineStore('config', () => {
     setRotateLatitudeLocked,
     resetProjectionParams,
     initializeTheme,
+    initializeWithPresetMetadata,
   }
 })

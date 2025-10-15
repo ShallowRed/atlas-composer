@@ -288,7 +288,17 @@ export class Cartographer {
     // Apply to customComposite instance
     if (territoryProjections) {
       for (const [code, proj] of Object.entries(territoryProjections)) {
-        composite.updateTerritoryProjection(code, proj as any)
+        // Only update if projection type is different from current
+        const subProj = (composite as any).subProjections?.find((sp: any) => sp.territoryCode === code)
+        if (code === 'FR-MET') {
+          console.log(`[Cartographer] FR-MET: current=${subProj?.projectionType}, requested=${proj}, willUpdate=${subProj && subProj.projectionType !== proj}`)
+        }
+        if (subProj && subProj.projectionType !== proj) {
+          if (code === 'FR-MET') {
+            console.log(`[Cartographer] Changing projection for ${code} from ${subProj.projectionType} to ${proj}`)
+          }
+          composite.updateTerritoryProjection(code, proj as any)
+        }
       }
     }
 

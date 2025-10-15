@@ -114,6 +114,8 @@ export class MapRenderCoordinator {
     if (config.viewMode === 'composite-custom') {
       const compositeConfig = config.currentAtlasConfig?.compositeProjectionConfig
 
+      console.log('[MapRenderCoordinator] FR-MET projection from territory store:', config.territoryProjections?.['FR-MET'])
+
       customSettings = CompositeSettingsBuilder.buildSettings(
         compositeConfig,
         config.projectionMode,
@@ -122,6 +124,8 @@ export class MapRenderCoordinator {
         config.territoryTranslations || {},
         config.territoryScales || {},
       )
+
+      console.log('[MapRenderCoordinator] FR-MET projection in built settings:', customSettings?.territoryProjections?.['FR-MET'])
     }
 
     // Determine rendering mode

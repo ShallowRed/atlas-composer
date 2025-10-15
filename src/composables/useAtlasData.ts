@@ -19,6 +19,16 @@ export function useAtlasData() {
       // Initialize theme
       configStore.initializeTheme()
 
+      // CRITICAL: Wait for preset metadata to load before initializing geodata
+      // This ensures territory projections from presets are available before first render
+      console.log('[useAtlasData] About to await initializeWithPresetMetadata')
+      if (typeof configStore.initializeWithPresetMetadata === 'function') {
+        await configStore.initializeWithPresetMetadata()
+        console.log('[useAtlasData] initializeWithPresetMetadata completed')
+      } else {
+        console.warn('[useAtlasData] initializeWithPresetMetadata is not a function!')
+      }
+
       // Wrap in minimum loading time to prevent skeleton flash
       await withMinLoadingTime(async () => {
         // Only initialize if not already initialized (important for route navigation)

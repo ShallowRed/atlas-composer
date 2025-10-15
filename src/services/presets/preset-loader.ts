@@ -217,6 +217,11 @@ export class PresetLoader {
         // The baseScale is the scale value before applying the scaleMultiplier
         params.baseScale = territory.parameters.baseScale
       }
+      if (territory.parameters.scaleMultiplier !== undefined) {
+        // Extract scaleMultiplier for proper initialization of composite projections
+        // This is the multiplier applied to baseScale to get the final scale
+        params.scaleMultiplier = territory.parameters.scaleMultiplier
+      }
       if (territory.parameters.clipAngle !== undefined) {
         params.clipAngle = territory.parameters.clipAngle
       }
