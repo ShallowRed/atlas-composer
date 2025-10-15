@@ -564,10 +564,21 @@ export class CompositeProjection {
   updateScale(territoryCode: string, scaleMultiplier: number) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
+      // Check if there's a scale parameter override from parameter store
+      if (this.parameterProvider) {
+        const params = this.parameterProvider.getEffectiveParameters(territoryCode)
+        if (params.scale !== undefined) {
+          // User has set a scale parameter override - don't overwrite it with multiplier
+          console.log(`[CompositeProjection] updateScale skipped for ${territoryCode} - scale parameter override exists (${params.scale})`)
+          return
+        }
+      }
+
       // Store the multiplier so it's preserved when changing projection type
       subProj.scaleMultiplier = scaleMultiplier
       // Apply multiplier to base scale (not current scale to avoid accumulation)
       subProj.projection.scale(subProj.baseScale * scaleMultiplier)
+      console.log(`[CompositeProjection] updateScale for ${territoryCode}: multiplier=${scaleMultiplier}, newScale=${subProj.baseScale * scaleMultiplier}`)
       this.compositeProjection = null
     }
   }
@@ -593,17 +604,17 @@ export class CompositeProjection {
       const params = this.parameterProvider.getEffectiveParameters(territoryCode)
       const projection = subProj.projection
 
-      if (territoryCode === 'FR-MET') {
-        console.log(`[CompositeProjection] updateTerritoryParameters for ${territoryCode}:`, {
-          currentBaseScale: subProj.baseScale,
-          currentScaleMultiplier: subProj.scaleMultiplier,
-          currentProjectionScale: projection.scale(),
-          paramsScale: params.scale,
-          paramsRotate: params.rotate,
-          paramsCenter: params.center,
-          paramsParallels: params.parallels,
-        })
-      }
+      console.log(`[CompositeProjection] updateTerritoryParameters for ${territoryCode}:`, {
+        currentBaseScale: subProj.baseScale,
+        currentScaleMultiplier: subProj.scaleMultiplier,
+        currentProjectionScale: projection.scale(),
+        paramsScale: params.scale,
+        paramsBaseScale: params.baseScale,
+        paramsScaleMultiplier: params.scaleMultiplier,
+        paramsRotate: params.rotate,
+        paramsCenter: params.center,
+        paramsParallels: params.parallels,
+      })
 
       if (!projection) {
         console.error(`[CompositeProjection] Projection not found for territory ${territoryCode}`)
@@ -645,12 +656,21 @@ export class CompositeProjection {
 
       // CRITICAL: Re-apply scale after updating parameters
       // Some D3 projections may reset scale when rotate/center/parallels are changed
-      // We must preserve the correct scale: baseScale * scaleMultiplier
-      const correctScale = subProj.baseScale * subProj.scaleMultiplier
+      // If params.scale is provided, use it directly (user changed the scale parameter)
+      // Otherwise, preserve the correct scale: baseScale * scaleMultiplier
+      let correctScale: number
+      if (params.scale !== undefined && typeof params.scale === 'number' && !Number.isNaN(params.scale)) {
+        // User has set a scale parameter override
+        correctScale = params.scale
+      }
+      else {
+        // Use baseScale * scaleMultiplier
+        correctScale = subProj.baseScale * subProj.scaleMultiplier
+      }
       projection.scale(correctScale)
 
       if (territoryCode === 'FR-MET') {
-        console.log(`[CompositeProjection] Re-applied scale for ${territoryCode}: baseScale=${subProj.baseScale} * multiplier=${subProj.scaleMultiplier} = ${correctScale}`)
+        console.log(`[CompositeProjection] Re-applied scale for ${territoryCode}: scale=${correctScale} (from params.scale=${params.scale}, baseScale=${subProj.baseScale}, multiplier=${subProj.scaleMultiplier})`)
       }
 
       // Note: translate parameter is applied during build() to combine with territory positioning

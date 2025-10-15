@@ -96,6 +96,7 @@ export const useParameterStore = defineStore('parameters', () => {
         return
       }
 
+      console.log(`[ParameterStore] Setting ${key} = ${value} for territory ${territoryCode}`)
       parameterManager.setTerritoryParameter(territoryCode, key, value)
       territoryParametersVersion.value++
     }
