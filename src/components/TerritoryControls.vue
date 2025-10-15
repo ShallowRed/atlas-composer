@@ -93,7 +93,6 @@ function handleParameterChange(territoryCode: string, key: keyof ProjectionParam
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
-  console.log('Parameter changed:', { territoryCode, key, value })
 }
 
 function handleOverrideCleared(territoryCode: string, key: keyof ProjectionParameters) {
@@ -102,7 +101,6 @@ function handleOverrideCleared(territoryCode: string, key: keyof ProjectionParam
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
-  console.log('Override cleared:', { territoryCode, key })
 }
 </script>
 

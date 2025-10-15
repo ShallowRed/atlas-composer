@@ -87,7 +87,12 @@
     "scalePreservation": "Préserver les rapports de taille",
     "dragToMove": "Glisser pour déplacer",
     "dragHint": "Faites glisser les territoires sur la carte pour les repositionner, ou utilisez les contrôles ci-dessous pour des ajustements précis",
-    "grabToMove": "Cliquer et glisser pour déplacer le territoire"
+    "grabToMove": "Cliquer et glisser pour déplacer le territoire",
+    "parameters": {
+      "view": "Paramètres de la vue",
+      "position": "Position",
+      "advanced": "Paramètres avancés"
+    }
   },
   "view": {
     "unified": "Vue unifiée",

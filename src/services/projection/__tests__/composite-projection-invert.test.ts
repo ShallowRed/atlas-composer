@@ -138,12 +138,6 @@ describe('compositeProjection - invert/forward chain', () => {
           const expectedDx = endScreen[0] - startScreen[0] // 50
           const expectedDy = endScreen[1] - startScreen[1] // 20
 
-          console.log('Movement test:', {
-            expected: { dx: expectedDx, dy: expectedDy },
-            actual: { dx: screenDx, dy: screenDy },
-            ratio: { x: screenDx / expectedDx, y: screenDy / expectedDy },
-          })
-
           // The movement should be close to 1:1 (allowing for some projection distortion)
           expect(Math.abs(screenDx - expectedDx)).toBeLessThan(5) // within 5 pixels
           expect(Math.abs(screenDy - expectedDy)).toBeLessThan(5) // within 5 pixels
@@ -214,14 +208,6 @@ describe('compositeProjection - invert/forward chain', () => {
       if (screen1 && screen2) {
         const actualDx = screen2[0] - screen1[0]
         const actualDy = screen2[1] - screen1[1]
-
-        console.log('Translation offset test (corrected):', {
-          offset: { x: offsetX, y: offsetY },
-          screen1,
-          screen2,
-          actualMovement: { dx: actualDx, dy: actualDy },
-          ratio: { x: actualDx / offsetX, y: actualDy / offsetY },
-        })
 
         // The actual movement should match the offset exactly (1:1)
         expect(actualDx).toBeCloseTo(offsetX, 1)

@@ -18,13 +18,12 @@
       "projectionFamily": "CONIC",
       "parameters": {
         "center": [
-          2.5,
-          46.5
+          0,
+          0
         ],
         "rotate": [
           -3,
-          -46.2,
-          0
+          -46.2
         ],
         "parallels": [
           0,
@@ -67,14 +66,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          61.46,
-          -16.14,
-          0
+        "center": [
+          -61.46,
+          16.14
         ],
-        "scale": 2700,
+        "scale": 3780,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1.4
       },
       "layout": {
         "translateOffset": [
@@ -109,14 +107,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          61.03,
-          -14.67,
-          0
+        "center": [
+          -61.03,
+          14.67
         ],
-        "scale": 2700,
+        "scale": 4320,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1.6
       },
       "layout": {
         "translateOffset": [
@@ -151,14 +148,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          53.2,
-          -3.9,
-          0
+        "center": [
+          -53.2,
+          3.9
         ],
-        "scale": 2700,
+        "scale": 1620,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 0.6
       },
       "layout": {
         "translateOffset": [
@@ -193,14 +189,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          -55.52,
-          21.13,
-          0
+        "center": [
+          55.52,
+          -21.13
         ],
-        "scale": 2700,
+        "scale": 3240,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1.2
       },
       "layout": {
         "translateOffset": [
@@ -235,14 +230,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          -45.16,
-          12.8,
-          0
+        "center": [
+          45.16,
+          -12.8
         ],
-        "scale": 2700,
+        "scale": 4320,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1.6
       },
       "layout": {
         "translateOffset": [
@@ -277,14 +271,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          63.082,
-          -18.067,
-          0
+        "center": [
+          -62.85,
+          17.92
         ],
-        "scale": 2700,
+        "scale": 13500,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 5
       },
       "layout": {
         "translateOffset": [
@@ -319,14 +312,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          56.23,
-          -46.93,
-          0
+        "center": [
+          -56.23,
+          46.93
         ],
-        "scale": 2700,
+        "scale": 3510,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 1.3
       },
       "layout": {
         "translateOffset": [
@@ -361,14 +353,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          178.1,
-          14.3,
-          0
+        "center": [
+          -178.1,
+          -14.3
         ],
-        "scale": 2700,
+        "scale": 7290,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 2.7
       },
       "layout": {
         "translateOffset": [
@@ -403,14 +394,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          150.55,
-          17.11,
-          0
+        "center": [
+          -150.55,
+          -17.11
         ],
-        "scale": 2700,
+        "scale": 1350,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 0.5
       },
       "layout": {
         "translateOffset": [
@@ -445,14 +435,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          150.55,
-          17.11,
-          0
+        "center": [
+          -150.55,
+          -17.11
         ],
-        "scale": 2700,
+        "scale": 162,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 0.06
       },
       "layout": {
         "translateOffset": [
@@ -487,14 +476,13 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          -165.8,
-          21.07,
-          0
+        "center": [
+          165.8,
+          -21.07
         ],
-        "scale": 2700,
+        "scale": 810,
         "baseScale": 2700,
-        "scaleMultiplier": 1
+        "scaleMultiplier": 0.3
       },
       "layout": {
         "translateOffset": [
@@ -529,10 +517,9 @@
       "role": "secondary",
       "projectionFamily": "CYLINDRICAL",
       "parameters": {
-        "rotate": [
-          -69.348,
-          49.28,
-          0
+        "center": [
+          69.348,
+          -49.28
         ],
         "scale": 2700,
         "baseScale": 2700,

@@ -5,7 +5,7 @@ import { computed, ref, watch } from 'vue'
 import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
-import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
+
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
@@ -92,34 +92,43 @@ export const useConfigStore = defineStore('config', () => {
   // Call initialization
   initializeTerritoryDefaults()
 
-  // Async initialization to load metadata from presets
+  // Async initialization to load metadata and territory defaults from presets
   const initializeWithPresetMetadata = async () => {
     try {
       const currentAtlasId = selectedAtlas.value
-      const currentPreset = currentAtlasConfig.value.defaultPreset
 
-      // Load projection preferences to update selectedProjection
-      const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(currentAtlasId, currentPreset)
-      if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
-        selectedProjection.value = projectionPrefs.recommended[0]!
-      }
+      // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
+      const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
-      // Load default composite projection
-      const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(currentAtlasId, currentPreset)
-      if (atlasMetadata.metadata?.defaultCompositeProjection) {
-        compositeProjection.value = atlasMetadata.metadata.defaultCompositeProjection
-      }
+      // Apply territory updates (same as atlas change watcher)
+      Object.entries(updates.translations).forEach(([code, translation]) => {
+        territoryStore.setTerritoryTranslation(code, 'x', translation.x)
+        territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+      })
+      Object.entries(updates.scales).forEach(([code, scale]) => {
+        territoryStore.setTerritoryScale(code, scale)
+      })
 
-      // Load map display defaults
-      const mapDisplayDefaults = await AtlasMetadataService.getMapDisplayDefaults(currentAtlasId, currentPreset)
-      if (mapDisplayDefaults) {
-        uiStore.initializeDisplayOptions({
-          showGraticule: mapDisplayDefaults.showGraticule ?? false,
-          showSphere: mapDisplayDefaults.showSphere ?? false,
-          showCompositionBorders: mapDisplayDefaults.showCompositionBorders ?? false,
-          showMapLimits: mapDisplayDefaults.showMapLimits ?? false,
+      // Load territory-specific projection parameters into parameter store
+      if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
+        Object.entries(updates.territoryParameters).forEach(([territoryCode, params]) => {
+          parameterStore.setTerritoryParameters(territoryCode, params as any)
         })
       }
+
+      // Apply other updates
+      selectedProjection.value = updates.selectedProjection
+      if (updates.compositeProjection) {
+        compositeProjection.value = updates.compositeProjection
+      }
+
+      // Update UI store
+      uiStore.initializeDisplayOptions({
+        showGraticule: updates.mapDisplay.showGraticule,
+        showSphere: updates.mapDisplay.showSphere,
+        showCompositionBorders: updates.mapDisplay.showCompositionBorders,
+        showMapLimits: updates.mapDisplay.showMapLimits,
+      })
     }
     catch (error) {
       console.warn('[ConfigStore] Failed to load preset metadata:', error)
@@ -288,10 +297,17 @@ export const useConfigStore = defineStore('config', () => {
     territoryMode.value = updates.territoryMode
     selectedProjection.value = updates.selectedProjection
 
-    // Update territory store
-    territoryStore.territoryProjections = updates.projections
-    territoryStore.territoryTranslations = updates.translations
-    territoryStore.territoryScales = updates.scales
+    // Update territory store - use proper setter methods to maintain reactivity
+    Object.entries(updates.projections).forEach(([code, projection]) => {
+      territoryStore.setTerritoryProjection(code, projection)
+    })
+    Object.entries(updates.translations).forEach(([code, translation]) => {
+      territoryStore.setTerritoryTranslation(code, 'x', translation.x)
+      territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+    })
+    Object.entries(updates.scales).forEach(([code, scale]) => {
+      territoryStore.setTerritoryScale(code, scale)
+    })
 
     // Load territory-specific projection parameters into parameter store
     if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {

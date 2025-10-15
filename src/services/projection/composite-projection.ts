@@ -553,8 +553,6 @@ export class CompositeProjection {
         }
       }
 
-      console.log(`CompositeProjection build - ${subProj.territoryCode}: parameterTranslate=${JSON.stringify(parameterTranslate)}, centerX=${centerX}, centerY=${centerY}, translateOffset=${JSON.stringify(subProj.translateOffset)}`) // Debug log
-
       // All territories are positioned relative to the map center
       // Mainland has offset [0,0] or close to it, so it will be centered
       // Others have their configured offsets relative to center

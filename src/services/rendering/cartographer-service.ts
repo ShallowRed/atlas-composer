@@ -313,8 +313,6 @@ export class Cartographer {
     const svgSelection = select(svg)
     const pathSelection = svgSelection.selectAll('path')
 
-    console.log(`Found ${pathSelection.size()} paths in SVG`) // Debug log
-
     // Use D3 selection to process paths and add territory attributes
     pathSelection.each(function (_d, i) {
       const path = this as SVGPathElement

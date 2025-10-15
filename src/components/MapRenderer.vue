@@ -244,8 +244,6 @@ async function renderMap() {
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
       // Add territory attributes for drag functionality
-      console.log(`Territory drag debug - isDragEnabled: ${isDragEnabled.value}, hasPropsGeoData: ${!!props.geoData}, hasRawUnifiedData: ${!!geoDataStore.rawUnifiedData}, propsGeoDataLength: ${props.geoData?.features?.length}, 
-        rawFeaturesLength: geoDataStore.rawUnifiedData?.features?.length}`) // Debug log
 
       if (isDragEnabled.value) {
         let geoData: GeoJSON.FeatureCollection | null = null
@@ -257,7 +255,6 @@ async function renderMap() {
             const territoryMode = configStore.territoryMode
             const territoryCodes = geoDataStore.filteredTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
-            console.log(`Composite mode - fetched cartographer's raw unified data: ${geoData?.features?.length} features`) // Debug log
           }
           catch (error) {
             console.error('Failed to fetch raw unified data from cartographer:', error) // Debug log
@@ -266,15 +263,10 @@ async function renderMap() {
         // In simple mode, use props or store data
         else if (props.geoData || geoDataStore.rawUnifiedData) {
           geoData = props.geoData || geoDataStore.rawUnifiedData
-          console.log(`Simple mode - using props/store data: ${geoData?.features?.length} features`) // Debug log
         }
 
         if (geoData) {
           Cartographer.addTerritoryAttributes(svg, geoData)
-          console.log(`Added territory attributes for ${geoData.features.length} features`) // Debug log
-        }
-        else {
-          console.log('Territory attributes not added - no geographic data available') // Debug log
         }
 
         // Create border zone overlays for improved drag UX (custom composite mode only)
@@ -285,9 +277,6 @@ async function renderMap() {
           // Add territory event listeners for drag functionality (fallback for path-based dragging)
           setupTerritoryEventListeners(svg)
         }
-      }
-      else {
-        console.log('Territory dragging disabled - skipping territory attributes') // Debug log
       }
 
       const { width, height } = computedSize.value
@@ -347,16 +336,13 @@ async function renderComposite(): Promise<Plot.Plot> {
  * Setup event listeners for territory drag functionality
  */
 function setupTerritoryEventListeners(svg: SVGSVGElement) {
-  console.log(`Setting up territory event listeners, isDragEnabled: ${isDragEnabled.value}`) // Debug log
   if (!isDragEnabled.value)
     return
 
   const paths = svg.querySelectorAll('path[data-territory]')
-  console.log(`Found ${paths.length} paths with data-territory attributes`) // Debug log
 
   paths.forEach((path) => {
     const territoryCode = path.getAttribute('data-territory')
-    console.log(`Setting up listeners for territory: ${territoryCode}`) // Debug log
 
     path.addEventListener('mousedown', event => handleTerritoryMouseDown(event as MouseEvent))
     path.addEventListener('mouseenter', event => handleTerritoryMouseEnter(event as MouseEvent))
@@ -366,25 +352,19 @@ function setupTerritoryEventListeners(svg: SVGSVGElement) {
 
 // Combined mouse interaction handlers (territory dragging + projection panning)
 function handleMouseDown(event: MouseEvent) {
-  console.log('MapRenderer handleMouseDown triggered') // Debug log
   const target = event.target as Element
 
   // Check if this is a territory element first
   if (isDragEnabled.value && target.hasAttribute && target.hasAttribute('data-territory')) {
-    console.log('Territory element detected, delegating to territory handler') // Debug log
     handleTerritoryMouseDown(event)
     return
   }
 
-  console.log('No territory element, checking projection panning') // Debug log
-
   // Fallback to projection panning
   if (!supportsPanning.value) {
-    console.log('Projection panning not supported') // Debug log
     return
   }
 
-  console.log('Starting projection panning') // Debug log
   isPanning.value = true
   panStartX.value = event.clientX
   panStartY.value = event.clientY
