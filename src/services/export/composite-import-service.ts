@@ -207,10 +207,42 @@ export class CompositeImportService {
 
       // 4. Update the composite projection with new settings
       // This will trigger recalculation of projection parameters
-      if (compositeProjection.updateTerritoryProjection) {
-        compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+      if (compositeProjection && typeof compositeProjection.updateTerritoryProjection === 'function') {
+        try {
+          compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+        }
+        catch (error) {
+          console.warn(`[CompositeImportService] Failed to update territory projection for ${territory.code}:`, error)
+        }
       }
     })
+
+    // After setting all territory values, sync them with the composite projection
+    // This mimics what the cartographer does in applyCustomCompositeSettings
+    if (compositeProjection) {
+      try {
+        // Get all territory values from config and apply them to composite
+        config.territories.forEach((territory) => {
+          if (typeof compositeProjection.updateTranslationOffset === 'function') {
+            compositeProjection.updateTranslationOffset(territory.code, territory.layout.translateOffset)
+          }
+
+          // For scales, we need to ensure baseScale matches the exported value
+          const subProj = (compositeProjection as any).subProjections?.find((sp: any) => sp.territoryCode === territory.code)
+          if (subProj) {
+            // Set the baseScale to match the exported baseScale
+            subProj.baseScale = territory.parameters.baseScale
+            // Then apply the scale multiplier
+            if (typeof compositeProjection.updateScale === 'function') {
+              compositeProjection.updateScale(territory.code, territory.parameters.scaleMultiplier)
+            }
+          }
+        })
+      }
+      catch (error) {
+        console.warn('[CompositeImportService] Error syncing imported values with composite projection:', error)
+      }
+    }
 
     // Switch to custom composite view mode to show the imported configuration
     configStore.viewMode = 'composite-custom'

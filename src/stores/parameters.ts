@@ -89,8 +89,20 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   function setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any) {
-    parameterManager.setTerritoryParameter(territoryCode, key, value)
-    territoryParametersVersion.value++
+    try {
+      // Validate parameter value before setting
+      if (value === null || value === undefined) {
+        console.warn(`[ParameterStore] Attempted to set null/undefined value for ${key} on territory ${territoryCode}`)
+        return
+      }
+
+      parameterManager.setTerritoryParameter(territoryCode, key, value)
+      territoryParametersVersion.value++
+    }
+    catch (error) {
+      console.error(`[ParameterStore] Error setting parameter ${key} for territory ${territoryCode}:`, error)
+      // Don't re-throw to prevent UI breakage
+    }
   }
 
   function setTerritoryParameters(territoryCode: string, parameters: ParameterUpdate) {

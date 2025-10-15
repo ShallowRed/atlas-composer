@@ -91,7 +91,9 @@
     "parameters": {
       "view": "Paramètres de la vue",
       "position": "Position",
-      "advanced": "Paramètres avancés"
+      "advanced": "Paramètres avancés",
+      "reset": "Réinitialiser",
+      "resetOverrides": "Réinitialiser les paramètres personnalisés"
     }
   },
   "view": {

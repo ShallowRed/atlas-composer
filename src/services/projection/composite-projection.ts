@@ -482,48 +482,87 @@ export class CompositeProjection {
    */
   updateTerritoryParameters(territoryCode: string) {
     if (!this.parameterProvider) {
+      console.warn(`[CompositeProjection] No parameter provider available for territory ${territoryCode}`)
       return // No parameter provider, nothing to update
     }
 
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (!subProj) {
+      console.warn(`[CompositeProjection] Territory ${territoryCode} not found in subprojections`)
       return
     }
 
-    // Get updated parameters from parameter provider
-    const params = this.parameterProvider.getEffectiveParameters(territoryCode)
-    const projection = subProj.projection
+    try {
+      // Get updated parameters from parameter provider
+      const params = this.parameterProvider.getEffectiveParameters(territoryCode)
+      const projection = subProj.projection
 
-    // Apply center/rotate based on what's available
-    if (projection.rotate && params.rotate) {
-      projection.rotate(params.rotate as [number, number] | [number, number, number])
+      if (!projection) {
+        console.error(`[CompositeProjection] Projection not found for territory ${territoryCode}`)
+        return
+      }
+
+      // Apply center/rotate based on what's available
+      if (projection.rotate && params.rotate) {
+        // Validate rotate parameters
+        const rotate = params.rotate as [number, number] | [number, number, number]
+        if (Array.isArray(rotate) && rotate.length >= 2 && rotate.every(r => typeof r === 'number' && !Number.isNaN(r))) {
+          projection.rotate(rotate)
+        }
+        else {
+          console.warn(`[CompositeProjection] Invalid rotate parameters for ${territoryCode}:`, params.rotate)
+        }
+      }
+      else if (params.center) {
+        // Validate center parameters
+        const center = params.center as [number, number]
+        if (Array.isArray(center) && center.length === 2 && center.every(c => typeof c === 'number' && !Number.isNaN(c))) {
+          projection.center(center)
+        }
+        else {
+          console.warn(`[CompositeProjection] Invalid center parameters for ${territoryCode}:`, params.center)
+        }
+      }
+
+      // Apply parallels if supported
+      if ((projection as any).parallels && params.parallels) {
+        const parallels = params.parallels as [number, number]
+        if (Array.isArray(parallels) && parallels.length === 2 && parallels.every(p => typeof p === 'number' && !Number.isNaN(p))) {
+          (projection as any).parallels(parallels)
+        }
+        else {
+          console.warn(`[CompositeProjection] Invalid parallels parameters for ${territoryCode}:`, params.parallels)
+        }
+      }
+
+      // Apply scale if provided
+      if (params.scale !== undefined && typeof params.scale === 'number' && !Number.isNaN(params.scale) && params.scale > 0) {
+        // Update baseScale to reflect the new projection scale parameter
+        subProj.baseScale = params.scale
+        // Apply both the new base scale and the existing territory scale multiplier
+        const finalScale = params.scale * subProj.scaleMultiplier
+        if (finalScale > 0) {
+          projection.scale(finalScale)
+        }
+        else {
+          console.warn(`[CompositeProjection] Invalid final scale for ${territoryCode}: ${finalScale}`)
+        }
+      }
+
+      // Note: translate parameter is applied during build() to combine with territory positioning
+
+      // Apply precision if supported
+      if (projection.precision && params.precision !== undefined && typeof params.precision === 'number' && !Number.isNaN(params.precision)) {
+        projection.precision(params.precision)
+      }
+
+      // Force rebuild of composite projection
+      this.compositeProjection = null
     }
-    else if (params.center) {
-      projection.center(params.center as [number, number])
+    catch (error) {
+      console.error(`[CompositeProjection] Error updating parameters for territory ${territoryCode}:`, error)
+      // Don't re-throw, just log the error to prevent UI breakage
     }
-
-    // Apply parallels if supported
-    if ((projection as any).parallels && params.parallels) {
-      (projection as any).parallels(params.parallels)
-    }
-
-    // Apply scale if provided
-    if (params.scale !== undefined) {
-      // Update baseScale to reflect the new projection scale parameter
-      subProj.baseScale = params.scale
-      // Apply both the new base scale and the existing territory scale multiplier
-      projection.scale(params.scale * subProj.scaleMultiplier)
-    }
-
-    // Note: translate parameter is applied during build() to combine with territory positioning
-
-    // Apply precision if supported
-    if (projection.precision && params.precision !== undefined) {
-      projection.precision(params.precision)
-    }
-
-    // Force rebuild of composite projection
-    this.compositeProjection = null
   }
 
   /**

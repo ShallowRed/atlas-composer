@@ -30,7 +30,12 @@ const importedConfig = ref<ExportedCompositeConfig | null>(null)
 // Computed
 const hasErrors = computed(() => importResult.value && importResult.value.errors.length > 0)
 const hasWarnings = computed(() => importResult.value && importResult.value.warnings.length > 0)
-const canApply = computed(() => importedConfig.value && !hasErrors.value)
+const canApply = computed(() =>
+  importedConfig.value
+  && !hasErrors.value
+  && props.compositeProjection !== null
+  && props.compositeProjection !== undefined,
+)
 
 // Methods
 function handleFileSelect(event: Event) {
@@ -104,17 +109,38 @@ function applyImport() {
     return
   }
 
-  // Apply to stores
-  CompositeImportService.applyToStores(
-    importedConfig.value,
-    configStore,
-    territoryStore,
-    props.compositeProjection,
-  )
+  // Check if composite projection exists
+  if (!props.compositeProjection) {
+    console.error('[ImportModal] Cannot apply import: composite projection is not available')
+    importResult.value = {
+      success: false,
+      errors: ['Cannot apply import: composite projection not initialized. Switch to composite-custom mode first.'],
+      warnings: importResult.value?.warnings || [],
+    }
+    return
+  }
 
-  // Emit success and close
-  emit('imported', importedConfig.value)
-  handleClose()
+  try {
+    // Apply to stores
+    CompositeImportService.applyToStores(
+      importedConfig.value,
+      configStore,
+      territoryStore,
+      props.compositeProjection,
+    )
+
+    // Emit success and close
+    emit('imported', importedConfig.value)
+    handleClose()
+  }
+  catch (error) {
+    console.error('[ImportModal] Error applying import:', error)
+    importResult.value = {
+      success: false,
+      errors: [`Failed to apply import: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      warnings: importResult.value?.warnings || [],
+    }
+  }
 }
 
 function handleClose() {
