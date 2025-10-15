@@ -498,6 +498,19 @@ export class CompositeProjection {
       (projection as any).parallels(params.parallels)
     }
 
+    // Apply scale if provided
+    if (params.scale !== undefined) {
+      // Update baseScale to reflect the new projection scale parameter
+      subProj.baseScale = params.scale
+      // Apply both the new base scale and the existing territory scale multiplier
+      projection.scale(params.scale * subProj.scaleMultiplier)
+    }
+
+    // Apply translate if provided
+    if (params.translate) {
+      projection.translate(params.translate as [number, number])
+    }
+
     // Apply precision if supported
     if (projection.precision && params.precision !== undefined) {
       projection.precision(params.precision)

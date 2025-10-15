@@ -95,7 +95,8 @@ App.vue
 - Territory projection selection with dynamic family detection
 - Territory-specific parameter controls (custom composite mode)
 - Translation controls (x, y)
-- Scale controls
+- Territory scale controls (0.5×-2.0× multiplier)
+- Projection parameter controls (includes projection scale 100-10,000)
 - Reset functionality
 - Parameter inheritance and validation feedback
 - Uses: useTerritoryTransforms, useTerritoryConfig, projectionRegistry
@@ -191,7 +192,7 @@ App.vue
   - Provides parameter controls for individual territories in custom composite mode
   - Uses dynamic projection family detection via projectionRegistry
   - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
-  - Parameter groups: Position (center/rotate), Projection-specific (parallels), View (scale/clipAngle), Advanced (precision/translate)
+  - Parameter groups: Position (center/rotate), Projection-specific (parallels), View & Scale (projection scale/clipAngle), Advanced (precision/translate)
   - Validation feedback with real-time error/warning display via `UnifiedParameterConstraints`
   - Parameter inheritance indicators and override functionality
   - Reset controls for clearing territory-specific overrides

@@ -14,10 +14,10 @@
     "territories": "france-territories-50m.json",
     "metadata": "france-metadata-50m.json"
   },
-  "defaultPreset": "france-default",
   "availablePresets": [
     "france-default"
   ],
+  "defaultPreset": "france-default",
   "territories": [
     {
       "id": "250",
