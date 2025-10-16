@@ -383,8 +383,14 @@
     },
     "defaultTerritoryMode": {
       "type": "string",
-      "description": "Default territory mode ID to use on initial load",
+      "description": "Default territory mode ID to use on initial load (corresponds to defaultGroup functionality - selects which group of territories is active by default)",
       "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "defaultGroup": {
+      "type": "string",
+      "description": "DEPRECATED: Use defaultTerritoryMode instead. Default group ID to use on initial load (e.g., 'without-antarctica' for world atlas, 'metropole-dom-com' for France atlas). If specified, this group's territories will be selected by default instead of all territories.",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "deprecated": true
     },
     "defaultProjection": {
       "type": "string",

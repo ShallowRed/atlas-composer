@@ -247,8 +247,6 @@ export class PresetLoader {
       }
     })
 
-    console.debug(`[PresetLoader] Extracted clipExtents:`, clipExtents)
-
     return {
       projections,
       translations,

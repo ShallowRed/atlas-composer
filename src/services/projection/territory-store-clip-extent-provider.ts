@@ -12,7 +12,6 @@ export class TerritoryStoreClipExtentProvider implements ClipExtentProvider {
 
   getClipExtent(territoryCode: string): ClipExtent | null {
     const clipExtent = this.territoryStore.territoryClipExtents[territoryCode] ?? null
-    console.debug(`[ClipExtentProvider] Getting clipExtent for ${territoryCode}:`, clipExtent)
     return clipExtent
   }
 }

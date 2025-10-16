@@ -42,7 +42,6 @@ export const useTerritoryStore = defineStore('territory', () => {
   }
 
   function setTerritoryClipExtent(territoryCode: string, clipExtent: ClipExtent | null) {
-    console.debug(`[TerritoryStore] Setting clipExtent for ${territoryCode}:`, clipExtent)
     territoryClipExtents.value = {
       ...territoryClipExtents.value,
       [territoryCode]: clipExtent,

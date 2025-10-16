@@ -12,6 +12,7 @@
     "unified"
   ],
   "defaultViewMode": "unified",
+  "defaultTerritoryMode": "without-antarctica",
   "territories": "*",
   "modes": [
     {

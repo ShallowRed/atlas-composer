@@ -295,7 +295,6 @@ export const useParameterStore = defineStore('parameters', () => {
     // Presets are trusted sources, so we don't need to validate required parameters
     // Individual parameter validation will happen later through the normal flow
     for (const [code, params] of Object.entries(territoryParams)) {
-      console.debug(`[ParameterStore] Setting territory parameters for ${code}:`, params)
       // Set parameters using existing method
       setTerritoryParameters(code, params)
     }

@@ -19,6 +19,7 @@
     "france-test"
   ],
   "defaultPreset": "france-default",
+  "defaultTerritoryMode": "metropole-drom-com",
   "territories": [
     {
       "id": "250",
