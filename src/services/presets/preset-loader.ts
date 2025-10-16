@@ -112,7 +112,7 @@ export class PresetLoader {
       const paramErrors: string[] = []
       const paramWarnings: string[] = []
       for (const territory of rawPreset.territories) {
-        const family = territory.projectionFamily as ProjectionFamilyType
+        const family = territory.projection.family as ProjectionFamilyType
 
         // Check required parameters - these are hard errors
         // Only check parameters that are relevant for this projection family
@@ -129,10 +129,9 @@ export class PresetLoader {
             if (def.key === 'translateOffset') {
               // translateOffset is stored in layout section
               hasParameter = territory.layout?.translateOffset !== undefined
-            }
-            else {
-              // Other parameters are stored in parameters section
-              hasParameter = def.key in territory.parameters
+            } else {
+              // Other parameters are stored in projection.parameters section
+              hasParameter = def.key in territory.projection.parameters
             }
 
             if (!hasParameter) {
@@ -143,7 +142,7 @@ export class PresetLoader {
 
         // Validate parameter values - these are warnings, not hard errors
         const validationResults = parameterRegistry.validateParameters(
-          territory.parameters,
+          territory.projection.parameters,
           family,
         )
         for (const result of validationResults) {
@@ -218,7 +217,7 @@ export class PresetLoader {
       const code = territory.code
 
       // Projection ID
-      projections[code] = territory.projectionId
+      projections[code] = territory.projection.id
 
       // Translation offset
       translations[code] = {
@@ -227,7 +226,7 @@ export class PresetLoader {
       }
 
       // Scale multiplier
-      scales[code] = territory.parameters.scaleMultiplier ?? 1
+      scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
     })
 
     return {
@@ -249,14 +248,14 @@ export class PresetLoader {
       // Only include parameters that are explicitly set in the territory
       const territoryParams: Partial<ProjectionParameters> = {}
 
-      if (territory.parameters) {
+      if (territory.projection.parameters) {
         // Get list of parameter keys that the registry knows about and are exportable
         const exportableKeys = new Set(
           parameterRegistry.getExportable().map(def => def.key),
         )
 
         // Only copy parameters that exist in the territory and are known by the registry
-        for (const [key, value] of Object.entries(territory.parameters)) {
+        for (const [key, value] of Object.entries(territory.projection.parameters)) {
           if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
             territoryParams[key as keyof ProjectionParameters] = value as any
           }

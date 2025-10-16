@@ -69,7 +69,7 @@
       "description": "Array of territory configurations",
       "items": {
         "type": "object",
-        "required": ["code", "name", "role", "projectionId", "projectionFamily", "parameters", "layout", "bounds"],
+        "required": ["code", "name", "role", "projection", "layout", "bounds"],
         "properties": {
           "code": {
             "type": "string",
@@ -85,86 +85,82 @@
             "enum": ["primary", "secondary", "member"],
             "description": "Role in the composite structure"
           },
-          "projectionId": {
-            "type": "string",
-            "description": "Projection ID from registry (e.g., 'conic-conformal', 'mercator')"
-          },
-          "projectionFamily": {
-            "type": "string",
-            "description": "Projection family (e.g., 'conic', 'cylindrical', 'azimuthal')"
-          },
-          "parameters": {
+          "projection": {
             "type": "object",
-            "required": ["center", "rotate", "parallels", "baseScale", "scaleMultiplier", "translateOffset"],
+            "required": ["id", "family", "parameters"],
             "properties": {
-              "center": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2,
-                "description": "Geographic center point [longitude, latitude]"
+              "id": {
+                "type": "string",
+                "description": "Projection ID from registry (e.g., 'conic-conformal', 'mercator')"
               },
-              "rotate": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 3,
-                "maxItems": 3,
-                "description": "Rotation angles [lambda, phi, gamma]"
+              "family": {
+                "type": "string",
+                "description": "Projection family (e.g., 'CONIC', 'CYLINDRICAL', 'AZIMUTHAL')"
               },
-              "parallels": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2,
-                "description": "Standard parallels for conic projections [south, north]"
-              },
-              "scale": {
-                "type": "number",
-                "minimum": 100,
-                "description": "Current scale value"
-              },
-              "baseScale": {
-                "type": "number",
-                "minimum": 100,
-                "description": "Base scale before user adjustments"
-              },
-              "scaleMultiplier": {
-                "type": "number",
-                "minimum": 0.1,
-                "maximum": 10,
-                "description": "User's scale multiplier (scale = baseScale * scaleMultiplier)"
-              },
-              "translateOffset": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2,
-                "description": "Territory position offset from map center [x, y]"
-              },
-              "translate": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2,
-                "description": "Additional translation adjustment [x, y] in pixels"
-              },
-              "clipAngle": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 180,
-                "description": "Clipping angle for azimuthal projections (degrees)"
-              },
-              "precision": {
-                "type": "number",
-                "minimum": 0.01,
-                "maximum": 10,
-                "description": "Adaptive sampling precision"
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "center": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "Geographic center point [longitude, latitude]"
+                  },
+                  "rotate": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 3,
+                    "description": "Rotation angles [lambda, phi, gamma?]"
+                  },
+                  "parallels": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "Standard parallels for conic projections [south, north]"
+                  },
+                  "scaleMultiplier": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 10,
+                    "description": "User's scale multiplier"
+                  },
+                  "translate": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "Additional translation adjustment [x, y] in pixels"
+                  },
+                  "clipAngle": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 180,
+                    "description": "Clipping angle for azimuthal projections (degrees)"
+                  },
+                  "precision": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 10,
+                    "description": "Adaptive sampling precision"
+                  }
+                }
               }
             }
           },
           "layout": {
             "type": "object",
+            "required": ["translateOffset"],
             "properties": {
+              "translateOffset": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Territory position offset from map center [x, y] in pixels"
+              },
               "clipExtent": {
                 "oneOf": [
                   {

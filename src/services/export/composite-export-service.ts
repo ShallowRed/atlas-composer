@@ -154,9 +154,11 @@ export class CompositeExportService {
         code: subProj.territoryCode,
         name: subProj.territoryName,
         role,
-        projectionId,
-        projectionFamily: projectionDef?.family || 'unknown',
-        parameters,
+        projection: {
+          id: projectionId,
+          family: projectionDef?.family || 'unknown',
+          parameters,
+        },
         layout: {
           translateOffset: roundTuple2(subProj.translateOffset),
           clipExtent: subProj.clipExtent || null,
@@ -244,22 +246,22 @@ export class CompositeExportService {
         if (!territory.name) {
           errors.push(`${prefix}: Missing name`)
         }
-        if (!territory.projectionId) {
-          errors.push(`${prefix}: Missing projectionId`)
+        if (!territory.projection?.id) {
+          errors.push(`${prefix}: Missing projection.id`)
         }
 
         // Validate projection exists in registry
-        if (territory.projectionId && !projectionRegistry.get(territory.projectionId)) {
-          warnings.push(`${prefix}: Unknown projection ID '${territory.projectionId}'`)
+        if (territory.projection?.id && !projectionRegistry.get(territory.projection.id)) {
+          warnings.push(`${prefix}: Unknown projection ID '${territory.projection.id}'`)
         }
 
         // Check parameters
-        if (!territory.parameters) {
-          errors.push(`${prefix}: Missing parameters`)
+        if (!territory.projection?.parameters) {
+          errors.push(`${prefix}: Missing projection.parameters`)
         }
         else {
           // Validate scaleMultiplier as required
-          if (typeof territory.parameters.scaleMultiplier !== 'number') {
+          if (typeof territory.projection.parameters.scaleMultiplier !== 'number') {
             errors.push(`${prefix}: Invalid or missing scaleMultiplier`)
           }
         }

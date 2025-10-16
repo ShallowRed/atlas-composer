@@ -50,14 +50,17 @@ export interface ExportedTerritory {
   role: TerritoryRole
 
   // Projection configuration
-  /** Projection ID from registry (e.g., 'conic-conformal', 'mercator') */
-  projectionId: string
+  /** Projection configuration */
+  projection: {
+    /** Projection ID from registry (e.g., 'conic-conformal', 'mercator') */
+    id: string
 
-  /** Projection family (e.g., 'conic', 'cylindrical', 'azimuthal') */
-  projectionFamily: string
+    /** Projection family (e.g., 'CONIC', 'CYLINDRICAL', 'AZIMUTHAL') */
+    family: string
 
-  /** D3 projection parameters */
-  parameters: ExportedProjectionParameters
+    /** D3 projection parameters */
+    parameters: ExportedProjectionParameters
+  }
 
   /** Layout positioning */
   layout: ExportedTerritoryLayout
