@@ -398,12 +398,12 @@ describe('presetLoader', () => {
             role: 'primary',
             projectionId: 'mercator',
             projectionFamily: 'cylindrical',
-            parameters: { 
+            parameters: {
               center: [0, 0],
               rotate: [0, 0, 0],
               parallels: [30, 60],
-              scale: 1000, 
-              baseScale: 1000, 
+              scale: 1000,
+              baseScale: 1000,
               scaleMultiplier: 1.0,
               translateOffset: [0, 0],
               translate: [0, 0],

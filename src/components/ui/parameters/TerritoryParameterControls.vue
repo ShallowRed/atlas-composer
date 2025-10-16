@@ -49,18 +49,31 @@ const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const parameterStore = useParameterStore()
 
-// Parameter ranges for sliders
-const PARAMETER_RANGES = {
-  centerLongitude: { min: -180, max: 180, step: 1 },
-  centerLatitude: { min: -90, max: 90, step: 1 },
-  rotateLongitude: { min: -180, max: 180, step: 1 },
-  rotateLatitude: { min: -90, max: 90, step: 1 },
-  rotateGamma: { min: -180, max: 180, step: 1 },
-  parallel1: { min: -90, max: 90, step: 1 },
-  parallel2: { min: -90, max: 90, step: 1 },
-  scale: { min: 100, max: 10000, step: 50 },
-  clipAngle: { min: 0, max: 180, step: 1 },
-  precision: { min: 0.01, max: 10, step: 0.01 },
+// Get parameter constraints from parameter registry
+function getParameterRange(paramKey: keyof ProjectionParameters) {
+  const constraints = parameterConstraints.value.constraints[paramKey]
+  if (!constraints) {
+    // Fallback ranges if constraint not found
+    const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
+      centerLongitude: { min: -180, max: 180, step: 1 },
+      centerLatitude: { min: -90, max: 90, step: 1 },
+      rotateLongitude: { min: -180, max: 180, step: 1 },
+      rotateLatitude: { min: -90, max: 90, step: 1 },
+      rotateGamma: { min: -180, max: 180, step: 1 },
+      parallel1: { min: -90, max: 90, step: 1 },
+      parallel2: { min: -90, max: 90, step: 1 },
+      scale: { min: 100, max: 10000, step: 50 },
+      clipAngle: { min: 0, max: 180, step: 1 },
+      precision: { min: 0.01, max: 10, step: 0.01 },
+    }
+    return fallbackRanges[paramKey as string] || { min: 0, max: 100, step: 1 }
+  }
+
+  return {
+    min: constraints.min ?? 0,
+    max: constraints.max ?? 100,
+    step: constraints.step ?? 1,
+  }
 }
 
 // Get parameter constraints for this projection family
@@ -103,6 +116,18 @@ const validationErrors = computed(() => {
 const validationWarnings = computed(() => {
   return validationResults.value.filter(result => result.isValid && result.warning)
 })
+
+// Parameter ranges from registry
+const centerLongitudeRange = computed(() => getParameterRange('centerLongitude'))
+const centerLatitudeRange = computed(() => getParameterRange('centerLatitude'))
+const rotateLongitudeRange = computed(() => getParameterRange('rotateLongitude'))
+const rotateLatitudeRange = computed(() => getParameterRange('rotateLatitude'))
+const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
+const parallel1Range = computed(() => getParameterRange('parallel1'))
+const parallel2Range = computed(() => getParameterRange('parallel2'))
+const scaleRange = computed(() => getParameterRange('scale'))
+const clipAngleRange = computed(() => getParameterRange('clipAngle'))
+const precisionRange = computed(() => getParameterRange('precision'))
 
 // Handle parameter value changes
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
@@ -230,9 +255,9 @@ onUnmounted(() => {
               :label="t('projectionParams.centerLongitude')"
               icon="ri-map-pin-line"
               size="xs"
-              :min="PARAMETER_RANGES.centerLongitude.min"
-              :max="PARAMETER_RANGES.centerLongitude.max"
-              :step="PARAMETER_RANGES.centerLongitude.step"
+              :min="centerLongitudeRange.min"
+              :max="centerLongitudeRange.max"
+              :step="centerLongitudeRange.step"
               unit="°"
               @update:model-value="(value: number) => {
                 const currentCenter = effectiveParameters.center ?? [0, 0]
@@ -246,9 +271,9 @@ onUnmounted(() => {
               :label="t('projectionParams.centerLatitude')"
               icon="ri-map-pin-2-line"
               size="xs"
-              :min="PARAMETER_RANGES.centerLatitude.min"
-              :max="PARAMETER_RANGES.centerLatitude.max"
-              :step="PARAMETER_RANGES.centerLatitude.step"
+              :min="centerLatitudeRange.min"
+              :max="centerLatitudeRange.max"
+              :step="centerLatitudeRange.step"
               unit="°"
               @update:model-value="(value: number) => {
                 const currentCenter = effectiveParameters.center ?? [0, 0]
@@ -265,9 +290,9 @@ onUnmounted(() => {
               :label="t('projectionParams.rotateLongitude')"
               icon="ri-compass-3-line"
               size="xs"
-              :min="PARAMETER_RANGES.rotateLongitude.min"
-              :max="PARAMETER_RANGES.rotateLongitude.max"
-              :step="PARAMETER_RANGES.rotateLongitude.step"
+              :min="rotateLongitudeRange.min"
+              :max="rotateLongitudeRange.max"
+              :step="rotateLongitudeRange.step"
               unit="°"
               @update:model-value="(value: number) => {
                 const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
@@ -281,9 +306,9 @@ onUnmounted(() => {
               :label="t('projectionParams.rotateLatitude')"
               icon="ri-compass-4-line"
               size="xs"
-              :min="PARAMETER_RANGES.rotateLatitude.min"
-              :max="PARAMETER_RANGES.rotateLatitude.max"
-              :step="PARAMETER_RANGES.rotateLatitude.step"
+              :min="rotateLatitudeRange.min"
+              :max="rotateLatitudeRange.max"
+              :step="rotateLatitudeRange.step"
               unit="°"
               @update:model-value="(value: number) => {
                 const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
@@ -309,9 +334,9 @@ onUnmounted(() => {
             :label="t('projectionParams.parallel1')"
             icon="ri-equalizer-line"
             size="xs"
-            :min="PARAMETER_RANGES.parallel1.min"
-            :max="PARAMETER_RANGES.parallel1.max"
-            :step="PARAMETER_RANGES.parallel1.step"
+            :min="parallel1Range.min"
+            :max="parallel1Range.max"
+            :step="parallel1Range.step"
             unit="°"
             @update:model-value="(value: number) => {
               const currentParallels = effectiveParameters.parallels ?? [30, 60]
@@ -325,9 +350,9 @@ onUnmounted(() => {
             :label="t('projectionParams.parallel2')"
             icon="ri-equalizer-line"
             size="xs"
-            :min="PARAMETER_RANGES.parallel2.min"
-            :max="PARAMETER_RANGES.parallel2.max"
-            :step="PARAMETER_RANGES.parallel2.step"
+            :min="parallel2Range.min"
+            :max="parallel2Range.max"
+            :step="parallel2Range.step"
             unit="°"
             @update:model-value="(value: number) => {
               const currentParallels = effectiveParameters.parallels ?? [30, 60]
@@ -352,9 +377,9 @@ onUnmounted(() => {
               label="Scale"
               icon="ri-zoom-in-line"
               size="xs"
-              :min="PARAMETER_RANGES.scale.min"
-              :max="PARAMETER_RANGES.scale.max"
-              :step="PARAMETER_RANGES.scale.step"
+              :min="scaleRange.min"
+              :max="scaleRange.max"
+              :step="scaleRange.step"
               @update:model-value="(value: number) => handleParameterChange('scale', value)"
             />
           </template>
@@ -366,9 +391,9 @@ onUnmounted(() => {
               label="Clip Angle"
               icon="ri-crop-line"
               size="xs"
-              :min="PARAMETER_RANGES.clipAngle.min"
-              :max="PARAMETER_RANGES.clipAngle.max"
-              :step="PARAMETER_RANGES.clipAngle.step"
+              :min="clipAngleRange.min"
+              :max="clipAngleRange.max"
+              :step="clipAngleRange.step"
               unit="°"
               @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
             />
@@ -392,9 +417,9 @@ onUnmounted(() => {
                 label="Precision"
                 icon="ri-focus-3-line"
                 size="xs"
-                :min="PARAMETER_RANGES.precision.min"
-                :max="PARAMETER_RANGES.precision.max"
-                :step="PARAMETER_RANGES.precision.step"
+                :min="precisionRange.min"
+                :max="precisionRange.max"
+                :step="precisionRange.step"
                 @update:model-value="(value: number) => handleParameterChange('precision', value)"
               />
             </template>

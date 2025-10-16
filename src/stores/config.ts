@@ -110,53 +110,53 @@ export const useConfigStore = defineStore('config', () => {
         // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
         const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
-      // Apply territory updates (same as atlas change watcher)
-      console.log('[ConfigStore] initializeWithPresetMetadata - Preset projection for FR-MET:', updates.projections['FR-MET'])
-      Object.entries(updates.projections).forEach(([code, projection]) => {
-        if (code === 'FR-MET') {
-          console.log(`[ConfigStore] Setting projection for ${code} to ${projection}`)
-        }
-        territoryStore.setTerritoryProjection(code, projection)
-      })
-      Object.entries(updates.translations).forEach(([code, translation]) => {
-        territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-        territoryStore.setTerritoryTranslation(code, 'y', translation.y)
-      })
-      Object.entries(updates.scales).forEach(([code, scale]) => {
-        territoryStore.setTerritoryScale(code, scale)
-      })
+        // Apply territory updates (same as atlas change watcher)
+        console.log('[ConfigStore] initializeWithPresetMetadata - Preset projection for FR-MET:', updates.projections['FR-MET'])
+        Object.entries(updates.projections).forEach(([code, projection]) => {
+          if (code === 'FR-MET') {
+            console.log(`[ConfigStore] Setting projection for ${code} to ${projection}`)
+          }
+          territoryStore.setTerritoryProjection(code, projection)
+        })
+        Object.entries(updates.translations).forEach(([code, translation]) => {
+          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
+          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+        })
+        Object.entries(updates.scales).forEach(([code, scale]) => {
+          territoryStore.setTerritoryScale(code, scale)
+        })
 
-      // Load projection parameters into parameter store using registry validation
-      if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
+        // Load projection parameters into parameter store using registry validation
+        if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
         // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
-        const atlasParams = {}
-        
-        // Initialize parameters through the registry with validation
-        const validationErrors = parameterStore.initializeFromPreset(
-          atlasParams as any,
-          updates.territoryParameters as any
-        )
-        
-        // Handle validation errors
-        if (validationErrors.length > 0) {
-          console.warn('[ConfigStore] Parameter validation errors during preset initialization:', validationErrors)
+          const atlasParams = {}
+
+          // Initialize parameters through the registry with validation
+          const validationErrors = parameterStore.initializeFromPreset(
+            atlasParams as any,
+            updates.territoryParameters as any,
+          )
+
+          // Handle validation errors
+          if (validationErrors.length > 0) {
+            console.warn('[ConfigStore] Parameter validation errors during preset initialization:', validationErrors)
           // Could add user notification here in the future
+          }
         }
-      }
 
-      // Apply other updates
-      selectedProjection.value = updates.selectedProjection
-      if (updates.compositeProjection) {
-        compositeProjection.value = updates.compositeProjection
-      }
+        // Apply other updates
+        selectedProjection.value = updates.selectedProjection
+        if (updates.compositeProjection) {
+          compositeProjection.value = updates.compositeProjection
+        }
 
-      // Update UI store
-      uiStore.initializeDisplayOptions({
-        showGraticule: updates.mapDisplay.showGraticule,
-        showSphere: updates.mapDisplay.showSphere,
-        showCompositionBorders: updates.mapDisplay.showCompositionBorders,
-        showMapLimits: updates.mapDisplay.showMapLimits,
-      })
+        // Update UI store
+        uiStore.initializeDisplayOptions({
+          showGraticule: updates.mapDisplay.showGraticule,
+          showSphere: updates.mapDisplay.showSphere,
+          showCompositionBorders: updates.mapDisplay.showCompositionBorders,
+          showMapLimits: updates.mapDisplay.showMapLimits,
+        })
       }
       catch (error) {
         console.warn('[ConfigStore] Failed to load preset metadata:', error)

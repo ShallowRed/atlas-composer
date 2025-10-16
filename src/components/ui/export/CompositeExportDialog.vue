@@ -9,6 +9,7 @@ import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
 
 interface Props {
@@ -25,6 +26,7 @@ const { t } = useI18n()
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
+const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 
 // Export options
@@ -47,12 +49,23 @@ const exportContent = computed(() => {
     return '// No composite projection configuration available'
   }
 
+  // Create parameter provider adapter for complete export
+  const parameterProvider = {
+    getEffectiveParameters: (territoryCode: string) => {
+      return parameterStore.getEffectiveParameters(territoryCode)
+    },
+    getExportableParameters: (territoryCode: string) => {
+      return parameterStore.getExportableParameters(territoryCode)
+    },
+  }
+
   if (exportFormat.value === 'json') {
     const exported = CompositeExportService.exportToJSON(
       cartographer.customComposite as any,
       atlasConfig.id,
       atlasConfig.name,
       compositeConfig,
+      parameterProvider,
     )
     return JSON.stringify(exported, null, 2)
   }
@@ -62,6 +75,7 @@ const exportContent = computed(() => {
       atlasConfig.id,
       atlasConfig.name,
       compositeConfig,
+      parameterProvider,
     )
 
     const options: CodeGenerationOptions = {

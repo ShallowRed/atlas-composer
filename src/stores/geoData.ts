@@ -78,6 +78,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
         getEffectiveParameters: (territoryCode: string) => {
           return parameterStore.getEffectiveParameters(territoryCode)
         },
+        getExportableParameters: (territoryCode: string) => {
+          return parameterStore.getExportableParameters(territoryCode)
+        },
       }
 
       cartographer.value = new Cartographer(

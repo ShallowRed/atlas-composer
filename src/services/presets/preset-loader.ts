@@ -124,7 +124,7 @@ export class PresetLoader {
         // Validate parameter values
         const validationResults = parameterRegistry.validateParameters(
           territory.parameters,
-          family
+          family,
         )
         for (const result of validationResults) {
           if (!result.isValid) {
@@ -223,17 +223,17 @@ export class PresetLoader {
    */
   public static extractTerritoryParameters(preset: ExportedCompositeConfig): Record<string, ProjectionParameters> {
     const result: Record<string, ProjectionParameters> = {}
-    
+
     for (const territory of preset.territories) {
       // Only include parameters that are explicitly set in the territory
       const territoryParams: Partial<ProjectionParameters> = {}
-      
+
       if (territory.parameters) {
         // Get list of parameter keys that the registry knows about and are exportable
         const exportableKeys = new Set(
-          parameterRegistry.getExportable().map(def => def.key)
+          parameterRegistry.getExportable().map(def => def.key),
         )
-        
+
         // Only copy parameters that exist in the territory and are known by the registry
         for (const [key, value] of Object.entries(territory.parameters)) {
           if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
@@ -241,10 +241,10 @@ export class PresetLoader {
           }
         }
       }
-      
+
       result[territory.code] = territoryParams as ProjectionParameters
     }
-    
+
     return result
   }
 

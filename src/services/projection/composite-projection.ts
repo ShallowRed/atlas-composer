@@ -19,6 +19,7 @@ import { projectionRegistry } from '@/core/projections/registry'
  */
 export interface ProjectionParameterProvider {
   getEffectiveParameters: (territoryCode: string) => ProjectionParameters
+  getExportableParameters: (territoryCode: string) => ProjectionParameters
 }
 
 /**
@@ -963,24 +964,37 @@ export class CompositeProjection {
 
   /**
    * Export configuration as JSON
+   * Uses parameter provider to get exportable parameters instead of reading from D3 instances
    */
   exportConfig() {
     return {
-      subProjections: this.subProjections.map(sp => ({
-        territoryCode: sp.territoryCode,
-        territoryName: sp.territoryName,
-        projectionType: sp.projectionType,
-        center: sp.projection.center?.(),
-        scale: sp.projection.scale(),
-        rotate: sp.projection.rotate?.(),
-        translateOffset: sp.translateOffset,
-        bounds: sp.bounds,
-        baseScale: sp.baseScale,
-        scaleMultiplier: sp.scaleMultiplier,
-        clipExtent: sp.clipExtent,
-        // Extract parallels if projection supports it
-        parallels: (sp.projection as any).parallels?.(),
-      })),
+      subProjections: this.subProjections.map(sp => {
+        // Get exportable parameters from parameter provider if available
+        let parameters: Partial<ProjectionParameters> = {}
+        if (this.parameterProvider) {
+          parameters = this.parameterProvider.getExportableParameters(sp.territoryCode)
+        } else {
+          // Fallback to D3 projection instances (legacy behavior)
+          parameters = {
+            center: sp.projection.center?.(),
+            scale: sp.projection.scale(),
+            rotate: sp.projection.rotate?.(),
+            parallels: (sp.projection as any).parallels?.(),
+            baseScale: sp.baseScale,
+            scaleMultiplier: sp.scaleMultiplier,
+          }
+        }
+
+        return {
+          territoryCode: sp.territoryCode,
+          territoryName: sp.territoryName,
+          projectionType: sp.projectionType,
+          ...parameters,
+          translateOffset: sp.translateOffset,
+          bounds: sp.bounds,
+          clipExtent: sp.clipExtent,
+        }
+      }),
     }
   }
 }

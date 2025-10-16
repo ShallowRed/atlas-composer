@@ -8,7 +8,7 @@
  * - Prepare configurations for code generation
  */
 
-import type { CompositeProjection } from '@/services/projection/composite-projection'
+import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { CompositeProjectionConfig } from '@/types'
 import type {
   CodeGenerationOptions,
@@ -105,7 +105,8 @@ export class CompositeExportService {
    * @param atlasId - Atlas identifier (e.g., 'france', 'portugal')
    * @param atlasName - Atlas display name
    * @param compositeConfig - Original composite configuration for pattern info
-   * @param notes - Optional user notes
+   * @param notesOrParameterProvider - Either notes string (legacy) or parameter provider object
+   * @param notes - Optional user notes (when parameter provider is passed as 5th param)
    * @returns Exportable configuration object
    */
   static exportToJSON(
@@ -113,9 +114,27 @@ export class CompositeExportService {
     atlasId: string,
     atlasName: string,
     compositeConfig: CompositeProjectionConfig,
+    notesOrParameterProvider?: string | ProjectionParameterProvider,
     notes?: string,
   ): ExportedCompositeConfig {
-    // Get raw export from CompositeProjection
+    // Handle backward compatibility: 5th param can be notes or parameter provider
+    let _parameterProvider: ProjectionParameterProvider | undefined
+    let actualNotes: string | undefined
+
+    if (typeof notesOrParameterProvider === 'string') {
+      // Legacy usage: 5th param is notes
+      actualNotes = notesOrParameterProvider
+      _parameterProvider = undefined
+    } else {
+      // New usage: 5th param is parameter provider, 6th is notes
+      _parameterProvider = notesOrParameterProvider
+      actualNotes = notes
+    }
+
+    // TODO: Use _parameterProvider when CompositeProjection.exportConfig supports parameter providers
+
+    // Get raw export from CompositeProjection 
+    // TODO: Pass parameterProvider when CompositeProjection.exportConfig supports it
     const rawExport = compositeProjection.exportConfig()
 
     // Extract pattern from config
@@ -165,7 +184,7 @@ export class CompositeExportService {
       atlasName,
       exportDate: new Date().toISOString(),
       createdWith: APP_VERSION,
-      notes,
+      notes: actualNotes,
     }
 
     return {
