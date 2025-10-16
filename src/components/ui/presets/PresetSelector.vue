@@ -54,6 +54,11 @@ const currentPreset = computed({
           territoryStore.setTerritoryScale(code, scale)
         })
 
+        // Log warnings if present but don't treat as errors
+        if (result.warnings.length > 0) {
+          console.warn(`[PresetSelector] Preset loaded with warnings:`, result.warnings)
+        }
+
         console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
       }
       else {

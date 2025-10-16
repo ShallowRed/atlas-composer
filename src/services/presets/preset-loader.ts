@@ -110,10 +110,11 @@ export class PresetLoader {
 
       // Additional validation using parameter registry
       const paramErrors: string[] = []
+      const paramWarnings: string[] = []
       for (const territory of rawPreset.territories) {
         const family = territory.projectionFamily as ProjectionFamilyType
 
-        // Check required parameters
+        // Check required parameters - these are hard errors
         const required = parameterRegistry.getRequired()
         for (const def of required) {
           if (def.requiresPreset && !(def.key in territory.parameters)) {
@@ -121,23 +122,24 @@ export class PresetLoader {
           }
         }
 
-        // Validate parameter values
+        // Validate parameter values - these are warnings, not hard errors
         const validationResults = parameterRegistry.validateParameters(
           territory.parameters,
           family,
         )
         for (const result of validationResults) {
           if (!result.isValid) {
-            paramErrors.push(`Territory ${territory.code}: ${result.error}`)
+            paramWarnings.push(`Territory ${territory.code}: ${result.error}`)
           }
         }
       }
 
+      // Only fail on structural/required parameter errors, not validation warnings
       if (paramErrors.length > 0) {
         return {
           success: false,
           errors: [...importResult.errors, ...paramErrors],
-          warnings: importResult.warnings,
+          warnings: [...importResult.warnings, ...paramWarnings],
         }
       }
 
@@ -147,12 +149,12 @@ export class PresetLoader {
         atlasMetadata: rawPreset.atlasMetadata,
       }
 
-      // Return validated preset
+      // Return validated preset with parameter validation warnings
       return {
         success: true,
         preset: extendedPreset,
         errors: [],
-        warnings: importResult.warnings,
+        warnings: [...importResult.warnings, ...paramWarnings],
       }
     }
     catch (error) {
