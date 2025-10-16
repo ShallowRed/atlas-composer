@@ -446,6 +446,9 @@
   "validation": {
     "errors": {
       "title": "Erreur de validation"
+    },
+    "warnings": {
+      "title": "Avertissement de validation"
     }
   }
 }
