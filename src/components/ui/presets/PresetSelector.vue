@@ -7,10 +7,12 @@ import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
+import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
+const parameterStore = useParameterStore()
 const territoryStore = useTerritoryStore()
 
 const isLoading = ref(false)
@@ -45,6 +47,11 @@ const currentPreset = computed({
       if (result.success && result.preset) {
         // Convert preset to defaults
         const defaults = PresetLoader.convertToDefaults(result.preset)
+
+        // Clear all existing parameter overrides for all territories before applying new preset
+        Object.keys(defaults.projections).forEach(territoryCode => {
+          parameterStore.clearAllTerritoryOverrides(territoryCode)
+        })
 
         // Apply to territory store - set each territory individually
         Object.entries(defaults.projections).forEach(([code, projection]) => {
