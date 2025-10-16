@@ -9,22 +9,25 @@ import { ref } from 'vue'
  */
 function areValuesEqual(a: any, b: any): boolean {
   // Strict equality check (handles primitives, null, undefined)
-  if (a === b) return true
-  
+  if (a === b)
+    return true
+
   // Both must be arrays or both must be objects (but not null)
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false
+    if (a.length !== b.length)
+      return false
     return a.every((val, index) => areValuesEqual(val, b[index]))
   }
-  
+
   // Handle objects (but not arrays or null)
   if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
     const keysA = Object.keys(a)
     const keysB = Object.keys(b)
-    if (keysA.length !== keysB.length) return false
+    if (keysA.length !== keysB.length)
+      return false
     return keysA.every(key => areValuesEqual(a[key], b[key]))
   }
-  
+
   // Different types or one is null/undefined
   return false
 }
@@ -136,7 +139,7 @@ export function usePresetDefaults() {
       if (presetParams) {
         for (const [paramKey, currentValue] of Object.entries(currentParams)) {
           const presetValue = presetParams[paramKey as keyof ProjectionParameters]
-          
+
           // Deep comparison for arrays and objects
           if (!areValuesEqual(currentValue, presetValue)) {
             console.log(`[usePresetDefaults] Parameter divergence in ${territoryCode}.${paramKey}:`, {
@@ -146,7 +149,8 @@ export function usePresetDefaults() {
             return true
           }
         }
-      } else {
+      }
+      else {
         // Territory has parameters but no preset parameters - this is a divergence
         console.log(`[usePresetDefaults] Territory ${territoryCode} has overrides but no preset parameters`)
         return true
