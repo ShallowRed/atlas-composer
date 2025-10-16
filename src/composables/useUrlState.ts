@@ -22,16 +22,20 @@ export function useUrlState() {
    * Serialize current state to URL-safe string
    * Only includes territory settings that differ from atlas-specific defaults
    */
-  function serializeState(): Record<string, string> {
+  function serializeState() {
+    console.debug('[useUrlState] Serializing state...')
+
+    
     const state: Record<string, string> = {
       atlas: configStore.selectedAtlas,
       view: configStore.viewMode,
-      projection: configStore.selectedProjection || '',
+      projection: configStore.selectedProjection || 'mercator',
       projMode: configStore.projectionMode,
       territory: configStore.territoryMode,
     }
 
     // Add projection parameters if customized
+    
     if (configStore.customRotateLongitude !== null)
       state.rlon = String(configStore.customRotateLongitude)
     if (configStore.customRotateLatitude !== null)
