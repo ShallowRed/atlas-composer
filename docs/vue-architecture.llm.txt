@@ -73,6 +73,7 @@ App.vue
 - Interactive mouse panning (mouse drag to rotate projections)
 - Cursor feedback (grab/grabbing) during interaction
 - Watches projection parameters and fitting mode for reactive updates
+- Watches global parameters (referenceScale, canvasDimensions) and applies updates dynamically
 - Uses: MapRenderCoordinator, MapSizeCalculator, projectionRegistry, getRelevantParameters
 **Tests**: 10 tests covering props, rendering, store integration
 **Panning Feature**:
@@ -89,6 +90,15 @@ App.vue
   - When locked: Only longitude panning (latDelta = 0)
   - When unlocked: Full 2-axis panning
   - Uses supportsLatitudePanning computed for conditional logic
+**Global Parameter Watchers**:
+- Watches configStore.canvasDimensions for changes
+  - Calls cartographer.updateCanvasDimensions() to update projection service
+  - Triggers re-render to apply new canvas size to SVG display
+- Watches configStore.referenceScale for changes
+  - Calls cartographer.updateReferenceScale() to recalculate all territory scales
+  - Triggers re-render with updated scale multipliers applied
+- Uses deep watching for canvasDimensions object to detect property changes
+- Ensures reactive updates without full component reinitialization
 
 ### TerritoryControls.vue (264 lines)
 **Role**: Territory transform and parameter controls
@@ -186,6 +196,14 @@ App.vue
 - **ProjectionParamsControls**: Projection parameter adjustment controls with latitude lock toggle
 
 **Parameter Components** (src/components/ui/parameters/):
+- **GlobalProjectionControls**: Global projection parameter controls for composite projections
+  - Provides UI controls for canvas dimensions (width/height) with aspect ratio lock
+  - Provides reference scale slider for adjusting base scale across all territories
+  - Canvas dimensions control actual SVG display size via MapSizeCalculator
+  - Reference scale serves as base multiplier for all territory scale calculations
+  - Updates configStore.canvasDimensions and configStore.referenceScale reactively
+  - Watchers in MapRenderer trigger automatic re-rendering on parameter changes
+  - Used in TerritoryControls component for composite-custom mode
 - **TerritoryParameterControls**: Territory-specific parameter editing interface
   - Uses unified `ProjectionParameters` interface across all parameter operations
   - Integrates with `parameterStore` for reactive parameter management
@@ -344,11 +362,16 @@ App.vue
 - Projection mode (existing, custom)
 - Projection parameter delegation to parameterStore (setCustomRotate, setCustomCenter, etc.)
 - Projection control options (rotateLatitudeLocked, projectionFittingMode)
+- Global projection parameters (referenceScale, canvasDimensions)
+  - referenceScale: Base scale multiplier for all territories in composite projections
+  - canvasDimensions: Canvas size specification (width/height) controlling SVG display size
+  - Both values loaded from presets and editable via GlobalProjectionControls
+  - Watchers in MapRenderer trigger re-rendering on changes
 - Computed properties: effectiveProjectionParams merges atlas defaults with parameterStore.globalParameters
 - Legacy parameter accessors via computed properties for backward compatibility
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
-**Used by**: All configuration components, MapRenderer, TerritoryControls
+**Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls
 
 ### geoDataStore (215 lines)
 **Domain**: Geographic data and rendering coordination

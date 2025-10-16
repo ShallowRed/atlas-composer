@@ -149,7 +149,18 @@ export class CompositeImportService {
       console.warn('[CompositeImportService] Parameter store not provided - projection parameters will not be imported')
     }
 
-    // FIRST: Set baseScale values in composite projection before any other operations
+    // FIRST: Apply global preset parameters to config store
+    if (config.referenceScale !== undefined) {
+      configStore.referenceScale = config.referenceScale
+    }
+    if (config.canvasDimensions) {
+      configStore.canvasDimensions = {
+        width: config.canvasDimensions.width,
+        height: config.canvasDimensions.height,
+      }
+    }
+
+    // SECOND: Set baseScale values in composite projection before any other operations
     // This prevents scale calculation mismatches during import
     if (compositeProjection) {
       try {
@@ -167,7 +178,7 @@ export class CompositeImportService {
       }
     }
 
-    // SECOND: Apply each territory configuration to stores
+    // THIRD: Apply each territory configuration to stores
     config.territories.forEach((territory) => {
       // 1. Set projection for territory
       territoryStore.setTerritoryProjection(territory.code, territory.projection.id)
@@ -220,7 +231,7 @@ export class CompositeImportService {
       }
     })
 
-    // THIRD: Sync final values with the composite projection
+    // FOURTH: Sync final values with the composite projection
     // This mimics what the cartographer does in applyCustomCompositeSettings
     if (compositeProjection) {
       try {

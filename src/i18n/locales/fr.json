@@ -71,6 +71,7 @@
   "territory": {
     "controls": "Contrôles des territoires",
     "byTerritory": "Par territoire",
+    "territorySettings": "Paramètres par territoire",
     "position": "Position",
     "positionX": "Position horizontale (X)",
     "positionY": "Position verticale (Y)",
@@ -148,16 +149,16 @@
   },
   "projectionControls": {
     "global": {
-      "title": "Paramètres Globaux de Projection",
-      "description": "Ces paramètres contrôlent les dimensions du canevas de référence et l'échelle de base pour tous les territoires. Les modifications affectent le rendu et l'export des projections.",
-      "canvasDimensions": "Dimensions du Canevas",
-      "canvasWidth": "Largeur du Canevas",
-      "canvasHeight": "Hauteur du Canevas",
+      "title": "Paramètres généraux",
+      "description": "Ces paramètres contrôlent la taille d'affichage idéale et l'échelle de base de votre projection composite. Les dimensions du canevas définissent la taille de la zone de visualisation SVG, tandis que l'échelle de référence contrôle le niveau de zoom de tous les territoires.",
+      "canvasDimensions": "Dimensions du canevas",
+      "canvasWidth": "Largeur du canevas",
+      "canvasHeight": "Hauteur du canevas",
       "lockAspectRatio": "Verrouiller le ratio d'aspect",
-      "referenceScale": "Échelle de Référence",
-      "scaleValue": "Valeur d'Échelle",
+      "referenceScale": "Échelle de référence",
+      "scaleValue": "Échelle de Référence",
       "scaleWarning": "Modifier l'échelle de référence affectera tous les territoires. Les multiplicateurs d'échelle individuels sont préservés.",
-      "resetToDefaults": "Réinitialiser aux Valeurs par Défaut"
+      "resetToDefaults": "Réinitialiser"
     }
   },
   "actions": {

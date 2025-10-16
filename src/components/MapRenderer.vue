@@ -147,11 +147,9 @@ watch(
 watch(
   () => configStore.canvasDimensions,
   async (newDimensions) => {
-    console.log('[MapRenderer] Canvas dimensions changed:', newDimensions)
     if (cartographer.value) {
       cartographer.value.updateCanvasDimensions(newDimensions ?? null)
-      // Canvas dimensions affect projection scaling, trigger re-render
-      console.log('[MapRenderer] Triggering re-render due to canvas dimensions change')
+      // Canvas dimensions affect SVG viewport size, trigger re-render
       await renderMap()
     }
   },
@@ -162,11 +160,9 @@ watch(
 watch(
   () => configStore.referenceScale,
   async (newScale) => {
-    console.log('[MapRenderer] Reference scale changed:', newScale)
     if (cartographer.value && newScale !== undefined) {
       cartographer.value.updateReferenceScale(newScale)
       // Reference scale affects all territories, trigger re-render
-      console.log('[MapRenderer] Triggering re-render due to reference scale change')
       await renderMap()
     }
   },
@@ -190,16 +186,25 @@ onUnmounted(() => {
 })
 
 // Use MapSizeCalculator service for size calculation
-const computedSize = computed(() =>
-  MapSizeCalculator.calculateSize({
+const computedSize = computed(() => {
+  // Use canvas dimensions from config store if available (for composite mode)
+  const config = configStore.canvasDimensions
+    ? {
+        compositeWidth: configStore.canvasDimensions.width,
+        compositeHeight: configStore.canvasDimensions.height,
+      }
+    : undefined
+
+  return MapSizeCalculator.calculateSize({
     mode: props.mode === 'composite' ? 'composite' : 'territory',
     isMainland: props.isMainland,
     preserveScale: props.preserveScale,
     area: props.area,
     width: props.width,
     height: props.height,
-  }),
-)
+    config,
+  })
+})
 
 const insetValue = computed(() => {
   return props.isMainland ? 20 : 5

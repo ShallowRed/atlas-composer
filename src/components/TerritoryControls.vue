@@ -103,9 +103,9 @@ const hasDivergingFromPreset = computed(() => {
 })
 
 // Show drag info when in composite-custom mode and have overseas territories
-const shouldShowDragInfo = computed(() => {
-  return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
-})
+// const shouldShowDragInfo = computed(() => {
+//   return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
+// })
 
 // Event handlers that call composable functions directly
 function updateTranslationX(territoryCode: string, value: number) {
@@ -165,166 +165,178 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
     </Alert>
 
     <!-- Drag-to-move info for composite-custom mode -->
-    <Alert
+    <!-- <Alert
       v-if="shouldShowDragInfo"
       type="info"
       class="mb-4"
     >
       {{ t('territory.dragHint') }}
-    </Alert>
+    </Alert> -->
 
     <div
       v-if="!shouldShowEmptyState || isCompositeCustomMode"
       class="flex flex-col gap-3 mb-8"
     >
-      <!-- Global Projection Controls (shown in composite-custom mode) -->
-      <GlobalProjectionControls v-if="isCompositeCustomMode" />
-
-      <!-- Divider between global and preset/import controls -->
-      <div
-        v-if="isCompositeCustomMode"
-        class="divider my-2"
-      />
-
       <!-- Preset Selector (shown in composite-custom mode when presets are available) -->
       <PresetSelector v-if="hasPresets && isCompositeCustomMode" />
 
+      <!-- Import Controls -->
       <ImportControls />
-      <button
-        class="btn btn-sm btn-soft"
-        :disabled="!hasDivergingFromPreset"
-        @click="resetToDefaults"
-      >
-        <i class="ri-restart-line" />
-        {{ t('territory.resetButton') }}
-      </button>
     </div>
-    <div class="mb-4">
-      <!-- Accordion for all territories -->
-      <div class="join join-vertical w-full">
-        <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
-        <AccordionItem
-          v-if="projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
-          :title="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-          :subtitle="mainlandCode"
-          group-name="territory-accordion"
-          :checked="true"
+    <!-- Global Projection Controls (shown in composite-custom mode) -->
+    <div class="collapse collapse-arrow border-t rounded-none border-base-300">
+      <input type="checkbox">
+      <h3 class="collapse-title text-sm font-semibold pl-0">
+        <i class="ri-square-line mr-1" />
+        {{ t('projectionControls.global.title') }}
+      </h3>
+      <div class="collapse-content pl-0">
+        <GlobalProjectionControls v-if="isCompositeCustomMode" />
+      </div>
+    </div>
+    <div class="collapse collapse-arrow border-y rounded-none border-base-300">
+      <input type="checkbox">
+      <h3 class="collapse-title text-sm font-semibold pl-0">
+        <i class="ri-shapes-line mr-1" />
+        {{ t('territory.territorySettings') }}
+      </h3>
+      <div class="collapse-content pl-0">
+        <!-- All territories reset button -->
+        <button
+          class="btn btn-sm btn-soft w-full mb-4"
+          :disabled="!hasDivergingFromPreset"
+          @click="resetToDefaults"
         >
-          <!-- Projection Selector -->
-          <div class="mb-4">
-            <ProjectionDropdown
-              :model-value="territoryProjections[mainlandCode] || selectedProjection"
-              :label="t('projection.cartographic')"
-              :projection-groups="projectionGroups"
-              :recommendations="projectionRecommendations"
-              @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
-            />
-          </div>
+          <i class="ri-restart-line" />
+          {{ t('territory.resetButton') }}
+        </button>
 
-          <!-- Territory Parameter Controls for Mainland (shown in composite-custom mode) -->
-          <div
-            v-if="isCompositeCustomMode"
-            class="mb-4"
+        <!-- Accordion for all territories -->
+        <div class="join join-vertical w-full">
+          <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
+          <AccordionItem
+            v-if="projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
+            :title="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+            :subtitle="mainlandCode"
+            group-name="territory-accordion"
+            :checked="true"
           >
-            <TerritoryParameterControls
-              :territory-code="mainlandCode"
-              :territory-name="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-              :projection-family="getProjectionFamily(mainlandCode)"
-              :show-inheritance-indicators="true"
-              :allow-parameter-overrides="true"
-              @parameter-changed="handleParameterChange"
-              @override-cleared="handleOverrideCleared"
-            />
-          </div>
-        </AccordionItem>
-
-        <!-- Overseas territories (excluding mainland to avoid duplication) -->
-        <AccordionItem
-          v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
-          :key="territory.code"
-          :title="territory.name"
-          :subtitle="territory.code"
-          group-name="territory-accordion"
-          :checked="projectionMode === 'uniform' && index === 0"
-        >
-          <!-- Projection Selector (always shown in individual mode) -->
-          <div
-            v-if="projectionMode === 'individual'"
-            class="mb-4"
-          >
-            <ProjectionDropdown
-              :model-value="territoryProjections[territory.code] || selectedProjection"
-              :label="t('projection.cartographic')"
-              :projection-groups="projectionGroups"
-              :recommendations="projectionRecommendations"
-              @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
-            />
-          </div>
-
-          <!-- Territory Parameter Controls (shown in composite-custom mode) -->
-          <div
-            v-if="isCompositeCustomMode"
-            class="mb-4"
-          >
-            <TerritoryParameterControls
-              :territory-code="territory.code"
-              :territory-name="territory.name"
-              :projection-family="getProjectionFamily(territory.code)"
-              :show-inheritance-indicators="true"
-              :allow-parameter-overrides="true"
-              @parameter-changed="handleParameterChange"
-              @override-cleared="handleOverrideCleared"
-            />
-          </div>
-
-          <!-- Transform Controls (hidden in split mode) -->
-          <template v-if="props.showTransformControls">
-            <!-- X Translation (in pixels relative to mainland center) -->
+            <!-- Projection Selector -->
             <div class="mb-4">
-              <RangeSlider
-                :model-value="translations[territory.code]?.x || 0"
-                :label="t('territory.positionX')"
-                icon="ri-arrow-left-right-line"
-                :min="TRANSLATION_RANGES.x.min"
-                :max="TRANSLATION_RANGES.x.max"
-                :step="TRANSLATION_RANGES.x.step"
-                unit="px"
-                @update:model-value="(value) => updateTranslationX(territory.code, value)"
+              <ProjectionDropdown
+                :model-value="territoryProjections[mainlandCode] || selectedProjection"
+                :label="t('projection.cartographic')"
+                :projection-groups="projectionGroups"
+                :recommendations="projectionRecommendations"
+                @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
               />
             </div>
 
-            <!-- Y Translation (in pixels relative to mainland center) -->
-            <div class="mb-4">
-              <RangeSlider
-                :model-value="translations[territory.code]?.y || 0"
-                :label="t('territory.positionY')"
-                icon="ri-arrow-up-down-line"
-                :min="TRANSLATION_RANGES.y.min"
-                :max="TRANSLATION_RANGES.y.max"
-                :step="TRANSLATION_RANGES.y.step"
-                unit="px"
-                color="secondary"
-                @update:model-value="(value) => updateTranslationY(territory.code, value)"
+            <!-- Territory Parameter Controls for Mainland (shown in composite-custom mode) -->
+            <div
+              v-if="isCompositeCustomMode"
+              class="mb-4"
+            >
+              <TerritoryParameterControls
+                :territory-code="mainlandCode"
+                :territory-name="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+                :projection-family="getProjectionFamily(mainlandCode)"
+                :show-inheritance-indicators="true"
+                :allow-parameter-overrides="true"
+                @parameter-changed="handleParameterChange"
+                @override-cleared="handleOverrideCleared"
+              />
+            </div>
+          </AccordionItem>
+
+          <!-- Overseas territories (excluding mainland to avoid duplication) -->
+          <AccordionItem
+            v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
+            :key="territory.code"
+            :title="territory.name"
+            :subtitle="territory.code"
+            group-name="territory-accordion"
+            :checked="projectionMode === 'uniform' && index === 0"
+          >
+            <!-- Projection Selector (always shown in individual mode) -->
+            <div
+              v-if="projectionMode === 'individual'"
+              class="mb-4"
+            >
+              <ProjectionDropdown
+                :model-value="territoryProjections[territory.code] || selectedProjection"
+                :label="t('projection.cartographic')"
+                :projection-groups="projectionGroups"
+                :recommendations="projectionRecommendations"
+                @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
               />
             </div>
 
-            <!-- Scale -->
-            <div class="mb-2">
-              <RangeSlider
-                :model-value="scales[territory.code] || SCALE_RANGE.default"
-                :label="t('territory.scale')"
-                icon="ri-expand-diagonal-line"
-                :min="SCALE_RANGE.min"
-                :max="SCALE_RANGE.max"
-                :step="SCALE_RANGE.step"
-                unit="×"
-                color="accent"
-                :decimals="2"
-                @update:model-value="(value) => updateScale(territory.code, value)"
+            <!-- Territory Parameter Controls (shown in composite-custom mode) -->
+            <div
+              v-if="isCompositeCustomMode"
+              class="mb-4"
+            >
+              <TerritoryParameterControls
+                :territory-code="territory.code"
+                :territory-name="territory.name"
+                :projection-family="getProjectionFamily(territory.code)"
+                :show-inheritance-indicators="true"
+                :allow-parameter-overrides="true"
+                @parameter-changed="handleParameterChange"
+                @override-cleared="handleOverrideCleared"
               />
             </div>
-          </template>
-        </AccordionItem>
+
+            <!-- Transform Controls (hidden in split mode) -->
+            <template v-if="props.showTransformControls">
+              <!-- X Translation (in pixels relative to mainland center) -->
+              <div class="mb-4">
+                <RangeSlider
+                  :model-value="translations[territory.code]?.x || 0"
+                  :label="t('territory.positionX')"
+                  icon="ri-arrow-left-right-line"
+                  :min="TRANSLATION_RANGES.x.min"
+                  :max="TRANSLATION_RANGES.x.max"
+                  :step="TRANSLATION_RANGES.x.step"
+                  unit="px"
+                  @update:model-value="(value) => updateTranslationX(territory.code, value)"
+                />
+              </div>
+
+              <!-- Y Translation (in pixels relative to mainland center) -->
+              <div class="mb-4">
+                <RangeSlider
+                  :model-value="translations[territory.code]?.y || 0"
+                  :label="t('territory.positionY')"
+                  icon="ri-arrow-up-down-line"
+                  :min="TRANSLATION_RANGES.y.min"
+                  :max="TRANSLATION_RANGES.y.max"
+                  :step="TRANSLATION_RANGES.y.step"
+                  unit="px"
+                  color="secondary"
+                  @update:model-value="(value) => updateTranslationY(territory.code, value)"
+                />
+              </div>
+
+              <!-- Scale -->
+              <div class="mb-2">
+                <RangeSlider
+                  :model-value="scales[territory.code] || SCALE_RANGE.default"
+                  :label="t('territory.scale')"
+                  icon="ri-expand-diagonal-line"
+                  :min="SCALE_RANGE.min"
+                  :max="SCALE_RANGE.max"
+                  :step="SCALE_RANGE.step"
+                  unit="×"
+                  color="accent"
+                  :decimals="2"
+                  @update:model-value="(value) => updateScale(territory.code, value)"
+                />
+              </div>
+            </template>
+          </AccordionItem>
+        </div>
       </div>
     </div>
   </div>

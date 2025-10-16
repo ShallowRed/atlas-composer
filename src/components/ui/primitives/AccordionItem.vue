@@ -27,7 +27,7 @@ withDefaults(defineProps<Props>(), {
   <div class="collapse collapse-arrow join-item border bg-base-100 border-base-300">
     <input
       v-if="groupName"
-      type="radio"
+      type="checkbox"
       :name="groupName"
       :checked="checked"
     >

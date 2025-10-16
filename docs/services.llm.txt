@@ -159,6 +159,7 @@ Supports parameter provider pattern for dynamic projection parameter updates.
 **Constructor**:
 - Accepts optional `ProjectionParameterProvider` for dependency injection
 - Accepts optional `referenceScale` parameter from preset configuration
+- Accepts optional `canvasDimensions` parameter from preset configuration
 - Enables dynamic parameter updates from parameter store without direct coupling
 
 **Core Methods**:
@@ -166,10 +167,20 @@ Supports parameter provider pattern for dynamic projection parameter updates.
 - `build()` - Build composite projection with translate() applied to all sub-projections
 - `updateTerritoryProjection()` - Change territory projection type
 - `updateTerritoryParameters()` - Update projection parameters (rotate, center, parallels, scale, translate, precision) for a territory
+- `updateReferenceScale()` - Update reference scale and recalculate all territory scales dynamically
 - `updateTranslationOffset()` - Set territory position offset
 - `updateScale()` - Set territory scale multiplier
 - `getCompositionBorders()` - Get projected border rectangles for visualization
 - `exportConfig()` - Export configuration as JSON
+
+**Dynamic Scale Updates**:
+The `updateReferenceScale()` method recalculates scales for all sub-projections without rebuilding:
+- Iterates through all sub-projections
+- Calculates new scale as: `referenceScale × scaleMultiplier`
+- Applies scale directly to D3 projection
+- Updates baseScale metadata for each sub-projection
+- Forces composite projection rebuild by setting `compositeProjection = null`
+- Enables smooth reference scale slider updates without flickering
 
 **Parameter Integration**:
 - `getParametersForTerritory()` - Merges config parameters with dynamic parameters from provider
@@ -306,13 +317,21 @@ Static methods for JSON parsing and store application.
 5. Return `{ success, config?, errors[], warnings[], migrated?, fromVersion? }`
 
 **Application Flow**:
-1. Apply projection to each territory via CompositeProjection service
-2. Apply scale multiplier to parameter store
-3. Apply translation offset to territory store
-4. Maintain state consistency
+1. **FIRST**: Apply global preset parameters to configStore
+   - Apply referenceScale if present
+   - Apply canvasDimensions if present
+2. **SECOND**: Set baseScale values in CompositeProjection
+3. **THIRD**: Apply territory configurations
+   - Apply projection to each territory via CompositeProjection service
+   - Apply scale multiplier to parameter store
+   - Apply translation offset to territory store
+4. **FOURTH**: Sync final values and maintain state consistency
 
 **Type Safety**:
 - Replaced all `any` types with proper store types
+
+**Global Parameter Handling**:
+Global parameters (referenceScale, canvasDimensions) are applied first before territory-specific settings to ensure correct base values for subsequent calculations.
 
 ### ConfigMigrator
 Handles automatic migration of exported configurations between schema versions.
@@ -453,6 +472,15 @@ Integrates with parameter provider for dynamic projection parameter updates.
 - `updateProjectionParams()` - Update global projection parameters
 - `updateFittingMode()` - Update projection fitting mode
 - `updateTerritoryParameters()` - Update territory-specific projection parameters including scale (triggers projection rebuild)
+- `updateCanvasDimensions()` - Update canvas dimensions in projection service
+- `updateReferenceScale()` - Update reference scale in CompositeProjection and recalculate all territory scales
+
+**Global Parameter Management**:
+Global parameters (referenceScale, canvasDimensions) are updated dynamically through dedicated methods:
+- `updateCanvasDimensions()` passes dimensions to ProjectionService for coordinate calculations
+- `updateReferenceScale()` triggers recalculation of all territory scales in CompositeProjection
+- Both methods enable reactive updates without full reinitialization
+- Called by MapRenderer watchers when configStore values change
 
 **Territory Attributes**:
   - Uses D3 pathSelection.each() for efficient DOM traversal

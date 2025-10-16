@@ -65,6 +65,17 @@ const currentPreset = computed({
         // Store original preset defaults for reset functionality
         presetDefaults.storePresetDefaults(defaults, territoryParameters)
 
+        // Apply global preset parameters to config store
+        if (result.preset.referenceScale !== undefined) {
+          configStore.referenceScale = result.preset.referenceScale
+        }
+        if (result.preset.canvasDimensions) {
+          configStore.canvasDimensions = {
+            width: result.preset.canvasDimensions.width,
+            height: result.preset.canvasDimensions.height,
+          }
+        }
+
         // Apply to territory store - set each territory individually
         Object.entries(defaults.projections).forEach(([code, projection]) => {
           territoryStore.setTerritoryProjection(code, projection)
@@ -191,6 +202,7 @@ function formatPresetLabel(presetId: string, presetName?: string | Record<string
       v-model="currentPreset"
       :label="t('presets.label')"
       :options="presetOptions"
+      icon="ri-layout-grid-line"
       :disabled="isLoading || presetOptions.length === 0"
     />
 

@@ -123,6 +123,11 @@ First Render (preset values applied)
 **Composite Configuration**
 - `pattern`: Composite pattern type ("single-focus" or "equal-members")
 - `referenceScale`: Base scale for all territories (authoritative source, overrides atlas config)
+- `canvasDimensions`: Optional canvas size specification (width and height in pixels)
+  - Defines ideal canvas size for the preset
+  - Controls actual SVG display size via MapSizeCalculator
+  - Used by d3-composite-projections for projection calculations
+  - Example: `{ "width": 960, "height": 500 }`
 
 **Territory Configuration**
 - `code`: Territory ISO code or identifier
@@ -528,6 +533,7 @@ The `PresetSelector` component (`src/components/ui/presets/PresetSelector.vue`) 
 - Displays dropdown with available presets for current atlas
 - Loads preset metadata asynchronously for dropdown labels
 - Applies selected preset to stores and CompositeProjection
+- Applies global parameters (referenceScale, canvasDimensions) to configStore
 - Handles loading states and error display
 
 **Preset Application Flow:**
@@ -535,23 +541,34 @@ The `PresetSelector` component (`src/components/ui/presets/PresetSelector.vue`) 
 async function loadPreset(presetId: string) {
   // 1. Load and validate preset file
   const result = await PresetLoader.loadPreset(presetId)
-  
+
   // 2. Convert to internal formats
   const defaults = PresetLoader.convertToDefaults(result.preset)
   const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
-  
-  // 3. Clear existing parameter overrides
+
+  // 3. Apply global parameters to configStore
+  if (result.preset.referenceScale !== undefined) {
+    configStore.referenceScale = result.preset.referenceScale
+  }
+  if (result.preset.canvasDimensions) {
+    configStore.canvasDimensions = {
+      width: result.preset.canvasDimensions.width,
+      height: result.preset.canvasDimensions.height
+    }
+  }
+
+  // 4. Clear existing parameter overrides
   allCurrentTerritoryCodes.forEach(code => {
     parameterStore.clearAllTerritoryOverrides(code)
   })
-  
-  // 4. Apply preset to stores
+
+  // 5. Apply preset to stores
   parameterStore.initializeFromPreset({}, parametersWithoutScale)
   territoryStore.setTerritoryProjection(code, projection)
   territoryStore.setTerritoryTranslation(code, axis, value)
   parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-  
-  // 5. CRITICAL: Update CompositeProjection with new parameters
+
+  // 6. CRITICAL: Update CompositeProjection with new parameters
   Object.keys(parametersWithoutScale).forEach(territoryCode => {
     cartographer.updateTerritoryParameters(territoryCode)
   })

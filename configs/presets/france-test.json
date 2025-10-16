@@ -8,7 +8,11 @@
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
   "pattern": "single-focus",
-  "referenceScale": 2700,
+  "referenceScale": 2000,
+  "canvasDimensions": {
+    "width": 800,
+    "height": 500
+  },
   "territories": [
     {
       "code": "FR-MET",

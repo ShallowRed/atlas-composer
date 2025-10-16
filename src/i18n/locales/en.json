@@ -148,10 +148,10 @@
   "projectionControls": {
     "global": {
       "title": "Global Projection Settings",
-      "description": "These settings control projection scaling calculations. Reference dimensions define the coordinate space for projection math, while reference scale sets the base zoom level. Note: These don't change the display size - they affect how projections scale relative to each other.",
-      "canvasDimensions": "Reference Canvas Dimensions",
-      "canvasWidth": "Reference Width",
-      "canvasHeight": "Reference Height",
+      "description": "These settings control the ideal display size and base scale for your composite projection. Canvas dimensions set the SVG viewport size, while reference scale controls the zoom level of all territories.",
+      "canvasDimensions": "Canvas Dimensions",
+      "canvasWidth": "Canvas Width",
+      "canvasHeight": "Canvas Height",
       "lockAspectRatio": "Lock aspect ratio",
       "referenceScale": "Reference Scale",
       "scaleValue": "Scale Value",

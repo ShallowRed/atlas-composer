@@ -13,7 +13,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
-import Alert from '@/components/ui/primitives/Alert.vue'
 import { useConfigStore } from '@/stores/config'
 
 const { t } = useI18n()
@@ -94,20 +93,15 @@ function applyCanvasDimensions() {
     height: canvasHeight.value,
   }
 
-  console.log('[GlobalProjectionControls] Canvas dimensions updated:', configStore.canvasDimensions)
-
-  // Note: Canvas dimensions affect projection scaling but don't require full reinitialization
-  // The actual rendering dimensions are controlled by the SVG container size
-  // These reference dimensions are used for scaling calculations in projection services
+  // Note: Canvas dimensions control the SVG viewport size
+  // and are used by MapSizeCalculator to determine display dimensions
 }
 
 function applyReferenceScale() {
   configStore.referenceScale = referenceScale.value
 
-  console.log('[GlobalProjectionControls] Reference scale updated:', configStore.referenceScale)
-
   // Note: Reference scale changes are picked up by the composite projection
-  // through reactive stores - no full reinitialization needed
+  // through reactive watchers - no full reinitialization needed
 }
 
 // Reset to defaults
@@ -140,50 +134,30 @@ const hasCustomValues = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-semibold">
-        {{ t('projectionControls.global.title') }}
-      </h3>
-      <button
-        v-if="hasCustomValues"
-        class="btn btn-ghost btn-xs"
-        @click="resetToDefaults"
-      >
-        <i class="i-carbon-reset" />
-        {{ t('projectionControls.global.resetToDefaults') }}
-      </button>
-    </div>
-
-    <!-- Info Alert -->
-    <Alert
-      type="info"
-      size="sm"
+    <!-- Reset Button -->
+    <button
+      :disabled="!hasCustomValues"
+      class="btn btn-soft btn-sm w-full"
+      @click="resetToDefaults"
     >
-      <template #icon>
-        <i class="i-carbon-information" />
-      </template>
-      {{ t('projectionControls.global.description') }}
-    </Alert>
+      <i class="ri-refresh-line mr-1" />
+      {{ t('projectionControls.global.resetToDefaults') }}
+    </button>
 
     <!-- Canvas Dimensions Section -->
-    <div class="space-y-3">
+    <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <h4 class="text-xs font-medium opacity-70">
-          {{ t('projectionControls.global.canvasDimensions') }}
-        </h4>
+        <!-- Aspect Ratio Lock Toggle -->
+        <ToggleControl
+          v-model="aspectRatioLocked"
+          :label="t('projectionControls.global.lockAspectRatio')"
+          icon="i-carbon-locked"
+          size="xs"
+        />
         <span class="badge badge-sm badge-ghost">
           {{ aspectRatio }}
         </span>
       </div>
-
-      <!-- Aspect Ratio Lock Toggle -->
-      <ToggleControl
-        v-model="aspectRatioLocked"
-        :label="t('projectionControls.global.lockAspectRatio')"
-        icon="i-carbon-locked"
-        size="xs"
-      />
 
       <!-- Canvas Width -->
       <RangeSlider
@@ -198,7 +172,6 @@ const hasCustomValues = computed(() => {
         size="xs"
         @update:model-value="updateCanvasWidth"
       />
-
       <!-- Canvas Height -->
       <RangeSlider
         :model-value="canvasHeight"
@@ -212,17 +185,7 @@ const hasCustomValues = computed(() => {
         size="xs"
         @update:model-value="updateCanvasHeight"
       />
-    </div>
-
-    <!-- Divider -->
-    <div class="divider my-2" />
-
-    <!-- Reference Scale Section -->
-    <div class="space-y-3">
-      <h4 class="text-xs font-medium opacity-70">
-        {{ t('projectionControls.global.referenceScale') }}
-      </h4>
-
+      <!-- Reference Scale -->
       <RangeSlider
         :model-value="referenceScale"
         :label="t('projectionControls.global.scaleValue')"
@@ -234,16 +197,6 @@ const hasCustomValues = computed(() => {
         size="xs"
         @update:model-value="updateReferenceScale"
       />
-
-      <Alert
-        type="warning"
-        size="xs"
-      >
-        <template #icon>
-          <i class="i-carbon-warning" />
-        </template>
-        {{ t('projectionControls.global.scaleWarning') }}
-      </Alert>
     </div>
   </div>
 </template>
