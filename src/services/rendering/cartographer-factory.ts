@@ -9,6 +9,7 @@
  */
 
 import { getAtlasConfig } from '@/core/atlases/registry'
+import { TerritoryStoreClipExtentProvider } from '@/services/projection/territory-store-clip-extent-provider'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 
 export class CartographerFactory {
@@ -27,10 +28,18 @@ export class CartographerFactory {
     // Get region configuration
     const regionConfig = getAtlasConfig(regionId)
 
+    // Create clipExtent provider to connect territory store to rendering
+    const clipExtentProvider = new TerritoryStoreClipExtentProvider()
+
     // Create new Cartographer instance with region-specific config
     const cartographer = new Cartographer(
       regionConfig.geoDataConfig,
       regionConfig.compositeProjectionConfig,
+      undefined, // projectionParams
+      undefined, // parameterProvider
+      undefined, // referenceScale
+      undefined, // canvasDimensions
+      clipExtentProvider,
     )
 
     // Initialize the cartographer

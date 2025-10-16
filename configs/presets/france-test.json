@@ -419,12 +419,12 @@
         ],
         "clipExtent": [
           [
-            0.0967,
-            0.06
+            0.105,
+            0.065
           ],
           [
-            0.1371,
-            0.0864
+            0.125,
+            0.08
           ]
         ]
       },
@@ -611,7 +611,7 @@
     },
     "mapDisplayDefaults": {
       "showGraticule": false,
-      "showCompositionBorders": false,
+      "showCompositionBorders": true,
       "showMapLimits": false
     }
   }

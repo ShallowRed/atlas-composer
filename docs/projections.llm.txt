@@ -52,7 +52,8 @@ src/core/projections/
     preservesDirection?: boolean
     supportsSplit?: boolean
     supportsGraticule?: boolean
-    supportsClipping?: boolean
+    supportsClipping?: boolean      // D3 clipExtent support
+    supportsCompositeClipping?: boolean  // Territory-specific clipExtent for composite projections
   }
 
   suitability: {
@@ -90,6 +91,27 @@ src/core/projections/
 - `cylindrical` - Best for equatorial (±30°): Mercator, Equirectangular
 - `world` - Best for global maps: Natural Earth, Robinson, Mollweide
 - `composite` - Multi-projection layouts: France, Portugal, Spain, USA, EU, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark
+
+## Composite Projection ClipExtent
+
+Composite projections support territory-specific clipExtent for precise content clipping.
+
+**ClipExtent Format**:
+- Normalized coordinates: `[[x1, y1], [x2, y2]]` relative to territory position
+- Applied as territory-centered bounding box during CompositeProjection.build()
+- Uses d3-composite-projections approach with epsilon padding for precise boundaries
+
+**Implementation**:
+- Territory store provides clipExtent values via ClipExtentProvider pattern
+- CompositeProjection applies clipExtent as bounding box centered on territory position
+- Composition borders automatically follow clipExtent regions when available
+- Supports both preset configuration and runtime updates through territory store
+
+**Coordinate Calculation**:
+- Box width/height calculated from normalized coordinate differences
+- Final clipExtent centered around territory translate position
+- Includes epsilon padding for precise clipping boundaries
+- Compatible with d3-composite-projections coefficient format
 
 ## Recommendation System
 

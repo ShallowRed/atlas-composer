@@ -127,12 +127,18 @@ export const useConfigStore = defineStore('config', () => {
         Object.entries(updates.scales).forEach(([code, scale]) => {
           parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
         })
+        if (updates.clipExtents) {
+          Object.entries(updates.clipExtents).forEach(([code, clipExtent]) => {
+            territoryStore.setTerritoryClipExtent(code, clipExtent)
+          })
+        }
 
         // Store original preset defaults for reset functionality
         presetDefaults.storePresetDefaults({
           projections: updates.projections,
           translations: updates.translations,
           scales: updates.scales,
+          clipExtents: updates.clipExtents,
         }, updates.territoryParameters)
 
         // Load projection parameters into parameter store using registry validation
@@ -372,6 +378,7 @@ export const useConfigStore = defineStore('config', () => {
       projections: updates.projections,
       translations: updates.translations,
       scales: updates.scales,
+      clipExtents: updates.clipExtents,
     }, updates.territoryParameters)
 
     // Update territory store - use proper setter methods to maintain reactivity
@@ -385,6 +392,11 @@ export const useConfigStore = defineStore('config', () => {
     Object.entries(updates.scales).forEach(([code, scale]) => {
       parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
     })
+    if (updates.clipExtents) {
+      Object.entries(updates.clipExtents).forEach(([code, clipExtent]) => {
+        territoryStore.setTerritoryClipExtent(code, clipExtent)
+      })
+    }
 
     // Load territory-specific projection parameters into parameter store
     if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {

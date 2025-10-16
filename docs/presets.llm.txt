@@ -146,7 +146,11 @@ First Render (preset values applied)
 
 **Layout Properties** (`layout`)
 - `translateOffset`: [x, y] - Pixel offset from map center
-- `clipExtent`: [[x1, y1], [x2, y2]] - Normalized clipping bounds (or null)
+- `clipExtent`: [[x1, y1], [x2, y2]] - Normalized clipping bounds for territory-specific content clipping
+  - Applied as territory-centered bounding box during composite projection build
+  - Uses d3-composite-projections compatible coordinate format
+  - Calculated as box dimensions centered on territory position with epsilon padding
+  - Enables precise content clipping for overseas territories and scattered regions
 
 **Geographic Bounds** (`bounds`)
 - `bounds`: [[west, south], [east, north]] - Territory bounding box in degrees

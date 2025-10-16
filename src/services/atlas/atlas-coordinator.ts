@@ -1,4 +1,4 @@
-import type { ViewMode } from '@/types'
+import type { ClipExtent, ViewMode } from '@/types'
 
 import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
@@ -15,6 +15,7 @@ export interface AtlasChangeResult {
   projections: Record<string, string>
   translations: Record<string, { x: number, y: number }>
   scales: Record<string, number>
+  clipExtents?: Record<string, ClipExtent | null>
   territoryParameters: Record<string, Record<string, unknown>>
   compositeProjection?: string
   selectedProjection: string
@@ -74,6 +75,7 @@ export class AtlasCoordinator {
             projections: { ...finalDefaults.projections, ...presetDefaults.projections },
             translations: { ...finalDefaults.translations, ...presetDefaults.translations },
             scales: { ...finalDefaults.scales, ...presetDefaults.scales },
+            clipExtents: { ...finalDefaults.clipExtents, ...presetDefaults.clipExtents },
           }
 
           // Extract territory-specific projection parameters from preset
@@ -120,6 +122,7 @@ export class AtlasCoordinator {
       projections: finalDefaults.projections,
       translations: finalDefaults.translations,
       scales: finalDefaults.scales,
+      clipExtents: finalDefaults.clipExtents,
       territoryParameters,
       compositeProjection,
       selectedProjection,
