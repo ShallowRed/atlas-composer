@@ -1,6 +1,6 @@
 /**
  * Parameter Registry
- * 
+ *
  * Central registry for all projection parameters with complete metadata.
  * Provides type-safe parameter definitions, validation constraints, and
  * single source of truth for parameter behavior across the application.
@@ -42,13 +42,13 @@ export interface ParameterDefinition {
 
   // Type information
   type: 'number' | 'tuple2' | 'tuple3' | 'boolean' | 'custom'
-  unit?: string  // 'degrees', 'pixels', 'scale', 'multiplier', etc.
+  unit?: string // 'degrees', 'pixels', 'scale', 'multiplier', etc.
 
   // Data flow
-  source: 'preset' | 'computed'  // Where it comes from
-  mutable: boolean              // Can user change it?
-  exportable: boolean           // Include in export?
-  requiresPreset: boolean       // Must be in preset?
+  source: 'preset' | 'computed' // Where it comes from
+  mutable: boolean // Can user change it?
+  exportable: boolean // Include in export?
+  requiresPreset: boolean // Must be in preset?
 
   // Validation
   constraints: ParameterConstraint | ((family: ProjectionFamilyType) => ParameterConstraint)
@@ -106,8 +106,9 @@ export class ParameterRegistry {
    * Get parameters relevant for a specific projection family
    */
   getRelevant(family: ProjectionFamilyType): ParameterDefinition[] {
-    return this.getAll().filter(def => {
-      if (def.relevantFor === 'all') return true
+    return this.getAll().filter((def) => {
+      if (def.relevantFor === 'all')
+        return true
       return (def.relevantFor as ProjectionFamilyType[]).includes(family)
     })
   }
@@ -127,7 +128,7 @@ export class ParameterRegistry {
     }
 
     // Get constraints for this family
-    const constraints = typeof def.constraints === 'function' 
+    const constraints = typeof def.constraints === 'function'
       ? def.constraints(family)
       : def.constraints
 
@@ -165,7 +166,8 @@ export class ParameterRegistry {
     for (const def of this.getRelevant(family)) {
       if (def.defaultValue !== undefined) {
         defaults[def.key] = def.defaultValue
-      } else if (def.computeDefault) {
+      }
+      else if (def.computeDefault) {
         defaults[def.key] = def.computeDefault(territory)
       }
     }
@@ -178,18 +180,26 @@ export class ParameterRegistry {
    */
   validateCompleteness(): ValidationResult[] {
     const errors: ValidationResult[] = []
-    
+
     // Get a sample ProjectionParameters object keys (this would be done statically in real impl)
     const requiredKeys = [
-      'center', 'rotate', 'parallels', 'scale', 'translate', 'translateOffset', 
-      'clipAngle', 'precision', 'baseScale', 'scaleMultiplier'
+      'center',
+      'rotate',
+      'parallels',
+      'scale',
+      'translate',
+      'translateOffset',
+      'clipAngle',
+      'precision',
+      'baseScale',
+      'scaleMultiplier',
     ]
 
     for (const key of requiredKeys) {
       if (!this.get(key)) {
         errors.push({
           isValid: false,
-          error: `Missing parameter definition for: ${key}`
+          error: `Missing parameter definition for: ${key}`,
         })
       }
     }

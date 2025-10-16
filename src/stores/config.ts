@@ -126,11 +126,22 @@ export const useConfigStore = defineStore('config', () => {
         territoryStore.setTerritoryScale(code, scale)
       })
 
-      // Load territory-specific projection parameters into parameter store
+      // Load projection parameters into parameter store using registry validation
       if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-        Object.entries(updates.territoryParameters).forEach(([territoryCode, params]) => {
-          parameterStore.setTerritoryParameters(territoryCode, params as any)
-        })
+        // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
+        const atlasParams = {}
+        
+        // Initialize parameters through the registry with validation
+        const validationErrors = parameterStore.initializeFromPreset(
+          atlasParams as any,
+          updates.territoryParameters as any
+        )
+        
+        // Handle validation errors
+        if (validationErrors.length > 0) {
+          console.warn('[ConfigStore] Parameter validation errors during preset initialization:', validationErrors)
+          // Could add user notification here in the future
+        }
       }
 
       // Apply other updates

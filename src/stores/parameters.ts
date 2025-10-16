@@ -259,7 +259,7 @@ export const useParameterStore = defineStore('parameters', () => {
    */
   function initializeFromPreset(
     atlasParams: AtlasProjectionParameters,
-    territoryParams: Record<string, ProjectionParameters>
+    territoryParams: Record<string, ProjectionParameters>,
   ): ValidationResult[] {
     const errors: ValidationResult[] = []
 
@@ -270,7 +270,7 @@ export const useParameterStore = defineStore('parameters', () => {
         if (!(def.key in params)) {
           errors.push({
             isValid: false,
-            error: `Missing required parameter ${def.key} for territory ${code}`
+            error: `Missing required parameter ${def.key} for territory ${code}`,
           })
         }
       }

@@ -1,6 +1,6 @@
 /**
  * Parameter Registration Tests
- * 
+ *
  * Tests for the complete parameter registration system
  */
 
@@ -9,16 +9,15 @@ import { describe, expect, it } from 'vitest'
 import { parameterRegistry } from '../index'
 
 describe('parameter registration system', () => {
-  
   it('should have all required parameters registered', () => {
     // Test completeness
     const completenessResults = parameterRegistry.validateCompleteness()
     const errors = completenessResults.filter(r => !r.isValid)
-    
+
     if (errors.length > 0) {
       console.log('Missing parameters:', errors.map(e => e.error))
     }
-    
+
     expect(errors).toHaveLength(0)
   })
 
@@ -48,15 +47,15 @@ describe('parameter registration system', () => {
     // CONIC projections should use rotate and parallels, not center
     const conicRelevant = parameterRegistry.getRelevant('CONIC')
     const conicKeys = conicRelevant.map(p => p.key)
-    
+
     expect(conicKeys).toContain('rotate')
     expect(conicKeys).toContain('parallels')
     expect(conicKeys).not.toContain('center') // center is not relevant for conic
-    
+
     // AZIMUTHAL projections should use center, not parallels
     const azimuthalRelevant = parameterRegistry.getRelevant('AZIMUTHAL')
     const azimuthalKeys = azimuthalRelevant.map(p => p.key)
-    
+
     expect(azimuthalKeys).toContain('center')
     expect(azimuthalKeys).toContain('clipAngle') // specific to azimuthal
     expect(azimuthalKeys).not.toContain('parallels') // parallels not relevant for azimuthal
@@ -65,7 +64,7 @@ describe('parameter registration system', () => {
   it('should have proper export/require configuration', () => {
     const exportable = parameterRegistry.getExportable()
     const required = parameterRegistry.getRequired()
-    
+
     // All core parameters should be exportable
     const exportableKeys = exportable.map(p => p.key)
     expect(exportableKeys).toContain('center')
@@ -78,7 +77,7 @@ describe('parameter registration system', () => {
     expect(exportableKeys).toContain('translate')
     expect(exportableKeys).toContain('clipAngle')
     expect(exportableKeys).toContain('precision')
-    
+
     // Essential preset parameters should be required
     const requiredKeys = required.map(p => p.key)
     expect(requiredKeys).toContain('center')
@@ -87,7 +86,7 @@ describe('parameter registration system', () => {
     expect(requiredKeys).toContain('baseScale')
     expect(requiredKeys).toContain('scaleMultiplier')
     expect(requiredKeys).toContain('translateOffset')
-    
+
     // Optional parameters should not be required
     expect(requiredKeys).not.toContain('translate') // has default
     expect(requiredKeys).not.toContain('clipAngle') // has default
@@ -99,11 +98,11 @@ describe('parameter registration system', () => {
       const centerDef = parameterRegistry.get('center')!
       expect(centerDef.type).toBe('tuple2')
       expect(centerDef.unit).toBe('degrees')
-      
+
       // Valid center
       const validResult = parameterRegistry.validate('center', [2.0, 46.5], 'AZIMUTHAL')
       expect(validResult.isValid).toBe(true)
-      
+
       // Invalid longitude
       const invalidLon = parameterRegistry.validate('center', [-200, 46.5], 'AZIMUTHAL')
       expect(invalidLon.isValid).toBe(false)
@@ -113,15 +112,15 @@ describe('parameter registration system', () => {
       const rotateDef = parameterRegistry.get('rotate')!
       expect(rotateDef.type).toBe('tuple3')
       expect(rotateDef.unit).toBe('degrees')
-      
+
       // Valid rotation (3 elements)
       const valid3 = parameterRegistry.validate('rotate', [-3, -46.2, 0], 'CONIC')
       expect(valid3.isValid).toBe(true)
-      
+
       // Valid rotation (2 elements, gamma optional)
       const valid2 = parameterRegistry.validate('rotate', [-3, -46.2], 'CONIC')
       expect(valid2.isValid).toBe(true)
-      
+
       // Invalid rotation (1 element)
       const invalid = parameterRegistry.validate('rotate', [-3], 'CONIC')
       expect(invalid.isValid).toBe(false)
@@ -131,14 +130,14 @@ describe('parameter registration system', () => {
       // Base scale
       const validBase = parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')
       expect(validBase.isValid).toBe(true)
-      
+
       const invalidBase = parameterRegistry.validate('baseScale', 50, 'CYLINDRICAL')
       expect(invalidBase.isValid).toBe(false)
-      
+
       // Scale multiplier
       const validMult = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
       expect(validMult.isValid).toBe(true)
-      
+
       const invalidMult = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
       expect(invalidMult.isValid).toBe(false)
     })
@@ -148,7 +147,7 @@ describe('parameter registration system', () => {
       const azimuthalResult = parameterRegistry.validate('clipAngle', 90, 'AZIMUTHAL')
       expect(azimuthalResult.isValid).toBe(true)
       expect(azimuthalResult.warning).toBeUndefined()
-      
+
       // Not relevant for cylindrical projections
       const cylindricalResult = parameterRegistry.validate('clipAngle', 90, 'CYLINDRICAL')
       expect(cylindricalResult.isValid).toBe(true)
@@ -163,19 +162,19 @@ describe('parameter registration system', () => {
         name: 'Test Territory',
         center: [0, 0] as [number, number],
         offset: [0, 0] as [number, number],
-        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]]
+        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]],
       }
-      
+
       const cylindricalDefaults = parameterRegistry.getDefaults(mockTerritory, 'CYLINDRICAL')
-      
+
       // Should have defaults for optional parameters relevant to CYLINDRICAL
       expect(cylindricalDefaults.translate).toEqual([0, 0])
       expect(cylindricalDefaults.precision).toBe(0.1)
-      
+
       // Test AZIMUTHAL-specific defaults
       const azimuthalDefaults = parameterRegistry.getDefaults(mockTerritory, 'AZIMUTHAL')
       expect(azimuthalDefaults.clipAngle).toBe(90)
-      
+
       // Should have computed default for scale (available to all families)
       expect(cylindricalDefaults.scale).toBe(2700)
     })
@@ -187,7 +186,7 @@ describe('parameter registration system', () => {
     expect(parameterRegistry.get('rotate')?.mutable).toBe(true)
     expect(parameterRegistry.get('scaleMultiplier')?.mutable).toBe(true)
     expect(parameterRegistry.get('translate')?.mutable).toBe(true)
-    
+
     // Non-user-editable parameters
     expect(parameterRegistry.get('baseScale')?.mutable).toBe(false)
   })
@@ -197,7 +196,7 @@ describe('parameter registration system', () => {
     expect(parameterRegistry.get('center')?.source).toBe('preset')
     expect(parameterRegistry.get('baseScale')?.source).toBe('preset')
     expect(parameterRegistry.get('translateOffset')?.source).toBe('preset')
-    
+
     // Computed parameters
     expect(parameterRegistry.get('scale')?.source).toBe('computed')
   })

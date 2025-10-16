@@ -1,6 +1,6 @@
 /**
  * Parameter Registry Initialization
- * 
+ *
  * Initialize the parameter registry with all parameter definitions.
  * Import this file to ensure parameters are registered.
  */

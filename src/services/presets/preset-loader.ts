@@ -11,10 +11,13 @@
  * - List available presets for an atlas
  */
 
+import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
 import type { ImportResult } from '@/services/export/composite-import-service'
 import type { ExportedCompositeConfig } from '@/types/export-config'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 
+import { parameterRegistry } from '@/core/parameters'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 
 /**
@@ -94,13 +97,46 @@ export class PresetLoader {
       const jsonText = await response.text()
       const rawPreset = JSON.parse(jsonText) as ExtendedPresetConfig
 
-      // Validate using CompositeImportService
+      // Validate structure using CompositeImportService
       const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
 
       if (!importResult.success) {
         return {
           success: false,
           errors: importResult.errors,
+          warnings: importResult.warnings,
+        }
+      }
+
+      // Additional validation using parameter registry
+      const paramErrors: string[] = []
+      for (const territory of rawPreset.territories) {
+        const family = territory.projectionFamily as ProjectionFamilyType
+
+        // Check required parameters
+        const required = parameterRegistry.getRequired()
+        for (const def of required) {
+          if (def.requiresPreset && !(def.key in territory.parameters)) {
+            paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
+          }
+        }
+
+        // Validate parameter values
+        const validationResults = parameterRegistry.validateParameters(
+          territory.parameters,
+          family
+        )
+        for (const result of validationResults) {
+          if (!result.isValid) {
+            paramErrors.push(`Territory ${territory.code}: ${result.error}`)
+          }
+        }
+      }
+
+      if (paramErrors.length > 0) {
+        return {
+          success: false,
+          errors: [...importResult.errors, ...paramErrors],
           warnings: importResult.warnings,
         }
       }
@@ -181,61 +217,35 @@ export class PresetLoader {
   }
 
   /**
-   * Extract territory-specific projection parameters from preset
-   *
-   * Returns a map of territory code to projection parameters that should be
-   * loaded into the parameter store for each territory.
-   *
-   * @param preset - Validated preset configuration
-   * @returns Map of territory code to projection parameters
+   * Extract projection parameters from preset data for each territory
+   * @param preset - The preset configuration
+   * @returns Object mapping territory codes to their projection parameters
    */
-  static extractTerritoryParameters(
-    preset: ExportedCompositeConfig,
-  ): Record<string, Record<string, unknown>> {
-    const territoryParams: Record<string, Record<string, unknown>> = {}
-
-    preset.territories.forEach((territory) => {
-      const params: Record<string, unknown> = {}
-
-      // Extract projection parameters that should be set at territory level
-      // Note: scale is included here because it's a projection parameter, not a territory scale multiplier
-      if (territory.parameters.center) {
-        params.center = territory.parameters.center
+  public static extractTerritoryParameters(preset: ExportedCompositeConfig): Record<string, ProjectionParameters> {
+    const result: Record<string, ProjectionParameters> = {}
+    
+    for (const territory of preset.territories) {
+      // Only include parameters that are explicitly set in the territory
+      const territoryParams: Partial<ProjectionParameters> = {}
+      
+      if (territory.parameters) {
+        // Get list of parameter keys that the registry knows about and are exportable
+        const exportableKeys = new Set(
+          parameterRegistry.getExportable().map(def => def.key)
+        )
+        
+        // Only copy parameters that exist in the territory and are known by the registry
+        for (const [key, value] of Object.entries(territory.parameters)) {
+          if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
+            territoryParams[key as keyof ProjectionParameters] = value as any
+          }
+        }
       }
-      if (territory.parameters.rotate) {
-        params.rotate = territory.parameters.rotate
-      }
-      if (territory.parameters.parallels) {
-        params.parallels = territory.parameters.parallels
-      }
-      if (territory.parameters.scale !== undefined) {
-        // This is the D3 projection scale parameter, not the territory scale multiplier
-        params.scale = territory.parameters.scale
-      }
-      if (territory.parameters.baseScale !== undefined) {
-        // Extract baseScale for proper initialization of composite projections
-        // The baseScale is the scale value before applying the scaleMultiplier
-        params.baseScale = territory.parameters.baseScale
-      }
-      if (territory.parameters.scaleMultiplier !== undefined) {
-        // Extract scaleMultiplier for proper initialization of composite projections
-        // This is the multiplier applied to baseScale to get the final scale
-        params.scaleMultiplier = territory.parameters.scaleMultiplier
-      }
-      if (territory.parameters.clipAngle !== undefined) {
-        params.clipAngle = territory.parameters.clipAngle
-      }
-      if (territory.parameters.precision !== undefined) {
-        params.precision = territory.parameters.precision
-      }
-
-      // Only add if there are parameters to set
-      if (Object.keys(params).length > 0) {
-        territoryParams[territory.code] = params
-      }
-    })
-
-    return territoryParams
+      
+      result[territory.code] = territoryParams as ProjectionParameters
+    }
+    
+    return result
   }
 
   /**

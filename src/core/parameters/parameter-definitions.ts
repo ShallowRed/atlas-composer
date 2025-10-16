@@ -1,6 +1,6 @@
 /**
  * Parameter Definitions
- * 
+ *
  * Central definitions for all projection parameters with complete metadata.
  * This file registers all parameters with the parameter registry.
  */
@@ -12,7 +12,6 @@ import { parameterRegistry } from './parameter-registry'
  * Register all projection parameters with the parameter registry
  */
 export function registerAllParameters(): void {
-  
   // Core positioning parameters
 
   parameterRegistry.register({
@@ -28,7 +27,7 @@ export function registerAllParameters(): void {
     constraints: (family: ProjectionFamilyType) => ({
       min: [-180, -90],
       max: [180, 90],
-      relevant: family !== 'CONIC' && family !== 'CYLINDRICAL' && family !== 'PSEUDOCYLINDRICAL'
+      relevant: family !== 'CONIC' && family !== 'CYLINDRICAL' && family !== 'PSEUDOCYLINDRICAL',
     }),
     relevantFor: ['AZIMUTHAL'],
   })
@@ -45,7 +44,7 @@ export function registerAllParameters(): void {
     requiresPreset: true,
     constraints: {
       min: [-180, -90, -180],
-      max: [180, 90, 180]
+      max: [180, 90, 180],
     },
     relevantFor: ['CONIC', 'CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'AZIMUTHAL'],
   })
@@ -63,7 +62,7 @@ export function registerAllParameters(): void {
     constraints: (family: ProjectionFamilyType) => ({
       min: [-90, -90],
       max: [90, 90],
-      relevant: family === 'CONIC'
+      relevant: family === 'CONIC',
     }),
     relevantFor: ['CONIC'],
   })
@@ -77,7 +76,7 @@ export function registerAllParameters(): void {
     type: 'number',
     unit: 'scale',
     source: 'preset',
-    mutable: false,  // Not directly user-editable
+    mutable: false, // Not directly user-editable
     exportable: true,
     requiresPreset: true,
     constraints: { min: 100, max: 100000 },
@@ -104,8 +103,8 @@ export function registerAllParameters(): void {
     description: 'Final scale value (computed or override)',
     type: 'number',
     unit: 'scale',
-    source: 'computed',  // Computed from baseScale * scaleMultiplier
-    mutable: true,       // Can override
+    source: 'computed', // Computed from baseScale * scaleMultiplier
+    mutable: true, // Can override
     exportable: true,
     requiresPreset: false,
     constraints: { min: 100, max: 100000, step: 50 },
@@ -113,7 +112,7 @@ export function registerAllParameters(): void {
     computeDefault: (_territory) => {
       // This is a fallback - normally computed from other parameters
       return 2700
-    }
+    },
   })
 
   // Translation parameters
@@ -144,7 +143,7 @@ export function registerAllParameters(): void {
     requiresPreset: false,
     constraints: { min: [-1000, -1000], max: [1000, 1000], step: 10 },
     relevantFor: 'all',
-    defaultValue: [0, 0]
+    defaultValue: [0, 0],
   })
 
   // Advanced parameters
@@ -163,10 +162,10 @@ export function registerAllParameters(): void {
       min: 0,
       max: 180,
       step: 1,
-      relevant: family === 'AZIMUTHAL'
+      relevant: family === 'AZIMUTHAL',
     }),
     relevantFor: ['AZIMUTHAL'],
-    defaultValue: 90
+    defaultValue: 90,
   })
 
   parameterRegistry.register({
@@ -180,7 +179,7 @@ export function registerAllParameters(): void {
     requiresPreset: false,
     constraints: { min: 0.01, max: 10, step: 0.01 },
     relevantFor: 'all',
-    defaultValue: 0.1
+    defaultValue: 0.1,
   })
 
   // NOTE: clipExtent is a special case - nested array structure

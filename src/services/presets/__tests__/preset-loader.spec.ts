@@ -214,21 +214,25 @@ describe('presetLoader', () => {
 
       const result = PresetLoader.extractTerritoryParameters(mockPreset)
 
-      // Should extract parameters for FR-MET (has center, rotate, parallels, scale, precision)
+      // Should extract parameters for FR-MET (has center, rotate, parallels, scale, precision, baseScale, scaleMultiplier)
       expect(result).toHaveProperty('FR-MET')
       expect(result['FR-MET']).toEqual({
         center: [2.5, 46.5],
         rotate: [-3, -46.2, 0],
         parallels: [42, 49],
-        scale: 2700, // This should now be included
+        scale: 2700,
+        baseScale: 2700,
+        scaleMultiplier: 1.0,
         precision: 0.1,
       })
 
-      // Should extract parameters for FR-GP (has center, scale)
+      // Should extract parameters for FR-GP (has center, scale, baseScale, scaleMultiplier)
       expect(result).toHaveProperty('FR-GP')
       expect(result['FR-GP']).toEqual({
         center: [-61.46, 16.14],
-        scale: 3780, // This should now be included
+        scale: 3780,
+        baseScale: 2700,
+        scaleMultiplier: 1.4,
       })
     })
 
@@ -270,6 +274,8 @@ describe('presetLoader', () => {
       expect(result).toHaveProperty('T1')
       expect(result.T1).toEqual({
         scale: 1000,
+        baseScale: 1000,
+        scaleMultiplier: 1.0,
       })
     })
   })
@@ -340,9 +346,15 @@ describe('presetLoader', () => {
             projectionId: 'mercator',
             projectionFamily: 'cylindrical',
             parameters: {
+              center: [0, 0],
+              rotate: [0, 0, 0],
+              parallels: [30, 60],
               scale: 1000,
               baseScale: 1000,
               scaleMultiplier: 1.0,
+              translateOffset: [0, 0],
+              translate: [0, 0],
+              precision: 0.1,
             },
             layout: {
               translateOffset: [0, 0],
@@ -386,7 +398,17 @@ describe('presetLoader', () => {
             role: 'primary',
             projectionId: 'mercator',
             projectionFamily: 'cylindrical',
-            parameters: { scale: 1000, baseScale: 1000, scaleMultiplier: 1.0 },
+            parameters: { 
+              center: [0, 0],
+              rotate: [0, 0, 0],
+              parallels: [30, 60],
+              scale: 1000, 
+              baseScale: 1000, 
+              scaleMultiplier: 1.0,
+              translateOffset: [0, 0],
+              translate: [0, 0],
+              precision: 0.1,
+            },
             layout: { translateOffset: [0, 0] },
             bounds: [[0, 0], [10, 10]],
           },

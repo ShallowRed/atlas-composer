@@ -27,7 +27,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
-        relevantFor: 'all'
+        relevantFor: 'all',
       }
 
       registry.register(def)
@@ -49,7 +49,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
-        relevantFor: 'all'
+        relevantFor: 'all',
       }
 
       const def2: ParameterDefinition = {
@@ -62,7 +62,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL']
+        relevantFor: ['CYLINDRICAL'],
       }
 
       registry.register(def1)
@@ -87,7 +87,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
-        relevantFor: 'all'
+        relevantFor: 'all',
       })
 
       registry.register({
@@ -100,7 +100,7 @@ describe('parameterRegistry', () => {
         exportable: false, // Not exportable
         requiresPreset: true,
         constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL']
+        relevantFor: ['CYLINDRICAL'],
       })
 
       registry.register({
@@ -113,7 +113,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: false, // Not required
         constraints: { min: 0, max: 180 },
-        relevantFor: ['AZIMUTHAL']
+        relevantFor: ['AZIMUTHAL'],
       })
     })
 
@@ -154,7 +154,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
-        relevantFor: 'all'
+        relevantFor: 'all',
       })
 
       registry.register({
@@ -167,7 +167,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL']
+        relevantFor: ['CYLINDRICAL'],
       })
 
       registry.register({
@@ -180,7 +180,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: [-180, -90, -180], max: [180, 90, 180] },
-        relevantFor: ['CONIC']
+        relevantFor: ['CONIC'],
       })
 
       registry.register({
@@ -192,12 +192,12 @@ describe('parameterRegistry', () => {
         mutable: true,
         exportable: true,
         requiresPreset: false,
-        constraints: (family) => ({
+        constraints: family => ({
           min: 0,
           max: 180,
-          relevant: family === 'AZIMUTHAL'
+          relevant: family === 'AZIMUTHAL',
         }),
-        relevantFor: ['AZIMUTHAL']
+        relevantFor: ['AZIMUTHAL'],
       })
     })
 
@@ -270,7 +270,7 @@ describe('parameterRegistry', () => {
     it('should validate multiple parameters', () => {
       const params = {
         scale: 5000,
-        center: [2.0, 46.5] as [number, number]
+        center: [2.0, 46.5] as [number, number],
       }
 
       const results = registry.validateParameters(params, 'CYLINDRICAL')
@@ -280,7 +280,7 @@ describe('parameterRegistry', () => {
     it('should return validation errors for multiple invalid parameters', () => {
       const params = {
         scale: 50, // too low
-        center: [-200, 46.5] as [number, number] // longitude too low
+        center: [-200, 46.5] as [number, number], // longitude too low
       }
 
       const results = registry.validateParameters(params, 'CYLINDRICAL')
@@ -304,7 +304,7 @@ describe('parameterRegistry', () => {
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
         relevantFor: 'all',
-        defaultValue: 2700
+        defaultValue: 2700,
       })
 
       registry.register({
@@ -318,7 +318,7 @@ describe('parameterRegistry', () => {
         requiresPreset: false,
         constraints: { min: [-1000, -1000], max: [1000, 1000] },
         relevantFor: 'all',
-        computeDefault: () => [0, 0]
+        computeDefault: () => [0, 0],
       })
     })
 
@@ -328,7 +328,7 @@ describe('parameterRegistry', () => {
         name: 'France Metropolitaine',
         center: [2.0, 46.5] as [number, number],
         offset: [0, 0] as [number, number],
-        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]]
+        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]],
       }
 
       const defaults = registry.getDefaults(mockTerritory, 'CYLINDRICAL')
@@ -350,7 +350,7 @@ describe('parameterRegistry', () => {
         exportable: true,
         requiresPreset: true,
         constraints: { min: 100, max: 10000 },
-        relevantFor: 'all'
+        relevantFor: 'all',
       })
 
       const results = registry.validateCompleteness()
