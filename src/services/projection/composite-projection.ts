@@ -743,8 +743,8 @@ export class CompositeProjection {
       subProj.projection.translate(newTranslate)
 
       // If territory has a predefined clipExtent (from config), use it
-      // This is the case for d3-composite-projections style definitions
-      // Check if predefined clipExtent exists and is valid
+      // This matches d3-composite-projections approach where clipExtent values
+      // are relative to the main projection's coordinate system, not individual territories
       if (
         subProj.clipExtent
         && subProj.clipExtent[0]?.[0] !== undefined
@@ -754,26 +754,20 @@ export class CompositeProjection {
       ) {
         const [[x1, y1], [x2, y2]] = subProj.clipExtent
 
-        // DEBUG: Test different scaling approaches
-        const scale = subProj.projection.scale()
-        const [centerX, centerY] = newTranslate
-
-        // Apply d3-composite-projections approach: treat clipExtent as bounding box around territory
+        // Apply d3-composite-projections approach: clipExtent is relative to main projection
+        // Get the reference scale (mainland/primary projection scale for consistency)
+        const referenceScale = this.referenceScale || 2700
         const epsilon = 1e-6 // Small value for padding, matching d3-composite-projections
 
-        // Calculate clipExtent as a bounding box centered on territory position
-        // Convert normalized coordinates to actual pixel dimensions
-        const boxWidth = Math.abs(x2 - x1) * scale
-        const boxHeight = Math.abs(y2 - y1) * scale
-
-        // Center the box around the territory's translate position
-        const scaleBasedClipExtent: [[number, number], [number, number]] = [
-          [centerX - boxWidth / 2 + epsilon, centerY - boxHeight / 2 + epsilon],
-          [centerX + boxWidth / 2 - epsilon, centerY + boxHeight / 2 - epsilon],
+        // Calculate clipExtent in screen coordinates using reference scale and map center
+        // This matches how d3-composite-projections calculates: [x + offset * k, y + offset * k]
+        const clipExtentScreen: [[number, number], [number, number]] = [
+          [centerX + x1 * referenceScale + epsilon, centerY + y1 * referenceScale + epsilon],
+          [centerX + x2 * referenceScale - epsilon, centerY + y2 * referenceScale - epsilon],
         ]
 
-        // Apply the territory-centered clipExtent
-        subProj.projection.clipExtent(scaleBasedClipExtent)
+        // Apply the clipExtent relative to the main projection coordinate system
+        subProj.projection.clipExtent(clipExtentScreen)
       }
       // Otherwise, calculate clipExtent from geographic bounds
       else if (subProj.bounds) {
