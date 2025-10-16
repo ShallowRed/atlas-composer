@@ -119,7 +119,8 @@ export class PresetLoader {
         const required = parameterRegistry.getRequired()
         for (const def of required) {
           // Check if parameter is relevant for this projection family
-          const isRelevant = def.relevantFor === 'all' || (Array.isArray(def.relevantFor) && def.relevantFor.includes(family))
+          const constraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
+          const isRelevant = constraints.relevant
 
           if (def.requiresPreset && isRelevant && !(def.key in territory.parameters)) {
             paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
@@ -212,7 +213,7 @@ export class PresetLoader {
       }
 
       // Scale multiplier
-      scales[code] = territory.parameters.scaleMultiplier
+      scales[code] = territory.parameters.scaleMultiplier ?? 1
     })
 
     return {
