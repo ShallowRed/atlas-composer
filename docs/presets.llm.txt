@@ -517,6 +517,39 @@ Exported presets match import format:
 - Verify parameter provider returns correct effective parameters
 - Ensure no race condition (preset loads after first render)
 
+## Reset System
+
+### Reset to Preset Defaults
+
+The reset system restores territories to their preset configuration, managed through `useTerritoryTransforms()` composable.
+
+**Global Reset** (`resetTransforms()`)
+- Restores all territories to preset defaults (projections, translations, scales, parameters)
+- Checks all territories via `configStore.atlasService.getAllTerritories()` including mainland
+- Clears parameter overrides for all territories
+- Applies preset projections, translations, scales, and parameters to stores
+- Triggers cartographer updates for all territories via `updateTerritoryParameters()`
+- Falls back to hardcoded defaults if no preset available
+
+**Territory-Specific Reset** (`resetTerritoryToDefaults()`)
+- Restores single territory to its preset configuration
+- Clears all parameter overrides for that territory
+- Applies preset values (projection, translation, scale, parameters)
+- Triggers cartographer update for the specific territory
+- Falls back to default values (projection unchanged, translation [0,0], scale 1.0)
+
+**Reset Divergence Detection**
+- Global reset button enables when any territory diverges from preset
+- Uses `usePresetDefaults().hasDivergingParameters()` to detect changes
+- Checks all territories including mainland via `getAllTerritories()`
+- Compares current state (projections, translations, scales, parameters) against preset defaults
+- Territory-specific reset buttons enable when individual territory has overrides
+
+**Cartographer Integration**
+- Reset operations call `cartographer.updateTerritoryParameters(code)` for each modified territory
+- Updates trigger projection rebuild via `compositeProjection = null`
+- Ensures visual changes reflect immediately after reset
+
 ## File References
 
 **Core Services:**
@@ -530,11 +563,13 @@ Exported presets match import format:
 - `src/stores/territory.ts` - Territory state (projections, translations)
 
 **UI Components:**
-- `src/components/TerritoryControls.vue` - Main territory control container
-- `src/components/ui/parameters/TerritoryParameterControls.vue` - Projection parameter sliders
+- `src/components/TerritoryControls.vue` - Main territory control container with global reset
+- `src/components/ui/parameters/TerritoryParameterControls.vue` - Territory-specific parameter controls and reset
 - `src/components/ui/presets/PresetSelector.vue` - Preset selection UI
 
-**Initialization:**
+**Composables:**
+- `src/composables/useTerritoryTransforms.ts` - Reset functionality and territory transform management
+- `src/composables/usePresetDefaults.ts` - Preset defaults tracking and divergence detection
 - `src/composables/useAtlasData.ts` - Atlas data initialization with preset sequencing
 
 **Validation:**

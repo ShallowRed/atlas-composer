@@ -23,7 +23,10 @@ export const useTerritoryStore = defineStore('territory', () => {
   }
 
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
-    territoryProjections.value[territoryCode] = projectionId
+    territoryProjections.value = {
+      ...territoryProjections.value,
+      [territoryCode]: projectionId,
+    }
   }
 
   function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {

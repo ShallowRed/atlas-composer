@@ -117,7 +117,7 @@ export function useTerritoryTransforms() {
           territoryStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(originalDefaults.scales).forEach(([code, scale]) => {
-          territoryStore.setTerritoryScale(code, scale)
+          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
         })
 
         // Apply preset parameters if they exist
@@ -125,6 +125,16 @@ export function useTerritoryTransforms() {
         Object.entries(originalParameters).forEach(([territoryCode, params]) => {
           parameterStore.setTerritoryParameters(territoryCode, params as any)
         })
+
+        // Update cartographer for all territories to apply the changes
+        if (geoDataStore.cartographer) {
+          Object.entries(originalDefaults.projections).forEach(([code, projectionId]) => {
+            // First update the projection type (recreates the D3 projection object)
+            geoDataStore.cartographer?.updateTerritoryProjection(code, projectionId)
+            // Then update parameters for the new projection
+            geoDataStore.cartographer?.updateTerritoryParameters(code)
+          })
+        }
 
         console.info('[Reset] Restored to preset defaults')
         return
@@ -134,8 +144,8 @@ export function useTerritoryTransforms() {
     // Fallback: Reset to hardcoded defaults if no preset available
     const territories = atlasService.getAllTerritories()
 
-    // Clear all parameter overrides
-    for (const t of geoDataStore.filteredTerritories) {
+    // Clear all parameter overrides for ALL territories
+    for (const t of territories) {
       parameterStore.clearAllTerritoryOverrides(t.code)
     }
 
@@ -146,10 +156,17 @@ export function useTerritoryTransforms() {
       territoryStore.setTerritoryTranslation(code, 'y', y)
     }
 
-    // Reset all scales to 1.0
+    // Reset all scales to 1.0 for ALL territories
     const defaultScale = 1.0
-    for (const t of geoDataStore.filteredTerritories) {
-      territoryStore.setTerritoryScale(t.code, defaultScale)
+    for (const t of territories) {
+      parameterStore.setTerritoryParameter(t.code, 'scaleMultiplier', defaultScale)
+    }
+
+    // Update cartographer for all territories to apply the changes
+    if (geoDataStore.cartographer) {
+      territories.forEach((t) => {
+        geoDataStore.cartographer?.updateTerritoryParameters(t.code)
+      })
     }
 
     console.info('[Reset] Restored to fallback defaults (no preset available)')
@@ -178,12 +195,20 @@ export function useTerritoryTransforms() {
           territoryStore.setTerritoryTranslation(territoryCode, 'y', translation.y)
         }
         if (originalDefaults.scales[territoryCode]) {
-          territoryStore.setTerritoryScale(territoryCode, originalDefaults.scales[territoryCode])
+          parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', originalDefaults.scales[territoryCode])
         }
 
         // Apply preset parameters if they exist for this territory
         if (originalParameters[territoryCode]) {
           parameterStore.setTerritoryParameters(territoryCode, originalParameters[territoryCode] as any)
+        }
+
+        // Update cartographer to apply the reset changes
+        if (geoDataStore.cartographer) {
+          // First update the projection type (recreates the D3 projection object)
+          geoDataStore.cartographer.updateTerritoryProjection(territoryCode, originalDefaults.projections[territoryCode])
+          // Then update parameters for the new projection
+          geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
         }
 
         console.info(`[Reset] Restored territory ${territoryCode} to preset defaults`)
@@ -204,7 +229,12 @@ export function useTerritoryTransforms() {
     territoryStore.setTerritoryTranslation(territoryCode, 'y', 0)
 
     // Reset scale to 1.0
-    territoryStore.setTerritoryScale(territoryCode, 1.0)
+    parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', 1.0)
+
+    // Update cartographer to apply the reset changes
+    if (geoDataStore.cartographer) {
+      geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+    }
 
     console.info(`[Reset] Restored territory ${territoryCode} to fallback defaults (no preset available)`)
   }

@@ -17,13 +17,10 @@
       "projectionId": "conic-conformal",
       "projectionFamily": "CONIC",
       "parameters": {
-        "center": [
-          0,
-          0
-        ],
         "rotate": [
           -3,
-          -46.2
+          -46.2,
+          0
         ],
         "parallels": [
           0,

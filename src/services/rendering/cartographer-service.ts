@@ -123,6 +123,18 @@ export class Cartographer {
     }
   }
 
+  /**
+   * Update territory projection type
+   * Call this when the projection type changes for a territory
+   * @param territoryCode - Territory code to update
+   * @param projectionType - New projection type (e.g., 'conic-conformal', 'azimuthal-equal-area')
+   */
+  updateTerritoryProjection(territoryCode: string, projectionType: string): void {
+    if (this.customComposite) {
+      this.customComposite.updateTerritoryProjection(territoryCode, projectionType)
+    }
+  }
+
   // Unified rendering API
   async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<Plot.Plot> {
     switch (options.mode) {
@@ -291,13 +303,7 @@ export class Cartographer {
       for (const [code, proj] of Object.entries(territoryProjections)) {
         // Only update if projection type is different from current
         const subProj = (composite as any).subProjections?.find((sp: any) => sp.territoryCode === code)
-        if (code === 'FR-MET') {
-          console.log(`[Cartographer] FR-MET: current=${subProj?.projectionType}, requested=${proj}, willUpdate=${subProj && subProj.projectionType !== proj}`)
-        }
         if (subProj && subProj.projectionType !== proj) {
-          if (code === 'FR-MET') {
-            console.log(`[Cartographer] Changing projection for ${code} from ${subProj.projectionType} to ${proj}`)
-          }
           composite.updateTerritoryProjection(code, proj as any)
         }
       }

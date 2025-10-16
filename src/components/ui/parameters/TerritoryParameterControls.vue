@@ -11,7 +11,7 @@ import type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
@@ -20,6 +20,7 @@ import Alert from '@/components/ui/primitives/Alert.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useParameterStore } from '@/stores/parameters'
+import { useTerritoryStore } from '@/stores/territory'
 
 interface Props {
   /** Territory code for parameter management */
@@ -50,6 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const parameterStore = useParameterStore()
+const territoryStore = useTerritoryStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
 const presetDefaults = getSharedPresetDefaults()
 
@@ -102,97 +104,83 @@ const validationResults = computed(() => {
 
 // Check if territory has parameter overrides that differ from preset defaults
 const hasOverrides = computed(() => {
-  // If no overrides exist at all, no divergence
-  if (Object.keys(territoryParameters.value).length === 0) {
-    console.log('[TerritoryParameterControls] No overrides for', props.territoryCode)
-    return false
-  }
-
   // If no preset defaults loaded, show the reset button (legacy behavior)
   if (!presetDefaults.hasPresetDefaults()) {
-    console.log('[TerritoryParameterControls] No preset defaults available for', props.territoryCode)
-    return true
+    return Object.keys(territoryParameters.value).length > 0
   }
 
-  // Get preset parameters for this specific territory
-  const presetParams = presetDefaults.getPresetDefaultsForTerritory(props.territoryCode)?.parameters
+  // Get preset defaults for this specific territory
+  const territoryDefaults = presetDefaults.getPresetDefaultsForTerritory(props.territoryCode)
 
-  // console.log('[TerritoryParameterControls] Checking divergence for', props.territoryCode, {
-  //   territoryParameters: territoryParameters.value,
-  //   presetParams,
-  //   hasPresetParams: !!presetParams,
-  // })
+  // If no preset defaults for this territory, show the reset button if there are any overrides
+  if (!territoryDefaults) {
+    return Object.keys(territoryParameters.value).length > 0
+  }
 
-  // If no preset parameters for this territory, show the reset button
-  if (!presetParams) {
-    console.log('[TerritoryParameterControls] No preset params for territory', props.territoryCode)
+  // Check if projection differs from preset
+  const currentProjection = territoryStore.territoryProjections[props.territoryCode]
+  if (currentProjection && territoryDefaults.projection && currentProjection !== territoryDefaults.projection) {
     return true
   }
 
   // Check if any current parameter differs from preset defaults
-  for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
-    const presetValue = presetParams[paramKey as keyof typeof presetParams]
+  const presetParams = territoryDefaults.parameters
+  if (presetParams) {
+    for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
+      // Skip internal D3 parameters that are auto-generated (not user-controllable)
+      if (paramKey === 'translate' || paramKey === 'scale') {
+        continue
+      }
 
-    // Use the same deep comparison logic as the global reset button
-    const isEqual = areValuesEqual(currentValue, presetValue)
+      const presetValue = presetParams[paramKey as keyof typeof presetParams]
 
-    // console.log(`[TerritoryParameterControls] Comparing ${props.territoryCode}.${paramKey}:`, {
-    //   currentValue,
-    //   presetValue,
-    //   isEqual,
-    //   currentType: typeof currentValue,
-    //   presetType: typeof presetValue
-    // })
+      // Use the same deep comparison logic as the global reset button
+      const isEqual = areValuesEqual(currentValue, presetValue)
 
-    if (!isEqual) {
-      console.log('[TerritoryParameterControls] ⚠️ DIVERGENCE DETECTED:', {
-        territoryCode: props.territoryCode,
-        paramKey,
-        currentValue,
-        presetValue,
-      })
-      return true
+      if (!isEqual) {
+        return true
+      }
     }
   }
-
-  console.log('[TerritoryParameterControls] ✓ No divergence - territory matches preset:', {
-    territoryCode: props.territoryCode,
-  })
 
   return false
 })
 
 // Helper function for deep value comparison (same as in usePresetDefaults)
 function areValuesEqual(value1: unknown, value2: unknown): boolean {
+  // Unwrap Vue proxies to get raw values
+  const raw1 = toRaw(value1)
+  const raw2 = toRaw(value2)
+
   // Handle null/undefined
-  if (value1 === value2)
+  if (raw1 === raw2)
     return true
-  if (value1 == null || value2 == null)
+  if (raw1 == null || raw2 == null)
     return false
 
   // Handle arrays
-  if (Array.isArray(value1) && Array.isArray(value2)) {
-    if (value1.length !== value2.length)
+  if (Array.isArray(raw1) && Array.isArray(raw2)) {
+    if (raw1.length !== raw2.length)
       return false
-    return value1.every((val, index) => areValuesEqual(val, value2[index]))
+    return raw1.every((val, index) => areValuesEqual(val, raw2[index]))
   }
 
   // Handle objects
-  if (typeof value1 === 'object' && typeof value2 === 'object') {
-    const keys1 = Object.keys(value1 as Record<string, unknown>)
-    const keys2 = Object.keys(value2 as Record<string, unknown>)
+  if (typeof raw1 === 'object' && typeof raw2 === 'object') {
+    const keys1 = Object.keys(raw1 as Record<string, unknown>)
+    const keys2 = Object.keys(raw2 as Record<string, unknown>)
     if (keys1.length !== keys2.length)
       return false
     return keys1.every(key =>
       areValuesEqual(
-        (value1 as Record<string, unknown>)[key],
-        (value2 as Record<string, unknown>)[key],
+        (raw1 as Record<string, unknown>)[key],
+        (raw2 as Record<string, unknown>)[key],
       ),
     )
   }
 
   // Primitives
-  return value1 === value2
+  return raw1 === raw2
 }
 
 // Get list of relevant parameters for this projection family
@@ -239,11 +227,15 @@ function handleParameterChange(key: keyof ProjectionParameters, value: unknown) 
 
 // Clear all parameter overrides for this territory and reset transforms to preset defaults
 function clearAllOverrides() {
+  // Get current parameters before clearing for emit
+  const oldParams = { ...territoryParameters.value }
+
   // Reset all territory-specific settings (transforms + parameters) to preset defaults
+  // This also triggers cartographer update internally
   resetTerritoryToDefaults(props.territoryCode)
 
   // Emit cleared events for all overridden parameters
-  Object.keys(territoryParameters.value).forEach((key) => {
+  Object.keys(oldParams).forEach((key) => {
     emit('overrideCleared', props.territoryCode, key as keyof ProjectionParameters)
   })
 }

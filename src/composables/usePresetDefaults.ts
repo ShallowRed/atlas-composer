@@ -1,31 +1,36 @@
 import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-import { ref } from 'vue'
+import { ref, toRaw } from 'vue'
 
 /**
  * Deep comparison function for parameter values
  * Handles arrays, objects, primitives, null, and undefined
+ * Also handles Vue Proxy objects by unwrapping them
  */
 function areValuesEqual(a: any, b: any): boolean {
+  // Unwrap Vue proxies to get raw values
+  const rawA = toRaw(a)
+  const rawB = toRaw(b)
+
   // Strict equality check (handles primitives, null, undefined)
-  if (a === b)
+  if (rawA === rawB)
     return true
 
   // Both must be arrays or both must be objects (but not null)
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length)
+  if (Array.isArray(rawA) && Array.isArray(rawB)) {
+    if (rawA.length !== rawB.length)
       return false
-    return a.every((val, index) => areValuesEqual(val, b[index]))
+    return rawA.every((val, index) => areValuesEqual(val, rawB[index]))
   }
 
   // Handle objects (but not arrays or null)
-  if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
-    const keysA = Object.keys(a)
-    const keysB = Object.keys(b)
+  if (rawA && rawB && typeof rawA === 'object' && typeof rawB === 'object' && !Array.isArray(rawA) && !Array.isArray(rawB)) {
+    const keysA = Object.keys(rawA)
+    const keysB = Object.keys(rawB)
     if (keysA.length !== keysB.length)
       return false
-    return keysA.every(key => areValuesEqual(a[key], b[key]))
+    return keysA.every(key => areValuesEqual(rawA[key], rawB[key]))
   }
 
   // Different types or one is null/undefined
@@ -93,16 +98,21 @@ export function usePresetDefaults() {
     currentTranslations: Record<string, { x: number, y: number }>,
     currentScales: Record<string, number>,
     territoryParameters: Record<string, Record<string, unknown>>,
+    currentProjections?: Record<string, string>,
   ): boolean {
     if (!presetDefaults.value) {
       return false // No preset loaded, nothing to diverge from
     }
 
-    console.log('[usePresetDefaults] Checking divergence with preset defaults:', {
-      presetTranslations: presetDefaults.value.translations,
-      presetScales: presetDefaults.value.scales,
-      presetParameters: presetParameters.value,
-    })
+    // Check projections
+    if (currentProjections) {
+      for (const [territoryCode, currentProjection] of Object.entries(currentProjections)) {
+        const presetProjection = presetDefaults.value.projections[territoryCode]
+        if (presetProjection && currentProjection !== presetProjection) {
+          return true
+        }
+      }
+    }
 
     // Check translations
     for (const [territoryCode, currentTranslation] of Object.entries(currentTranslations)) {
@@ -112,10 +122,6 @@ export function usePresetDefaults() {
           currentTranslation.x !== presetTranslation.x
           || currentTranslation.y !== presetTranslation.y
         ) {
-          console.log(`[usePresetDefaults] Translation divergence in ${territoryCode}:`, {
-            current: currentTranslation,
-            preset: presetTranslation,
-          })
           return true
         }
       }
@@ -125,10 +131,6 @@ export function usePresetDefaults() {
     for (const [territoryCode, currentScale] of Object.entries(currentScales)) {
       const presetScale = presetDefaults.value.scales[territoryCode]
       if (presetScale && currentScale !== presetScale) {
-        console.log(`[usePresetDefaults] Scale divergence in ${territoryCode}:`, {
-          current: currentScale,
-          preset: presetScale,
-        })
         return true
       }
     }
@@ -137,27 +139,28 @@ export function usePresetDefaults() {
     for (const [territoryCode, currentParams] of Object.entries(territoryParameters)) {
       const presetParams = presetParameters.value[territoryCode]
       if (presetParams) {
-        for (const [paramKey, currentValue] of Object.entries(currentParams)) {
+        // Get union of all parameter keys from both current and preset
+        const allParamKeys = new Set([
+          ...Object.keys(currentParams),
+          ...Object.keys(presetParams),
+        ])
+
+        for (const paramKey of allParamKeys) {
+          const currentValue = currentParams[paramKey]
           const presetValue = presetParams[paramKey as keyof ProjectionParameters]
 
           // Deep comparison for arrays and objects
           if (!areValuesEqual(currentValue, presetValue)) {
-            console.log(`[usePresetDefaults] Parameter divergence in ${territoryCode}.${paramKey}:`, {
-              current: currentValue,
-              preset: presetValue,
-            })
             return true
           }
         }
       }
       else {
         // Territory has parameters but no preset parameters - this is a divergence
-        console.log(`[usePresetDefaults] Territory ${territoryCode} has overrides but no preset parameters`)
         return true
       }
     }
 
-    console.log('[usePresetDefaults] No divergence detected')
     return false
   }
 

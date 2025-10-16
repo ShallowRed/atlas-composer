@@ -194,7 +194,6 @@ export class CompositeImportService {
             baseScale: territory.parameters.baseScale,
             scaleMultiplier: territory.parameters.scaleMultiplier,
           }
-          console.log(`[CompositeImportService] Applying parameters for ${territory.code}:`, params)
           parameterStore.setTerritoryParameters(territory.code, params)
         }
         catch (error) {

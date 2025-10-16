@@ -56,13 +56,8 @@ const currentPreset = computed({
         // Clear ALL existing parameter overrides first (from any previous preset or edits)
         // Get all territories from territory store, not just the new preset territories
         const allCurrentTerritoryCodes = Object.keys(territoryStore.territoryProjections)
-        console.log('[PresetSelector] Clearing overrides for territories:', allCurrentTerritoryCodes)
         allCurrentTerritoryCodes.forEach((territoryCode) => {
-          const paramsBefore = parameterStore.getTerritoryParameters(territoryCode)
-          console.log(`[PresetSelector] Before clear ${territoryCode}:`, paramsBefore)
           parameterStore.clearAllTerritoryOverrides(territoryCode)
-          const paramsAfter = parameterStore.getTerritoryParameters(territoryCode)
-          console.log(`[PresetSelector] After clear ${territoryCode}:`, paramsAfter)
         })
 
         // Store original preset defaults for reset functionality
@@ -89,14 +84,7 @@ const currentPreset = computed({
           parametersWithoutScale[code] = paramsWithoutScale
         })
 
-        console.log('[PresetSelector] Applying new territory parameters (without scale):', parametersWithoutScale)
         parameterStore.initializeFromPreset({}, parametersWithoutScale)
-
-        // Verify parameters were set
-        Object.keys(territoryParameters).forEach((territoryCode) => {
-          const appliedParams = parameterStore.getTerritoryParameters(territoryCode)
-          console.log(`[PresetSelector] After apply ${territoryCode}:`, appliedParams)
-        })
 
         // Log warnings if present but don't treat as errors
         if (result.warnings.length > 0) {

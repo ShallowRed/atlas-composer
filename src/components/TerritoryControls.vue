@@ -14,6 +14,7 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useViewState } from '@/composables/useViewState'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
+import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 
@@ -60,19 +61,30 @@ const { isCompositeCustomMode } = useViewState()
 // Parameter store for checking overrides
 const parameterStore = useParameterStore()
 
+// Config store for accessing all territories
+const configStore = useConfigStore()
+
+// GeoData store for accessing cartographer
+const geoDataStore = useGeoDataStore()
+
 // Preset defaults for checking divergence
 const presetDefaults = getSharedPresetDefaults()
 
 // Check if there are any parameters that differ from preset defaults
 const hasDivergingFromPreset = computed(() => {
   if (!presetDefaults.hasPresetDefaults()) {
-    console.log('[TerritoryControls] No preset defaults available')
     return false // No preset loaded, consider no divergence
   }
 
+  // Force reactivity on parameter changes
+  void parameterStore.territoryParametersVersion
+
   // Get all territory parameter overrides
+  // Need to check ALL territories including mainland, not just filtered territories
+  const allTerritoriesToCheck = configStore.atlasService.getAllTerritories() // Use ALL territories, not filteredTerritories
+
   const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
-  for (const territory of territories.value) {
+  for (const territory of allTerritoriesToCheck) {
     const territoryParams = parameterStore.getTerritoryParameters(territory.code)
     if (Object.keys(territoryParams).length > 0) {
       allTerritoryParameters[territory.code] = territoryParams
@@ -83,14 +95,8 @@ const hasDivergingFromPreset = computed(() => {
     translations.value,
     scales.value,
     allTerritoryParameters,
+    territoryProjections.value,
   )
-
-  console.log('[TerritoryControls] Reset button divergence check:', {
-    hasPresetDefaults: presetDefaults.hasPresetDefaults(),
-    result,
-    territoryCount: territories.value.length,
-    allTerritoryParameters,
-  })
 
   return result
 })
@@ -113,7 +119,6 @@ function updateScale(territoryCode: string, value: number) {
   setTerritoryScale(territoryCode, value)
 
   // Notify cartographer to update projection parameters for this territory
-  const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
@@ -135,7 +140,6 @@ function getProjectionFamily(territoryCode: string) {
 // Parameter control event handlers
 function handleParameterChange(territoryCode: string, _key: keyof ProjectionParameters, _value: unknown) {
   // Notify cartographer to update projection parameters for this territory
-  const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
@@ -143,7 +147,6 @@ function handleParameterChange(territoryCode: string, _key: keyof ProjectionPara
 
 function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionParameters) {
   // Notify cartographer to update projection parameters for this territory
-  const geoDataStore = useGeoDataStore()
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }

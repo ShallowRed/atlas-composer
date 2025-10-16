@@ -521,7 +521,6 @@ export class CompositeProjection {
         // If params.scale exists and differs from expected scale, user has overridden it
         // We should not overwrite it with the multiplier
         if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) {
-          console.log(`[CompositeProjection] updateScale skipped for ${territoryCode} - scale parameter override detected (expected=${expectedScale}, actual=${params.scale})`)
           return
         }
       }
@@ -558,18 +557,6 @@ export class CompositeProjection {
       // Get updated parameters from parameter provider
       const params = this.parameterProvider.getEffectiveParameters(territoryCode)
       const projection = subProj.projection
-
-      console.log(`[CompositeProjection] updateTerritoryParameters for ${territoryCode}:`, {
-        currentBaseScale: subProj.baseScale,
-        currentScaleMultiplier: subProj.scaleMultiplier,
-        currentProjectionScale: projection.scale(),
-        paramsScale: params.scale,
-        paramsBaseScale: params.baseScale,
-        paramsScaleMultiplier: params.scaleMultiplier,
-        paramsRotate: params.rotate,
-        paramsCenter: params.center,
-        paramsParallels: params.parallels,
-      })
 
       if (!projection) {
         console.error(`[CompositeProjection] Projection not found for territory ${territoryCode}`)

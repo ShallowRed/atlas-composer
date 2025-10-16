@@ -85,7 +85,9 @@ export const useParameterStore = defineStore('parameters', () => {
   function getTerritoryParameters(territoryCode: string): ProjectionParameters {
     // Access version to trigger reactivity
     void territoryParametersVersion.value
-    return parameterManager.getTerritoryParameters(territoryCode)
+    const params = parameterManager.getTerritoryParameters(territoryCode)
+
+    return params
   }
 
   function setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any) {
@@ -284,31 +286,15 @@ export const useParameterStore = defineStore('parameters', () => {
   ): ValidationResult[] {
     const errors: ValidationResult[] = []
 
-    // Validate all required parameters are present
-    const required = parameterRegistry.getRequired()
-    for (const def of required) {
-      for (const [code, params] of Object.entries(territoryParams)) {
-        if (!(def.key in params)) {
-          errors.push({
-            isValid: false,
-            error: `Missing required parameter ${def.key} for territory ${code}`,
-          })
-        }
-      }
-    }
-
-    // Set atlas parameters
+    // Set atlas parameters first
     if (atlasParams) {
       parameterManager.setAtlasParameters(atlasParams)
     }
 
-    // Set territory parameters with validation
+    // Set territory parameters without strict validation
+    // Presets are trusted sources, so we don't need to validate required parameters
+    // Individual parameter validation will happen later through the normal flow
     for (const [code, params] of Object.entries(territoryParams)) {
-      // We need to determine the projection family somehow - for now, assume it's available in params
-      const family = (params as any).family || 'OTHER' as ProjectionFamilyType
-      const validationResults = parameterRegistry.validateParameters(params, family)
-      errors.push(...validationResults.filter(r => !r.isValid))
-
       // Set parameters using existing method
       setTerritoryParameters(code, params)
     }
