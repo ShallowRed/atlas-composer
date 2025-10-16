@@ -343,8 +343,8 @@ export function useTerritoryCursor() {
 
     // Filter borders to only include territories that are currently filtered/visible
     const filteredTerritorycodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
-    const borders = allBorders.filter((border: any) => 
-      filteredTerritorycodes.has(border.territoryCode)
+    const borders = allBorders.filter((border: any) =>
+      filteredTerritorycodes.has(border.territoryCode),
     )
 
     const svgSelection = select(svg)
