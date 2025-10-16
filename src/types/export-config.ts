@@ -110,6 +110,9 @@ export interface BaseExportedConfig {
   /** Composite pattern type */
   pattern: CompositePattern
 
+  /** Base scale for all territories (defaults to 2700 for single-focus, 200 for equal-members) */
+  referenceScale?: number
+
   /** Array of territory configurations */
   territories: ExportedTerritory[]
 }

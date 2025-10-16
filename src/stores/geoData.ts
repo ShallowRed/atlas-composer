@@ -88,6 +88,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         compositeConfig,
         projectionParams,
         parameterProvider,
+        configStore.referenceScale,
       )
       await cartographer.value.init()
 

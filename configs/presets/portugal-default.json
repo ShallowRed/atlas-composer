@@ -8,7 +8,7 @@
     "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
   "pattern": "single-focus",
-  "referenceScale": 2700,
+  "referenceScale": 4200,
   "territories": [
     {
       "code": "PT-CONT",

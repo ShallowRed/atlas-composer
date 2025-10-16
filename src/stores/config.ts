@@ -70,6 +70,8 @@ export const useConfigStore = defineStore('config', () => {
   const projectionMode = ref<ProjectionMode>('individual')
   // Initialize with fallback, will be updated async with preset data
   const compositeProjection = ref<string>('conic-conformal-france')
+  // Reference scale from preset, will be updated async with preset data
+  const referenceScale = ref<number | undefined>(undefined)
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -152,6 +154,9 @@ export const useConfigStore = defineStore('config', () => {
         selectedProjection.value = updates.selectedProjection
         if (updates.compositeProjection) {
           compositeProjection.value = updates.compositeProjection
+        }
+        if (updates.referenceScale !== undefined) {
+          referenceScale.value = updates.referenceScale
         }
 
         // Update UI store
@@ -368,6 +373,9 @@ export const useConfigStore = defineStore('config', () => {
     if (updates.compositeProjection) {
       compositeProjection.value = updates.compositeProjection
     }
+    if (updates.referenceScale !== undefined) {
+      referenceScale.value = updates.referenceScale
+    }
   })
 
   return {
@@ -379,6 +387,7 @@ export const useConfigStore = defineStore('config', () => {
     viewMode,
     projectionMode,
     compositeProjection,
+    referenceScale,
     // Legacy parameter accessors - delegate to parameter store for backward compatibility
     customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
     customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),

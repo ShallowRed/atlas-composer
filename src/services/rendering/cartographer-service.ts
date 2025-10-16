@@ -60,6 +60,7 @@ export class Cartographer {
     compositeConfig?: CompositeProjectionConfig,
     projectionParams?: ProjectionParams,
     parameterProvider?: ProjectionParameterProvider,
+    referenceScale?: number,
   ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
@@ -72,7 +73,7 @@ export class Cartographer {
 
     // Only create CompositeProjection if config is provided
     if (compositeConfig) {
-      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider)
+      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale)
     }
   }
 

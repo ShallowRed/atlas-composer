@@ -26,7 +26,6 @@ export interface SingleFocusCompositeConfig {
   type: 'single-focus'
   mainland: TerritoryConfig
   overseasTerritories: TerritoryConfig[]
-  referenceScale?: number // Atlas-specific reference scale (defaults to 2700)
 }
 
 /**
@@ -41,7 +40,6 @@ export interface EqualMembersCompositeConfig {
   type: 'equal-members'
   mainlands: TerritoryConfig[]
   overseasTerritories: TerritoryConfig[]
-  referenceScale?: number // Atlas-specific reference scale (defaults to 200 for equal-members)
 }
 
 /**

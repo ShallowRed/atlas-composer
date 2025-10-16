@@ -1,14 +1,11 @@
 {
   "version": "1.0",
-  "name": {
-    "en": "Test Configuration",
-    "fr": "Configuration de test"
-  },
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",
-    "exportDate": "2025-10-13T09:01:03.526Z",
-    "createdWith": "Atlas composer v1.0"
+    "exportDate": "2025-10-14T13:04:45.672Z",
+    "createdWith": "Migration Script v1.0",
+    "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
@@ -26,26 +23,13 @@
         ],
         "rotate": [
           -3,
-          -46.2,
-          0
+          -46.2
         ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
         "parallels": [
-          -2,
-          2
-        ],
-        "translateOffset": [
           0,
-          0
+          60
         ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 2
       },
       "layout": {
         "translateOffset": [
@@ -78,35 +62,14 @@
       "code": "FR-GP",
       "name": "Guadeloupe",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -61.46,
           16.14
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 5292,
-        "baseScale": 3780,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          -324,
-          -38
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -139,35 +102,14 @@
       "code": "FR-MQ",
       "name": "Martinique",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -61.03,
           14.67
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 6912,
-        "baseScale": 4320,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          -324,
-          35
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -200,40 +142,19 @@
       "code": "FR-GF",
       "name": "Guyane",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -53.2,
           3.9
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 2754,
-        "baseScale": 1620,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          -324,
-          160
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
           -324,
-          160
+          155
         ],
         "clipExtent": [
           [
@@ -261,35 +182,14 @@
       "code": "FR-RE",
       "name": "La Réunion",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           55.52,
           -21.13
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 3888,
-        "baseScale": 3240,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          313,
-          -96
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -322,35 +222,14 @@
       "code": "FR-YT",
       "name": "Mayotte",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           45.16,
           -12.8
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 6912,
-        "baseScale": 4320,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          316,
-          -173
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -383,35 +262,14 @@
       "code": "FR-MF",
       "name": "Saint-Martin",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
-          -63.082,
-          18.067
+          -62.85,
+          17.92
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 67500,
-        "baseScale": 13500,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          -324,
-          -119
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -444,35 +302,14 @@
       "code": "FR-PM",
       "name": "Saint-Pierre-et-Miquelon",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -56.23,
           46.93
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 4563,
-        "baseScale": 3510,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          -324,
-          -176
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -505,35 +342,14 @@
       "code": "FR-WF",
       "name": "Wallis-et-Futuna",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -178.1,
           -14.3
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 19683,
-        "baseScale": 7290,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          313,
-          59
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -566,35 +382,14 @@
       "code": "FR-PF",
       "name": "Polynésie française",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -150.55,
           -17.11
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 675,
-        "baseScale": 1350,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          311,
-          203
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -627,35 +422,14 @@
       "code": "FR-PF-2",
       "name": "Polynésie française (îles éloignées)",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           -150.55,
           -17.11
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 9.72,
-        "baseScale": 162,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          297,
-          122
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -688,35 +462,14 @@
       "code": "FR-NC",
       "name": "Nouvelle-Calédonie",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           165.8,
           -21.07
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 243,
-        "baseScale": 810,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          313,
-          -13
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -749,35 +502,14 @@
       "code": "FR-TF",
       "name": "Terres australes et antarctiques françaises",
       "role": "secondary",
-      "projectionId": "mercator",
       "projectionFamily": "CYLINDRICAL",
+      "projectionId": "mercator",
       "parameters": {
         "center": [
           69.348,
           -49.28
         ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "scale": 27,
-        "baseScale": 270,
-        "scaleMultiplier": 1,
-        "parallels": [
-          0,
-          0
-        ],
-        "translateOffset": [
-          0,
-          250
-        ],
-        "translate": [
-          0,
-          0
-        ],
-        "clipAngle": null,
-        "precision": 0.1
+        "scaleMultiplier": 1
       },
       "layout": {
         "translateOffset": [
@@ -806,5 +538,54 @@
         ]
       ]
     }
-  ]
+  ],
+  "atlasMetadata": {
+    "compositeProjections": [
+      "conic-conformal-france"
+    ],
+    "projectionPreferences": {
+      "recommended": [
+        "conic-conformal",
+        "albers",
+        "conic-equal-area"
+      ],
+      "default": {
+        "mainland": "conic-conformal",
+        "overseas": "mercator"
+      },
+      "prohibited": [
+        "gnomonic",
+        "orthographic",
+        "conic-conformal-portugal",
+        "conic-conformal-europe"
+      ]
+    },
+    "projectionParameters": {
+      "center": {
+        "longitude": 2.5,
+        "latitude": 46.5
+      },
+      "rotate": {
+        "mainland": [
+          -2,
+          0
+        ],
+        "azimuthal": [
+          -2,
+          -46.5
+        ]
+      },
+      "parallels": {
+        "conic": [
+          44,
+          49
+        ]
+      }
+    },
+    "mapDisplayDefaults": {
+      "showGraticule": false,
+      "showCompositionBorders": false,
+      "showMapLimits": false
+    }
+  }
 }

@@ -122,7 +122,7 @@ First Render (preset values applied)
 
 **Composite Configuration**
 - `pattern`: Composite pattern type ("single-focus" or "equal-members")
-- `referenceScale`: Base scale for all territories
+- `referenceScale`: Base scale for all territories (authoritative source, overrides atlas config)
 
 **Territory Configuration**
 - `code`: Territory ISO code or identifier

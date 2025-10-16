@@ -18,6 +18,7 @@ export interface AtlasChangeResult {
   territoryParameters: Record<string, Record<string, unknown>>
   compositeProjection?: string
   selectedProjection: string
+  referenceScale?: number
   mapDisplay: {
     showGraticule: boolean
     showSphere: boolean
@@ -57,6 +58,7 @@ export class AtlasCoordinator {
     const territories = atlasService.getAllTerritories()
     let finalDefaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
     let territoryParameters: Record<string, Record<string, unknown>> = {}
+    let referenceScale: number | undefined
 
     // Load preset if available and in composite-custom mode
     if (config.defaultPreset && viewMode === 'composite-custom') {
@@ -73,6 +75,9 @@ export class AtlasCoordinator {
 
           // Extract territory-specific projection parameters from preset
           territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.preset)
+
+          // Extract referenceScale from preset
+          referenceScale = presetResult.preset.referenceScale
         }
         else {
           // Log warning but continue with fallback defaults
@@ -112,6 +117,7 @@ export class AtlasCoordinator {
       territoryParameters,
       compositeProjection,
       selectedProjection,
+      referenceScale,
       mapDisplay,
     }
   }

@@ -104,13 +104,6 @@
         ["portugal-default"]
       ]
     },
-    "referenceScale": {
-      "type": "number",
-      "minimum": 1,
-      "description": "Reference scale for this atlas. This is the base scale unit used for all territories when no preset is loaded. Different atlases can have different reference scales (e.g., 2700 for France, 4200 for Portugal). Follows d3-composite-projections pattern. Defaults to 2700 if not specified.",
-      "default": 2700,
-      "examples": [2700, 4200, 3000]
-    },
     "metadata": {
       "type": "object",
       "properties": {
