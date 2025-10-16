@@ -1,4 +1,5 @@
 import type { ViewMode } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -232,21 +233,13 @@ export const useConfigStore = defineStore('config', () => {
     const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.[0] ?? 30
     const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.[1] ?? 60
 
-    // Build result with atlas-compatible structure
+    // Build result with ProjectionParameters-compatible structure
     return {
-      center: {
-        longitude: centerLon,
-        latitude: centerLat,
-      },
-      rotate: {
-        mainland: [rotateLon, rotateLat] as [number, number],
-        azimuthal: [rotateLon, rotateLat] as [number, number],
-      },
-      parallels: {
-        conic: [parallel1, parallel2] as [number, number],
-      },
+      center: [centerLon, centerLat] as [number, number],
+      rotate: [rotateLon, rotateLat] as [number, number],
+      parallels: [parallel1, parallel2] as [number, number],
       scale: globalParams.scale ?? undefined,
-    }
+    } as ProjectionParameters
   })
 
   // Actions
@@ -323,6 +316,37 @@ export const useConfigStore = defineStore('config', () => {
     parameterStore.setGlobalParameter('parallels', undefined)
     parameterStore.setGlobalParameter('scale', undefined)
     rotateLatitudeLocked.value = true // Reset to locked state
+  }
+
+  // Individual parameter setters for backward compatibility
+  const setCustomRotateLongitude = (value: number | null) => {
+    const currentLatitude = parameterStore.globalParameters.rotate?.[1] ?? null
+    setCustomRotate(value, currentLatitude)
+  }
+
+  const setCustomRotateLatitude = (value: number | null) => {
+    const currentLongitude = parameterStore.globalParameters.rotate?.[0] ?? null
+    setCustomRotate(currentLongitude, value)
+  }
+
+  const setCustomCenterLongitude = (value: number | null) => {
+    const currentLatitude = parameterStore.globalParameters.center?.[1] ?? null
+    setCustomCenter(value, currentLatitude)
+  }
+
+  const setCustomCenterLatitude = (value: number | null) => {
+    const currentLongitude = parameterStore.globalParameters.center?.[0] ?? null
+    setCustomCenter(currentLongitude, value)
+  }
+
+  const setCustomParallel1 = (value: number | null) => {
+    const currentParallel2 = parameterStore.globalParameters.parallels?.[1] ?? null
+    setCustomParallels(value, currentParallel2)
+  }
+
+  const setCustomParallel2 = (value: number | null) => {
+    const currentParallel1 = parameterStore.globalParameters.parallels?.[0] ?? null
+    setCustomParallels(currentParallel1, value)
   }
 
   const initializeTheme = () => {
@@ -428,6 +452,13 @@ export const useConfigStore = defineStore('config', () => {
     setProjectionFittingMode,
     setRotateLatitudeLocked,
     resetProjectionParams,
+    // Individual parameter setters for backward compatibility
+    setCustomRotateLongitude,
+    setCustomRotateLatitude,
+    setCustomCenterLongitude,
+    setCustomCenterLatitude,
+    setCustomParallel1,
+    setCustomParallel2,
     initializeTheme,
     initializeWithPresetMetadata,
   }

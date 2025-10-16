@@ -341,13 +341,11 @@ function createAtlasConfig(
             type: 'single-focus',
             mainland: territories.mainland,
             overseasTerritories: territories.overseas,
-            referenceScale: (config as any).referenceScale,
           }
         : {
             type: 'equal-members',
             mainlands: territories.mainlands!,
             overseasTerritories: territories.overseas,
-            referenceScale: (config as any).referenceScale,
           },
     splitModeConfig: {
       mainlandTitle: territories.type === 'single-focus'
