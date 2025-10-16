@@ -155,15 +155,15 @@ export class CompositeImportService {
       try {
         config.territories.forEach((territory) => {
           const subProj = (compositeProjection as any).subProjections?.find((sp: any) => sp.territoryCode === territory.code)
-          if (subProj) {
-            // Critical: Set the baseScale to match the exported baseScale FIRST
+          if (subProj && territory.projection.parameters.scaleMultiplier !== undefined) {
+            // Critical: Set the baseScale to match the exported scaleMultiplier FIRST
             // This ensures the correct base value is used for all subsequent scale calculations
-            subProj.baseScale = territory.projection.parameters.baseScale
+            subProj.baseScale = territory.projection.parameters.scaleMultiplier
           }
         })
       }
       catch (error) {
-        console.warn('[CompositeImportService] Error setting baseScale values:', error)
+        console.warn('[CompositeImportService] Error setting scale values:', error)
       }
     }
 
@@ -176,23 +176,21 @@ export class CompositeImportService {
       territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
       territoryStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
 
-      // 3. Apply scale multiplier (AFTER baseScale is set above)
+      // 3. Apply scale multiplier (AFTER scale is set above)
       // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
       if (parameterStore) {
         parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.projection.parameters.scaleMultiplier)
       }
 
       // 4. Apply projection parameters to parameter store (if available)
-      // This includes center, rotate, parallels, scale, baseScale, scaleMultiplier
+      // This includes center, rotate, parallels, scale, scaleMultiplier
       if (parameterStore) {
         try {
           const params = {
-            center: territory.projection.parameters.center,
-            rotate: territory.projection.parameters.rotate,
-            parallels: territory.projection.parameters.parallels,
-            scale: territory.projection.parameters.scale,
-            baseScale: territory.projection.parameters.baseScale,
-            scaleMultiplier: territory.projection.parameters.scaleMultiplier,
+            center: territory.projection.parameters.center || [0, 0],
+            rotate: territory.projection.parameters.rotate || [0, 0, 0],
+            parallels: territory.projection.parameters.parallels || [30, 60],
+            scaleMultiplier: territory.projection.parameters.scaleMultiplier || 1,
           }
           parameterStore.setTerritoryParameters(territory.code, params)
         }

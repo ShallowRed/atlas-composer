@@ -21,15 +21,17 @@ describe('codeGenerator', () => {
         code: 'FR-MET',
         name: 'France Métropolitaine',
         role: 'primary',
-        projectionId: 'conic-conformal',
-        projectionFamily: 'conic',
-        parameters: {
-          center: [2.5, 46.5],
-          rotate: [-3, -46.2, 0],
-          parallels: [0, 60],
-          scale: 2700,
-          baseScale: 2700,
-          scaleMultiplier: 1.0,
+        projection: {
+          id: 'conic-conformal',
+          family: 'conic',
+          parameters: {
+            center: [2.5, 46.5],
+            rotate: [-3, -46.2, 0],
+            parallels: [0, 60],
+            scale: 2700,
+            baseScale: 2700,
+            scaleMultiplier: 1.0,
+          },
         },
         layout: {
           translateOffset: [0, 0],
@@ -44,13 +46,15 @@ describe('codeGenerator', () => {
         code: 'FR-GP',
         name: 'Guadeloupe',
         role: 'secondary',
-        projectionId: 'mercator',
-        projectionFamily: 'cylindrical',
-        parameters: {
-          center: [-61.46, 16.14],
-          scale: 3240,
-          baseScale: 3240,
-          scaleMultiplier: 1.0,
+        projection: {
+          id: 'mercator',
+          family: 'cylindrical',
+          parameters: {
+            center: [-61.46, 16.14],
+            scale: 3240,
+            baseScale: 3240,
+            scaleMultiplier: 1.0,
+          },
         },
         layout: {
           translateOffset: [100, -50],
@@ -79,15 +83,17 @@ describe('codeGenerator', () => {
         code: 'PT-MAIN',
         name: 'Portugal Continental',
         role: 'member',
-        projectionId: 'conic-conformal',
-        projectionFamily: 'conic',
-        parameters: {
-          center: [-8, 39.5],
-          rotate: [8, -39.5, 0],
-          parallels: [0, 60],
-          scale: 5400,
-          baseScale: 5400,
-          scaleMultiplier: 1.0,
+        projection: {
+          id: 'conic-conformal',
+          family: 'conic',
+          parameters: {
+            center: [-8, 39.5],
+            rotate: [8, -39.5, 0],
+            parallels: [0, 60],
+            scale: 5400,
+            baseScale: 5400,
+            scaleMultiplier: 1.0,
+          },
         },
         layout: {
           translateOffset: [0, 0],
@@ -102,13 +108,15 @@ describe('codeGenerator', () => {
         code: 'PT-MAD',
         name: 'Madeira',
         role: 'secondary',
-        projectionId: 'mercator',
-        projectionFamily: 'cylindrical',
-        parameters: {
-          center: [-16.9, 32.7],
-          scale: 6480,
-          baseScale: 6480,
-          scaleMultiplier: 1.0,
+        projection: {
+          id: 'mercator',
+          family: 'cylindrical',
+          parameters: {
+            center: [-16.9, 32.7],
+            scale: 6480,
+            baseScale: 6480,
+            scaleMultiplier: 1.0,
+          },
         },
         layout: {
           translateOffset: [-100, 150],
@@ -418,10 +426,11 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
-            projectionId: 'conic-equal-area',
           },
         ],
       }
+
+      config.territories[0]!.projection.id = 'conic-equal-area'
 
       const code = generator.generate(config, {
         format: 'd3',
@@ -440,10 +449,10 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
-            projectionId: 'transverse-mercator',
           },
         ],
       }
+      config.territories[0]!.projection.id = 'transverse-mercator'
 
       const code = generator.generate(config, {
         format: 'd3',
@@ -462,10 +471,10 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
-            projectionId: 'azimuthal-equal-area',
           },
         ],
       }
+      config.territories[0]!.projection.id = 'azimuthal-equal-area'
 
       const code = generator.generate(config, {
         format: 'd3',

@@ -3,9 +3,8 @@
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",
-    "exportDate": "2025-10-14T13:04:45.672Z",
-    "createdWith": "Migration Script v1.0",
-    "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
+    "exportDate": "2025-10-16T17:54:32.335Z",
+    "createdWith": "Atlas composer v1.0"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
@@ -27,7 +26,7 @@
             0,
             60
           ],
-          "scaleMultiplier": 2
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -35,16 +34,7 @@
           0,
           0
         ],
-        "clipExtent": [
-          [
-            -0.0996,
-            -0.0908
-          ],
-          [
-            0.0967,
-            0.0864
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -69,7 +59,7 @@
             -61.46,
             16.14
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1.4
         }
       },
       "layout": {
@@ -77,16 +67,7 @@
           -324,
           -38
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -111,7 +92,7 @@
             -61.03,
             14.64
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1.4
         }
       },
       "layout": {
@@ -119,16 +100,7 @@
           -324,
           35
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -143,7 +115,7 @@
     },
     {
       "code": "FR-GF",
-      "name": "French Guiana",
+      "name": "Guyane",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -153,7 +125,7 @@
             -53.1,
             3.93
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 0.56
         }
       },
       "layout": {
@@ -161,16 +133,7 @@
           -324,
           155
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -185,7 +148,7 @@
     },
     {
       "code": "FR-RE",
-      "name": "Réunion",
+      "name": "La Réunion",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -195,7 +158,7 @@
             55.53,
             -21.12
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 4.2
         }
       },
       "layout": {
@@ -203,16 +166,7 @@
           313,
           -96
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -237,7 +191,7 @@
             45.17,
             -12.78
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 10
         }
       },
       "layout": {
@@ -245,16 +199,7 @@
           316,
           -173
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -279,7 +224,7 @@
             -62.85,
             17.92
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 5
         }
       },
       "layout": {
@@ -287,16 +232,7 @@
           -324,
           -119
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -321,7 +257,7 @@
             -56.23,
             46.93
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1.3
         }
       },
       "layout": {
@@ -329,16 +265,7 @@
           -324,
           -176
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -371,16 +298,7 @@
           313,
           59
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -413,16 +331,7 @@
           311,
           203
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -455,16 +364,7 @@
           297,
           122
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -497,16 +397,7 @@
           313,
           -13
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -539,16 +430,7 @@
           0,
           250
         ],
-        "clipExtent": [
-          [
-            null,
-            null
-          ],
-          [
-            null,
-            null
-          ]
-        ]
+        "clipExtent": null
       },
       "bounds": [
         [
@@ -561,54 +443,5 @@
         ]
       ]
     }
-  ],
-  "atlasMetadata": {
-    "compositeProjections": [
-      "conic-conformal-france"
-    ],
-    "projectionPreferences": {
-      "recommended": [
-        "conic-conformal",
-        "albers",
-        "conic-equal-area"
-      ],
-      "default": {
-        "mainland": "conic-conformal",
-        "overseas": "mercator"
-      },
-      "prohibited": [
-        "gnomonic",
-        "orthographic",
-        "conic-conformal-portugal",
-        "conic-conformal-europe"
-      ]
-    },
-    "projectionParameters": {
-      "center": {
-        "longitude": 2.5,
-        "latitude": 46.5
-      },
-      "rotate": {
-        "mainland": [
-          -2,
-          0
-        ],
-        "azimuthal": [
-          -2,
-          -46.5
-        ]
-      },
-      "parallels": {
-        "conic": [
-          44,
-          49
-        ]
-      }
-    },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": false,
-      "showMapLimits": false
-    }
-  }
+  ]
 }

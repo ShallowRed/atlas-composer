@@ -21,12 +21,14 @@ describe('compositeImportService', () => {
         code: 'FRA',
         name: 'Mainland France',
         role: 'primary',
-        projectionId: 'azimuthal-equal-area',
-        projectionFamily: 'azimuthal',
-        parameters: {
-          center: [2.5, 47],
-          rotate: [-2.5, -47, 0],
-          scaleMultiplier: 1.0, // Use only current parameter system
+        projection: {
+          id: 'azimuthal-equal-area',
+          family: 'azimuthal',
+          parameters: {
+            center: [2.5, 47],
+            rotate: [-2.5, -47, 0],
+            scaleMultiplier: 1.0, // Use only current parameter system
+          },
         },
         layout: {
           translateOffset: [0, 0],
