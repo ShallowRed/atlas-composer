@@ -190,6 +190,15 @@ export class ParameterRegistry {
     const results: ValidationResult[] = []
 
     for (const [key, value] of Object.entries(params)) {
+      // Check if parameter is relevant for this projection family
+      const constraints = this.getConstraintsForFamily(key, family)
+
+      // Skip validation for irrelevant parameters
+      // They shouldn't produce errors or warnings
+      if (!constraints.relevant) {
+        continue
+      }
+
       const result = this.validate(key, value, family)
       if (!result.isValid || result.warning) {
         results.push(result)
