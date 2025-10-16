@@ -68,12 +68,12 @@ export class CompositeProjection {
         center: dynamicParams.center ?? configParams.center,
         rotate: dynamicParams.rotate ?? configParams.rotate,
         parallels: dynamicParams.parallels ?? configParams.parallels,
-        scale: dynamicParams.scale, // configParams doesn't have scale
+        scale: dynamicParams.scale, // For backward compatibility only - not used
         translate: dynamicParams.translate, // configParams doesn't have translate
         clipAngle: dynamicParams.clipAngle, // configParams doesn't have clipAngle
         precision: dynamicParams.precision, // configParams doesn't have precision
-        baseScale: dynamicParams.baseScale, // Extract baseScale from preset parameters
-        scaleMultiplier: dynamicParams.scaleMultiplier, // Extract scaleMultiplier from preset parameters
+        baseScale: dynamicParams.baseScale, // For backward compatibility only - not used
+        scaleMultiplier: dynamicParams.scaleMultiplier ?? 1.0, // The only scale value we actually use
       }
     }
     // Fallback to config params - convert TerritoryConfig to ProjectionParameters
@@ -145,26 +145,11 @@ export class CompositeProjection {
       (mainlandProjection as any).parallels(mainlandParams.parallels)
     }
 
-    // Determine scale values with proper preset support
-    // Priority: preset baseScale + scaleMultiplier > preset scale > reference scale
-    let mainlandBaseScale: number
-    let mainlandScaleMultiplier: number
-
-    if (mainlandParams.baseScale !== undefined && mainlandParams.scaleMultiplier !== undefined) {
-      // Preset provides both baseScale and scaleMultiplier - use them directly
-      mainlandBaseScale = mainlandParams.baseScale
-      mainlandScaleMultiplier = mainlandParams.scaleMultiplier
-    }
-    else if (mainlandParams.scale !== undefined) {
-      // Preset provides only scale - use it as baseScale with multiplier of 1.0
-      mainlandBaseScale = mainlandParams.scale
-      mainlandScaleMultiplier = 1.0
-    }
-    else {
-      // No preset - use reference scale
-      mainlandBaseScale = REFERENCE_SCALE
-      mainlandScaleMultiplier = 1.0
-    }
+    // Determine scale values
+    // baseScale always comes from referenceScale (not from preset)
+    // scaleMultiplier comes from preset parameter store (defaults to 1.0)
+    const mainlandBaseScale = REFERENCE_SCALE
+    const mainlandScaleMultiplier = mainlandParams.scaleMultiplier ?? 1.0
 
     mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
@@ -211,27 +196,13 @@ export class CompositeProjection {
         (projection as any).parallels(territoryParams.parallels)
       }
 
-      // Determine scale values with proper preset support
-      // Priority: preset baseScale + scaleMultiplier > preset scale > reference scale * baseScaleMultiplier
-      let territoryBaseScale: number
-      let territoryScaleMultiplier: number
-
-      if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
-        // Preset provides both baseScale and scaleMultiplier - use them directly
-        territoryBaseScale = territoryParams.baseScale
-        territoryScaleMultiplier = territoryParams.scaleMultiplier
-      }
-      else if (territoryParams.scale !== undefined) {
-        // Preset provides only scale - use it as baseScale with multiplier of 1.0
-        territoryBaseScale = territoryParams.scale
-        territoryScaleMultiplier = 1.0
-      }
-      else {
-        // No preset - calculate from reference scale and territory's baseScaleMultiplier
-        const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-        territoryBaseScale = REFERENCE_SCALE * baseMultiplier
-        territoryScaleMultiplier = 1.0
-      }
+      // Determine scale values
+      // baseScale always comes from referenceScale (not from preset)
+      // scaleMultiplier comes from preset parameter store (defaults to 1.0)
+      // Note: territory.baseScaleMultiplier is a config-level default for territories without presets
+      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+      const territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+      const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
@@ -291,22 +262,11 @@ export class CompositeProjection {
         (mainlandProjection as any).parallels(mainlandParams.parallels)
       }
 
-      // Determine scale values with proper preset support
-      let mainlandBaseScale: number
-      let mainlandScaleMultiplier: number
-
-      if (mainlandParams.baseScale !== undefined && mainlandParams.scaleMultiplier !== undefined) {
-        mainlandBaseScale = mainlandParams.baseScale
-        mainlandScaleMultiplier = mainlandParams.scaleMultiplier
-      }
-      else if (mainlandParams.scale !== undefined) {
-        mainlandBaseScale = mainlandParams.scale
-        mainlandScaleMultiplier = 1.0
-      }
-      else {
-        mainlandBaseScale = REFERENCE_SCALE
-        mainlandScaleMultiplier = 1.0
-      }
+      // Determine scale values
+      // baseScale always comes from referenceScale (not from preset)
+      // scaleMultiplier comes from preset parameter store (defaults to 1.0)
+      const mainlandBaseScale = REFERENCE_SCALE
+      const mainlandScaleMultiplier = mainlandParams.scaleMultiplier ?? 1.0
 
       mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
@@ -354,23 +314,13 @@ export class CompositeProjection {
         (projection as any).parallels(territoryParams.parallels)
       }
 
-      // Determine scale values with proper preset support
-      let territoryBaseScale: number
-      let territoryScaleMultiplier: number
-
-      if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
-        territoryBaseScale = territoryParams.baseScale
-        territoryScaleMultiplier = territoryParams.scaleMultiplier
-      }
-      else if (territoryParams.scale !== undefined) {
-        territoryBaseScale = territoryParams.scale
-        territoryScaleMultiplier = 1.0
-      }
-      else {
-        const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-        territoryBaseScale = REFERENCE_SCALE * baseMultiplier
-        territoryScaleMultiplier = 1.0
-      }
+      // Determine scale values
+      // baseScale always comes from referenceScale (not from preset)
+      // scaleMultiplier comes from preset parameter store (defaults to 1.0)
+      // Note: territory.baseScaleMultiplier is a config-level default for territories without presets
+      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
+      const territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+      const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
@@ -580,13 +530,8 @@ export class CompositeProjection {
       const newScale = subProj.baseScale * scaleMultiplier
       subProj.projection.scale(newScale)
 
-      // Also update the scale parameter in the parameter store to keep them in sync
-      if (this.parameterProvider) {
-        const paramStore = (this.parameterProvider as any).parameterStore
-        if (paramStore && paramStore.setTerritoryParameter) {
-          paramStore.setTerritoryParameter(territoryCode, 'scale', newScale)
-        }
-      }
+      // Note: scale is a computed value (baseScale × scaleMultiplier), never stored
+      // The scaleMultiplier is what's stored in the parameter store
       this.compositeProjection = null
     }
   }
@@ -662,19 +607,16 @@ export class CompositeProjection {
         }
       }
 
+      // CRITICAL: Update scaleMultiplier from params if provided
+      if (params.scaleMultiplier !== undefined && typeof params.scaleMultiplier === 'number' && !Number.isNaN(params.scaleMultiplier)) {
+        subProj.scaleMultiplier = params.scaleMultiplier
+      }
+
       // CRITICAL: Re-apply scale after updating parameters
       // Some D3 projections may reset scale when rotate/center/parallels are changed
-      // If params.scale is provided, use it directly (user changed the scale parameter)
-      // Otherwise, preserve the correct scale: baseScale * scaleMultiplier
-      let correctScale: number
-      if (params.scale !== undefined && typeof params.scale === 'number' && !Number.isNaN(params.scale)) {
-        // User has set a scale parameter override
-        correctScale = params.scale
-      }
-      else {
-        // Use baseScale * scaleMultiplier
-        correctScale = subProj.baseScale * subProj.scaleMultiplier
-      }
+      // Calculate scale from baseScale × scaleMultiplier (referenceScale is already in baseScale)
+      // Note: scale parameter is not user-editable - it's computed only
+      const correctScale = subProj.baseScale * subProj.scaleMultiplier
       projection.scale(correctScale)
 
       // Note: translate parameter is applied during build() to combine with territory positioning

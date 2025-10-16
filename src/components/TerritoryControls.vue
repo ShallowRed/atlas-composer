@@ -111,6 +111,12 @@ function updateTranslationY(territoryCode: string, value: number) {
 
 function updateScale(territoryCode: string, value: number) {
   setTerritoryScale(territoryCode, value)
+
+  // Notify cartographer to update projection parameters for this territory
+  const geoDataStore = useGeoDataStore()
+  if (geoDataStore.cartographer) {
+    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  }
 }
 
 // Alias for better naming in template

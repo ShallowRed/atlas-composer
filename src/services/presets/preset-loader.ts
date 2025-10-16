@@ -115,9 +115,13 @@ export class PresetLoader {
         const family = territory.projectionFamily as ProjectionFamilyType
 
         // Check required parameters - these are hard errors
+        // Only check parameters that are relevant for this projection family
         const required = parameterRegistry.getRequired()
         for (const def of required) {
-          if (def.requiresPreset && !(def.key in territory.parameters)) {
+          // Check if parameter is relevant for this projection family
+          const isRelevant = def.relevantFor === 'all' || (Array.isArray(def.relevantFor) && def.relevantFor.includes(family))
+
+          if (def.requiresPreset && isRelevant && !(def.key in territory.parameters)) {
             paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
           }
         }

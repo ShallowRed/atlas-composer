@@ -33,13 +33,13 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
   CYLINDRICAL: {
     center: {
       parameter: 'center',
-      relevant: false, // Uses rotation instead
+      relevant: true, // Cylindrical projections (Mercator) use center
       required: false,
       defaultValue: [0, 0],
     },
     rotate: {
       parameter: 'rotate',
-      relevant: true,
+      relevant: false, // Cylindrical projections use center, not rotate
       required: false,
       defaultValue: [0, 0, 0],
       validate: (value) => {
@@ -58,7 +58,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -100,7 +100,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     baseScale: {
       parameter: 'baseScale',
-      relevant: true, // Used internally for composite projections
+      relevant: false, // DEPRECATED - use referenceScale from atlas config
       required: false,
       min: 1,
       max: 100000,
@@ -155,7 +155,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -212,7 +212,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
   CONIC: {
     center: {
       parameter: 'center',
-      relevant: true,
+      relevant: false, // Conic projections use rotate, not center
       required: false,
       defaultValue: [0, 0],
       validate: (value) => {
@@ -231,7 +231,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     rotate: {
       parameter: 'rotate',
-      relevant: true,
+      relevant: true, // Conic projections use rotate
       required: false,
       defaultValue: [0, 0, 0],
       validate: (value) => {
@@ -269,7 +269,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -367,7 +367,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -455,7 +455,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -540,7 +540,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,
@@ -625,7 +625,7 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
     },
     scale: {
       parameter: 'scale',
-      relevant: true,
+      relevant: false, // Not user-editable - computed from referenceScale × scaleMultiplier
       required: false,
       min: 1,
       max: 100000,

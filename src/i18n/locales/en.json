@@ -74,7 +74,7 @@
     "position": "Position",
     "positionX": "Horizontal position (X)",
     "positionY": "Vertical position (Y)",
-    "scale": "Scale",
+    "scale": "Scale factor",
     "reset": "Reset all",
     "resetButton": "Reset",
     "mainland": "Mainland",

@@ -17,48 +17,48 @@ export function registerAllParameters(): void {
   parameterRegistry.register({
     key: 'center',
     displayName: 'Center',
-    description: 'Geographic center point [longitude, latitude]',
+    description: 'Geographic center point [longitude, latitude] - used by cylindrical and azimuthal projections',
     type: 'tuple2',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true,
+    requiresPreset: false, // Not always required - some projections use rotate instead
     constraints: (family: ProjectionFamilyType) => ({
       min: [-180, -90],
       max: [180, 90],
-      relevant: family !== 'CONIC' && family !== 'CYLINDRICAL' && family !== 'PSEUDOCYLINDRICAL',
+      relevant: family === 'CYLINDRICAL' || family === 'AZIMUTHAL',
     }),
-    relevantFor: ['AZIMUTHAL'],
+    relevantFor: ['CYLINDRICAL', 'AZIMUTHAL'],
   })
 
   parameterRegistry.register({
     key: 'rotate',
     displayName: 'Rotation',
-    description: 'Three-axis rotation [lambda, phi, gamma]',
+    description: 'Three-axis rotation [lambda, phi, gamma] - used by conic projections',
     type: 'tuple3',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true,
+    requiresPreset: false, // Not always required - some projections use center instead
     constraints: {
       min: [-180, -90, -180],
       max: [180, 90, 180],
     },
-    relevantFor: ['CONIC', 'CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'AZIMUTHAL'],
+    relevantFor: ['CONIC'],
   })
 
   parameterRegistry.register({
     key: 'parallels',
     displayName: 'Standard Parallels',
-    description: 'Standard parallels for conic projections [south, north]',
+    description: 'Standard parallels for conic projections [south, north] - only for conic projections',
     type: 'tuple2',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true,
+    requiresPreset: false, // Not required - only needed for conic projections
     constraints: (family: ProjectionFamilyType) => ({
       min: [-90, -90],
       max: [90, 90],
@@ -72,27 +72,27 @@ export function registerAllParameters(): void {
   parameterRegistry.register({
     key: 'baseScale',
     displayName: 'Base Scale',
-    description: 'Base scale value before multiplier',
+    description: 'Base scale value before multiplier - DEPRECATED, use referenceScale from atlas config',
     type: 'number',
     unit: 'scale',
     source: 'preset',
     mutable: false, // Not directly user-editable
-    exportable: true,
-    requiresPreset: true,
+    exportable: false, // Do not export - deprecated
+    requiresPreset: false, // Not required - deprecated, comes from referenceScale
     constraints: { min: 1, max: 100000 },
-    relevantFor: 'all',
+    relevantFor: [], // Not relevant - deprecated
   })
 
   parameterRegistry.register({
     key: 'scaleMultiplier',
     displayName: 'Scale Multiplier',
-    description: 'Scale adjustment factor',
+    description: 'Scale adjustment factor - the only scale parameter that should be in presets',
     type: 'number',
     unit: 'multiplier',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true,
+    requiresPreset: false, // Not required - defaults to 1.0
     constraints: { min: 0.01, max: 10, step: 0.01 },
     relevantFor: 'all',
   })
@@ -100,15 +100,15 @@ export function registerAllParameters(): void {
   parameterRegistry.register({
     key: 'scale',
     displayName: 'Scale',
-    description: 'Final scale value (computed or override)',
+    description: 'Final scale value (computed from referenceScale × scaleMultiplier) - exists only for preset backward compatibility',
     type: 'number',
     unit: 'scale',
     source: 'computed', // Computed from baseScale * scaleMultiplier
-    mutable: true, // Can override
-    exportable: true,
+    mutable: false, // Cannot be set by users - computed only
+    exportable: false, // Never exported - only scaleMultiplier is exported
     requiresPreset: false,
     constraints: { min: 1, max: 100000, step: 1 },
-    relevantFor: 'all',
+    relevantFor: [], // Not shown in UI - use scaleMultiplier instead
     computeDefault: (_territory) => {
       // This is a fallback - normally computed from other parameters
       return 2700
@@ -120,13 +120,13 @@ export function registerAllParameters(): void {
   parameterRegistry.register({
     key: 'translateOffset',
     displayName: 'Layout Position',
-    description: 'Territory position offset from map center [x, y]',
+    description: 'Territory position offset from map center [x, y] - stored in layout section of preset',
     type: 'tuple2',
     unit: 'pixels',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true,
+    requiresPreset: false, // Not required - defaults to [0, 0], stored in layout section not parameters
     constraints: { min: [-2000, -2000], max: [2000, 2000] },
     relevantFor: 'all',
   })
