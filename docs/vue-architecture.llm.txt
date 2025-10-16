@@ -21,13 +21,14 @@ src/
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
 │   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
-│   └── ui/                   # 27 reusable UI components organized in subdirectories
+│   └── ui/                   # 28 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
 │       ├── forms/            # Form controls and inputs
 │       ├── settings/         # Settings and preferences
 │       ├── projections/      # Projection-related components (3 components)
 │       ├── parameters/       # Parameter control components (3 components)
+│       ├── presets/          # Preset management components
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
 ├── composables/              # 11 composition functions including useViewState, useTerritoryCursor, useTerritoryParameters
@@ -210,6 +211,14 @@ App.vue
 **Export Components** (src/components/ui/export/):
 - **CompositeExportDialog**: Dialog for exporting composite configurations
 - **ToastNotification**: Toast notification display
+
+**Preset Components** (src/components/ui/presets/):
+- **PresetSelector**: Dropdown for manual preset selection and loading
+  - Displays available presets for current atlas with metadata-based labels
+  - Handles async preset loading, validation, and application to stores
+  - Integrates with parameter store and CompositeProjection for complete preset application
+  - Manages loading states and error display
+  - Critical feature: Updates CompositeProjection via `updateTerritoryParameters()` after parameter store changes
 
 **Composition Patterns**:
 - RangeSlider used in ProjectionParamsControls (6 instances) and TerritoryControls (3 instances)

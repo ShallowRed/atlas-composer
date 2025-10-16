@@ -516,6 +516,55 @@ Exported presets match import format:
 - Check `parameterStore.setTerritoryParameters()` receives extracted parameters
 - Verify parameter provider returns correct effective parameters
 - Ensure no race condition (preset loads after first render)
+- Verify `cartographer.updateTerritoryParameters()` called for each territory after parameter store update
+
+## Manual Preset Loading
+
+### PresetSelector Component
+
+The `PresetSelector` component (`src/components/ui/presets/PresetSelector.vue`) provides UI for manually loading different presets in composite-custom mode.
+
+**Functionality:**
+- Displays dropdown with available presets for current atlas
+- Loads preset metadata asynchronously for dropdown labels
+- Applies selected preset to stores and CompositeProjection
+- Handles loading states and error display
+
+**Preset Application Flow:**
+```typescript
+async function loadPreset(presetId: string) {
+  // 1. Load and validate preset file
+  const result = await PresetLoader.loadPreset(presetId)
+  
+  // 2. Convert to internal formats
+  const defaults = PresetLoader.convertToDefaults(result.preset)
+  const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
+  
+  // 3. Clear existing parameter overrides
+  allCurrentTerritoryCodes.forEach(code => {
+    parameterStore.clearAllTerritoryOverrides(code)
+  })
+  
+  // 4. Apply preset to stores
+  parameterStore.initializeFromPreset({}, parametersWithoutScale)
+  territoryStore.setTerritoryProjection(code, projection)
+  territoryStore.setTerritoryTranslation(code, axis, value)
+  parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
+  
+  // 5. CRITICAL: Update CompositeProjection with new parameters
+  Object.keys(parametersWithoutScale).forEach(territoryCode => {
+    cartographer.updateTerritoryParameters(territoryCode)
+  })
+}
+```
+
+**Key Integration Points:**
+- **Parameter Store Update**: Uses `initializeFromPreset()` to apply extracted parameters
+- **CompositeProjection Sync**: Calls `updateTerritoryParameters()` for each territory to re-read parameters from parameter store
+- **Scale Parameter Filtering**: Excludes computed `scale` parameter to prevent conflicts with `baseScale × scaleMultiplier` calculation
+- **Store Coordination**: Updates territory store (projections, translations) and parameter store (scaleMultiplier, other parameters) simultaneously
+
+**Critical Fix**: Manual preset loading requires explicit CompositeProjection update after parameter store changes. Without calling `updateTerritoryParameters()`, the CompositeProjection continues using previous parameter values despite the parameter store being updated correctly.
 
 ## Reset System
 

@@ -93,7 +93,7 @@ const currentPreset = computed({
         // The parameter store has been updated, but the CompositeProjection needs to re-read parameters
         if (geoDataStore.cartographer?.customComposite) {
           // Update each territory's parameters in the CompositeProjection
-          Object.keys(parametersWithoutScale).forEach(territoryCode => {
+          Object.keys(parametersWithoutScale).forEach((territoryCode) => {
             geoDataStore.cartographer?.updateTerritoryParameters(territoryCode)
           })
         }
