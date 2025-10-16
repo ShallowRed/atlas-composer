@@ -105,8 +105,8 @@ export class CompositeExportService {
    * @param atlasId - Atlas identifier (e.g., 'france', 'portugal')
    * @param atlasName - Atlas display name
    * @param compositeConfig - Original composite configuration for pattern info
-   * @param notesOrParameterProvider - Either notes string (legacy) or parameter provider object
-   * @param notes - Optional user notes (when parameter provider is passed as 5th param)
+   * @param parameterProvider - Parameter provider object for accessing territory parameters
+   * @param notes - Optional user notes
    * @returns Exportable configuration object
    */
   static exportToJSON(
@@ -114,28 +114,10 @@ export class CompositeExportService {
     atlasId: string,
     atlasName: string,
     compositeConfig: CompositeProjectionConfig,
-    notesOrParameterProvider?: string | ProjectionParameterProvider,
+    parameterProvider?: ProjectionParameterProvider,
     notes?: string,
   ): ExportedCompositeConfig {
-    // Handle backward compatibility: 5th param can be notes or parameter provider
-    let _parameterProvider: ProjectionParameterProvider | undefined
-    let actualNotes: string | undefined
-
-    if (typeof notesOrParameterProvider === 'string') {
-      // Legacy usage: 5th param is notes
-      actualNotes = notesOrParameterProvider
-      _parameterProvider = undefined
-    }
-    else {
-      // New usage: 5th param is parameter provider, 6th is notes
-      _parameterProvider = notesOrParameterProvider
-      actualNotes = notes
-    }
-
-    // TODO: Use _parameterProvider when CompositeProjection.exportConfig supports parameter providers
-
     // Get raw export from CompositeProjection
-    // TODO: Pass parameterProvider when CompositeProjection.exportConfig supports it
     const rawExport = compositeProjection.exportConfig()
 
     // Extract pattern from config
@@ -162,8 +144,6 @@ export class CompositeExportService {
         parameters: {
           center: roundTuple2(subProj.center),
           rotate: roundTuple3(subProj.rotate),
-          scale: roundNumber(subProj.scale),
-          baseScale: roundNumber(subProj.baseScale),
           scaleMultiplier: roundNumber(subProj.scaleMultiplier),
           // Extract parallels if available (for conic projections)
           parallels: roundTuple2(this.extractParallels(subProj)),
@@ -176,23 +156,19 @@ export class CompositeExportService {
       }
     })
 
-    // Calculate reference scale (use first territory's base scale)
-    const referenceScale = territories[0]?.parameters.baseScale || 2700
-
     // Create metadata
     const metadata: ExportMetadata = {
       atlasId,
       atlasName,
       exportDate: new Date().toISOString(),
       createdWith: APP_VERSION,
-      notes: actualNotes,
+      notes,
     }
 
     return {
       version: '1.0',
       metadata,
       pattern,
-      referenceScale,
       territories,
     }
   }
@@ -272,12 +248,7 @@ export class CompositeExportService {
           errors.push(`${prefix}: Missing parameters`)
         }
         else {
-          if (typeof territory.parameters.scale !== 'number') {
-            errors.push(`${prefix}: Invalid or missing scale`)
-          }
-          if (typeof territory.parameters.baseScale !== 'number') {
-            errors.push(`${prefix}: Invalid or missing baseScale`)
-          }
+          // Validate scaleMultiplier as required
           if (typeof territory.parameters.scaleMultiplier !== 'number') {
             errors.push(`${prefix}: Invalid or missing scaleMultiplier`)
           }

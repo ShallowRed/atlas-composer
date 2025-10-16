@@ -2,7 +2,7 @@
 
 ## Overview
 
-The preset system manages saved composite projection configurations that define how territories are projected, positioned, and scaled in composite atlas views. Presets store complete projection state including projection types, parameters (rotate, center, parallels, scale), layout (translation offsets, clip extents), and geographic bounds for each territory.
+The preset system manages saved composite projection configurations that define how territories are projected, positioned, and scaled in composite atlas views. Presets store complete projection state including projection types, parameters (rotate, center, parallels, scaleMultiplier), layout (translation offsets, clip extents), and geographic bounds for each territory.
 
 ## Architecture
 
@@ -22,10 +22,12 @@ The preset system manages saved composite projection configurations that define 
 - Returns extracted territory parameters for rendering
 
 **Parameter Store** (`src/stores/parameters.ts`)
-- Manages projection parameters (center, rotate, parallels, scale, etc.)
+- Manages projection parameters (center, rotate, parallels, scaleMultiplier, etc.)
+- Uses unified parameter system with single familyConstraints source of truth
 - Supports parameter inheritance (territory overrides global defaults)
 - Provides effective parameter resolution for each territory
 - Tracks parameter changes and triggers re-renders
+- Note: Deprecated scale/baseScale parameters removed, replaced with scaleMultiplier
 
 **Territory Store** (`src/stores/territory.ts`)
 - Manages territory-level state (projections, translations)
@@ -96,8 +98,6 @@ First Render (preset values applied)
       "parameters": {
         "center": [0, 0],
         "rotate": [-3, -46.2, 0],
-        "scale": 2700,
-        "baseScale": 2700,
         "scaleMultiplier": 1,
         "parallels": [-2, 2]
       },
@@ -135,9 +135,9 @@ First Render (preset values applied)
 - `center`: [longitude, latitude] - Projection center for cylindrical/azimuthal projections
 - `rotate`: [λ, φ, γ] - Three-axis rotation for conic projections
 - `parallels`: [φ1, φ2] - Standard parallels for conic projections
-- `scale`: Calculated final scale value (baseScale × scaleMultiplier)
-- `baseScale`: Base scale before multiplier application
-- `scaleMultiplier`: Scale adjustment factor (typically 0.5 - 2.0)
+- `scaleMultiplier`: Scale adjustment factor applied to atlas referenceScale (typically 0.5 - 2.0)
+
+**Note**: Deprecated `scale` and `baseScale` parameters removed - scale is now calculated as `referenceScale × scaleMultiplier`
 
 **Layout Properties** (`layout`)
 - `translateOffset`: [x, y] - Pixel offset from map center
@@ -538,7 +538,7 @@ Exported presets match import format:
 - `src/composables/useAtlasData.ts` - Atlas data initialization with preset sequencing
 
 **Validation:**
-- `src/services/parameters/parameter-constraints.ts` - Parameter validation rules
+- `src/core/parameters/parameter-registry.ts` - Unified parameter validation and constraints (replaces parameter-constraints.ts)
 
 **Preset Files:**
 - `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations

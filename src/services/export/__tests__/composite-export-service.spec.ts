@@ -124,10 +124,11 @@ describe('compositeExportService', () => {
       )
 
       const territory = exported.territories[0]
-      expect(territory?.parameters.scale).toBeDefined()
-      expect(typeof territory?.parameters.scale).toBe('number')
-      expect(territory?.parameters.baseScale).toBeDefined()
+      // Only scaleMultiplier should be exported, not deprecated scale/baseScale
+      expect(territory?.parameters.scale).toBeUndefined()
+      expect(territory?.parameters.baseScale).toBeUndefined()
       expect(territory?.parameters.scaleMultiplier).toBeDefined()
+      expect(typeof territory?.parameters.scaleMultiplier).toBe('number')
     })
 
     it('should include layout information', () => {
@@ -154,7 +155,8 @@ describe('compositeExportService', () => {
         'france',
         'France',
         mockSingleFocusConfig,
-        'Test export',
+        undefined, // parameterProvider
+        'Test export', // notes
       )
 
       expect(exported.metadata.exportDate).toBeDefined()
@@ -166,7 +168,7 @@ describe('compositeExportService', () => {
       expect(date.toString()).not.toBe('Invalid Date')
     })
 
-    it('should calculate reference scale from first territory', () => {
+    it('should include all territory configuration', () => {
       const compositeProj = new CompositeProjection(mockSingleFocusConfig)
 
       const exported = CompositeExportService.exportToJSON(
@@ -176,9 +178,10 @@ describe('compositeExportService', () => {
         mockSingleFocusConfig,
       )
 
-      expect(exported.referenceScale).toBeDefined()
-      expect(typeof exported.referenceScale).toBe('number')
-      expect(exported.referenceScale).toBeGreaterThan(0)
+      expect(exported.territories).toBeDefined()
+      expect(exported.territories.length).toBeGreaterThan(0)
+      expect(exported.pattern).toBeDefined()
+      expect(exported.metadata).toBeDefined()
     })
   })
 

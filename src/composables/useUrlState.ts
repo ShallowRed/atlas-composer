@@ -2,9 +2,9 @@ import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { useConfigStore } from '@/stores/config'
-import { useTerritoryStore } from '@/stores/territory'
-import { useParameterStore } from '@/stores/parameters'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
+import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Composable for managing application state in URL parameters

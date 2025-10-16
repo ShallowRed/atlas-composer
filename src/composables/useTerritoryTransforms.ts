@@ -63,7 +63,7 @@ export function useTerritoryTransforms() {
    */
   const scales = computed(() => {
     const scalesMap: Record<string, number> = {}
-    territories.value.forEach(t => {
+    territories.value.forEach((t) => {
       const params = parameterStore.getTerritoryParameters(t.code)
       scalesMap[t.code] = params.scaleMultiplier ?? 1.0
     })

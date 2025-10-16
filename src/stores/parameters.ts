@@ -21,7 +21,6 @@ import { computed, ref, watch } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
-import { UnifiedParameterConstraints } from '@/services/parameters/parameter-constraints'
 
 export const useParameterStore = defineStore('parameters', () => {
   // Internal parameter manager instance
@@ -142,21 +141,27 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   // Parameter validation
-  function validateParameter(
-    family: ProjectionFamilyType,
-    key: keyof ProjectionParameters,
-    value: any,
-  ): ParameterValidationResult {
-    return UnifiedParameterConstraints.validateParameter(family, key, value)
+  function validateParameter(family: ProjectionFamilyType, key: keyof ProjectionParameters, value: any): ParameterValidationResult {
+    const result = parameterRegistry.validate(key as string, value, family)
+    return {
+      isValid: result.isValid,
+      error: result.error,
+      warning: result.warning,
+    }
   }
 
-  function validateParameters(family: ProjectionFamilyType, parameters: ProjectionParameters): ParameterValidationResult[] {
-    return UnifiedParameterConstraints.validateParameterSet(family, parameters)
+  function validateParameterSet(family: ProjectionFamilyType, parameters: Partial<ProjectionParameters>): ParameterValidationResult[] {
+    const results = parameterRegistry.validateParameters(parameters, family)
+    return results.map(result => ({
+      isValid: result.isValid,
+      error: result.error,
+      warning: result.warning,
+    }))
   }
 
   function validateTerritoryParameters(territoryCode: string, family: ProjectionFamilyType) {
     const parameters = getEffectiveParameters(territoryCode)
-    const results = validateParameters(family, parameters)
+    const results = validateParameterSet(family, parameters)
 
     if (results.length > 0) {
       validationErrors.value.set(territoryCode, results)
@@ -170,11 +175,30 @@ export const useParameterStore = defineStore('parameters', () => {
 
   // Parameter constraints
   function getParameterConstraints(family: ProjectionFamilyType) {
-    return UnifiedParameterConstraints.getParameterConstraints(family)
+    const relevant = parameterRegistry.getRelevant(family)
+
+    return {
+      family,
+      constraints: relevant.reduce((acc, def) => {
+        const familyConstraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
+        acc[def.key] = {
+          parameter: def.key,
+          relevant: familyConstraints.relevant,
+          required: familyConstraints.required,
+          min: familyConstraints.min,
+          max: familyConstraints.max,
+          step: familyConstraints.step,
+          // Get default value from family constraints or fall back to parameter definition
+          defaultValue: def.familyConstraints?.[family]?.defaultValue ?? def.defaultValue,
+        }
+        return acc
+      }, {} as any),
+    }
   }
 
   function isParameterRelevant(family: ProjectionFamilyType, key: keyof ProjectionParameters): boolean {
-    return UnifiedParameterConstraints.isParameterRelevant(family, key)
+    const constraints = parameterRegistry.getConstraintsForFamily(key as string, family)
+    return constraints.relevant || false
   }
 
   // Computed properties for common use cases
@@ -349,7 +373,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
     // Validation
     validateParameter,
-    validateParameters,
+    validateParameterSet,
     validateTerritoryParameters,
 
     // Constraints

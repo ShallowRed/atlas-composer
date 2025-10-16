@@ -193,7 +193,7 @@ App.vue
   - Uses dynamic projection family detection via projectionRegistry
   - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
   - Parameter groups: Position (center/rotate), Projection-specific (parallels), View & Scale (projection scale/clipAngle), Advanced (precision/translate)
-  - Validation feedback with real-time error/warning display via `UnifiedParameterConstraints`
+  - Validation feedback with real-time error/warning display via `ParameterRegistry`
   - Parameter inheritance indicators and override functionality
   - Reset controls for clearing territory-specific overrides
 - **ParameterControlGroup**: Reusable parameter control group wrapper

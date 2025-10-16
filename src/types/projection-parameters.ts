@@ -21,9 +21,6 @@ export interface ProjectionParameters {
   /** Standard parallels for conic projections [south, north] */
   parallels?: [number, number]
 
-  /** Current scale value */
-  scale?: number
-
   /** Translation offset [x, y] in pixels */
   translate?: [number, number]
 
@@ -36,17 +33,14 @@ export interface ProjectionParameters {
   /** Precision for adaptive sampling */
   precision?: number
 
-  // Optional metadata fields (for backward compatibility and extended functionality)
+  // Optional metadata fields for extended functionality
   /** Projection family for parameter validation */
   family?: ProjectionFamilyType
 
   /** Projection ID from registry */
   projectionId?: string
 
-  /** Base scale before user adjustments (used in export/import) */
-  baseScale?: number
-
-  /** User's scale multiplier (scale = baseScale * scaleMultiplier) */
+  /** User's scale multiplier applied to atlas referenceScale */
   scaleMultiplier?: number
 
   // Index signature to allow dynamic property access (for parameter management)

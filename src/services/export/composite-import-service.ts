@@ -4,22 +4,18 @@
  * Handles importing composite projection configurations from JSON format.
  * Provides functionality to:
  * - Parse and validate imported JSON files
- * - Migrate configurations to current version
  * - Convert exported configs back to application format
  * - Apply imported configurations to stores
  */
 
-import type { AnyVersionConfig, ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
+import type { ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
 import { CompositeExportService } from './composite-export-service'
-import { ConfigMigrator } from './config-migrator'
 
 export interface ImportResult {
   success: boolean
   config?: ExportedCompositeConfig
   errors: string[]
   warnings: string[]
-  migrated?: boolean
-  fromVersion?: string
 }
 
 /**
@@ -28,7 +24,6 @@ export interface ImportResult {
 export class CompositeImportService {
   /**
    * Parse and validate a JSON string as ExportedCompositeConfig
-   * Automatically migrates old versions to current version
    *
    * @param jsonString - JSON string to parse
    * @returns Import result with parsed config and validation messages
@@ -36,13 +31,11 @@ export class CompositeImportService {
   static importFromJSON(jsonString: string): ImportResult {
     const errors: string[] = []
     const warnings: string[] = []
-    let migrated = false
-    let fromVersion: string | undefined
 
     // Try to parse JSON
-    let parsedConfig: AnyVersionConfig
+    let config: ExportedCompositeConfig
     try {
-      parsedConfig = JSON.parse(jsonString)
+      config = JSON.parse(jsonString)
     }
     catch (error) {
       return {
@@ -52,47 +45,7 @@ export class CompositeImportService {
       }
     }
 
-    // Check if migration is needed
-    let config: ExportedCompositeConfig
-    if (ConfigMigrator.needsMigration(parsedConfig)) {
-      fromVersion = parsedConfig.version
-
-      // Check if migration is possible
-      if (!ConfigMigrator.canMigrate(parsedConfig)) {
-        return {
-          success: false,
-          errors: [`Cannot migrate configuration from version ${parsedConfig.version}`],
-          warnings: [],
-          fromVersion,
-        }
-      }
-
-      // Perform migration
-      const migrationResult = ConfigMigrator.migrateToCurrentVersion(parsedConfig)
-
-      if (!migrationResult.success) {
-        return {
-          success: false,
-          errors: migrationResult.errors,
-          warnings: migrationResult.warnings,
-          fromVersion,
-        }
-      }
-
-      config = migrationResult.config!
-      migrated = true
-      warnings.push(...migrationResult.warnings)
-
-      // Add info message about migration
-      if (migrationResult.messages.length > 0) {
-        warnings.push(`Configuration migrated from v${fromVersion} to v${config.version}`)
-      }
-    }
-    else {
-      config = parsedConfig as ExportedCompositeConfig
-    }
-
-    // Validate the configuration (after migration if needed)
+    // Validate the configuration
     const validation = CompositeExportService.validateExportedConfig(config)
 
     errors.push(...validation.errors)
@@ -106,8 +59,6 @@ export class CompositeImportService {
       config: success ? config : undefined,
       errors,
       warnings,
-      migrated,
-      fromVersion,
     }
   }
 
@@ -282,8 +233,8 @@ export class CompositeImportService {
             compositeProjection.updateTranslationOffset(territory.code, territory.layout.translateOffset)
           }
 
-          // Apply the scale multiplier (baseScale was already set above)
-          if (typeof compositeProjection.updateScale === 'function') {
+          // Apply the scale multiplier
+          if (typeof compositeProjection.updateScale === 'function' && territory.parameters.scaleMultiplier !== undefined) {
             compositeProjection.updateScale(territory.code, territory.parameters.scaleMultiplier)
           }
         })

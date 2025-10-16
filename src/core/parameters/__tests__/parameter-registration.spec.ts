@@ -28,9 +28,10 @@ describe('parameter registration system', () => {
   })
 
   it('should have all scale parameters', () => {
-    expect(parameterRegistry.get('scale')).toBeDefined()
-    expect(parameterRegistry.get('baseScale')).toBeDefined()
     expect(parameterRegistry.get('scaleMultiplier')).toBeDefined()
+    // scale and baseScale are deprecated and removed
+    expect(parameterRegistry.get('scale')).toBeUndefined()
+    expect(parameterRegistry.get('baseScale')).toBeUndefined()
   })
 
   it('should have all translation parameters', () => {
@@ -65,13 +66,15 @@ describe('parameter registration system', () => {
     const exportable = parameterRegistry.getExportable()
     const required = parameterRegistry.getRequired()
 
-    // All core parameters should be exportable
+    // Core parameters should be exportable (except deprecated scale parameters)
     const exportableKeys = exportable.map(p => p.key)
     expect(exportableKeys).toContain('center')
     expect(exportableKeys).toContain('rotate')
     expect(exportableKeys).toContain('parallels')
-    expect(exportableKeys).toContain('scale')
-    expect(exportableKeys).toContain('baseScale')
+    // scale and baseScale are deprecated and should NOT be exportable
+    expect(exportableKeys).not.toContain('scale')
+    expect(exportableKeys).not.toContain('baseScale')
+    // Only scaleMultiplier should be exportable for scale adjustments
     expect(exportableKeys).toContain('scaleMultiplier')
     expect(exportableKeys).toContain('translateOffset')
     expect(exportableKeys).toContain('translate')
@@ -83,7 +86,6 @@ describe('parameter registration system', () => {
     expect(requiredKeys).toContain('center')
     expect(requiredKeys).toContain('rotate')
     expect(requiredKeys).toContain('parallels')
-    expect(requiredKeys).toContain('baseScale')
     expect(requiredKeys).toContain('scaleMultiplier')
     expect(requiredKeys).toContain('translateOffset')
 
@@ -127,19 +129,17 @@ describe('parameter registration system', () => {
     })
 
     it('should validate scale parameters correctly', () => {
-      // Base scale
-      const validBase = parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')
-      expect(validBase.isValid).toBe(true)
-
-      const invalidBase = parameterRegistry.validate('baseScale', 50, 'CYLINDRICAL')
-      expect(invalidBase.isValid).toBe(false)
-
-      // Scale multiplier
+      // Scale multiplier (only remaining scale parameter)
       const validMult = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
       expect(validMult.isValid).toBe(true)
 
       const invalidMult = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
       expect(invalidMult.isValid).toBe(false)
+
+      // Deprecated parameters should return unknown parameter error
+      const baseScaleResult = parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')
+      expect(baseScaleResult.isValid).toBe(false)
+      expect(baseScaleResult.error).toContain('Unknown parameter')
     })
 
     it('should validate clipAngle relevance correctly', () => {
@@ -175,8 +175,8 @@ describe('parameter registration system', () => {
       const azimuthalDefaults = parameterRegistry.getDefaults(mockTerritory, 'AZIMUTHAL')
       expect(azimuthalDefaults.clipAngle).toBe(90)
 
-      // Should have computed default for scale (available to all families)
-      expect(cylindricalDefaults.scale).toBe(2700)
+      // Should have default for scaleMultiplier (available to all families)
+      expect(cylindricalDefaults.scaleMultiplier).toBe(1.0)
     })
   })
 
@@ -187,17 +187,18 @@ describe('parameter registration system', () => {
     expect(parameterRegistry.get('scaleMultiplier')?.mutable).toBe(true)
     expect(parameterRegistry.get('translate')?.mutable).toBe(true)
 
-    // Non-user-editable parameters
-    expect(parameterRegistry.get('baseScale')?.mutable).toBe(false)
+    // User-editable parameters
+    expect(parameterRegistry.get('scaleMultiplier')?.mutable).toBe(true)
   })
 
   it('should have correct parameter sources', () => {
     // Preset parameters
     expect(parameterRegistry.get('center')?.source).toBe('preset')
-    expect(parameterRegistry.get('baseScale')?.source).toBe('preset')
+    expect(parameterRegistry.get('scaleMultiplier')?.source).toBe('preset')
     expect(parameterRegistry.get('translateOffset')?.source).toBe('preset')
 
-    // Computed parameters
-    expect(parameterRegistry.get('scale')?.source).toBe('computed')
+    // Deprecated parameters should no longer be registered
+    expect(parameterRegistry.get('scale')).toBeUndefined()
+    expect(parameterRegistry.get('baseScale')).toBeUndefined()
   })
 })

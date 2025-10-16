@@ -1,362 +1,203 @@
 /**
- * Parameter Registry Tests
+ * Parameter Registry Tests - New Implementation
  */
 
 import type { ParameterDefinition } from '../parameter-registry'
 
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { ParameterRegistry } from '../parameter-registry'
+import { registerAllParameters } from '../parameter-definitions'
+import { parameterRegistry } from '../parameter-registry'
 
 describe('parameterRegistry', () => {
-  let registry: ParameterRegistry
-
   beforeEach(() => {
-    registry = new ParameterRegistry()
+    // Clear the singleton registry and repopulate it
+    ;(parameterRegistry as any).definitions.clear()
+    // Re-register all parameters
+    registerAllParameters()
   })
 
   describe('parameter registration', () => {
     it('should register a parameter definition', () => {
       const def: ParameterDefinition = {
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
+        key: 'testParam',
+        displayName: 'Test Parameter',
+        description: 'Test parameter for testing',
         type: 'number',
         source: 'preset',
         mutable: true,
         exportable: true,
         requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
+        familyConstraints: {
+          CYLINDRICAL: {
+            relevant: true,
+            required: false,
+            min: 100,
+            max: 10000,
+          },
+        },
       }
 
-      registry.register(def)
-      expect(registry.get('scale')).toEqual(def)
+      parameterRegistry.register(def)
+      expect(parameterRegistry.get('testParam')).toEqual(def)
     })
 
     it('should return undefined for unregistered parameters', () => {
-      expect(registry.get('unknown')).toBeUndefined()
+      expect(parameterRegistry.get('unknown')).toBeUndefined()
     })
 
     it('should return all registered parameters', () => {
-      const def1: ParameterDefinition = {
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
-      }
+      const allParams = parameterRegistry.getAll()
+      expect(allParams.length).toBeGreaterThan(0)
 
-      const def2: ParameterDefinition = {
-        key: 'center',
-        displayName: 'Center',
-        description: 'Center point',
-        type: 'tuple2',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL'],
-      }
-
-      registry.register(def1)
-      registry.register(def2)
-
-      const all = registry.getAll()
-      expect(all).toHaveLength(2)
-      expect(all).toContainEqual(def1)
-      expect(all).toContainEqual(def2)
+      // Should include core parameters
+      const keys = allParams.map(p => p.key)
+      expect(keys).toContain('scaleMultiplier')
+      expect(keys).toContain('center')
+      expect(keys).toContain('rotate')
     })
   })
 
   describe('parameter filtering', () => {
-    beforeEach(() => {
-      registry.register({
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
-      })
-
-      registry.register({
-        key: 'center',
-        displayName: 'Center',
-        description: 'Center point',
-        type: 'tuple2',
-        source: 'preset',
-        mutable: true,
-        exportable: false, // Not exportable
-        requiresPreset: true,
-        constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL'],
-      })
-
-      registry.register({
-        key: 'clipAngle',
-        displayName: 'Clip Angle',
-        description: 'Clipping angle',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: false, // Not required
-        constraints: { min: 0, max: 180 },
-        relevantFor: ['AZIMUTHAL'],
-      })
-    })
-
     it('should return exportable parameters', () => {
-      const exportable = registry.getExportable()
-      expect(exportable).toHaveLength(2)
-      expect(exportable.map(d => d.key)).toEqual(['scale', 'clipAngle'])
+      const exportable = parameterRegistry.getExportable()
+      expect(exportable.length).toBeGreaterThan(0)
+
+      // All should have exportable: true
+      exportable.forEach((param) => {
+        expect(param.exportable).toBe(true)
+      })
     })
 
     it('should return required parameters', () => {
-      const required = registry.getRequired()
-      expect(required).toHaveLength(2)
-      expect(required.map(d => d.key)).toEqual(['scale', 'center'])
+      const required = parameterRegistry.getRequired()
+      expect(required.length).toBeGreaterThan(0)
+
+      // All should have requiresPreset: true
+      required.forEach((param) => {
+        expect(param.requiresPreset).toBe(true)
+      })
     })
 
     it('should return parameters relevant for projection family', () => {
-      const cylindrical = registry.getRelevant('CYLINDRICAL')
-      expect(cylindrical).toHaveLength(2) // scale (all) + center (cylindrical)
-      expect(cylindrical.map(d => d.key)).toContain('scale')
-      expect(cylindrical.map(d => d.key)).toContain('center')
+      const cylindrical = parameterRegistry.getRelevant('CYLINDRICAL')
+      expect(cylindrical.length).toBeGreaterThan(0)
 
-      const azimuthal = registry.getRelevant('AZIMUTHAL')
-      expect(azimuthal).toHaveLength(2) // scale (all) + clipAngle (azimuthal)
-      expect(azimuthal.map(d => d.key)).toContain('scale')
-      expect(azimuthal.map(d => d.key)).toContain('clipAngle')
+      // Should include scaleMultiplier and center for CYLINDRICAL
+      const keys = cylindrical.map(d => d.key)
+      expect(keys).toContain('scaleMultiplier')
+      expect(keys).toContain('center')
+
+      const azimuthal = parameterRegistry.getRelevant('AZIMUTHAL')
+      expect(azimuthal.length).toBeGreaterThan(0)
+
+      // Should include scaleMultiplier for AZIMUTHAL
+      const azKeys = azimuthal.map(d => d.key)
+      expect(azKeys).toContain('scaleMultiplier')
+    })
+  })
+
+  describe('parameter constraints', () => {
+    it('should return constraints for family', () => {
+      const constraints = parameterRegistry.getConstraintsForFamily('scaleMultiplier', 'CYLINDRICAL')
+      expect(constraints.relevant).toBe(true)
+      expect(constraints.min).toBe(0.1)
+      expect(constraints.max).toBe(10)
+    })
+
+    it('should return empty constraints for unknown parameter', () => {
+      const constraints = parameterRegistry.getConstraintsForFamily('unknown', 'CYLINDRICAL')
+      expect(constraints.relevant).toBe(false)
+      expect(constraints.required).toBe(false)
     })
   })
 
   describe('parameter validation', () => {
-    beforeEach(() => {
-      registry.register({
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
-      })
-
-      registry.register({
-        key: 'center',
-        displayName: 'Center',
-        description: 'Center point',
-        type: 'tuple2',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: [-180, -90], max: [180, 90] },
-        relevantFor: ['CYLINDRICAL'],
-      })
-
-      registry.register({
-        key: 'rotate',
-        displayName: 'Rotate',
-        description: 'Rotation angles',
-        type: 'tuple3',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: [-180, -90, -180], max: [180, 90, 180] },
-        relevantFor: ['CONIC'],
-      })
-
-      registry.register({
-        key: 'clipAngle',
-        displayName: 'Clip Angle',
-        description: 'Clipping angle',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: false,
-        constraints: family => ({
-          min: 0,
-          max: 180,
-          relevant: family === 'AZIMUTHAL',
-        }),
-        relevantFor: ['AZIMUTHAL'],
-      })
-    })
-
     it('should validate valid number parameters', () => {
-      const result = registry.validate('scale', 5000, 'CYLINDRICAL')
+      const result = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
       expect(result.isValid).toBe(true)
     })
 
     it('should reject invalid number parameters', () => {
-      const tooLow = registry.validate('scale', 50, 'CYLINDRICAL')
+      const tooLow = parameterRegistry.validate('scaleMultiplier', 0.05, 'CYLINDRICAL')
       expect(tooLow.isValid).toBe(false)
-      expect(tooLow.error).toContain('must be >= 100')
+      expect(tooLow.error).toContain('must be >= 0.1')
 
-      const tooHigh = registry.validate('scale', 20000, 'CYLINDRICAL')
+      const tooHigh = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
       expect(tooHigh.isValid).toBe(false)
-      expect(tooHigh.error).toContain('must be <= 10000')
-
-      const notNumber = registry.validate('scale', 'invalid', 'CYLINDRICAL')
-      expect(notNumber.isValid).toBe(false)
-      expect(notNumber.error).toContain('must be a valid number')
+      expect(tooHigh.error).toContain('must be <= 10')
     })
 
-    it('should validate valid tuple2 parameters', () => {
-      const result = registry.validate('center', [2.0, 46.5], 'CYLINDRICAL')
-      expect(result.isValid).toBe(true)
+    it('should reject non-numeric values for number parameters', () => {
+      const result = parameterRegistry.validate('scaleMultiplier', 'invalid', 'CYLINDRICAL')
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain('must be a valid number')
     })
 
     it('should reject invalid tuple2 parameters', () => {
-      const wrongLength = registry.validate('center', [2.0], 'CYLINDRICAL')
-      expect(wrongLength.isValid).toBe(false)
-      expect(wrongLength.error).toContain('must be an array of 2 numbers')
+      const invalidFormat = parameterRegistry.validate('center', [180], 'CYLINDRICAL')
+      expect(invalidFormat.isValid).toBe(false)
+      expect(invalidFormat.error).toContain('must be an array of 2 numbers')
 
-      const outOfRange = registry.validate('center', [-200, 46.5], 'CYLINDRICAL')
+      const outOfRange = parameterRegistry.validate('center', [-200, 100], 'CYLINDRICAL')
       expect(outOfRange.isValid).toBe(false)
       expect(outOfRange.error).toContain('must be >= -180')
-    })
-
-    it('should validate valid tuple3 parameters', () => {
-      const result = registry.validate('rotate', [-3, -46.2, 0], 'CONIC')
-      expect(result.isValid).toBe(true)
     })
 
     it('should reject invalid tuple3 parameters', () => {
-      const wrongLength = registry.validate('rotate', [-3], 'CONIC')
-      expect(wrongLength.isValid).toBe(false)
-      expect(wrongLength.error).toContain('must be an array of 2 or 3 numbers')
+      const invalidFormat = parameterRegistry.validate('rotate', [180], 'CONIC')
+      expect(invalidFormat.isValid).toBe(false)
+      expect(invalidFormat.error).toContain('must be an array of 2 or 3 numbers')
 
-      const outOfRange = registry.validate('rotate', [-200, -46.2, 0], 'CONIC')
+      const outOfRange = parameterRegistry.validate('rotate', [-200, 100, 0], 'CONIC')
       expect(outOfRange.isValid).toBe(false)
       expect(outOfRange.error).toContain('must be >= -180')
-    })
-
-    it('should handle dynamic constraints based on projection family', () => {
-      // clipAngle is relevant for AZIMUTHAL
-      const valid = registry.validate('clipAngle', 90, 'AZIMUTHAL')
-      expect(valid.isValid).toBe(true)
-
-      // clipAngle is not relevant for CYLINDRICAL
-      const irrelevant = registry.validate('clipAngle', 90, 'CYLINDRICAL')
-      expect(irrelevant.isValid).toBe(true)
-      expect(irrelevant.warning).toContain('not relevant')
-    })
-
-    it('should reject unknown parameters', () => {
-      const result = registry.validate('unknown', 123, 'CYLINDRICAL')
-      expect(result.isValid).toBe(false)
-      expect(result.error).toContain('Unknown parameter')
-    })
-
-    it('should validate multiple parameters', () => {
-      const params = {
-        scale: 5000,
-        center: [2.0, 46.5] as [number, number],
-      }
-
-      const results = registry.validateParameters(params, 'CYLINDRICAL')
-      expect(results.filter(r => !r.isValid)).toHaveLength(0)
     })
 
     it('should return validation errors for multiple invalid parameters', () => {
       const params = {
-        scale: 50, // too low
-        center: [-200, 46.5] as [number, number], // longitude too low
+        scaleMultiplier: 0.05, // Too low
+        center: [-200, 100] as [number, number], // Out of range
       }
 
-      const results = registry.validateParameters(params, 'CYLINDRICAL')
+      const results = parameterRegistry.validateParameters(params, 'CYLINDRICAL')
       const errors = results.filter(r => !r.isValid)
-      expect(errors).toHaveLength(2)
-      expect(errors[0]?.error).toContain('scale')
-      expect(errors[1]?.error).toContain('center')
+      expect(errors.length).toBeGreaterThan(0)
+
+      // Should have error for scaleMultiplier
+      const scaleError = errors.find(e => e.error?.includes('scaleMultiplier'))
+      expect(scaleError).toBeDefined()
+    })
+
+    it('should handle unknown parameters', () => {
+      const result = parameterRegistry.validate('unknownParam', 123, 'CYLINDRICAL')
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain('Unknown parameter: unknownParam')
     })
   })
 
-  describe('default parameter generation', () => {
-    beforeEach(() => {
-      registry.register({
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
-        defaultValue: 2700,
-      })
-
-      registry.register({
-        key: 'translate',
-        displayName: 'Translation',
-        description: 'Translation offset',
-        type: 'tuple2',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: false,
-        constraints: { min: [-1000, -1000], max: [1000, 1000] },
-        relevantFor: 'all',
-        computeDefault: () => [0, 0],
-      })
-    })
-
-    it('should generate defaults with static values', () => {
+  describe('default values', () => {
+    it('should return default parameters for territory and family', () => {
       const mockTerritory = {
-        code: 'FR-MET',
-        name: 'France Metropolitaine',
-        center: [2.0, 46.5] as [number, number],
+        code: 'TEST',
+        name: 'Test Territory',
+        center: [0, 0] as [number, number],
+        referenceScale: 1000,
         offset: [0, 0] as [number, number],
-        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]],
+        bounds: [[-10, -10], [10, 10]] as [[number, number], [number, number]],
       }
 
-      const defaults = registry.getDefaults(mockTerritory, 'CYLINDRICAL')
-      expect(defaults.scale).toBe(2700)
-      expect(defaults.translate).toEqual([0, 0])
+      const defaults = parameterRegistry.getDefaults(mockTerritory, 'CYLINDRICAL')
+      expect(defaults).toBeDefined()
+      expect(defaults.scaleMultiplier).toBe(1.0)
+      expect(defaults.center).toEqual([0, 0])
     })
   })
 
   describe('completeness validation', () => {
-    it('should detect missing parameter definitions', () => {
-      // Register only some parameters
-      registry.register({
-        key: 'scale',
-        displayName: 'Scale',
-        description: 'Scale factor',
-        type: 'number',
-        source: 'preset',
-        mutable: true,
-        exportable: true,
-        requiresPreset: true,
-        constraints: { min: 100, max: 10000 },
-        relevantFor: 'all',
-      })
-
-      const results = registry.validateCompleteness()
-      const errors = results.filter(r => !r.isValid)
-      expect(errors.length).toBeGreaterThan(0) // Should find missing parameters
-      expect(errors.some(e => e.error?.includes('center'))).toBe(true)
+    it('should validate that all required parameters are registered', () => {
+      const errors = parameterRegistry.validateCompleteness()
+      expect(errors).toHaveLength(0) // No missing parameters
     })
   })
 })

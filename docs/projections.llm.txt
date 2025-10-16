@@ -250,7 +250,7 @@ Parameter system uses centralized `ProjectionParameterManager` with inheritance 
 **Parameter Store Architecture**:
 - `parameterStore` (Pinia): Reactive parameter management with global and territory-specific parameters
 - `ProjectionParameterManager`: Core parameter logic with inheritance, validation, and constraints
-- `UnifiedParameterConstraints`: Centralized parameter ranges and validation rules
+- `ParameterRegistry`: Centralized parameter definitions with family-specific constraints and validation rules
 - Config store delegates parameter operations to parameter store for unified handling
 
 **Parameter Inheritance Priority**:
@@ -264,7 +264,7 @@ Parameter system uses centralized `ProjectionParameterManager` with inheritance 
 - Supports all projection families: CONIC, AZIMUTHAL, CYLINDRICAL, PSEUDOCYLINDRICAL, POLYHEDRAL
 
 **Parameter Validation System**:
-- Family-based parameter relevance checking through `UnifiedParameterConstraints`
+- Family-based parameter relevance checking through `ParameterRegistry`
 - Range validation for scalar parameters (scale: 1-100000, precision: 0.01-10)
 - Array validation for coordinate parameters (center, rotate, parallels, translate)
 - Real-time validation feedback with error and warning messages

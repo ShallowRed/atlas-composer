@@ -5,7 +5,7 @@
  * These types ensure full parameter fidelity for roundtrip import/export operations.
  */
 
-import type { ExtendedProjectionParameters } from './projection-parameters'
+import type { ProjectionParameters } from './projection-parameters'
 
 /**
  * Role of a territory in the composite projection
@@ -15,10 +15,10 @@ export type TerritoryRole = 'primary' | 'secondary' | 'member'
 /**
  * Exported projection parameters
  * Contains all parameters needed to reconstruct a D3 projection
- * Extends the unified parameter system for consistency
+ * Uses the unified parameter system for consistency
  */
-export interface ExportedProjectionParameters extends ExtendedProjectionParameters {
-  // All properties inherited from ExtendedProjectionParameters
+export interface ExportedProjectionParameters extends ProjectionParameters {
+  // All properties inherited from ProjectionParameters
   // This ensures export/import uses the same parameter structure as the rest of the app
 }
 
@@ -109,9 +109,6 @@ export interface BaseExportedConfig {
 
   /** Composite pattern type */
   pattern: CompositePattern
-
-  /** Reference scale used across all territories */
-  referenceScale: number
 
   /** Array of territory configurations */
   territories: ExportedTerritory[]

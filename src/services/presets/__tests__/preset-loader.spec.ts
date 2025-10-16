@@ -19,7 +19,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [
           {
             code: 'FR-MET',
@@ -87,7 +86,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [
           {
             code: 'T1',
@@ -145,7 +143,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [],
       }
 
@@ -170,7 +167,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 2700,
         territories: [
           {
             code: 'FR-MET',
@@ -214,24 +210,20 @@ describe('presetLoader', () => {
 
       const result = PresetLoader.extractTerritoryParameters(mockPreset)
 
-      // Should extract parameters for FR-MET (has center, rotate, parallels, scale, precision, baseScale, scaleMultiplier)
+      // Should extract parameters for FR-MET (has center, rotate, parallels, scaleMultiplier, precision)
       expect(result).toHaveProperty('FR-MET')
       expect(result['FR-MET']).toEqual({
         center: [2.5, 46.5],
         rotate: [-3, -46.2, 0],
         parallels: [42, 49],
-        scale: 2700,
-        baseScale: 2700,
         scaleMultiplier: 1.0,
         precision: 0.1,
       })
 
-      // Should extract parameters for FR-GP (has center, scale, baseScale, scaleMultiplier)
+      // Should extract parameters for FR-GP (has center, scaleMultiplier)
       expect(result).toHaveProperty('FR-GP')
       expect(result['FR-GP']).toEqual({
         center: [-61.46, 16.14],
-        scale: 3780,
-        baseScale: 2700,
         scaleMultiplier: 1.4,
       })
     })
@@ -246,7 +238,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [
           {
             code: 'T1',
@@ -273,8 +264,6 @@ describe('presetLoader', () => {
       // Should extract scale parameter for T1
       expect(result).toHaveProperty('T1')
       expect(result.T1).toEqual({
-        scale: 1000,
-        baseScale: 1000,
         scaleMultiplier: 1.0,
       })
     })
@@ -337,7 +326,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [
           {
             code: 'T1',
@@ -390,7 +378,6 @@ describe('presetLoader', () => {
           createdWith: 'Atlas Composer 1.0',
         },
         pattern: 'single-focus',
-        referenceScale: 1000,
         territories: [
           {
             code: 'T1',

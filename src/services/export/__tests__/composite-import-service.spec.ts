@@ -16,7 +16,6 @@ describe('compositeImportService', () => {
       createdWith: 'Atlas composer v1.0',
     },
     pattern: 'single-focus',
-    referenceScale: 2700,
     territories: [
       {
         code: 'FRA',
@@ -27,9 +26,7 @@ describe('compositeImportService', () => {
         parameters: {
           center: [2.5, 47],
           rotate: [-2.5, -47, 0],
-          scale: 2700,
-          baseScale: 2700,
-          scaleMultiplier: 1,
+          scaleMultiplier: 1.0, // Use only current parameter system
         },
         layout: {
           translateOffset: [0, 0],
@@ -110,14 +107,14 @@ describe('compositeImportService', () => {
       expect(result.errors).toContain('No territories in configuration')
     })
 
-    it('should reject future version that cannot be migrated', () => {
+    it('should warn about future version but still accept it', () => {
       const configWithUnknownVersion = { ...validConfig, version: '2.0' }
       const jsonString = JSON.stringify(configWithUnknownVersion)
 
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      expect(result.success).toBe(false)
-      expect(result.errors.some(e => e.includes('migrate') || e.includes('version'))).toBe(true)
+      expect(result.success).toBe(true) // Accepts unknown versions with warning
+      expect(result.warnings.some(w => w.includes('Unknown version'))).toBe(true)
     })
 
     it('should reject territory missing required fields', () => {

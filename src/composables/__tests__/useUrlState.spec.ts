@@ -2,8 +2,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfigStore } from '@/stores/config'
-import { useTerritoryStore } from '@/stores/territory'
 import { useParameterStore } from '@/stores/parameters'
+import { useTerritoryStore } from '@/stores/territory'
 import { useUrlState } from '../useUrlState'
 
 // Mock vue-router

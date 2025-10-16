@@ -25,7 +25,8 @@ export function useAtlasData() {
       if (typeof configStore.initializeWithPresetMetadata === 'function') {
         await configStore.initializeWithPresetMetadata()
         console.log('[useAtlasData] initializeWithPresetMetadata completed')
-      } else {
+      }
+      else {
         console.warn('[useAtlasData] initializeWithPresetMetadata is not a function!')
       }
 

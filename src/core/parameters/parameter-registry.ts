@@ -32,6 +32,26 @@ export interface ParameterConstraint {
 }
 
 /**
+ * Family-specific constraint definition
+ */
+export interface FamilyConstraint {
+  relevant: boolean
+  required: boolean
+  min?: number | number[]
+  max?: number | number[]
+  step?: number
+  defaultValue?: any
+  validate?: (value: any) => ValidationResult
+}
+
+/**
+ * Family-specific constraints mapping
+ */
+export interface FamilyConstraints {
+  [family: string]: FamilyConstraint
+}
+
+/**
  * Parameter definition with full metadata
  */
 export interface ParameterDefinition {
@@ -50,11 +70,8 @@ export interface ParameterDefinition {
   exportable: boolean // Include in export?
   requiresPreset: boolean // Must be in preset?
 
-  // Validation
-  constraints: ParameterConstraint | ((family: ProjectionFamilyType) => ParameterConstraint)
-
-  // Relevance
-  relevantFor: ProjectionFamilyType[] | 'all'
+  // Family-specific constraints
+  familyConstraints?: FamilyConstraints
 
   // Defaults
   defaultValue?: any
@@ -107,10 +124,32 @@ export class ParameterRegistry {
    */
   getRelevant(family: ProjectionFamilyType): ParameterDefinition[] {
     return this.getAll().filter((def) => {
-      if (def.relevantFor === 'all')
-        return true
-      return (def.relevantFor as ProjectionFamilyType[]).includes(family)
+      const familyConstraint = def.familyConstraints?.[family]
+      return familyConstraint?.relevant || false
     })
+  }
+
+  /**
+   * Get constraints for a specific parameter and projection family
+   */
+  getConstraintsForFamily(key: string, family: ProjectionFamilyType): ParameterConstraint {
+    const def = this.get(key)
+    if (!def) {
+      return { relevant: false, required: false }
+    }
+
+    const familyConstraint = def.familyConstraints?.[family]
+    if (familyConstraint) {
+      return {
+        relevant: familyConstraint.relevant,
+        required: familyConstraint.required,
+        min: familyConstraint.min,
+        max: familyConstraint.max,
+        step: familyConstraint.step,
+      }
+    }
+
+    return { relevant: false, required: false }
   }
 
   /**
@@ -122,23 +161,26 @@ export class ParameterRegistry {
       return { isValid: false, error: `Unknown parameter: ${key}` }
     }
 
-    // Check if parameter is relevant for this family
-    if (def.relevantFor !== 'all' && !(def.relevantFor as ProjectionFamilyType[]).includes(family)) {
-      return { isValid: true, warning: `Parameter ${key} is not relevant for ${family} projections` }
-    }
-
     // Get constraints for this family
-    const constraints = typeof def.constraints === 'function'
-      ? def.constraints(family)
-      : def.constraints
+    const constraints = this.getConstraintsForFamily(key, family)
 
-    // Skip validation if not relevant for this family
-    if (constraints.relevant === false) {
-      return { isValid: true }
+    // Use family-specific validation if available
+    if (def.familyConstraints?.[family]?.validate) {
+      return def.familyConstraints[family].validate!(value)
     }
 
     // Validate based on type
-    return this.validateByType(def, value, constraints)
+    const typeValidation = this.validateByType(def, value, constraints)
+
+    // Add relevance warning if not relevant but validation otherwise passes
+    if (!constraints.relevant && typeValidation.isValid) {
+      return {
+        isValid: true,
+        warning: `Parameter ${key} is not relevant for ${family} projections`,
+      }
+    }
+
+    return typeValidation
   }
 
   /**
@@ -163,12 +205,24 @@ export class ParameterRegistry {
   getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
     const defaults: ProjectionParameters = {}
 
-    for (const def of this.getRelevant(family)) {
-      if (def.defaultValue !== undefined) {
-        defaults[def.key] = def.defaultValue
+    // Include both relevant and computed parameters (like scale)
+    for (const def of this.getAll()) {
+      // Skip if this parameter has family constraints but is not defined for this family
+      if (def.familyConstraints && !def.familyConstraints[family]) {
+        continue
       }
-      else if (def.computeDefault) {
+
+      // Use computed defaults if available
+      if (def.computeDefault) {
         defaults[def.key] = def.computeDefault(territory)
+      }
+      // Use family-specific default if available
+      else if (def.familyConstraints?.[family]?.defaultValue !== undefined) {
+        defaults[def.key] = def.familyConstraints[family].defaultValue
+      }
+      // Fall back to global default
+      else if (def.defaultValue !== undefined) {
+        defaults[def.key] = def.defaultValue
       }
     }
 
@@ -181,17 +235,15 @@ export class ParameterRegistry {
   validateCompleteness(): ValidationResult[] {
     const errors: ValidationResult[] = []
 
-    // Get a sample ProjectionParameters object keys (this would be done statically in real impl)
+    // Current parameter keys from ProjectionParameters interface
     const requiredKeys = [
       'center',
       'rotate',
       'parallels',
-      'scale',
       'translate',
       'translateOffset',
       'clipAngle',
       'precision',
-      'baseScale',
       'scaleMultiplier',
     ]
 

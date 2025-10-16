@@ -246,10 +246,10 @@ describe('registry + factory integration', () => {
 
       expect(recommendations.length).toBeGreaterThan(0)
 
-      // 2. Get top recommendation (should be base conic-conformal, not the composite variant)
+      // 2. Get top recommendation (should be atlas-specific conic-conformal)
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
-      expect(topRecommendation!.projection.id).toBe('conic-conformal')
+      expect(topRecommendation!.projection.id).toBe('conic-conformal-france')
 
       // 3. Create projection from recommendation
       const projection = ProjectionFactory.create({
@@ -280,7 +280,7 @@ describe('registry + factory integration', () => {
       // 2. Get top recommendation (should be base conic-conformal, not the composite variant)
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
-      expect(topRecommendation!.projection.id).toBe('conic-conformal')
+      expect(topRecommendation!.projection.id).toBe('conic-conformal-portugal')
 
       // 3. Create projection from recommendation
       const projection = ProjectionFactory.create({
@@ -308,10 +308,10 @@ describe('registry + factory integration', () => {
 
       expect(recommendations.length).toBeGreaterThan(0)
 
-      // 2. Get top recommendation (should be base conic-conformal, not the composite variant)
+      // 2. Get top recommendation (should be atlas-specific conic-conformal)
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
-      expect(topRecommendation!.projection.id).toBe('conic-conformal')
+      expect(topRecommendation!.projection.id).toBe('conic-conformal-europe')
 
       // 3. Create projection from recommendation
       const projection = ProjectionFactory.create({

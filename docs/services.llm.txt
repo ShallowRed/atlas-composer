@@ -213,8 +213,8 @@ Singleton pattern with complete parameter lifecycle management.
 - Type-safe constraints with range validation and custom validation functions
 
 **Registry Coverage**:
-- All projection parameters: center, rotate, parallels, scale, translate, clipAngle, precision
-- Scale parameters: baseScale, scaleMultiplier with appropriate constraints
+- All projection parameters: center, rotate, parallels, translate, clipAngle, precision
+- Scale parameter: scaleMultiplier with appropriate constraints
 - Type-safe parameter constraints with family-specific relevance
 - Comprehensive validation with contextual error messages
 
@@ -248,22 +248,22 @@ No legacy format conversions - single format end-to-end.
 - Validation error events with registry-based error messages  
 - Territory parameter lifecycle events (set, clear, validate)
 
-### UnifiedParameterConstraints (src/services/parameters/parameter-constraints.ts)
-Registry integration service providing constraint access and validation.
-Static service delegating to parameter registry for constraint operations.
+### Parameter System Integration
+The parameter store integrates directly with the unified parameter registry system.
+All constraint resolution, validation, and parameter management uses ParameterRegistry.
 
-**Constraint Resolution**:
-- `getParameterConstraints()` - Get family-specific constraints from registry
-- `isParameterRelevant()` - Registry-based parameter relevance checking
-- `getParameterDefault()` - Registry default value resolution with family context
+**Parameter Store Integration**:
+- `getParameterConstraints()` - Family-specific constraint adapter using ParameterRegistry
+- `isParameterRelevant()` - Direct registry relevance checking
 - `validateParameter()` - Registry-based single parameter validation
 - `validateParameterSet()` - Batch validation using registry constraints
 
-**Integration Benefits**:
-- Single source of truth through parameter registry
-- Type-safe constraint definitions with comprehensive metadata
-- Family-based parameter relevance with registry validation
+**Unified System Benefits**:
+- Single source of truth through ParameterRegistry
+- Family-specific constraints with comprehensive validation
+- Clean parameter system with only current parameters
 - Consistent validation across stores, UI, presets, and export systems
+- Type-safe parameter definitions with metadata
 
 ## Export/Import Services (src/services/export/)
 
@@ -280,11 +280,10 @@ Static methods for configuration serialization and code generation.
 - `version` - Schema version (currently '1.0')
 - `metadata` - Atlas info, export date, creator
 - `pattern` - Atlas pattern (single-focus/equal-members)
-- `referenceScale` - Base scale for all territories
 - `territories[]` - Array of territory configurations
   - `code, name, role` - Territory identification
   - `projectionId, projectionFamily` - Projection info
-  - `parameters` - All projection parameters (center, rotate, parallels, scale, scaleMultiplier)
+  - `parameters` - All projection parameters (center, rotate, parallels, scaleMultiplier)
   - `layout` - Territory positioning (translateOffset, clipExtent)
   - `bounds` - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
 
@@ -293,7 +292,7 @@ Re-imports exported configurations with validation, automatic version migration,
 Static methods for JSON parsing and store application.
 
 **Import Methods**:
-- `importFromJSON()` - Parse, migrate (if needed), and validate JSON string
+- `importFromJSON()` - Parse and validate JSON string
 - `importFromFile()` - Import from File object (browser File API)
 - `checkAtlasCompatibility()` - Check atlas ID compatibility
 - `applyToStores()` - Apply configuration to stores (type-safe)
