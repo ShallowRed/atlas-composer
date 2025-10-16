@@ -49,7 +49,7 @@ const currentPreset = computed({
         const defaults = PresetLoader.convertToDefaults(result.preset)
 
         // Clear all existing parameter overrides for all territories before applying new preset
-        Object.keys(defaults.projections).forEach(territoryCode => {
+        Object.keys(defaults.projections).forEach((territoryCode) => {
           parameterStore.clearAllTerritoryOverrides(territoryCode)
         })
 
