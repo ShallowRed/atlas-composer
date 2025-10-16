@@ -143,6 +143,7 @@
     "centerLatitude": "Centre latitude",
     "parallel1": "Parallèle standard 1",
     "parallel2": "Parallèle standard 2",
+    "scaleMultiplier": "Facteur d'échelle",
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
     "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."

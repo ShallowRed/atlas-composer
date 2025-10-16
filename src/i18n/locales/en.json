@@ -141,6 +141,7 @@
     "centerLatitude": "Center latitude",
     "parallel1": "Standard parallel 1",
     "parallel2": "Standard parallel 2",
+    "scaleMultiplier": "Scale Factor",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."

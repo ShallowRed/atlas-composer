@@ -127,11 +127,6 @@ const hasOverrides = computed(() => {
   const presetParams = territoryDefaults.parameters
   if (presetParams) {
     for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
-      // Skip internal D3 parameters that are auto-generated (not user-controllable)
-      if (paramKey === 'translate' || paramKey === 'scale') {
-        continue
-      }
-
       const presetValue = presetParams[paramKey as keyof typeof presetParams]
 
       // Use the same deep comparison logic as the global reset button
@@ -207,7 +202,6 @@ const rotateLatitudeRange = computed(() => getParameterRange('rotateLatitude'))
 // const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
 const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
-const scaleRange = computed(() => getParameterRange('scale'))
 const clipAngleRange = computed(() => getParameterRange('clipAngle'))
 const precisionRange = computed(() => getParameterRange('precision'))
 
@@ -258,7 +252,8 @@ const hasRotateParameter = computed(() => {
 })
 
 const hasScaleParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'scale')
+  // Scale is always user-controllable regardless of projection family
+  return true
 })
 
 const hasClipAngleParameter = computed(() => {
@@ -270,7 +265,8 @@ const hasPrecisionParameter = computed(() => {
 })
 
 const hasTranslateParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'translate')
+  // Translate is always user-controllable regardless of projection family
+  return true
 })
 
 // Lifecycle hooks for validation
@@ -288,7 +284,7 @@ onUnmounted(() => {
 <template>
   <div class="territory-parameter-controls">
     <button
-      v-if="hasOverrides"
+      :disabled="!hasOverrides"
       class="btn btn-sm btn-soft w-full mb-4"
       :title="t('territory.parameters.resetOverrides')"
       @click="clearAllOverrides"
@@ -446,14 +442,15 @@ onUnmounted(() => {
             <!-- Scale Control -->
             <template v-if="hasScaleParameter">
               <RangeSlider
-                :model-value="effectiveParameters.scale ?? 1000"
-                label="Scale"
+                :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
+                :label="t('projectionParams.scaleMultiplier')"
                 icon="ri-zoom-in-line"
                 size="xs"
-                :min="scaleRange.min"
-                :max="scaleRange.max"
-                :step="scaleRange.step"
-                @update:model-value="(value: number) => handleParameterChange('scale', value)"
+                :min="0.1"
+                :max="10"
+                :step="0.1"
+                unit="×"
+                @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
               />
             </template>
 
