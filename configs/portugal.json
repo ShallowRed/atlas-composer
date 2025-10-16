@@ -12,6 +12,7 @@
   "availablePresets": [
     "portugal-default"
   ],
+  "referenceScale": 4200,
   "metadata": {
     "naturalEarthIds": [
       620

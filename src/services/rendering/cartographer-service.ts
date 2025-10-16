@@ -46,7 +46,7 @@ export interface CompositeRenderOptions extends RenderOptions {
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
   territoryTranslations: Record<string, { x: number, y: number }>
-  territoryScales: Record<string, number>
+  // territoryScales removed - scale multipliers now come from parameter store
 }
 
 export class Cartographer {
@@ -283,7 +283,7 @@ export class Cartographer {
     }
 
     const composite = this.customComposite
-    const { territoryProjections, territoryTranslations, territoryScales } = settings
+    const { territoryProjections, territoryTranslations } = settings
 
     // Apply to customComposite instance
     if (territoryProjections) {
@@ -308,11 +308,8 @@ export class Cartographer {
       }
     }
 
-    if (territoryScales) {
-      for (const [code, scale] of Object.entries(territoryScales)) {
-        composite.updateScale(code, scale)
-      }
-    }
+    // Scale multipliers are now handled by CompositeProjection via parameter provider
+    // The composite reads scaleMultiplier from parameters when updateTerritoryParameters() is called
   }
 
   /**

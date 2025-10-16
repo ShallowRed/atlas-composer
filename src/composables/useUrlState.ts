@@ -3,6 +3,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
+import { useGeoDataStore } from '@/stores/geoData'
 
 /**
  * Composable for managing application state in URL parameters
@@ -13,6 +15,8 @@ export function useUrlState() {
   const router = useRouter()
   const configStore = useConfigStore()
   const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
+  const geoDataStore = useGeoDataStore()
 
   /**
    * Serialize current state to URL-safe string
@@ -54,15 +58,18 @@ export function useUrlState() {
       configStore.selectedProjection || 'mercator',
     )
 
-    // Encode territory-specific settings (scales, translations)
+    // Encode territory-specific settings (scale multipliers, translations)
     // Only include if different from atlas-specific defaults
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
 
-    for (const [code, scale] of Object.entries(territoryStore.territoryScales)) {
-      const defaultScale = defaults.scales[code] ?? 1
+    // Get scale multipliers from parameter store
+    for (const territory of geoDataStore.filteredTerritories) {
+      const params = parameterStore.getTerritoryParameters(territory.code)
+      const scale = params.scaleMultiplier ?? 1.0
+      const defaultScale = defaults.scales[territory.code] ?? 1
       if (scale !== defaultScale) {
-        territorySettings[`s_${code}`] = scale
+        territorySettings[`s_${territory.code}`] = scale
         hasSettings = true
       }
     }
@@ -124,7 +131,7 @@ export function useUrlState() {
         for (const [key, value] of Object.entries(settings)) {
           if (key.startsWith('s_')) {
             const code = key.substring(2)
-            territoryStore.setTerritoryScale(code, Number(value))
+            parameterStore.setTerritoryParameter(code, 'scaleMultiplier', Number(value))
           }
           else if (key.startsWith('tx_')) {
             const code = key.substring(3)

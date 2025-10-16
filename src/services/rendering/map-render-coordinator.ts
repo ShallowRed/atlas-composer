@@ -61,7 +61,7 @@ export interface CompositeMapConfig {
   currentAtlasConfig?: any
   territoryProjections?: Record<string, string>
   territoryTranslations?: Record<string, { x: number, y: number }>
-  territoryScales?: Record<string, number>
+  // territoryScales removed - scale multipliers come from parameter store
   filteredTerritories?: Territory[]
 }
 
@@ -120,7 +120,7 @@ export class MapRenderCoordinator {
         config.selectedProjection,
         config.territoryProjections || {},
         config.territoryTranslations || {},
-        config.territoryScales || {},
+        // territoryScales removed - handled by parameter store
       )
     }
 

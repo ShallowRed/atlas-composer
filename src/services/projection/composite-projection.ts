@@ -118,7 +118,8 @@ export class CompositeProjection {
 
     // Reference scale for all territories (like d3-composite-projections does)
     // This is the "base unit" that all territories scale relative to
-    const REFERENCE_SCALE = 2700
+    // Use atlas-specific referenceScale from config, or default to 2700
+    const REFERENCE_SCALE = this.config.referenceScale ?? 2700
 
     // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
     const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
@@ -262,7 +263,8 @@ export class CompositeProjection {
     const { mainlands, overseasTerritories } = this.config
 
     // Reference scale for all territories
-    const REFERENCE_SCALE = 200
+    // Use atlas-specific referenceScale from config, or default to 200 for equal-members
+    const REFERENCE_SCALE = this.config.referenceScale ?? 200
 
     // Process all mainlands equally - no special treatment for any
     mainlands.forEach((mainland) => {

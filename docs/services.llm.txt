@@ -307,7 +307,7 @@ Static methods for JSON parsing and store application.
 
 **Application Flow**:
 1. Apply projection to each territory via CompositeProjection service
-2. Apply scale multiplier to territory store
+2. Apply scale multiplier to parameter store
 3. Apply translation offset to territory store
 4. Maintain state consistency
 
@@ -337,7 +337,8 @@ Static methods for version detection, migration chain execution, and validation.
 Add migration function and update chain in `performMigrationChain()`
 - Uses `ReturnType<typeof useConfigStore>` pattern
 - Proper CompositeProjection API: `updateTerritoryProjection()`
-- Store methods: `setTerritoryProjection`, `setTerritoryScale`, `setTerritoryTranslation`
+- Store methods: `setTerritoryProjection`, `setTerritoryTranslation`
+- Parameter store methods: `setTerritoryParameter(code, 'scaleMultiplier', value)`
 
 ### CodeGenerator
 Generates ready-to-use code in multiple formats.

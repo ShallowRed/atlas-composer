@@ -1,0 +1,134 @@
+{
+  "$schema": "./schema.json",
+  "id": "chile",
+  "name": {
+    "en": "Chile",
+    "fr": "Chili"
+  },
+  "description": {
+    "en": "Chile with Easter Island, Juan Fernández, and Antarctic Territory",
+    "fr": "Chili avec l'île de Pâques, Juan Fernández et le territoire antarctique"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "chile-territories-50m.json",
+    "metadata": "chile-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      152
+    ],
+    "iso3": "CHL",
+    "region": "South America"
+  },
+  "territories": [
+    {
+      "id": "152",
+      "role": "primary",
+      "code": "CL-MAIN",
+      "name": "Chile Mainland",
+      "iso": "CHL",
+      "center": [
+        -71,
+        -35
+      ],
+      "bounds": [
+        [
+          -75.71,
+          -53.88
+        ],
+        [
+          -67.01,
+          -17.51
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "152",
+        "polygonIndices": [
+          2
+        ]
+      },
+      "rendering": {
+        "offset": [
+          0,
+          0
+        ],
+        "projectionType": "transverse-mercator"
+      }
+    },
+    {
+      "id": "152-easter",
+      "role": "secondary",
+      "code": "CL-EAS",
+      "name": "Easter Island",
+      "iso": "CHL",
+      "region": "Easter Island",
+      "center": [
+        -109.35,
+        -27.12
+      ],
+      "bounds": [
+        [
+          -109.48,
+          -27.2
+        ],
+        [
+          -109.21,
+          -27.05
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "152",
+        "polygonIndices": [
+          0
+        ]
+      },
+      "rendering": {
+        "offset": [
+          -500,
+          100
+        ],
+        "baseScaleMultiplier": 15
+      }
+    },
+    {
+      "id": "152-juan-fernandez",
+      "role": "secondary",
+      "code": "CL-JUA",
+      "name": "Juan Fernández Islands",
+      "iso": "CHL",
+      "region": "Juan Fernández",
+      "center": [
+        -79,
+        -33.6
+      ],
+      "bounds": [
+        [
+          -80.77,
+          -33.77
+        ],
+        [
+          -78.7,
+          -33.44
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "152",
+        "polygonIndices": [
+          1
+        ]
+      },
+      "rendering": {
+        "offset": [
+          -300,
+          0
+        ],
+        "baseScaleMultiplier": 10
+      }
+    }
+  ],
+  "defaultPreset": "chile-default",
+  "availablePresets": [
+    "chile-default"
+  ]
+}

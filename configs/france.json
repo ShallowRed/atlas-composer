@@ -19,6 +19,7 @@
     "france-test"
   ],
   "defaultPreset": "france-default",
+  "referenceScale": 2700,
   "territories": [
     {
       "id": "250",

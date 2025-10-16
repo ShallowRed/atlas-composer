@@ -327,7 +327,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     currentAtlasConfig: configStore.currentAtlasConfig,
     territoryProjections: territoryStore.territoryProjections,
     territoryTranslations: territoryStore.territoryTranslations,
-    territoryScales: territoryStore.territoryScales,
+    // territoryScales removed - scale multipliers come from parameter store
     filteredTerritories: geoDataStore.filteredTerritories,
   })
 }
@@ -442,7 +442,7 @@ watch(() => {
       uiStore.showCompositionBorders,
       uiStore.showMapLimits,
       territoryStore.territoryTranslations,
-      territoryStore.territoryScales,
+      // territoryStore.territoryScales removed - scale multipliers in parameter store
       territoryStore.territoryProjections,
       parameterStore.territoryParametersVersion, // Watch for parameter changes to trigger re-render
       geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes

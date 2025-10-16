@@ -227,7 +227,9 @@ export class CompositeImportService {
 
       // 3. Apply scale multiplier (AFTER baseScale is set above)
       // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
-      territoryStore.setTerritoryScale(territory.code, territory.parameters.scaleMultiplier)
+      if (parameterStore) {
+        parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.parameters.scaleMultiplier)
+      }
 
       // 4. Apply projection parameters to parameter store (if available)
       // This includes center, rotate, parallels, scale, baseScale, scaleMultiplier

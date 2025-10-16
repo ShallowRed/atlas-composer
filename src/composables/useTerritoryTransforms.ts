@@ -59,9 +59,16 @@ export function useTerritoryTransforms() {
   const translations = computed(() => territoryStore.territoryTranslations)
 
   /**
-   * Get territory scales from store
+   * Get territory scale multipliers from parameter store
    */
-  const scales = computed(() => territoryStore.territoryScales)
+  const scales = computed(() => {
+    const scalesMap: Record<string, number> = {}
+    territories.value.forEach(t => {
+      const params = parameterStore.getTerritoryParameters(t.code)
+      scalesMap[t.code] = params.scaleMultiplier ?? 1.0
+    })
+    return scalesMap
+  })
 
   /**
    * Set translation for a territory
@@ -71,10 +78,10 @@ export function useTerritoryTransforms() {
   }
 
   /**
-   * Set scale for a territory
+   * Set scale multiplier for a territory
    */
   function setTerritoryScale(territoryCode: string, value: number) {
-    territoryStore.setTerritoryScale(territoryCode, value)
+    parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', value)
   }
 
   /**

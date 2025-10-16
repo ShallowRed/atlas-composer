@@ -28,10 +28,11 @@ The preset system manages saved composite projection configurations that define 
 - Tracks parameter changes and triggers re-renders
 
 **Territory Store** (`src/stores/territory.ts`)
-- Manages territory-level state (projections, translations, scales)
+- Manages territory-level state (projections, translations)
 - Stores projection type selection per territory
 - Maintains translation offsets (x, y pixel positions)
-- Tracks scale multipliers for territory sizing
+
+**Note**: Scale multipliers are stored in parameter store, not territory store.
 
 **Config Store** (`src/stores/config.ts`)
 - Coordinates preset metadata initialization
@@ -58,7 +59,7 @@ PresetLoader.extractTerritoryParameters()
 Apply to Stores:
   - territoryStore.setTerritoryProjection()
   - territoryStore.setTerritoryTranslation()
-  - territoryStore.setTerritoryScale()
+  - parameterStore.setTerritoryParameter(code, 'scaleMultiplier', value)
   - parameterStore.setTerritoryParameters()
   ↓
 geoDataStore.initialize()
@@ -170,13 +171,13 @@ Converts preset format to TerritoryDefaults format for store initialization.
 **Returns:**
 - `projections`: Map of territory code → projection ID
 - `translations`: Map of territory code → {x, y} pixel offsets
-- `scales`: Map of territory code → scale multiplier
+- `scales`: Map of territory code → scale multiplier (for parameter store initialization)
 
 **Translation Handling:**
 Extracts `translateOffset` from preset layout and stores as x/y translation values.
 
 **Scale Handling:**
-Extracts `scaleMultiplier` as territory scale (not absolute scale value).
+Extracts `scaleMultiplier` for parameter store initialization. Scale multipliers are stored in parameter store, not territory store.
 
 ## Scale Management
 
@@ -190,10 +191,11 @@ The scale system has three interconnected values that work together:
 - Stored in CompositeProjection subprojection metadata
 - Example: 3780 for Guadeloupe
 
-**2. scaleMultiplier** (from preset parameters or territory store)
+**2. scaleMultiplier** (from preset parameters or parameter store)
 - Adjustment factor applied to baseScale
 - Range: typically 0.5 - 2.0 (50% to 200%)
 - Modified by "advanced parameters" scale slider (Échelle: 1.20×)
+- Stored in parameter store (single source of truth)
 - Example: 1.4 for Guadeloupe
 
 **3. scale** (calculated or from parameter store)
@@ -267,8 +269,8 @@ projection.scale(correctScale)
 ### Scale Slider Behaviors
 
 **Advanced Parameters Scale Slider** (Échelle: 0.5× - 2.0×)
-- Modifies `scaleMultiplier` in CompositeProjection
-- Updates territory scale in territory store
+- Modifies `scaleMultiplier` in parameter store
+- Updates CompositeProjection via parameter provider
 - Recalculates and syncs `scale` parameter to match
 - Blocked if user has overridden scale parameter directly
 - Used for relative adjustments to preset baseline
@@ -411,8 +413,8 @@ const initializeWithPresetMetadata = async () => {
 Preset data applies to stores in this order:
 1. **Territory projections** - Sets projection type per territory
 2. **Territory translations** - Sets x/y pixel offsets
-3. **Territory scales** - Sets scale multipliers
-4. **Parameter store** - Sets projection parameters (center, rotate, parallels, scale, baseScale, scaleMultiplier)
+3. **Parameter store scales** - Sets scaleMultiplier via `setTerritoryParameter(code, 'scaleMultiplier', value)`
+4. **Parameter store parameters** - Sets projection parameters (center, rotate, parallels, scale, baseScale, scaleMultiplier)
 
 ## Rendering Integration
 
@@ -524,8 +526,8 @@ Exported presets match import format:
 
 **State Management:**
 - `src/stores/config.ts` - Preset metadata initialization
-- `src/stores/parameters.ts` - Projection parameter management
-- `src/stores/territory.ts` - Territory state (projections, translations, scales)
+- `src/stores/parameters.ts` - Projection parameter management (including scale multipliers)
+- `src/stores/territory.ts` - Territory state (projections, translations)
 
 **UI Components:**
 - `src/components/TerritoryControls.vue` - Main territory control container

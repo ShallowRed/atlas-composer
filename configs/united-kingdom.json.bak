@@ -1,0 +1,98 @@
+{
+  "$schema": "./schema.json",
+  "id": "united-kingdom",
+  "name": {
+    "en": "United Kingdom",
+    "fr": "Royaume-Uni"
+  },
+  "description": {
+    "en": "United Kingdom (Great Britain and Shetland)",
+    "fr": "Royaume-Uni (Grande-Bretagne et Shetland)"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "united-kingdom-territories-50m.json",
+    "metadata": "united-kingdom-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      826
+    ],
+    "iso3": "GBR",
+    "region": "Europe"
+  },
+  "territories": [
+    {
+      "id": "826",
+      "role": "primary",
+      "code": "GB-GBR",
+      "name": "Great Britain",
+      "iso": "GBR",
+      "center": [
+        -2,
+        54
+      ],
+      "bounds": [
+        [
+          -8.65,
+          49.88
+        ],
+        [
+          1.77,
+          60.86
+        ]
+      ],
+      "extraction": {
+        "mainlandPolygon": 0
+      },
+      "rendering": {
+        "offset": [
+          0,
+          0
+        ],
+        "projectionType": "albers"
+      }
+    },
+    {
+      "id": "826-shetland",
+      "role": "secondary",
+      "code": "GB-SHE",
+      "name": "Shetland Islands",
+      "iso": "GBR",
+      "region": "Shetland",
+      "center": [
+        -1.3,
+        60.5
+      ],
+      "bounds": [
+        [
+          -1.77,
+          59.85
+        ],
+        [
+          -0.72,
+          60.85
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "826",
+        "polygonIndices": [
+          3,
+          4,
+          5
+        ]
+      },
+      "rendering": {
+        "offset": [
+          250,
+          -400
+        ],
+        "baseScaleMultiplier": 1.2
+      }
+    }
+  ],
+  "defaultPreset": "united-kingdom-default",
+  "availablePresets": [
+    "united-kingdom-default"
+  ]
+}

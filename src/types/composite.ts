@@ -26,6 +26,7 @@ export interface SingleFocusCompositeConfig {
   type: 'single-focus'
   mainland: TerritoryConfig
   overseasTerritories: TerritoryConfig[]
+  referenceScale?: number // Atlas-specific reference scale (defaults to 2700)
 }
 
 /**
@@ -40,6 +41,7 @@ export interface EqualMembersCompositeConfig {
   type: 'equal-members'
   mainlands: TerritoryConfig[]
   overseasTerritories: TerritoryConfig[]
+  referenceScale?: number // Atlas-specific reference scale (defaults to 200 for equal-members)
 }
 
 /**
@@ -68,8 +70,7 @@ export interface CompositeProjectionDefaults {
   /** Default pixel translations for each territory (e.g., { 'FR-GP': { x: 100, y: -50 } }) */
   territoryTranslations: Record<string, { x: number, y: number }>
 
-  /** Default scale multipliers for each territory (e.g., { 'FR-GP': 1.2 }) */
-  territoryScales: Record<string, number>
+  // territoryScales removed - scale multipliers now stored in parameter store
 }
 
 /**

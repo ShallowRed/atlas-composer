@@ -261,7 +261,7 @@ App.vue
 ### Component Logic
 **useTerritoryTransforms** (155 lines)
 - Territory projection management
-- Translation and scale controls
+- Translation and scale controls (reads scale from parameter store)
 - Reset functions
 - Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
 - Used by: TerritoryControls.vue
@@ -367,9 +367,10 @@ App.vue
 **Responsibilities**:
 - Territory projections
 - Territory translations (x, y)
-- Territory scales
 - Initialization and reset
 **Used by**: TerritoryControls, useTerritoryTransforms
+
+**Note**: Scale multipliers are stored in parameter store, not territory store.
 
 ### parameterStore (295 lines)
 **Domain**: Unified parameter registry integration

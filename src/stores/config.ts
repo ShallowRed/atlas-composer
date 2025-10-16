@@ -120,7 +120,7 @@ export const useConfigStore = defineStore('config', () => {
           territoryStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(updates.scales).forEach(([code, scale]) => {
-          territoryStore.setTerritoryScale(code, scale)
+          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
         })
 
         // Store original preset defaults for reset functionality
@@ -349,7 +349,7 @@ export const useConfigStore = defineStore('config', () => {
       territoryStore.setTerritoryTranslation(code, 'y', translation.y)
     })
     Object.entries(updates.scales).forEach(([code, scale]) => {
-      territoryStore.setTerritoryScale(code, scale)
+      parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
     })
 
     // Load territory-specific projection parameters into parameter store

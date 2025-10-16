@@ -6,7 +6,7 @@ import type { CompositeProjectionConfig } from '@/types'
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
   territoryTranslations: Record<string, { x: number, y: number }>
-  territoryScales: Record<string, number>
+  // territoryScales removed - scale multipliers come from parameter store
 }
 
 /**
@@ -74,7 +74,7 @@ export class CompositeSettingsBuilder {
     selectedProjection: string,
     territoryProjections: Record<string, string>,
     territoryTranslations: Record<string, { x: number, y: number }>,
-    territoryScales: Record<string, number>,
+    // territoryScales parameter removed - no longer needed
   ): CustomCompositeSettings {
     const territoryCodes = this.extractTerritoryCodes(compositeConfig)
 
@@ -88,7 +88,7 @@ export class CompositeSettingsBuilder {
     return {
       territoryProjections: projections,
       territoryTranslations,
-      territoryScales,
+      // territoryScales removed - handled by parameter store
     }
   }
 }

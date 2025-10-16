@@ -12,14 +12,14 @@ export const useTerritoryStore = defineStore('territory', () => {
   // State
   const territoryProjections = ref<Record<string, string>>({})
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>({})
-  const territoryScales = ref<Record<string, number>>({})
+  // NOTE: territoryScales removed - scale multiplier now stored in parameter store only
 
   // Actions
   function initializeDefaults(territories: TerritoryConfig[], defaultProjection: string) {
     const defaults = TerritoryDefaultsService.initializeAll(territories, defaultProjection)
     territoryProjections.value = defaults.projections
     territoryTranslations.value = defaults.translations
-    territoryScales.value = defaults.scales
+    // scales initialization removed - handled by parameter store
   }
 
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
@@ -33,9 +33,7 @@ export const useTerritoryStore = defineStore('territory', () => {
     territoryTranslations.value[territoryCode][axis] = value
   }
 
-  function setTerritoryScale(territoryCode: string, value: number) {
-    territoryScales.value[territoryCode] = value
-  }
+  // setTerritoryScale removed - use parameter store's setTerritoryParameter(code, 'scaleMultiplier', value) instead
 
   function resetAll(territories: TerritoryConfig[], defaultProjection: string) {
     initializeDefaults(territories, defaultProjection)
@@ -45,13 +43,13 @@ export const useTerritoryStore = defineStore('territory', () => {
     // State
     territoryProjections,
     territoryTranslations,
-    territoryScales,
+    // territoryScales removed - use parameter store
 
     // Actions
     initializeDefaults,
     setTerritoryProjection,
     setTerritoryTranslation,
-    setTerritoryScale,
+    // setTerritoryScale removed - use parameter store
     resetAll,
   }
 })

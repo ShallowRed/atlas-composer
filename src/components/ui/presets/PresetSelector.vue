@@ -77,7 +77,7 @@ const currentPreset = computed({
           territoryStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(defaults.scales).forEach(([code, scale]) => {
-          territoryStore.setTerritoryScale(code, scale)
+          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
         })
 
         // Apply territory parameters from preset (after clearing to ensure clean state)

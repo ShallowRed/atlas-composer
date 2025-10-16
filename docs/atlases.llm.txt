@@ -146,6 +146,8 @@ src/public/data/
   "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
   "defaultViewMode": "composite-custom",
 
+  "referenceScale": 2700,
+
   "projectionPreferences": {
     "recommended": ["conic-conformal", "albers"],
     "default": {
@@ -259,6 +261,7 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `defaultPreset` | ⏩ | Default preset file to load (e.g., 'france-default') |
+| `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
 | `availablePresets` | ⏩ | List of preset files for UI selector |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |

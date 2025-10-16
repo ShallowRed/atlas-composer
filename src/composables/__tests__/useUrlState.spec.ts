@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfigStore } from '@/stores/config'
 import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 import { useUrlState } from '../useUrlState'
 
 // Mock vue-router
@@ -100,9 +101,11 @@ describe('useUrlState', () => {
       territoryStore.initializeDefaults(territories, configStore.selectedProjection || 'mercator')
 
       // Now change some values to be different from defaults
-      const currentScale = territoryStore.territoryScales['FR-GP'] ?? 1
-      territoryStore.setTerritoryScale('FR-GP', currentScale * 1.5)
-      territoryStore.setTerritoryScale('FR-MTQ', 3.0) // Different from default
+      const parameterStore = useParameterStore()
+      const currentParams = parameterStore.getTerritoryParameters('FR-GP')
+      const currentScale = currentParams.scaleMultiplier ?? 1
+      parameterStore.setTerritoryParameter('FR-GP', 'scaleMultiplier', currentScale * 1.5)
+      parameterStore.setTerritoryParameter('FR-MTQ', 'scaleMultiplier', 3.0) // Different from default
 
       const { serializeState } = useUrlState()
       const state = serializeState()
@@ -341,6 +344,7 @@ describe('useUrlState', () => {
     it('should restore exact same state after serialize and deserialize', () => {
       const configStore = useConfigStore()
       const territoryStore = useTerritoryStore()
+      const parameterStore = useParameterStore()
 
       // Set up complex state
       configStore.selectedAtlas = 'france'
@@ -350,7 +354,7 @@ describe('useUrlState', () => {
       configStore.territoryMode = 'all'
       configStore.customRotateLongitude = 10
       configStore.customRotateLatitude = 20
-      territoryStore.setTerritoryScale('GLP', 1.5)
+      parameterStore.setTerritoryParameter('GLP', 'scaleMultiplier', 1.5)
       territoryStore.setTerritoryTranslation('MTQ', 'x', 100)
 
       const { serializeState, deserializeState } = useUrlState()
