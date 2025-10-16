@@ -14,6 +14,7 @@ import type {
   CodeGenerationOptions,
   CompositePattern,
   ExportedCompositeConfig,
+  ExportedProjectionParameters,
   ExportedTerritory,
   ExportMetadata,
   ExportValidationResult,
@@ -115,6 +116,7 @@ export class CompositeExportService {
     atlasName: string,
     compositeConfig: CompositeProjectionConfig,
     parameterProvider?: ProjectionParameterProvider,
+    referenceScale?: number,
     notes?: string,
   ): ExportedCompositeConfig {
     // Get raw export from CompositeProjection
@@ -135,19 +137,26 @@ export class CompositeExportService {
         compositeConfig,
       )
 
+      // Get full parameters from parameter provider if available
+      const parameters: ExportedProjectionParameters = parameterProvider
+        ? parameterProvider.getExportableParameters(subProj.territoryCode)
+        : {
+            center: roundTuple2(subProj.center),
+            rotate: subProj.rotate && subProj.rotate.length >= 3
+              ? roundTuple3(subProj.rotate as [number, number, number])
+              : undefined,
+            scaleMultiplier: roundNumber(subProj.scaleMultiplier),
+            // Extract parallels if available (for conic projections)
+            parallels: roundTuple2(this.extractParallels(subProj)),
+          }
+
       return {
         code: subProj.territoryCode,
         name: subProj.territoryName,
         role,
         projectionId,
         projectionFamily: projectionDef?.family || 'unknown',
-        parameters: {
-          center: roundTuple2(subProj.center),
-          rotate: roundTuple3(subProj.rotate),
-          scaleMultiplier: roundNumber(subProj.scaleMultiplier),
-          // Extract parallels if available (for conic projections)
-          parallels: roundTuple2(this.extractParallels(subProj)),
-        },
+        parameters,
         layout: {
           translateOffset: roundTuple2(subProj.translateOffset),
           clipExtent: subProj.clipExtent || null,
@@ -169,6 +178,7 @@ export class CompositeExportService {
       version: '1.0',
       metadata,
       pattern,
+      referenceScale,
       territories,
     }
   }

@@ -66,6 +66,7 @@ const exportContent = computed(() => {
       atlasConfig.name,
       compositeConfig,
       parameterProvider,
+      configStore.referenceScale,
     )
     return JSON.stringify(exported, null, 2)
   }
@@ -76,6 +77,7 @@ const exportContent = computed(() => {
       atlasConfig.name,
       compositeConfig,
       parameterProvider,
+      configStore.referenceScale,
     )
 
     const options: CodeGenerationOptions = {
