@@ -91,6 +91,7 @@
     "parameters": {
       "position": "Position",
       "projectionSpecific": "Projection Parameters",
+      "layout": "Layout Controls",
       "view": "View & Scale",
       "advanced": "Advanced",
       "reset": "Reset",

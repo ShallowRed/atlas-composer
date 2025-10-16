@@ -91,6 +91,7 @@
     "parameters": {
       "position": "Position",
       "projectionSpecific": "Paramètres spécifiques à la projection",
+      "layout": "Contrôles de mise en page",
       "view": "Paramètres de la vue",
       "advanced": "Paramètres avancés",
       "reset": "Réinitialiser",

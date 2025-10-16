@@ -129,7 +129,8 @@ export class PresetLoader {
             if (def.key === 'translateOffset') {
               // translateOffset is stored in layout section
               hasParameter = territory.layout?.translateOffset !== undefined
-            } else {
+            }
+            else {
               // Other parameters are stored in projection.parameters section
               hasParameter = def.key in territory.projection.parameters
             }

@@ -249,14 +249,6 @@ const hasProjectionSpecificParameters = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'parallels')
 })
 
-const hasViewParameters = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'scale' || String(p) === 'clipAngle')
-})
-
-const hasAdvancedParameters = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'precision' || String(p) === 'translate')
-})
-
 const hasCenterParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'center')
 })
@@ -318,189 +310,150 @@ onUnmounted(() => {
     </div>
 
     <!-- Parameter controls grouped by type -->
-    <div class="space-y-6">
-      <!-- Position Parameters (Center/Rotation) -->
-      <div v-if="hasPositionParameters">
-        <h5 class="text-sm font-medium mb-3 text-base-content/70">
-          <i class="ri-compass-3-line mr-1" />
-          {{ t('territory.parameters.position') }}
-        </h5>
-
-        <div class="space-y-4">
-          <!-- Center Controls (for conic projections) -->
-          <template v-if="hasCenterParameter">
-            <!-- Center Longitude -->
-            <RangeSlider
-              :model-value="effectiveParameters.center?.[0] ?? 0"
-              :label="t('projectionParams.centerLongitude')"
-              icon="ri-map-pin-line"
-              size="xs"
-              :min="centerLongitudeRange.min"
-              :max="centerLongitudeRange.max"
-              :step="centerLongitudeRange.step"
-              unit="°"
-              @update:model-value="(value: number) => {
-                const currentCenter = effectiveParameters.center ?? [0, 0]
-                handleParameterChange('center', [value, currentCenter[1]])
-              }"
-            />
-
-            <!-- Center Latitude -->
-            <RangeSlider
-              :model-value="effectiveParameters.center?.[1] ?? 0"
-              :label="t('projectionParams.centerLatitude')"
-              icon="ri-map-pin-2-line"
-              size="xs"
-              :min="centerLatitudeRange.min"
-              :max="centerLatitudeRange.max"
-              :step="centerLatitudeRange.step"
-              unit="°"
-              @update:model-value="(value: number) => {
-                const currentCenter = effectiveParameters.center ?? [0, 0]
-                handleParameterChange('center', [currentCenter[0], value])
-              }"
-            />
-          </template>
-
-          <!-- Rotate Controls -->
-          <template v-if="hasRotateParameter">
-            <!-- Rotate Longitude -->
-            <RangeSlider
-              :model-value="effectiveParameters.rotate?.[0] ?? 0"
-              :label="t('projectionParams.rotateLongitude')"
-              icon="ri-compass-3-line"
-              size="xs"
-              :min="rotateLongitudeRange.min"
-              :max="rotateLongitudeRange.max"
-              :step="rotateLongitudeRange.step"
-              unit="°"
-              @update:model-value="(value: number) => {
-                const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
-                handleParameterChange('rotate', [value, currentRotate[1], currentRotate[2] ?? 0])
-              }"
-            />
-
-            <!-- Rotate Latitude -->
-            <RangeSlider
-              :model-value="effectiveParameters.rotate?.[1] ?? 0"
-              :label="t('projectionParams.rotateLatitude')"
-              icon="ri-compass-4-line"
-              size="xs"
-              :min="rotateLatitudeRange.min"
-              :max="rotateLatitudeRange.max"
-              :step="rotateLatitudeRange.step"
-              unit="°"
-              @update:model-value="(value: number) => {
-                const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
-                handleParameterChange('rotate', [currentRotate[0], value, currentRotate[2] ?? 0])
-              }"
-            />
-          </template>
-        </div>
-      </div>
-
-      <!-- Projection-Specific Parameters -->
-      <div v-if="hasProjectionSpecificParameters">
-        <h5 class="text-sm font-medium mb-3 text-base-content/70">
-          <i class="ri-equalizer-line mr-1" />
-          {{ t('territory.parameters.projectionSpecific') }}
-        </h5>
-
-        <div class="space-y-4">
-          <!-- Parallels (for conic projections) -->
-          <!-- Parallel 1 (Standard parallel) -->
-          <RangeSlider
-            :model-value="effectiveParameters.parallels?.[0] ?? 30"
-            :label="t('projectionParams.parallel1')"
-            icon="ri-equalizer-line"
-            size="xs"
-            :min="parallel1Range.min"
-            :max="parallel1Range.max"
-            :step="parallel1Range.step"
-            unit="°"
-            @update:model-value="(value: number) => {
-              const currentParallels = effectiveParameters.parallels ?? [30, 60]
-              handleParameterChange('parallels', [value, currentParallels[1]])
-            }"
-          />
-
-          <!-- Parallel 2 (Standard parallel) -->
-          <RangeSlider
-            :model-value="effectiveParameters.parallels?.[1] ?? 60"
-            :label="t('projectionParams.parallel2')"
-            icon="ri-equalizer-line"
-            size="xs"
-            :min="parallel2Range.min"
-            :max="parallel2Range.max"
-            :step="parallel2Range.step"
-            unit="°"
-            @update:model-value="(value: number) => {
-              const currentParallels = effectiveParameters.parallels ?? [30, 60]
-              handleParameterChange('parallels', [currentParallels[0], value])
-            }"
-          />
-        </div>
-      </div>
-
-      <!-- View Parameters -->
-      <div v-if="hasViewParameters">
-        <h5 class="text-sm font-medium mb-3 text-base-content/70">
-          <i class="ri-zoom-in-line mr-1" />
-          {{ t('territory.parameters.view') }}
-        </h5>
-
-        <div class="space-y-4">
-          <!-- Scale Control -->
-          <template v-if="hasScaleParameter">
-            <RangeSlider
-              :model-value="effectiveParameters.scale ?? 1000"
-              label="Scale"
-              icon="ri-zoom-in-line"
-              size="xs"
-              :min="scaleRange.min"
-              :max="scaleRange.max"
-              :step="scaleRange.step"
-              @update:model-value="(value: number) => handleParameterChange('scale', value)"
-            />
-          </template>
-
-          <!-- Clip Angle (for azimuthal projections) -->
-          <template v-if="hasClipAngleParameter">
-            <RangeSlider
-              :model-value="effectiveParameters.clipAngle ?? 90"
-              label="Clip Angle"
-              icon="ri-crop-line"
-              size="xs"
-              :min="clipAngleRange.min"
-              :max="clipAngleRange.max"
-              :step="clipAngleRange.step"
-              unit="°"
-              @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
-            />
-          </template>
-        </div>
-      </div>
-
-      <!-- Advanced Parameters -->
-      <div v-if="hasAdvancedParameters">
-        <details class="collapse collapse-arrow">
+    <div
+      v-if="relevantParameters.length > 0"
+      class="join join-vertical border border-base-200 rounded-md"
+    >
+      <!-- Main Projection Controls (Center/Rotation/Parallels) -->
+      <template v-if="hasPositionParameters || hasProjectionSpecificParameters">
+        <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
-            <i class="ri-settings-3-line mr-1" />
-            {{ t('territory.parameters.advanced') }}
+            <i class="ri-compass-3-line mr-1" />
+            {{ t('territory.parameters.projectionSpecific') }}
           </summary>
 
-          <div class="collapse-content space-y-4">
-            <!-- Precision Control -->
-            <template v-if="hasPrecisionParameter">
+          <div class="collapse-content space-y-2">
+            <!-- Position Parameters (Center/Rotation) -->
+            <template v-if="hasPositionParameters">
+              <!-- Center Controls (for conic projections) -->
+              <template v-if="hasCenterParameter">
+                <!-- Center Longitude -->
+                <RangeSlider
+                  :model-value="effectiveParameters.center?.[0] ?? 0"
+                  :label="t('projectionParams.centerLongitude')"
+                  icon="ri-map-pin-line"
+                  size="xs"
+                  :min="centerLongitudeRange.min"
+                  :max="centerLongitudeRange.max"
+                  :step="centerLongitudeRange.step"
+                  unit="°"
+                  @update:model-value="(value: number) => {
+                    const currentCenter = effectiveParameters.center ?? [0, 0]
+                    handleParameterChange('center', [value, currentCenter[1]])
+                  }"
+                />
+
+                <!-- Center Latitude -->
+                <RangeSlider
+                  :model-value="effectiveParameters.center?.[1] ?? 0"
+                  :label="t('projectionParams.centerLatitude')"
+                  icon="ri-map-pin-2-line"
+                  size="xs"
+                  :min="centerLatitudeRange.min"
+                  :max="centerLatitudeRange.max"
+                  :step="centerLatitudeRange.step"
+                  unit="°"
+                  @update:model-value="(value: number) => {
+                    const currentCenter = effectiveParameters.center ?? [0, 0]
+                    handleParameterChange('center', [currentCenter[0], value])
+                  }"
+                />
+              </template>
+
+              <!-- Rotate Controls -->
+              <template v-if="hasRotateParameter">
+                <!-- Rotate Longitude -->
+                <RangeSlider
+                  :model-value="effectiveParameters.rotate?.[0] ?? 0"
+                  :label="t('projectionParams.rotateLongitude')"
+                  icon="ri-compass-3-line"
+                  size="xs"
+                  :min="rotateLongitudeRange.min"
+                  :max="rotateLongitudeRange.max"
+                  :step="rotateLongitudeRange.step"
+                  unit="°"
+                  @update:model-value="(value: number) => {
+                    const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
+                    handleParameterChange('rotate', [value, currentRotate[1], currentRotate[2] ?? 0])
+                  }"
+                />
+
+                <!-- Rotate Latitude -->
+                <RangeSlider
+                  :model-value="effectiveParameters.rotate?.[1] ?? 0"
+                  :label="t('projectionParams.rotateLatitude')"
+                  icon="ri-compass-4-line"
+                  size="xs"
+                  :min="rotateLatitudeRange.min"
+                  :max="rotateLatitudeRange.max"
+                  :step="rotateLatitudeRange.step"
+                  unit="°"
+                  @update:model-value="(value: number) => {
+                    const currentRotate = effectiveParameters.rotate ?? [0, 0, 0]
+                    handleParameterChange('rotate', [currentRotate[0], value, currentRotate[2] ?? 0])
+                  }"
+                />
+              </template>
+            </template>
+
+            <!-- Parallels (for conic projections) -->
+            <template v-if="hasProjectionSpecificParameters">
+              <!-- Parallel 1 (Standard parallel) -->
               <RangeSlider
-                :model-value="effectiveParameters.precision ?? 0.1"
-                label="Precision"
-                icon="ri-focus-3-line"
+                :model-value="effectiveParameters.parallels?.[0] ?? 30"
+                :label="t('projectionParams.parallel1')"
+                icon="ri-equalizer-line"
                 size="xs"
-                :min="precisionRange.min"
-                :max="precisionRange.max"
-                :step="precisionRange.step"
-                @update:model-value="(value: number) => handleParameterChange('precision', value)"
+                :min="parallel1Range.min"
+                :max="parallel1Range.max"
+                :step="parallel1Range.step"
+                unit="°"
+                @update:model-value="(value: number) => {
+                  const currentParallels = effectiveParameters.parallels ?? [30, 60]
+                  handleParameterChange('parallels', [value, currentParallels[1]])
+                }"
+              />
+
+              <!-- Parallel 2 (Standard parallel) -->
+              <RangeSlider
+                :model-value="effectiveParameters.parallels?.[1] ?? 60"
+                :label="t('projectionParams.parallel2')"
+                icon="ri-equalizer-line"
+                size="xs"
+                :min="parallel2Range.min"
+                :max="parallel2Range.max"
+                :step="parallel2Range.step"
+                unit="°"
+                @update:model-value="(value: number) => {
+                  const currentParallels = effectiveParameters.parallels ?? [30, 60]
+                  handleParameterChange('parallels', [currentParallels[0], value])
+                }"
+              />
+            </template>
+          </div>
+        </details>
+      </template>
+
+      <!-- Layout Controls (Scale/Translate) -->
+      <template v-if="hasScaleParameter || hasTranslateParameter">
+        <details class="collapse collapse-plus join-item">
+          <summary class="collapse-title text-sm font-medium">
+            <i class="ri-layout-line mr-1" />
+            {{ t('territory.parameters.layout') }}
+          </summary>
+
+          <div class="collapse-content space-y-2">
+            <!-- Scale Control -->
+            <template v-if="hasScaleParameter">
+              <RangeSlider
+                :model-value="effectiveParameters.scale ?? 1000"
+                label="Scale"
+                icon="ri-zoom-in-line"
+                size="xs"
+                :min="scaleRange.min"
+                :max="scaleRange.max"
+                :step="scaleRange.step"
+                @update:model-value="(value: number) => handleParameterChange('scale', value)"
               />
             </template>
 
@@ -540,7 +493,48 @@ onUnmounted(() => {
             </template>
           </div>
         </details>
-      </div>
+      </template>
+
+      <!-- Secondary Parameters (Clip Angle/Precision) -->
+      <template v-if="hasClipAngleParameter || hasPrecisionParameter">
+        <details class="collapse collapse-plus join-item">
+          <summary class="collapse-title text-sm font-medium">
+            <i class="ri-settings-3-line mr-1" />
+            {{ t('territory.parameters.advanced') }}
+          </summary>
+
+          <div class="collapse-content space-y-2">
+            <!-- Clip Angle (for azimuthal projections) -->
+            <template v-if="hasClipAngleParameter">
+              <RangeSlider
+                :model-value="effectiveParameters.clipAngle ?? 90"
+                label="Clip Angle"
+                icon="ri-crop-line"
+                size="xs"
+                :min="clipAngleRange.min"
+                :max="clipAngleRange.max"
+                :step="clipAngleRange.step"
+                unit="°"
+                @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
+              />
+            </template>
+
+            <!-- Precision Control -->
+            <template v-if="hasPrecisionParameter">
+              <RangeSlider
+                :model-value="effectiveParameters.precision ?? 0.1"
+                label="Precision"
+                icon="ri-focus-3-line"
+                size="xs"
+                :min="precisionRange.min"
+                :max="precisionRange.max"
+                :step="precisionRange.step"
+                @update:model-value="(value: number) => handleParameterChange('precision', value)"
+              />
+            </template>
+          </div>
+        </details>
+      </template>
     </div>
 
     <!-- No relevant parameters message -->
