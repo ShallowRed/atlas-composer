@@ -120,7 +120,7 @@ export function useTerritoryCursor() {
 
   /**
    * Check if a territory can be dragged
-   * Prevents mainland territories from being dragged
+   * Prevents mainland territories from being dragged and checks if territory is in filtered list
    */
   function isTerritoryDraggable(territoryCode: string): boolean {
     if (!isDragEnabled.value)
@@ -132,6 +132,12 @@ export function useTerritoryCursor() {
 
     // Don't allow dragging mainland territories
     if (mainlandCode && territoryCode === mainlandCode) {
+      return false
+    }
+
+    // Only allow dragging territories that are currently visible/filtered
+    const filteredTerritoryCodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
+    if (!filteredTerritoryCodes.has(territoryCode)) {
       return false
     }
 
@@ -333,7 +339,13 @@ export function useTerritoryCursor() {
 
     // Build composite and get borders
     customComposite.build(width, height, true)
-    const borders = customComposite.getCompositionBorders(width, height)
+    const allBorders = customComposite.getCompositionBorders(width, height)
+
+    // Filter borders to only include territories that are currently filtered/visible
+    const filteredTerritorycodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
+    const borders = allBorders.filter((border: any) => 
+      filteredTerritorycodes.has(border.territoryCode)
+    )
 
     const svgSelection = select(svg)
 
@@ -350,7 +362,7 @@ export function useTerritoryCursor() {
       borderZoneGroup.selectAll('*').remove()
     }
 
-    // Create invisible rect overlays for each border zone using D3
+    // Create invisible rect overlays for each filtered border zone using D3
     borderZoneGroup
       .selectAll('.border-zone-overlay')
       .data(borders)
@@ -377,6 +389,7 @@ export function useTerritoryCursor() {
       })
 
     // Disable pointer events on territory paths to prevent conflicts using D3.js
+    // Only disable for territories that are both draggable and in the filtered list
     select(svg).selectAll('path[data-territory]').style('pointer-events', function () {
       const element = this as SVGPathElement
       const territoryCode = element.getAttribute('data-territory')
