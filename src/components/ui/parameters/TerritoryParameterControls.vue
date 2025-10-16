@@ -186,7 +186,7 @@ function areValuesEqual(value1: unknown, value2: unknown): boolean {
 // Get list of relevant parameters for this projection family
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
-    .filter(([, constraint]) => constraint.relevant)
+    .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
 

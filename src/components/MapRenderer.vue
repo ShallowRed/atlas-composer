@@ -342,8 +342,6 @@ function setupTerritoryEventListeners(svg: SVGSVGElement) {
   const paths = svg.querySelectorAll('path[data-territory]')
 
   paths.forEach((path) => {
-    const territoryCode = path.getAttribute('data-territory')
-
     path.addEventListener('mousedown', event => handleTerritoryMouseDown(event as MouseEvent))
     path.addEventListener('mouseenter', event => handleTerritoryMouseEnter(event as MouseEvent))
     path.addEventListener('mouseleave', () => handleTerritoryMouseLeave())

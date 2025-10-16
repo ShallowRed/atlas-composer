@@ -156,6 +156,7 @@ describe('compositeExportService', () => {
         'France',
         mockSingleFocusConfig,
         undefined, // parameterProvider
+        undefined, // referenceScale
         'Test export', // notes
       )
 

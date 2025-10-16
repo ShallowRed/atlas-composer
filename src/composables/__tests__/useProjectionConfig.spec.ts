@@ -64,7 +64,7 @@ describe('useProjectionConfig', () => {
         const configStore = useConfigStore()
         const result = useProjectionConfig()
 
-        const atlasProjections = configStore.currentAtlasConfig.compositeProjections || []
+        const atlasProjections = configStore.currentAtlasConfig.compositeProjectionConfig || []
         result.compositeProjectionOptions.value.forEach((option) => {
           expect(atlasProjections).toContain(option.value)
         })

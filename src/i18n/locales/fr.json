@@ -89,12 +89,14 @@
     "dragHint": "Faites glisser les territoires sur la carte pour les repositionner, ou utilisez les contrôles ci-dessous pour des ajustements précis",
     "grabToMove": "Cliquer et glisser pour déplacer le territoire",
     "parameters": {
-      "view": "Paramètres de la vue",
       "position": "Position",
+      "projectionSpecific": "Paramètres spécifiques à la projection",
+      "view": "Paramètres de la vue",
       "advanced": "Paramètres avancés",
       "reset": "Réinitialiser",
-      "resetOverrides": "Réinitialiser les paramètres personnalisés",
-      "projectionSpecific": "Paramètres spécifiques à la projection"
+      "resetOverrides": "Réinitialiser tous les paramètres personnalisés pour ce territoire",
+      "noRelevantParameters": "Aucun paramètre ajustable",
+      "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels."
     }
   },
   "view": {

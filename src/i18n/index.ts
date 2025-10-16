@@ -1,4 +1,3 @@
-import type { WritableComputedRef } from 'vue'
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/locales/en.json'
 import fr from '@/i18n/locales/fr.json'
@@ -43,7 +42,8 @@ export default i18n
 
 // Helper to change locale and persist
 export function setLocale(locale: SupportedLocale) {
-  (i18n.global.locale as unknown as WritableComputedRef<SupportedLocale>).value = locale
+  const global = i18n.global as any
+  global.locale.value = locale
   localStorage.setItem('locale', locale)
   document.documentElement.setAttribute('lang', locale)
 }

@@ -64,10 +64,10 @@ describe('useUrlState', () => {
     it('should include custom projection parameters when set', () => {
       const configStore = useConfigStore()
       configStore.selectedAtlas = 'france'
-      configStore.customRotateLongitude = 10
-      configStore.customRotateLatitude = 20
-      configStore.customCenterLongitude = 30
-      configStore.customCenterLatitude = 40
+      configStore.setCustomRotateLongitude(10)
+      configStore.setCustomRotateLatitude(20)
+      configStore.setCustomCenterLongitude(30)
+      configStore.setCustomCenterLatitude(40)
 
       const { serializeState } = useUrlState()
       const state = serializeState()
@@ -224,6 +224,7 @@ describe('useUrlState', () => {
 
     it('should restore territory settings', () => {
       const territoryStore = useTerritoryStore()
+      const parameterStore = useParameterStore()
       const { deserializeState } = useUrlState()
 
       const territorySettings = {
@@ -240,8 +241,8 @@ describe('useUrlState', () => {
 
       deserializeState(params)
 
-      expect(territoryStore.territoryScales.GLP).toBe(1.5)
-      expect(territoryStore.territoryScales.MTQ).toBe(2.0)
+      expect(parameterStore.getTerritoryParameters('GLP').scaleMultiplier).toBe(1.5)
+      expect(parameterStore.getTerritoryParameters('MTQ').scaleMultiplier).toBe(2.0)
       expect(territoryStore.territoryTranslations.GLP).toEqual({ x: 100, y: -50 })
     })
 
@@ -352,8 +353,8 @@ describe('useUrlState', () => {
       configStore.selectedProjection = 'azimuthal-equal-area'
       configStore.projectionMode = 'individual'
       configStore.territoryMode = 'all'
-      configStore.customRotateLongitude = 10
-      configStore.customRotateLatitude = 20
+      configStore.setCustomRotateLongitude(10)
+      configStore.setCustomRotateLatitude(20)
       parameterStore.setTerritoryParameter('GLP', 'scaleMultiplier', 1.5)
       territoryStore.setTerritoryTranslation('MTQ', 'x', 100)
 
@@ -365,7 +366,7 @@ describe('useUrlState', () => {
       // Reset stores to defaults
       const configStore2 = useConfigStore()
       configStore2.selectedAtlas = 'world'
-      configStore2.customRotateLongitude = null
+      configStore2.setCustomRotateLongitude(null)
 
       // Deserialize
       deserializeState(serialized)
@@ -376,7 +377,7 @@ describe('useUrlState', () => {
       expect(configStore2.selectedProjection).toBe('azimuthal-equal-area')
       expect(configStore2.customRotateLongitude).toBe(10)
       expect(configStore2.customRotateLatitude).toBe(20)
-      expect(territoryStore.territoryScales.GLP).toBe(1.5)
+      expect(parameterStore.getTerritoryParameters('GLP').scaleMultiplier).toBe(1.5)
       expect(territoryStore.territoryTranslations.MTQ).toEqual({ x: 100, y: 0 })
     })
   })

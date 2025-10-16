@@ -108,17 +108,17 @@ export function useUrlState() {
 
     // Projection parameters
     if (params.rlon !== undefined)
-      configStore.customRotateLongitude = Number(params.rlon)
+      configStore.setCustomRotateLongitude(Number(params.rlon))
     if (params.rlat !== undefined)
-      configStore.customRotateLatitude = Number(params.rlat)
+      configStore.setCustomRotateLatitude(Number(params.rlat))
     if (params.clon !== undefined)
-      configStore.customCenterLongitude = Number(params.clon)
+      configStore.setCustomCenterLongitude(Number(params.clon))
     if (params.clat !== undefined)
-      configStore.customCenterLatitude = Number(params.clat)
+      configStore.setCustomCenterLatitude(Number(params.clat))
     if (params.p1 !== undefined)
-      configStore.customParallel1 = Number(params.p1)
+      configStore.setCustomParallel1(Number(params.p1))
     if (params.p2 !== undefined)
-      configStore.customParallel2 = Number(params.p2)
+      configStore.setCustomParallel2(Number(params.p2))
 
     // Composite projection
     if (params.composite)

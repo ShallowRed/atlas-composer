@@ -6,8 +6,9 @@
  * using Vite's import.meta.glob feature. Simply add a new JSON file to add an atlas.
  */
 
-import type { AtlasSpecificConfig, LoadedAtlasConfig, ProjectionParams } from '@/core/atlases/loader'
+import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { loadAtlasConfig } from '@/core/atlases/loader'
 
 /**
@@ -103,7 +104,7 @@ export function getAtlasSpecificConfig(atlasId: string): AtlasSpecificConfig {
 /**
  * Get projection parameters for an atlas
  */
-export function getProjectionParams(atlasId: string): ProjectionParams {
+export function getProjectionParams(atlasId: string): ProjectionParameters {
   return getAtlasSpecificConfig(atlasId).projectionParams
 }
 

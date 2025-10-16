@@ -70,9 +70,7 @@ export interface ProjectionSuitability {
  * These are the recommended types to use going forward
  */
 export type {
-  ExtendedProjectionParameters,
   ProjectionParameters,
-  ProjectionParametersWithMetadata,
 } from '@/types/projection-parameters'
 
 /**
