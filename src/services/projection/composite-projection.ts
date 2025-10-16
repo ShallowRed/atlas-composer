@@ -549,7 +549,8 @@ export class CompositeProjection {
       // currentScale = baseScale * multiplier, so we need to extract the base scale
       subProj.baseScale = currentScale / subProj.scaleMultiplier
       console.log(`[CompositeProjection] After projection change - recalculated baseScale=${subProj.baseScale} (= ${currentScale} / ${subProj.scaleMultiplier})`)
-    } else {
+    }
+    else {
       // Scale matches expected value - preserve existing baseScale
       console.log(`[CompositeProjection] After projection change - preserved baseScale=${subProj.baseScale} (currentScale=${currentScale} matches expected)`)
     }
@@ -968,12 +969,13 @@ export class CompositeProjection {
    */
   exportConfig() {
     return {
-      subProjections: this.subProjections.map(sp => {
+      subProjections: this.subProjections.map((sp) => {
         // Get exportable parameters from parameter provider if available
         let parameters: Partial<ProjectionParameters> = {}
         if (this.parameterProvider) {
           parameters = this.parameterProvider.getExportableParameters(sp.territoryCode)
-        } else {
+        }
+        else {
           // Fallback to D3 projection instances (legacy behavior)
           parameters = {
             center: sp.projection.center?.(),

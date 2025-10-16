@@ -372,17 +372,23 @@ App.vue
 **Used by**: TerritoryControls, useTerritoryTransforms
 
 ### parameterStore (295 lines)
-**Domain**: Projection parameter management
+**Domain**: Unified parameter registry integration
 **Responsibilities**:
-- Global parameter state management
-- Territory-specific parameter overrides
-- Parameter inheritance and effective parameter resolution (territory > global > atlas > default)
-- Parameter validation with constraint checking (validates only relevant parameters per projection family)
-- Reactive version tracking via territoryParametersVersion for triggering re-renders
-- Integration with ProjectionParameterManager and UnifiedParameterConstraints services
-- Support for all projection families with dynamic constraint resolution
-- Provides ProjectionParameterProvider interface for rendering integration
-**Used by**: TerritoryParameterControls, useTerritoryParameters, MapRenderer (watches version), geoDataStore (parameter provider)
+- Parameter registry integration with ProjectionParameterManager
+- Global parameter state management with registry validation
+- Territory-specific parameter overrides with registry constraints
+- Parameter inheritance: territory > global > atlas > registry defaults
+- Registry-based parameter validation with family-specific constraint checking
+- Reactive version tracking via territoryParametersVersion for UI updates
+- Registry-driven constraint resolution for UI components
+- Complete parameter export using registry definitions (getExportableParameters)
+- ProjectionParameterProvider interface implementation for rendering
+**Registry Integration**:
+- All parameter operations validated through parameter registry
+- Registry-based constraint resolution for UI controls
+- Registry metadata drives parameter display and validation
+- Type-safe parameter operations with registry enforcement
+**Used by**: TerritoryParameterControls (registry constraints), useTerritoryParameters, MapRenderer (watches version), geoDataStore (parameter provider), export system
 
 ## Data Flow
 
@@ -406,15 +412,18 @@ Store Update → Component Re-render
 
 **Key Pattern**: Centralized data loading in useAtlasData composable with setupWatchers()
 
-## Parameter Flow Architecture
+## Parameter Registry Integration Architecture
 
-### Parameter Store to Rendering Integration
+### Registry-Based Parameter Flow
 
 ```
 Parameter Edit (TerritoryParameterControls)
+    • Uses registry constraints for min/max/step values
+    • Registry-based validation in real-time
     ↓
 parameterStore.setTerritoryParameter()
-    • Stores value
+    • Registry validation before storing
+    • Parameter registry default fallbacks
     • Increments territoryParametersVersion
     • Emits @parameter-changed event
     ↓                                    ↓
@@ -425,21 +434,28 @@ cartographer.updateTerritoryParameters() triggers renderMap()
     ↓
 CompositeProjection.updateTerritoryParameters()
     • Calls parameterProvider.getEffectiveParameters()
-    • Applies rotate/center/parallels to D3 projection
+    • Registry-based parameter resolution with inheritance
+    • Applies parameters to D3 projection using registry metadata
     • Sets compositeProjection = null (forces rebuild)
     ↓
-renderMap() with updated projection
+renderMap() with registry-validated parameters
 ```
 
-### Parameter Provider Pattern
+### Enhanced Parameter Provider Pattern
 
-**Purpose**: Connect parameter store to rendering without direct coupling
+**Purpose**: Registry-integrated parameter resolution for rendering
 
 **Implementation**:
-- `ProjectionParameterProvider` interface with `getEffectiveParameters(territoryCode)` method
+- `ProjectionParameterProvider` interface with `getEffectiveParameters()` and `getExportableParameters()` methods
 - geoDataStore creates adapter connecting parameterStore to Cartographer
-- Cartographer passes provider to CompositeProjection
-- CompositeProjection uses provider in initialization and updates
+- Adapter uses registry-based parameter resolution for complete coverage
+- Cartographer passes provider to CompositeProjection for rendering and export
+
+**Registry Benefits**:
+- Parameter inheritance with registry defaults as final fallback
+- Type-safe parameter operations with registry constraint validation
+- Complete parameter coverage for export (registry defines all exportable parameters)
+- UI constraint resolution (min/max/step) directly from registry metadata
 
 **Benefits**:
 - No circular dependencies

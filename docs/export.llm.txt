@@ -29,23 +29,34 @@ The export system enables users to use their custom composite projections outsid
 - `src/components/ui/ImportModal.vue` - Import UI
 - `packages/projection-loader/` - Standalone NPM package (loader implementation)
 
-## Configuration Export (config-exporter.ts)
+## Configuration Export (composite-export-service.ts)
+
+### Registry-Based Export System
+Export system now integrates with the unified parameter registry for complete parameter coverage.
 
 ### ExportedCompositeConfig Type
 Serialized projection configuration with:
-- `mainProjection` - Primary projection ID and parameters
+- `metadata` - Export metadata (atlasId, atlasName, exportDate, createdWith, notes)
+- `pattern` - Composite pattern type (single-focus, equal-members)
+- `referenceScale` - Base scale for territory scaling
 - `territories[]` - Array of territory configurations
-  - `id` - Territory identifier
-  - `projectionId` - D3 projection name
-  - `projectionParams` - All projection parameters (center, rotate, parallels, scale, translate)
+  - `code` - Territory identifier
+  - `name` - Territory display name
+  - `role` - Territory role (mainland, overseas, secondary)
+  - `projectionId` - D3 projection identifier
+  - `projectionFamily` - Projection family type
+  - `parameters` - Complete registry-based parameter set
+  - `layout` - Layout configuration (translateOffset, clipExtent)
   - `bounds` - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
 
-### ConfigExporter.export()
-Extracts configuration from stores and services:
-- Reads from `configStore` (projection state)
-- Reads from `territoryStore` (territory positions/scales)
-- Uses `CompositeProjection` for territory projections
-- Rounds all numeric values to 6 decimals for precision
+### CompositeExportService.exportToJSON()
+Registry-integrated export with complete parameter coverage:
+- Uses `ProjectionParameterProvider` for complete parameter resolution
+- Leverages parameter registry for all exportable parameters
+- Maintains backward compatibility with legacy D3-based export
+- Parameter provider integration: `parameterProvider.getExportableParameters()`
+- Registry-based parameter validation and metadata
+- Complete parameter inheritance resolution: territory → global → atlas → registry defaults
 
 ## Code Generation (code-generator.ts)
 

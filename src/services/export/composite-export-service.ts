@@ -125,7 +125,8 @@ export class CompositeExportService {
       // Legacy usage: 5th param is notes
       actualNotes = notesOrParameterProvider
       _parameterProvider = undefined
-    } else {
+    }
+    else {
       // New usage: 5th param is parameter provider, 6th is notes
       _parameterProvider = notesOrParameterProvider
       actualNotes = notes
@@ -133,7 +134,7 @@ export class CompositeExportService {
 
     // TODO: Use _parameterProvider when CompositeProjection.exportConfig supports parameter providers
 
-    // Get raw export from CompositeProjection 
+    // Get raw export from CompositeProjection
     // TODO: Pass parameterProvider when CompositeProjection.exportConfig supports it
     const rawExport = compositeProjection.exportConfig()
 

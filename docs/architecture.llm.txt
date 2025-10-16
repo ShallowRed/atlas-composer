@@ -28,7 +28,17 @@ File: docs/projections.llm.txt
 - Projection registry with recommendation engine
 - Projection factory and D3/Observable Plot integration
 
-### 3. Service Layer
+### 3. Parameter Registry System
+Domain: Unified parameter management and validation
+File: docs/services.llm.txt (Parameter Management section)
+- Central parameter registry with metadata and constraints
+- Type-safe parameter definitions for all projection families
+- Validation integration across stores, UI, presets, and export
+- Parameter inheritance with territory → global → atlas → registry defaults
+- Registry-driven UI constraints and real-time validation feedback
+- Comprehensive test coverage (32 passing tests)
+
+### 4. Service Layer
 Domain: Business logic and rendering
 File: docs/services.llm.txt
 - AtlasService: Configuration management
@@ -37,26 +47,27 @@ File: docs/services.llm.txt
 - DataLoaderService: GeoJSON data loading
 - TerritoryDataService: Territory positioning
 
-### 4. Vue Layer
+### 5. Vue Layer
 Domain: User interface and interaction
 File: docs/vue-architecture.llm.txt
 - Vue 3 components with Composition API (16 components)
-- Pinia stores for state management (3 stores: config, geoData, ui/territory)
+- Pinia stores for state management (4 stores: config, geoData, parameters, ui/territory)
 - Composables for reusable logic (9 composables)
 - Component hierarchy and data flow
 - Comprehensive type safety (370 lines of types)
 - Test coverage (122 tests, 100% passing)
 
-### 5. Export System
+### 6. Export System
 Domain: Code generation for composite projections
 File: docs/export.llm.txt
-- Configuration serialization
+- Registry-based parameter export with complete coverage
+- Configuration serialization using parameter registry
 - D3.js code generation (JavaScript/TypeScript)
 - Observable Plot code generation
 - D3 stream protocol implementation
 - Geographic bounds routing and stream multiplexing
 
-### 6. Build System
+### 7. Build System
 Domain: Data preparation and validation
 File: docs/scripts.llm.txt
 - prepare-geodata.ts: Natural Earth processing
@@ -117,11 +128,13 @@ scripts/                # Build and dev scripts
 - State managed in Pinia stores
 - Services use dependency injection
 
-### Projection Parameter Management
-- Centralized configuration (projections/parameters.ts)
-- Family-based parameter relevance
-- Priority: custom → atlas → defaults
-- Type-safe with TypeScript
+### Unified Parameter Registry System
+- Central parameter registry with complete metadata and validation
+- Type-safe parameter definitions with constraints and defaults
+- Family-based parameter relevance and validation rules
+- Integrated validation across stores, UI, presets, and export
+- Parameter inheritance: territory → global → atlas → registry defaults
+- Registry-driven UI constraints and real-time validation feedback
 
 ### Reactive Rendering
 - Watchers trigger re-renders on state changes

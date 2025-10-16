@@ -190,51 +190,74 @@ Uses pure D3 projection.invert() approach without manual coordinate adjustments.
 
 ## Parameter Management Services (src/services/parameters/)
 
-### ProjectionParameterManager
-Unified parameter management service for both global and territory-specific parameters.
-Instance-based service with parameter inheritance and validation.
+### Unified Parameter Registry System
+Central registry-based parameter management with complete metadata, validation, and type safety.
+Replaces previous constraint systems with a unified, registry-driven approach.
 
-**Parameter Management**:
+### ParameterRegistry (src/core/parameters/parameter-registry.ts)
+Core registry service providing parameter definitions, metadata, and validation.
+Singleton pattern with complete parameter lifecycle management.
+
+**Parameter Definition Management**:
+- `register()` - Register parameter definition with metadata, constraints, and validation
+- `get()` - Get parameter definition by key with full metadata
+- `validate()` - Validate parameter value using registry constraints
+- `getConstraints()` - Get validation constraints for parameter
+- `getDefault()` - Get default value with territory context support
+
+**Metadata System**:
+- Complete parameter metadata (displayName, description, unit, type)
+- Projection family relevance (CYLINDRICAL, CONIC, AZIMUTHAL, COMPOSITE, OTHER)
+- Data flow specification (preset, computed) and mutability flags
+- Export control (exportable, requiresPreset) for serialization
+- Type-safe constraints with range validation and custom validation functions
+
+**Registry Coverage**:
+- All projection parameters: center, rotate, parallels, scale, translate, clipAngle, precision
+- Scale parameters: baseScale, scaleMultiplier with appropriate constraints
+- Type-safe parameter constraints with family-specific relevance
+- Comprehensive validation with contextual error messages
+
+### ProjectionParameterManager (src/services/parameters/projection-parameter-manager.ts)
+Business logic service for parameter management operations.
+Instance-based service integrating with parameter registry for validation and state management.
+
+**Parameter State Management**:
 - `getGlobalParameters()` - Get global parameter state
-- `setGlobalParameter()` - Set global parameter value
-- `getTerritoryParameters()` - Get territory-specific parameter overrides  
-- `setTerritoryParameter()` - Set territory-specific parameter override
-- `getEffectiveParameters()` - Resolve parameters with inheritance (territory > global > default)
+- `setGlobalParameter()` - Set global parameter with registry validation
+- `getTerritoryParameters()` - Get territory-specific parameter overrides
+- `setTerritoryParameter()` - Set territory parameter with registry validation
+- `getEffectiveParameters()` - Resolve parameters with inheritance (territory > global > atlas > registry defaults)
 - `clearTerritoryOverride()` - Remove territory-specific parameter override
 
-**Validation Integration**:
-- `validateParameter()` - Validate parameter value against projection family constraints
-- `validateTerritoryParameters()` - Validate all parameters for a territory
-- `getParameterConstraints()` - Get constraint definitions for projection family
+**Registry Integration**:
+- `validateParameter()` - Validate parameter using registry constraints
+- `validateTerritoryParameters()` - Validate all territory parameters
+- `getParameterConstraints()` - Get registry-based constraint definitions
+- `isParameterRelevant()` - Check parameter relevance for projection family
+- Parameter inheritance with registry defaults as final fallback
 
-### UnifiedParameterConstraints
-Single source of truth for all projection parameter constraints, validation rules, and relevance definitions.
-Consolidates the previous dual constraint system architecture into a unified approach.
+**Event System**:
+- Parameter change events with territory context
+- Validation error events with registry-based error messages  
+- Territory parameter lifecycle events (set, clear, validate)
 
-**Core API**:
-- `getParameterConstraints()` - Get complete constraint information for projection family
-- `isParameterRelevant()` - Check if parameter applies to projection family  
-- `getParameterDefault()` - Get default value for parameter in projection family
-- `validateParameter()` - Single parameter validation with constraint checking
-- `validateParameterSet()` - Batch validation for complete parameter set (validates only relevant parameters)
+### UnifiedParameterConstraints (src/services/parameters/unified-parameter-constraints.ts)
+Registry integration service providing constraint access and validation.
+Static service delegating to parameter registry for constraint operations.
 
-**Constraint System**:
-- Comprehensive family-based parameter relevance (CONIC supports center/rotate/parallels, AZIMUTHAL supports center/rotate/clipAngle)
-- Range validation for scalar parameters (scale: 1-100000, precision: 0.01-10, clipAngle: 0-180)
-- Array validation for coordinate parameters (center/parallels: [lat,lon], rotate: [lon,lat,gamma?], translate: [x,y])
-- Custom validation functions with contextual error messages and dependency checking
-- Unified parameter defaults across all projection families
-- Parameter inheritance aware: skips validation for irrelevant parameters to prevent false errors on inherited values
+**Constraint Resolution**:
+- `getParameterConstraints()` - Get family-specific constraints from registry
+- `isParameterRelevant()` - Registry-based parameter relevance checking
+- `getParameterDefault()` - Registry default value resolution with family context
+- `validateParameter()` - Registry-based single parameter validation
+- `validateParameterSet()` - Batch validation using registry constraints
 
-### ParameterValidator
-@deprecated Legacy parameter validation wrapper that delegates to UnifiedParameterConstraints.
-Maintained for backward compatibility only - use UnifiedParameterConstraints directly for new code.
-
-**Delegation Methods**:
-- `validateParameter()` - Delegates to UnifiedParameterConstraints.validateParameter()
-- `validateParameterSet()` - Delegates to UnifiedParameterConstraints.validateParameterSet()
-- `getParameterConstraints()` - Delegates to UnifiedParameterConstraints.getParameterConstraints()
-- `isParameterRelevant()` - Delegates to UnifiedParameterConstraints.isParameterRelevant()
+**Integration Benefits**:
+- Single source of truth through parameter registry
+- Type-safe constraint definitions with comprehensive metadata
+- Family-based parameter relevance with registry validation
+- Consistent validation across stores, UI, presets, and export systems
 
 ## Export/Import Services (src/services/export/)
 
