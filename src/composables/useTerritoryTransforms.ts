@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
@@ -7,6 +8,7 @@ import { createDefaultTranslations } from '@/core/atlases/utils'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 
 /**
@@ -16,6 +18,8 @@ export function useTerritoryTransforms() {
   const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
   const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
+  const presetDefaults = getSharedPresetDefaults()
 
   /**
    * Get list of territories from geoData store
@@ -88,8 +92,47 @@ export function useTerritoryTransforms() {
     if (!atlasService)
       return
 
-    // Reset all translations to defaults
+    // If we have preset defaults, restore from preset
+    if (presetDefaults.hasPresetDefaults()) {
+      const originalDefaults = presetDefaults.presetDefaults.value
+      if (originalDefaults) {
+        // Clear all parameter overrides first
+        for (const territoryCode of Object.keys(originalDefaults.projections)) {
+          parameterStore.clearAllTerritoryOverrides(territoryCode)
+        }
+
+        // Reset to preset defaults
+        Object.entries(originalDefaults.projections).forEach(([code, projection]) => {
+          territoryStore.setTerritoryProjection(code, projection)
+        })
+        Object.entries(originalDefaults.translations).forEach(([code, translation]) => {
+          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
+          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+        })
+        Object.entries(originalDefaults.scales).forEach(([code, scale]) => {
+          territoryStore.setTerritoryScale(code, scale)
+        })
+
+        // Apply preset parameters if they exist
+        const originalParameters = presetDefaults.presetParameters.value
+        Object.entries(originalParameters).forEach(([territoryCode, params]) => {
+          parameterStore.setTerritoryParameters(territoryCode, params as any)
+        })
+
+        console.info('[Reset] Restored to preset defaults')
+        return
+      }
+    }
+
+    // Fallback: Reset to hardcoded defaults if no preset available
     const territories = atlasService.getAllTerritories()
+
+    // Clear all parameter overrides
+    for (const t of geoDataStore.filteredTerritories) {
+      parameterStore.clearAllTerritoryOverrides(t.code)
+    }
+
+    // Reset all translations to defaults
     const defaultTranslations = createDefaultTranslations(territories)
     for (const [code, { x, y }] of Object.entries(defaultTranslations)) {
       territoryStore.setTerritoryTranslation(code, 'x', x)
@@ -101,6 +144,62 @@ export function useTerritoryTransforms() {
     for (const t of geoDataStore.filteredTerritories) {
       territoryStore.setTerritoryScale(t.code, defaultScale)
     }
+
+    console.info('[Reset] Restored to fallback defaults (no preset available)')
+  }
+
+  /**
+   * Reset a specific territory to its preset defaults (or hardcoded defaults if no preset)
+   */
+  function resetTerritoryToDefaults(territoryCode: string) {
+    // If we have preset defaults, restore from preset
+    if (presetDefaults.hasPresetDefaults()) {
+      const originalDefaults = presetDefaults.presetDefaults.value
+      const originalParameters = presetDefaults.presetParameters.value
+
+      if (originalDefaults && originalDefaults.projections[territoryCode]) {
+        // Clear parameter overrides first
+        parameterStore.clearAllTerritoryOverrides(territoryCode)
+
+        // Reset to preset defaults for this territory
+        if (originalDefaults.projections[territoryCode]) {
+          territoryStore.setTerritoryProjection(territoryCode, originalDefaults.projections[territoryCode])
+        }
+        if (originalDefaults.translations[territoryCode]) {
+          const translation = originalDefaults.translations[territoryCode]
+          territoryStore.setTerritoryTranslation(territoryCode, 'x', translation.x)
+          territoryStore.setTerritoryTranslation(territoryCode, 'y', translation.y)
+        }
+        if (originalDefaults.scales[territoryCode]) {
+          territoryStore.setTerritoryScale(territoryCode, originalDefaults.scales[territoryCode])
+        }
+
+        // Apply preset parameters if they exist for this territory
+        if (originalParameters[territoryCode]) {
+          parameterStore.setTerritoryParameters(territoryCode, originalParameters[territoryCode] as any)
+        }
+
+        console.info(`[Reset] Restored territory ${territoryCode} to preset defaults`)
+        return
+      }
+    }
+
+    // Fallback: Reset to hardcoded defaults if no preset available
+    const atlasService = configStore.atlasService
+    if (!atlasService)
+      return
+
+    // Clear parameter overrides
+    parameterStore.clearAllTerritoryOverrides(territoryCode)
+
+    // Reset translation to default (0, 0)
+    territoryStore.setTerritoryTranslation(territoryCode, 'x', 0)
+    territoryStore.setTerritoryTranslation(territoryCode, 'y', 0)
+
+    // Reset scale to 1.0
+    territoryStore.setTerritoryScale(territoryCode, 1.0)
+
+    console.info(`[Reset] Restored territory ${territoryCode} to fallback defaults (no preset available)`)
   }
 
   /**
@@ -165,5 +264,6 @@ export function useTerritoryTransforms() {
     setTerritoryScale,
     setTerritoryProjection,
     resetTransforms,
+    resetTerritoryToDefaults,
   }
 }

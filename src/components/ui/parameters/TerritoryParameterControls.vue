@@ -17,6 +17,8 @@ import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
+import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useParameterStore } from '@/stores/parameters'
 
 interface Props {
@@ -48,6 +50,13 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const parameterStore = useParameterStore()
+const { resetTerritoryToDefaults } = useTerritoryTransforms()
+const presetDefaults = getSharedPresetDefaults()
+
+// Get parameter constraints for this projection family
+const parameterConstraints = computed(() => {
+  return parameterStore.getParameterConstraints(props.projectionFamily)
+})
 
 // Get parameter constraints from parameter registry
 function getParameterRange(paramKey: keyof ProjectionParameters) {
@@ -76,11 +85,6 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   }
 }
 
-// Get parameter constraints for this projection family
-const parameterConstraints = computed(() => {
-  return parameterStore.getParameterConstraints(props.projectionFamily)
-})
-
 // Get current effective parameters for this territory
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
@@ -96,10 +100,100 @@ const validationResults = computed(() => {
   return parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 
-// Check if territory has any parameter overrides
+// Check if territory has parameter overrides that differ from preset defaults
 const hasOverrides = computed(() => {
-  return Object.keys(territoryParameters.value).length > 0
+  // If no overrides exist at all, no divergence
+  if (Object.keys(territoryParameters.value).length === 0) {
+    console.log('[TerritoryParameterControls] No overrides for', props.territoryCode)
+    return false
+  }
+
+  // If no preset defaults loaded, show the reset button (legacy behavior)
+  if (!presetDefaults.hasPresetDefaults()) {
+    console.log('[TerritoryParameterControls] No preset defaults available for', props.territoryCode)
+    return true
+  }
+
+  // Get preset parameters for this specific territory
+  const presetParams = presetDefaults.getPresetDefaultsForTerritory(props.territoryCode)?.parameters
+
+  // console.log('[TerritoryParameterControls] Checking divergence for', props.territoryCode, {
+  //   territoryParameters: territoryParameters.value,
+  //   presetParams,
+  //   hasPresetParams: !!presetParams,
+  // })
+
+  // If no preset parameters for this territory, show the reset button
+  if (!presetParams) {
+    console.log('[TerritoryParameterControls] No preset params for territory', props.territoryCode)
+    return true
+  }
+
+  // Check if any current parameter differs from preset defaults
+  for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
+    const presetValue = presetParams[paramKey as keyof typeof presetParams]
+
+    // Use the same deep comparison logic as the global reset button
+    const isEqual = areValuesEqual(currentValue, presetValue)
+
+    // console.log(`[TerritoryParameterControls] Comparing ${props.territoryCode}.${paramKey}:`, {
+    //   currentValue,
+    //   presetValue,
+    //   isEqual,
+    //   currentType: typeof currentValue,
+    //   presetType: typeof presetValue
+    // })
+
+    if (!isEqual) {
+      console.log('[TerritoryParameterControls] ⚠️ DIVERGENCE DETECTED:', {
+        territoryCode: props.territoryCode,
+        paramKey,
+        currentValue,
+        presetValue,
+      })
+      return true
+    }
+  }
+
+  console.log('[TerritoryParameterControls] ✓ No divergence - territory matches preset:', {
+    territoryCode: props.territoryCode,
+  })
+
+  return false
 })
+
+// Helper function for deep value comparison (same as in usePresetDefaults)
+function areValuesEqual(value1: unknown, value2: unknown): boolean {
+  // Handle null/undefined
+  if (value1 === value2)
+    return true
+  if (value1 == null || value2 == null)
+    return false
+
+  // Handle arrays
+  if (Array.isArray(value1) && Array.isArray(value2)) {
+    if (value1.length !== value2.length)
+      return false
+    return value1.every((val, index) => areValuesEqual(val, value2[index]))
+  }
+
+  // Handle objects
+  if (typeof value1 === 'object' && typeof value2 === 'object') {
+    const keys1 = Object.keys(value1 as Record<string, unknown>)
+    const keys2 = Object.keys(value2 as Record<string, unknown>)
+    if (keys1.length !== keys2.length)
+      return false
+    return keys1.every(key =>
+      areValuesEqual(
+        (value1 as Record<string, unknown>)[key],
+        (value2 as Record<string, unknown>)[key],
+      ),
+    )
+  }
+
+  // Primitives
+  return value1 === value2
+}
 
 // Get list of relevant parameters for this projection family
 const relevantParameters = computed(() => {
@@ -122,7 +216,7 @@ const centerLongitudeRange = computed(() => getParameterRange('centerLongitude')
 const centerLatitudeRange = computed(() => getParameterRange('centerLatitude'))
 const rotateLongitudeRange = computed(() => getParameterRange('rotateLongitude'))
 const rotateLatitudeRange = computed(() => getParameterRange('rotateLatitude'))
-const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
+// const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
 const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
 const scaleRange = computed(() => getParameterRange('scale'))
@@ -143,9 +237,10 @@ function handleParameterChange(key: keyof ProjectionParameters, value: unknown) 
   }
 }
 
-// Clear all parameter overrides for this territory
+// Clear all parameter overrides for this territory and reset transforms to preset defaults
 function clearAllOverrides() {
-  parameterStore.clearAllTerritoryOverrides(props.territoryCode)
+  // Reset all territory-specific settings (transforms + parameters) to preset defaults
+  resetTerritoryToDefaults(props.territoryCode)
 
   // Emit cleared events for all overridden parameters
   Object.keys(territoryParameters.value).forEach((key) => {
@@ -208,22 +303,15 @@ onUnmounted(() => {
 
 <template>
   <div class="territory-parameter-controls">
-    <!-- Header with territory name and reset button -->
-    <div class="flex items-center justify-between mb-4">
-      <h4 class="text-lg font-semibold">
-        {{ territoryName }}
-      </h4>
-
-      <button
-        v-if="hasOverrides"
-        class="btn btn-sm btn-ghost"
-        :title="t('territory.parameters.resetOverrides')"
-        @click="clearAllOverrides"
-      >
-        <i class="ri-restart-line" />
-        {{ t('territory.parameters.reset') }}
-      </button>
-    </div>
+    <button
+      v-if="hasOverrides"
+      class="btn btn-sm btn-soft w-full mb-4"
+      :title="t('territory.parameters.resetOverrides')"
+      @click="clearAllOverrides"
+    >
+      <i class="ri-restart-line" />
+      {{ t('territory.parameters.reset') }}
+    </button>
 
     <!-- Validation feedback -->
     <div

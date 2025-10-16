@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -14,6 +15,7 @@ const { t } = useI18n()
 const configStore = useConfigStore()
 const parameterStore = useParameterStore()
 const territoryStore = useTerritoryStore()
+const presetDefaults = getSharedPresetDefaults()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
@@ -48,10 +50,23 @@ const currentPreset = computed({
         // Convert preset to defaults
         const defaults = PresetLoader.convertToDefaults(result.preset)
 
-        // Clear all existing parameter overrides for all territories before applying new preset
-        Object.keys(defaults.projections).forEach((territoryCode) => {
+        // Extract territory parameters from preset
+        const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
+
+        // Clear ALL existing parameter overrides first (from any previous preset or edits)
+        // Get all territories from territory store, not just the new preset territories
+        const allCurrentTerritoryCodes = Object.keys(territoryStore.territoryProjections)
+        console.log('[PresetSelector] Clearing overrides for territories:', allCurrentTerritoryCodes)
+        allCurrentTerritoryCodes.forEach((territoryCode) => {
+          const paramsBefore = parameterStore.getTerritoryParameters(territoryCode)
+          console.log(`[PresetSelector] Before clear ${territoryCode}:`, paramsBefore)
           parameterStore.clearAllTerritoryOverrides(territoryCode)
+          const paramsAfter = parameterStore.getTerritoryParameters(territoryCode)
+          console.log(`[PresetSelector] After clear ${territoryCode}:`, paramsAfter)
         })
+
+        // Store original preset defaults for reset functionality
+        presetDefaults.storePresetDefaults(defaults, territoryParameters)
 
         // Apply to territory store - set each territory individually
         Object.entries(defaults.projections).forEach(([code, projection]) => {
@@ -63,6 +78,24 @@ const currentPreset = computed({
         })
         Object.entries(defaults.scales).forEach(([code, scale]) => {
           territoryStore.setTerritoryScale(code, scale)
+        })
+
+        // Apply territory parameters from preset (after clearing to ensure clean state)
+        // Filter out 'scale' parameter since it's computed from baseScale * scaleMultiplier
+        // Applying the old computed scale value would prevent the new preset from calculating correctly
+        const parametersWithoutScale: Record<string, any> = {}
+        Object.entries(territoryParameters).forEach(([code, params]) => {
+          const { scale, ...paramsWithoutScale } = params
+          parametersWithoutScale[code] = paramsWithoutScale
+        })
+
+        console.log('[PresetSelector] Applying new territory parameters (without scale):', parametersWithoutScale)
+        parameterStore.initializeFromPreset({}, parametersWithoutScale)
+
+        // Verify parameters were set
+        Object.keys(territoryParameters).forEach((territoryCode) => {
+          const appliedParams = parameterStore.getTerritoryParameters(territoryCode)
+          console.log(`[PresetSelector] After apply ${territoryCode}:`, appliedParams)
         })
 
         // Log warnings if present but don't treat as errors

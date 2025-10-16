@@ -9,11 +9,13 @@ import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useViewState } from '@/composables/useViewState'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 
 const props = withDefaults(defineProps<Props>(), {
   showTransformControls: true,
@@ -54,6 +56,44 @@ const hasPresets = computed(() => {
 
 // View state for drag info display
 const { isCompositeCustomMode } = useViewState()
+
+// Parameter store for checking overrides
+const parameterStore = useParameterStore()
+
+// Preset defaults for checking divergence
+const presetDefaults = getSharedPresetDefaults()
+
+// Check if there are any parameters that differ from preset defaults
+const hasDivergingFromPreset = computed(() => {
+  if (!presetDefaults.hasPresetDefaults()) {
+    console.log('[TerritoryControls] No preset defaults available')
+    return false // No preset loaded, consider no divergence
+  }
+
+  // Get all territory parameter overrides
+  const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
+  for (const territory of territories.value) {
+    const territoryParams = parameterStore.getTerritoryParameters(territory.code)
+    if (Object.keys(territoryParams).length > 0) {
+      allTerritoryParameters[territory.code] = territoryParams
+    }
+  }
+
+  const result = presetDefaults.hasDivergingParameters(
+    translations.value,
+    scales.value,
+    allTerritoryParameters,
+  )
+
+  console.log('[TerritoryControls] Reset button divergence check:', {
+    hasPresetDefaults: presetDefaults.hasPresetDefaults(),
+    result,
+    territoryCount: territories.value.length,
+    allTerritoryParameters,
+  })
+
+  return result
+})
 
 // Show drag info when in composite-custom mode and have overseas territories
 const shouldShowDragInfo = computed(() => {
@@ -133,6 +173,7 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
       <ImportControls />
       <button
         class="btn btn-sm btn-soft"
+        :disabled="!hasDivergingFromPreset"
         @click="resetToDefaults"
       >
         <i class="ri-restart-line" />

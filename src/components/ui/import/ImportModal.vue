@@ -4,8 +4,8 @@ import { computed, ref } from 'vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { useConfigStore } from '@/stores/config'
-import { useTerritoryStore } from '@/stores/territory'
 import { useParameterStore } from '@/stores/parameters'
+import { useTerritoryStore } from '@/stores/territory'
 
 const props = defineProps<{
   modelValue: boolean

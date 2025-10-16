@@ -2,12 +2,13 @@ import type { ViewMode } from '@/types'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
-
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
+
 import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
@@ -18,6 +19,7 @@ export const useConfigStore = defineStore('config', () => {
   const uiStore = useUIStore()
   const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
+  const presetDefaults = getSharedPresetDefaults()
 
   // State
   const selectedAtlas = ref(DEFAULT_ATLAS)
@@ -120,6 +122,13 @@ export const useConfigStore = defineStore('config', () => {
         Object.entries(updates.scales).forEach(([code, scale]) => {
           territoryStore.setTerritoryScale(code, scale)
         })
+
+        // Store original preset defaults for reset functionality
+        presetDefaults.storePresetDefaults({
+          projections: updates.projections,
+          translations: updates.translations,
+          scales: updates.scales,
+        }, updates.territoryParameters)
 
         // Load projection parameters into parameter store using registry validation
         if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
@@ -323,6 +332,13 @@ export const useConfigStore = defineStore('config', () => {
     viewMode.value = updates.viewMode
     territoryMode.value = updates.territoryMode
     selectedProjection.value = updates.selectedProjection
+
+    // Store original preset defaults for reset functionality
+    presetDefaults.storePresetDefaults({
+      projections: updates.projections,
+      translations: updates.translations,
+      scales: updates.scales,
+    }, updates.territoryParameters)
 
     // Update territory store - use proper setter methods to maintain reactivity
     Object.entries(updates.projections).forEach(([code, projection]) => {
