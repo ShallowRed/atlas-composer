@@ -25,7 +25,6 @@ export function useUrlState() {
   function serializeState() {
     console.debug('[useUrlState] Serializing state...')
 
-    
     const state: Record<string, string> = {
       atlas: configStore.selectedAtlas,
       view: configStore.viewMode,
@@ -35,7 +34,7 @@ export function useUrlState() {
     }
 
     // Add projection parameters if customized
-    
+
     if (configStore.customRotateLongitude !== null)
       state.rlon = String(configStore.customRotateLongitude)
     if (configStore.customRotateLatitude !== null)
