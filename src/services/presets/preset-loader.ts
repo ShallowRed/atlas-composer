@@ -122,8 +122,22 @@ export class PresetLoader {
           const constraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
           const isRelevant = constraints.relevant
 
-          if (def.requiresPreset && isRelevant && !(def.key in territory.parameters)) {
-            paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
+          if (def.requiresPreset && isRelevant) {
+            // Check if parameter exists in the appropriate location
+            let hasParameter = false
+
+            if (def.key === 'translateOffset') {
+              // translateOffset is stored in layout section
+              hasParameter = territory.layout?.translateOffset !== undefined
+            }
+            else {
+              // Other parameters are stored in parameters section
+              hasParameter = def.key in territory.parameters
+            }
+
+            if (!hasParameter) {
+              paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
+            }
           }
         }
 
