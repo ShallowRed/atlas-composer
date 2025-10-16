@@ -169,7 +169,13 @@
   },
   "presets": {
     "label": "Disposition prédéfinie",
-    "loading": "Chargement du preset..."
+    "loading": "Chargement du preset...",
+    "names": {
+      "default": "Par défaut",
+      "test": "Test",
+      "compact": "Compacte",
+      "spread": "Étalée"
+    }
   },
   "export": {
     "title": "Exporter la Projection Composite",

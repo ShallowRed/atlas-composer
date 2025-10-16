@@ -1,5 +1,9 @@
 {
   "version": "1.0",
+  "name": {
+    "en": "Default",
+    "fr": "Par défaut"
+  },
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",

@@ -53,37 +53,6 @@ export interface ProjectionParameters {
   [key: string]: any
 }
 
-// Legacy interface removed - functionality merged into ProjectionParameters
-
-/**
- * Atlas-specific projection parameters
- * Structured format for regional defaults and atlas configuration
- */
-export interface AtlasProjectionParameters {
-  /** Geographic center configuration */
-  center: {
-    longitude: number
-    latitude: number
-  }
-
-  /** Rotation configuration by projection type */
-  rotate: {
-    /** Rotation for mainland/conic projections [lambda, phi] */
-    mainland: [number, number]
-    /** Rotation for azimuthal projections [lambda, phi] */
-    azimuthal: [number, number]
-  }
-
-  /** Standard parallels for conic projections */
-  parallels: {
-    /** Conic projection parallels [south, north] */
-    conic: [number, number]
-  }
-
-  /** Optional custom scale for manual mode */
-  scale?: number
-}
-
 /**
  * Parameter source types for inheritance tracking
  */
@@ -195,85 +164,6 @@ export function hasParameterMetadata(
 }
 
 /**
- * Convert atlas parameters to unified parameters format
- */
-export function  (atlasParams: AtlasProjectionParameters): ProjectionParameters {
-  // Handle undefined or missing properties
-  if (!atlasParams) {
-    return {}
-  }
-
-  const result: ProjectionParameters = {}
-
-  // Handle center - can be array [lon, lat] or object {longitude, latitude}
-  if (atlasParams.center) {
-    if (Array.isArray(atlasParams.center)) {
-      result.center = atlasParams.center as unknown as [number, number]
-    }
-    else if (typeof atlasParams.center === 'object' && 'longitude' in atlasParams.center) {
-      result.center = [atlasParams.center.longitude, atlasParams.center.latitude]
-    }
-  }
-
-  // Handle rotate - can be array [x, y, z] or object {mainland: [x, y]}
-  if (atlasParams.rotate) {
-    if (Array.isArray(atlasParams.rotate)) {
-      result.rotate = atlasParams.rotate as unknown as [number, number, number?]
-    }
-    else if (typeof atlasParams.rotate === 'object' && 'mainland' in atlasParams.rotate) {
-      result.rotate = [atlasParams.rotate.mainland[0], atlasParams.rotate.mainland[1]]
-    }
-  }
-
-  // Handle parallels - can be array [p1, p2] or object {conic: [p1, p2]}
-  if (atlasParams.parallels) {
-    if (Array.isArray(atlasParams.parallels)) {
-      result.parallels = atlasParams.parallels as unknown as [number, number]
-    }
-    else if (typeof atlasParams.parallels === 'object' && 'conic' in atlasParams.parallels) {
-      result.parallels = atlasParams.parallels.conic
-    }
-  }
-
-  // Handle scale
-  if (atlasParams.scale !== undefined) {
-    result.scale = atlasParams.scale
-  }
-
-  return result
-}
-
-/**
- * Convert unified parameters to atlas parameters format
- */
-export function projectionToAtlasParameters(
-  params: ProjectionParameters,
-  fallbackValues?: Partial<AtlasProjectionParameters>,
-): AtlasProjectionParameters {
-  const center = params.center || [0, 0]
-  const rotate = params.rotate || [0, 0]
-  const parallels = params.parallels || [30, 60]
-
-  return {
-    center: {
-      longitude: center[0],
-      latitude: center[1],
-    },
-    rotate: {
-      mainland: [rotate[0], rotate[1]],
-      azimuthal: [rotate[0], rotate[1]],
-      ...fallbackValues?.rotate,
-    },
-    parallels: {
-      conic: parallels,
-      ...fallbackValues?.parallels,
-    },
-    scale: params.scale,
-    ...fallbackValues,
-  }
-}
-
-/**
  * Merge parameter objects with precedence rules
  * Later parameters override earlier ones
  */
@@ -294,16 +184,3 @@ export function mergeParameters(
       }
     }, {} as ProjectionParameters)
 }
-
-/** @deprecated Use ProjectionParameters with optional metadata fields instead */
-export type ExtendedProjectionParameters = ProjectionParameters & { baseScale: number, scaleMultiplier: number, scale: number }
-
-/** @deprecated Use ProjectionParameters with optional metadata fields instead */
-export type ProjectionParametersWithMetadata = ProjectionParameters & { family?: ProjectionFamilyType, projectionId?: string }
-
-// Backward compatibility functions (deprecated)
-/** @deprecated Use atlasToProjectionParameters instead */
-export const atlasToBaseParameters = atlasToProjectionParameters
-
-/** @deprecated Use projectionToAtlasParameters instead */
-export const baseToAtlasParameters = projectionToAtlasParameters

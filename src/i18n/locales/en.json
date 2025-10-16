@@ -170,7 +170,13 @@
   },
   "presets": {
     "label": "Preset layout",
-    "loading": "Loading preset..."
+    "loading": "Loading preset...",
+    "names": {
+      "default": "Default",
+      "test": "Test",
+      "compact": "Compact",
+      "spread": "Spread"
+    }
   },
   "export": {
     "title": "Export composite projection",

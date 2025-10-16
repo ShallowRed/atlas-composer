@@ -215,17 +215,10 @@ export class CompositeProjection {
       let territoryBaseScale: number
       let territoryScaleMultiplier: number
 
-      if (territory.code === 'FR-GP') {
-        console.log(`[CompositeProjection] init FR-GP territoryParams:`, territoryParams)
-      }
-
       if (territoryParams.baseScale !== undefined && territoryParams.scaleMultiplier !== undefined) {
         // Preset provides both baseScale and scaleMultiplier - use them directly
         territoryBaseScale = territoryParams.baseScale
         territoryScaleMultiplier = territoryParams.scaleMultiplier
-        if (territory.code === 'FR-GP') {
-          console.log(`[CompositeProjection] init FR-GP using baseScale=${territoryBaseScale}, scaleMultiplier=${territoryScaleMultiplier}`)
-        }
       }
       else if (territoryParams.scale !== undefined) {
         // Preset provides only scale - use it as baseScale with multiplier of 1.0
@@ -456,8 +449,6 @@ export class CompositeProjection {
     territoryCode: string,
     projectionType: string,
   ) {
-    console.log(`[CompositeProjection] updateTerritoryProjection called for ${territoryCode}, newType=${projectionType}`)
-
     const subProj = this.subProjections.find((sp) => {
       return sp.territoryCode === territoryCode
     })
@@ -470,8 +461,6 @@ export class CompositeProjection {
     const currentCenter = subProj.projection.center ? subProj.projection.center() : null
     const currentRotate = subProj.projection.rotate ? subProj.projection.rotate() : null
     const currentTranslate = subProj.projection.translate()
-
-    console.log(`[CompositeProjection] Before projection change - currentScale=${currentScale}, baseScale=${subProj.baseScale}, scaleMultiplier=${subProj.scaleMultiplier}`)
 
     // Create new projection based on type
     let newProjection: GeoProjection
@@ -548,11 +537,6 @@ export class CompositeProjection {
       // Scale doesn't match expected value - recalculate baseScale
       // currentScale = baseScale * multiplier, so we need to extract the base scale
       subProj.baseScale = currentScale / subProj.scaleMultiplier
-      console.log(`[CompositeProjection] After projection change - recalculated baseScale=${subProj.baseScale} (= ${currentScale} / ${subProj.scaleMultiplier})`)
-    }
-    else {
-      // Scale matches expected value - preserve existing baseScale
-      console.log(`[CompositeProjection] After projection change - preserved baseScale=${subProj.baseScale} (currentScale=${currentScale} matches expected)`)
     }
 
     this.compositeProjection = null // Force rebuild
@@ -690,10 +674,6 @@ export class CompositeProjection {
         correctScale = subProj.baseScale * subProj.scaleMultiplier
       }
       projection.scale(correctScale)
-
-      if (territoryCode === 'FR-MET') {
-        console.log(`[CompositeProjection] Re-applied scale for ${territoryCode}: scale=${correctScale} (from params.scale=${params.scale}, baseScale=${subProj.baseScale}, multiplier=${subProj.scaleMultiplier})`)
-      }
 
       // Note: translate parameter is applied during build() to combine with territory positioning
 

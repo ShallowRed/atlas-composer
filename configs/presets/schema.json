@@ -5,6 +5,21 @@
   "description": "JSON schema for composite projection preset files. Presets use the same format as exported configurations.",
   "type": "object",
   "required": ["version", "metadata", "pattern", "referenceScale", "territories"],
+  "name": {
+    "oneOf": [
+      { "type": "string" },
+      {
+        "type": "object",
+        "properties": {
+          "en": { "type": "string" },
+          "fr": { "type": "string" }
+        },
+        "required": ["en"],
+        "additionalProperties": { "type": "string" }
+      }
+    ],
+    "description": "Human-readable name (string or i18n object with language codes as keys, e.g., {en: 'France', fr: 'France'}). String is used as fallback for all languages."
+  },
   "properties": {
     "version": {
       "type": "string",

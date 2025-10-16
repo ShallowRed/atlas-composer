@@ -110,12 +110,7 @@ export const useConfigStore = defineStore('config', () => {
         // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
         const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
-        // Apply territory updates (same as atlas change watcher)
-        console.log('[ConfigStore] initializeWithPresetMetadata - Preset projection for FR-MET:', updates.projections['FR-MET'])
         Object.entries(updates.projections).forEach(([code, projection]) => {
-          if (code === 'FR-MET') {
-            console.log(`[ConfigStore] Setting projection for ${code} to ${projection}`)
-          }
           territoryStore.setTerritoryProjection(code, projection)
         })
         Object.entries(updates.translations).forEach(([code, translation]) => {
@@ -214,14 +209,14 @@ export const useConfigStore = defineStore('config', () => {
     const globalParams = parameterStore.globalParameters
 
     // Extract individual parameter values with proper fallbacks
-    const centerLon = globalParams.center?.[0] ?? atlasParams?.center?.longitude ?? 0
-    const centerLat = globalParams.center?.[1] ?? atlasParams?.center?.latitude ?? 0
+    const centerLon = globalParams.center?.[0] ?? atlasParams?.center?.[0] ?? 0
+    const centerLat = globalParams.center?.[1] ?? atlasParams?.center?.[1] ?? 0
 
     const rotateLon = globalParams.rotate?.[0] ?? 0
     const rotateLat = globalParams.rotate?.[1] ?? 0
 
-    const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.conic?.[0] ?? 30
-    const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.conic?.[1] ?? 60
+    const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.[0] ?? 30
+    const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.[1] ?? 60
 
     // Build result with atlas-compatible structure
     return {

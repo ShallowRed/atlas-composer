@@ -452,7 +452,7 @@ During `CompositeProjection.build(width, height)`:
 ### Constraint System
 
 Parameter constraints define valid ranges and relevance per projection family:
-- Defined in `unified-parameter-constraints.ts`
+- Defined in `parameter-constraints.ts`
 - Includes `baseScale` and `scaleMultiplier` in PARAMETER_KEYS array
 - Provides constraints for all 7 projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
 
@@ -515,15 +515,6 @@ Exported presets match import format:
 - Verify parameter provider returns correct effective parameters
 - Ensure no race condition (preset loads after first render)
 
-### Debug Logging
-
-Key logging points:
-- `[ConfigStore] initializeWithPresetMetadata` - Preset loading start/completion
-- `[CompositeProjection] init {CODE} territoryParams` - Parameters received during initialization
-- `[CompositeProjection] updateTerritoryParameters` - Parameter updates with current/new values
-- `[CompositeProjection] updateScale` - Scale multiplier updates and override detection
-- `[ParameterStore] Setting {key}` - Parameter changes in store
-
 ## File References
 
 **Core Services:**
@@ -545,7 +536,7 @@ Key logging points:
 - `src/composables/useAtlasData.ts` - Atlas data initialization with preset sequencing
 
 **Validation:**
-- `src/services/parameters/unified-parameter-constraints.ts` - Parameter validation rules
+- `src/services/parameters/parameter-constraints.ts` - Parameter validation rules
 
 **Preset Files:**
 - `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations

@@ -8,7 +8,6 @@
 import type { ValidationResult } from '@/core/parameters/parameter-registry'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
-  AtlasProjectionParameters,
   ParameterChangeEvent,
   ParameterInheritance,
   ParameterSource,
@@ -22,7 +21,7 @@ import { computed, ref, watch } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
-import { UnifiedParameterConstraints } from '@/services/parameters/unified-parameter-constraints'
+import { UnifiedParameterConstraints } from '@/services/parameters/parameter-constraints'
 
 export const useParameterStore = defineStore('parameters', () => {
   // Internal parameter manager instance
@@ -43,7 +42,7 @@ export const useParameterStore = defineStore('parameters', () => {
   /**
    * Initialize the parameter store with atlas parameters
    */
-  function initialize(atlasParams?: AtlasProjectionParameters) {
+  function initialize(atlasParams?: ProjectionParameters) {
     if (atlasParams) {
       parameterManager.setAtlasParameters(atlasParams)
     }
@@ -97,8 +96,6 @@ export const useParameterStore = defineStore('parameters', () => {
         console.warn(`[ParameterStore] Attempted to set null/undefined value for ${key} on territory ${territoryCode}`)
         return
       }
-
-      console.log(`[ParameterStore] Setting ${key} = ${value} for territory ${territoryCode}`)
       parameterManager.setTerritoryParameter(territoryCode, key, value)
       territoryParametersVersion.value++
     }
@@ -258,7 +255,7 @@ export const useParameterStore = defineStore('parameters', () => {
    * Initialize from preset with validation using parameter registry
    */
   function initializeFromPreset(
-    atlasParams: AtlasProjectionParameters,
+    atlasParams: ProjectionParameters,
     territoryParams: Record<string, ProjectionParameters>,
   ): ValidationResult[] {
     const errors: ValidationResult[] = []

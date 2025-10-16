@@ -563,7 +563,7 @@ exportConfig(parameterProvider?: ProjectionParameterProvider) {
 **Parameter Management:**
 - `src/stores/parameters.ts` - Parameter store
 - `src/types/projection-parameters.ts` - Parameter type definitions
-- `src/services/parameters/unified-parameter-constraints.ts` - Validation
+- `src/services/parameters/parameter-constraints.ts` - Validation
 
 **Projection:**
 - `src/services/projection/composite-projection.ts` - Core projection management

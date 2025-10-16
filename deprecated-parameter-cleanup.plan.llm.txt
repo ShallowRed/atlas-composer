@@ -1,0 +1,117 @@
+# Deprecated Parameter Types Cleanup - Implementation Plan
+
+## Objective
+Remove deprecated parameter interfaces (ProjectionParams, AtlasProjectionParameters) and complete migration to unified ProjectionParameters system.
+
+## Affected Domains
+- [x] Architecture: docs/architecture.llm.txt - Read for context
+- [ ] Services: docs/services.llm.txt - Parameter system changes
+- [ ] Types: Types system cleanup
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Services: docs/services.llm.txt
+
+## Analysis
+Current state has incomplete migration with deprecated types still in active use:
+
+### Deprecated Types in Use
+1. **ProjectionParams** (loader.ts) - Used by:
+   - AtlasSpecificConfig.projectionParams
+   - getFallbackProjectionParameters()
+   - projection-service.ts
+   - atlas-service.ts
+
+2. **AtlasProjectionParameters** (projection-parameters.ts) - Used by:
+   - projection-parameter-manager.ts
+   - parameters.ts store
+   - atlasToProjectionParameters conversion function
+
+### Migration Strategy
+Replace deprecated interfaces with ProjectionParameters while maintaining backward compatibility through conversion functions.
+
+## Changes
+
+### Phase 1: Remove ProjectionParams from loader.ts
+- [ ] File: src/core/atlases/loader.ts
+  - Action: Replace ProjectionParams interface with ProjectionParameters
+  - Action: Update getFallbackProjectionParameters return type
+  - Action: Update AtlasSpecificConfig.projectionParams type
+  - Why: Eliminate legacy parameter format
+
+### Phase 2: Update dependent services
+- [ ] File: src/services/projection/projection-service.ts
+  - Action: Replace ProjectionParams import with ProjectionParameters
+  - Action: Update internal parameter storage type
+  - Action: Update method signatures
+  - Why: Use unified parameter format
+
+- [ ] File: src/services/atlas/atlas-service.ts
+  - Action: Replace ProjectionParams import with ProjectionParameters
+  - Action: Update getProjectionParams return type
+  - Why: Use unified parameter format
+
+### Phase 3: Remove AtlasProjectionParameters
+- [ ] File: src/types/projection-parameters.ts
+  - Action: Remove deprecated AtlasProjectionParameters interface
+  - Action: Remove deprecated function aliases
+  - Action: Update atlasToProjectionParameters to work with ProjectionParameters
+  - Why: Complete unified parameter migration
+
+### Phase 4: Update parameter management services
+- [ ] File: src/services/parameters/projection-parameter-manager.ts
+  - Action: Replace AtlasProjectionParameters with ProjectionParameters
+  - Action: Update parameter conversion logic
+  - Why: Use unified parameter format
+
+- [ ] File: src/stores/parameters.ts
+  - Action: Replace AtlasProjectionParameters with ProjectionParameters
+  - Action: Update initialization methods
+  - Why: Use unified parameter format
+
+## Documentation Updates
+- [ ] docs/services.llm.txt - Update parameter system section to reflect unified types
+
+## Verification
+- [ ] Code compiles without errors
+- [ ] All parameter conversion works correctly
+- [ ] Atlas loading still functions
+- [ ] Projection parameter management still works
+- [ ] All .llm.txt documentation updated
+- [ ] No temporal language in .llm.txt files
+
+## Status
+Status: COMPLETE
+Last Updated: 2025-10-16
+
+## Summary
+Successfully removed all deprecated parameter interfaces and completed migration to unified ProjectionParameters system:
+
+### Completed Tasks
+✅ **Phase 1**: Removed ProjectionParams from loader.ts
+- Replaced ProjectionParams interface with ProjectionParameters
+- Updated getFallbackProjectionParameters to return ProjectionParameters format
+- Updated AtlasSpecificConfig.projectionParams type
+- Converted parameter values to array format ([lon, lat] instead of {longitude, latitude})
+
+✅ **Phase 2**: Updated dependent services
+- projection-service.ts: Updated all parameter access patterns to use array format
+- atlas-service.ts: Updated getProjectionParams return type to ProjectionParameters
+
+✅ **Phase 3**: Removed AtlasProjectionParameters
+- Removed deprecated AtlasProjectionParameters interface from projection-parameters.ts
+- Removed deprecated conversion functions (atlasToProjectionParameters, projectionToAtlasParameters)
+- Removed deprecated function aliases (atlasToBaseParameters, baseToAtlasParameters)
+- Removed deprecated type aliases (ExtendedProjectionParameters, ProjectionParametersWithMetadata)
+
+✅ **Phase 4**: Updated parameter management services
+- projection-parameter-manager.ts: Changed atlasParameters type to ProjectionParameters
+- parameters.ts store: Updated function signatures to use ProjectionParameters
+- Removed all atlasToProjectionParameters conversion calls (no longer needed)
+
+### Result
+- ✅ Single unified parameter format (ProjectionParameters) used throughout system
+- ✅ No more format conversions or multiple parameter interfaces
+- ✅ Cleaner, more maintainable codebase
+- ✅ All compilation errors resolved
+- ✅ System confirmed working by user

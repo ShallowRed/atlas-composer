@@ -251,6 +251,42 @@ export class PresetLoader {
   }
 
   /**
+   * Load preset metadata (name, version, metadata) without full validation
+   * This is useful for populating dropdowns and lists without loading full configurations
+   *
+   * @param presetId - Preset identifier (e.g., 'france-default', 'portugal-default')
+   * @returns Preset metadata or null if loading failed
+   */
+  static async loadPresetMetadata(presetId: string): Promise<{ name?: string | Record<string, string>, metadata?: any } | null> {
+    try {
+      // Construct preset file path
+      const baseUrl = import.meta.env.BASE_URL
+      const presetPath = `${baseUrl}configs/presets/${presetId}.json`
+
+      // Fetch preset file
+      const response = await fetch(presetPath)
+
+      if (!response.ok) {
+        console.warn(`[PresetLoader] Failed to load metadata for preset '${presetId}': ${response.statusText}`)
+        return null
+      }
+
+      // Parse only the parts we need (name and metadata)
+      const jsonText = await response.text()
+      const preset = JSON.parse(jsonText)
+
+      return {
+        name: preset.name,
+        metadata: preset.metadata,
+      }
+    }
+    catch (error) {
+      console.warn(`[PresetLoader] Error loading metadata for preset '${presetId}':`, error)
+      return null
+    }
+  }
+
+  /**
    * Validate a preset configuration
    *
    * Uses the same validation as CompositeImportService to ensure

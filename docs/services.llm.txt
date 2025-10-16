@@ -102,7 +102,7 @@ Instance-based service providing unified API for components.
 - `getTerritories()` - Get filtered/grouped territories
 - `getTerritoryModes()` - Get available display modes
 - `getTerritoryGroups()` - Get territory groupings
-- `getProjectionParams()` - Get projection parameters
+- `getProjectionParams()` - Get projection parameters (ProjectionParameters format)
 
 ## Data Services (src/services/data/)
 
@@ -219,10 +219,16 @@ Singleton pattern with complete parameter lifecycle management.
 - Comprehensive validation with contextual error messages
 
 ### ProjectionParameterManager (src/services/parameters/projection-parameter-manager.ts)
-Business logic service for parameter management operations.
+Business logic service for parameter management operations with unified ProjectionParameters format.
 Instance-based service integrating with parameter registry for validation and state management.
 
+**Unified Parameter Format**:
+Uses ProjectionParameters throughout for consistent parameter handling.
+All parameters use array format: center[lon, lat], rotate[lon, lat], parallels[south, north].
+No legacy format conversions - single format end-to-end.
+
 **Parameter State Management**:
+- `setAtlasParameters()` - Set atlas-level ProjectionParameters
 - `getGlobalParameters()` - Get global parameter state
 - `setGlobalParameter()` - Set global parameter with registry validation
 - `getTerritoryParameters()` - Get territory-specific parameter overrides
@@ -242,7 +248,7 @@ Instance-based service integrating with parameter registry for validation and st
 - Validation error events with registry-based error messages  
 - Territory parameter lifecycle events (set, clear, validate)
 
-### UnifiedParameterConstraints (src/services/parameters/unified-parameter-constraints.ts)
+### UnifiedParameterConstraints (src/services/parameters/parameter-constraints.ts)
 Registry integration service providing constraint access and validation.
 Static service delegating to parameter registry for constraint operations.
 

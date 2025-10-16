@@ -6,8 +6,9 @@
  * territories, modes, groups, and projection parameters.
  */
 
-import type { AtlasSpecificConfig, ProjectionParams } from '@/core/atlases/loader'
+import type { AtlasSpecificConfig } from '@/core/atlases/loader'
 import type { AtlasConfig, CompositeProjectionConfig, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import {
   getAllTerritories as getAtlasAllTerritories,
   getAtlasConfig,
@@ -100,7 +101,7 @@ export class AtlasService {
   /**
    * Get projection parameters
    */
-  getProjectionParams(): ProjectionParams {
+  getProjectionParams(): ProjectionParameters {
     return this.specificConfig.projectionParams
   }
 

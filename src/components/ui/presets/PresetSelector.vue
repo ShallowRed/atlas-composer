@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
@@ -14,6 +15,10 @@ const territoryStore = useTerritoryStore()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
+const selectedPreset = ref<string>('')
+
+// Cache for preset metadata to avoid repeated fetches
+const presetMetadata = ref<Map<string, { name?: string | Record<string, string> }>>(new Map())
 
 // Get available presets from current atlas config
 const availablePresets = computed(() => {
@@ -24,8 +29,7 @@ const availablePresets = computed(() => {
 // Current preset selection
 const currentPreset = computed({
   get: () => {
-    const atlasConfig = getAtlasConfig(configStore.selectedAtlas)
-    return atlasConfig.defaultPreset || ''
+    return selectedPreset.value || getAtlasConfig(configStore.selectedAtlas).defaultPreset || ''
   },
   set: async (presetId: string) => {
     if (!presetId || isLoading.value)
@@ -59,6 +63,8 @@ const currentPreset = computed({
           console.warn(`[PresetSelector] Preset loaded with warnings:`, result.warnings)
         }
 
+        // Update selected preset tracking
+        selectedPreset.value = presetId
         console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
       }
       else {
@@ -76,16 +82,57 @@ const currentPreset = computed({
   },
 })
 
-// Preset options for dropdown
+// Preset options for dropdown - loads metadata asynchronously
 const presetOptions = computed(() => {
-  return availablePresets.value.map(presetId => ({
-    value: presetId,
-    label: formatPresetLabel(presetId),
-  }))
+  return availablePresets.value.map((presetId) => {
+    // Try to get cached metadata first
+    const metadata = presetMetadata.value.get(presetId)
+
+    return {
+      value: presetId,
+      label: formatPresetLabel(presetId, metadata?.name),
+      translated: true, // formatPresetLabel returns already-translated text, not translation keys
+    }
+  })
 })
 
-// Format preset ID into readable label
-function formatPresetLabel(presetId: string): string {
+// Load metadata for all available presets
+watch(availablePresets, async (newPresets) => {
+  for (const presetId of newPresets) {
+    if (!presetMetadata.value.has(presetId)) {
+      try {
+        const metadata = await PresetLoader.loadPresetMetadata(presetId)
+        if (metadata) {
+          presetMetadata.value.set(presetId, metadata)
+        }
+      }
+      catch (error) {
+        console.warn(`Failed to load metadata for preset ${presetId}:`, error)
+      }
+    }
+  }
+}, { immediate: true })
+
+// Reset selected preset when atlas changes
+watch(() => configStore.selectedAtlas, () => {
+  selectedPreset.value = ''
+}, { immediate: true })
+
+// Format preset ID into readable label using name from schema if available
+function formatPresetLabel(presetId: string, presetName?: string | Record<string, string>): string {
+  // If preset has a name property, use i18n resolution
+  if (presetName) {
+    if (typeof presetName === 'string') {
+      return presetName
+    }
+    else {
+      // Use i18n resolution for localized names
+      const currentLocale = getCurrentLocale()
+      return resolveI18nValue(presetName, currentLocale)
+    }
+  }
+
+  // Fallback to filename-based approach
   // Remove atlas prefix and convert to title case
   // e.g., "france-default" -> "Default"
   // e.g., "france-compact" -> "Compact"

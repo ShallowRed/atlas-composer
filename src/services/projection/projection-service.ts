@@ -1,5 +1,5 @@
-import type { ProjectionParams } from '@/core/atlases/loader'
 import type { ProjectionFilterContext, ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily, ProjectionStrategy } from '@/core/projections/types'
@@ -11,14 +11,14 @@ export interface ProjectionOption {
 }
 
 export class ProjectionService {
-  private projectionParams: ProjectionParams | null = null
+  private projectionParams: ProjectionParameters | null = null
   private fittingMode: 'auto' | 'manual' = 'auto'
 
   /**
    * Set region-specific projection parameters
    * Must be called before using getProjection for region-specific projections
    */
-  setProjectionParams(params: ProjectionParams): void {
+  setProjectionParams(params: ProjectionParameters): void {
     this.projectionParams = params
   }
 
@@ -33,11 +33,11 @@ export class ProjectionService {
   /**
    * Get projection parameters (or use default France params as fallback)
    */
-  private getParams(): ProjectionParams {
+  private getParams(): ProjectionParameters {
     const result = this.projectionParams || {
-      center: { longitude: 2.5, latitude: 46.5 },
-      rotate: { mainland: [-2, 0], azimuthal: [-2, -46.5] },
-      parallels: { conic: [44, 49] },
+      center: [2.5, 46.5],
+      rotate: [-2, 0],
+      parallels: [44, 49],
     }
     // Default fallback to France params for backward compatibility
     return result
@@ -60,8 +60,8 @@ export class ProjectionService {
       const params = this.getParams()
       return {
         type: 'conic-equal-area' as const,
-        parallels: params.parallels.conic,
-        rotate: params.rotate.mainland,
+        parallels: params.parallels || [44, 49],
+        rotate: params.rotate || [-2, 0],
         domain: data,
       }
     }
@@ -73,8 +73,8 @@ export class ProjectionService {
         const params = this.getParams()
         return {
           type: 'conic-equal-area' as const,
-          parallels: params.parallels.conic,
-          rotate: params.rotate.mainland,
+          parallels: params.parallels || [44, 49],
+          rotate: params.rotate || [-2, 0],
           domain: data,
         }
       }
@@ -137,32 +137,36 @@ export class ProjectionService {
             // Azimuthal projections: Use rotation for positioning
             // rotate[0] = longitude rotation (negated for correct direction)
             // rotate[1] = latitude rotation (negated for correct direction)
-            rotateParams = [-params.rotate.azimuthal[0], -params.rotate.azimuthal[1]]
+            const rotate = params.rotate || [0, 0]
+            rotateParams = [-rotate[0], -rotate[1]]
             centerParams = undefined // Don't use center for azimuthal
           }
           else if (definition.family === ProjectionFamily.CONIC) {
             // Conic projections behavior depends on fitting mode:
             // AUTO mode (domain fitting): Use rotate() for positioning (center is overridden by fitExtent)
             // MANUAL mode: Use center() for positioning directly
-            parallelsParams = params.parallels.conic
+            parallelsParams = params.parallels || [44, 49]
 
             if (fittingMode === 'auto') {
               // With domain fitting: rotate() controls what's visible
               // Only use center longitude/latitude (rotation is disabled in UI for conic)
-              const rotateLon = -params.center.longitude
-              const rotateLat = -params.center.latitude
+              const center = params.center || [0, 0]
+              const rotateLon = -center[0]
+              const rotateLat = -center[1]
               rotateParams = [rotateLon, rotateLat]
               centerParams = undefined // Domain fitting will override center
             }
             else {
               // Manual mode: center() works directly
-              centerParams = [params.center.longitude, params.center.latitude]
+              const center = params.center || [0, 0]
+              centerParams = [center[0], center[1]]
               rotateParams = undefined
             }
           }
           else {
             // Cylindrical, Pseudocylindrical, Polyhedral: Use rotation
-            rotateParams = [params.rotate.mainland[0], params.rotate.mainland[1]]
+            const rotate = params.rotate || [0, 0]
+            rotateParams = [rotate[0], rotate[1]]
             centerParams = undefined // Don't use center
           }
 
@@ -209,22 +213,26 @@ export class ProjectionService {
           let parallelsParams: [number, number] | undefined
 
           if (definition.family === ProjectionFamily.AZIMUTHAL) {
-            rotateParams = [-params.rotate.azimuthal[0], -params.rotate.azimuthal[1]]
+            const rotate = params.rotate || [0, 0]
+            rotateParams = [-rotate[0], -rotate[1]]
             centerParams = undefined
           }
           else if (definition.family === ProjectionFamily.CONIC) {
-            parallelsParams = params.parallels.conic
+            parallelsParams = params.parallels || [44, 49]
             if (fittingMode === 'auto') {
-              rotateParams = [-params.center.longitude, -params.center.latitude]
+              const center = params.center || [0, 0]
+              rotateParams = [-center[0], -center[1]]
               centerParams = undefined
             }
             else {
-              centerParams = [params.center.longitude, params.center.latitude]
+              const center = params.center || [0, 0]
+              centerParams = [center[0], center[1]]
               rotateParams = undefined
             }
           }
           else {
-            rotateParams = [params.rotate.mainland[0], params.rotate.mainland[1]]
+            const rotate = params.rotate || [0, 0]
+            rotateParams = [rotate[0], rotate[1]]
             centerParams = undefined
           }
 
@@ -261,8 +269,8 @@ export class ProjectionService {
     const params = this.getParams()
     return {
       type: 'conic-equal-area' as const,
-      parallels: params.parallels.conic,
-      rotate: params.rotate.mainland,
+      parallels: params.parallels || [44, 49],
+      rotate: params.rotate || [0, 0],
       domain: data,
     }
   }

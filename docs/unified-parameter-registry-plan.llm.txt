@@ -65,7 +65,7 @@ Parameter registry provides compile-time type safety. Adding a parameter require
 
 All parameters validated through registry constraints before storage.
 
-**Current State:** Validation in unified-parameter-constraints.ts but disconnected from export/import
+**Current State:** Validation in parameter-constraints.ts but disconnected from export/import
 
 **Target State:** Registry validates at every entry point (preset load, import, UI change).
 

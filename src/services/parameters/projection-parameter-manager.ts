@@ -7,7 +7,6 @@
 
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
-  AtlasProjectionParameters,
   ParameterChangeEvent,
   ParameterConstraints,
   ParameterInheritance,
@@ -19,7 +18,6 @@ import type {
 
 import { getRelevantParameters } from '@/core/projections/parameters'
 import {
-  atlasToProjectionParameters,
   mergeParameters,
 } from '@/types/projection-parameters'
 
@@ -47,7 +45,7 @@ type ParameterChangeListener = (event: ParameterChangeEvent) => void
 export class ProjectionParameterManager {
   private globalParameters: ProjectionParameters = {}
   private territoryParameters: Map<string, ProjectionParameters> = new Map()
-  private atlasParameters: AtlasProjectionParameters | null = null
+  private atlasParameters: ProjectionParameters | null = null
   private listeners: Set<ParameterChangeListener> = new Set()
   private config: ParameterManagerConfig
 
@@ -63,7 +61,7 @@ export class ProjectionParameterManager {
   /**
    * Set atlas-specific parameters
    */
-  setAtlasParameters(atlasParams: AtlasProjectionParameters): void {
+  setAtlasParameters(atlasParams: ProjectionParameters): void {
     this.atlasParameters = atlasParams
     this.emitChangeEvent('center', atlasParams.center, undefined, undefined, 'atlas')
   }
@@ -138,7 +136,7 @@ export class ProjectionParameterManager {
    * Get effective parameters for a territory (with inheritance)
    */
   getEffectiveParameters(territoryCode?: string): ProjectionParameters {
-    const atlasParams = this.atlasParameters ? atlasToProjectionParameters(this.atlasParameters) : {}
+    const atlasParams = this.atlasParameters || {}
     const territoryParams = territoryCode ? this.territoryParameters.get(territoryCode) || {} : {}
 
     return mergeParameters(
@@ -154,7 +152,7 @@ export class ProjectionParameterManager {
    */
   getParameterInheritance(territoryCode: string, key: keyof ProjectionParameters): ParameterInheritance {
     const territoryParams = this.territoryParameters.get(territoryCode) || {}
-    const atlasParams = this.atlasParameters ? atlasToProjectionParameters(this.atlasParameters) : {}
+    const atlasParams = this.atlasParameters || {}
     const effectiveValue = this.getEffectiveParameters(territoryCode)[key as string]
 
     let source: ParameterSource = 'default'

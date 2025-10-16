@@ -11,31 +11,32 @@ import type {
   TerritoryGroupConfig,
   TerritoryModeConfig,
 } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 /**
  * Get fallback projection parameters for atlas (sync version)
  */
-function getFallbackProjectionParameters(atlasId: string): ProjectionParams {
+function getFallbackProjectionParameters(atlasId: string): ProjectionParameters {
   // Basic fallback parameters - these will be updated async in background
-  const baseParams: ProjectionParams = {
-    center: { longitude: 0, latitude: 0 },
-    rotate: { mainland: [0, 0], azimuthal: [0, 0] },
-    parallels: { conic: [30, 60] },
+  const baseParams: ProjectionParameters = {
+    center: [0, 0],
+    rotate: [0, 0],
+    parallels: [30, 60],
   }
 
   // Atlas-specific overrides
   switch (atlasId) {
     case 'world':
-      return { ...baseParams, center: { longitude: 0, latitude: 20 } }
+      return { ...baseParams, center: [0, 20] }
     case 'france':
-      return { ...baseParams, center: { longitude: 2, latitude: 46 } }
+      return { ...baseParams, center: [2, 46] }
     case 'spain':
-      return { ...baseParams, center: { longitude: -3, latitude: 40 } }
+      return { ...baseParams, center: [-3, 40] }
     case 'portugal':
-      return { ...baseParams, center: { longitude: -8, latitude: 39 } }
+      return { ...baseParams, center: [-8, 39] }
     case 'usa':
-      return { ...baseParams, center: { longitude: -96, latitude: 40 } }
+      return { ...baseParams, center: [-96, 40] }
     default:
       return baseParams
   }
@@ -65,13 +66,6 @@ function getFallbackProjectionPreferences(atlasId: string): ProjectionPreference
 }
 
 // Internal loader types - defined here to avoid separation of concerns violations
-export interface ProjectionParams {
-  center: { longitude: number, latitude: number }
-  rotate: { mainland: [number, number], azimuthal: [number, number] }
-  parallels: { conic: [number, number] }
-  scale?: number // Optional custom scale for manual mode
-}
-
 export interface ProjectionPreferences {
   exclude?: string[]
   categoryOrder?: string[]
@@ -80,7 +74,7 @@ export interface ProjectionPreferences {
 }
 
 export interface AtlasSpecificConfig {
-  projectionParams: ProjectionParams
+  projectionParams: ProjectionParameters
   territoryModes: Record<string, TerritoryModeConfig>
   territoryGroups?: Record<string, TerritoryGroupConfig>
   projectionPreferences?: ProjectionPreferences
@@ -388,17 +382,7 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
   const territories = extractTerritories(jsonConfig, locale)
 
   // Get projection parameters with fallback defaults (sync version)
-  const projectionParameters = getFallbackProjectionParameters(jsonConfig.id)
-  const projectionParams: ProjectionParams = {
-    center: projectionParameters?.center || { longitude: 0, latitude: 0 },
-    rotate: {
-      mainland: projectionParameters?.rotate?.mainland || [0, 0],
-      azimuthal: projectionParameters?.rotate?.azimuthal || [0, 0],
-    },
-    parallels: {
-      conic: projectionParameters?.parallels?.conic || [0, 0],
-    },
-  }
+  const projectionParams = getFallbackProjectionParameters(jsonConfig.id)
 
   // Create territory modes and groups
   const isSingleFocusPattern = territories.type === 'single-focus'
