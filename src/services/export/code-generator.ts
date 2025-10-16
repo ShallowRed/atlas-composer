@@ -156,7 +156,7 @@ export class CodeGenerator {
 
     // Collect unique projections
     config.territories.forEach((territory) => {
-      projections.add(this.getD3ProjectionFunction(territory.projectionId))
+      projections.add(this.getD3ProjectionFunction(territory.projection.id))
     })
 
     const imports = Array.from(projections).sort()
@@ -217,9 +217,9 @@ export class CodeGenerator {
 
     // Collect unique projections and their mappings
     config.territories.forEach((territory) => {
-      const d3FuncName = this.getD3ProjectionFunction(territory.projectionId)
-      projections.add(territory.projectionId)
-      projectionIdToD3.set(territory.projectionId, d3FuncName)
+      const d3FuncName = this.getD3ProjectionFunction(territory.projection.id)
+      projections.add(territory.projection.id)
+      projectionIdToD3.set(territory.projection.id, d3FuncName)
     })
 
     if (options.includeComments) {

@@ -108,8 +108,8 @@ describe('compositeExportService', () => {
       expect(mainlandTerritory?.code).toBe('FR-MET')
       expect(mainlandTerritory?.name).toBe('France Métropolitaine')
       expect(mainlandTerritory?.role).toBe('primary')
-      expect(mainlandTerritory?.projectionId).toBe('conic-conformal')
-      expect(mainlandTerritory?.parameters).toBeDefined()
+      expect(mainlandTerritory?.projection.id).toBe('conic-conformal')
+      expect(mainlandTerritory?.projection.parameters).toBeDefined()
       expect(mainlandTerritory?.layout).toBeDefined()
     })
 
@@ -125,10 +125,10 @@ describe('compositeExportService', () => {
 
       const territory = exported.territories[0]
       // Only scaleMultiplier should be exported, not deprecated scale/baseScale
-      expect(territory?.parameters.scale).toBeUndefined()
-      expect(territory?.parameters.baseScale).toBeUndefined()
-      expect(territory?.parameters.scaleMultiplier).toBeDefined()
-      expect(typeof territory?.parameters.scaleMultiplier).toBe('number')
+      expect(territory?.projection.parameters.scale).toBeUndefined()
+      expect(territory?.projection.parameters.baseScale).toBeUndefined()
+      expect(territory?.projection.parameters.scaleMultiplier).toBeDefined()
+      expect(typeof territory?.projection.parameters.scaleMultiplier).toBe('number')
     })
 
     it('should include layout information', () => {

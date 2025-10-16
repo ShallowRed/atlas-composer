@@ -158,7 +158,7 @@ export class CompositeImportService {
           if (subProj) {
             // Critical: Set the baseScale to match the exported baseScale FIRST
             // This ensures the correct base value is used for all subsequent scale calculations
-            subProj.baseScale = territory.parameters.baseScale
+            subProj.baseScale = territory.projection.parameters.baseScale
           }
         })
       }
@@ -170,7 +170,7 @@ export class CompositeImportService {
     // SECOND: Apply each territory configuration to stores
     config.territories.forEach((territory) => {
       // 1. Set projection for territory
-      territoryStore.setTerritoryProjection(territory.code, territory.projectionId)
+      territoryStore.setTerritoryProjection(territory.code, territory.projection.id)
 
       // 2. Apply translation offsets
       territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
@@ -179,7 +179,7 @@ export class CompositeImportService {
       // 3. Apply scale multiplier (AFTER baseScale is set above)
       // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
       if (parameterStore) {
-        parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.parameters.scaleMultiplier)
+        parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.projection.parameters.scaleMultiplier)
       }
 
       // 4. Apply projection parameters to parameter store (if available)
@@ -187,12 +187,12 @@ export class CompositeImportService {
       if (parameterStore) {
         try {
           const params = {
-            center: territory.parameters.center,
-            rotate: territory.parameters.rotate,
-            parallels: territory.parameters.parallels,
-            scale: territory.parameters.scale,
-            baseScale: territory.parameters.baseScale,
-            scaleMultiplier: territory.parameters.scaleMultiplier,
+            center: territory.projection.parameters.center,
+            rotate: territory.projection.parameters.rotate,
+            parallels: territory.projection.parameters.parallels,
+            scale: territory.projection.parameters.scale,
+            baseScale: territory.projection.parameters.baseScale,
+            scaleMultiplier: territory.projection.parameters.scaleMultiplier,
           }
           parameterStore.setTerritoryParameters(territory.code, params)
         }
@@ -207,7 +207,7 @@ export class CompositeImportService {
           // First update projection type (may have changed during import)
           // This preserves the current center/rotate/scale but updates the projection algorithm
           if (typeof compositeProjection.updateTerritoryProjection === 'function') {
-            compositeProjection.updateTerritoryProjection(territory.code, territory.projectionId)
+            compositeProjection.updateTerritoryProjection(territory.code, territory.projection.id)
           }
 
           // Then apply parameters from parameter store (which now has the imported values)
@@ -233,8 +233,8 @@ export class CompositeImportService {
           }
 
           // Apply the scale multiplier
-          if (typeof compositeProjection.updateScale === 'function' && territory.parameters.scaleMultiplier !== undefined) {
-            compositeProjection.updateScale(territory.code, territory.parameters.scaleMultiplier)
+          if (typeof compositeProjection.updateScale === 'function' && territory.projection.parameters.scaleMultiplier !== undefined) {
+            compositeProjection.updateScale(territory.code, territory.projection.parameters.scaleMultiplier)
           }
         })
       }
