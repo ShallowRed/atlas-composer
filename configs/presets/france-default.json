@@ -9,6 +9,10 @@
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
   "territories": [
     {
       "code": "FR-MET",

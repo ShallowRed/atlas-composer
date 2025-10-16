@@ -117,6 +117,7 @@ export class CompositeExportService {
     compositeConfig: CompositeProjectionConfig,
     parameterProvider?: ProjectionParameterProvider,
     referenceScale?: number,
+    canvasDimensions?: { width: number, height: number },
     notes?: string,
   ): ExportedCompositeConfig {
     // Get raw export from CompositeProjection
@@ -181,6 +182,7 @@ export class CompositeExportService {
       metadata,
       pattern,
       referenceScale,
+      canvasDimensions,
       territories,
     }
   }

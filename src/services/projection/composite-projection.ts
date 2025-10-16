@@ -520,6 +520,32 @@ export class CompositeProjection {
   }
 
   /**
+   * Update reference scale and apply to all territories
+   * @param newReferenceScale - New reference scale value
+   */
+  updateReferenceScale(newReferenceScale: number): void {
+    this.referenceScale = newReferenceScale
+
+    // Update scale for all sub-projections
+    this.subProjections.forEach((subProj) => {
+      // Recalculate scale using new reference scale
+      const referenceScale = this.referenceScale ?? 2700
+      const newScale = referenceScale * subProj.scaleMultiplier
+
+      // Update the projection scale
+      if (typeof subProj.projection.scale === 'function') {
+        subProj.projection.scale(newScale)
+      }
+
+      // Update baseScale to match
+      subProj.baseScale = newScale
+    })
+
+    // Force rebuild of composite projection on next build() call
+    this.compositeProjection = null
+  }
+
+  /**
    * Update scale for a territory
    */
   updateScale(territoryCode: string, scaleMultiplier: number) {

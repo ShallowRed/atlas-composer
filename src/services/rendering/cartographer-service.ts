@@ -117,6 +117,24 @@ export class Cartographer {
   }
 
   /**
+   * Update canvas dimensions for projection scaling calculations
+   * @param dimensions - New canvas dimensions
+   */
+  updateCanvasDimensions(dimensions: { width: number, height: number } | null): void {
+    this.projectionService.setCanvasDimensions(dimensions)
+  }
+
+  /**
+   * Update reference scale for composite projection
+   * @param scale - New reference scale
+   */
+  updateReferenceScale(scale: number | undefined): void {
+    if (this.customComposite && scale !== undefined) {
+      this.customComposite.updateReferenceScale(scale)
+    }
+  }
+
+  /**
    * Update territory projection parameters
    * Call this when territory-specific projection parameters change (rotate, center, parallels, etc.)
    * @param territoryCode - Territory code to update

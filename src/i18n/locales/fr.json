@@ -90,8 +90,8 @@
     "grabToMove": "Cliquer et glisser pour déplacer le territoire",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Paramètres spécifiques à la projection",
-      "layout": "Contrôles de mise en page",
+      "projectionSpecific": "Paramètres de la projection",
+      "layout": "Mise en page",
       "view": "Paramètres de la vue",
       "advanced": "Paramètres avancés",
       "reset": "Réinitialiser",
@@ -145,6 +145,20 @@
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
     "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
+  },
+  "projectionControls": {
+    "global": {
+      "title": "Paramètres Globaux de Projection",
+      "description": "Ces paramètres contrôlent les dimensions du canevas de référence et l'échelle de base pour tous les territoires. Les modifications affectent le rendu et l'export des projections.",
+      "canvasDimensions": "Dimensions du Canevas",
+      "canvasWidth": "Largeur du Canevas",
+      "canvasHeight": "Hauteur du Canevas",
+      "lockAspectRatio": "Verrouiller le ratio d'aspect",
+      "referenceScale": "Échelle de Référence",
+      "scaleValue": "Valeur d'Échelle",
+      "scaleWarning": "Modifier l'échelle de référence affectera tous les territoires. Les multiplicateurs d'échelle individuels sont préservés.",
+      "resetToDefaults": "Réinitialiser aux Valeurs par Défaut"
+    }
   },
   "actions": {
     "loading": "Chargement...",

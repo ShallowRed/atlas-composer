@@ -67,6 +67,7 @@ const exportContent = computed(() => {
       compositeConfig,
       parameterProvider,
       configStore.referenceScale,
+      configStore.canvasDimensions,
     )
     return JSON.stringify(exported, null, 2)
   }
@@ -78,6 +79,7 @@ const exportContent = computed(() => {
       compositeConfig,
       parameterProvider,
       configStore.referenceScale,
+      configStore.canvasDimensions,
     )
 
     const options: CodeGenerationOptions = {

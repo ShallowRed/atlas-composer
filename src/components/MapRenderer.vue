@@ -143,6 +143,35 @@ watch(
   },
 )
 
+// Watch for canvas dimensions changes
+watch(
+  () => configStore.canvasDimensions,
+  async (newDimensions) => {
+    console.log('[MapRenderer] Canvas dimensions changed:', newDimensions)
+    if (cartographer.value) {
+      cartographer.value.updateCanvasDimensions(newDimensions ?? null)
+      // Canvas dimensions affect projection scaling, trigger re-render
+      console.log('[MapRenderer] Triggering re-render due to canvas dimensions change')
+      await renderMap()
+    }
+  },
+  { deep: true },
+)
+
+// Watch for reference scale changes
+watch(
+  () => configStore.referenceScale,
+  async (newScale) => {
+    console.log('[MapRenderer] Reference scale changed:', newScale)
+    if (cartographer.value && newScale !== undefined) {
+      cartographer.value.updateReferenceScale(newScale)
+      // Reference scale affects all territories, trigger re-render
+      console.log('[MapRenderer] Triggering re-render due to reference scale change')
+      await renderMap()
+    }
+  },
+)
+
 // Render map on mount
 onMounted(async () => {
   // Wait for DOM to be ready
@@ -435,6 +464,7 @@ watch(() => {
       configStore.selectedProjection,
       configStore.territoryMode,
       configStore.scalePreservation,
+      // NOTE: referenceScale and canvasDimensions have dedicated watchers above
       uiStore.showGraticule,
       uiStore.showSphere,
       uiStore.showCompositionBorders,

@@ -90,9 +90,9 @@
     "grabToMove": "Click and drag to move territory",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Projection Parameters",
-      "layout": "Layout Controls",
-      "view": "View & Scale",
+      "projectionSpecific": "Projection parameters",
+      "layout": "Layout",
+      "view": "View & scale",
       "advanced": "Advanced",
       "reset": "Reset",
       "resetOverrides": "Reset all parameter overrides for this territory",
@@ -144,6 +144,20 @@
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
     "noParams": "This projection type doesn't have adjustable parameters in unified mode."
+  },
+  "projectionControls": {
+    "global": {
+      "title": "Global Projection Settings",
+      "description": "These settings control projection scaling calculations. Reference dimensions define the coordinate space for projection math, while reference scale sets the base zoom level. Note: These don't change the display size - they affect how projections scale relative to each other.",
+      "canvasDimensions": "Reference Canvas Dimensions",
+      "canvasWidth": "Reference Width",
+      "canvasHeight": "Reference Height",
+      "lockAspectRatio": "Lock aspect ratio",
+      "referenceScale": "Reference Scale",
+      "scaleValue": "Scale Value",
+      "scaleWarning": "Changing the reference scale will affect all territories. Individual territory scale multipliers are preserved.",
+      "resetToDefaults": "Reset to Defaults"
+    }
   },
   "actions": {
     "loading": "Loading...",

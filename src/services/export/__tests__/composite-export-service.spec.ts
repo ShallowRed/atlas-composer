@@ -157,6 +157,7 @@ describe('compositeExportService', () => {
         mockSingleFocusConfig,
         undefined, // parameterProvider
         undefined, // referenceScale
+        undefined, // canvasDimensions
         'Test export', // notes
       )
 

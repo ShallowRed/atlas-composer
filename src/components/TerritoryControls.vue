@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
+import GlobalProjectionControls from '@/components/ui/parameters/GlobalProjectionControls.vue'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
 import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
@@ -176,6 +177,15 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
       v-if="!shouldShowEmptyState || isCompositeCustomMode"
       class="flex flex-col gap-3 mb-8"
     >
+      <!-- Global Projection Controls (shown in composite-custom mode) -->
+      <GlobalProjectionControls v-if="isCompositeCustomMode" />
+
+      <!-- Divider between global and preset/import controls -->
+      <div
+        v-if="isCompositeCustomMode"
+        class="divider my-2"
+      />
+
       <!-- Preset Selector (shown in composite-custom mode when presets are available) -->
       <PresetSelector v-if="hasPresets && isCompositeCustomMode" />
 
