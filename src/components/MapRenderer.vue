@@ -369,10 +369,10 @@ function handleMouseDown(event: MouseEvent) {
 
   // Get current rotation values
   const currentRotationLon = configStore.customRotateLongitude
-    ?? configStore.effectiveProjectionParams?.rotate?.mainland?.[0]
+    ?? configStore.effectiveProjectionParams?.rotate?.[0]
     ?? 0
   const currentRotationLat = configStore.customRotateLatitude
-    ?? configStore.effectiveProjectionParams?.rotate?.mainland?.[1]
+    ?? configStore.effectiveProjectionParams?.rotate?.[1]
     ?? 0
 
   panStartRotationLon.value = currentRotationLon

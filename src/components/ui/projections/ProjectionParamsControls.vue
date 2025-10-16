@@ -57,10 +57,7 @@ const currentRotateLongitude = computed(() => {
   if (configStore.customRotateLongitude !== null) {
     return configStore.customRotateLongitude
   }
-  const rotate = configStore.effectiveProjectionParams?.rotate?.mainland
-  if (typeof rotate === 'number') {
-    return rotate
-  }
+  const rotate = configStore.effectiveProjectionParams?.rotate
   if (Array.isArray(rotate)) {
     return rotate[0]
   }
@@ -71,10 +68,7 @@ const currentRotateLatitude = computed(() => {
   if (configStore.customRotateLatitude !== null) {
     return configStore.customRotateLatitude
   }
-  const rotate = configStore.effectiveProjectionParams?.rotate?.azimuthal
-  if (typeof rotate === 'number') {
-    return rotate
-  }
+  const rotate = configStore.effectiveProjectionParams?.rotate
   if (Array.isArray(rotate)) {
     return rotate[1]
   }
@@ -83,25 +77,25 @@ const currentRotateLatitude = computed(() => {
 
 const currentCenterLongitude = computed(() => {
   return configStore.customCenterLongitude
-    ?? configStore.effectiveProjectionParams?.center?.longitude
+    ?? configStore.effectiveProjectionParams?.center?.[0]
     ?? RANGES.centerLongitude.default
 })
 
 const currentCenterLatitude = computed(() => {
   return configStore.customCenterLatitude
-    ?? configStore.effectiveProjectionParams?.center?.latitude
+    ?? configStore.effectiveProjectionParams?.center?.[1]
     ?? RANGES.centerLatitude.default
 })
 
 const currentParallel1 = computed(() => {
   return configStore.customParallel1
-    ?? configStore.effectiveProjectionParams?.parallels?.conic?.[0]
+    ?? configStore.effectiveProjectionParams?.parallels?.[0]
     ?? RANGES.parallel1.default
 })
 
 const currentParallel2 = computed(() => {
   return configStore.customParallel2
-    ?? configStore.effectiveProjectionParams?.parallels?.conic?.[1]
+    ?? configStore.effectiveProjectionParams?.parallels?.[1]
     ?? RANGES.parallel2.default
 })
 
