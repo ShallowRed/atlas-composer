@@ -601,8 +601,6 @@ export class CompositeProjection {
           paramStore.setTerritoryParameter(territoryCode, 'scale', newScale)
         }
       }
-
-      console.log(`[CompositeProjection] updateScale for ${territoryCode}: multiplier=${scaleMultiplier}, newScale=${newScale}`)
       this.compositeProjection = null
     }
   }
@@ -730,9 +728,6 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
-      if (subProj.territoryCode === 'FR-MET' || subProj.territoryCode === 'FR-GP') {
-        console.log(`[CompositeProjection] build() processing ${subProj.territoryCode}: baseScale=${subProj.baseScale}, scaleMultiplier=${subProj.scaleMultiplier}, projection.scale()=${subProj.projection.scale()}, projectionType=${subProj.projectionType}, translateOffset=${JSON.stringify(subProj.translateOffset)}`)
-      }
       // Get current translate parameter if set via parameter controls
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
@@ -752,16 +747,6 @@ export class CompositeProjection {
         centerY + subProj.translateOffset[1] + parameterTranslate[1],
       ]
       subProj.projection.translate(newTranslate)
-
-      if (subProj.territoryCode === 'FR-GP') {
-        console.log(`[CompositeProjection] build() FR-GP translate: center=${centerX},${centerY}, offset=${subProj.translateOffset}, paramTranslate=${parameterTranslate}, final=${newTranslate}`)
-        // Test projection of bounds
-        if (subProj.bounds) {
-          const projected1 = subProj.projection(subProj.bounds[0] as [number, number])
-          const projected2 = subProj.projection(subProj.bounds[1] as [number, number])
-          console.log(`[CompositeProjection] build() FR-GP bounds projection: [${subProj.bounds[0]}] -> [${projected1}], [${subProj.bounds[1]}] -> [${projected2}]`)
-        }
-      }
 
       // If territory has a predefined clipExtent (from config), use it
       // This is the case for d3-composite-projections style definitions

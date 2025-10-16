@@ -79,7 +79,7 @@ export function registerAllParameters(): void {
     mutable: false, // Not directly user-editable
     exportable: true,
     requiresPreset: true,
-    constraints: { min: 100, max: 100000 },
+    constraints: { min: 1, max: 100000 },
     relevantFor: 'all',
   })
 
@@ -93,7 +93,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true,
-    constraints: { min: 0.1, max: 10, step: 0.1 },
+    constraints: { min: 0.01, max: 10, step: 0.01 },
     relevantFor: 'all',
   })
 
@@ -107,7 +107,7 @@ export function registerAllParameters(): void {
     mutable: true, // Can override
     exportable: true,
     requiresPreset: false,
-    constraints: { min: 100, max: 100000, step: 50 },
+    constraints: { min: 1, max: 100000, step: 1 },
     relevantFor: 'all',
     computeDefault: (_territory) => {
       // This is a fallback - normally computed from other parameters

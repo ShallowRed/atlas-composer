@@ -93,7 +93,8 @@
       "position": "Position",
       "advanced": "Paramètres avancés",
       "reset": "Réinitialiser",
-      "resetOverrides": "Réinitialiser les paramètres personnalisés"
+      "resetOverrides": "Réinitialiser les paramètres personnalisés",
+      "projectionSpecific": "Paramètres spécifiques à la projection"
     }
   },
   "view": {

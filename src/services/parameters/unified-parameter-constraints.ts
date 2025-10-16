@@ -116,6 +116,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       step: 0.1,
       defaultValue: 1.0,
     },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
+    },
   },
 
   PSEUDOCYLINDRICAL: {
@@ -299,6 +315,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       step: 0.1,
       defaultValue: 1.0,
     },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
+    },
   },
 
   AZIMUTHAL: {
@@ -390,6 +422,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       step: 0.1,
       defaultValue: 1.0,
     },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
+    },
   },
 
   POLYHEDRAL: {
@@ -459,6 +507,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       step: 0.1,
       defaultValue: 1.0,
     },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
+    },
   },
 
   COMPOSITE: {
@@ -527,6 +591,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       max: 10,
       step: 0.1,
       defaultValue: 1.0,
+    },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
     },
   },
 
@@ -600,6 +680,22 @@ const UNIFIED_PARAMETER_CONSTRAINTS: Record<ProjectionFamilyType, Partial<Record
       step: 0.1,
       defaultValue: 1.0,
     },
+    translateOffset: {
+      parameter: 'translateOffset',
+      relevant: true, // Used for territory positioning in composite projections
+      required: false,
+      defaultValue: [0, 0],
+      validate: (value) => {
+        if (!Array.isArray(value) || value.length !== 2) {
+          return { isValid: false, error: 'Translate offset must be [x, y]' }
+        }
+        const [x, y] = value
+        if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+          return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+        }
+        return { isValid: true }
+      },
+    },
   },
 }
 
@@ -616,6 +712,7 @@ const PARAMETER_KEYS: Array<keyof ProjectionParameters> = [
   'precision',
   'baseScale',
   'scaleMultiplier',
+  'translateOffset',
 ]
 
 /**

@@ -198,12 +198,46 @@ export function hasParameterMetadata(
  * Convert atlas parameters to unified parameters format
  */
 export function atlasToProjectionParameters(atlasParams: AtlasProjectionParameters): ProjectionParameters {
-  return {
-    center: [atlasParams.center.longitude, atlasParams.center.latitude],
-    rotate: [atlasParams.rotate.mainland[0], atlasParams.rotate.mainland[1]],
-    parallels: atlasParams.parallels.conic,
-    scale: atlasParams.scale,
+  // Handle undefined or missing properties
+  if (!atlasParams) {
+    return {}
   }
+
+  const result: ProjectionParameters = {}
+
+  // Handle center - can be array [lon, lat] or object {longitude, latitude}
+  if (atlasParams.center) {
+    if (Array.isArray(atlasParams.center)) {
+      result.center = atlasParams.center as unknown as [number, number]
+    } else if (typeof atlasParams.center === 'object' && 'longitude' in atlasParams.center) {
+      result.center = [atlasParams.center.longitude, atlasParams.center.latitude]
+    }
+  }
+  
+  // Handle rotate - can be array [x, y, z] or object {mainland: [x, y]}
+  if (atlasParams.rotate) {
+    if (Array.isArray(atlasParams.rotate)) {
+      result.rotate = atlasParams.rotate as unknown as [number, number, number?]
+    } else if (typeof atlasParams.rotate === 'object' && 'mainland' in atlasParams.rotate) {
+      result.rotate = [atlasParams.rotate.mainland[0], atlasParams.rotate.mainland[1]]
+    }
+  }
+    
+  // Handle parallels - can be array [p1, p2] or object {conic: [p1, p2]}
+  if (atlasParams.parallels) {
+    if (Array.isArray(atlasParams.parallels)) {
+      result.parallels = atlasParams.parallels as unknown as [number, number]
+    } else if (typeof atlasParams.parallels === 'object' && 'conic' in atlasParams.parallels) {
+      result.parallels = atlasParams.parallels.conic
+    }
+  }
+
+  // Handle scale
+  if (atlasParams.scale !== undefined) {
+    result.scale = atlasParams.scale
+  }
+
+  return result
 }
 
 /**
