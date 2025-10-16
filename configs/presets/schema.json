@@ -4,7 +4,7 @@
   "title": "Atlas Composer Preset Configuration",
   "description": "JSON schema for composite projection preset files. Presets use the same format as exported configurations.",
   "type": "object",
-  "required": ["version", "metadata", "pattern", "referenceScale", "territories"],
+  "required": ["version", "metadata", "pattern", "territories"],
   "name": {
     "oneOf": [
       { "type": "string" },
@@ -61,7 +61,27 @@
     "referenceScale": {
       "type": "number",
       "minimum": 0,
-      "description": "Reference scale used across all territories"
+      "description": "Reference scale used across all territories (defaults to 2700 for single-focus, 200 for equal-members)"
+    },
+    "canvasDimensions": {
+      "type": "object",
+      "description": "Reference canvas dimensions for scaling calculations (defaults to 960×500 for d3-composite-projections standard)",
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Reference canvas width in pixels"
+        },
+        "height": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Reference canvas height in pixels"
+        }
+      },
+      "required": ["width", "height"],
+      "additionalProperties": false
     },
     "territories": {
       "type": "array",

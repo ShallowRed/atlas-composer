@@ -73,6 +73,8 @@ export const useConfigStore = defineStore('config', () => {
   const compositeProjection = ref<string>('conic-conformal-france')
   // Reference scale from preset, will be updated async with preset data
   const referenceScale = ref<number | undefined>(undefined)
+  // Canvas dimensions from preset, will be updated async with preset data (defaults to 960×500)
+  const canvasDimensions = ref<{ width: number, height: number } | undefined>(undefined)
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -158,6 +160,9 @@ export const useConfigStore = defineStore('config', () => {
         }
         if (updates.referenceScale !== undefined) {
           referenceScale.value = updates.referenceScale
+        }
+        if (updates.canvasDimensions !== undefined) {
+          canvasDimensions.value = updates.canvasDimensions
         }
 
         // Update UI store
@@ -400,6 +405,9 @@ export const useConfigStore = defineStore('config', () => {
     if (updates.referenceScale !== undefined) {
       referenceScale.value = updates.referenceScale
     }
+    if (updates.canvasDimensions !== undefined) {
+      canvasDimensions.value = updates.canvasDimensions
+    }
   })
 
   return {
@@ -412,6 +420,7 @@ export const useConfigStore = defineStore('config', () => {
     projectionMode,
     compositeProjection,
     referenceScale,
+    canvasDimensions,
     // Legacy parameter accessors - delegate to parameter store for backward compatibility
     customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
     customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),

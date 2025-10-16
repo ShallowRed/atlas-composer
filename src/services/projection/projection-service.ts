@@ -13,6 +13,7 @@ export interface ProjectionOption {
 export class ProjectionService {
   private projectionParams: ProjectionParameters | null = null
   private fittingMode: 'auto' | 'manual' = 'auto'
+  private canvasDimensions: { width: number, height: number } | null = null
 
   /**
    * Set region-specific projection parameters
@@ -28,6 +29,14 @@ export class ProjectionService {
    */
   setFittingMode(mode: 'auto' | 'manual'): void {
     this.fittingMode = mode
+  }
+
+  /**
+   * Set canvas dimensions for scaling calculations
+   * @param dimensions - Reference canvas dimensions (defaults to 960×500)
+   */
+  setCanvasDimensions(dimensions: { width: number, height: number } | null): void {
+    this.canvasDimensions = dimensions
   }
 
   /**
@@ -96,8 +105,10 @@ export class ProjectionService {
             const proj = ProjectionFactory.createById(type)
             if (proj) {
               // Scale proportionally based on metadata
+              // Use preset canvas dimensions if available, otherwise fall back to customFit metadata
+              const referenceWidth = this.canvasDimensions?.width ?? customFit.referenceWidth
               // Note: Plot applies inset internally, so we don't adjust dimensions here
-              const scaleFactor = width / customFit.referenceWidth
+              const scaleFactor = width / referenceWidth
               proj.scale(customFit.defaultScale * scaleFactor)
               proj.translate([width / 2, height / 2])
             }

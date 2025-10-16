@@ -60,6 +60,7 @@ export class Cartographer {
     projectionParams?: ProjectionParameters,
     parameterProvider?: ProjectionParameterProvider,
     referenceScale?: number,
+    canvasDimensions?: { width: number, height: number },
   ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
@@ -69,9 +70,14 @@ export class Cartographer {
       this.projectionService.setProjectionParams(projectionParams)
     }
 
+    // Set canvas dimensions if provided
+    if (canvasDimensions) {
+      this.projectionService.setCanvasDimensions(canvasDimensions)
+    }
+
     // Only create CompositeProjection if config is provided
     if (compositeConfig) {
-      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale)
+      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale, canvasDimensions)
     }
   }
 

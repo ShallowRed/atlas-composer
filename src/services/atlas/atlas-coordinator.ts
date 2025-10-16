@@ -19,6 +19,7 @@ export interface AtlasChangeResult {
   compositeProjection?: string
   selectedProjection: string
   referenceScale?: number
+  canvasDimensions?: { width: number, height: number }
   mapDisplay: {
     showGraticule: boolean
     showSphere: boolean
@@ -59,6 +60,7 @@ export class AtlasCoordinator {
     let finalDefaults = TerritoryDefaultsService.initializeAll(territories, 'mercator')
     let territoryParameters: Record<string, Record<string, unknown>> = {}
     let referenceScale: number | undefined
+    let canvasDimensions: { width: number, height: number } | undefined
 
     // Load preset if available and in composite-custom mode
     if (config.defaultPreset && viewMode === 'composite-custom') {
@@ -79,6 +81,9 @@ export class AtlasCoordinator {
 
           // Extract referenceScale from preset
           referenceScale = presetResult.preset.referenceScale
+
+          // Extract canvasDimensions from preset (if available)
+          canvasDimensions = presetResult.preset.canvasDimensions
         }
         else {
           // Log warning but continue with fallback defaults
@@ -119,6 +124,7 @@ export class AtlasCoordinator {
       compositeProjection,
       selectedProjection,
       referenceScale,
+      canvasDimensions,
       mapDisplay,
     }
   }

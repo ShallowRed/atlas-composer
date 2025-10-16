@@ -101,6 +101,7 @@ export class MapOverlayService {
     projectionId: string | undefined,
     width: number,
     height: number,
+    canvasDimensions?: { width: number, height: number },
   ): string | null {
     if (!projectionId) {
       return null
@@ -119,7 +120,9 @@ export class MapOverlayService {
     // Apply scale and translation to match the rendered map
     const customFit = definition.metadata?.customFit
     if (customFit) {
-      const scaleFactor = width / customFit.referenceWidth
+      // Use preset canvas dimensions if available, otherwise fall back to customFit metadata
+      const referenceWidth = canvasDimensions?.width ?? customFit.referenceWidth
+      const scaleFactor = width / referenceWidth
       projection.scale(customFit.defaultScale * scaleFactor)
       projection.translate([width / 2, height / 2])
     }
@@ -127,7 +130,7 @@ export class MapOverlayService {
       // For projections without customFit, scale proportionally from a reference size
       // d3-composite-projections default to scale 1000 at 960px width
       const defaultScale = 1000
-      const referenceWidth = 960
+      const referenceWidth = canvasDimensions?.width ?? 960
       if (typeof projection.scale === 'function') {
         const scaleFactor = width / referenceWidth
         projection.scale(defaultScale * scaleFactor)

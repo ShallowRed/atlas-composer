@@ -49,11 +49,16 @@ export class CompositeProjection {
   private config: CompositeProjectionConfig
   private parameterProvider?: ProjectionParameterProvider
   private referenceScale?: number
+  private canvasDimensions?: { width: number, height: number }
 
-  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number) {
+  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number, canvasDimensions?: { width: number, height: number }) {
     this.config = config
     this.parameterProvider = parameterProvider
     this.referenceScale = referenceScale
+    this.canvasDimensions = canvasDimensions
+    // Note: canvasDimensions stored for future use and architectural consistency
+    // Currently used by projection-service, map-overlay-service, and border-renderer
+    // Composite projections from d3-composite-projections have fixed internal configuration
     this.initialize()
   }
 
@@ -505,6 +510,13 @@ export class CompositeProjection {
       subProj.translateOffset = offset
       this.compositeProjection = null
     }
+  }
+
+  /**
+   * Get canvas dimensions (if set)
+   */
+  getCanvasDimensions(): { width: number, height: number } | undefined {
+    return this.canvasDimensions
   }
 
   /**

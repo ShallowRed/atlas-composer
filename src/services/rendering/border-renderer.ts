@@ -82,9 +82,11 @@ export class CustomCompositeBorderRenderer implements BorderRenderer {
  */
 export class ExistingCompositeBorderRenderer implements BorderRenderer {
   private projectionId: string
+  private canvasDimensions?: { width: number, height: number }
 
-  constructor(projectionId: string) {
+  constructor(projectionId: string, canvasDimensions?: { width: number, height: number }) {
     this.projectionId = projectionId
+    this.canvasDimensions = canvasDimensions
   }
 
   render(group: SVGGElement, width: number, height: number): void {
@@ -166,13 +168,15 @@ export class ExistingCompositeBorderRenderer implements BorderRenderer {
   private applyProjectionTransform(projection: any, definition: any, width: number, height: number): void {
     const customFit = definition.metadata?.customFit
     if (customFit) {
-      const scaleFactor = width / customFit.referenceWidth
+      // Use preset canvas dimensions if available, otherwise fall back to customFit metadata
+      const referenceWidth = this.canvasDimensions?.width ?? customFit.referenceWidth
+      const scaleFactor = width / referenceWidth
       projection.scale(customFit.defaultScale * scaleFactor)
       projection.translate([width / 2, height / 2])
     }
     else {
       const defaultScale = 1000
-      const referenceWidth = 960
+      const referenceWidth = this.canvasDimensions?.width ?? 960
       if (typeof projection.scale === 'function') {
         const scaleFactor = width / referenceWidth
         projection.scale(defaultScale * scaleFactor)

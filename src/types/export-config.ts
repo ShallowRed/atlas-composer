@@ -101,6 +101,18 @@ export type CompositePattern = 'single-focus' | 'equal-members'
 export type ConfigVersion = '1.0'
 
 /**
+ * Canvas dimensions for composite projection
+ * Defines the reference canvas size used for scaling calculations
+ */
+export interface CanvasDimensions {
+  /** Reference canvas width in pixels (standard: 960) */
+  width: number
+
+  /** Reference canvas height in pixels (standard: 500) */
+  height: number
+}
+
+/**
  * Base configuration interface (shared across versions)
  */
 export interface BaseExportedConfig {
@@ -115,6 +127,9 @@ export interface BaseExportedConfig {
 
   /** Base scale for all territories (defaults to 2700 for single-focus, 200 for equal-members) */
   referenceScale?: number
+
+  /** Reference canvas dimensions (defaults to 960×500 for d3-composite-projections standard) */
+  canvasDimensions?: CanvasDimensions
 
   /** Array of territory configurations */
   territories: ExportedTerritory[]
