@@ -8,11 +8,13 @@ import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
+const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
 const territoryStore = useTerritoryStore()
 const presetDefaults = getSharedPresetDefaults()
@@ -72,6 +74,7 @@ const currentPreset = computed({
           territoryStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(defaults.scales).forEach(([code, scale]) => {
+          console.debug(`[PresetSelector] Setting individual scaleMultiplier for ${code}:`, scale)
           parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
         })
 
@@ -85,6 +88,15 @@ const currentPreset = computed({
         })
 
         parameterStore.initializeFromPreset({}, parametersWithoutScale)
+
+        // CRITICAL: Update CompositeProjection with new parameters from preset
+        // The parameter store has been updated, but the CompositeProjection needs to re-read parameters
+        if (geoDataStore.cartographer?.customComposite) {
+          // Update each territory's parameters in the CompositeProjection
+          Object.keys(parametersWithoutScale).forEach(territoryCode => {
+            geoDataStore.cartographer?.updateTerritoryParameters(territoryCode)
+          })
+        }
 
         // Log warnings if present but don't treat as errors
         if (result.warnings.length > 0) {

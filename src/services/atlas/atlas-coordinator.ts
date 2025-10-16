@@ -63,6 +63,7 @@ export class AtlasCoordinator {
     // Load preset if available and in composite-custom mode
     if (config.defaultPreset && viewMode === 'composite-custom') {
       try {
+        console.debug(`[AtlasCoordinator] Loading default preset: ${config.defaultPreset}`)
         const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
         if (presetResult.success && presetResult.preset) {
           // Convert preset to defaults and merge with territory defaults

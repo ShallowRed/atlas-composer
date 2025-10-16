@@ -227,6 +227,7 @@ export class PresetLoader {
       }
 
       // Scale multiplier
+      console.debug(`[PresetLoader] convertToDefaults - ${code} scaleMultiplier:`, territory.projection.parameters.scaleMultiplier, 'full parameters:', territory.projection.parameters)
       scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
     })
 
