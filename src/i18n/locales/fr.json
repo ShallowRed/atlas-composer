@@ -162,6 +162,12 @@
       "resetToDefaults": "Réinitialiser"
     }
   },
+  "clipExtent": {
+    "left": "Limite gauche",
+    "right": "Limite droite",
+    "top": "Limite supérieure",
+    "bottom": "Limite inférieure"
+  },
   "actions": {
     "loading": "Chargement...",
     "loadingData": "Chargement des données...",

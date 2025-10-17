@@ -531,7 +531,7 @@ const {
               <!-- Pixel-based ClipExtent Controls -->
               <RangeSlider
                 :model-value="pixelClipExtentArray[0] ?? -100"
-                label="ClipExtent Left (px)"
+                :label="t('clipExtent.left')"
                 icon="ri-arrow-left-line"
                 size="xs"
                 :min="-500"
@@ -542,7 +542,7 @@ const {
 
               <RangeSlider
                 :model-value="pixelClipExtentArray[1] ?? -100"
-                label="ClipExtent Top (px)"
+                :label="t('clipExtent.top')"
                 icon="ri-arrow-up-line"
                 size="xs"
                 :min="-500"
@@ -553,7 +553,7 @@ const {
 
               <RangeSlider
                 :model-value="pixelClipExtentArray[2] ?? 100"
-                label="ClipExtent Right (px)"
+                :label="t('clipExtent.right')"
                 icon="ri-arrow-right-line"
                 size="xs"
                 :min="-500"
@@ -564,7 +564,7 @@ const {
 
               <RangeSlider
                 :model-value="pixelClipExtentArray[3] ?? 100"
-                label="ClipExtent Bottom (px)"
+                :label="t('clipExtent.bottom')"
                 icon="ri-arrow-down-line"
                 size="xs"
                 :min="-500"
