@@ -725,10 +725,14 @@ export class CompositeProjection {
       // Get current translate parameter if set via parameter controls
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
+      let parameterScaleMultiplier = 1.0
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
         if (params.translate) {
           parameterTranslate = params.translate as [number, number]
+        }
+        if (params.scaleMultiplier) {
+          parameterScaleMultiplier = params.scaleMultiplier
         }
       }
 
@@ -762,18 +766,24 @@ export class CompositeProjection {
         // Calculate clipExtent in screen coordinates using reference scale and territory position
         // Use territory position (newTranslate) instead of map center for drag-aware clipExtent
         // But compensate for the fact that original clipExtent values were designed relative to map center
+        // Scale clipExtent relative to territory center, not map center, to match territory scaling behavior
         // This matches how d3-composite-projections calculates: [x + offset * k, y + offset * k]
         const territoryX = newTranslate[0]
         const territoryY = newTranslate[1]
 
-        // Compensate for the double-offset: subtract the territory's original translateOffset
-        // since the clipExtent values were designed assuming they'd be added to map center
-        const offsetCompensationX = subProj.translateOffset[0]
-        const offsetCompensationY = subProj.translateOffset[1]
+        // Calculate clipExtent using the original logic but make it drag-aware
+        // Original: centerX + clipExtent * scale (fixed to map center) 
+        // Fixed: centerX + clipExtent * scale + parameterOffset (follows parameter-based drag)
+        const baseClipX1 = centerX + x1 * referenceScale
+        const baseClipY1 = centerY + y1 * referenceScale  
+        const baseClipX2 = centerX + x2 * referenceScale
+        const baseClipY2 = centerY + y2 * referenceScale
 
+        // Add only the parameter-based translate offset (Set 2 controls) for drag-aware behavior
+        // Don't add territory translateOffset (Set 3 controls) to maintain original clipExtent design
         const clipExtentScreen: [[number, number], [number, number]] = [
-          [territoryX + x1 * referenceScale + epsilon - offsetCompensationX, territoryY + y1 * referenceScale + epsilon - offsetCompensationY],
-          [territoryX + x2 * referenceScale - epsilon - offsetCompensationX, territoryY + y2 * referenceScale - epsilon - offsetCompensationY],
+          [baseClipX1 + parameterTranslate[0] + epsilon, baseClipY1 + parameterTranslate[1] + epsilon],
+          [baseClipX2 + parameterTranslate[0] - epsilon, baseClipY2 + parameterTranslate[1] - epsilon],
         ]
 
         // Apply the clipExtent relative to the main projection coordinate system
