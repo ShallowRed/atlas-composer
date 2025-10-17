@@ -31,7 +31,7 @@ src/
 │       ├── presets/          # Preset management components
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 11 composition functions including useViewState, useTerritoryCursor, useTerritoryParameters
+├── composables/              # 12 composition functions including useViewState, useTerritoryCursor, useClipExtentEditor, useTerritoryParameters
 ├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -65,17 +65,23 @@ App.vue
 - Uses: useAtlasData, useLoadingState
 
 ### MapRenderer.vue (147 lines)
-**Role**: D3 rendering engine with interactive panning
+**Role**: D3 rendering engine with interactive panning, territory dragging, and clip extent editing
 **Responsibilities**:
 - SVG canvas management
 - D3 projection rendering via MapRenderCoordinator
 - Territory positioning
 - Interactive mouse panning (mouse drag to rotate projections)
+- Territory dragging integration via useTerritoryCursor composable
+- Clip extent corner editing integration via useClipExtentEditor composable
 - Cursor feedback (grab/grabbing) during interaction
 - Watches projection parameters and fitting mode for reactive updates
 - Watches global parameters (referenceScale, canvasDimensions) and applies updates dynamically
-- Uses: MapRenderCoordinator, MapSizeCalculator, projectionRegistry, getRelevantParameters
+- Uses: MapRenderCoordinator, MapSizeCalculator, projectionRegistry, getRelevantParameters, useTerritoryCursor, useClipExtentEditor
 **Tests**: 10 tests covering props, rendering, store integration
+**Interactive Features**:
+- **Panning**: Mouse drag to rotate projections (azimuthal, cylindrical, etc.)
+- **Territory Dragging**: Drag overseas territories to reposition (composite-custom mode)
+- **Clip Extent Editing**: Click territory to select, drag corner handles to adjust clipping region
 **Panning Feature**:
 - Supports 2-axis mouse drag panning for projections with `rotateLongitude` parameter
 - Tracks mouse delta (dx, dy) and converts to rotation degrees (~0.5° per pixel)
@@ -99,6 +105,20 @@ App.vue
   - Triggers re-render with updated scale multipliers applied
 - Uses deep watching for canvasDimensions object to detect property changes
 - Ensures reactive updates without full component reinitialization
+**Territory Dragging Integration**:
+- Uses useTerritoryCursor composable for drag-to-move functionality
+- Creates border zone overlays via createBorderZoneOverlays() in composite-custom mode
+- Passes onTerritoryClick callback to enable clip extent editor territory selection
+- Handles drag start/move/stop events coordinated by useTerritoryCursor
+- Updates translateOffset parameter in real-time during drag
+**Clip Extent Editing Integration**:
+- Uses useClipExtentEditor composable for interactive corner dragging
+- Click workflow: Border zone click → toggleTerritorySelection() → renderClipExtentHandles()
+- Only shows corner handles for currently selected territory (prevents overlap)
+- Renders handles after SVG ready via renderClipExtentHandles(svg) call
+- Handle positions update automatically when parameters change
+- Coordinates with territory dragging (both use same SVG scale calculation)
+- Updates pixelClipExtent parameter in real-time during corner drag
 
 ### TerritoryControls.vue (264 lines)
 **Role**: Territory transform and parameter controls
@@ -255,7 +275,7 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (11 functions)
+## Composables (12 functions)
 
 ### Data Loading
 **useAtlasData** (128 lines)
@@ -320,18 +340,44 @@ App.vue
 
 **useTerritoryCursor** (477 lines)
 - Territory drag-to-move functionality for composite-custom mode with D3.js integration
-- Pure 1:1 cursor movement: Direct cursor delta to territory translation offset without scaling factors
+- SVG coordinate mapping: getSVGScale() calculates screen-to-canvas pixel ratio from CTM (Current Transformation Matrix)
+- Accurate drag movement: Converts screen pixel deltas to SVG canvas pixels by dividing by scale factor
 - D3 DOM manipulation: Uses D3 selections for all SVG element interaction and styling
 - Visual feedback system: updateTerritoryVisualFeedback() with hover/drag states using D3 styling
 - Temporary border creation: createTemporaryBorder() generates borders when composition borders disabled
 - Smart border detection: Detects existing borders vs. creating temporary ones for consistent UX
 - D3-based overlay system: createBorderZoneOverlays() uses D3 data binding for interactive zones
-- Mouse event handling: startDrag(), handleMouseMove(), stopDrag() with direct coordinate application
+  - Accepts optional onTerritoryClick callback for territory selection coordination
+  - Click events fire callback with territoryCode before mousedown (enables selection workflow)
+- Mouse event handling: startDrag(), handleMouseMove(), stopDrag() with scale-adjusted coordinate application
 - Territory validation: isTerritoryDraggable() prevents mainland territory dragging
 - Cursor management: getCursorStyle() provides grab/grabbing feedback
 - Tooltip interference prevention: disableTooltipPointerEvents() using D3 selections and MutationObserver
 - Clean resource management: Automatic cleanup of temporary borders and observers
-- Used by: MapRenderer.vue for territory dragging interaction
+- Used by: MapRenderer.vue for territory dragging interaction and clip extent editor integration
+
+**useClipExtentEditor** (302 lines)
+- Interactive clip extent corner editing for composite-custom mode with D3.js integration
+- Territory selection system: selectedTerritoryCode tracks which territory shows corner handles
+- Selection methods: selectTerritory(), deselectTerritory(), toggleTerritorySelection()
+- Prevents visual clutter: Only selected territory displays corner handles (4 corners per territory)
+- SVG coordinate mapping: getSVGScale() for accurate screen-to-canvas pixel conversion (same as useTerritoryCursor)
+- Corner handle rendering: renderClipExtentHandles() creates draggable circular handles using D3 data binding
+  - Filters geoDataStore.filteredTerritories to only selected territory
+  - Calculates corner positions from pixelClipExtent `[x1, y1, x2, y2]` relative to territory center
+  - Creates 4 handles: top-left (0), top-right (1), bottom-right (2), bottom-left (3)
+  - Blue circular handles with hover effects (r=6→8, opacity=0.7→1.0)
+  - Handles positioned at absolute canvas coordinates: `territoryCenter + translateOffset + clipExtentCorner`
+- Corner drag interaction: startCornerDrag(), handleCornerMouseMove(), stopCornerDrag()
+  - Tracks dragCornerIndex to determine which two values update (x1/x2 and y1/y2)
+  - Converts screen pixel deltas to canvas pixels using scale factor
+  - Updates pixelClipExtent parameter via parameterStore.setTerritoryParameter()
+  - Re-renders handles during drag for real-time visual feedback
+  - Rounds values to integers for clean parameter values
+- Coordinate system: Works in canvas pixel space matching translateOffset coordinate system
+- Integration with useTerritoryCursor: MapRenderer passes toggleTerritorySelection as onTerritoryClick callback
+- Click workflow: User clicks territory border zone → toggles selection → handles appear/disappear for that territory
+- Used by: MapRenderer.vue for interactive clip extent editing
 
 **useUrlState** (220 lines)
 - URL state serialization/deserialization for shareable links
@@ -388,10 +434,10 @@ App.vue
 **Responsibilities**:
 - Theme management (light/dark)
 - Display toggles (graticule, sphere, composition borders, map limits)
-  - showGraticule: Display coordinate grid lines
-  - showSphere: Display sphere outline
-  - showCompositionBorders: Display territory region borders (composite views only)
-  - showMapLimits: Display viewport bounds rectangle
+  - showGraticule: Display coordinate grid lines (default: false)
+  - showSphere: Display sphere outline (default: false)
+  - showCompositionBorders: Display territory region borders - default: true for improved clip extent editing UX
+  - showMapLimits: Display viewport bounds rectangle (default: false)
 **Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
 ### territory.ts (57 lines)

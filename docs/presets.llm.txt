@@ -167,6 +167,14 @@ Extracts projection parameters from preset territories into parameter store form
 - `parallels`: Standard parallels for conic projections
 - `baseScale`: Base scale value before multiplier
 - `scaleMultiplier`: Scale adjustment multiplier
+- `translateOffset`: Extracted from layout section - pixel offset [x, y] from territory center
+- `pixelClipExtent`: Extracted from layout section - clipping rectangle [x1, y1, x2, y2] in pixels
+
+**Layout Property Extraction:**
+- Reads `territory.layout.translateOffset` and converts to parameter format
+- Reads `territory.layout.pixelClipExtent` (4-element array) and converts to parameter format
+- Layout properties stored in parameter store for unified parameter management
+- Enables slider controls and interactive editing (dragging, corner editing) to work from preset values
 
 **Priority Logic:**
 - If preset provides `baseScale` and `scaleMultiplier`, extracts both for proper composite projection initialization

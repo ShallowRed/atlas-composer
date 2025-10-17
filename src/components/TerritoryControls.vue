@@ -231,20 +231,6 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
             group-name="territory-accordion"
             :checked="projectionMode === 'uniform' && index === 0"
           >
-            <!-- Projection Selector (always shown in individual mode) -->
-            <div
-              v-if="projectionMode === 'individual'"
-              class="mb-4"
-            >
-              <ProjectionDropdown
-                :model-value="territoryProjections[territory.code] || selectedProjection"
-                :label="t('projection.cartographic')"
-                :projection-groups="projectionGroups"
-                :recommendations="projectionRecommendations"
-                @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
-              />
-            </div>
-
             <!-- Territory Parameter Controls (shown in composite-custom mode) -->
             <div
               v-if="isCompositeCustomMode"

@@ -304,7 +304,6 @@ onMounted(() => {
 })
 
 const {
-  mainlandCode,
   projectionRecommendations,
   projectionGroups,
   territoryProjections,
@@ -327,11 +326,12 @@ const {
 
     <div class="mb-4">
       <ProjectionDropdown
-        :model-value="territoryProjections[mainlandCode] || selectedProjection"
+        :model-value="territoryProjections[territoryCode] || selectedProjection"
         :label="t('projection.cartographic')"
         :projection-groups="projectionGroups"
-        :recommendations="projectionRecommendations"
-        @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
+        :projection-recommendations="projectionRecommendations"
+        size="md"
+        @update:model-value="(value: string) => setTerritoryProjection(territoryCode, value)"
       />
     </div>
 
