@@ -3,14 +3,13 @@
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",
-    "exportDate": "2025-10-16T16:00:00.000Z",
-    "createdWith": "d3-composite-projections alignment",
-    "notes": "Configured to match geoConicConformalFrance from d3-composite-projections package"
+    "exportDate": "2025-10-17T21:04:33.403Z",
+    "createdWith": "Atlas composer v1.0"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
   "canvasDimensions": {
-    "width": 960,
+    "width": 750,
     "height": 500
   },
   "territories": [
@@ -31,13 +30,20 @@
             0,
             60
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1,
+          "projectionId": "conic-conformal"
         }
       },
       "layout": {
         "translateOffset": [
-          0,
+          100,
           0
+        ],
+        "pixelClipExtent": [
+          -301,
+          -245.16,
+          260.99,
+          324
         ]
       },
       "bounds": [
@@ -47,7 +53,7 @@
         ],
         [
           10,
-          51.5
+          51
         ]
       ]
     },
@@ -63,13 +69,24 @@
             -61.46,
             16.14
           ],
-          "scaleMultiplier": 1
+          "parallels": [
+            12,
+            60
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
         }
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -38
+          -295,
+          -65
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
         ]
       },
       "bounds": [
@@ -95,13 +112,20 @@
             -61.03,
             14.67
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
         }
       },
       "layout": {
         "translateOffset": [
-          -324,
-          35
+          -215,
+          -65
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
         ]
       },
       "bounds": [
@@ -117,7 +141,7 @@
     },
     {
       "code": "FR-GF",
-      "name": "French Guiana",
+      "name": "Guyane",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -127,29 +151,36 @@
             -53.2,
             3.9
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
         }
       },
       "layout": {
         "translateOffset": [
-          -324,
-          155
+          -255,
+          70
+        ],
+        "pixelClipExtent": [
+          -80,
+          -95,
+          80,
+          90
         ]
       },
       "bounds": [
         [
-          -54.5,
-          1.48
+          -54.6,
+          2.1
         ],
         [
-          -50.9,
-          6.29
+          -51.6,
+          5.8
         ]
       ]
     },
     {
       "code": "FR-RE",
-      "name": "Réunion",
+      "name": "La Réunion",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -159,13 +190,20 @@
             55.52,
             -21.13
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
         }
       },
       "layout": {
         "translateOffset": [
-          313,
-          -96
+          -295,
+          -145
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
         ]
       },
       "bounds": [
@@ -191,13 +229,20 @@
             45.16,
             -12.8
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
         }
       },
       "layout": {
         "translateOffset": [
-          316,
-          -173
+          -215,
+          -145
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
         ]
       },
       "bounds": [
@@ -210,55 +255,234 @@
           -12.64
         ]
       ]
-    }
-  ],
-  "atlasMetadata": {
-    "compositeProjections": [
-      "conic-conformal-france"
-    ],
-    "projectionPreferences": {
-      "recommended": [
-        "conic-conformal",
-        "albers",
-        "conic-equal-area"
-      ],
-      "default": {
-        "mainland": "conic-conformal",
-        "overseas": "mercator"
+    },
+    {
+      "code": "FR-BL",
+      "name": "Saint-Barthélemy",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -62.85,
+            17.92
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
       },
-      "prohibited": [
-        "gnomonic",
-        "orthographic",
-        "conic-conformal-portugal",
-        "conic-conformal-europe"
+      "layout": {
+        "translateOffset": [
+          -324,
+          -119
+        ],
+        "pixelClipExtent": [
+          -54,
+          -27,
+          55,
+          27
+        ]
+      },
+      "bounds": [
+        [
+          -62.95,
+          17.85
+        ],
+        [
+          -62.75,
+          17.95
+        ]
       ]
     },
-    "projectionParameters": {
-      "center": {
-        "longitude": 2.5,
-        "latitude": 46.5
+    {
+      "code": "FR-MF",
+      "name": "Saint-Martin",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
       },
-      "rotate": {
-        "mainland": [
-          -2,
-          0
+      "layout": {
+        "translateOffset": [
+          -324,
+          -119
         ],
-        "azimuthal": [
-          -2,
-          -46.5
-        ]
+        "pixelClipExtent": null
       },
-      "parallels": {
-        "conic": [
-          44,
-          49
+      "bounds": [
+        [
+          -63.15,
+          18.04
+        ],
+        [
+          -63,
+          18.13
         ]
-      }
+      ]
     },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": false,
-      "showMapLimits": false
+    {
+      "code": "FR-PM",
+      "name": "Saint-Pierre-et-Miquelon",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          -324,
+          -176
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          -56.42,
+          46.75
+        ],
+        [
+          -56.13,
+          47.15
+        ]
+      ]
+    },
+    {
+      "code": "FR-WF",
+      "name": "Wallis-et-Futuna",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          313,
+          59
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          -178.2,
+          -14.4
+        ],
+        [
+          -176.1,
+          -13.2
+        ]
+      ]
+    },
+    {
+      "code": "FR-PF",
+      "name": "Polynésie française",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          311,
+          203
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          -154,
+          -28
+        ],
+        [
+          -134,
+          -7
+        ]
+      ]
+    },
+    {
+      "code": "FR-PF-2",
+      "name": "Polynésie française (îles éloignées)",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          297,
+          122
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          -154,
+          -28
+        ],
+        [
+          -134,
+          -7
+        ]
+      ]
+    },
+    {
+      "code": "FR-NC",
+      "name": "Nouvelle-Calédonie",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          313,
+          -13
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          163,
+          -22.7
+        ],
+        [
+          168,
+          -19.5
+        ]
+      ]
+    },
+    {
+      "code": "FR-TF",
+      "name": "Terres australes et antarctiques françaises",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {}
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          250
+        ],
+        "pixelClipExtent": null
+      },
+      "bounds": [
+        [
+          39,
+          -50
+        ],
+        [
+          77,
+          -37
+        ]
+      ]
     }
-  }
+  ]
 }
