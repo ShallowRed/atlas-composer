@@ -1,4 +1,4 @@
-# Service Layer Architecture
+clipExtent# Service Layer Architecture
 
 ## Overview
 The service layer contains business logic extracted from Vue components and Pinia stores.
@@ -159,7 +159,6 @@ Handles territory-specific clipExtent for precise content clipping.
 
 **Constructor**:
 - Accepts optional `ProjectionParameterProvider` for dependency injection
-- Accepts optional `ClipExtentProvider` for dynamic clipExtent from territory store
 - Accepts optional `referenceScale` parameter from preset configuration
 - Accepts optional `canvasDimensions` parameter from preset configuration
 - Enables dynamic parameter updates from parameter store without direct coupling
@@ -176,11 +175,11 @@ Handles territory-specific clipExtent for precise content clipping.
 - `exportConfig()` - Export configuration as JSON
 
 **ClipExtent Support**:
-- Applies clipExtent from provider or fallback to config clipExtent during build()
-- Calculates clipExtent as territory-centered bounding box using normalized coordinates
-- Uses d3-composite-projections approach: treats clipExtent as box dimensions centered on territory position
-- Adds epsilon padding for precise clipping boundaries
-- Composition borders follow clipExtent regions instead of geographic bounds when clipExtent is available
+- Reads pixelClipExtent parameter from parameter store for each territory
+- Supports pixel-based clipping coordinates in [x1, y1, x2, y2] format relative to territory position
+- Automatically detects legacy normalized coordinates vs new pixel coordinates
+- Applies clipExtent during build() with epsilon padding for precise clipping boundaries
+- Composition borders follow clipExtent regions instead of geographic bounds when pixelClipExtent is available
 
 **Dynamic Scale Updates**:
 The `updateReferenceScale()` method recalculates scales for all sub-projections without rebuilding:
@@ -195,6 +194,7 @@ The `updateReferenceScale()` method recalculates scales for all sub-projections 
 - `getParametersForTerritory()` - Merges config parameters with dynamic parameters from provider
 - Uses nullish coalescing (`??`) to properly handle arrays and zero values
 - Dynamic parameters take precedence over static config values
+- Includes pixelClipExtent parameter from parameter store for territory-specific clipping
 - `updateTerritoryParameters()` applies all supported parameters including scale, which integrates with territory scale multipliers
 
 **Scale Parameter Handling**:
@@ -208,24 +208,6 @@ Sub-projections have translate() applied during build(), so projected coordinate
 
 **Invert Method**:
 Uses pure D3 projection.invert() approach without manual coordinate adjustments. Each sub-projection's invert method handles the translate() transformation internally, ensuring accurate coordinate conversion for territory boundary detection.
-
-### TerritoryStoreClipExtentProvider
-ClipExtent provider implementation that integrates territory store with CompositeProjection.
-Instance-based service providing dynamic clipExtent values for territories.
-
-**Purpose**:
-- Implements ClipExtentProvider interface for dependency injection
-- Bridges territory store clipExtent data with CompositeProjection service
-- Enables dynamic clipExtent updates from territory configuration
-
-**Core Methods**:
-- `getClipExtent(territoryCode)` - Retrieve clipExtent for specific territory from store
-- Returns normalized ClipExtent format `{x1, y1, x2, y2}` or null if not configured
-
-**Integration**:
-- Used by CompositeProjection constructor for clipExtent dependency injection
-- Allows CompositeProjection to access territory store clipExtent without direct coupling
-- Supports runtime clipExtent updates through territory store changes
 
 ## Parameter Management Services (src/services/parameters/)
 

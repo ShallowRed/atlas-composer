@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { ClipExtent, CompositeProjectionConfig, TerritoryConfig } from '@/types'
+import type { CompositeProjectionConfig, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import {
   geoAzimuthalEqualArea,
@@ -20,14 +20,6 @@ import { projectionRegistry } from '@/core/projections/registry'
 export interface ProjectionParameterProvider {
   getEffectiveParameters: (territoryCode: string) => ProjectionParameters
   getExportableParameters: (territoryCode: string) => ProjectionParameters
-}
-
-/**
- * ClipExtent provider interface for dependency injection
- * Allows CompositeProjection to get clipExtent from territory store
- */
-export interface ClipExtentProvider {
-  getClipExtent: (territoryCode: string) => ClipExtent | null
 }
 
 /**
@@ -56,14 +48,12 @@ export class CompositeProjection {
   private compositeProjection: GeoProjection | null = null
   private config: CompositeProjectionConfig
   private parameterProvider?: ProjectionParameterProvider
-  private clipExtentProvider?: ClipExtentProvider
   private referenceScale?: number
   private canvasDimensions?: { width: number, height: number }
 
-  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number, canvasDimensions?: { width: number, height: number }, clipExtentProvider?: ClipExtentProvider) {
+  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number, canvasDimensions?: { width: number, height: number }) {
     this.config = config
     this.parameterProvider = parameterProvider
-    this.clipExtentProvider = clipExtentProvider
     this.referenceScale = referenceScale
     this.canvasDimensions = canvasDimensions
     // Note: canvasDimensions stored for future use and architectural consistency
@@ -91,6 +81,7 @@ export class CompositeProjection {
         precision: dynamicParams.precision, // configParams doesn't have precision
         baseScale: dynamicParams.baseScale, // For backward compatibility only - not used
         scaleMultiplier: dynamicParams.scaleMultiplier ?? 1.0, // The only scale value we actually use
+        pixelClipExtent: dynamicParams.pixelClipExtent, // Territory-specific clip extent
       }
     }
     // Fallback to config params - convert TerritoryConfig to ProjectionParameters
@@ -170,6 +161,13 @@ export class CompositeProjection {
 
     mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
+    // Get pixelClipExtent from parameter store
+    let clipExtent: [[number, number], [number, number]] | null = null
+    const pixelClipExtent = mainlandParams.pixelClipExtent
+    if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
+      clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
+    }
+
     this.addSubProjection({
       territoryCode: mainland.code,
       territoryName: mainland.name,
@@ -178,9 +176,7 @@ export class CompositeProjection {
       baseScale: mainlandBaseScale,
       scaleMultiplier: mainlandScaleMultiplier,
       baseTranslate: [0, 0],
-      clipExtent: mainland.clipExtent
-        ? [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
-        : null,
+      clipExtent,
       translateOffset: mainland.offset,
       bounds: mainland.bounds,
     })
@@ -223,17 +219,11 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
-      // Get clipExtent from provider first, then fallback to config
+      // Get pixelClipExtent from parameter store
       let clipExtent: [[number, number], [number, number]] | null = null
-      if (this.clipExtentProvider) {
-        const providedClipExtent = this.clipExtentProvider.getClipExtent(territory.code)
-        if (providedClipExtent) {
-          clipExtent = [[providedClipExtent.x1, providedClipExtent.y1], [providedClipExtent.x2, providedClipExtent.y2]]
-        }
-      }
-      // Fallback to config clipExtent if no provider or provider returns null
-      if (!clipExtent && territory.clipExtent) {
-        clipExtent = [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]
+      const pixelClipExtent = territoryParams.pixelClipExtent
+      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
+        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
       }
 
       this.addSubProjection({
@@ -298,17 +288,11 @@ export class CompositeProjection {
 
       mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
-      // Get clipExtent from provider first, then fallback to config
+      // Get pixelClipExtent from parameter store
       let clipExtent: [[number, number], [number, number]] | null = null
-      if (this.clipExtentProvider) {
-        const providedClipExtent = this.clipExtentProvider.getClipExtent(mainland.code)
-        if (providedClipExtent) {
-          clipExtent = [[providedClipExtent.x1, providedClipExtent.y1], [providedClipExtent.x2, providedClipExtent.y2]]
-        }
-      }
-      // Fallback to config clipExtent if no provider or provider returns null
-      if (!clipExtent && mainland.clipExtent) {
-        clipExtent = [[mainland.clipExtent.x1, mainland.clipExtent.y1], [mainland.clipExtent.x2, mainland.clipExtent.y2]]
+      const pixelClipExtent = mainlandParams.pixelClipExtent
+      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
+        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
       }
 
       this.addSubProjection({
@@ -363,17 +347,11 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
-      // Get clipExtent from provider first, then fallback to config
+      // Get pixelClipExtent from parameter store
       let clipExtent: [[number, number], [number, number]] | null = null
-      if (this.clipExtentProvider) {
-        const providedClipExtent = this.clipExtentProvider.getClipExtent(territory.code)
-        if (providedClipExtent) {
-          clipExtent = [[providedClipExtent.x1, providedClipExtent.y1], [providedClipExtent.x2, providedClipExtent.y2]]
-        }
-      }
-      // Fallback to config clipExtent if no provider or provider returns null
-      if (!clipExtent && territory.clipExtent) {
-        clipExtent = [[territory.clipExtent.x1, territory.clipExtent.y1], [territory.clipExtent.x2, territory.clipExtent.y2]]
+      const pixelClipExtent = territoryParams.pixelClipExtent
+      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
+        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
       }
 
       this.addSubProjection({

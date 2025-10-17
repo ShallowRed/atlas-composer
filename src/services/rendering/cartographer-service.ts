@@ -1,4 +1,4 @@
-import type { ClipExtentProvider, ProjectionParameterProvider } from '@/services/projection/composite-projection'
+import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import * as Plot from '@observablehq/plot'
@@ -61,7 +61,6 @@ export class Cartographer {
     parameterProvider?: ProjectionParameterProvider,
     referenceScale?: number,
     canvasDimensions?: { width: number, height: number },
-    clipExtentProvider?: ClipExtentProvider,
   ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
@@ -78,7 +77,7 @@ export class Cartographer {
 
     // Only create CompositeProjection if config is provided
     if (compositeConfig) {
-      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale, canvasDimensions, clipExtentProvider)
+      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale, canvasDimensions)
     }
   }
 

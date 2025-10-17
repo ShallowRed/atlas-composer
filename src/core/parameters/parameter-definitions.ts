@@ -375,7 +375,54 @@ export function registerAllParameters(): void {
     },
   })
 
-  // NOTE: clipExtent is a special case - nested array structure
+  // Pixel-based clip extent parameter
+  parameterRegistry.register({
+    key: 'pixelClipExtent',
+    displayName: 'Pixel Clip Extent',
+    description: 'Pixel-based clipping rectangle relative to territory center [x1, y1, x2, y2]',
+    type: 'custom',
+    unit: 'pixels',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: false,
+    familyConstraints: {
+      CYLINDRICAL: {
+        relevant: true,
+        required: false,
+        min: [-500, -500, -500, -500],
+        max: [500, 500, 500, 500],
+        step: 1,
+        defaultValue: [-100, -100, 100, 100],
+      },
+      PSEUDOCYLINDRICAL: {
+        relevant: true,
+        required: false,
+        min: [-500, -500, -500, -500],
+        max: [500, 500, 500, 500],
+        step: 1,
+        defaultValue: [-100, -100, 100, 100],
+      },
+      CONIC: {
+        relevant: true,
+        required: false,
+        min: [-500, -500, -500, -500],
+        max: [500, 500, 500, 500],
+        step: 1,
+        defaultValue: [-100, -100, 100, 100],
+      },
+      AZIMUTHAL: {
+        relevant: true,
+        required: false,
+        min: [-500, -500, -500, -500],
+        max: [500, 500, 500, 500],
+        step: 1,
+        defaultValue: [-100, -100, 100, 100],
+      },
+    },
+  })
+
+  // NOTE: legacy clipExtent is a special case - nested array structure
   // It's handled separately in the composite projection system
-  // and not included in the standard parameter registry for now
+  // pixelClipExtent replaces it with a simpler interface
 }

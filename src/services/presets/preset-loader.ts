@@ -281,6 +281,15 @@ export class PresetLoader {
         }
       }
 
+      // Convert legacy clipExtent from layout to pixelClipExtent parameter
+      if (territory.layout?.clipExtent && Array.isArray(territory.layout.clipExtent) && territory.layout.clipExtent.length === 2) {
+        const [[x1, y1], [x2, y2]] = territory.layout.clipExtent
+        // Validate that all clipExtent values are numbers (not null)
+        if (typeof x1 === 'number' && typeof y1 === 'number' && typeof x2 === 'number' && typeof y2 === 'number') {
+          territoryParams.pixelClipExtent = [x1, y1, x2, y2]
+        }
+      }
+
       result[territory.code] = territoryParams as ProjectionParameters
     }
 

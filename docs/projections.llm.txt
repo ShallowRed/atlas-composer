@@ -97,21 +97,23 @@ src/core/projections/
 Composite projections support territory-specific clipExtent for precise content clipping.
 
 **ClipExtent Format**:
-- Normalized coordinates: `[[x1, y1], [x2, y2]]` relative to territory position
+- Pixel coordinates: `[x1, y1, x2, y2]` relative to territory position
+- Managed through pixelClipExtent parameter in parameter registry
 - Applied as territory-centered bounding box during CompositeProjection.build()
-- Uses d3-composite-projections approach with epsilon padding for precise boundaries
+- Includes epsilon padding for precise clipping boundaries
 
 **Implementation**:
-- Territory store provides clipExtent values via ClipExtentProvider pattern
-- CompositeProjection applies clipExtent as bounding box centered on territory position
+- Parameter store provides pixelClipExtent values for each territory
+- CompositeProjection reads pixelClipExtent from getParametersForTerritory method
+- Automatically detects legacy normalized coordinates vs new pixel coordinates
 - Composition borders automatically follow clipExtent regions when available
-- Supports both preset configuration and runtime updates through territory store
+- Supports runtime updates through parameter store changes
 
-**Coordinate Calculation**:
-- Box width/height calculated from normalized coordinate differences
-- Final clipExtent centered around territory translate position
-- Includes epsilon padding for precise clipping boundaries
-- Compatible with d3-composite-projections coefficient format
+**Coordinate System**:
+- Pixel-based coordinates relative to territory translate position
+- Converted to D3 clipExtent format `[[x1, y1], [x2, y2]]` internally
+- Legacy normalized coordinate support maintained for backward compatibility
+- Final clipExtent applied with epsilon padding for precise boundaries
 
 ## Recommendation System
 

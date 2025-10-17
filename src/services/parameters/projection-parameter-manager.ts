@@ -285,6 +285,15 @@ export class ProjectionParameterManager {
           }
         }
         break
+
+      case 'pixelClipExtent':
+        if (!Array.isArray(value) || value.length !== 4 || !value.every(v => typeof v === 'number')) {
+          return {
+            isValid: false,
+            error: 'pixelClipExtent must be an array of four numbers [x1, y1, x2, y2]',
+          }
+        }
+        break
     }
 
     return { isValid: true }
@@ -306,6 +315,7 @@ export class ProjectionParameterManager {
       'translate',
       'clipAngle',
       'precision',
+      'pixelClipExtent',
     ]
 
     parameterKeys.forEach((key) => {
@@ -344,6 +354,15 @@ export class ProjectionParameterManager {
             min: 0.001,
             max: 10,
             step: 0.001,
+          }
+          break
+
+        case 'pixelClipExtent':
+          constraints[key] = {
+            ...constraints[key]!,
+            min: -500,
+            max: 500,
+            step: 1,
           }
           break
       }
@@ -432,6 +451,8 @@ export class ProjectionParameterManager {
         return 90
       case 'precision':
         return 0.1
+      case 'pixelClipExtent':
+        return [-100, -100, 100, 100]
       default:
         return undefined
     }

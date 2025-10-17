@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
-import { TerritoryStoreClipExtentProvider } from '@/services/projection/territory-store-clip-extent-provider'
+
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
@@ -84,9 +84,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
         },
       }
 
-      // Create clipExtent provider to connect territory store to rendering
-      const clipExtentProvider = new TerritoryStoreClipExtentProvider()
-
       cartographer.value = new Cartographer(
         geoDataConfig,
         compositeConfig,
@@ -94,7 +91,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
         parameterProvider,
         configStore.referenceScale,
         configStore.canvasDimensions,
-        clipExtentProvider,
       )
       await cartographer.value.init()
 

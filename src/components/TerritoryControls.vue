@@ -2,7 +2,6 @@
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ImportControls from '@/components/ui/import/ImportControls.vue'
 import GlobalProjectionControls from '@/components/ui/parameters/GlobalProjectionControls.vue'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
@@ -19,15 +18,8 @@ import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 
-const props = withDefaults(defineProps<Props>(), {
-  showTransformControls: true,
-})
-
 const { t } = useI18n()
 
-interface Props {
-  showTransformControls?: boolean // Show translation/scale controls (false for split mode)
-}
 // Use composable for all territory transform logic
 const {
   territories,
@@ -36,8 +28,6 @@ const {
   isMainlandInTerritories,
   translations,
   scales,
-  translationRanges: TRANSLATION_RANGES,
-  scaleRange: SCALE_RANGE,
   projectionRecommendations,
   projectionGroups,
   currentAtlasConfig,
@@ -45,8 +35,6 @@ const {
   selectedProjection,
   projectionMode,
   shouldShowEmptyState,
-  setTerritoryTranslation,
-  setTerritoryScale,
   setTerritoryProjection,
   resetTransforms,
 } = useTerritoryTransforms()
@@ -106,24 +94,6 @@ const hasDivergingFromPreset = computed(() => {
 // const shouldShowDragInfo = computed(() => {
 //   return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
 // })
-
-// Event handlers that call composable functions directly
-function updateTranslationX(territoryCode: string, value: number) {
-  setTerritoryTranslation(territoryCode, 'x', value)
-}
-
-function updateTranslationY(territoryCode: string, value: number) {
-  setTerritoryTranslation(territoryCode, 'y', value)
-}
-
-function updateScale(territoryCode: string, value: number) {
-  setTerritoryScale(territoryCode, value)
-
-  // Notify cartographer to update projection parameters for this territory
-  if (geoDataStore.cartographer) {
-    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
-  }
-}
 
 // Alias for better naming in template
 const resetToDefaults = resetTransforms
