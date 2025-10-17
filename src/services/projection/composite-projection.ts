@@ -788,7 +788,7 @@ export class CompositeProjection {
 
         // STEP 1: Apply clipExtent scaling to preset bounds first
         const [[presetX1, presetY1], [presetX2, presetY2]] = subProj.clipExtent!
-        
+
         // Calculate preset bounds in screen coordinates
         const basePresetX1 = centerX + presetX1 * referenceScale
         const basePresetY1 = centerY + presetY1 * referenceScale
@@ -806,37 +806,41 @@ export class CompositeProjection {
 
         // STEP 2: Apply direct bounds overrides on top of scaled preset bounds
         const tolerance = 0.001 // Tolerance for floating point comparison
-        
+
         const hasSignificantX1Override = clipExtentX1 !== undefined && Math.abs(clipExtentX1) > tolerance
         const hasSignificantY1Override = clipExtentY1 !== undefined && Math.abs(clipExtentY1) > tolerance
         const hasSignificantX2Override = clipExtentX2 !== undefined && Math.abs(clipExtentX2) > tolerance
         const hasSignificantY2Override = clipExtentY2 !== undefined && Math.abs(clipExtentY2) > tolerance
-        
+
         // Calculate final screen coordinates
         // Use override bounds (converted to screen coordinates) where available, otherwise use scaled preset bounds
         let scaledClipX1, scaledClipY1, scaledClipX2, scaledClipY2
-        
+
         if (hasSignificantX1Override) {
           scaledClipX1 = centerX + clipExtentX1! * referenceScale
-        } else {
+        }
+        else {
           scaledClipX1 = scaledPresetX1
         }
-        
+
         if (hasSignificantY1Override) {
           scaledClipY1 = centerY + clipExtentY1! * referenceScale
-        } else {
+        }
+        else {
           scaledClipY1 = scaledPresetY1
         }
-        
+
         if (hasSignificantX2Override) {
           scaledClipX2 = centerX + clipExtentX2! * referenceScale
-        } else {
+        }
+        else {
           scaledClipX2 = scaledPresetX2
         }
-        
+
         if (hasSignificantY2Override) {
           scaledClipY2 = centerY + clipExtentY2! * referenceScale
-        } else {
+        }
+        else {
           scaledClipY2 = scaledPresetY2
         }
 
