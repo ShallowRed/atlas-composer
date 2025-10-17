@@ -1,0 +1,97 @@
+# ClipExtent User Controls - Implementation Plan
+
+## Objective
+Add user controls for clipExtent in custom composite projections to fix drag behavior issues, make clipExtent scale-reactive, and provide UI controls for precise territory clipping adjustments.
+
+## Affected Domains
+- [ ] Vue Architecture (docs/vue-architecture.llm.txt) - New UI controls in TerritoryParameterControls
+- [ ] Services (docs/services.llm.txt) - CompositeProjection clipExtent calculation fixes
+- [ ] Projections (docs/projections.llm.txt) - Enhanced clipExtent behavior documentation
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Domain docs: docs/vue-architecture.llm.txt, docs/services.llm.txt, docs/projections.llm.txt
+- Current issue: Drag moves translateOffset but clipExtent stays relative to map center, causing clipping when territories are moved
+- Scale issue: ClipExtent doesn't scale with territory scale multiplier
+- Missing UI: No user controls for adjusting clipExtent values
+
+## Changes
+
+### Phase 1: Fix Core ClipExtent Issues
+- [ ] File: src/services/projection/composite-projection.ts
+  - Action: Fix clipExtent calculation to be relative to territory position (center + translateOffset) instead of map center
+  - Why: Current drag behavior causes unexpected clipping when territories are moved
+  - Lines affected: ~440-460 in build() method
+
+- [ ] File: src/services/projection/composite-projection.ts
+  - Action: Make clipExtent scale-reactive by multiplying coordinates by territory scale multiplier
+  - Why: When territories are scaled up, clipExtent should scale proportionally to avoid clipping newly visible areas
+  - Lines affected: ~440-460 in build() method
+
+### Phase 2: Add Reset Support for ClipExtent
+- [ ] File: src/composables/useTerritoryTransforms.ts
+  - Action: Add clipExtent reset support in resetTerritoryToDefaults() and resetAllToDefaults()
+  - Why: ClipExtent is currently missing from preset reset functionality
+  - Lines affected: ~180-250 in both reset functions
+
+### Phase 3: Add UI Controls
+- [ ] File: src/components/ui/parameters/TerritoryParameterControls.vue
+  - Action: Add 4 clipExtent sliders (x1, y1, x2, y2) in Advanced section
+  - Why: Provide user interface for precise clipExtent adjustments
+  - Range: -1.0 to 1.0 (normalized coordinates)
+
+- [ ] File: src/components/ui/parameters/TerritoryParameterControls.vue
+  - Action: Add computed properties for clipExtent parameter detection and handling
+  - Why: Integrate clipExtent controls with existing parameter system
+  - Template sections: hasClipExtentParameter, clipExtent template block
+
+### Phase 4: Integrate with Parameter System
+- [ ] File: src/stores/territory.ts
+  - Action: Ensure setTerritoryClipExtent properly triggers reactivity for parameter controls
+  - Why: UI controls need to update when clipExtent values change
+  - Method: Verify existing setTerritoryClipExtent implementation
+
+- [ ] File: src/services/projection/territory-store-clip-extent-provider.ts
+  - Action: Verify provider properly handles dynamic clipExtent updates from UI
+  - Why: Ensure provider correctly reflects user changes to territory store
+  - Method: Review getClipExtent implementation
+
+## Documentation Updates
+- [ ] docs/services.llm.txt - Update CompositeProjection clipExtent behavior description
+- [ ] docs/vue-architecture.llm.txt - Add TerritoryParameterControls clipExtent controls documentation
+- [ ] docs/projections.llm.txt - Update composite projection clipExtent capabilities
+
+## Verification
+- [ ] Code compiles without errors
+- [ ] Drag behavior: Territory moves and clipExtent follows correctly
+- [ ] Scale behavior: ClipExtent scales proportionally with territory scale
+- [ ] UI controls: Sliders update clipExtent values in real-time
+- [ ] Reset functionality: ClipExtent resets to preset values
+- [ ] All .llm.txt documentation updated
+- [ ] No temporal language in .llm.txt files
+
+## Technical Details
+
+### ClipExtent Coordinate System
+- Current: Relative to map center `[centerX + x1 * k, centerY + y1 * k]`
+- Fixed: Relative to territory position `[territoryX + x1 * k, territoryY + y1 * k]`
+- Scale-reactive: `[territoryX + x1 * k * scaleMultiplier, territoryY + y1 * k * scaleMultiplier]`
+
+### UI Control Specifications
+- Component: TerritoryParameterControls.vue
+- Section: Advanced (collapsible)
+- Controls: 4 RangeSlider components
+- Range: -1.0 to 1.0 (step 0.01)
+- Labels: "Clip Left", "Clip Top", "Clip Right", "Clip Bottom"
+- Icons: ri-crop-line
+- Update method: setTerritoryClipExtent
+
+### Reset Integration
+- Function: resetTerritoryToDefaults()
+- Add: `territoryStore.setTerritoryClipExtent(territoryCode, originalDefaults.clipExtents?.[territoryCode] || null)`
+- Function: resetAllToDefaults()
+- Add: clipExtent reset loop for all territories
+
+## Status
+Status: PLANNED
+Last Updated: 2025-10-17
