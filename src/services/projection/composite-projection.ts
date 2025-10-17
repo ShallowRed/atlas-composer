@@ -728,7 +728,6 @@ export class CompositeProjection {
       let clipExtentScale = 1.0
       let clipExtentOffsetX = 0.0
       let clipExtentOffsetY = 0.0
-      let scaleMultiplier = 20
       let clipExtentX1: number | undefined
       let clipExtentY1: number | undefined
       let clipExtentX2: number | undefined
@@ -746,9 +745,6 @@ export class CompositeProjection {
         }
         if (params.clipExtentOffsetY) {
           clipExtentOffsetY = params.clipExtentOffsetY
-        }
-        if (params.scaleMultiplier) {
-          scaleMultiplier = params.scaleMultiplier
         }
         // ClipExtent bounds overrides
         if (params.clipExtentX1 !== undefined) {
@@ -830,15 +826,13 @@ export class CompositeProjection {
         const baseClipY2 = centerY + y2 * referenceScale
 
         // Apply center-relative scaling from clipExtent center
-        // Combine the dedicated clipExtent scale with the layout scale multiplier
-        const combinedScale = clipExtentScale * scaleMultiplier
         const clipCenterX = (baseClipX1 + baseClipX2) / 2
         const clipCenterY = (baseClipY1 + baseClipY2) / 2
 
-        const scaledClipX1 = clipCenterX + (baseClipX1 - clipCenterX) * combinedScale
-        const scaledClipY1 = clipCenterY + (baseClipY1 - clipCenterY) * combinedScale
-        const scaledClipX2 = clipCenterX + (baseClipX2 - clipCenterX) * combinedScale
-        const scaledClipY2 = clipCenterY + (baseClipY2 - clipCenterY) * combinedScale
+        const scaledClipX1 = clipCenterX + (baseClipX1 - clipCenterX) * clipExtentScale
+        const scaledClipY1 = clipCenterY + (baseClipY1 - clipCenterY) * clipExtentScale
+        const scaledClipX2 = clipCenterX + (baseClipX2 - clipCenterX) * clipExtentScale
+        const scaledClipY2 = clipCenterY + (baseClipY2 - clipCenterY) * clipExtentScale
 
         // Add parameter-based translate and clipExtent offset for fine positioning control
         const clipExtentOffsetPixelX = clipExtentOffsetX * referenceScale
