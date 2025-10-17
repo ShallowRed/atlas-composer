@@ -759,11 +759,21 @@ export class CompositeProjection {
         const referenceScale = this.referenceScale || 2700
         const epsilon = 1e-6 // Small value for padding, matching d3-composite-projections
 
-        // Calculate clipExtent in screen coordinates using reference scale and map center
+        // Calculate clipExtent in screen coordinates using reference scale and territory position
+        // Use territory position (newTranslate) instead of map center for drag-aware clipExtent
+        // But compensate for the fact that original clipExtent values were designed relative to map center
         // This matches how d3-composite-projections calculates: [x + offset * k, y + offset * k]
+        const territoryX = newTranslate[0]
+        const territoryY = newTranslate[1]
+
+        // Compensate for the double-offset: subtract the territory's original translateOffset
+        // since the clipExtent values were designed assuming they'd be added to map center
+        const offsetCompensationX = subProj.translateOffset[0]
+        const offsetCompensationY = subProj.translateOffset[1]
+
         const clipExtentScreen: [[number, number], [number, number]] = [
-          [centerX + x1 * referenceScale + epsilon, centerY + y1 * referenceScale + epsilon],
-          [centerX + x2 * referenceScale - epsilon, centerY + y2 * referenceScale - epsilon],
+          [territoryX + x1 * referenceScale + epsilon - offsetCompensationX, territoryY + y1 * referenceScale + epsilon - offsetCompensationY],
+          [territoryX + x2 * referenceScale - epsilon - offsetCompensationX, territoryY + y2 * referenceScale - epsilon - offsetCompensationY],
         ]
 
         // Apply the clipExtent relative to the main projection coordinate system

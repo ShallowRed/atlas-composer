@@ -20,7 +20,12 @@ applyTo: "**"
 
 ## After Code Changes (CRITICAL - Most Often Forgotten)
 1. **WAIT FOR USER VALIDATION** - When investigating a bug or issue, do NOT update documentation until user confirms fix works
-2. Update affected `.llm.txt` documentation files ONLY after user validates in case of bug fixes
+2. **NEVER ASSUME RENDERING FIXES WORK FROM COMPILATION ALONE** - TypeScript compilation and builds DO NOT validate visual/rendering behavior. Always require user visual confirmation for any changes affecting:
+  - Map rendering, territory visibility, projection behavior
+  - UI component appearance, layout, interactions
+  - Data visualization, chart rendering, graphics
+  - Any visual or interactive functionality
+3. Update affected `.llm.txt` documentation files ONLY after user validates in case of bug fixes
 3. Use STATIC REFERENCE style in `.llm.txt` files:
 - Present tense only ("handles", "provides", "uses")
 - NO temporal language: "before/after", "completed", "resolved", "Phase X"
@@ -59,12 +64,13 @@ Ask yourself after completing work:
 
 ## Common Violations to Avoid
 1. **UPDATING DOCS BEFORE USER VALIDATES FIX** - NEVER document until user confirms it works
-2. Implementing feature but not updating `.llm.txt` docs (after validation)
-3. Adding "completed" or "Phase X" markers to `.llm.txt` files
-4. Leaving future enhancements in docs when feature is implemented
-5. Using "we added" or "this was changed" in reference docs
-6. Forgetting to mark plan file tasks as complete
-7. Making edits in Plan chatmode (read-only!)
+2. **ASSUMING RENDERING FIXES WORK FROM COMPILATION** - TypeScript/build success does NOT mean visual functionality works
+3. Implementing feature but not updating `.llm.txt` docs (after validation)
+4. Adding "completed" or "Phase X" markers to `.llm.txt` files
+5. Leaving future enhancements in docs when feature is implemented
+6. Using "we added" or "this was changed" in reference docs
+7. Forgetting to mark plan file tasks as complete
+8. Making edits in Plan chatmode (read-only!)
 
 ## Token Budget Management
 When conversation grows long:
