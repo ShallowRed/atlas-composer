@@ -43,6 +43,9 @@ export interface ProjectionParameters {
   /** User's scale multiplier applied to atlas referenceScale */
   scaleMultiplier?: number
 
+  /** ClipExtent scale multiplier (1.0 = default preset size) */
+  clipExtentScale?: number
+
   // Index signature to allow dynamic property access (for parameter management)
   [key: string]: any
 }

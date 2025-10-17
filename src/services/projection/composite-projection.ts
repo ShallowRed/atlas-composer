@@ -722,17 +722,17 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
-      // Get current translate parameter if set via parameter controls
+      // Get current translate and clipExtent scale parameters
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
-      let parameterScaleMultiplier = 1.0
+      let clipExtentScale = 1.0
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
         if (params.translate) {
           parameterTranslate = params.translate as [number, number]
         }
-        if (params.scaleMultiplier) {
-          parameterScaleMultiplier = params.scaleMultiplier
+        if (params.clipExtentScale) {
+          clipExtentScale = params.clipExtentScale
         }
       }
 
@@ -767,21 +767,36 @@ export class CompositeProjection {
         // Use territory position (newTranslate) instead of map center for drag-aware clipExtent
         // But compensate for the fact that original clipExtent values were designed relative to map center
         // Scale clipExtent relative to territory center, not map center, to match territory scaling behavior
-        // This matches how d3-composite-projections calculates: [x + offset * k, y + offset * k]
-        const territoryX = newTranslate[0]
-        const territoryY = newTranslate[1]
-
-        // Calculate clipExtent using the original logic but make it drag-aware
-        // Use base reference scale only (no scaling) to preserve correct preset positioning
+        // Calculate clipExtent with dedicated clipExtent scaling
+        // Use base reference scale and apply center-relative clipExtent scaling
         const baseClipX1 = centerX + x1 * referenceScale
         const baseClipY1 = centerY + y1 * referenceScale
         const baseClipX2 = centerX + x2 * referenceScale
         const baseClipY2 = centerY + y2 * referenceScale
 
-        // Add only the parameter-based translate offset (Set 2 controls) for drag-aware behavior
+        // Apply center-relative scaling for clipExtent only (scale 1.0 = preset default)
+        let scaledClipX1, scaledClipY1, scaledClipX2, scaledClipY2
+        if (Math.abs(clipExtentScale - 1.0) < 1e-6) {
+          // At 1.0x scale, use coordinates exactly as designed in preset
+          scaledClipX1 = baseClipX1
+          scaledClipY1 = baseClipY1
+          scaledClipX2 = baseClipX2
+          scaledClipY2 = baseClipY2
+        } else {
+          // Apply center-relative scaling from clipExtent center
+          const clipCenterX = (baseClipX1 + baseClipX2) / 2
+          const clipCenterY = (baseClipY1 + baseClipY2) / 2
+          
+          scaledClipX1 = clipCenterX + (baseClipX1 - clipCenterX) * clipExtentScale
+          scaledClipY1 = clipCenterY + (baseClipY1 - clipCenterY) * clipExtentScale
+          scaledClipX2 = clipCenterX + (baseClipX2 - clipCenterX) * clipExtentScale
+          scaledClipY2 = clipCenterY + (baseClipY2 - clipCenterY) * clipExtentScale
+        }
+
+        // Add parameter-based translate offset for drag-aware behavior
         const clipExtentScreen: [[number, number], [number, number]] = [
-          [baseClipX1 + parameterTranslate[0] + epsilon, baseClipY1 + parameterTranslate[1] + epsilon],
-          [baseClipX2 + parameterTranslate[0] - epsilon, baseClipY2 + parameterTranslate[1] - epsilon],
+          [scaledClipX1 + parameterTranslate[0] + epsilon, scaledClipY1 + parameterTranslate[1] + epsilon],
+          [scaledClipX2 + parameterTranslate[0] - epsilon, scaledClipY2 + parameterTranslate[1] - epsilon],
         ] // Apply the clipExtent relative to the main projection coordinate system
         subProj.projection.clipExtent(clipExtentScreen)
       }

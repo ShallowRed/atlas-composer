@@ -492,8 +492,8 @@ onUnmounted(() => {
         </details>
       </template>
 
-      <!-- Secondary Parameters (Clip Angle/Precision) -->
-      <template v-if="hasClipAngleParameter || hasPrecisionParameter">
+      <!-- Secondary Parameters (Clip Angle/Precision/ClipExtent Scale) -->
+      <template v-if="hasClipAngleParameter || hasPrecisionParameter || true">
         <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
             <i class="ri-settings-3-line mr-1" />
@@ -501,6 +501,19 @@ onUnmounted(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
+            <!-- ClipExtent Scale Control (always available) -->
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentScale ?? 1.0"
+              label="ClipExtent Scale"
+              icon="ri-crop-line"
+              size="xs"
+              :min="0.1"
+              :max="3.0"
+              :step="0.1"
+              unit="×"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentScale', value)"
+            />
+
             <!-- Clip Angle (for azimuthal projections) -->
             <template v-if="hasClipAngleParameter">
               <RangeSlider
