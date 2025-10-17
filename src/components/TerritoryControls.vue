@@ -290,54 +290,6 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
                 @override-cleared="handleOverrideCleared"
               />
             </div>
-
-            <!-- Transform Controls (hidden in split mode) -->
-            <template v-if="props.showTransformControls">
-              <!-- X Translation (in pixels relative to mainland center) -->
-              <div class="mb-4">
-                <RangeSlider
-                  :model-value="translations[territory.code]?.x || 0"
-                  :label="t('territory.positionX')"
-                  icon="ri-arrow-left-right-line"
-                  :min="TRANSLATION_RANGES.x.min"
-                  :max="TRANSLATION_RANGES.x.max"
-                  :step="TRANSLATION_RANGES.x.step"
-                  unit="px"
-                  @update:model-value="(value) => updateTranslationX(territory.code, value)"
-                />
-              </div>
-
-              <!-- Y Translation (in pixels relative to mainland center) -->
-              <div class="mb-4">
-                <RangeSlider
-                  :model-value="translations[territory.code]?.y || 0"
-                  :label="t('territory.positionY')"
-                  icon="ri-arrow-up-down-line"
-                  :min="TRANSLATION_RANGES.y.min"
-                  :max="TRANSLATION_RANGES.y.max"
-                  :step="TRANSLATION_RANGES.y.step"
-                  unit="px"
-                  color="secondary"
-                  @update:model-value="(value) => updateTranslationY(territory.code, value)"
-                />
-              </div>
-
-              <!-- Scale -->
-              <div class="mb-2">
-                <RangeSlider
-                  :model-value="scales[territory.code] || SCALE_RANGE.default"
-                  :label="t('territory.scale')"
-                  icon="ri-expand-diagonal-line"
-                  :min="SCALE_RANGE.min"
-                  :max="SCALE_RANGE.max"
-                  :step="SCALE_RANGE.step"
-                  unit="×"
-                  color="accent"
-                  :decimals="2"
-                  @update:model-value="(value) => updateScale(territory.code, value)"
-                />
-              </div>
-            </template>
           </AccordionItem>
         </div>
       </div>
