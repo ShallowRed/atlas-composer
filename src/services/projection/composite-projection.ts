@@ -771,9 +771,7 @@ export class CompositeProjection {
       ]
       subProj.projection.translate(newTranslate)
 
-      // If territory has a predefined clipExtent (from config), use it
-      // This matches d3-composite-projections approach where clipExtent values
-      // are relative to the main projection's coordinate system, not individual territories
+      // Handle clipExtent for territories
       if (
         subProj.clipExtent
         && subProj.clipExtent[0]?.[0] !== undefined
@@ -781,77 +779,91 @@ export class CompositeProjection {
         && subProj.clipExtent[1]?.[0] !== undefined
         && subProj.clipExtent[1]?.[1] !== undefined
       ) {
-        // Apply d3-composite-projections approach: clipExtent is relative to main projection
-        // Get the reference scale (mainland/primary projection scale for consistency)
-        const referenceScale = this.referenceScale || 2700
-        const epsilon = 1e-6 // Small value for padding, matching d3-composite-projections
+        const [[x1, y1], [x2, y2]] = subProj.clipExtent!
+        const epsilon = 1e-6 // Small value for padding
 
-        // STEP 1: Apply clipExtent scaling to preset bounds first
-        const [[presetX1, presetY1], [presetX2, presetY2]] = subProj.clipExtent!
+        // Detect format: if values are small (-1 to 1), assume legacy normalized coordinates
+        // If values are larger, assume new pixel-based coordinates
+        const isLegacyFormat = Math.abs(x1) <= 1 && Math.abs(y1) <= 1 && Math.abs(x2) <= 1 && Math.abs(y2) <= 1
 
-        // Calculate preset bounds in screen coordinates
-        const basePresetX1 = centerX + presetX1 * referenceScale
-        const basePresetY1 = centerY + presetY1 * referenceScale
-        const basePresetX2 = centerX + presetX2 * referenceScale
-        const basePresetY2 = centerY + presetY2 * referenceScale
+        let finalClipX1: number, finalClipY1: number, finalClipX2: number, finalClipY2: number
 
-        // Apply center-relative scaling to preset bounds
-        const presetCenterX = (basePresetX1 + basePresetX2) / 2
-        const presetCenterY = (basePresetY1 + basePresetY2) / 2
+        if (isLegacyFormat) {
+          // LEGACY SUPPORT: Handle old normalized coordinate format
+          console.warn(`[CompositeProjection] Territory ${subProj.territoryCode} uses legacy normalized clipExtent format. Consider migrating to pixel-based format.`)
 
-        const scaledPresetX1 = presetCenterX + (basePresetX1 - presetCenterX) * clipExtentScale
-        const scaledPresetY1 = presetCenterY + (basePresetY1 - presetCenterY) * clipExtentScale
-        const scaledPresetX2 = presetCenterX + (basePresetX2 - presetCenterX) * clipExtentScale
-        const scaledPresetY2 = presetCenterY + (basePresetY2 - presetCenterY) * clipExtentScale
+          const referenceScale = this.referenceScale || 2700
 
-        // STEP 2: Apply direct bounds overrides on top of scaled preset bounds
-        const tolerance = 0.001 // Tolerance for floating point comparison
+          // Apply legacy scaling and offset logic for backward compatibility
+          const basePresetX1 = centerX + x1 * referenceScale
+          const basePresetY1 = centerY + y1 * referenceScale
+          const basePresetX2 = centerX + x2 * referenceScale
+          const basePresetY2 = centerY + y2 * referenceScale
 
-        const hasSignificantX1Override = clipExtentX1 !== undefined && Math.abs(clipExtentX1) > tolerance
-        const hasSignificantY1Override = clipExtentY1 !== undefined && Math.abs(clipExtentY1) > tolerance
-        const hasSignificantX2Override = clipExtentX2 !== undefined && Math.abs(clipExtentX2) > tolerance
-        const hasSignificantY2Override = clipExtentY2 !== undefined && Math.abs(clipExtentY2) > tolerance
+          const presetCenterX = (basePresetX1 + basePresetX2) / 2
+          const presetCenterY = (basePresetY1 + basePresetY2) / 2
 
-        // Calculate final screen coordinates
-        // Use override bounds (converted to screen coordinates) where available, otherwise use scaled preset bounds
-        let scaledClipX1, scaledClipY1, scaledClipX2, scaledClipY2
+          const scaledPresetX1 = presetCenterX + (basePresetX1 - presetCenterX) * clipExtentScale
+          const scaledPresetY1 = presetCenterY + (basePresetY1 - presetCenterY) * clipExtentScale
+          const scaledPresetX2 = presetCenterX + (basePresetX2 - presetCenterX) * clipExtentScale
+          const scaledPresetY2 = presetCenterY + (basePresetY2 - presetCenterY) * clipExtentScale
 
-        if (hasSignificantX1Override) {
-          scaledClipX1 = centerX + clipExtentX1! * referenceScale
+          // Apply legacy parameter overrides
+          const tolerance = 0.001
+          const hasSignificantX1Override = clipExtentX1 !== undefined && Math.abs(clipExtentX1) > tolerance
+          const hasSignificantY1Override = clipExtentY1 !== undefined && Math.abs(clipExtentY1) > tolerance
+          const hasSignificantX2Override = clipExtentX2 !== undefined && Math.abs(clipExtentX2) > tolerance
+          const hasSignificantY2Override = clipExtentY2 !== undefined && Math.abs(clipExtentY2) > tolerance
+
+          finalClipX1 = hasSignificantX1Override ? centerX + clipExtentX1! * referenceScale : scaledPresetX1
+          finalClipY1 = hasSignificantY1Override ? centerY + clipExtentY1! * referenceScale : scaledPresetY1
+          finalClipX2 = hasSignificantX2Override ? centerX + clipExtentX2! * referenceScale : scaledPresetX2
+          finalClipY2 = hasSignificantY2Override ? centerY + clipExtentY2! * referenceScale : scaledPresetY2
+
+          // Apply legacy offset
+          const clipExtentOffsetPixelX = clipExtentOffsetX * referenceScale
+          const clipExtentOffsetPixelY = clipExtentOffsetY * referenceScale
+
+          finalClipX1 += parameterTranslate[0] + clipExtentOffsetPixelX
+          finalClipY1 += parameterTranslate[1] + clipExtentOffsetPixelY
+          finalClipX2 += parameterTranslate[0] + clipExtentOffsetPixelX
+          finalClipY2 += parameterTranslate[1] + clipExtentOffsetPixelY
         }
         else {
-          scaledClipX1 = scaledPresetX1
-        }
+          // NEW PIXEL-BASED FORMAT: clipExtent contains pixel coordinates relative to translateOffset
+          const territoryCenter = newTranslate // Territory position already calculated above
 
-        if (hasSignificantY1Override) {
-          scaledClipY1 = centerY + clipExtentY1! * referenceScale
+          // Check for new pixelClipExtent parameter override
+          if (parameterProvider) {
+            const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
+            if (params.pixelClipExtent) {
+              const [px1, py1, px2, py2] = params.pixelClipExtent
+              finalClipX1 = territoryCenter[0] + px1
+              finalClipY1 = territoryCenter[1] + py1
+              finalClipX2 = territoryCenter[0] + px2
+              finalClipY2 = territoryCenter[1] + py2
+            }
+            else {
+              // Use preset pixel coordinates
+              finalClipX1 = territoryCenter[0] + x1
+              finalClipY1 = territoryCenter[1] + y1
+              finalClipX2 = territoryCenter[0] + x2
+              finalClipY2 = territoryCenter[1] + y2
+            }
+          }
+          else {
+            // Use preset pixel coordinates
+            finalClipX1 = territoryCenter[0] + x1
+            finalClipY1 = territoryCenter[1] + y1
+            finalClipX2 = territoryCenter[0] + x2
+            finalClipY2 = territoryCenter[1] + y2
+          }
         }
-        else {
-          scaledClipY1 = scaledPresetY1
-        }
-
-        if (hasSignificantX2Override) {
-          scaledClipX2 = centerX + clipExtentX2! * referenceScale
-        }
-        else {
-          scaledClipX2 = scaledPresetX2
-        }
-
-        if (hasSignificantY2Override) {
-          scaledClipY2 = centerY + clipExtentY2! * referenceScale
-        }
-        else {
-          scaledClipY2 = scaledPresetY2
-        }
-
-        // Add parameter-based translate and clipExtent offset for fine positioning control
-        const clipExtentOffsetPixelX = clipExtentOffsetX * referenceScale
-        const clipExtentOffsetPixelY = clipExtentOffsetY * referenceScale
 
         const clipExtentScreen: [[number, number], [number, number]] = [
-          [scaledClipX1 + parameterTranslate[0] + clipExtentOffsetPixelX + epsilon, scaledClipY1 + parameterTranslate[1] + clipExtentOffsetPixelY + epsilon],
-          [scaledClipX2 + parameterTranslate[0] + clipExtentOffsetPixelX - epsilon, scaledClipY2 + parameterTranslate[1] + clipExtentOffsetPixelY - epsilon],
-        ] // Apply the clipExtent relative to the main projection coordinate system
+          [finalClipX1 + epsilon, finalClipY1 + epsilon],
+          [finalClipX2 - epsilon, finalClipY2 - epsilon],
+        ]
         subProj.projection.clipExtent(clipExtentScreen)
       }
       // Otherwise, calculate clipExtent from geographic bounds

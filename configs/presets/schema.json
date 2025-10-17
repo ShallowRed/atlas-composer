@@ -193,7 +193,7 @@
                     },
                     "minItems": 2,
                     "maxItems": 2,
-                    "description": "Clipping extent [[x0, y0], [x1, y1]]"
+                    "description": "Clipping extent in pixels relative to translateOffset: [[x1, y1], [x2, y2]] where coordinates are pixel offsets from territory center"
                   },
                   { "type": "null" }
                 ]

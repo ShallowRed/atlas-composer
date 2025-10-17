@@ -43,26 +43,29 @@ export interface ProjectionParameters {
   /** User's scale multiplier applied to atlas referenceScale */
   scaleMultiplier?: number
 
-  /** ClipExtent scale multiplier (1.0 = default preset size) */
+  /** @deprecated Legacy clipExtent scale multiplier - use pixelClipExtent instead */
   clipExtentScale?: number
 
-  /** ClipExtent X offset in normalized coordinates */
+  /** @deprecated Legacy clipExtent X offset - use pixelClipExtent instead */
   clipExtentOffsetX?: number
 
-  /** ClipExtent Y offset in normalized coordinates */
+  /** @deprecated Legacy clipExtent Y offset - use pixelClipExtent instead */
   clipExtentOffsetY?: number
 
-  /** ClipExtent bounds override - x1 (left) in normalized coordinates */
+  /** @deprecated Legacy clipExtent x1 override - use pixelClipExtent instead */
   clipExtentX1?: number
 
-  /** ClipExtent bounds override - y1 (top) in normalized coordinates */
+  /** @deprecated Legacy clipExtent y1 override - use pixelClipExtent instead */
   clipExtentY1?: number
 
-  /** ClipExtent bounds override - x2 (right) in normalized coordinates */
+  /** @deprecated Legacy clipExtent x2 override - use pixelClipExtent instead */
   clipExtentX2?: number
 
-  /** ClipExtent bounds override - y2 (bottom) in normalized coordinates */
+  /** @deprecated Legacy clipExtent y2 override - use pixelClipExtent instead */
   clipExtentY2?: number
+
+  /** Pixel-based clipExtent override relative to translateOffset [x1, y1, x2, y2] */
+  pixelClipExtent?: [number, number, number, number]
 
   // Index signature to allow dynamic property access (for parameter management)
   [key: string]: any
