@@ -1,0 +1,158 @@
+# Clipping Regions Redesign - Implementation Plan
+
+## Objective
+Redesign the clipping region system to use pixel-based coordinates instead of normalized coordinates:
+1. Define clipping region center in pixel coordinates (e.g., [-320, 155] for Guyane)
+2. Define clipping extent region in pixel coordinates relative to this center
+
+## Current System Analysis
+
+### Current Preset Format
+```json
+"layout": {
+  "translateOffset": [-324, 155],    // Territory position from map center (pixels)
+  "clipExtent": [                    // Clipping bounds (normalized coordinates)
+    [-0.14, 0.029],                  // Top-left corner
+    [-0.0996, 0.0864]                // Bottom-right corner
+  ]
+}
+```
+
+### Current Implementation Flow
+1. Preset loads normalized clipExtent coordinates
+2. CompositeProjection.build() converts normalized → pixel coordinates using referenceScale (2700)
+3. Applies scaling, offsets, and territory positioning
+4. Sets final clipExtent on D3 projection
+
+## Proposed New System
+
+### New Preset Format (Simplified)
+```json
+"layout": {
+  "translateOffset": [-324, 155],    // Territory position from map center (pixels) - ALSO clipping center
+  "clipExtent": [                    // PIXEL coordinates relative to translateOffset (not normalized!)
+    [-37, -52],                      // Top-left relative to translateOffset
+    [37, 58]                         // Bottom-right relative to translateOffset
+  ]
+}
+```
+
+**Key Changes:**
+- `translateOffset` serves as both territory position AND clipping region center
+- `clipExtent` now contains pixel coordinates relative to `translateOffset` (not normalized)
+- Eliminates separate clipping center - uses existing translateOffset
+- Much simpler: one reference point, pixel-based bounds relative to it
+
+## Affected Domains
+
+### Phase 1: Core Types and Schema
+- [ ] Update `src/types/atlas.ts` - Add ClippingRegion interface
+- [ ] Update `src/types/projection-parameters.ts` - Add clipping region parameters
+- [ ] Update `configs/schema.json` - Add new clippingRegion schema
+- [ ] Update `configs/presets/schema.json` - Add preset clippingRegion schema
+
+### Phase 2: Configuration Migration
+- [ ] Convert `configs/presets/france-default.json` to new format
+- [ ] Convert other preset files (portugal-default.json, etc.)
+- [ ] Maintain backward compatibility for old clipExtent format
+- [ ] Add migration utility for converting normalized → pixel coordinates
+
+### Phase 3: Core Logic Updates
+- [ ] Update `src/services/projection/composite-projection.ts`:
+  - Remove normalized coordinate conversion logic
+  - Implement pixel-based clipping region calculation
+  - Handle both old and new formats during transition
+- [ ] Update preset loading in `src/services/presets/preset-loader.ts`
+- [ ] Update territory store clipping region provider
+
+### Phase 4: Parameter System Updates
+- [ ] Add clippingRegionCenterX/Y, clippingRegionLeft/Top/Right/Bottom parameters
+- [ ] Update parameter inheritance and validation
+- [ ] Remove or deprecate old clipExtent parameters
+- [ ] Update parameter registry with new constraints
+
+### Phase 5: UI Controls Updates
+- [ ] Update `TerritoryParameterControls.vue`:
+  - Replace normalized coordinate controls with pixel-based controls
+  - Add clipping region center controls
+  - Add clipping region extent controls (left/top/right/bottom)
+  - Update control ranges and precision
+- [ ] Update control labels and help text
+
+### Phase 6: Service Layer Updates
+- [ ] Update export/import services to handle new format
+- [ ] Update atlas service configuration loading
+- [ ] Update territory data service positioning logic
+
+## Migration Strategy
+
+### Backward Compatibility
+1. Support both old `clipExtent` and new `clippingRegion` formats
+2. Convert old format to new format at runtime
+3. Emit deprecation warnings for old format
+4. Provide migration tool for updating preset files
+
+### Conversion Formula (Simplified)
+```typescript
+// Old format: normalized coordinates
+const oldClipExtent = [[-0.14, 0.029], [-0.0996, 0.0864]]
+const referenceScale = 2700
+const translateOffset = [-324, 155] // Territory center
+
+// Calculate current absolute pixel coordinates
+const absoluteX1 = translateOffset[0] + (oldClipExtent[0][0] * referenceScale) // -324 + (-378) = -702 
+const absoluteY1 = translateOffset[1] + (oldClipExtent[0][1] * referenceScale) // 155 + 78.3 = 233.3
+const absoluteX2 = translateOffset[0] + (oldClipExtent[1][0] * referenceScale) // -324 + (-268.92) = -592.92
+const absoluteY2 = translateOffset[1] + (oldClipExtent[1][1] * referenceScale) // 155 + 233.28 = 388.28
+
+// Convert to new format (pixel coordinates relative to translateOffset)
+const newClipExtent = [
+  [absoluteX1 - translateOffset[0], absoluteY1 - translateOffset[1]], // [-378, 78.3]
+  [absoluteX2 - translateOffset[0], absoluteY2 - translateOffset[1]]  // [-268.92, 233.28]
+]
+
+// Result: clipExtent now contains pixel offsets from translateOffset
+// Example: [[-378, 78], [-269, 233]]
+```
+
+## Benefits of New System
+
+### Improved Usability
+- Intuitive pixel-based coordinates instead of abstract normalized values
+- Clear separation between territory positioning and clipping region
+- Direct control over clipping region center and extent
+
+### Better Maintainability  
+- No more coordinate system conversions in composite projection logic
+- Clearer relationship between clipping region and territory positioning
+- Easier to debug and visualize clipping regions
+
+### Enhanced Flexibility
+- Independent control of clipping region center vs territory position
+- Pixel-precise clipping region definition
+- Better support for custom clipping region shapes (future enhancement)
+
+## Implementation Phases
+
+### Phase 1: Foundation (2-3 tasks)
+Update type definitions and schema to support new format
+
+### Phase 2: Configuration (2-3 tasks)  
+Convert preset files and add migration support
+
+### Phase 3: Core Logic (3-4 tasks)
+Update composite projection and parameter systems
+
+### Phase 4: UI and Services (3-4 tasks)
+Update controls, export/import, and related services
+
+### Phase 5: Testing and Documentation (2-3 tasks)
+Comprehensive testing and documentation updates
+
+## Status
+Status: PLANNED
+Created: 2025-10-17
+Last Updated: 2025-10-17
+
+## Notes
+This is a significant architectural change that touches multiple systems. Careful planning and phased implementation with backward compatibility is essential to avoid breaking existing configurations.
