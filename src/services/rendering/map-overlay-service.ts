@@ -297,21 +297,21 @@ export class MapOverlayService {
       return null
     }
 
-    // Use inset from config (calculated by InsetCalculator in coordinator)
-    const adjustedWidth = config.width - 2 * config.inset
-    const adjustedHeight = config.height - 2 * config.inset
-
+    // Create the border path at the FULL width/height
+    // Observable Plot creates projections at full size and applies inset internally
+    // The path coordinates will be in the full coordinate system
     const pathData = this.createCompositeBorderPath(
       overlayProjectionId,
-      adjustedWidth,
-      adjustedHeight,
+      config.width,
+      config.height,
     )
 
     if (!pathData) {
       return null
     }
 
-    // Use D3 to append path with transform
+    // Append path without any transform
+    // The path coordinates are already in the full SVG coordinate system
     const pathEl = overlayGroup
       .append('path')
       .attr('d', pathData)
@@ -322,9 +322,10 @@ export class MapOverlayService {
       .attr('stroke-dasharray', '8 4')
       .attr('stroke-linejoin', 'round')
       .attr('opacity', '0.5')
-      .attr('transform', `translate(${config.inset}, ${config.inset})`)
 
     // Try to get bbox for map limits calculation
+    // getBBox() returns coordinates in the element's coordinate system
+    // Since we're not applying any transform, these are directly usable
     try {
       const bbox = (pathEl.node() as SVGPathElement).getBBox()
       if (Number.isFinite(bbox.width) && Number.isFinite(bbox.height) && bbox.width > 0 && bbox.height > 0) {

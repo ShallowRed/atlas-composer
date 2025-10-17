@@ -410,22 +410,6 @@
       ]
     },
     {
-      "id": "nsp",
-      "label": {
-        "en": "NSP",
-        "fr": "NSP"
-      },
-      "territories": [
-        "FR-MET",
-        "FR-GF",
-        "FR-RE",
-        "FR-GP",
-        "FR-MQ",
-        "FR-YT",
-        "FR-PM"
-      ]
-    },
-    {
       "id": "metropole-drom-com",
       "label": {
         "en": "Mainland + Overseas Departments + Collectivities",
@@ -439,6 +423,7 @@
         "FR-MQ",
         "FR-YT",
         "FR-PM",
+        "FR-BL",
         "FR-PF",
         "FR-WF",
         "FR-PF-2",

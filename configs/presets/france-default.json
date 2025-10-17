@@ -297,7 +297,7 @@
             -62.85,
             17.92
           ],
-          "scaleMultiplier": 1
+          "scaleMultiplier": 5
         }
       },
       "layout": {
@@ -306,10 +306,10 @@
           -119
         ],
         "pixelClipExtent": [
-          -378,
-          -140.4,
-          -269.016,
-          -86.4
+          -54,
+          -27,
+          55,
+          27
         ]
       },
       "bounds": [
