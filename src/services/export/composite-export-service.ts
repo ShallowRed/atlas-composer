@@ -173,7 +173,7 @@ export class CompositeExportService {
             parallels: roundTuple2(this.extractParallels(subProj)),
           }
 
-      // Check for pixelClipExtent parameter override
+      // Get pixelClipExtent from parameter provider
       let pixelClipExtent: [number, number, number, number] | null = null
       if (parameterProvider) {
         const territoryParams = parameterProvider.getEffectiveParameters(subProj.territoryCode)
@@ -193,7 +193,6 @@ export class CompositeExportService {
         },
         layout: {
           translateOffset: roundTuple2(subProj.translateOffset),
-          clipExtent: subProj.clipExtent || null,
           pixelClipExtent,
         },
         bounds: roundBounds(subProj.bounds),
@@ -309,22 +308,7 @@ export class CompositeExportService {
             errors.push(`${prefix}: Invalid translateOffset`)
           }
 
-          // Validate clipExtent (legacy format)
-          if (territory.layout.clipExtent !== null && territory.layout.clipExtent !== undefined) {
-            if (!Array.isArray(territory.layout.clipExtent) || territory.layout.clipExtent.length !== 2) {
-              errors.push(`${prefix}: Invalid clipExtent format`)
-            }
-            else {
-              for (let i = 0; i < 2; i++) {
-                const coord = territory.layout.clipExtent![i]
-                if (!Array.isArray(coord) || coord.length !== 2) {
-                  errors.push(`${prefix}: Invalid clipExtent coordinate pair ${i}`)
-                }
-              }
-            }
-          }
-
-          // Validate pixelClipExtent (new format)
+          // Validate pixelClipExtent
           if (territory.layout.pixelClipExtent !== null && territory.layout.pixelClipExtent !== undefined) {
             if (!Array.isArray(territory.layout.pixelClipExtent) || territory.layout.pixelClipExtent.length !== 4) {
               errors.push(`${prefix}: Invalid pixelClipExtent format - must be [x1, y1, x2, y2]`)
@@ -336,11 +320,6 @@ export class CompositeExportService {
                 }
               }
             }
-          }
-
-          // Warn if both formats are present
-          if (territory.layout.clipExtent && territory.layout.pixelClipExtent) {
-            warnings.push(`${prefix}: Both clipExtent and pixelClipExtent present - pixelClipExtent takes precedence`)
           }
         }
 

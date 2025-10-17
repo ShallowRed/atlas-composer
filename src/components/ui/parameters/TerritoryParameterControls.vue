@@ -214,12 +214,6 @@ const pixelClipExtentArray = computed(() => {
     return pixelClipExtent
   }
 
-  // Fallback to preset clipExtent from territory store
-  const presetClipExtent = territoryStore.territoryClipExtents[props.territoryCode]
-  if (presetClipExtent) {
-    return [presetClipExtent.x1, presetClipExtent.y1, presetClipExtent.x2, presetClipExtent.y2]
-  }
-
   // Default values if no clip extent is set
   return [-100, -100, 100, 100]
 })

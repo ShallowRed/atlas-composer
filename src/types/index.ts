@@ -65,7 +65,6 @@ export type {
 // Territory types
 export type {
   BoundingBox,
-  ClipExtent,
   ConicParallels,
   Coordinates,
   PixelOffset,

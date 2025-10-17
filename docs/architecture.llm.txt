@@ -388,3 +388,30 @@ The code generator (src/services/export/code-generator.ts) produces loader-based
 - Examples demonstrate usage patterns
 
 See docs/export.llm.txt for detailed documentation.
+
+## Parameter Management Architecture
+
+All projection parameters are managed through a unified parameter provider system:
+
+### Parameter Provider
+- **Location**: `src/core/parameters/parameter-definitions.ts` + `src/services/parameters/projection-parameter-manager.ts`
+- **Single source of truth** for all runtime parameter access
+- Parameters are validated and type-checked through the registry
+
+### Managed Parameters
+All parameters accessed exclusively through parameter provider:
+- **Geographic**: `center`, `rotate`, `parallels`
+- **Scale**: `scaleMultiplier` (baseScale computed from referenceScale)
+- **Position**: `translateOffset` (from config), `translate` (adjustment parameter)
+- **Clipping**: `pixelClipExtent` [x1, y1, x2, y2] - pixel coordinates relative to territory center
+- **Quality**: `clipAngle`, `precision`
+
+### Storage Locations
+- **Preset files**: Parameters stored in `projection.parameters` and `layout.pixelClipExtent`
+- **Runtime**: ALL parameters accessed through `parameterProvider.getEffectiveParameters(territoryCode)`
+- **Stores**: `configStore` and `territoryStore` delegate to `parameterStore`
+
+### Clipping Format
+- **Only format**: `pixelClipExtent: [x1, y1, x2, y2]` as 4-element array
+- **Coordinates**: Pixel offsets relative to territory center (translateOffset)
+- **No legacy formats**: Object `{x1,y1,x2,y2}` and nested array `[[x1,y1],[x2,y2]]` removed

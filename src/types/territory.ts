@@ -34,29 +34,6 @@ export type ProjectionRotation = [number, number, number?]
 export type ConicParallels = [number, number]
 
 /**
- * Clip extent for composite projection layouts
- *
- * Coordinates are in pixels relative to the territory's translateOffset position.
- * This allows direct pixel-based control without normalized coordinate conversions.
- *
- * @example
- * // For territory at translateOffset [-324, 155]:
- * // clipExtent [[-378, 78], [-269, 233]] means:
- * // - Top-left: 378px left, 78px down from territory center
- * // - Bottom-right: 269px left, 233px down from territory center
- */
-export interface ClipExtent {
-  /** Left edge of clipping rectangle (pixels from translateOffset) */
-  x1: number
-  /** Top edge of clipping rectangle (pixels from translateOffset) */
-  y1: number
-  /** Right edge of clipping rectangle (pixels from translateOffset) */
-  x2: number
-  /** Bottom edge of clipping rectangle (pixels from translateOffset) */
-  y2: number
-}
-
-/**
  * Configuration for a single territory
  *
  * Represents a geographic territory (mainland or overseas) with
@@ -86,9 +63,6 @@ export interface TerritoryConfig {
 
   /** Default projection type (e.g., 'mercator', 'conic-conformal', 'azimuthal') */
   projectionType?: string
-
-  /** Clip extent for composite projection layouts */
-  clipExtent?: ClipExtent
 
   /** Projection rotation [lambda, phi, gamma?] */
   rotate?: ProjectionRotation

@@ -34,7 +34,6 @@ interface SubProjectionConfig {
   scaleMultiplier: number // Current scale multiplier (used to preserve scale when changing projection type)
   baseTranslate: [number, number] // Prevents translation accumulation on rebuild
   translateOffset: [number, number]
-  clipExtent: [[number, number], [number, number]] | null
   bounds?: [[number, number], [number, number]]
 }
 
@@ -161,13 +160,6 @@ export class CompositeProjection {
 
     mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
-    // Get pixelClipExtent from parameter store
-    let clipExtent: [[number, number], [number, number]] | null = null
-    const pixelClipExtent = mainlandParams.pixelClipExtent
-    if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-      clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
-    }
-
     this.addSubProjection({
       territoryCode: mainland.code,
       territoryName: mainland.name,
@@ -176,7 +168,6 @@ export class CompositeProjection {
       baseScale: mainlandBaseScale,
       scaleMultiplier: mainlandScaleMultiplier,
       baseTranslate: [0, 0],
-      clipExtent,
       translateOffset: mainland.offset,
       bounds: mainland.bounds,
     })
@@ -219,13 +210,6 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
-      // Get pixelClipExtent from parameter store
-      let clipExtent: [[number, number], [number, number]] | null = null
-      const pixelClipExtent = territoryParams.pixelClipExtent
-      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
-      }
-
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
@@ -234,7 +218,6 @@ export class CompositeProjection {
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
-        clipExtent,
         translateOffset: territory.offset,
         bounds: territory.bounds,
       })
@@ -288,13 +271,6 @@ export class CompositeProjection {
 
       mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
-      // Get pixelClipExtent from parameter store
-      let clipExtent: [[number, number], [number, number]] | null = null
-      const pixelClipExtent = mainlandParams.pixelClipExtent
-      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
-      }
-
       this.addSubProjection({
         territoryCode: mainland.code,
         territoryName: mainland.name,
@@ -303,7 +279,6 @@ export class CompositeProjection {
         baseScale: mainlandBaseScale,
         scaleMultiplier: mainlandScaleMultiplier,
         baseTranslate: [0, 0],
-        clipExtent,
         translateOffset: mainland.offset,
         bounds: mainland.bounds,
       })
@@ -347,13 +322,6 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
-      // Get pixelClipExtent from parameter store
-      let clipExtent: [[number, number], [number, number]] | null = null
-      const pixelClipExtent = territoryParams.pixelClipExtent
-      if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-        clipExtent = [[pixelClipExtent[0], pixelClipExtent[1]], [pixelClipExtent[2], pixelClipExtent[3]]]
-      }
-
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
@@ -362,7 +330,6 @@ export class CompositeProjection {
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
-        clipExtent,
         translateOffset: territory.offset,
         bounds: territory.bounds,
       })
@@ -700,42 +667,13 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
-      // Get current translate and clipExtent parameters
+      // Get current translate parameter
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
-      let clipExtentScale = 1.0
-      let clipExtentOffsetX = 0.0
-      let clipExtentOffsetY = 0.0
-      let clipExtentX1: number | undefined
-      let clipExtentY1: number | undefined
-      let clipExtentX2: number | undefined
-      let clipExtentY2: number | undefined
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
         if (params.translate) {
           parameterTranslate = params.translate as [number, number]
-        }
-        if (params.clipExtentScale) {
-          clipExtentScale = params.clipExtentScale
-        }
-        if (params.clipExtentOffsetX) {
-          clipExtentOffsetX = params.clipExtentOffsetX
-        }
-        if (params.clipExtentOffsetY) {
-          clipExtentOffsetY = params.clipExtentOffsetY
-        }
-        // ClipExtent bounds overrides
-        if (params.clipExtentX1 !== undefined) {
-          clipExtentX1 = params.clipExtentX1
-        }
-        if (params.clipExtentY1 !== undefined) {
-          clipExtentY1 = params.clipExtentY1
-        }
-        if (params.clipExtentX2 !== undefined) {
-          clipExtentX2 = params.clipExtentX2
-        }
-        if (params.clipExtentY2 !== undefined) {
-          clipExtentY2 = params.clipExtentY2
         }
       }
 
@@ -749,121 +687,42 @@ export class CompositeProjection {
       ]
       subProj.projection.translate(newTranslate)
 
-      // Handle clipExtent for territories
-      if (
-        subProj.clipExtent
-        && subProj.clipExtent[0]?.[0] !== undefined
-        && subProj.clipExtent[0]?.[1] !== undefined
-        && subProj.clipExtent[1]?.[0] !== undefined
-        && subProj.clipExtent[1]?.[1] !== undefined
-      ) {
-        const [[x1, y1], [x2, y2]] = subProj.clipExtent!
-        const epsilon = 1e-6 // Small value for padding
-
-        // Detect format: if values are small (-1 to 1), assume legacy normalized coordinates
-        // If values are larger, assume new pixel-based coordinates
-        const isLegacyFormat = Math.abs(x1) <= 1 && Math.abs(y1) <= 1 && Math.abs(x2) <= 1 && Math.abs(y2) <= 1
-
-        let finalClipX1: number, finalClipY1: number, finalClipX2: number, finalClipY2: number
-
-        if (isLegacyFormat) {
-          // LEGACY SUPPORT: Handle old normalized coordinate format
-          console.warn(`[CompositeProjection] Territory ${subProj.territoryCode} uses legacy normalized clipExtent format. Consider migrating to pixel-based format.`)
-
-          const referenceScale = this.referenceScale || 2700
-
-          // Apply legacy scaling and offset logic for backward compatibility
-          const basePresetX1 = centerX + x1 * referenceScale
-          const basePresetY1 = centerY + y1 * referenceScale
-          const basePresetX2 = centerX + x2 * referenceScale
-          const basePresetY2 = centerY + y2 * referenceScale
-
-          const presetCenterX = (basePresetX1 + basePresetX2) / 2
-          const presetCenterY = (basePresetY1 + basePresetY2) / 2
-
-          const scaledPresetX1 = presetCenterX + (basePresetX1 - presetCenterX) * clipExtentScale
-          const scaledPresetY1 = presetCenterY + (basePresetY1 - presetCenterY) * clipExtentScale
-          const scaledPresetX2 = presetCenterX + (basePresetX2 - presetCenterX) * clipExtentScale
-          const scaledPresetY2 = presetCenterY + (basePresetY2 - presetCenterY) * clipExtentScale
-
-          // Apply legacy parameter overrides
-          const tolerance = 0.001
-          const hasSignificantX1Override = clipExtentX1 !== undefined && Math.abs(clipExtentX1) > tolerance
-          const hasSignificantY1Override = clipExtentY1 !== undefined && Math.abs(clipExtentY1) > tolerance
-          const hasSignificantX2Override = clipExtentX2 !== undefined && Math.abs(clipExtentX2) > tolerance
-          const hasSignificantY2Override = clipExtentY2 !== undefined && Math.abs(clipExtentY2) > tolerance
-
-          finalClipX1 = hasSignificantX1Override ? centerX + clipExtentX1! * referenceScale : scaledPresetX1
-          finalClipY1 = hasSignificantY1Override ? centerY + clipExtentY1! * referenceScale : scaledPresetY1
-          finalClipX2 = hasSignificantX2Override ? centerX + clipExtentX2! * referenceScale : scaledPresetX2
-          finalClipY2 = hasSignificantY2Override ? centerY + clipExtentY2! * referenceScale : scaledPresetY2
-
-          // Apply legacy offset
-          const clipExtentOffsetPixelX = clipExtentOffsetX * referenceScale
-          const clipExtentOffsetPixelY = clipExtentOffsetY * referenceScale
-
-          finalClipX1 += parameterTranslate[0] + clipExtentOffsetPixelX
-          finalClipY1 += parameterTranslate[1] + clipExtentOffsetPixelY
-          finalClipX2 += parameterTranslate[0] + clipExtentOffsetPixelX
-          finalClipY2 += parameterTranslate[1] + clipExtentOffsetPixelY
-        }
-        else {
-          // NEW PIXEL-BASED FORMAT: clipExtent contains pixel coordinates relative to translateOffset
+      // Handle pixelClipExtent from parameter provider
+      if (parameterProvider) {
+        const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
+        if (params.pixelClipExtent && Array.isArray(params.pixelClipExtent) && params.pixelClipExtent.length === 4) {
+          const [px1, py1, px2, py2] = params.pixelClipExtent
           const territoryCenter = newTranslate // Territory position already calculated above
 
-          // Check for new pixelClipExtent parameter override
-          if (parameterProvider) {
-            const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
-            if (params.pixelClipExtent) {
-              const [px1, py1, px2, py2] = params.pixelClipExtent
-              finalClipX1 = territoryCenter[0] + px1
-              finalClipY1 = territoryCenter[1] + py1
-              finalClipX2 = territoryCenter[0] + px2
-              finalClipY2 = territoryCenter[1] + py2
-            }
-            else {
-              // Use preset pixel coordinates
-              finalClipX1 = territoryCenter[0] + x1
-              finalClipY1 = territoryCenter[1] + y1
-              finalClipX2 = territoryCenter[0] + x2
-              finalClipY2 = territoryCenter[1] + y2
-            }
-          }
-          else {
-            // Use preset pixel coordinates
-            finalClipX1 = territoryCenter[0] + x1
-            finalClipY1 = territoryCenter[1] + y1
-            finalClipX2 = territoryCenter[0] + x2
-            finalClipY2 = territoryCenter[1] + y2
-          }
+          const clipExtentScreen: [[number, number], [number, number]] = [
+            [territoryCenter[0] + px1 + epsilon, territoryCenter[1] + py1 + epsilon],
+            [territoryCenter[0] + px2 - epsilon, territoryCenter[1] + py2 - epsilon],
+          ]
+          subProj.projection.clipExtent(clipExtentScreen)
         }
-
-        const clipExtentScreen: [[number, number], [number, number]] = [
-          [finalClipX1 + epsilon, finalClipY1 + epsilon],
-          [finalClipX2 - epsilon, finalClipY2 - epsilon],
-        ]
-        subProj.projection.clipExtent(clipExtentScreen)
       }
       // Otherwise, calculate clipExtent from geographic bounds
-      else if (subProj.bounds) {
-        const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
+      if (!parameterProvider || !parameterProvider.getEffectiveParameters(subProj.territoryCode).pixelClipExtent) {
+        if (subProj.bounds) {
+          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
         // Project the bounds corners to get clip extent in screen coordinates
         // NOW the projection already includes the offset
         const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
         const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
 
-        if (topLeft && bottomRight) {
-          // Set clip extent (already in final coordinate space thanks to translate)
-          subProj.projection.clipExtent([
-            [topLeft[0], topLeft[1]],
-            [bottomRight[0], bottomRight[1]],
-          ])
-        }
-        else {
-          // If projection fails (e.g. due to rotation), don't set clipExtent
-          // This allows the territory to render without clipping
-          console.warn(`[CompositeProjection] Failed to project bounds for ${subProj.territoryCode}, skipping clipExtent`)
+          if (topLeft && bottomRight) {
+            // Set clip extent (already in final coordinate space thanks to translate)
+            subProj.projection.clipExtent([
+              [topLeft[0], topLeft[1]],
+              [bottomRight[0], bottomRight[1]],
+            ])
+          }
+          else {
+            // If projection fails (e.g. due to rotation), don't set clipExtent
+            // This allows the territory to render without clipping
+            console.warn(`[CompositeProjection] Failed to project bounds for ${subProj.territoryCode}, skipping clipExtent`)
+          }
         }
       }
     })
@@ -993,23 +852,20 @@ export class CompositeProjection {
     return this.subProjections
       .filter(sp => sp.bounds && !mainlandCodes.includes(sp.territoryCode))
       .map((subProj) => {
-        // If territory has clipExtent, use that for borders instead of geographic bounds
-        if (subProj.clipExtent) {
-          // Get the current clipExtent as applied to the projection
-          const currentClipExtent = subProj.projection.clipExtent?.()
-          if (currentClipExtent) {
-            return {
-              territoryCode: subProj.territoryCode,
-              territoryName: subProj.territoryName,
-              bounds: [
-                [currentClipExtent[0][0], currentClipExtent[0][1]],
-                [currentClipExtent[1][0], currentClipExtent[1][1]],
-              ] as [[number, number], [number, number]],
-            }
+        // Get the current clipExtent as applied to the projection (from pixelClipExtent parameter)
+        const currentClipExtent = subProj.projection.clipExtent?.()
+        if (currentClipExtent) {
+          return {
+            territoryCode: subProj.territoryCode,
+            territoryName: subProj.territoryName,
+            bounds: [
+              [currentClipExtent[0][0], currentClipExtent[0][1]],
+              [currentClipExtent[1][0], currentClipExtent[1][1]],
+            ] as [[number, number], [number, number]],
           }
         }
 
-        // Fallback to geographic bounds if no clipExtent
+        // Fallback to geographic bounds if no clipExtent parameter
         if (!subProj.bounds)
           return null
 
@@ -1070,7 +926,6 @@ export class CompositeProjection {
           ...parameters,
           translateOffset: sp.translateOffset,
           bounds: sp.bounds,
-          clipExtent: sp.clipExtent,
         }
       }),
     }

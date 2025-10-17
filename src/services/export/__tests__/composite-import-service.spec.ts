@@ -32,7 +32,6 @@ describe('compositeImportService', () => {
         },
         layout: {
           translateOffset: [0, 0],
-          clipExtent: null,
         },
         bounds: [
           [-5, 41],

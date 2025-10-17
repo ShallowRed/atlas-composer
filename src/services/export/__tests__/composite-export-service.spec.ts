@@ -368,15 +368,13 @@ describe('compositeExportService', () => {
           ...validConfig.territories[0],
           layout: {
             translateOffset: [0, 0],
-            clipExtent: [[-1, -1], [1, 1]] as [[number, number], [number, number]],
             pixelClipExtent: [-50, -40, 60, 45] as [number, number, number, number],
           },
         }],
       } as ExportedCompositeConfig
 
-      const bothResult = CompositeExportService.validateExportedConfig(bothFormatsConfig)
-      expect(bothResult.valid).toBe(true)
-      expect(bothResult.warnings.some(w => w.includes('Both clipExtent and pixelClipExtent present'))).toBe(true)
+      const result = CompositeExportService.validateExportedConfig(bothFormatsConfig)
+      expect(result.valid).toBe(true)
     })
   })
 

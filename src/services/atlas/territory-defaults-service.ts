@@ -1,4 +1,4 @@
-import type { ClipExtent, TerritoryConfig } from '@/types'
+import type { TerritoryConfig } from '@/types'
 
 import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
 
@@ -9,7 +9,6 @@ export interface TerritoryDefaults {
   projections: Record<string, string>
   translations: Record<string, { x: number, y: number }>
   scales: Record<string, number>
-  clipExtents?: Record<string, ClipExtent | null>
 }
 
 /**

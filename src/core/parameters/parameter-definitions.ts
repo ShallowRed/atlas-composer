@@ -422,7 +422,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  // NOTE: legacy clipExtent is a special case - nested array structure
-  // It's handled separately in the composite projection system
-  // pixelClipExtent replaces it with a simpler interface
+  // pixelClipExtent is the only clipping format - 4-element array [x1, y1, x2, y2]
+  // Coordinates are pixels relative to territory center (translateOffset)
 }

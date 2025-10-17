@@ -1,4 +1,4 @@
-import type { ClipExtent, TerritoryConfig } from '@/types'
+import type { TerritoryConfig } from '@/types'
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -12,19 +12,16 @@ export const useTerritoryStore = defineStore('territory', () => {
   // State
   const territoryProjections = ref<Record<string, string>>({})
   const territoryTranslations = ref<Record<string, { x: number, y: number }>>({})
-  const territoryClipExtents = ref<Record<string, ClipExtent | null>>({})
   // NOTE: territoryScales removed - scale multiplier now stored in parameter store only
+  // NOTE: territoryClipExtents removed - pixelClipExtent now stored in parameter store only
 
   // Actions
   function initializeDefaults(territories: TerritoryConfig[], defaultProjection: string) {
     const defaults = TerritoryDefaultsService.initializeAll(territories, defaultProjection)
     territoryProjections.value = defaults.projections
     territoryTranslations.value = defaults.translations
-    // Initialize clipExtents if provided from preset
-    if (defaults.clipExtents) {
-      territoryClipExtents.value = defaults.clipExtents
-    }
     // scales initialization removed - handled by parameter store
+    // clipExtents initialization removed - handled by parameter store
   }
 
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
@@ -41,14 +38,8 @@ export const useTerritoryStore = defineStore('territory', () => {
     territoryTranslations.value[territoryCode][axis] = value
   }
 
-  function setTerritoryClipExtent(territoryCode: string, clipExtent: ClipExtent | null) {
-    territoryClipExtents.value = {
-      ...territoryClipExtents.value,
-      [territoryCode]: clipExtent,
-    }
-  }
-
   // setTerritoryScale removed - use parameter store's setTerritoryParameter(code, 'scaleMultiplier', value) instead
+  // setTerritoryClipExtent removed - use parameter store's setTerritoryParameter(code, 'pixelClipExtent', value) instead
 
   function resetAll(territories: TerritoryConfig[], defaultProjection: string) {
     initializeDefaults(territories, defaultProjection)
@@ -58,15 +49,15 @@ export const useTerritoryStore = defineStore('territory', () => {
     // State
     territoryProjections,
     territoryTranslations,
-    territoryClipExtents,
     // territoryScales removed - use parameter store
+    // territoryClipExtents removed - use parameter store
 
     // Actions
     initializeDefaults,
     setTerritoryProjection,
     setTerritoryTranslation,
-    setTerritoryClipExtent,
     // setTerritoryScale removed - use parameter store
+    // setTerritoryClipExtent removed - use parameter store
     resetAll,
   }
 })

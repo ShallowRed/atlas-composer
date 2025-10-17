@@ -35,7 +35,6 @@ describe('codeGenerator', () => {
         },
         layout: {
           translateOffset: [0, 0],
-          clipExtent: null,
         },
         bounds: [
           [-5, 41],
@@ -58,7 +57,6 @@ describe('codeGenerator', () => {
         },
         layout: {
           translateOffset: [100, -50],
-          clipExtent: null,
         },
         bounds: [
           [-61.81, 15.83],
@@ -97,7 +95,6 @@ describe('codeGenerator', () => {
         },
         layout: {
           translateOffset: [0, 0],
-          clipExtent: null,
         },
         bounds: [
           [-10, 37],
@@ -120,7 +117,6 @@ describe('codeGenerator', () => {
         },
         layout: {
           translateOffset: [-100, 150],
-          clipExtent: null,
         },
         bounds: [
           [-17.3, 32.4],

@@ -89,7 +89,8 @@ Reference: node_modules/d3-composite-projections/src/conicConformalFrance.js
 - Default scale: 2700
 - Translate offset (d3): [0, 0] (no offset from viewport center)
 - Atlas-composer offset: [0, 0] pixels (mainland is centered)
-- ClipExtent (normalized): {x1: -0.0996, y1: -0.0908, x2: 0.0967, y2: 0.0864}
+- pixelClipExtent: [-268.92, -245.16, 260.99, 324]
+  - Format: [x1, y1, x2, y2] as pixel coordinates relative to territory center
   - This defines the visible area and prevents Brittany from being cropped
 
 **Territory projections and scale multipliers**:

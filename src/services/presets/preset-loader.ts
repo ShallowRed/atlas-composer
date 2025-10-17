@@ -14,7 +14,6 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
 import type { ImportResult } from '@/services/export/composite-import-service'
-import type { ClipExtent } from '@/types'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -213,7 +212,6 @@ export class PresetLoader {
     const projections: Record<string, string> = {}
     const translations: Record<string, { x: number, y: number }> = {}
     const scales: Record<string, number> = {}
-    const clipExtents: Record<string, ClipExtent | null> = {}
 
     // Extract values from each territory in the preset
     preset.territories.forEach((territory) => {
@@ -230,28 +228,12 @@ export class PresetLoader {
 
       // Scale multiplier
       scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
-
-      // ClipExtent from layout
-      if (territory.layout.clipExtent && Array.isArray(territory.layout.clipExtent) && territory.layout.clipExtent.length === 2) {
-        const [[x1, y1], [x2, y2]] = territory.layout.clipExtent
-        // Validate that all clipExtent values are numbers (not null)
-        if (typeof x1 === 'number' && typeof y1 === 'number' && typeof x2 === 'number' && typeof y2 === 'number') {
-          clipExtents[code] = { x1, y1, x2, y2 }
-        }
-        else {
-          clipExtents[code] = null
-        }
-      }
-      else {
-        clipExtents[code] = null
-      }
     })
 
     return {
       projections,
       translations,
       scales,
-      clipExtents,
     }
   }
 
@@ -281,13 +263,9 @@ export class PresetLoader {
         }
       }
 
-      // Convert legacy clipExtent from layout to pixelClipExtent parameter
-      if (territory.layout?.clipExtent && Array.isArray(territory.layout.clipExtent) && territory.layout.clipExtent.length === 2) {
-        const [[x1, y1], [x2, y2]] = territory.layout.clipExtent
-        // Validate that all clipExtent values are numbers (not null)
-        if (typeof x1 === 'number' && typeof y1 === 'number' && typeof x2 === 'number' && typeof y2 === 'number') {
-          territoryParams.pixelClipExtent = [x1, y1, x2, y2]
-        }
+      // Convert pixelClipExtent from layout to parameter
+      if (territory.layout?.pixelClipExtent && Array.isArray(territory.layout.pixelClipExtent) && territory.layout.pixelClipExtent.length === 4) {
+        territoryParams.pixelClipExtent = territory.layout.pixelClipExtent as [number, number, number, number]
       }
 
       result[territory.code] = territoryParams as ProjectionParameters
