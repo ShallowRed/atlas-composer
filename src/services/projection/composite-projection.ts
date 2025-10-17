@@ -772,21 +772,17 @@ export class CompositeProjection {
         const territoryY = newTranslate[1]
 
         // Calculate clipExtent using the original logic but make it drag-aware
-        // Original: centerX + clipExtent * scale (fixed to map center) 
-        // Fixed: centerX + clipExtent * scale + parameterOffset (follows parameter-based drag)
+        // Use base reference scale only (no scaling) to preserve correct preset positioning
         const baseClipX1 = centerX + x1 * referenceScale
-        const baseClipY1 = centerY + y1 * referenceScale  
+        const baseClipY1 = centerY + y1 * referenceScale
         const baseClipX2 = centerX + x2 * referenceScale
         const baseClipY2 = centerY + y2 * referenceScale
 
         // Add only the parameter-based translate offset (Set 2 controls) for drag-aware behavior
-        // Don't add territory translateOffset (Set 3 controls) to maintain original clipExtent design
         const clipExtentScreen: [[number, number], [number, number]] = [
           [baseClipX1 + parameterTranslate[0] + epsilon, baseClipY1 + parameterTranslate[1] + epsilon],
           [baseClipX2 + parameterTranslate[0] - epsilon, baseClipY2 + parameterTranslate[1] - epsilon],
-        ]
-
-        // Apply the clipExtent relative to the main projection coordinate system
+        ] // Apply the clipExtent relative to the main projection coordinate system
         subProj.projection.clipExtent(clipExtentScreen)
       }
       // Otherwise, calculate clipExtent from geographic bounds
