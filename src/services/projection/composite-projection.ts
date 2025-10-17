@@ -722,10 +722,16 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
-      // Get current translate and clipExtent scale parameters
+      // Get current translate and clipExtent parameters
       const parameterProvider = this.parameterProvider
       let parameterTranslate: [number, number] = [0, 0]
       let clipExtentScale = 1.0
+      let clipExtentOffsetX = 0.0
+      let clipExtentOffsetY = 0.0
+      let clipExtentX1: number | undefined
+      let clipExtentY1: number | undefined
+      let clipExtentX2: number | undefined
+      let clipExtentY2: number | undefined
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
         if (params.translate) {
@@ -733,6 +739,25 @@ export class CompositeProjection {
         }
         if (params.clipExtentScale) {
           clipExtentScale = params.clipExtentScale
+        }
+        if (params.clipExtentOffsetX) {
+          clipExtentOffsetX = params.clipExtentOffsetX
+        }
+        if (params.clipExtentOffsetY) {
+          clipExtentOffsetY = params.clipExtentOffsetY
+        }
+        // ClipExtent bounds overrides
+        if (params.clipExtentX1 !== undefined) {
+          clipExtentX1 = params.clipExtentX1
+        }
+        if (params.clipExtentY1 !== undefined) {
+          clipExtentY1 = params.clipExtentY1
+        }
+        if (params.clipExtentX2 !== undefined) {
+          clipExtentX2 = params.clipExtentX2
+        }
+        if (params.clipExtentY2 !== undefined) {
+          clipExtentY2 = params.clipExtentY2
         }
       }
 
@@ -756,7 +781,33 @@ export class CompositeProjection {
         && subProj.clipExtent[1]?.[0] !== undefined
         && subProj.clipExtent[1]?.[1] !== undefined
       ) {
-        const [[x1, y1], [x2, y2]] = subProj.clipExtent
+        // Use override bounds if any bounds parameter differs significantly from preset values
+        let x1, y1, x2, y2
+        const [[presetX1, presetY1], [presetX2, presetY2]] = subProj.clipExtent!
+        const tolerance = 0.001 // Tolerance for floating point comparison
+
+        const hasSignificantX1Override = clipExtentX1 !== undefined && Math.abs(clipExtentX1 - presetX1) > tolerance
+        const hasSignificantY1Override = clipExtentY1 !== undefined && Math.abs(clipExtentY1 - presetY1) > tolerance
+        const hasSignificantX2Override = clipExtentX2 !== undefined && Math.abs(clipExtentX2 - presetX2) > tolerance
+        const hasSignificantY2Override = clipExtentY2 !== undefined && Math.abs(clipExtentY2 - presetY2) > tolerance
+
+        const hasAnySignificantOverride = hasSignificantX1Override || hasSignificantY1Override
+          || hasSignificantX2Override || hasSignificantY2Override
+
+        if (hasAnySignificantOverride) {
+          // Use bounds overrides where they differ significantly, fallback to preset bounds for others
+          x1 = hasSignificantX1Override ? clipExtentX1! : presetX1
+          y1 = hasSignificantY1Override ? clipExtentY1! : presetY1
+          x2 = hasSignificantX2Override ? clipExtentX2! : presetX2
+          y2 = hasSignificantY2Override ? clipExtentY2! : presetY2
+        }
+        else {
+          // Use original preset bounds - no significant overrides detected
+          x1 = presetX1
+          y1 = presetY1
+          x2 = presetX2
+          y2 = presetY2
+        }
 
         // Apply d3-composite-projections approach: clipExtent is relative to main projection
         // Get the reference scale (mainland/primary projection scale for consistency)
@@ -774,29 +825,22 @@ export class CompositeProjection {
         const baseClipX2 = centerX + x2 * referenceScale
         const baseClipY2 = centerY + y2 * referenceScale
 
-        // Apply center-relative scaling for clipExtent only (scale 1.0 = preset default)
-        let scaledClipX1, scaledClipY1, scaledClipX2, scaledClipY2
-        if (Math.abs(clipExtentScale - 1.0) < 1e-6) {
-          // At 1.0x scale, use coordinates exactly as designed in preset
-          scaledClipX1 = baseClipX1
-          scaledClipY1 = baseClipY1
-          scaledClipX2 = baseClipX2
-          scaledClipY2 = baseClipY2
-        } else {
-          // Apply center-relative scaling from clipExtent center
-          const clipCenterX = (baseClipX1 + baseClipX2) / 2
-          const clipCenterY = (baseClipY1 + baseClipY2) / 2
-          
-          scaledClipX1 = clipCenterX + (baseClipX1 - clipCenterX) * clipExtentScale
-          scaledClipY1 = clipCenterY + (baseClipY1 - clipCenterY) * clipExtentScale
-          scaledClipX2 = clipCenterX + (baseClipX2 - clipCenterX) * clipExtentScale
-          scaledClipY2 = clipCenterY + (baseClipY2 - clipCenterY) * clipExtentScale
-        }
+        // Apply center-relative scaling from clipExtent center
+        const clipCenterX = (baseClipX1 + baseClipX2) / 2
+        const clipCenterY = (baseClipY1 + baseClipY2) / 2
 
-        // Add parameter-based translate offset for drag-aware behavior
+        const scaledClipX1 = clipCenterX + (baseClipX1 - clipCenterX) * clipExtentScale
+        const scaledClipY1 = clipCenterY + (baseClipY1 - clipCenterY) * clipExtentScale
+        const scaledClipX2 = clipCenterX + (baseClipX2 - clipCenterX) * clipExtentScale
+        const scaledClipY2 = clipCenterY + (baseClipY2 - clipCenterY) * clipExtentScale
+
+        // Add parameter-based translate and clipExtent offset for fine positioning control
+        const clipExtentOffsetPixelX = clipExtentOffsetX * referenceScale
+        const clipExtentOffsetPixelY = clipExtentOffsetY * referenceScale
+
         const clipExtentScreen: [[number, number], [number, number]] = [
-          [scaledClipX1 + parameterTranslate[0] + epsilon, scaledClipY1 + parameterTranslate[1] + epsilon],
-          [scaledClipX2 + parameterTranslate[0] - epsilon, scaledClipY2 + parameterTranslate[1] - epsilon],
+          [scaledClipX1 + parameterTranslate[0] + clipExtentOffsetPixelX + epsilon, scaledClipY1 + parameterTranslate[1] + clipExtentOffsetPixelY + epsilon],
+          [scaledClipX2 + parameterTranslate[0] + clipExtentOffsetPixelX - epsilon, scaledClipY2 + parameterTranslate[1] + clipExtentOffsetPixelY - epsilon],
         ] // Apply the clipExtent relative to the main projection coordinate system
         subProj.projection.clipExtent(clipExtentScreen)
       }

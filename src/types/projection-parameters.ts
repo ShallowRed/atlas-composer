@@ -46,6 +46,24 @@ export interface ProjectionParameters {
   /** ClipExtent scale multiplier (1.0 = default preset size) */
   clipExtentScale?: number
 
+  /** ClipExtent X offset in normalized coordinates */
+  clipExtentOffsetX?: number
+
+  /** ClipExtent Y offset in normalized coordinates */
+  clipExtentOffsetY?: number
+
+  /** ClipExtent bounds override - x1 (left) in normalized coordinates */
+  clipExtentX1?: number
+
+  /** ClipExtent bounds override - y1 (top) in normalized coordinates */
+  clipExtentY1?: number
+
+  /** ClipExtent bounds override - x2 (right) in normalized coordinates */
+  clipExtentX2?: number
+
+  /** ClipExtent bounds override - y2 (bottom) in normalized coordinates */
+  clipExtentY2?: number
+
   // Index signature to allow dynamic property access (for parameter management)
   [key: string]: any
 }

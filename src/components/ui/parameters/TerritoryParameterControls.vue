@@ -514,6 +514,75 @@ onUnmounted(() => {
               @update:model-value="(value: number) => handleParameterChange('clipExtentScale', value)"
             />
 
+            <!-- ClipExtent X Offset Control -->
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentOffsetX ?? 0.0"
+              label="ClipExtent X Offset"
+              icon="ri-arrow-left-right-line"
+              size="xs"
+              :min="-0.5"
+              :max="0.5"
+              :step="0.01"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentOffsetX', value)"
+            />
+
+            <!-- ClipExtent Y Offset Control -->
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentOffsetY ?? 0.0"
+              label="ClipExtent Y Offset"
+              icon="ri-arrow-up-down-line"
+              size="xs"
+              :min="-0.5"
+              :max="0.5"
+              :step="0.01"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentOffsetY', value)"
+            />
+
+            <!-- ClipExtent Direct Bounds Controls -->
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentX1 ?? 0"
+              label="ClipExtent X1 (left)"
+              icon="ri-arrow-left-line"
+              size="xs"
+              :min="-1.0"
+              :max="1.0"
+              :step="0.001"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentX1', value)"
+            />
+
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentY1 ?? 0"
+              label="ClipExtent Y1 (top)"
+              icon="ri-arrow-up-line"
+              size="xs"
+              :min="-1.0"
+              :max="1.0"
+              :step="0.001"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentY1', value)"
+            />
+
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentX2 ?? 0"
+              label="ClipExtent X2 (right)"
+              icon="ri-arrow-right-line"
+              size="xs"
+              :min="-1.0"
+              :max="1.0"
+              :step="0.001"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentX2', value)"
+            />
+
+            <RangeSlider
+              :model-value="effectiveParameters.clipExtentY2 ?? 0"
+              label="ClipExtent Y2 (bottom)"
+              icon="ri-arrow-down-line"
+              size="xs"
+              :min="-1.0"
+              :max="1.0"
+              :step="0.001"
+              @update:model-value="(value: number) => handleParameterChange('clipExtentY2', value)"
+            />
+
             <!-- Clip Angle (for azimuthal projections) -->
             <template v-if="hasClipAngleParameter">
               <RangeSlider
