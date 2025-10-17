@@ -43,27 +43,6 @@ export interface ProjectionParameters {
   /** User's scale multiplier applied to atlas referenceScale */
   scaleMultiplier?: number
 
-  /** @deprecated Legacy clipExtent scale multiplier - use pixelClipExtent instead */
-  clipExtentScale?: number
-
-  /** @deprecated Legacy clipExtent X offset - use pixelClipExtent instead */
-  clipExtentOffsetX?: number
-
-  /** @deprecated Legacy clipExtent Y offset - use pixelClipExtent instead */
-  clipExtentOffsetY?: number
-
-  /** @deprecated Legacy clipExtent x1 override - use pixelClipExtent instead */
-  clipExtentX1?: number
-
-  /** @deprecated Legacy clipExtent y1 override - use pixelClipExtent instead */
-  clipExtentY1?: number
-
-  /** @deprecated Legacy clipExtent x2 override - use pixelClipExtent instead */
-  clipExtentX2?: number
-
-  /** @deprecated Legacy clipExtent y2 override - use pixelClipExtent instead */
-  clipExtentY2?: number
-
   /** Pixel-based clipExtent override relative to translateOffset [x1, y1, x2, y2] */
   pixelClipExtent?: [number, number, number, number]
 

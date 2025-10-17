@@ -528,12 +528,56 @@ const {
                   handleParameterChange('translate', [currentTranslate[0], value])
                 }"
               />
+              <!-- Pixel-based ClipExtent Controls -->
+              <RangeSlider
+                :model-value="pixelClipExtentArray[0] ?? -100"
+                label="ClipExtent Left (px)"
+                icon="ri-arrow-left-line"
+                size="xs"
+                :min="-500"
+                :max="500"
+                :step="1"
+                @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
+              />
+
+              <RangeSlider
+                :model-value="pixelClipExtentArray[1] ?? -100"
+                label="ClipExtent Top (px)"
+                icon="ri-arrow-up-line"
+                size="xs"
+                :min="-500"
+                :max="500"
+                :step="1"
+                @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
+              />
+
+              <RangeSlider
+                :model-value="pixelClipExtentArray[2] ?? 100"
+                label="ClipExtent Right (px)"
+                icon="ri-arrow-right-line"
+                size="xs"
+                :min="-500"
+                :max="500"
+                :step="1"
+                @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
+              />
+
+              <RangeSlider
+                :model-value="pixelClipExtentArray[3] ?? 100"
+                label="ClipExtent Bottom (px)"
+                icon="ri-arrow-down-line"
+                size="xs"
+                :min="-500"
+                :max="500"
+                :step="1"
+                @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
+              />
             </template>
           </div>
         </details>
       </template>
 
-      <!-- Secondary Parameters (Clip Angle/Precision/ClipExtent Scale) -->
+      <!-- Advanced Controls (Clip Angle/Precision) -->
       <template v-if="hasClipAngleParameter || hasPrecisionParameter || true">
         <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
@@ -542,92 +586,6 @@ const {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <!-- ClipExtent Scale Control (always available) -->
-            <RangeSlider
-              :model-value="effectiveParameters.clipExtentScale ?? 1.0"
-              label="ClipExtent Scale"
-              icon="ri-crop-line"
-              size="xs"
-              :min="0.1"
-              :max="3.0"
-              :step="0.1"
-              unit="×"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentScale', value)"
-            />
-
-            <!-- ClipExtent X Offset Control -->
-            <RangeSlider
-              :model-value="effectiveParameters.clipExtentOffsetX ?? 0.0"
-              label="ClipExtent X Offset"
-              icon="ri-arrow-left-right-line"
-              size="xs"
-              :min="-0.5"
-              :max="0.5"
-              :step="0.01"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentOffsetX', value)"
-            />
-
-            <!-- ClipExtent Y Offset Control -->
-            <RangeSlider
-              :model-value="effectiveParameters.clipExtentOffsetY ?? 0.0"
-              label="ClipExtent Y Offset"
-              icon="ri-arrow-up-down-line"
-              size="xs"
-              :min="-0.5"
-              :max="0.5"
-              :step="0.01"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentOffsetY', value)"
-            />
-
-            <!-- Pixel-based ClipExtent Controls -->
-            <div class="text-xs text-base-content/70 mb-2">
-              Pixel coordinates relative to territory center
-            </div>
-
-            <RangeSlider
-              :model-value="pixelClipExtentArray[0] ?? -100"
-              label="ClipExtent Left (px)"
-              icon="ri-arrow-left-line"
-              size="xs"
-              :min="-500"
-              :max="500"
-              :step="1"
-              @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
-            />
-
-            <RangeSlider
-              :model-value="pixelClipExtentArray[1] ?? -100"
-              label="ClipExtent Top (px)"
-              icon="ri-arrow-up-line"
-              size="xs"
-              :min="-500"
-              :max="500"
-              :step="1"
-              @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
-            />
-
-            <RangeSlider
-              :model-value="pixelClipExtentArray[2] ?? 100"
-              label="ClipExtent Right (px)"
-              icon="ri-arrow-right-line"
-              size="xs"
-              :min="-500"
-              :max="500"
-              :step="1"
-              @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
-            />
-
-            <RangeSlider
-              :model-value="pixelClipExtentArray[3] ?? 100"
-              label="ClipExtent Bottom (px)"
-              icon="ri-arrow-down-line"
-              size="xs"
-              :min="-500"
-              :max="500"
-              :step="1"
-              @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
-            />
-
             <!-- Clip Angle (for azimuthal projections) -->
             <template v-if="hasClipAngleParameter">
               <RangeSlider
