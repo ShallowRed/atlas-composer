@@ -36,11 +36,7 @@
         "translateOffset": [
           100,
           -50
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },
@@ -88,11 +84,7 @@
         "translateOffset": [
           -240,
           140
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },
@@ -140,11 +132,7 @@
         "translateOffset": [
           -340,
           160
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },
@@ -184,11 +172,7 @@
         "translateOffset": [
           -140,
           200
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [
@@ -236,11 +220,7 @@
         "translateOffset": [
           100,
           200
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [
@@ -288,11 +268,7 @@
         "translateOffset": [
           120,
           190
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [
@@ -340,11 +316,7 @@
         "translateOffset": [
           -300,
           250
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [
@@ -392,11 +364,7 @@
         "translateOffset": [
           -200,
           280
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [
@@ -444,11 +412,7 @@
         "translateOffset": [
           -320,
           240
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1,
         "center": [

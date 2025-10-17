@@ -177,7 +177,6 @@ export function mergeParameters(
         center: params.center ? [...params.center] as [number, number] : merged.center,
         rotate: params.rotate ? [...params.rotate] as [number, number, number?] : merged.rotate,
         parallels: params.parallels ? [...params.parallels] as [number, number] : merged.parallels,
-        translate: params.translate ? [...params.translate] as [number, number] : merged.translate,
       }
     }, {} as ProjectionParameters)
 }

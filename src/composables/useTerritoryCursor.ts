@@ -2,7 +2,7 @@ import { select } from 'd3'
 import { computed, ref } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
-import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages territory cursor interaction for drag-to-move functionality
@@ -10,7 +10,7 @@ import { useTerritoryStore } from '@/stores/territory'
  */
 export function useTerritoryCursor() {
   const configStore = useConfigStore()
-  const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
   const geoDataStore = useGeoDataStore()
 
   // Drag state
@@ -193,10 +193,11 @@ export function useTerritoryCursor() {
     dragStartX.value = event.clientX
     dragStartY.value = event.clientY
 
-    // Get current territory offset
-    const currentTranslation = territoryStore.territoryTranslations[territoryCode]
-    dragStartOffsetX.value = currentTranslation?.x || 0
-    dragStartOffsetY.value = currentTranslation?.y || 0
+    // Get current territory offset from parameter store
+    const params = parameterStore.getEffectiveParameters(territoryCode)
+    const currentTranslateOffset = params.translateOffset || [0, 0]
+    dragStartOffsetX.value = currentTranslateOffset[0]
+    dragStartOffsetY.value = currentTranslateOffset[1]
 
     // Disable tooltips during drag by temporarily removing title attributes
     const target = event.target as Element
@@ -239,9 +240,8 @@ export function useTerritoryCursor() {
     const newOffsetX = dragStartOffsetX.value + dx
     const newOffsetY = dragStartOffsetY.value + dy
 
-    // Update territory store with new position
-    territoryStore.setTerritoryTranslation(dragTerritoryCode.value, 'x', newOffsetX)
-    territoryStore.setTerritoryTranslation(dragTerritoryCode.value, 'y', newOffsetY)
+    // Update parameter store with new position (this will update both sliders and rendering)
+    parameterStore.setTerritoryParameter(dragTerritoryCode.value, 'translateOffset', [newOffsetX, newOffsetY])
   }
 
   /**

@@ -245,52 +245,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  parameterRegistry.register({
-    key: 'translate',
-    displayName: 'Translation Adjustment',
-    description: 'Additional translation on top of layout position [x, y]',
-    type: 'tuple2',
-    unit: 'pixels',
-    source: 'preset',
-    mutable: true,
-    exportable: true,
-    requiresPreset: false,
-    familyConstraints: {
-      CYLINDRICAL: {
-        relevant: true,
-        required: false,
-        min: [-1000, -1000],
-        max: [1000, 1000],
-        step: 10,
-        defaultValue: [0, 0],
-      },
-      PSEUDOCYLINDRICAL: {
-        relevant: true,
-        required: false,
-        min: [-1000, -1000],
-        max: [1000, 1000],
-        step: 10,
-        defaultValue: [0, 0],
-      },
-      CONIC: {
-        relevant: true,
-        required: false,
-        min: [-1000, -1000],
-        max: [1000, 1000],
-        step: 10,
-        defaultValue: [0, 0],
-      },
-      AZIMUTHAL: {
-        relevant: true,
-        required: false,
-        min: [-1000, -1000],
-        max: [1000, 1000],
-        step: 10,
-        defaultValue: [0, 0],
-      },
-    },
-  })
-
   // Advanced parameters
 
   parameterRegistry.register({

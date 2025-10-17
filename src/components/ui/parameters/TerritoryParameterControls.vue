@@ -496,11 +496,11 @@ const {
               />
             </template>
 
-            <!-- Translate Control -->
+            <!-- Translate Offset Control -->
             <template v-if="hasTranslateParameter">
-              <!-- Translate X -->
+              <!-- Translate Offset X -->
               <RangeSlider
-                :model-value="effectiveParameters.translate?.[0] ?? 0"
+                :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
                 label="Translate X"
                 icon="ri-arrow-left-right-line"
                 size="xs"
@@ -509,14 +509,14 @@ const {
                 :step="10"
                 unit="px"
                 @update:model-value="(value: number) => {
-                  const currentTranslate = effectiveParameters.translate ?? [0, 0]
-                  handleParameterChange('translate', [value, currentTranslate[1]])
+                  const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
+                  handleParameterChange('translateOffset', [value, currentTranslateOffset[1]])
                 }"
               />
 
-              <!-- Translate Y -->
+              <!-- Translate Offset Y -->
               <RangeSlider
-                :model-value="effectiveParameters.translate?.[1] ?? 0"
+                :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
                 label="Translate Y"
                 icon="ri-arrow-up-down-line"
                 size="xs"
@@ -525,8 +525,8 @@ const {
                 :step="10"
                 unit="px"
                 @update:model-value="(value: number) => {
-                  const currentTranslate = effectiveParameters.translate ?? [0, 0]
-                  handleParameterChange('translate', [currentTranslate[0], value])
+                  const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
+                  handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
                 }"
               />
               <!-- Pixel-based ClipExtent Controls -->

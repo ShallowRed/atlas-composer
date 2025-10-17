@@ -263,9 +263,13 @@ export class PresetLoader {
         }
       }
 
-      // Convert pixelClipExtent from layout to parameter
+      // Convert layout properties to parameters
       if (territory.layout?.pixelClipExtent && Array.isArray(territory.layout.pixelClipExtent) && territory.layout.pixelClipExtent.length === 4) {
         territoryParams.pixelClipExtent = territory.layout.pixelClipExtent as [number, number, number, number]
+      }
+
+      if (territory.layout?.translateOffset && Array.isArray(territory.layout.translateOffset) && territory.layout.translateOffset.length === 2) {
+        territoryParams.translateOffset = territory.layout.translateOffset as [number, number]
       }
 
       result[territory.code] = territoryParams as ProjectionParameters

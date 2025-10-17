@@ -36,11 +36,7 @@
         "translateOffset": [
           0,
           0
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },
@@ -88,11 +84,7 @@
         "translateOffset": [
           -111,
           105
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },
@@ -140,11 +132,7 @@
         "translateOffset": [
           -189,
           -84
-        ],
-        "translate": [
-          0,
-          0
-        ],
+        ]
         "clipAngle": null,
         "precision": 0.1
       },

@@ -667,23 +667,22 @@ export class CompositeProjection {
     const epsilon = 1e-6
 
     this.subProjections.forEach((subProj) => {
-      // Get current translate parameter
+      // Get translateOffset from parameter provider (or fallback to stored config)
       const parameterProvider = this.parameterProvider
-      let parameterTranslate: [number, number] = [0, 0]
+      let translateOffset: [number, number] = subProj.translateOffset
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
-        if (params.translate) {
-          parameterTranslate = params.translate as [number, number]
+        if (params.translateOffset) {
+          translateOffset = params.translateOffset as [number, number]
         }
       }
 
       // All territories are positioned relative to the map center
       // Mainland has offset [0,0] or close to it, so it will be centered
       // Others have their configured offsets relative to center
-      // Add any parameter-based translate offset to the territory positioning
       const newTranslate: [number, number] = [
-        centerX + subProj.translateOffset[0] + parameterTranslate[0],
-        centerY + subProj.translateOffset[1] + parameterTranslate[1],
+        centerX + translateOffset[0],
+        centerY + translateOffset[1],
       ]
       subProj.projection.translate(newTranslate)
 

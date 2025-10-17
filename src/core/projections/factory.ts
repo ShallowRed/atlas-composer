@@ -438,11 +438,6 @@ export class ProjectionFactory {
       projection.scale(params.scale)
     }
 
-    // Apply translation
-    if (params.translate) {
-      projection.translate(params.translate)
-    }
-
     // Apply clip angle (for azimuthal projections)
     if (params.clipAngle && 'clipAngle' in projection) {
       ;(projection as any).clipAngle(params.clipAngle)
