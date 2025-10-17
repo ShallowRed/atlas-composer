@@ -20,6 +20,7 @@ export function useTerritoryCursor() {
   const dragStartY = ref(0)
   const dragStartOffsetX = ref(0)
   const dragStartOffsetY = ref(0)
+  const dragSvgElement = ref<SVGSVGElement | null>(null)
 
   // Hover state for visual feedback
   const hoveredTerritoryCode = ref<string | null>(null)
@@ -31,6 +32,19 @@ export function useTerritoryCursor() {
   const isDragEnabled = computed(() => {
     return configStore.viewMode === 'composite-custom'
   })
+
+  /**
+   * Get the scale factor between screen pixels and SVG canvas pixels
+   * This accounts for any CSS scaling or viewBox transformations
+   */
+  function getSVGScale(svg: SVGSVGElement): number {
+    const ctm = svg.getScreenCTM()
+    if (ctm) {
+      // The scale is the same in both x and y for uniform scaling
+      return Math.sqrt(ctm.a * ctm.a + ctm.b * ctm.b)
+    }
+    return 1
+  }
 
   /**
    * Update visual feedback for territory hover/drag states using D3.js
@@ -188,8 +202,19 @@ export function useTerritoryCursor() {
     if (!isTerritoryDraggable(territoryCode)) {
       return
     }
+
+    // Get SVG element and store it for coordinate conversion
+    const target = event.target as Element
+    const svg = target.closest('svg') as SVGSVGElement
+    if (!svg) {
+      return // Can't drag without SVG context
+    }
+
+    dragSvgElement.value = svg
     isDragging.value = true
     dragTerritoryCode.value = territoryCode
+
+    // Store screen coordinates (we'll account for scaling during movement)
     dragStartX.value = event.clientX
     dragStartY.value = event.clientY
 
@@ -200,17 +225,13 @@ export function useTerritoryCursor() {
     dragStartOffsetY.value = currentTranslateOffset[1]
 
     // Disable tooltips during drag by temporarily removing title attributes
-    const target = event.target as Element
     if (target && target.hasAttribute && target.hasAttribute('title')) {
       target.setAttribute('data-original-title', target.getAttribute('title') || '')
       target.removeAttribute('title')
     }
 
     // Apply drag visual feedback
-    const svg = target.closest('svg') as SVGSVGElement
-    if (svg) {
-      updateTerritoryVisualFeedback(svg, territoryCode, true)
-    }
+    updateTerritoryVisualFeedback(svg, territoryCode, true)
 
     // Set grabbing cursor on document body during drag
     document.body.style.cursor = 'grabbing'
@@ -229,14 +250,21 @@ export function useTerritoryCursor() {
    * Handle mouse move during drag
    */
   function handleMouseMove(event: MouseEvent) {
-    if (!isDragging.value || !dragTerritoryCode.value)
+    if (!isDragging.value || !dragTerritoryCode.value || !dragSvgElement.value)
       return
 
-    const dx = event.clientX - dragStartX.value
-    const dy = event.clientY - dragStartY.value
+    // Calculate screen pixel delta
+    const screenDx = event.clientX - dragStartX.value
+    const screenDy = event.clientY - dragStartY.value
 
-    // Pure 1:1 movement: CompositeProjection handles translateOffset directly as screen pixels
-    // No scaling needed - direct cursor movement to territory movement
+    // Get the scale factor to convert screen pixels to SVG canvas pixels
+    const scale = getSVGScale(dragSvgElement.value)
+
+    // Convert screen pixel movement to SVG canvas pixel movement
+    // translateOffset is in canvas pixels, so we divide by the scale
+    const dx = screenDx / scale
+    const dy = screenDy / scale
+
     const newOffsetX = dragStartOffsetX.value + dx
     const newOffsetY = dragStartOffsetY.value + dy
 
@@ -270,6 +298,7 @@ export function useTerritoryCursor() {
 
     isDragging.value = false
     dragTerritoryCode.value = null
+    dragSvgElement.value = null
 
     // Restore document cursor and text selection
     document.body.style.cursor = ''
