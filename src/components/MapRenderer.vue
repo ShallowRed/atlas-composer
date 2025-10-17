@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { getRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -77,6 +78,13 @@ const {
   createBorderZoneOverlays,
   cleanup: cleanupTerritoryCursor,
 } = useTerritoryCursor()
+
+// Clip extent editor composable for interactive corner dragging
+const {
+  renderClipExtentHandles,
+  toggleTerritorySelection,
+  cleanup: cleanupClipExtentEditor,
+} = useClipExtentEditor()
 
 // Check if current projection supports panning (rotateLongitude)
 const supportsPanning = computed(() => {
@@ -183,6 +191,7 @@ onUnmounted(() => {
     window.removeEventListener('mouseup', handleMouseUp)
   }
   cleanupTerritoryCursor()
+  cleanupClipExtentEditor()
 })
 
 // Use MapSizeCalculator service for size calculation
@@ -305,12 +314,26 @@ async function renderMap() {
 
         // Create border zone overlays for improved drag UX (custom composite mode only)
         if (props.mode === 'composite' && configStore.viewMode === 'composite-custom' && cartographer.value?.customComposite) {
-          createBorderZoneOverlays(svg, cartographer.value.customComposite, computedSize.value.width, computedSize.value.height)
+          createBorderZoneOverlays(
+            svg,
+            cartographer.value.customComposite,
+            computedSize.value.width,
+            computedSize.value.height,
+            (territoryCode) => {
+              // When a territory is clicked, toggle its selection for clip extent editing
+              toggleTerritorySelection(territoryCode)
+              // Re-render handles to show/hide them for the selected territory
+              renderClipExtentHandles(svg)
+            },
+          )
         }
         else {
           // Add territory event listeners for drag functionality (fallback for path-based dragging)
           setupTerritoryEventListeners(svg)
         }
+
+        // Render clip extent corner handles for interactive editing
+        renderClipExtentHandles(svg)
       }
 
       const { width, height } = computedSize.value

@@ -361,8 +361,15 @@ export function useTerritoryCursor() {
   /**
    * Create invisible border zone overlays for improved drag UX using D3.js
    * These zones match the composition borders and provide larger drag areas
+   * @param onTerritoryClick - Optional callback when a territory zone is clicked
    */
-  function createBorderZoneOverlays(svg: SVGSVGElement, customComposite: any, width: number, height: number) {
+  function createBorderZoneOverlays(
+    svg: SVGSVGElement,
+    customComposite: any,
+    width: number,
+    height: number,
+    onTerritoryClick?: (territoryCode: string) => void,
+  ) {
     if (!isDragEnabled.value || !customComposite)
       return
 
@@ -407,6 +414,12 @@ export function useTerritoryCursor() {
       .style('stroke', 'none')
       .style('pointer-events', 'auto')
       .style('cursor', (d: any) => getCursorStyle(d.territoryCode))
+      .on('click', (_event, d: any) => {
+        // Call the click callback if provided (for territory selection)
+        if (onTerritoryClick) {
+          onTerritoryClick(d.territoryCode)
+        }
+      })
       .on('mousedown', (event) => {
         handleTerritoryMouseDown(event as MouseEvent)
       })
