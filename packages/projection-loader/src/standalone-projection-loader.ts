@@ -125,19 +125,16 @@ export interface Territory {
 export interface ProjectionParameters {
   center?: [number, number]
   rotate?: [number, number, number]
-  // Legacy format support
-  scale?: number
-  baseScale?: number
   scaleMultiplier?: number
   parallels?: [number, number]
-  // Additional parameters from new format
   clipAngle?: number
   precision?: number
 }
 
 export interface Layout {
-  translateOffset?: [number, number] // Make optional for migration script format
-  clipExtent?: [[number, number], [number, number]] | null
+  translateOffset?: [number, number]
+  /** Pixel-based clip extent relative to territory center [x1, y1, x2, y2] */
+  pixelClipExtent?: [number, number, number, number] | null
 }
 
 /**
@@ -388,6 +385,7 @@ export function loadCompositeProjection(
   }
 
   // Add invert method (like Atlas Composer's CompositeProjection)
+  // Validates inverted coordinates against territory bounds to ensure correct territory match
   ;(compositeProjection as any).invert = (coordinates: [number, number]) => {
     if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
       return null
@@ -395,13 +393,38 @@ export function loadCompositeProjection(
 
     const [x, y] = coordinates
 
-    // Try each sub-projection's invert
-    for (const { projection } of subProjections) {
+    // Try each sub-projection's invert and validate against territory bounds
+    for (const { projection, bounds } of subProjections) {
       if ((projection as any).invert) {
         try {
           const result = (projection as any).invert([x, y])
           if (result && Array.isArray(result) && result.length >= 2) {
-            return result as [number, number]
+            const [lon, lat] = result
+
+            // Validate that the inverted coordinates fall within this territory's bounds
+            if (bounds && bounds.length === 2 && bounds[0].length === 2 && bounds[1].length === 2) {
+              const [[minLon, minLat], [maxLon, maxLat]] = bounds
+
+              // Check if coordinates are within bounds (with small tolerance for edge cases)
+              const tolerance = 0.01 // Small tolerance for floating point comparison
+              if (lon >= minLon - tolerance && lon <= maxLon + tolerance
+                && lat >= minLat - tolerance && lat <= maxLat + tolerance) {
+                if (debug) {
+                  console.log(`[Invert] Successfully inverted [${x}, ${y}] to [${lon}, ${lat}] (validated bounds)`)
+                }
+                return result as [number, number]
+              }
+              else if (debug) {
+                console.log(`[Invert] Rejected inversion [${lon}, ${lat}] - outside bounds ${JSON.stringify(bounds)}`)
+              }
+            }
+            else {
+              // If no bounds available, accept the first successful invert (legacy behavior)
+              if (debug) {
+                console.log(`[Invert] No bounds for validation, accepting [${lon}, ${lat}]`)
+              }
+              return result as [number, number]
+            }
           }
         }
         catch (error) {
@@ -413,6 +436,9 @@ export function loadCompositeProjection(
       }
     }
 
+    if (debug) {
+      console.log(`[Invert] Failed to invert coordinates [${x}, ${y}]`)
+    }
     return null
   }
 
@@ -495,18 +521,11 @@ function createSubProjection(
     projection.parallels(parallels)
   }
 
-  // Handle scale - support both legacy (scale) and new (scaleMultiplier + referenceScale) formats
-  if (projection.scale) {
-    if (parameters.scale) {
-      // Legacy format: use direct scale value
-      projection.scale(parameters.scale)
-    }
-    else if (parameters.scaleMultiplier) {
-      // New format: calculate scale from reference scale and multiplier
-      const effectiveReferenceScale = referenceScale || 2700 // Default reference scale
-      const calculatedScale = effectiveReferenceScale * parameters.scaleMultiplier
-      projection.scale(calculatedScale)
-    }
+  // Handle scale using scaleMultiplier and referenceScale
+  if (projection.scale && parameters.scaleMultiplier) {
+    const effectiveReferenceScale = referenceScale || 2700 // Default reference scale
+    const calculatedScale = effectiveReferenceScale * parameters.scaleMultiplier
+    projection.scale(calculatedScale)
   }
 
   // Apply additional parameters
@@ -529,31 +548,30 @@ function createSubProjection(
 
   // Apply clipping - this is CRITICAL for composite projections
   // Each sub-projection MUST have clipping to avoid geometry processing conflicts
-  if (layout.clipExtent && projection.clipExtent) {
-    // Like Atlas Composer: clipExtent is relative to the main projection coordinate system
-    // Get the reference scale (use same as Atlas Composer does)
-    const effectiveReferenceScale = referenceScale || 2700
-    const centerX = width / 2
-    const centerY = height / 2
+  if (layout.pixelClipExtent && projection.clipExtent) {
+    // pixelClipExtent is in pixel coordinates relative to territory center
+    // Format: [x1, y1, x2, y2] as direct pixel offsets
+    const [x1, y1, x2, y2] = layout.pixelClipExtent
+    const epsilon = 1e-6 // Small value for padding
 
-    // Apply Atlas Composer's approach: clipExtent values are multiplied by reference scale
-    // and positioned relative to map center, with small epsilon for padding
-    const [[x1, y1], [x2, y2]] = layout.clipExtent
-    const epsilon = 1e-6 // Small value for padding, matching d3-composite-projections
+    // Get territory center from translate
+    const territoryCenter = projection.translate?.() || [width / 2, height / 2]
 
-    const transformedClipExtent: [[number, number], [number, number]] = [
-      [centerX + x1 * effectiveReferenceScale + epsilon, centerY + y1 * effectiveReferenceScale + epsilon],
-      [centerX + x2 * effectiveReferenceScale - epsilon, centerY + y2 * effectiveReferenceScale - epsilon],
+    const pixelClipExtent: [[number, number], [number, number]] = [
+      [territoryCenter[0] + x1 + epsilon, territoryCenter[1] + y1 + epsilon],
+      [territoryCenter[0] + x2 - epsilon, territoryCenter[1] + y2 - epsilon],
     ]
 
-    projection.clipExtent(transformedClipExtent)
+    projection.clipExtent(pixelClipExtent)
     if (debug) {
-      console.log(`[Clipping] Applied Atlas Composer-style clip extent for ${territory.code}:`, `original: ${JSON.stringify(layout.clipExtent)} -> transformed: ${JSON.stringify(transformedClipExtent)}`)
+      console.log(
+        `[Clipping] Applied pixelClipExtent for ${territory.code}:`,
+        `original: [${x1}, ${y1}, ${x2}, ${y2}] -> transformed: ${JSON.stringify(pixelClipExtent)}`,
+      )
     }
   }
   else if (projection.clipExtent) {
     // If no clip extent is specified, create a default one based on territory bounds
-    // This prevents the projection from processing geometry outside its area
     const bounds = territory.bounds
     if (bounds && bounds.length === 2 && bounds[0].length === 2 && bounds[1].length === 2) {
       // Convert geographic bounds to pixel bounds (approximate)
@@ -561,7 +579,6 @@ function createSubProjection(
       const translate = projection.translate?.() || [0, 0]
 
       // Create a reasonable clip extent based on the geographic bounds
-      // This is a simplified approach - in practice, you'd want more precise clipping
       const padding = scale * 0.1 // 10% padding
       const clipExtent: [[number, number], [number, number]] = [
         [translate[0] - padding, translate[1] - padding],

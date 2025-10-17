@@ -19,66 +19,9 @@ describe('standalone-projection-loader', () => {
   beforeAll(() => {
     registerProjections(d3ProjectionFactories)
   })
-  // Mock configuration
-  const mockConfig: ExportedConfig = {
-    version: '1.0',
-    metadata: {
-      atlasId: 'france',
-      atlasName: 'France',
-    },
-    pattern: 'single-focus',
-    referenceScale: 2700,
-    territories: [
-      {
-        code: 'FR-MET',
-        name: 'France Métropolitaine',
-        role: 'primary',
-        projectionId: 'conic-conformal',
-        projectionFamily: 'CONIC',
-        parameters: {
-          center: [0, 0],
-          rotate: [-3, -46.2, 0],
-          scale: 2700,
-          baseScale: 2700,
-          scaleMultiplier: 1,
-          parallels: [-2, 2],
-        },
-        layout: {
-          translateOffset: [0, 0],
-          clipExtent: null,
-        },
-        bounds: [
-          [-5, 41],
-          [10, 51],
-        ],
-      },
-      {
-        code: 'FR-GP',
-        name: 'Guadeloupe',
-        role: 'secondary',
-        projectionId: 'mercator',
-        projectionFamily: 'CYLINDRICAL',
-        parameters: {
-          center: [-61.46, 16.14],
-          rotate: [0, 0, 0],
-          scale: 5292,
-          baseScale: 3780,
-          scaleMultiplier: 1.4,
-        },
-        layout: {
-          translateOffset: [-324, -38],
-          clipExtent: null,
-        },
-        bounds: [
-          [-61.81, 15.83],
-          [-61, 16.52],
-        ],
-      },
-    ],
-  }
 
-  // Mock configuration for new preset format
-  const mockNewFormatConfig = {
+  // Mock configuration (current format only - Atlas composer 2.0+)
+  const mockConfig: ExportedConfig = {
     version: '1.0',
     metadata: {
       atlasId: 'france',
@@ -101,30 +44,47 @@ describe('standalone-projection-loader', () => {
           id: 'conic-conformal',
           family: 'CONIC',
           parameters: {
-            rotate: [-3, -46.2, 0] as [number, number, number],
-            parallels: [0, 60] as [number, number],
+            rotate: [-3, -46.2, 0],
+            parallels: [0, 60],
             scaleMultiplier: 1,
           },
         },
         layout: {
-          translateOffset: [0, 0] as [number, number],
-          clipExtent: null,
+          translateOffset: [0, 0],
+          pixelClipExtent: null,
         },
         bounds: [
           [-6.5, 41],
           [10, 51.5],
-        ] as [[number, number], [number, number]],
+        ],
+      },
+      {
+        code: 'FR-GP',
+        name: 'Guadeloupe',
+        role: 'secondary',
+        projection: {
+          id: 'mercator',
+          family: 'CYLINDRICAL',
+          parameters: {
+            center: [-61.46, 16.14],
+            scaleMultiplier: 1.4,
+          },
+        },
+        layout: {
+          translateOffset: [-324, -38],
+          pixelClipExtent: [-54, -48, 55, 38],
+        },
+        bounds: [
+          [-61.81, 15.83],
+          [-61, 16.52],
+        ],
       },
     ],
   }
 
   describe('validateConfig', () => {
-    it('should validate a correct configuration (legacy format)', () => {
+    it('should validate a correct configuration', () => {
       expect(() => validateConfig(mockConfig)).not.toThrow()
-    })
-
-    it('should validate a correct configuration (new format)', () => {
-      expect(() => validateConfig(mockNewFormatConfig)).not.toThrow()
     })
 
     it('should reject null/undefined', () => {
@@ -162,20 +122,8 @@ describe('standalone-projection-loader', () => {
   })
 
   describe('loadCompositeProjection', () => {
-    it('should create a projection from valid configuration (legacy format)', () => {
+    it('should create a projection from valid configuration', () => {
       const projection = loadCompositeProjection(mockConfig, {
-        width: 800,
-        height: 600,
-      })
-
-      expect(projection).toBeDefined()
-      expect(typeof projection).toBe('function')
-      expect(projection.scale).toBeDefined()
-      expect(projection.translate).toBeDefined()
-    })
-
-    it('should create a projection from valid configuration (new format)', () => {
-      const projection = loadCompositeProjection(mockNewFormatConfig, {
         width: 800,
         height: 600,
       })
@@ -193,29 +141,14 @@ describe('standalone-projection-loader', () => {
       ).toThrow('Unsupported configuration version')
     })
 
-    it('should reject unregistered projection IDs (legacy format)', () => {
+    it('should reject unregistered projection IDs', () => {
       const invalid = {
         ...mockConfig,
         territories: [
           {
             ...mockConfig.territories[0]!,
-            projectionId: 'unknown-projection',
-          },
-        ],
-      }
-      expect(() =>
-        loadCompositeProjection(invalid as any, { width: 800, height: 600 }),
-      ).toThrow('is not registered')
-    })
-
-    it('should reject unregistered projection IDs (new format)', () => {
-      const invalid = {
-        ...mockNewFormatConfig,
-        territories: [
-          {
-            ...mockNewFormatConfig.territories[0]!,
             projection: {
-              ...mockNewFormatConfig.territories[0]!.projection,
+              ...mockConfig.territories[0]!.projection,
               id: 'unknown-projection',
             },
           },
@@ -306,11 +239,6 @@ describe('standalone-projection-loader', () => {
       expect(typeof projection.scale).toBe('function')
       expect(projection.translate).toBeDefined()
       expect(typeof projection.translate).toBe('function')
-
-      // Note: The scale/translate getter/setter pattern is complex to test
-      // due to how D3 projections chain methods. The important thing is
-      // that these methods exist and can be called for configuration.
-      // The actual projection functionality is tested in other tests.
     })
 
     it('should have stream method for geometry', () => {
@@ -336,6 +264,143 @@ describe('standalone-projection-loader', () => {
       if (projection.stream) {
         const stream = projection.stream(mockStream)
         expect(stream).toBeDefined()
+      }
+    })
+  })
+
+  describe('pixelClipExtent support', () => {
+    it('should handle pixelClipExtent format', () => {
+      const configWithPixelClipExtent = {
+        version: '1.0',
+        metadata: {
+          atlasId: 'test',
+          atlasName: 'Test',
+        },
+        pattern: 'single-focus',
+        referenceScale: 2700,
+        territories: [
+          {
+            code: 'TEST',
+            name: 'Test Territory',
+            role: 'primary',
+            projection: {
+              id: 'mercator',
+              family: 'CYLINDRICAL',
+              parameters: {
+                center: [0, 0] as [number, number],
+                scaleMultiplier: 1,
+              },
+            },
+            layout: {
+              translateOffset: [0, 0] as [number, number],
+              pixelClipExtent: [-100, -100, 100, 100] as [number, number, number, number],
+            },
+            bounds: [
+              [-10, -10],
+              [10, 10],
+            ] as [[number, number], [number, number]],
+          },
+        ],
+      }
+
+      const projection = loadCompositeProjection(configWithPixelClipExtent, {
+        width: 800,
+        height: 600,
+      })
+
+      expect(projection).toBeDefined()
+      expect(typeof projection).toBe('function')
+    })
+
+    it('should handle null pixelClipExtent (fallback to default bounds)', () => {
+      const configWithNullClipExtent = {
+        version: '1.0',
+        metadata: {
+          atlasId: 'test',
+          atlasName: 'Test',
+        },
+        pattern: 'single-focus',
+        referenceScale: 2700,
+        territories: [
+          {
+            code: 'TEST',
+            name: 'Test Territory',
+            role: 'primary',
+            projection: {
+              id: 'mercator',
+              family: 'CYLINDRICAL',
+              parameters: {
+                center: [0, 0] as [number, number],
+                scaleMultiplier: 1,
+              },
+            },
+            layout: {
+              translateOffset: [0, 0] as [number, number],
+              pixelClipExtent: null,
+            },
+            bounds: [
+              [-10, -10],
+              [10, 10],
+            ] as [[number, number], [number, number]],
+          },
+        ],
+      }
+
+      const projection = loadCompositeProjection(configWithNullClipExtent, {
+        width: 800,
+        height: 600,
+      })
+
+      expect(projection).toBeDefined()
+    })
+  })
+
+  describe('inversion with bounds validation', () => {
+    it('should validate inverted coordinates against territory bounds', () => {
+      const projection = loadCompositeProjection(mockConfig, {
+        width: 800,
+        height: 600,
+      })
+
+      // Test with coordinates that should invert to France
+      const parisCoords = projection([2.35, 48.85]) // Paris
+      if (parisCoords && (projection as any).invert) {
+        const inverted = (projection as any).invert(parisCoords)
+        expect(inverted).toBeDefined()
+        expect(Array.isArray(inverted)).toBe(true)
+        if (inverted) {
+          // Should be close to original coordinates
+          expect(Math.abs(inverted[0] - 2.35)).toBeLessThan(0.1)
+          expect(Math.abs(inverted[1] - 48.85)).toBeLessThan(0.1)
+        }
+      }
+    })
+
+    it('should return null for coordinates that cannot be inverted', () => {
+      const projection = loadCompositeProjection(mockConfig, {
+        width: 800,
+        height: 600,
+      })
+
+      if ((projection as any).invert) {
+        // Coordinates far outside any territory
+        const result = (projection as any).invert([10000, 10000])
+        expect(result).toBeNull()
+      }
+    })
+
+    it('should handle inversion with debug mode', () => {
+      const projection = loadCompositeProjection(mockConfig, {
+        width: 800,
+        height: 600,
+        debug: true,
+      })
+
+      const coords = projection([2.35, 48.85])
+      if (coords && (projection as any).invert) {
+        // Should not throw and should log debug info
+        const inverted = (projection as any).invert(coords)
+        expect(inverted).toBeDefined()
       }
     })
   })

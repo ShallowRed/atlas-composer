@@ -4,7 +4,7 @@
 
 A lightweight, framework-agnostic library for loading composite map projections exported from [Atlas composer](https://github.com/ShallowRed/atlas-composer). Features a plugin architecture that lets you register only the projections you need.
 
-**✨ NEW**: Now supports the updated preset format from Atlas composer 2.0+ with backward compatibility for legacy exports.
+**✨ Latest**: Fully aligned with Atlas composer 2.0+ preset format including `pixelClipExtent` support.
 
 ## Features
 
@@ -88,53 +88,50 @@ const projection = loadCompositeProjection(config, { width: 800, height: 600 })
 
 **Result**: ~6KB instead of ~100KB (94% reduction) 🎉
 
-## Configuration Format Support
+## Configuration Format
 
-The loader supports multiple configuration formats for maximum compatibility:
+Supports the Atlas composer 2.0+ export format:
 
-### New Format (Atlas composer 2.0+)
 ```json
 {
   "version": "1.0",
-  "metadata": { "atlasId": "france", "atlasName": "France" },
+  "metadata": {
+    "atlasId": "france",
+    "atlasName": "France",
+    "exportDate": "2025-10-16T16:00:00.000Z",
+    "createdWith": "atlas-composer"
+  },
   "pattern": "single-focus",
   "referenceScale": 2700,
+  "canvasDimensions": { "width": 960, "height": 500 },
   "territories": [
     {
       "code": "FR-MET",
+      "name": "France Métropolitaine",
+      "role": "primary",
       "projection": {
         "id": "conic-conformal",
         "family": "CONIC",
         "parameters": {
           "rotate": [-3, -46.2, 0],
+          "parallels": [0, 60],
           "scaleMultiplier": 1
         }
       },
-      "layout": { "translateOffset": [0, 0] }
+      "layout": {
+        "translateOffset": [0, 0],
+        "pixelClipExtent": [-268.92, -245.16, 260.99, 324]
+      },
+      "bounds": [[-6.5, 41], [10, 51.5]]
     }
   ]
 }
 ```
 
-### Legacy Format (Atlas composer 1.x)
-```json
-{
-  "version": "1.0",
-  "territories": [
-    {
-      "code": "FR-MET",
-      "projectionId": "conic-conformal",
-      "parameters": {
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-      }
-    }
-  ]
-}
-```
-
-The loader automatically detects and handles both formats seamlessly.
+### Key Features:
+- **`pixelClipExtent`**: Direct pixel coordinates `[x1, y1, x2, y2]` relative to territory center
+- **`scaleMultiplier`**: Scale factor applied to `referenceScale`
+- **Nested projection structure**: `projection.id`, `projection.family`, `projection.parameters`
 
 ## Observable Plot Integration
 
@@ -381,7 +378,7 @@ Clear all registered projections.
 
 Validate a configuration object. Throws descriptive errors if invalid.
 
-## Configuration Format
+## TypeScript Types
 
 Exported configurations follow this structure:
 
@@ -391,9 +388,13 @@ interface ExportedConfig {
   metadata: {
     atlasId: string
     atlasName: string
+    exportDate?: string
+    createdWith?: string
+    notes?: string
   }
   pattern: 'single-focus' | 'equal-members'
   referenceScale: number
+  canvasDimensions?: { width: number, height: number }
   territories: Territory[]
 }
 
@@ -401,21 +402,27 @@ interface Territory {
   code: string
   name: string
   role: 'primary' | 'secondary' | 'member'
-  projectionId: string
-  projectionFamily: string
-  parameters: {
-    center?: [number, number]
-    rotate?: [number, number, number]
-    parallels?: [number, number]
-    scale: number
-    baseScale: number
-    scaleMultiplier: number
+  projection: {
+    id: string
+    family: string
+    parameters: ProjectionParameters
   }
-  layout: {
-    translateOffset: [number, number]
-    clipExtent: [[number, number], [number, number]] | null
-  }
+  layout: Layout
   bounds: [[number, number], [number, number]]
+}
+
+interface ProjectionParameters {
+  center?: [number, number]
+  rotate?: [number, number, number]
+  scaleMultiplier?: number
+  parallels?: [number, number]
+  clipAngle?: number
+  precision?: number
+}
+
+interface Layout {
+  translateOffset?: [number, number]
+  pixelClipExtent?: [number, number, number, number] | null
 }
 ```
 
