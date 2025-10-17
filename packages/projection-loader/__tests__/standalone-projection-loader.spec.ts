@@ -77,9 +77,54 @@ describe('standalone-projection-loader', () => {
     ],
   }
 
+  // Mock configuration for new preset format
+  const mockNewFormatConfig = {
+    version: '1.0',
+    metadata: {
+      atlasId: 'france',
+      atlasName: 'France',
+      exportDate: '2025-10-16T16:00:00.000Z',
+      createdWith: 'atlas-composer',
+    },
+    pattern: 'single-focus',
+    referenceScale: 2700,
+    canvasDimensions: {
+      width: 960,
+      height: 500,
+    },
+    territories: [
+      {
+        code: 'FR-MET',
+        name: 'France Métropolitaine',
+        role: 'primary',
+        projection: {
+          id: 'conic-conformal',
+          family: 'CONIC',
+          parameters: {
+            rotate: [-3, -46.2, 0] as [number, number, number],
+            parallels: [0, 60] as [number, number],
+            scaleMultiplier: 1,
+          },
+        },
+        layout: {
+          translateOffset: [0, 0] as [number, number],
+          clipExtent: null,
+        },
+        bounds: [
+          [-6.5, 41],
+          [10, 51.5],
+        ] as [[number, number], [number, number]],
+      },
+    ],
+  }
+
   describe('validateConfig', () => {
-    it('should validate a correct configuration', () => {
+    it('should validate a correct configuration (legacy format)', () => {
       expect(() => validateConfig(mockConfig)).not.toThrow()
+    })
+
+    it('should validate a correct configuration (new format)', () => {
+      expect(() => validateConfig(mockNewFormatConfig)).not.toThrow()
     })
 
     it('should reject null/undefined', () => {
@@ -112,13 +157,25 @@ describe('standalone-projection-loader', () => {
         ...mockConfig,
         territories: [{ name: 'Test' }],
       }
-      expect(() => validateConfig(invalid)).toThrow('missing required fields')
+      expect(() => validateConfig(invalid)).toThrow('missing required field')
     })
   })
 
   describe('loadCompositeProjection', () => {
-    it('should create a projection from valid configuration', () => {
+    it('should create a projection from valid configuration (legacy format)', () => {
       const projection = loadCompositeProjection(mockConfig, {
+        width: 800,
+        height: 600,
+      })
+
+      expect(projection).toBeDefined()
+      expect(typeof projection).toBe('function')
+      expect(projection.scale).toBeDefined()
+      expect(projection.translate).toBeDefined()
+    })
+
+    it('should create a projection from valid configuration (new format)', () => {
+      const projection = loadCompositeProjection(mockNewFormatConfig, {
         width: 800,
         height: 600,
       })
@@ -136,13 +193,31 @@ describe('standalone-projection-loader', () => {
       ).toThrow('Unsupported configuration version')
     })
 
-    it('should reject unregistered projection IDs', () => {
+    it('should reject unregistered projection IDs (legacy format)', () => {
       const invalid = {
         ...mockConfig,
         territories: [
           {
             ...mockConfig.territories[0]!,
             projectionId: 'unknown-projection',
+          },
+        ],
+      }
+      expect(() =>
+        loadCompositeProjection(invalid as any, { width: 800, height: 600 }),
+      ).toThrow('is not registered')
+    })
+
+    it('should reject unregistered projection IDs (new format)', () => {
+      const invalid = {
+        ...mockNewFormatConfig,
+        territories: [
+          {
+            ...mockNewFormatConfig.territories[0]!,
+            projection: {
+              ...mockNewFormatConfig.territories[0]!.projection,
+              id: 'unknown-projection',
+            },
           },
         ],
       }

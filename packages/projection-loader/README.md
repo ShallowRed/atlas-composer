@@ -2,7 +2,9 @@
 
 > Zero-dependency standalone loader for composite map projections with plugin architecture
 
-A lightweight, framework-agnostic library for loading composite map projections exported from [Atlas composer](https://github.com/ShallowRed/atlas-composer). Features a plugin architecture that lets you register only the projections you need, achieving **94% smaller bundle sizes** compared to including all D3 projections.
+A lightweight, framework-agnostic library for loading composite map projections exported from [Atlas composer](https://github.com/ShallowRed/atlas-composer). Features a plugin architecture that lets you register only the projections you need.
+
+**✨ NEW**: Now supports the updated preset format from Atlas composer 2.0+ with backward compatibility for legacy exports.
 
 ## Features
 
@@ -85,6 +87,54 @@ const projection = loadCompositeProjection(config, { width: 800, height: 600 })
 ```
 
 **Result**: ~6KB instead of ~100KB (94% reduction) 🎉
+
+## Configuration Format Support
+
+The loader supports multiple configuration formats for maximum compatibility:
+
+### New Format (Atlas composer 2.0+)
+```json
+{
+  "version": "1.0",
+  "metadata": { "atlasId": "france", "atlasName": "France" },
+  "pattern": "single-focus",
+  "referenceScale": 2700,
+  "territories": [
+    {
+      "code": "FR-MET",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [-3, -46.2, 0],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": { "translateOffset": [0, 0] }
+    }
+  ]
+}
+```
+
+### Legacy Format (Atlas composer 1.x)
+```json
+{
+  "version": "1.0",
+  "territories": [
+    {
+      "code": "FR-MET",
+      "projectionId": "conic-conformal",
+      "parameters": {
+        "scale": 2700,
+        "baseScale": 2700,
+        "scaleMultiplier": 1
+      }
+    }
+  ]
+}
+```
+
+The loader automatically detects and handles both formats seamlessly.
 
 ## Observable Plot Integration
 

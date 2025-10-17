@@ -16,7 +16,8 @@
   },
   "availablePresets": [
     "france-default",
-    "france-test"
+    "france-test",
+    "france-nsp"
   ],
   "defaultPreset": "france-default",
   "defaultTerritoryMode": "metropole-drom-com",
@@ -383,6 +384,22 @@
         "FR-GP",
         "FR-MQ",
         "FR-YT"
+      ]
+    },
+    {
+      "id": "nsp",
+      "label": {
+        "en": "NSP",
+        "fr": "NSP"
+      },
+      "territories": [
+        "FR-MET",
+        "FR-GF",
+        "FR-RE",
+        "FR-GP",
+        "FR-MQ",
+        "FR-YT",
+        "FR-PM"
       ]
     },
     {

@@ -56,6 +56,10 @@ export interface ProjectionLike {
     (): [[number, number], [number, number]] | null
     (extent: [[number, number], [number, number]] | null): ProjectionLike
   }
+  clipAngle?: {
+    (): number
+    (angle: number): ProjectionLike
+  }
   stream?: (stream: StreamLike) => StreamLike
   precision?: {
     (): number
@@ -92,9 +96,16 @@ export interface ExportedConfig {
   metadata: {
     atlasId: string
     atlasName: string
+    exportDate?: string
+    createdWith?: string
+    notes?: string
   }
   pattern: string
-  referenceScale: number
+  referenceScale?: number
+  canvasDimensions?: {
+    width: number
+    height: number
+  }
   territories: Territory[]
 }
 
@@ -102,9 +113,15 @@ export interface Territory {
   code: string
   name: string
   role: string
-  projectionId: string
-  projectionFamily: string
-  parameters: ProjectionParameters
+  // Support multiple formats
+  projectionId?: string // Legacy format
+  projectionFamily?: string // Migration script format
+  projection?: {
+    id: string
+    family: string
+    parameters: ProjectionParameters
+  } // New format
+  parameters?: ProjectionParameters // Used in legacy and migration formats
   layout: Layout
   bounds: [[number, number], [number, number]]
 }
@@ -112,15 +129,20 @@ export interface Territory {
 export interface ProjectionParameters {
   center?: [number, number]
   rotate?: [number, number, number]
-  scale: number
-  baseScale: number
-  scaleMultiplier: number
+  // Legacy format support
+  scale?: number
+  baseScale?: number
+  scaleMultiplier?: number
   parallels?: [number, number]
+  // Additional parameters from new format
+  translate?: [number, number]
+  clipAngle?: number
+  precision?: number
 }
 
 export interface Layout {
-  translateOffset: [number, number]
-  clipExtent: [[number, number], [number, number]] | null
+  translateOffset?: [number, number] // Make optional for migration script format
+  clipExtent?: [[number, number], [number, number]] | null
 }
 
 /**
@@ -225,49 +247,6 @@ export function isProjectionRegistered(id: string): boolean {
  * Create a minimal projection wrapper (similar to d3.geoProjection)
  * This allows us to avoid the d3-geo dependency
  */
-function createProjectionWrapper(
-  project: (lambda: number, phi: number) => [number, number] | null,
-): ProjectionLike {
-  let _scale = 150
-  let _translate: [number, number] = [480, 250]
-
-  const projection: any = function (coordinates: [number, number]): [number, number] | null {
-    const point = project(coordinates[0] * Math.PI / 180, coordinates[1] * Math.PI / 180)
-    if (!point)
-      return null
-    return [point[0] * _scale + _translate[0], point[1] * _scale + _translate[1]]
-  }
-
-  // D3-style getter/setter for scale
-  Object.defineProperty(projection, 'scale', {
-    value(...args: any[]): any {
-      if (args.length > 0) {
-        _scale = args[0]
-        return projection
-      }
-      return _scale
-    },
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  })
-
-  // D3-style getter/setter for translate
-  Object.defineProperty(projection, 'translate', {
-    value(...args: any[]): any {
-      if (args.length > 0) {
-        _translate = args[0]
-        return projection
-      }
-      return _translate
-    },
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  })
-
-  return projection as ProjectionLike
-}
 
 /**
  * Create a D3-compatible projection from an exported composite projection configuration
@@ -319,7 +298,7 @@ export function loadCompositeProjection(
 
   // Create sub-projections for each territory
   const subProjections = config.territories.map((territory) => {
-    const proj = createSubProjection(territory, width, height)
+    const proj = createSubProjection(territory, width, height, config.referenceScale, debug)
 
     return {
       territory,
@@ -335,146 +314,154 @@ export function loadCompositeProjection(
     })
   }
 
-  // Create composite projection using custom stream multiplexing
-  const compositeProjection = createProjectionWrapper((lambda: number, phi: number) => {
-    // Convert radians to degrees for bounds checking
-    const lon = (lambda * 180) / Math.PI
-    const lat = (phi * 180) / Math.PI
+  // Point capture mechanism (like Atlas Composer's CompositeProjection)
+  let capturedPoint: [number, number] | null = null
+  const pointStream = {
+    point: (x: number, y: number) => {
+      capturedPoint = [x, y]
+    },
+    lineStart: () => {},
+    lineEnd: () => {},
+    polygonStart: () => {},
+    polygonEnd: () => {},
+    sphere: () => {},
+  }
 
-    // Find which territory this point belongs to
-    let selectedProj = null
-    for (const { projection, bounds } of subProjections) {
-      if (
-        lon >= bounds[0][0] && lon <= bounds[1][0]
-        && lat >= bounds[0][1] && lat <= bounds[1][1]
-      ) {
-        selectedProj = projection
-        break
+  // Create point capture for each sub-projection
+  const subProjPoints = subProjections.map(subProj => ({
+    subProj: {
+      territoryCode: subProj.territory.code,
+      territoryName: subProj.territory.name,
+      bounds: subProj.bounds,
+      projection: subProj.projection,
+    },
+    stream: subProj.projection.stream(pointStream),
+  }))
+
+  // Main projection function (like Atlas Composer's CompositeProjection)
+  const compositeProjection = (coordinates: [number, number]): [number, number] | null => {
+    const [lon, lat] = coordinates
+
+    capturedPoint = null
+
+    // Try each sub-projection's bounds
+    for (const { subProj, stream } of subProjPoints) {
+      if (subProj.bounds) {
+        const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
+
+        if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
+          // Project through stream (offset already applied in projection.translate)
+          stream.point(lon, lat)
+
+          if (capturedPoint) {
+            return capturedPoint
+          }
+        }
       }
     }
 
-    // If no territory matched, use first projection (fallback)
-    if (!selectedProj && subProjections[0]) {
-      selectedProj = subProjections[0].projection
-    }
+    // No match found
+    return null
+  }
 
-    // Project the point (should always have a projection by this point)
-    return selectedProj!([lambda, phi])
-  })
-
-  // Implement stream multiplexing for proper geometry routing
-  compositeProjection.stream = function (stream: StreamLike): StreamLike {
-    let activeStream: StreamLike | null = null
-    let bufferedPoints: Array<[number, number]> = []
-    let activeTerritoryCode = ''
-
+  // Multiplex stream (like Atlas Composer's CompositeProjection)
+  ;(compositeProjection as any).stream = (stream: any) => {
+    const streams = subProjections.map(sp => sp.projection.stream(stream))
     return {
-      point(lon: number, lat: number) {
-        // Buffer points until we can determine which territory they belong to
-        bufferedPoints.push([lon, lat])
-
-        // If we have an active stream, forward the point
-        if (activeStream) {
-          const lonDeg = (lon * 180) / Math.PI
-          const latDeg = (lat * 180) / Math.PI
-
-          if (debug) {
-            console.log(`[Stream] Point: [${lonDeg.toFixed(2)}, ${latDeg.toFixed(2)}] → ${activeTerritoryCode}`)
-          }
-
-          activeStream.point(lon, lat)
+      point: (x: number, y: number) => {
+        for (const s of streams) s.point(x, y)
+      },
+      sphere: () => {
+        for (const s of streams) {
+          if (s.sphere)
+            s.sphere()
         }
       },
-
-      lineStart() {
-        // Determine which territory this line belongs to
-        if (bufferedPoints.length > 0 && bufferedPoints[0]) {
-          const [lon, lat] = bufferedPoints[0]
-          const lonDeg = (lon * 180) / Math.PI
-          const latDeg = (lat * 180) / Math.PI
-
-          // Find matching territory
-          for (const { territory, projection, bounds } of subProjections) {
-            if (
-              lonDeg >= bounds[0][0] && lonDeg <= bounds[1][0]
-              && latDeg >= bounds[0][1] && latDeg <= bounds[1][1]
-            ) {
-              // Use the projection's stream if available
-              if (projection.stream) {
-                activeStream = projection.stream(stream)
-                activeTerritoryCode = territory.code
-              }
-
-              if (debug) {
-                console.log(`[Stream] Line started in territory: ${territory.code}`)
-              }
-              break
-            }
-          }
-
-          // Fallback to first projection
-          if (!activeStream && subProjections[0]) {
-            const firstProj = subProjections[0].projection
-            if (firstProj.stream) {
-              activeStream = firstProj.stream(stream)
-              activeTerritoryCode = subProjections[0].territory.code
-            }
-
-            if (debug) {
-              console.log(`[Stream] Line started (fallback): ${activeTerritoryCode}`)
-            }
-          }
-        }
-
-        if (activeStream) {
-          activeStream.lineStart()
-
-          // Replay buffered points
-          for (const [lon, lat] of bufferedPoints) {
-            activeStream.point(lon, lat)
-          }
-        }
-
-        bufferedPoints = []
+      lineStart: () => {
+        for (const s of streams) s.lineStart()
       },
-
-      lineEnd() {
-        if (activeStream) {
-          activeStream.lineEnd()
-        }
+      lineEnd: () => {
+        for (const s of streams) s.lineEnd()
       },
-
-      polygonStart() {
-        bufferedPoints = []
-        activeStream = null
+      polygonStart: () => {
+        for (const s of streams) s.polygonStart()
       },
-
-      polygonEnd() {
-        if (activeStream) {
-          activeStream.polygonEnd()
-        }
-        activeStream = null
-      },
-
-      sphere() {
-        // Not supported in composite projections
-        if (debug) {
-          console.warn('[Stream] sphere() called - not supported in composite projections')
-        }
+      polygonEnd: () => {
+        for (const s of streams) s.polygonEnd()
       },
     }
   }
 
-  // Set reasonable defaults for the composite projection
-  // Note: Individual territories handle their own scale/translate
-  if (compositeProjection.scale) {
-    compositeProjection.scale(1)
-  }
-  if (compositeProjection.translate) {
-    compositeProjection.translate([width / 2, height / 2])
+  // Add invert method (like Atlas Composer's CompositeProjection)
+  ;(compositeProjection as any).invert = (coordinates: [number, number]) => {
+    if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
+      return null
+    }
+
+    const [x, y] = coordinates
+
+    // Try each sub-projection's invert
+    for (const { projection } of subProjections) {
+      if ((projection as any).invert) {
+        try {
+          const result = (projection as any).invert([x, y])
+          if (result && Array.isArray(result) && result.length >= 2) {
+            return result as [number, number]
+          }
+        }
+        catch (error) {
+          // Continue to next projection
+          if (debug) {
+            console.warn('[Invert] Error in sub-projection invert:', error)
+          }
+        }
+      }
+    }
+
+    return null
   }
 
-  return compositeProjection
+  // Add scale and translate methods (like Atlas Composer's CompositeProjection)
+  ;(compositeProjection as any).scale = function (_s?: number): any {
+    if (arguments.length === 0) {
+      // Return scale from first sub-projection as reference
+      return subProjections[0] ? subProjections[0].projection.scale?.() || 1 : 1
+    }
+    // Setting scale - not typically used for composite projections
+    // Individual territories manage their own scales
+    return compositeProjection
+  }
+
+  ;(compositeProjection as any).translate = function (_t?: [number, number]): any {
+    if (arguments.length === 0) {
+      // Return center point as reference
+      return [width / 2, height / 2]
+    }
+    // Setting translate - not typically used for composite projections
+    // Individual territories manage their own translations
+    return compositeProjection
+  }
+
+  return compositeProjection as ProjectionLike
+}
+
+/**
+ * Infer projection ID from family and parameters (for migration script format)
+ */
+function inferProjectionIdFromFamily(family: string, parameters: ProjectionParameters): string {
+  // Common projection mappings based on family and parameters
+  switch (family.toUpperCase()) {
+    case 'CYLINDRICAL':
+      return 'mercator' // Most common cylindrical projection
+    case 'CONIC':
+      return parameters.parallels ? 'conic-conformal' : 'conic-equal-area'
+    case 'AZIMUTHAL':
+      return 'azimuthal-equal-area'
+    default:
+      // Fallback to mercator if we can't determine
+      console.warn(`Unknown projection family: ${family}, falling back to mercator`)
+      return 'mercator'
+  }
 }
 
 /**
@@ -484,8 +471,33 @@ function createSubProjection(
   territory: Territory,
   width: number,
   height: number,
+  referenceScale?: number,
+  debug?: boolean,
 ): ProjectionLike {
-  const { projectionId, parameters, layout } = territory
+  // Extract projection info and parameters from multiple formats
+  let projectionId: string
+  let parameters: ProjectionParameters
+  const { layout } = territory
+
+  if (territory.projection) {
+    // New format: nested projection object
+    projectionId = territory.projection.id
+    parameters = territory.projection.parameters
+  }
+  else if (territory.projectionId && territory.parameters) {
+    // Legacy format: direct properties
+    projectionId = territory.projectionId
+    parameters = territory.parameters
+  }
+  else if (territory.projectionFamily && territory.parameters) {
+    // Migration script format: has projectionFamily but missing projectionId
+    // Try to infer projection ID from family and parameters
+    projectionId = inferProjectionIdFromFamily(territory.projectionFamily as string, territory.parameters)
+    parameters = territory.parameters
+  }
+  else {
+    throw new Error(`Territory ${territory.code} missing projection configuration`)
+  }
 
   // Get projection factory from registry
   const factory = projectionRegistry.get(projectionId)
@@ -508,29 +520,110 @@ function createSubProjection(
   }
 
   if (parameters.rotate && projection.rotate) {
-    projection.rotate(parameters.rotate)
+    // Ensure rotate has exactly 3 elements
+    const rotate = Array.isArray(parameters.rotate)
+      ? [...parameters.rotate, 0, 0].slice(0, 3) as [number, number, number]
+      : [0, 0, 0] as [number, number, number]
+    projection.rotate(rotate)
   }
 
   if (parameters.parallels && projection.parallels) {
-    projection.parallels(parameters.parallels)
+    // Ensure parallels has exactly 2 elements
+    const parallels = Array.isArray(parameters.parallels)
+      ? [...parameters.parallels, 0].slice(0, 2) as [number, number]
+      : [0, 60] as [number, number]
+    projection.parallels(parallels)
   }
 
+  // Handle scale - support both legacy (scale) and new (scaleMultiplier + referenceScale) formats
   if (projection.scale) {
-    projection.scale(parameters.scale)
+    if (parameters.scale) {
+      // Legacy format: use direct scale value
+      projection.scale(parameters.scale)
+    }
+    else if (parameters.scaleMultiplier) {
+      // New format: calculate scale from reference scale and multiplier
+      const effectiveReferenceScale = referenceScale || 2700 // Default reference scale
+      const calculatedScale = effectiveReferenceScale * parameters.scaleMultiplier
+      projection.scale(calculatedScale)
+    }
+  }
+
+  // Apply additional parameters
+  if (parameters.clipAngle && projection.clipAngle) {
+    projection.clipAngle(parameters.clipAngle)
+  }
+
+  if (parameters.precision && projection.precision) {
+    projection.precision(parameters.precision)
   }
 
   // Apply layout translate
   if (projection.translate) {
-    const [offsetX, offsetY] = layout.translateOffset
+    const [offsetX, offsetY] = layout.translateOffset || [0, 0] // Default to center if missing
     projection.translate([
       width / 2 + offsetX,
       height / 2 + offsetY,
     ])
   }
 
-  // Apply clipping if specified
+  // Apply parameter-level translate (additional adjustment)
+  if (parameters.translate && projection.translate) {
+    const currentTranslate = projection.translate()
+    const [additionalX, additionalY] = parameters.translate
+    projection.translate([
+      currentTranslate[0] + additionalX,
+      currentTranslate[1] + additionalY,
+    ])
+  }
+
+  // Apply clipping - this is CRITICAL for composite projections
+  // Each sub-projection MUST have clipping to avoid geometry processing conflicts
   if (layout.clipExtent && projection.clipExtent) {
-    projection.clipExtent(layout.clipExtent)
+    // Like Atlas Composer: clipExtent is relative to the main projection coordinate system
+    // Get the reference scale (use same as Atlas Composer does)
+    const effectiveReferenceScale = referenceScale || 2700
+    const centerX = width / 2
+    const centerY = height / 2
+
+    // Apply Atlas Composer's approach: clipExtent values are multiplied by reference scale
+    // and positioned relative to map center, with small epsilon for padding
+    const [[x1, y1], [x2, y2]] = layout.clipExtent
+    const epsilon = 1e-6 // Small value for padding, matching d3-composite-projections
+
+    const transformedClipExtent: [[number, number], [number, number]] = [
+      [centerX + x1 * effectiveReferenceScale + epsilon, centerY + y1 * effectiveReferenceScale + epsilon],
+      [centerX + x2 * effectiveReferenceScale - epsilon, centerY + y2 * effectiveReferenceScale - epsilon],
+    ]
+
+    projection.clipExtent(transformedClipExtent)
+    if (debug) {
+      console.log(`[Clipping] Applied Atlas Composer-style clip extent for ${territory.code}:`, `original: ${JSON.stringify(layout.clipExtent)} -> transformed: ${JSON.stringify(transformedClipExtent)}`)
+    }
+  }
+  else if (projection.clipExtent) {
+    // If no clip extent is specified, create a default one based on territory bounds
+    // This prevents the projection from processing geometry outside its area
+    const bounds = territory.bounds
+    if (bounds && bounds.length === 2 && bounds[0].length === 2 && bounds[1].length === 2) {
+      // Convert geographic bounds to pixel bounds (approximate)
+      const scale = projection.scale?.() || 1
+      const translate = projection.translate?.() || [0, 0]
+
+      // Create a reasonable clip extent based on the geographic bounds
+      // This is a simplified approach - in practice, you'd want more precise clipping
+      const padding = scale * 0.1 // 10% padding
+      const clipExtent: [[number, number], [number, number]] = [
+        [translate[0] - padding, translate[1] - padding],
+        [translate[0] + padding, translate[1] + padding],
+      ]
+
+      projection.clipExtent(clipExtent)
+
+      if (debug) {
+        console.log(`[Clipping] Applied default clip extent for ${territory.code}:`, clipExtent)
+      }
+    }
   }
 
   return projection
@@ -565,12 +658,21 @@ export function validateConfig(config: any): config is ExportedConfig {
 
   // Validate each territory
   for (const territory of config.territories) {
-    if (!territory.code || !territory.projectionId) {
-      throw new Error(`Territory missing required fields: ${JSON.stringify(territory)}`)
+    if (!territory.code) {
+      throw new Error(`Territory missing required field 'code': ${JSON.stringify(territory)}`)
     }
 
-    if (!territory.parameters || !territory.bounds) {
-      throw new Error(`Territory ${territory.code} missing parameters or bounds`)
+    // Check for projection info in either format
+    const hasLegacyFormat = territory.projectionId && territory.parameters
+    const hasNewFormat = territory.projection && territory.projection.id && territory.projection.parameters
+    const hasIncompleteFormat = territory.projectionFamily && territory.parameters // Migration script format
+
+    if (!hasLegacyFormat && !hasNewFormat && !hasIncompleteFormat) {
+      throw new Error(`Territory ${territory.code} missing projection configuration. Available fields: ${Object.keys(territory).join(', ')}`)
+    }
+
+    if (!territory.bounds) {
+      throw new Error(`Territory ${territory.code} missing bounds`)
     }
   }
 
