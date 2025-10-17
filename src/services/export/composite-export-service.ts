@@ -129,6 +129,8 @@ export class CompositeExportService {
    * @param parameterProvider - Parameter provider object for accessing territory parameters
    * @param referenceScale - Reference scale for projection
    * @param canvasDimensions - Canvas dimensions with width and height properties
+   * @param canvasDimensions.width - Canvas width in pixels
+   * @param canvasDimensions.height - Canvas height in pixels
    * @param notes - Optional user notes
    * @returns Exportable configuration object
    */

@@ -361,6 +361,10 @@ export function useTerritoryCursor() {
   /**
    * Create invisible border zone overlays for improved drag UX using D3.js
    * These zones match the composition borders and provide larger drag areas
+   * @param svg - SVG element to append overlays to
+   * @param customComposite - Custom composite projection object used to compute borders
+   * @param width - Width of the SVG/canvas in pixels
+   * @param height - Height of the SVG/canvas in pixels
    * @param onTerritoryClick - Optional callback when a territory zone is clicked
    */
   function createBorderZoneOverlays(

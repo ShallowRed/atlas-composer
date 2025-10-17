@@ -705,10 +705,10 @@ export class CompositeProjection {
         if (subProj.bounds) {
           const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
-        // Project the bounds corners to get clip extent in screen coordinates
-        // NOW the projection already includes the offset
-        const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
-        const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
+          // Project the bounds corners to get clip extent in screen coordinates
+          // NOW the projection already includes the offset
+          const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
+          const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
 
           if (topLeft && bottomRight) {
             // Set clip extent (already in final coordinate space thanks to translate)
