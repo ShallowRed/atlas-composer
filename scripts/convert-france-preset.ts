@@ -31,6 +31,5 @@ async function main() {
   console.log('Conversion completed!')
 }
 
-if (require.main === module) {
-  main().catch(console.error)
-}
+// Run the conversion
+main().catch(console.error)

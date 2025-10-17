@@ -205,6 +205,32 @@ const parallel2Range = computed(() => getParameterRange('parallel2'))
 const clipAngleRange = computed(() => getParameterRange('clipAngle'))
 const precisionRange = computed(() => getParameterRange('precision'))
 
+// Pixel-based clip extent handling
+const pixelClipExtentArray = computed(() => {
+  const pixelClipExtent = effectiveParameters.value.pixelClipExtent
+  if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
+    // Already in [x1, y1, x2, y2] format
+    return pixelClipExtent
+  }
+  // Default values if no pixel clip extent is set
+  return [-100, -100, 100, 100]
+})
+
+function updatePixelClipExtent(index: number, value: number) {
+  const current = [...pixelClipExtentArray.value]
+  current[index] = value
+
+  // Keep as [x1, y1, x2, y2] format
+  const pixelClipExtent: [number, number, number, number] = [
+    current[0] ?? 0,
+    current[1] ?? 0,
+    current[2] ?? 0,
+    current[3] ?? 0,
+  ]
+
+  handleParameterChange('pixelClipExtent', pixelClipExtent)
+}
+
 // Handle parameter value changes
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
   // Validate the parameter before setting
@@ -538,49 +564,53 @@ onUnmounted(() => {
               @update:model-value="(value: number) => handleParameterChange('clipExtentOffsetY', value)"
             />
 
-            <!-- ClipExtent Direct Bounds Controls -->
+            <!-- Pixel-based ClipExtent Controls -->
+            <div class="text-xs text-base-content/70 mb-2">
+              Pixel coordinates relative to territory center
+            </div>
+
             <RangeSlider
-              :model-value="effectiveParameters.clipExtentX1 ?? 0"
-              label="ClipExtent X1 (left)"
+              :model-value="pixelClipExtentArray[0] ?? -100"
+              label="ClipExtent Left (px)"
               icon="ri-arrow-left-line"
               size="xs"
-              :min="-1.0"
-              :max="1.0"
-              :step="0.001"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentX1', value)"
+              :min="-500"
+              :max="500"
+              :step="1"
+              @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
             />
 
             <RangeSlider
-              :model-value="effectiveParameters.clipExtentY1 ?? 0"
-              label="ClipExtent Y1 (top)"
+              :model-value="pixelClipExtentArray[1] ?? -100"
+              label="ClipExtent Top (px)"
               icon="ri-arrow-up-line"
               size="xs"
-              :min="-1.0"
-              :max="1.0"
-              :step="0.001"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentY1', value)"
+              :min="-500"
+              :max="500"
+              :step="1"
+              @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
             />
 
             <RangeSlider
-              :model-value="effectiveParameters.clipExtentX2 ?? 0"
-              label="ClipExtent X2 (right)"
+              :model-value="pixelClipExtentArray[2] ?? 100"
+              label="ClipExtent Right (px)"
               icon="ri-arrow-right-line"
               size="xs"
-              :min="-1.0"
-              :max="1.0"
-              :step="0.001"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentX2', value)"
+              :min="-500"
+              :max="500"
+              :step="1"
+              @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
             />
 
             <RangeSlider
-              :model-value="effectiveParameters.clipExtentY2 ?? 0"
-              label="ClipExtent Y2 (bottom)"
+              :model-value="pixelClipExtentArray[3] ?? 100"
+              label="ClipExtent Bottom (px)"
               icon="ri-arrow-down-line"
               size="xs"
-              :min="-1.0"
-              :max="1.0"
-              :step="0.001"
-              @update:model-value="(value: number) => handleParameterChange('clipExtentY2', value)"
+              :min="-500"
+              :max="500"
+              :step="1"
+              @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
             />
 
             <!-- Clip Angle (for azimuthal projections) -->
