@@ -80,7 +80,11 @@ Redesign the clipping region system to use pixel-based coordinates instead of no
 - [x] Controls now use pixelClipExtent parameter instead of legacy parameters
 
 ### Phase 6: Service Layer Updates
-- [ ] Update export/import services to handle new format (deferred)
+- [x] Update export/import services to handle new format
+  - [x] Update ExportedTerritoryLayout type to support pixelClipExtent
+  - [x] Update composite-export-service to export pixelClipExtent parameters
+  - [x] Update composite-import-service to handle both old and new formats (validation via export service)
+  - [x] Update export tests to validate new format
 - [ ] Update atlas service configuration loading (not needed)
 - [ ] Update territory data service positioning logic (not needed)
 
@@ -179,11 +183,19 @@ The clipping regions redesign has been **successfully implemented** with all cor
 
 5. **✅ Backward Compatibility**: Automatic format detection ensures existing configurations continue to work
 
+6. **✅ Export/Import System Updates (Phase 6)**:
+   - Extended `ExportedTerritoryLayout` type to support `pixelClipExtent` field alongside legacy `clipExtent`
+   - Updated `CompositeExportService` to export `pixelClipExtent` parameters when available from parameter provider
+   - Enhanced validation to check `pixelClipExtent` format (4-element array) and warn when both formats present
+   - Added comprehensive test coverage for new export/import functionality
+   - Maintains full backward compatibility with legacy exported configurations
+
 ### Key Benefits Achieved
 - **Intuitive Control**: Users now work with meaningful pixel values instead of abstract normalized coordinates
 - **No Scaling Interactions**: Independent control of each clipping boundary
 - **Predictable Behavior**: Direct relationship between control values and visual results
 - **Developer Experience**: Cleaner architecture without complex coordinate conversions
+- **Export/Import Compatibility**: Seamless round-trip export/import of configurations with new pixel-based clipping
 
 ### Current State
 The system is **fully functional** and ready for production use. All territories display correctly with the new pixel-based clipping controls available in the UI.

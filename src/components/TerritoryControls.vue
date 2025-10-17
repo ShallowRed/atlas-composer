@@ -222,7 +222,10 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
             :checked="true"
           >
             <!-- Projection Selector -->
-            <div class="mb-4">
+            <div
+              v-if="!isCompositeCustomMode"
+              class="mb-4"
+            >
               <ProjectionDropdown
                 :model-value="territoryProjections[mainlandCode] || selectedProjection"
                 :label="t('projection.cartographic')"

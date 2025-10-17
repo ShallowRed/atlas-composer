@@ -119,7 +119,7 @@ function handleUpdate(value: string) {
     <button
       v-if="!loading"
       type="button"
-      class="btn btn-ghost btn-xs btn-circle absolute top-1 right-1"
+      class="btn btn-ghost btn-xs btn-circle absolute top-0 right-1"
       :aria-label="t('common.showProjectionInformation')"
       :disabled="!modelValue"
       @click="showProjectionInfo"

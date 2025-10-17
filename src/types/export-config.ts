@@ -30,8 +30,11 @@ export interface ExportedTerritoryLayout {
   /** Translation offset [x, y] in pixels from computed position */
   translateOffset: [number, number]
 
-  /** Optional clipping extent [[x0, y0], [x1, y1]] */
+  /** Optional clipping extent [[x0, y0], [x1, y1]] - legacy format for backward compatibility */
   clipExtent?: [[number, number], [number, number]] | null
+
+  /** Optional pixel-based clipping extent [x1, y1, x2, y2] relative to translateOffset - new format */
+  pixelClipExtent?: [number, number, number, number] | null
 }
 
 /**

@@ -78,6 +78,26 @@ function roundTuple3(
 }
 
 /**
+ * Round a 4-element tuple (pixelClipExtent)
+ * @param arr - 4-element array
+ * @param decimals - Number of decimal places (default: 6)
+ * @returns Rounded 4-element tuple
+ */
+function roundTuple4(
+  arr: [number, number, number, number] | number[] | undefined,
+  decimals = 6,
+): [number, number, number, number] {
+  if (!arr || arr.length < 4)
+    return [0, 0, 0, 0]
+  return [
+    roundNumber(arr[0], decimals),
+    roundNumber(arr[1], decimals),
+    roundNumber(arr[2], decimals),
+    roundNumber(arr[3], decimals),
+  ]
+}
+
+/**
  * Round a 2D bounds array [[minLon, minLat], [maxLon, maxLat]]
  * @param bounds - 2D bounds array
  * @param decimals - Number of decimal places (default: 6)
@@ -107,6 +127,8 @@ export class CompositeExportService {
    * @param atlasName - Atlas display name
    * @param compositeConfig - Original composite configuration for pattern info
    * @param parameterProvider - Parameter provider object for accessing territory parameters
+   * @param referenceScale - Reference scale for projection
+   * @param canvasDimensions - Canvas dimensions with width and height properties
    * @param notes - Optional user notes
    * @returns Exportable configuration object
    */
@@ -151,6 +173,15 @@ export class CompositeExportService {
             parallels: roundTuple2(this.extractParallels(subProj)),
           }
 
+      // Check for pixelClipExtent parameter override
+      let pixelClipExtent: [number, number, number, number] | null = null
+      if (parameterProvider) {
+        const territoryParams = parameterProvider.getEffectiveParameters(subProj.territoryCode)
+        if (territoryParams.pixelClipExtent) {
+          pixelClipExtent = roundTuple4(territoryParams.pixelClipExtent)
+        }
+      }
+
       return {
         code: subProj.territoryCode,
         name: subProj.territoryName,
@@ -163,6 +194,7 @@ export class CompositeExportService {
         layout: {
           translateOffset: roundTuple2(subProj.translateOffset),
           clipExtent: subProj.clipExtent || null,
+          pixelClipExtent,
         },
         bounds: roundBounds(subProj.bounds),
       }
@@ -275,6 +307,40 @@ export class CompositeExportService {
         else {
           if (!Array.isArray(territory.layout.translateOffset) || territory.layout.translateOffset.length !== 2) {
             errors.push(`${prefix}: Invalid translateOffset`)
+          }
+
+          // Validate clipExtent (legacy format)
+          if (territory.layout.clipExtent !== null && territory.layout.clipExtent !== undefined) {
+            if (!Array.isArray(territory.layout.clipExtent) || territory.layout.clipExtent.length !== 2) {
+              errors.push(`${prefix}: Invalid clipExtent format`)
+            }
+            else {
+              for (let i = 0; i < 2; i++) {
+                const coord = territory.layout.clipExtent![i]
+                if (!Array.isArray(coord) || coord.length !== 2) {
+                  errors.push(`${prefix}: Invalid clipExtent coordinate pair ${i}`)
+                }
+              }
+            }
+          }
+
+          // Validate pixelClipExtent (new format)
+          if (territory.layout.pixelClipExtent !== null && territory.layout.pixelClipExtent !== undefined) {
+            if (!Array.isArray(territory.layout.pixelClipExtent) || territory.layout.pixelClipExtent.length !== 4) {
+              errors.push(`${prefix}: Invalid pixelClipExtent format - must be [x1, y1, x2, y2]`)
+            }
+            else {
+              for (let i = 0; i < 4; i++) {
+                if (typeof territory.layout.pixelClipExtent[i] !== 'number') {
+                  errors.push(`${prefix}: Invalid pixelClipExtent coordinate ${i} - must be a number`)
+                }
+              }
+            }
+          }
+
+          // Warn if both formats are present
+          if (territory.layout.clipExtent && territory.layout.pixelClipExtent) {
+            warnings.push(`${prefix}: Both clipExtent and pixelClipExtent present - pixelClipExtent takes precedence`)
           }
         }
 

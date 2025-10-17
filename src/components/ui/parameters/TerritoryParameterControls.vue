@@ -11,12 +11,13 @@ import type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-import { computed, onMounted, onUnmounted, toRaw } from 'vue'
+import { computed, onMounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
-
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
+import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useParameterStore } from '@/stores/parameters'
@@ -301,10 +302,14 @@ onMounted(() => {
   parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 
-onUnmounted(() => {
-  // Clean up validation errors for this territory
-  // This would be handled by the store's internal cleanup
-})
+const {
+  mainlandCode,
+  projectionRecommendations,
+  projectionGroups,
+  territoryProjections,
+  selectedProjection,
+  setTerritoryProjection,
+} = useTerritoryTransforms()
 </script>
 
 <template>
@@ -318,6 +323,16 @@ onUnmounted(() => {
       <i class="ri-restart-line" />
       {{ t('territory.parameters.reset') }}
     </button>
+
+    <div class="mb-4">
+      <ProjectionDropdown
+        :model-value="territoryProjections[mainlandCode] || selectedProjection"
+        :label="t('projection.cartographic')"
+        :projection-groups="projectionGroups"
+        :recommendations="projectionRecommendations"
+        @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
+      />
+    </div>
 
     <!-- Validation feedback -->
     <div

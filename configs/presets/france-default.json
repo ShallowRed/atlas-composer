@@ -273,15 +273,15 @@
     },
     {
       "code": "FR-MF",
-      "name": "Saint-Martin (Saint-Barthélemy)",
+      "name": "Saint-Martin",
       "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",
         "parameters": {
           "center": [
-            -62.85,
-            17.92
+            -63.082,
+            18.067
           ],
           "scaleMultiplier": 5
         }
@@ -310,6 +310,48 @@
         [
           -63,
           18.13
+        ]
+      ]
+    },
+    {
+      "code": "FR-BL",
+      "name": "Saint-Barthélemy",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -62.85,
+            17.92
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -324,
+          -119
+        ],
+        "clipExtent": [
+          [
+            -378,
+            -140.4
+          ],
+          [
+            -269.016,
+            -86.4
+          ]
+        ]
+      },
+      "bounds": [
+        [
+          -62.95,
+          17.85
+        ],
+        [
+          -62.75,
+          17.95
         ]
       ]
     },

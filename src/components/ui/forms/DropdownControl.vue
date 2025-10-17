@@ -345,13 +345,13 @@ watch(focusedIndex, (newIndex) => {
   </div>
 
   <!-- Standard fieldset version -->
-  <fieldset
+  <div
     v-else
-    class="fieldset form-control flex flex-col"
+    class="flex flex-col"
   >
-    <legend
+    <label
       id="dropdown-label"
-      class="fieldset-legend text-sm"
+      class="label font-medium text-sm mb-2"
     >
       <span class="label-text flex items-center gap-2">
         <i
@@ -360,7 +360,7 @@ watch(focusedIndex, (newIndex) => {
         />
         {{ label }}
       </span>
-    </legend>
+    </label>
 
     <div
       ref="dropdownRef"
@@ -392,7 +392,7 @@ watch(focusedIndex, (newIndex) => {
         @keydown="handleOptionKeyDown"
       />
     </div>
-  </fieldset>
+  </div>
 </template>
 
 <style scoped>

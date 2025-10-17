@@ -321,6 +321,63 @@ describe('compositeExportService', () => {
       expect(result.warnings.length).toBeGreaterThan(0)
       expect(result.warnings.some(w => w.includes('Unknown projection'))).toBe(true)
     })
+
+    it('should validate pixelClipExtent format', () => {
+      // Valid pixelClipExtent
+      const validConfig = {
+        version: '1.0',
+        metadata: { atlasId: 'test', atlasName: 'Test', exportDate: new Date().toISOString(), createdWith: 'test' },
+        pattern: 'single-focus',
+        referenceScale: 2700,
+        territories: [{
+          code: 'TEST',
+          name: 'Test Territory',
+          role: 'primary',
+          projection: { id: 'mercator', family: 'cylindrical', parameters: { scaleMultiplier: 1.0 } },
+          layout: {
+            translateOffset: [0, 0],
+            pixelClipExtent: [-50, -40, 60, 45] as [number, number, number, number],
+          },
+          bounds: [[0, 0], [1, 1]],
+        }],
+      } as ExportedCompositeConfig
+
+      const validResult = CompositeExportService.validateExportedConfig(validConfig)
+      expect(validResult.valid).toBe(true)
+
+      // Invalid pixelClipExtent - wrong length
+      const invalidConfig = {
+        ...validConfig,
+        territories: [{
+          ...validConfig.territories[0],
+          layout: {
+            translateOffset: [0, 0],
+            pixelClipExtent: [-50, -40, 60] as any, // Only 3 elements instead of 4
+          },
+        }],
+      } as ExportedCompositeConfig
+
+      const invalidResult = CompositeExportService.validateExportedConfig(invalidConfig)
+      expect(invalidResult.valid).toBe(false)
+      expect(invalidResult.errors.some(e => e.includes('Invalid pixelClipExtent format'))).toBe(true)
+
+      // Both formats present should generate warning
+      const bothFormatsConfig = {
+        ...validConfig,
+        territories: [{
+          ...validConfig.territories[0],
+          layout: {
+            translateOffset: [0, 0],
+            clipExtent: [[-1, -1], [1, 1]] as [[number, number], [number, number]],
+            pixelClipExtent: [-50, -40, 60, 45] as [number, number, number, number],
+          },
+        }],
+      } as ExportedCompositeConfig
+
+      const bothResult = CompositeExportService.validateExportedConfig(bothFormatsConfig)
+      expect(bothResult.valid).toBe(true)
+      expect(bothResult.warnings.some(w => w.includes('Both clipExtent and pixelClipExtent present'))).toBe(true)
+    })
   })
 
   describe('generateCode', () => {
@@ -342,6 +399,55 @@ describe('compositeExportService', () => {
       expect(code).toBeDefined()
       expect(typeof code).toBe('string')
       expect(code.length).toBeGreaterThan(0)
+    })
+
+    it('should export pixelClipExtent when parameter provider has it', () => {
+      const compositeProj = new CompositeProjection(mockSingleFocusConfig)
+
+      // Mock parameter provider with pixelClipExtent
+      const mockParameterProvider = {
+        getEffectiveParameters: (territoryCode: string) => {
+          if (territoryCode === 'FR-GP') {
+            return {
+              pixelClipExtent: [-50, -40, 60, 45] as [number, number, number, number],
+            }
+          }
+          return {}
+        },
+        getExportableParameters: (territoryCode: string) => {
+          const params = {
+            center: territoryCode === 'FR-MET' ? [2.5, 46.5] : [-61.46, 16.14],
+            scaleMultiplier: 1,
+          }
+          if (territoryCode === 'FR-GP') {
+            return {
+              ...params,
+              pixelClipExtent: [-50, -40, 60, 45] as [number, number, number, number],
+            }
+          }
+          return params
+        },
+      }
+
+      const exported = CompositeExportService.exportToJSON(
+        compositeProj,
+        'france',
+        'France',
+        mockSingleFocusConfig,
+        mockParameterProvider as any,
+      )
+
+      expect(exported).toBeDefined()
+
+      // Find the Guadeloupe territory
+      const guadeloupe = exported.territories.find(t => t.code === 'FR-GP')
+      expect(guadeloupe).toBeDefined()
+      expect(guadeloupe?.layout.pixelClipExtent).toEqual([-50, -40, 60, 45])
+
+      // Mainland should not have pixelClipExtent
+      const mainland = exported.territories.find(t => t.code === 'FR-MET')
+      expect(mainland).toBeDefined()
+      expect(mainland?.layout.pixelClipExtent).toBeNull()
     })
   })
 })

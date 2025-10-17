@@ -194,6 +194,29 @@
       }
     },
     {
+      "id": "652",
+      "role": "secondary",
+      "code": "FR-BL",
+      "name": "Saint-Barthélemy",
+      "iso": "BLM",
+      "region": "Caraïbes",
+      "center": [
+        -62.85,
+        17.9
+      ],
+      "bounds": [
+        [
+          -62.95,
+          17.85
+        ],
+        [
+          -62.75,
+          17.95
+        ]
+      ],
+      "extraction": {}
+    },
+    {
       "id": "663",
       "role": "secondary",
       "code": "FR-MF",
@@ -435,6 +458,7 @@
         "FR-GP",
         "FR-MQ",
         "FR-YT",
+        "FR-BL",
         "FR-MF",
         "FR-PF",
         "FR-PF-2",
@@ -466,6 +490,7 @@
         "FR-GP",
         "FR-MQ",
         "FR-GF",
+        "FR-BL",
         "FR-MF"
       ]
     },
