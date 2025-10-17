@@ -21,9 +21,6 @@ export interface ProjectionParameters {
   /** Standard parallels for conic projections [south, north] */
   parallels?: [number, number]
 
-  /** Translation offset [x, y] in pixels */
-  translate?: [number, number]
-
   /** Territory position offset from map center [x, y] in pixels */
   translateOffset?: [number, number]
 

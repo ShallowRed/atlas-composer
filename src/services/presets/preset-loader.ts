@@ -126,9 +126,17 @@ export class PresetLoader {
             // Check if parameter exists in the appropriate location
             let hasParameter = false
 
-            if (def.key === 'translateOffset') {
+            if (def.key === 'projectionId') {
+              // projectionId is stored at projection.id (not in parameters)
+              hasParameter = territory.projection?.id !== undefined
+            }
+            else if (def.key === 'translateOffset') {
               // translateOffset is stored in layout section
               hasParameter = territory.layout?.translateOffset !== undefined
+            }
+            else if (def.key === 'pixelClipExtent') {
+              // pixelClipExtent is stored in layout section (optional)
+              hasParameter = territory.layout?.pixelClipExtent !== undefined
             }
             else {
               // Other parameters are stored in projection.parameters section
@@ -248,6 +256,11 @@ export class PresetLoader {
     for (const territory of preset.territories) {
       // Only include parameters that are explicitly set in the territory
       const territoryParams: Partial<ProjectionParameters> = {}
+
+      // IMPORTANT: Extract projectionId from territory.projection.id (required parameter)
+      if (territory.projection?.id) {
+        territoryParams.projectionId = territory.projection.id
+      }
 
       if (territory.projection.parameters) {
         // Get list of parameter keys that the registry knows about and are exportable

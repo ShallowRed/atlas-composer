@@ -378,4 +378,38 @@ export function registerAllParameters(): void {
 
   // pixelClipExtent is the only clipping format - 4-element array [x1, y1, x2, y2]
   // Coordinates are pixels relative to territory center (translateOffset)
+
+  // Metadata parameters
+  parameterRegistry.register({
+    key: 'projectionId',
+    displayName: 'Projection ID',
+    description: 'Projection identifier from registry (e.g., "mercator", "conic-conformal")',
+    type: 'custom',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: true, // Essential for reconstruction
+    familyConstraints: {
+      CYLINDRICAL: {
+        relevant: true,
+        required: true,
+        defaultValue: 'mercator',
+      },
+      PSEUDOCYLINDRICAL: {
+        relevant: true,
+        required: true,
+        defaultValue: 'natural-earth',
+      },
+      CONIC: {
+        relevant: true,
+        required: true,
+        defaultValue: 'conic-conformal',
+      },
+      AZIMUTHAL: {
+        relevant: true,
+        required: true,
+        defaultValue: 'orthographic',
+      },
+    },
+  })
 }

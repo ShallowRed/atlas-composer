@@ -113,15 +113,11 @@ export interface Territory {
   code: string
   name: string
   role: string
-  // Support multiple formats
-  projectionId?: string // Legacy format
-  projectionFamily?: string // Migration script format
-  projection?: {
+  projection: {
     id: string
     family: string
     parameters: ProjectionParameters
-  } // New format
-  parameters?: ProjectionParameters // Used in legacy and migration formats
+  }
   layout: Layout
   bounds: [[number, number], [number, number]]
 }
@@ -135,7 +131,6 @@ export interface ProjectionParameters {
   scaleMultiplier?: number
   parallels?: [number, number]
   // Additional parameters from new format
-  translate?: [number, number]
   clipAngle?: number
   precision?: number
 }
@@ -446,25 +441,6 @@ export function loadCompositeProjection(
 }
 
 /**
- * Infer projection ID from family and parameters (for migration script format)
- */
-function inferProjectionIdFromFamily(family: string, parameters: ProjectionParameters): string {
-  // Common projection mappings based on family and parameters
-  switch (family.toUpperCase()) {
-    case 'CYLINDRICAL':
-      return 'mercator' // Most common cylindrical projection
-    case 'CONIC':
-      return parameters.parallels ? 'conic-conformal' : 'conic-equal-area'
-    case 'AZIMUTHAL':
-      return 'azimuthal-equal-area'
-    default:
-      // Fallback to mercator if we can't determine
-      console.warn(`Unknown projection family: ${family}, falling back to mercator`)
-      return 'mercator'
-  }
-}
-
-/**
  * Create a sub-projection for a single territory
  */
 function createSubProjection(
@@ -474,28 +450,12 @@ function createSubProjection(
   referenceScale?: number,
   debug?: boolean,
 ): ProjectionLike {
-  // Extract projection info and parameters from multiple formats
-  let projectionId: string
-  let parameters: ProjectionParameters
+  // Extract projection info and parameters from nested projection object
   const { layout } = territory
+  const projectionId = territory.projection.id
+  const parameters = territory.projection.parameters
 
-  if (territory.projection) {
-    // New format: nested projection object
-    projectionId = territory.projection.id
-    parameters = territory.projection.parameters
-  }
-  else if (territory.projectionId && territory.parameters) {
-    // Legacy format: direct properties
-    projectionId = territory.projectionId
-    parameters = territory.parameters
-  }
-  else if (territory.projectionFamily && territory.parameters) {
-    // Migration script format: has projectionFamily but missing projectionId
-    // Try to infer projection ID from family and parameters
-    projectionId = inferProjectionIdFromFamily(territory.projectionFamily as string, territory.parameters)
-    parameters = territory.parameters
-  }
-  else {
+  if (!projectionId || !parameters) {
     throw new Error(`Territory ${territory.code} missing projection configuration`)
   }
 
@@ -564,16 +524,6 @@ function createSubProjection(
     projection.translate([
       width / 2 + offsetX,
       height / 2 + offsetY,
-    ])
-  }
-
-  // Apply parameter-level translate (additional adjustment)
-  if (parameters.translate && projection.translate) {
-    const currentTranslate = projection.translate()
-    const [additionalX, additionalY] = parameters.translate
-    projection.translate([
-      currentTranslate[0] + additionalX,
-      currentTranslate[1] + additionalY,
     ])
   }
 
@@ -662,13 +612,9 @@ export function validateConfig(config: any): config is ExportedConfig {
       throw new Error(`Territory missing required field 'code': ${JSON.stringify(territory)}`)
     }
 
-    // Check for projection info in either format
-    const hasLegacyFormat = territory.projectionId && territory.parameters
-    const hasNewFormat = territory.projection && territory.projection.id && territory.projection.parameters
-    const hasIncompleteFormat = territory.projectionFamily && territory.parameters // Migration script format
-
-    if (!hasLegacyFormat && !hasNewFormat && !hasIncompleteFormat) {
-      throw new Error(`Territory ${territory.code} missing projection configuration. Available fields: ${Object.keys(territory).join(', ')}`)
+    // Check for required nested projection format
+    if (!territory.projection || !territory.projection.id || !territory.projection.parameters) {
+      throw new Error(`Territory ${territory.code} missing projection configuration. Required: projection.id and projection.parameters`)
     }
 
     if (!territory.bounds) {

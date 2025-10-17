@@ -297,16 +297,31 @@ Static methods for configuration serialization and code generation.
 - `generateCode()` - Generate code using CodeGenerator
 - `validateExportedConfig()` - Validate exported configuration
 
+**Export Process**:
+1. Get all exportable parameters from parameter provider via `getExportableParameters()`
+2. Separate projection parameters from layout parameters using destructuring
+   - Layout parameters: `translateOffset`, `pixelClipExtent`
+   - Projection parameters: all other exportable parameters
+3. Build territory configuration with standard structure
+
 **Configuration Format**:
 - `version` - Schema version (currently '1.0')
 - `metadata` - Atlas info, export date, creator
 - `pattern` - Atlas pattern (single-focus/equal-members)
 - `territories[]` - Array of territory configurations
   - `code, name, role` - Territory identification
-  - `projectionId, projectionFamily` - Projection info
-  - `parameters` - All projection parameters (center, rotate, parallels, scaleMultiplier)
-  - `layout` - Territory positioning (translateOffset, clipExtent)
+  - `projection` - Projection configuration
+    - `id` - Projection identifier (e.g., 'conic-conformal')
+    - `family` - Projection family (e.g., 'CONIC')
+    - `parameters` - All projection parameters (center, rotate, parallels, scaleMultiplier, clipAngle, precision, projectionId)
+  - `layout` - Territory positioning
+    - `translateOffset` - Position offset [x, y] in pixels
+    - `pixelClipExtent` - Clipping extent [x1, y1, x2, y2] (optional)
   - `bounds` - Geographic bounds [[minLon, minLat], [maxLon, maxLat]]
+
+**Parameter Structure**:
+Maintains clean separation between projection parameters (in `projection.parameters`) and layout parameters (in `layout`).
+The `projectionId` parameter is stored in both `projection.id` (standard location) and included in exportable parameters for consistency.
 
 ### CompositeImportService
 Re-imports exported configurations with validation, automatic version migration, and type safety.
@@ -330,14 +345,23 @@ Static methods for JSON parsing and store application.
    - Apply referenceScale if present
    - Apply canvasDimensions if present
 2. **SECOND**: Set baseScale values in CompositeProjection
-3. **THIRD**: Apply territory configurations
-   - Apply projection to each territory via CompositeProjection service
-   - Apply scale multiplier to parameter store
-   - Apply translation offset to territory store
-4. **FOURTH**: Sync final values and maintain state consistency
+3. **THIRD**: Apply territory configurations to stores
+   - Set projection ID via territoryStore
+   - Set translation offsets via territoryStore
+   - Set scale multiplier via parameterStore
+   - Combine all parameters for parameterStore:
+     - Extract `projectionId` from `territory.projection.id`
+     - Spread all `projection.parameters`
+     - Add layout parameters (`translateOffset`, `pixelClipExtent`)
+     - Apply combined parameters via `setTerritoryParameters()`
+4. **FOURTH**: Update projection and sync final values
+
+**Parameter Extraction**:
+Combines projection and layout parameters into unified parameter set for the parameter store.
+Explicitly adds `projectionId` from `projection.id` to ensure it's available in the parameter store.
 
 **Type Safety**:
-- Replaced all `any` types with proper store types
+Uses proper store types throughout, no `any` types.
 
 **Global Parameter Handling**:
 Global parameters (referenceScale, canvasDimensions) are applied first before territory-specific settings to ensure correct base values for subsequent calculations.

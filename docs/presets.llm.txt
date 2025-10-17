@@ -160,26 +160,37 @@ First Render (preset values applied)
 ### PresetLoader.extractTerritoryParameters()
 
 Extracts projection parameters from preset territories into parameter store format.
+Handles the standard preset structure where projection ID is at `projection.id` (not in parameters).
 
 **Extracted Parameters:**
+- `projectionId`: Extracted from `projection.id` (required parameter)
 - `center`: Geographic center point
 - `rotate`: Three-axis rotation
 - `parallels`: Standard parallels for conic projections
 - `baseScale`: Base scale value before multiplier
 - `scaleMultiplier`: Scale adjustment multiplier
-- `translateOffset`: Extracted from layout section - pixel offset [x, y] from territory center
-- `pixelClipExtent`: Extracted from layout section - clipping rectangle [x1, y1, x2, y2] in pixels
+- `clipAngle`: Clipping angle for azimuthal projections
+- `precision`: Adaptive sampling precision
+- `translateOffset`: Extracted from `layout.translateOffset` - pixel offset [x, y]
+- `pixelClipExtent`: Extracted from `layout.pixelClipExtent` - clipping rectangle [x1, y1, x2, y2]
+
+**Extraction Process:**
+1. Extract `projectionId` from `territory.projection.id` (standard location in preset format)
+2. Filter projection parameters through registry exportable list
+3. Extract layout properties (`translateOffset`, `pixelClipExtent`) from `layout` section
+4. Return combined parameter object with all exportable parameters
+
+**Parameter Validation:**
+Only extracts parameters that are:
+- Defined in the territory configuration
+- Registered in the parameter registry as exportable
+- Have non-undefined values
 
 **Layout Property Extraction:**
 - Reads `territory.layout.translateOffset` and converts to parameter format
 - Reads `territory.layout.pixelClipExtent` (4-element array) and converts to parameter format
 - Layout properties stored in parameter store for unified parameter management
 - Enables slider controls and interactive editing (dragging, corner editing) to work from preset values
-
-**Priority Logic:**
-- If preset provides `baseScale` and `scaleMultiplier`, extracts both for proper composite projection initialization
-- Falls back to `scale` parameter if baseScale not provided
-- Preserves all projection-specific parameters (center, rotate, parallels)
 
 ### PresetLoader.convertToDefaults()
 
@@ -471,9 +482,9 @@ During `CompositeProjection.build(width, height)`:
 ### Constraint System
 
 Parameter constraints define valid ranges and relevance per projection family:
-- Defined in `parameter-constraints.ts`
-- Includes `baseScale` and `scaleMultiplier` in PARAMETER_KEYS array
-- Provides constraints for all 7 projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
+- Defined in parameter registry (`src/core/parameters/parameter-registry.ts`)
+- Includes all exportable parameters: center, rotate, parallels, scaleMultiplier, translateOffset, clipAngle, precision, pixelClipExtent, projectionId
+- Provides constraints for all 4 projection families (CONIC, AZIMUTHAL, CYLINDRICAL, PSEUDOCYLINDRICAL)
 
 ### Validation Flow
 
@@ -481,27 +492,40 @@ Parameter validation occurs at multiple points:
 1. **User input** - Before setting parameter in parameter store
 2. **Parameter store** - When calling `setTerritoryParameter()`
 3. **Territory controls** - Real-time validation feedback in UI
-4. **Preset loading** - Validates preset structure via CompositeImportService
+4. **Preset loading** - Validates preset structure and required parameters
+
+### Preset Validation
+
+When loading presets, validation checks:
+1. **Structural validation** - Via CompositeImportService for JSON structure
+2. **Required parameters** - Via parameter registry for each territory
+   - `projectionId` - Checked at `projection.id` (not in parameters)
+   - `translateOffset` - Checked in `layout` section
+   - Other required parameters - Checked in `projection.parameters`
+3. **Parameter relevance** - Only validates parameters relevant to projection family
+4. **Value validation** - Validates parameter values against constraints
 
 ## Export System Integration
 
 ### Preset Generation
 
 When exporting composite projection configuration:
-1. Captures current projection state from stores
-2. Serializes projection types, parameters, layout, and bounds
-3. Calculates final scale from projection instances
-4. Generates JSON preset file with metadata
+1. Gets all exportable parameters from parameter provider
+2. Separates projection parameters from layout parameters
+3. Serializes complete projection configuration with metadata
+4. Generates JSON preset file in standard format
 5. Stores in `configs/presets/{atlasId}-{presetName}.json`
 
 ### Export Format
 
-Exported presets match import format:
-- Include all three scale values: `scale`, `baseScale`, `scaleMultiplier`
-- Preserve projection parameters exactly as configured
-- Store layout properties (translateOffset, clipExtent)
-- Include geographic bounds for each territory
-- Add metadata (exportDate, createdWith, version)
+Exported presets follow standard structure:
+- `projection.id` - Projection identifier (e.g., 'conic-conformal')
+- `projection.family` - Projection family (e.g., 'CONIC')
+- `projection.parameters` - All projection-specific parameters
+- `layout.translateOffset` - Territory position offset [x, y]
+- `layout.pixelClipExtent` - Optional clipping extent [x1, y1, x2, y2]
+- `bounds` - Geographic bounds for each territory
+- `metadata` - Export date, creator, version, notes
 
 ## Troubleshooting
 

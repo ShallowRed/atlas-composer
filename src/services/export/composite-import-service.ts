@@ -194,15 +194,20 @@ export class CompositeImportService {
       }
 
       // 4. Apply projection parameters to parameter store (if available)
-      // This includes center, rotate, parallels, scale, scaleMultiplier
+      // This includes all exportable parameters from the parameter registry
       if (parameterStore) {
         try {
-          const params = {
-            center: territory.projection.parameters.center || [0, 0],
-            rotate: territory.projection.parameters.rotate || [0, 0, 0],
-            parallels: territory.projection.parameters.parallels || [30, 60],
-            scaleMultiplier: territory.projection.parameters.scaleMultiplier || 1,
+          // Combine projection parameters and layout parameters
+          const params: Record<string, any> = {
+            // Projection ID from territory.projection.id (required)
+            projectionId: territory.projection.id,
+            // All other projection parameters
+            ...territory.projection.parameters,
+            // Layout parameters
+            translateOffset: territory.layout.translateOffset,
+            pixelClipExtent: territory.layout.pixelClipExtent,
           }
+
           parameterStore.setTerritoryParameters(territory.code, params)
         }
         catch (error) {

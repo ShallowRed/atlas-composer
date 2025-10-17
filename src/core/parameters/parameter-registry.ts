@@ -249,11 +249,11 @@ export class ParameterRegistry {
       'center',
       'rotate',
       'parallels',
-      'translate',
       'translateOffset',
       'clipAngle',
       'precision',
       'scaleMultiplier',
+      'projectionId',
     ]
 
     for (const key of requiredKeys) {

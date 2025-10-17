@@ -162,26 +162,37 @@ export class CompositeExportService {
         compositeConfig,
       )
 
-      // Get full parameters from parameter provider if available
-      const parameters: ExportedProjectionParameters = parameterProvider
-        ? parameterProvider.getExportableParameters(subProj.territoryCode)
-        : {
-            center: roundTuple2(subProj.center),
-            rotate: subProj.rotate && subProj.rotate.length >= 3
-              ? roundTuple3(subProj.rotate as [number, number, number])
-              : undefined,
-            scaleMultiplier: roundNumber(subProj.scaleMultiplier),
-            // Extract parallels if available (for conic projections)
-            parallels: roundTuple2(this.extractParallels(subProj)),
-          }
+      // Get all exportable parameters from parameter provider if available
+      let projectionParameters: ExportedProjectionParameters
+      let layoutTranslateOffset: [number, number]
+      let layoutPixelClipExtent: [number, number, number, number] | null = null
 
-      // Get pixelClipExtent from parameter provider
-      let pixelClipExtent: [number, number, number, number] | null = null
       if (parameterProvider) {
-        const territoryParams = parameterProvider.getEffectiveParameters(subProj.territoryCode)
-        if (territoryParams.pixelClipExtent) {
-          pixelClipExtent = roundTuple4(territoryParams.pixelClipExtent)
+        // Get all exportable parameters
+        const allParams = parameterProvider.getExportableParameters(subProj.territoryCode)
+
+        // Separate layout parameters from projection parameters
+        const { translateOffset, pixelClipExtent, ...projParams } = allParams
+
+        projectionParameters = projParams as ExportedProjectionParameters
+        layoutTranslateOffset = translateOffset
+          ? roundTuple2(translateOffset)
+          : roundTuple2(subProj.translateOffset)
+        layoutPixelClipExtent = pixelClipExtent
+          ? roundTuple4(pixelClipExtent)
+          : null
+      }
+      else {
+        // Fallback when no parameter provider
+        projectionParameters = {
+          center: roundTuple2(subProj.center),
+          rotate: subProj.rotate && subProj.rotate.length >= 3
+            ? roundTuple3(subProj.rotate as [number, number, number])
+            : undefined,
+          scaleMultiplier: roundNumber(subProj.scaleMultiplier),
+          parallels: roundTuple2(this.extractParallels(subProj)),
         }
+        layoutTranslateOffset = roundTuple2(subProj.translateOffset)
       }
 
       return {
@@ -191,11 +202,11 @@ export class CompositeExportService {
         projection: {
           id: projectionId,
           family: projectionDef?.family || 'unknown',
-          parameters,
+          parameters: projectionParameters,
         },
         layout: {
-          translateOffset: roundTuple2(subProj.translateOffset),
-          pixelClipExtent,
+          translateOffset: layoutTranslateOffset,
+          pixelClipExtent: layoutPixelClipExtent,
         },
         bounds: roundBounds(subProj.bounds),
       }

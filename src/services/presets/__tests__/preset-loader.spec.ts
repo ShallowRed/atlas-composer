@@ -224,21 +224,25 @@ describe('presetLoader', () => {
 
       const result = PresetLoader.extractTerritoryParameters(mockPreset)
 
-      // Should extract parameters for FR-MET (has center, rotate, parallels, scaleMultiplier, precision)
+      // Should extract parameters for FR-MET (has center, rotate, parallels, scaleMultiplier, precision, projectionId, translateOffset)
       expect(result).toHaveProperty('FR-MET')
       expect(result['FR-MET']).toEqual({
+        projectionId: 'conic-conformal',
         center: [2.5, 46.5],
         rotate: [-3, -46.2, 0],
         parallels: [42, 49],
         scaleMultiplier: 1.0,
         precision: 0.1,
+        translateOffset: [0, 0],
       })
 
-      // Should extract parameters for FR-GP (has center, scaleMultiplier)
+      // Should extract parameters for FR-GP (has center, scaleMultiplier, projectionId, translateOffset)
       expect(result).toHaveProperty('FR-GP')
       expect(result['FR-GP']).toEqual({
+        projectionId: 'mercator',
         center: [-61.46, 16.14],
         scaleMultiplier: 1.4,
+        translateOffset: [-324, -38],
       })
     })
 
@@ -277,10 +281,12 @@ describe('presetLoader', () => {
 
       const result = PresetLoader.extractTerritoryParameters(mockPreset)
 
-      // Should extract scale parameter for T1
+      // Should extract scale parameter, projectionId, and translateOffset for T1
       expect(result).toHaveProperty('T1')
       expect(result.T1).toEqual({
+        projectionId: 'mercator',
         scaleMultiplier: 1.0,
+        translateOffset: [0, 0],
       })
     })
   })

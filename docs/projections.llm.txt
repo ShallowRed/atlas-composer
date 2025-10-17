@@ -209,7 +209,6 @@ interface ProjectionParameters {
   rotate?: [number, number, number?] // Rotation angles [lambda, phi, gamma]
   parallels?: [number, number]      // Standard parallels [south, north] for conic
   scale?: number                    // Current scale value
-  translate?: [number, number]      // Translation offset [x, y] in pixels
   clipAngle?: number                // Clipping angle for azimuthal (degrees)
   precision?: number                // Precision for adaptive sampling
   

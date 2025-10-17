@@ -75,7 +75,6 @@ export class CompositeProjection {
         rotate: dynamicParams.rotate ?? configParams.rotate,
         parallels: dynamicParams.parallels ?? configParams.parallels,
         scale: dynamicParams.scale, // For backward compatibility only - not used
-        translate: dynamicParams.translate, // configParams doesn't have translate
         clipAngle: dynamicParams.clipAngle, // configParams doesn't have clipAngle
         precision: dynamicParams.precision, // configParams doesn't have precision
         baseScale: dynamicParams.baseScale, // For backward compatibility only - not used
@@ -90,7 +89,6 @@ export class CompositeProjection {
       parallels: configParams.parallels,
       // These are parameter-only properties, not in TerritoryConfig
       scale: undefined,
-      translate: undefined,
       clipAngle: undefined,
       precision: undefined,
     }
