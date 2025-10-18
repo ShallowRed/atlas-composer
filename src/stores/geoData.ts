@@ -41,6 +41,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
 
     const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig) return []
+    
     const atlasService = configStore.atlasService
 
     // Use TerritoryFilterService to filter territories
@@ -67,6 +69,20 @@ export const useGeoDataStore = defineStore('geoData', () => {
     try {
       isLoading.value = true
       error.value = null
+
+      console.info('[GeoDataStore] Initializing for atlas:', configStore.selectedAtlas)
+
+      // Wait for atlas config to be loaded before initializing
+      if (!configStore.currentAtlasConfig) {
+        console.warn('[GeoDataStore] Atlas config not loaded yet, deferring initialization')
+        isLoading.value = false
+        return
+      }
+
+      console.debug('[GeoDataStore] Atlas config loaded:', {
+        atlasId: configStore.currentAtlasConfig.id,
+        viewModes: configStore.currentAtlasConfig.supportedViewModes,
+      })
 
       // Use the geo data config from the selected region
       const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
@@ -121,6 +137,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
       if (!cartographer.value) {
         throw new Error('Cartographer not initialized')
       }
+      if (!configStore.currentAtlasConfig) {
+        throw new Error('Atlas config not loaded')
+      }
       const service = cartographer.value.geoData
 
       // Use TerritoryDataLoader with strategy pattern to load data
@@ -153,6 +172,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
       if (!cartographer.value) {
         throw new Error('Cartographer not initialized')
       }
+      if (!configStore.currentAtlasConfig) {
+        throw new Error('Atlas config not loaded')
+      }
       const service = cartographer.value.geoData
 
       // Use TerritoryDataLoader to handle unified data loading
@@ -184,6 +206,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
   }
 
   const reinitialize = async () => {
+    console.info('[GeoDataStore] Reinitializing - resetting state and reloading data')
+    
     // Reset state
     isInitialized.value = false
     mainlandData.value = null
@@ -193,6 +217,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     // Reinitialize
     await initialize()
+    
+    console.info('[GeoDataStore] Reinitialization complete')
   }
 
   return {

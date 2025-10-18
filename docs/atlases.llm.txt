@@ -2,36 +2,60 @@
 
 ## Core Architecture
 
-**Registry Pattern**: Auto-discovers all configs from `configs/` folder
+**Static Registry**: Uses `configs/atlas-registry.json` to define available atlases
+**Lazy Loading**: Atlas configurations load on-demand, not at app startup
 **Adapter Pattern**: Transforms JSON → TypeScript configs
-**Zero Code Changes**: Add new atlas by creating JSON file only
-**Category Grouping**: Atlases are grouped by geographic scope in UI dropdowns
+**Grouped & Sorted**: Registry controls atlas grouping and display order in UI
 
-## Atlas Categories
+## Atlas Registry System
 
-Atlases are organized into three categories for UI grouping:
+The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata:
 
-| Category | Description | Examples |
-|----------|-------------|----------|
-| `country` | Individual nation-states | France, Portugal, Spain, USA, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark |
-| `region` | Regional groups, unions, alliances | European Union |
-| `world` | Global/world atlases | World |
+### Registry Structure
+- **defaultAtlas**: Default atlas ID to load on app startup
+- **groups**: Group definitions with labels and display order
+  - **id**: Group identifier (`country`, `region`, `world`)
+  - **label**: Display label (i18n object or string)
+  - **sortOrder**: Display order (lower = earlier)
+- **atlases**: Atlas entries
+  - **id**: Unique atlas identifier (matches config filename)
+  - **name**: Display name (i18n object or string)
+  - **group**: Group ID for UI grouping
+  - **sortOrder**: Display order within group (lower = earlier)
+  - **configPath**: Relative path to atlas JSON config
 
-Categories are optional in config - defaults to `country` if not specified.
-Groups display in order: Country → Region & Union → World.
+Atlas configs are loaded lazily via fetch when accessed.
+The registry schema validates structure at build time.
+
+## Atlas Groups
+
+Groups are defined in the registry with translatable labels:
+
+| Group ID | Label (EN) | Label (FR) | Sort Order | Atlas Sort Range |
+|----------|------------|------------|------------|------------------|
+| `country` | Countries | Pays | 1 | 1-99 |
+| `region` | Regions & Unions | Régions & Unions | 2 | 100-199 |
+| `world` | World | Monde | 3 | 200+ |
+
+Groups display in order defined by their `sortOrder`.
+Within each group, atlases sort by their own `sortOrder` value.
 
 ## Directory Structure
 
 ```
 configs/
-├── schema.json        # JSON Schema validation
-├── france.json        # Atlas configurations
+├── atlas-registry.json        # Registry of available atlases
+├── atlas-registry.schema.json # Registry validation schema
+├── schema.json                # Atlas config validation schema
+├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
-└── eu.json
+├── usa.json
+├── eu.json
+└── world.json
 
 src/core/atlases/
 ├── loader.ts          # JSON → TypeScript adapter
-├── registry.ts        # Singleton auto-discovery
+├── registry.ts        # Registry loader with lazy loading
 ├── utils.ts           # Territory helpers
 └── constants.ts       # Defaults
 
@@ -108,6 +132,66 @@ src/public/data/
 | `composite-existing` | Pre-built D3 composite | France, Portugal, Spain |
 | `composite-custom` | User-defined layout | Any atlas, full customization |
 | `unified` | Single world map | Regional groups, geographic context |
+
+## Adding a New Atlas
+
+**Two-step process**: Create atlas config + register in atlas registry
+
+### Step 1: Create Atlas Config File
+
+Create `configs/new-atlas.json`:
+```json
+{
+  "$schema": "./schema.json",
+  "id": "new-atlas",
+  "name": "New Atlas Name",
+  "category": "country",
+  "pattern": "single-focus",
+  "territories": [
+    {
+      "id": "250",
+      "role": "primary",
+      "code": "NA-MET",
+      "name": "Territory Name",
+      "center": [2.5, 46.5],
+      "bounds": [[-5, 41], [10, 51]],
+      "extraction": { "mainlandPolygon": 0 }
+    }
+  ]
+}
+```
+
+### Step 2: Register in Atlas Registry
+
+### Step 2: Register in Atlas Registry
+
+Add entry to `configs/atlas-registry.json` atlases array:
+```json
+{
+  "defaultAtlas": "france",
+  "groups": [...],
+  "atlases": [
+    {
+      "id": "new-atlas",
+      "name": {
+        "en": "New Atlas",
+        "fr": "Nouvel Atlas"
+      },
+      "group": "country",
+      "sortOrder": 40,
+      "configPath": "./new-atlas.json"
+    }
+  ]
+}
+```
+
+**Key Points**:
+- `id` must match filename (without `.json`)
+- `sortOrder` controls position within group (1-99 for countries, 100-199 for regions, 200+ for world)
+- `group` must match a group ID defined in the `groups` array
+- Lower `sortOrder` values appear first within their group
+- Config loads on-demand via fetch when user selects the atlas
+- To set as default: change `defaultAtlas` field in registry
 
 ## Minimal Config
 

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Registry",
+  "description": "Registry of available atlas configurations with grouping and sorting",
+  "type": "object",
+  "required": ["defaultAtlas", "groups", "atlases"],
+  "properties": {
+    "defaultAtlas": {
+      "type": "string",
+      "description": "Default atlas to load on application startup",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "groups": {
+      "type": "array",
+      "description": "Atlas group definitions with labels and display order",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "sortOrder"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique group identifier",
+            "enum": ["country", "region", "world"]
+          },
+          "label": {
+            "description": "Display label for the group (can be i18n object or string)",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"]
+              }
+            ]
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Display order of groups (lower numbers appear first)",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "atlases": {
+      "type": "array",
+      "description": "List of available atlases",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "group", "sortOrder", "configPath"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the atlas (matches config file name)",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "name": {
+            "description": "Display name for the atlas (can be i18n object or string)",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"]
+              }
+            ]
+          },
+          "group": {
+            "type": "string",
+            "description": "Category for grouping atlases in UI",
+            "enum": ["country", "region", "world"]
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Order within group (lower numbers appear first)",
+            "minimum": 0
+          },
+          "configPath": {
+            "type": "string",
+            "description": "Relative path to the atlas JSON configuration file",
+            "pattern": "^\\./[a-z0-9-]+\\.json$"
+          }
+        }
+      }
+    }
+  }
+}

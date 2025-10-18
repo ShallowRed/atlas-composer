@@ -14,6 +14,9 @@ export function useViewMode() {
    */
   const viewModeOptions = computed(() => {
     const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig)
+      return []
+
     const supportedModes = atlasConfig.supportedViewModes || []
 
     // All possible view mode options

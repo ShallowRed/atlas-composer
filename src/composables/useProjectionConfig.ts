@@ -19,7 +19,7 @@ export function useProjectionConfig() {
 
   // Load composite projections when atlas changes
   watch(() => configStore.selectedAtlas, async (atlasId) => {
-    if (atlasId) {
+    if (atlasId && configStore.currentAtlasConfig) {
       const compositeProjections = await AtlasMetadataService.getCompositeProjections(
         atlasId,
         configStore.currentAtlasConfig.defaultPreset,
@@ -43,7 +43,7 @@ export function useProjectionConfig() {
    */
   function getMainlandProjection() {
     if (configStore.projectionMode === 'individual') {
-      const mainlandCode = configStore.currentAtlasConfig.splitModeConfig?.mainlandCode
+      const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
       if (mainlandCode) {
         return parameterStore.getTerritoryProjection(mainlandCode) || configStore.selectedProjection
       }

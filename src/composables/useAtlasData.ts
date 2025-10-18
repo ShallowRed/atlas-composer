@@ -76,23 +76,42 @@ export function useAtlasData() {
    * Reinitialize data when atlas changes
    */
   async function reinitialize() {
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig) {
+      console.warn('[useAtlasData] Cannot reinitialize - atlas config not loaded')
+      return
+    }
+    
+    // Use the atlas's default view mode if current mode is not supported
+    const targetViewMode = atlasConfig.supportedViewModes.includes(configStore.viewMode)
+      ? configStore.viewMode
+      : atlasConfig.defaultViewMode
+    
+    console.info('[useAtlasData] Starting reinitialize for viewMode:', {
+      currentViewMode: configStore.viewMode,
+      targetViewMode,
+      supportedViewModes: atlasConfig.supportedViewModes,
+    })
+    
     try {
       await withMinLoadingTime(async () => {
         await geoDataStore.reinitialize()
 
         // Load territory data for split and composite-custom modes
-        if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
+        if (targetViewMode === 'split' || targetViewMode === 'composite-custom') {
+          console.debug('[useAtlasData] Loading territory data for split/composite-custom mode')
           await geoDataStore.loadTerritoryData()
         }
         // Load unified data for unified mode
-        else if (configStore.viewMode === 'unified') {
+        else if (targetViewMode === 'unified') {
+          console.debug('[useAtlasData] Loading unified data for unified mode, territoryMode:', configStore.territoryMode)
           await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
         }
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors du changement de région'
-      console.error('Region change error:', err)
+      console.error('[useAtlasData] Region change error:', err)
     }
   }
 
@@ -112,13 +131,41 @@ export function useAtlasData() {
    */
   function setupWatchers() {
     // Watch for view mode changes to load territory data when needed
-    watch(() => configStore.viewMode, async (newMode) => {
+    watch(() => configStore.viewMode, async (newMode, oldMode) => {
+      console.info('[useAtlasData] viewMode changed:', { oldMode, newMode })
       await loadDataForViewMode(newMode)
     })
 
-    // Watch for region changes to reinitialize data
-    watch(() => configStore.selectedAtlas, async () => {
-      await reinitialize()
+    // Watch for atlas config changes to reinitialize data
+    // Watch currentAtlasConfig instead of selectedAtlas to ensure atlas is loaded before reinitializing
+    // Initialize with current atlas to detect future changes
+    let lastAtlasId: string | null = configStore.currentAtlasConfig?.id ?? null
+    console.debug('[useAtlasData] setupWatchers - initializing lastAtlasId:', lastAtlasId)
+    
+    watch(() => configStore.currentAtlasConfig, async (newConfig) => {
+      console.debug('[useAtlasData] currentAtlasConfig changed:', {
+        newConfig: newConfig?.id,
+        lastAtlasId,
+        willReinitialize: newConfig && lastAtlasId !== null && lastAtlasId !== newConfig.id,
+      })
+      
+      // Track the last loaded atlas ID to detect changes
+      if (newConfig) {
+        const newAtlasId = newConfig.id
+        // Only reinitialize if the atlas actually changed (not just initial load)
+        if (lastAtlasId !== null && lastAtlasId !== newAtlasId) {
+          console.info(`[useAtlasData] Atlas changed from '${lastAtlasId}' to '${newAtlasId}', reinitializing...`)
+          await reinitialize()
+          console.info(`[useAtlasData] Reinitialization complete for '${newAtlasId}'`)
+        }
+        else {
+          console.debug(`[useAtlasData] Skipping reinitialize - lastAtlasId: ${lastAtlasId}, newAtlasId: ${newAtlasId}`)
+        }
+        lastAtlasId = newAtlasId
+      }
+      else {
+        console.debug('[useAtlasData] currentAtlasConfig is null, skipping')
+      }
     })
 
     // Watch for territory mode changes to reload data in unified mode

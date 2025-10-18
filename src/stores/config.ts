@@ -3,8 +3,9 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { useAtlasLoader } from '@/composables/useAtlasLoader'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
@@ -42,28 +43,45 @@ export const useConfigStore = defineStore('config', () => {
   }
   const selectedProjection = ref(getInitialProjection())
 
-  // Computed: Current atlas configuration (needs to be before territoryMode)
-  const currentAtlasConfig = computed(() => getAtlasConfig(selectedAtlas.value))
+  // Use async atlas loader for loading atlas configs on demand
+  const { atlasConfig: currentAtlasConfig } = useAtlasLoader(selectedAtlas)
 
   // Computed: Atlas service for accessing atlas-specific data
-  const atlasService = computed(() => new AtlasService(selectedAtlas.value))
+  // Depends on both selectedAtlas AND currentAtlasConfig so it updates when atlas finishes loading
+  const atlasService = computed(() => {
+    // Access currentAtlasConfig to create reactive dependency on loading completion
+    void currentAtlasConfig.value?.id
+    
+    const isLoaded = isAtlasLoaded(selectedAtlas.value)
+    if (!isLoaded) {
+      // Return a service for the default atlas as fallback during loading
+      return new AtlasService(DEFAULT_ATLAS)
+    }
+    return new AtlasService(selectedAtlas.value)
+  })
 
   // Territory mode - initialize with the default from the current atlas's config
   const getInitialTerritoryMode = () => {
-    const config = getAtlasConfig(DEFAULT_ATLAS)
+    // Use cached config since DEFAULT_ATLAS is preloaded in main.ts
+    const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
     // Use configured default territory mode if available
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
+    if (atlasConfig.defaultTerritoryMode) {
+      return atlasConfig.defaultTerritoryMode
     }
     // Otherwise use first option from territoryModeOptions
-    if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
-      return config.territoryModeOptions[0]!.value
+    if (atlasConfig.hasTerritorySelector && atlasConfig.territoryModeOptions && atlasConfig.territoryModeOptions.length > 0) {
+      return atlasConfig.territoryModeOptions[0]!.value
     }
     throw new Error('No territory mode options available for the default atlas')
   }
   const territoryMode = ref<string>(getInitialTerritoryMode())
 
-  const viewMode = ref<ViewMode>(currentAtlasConfig.value.defaultViewMode)
+  // Initialize viewMode with default atlas config (preloaded)
+  const getInitialViewMode = () => {
+    const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
+    return atlasConfig.defaultViewMode
+  }
+  const viewMode = ref<ViewMode>(getInitialViewMode())
   // Default to 'individual' since default viewMode is 'composite-custom'
   const projectionMode = ref<ProjectionMode>('individual')
   // Initialize with fallback, will be updated async with preset data
@@ -76,6 +94,9 @@ export const useConfigStore = defineStore('config', () => {
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
     const config = currentAtlasConfig.value
+    // If config hasn't loaded yet, default to not locked
+    if (!config)
+      return false
     return config.supportedViewModes.length === 1
   })
 
@@ -369,7 +390,16 @@ export const useConfigStore = defineStore('config', () => {
 
   // Watch for atlas changes - use AtlasCoordinator for complex orchestration
   watch(selectedAtlas, async (newAtlasId) => {
+    // Preload the new atlas before orchestration to ensure sync access works
+    await loadAtlasAsync(newAtlasId)
+
     const updates = await AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
+
+    console.info('[ConfigStore] Applying atlas change updates:', {
+      newViewMode: updates.viewMode,
+      currentViewMode: viewMode.value,
+      newTerritoryMode: updates.territoryMode,
+    })
 
     // Apply all updates from coordinator to config store
     viewMode.value = updates.viewMode

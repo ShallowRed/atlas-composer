@@ -20,9 +20,20 @@ const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
  * Not extracted to composable as it's only used here.
  */
 const isSingleFocusPattern = computed(() => {
-  const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+  const atlasConfig = configStore.currentAtlasConfig
+  if (!atlasConfig)
+    return false
+  const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
   return patternService.isSingleFocus()
 })
+
+// Safe accessors for atlas config with fallbacks
+const mainlandTitle = computed(() =>
+  configStore.currentAtlasConfig?.splitModeConfig?.mainlandTitle ?? 'territory.mainland',
+)
+const territoriesTitle = computed(() =>
+  configStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
+)
 </script>
 
 <template>
@@ -35,7 +46,7 @@ const isSingleFocusPattern = computed(() => {
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-map-pin-range-line" />
-        {{ t(configStore.currentAtlasConfig.splitModeConfig?.mainlandTitle ?? 'territory.mainland') }}
+        {{ t(mainlandTitle) }}
       </h3>
       <MapRenderer
         :geo-data="geoDataStore.mainlandData"
@@ -50,7 +61,7 @@ const isSingleFocusPattern = computed(() => {
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-map-pin-add-line" />
-        {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.overseas') }}
+        {{ t(territoriesTitle) }}
       </h3>
 
       <div class="join join-vertical">
@@ -102,7 +113,7 @@ const isSingleFocusPattern = computed(() => {
   <div v-else>
     <h3 class="text-base font-semibold mb-4">
       <i class="ri-map-pin-line" />
-      {{ t(configStore.currentAtlasConfig.splitModeConfig?.territoriesTitle || 'territory.territories') }}
+      {{ t(territoriesTitle) }}
     </h3>
 
     <!-- Territories Grid (flat, no region grouping) -->

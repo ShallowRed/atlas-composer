@@ -33,7 +33,10 @@ export function useTerritoryTransforms() {
    * Check if we should show mainland section (only for single-focus pattern)
    */
   const showMainland = computed(() => {
-    const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig)
+      return false
+    const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
     return patternService.isSingleFocus()
   })
 
@@ -41,7 +44,8 @@ export function useTerritoryTransforms() {
    * Get mainland code from region config
    */
   const mainlandCode = computed(() => {
-    return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
+    const atlasConfig = configStore.currentAtlasConfig
+    return atlasConfig?.splitModeConfig?.mainlandCode || 'MAINLAND'
   })
 
   /**

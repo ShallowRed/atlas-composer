@@ -19,10 +19,10 @@ const configStore = useConfigStore()
 // Get territory mode options with reactive translation
 const { options: territoryModeOptions } = useTerritoryModeOptions()
 
-// Get grouped atlases with translated category labels and flags
+// Get grouped atlases with translated labels and flags
 const atlasGroupsWithIcons = computed(() => {
   return getAvailableAtlasesGrouped().map(group => ({
-    label: t(`atlas.categories.${group.category}`),
+    label: group.label, // Already translated by registry
     options: group.options.map(atlas => ({
       ...atlas,
       icon: getAtlasFlag(atlas.value),

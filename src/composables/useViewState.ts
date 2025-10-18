@@ -70,12 +70,16 @@ export function useViewState() {
 
   // Helper computed properties for ViewState
   const showMainland = computed(() => {
-    const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig)
+      return false
+    const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
     return patternService.isSingleFocus()
   })
 
   const mainlandCode = computed(() => {
-    return configStore.currentAtlasConfig.splitModeConfig?.mainlandCode || 'MAINLAND'
+    const atlasConfig = configStore.currentAtlasConfig
+    return atlasConfig?.splitModeConfig?.mainlandCode || 'MAINLAND'
   })
 
   const isMainlandInTerritories = computed(() => {
@@ -86,96 +90,103 @@ export function useViewState() {
    * Build ViewState snapshot for service calls
    * Aggregates all state needed for orchestration decisions
    */
-  const viewState = computed<ViewState>(() => ({
-    viewMode: configStore.viewMode,
-    projectionMode: configStore.projectionMode,
-    atlasConfig: configStore.currentAtlasConfig,
-    hasPresets: (configStore.currentAtlasConfig.availablePresets?.length ?? 0) > 0,
-    hasOverseasTerritories: geoDataStore.filteredTerritories.length > 0,
-    isPresetLoading: false, // TODO: Track preset loading state
-    showProjectionSelector: configStore.showProjectionSelector,
-    showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
-    isMainlandInTerritories: isMainlandInTerritories.value,
-    showMainland: showMainland.value,
-  }))
+  const viewState = computed<ViewState | null>(() => {
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig)
+      return null
+
+    return {
+      viewMode: configStore.viewMode,
+      projectionMode: configStore.projectionMode,
+      atlasConfig,
+      hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
+      hasOverseasTerritories: geoDataStore.filteredTerritories.length > 0,
+      isPresetLoading: false, // TODO: Track preset loading state
+      showProjectionSelector: configStore.showProjectionSelector,
+      showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
+      isMainlandInTerritories: isMainlandInTerritories.value,
+      showMainland: showMainland.value,
+    }
+  })
 
   /**
    * View Orchestration - Service-based visibility logic
    * All methods are wrapped in computed refs for reactivity
+   * Returns safe defaults when atlas config is still loading
    */
   const viewOrchestration = {
     // Main layout visibility
     shouldShowRightSidebar: computed(() =>
-      ViewOrchestrationService.shouldShowRightSidebar(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowRightSidebar(viewState.value) : false,
     ),
     shouldShowBottomBar: computed(() =>
-      ViewOrchestrationService.shouldShowBottomBar(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowBottomBar(viewState.value) : false,
     ),
 
     // Sidebar content visibility
     shouldShowProjectionParams: computed(() =>
-      ViewOrchestrationService.shouldShowProjectionParams(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowProjectionParams(viewState.value) : false,
     ),
     shouldShowTerritoryControls: computed(() =>
-      ViewOrchestrationService.shouldShowTerritoryControls(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowTerritoryControls(viewState.value) : false,
     ),
 
     // Territory controls sub-components
     shouldShowPresetSelector: computed(() =>
-      ViewOrchestrationService.shouldShowPresetSelector(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowPresetSelector(viewState.value) : false,
     ),
     shouldShowImportControls: computed(() =>
-      ViewOrchestrationService.shouldShowImportControls(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowImportControls(viewState.value) : false,
     ),
     shouldShowGlobalProjectionControls: computed(() =>
-      ViewOrchestrationService.shouldShowGlobalProjectionControls(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowGlobalProjectionControls(viewState.value) : false,
     ),
     shouldShowTerritoryParameterControls: computed(() =>
-      ViewOrchestrationService.shouldShowTerritoryParameterControls(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowTerritoryParameterControls(viewState.value) : false,
     ),
     shouldShowMainlandAccordion: computed(() =>
-      ViewOrchestrationService.shouldShowMainlandAccordion(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowMainlandAccordion(viewState.value) : false,
     ),
     shouldShowProjectionDropdown: computed(() =>
-      ViewOrchestrationService.shouldShowProjectionDropdown(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowProjectionDropdown(viewState.value) : false,
     ),
 
     // Empty states
     shouldShowEmptyState: computed(() =>
-      ViewOrchestrationService.shouldShowEmptyState(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowEmptyState(viewState.value) : true,
     ),
     getEmptyStateMessage: computed(() =>
-      ViewOrchestrationService.getEmptyStateMessage(viewState.value),
+      viewState.value ? ViewOrchestrationService.getEmptyStateMessage(viewState.value) : 'Loading atlas...',
     ),
 
     // Control states
     isTerritorySelectDisabled: computed(() =>
-      ViewOrchestrationService.isTerritorySelectDisabled(viewState.value),
+      viewState.value ? ViewOrchestrationService.isTerritorySelectDisabled(viewState.value) : true,
     ),
     isProjectionModeDisabled: computed(() =>
-      ViewOrchestrationService.isProjectionModeDisabled(viewState.value),
+      viewState.value ? ViewOrchestrationService.isProjectionModeDisabled(viewState.value) : true,
     ),
     isViewModeDisabled: computed(() =>
-      ViewOrchestrationService.isViewModeDisabled(viewState.value),
+      viewState.value ? ViewOrchestrationService.isViewModeDisabled(viewState.value) : true,
     ),
 
     // Layout variants
     shouldShowCompositeRenderer: computed(() =>
-      ViewOrchestrationService.shouldShowCompositeRenderer(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowCompositeRenderer(viewState.value) : false,
     ),
     shouldShowSplitView: computed(() =>
-      ViewOrchestrationService.shouldShowSplitView(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowSplitView(viewState.value) : false,
     ),
     shouldShowUnifiedView: computed(() =>
-      ViewOrchestrationService.shouldShowUnifiedView(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowUnifiedView(viewState.value) : false,
     ),
 
     // Display options visibility
     shouldShowCompositionBordersToggle: computed(() =>
-      ViewOrchestrationService.shouldShowCompositionBordersToggle(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowCompositionBordersToggle(viewState.value) : false,
     ),
     shouldShowScalePreservationToggle: computed(() =>
-      ViewOrchestrationService.shouldShowScalePreservationToggle(viewState.value),
+      viewState.value ? ViewOrchestrationService.shouldShowScalePreservationToggle(viewState.value) : false,
     ),
   }
 

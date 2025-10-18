@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { getAtlasConfig } from '@/core/atlases/registry'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -26,14 +25,17 @@ const presetMetadata = ref<Map<string, { name?: string | Record<string, string> 
 
 // Get available presets from current atlas config
 const availablePresets = computed(() => {
-  const atlasConfig = getAtlasConfig(configStore.selectedAtlas)
+  const atlasConfig = configStore.currentAtlasConfig
+  if (!atlasConfig)
+    return []
   return atlasConfig.availablePresets || []
 })
 
 // Current preset selection
 const currentPreset = computed({
   get: () => {
-    return selectedPreset.value || getAtlasConfig(configStore.selectedAtlas).defaultPreset || ''
+    const atlasConfig = configStore.currentAtlasConfig
+    return selectedPreset.value || atlasConfig?.defaultPreset || ''
   },
   set: async (presetId: string) => {
     if (!presetId || isLoading.value)
