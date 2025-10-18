@@ -31,7 +31,7 @@ src/
 │       ├── presets/          # Preset management components
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 12 composition functions including useViewState, useTerritoryCursor, useClipExtentEditor, useTerritoryParameters
+├── composables/              # 14 composition functions including useViewState, useTerritoryCursor, useClipExtentEditor, useProjectionPanning, useMapWatchers, useTerritoryParameters
 ├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -64,61 +64,22 @@ App.vue
 - No business logic (delegates to composables)
 - Uses: useAtlasData, useLoadingState
 
-### MapRenderer.vue (147 lines)
-**Role**: D3 rendering engine with interactive panning, territory dragging, and clip extent editing
+### MapRenderer.vue (376 lines)
+**Role**: D3 rendering engine with interactive features
 **Responsibilities**:
 - SVG canvas management
 - D3 projection rendering via MapRenderCoordinator
 - Territory positioning
-- Interactive mouse panning (mouse drag to rotate projections)
-- Territory dragging integration via useTerritoryCursor composable
-- Clip extent corner editing integration via useClipExtentEditor composable
-- Cursor feedback (grab/grabbing) during interaction
-- Watches projection parameters and fitting mode for reactive updates
-- Watches global parameters (referenceScale, canvasDimensions) and applies updates dynamically
-- Uses: MapRenderCoordinator, MapSizeCalculator, projectionRegistry, getRelevantParameters, useTerritoryCursor, useClipExtentEditor
-**Tests**: 10 tests covering props, rendering, store integration
+- Interactive feature integration (panning via useProjectionPanning, dragging via useTerritoryCursor, clip extent editing via useClipExtentEditor)
+- Reactive map updates via useMapWatchers
+- Uses: MapRenderCoordinator, MapSizeCalculator, useProjectionPanning, useTerritoryCursor, useClipExtentEditor, useMapWatchers
+**Tests**: 13 tests covering props, rendering, store integration
 **Interactive Features**:
-- **Panning**: Mouse drag to rotate projections (azimuthal, cylindrical, etc.)
-- **Territory Dragging**: Drag overseas territories to reposition (composite-custom mode)
-- **Clip Extent Editing**: Click territory to select, drag corner handles to adjust clipping region
-**Panning Feature**:
-- Supports 2-axis mouse drag panning for projections with `rotateLongitude` parameter
-- Tracks mouse delta (dx, dy) and converts to rotation degrees (~0.5° per pixel)
-- Updates both longitude and latitude rotation through configStore.setCustomRotate()
-- Wraps longitude to -180°/180° range, clamps latitude to -90°/90° range
-- Prevents pole flipping by clamping latitude rotation
-- Global mouse event listeners ensure smooth dragging even outside element
-- Automatically determines panning support based on projection family (via getRelevantParameters)
-- Cursor changes to 'grab' when panning available, 'grabbing' while dragging
-- Works with azimuthal, cylindrical, pseudocylindrical, and polyhedral projection families
-- **Latitude Lock**: Respects configStore.rotateLatitudeLocked state
-  - When locked: Only longitude panning (latDelta = 0)
-  - When unlocked: Full 2-axis panning
-  - Uses supportsLatitudePanning computed for conditional logic
-**Global Parameter Watchers**:
-- Watches configStore.canvasDimensions for changes
-  - Calls cartographer.updateCanvasDimensions() to update projection service
-  - Triggers re-render to apply new canvas size to SVG display
-- Watches configStore.referenceScale for changes
-  - Calls cartographer.updateReferenceScale() to recalculate all territory scales
-  - Triggers re-render with updated scale multipliers applied
-- Uses deep watching for canvasDimensions object to detect property changes
-- Ensures reactive updates without full component reinitialization
-**Territory Dragging Integration**:
-- Uses useTerritoryCursor composable for drag-to-move functionality
-- Creates border zone overlays via createBorderZoneOverlays() in composite-custom mode
-- Passes onTerritoryClick callback to enable clip extent editor territory selection
-- Handles drag start/move/stop events coordinated by useTerritoryCursor
-- Updates translateOffset parameter in real-time during drag
-**Clip Extent Editing Integration**:
-- Uses useClipExtentEditor composable for interactive corner dragging
-- Click workflow: Border zone click → toggleTerritorySelection() → renderClipExtentHandles()
-- Only shows corner handles for currently selected territory (prevents overlap)
-- Renders handles after SVG ready via renderClipExtentHandles(svg) call
-- Handle positions update automatically when parameters change
-- Coordinates with territory dragging (both use same SVG scale calculation)
-- Updates pixelClipExtent parameter in real-time during corner drag
+- **Projection Panning**: Via useProjectionPanning composable for azimuthal, cylindrical, and pseudocylindrical projections
+- **Territory Dragging**: Via useTerritoryCursor composable for composite-custom mode
+- **Clip Extent Editing**: Via useClipExtentEditor composable for corner handle editing
+**Watchers**: All reactive dependencies handled by useMapWatchers composable
+**Cursor Coordination**: Territory dragging > Clip extent editing > Projection panning priority
 
 ### TerritoryControls.vue (264 lines)
 **Role**: Territory transform and parameter controls
@@ -275,7 +236,7 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (12 functions)
+## Composables (14 functions)
 
 ### Data Loading
 **useAtlasData** (128 lines)
@@ -378,6 +339,36 @@ App.vue
 - Integration with useTerritoryCursor: MapRenderer passes toggleTerritorySelection as onTerritoryClick callback
 - Click workflow: User clicks territory border zone → toggles selection → handles appear/disappear for that territory
 - Used by: MapRenderer.vue for interactive clip extent editing
+
+**useProjectionPanning** (162 lines)
+- Interactive projection panning for azimuthal, cylindrical, and pseudocylindrical projections
+- Pan state management: isPanning, drag coordinates, rotation start values
+- Projection capability detection: supportsPanning, supportsLatitudePanning
+- Mouse event handlers: handleMouseDown(), handleMouseMove(), handleMouseUp()
+- Rotation calculations: Converts pixel deltas to degrees (~0.5° per pixel)
+  - Longitude wrapping: -180° to 180° range
+  - Latitude clamping: -90° to 90° range (prevents pole flipping)
+  - Natural drag direction: drag right moves map right (positive dx increases longitude)
+- Integration with configStore.setCustomRotate() for rotation updates
+- Respects configStore.rotateLatitudeLocked for latitude lock behavior
+- Cursor feedback: 'grab' when available, 'grabbing' while panning, 'default' when disabled
+- Global event listener management with cleanup
+- Uses getRelevantParameters() to determine projection family support
+- Works with projectionRegistry for projection metadata
+- Tests: 19 tests covering capability detection, cursor styles, drag behavior, rotation calculations
+- Used by: MapRenderer.vue for interactive map rotation
+
+**useMapWatchers** (155 lines)
+- Consolidates all MapRenderer watch statements into single composable
+- Watches effectiveProjectionParams: Updates cartographer.updateProjectionParams() and triggers re-render
+- Watches projectionFittingMode: Updates cartographer.updateFittingMode() and triggers re-render
+- Watches canvasDimensions: Updates cartographer.updateCanvasDimensions() and triggers re-render
+- Watches referenceScale: Updates cartographer.updateReferenceScale() and triggers re-render
+- Mode-dependent watch: Triggers re-render on composite/simple mode dependencies
+- Deep watching with 'post' flush for optimal reactivity
+- Accepts props object (mode, geoData, projection, preserveScale) and callbacks object
+- Centralizes watcher lifecycle management with cleanup function
+- Used by: MapRenderer.vue for reactive map updates
 
 **useUrlState** (220 lines)
 - URL state serialization/deserialization for shareable links

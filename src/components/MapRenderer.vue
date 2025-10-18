@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
+import { useMapWatchers } from '@/composables/useMapWatchers'
+import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
-import { getRelevantParameters } from '@/core/projections/parameters'
-import { projectionRegistry } from '@/core/projections/registry'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
-import { useParameterStore } from '@/stores/parameters'
 import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
@@ -45,7 +44,6 @@ const props = withDefaults(defineProps<Props>(), {
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 const territoryStore = useTerritoryStore()
-const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
 
@@ -54,15 +52,15 @@ const error = ref<string | null>(null)
 const isMounted = ref(false)
 const isRendering = ref(false)
 
-// Pan interaction state
-const isPanning = ref(false)
-const panStartX = ref(0)
-const panStartY = ref(0)
-const panStartRotationLon = ref(0)
-const panStartRotationLat = ref(0)
-
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
+
+// Projection panning composable for interactive rotation via mouse drag
+const {
+  handleMouseDown: handlePanMouseDown,
+  cursorStyle: panningCursorStyle,
+  cleanup: cleanupProjectionPanning,
+} = useProjectionPanning(props.projection)
 
 // Territory cursor composable for drag-to-move functionality
 const {
@@ -86,93 +84,31 @@ const {
   cleanup: cleanupClipExtentEditor,
 } = useClipExtentEditor()
 
-// Check if current projection supports panning (rotateLongitude)
-const supportsPanning = computed(() => {
-  const projectionId = props.projection ?? configStore.selectedProjection
-  if (!projectionId)
-    return false
-
-  const projection = projectionRegistry.get(projectionId as string)
-  if (!projection)
-    return false
-
-  const relevantParams = getRelevantParameters(projection.family)
-  return relevantParams.rotateLongitude
-})
-
-// Check if current projection supports latitude panning (rotateLatitude and not locked)
-const supportsLatitudePanning = computed(() => {
-  const projectionId = props.projection ?? configStore.selectedProjection
-  if (!projectionId)
-    return false
-
-  const projection = projectionRegistry.get(projectionId as string)
-  if (!projection)
-    return false
-
-  const relevantParams = getRelevantParameters(projection.family)
-  return relevantParams.rotateLatitude && !configStore.rotateLatitudeLocked
-})
-
 // Get current cursor style based on territory dragging and projection panning
 const cursorStyle = computed(() => {
-  // Territory dragging takes precedence
+  // Territory dragging takes absolute precedence
   if (isDragEnabled.value && hoveredTerritoryCode.value) {
     return getTerritoryyCursorStyle(hoveredTerritoryCode.value)
   }
 
   // Fallback to projection panning cursor
-  if (!supportsPanning.value)
-    return 'default'
-  return isPanning.value ? 'grabbing' : 'grab'
+  return panningCursorStyle.value
 })
 
-// Watch for projection parameter changes and update cartographer
-watch(
-  () => configStore.effectiveProjectionParams,
-  async (newParams) => {
-    if (cartographer.value && newParams) {
-      cartographer.value.updateProjectionParams(newParams)
-      await renderMap()
-    }
+// Map watchers composable for all watch statements
+const { cleanup: cleanupMapWatchers } = useMapWatchers(
+  {
+    mode: props.mode,
+    geoData: props.geoData,
+    projection: props.projection,
+    preserveScale: props.preserveScale,
   },
-  { deep: true },
-)
-
-// Watch for fitting mode changes
-watch(
-  () => configStore.projectionFittingMode,
-  async (newMode) => {
-    if (cartographer.value) {
-      cartographer.value.updateFittingMode(newMode)
-      // Trigger a re-render with the updated mode
-      await renderMap()
-    }
-  },
-)
-
-// Watch for canvas dimensions changes
-watch(
-  () => configStore.canvasDimensions,
-  async (newDimensions) => {
-    if (cartographer.value) {
-      cartographer.value.updateCanvasDimensions(newDimensions ?? null)
-      // Canvas dimensions affect SVG viewport size, trigger re-render
-      await renderMap()
-    }
-  },
-  { deep: true },
-)
-
-// Watch for reference scale changes
-watch(
-  () => configStore.referenceScale,
-  async (newScale) => {
-    if (cartographer.value && newScale !== undefined) {
-      cartographer.value.updateReferenceScale(newScale)
-      // Reference scale affects all territories, trigger re-render
-      await renderMap()
-    }
+  {
+    onProjectionParamsChange: renderMap,
+    onFittingModeChange: renderMap,
+    onCanvasDimensionsChange: renderMap,
+    onReferenceScaleChange: renderMap,
+    onDependenciesChange: renderMap,
   },
 )
 
@@ -186,12 +122,10 @@ onMounted(async () => {
 
 // Cleanup event listeners on unmount
 onUnmounted(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('mousemove', handleMouseMove)
-    window.removeEventListener('mouseup', handleMouseUp)
-  }
+  cleanupProjectionPanning()
   cleanupTerritoryCursor()
   cleanupClipExtentEditor()
+  cleanupMapWatchers()
 })
 
 // Use MapSizeCalculator service for size calculation
@@ -280,9 +214,6 @@ async function renderMap() {
     }
 
     mapContainer.value.appendChild(plot as any)
-
-    // Wait for next tick to ensure SVG paths are rendered
-    await nextTick()
 
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
@@ -409,117 +340,15 @@ function setupTerritoryEventListeners(svg: SVGSVGElement) {
 function handleMouseDown(event: MouseEvent) {
   const target = event.target as Element
 
-  // Check if this is a territory element first
+  // Priority 1: Territory dragging (if enabled and on territory)
   if (isDragEnabled.value && target.hasAttribute && target.hasAttribute('data-territory')) {
     handleTerritoryMouseDown(event)
     return
   }
 
-  // Fallback to projection panning
-  if (!supportsPanning.value) {
-    return
-  }
-
-  isPanning.value = true
-  panStartX.value = event.clientX
-  panStartY.value = event.clientY
-
-  // Get current rotation values
-  const currentRotationLon = configStore.customRotateLongitude
-    ?? configStore.effectiveProjectionParams?.rotate?.[0]
-    ?? 0
-  const currentRotationLat = configStore.customRotateLatitude
-    ?? configStore.effectiveProjectionParams?.rotate?.[1]
-    ?? 0
-
-  panStartRotationLon.value = currentRotationLon
-  panStartRotationLat.value = currentRotationLat
-
-  // Add global mouse move and mouse up listeners
-  window.addEventListener('mousemove', handleMouseMove)
-  window.addEventListener('mouseup', handleMouseUp)
-
-  // Prevent text selection during drag
-  event.preventDefault()
+  // Priority 2: Projection panning (if supported)
+  handlePanMouseDown(event)
 }
-
-function handleMouseMove(event: MouseEvent) {
-  if (!isPanning.value)
-    return
-
-  const dx = event.clientX - panStartX.value
-  const dy = event.clientY - panStartY.value
-
-  // Convert pixel movement to rotation degrees
-  // X-axis: Negative dx means dragging left, which should rotate map right (increase longitude)
-  // Y-axis: Negative dy means dragging up, which should rotate map down (decrease latitude)
-  // Scale factor: ~0.5 degrees per pixel for smooth interaction
-  const lonDelta = -dx * 0.5
-  const latDelta = supportsLatitudePanning.value ? -dy * 0.5 : 0
-
-  const newRotationLon = panStartRotationLon.value + lonDelta
-  const newRotationLat = panStartRotationLat.value + latDelta
-
-  // Wrap longitude rotation to -180 to 180 range
-  let wrappedLon = newRotationLon % 360
-  if (wrappedLon > 180)
-    wrappedLon -= 360
-  if (wrappedLon < -180)
-    wrappedLon += 360
-
-  // Clamp latitude rotation to -90 to 90 range (avoid flipping over poles)
-  const clampedLat = Math.max(-90, Math.min(90, newRotationLat))
-
-  // Update both rotation axes through the config store
-  configStore.setCustomRotate(wrappedLon, clampedLat)
-}
-
-function handleMouseUp() {
-  isPanning.value = false
-
-  // Remove global listeners
-  window.removeEventListener('mousemove', handleMouseMove)
-  window.removeEventListener('mouseup', handleMouseUp)
-}
-
-// Watch dependencies based on mode
-watch(() => {
-  if (props.mode === 'composite') {
-    return [
-      configStore.viewMode,
-      configStore.projectionMode,
-      configStore.compositeProjection,
-      configStore.selectedProjection,
-      configStore.territoryMode,
-      configStore.scalePreservation,
-      // NOTE: referenceScale and canvasDimensions have dedicated watchers above
-      uiStore.showGraticule,
-      uiStore.showSphere,
-      uiStore.showCompositionBorders,
-      uiStore.showMapLimits,
-      territoryStore.territoryTranslations,
-      // territoryStore.territoryScales removed - scale multipliers in parameter store
-      territoryStore.territoryProjections,
-      parameterStore.territoryParametersVersion, // Watch for parameter changes to trigger re-render
-      geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
-    ]
-  }
-  return [
-    props.geoData,
-    props.projection,
-    configStore.selectedProjection,
-    props.preserveScale,
-    uiStore.showGraticule,
-    uiStore.showSphere,
-    uiStore.showCompositionBorders,
-    uiStore.showMapLimits,
-    // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
-    // watcher that calls updateProjectionParams() which updates the existing cartographer
-    // Watching it here would trigger a full re-render which is unnecessary
-  ]
-}, async () => {
-  await renderMap()
-}, { deep: true, flush: 'post' })
 </script>
 
 <template>
