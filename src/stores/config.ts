@@ -9,16 +9,13 @@ import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
-
-import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
 export type ProjectionMode = 'uniform' | 'individual'
 
 export const useConfigStore = defineStore('config', () => {
-  // Initialize new stores for UI and territory state
+  // Initialize new stores for UI and parameter state
   const uiStore = useUIStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const presetDefaults = getSharedPresetDefaults()
 
@@ -90,10 +87,22 @@ export const useConfigStore = defineStore('config', () => {
     showMapLimits: false,
   })
 
-  // Initialize territory defaults in the territory store
+  // Initialize territory defaults in the parameter store
   const initializeTerritoryDefaults = () => {
     const all = atlasService.value.getAllTerritories()
-    territoryStore.initializeDefaults(all, 'mercator')
+    // Initialize default projection IDs and translations for all territories
+    for (const territory of all) {
+      // Set default projection ID if not already set (will be overridden by preset)
+      const currentProjection = parameterStore.getTerritoryProjection(territory.code)
+      if (!currentProjection) {
+        parameterStore.setTerritoryProjection(territory.code, 'mercator')
+      }
+      // Ensure translateOffset is initialized
+      const effective = parameterStore.getEffectiveParameters(territory.code)
+      if (!effective.translateOffset) {
+        parameterStore.setTerritoryParameter(territory.code, 'translateOffset', [0, 0])
+      }
+    }
   }
 
   // Call initialization
@@ -118,11 +127,11 @@ export const useConfigStore = defineStore('config', () => {
         const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
         Object.entries(updates.projections).forEach(([code, projection]) => {
-          territoryStore.setTerritoryProjection(code, projection)
+          parameterStore.setTerritoryProjection(code, projection)
         })
         Object.entries(updates.translations).forEach(([code, translation]) => {
-          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+          parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+          parameterStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(updates.scales).forEach(([code, scale]) => {
           parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
@@ -374,13 +383,13 @@ export const useConfigStore = defineStore('config', () => {
       scales: updates.scales,
     }, updates.territoryParameters)
 
-    // Update territory store - use proper setter methods to maintain reactivity
+    // Update parameter store - use proper setter methods to maintain reactivity
     Object.entries(updates.projections).forEach(([code, projection]) => {
-      territoryStore.setTerritoryProjection(code, projection)
+      parameterStore.setTerritoryProjection(code, projection)
     })
     Object.entries(updates.translations).forEach(([code, translation]) => {
-      territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-      territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+      parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+      parameterStore.setTerritoryTranslation(code, 'y', translation.y)
     })
     Object.entries(updates.scales).forEach(([code, scale]) => {
       parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)

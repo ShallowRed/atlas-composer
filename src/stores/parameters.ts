@@ -111,6 +111,47 @@ export const useParameterStore = defineStore('parameters', () => {
     territoryParametersVersion.value++
   }
 
+  // Territory-specific helper methods (migration from territory store)
+
+  /**
+   * Set projection ID for a territory
+   * Helper method for backward compatibility during migration
+   */
+  function setTerritoryProjection(territoryCode: string, projectionId: string) {
+    setTerritoryParameter(territoryCode, 'projectionId', projectionId)
+  }
+
+  /**
+   * Get projection ID for a territory
+   */
+  function getTerritoryProjection(territoryCode: string): string | undefined {
+    const effective = getEffectiveParameters(territoryCode)
+    return effective.projectionId
+  }
+
+  /**
+   * Set translation for a territory (single axis)
+   * Helper method for backward compatibility during migration
+   */
+  function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
+    const effective = getEffectiveParameters(territoryCode)
+    const currentOffset = effective.translateOffset ?? [0, 0]
+    const newOffset: [number, number] = axis === 'x'
+      ? [value, currentOffset[1]]
+      : [currentOffset[0], value]
+    setTerritoryParameter(territoryCode, 'translateOffset', newOffset)
+  }
+
+  /**
+   * Get translation for a territory
+   * Returns {x, y} object for backward compatibility
+   */
+  function getTerritoryTranslation(territoryCode: string): { x: number, y: number } {
+    const effective = getEffectiveParameters(territoryCode)
+    const offset = effective.translateOffset ?? [0, 0]
+    return { x: offset[0], y: offset[1] }
+  }
+
   // Effective parameters (with inheritance)
   function getEffectiveParameters(territoryCode?: string): ProjectionParameters {
     // Access versions to trigger reactivity
@@ -347,6 +388,12 @@ export const useParameterStore = defineStore('parameters', () => {
     getTerritoryParameters,
     setTerritoryParameter,
     setTerritoryParameters,
+
+    // Territory helpers (migration from territory store)
+    setTerritoryProjection,
+    getTerritoryProjection,
+    setTerritoryTranslation,
+    getTerritoryTranslation,
 
     // Effective parameters
     getEffectiveParameters,

@@ -4,7 +4,7 @@ import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { useConfigStore } from '@/stores/config'
-import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages projection configuration and provides projection helper functions
@@ -12,7 +12,7 @@ import { useTerritoryStore } from '@/stores/territory'
 export function useProjectionConfig() {
   const { t } = useI18n()
   const configStore = useConfigStore()
-  const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
 
   // Reactive state for composite projections
   const availableCompositeProjections = ref<string[]>([])
@@ -45,7 +45,7 @@ export function useProjectionConfig() {
     if (configStore.projectionMode === 'individual') {
       const mainlandCode = configStore.currentAtlasConfig.splitModeConfig?.mainlandCode
       if (mainlandCode) {
-        return territoryStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+        return parameterStore.getTerritoryProjection(mainlandCode) || configStore.selectedProjection
       }
     }
     return configStore.selectedProjection
@@ -57,7 +57,7 @@ export function useProjectionConfig() {
   function getTerritoryProjection(territoryCode: string) {
     if (configStore.projectionMode === 'individual') {
       // Use territory-specific projection if defined, otherwise use default
-      return territoryStore.territoryProjections[territoryCode] || configStore.selectedProjection
+      return parameterStore.getTerritoryProjection(territoryCode) || configStore.selectedProjection
     }
     // Use uniform projection
     return configStore.selectedProjection

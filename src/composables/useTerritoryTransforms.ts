@@ -9,7 +9,6 @@ import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Manages territory transformation controls (projections, translations, scales)
@@ -17,7 +16,6 @@ import { useTerritoryStore } from '@/stores/territory'
 export function useTerritoryTransforms() {
   const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const presetDefaults = getSharedPresetDefaults()
 
@@ -54,9 +52,15 @@ export function useTerritoryTransforms() {
   })
 
   /**
-   * Get territory translations from store
+   * Get territory translations from parameter store
    */
-  const translations = computed(() => territoryStore.territoryTranslations)
+  const translations = computed(() => {
+    const translationsMap: Record<string, { x: number, y: number }> = {}
+    territories.value.forEach((t) => {
+      translationsMap[t.code] = parameterStore.getTerritoryTranslation(t.code)
+    })
+    return translationsMap
+  })
 
   /**
    * Get territory scale multipliers from parameter store
@@ -74,7 +78,7 @@ export function useTerritoryTransforms() {
    * Set translation for a territory
    */
   function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
-    territoryStore.setTerritoryTranslation(territoryCode, axis, value)
+    parameterStore.setTerritoryTranslation(territoryCode, axis, value)
   }
 
   /**
@@ -88,7 +92,7 @@ export function useTerritoryTransforms() {
    * Set projection for a territory
    */
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
-    territoryStore.setTerritoryProjection(territoryCode, projectionId)
+    parameterStore.setTerritoryProjection(territoryCode, projectionId)
   }
 
   /**
@@ -110,11 +114,11 @@ export function useTerritoryTransforms() {
 
         // Reset to preset defaults
         Object.entries(originalDefaults.projections).forEach(([code, projection]) => {
-          territoryStore.setTerritoryProjection(code, projection)
+          parameterStore.setTerritoryProjection(code, projection)
         })
         Object.entries(originalDefaults.translations).forEach(([code, translation]) => {
-          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+          parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+          parameterStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(originalDefaults.scales).forEach(([code, scale]) => {
           parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
@@ -152,8 +156,8 @@ export function useTerritoryTransforms() {
     // Reset all translations to defaults
     const defaultTranslations = createDefaultTranslations(territories)
     for (const [code, { x, y }] of Object.entries(defaultTranslations)) {
-      territoryStore.setTerritoryTranslation(code, 'x', x)
-      territoryStore.setTerritoryTranslation(code, 'y', y)
+      parameterStore.setTerritoryTranslation(code, 'x', x)
+      parameterStore.setTerritoryTranslation(code, 'y', y)
     }
 
     // Reset all scales to 1.0 for ALL territories
@@ -187,12 +191,12 @@ export function useTerritoryTransforms() {
 
         // Reset to preset defaults for this territory
         if (originalDefaults.projections[territoryCode]) {
-          territoryStore.setTerritoryProjection(territoryCode, originalDefaults.projections[territoryCode])
+          parameterStore.setTerritoryProjection(territoryCode, originalDefaults.projections[territoryCode])
         }
         if (originalDefaults.translations[territoryCode]) {
           const translation = originalDefaults.translations[territoryCode]
-          territoryStore.setTerritoryTranslation(territoryCode, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(territoryCode, 'y', translation.y)
+          parameterStore.setTerritoryTranslation(territoryCode, 'x', translation.x)
+          parameterStore.setTerritoryTranslation(territoryCode, 'y', translation.y)
         }
         if (originalDefaults.scales[territoryCode]) {
           parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', originalDefaults.scales[territoryCode])
@@ -225,8 +229,8 @@ export function useTerritoryTransforms() {
     parameterStore.clearAllTerritoryOverrides(territoryCode)
 
     // Reset translation to default (0, 0)
-    territoryStore.setTerritoryTranslation(territoryCode, 'x', 0)
-    territoryStore.setTerritoryTranslation(territoryCode, 'y', 0)
+    parameterStore.setTerritoryTranslation(territoryCode, 'x', 0)
+    parameterStore.setTerritoryTranslation(territoryCode, 'y', 0)
 
     // Reset scale to 1.0
     parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', 1.0)
@@ -255,9 +259,18 @@ export function useTerritoryTransforms() {
   const currentAtlasConfig = computed(() => configStore.currentAtlasConfig)
 
   /**
-   * Get territory projections
+   * Get territory projections from parameter store
    */
-  const territoryProjections = computed(() => territoryStore.territoryProjections)
+  const territoryProjections = computed(() => {
+    const projectionsMap: Record<string, string> = {}
+    territories.value.forEach((t) => {
+      const projectionId = parameterStore.getTerritoryProjection(t.code)
+      if (projectionId) {
+        projectionsMap[t.code] = projectionId
+      }
+    })
+    return projectionsMap
+  })
 
   /**
    * Get selected projection

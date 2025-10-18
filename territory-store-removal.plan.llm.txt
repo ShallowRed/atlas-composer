@@ -1,0 +1,282 @@
+# Territory Store Removal - Implementation Plan
+
+## Objective
+Eliminate the territory store (`src/stores/territory.ts`) by migrating its remaining responsibilities to the parameter store, achieving complete unification of territory configuration under the parameter registry system.
+
+## Affected Domains
+- [x] Parameter System (docs/services.llm.txt - Parameter Management section)
+- [x] Vue Architecture (docs/vue-architecture.llm.txt - Stores section)
+- [ ] Services (docs/services.llm.txt - Territory defaults, URL state)
+
+## Context
+- Architecture: docs/architecture.llm.txt
+- Parameter system: docs/services.llm.txt (Parameter Management)
+- Vue stores: docs/vue-architecture.llm.txt
+
+## Background
+
+### Current State
+Territory store (`src/stores/territory.ts`) has only 2 remaining responsibilities:
+1. `territoryProjections` - Maps territory codes to projection IDs (Record<string, string>)
+2. `territoryTranslations` - Maps territory codes to {x, y} pixel offsets (Record<string, {x: number, y: number}>)
+
+Previously migrated to parameter store:
+- `territoryScales` → `scaleMultiplier` parameter (completed)
+- `territoryClipExtents` → `pixelClipExtent` parameter (completed)
+
+### Duplication Discovery
+Both remaining responsibilities have corresponding parameters already registered:
+- `projectionId` parameter (registered in parameter-definitions.ts line 383)
+- `translateOffset` parameter (registered in parameter-definitions.ts line 205)
+
+This creates two parallel systems for the same data, violating DRY principles.
+
+## Changes
+
+### Phase 1: Analysis and Preparation
+- [x] Identify all usages of territory store (30 usages found via list_code_usages)
+- [x] Verify parameter definitions exist for both concerns
+- [x] Document migration strategy
+- [ ] Review TerritoryDefaultsService to understand initialization logic
+
+### Phase 2: Parameter Store Enhancement
+File: `src/stores/parameters.ts`
+
+- [ ] Add helper method: `setTerritoryProjection(territoryCode: string, projectionId: string)`
+  - Action: Wrapper around `setTerritoryParameter(code, 'projectionId', id)`
+  - Why: Maintains API compatibility during migration
+
+- [ ] Add helper method: `setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number)`
+  - Action: Reads current translateOffset, updates one axis, writes back
+  - Why: Matches existing territory store API for gradual migration
+
+- [ ] Add computed getter: `getTerritoryProjection(territoryCode: string): string`
+  - Action: Returns effective projectionId parameter for territory
+  - Why: Simplifies migration of read operations
+
+- [ ] Add computed getter: `getTerritoryTranslation(territoryCode: string): {x: number, y: number}`
+  - Action: Returns effective translateOffset as {x, y} object
+  - Why: Matches existing territory store return format
+
+### Phase 3: Initialization Migration
+File: `src/services/atlas/territory-defaults-service.ts`
+
+- [ ] Update `TerritoryDefaults` interface
+  - Action: Remove `translations` property (already removed `scales`)
+  - Why: Translations will be initialized as translateOffset parameters
+
+- [ ] Update `initializeTerritory()` method
+  - Action: Return projectionId string instead of adding to projections map
+  - Why: Will be set directly as parameter in config store
+
+- [ ] Update `initializeAll()` method
+  - Action: Return only `projections: Record<string, string>`
+  - Why: Translations/scales are now parameters, initialized separately
+
+File: `src/stores/config.ts`
+
+- [ ] Update atlas initialization
+  - Action: After territory defaults, initialize translateOffset parameters for each territory
+  - Why: Ensure all territories have default [0, 0] translateOffset
+
+### Phase 4: Composable Migration
+File: `src/composables/useTerritoryTransforms.ts`
+
+- [ ] Update imports
+  - Action: Remove `useTerritoryStore` import, use only `useParameterStore`
+  - Why: Eliminate dependency on territory store
+
+- [ ] Update `setTerritoryProjection()`
+  - Action: Call `parameterStore.setTerritoryParameter(code, 'projectionId', id)`
+  - Why: Store projection ID as parameter
+
+- [ ] Update `setTerritoryTranslation()`
+  - Action: Read current translateOffset, modify axis, call `setTerritoryParameter(code, 'translateOffset', [x, y])`
+  - Why: Maintain per-axis API while using tuple parameter
+
+- [ ] Update reactive getters
+  - Action: Replace `territoryStore.territoryProjections` with parameter lookups
+  - Why: Read from parameter store instead
+
+File: `src/composables/useProjectionConfig.ts`
+
+- [ ] Update projection lookup
+  - Action: Use `parameterStore.getTerritoryParameter(code, 'projectionId')` 
+  - Why: Get projection ID from parameters
+
+File: `src/composables/useUrlState.ts`
+
+- [ ] Update `serializeState()`
+  - Action: Read projections from parameter store effective parameters
+  - Action: Read translations from translateOffset parameters
+  - Why: Serialize parameters instead of store state
+
+- [ ] Update `deserializeState()`
+  - Action: Set projections via `setTerritoryParameter(code, 'projectionId', id)`
+  - Action: Set translations via `setTerritoryParameter(code, 'translateOffset', [x, y])`
+  - Why: Restore parameters instead of store state
+
+### Phase 5: Component Migration
+File: `src/components/MapRenderer.vue`
+
+- [ ] Remove `useTerritoryStore` import
+- [ ] Update territory projection access
+  - Action: Use parameter store to get projection IDs
+  - Why: Eliminate territory store dependency
+
+File: `src/components/ui/import/ImportModal.vue`
+
+- [ ] Remove `useTerritoryStore` import
+- [ ] Update preset import logic
+  - Action: Use parameter store for projection IDs and translateOffset
+  - Why: Import into parameter store
+
+File: `src/components/ui/parameters/TerritoryParameterControls.vue`
+
+- [ ] Remove `useTerritoryStore` import
+- [ ] Already uses parameter store - verify no territory store references remain
+
+File: `src/components/ui/presets/PresetSelector.vue`
+
+- [ ] Remove `useTerritoryStore` import
+- [ ] Update preset application
+  - Action: Set projections via parameter store
+  - Why: Apply preset data as parameters
+
+### Phase 6: Service Migration
+File: `src/services/export/composite-import-service.ts`
+
+- [ ] Update import logic
+  - Action: Import projectionId and translateOffset as parameters
+  - Why: Direct parameter import instead of territory store
+
+File: `src/composables/useMapWatchers.ts`
+
+- [ ] Review and update territory projection watchers
+  - Action: Watch parameter store changes instead of territory store
+  - Why: React to parameter changes
+
+### Phase 7: Test Updates
+File: `src/composables/__tests__/useUrlState.spec.ts`
+
+- [ ] Update test mocks
+  - Action: Mock parameter store instead of territory store
+  - Why: Reflect new architecture
+
+- [ ] Update test assertions
+  - Action: Verify parameter values instead of territory store values
+  - Why: Test actual implementation
+
+File: `src/services/export/__tests__/roundtrip-parameters.spec.ts`
+
+- [ ] Update roundtrip tests
+  - Action: Verify projectionId and translateOffset in parameters
+  - Why: Ensure export/import works with parameters
+
+### Phase 8: Store Removal
+File: `src/stores/territory.ts`
+
+- [ ] Delete the entire file
+  - Action: Remove after all migrations complete
+  - Why: No longer needed
+
+File: `src/services/atlas/territory-defaults-service.ts`
+
+- [ ] Simplify to only return projection defaults
+  - Action: Remove translation initialization logic
+  - Why: Translations are now parameter defaults
+
+### Phase 9: Verification
+- [ ] Run TypeScript compiler: `pnpm build`
+- [ ] Run all tests: `pnpm test`
+- [ ] Manual testing:
+  - [ ] Load different atlases
+  - [ ] Change territory projections
+  - [ ] Adjust territory translations (x/y sliders)
+  - [ ] Export and re-import configuration
+  - [ ] URL state serialization/deserialization
+  - [ ] Preset loading and application
+
+## Documentation Updates
+
+File: `docs/vue-architecture.llm.txt`
+
+- [ ] Remove territory.ts store section (lines ~517-528)
+  - Update: Document that territory configuration is now fully managed by parameter store
+  - Present tense: "Territory projections and positions are stored as parameters"
+
+File: `docs/services.llm.txt`
+
+- [ ] Update TerritoryDefaultsService section
+  - Update: Describe simplified initialization (projections only)
+  - Present tense: "Initializes default projection IDs for territories"
+
+- [ ] Update Parameter Management section
+  - Update: Add note about projectionId and translateOffset handling
+  - Present tense: "Manages territory projections via projectionId parameter and positions via translateOffset parameter"
+
+## Verification Checklist
+- [ ] Code compiles without errors
+- [ ] All tests pass
+- [ ] No imports of `useTerritoryStore` remain in codebase
+- [ ] URL state serialization works correctly
+- [ ] Preset import/export maintains projections and translations
+- [ ] Territory controls in UI function correctly
+- [ ] All .llm.txt documentation updated
+- [ ] No temporal language in .llm.txt files
+
+## Status
+Status: IN_PROGRESS
+Created: 2025-10-18
+Last Updated: 2025-10-18
+
+## Progress Summary
+
+### Completed (Phase 1-3)
+- [x] Analysis and preparation complete
+- [x] Parameter definitions verified (projectionId and translateOffset exist)
+- [x] Parameter store enhanced with helper methods:
+  - [x] setTerritoryProjection()
+  - [x] getTerritoryProjection()
+  - [x] setTerritoryTranslation()
+  - [x] getTerritoryTranslation()
+
+### Completed (Phase 4)
+Composables migrated:
+- [x] useTerritoryTransforms.ts - Fully migrated to parameter store
+- [x] useProjectionConfig.ts - Fully migrated to parameter store
+- [x] useUrlState.ts - Fully migrated to parameter store
+- [x] useMapWatchers.ts - Removed territory store, watching parameter version
+
+### Completed (Phase 3)
+- [x] config.ts store - Initialization and preset loading migrated to parameter store
+
+### Remaining Work
+Components still using territory store (Phase 5):
+- [ ] MapRenderer.vue
+- [ ] PresetSelector.vue
+- [ ] ImportModal.vue
+- [ ] TerritoryParameterControls.vue
+
+Services still using territory store (Phase 6):
+- [ ] composite-import-service.ts
+
+Tests still using territory store (Phase 7):
+- [ ] useUrlState.spec.ts
+- [ ] roundtrip-parameters.spec.ts
+
+Final tasks:
+- [ ] Delete territory store file
+- [ ] Update TerritoryDefaultsService
+- [ ] Run full test suite
+- [ ] Manual testing
+- [ ] Update documentation
+
+## Migration Strategy
+This is a large refactoring touching 15+ files. Strategy:
+1. Enhance parameter store with helper methods first (backward compatible)
+2. Migrate composables and services incrementally
+3. Update components
+4. Remove territory store last
+5. Test thoroughly at each phase
+6. Update documentation only after user validation

@@ -4,7 +4,6 @@ import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-se
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Composable for managing application state in URL parameters
@@ -14,7 +13,6 @@ export function useUrlState() {
   const route = useRoute()
   const router = useRouter()
   const configStore = useConfigStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const geoDataStore = useGeoDataStore()
 
@@ -77,11 +75,13 @@ export function useUrlState() {
       }
     }
 
-    for (const [code, translation] of Object.entries(territoryStore.territoryTranslations)) {
-      const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
+    // Get translations from parameter store
+    for (const territory of geoDataStore.filteredTerritories) {
+      const translation = parameterStore.getTerritoryTranslation(territory.code)
+      const defaultTranslation = defaults.translations[territory.code] ?? { x: 0, y: 0 }
       if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
-        territorySettings[`tx_${code}`] = translation.x
-        territorySettings[`ty_${code}`] = translation.y
+        territorySettings[`tx_${territory.code}`] = translation.x
+        territorySettings[`ty_${territory.code}`] = translation.y
         hasSettings = true
       }
     }
@@ -138,11 +138,11 @@ export function useUrlState() {
           }
           else if (key.startsWith('tx_')) {
             const code = key.substring(3)
-            territoryStore.setTerritoryTranslation(code, 'x', Number(value))
+            parameterStore.setTerritoryTranslation(code, 'x', Number(value))
           }
           else if (key.startsWith('ty_')) {
             const code = key.substring(3)
-            territoryStore.setTerritoryTranslation(code, 'y', Number(value))
+            parameterStore.setTerritoryTranslation(code, 'y', Number(value))
           }
         }
       }

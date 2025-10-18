@@ -2,7 +2,6 @@ import { watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
 interface MapWatcherProps {
@@ -36,7 +35,6 @@ export function useMapWatchers(
 ) {
   const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const uiStore = useUIStore()
 
@@ -112,9 +110,7 @@ export function useMapWatchers(
           uiStore.showSphere,
           uiStore.showCompositionBorders,
           uiStore.showMapLimits,
-          territoryStore.territoryTranslations,
-          territoryStore.territoryProjections,
-          parameterStore.territoryParametersVersion,
+          parameterStore.territoryParametersVersion, // Watch parameter version for translations, projections, etc.
           geoDataStore.filteredTerritories,
         ]
       }
