@@ -17,6 +17,7 @@ applyTo: "**"
 1. Track which `.llm.txt` files need updates based on behavior changes
 2. For 4+ file changes: Switch to **Plan chatmode** to create `<name>.plan.llm.txt`
 3. Never use emojis in code, comments, docs, or responses
+4. Always use pnpm, not npm or yarn
 
 ## After Code Changes (CRITICAL - Most Often Forgotten)
 1. **WAIT FOR USER VALIDATION** - When investigating a bug or issue, do NOT update documentation until user confirms fix works
