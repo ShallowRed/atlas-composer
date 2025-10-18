@@ -98,10 +98,10 @@ Static service with metadata caching for performance.
 - `getCompositeProjections()` - Get composite projection configurations (async)
 - `getProjectionPreferences()` - Get projection preferences (async)
 - `getProjectionParameters()` - Get projection parameters (async)
-- `getMapDisplayDefaults()` - Get map display defaults (async)
 - `clearCache()` - Clear metadata cache
 
 Uses PresetLoader internally, provides fallback defaults for atlases without presets.
+Map display defaults (showGraticule, showSphere, showCompositionBorders, showMapLimits) are controlled by UI store only.
 
 ### AtlasService
 Atlas-aware facade for accessing territory data and configuration.
@@ -605,30 +605,31 @@ Calculate map dimensions with configurable defaults.
 - `calculateSize()` - Calculate map size
 - `calculateProportionalSize()` - Calculate proportional size
 
-### InsetCalculator
-Centralized service for calculating Observable Plot inset values.
-Static methods providing single source of truth for inset calculations:
-- `calculateInset(viewMode, isMainland?)` - Calculate inset for any view mode
-- `calculateSimpleInset(isMainland)` - Calculate inset for simple rendering
-
-**Purpose**: Ensures consistent padding between Observable Plot rendering (graticules, sphere, geography) and overlay rendering (borders, limits). Observable Plot applies inset by adjusting render dimensions and offsetting content.
-
+**Purpose**: Ensures consistent padding between Observable Plot rendering (graticules, sphere, geography) and overlay rendering (borders, limits).
 ### MapOverlayService
 Render map overlays (composition borders and map limits) using D3 selection API.
 Static methods for SVG overlay rendering:
-- `applyOverlays()` - Apply overlays to rendered SVG map (uses inset from config)
+- `applyOverlays()` - Apply overlays to rendered SVG map
 - `computeSceneBBox()` - Compute viewport-based bounding box with insets
 - `boundsToRect()` - Convert projection bounds to SVG rectangle
-- `unionRect()` - Compute union of rectangles for accumulated bounds
 - `createCompositeBorderPath()` - Create border path for composite projections
 - `appendRectOverlay()` - Append dashed rectangle overlay to SVG
 
 Overlay Features:
-- **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
+- **Composition Borders**: Dashed borders around overseas territory regions (dash: 8 4, width: 1.25)
+  - Only rendered for overseas territories (mainland excluded)
+  - Shows individual territory projection boundaries in composite maps
 - **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
+  - Always uses viewport-based scene bounds
+  - Independent of composition borders (shows full map extent)
 - Viewport-based bounds calculation using SVG dimensions and insets
-- Receives inset value from OverlayConfig (calculated by InsetCalculator in coordinator)
 - Automatic overlay group management (removes empty groups)
+
+Border Rendering Logic:
+- Composition borders and map limits are independent features
+- Map limits always use `computeSceneBBox()` for full viewport coverage
+- Composition borders show individual territories, map limits show entire map
+- Both can be enabled simultaneously without interference
 
 ### CompositeSettingsBuilder
 Build custom composite settings from configuration.
@@ -640,7 +641,7 @@ Build custom composite settings from configuration.
 Coordinate map rendering by building options and orchestrating services.
 - `renderSimpleMap()` - Render simple territory map
 - `renderCompositeMap()` - Render composite map
-- `applyOverlays()` - Apply overlays to rendered map (calculates inset using InsetCalculator and passes to MapOverlayService)
+- `applyOverlays()` - Apply overlays to rendered map
 
 ### CartographerService
 Main rendering coordinator with unified API and D3.js integration.
@@ -654,8 +655,8 @@ Integrates with parameter provider for dynamic projection parameter updates.
 **Rendering Methods**:
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
-- `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
-- `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
+- `renderCustomComposite()` - Custom composite rendering
+- `renderProjectionComposite()` - Projection-based composite
 - `createPlot()` - Common Plot creation logic
 - `addTerritoryAttributes()` - Static method using D3 selections to add data-territory attributes to SVG paths
 

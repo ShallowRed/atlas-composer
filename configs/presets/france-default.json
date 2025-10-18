@@ -594,11 +594,6 @@
           49
         ]
       }
-    },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": false,
-      "showMapLimits": false
     }
   }
 }

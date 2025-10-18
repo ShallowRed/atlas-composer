@@ -556,11 +556,6 @@
           49
         ]
       }
-    },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": true,
-      "showMapLimits": false
     }
   }
 }

@@ -304,33 +304,6 @@
               }
             }
           }
-        },
-        "mapDisplayDefaults": {
-          "type": "object",
-          "description": "Default display options applied to maps when loading this atlas",
-          "properties": {
-            "showGraticule": {
-              "type": "boolean",
-              "description": "Display latitude/longitude graticule overlay",
-              "default": false
-            },
-            "showSphere": {
-              "type": "boolean",
-              "description": "Display the sphere outline (globe boundary) when using global projections",
-              "default": false
-            },
-            "showCompositionBorders": {
-              "type": "boolean",
-              "description": "Display composition borders for composite projections when available",
-              "default": false
-            },
-            "showMapLimits": {
-              "type": "boolean",
-              "description": "Display the bounding box outlining the map extent",
-              "default": false
-            }
-          },
-          "additionalProperties": false
         }
       },
       "additionalProperties": false

@@ -1,7 +1,6 @@
 import type * as Plot from '@observablehq/plot'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
-import { InsetCalculator } from '@/services/rendering/inset-calculator'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
 /**
@@ -32,7 +31,6 @@ export interface SimpleMapConfig {
   projection: string
   width: number
   height: number
-  inset: number
   isMainland?: boolean
   area?: number
   preserveScale?: boolean
@@ -89,7 +87,6 @@ export class MapRenderCoordinator {
       projection: config.projection,
       width: config.width,
       height: config.height,
-      inset: config.inset,
       isMainland: config.isMainland,
       area: config.area,
       preserveScale: config.preserveScale,
@@ -171,9 +168,6 @@ export class MapRenderCoordinator {
       isMainland?: boolean
     },
   ): void {
-    // Calculate inset to match the rendering inset
-    const inset = InsetCalculator.calculateInset(viewMode, config.isMainland)
-
     MapOverlayService.applyOverlays(svg, {
       showBorders: config.showBorders,
       showLimits: config.showLimits,
@@ -182,7 +176,6 @@ export class MapRenderCoordinator {
       width: config.width,
       height: config.height,
       customComposite: config.customComposite,
-      inset,
       isMainland: config.isMainland,
     })
   }

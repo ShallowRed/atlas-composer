@@ -42,12 +42,6 @@ export interface AtlasProjectionMetadata {
     }
     parallels?: { conic?: [number, number] }
   }
-  mapDisplayDefaults?: {
-    showGraticule?: boolean
-    showSphere?: boolean
-    showCompositionBorders?: boolean
-    showMapLimits?: boolean
-  }
 }
 
 /**

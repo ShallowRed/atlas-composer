@@ -20,7 +20,7 @@ export const useUIStore = defineStore('ui', () => {
   const showGraticule = ref(false)
   const showSphere = ref(false)
   const showCompositionBorders = ref(true) // Default to true for better UX with clip extent editing
-  const showMapLimits = ref(false)
+  const showMapLimits = ref(true) // Default to true for better visualization
 
   // Toast notifications
   const toasts = ref<ToastMessage[]>([])
@@ -72,7 +72,7 @@ export const useUIStore = defineStore('ui', () => {
     showGraticule.value = defaults.showGraticule ?? false
     showSphere.value = defaults.showSphere ?? false
     showCompositionBorders.value = defaults.showCompositionBorders ?? true // Default to true
-    showMapLimits.value = defaults.showMapLimits ?? false
+    showMapLimits.value = defaults.showMapLimits ?? true // Default to true
   }
 
   function showToast(

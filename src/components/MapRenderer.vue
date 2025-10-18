@@ -6,7 +6,6 @@ import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { Cartographer } from '@/services/rendering/cartographer-service'
-import { InsetCalculator } from '@/services/rendering/inset-calculator'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
@@ -150,12 +149,6 @@ const computedSize = computed(() => {
   })
 })
 
-const insetValue = computed(() => {
-  // Use InsetCalculator for consistent inset calculation
-  // In simple mode, we don't have view mode context, so use the simple calculation
-  return InsetCalculator.calculateSimpleInset(props.isMainland)
-})
-
 async function renderMap() {
   // Don't render if not mounted yet
   if (!isMounted.value) {
@@ -199,7 +192,6 @@ async function renderMap() {
         projection: projectionToUse,
         width,
         height,
-        inset: insetValue.value,
         isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
@@ -377,7 +369,7 @@ function handleMouseDown(event: MouseEvent) {
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"
-      class="map-plot bg-base-200 border-base-300"
+      class="map-plot bg-base-200 border-base-300 p-2"
       :style="{
         display: isLoading || error ? 'none' : 'flex',
         cursor: cursorStyle,

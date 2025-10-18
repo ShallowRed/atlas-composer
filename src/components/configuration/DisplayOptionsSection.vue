@@ -13,40 +13,42 @@ const { viewOrchestration } = useViewState()
 
 <template>
   <div class="grid grid-cols-2 gap-2">
-    <!-- Graticule Toggle -->
-    <ToggleControl
-      v-model="uiStore.showGraticule"
-      :label="t('settings.graticule')"
-      icon="ri-grid-line"
-    />
-
-    <!-- Sphere Outline Toggle -->
-    <ToggleControl
-      v-model="uiStore.showSphere"
-      :label="t('settings.sphere')"
-      icon="ri-earth-line"
-    />
-
-    <!-- Composition Borders Toggle -->
-    <ToggleControl
-      v-show="viewOrchestration.shouldShowCompositionBordersToggle.value"
-      v-model="uiStore.showCompositionBorders"
-      :label="t('settings.compositionBorders')"
-      icon="ri-shape-2-line"
-    />
-
-    <!-- Map Limits Toggle -->
-    <ToggleControl
-      v-model="uiStore.showMapLimits"
-      :label="t('settings.mapLimits')"
-      icon="ri-crop-line"
-    />
-
-    <!-- Scale Preservation Toggle -->
-    <ToggleControl
-      v-show="viewOrchestration.shouldShowScalePreservationToggle.value"
-      v-model="configStore.scalePreservation"
-      :label="t('territory.scalePreservation')"
-    />
+    <div class="space-y-2">
+      <!-- Composition Borders Toggle -->
+      <ToggleControl
+        v-show="viewOrchestration.shouldShowCompositionBordersToggle.value"
+        v-model="uiStore.showCompositionBorders"
+        :label="t('settings.compositionBorders')"
+        icon="ri-shape-2-line"
+      />
+      <!-- Map Limits Toggle -->
+      <ToggleControl
+        v-model="uiStore.showMapLimits"
+        :label="t('settings.mapLimits')"
+        icon="ri-crop-line"
+      />
+    </div>
+    <div class="space-y-2">
+      <!-- Graticule Toggle -->
+      <ToggleControl
+        v-model="uiStore.showGraticule"
+        :label="t('settings.graticule')"
+        icon="ri-grid-line"
+      />
+      <!-- Sphere Outline Toggle -->
+      <ToggleControl
+        v-model="uiStore.showSphere"
+        :label="t('settings.sphere')"
+        icon="ri-earth-line"
+      />
+    </div>
+    <div class="space-y-2">
+      <!-- Scale Preservation Toggle -->
+      <ToggleControl
+        v-show="viewOrchestration.shouldShowScalePreservationToggle.value"
+        v-model="configStore.scalePreservation"
+        :label="t('territory.scalePreservation')"
+      />
+    </div>
   </div>
 </template>

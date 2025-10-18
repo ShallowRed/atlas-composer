@@ -83,8 +83,8 @@ export const useConfigStore = defineStore('config', () => {
   uiStore.initializeDisplayOptions({
     showGraticule: false,
     showSphere: false,
-    showCompositionBorders: false,
-    showMapLimits: false,
+    showCompositionBorders: true,
+    showMapLimits: true,
   })
 
   // Initialize territory defaults in the parameter store

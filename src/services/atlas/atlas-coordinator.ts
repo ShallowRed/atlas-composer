@@ -104,13 +104,12 @@ export class AtlasCoordinator {
     // Determine selected projection from preset metadata or mainland
     const selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
 
-    // Get map display defaults from preset metadata
-    const mapDisplayDefaults = await AtlasMetadataService.getMapDisplayDefaults(newAtlasId, config.defaultPreset)
+    // Map display defaults are now controlled by UI store only
     const mapDisplay = {
-      showGraticule: mapDisplayDefaults?.showGraticule ?? false,
-      showSphere: mapDisplayDefaults?.showSphere ?? false,
-      showCompositionBorders: mapDisplayDefaults?.showCompositionBorders ?? false,
-      showMapLimits: mapDisplayDefaults?.showMapLimits ?? false,
+      showGraticule: false,
+      showSphere: false,
+      showCompositionBorders: true,
+      showMapLimits: true,
     }
 
     return {

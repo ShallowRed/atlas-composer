@@ -121,23 +121,6 @@ export class AtlasMetadataService {
   }
 
   /**
-   * Get map display defaults for an atlas
-   *
-   * @param atlasId - Atlas identifier
-   * @param defaultPreset - Default preset name
-   * @returns Map display defaults object
-   */
-  static async getMapDisplayDefaults(atlasId: string, defaultPreset?: string): Promise<AtlasProjectionMetadata['mapDisplayDefaults']> {
-    const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return result.metadata?.mapDisplayDefaults || {
-      showGraticule: false,
-      showSphere: false,
-      showCompositionBorders: false,
-      showMapLimits: false,
-    }
-  }
-
-  /**
    * Clear metadata cache (useful for testing or when presets are updated)
    */
   static clearCache(): void {
@@ -159,12 +142,6 @@ export class AtlasMetadataService {
           mainland: 'natural-earth',
           overseas: 'mercator',
         },
-      },
-      mapDisplayDefaults: {
-        showGraticule: false,
-        showSphere: false,
-        showCompositionBorders: false,
-        showMapLimits: false,
       },
     }
   }

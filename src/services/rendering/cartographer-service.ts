@@ -7,7 +7,6 @@ import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
-import { InsetCalculator } from './inset-calculator'
 // Unified rendering options
 export interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -19,7 +18,6 @@ export interface SimpleRenderOptions extends RenderOptions {
   projection: string
   width: number
   height: number
-  inset: number
   isMainland?: boolean
   area?: number
   preserveScale?: boolean
@@ -180,7 +178,6 @@ export class Cartographer {
     projection: any,
     width: number,
     height: number,
-    inset: number,
     showGraticule = true,
     showSphere = false,
   ): Plot.Plot {
@@ -224,7 +221,6 @@ export class Cartographer {
     return Plot.plot({
       width,
       height,
-      inset,
       projection,
       marks,
     })
@@ -250,7 +246,7 @@ export class Cartographer {
    * Data is provided directly in options
    */
   private renderSimple(options: SimpleRenderOptions): Plot.Plot {
-    const { geoData, projection, width, height, inset, showGraticule, showSphere } = options
+    const { geoData, projection, width, height, showGraticule, showSphere } = options
     let projectionFn = this.projectionService.getProjection(projection, geoData)
 
     // When showing sphere, use sphere as domain instead of data for proper fitting
@@ -261,7 +257,7 @@ export class Cartographer {
       }
     }
 
-    return this.createPlot(geoData, projectionFn, width, height, inset, showGraticule, showSphere)
+    return this.createPlot(geoData, projectionFn, width, height, showGraticule, showSphere)
   }
 
   /**
@@ -281,8 +277,7 @@ export class Cartographer {
       }
     }
 
-    const inset = InsetCalculator.calculateInset('composite-existing')
-    return this.createPlot(rawData, projectionFn, width, height, inset, showGraticule, showSphere)
+    return this.createPlot(rawData, projectionFn, width, height, showGraticule, showSphere)
   }
 
   /**
@@ -308,8 +303,7 @@ export class Cartographer {
       return this.customComposite!.build(w, h, true)
     }
 
-    const inset = InsetCalculator.calculateInset('composite-custom')
-    return this.createPlot(rawData, projectionFn, width, height, inset, showGraticule, showSphere)
+    return this.createPlot(rawData, projectionFn, width, height, showGraticule, showSphere)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {

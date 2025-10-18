@@ -107,7 +107,6 @@ export class ProjectionService {
               // Scale proportionally based on metadata
               // Use preset canvas dimensions if available, otherwise fall back to customFit metadata
               const referenceWidth = this.canvasDimensions?.width ?? customFit.referenceWidth
-              // Note: Plot applies inset internally, so we don't adjust dimensions here
               const scaleFactor = width / referenceWidth
               proj.scale(customFit.defaultScale * scaleFactor)
               proj.translate([width / 2, height / 2])
