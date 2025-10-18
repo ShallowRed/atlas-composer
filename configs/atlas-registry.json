@@ -36,7 +36,7 @@
       },
       "group": "country",
       "sortOrder": 10,
-      "configPath": "./france.json"
+      "configPath": "./atlases/france.json"
     },
     {
       "id": "portugal",
@@ -46,7 +46,7 @@
       },
       "group": "country",
       "sortOrder": 20,
-      "configPath": "./portugal.json"
+      "configPath": "./atlases/portugal.json"
     },
     {
       "id": "usa",
@@ -56,7 +56,7 @@
       },
       "group": "country",
       "sortOrder": 30,
-      "configPath": "./usa.json"
+      "configPath": "./atlases/usa.json"
     },
     {
       "id": "eu",
@@ -66,7 +66,7 @@
       },
       "group": "region",
       "sortOrder": 100,
-      "configPath": "./eu.json"
+      "configPath": "./atlases/eu.json"
     },
     {
       "id": "world",
@@ -76,7 +76,7 @@
       },
       "group": "world",
       "sortOrder": 200,
-      "configPath": "./world.json"
+      "configPath": "./atlases/world.json"
     }
   ]
 }

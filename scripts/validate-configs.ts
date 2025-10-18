@@ -124,7 +124,7 @@ async function validateCountry(country: string): Promise<ValidationSummary> {
   // Check backend config
   const backendConfig = await loadBackendConfig(country)
   if (!backendConfig) {
-    results.errors.push(`Atlas config not found (configs/${country}.json)`)
+    results.errors.push(`Atlas config not found in registry`)
   }
   else {
     const territoryCount = Object.keys(backendConfig.territories).length

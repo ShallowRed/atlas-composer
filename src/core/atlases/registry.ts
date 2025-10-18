@@ -88,8 +88,10 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
   }
 
   try {
-    // Fetch the JSON file from public/configs
-    const url = `${getConfigBaseUrl()}${atlasId}.json`
+    // Fetch the JSON file using the registry's configPath
+    // configPath is relative (e.g., "./atlases/france.json"), so we join it with the base URL
+    const relativePath = configPath.replace(/^\.\//, '') // Remove leading "./"
+    const url = `${getConfigBaseUrl()}${relativePath}`
     console.info(`[Registry] Fetching atlas '${atlasId}' from ${url}...`)
 
     const response = await fetch(url)

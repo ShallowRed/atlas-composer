@@ -87,7 +87,7 @@
           "configPath": {
             "type": "string",
             "description": "Relative path to the atlas JSON configuration file",
-            "pattern": "^\\./[a-z0-9-]+\\.json$"
+            "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
           }
         }
       }
