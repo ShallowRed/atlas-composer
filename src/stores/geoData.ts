@@ -41,8 +41,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
 
     const atlasConfig = configStore.currentAtlasConfig
-    if (!atlasConfig) return []
-    
+    if (!atlasConfig)
+      return []
+
     const atlasService = configStore.atlasService
 
     // Use TerritoryFilterService to filter territories
@@ -207,7 +208,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
   const reinitialize = async () => {
     console.info('[GeoDataStore] Reinitializing - resetting state and reloading data')
-    
+
     // Reset state
     isInitialized.value = false
     mainlandData.value = null
@@ -217,7 +218,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     // Reinitialize
     await initialize()
-    
+
     console.info('[GeoDataStore] Reinitialization complete')
   }
 

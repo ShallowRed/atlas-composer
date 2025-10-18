@@ -81,18 +81,18 @@ export function useAtlasData() {
       console.warn('[useAtlasData] Cannot reinitialize - atlas config not loaded')
       return
     }
-    
+
     // Use the atlas's default view mode if current mode is not supported
     const targetViewMode = atlasConfig.supportedViewModes.includes(configStore.viewMode)
       ? configStore.viewMode
       : atlasConfig.defaultViewMode
-    
+
     console.info('[useAtlasData] Starting reinitialize for viewMode:', {
       currentViewMode: configStore.viewMode,
       targetViewMode,
       supportedViewModes: atlasConfig.supportedViewModes,
     })
-    
+
     try {
       await withMinLoadingTime(async () => {
         await geoDataStore.reinitialize()
@@ -141,14 +141,14 @@ export function useAtlasData() {
     // Initialize with current atlas to detect future changes
     let lastAtlasId: string | null = configStore.currentAtlasConfig?.id ?? null
     console.debug('[useAtlasData] setupWatchers - initializing lastAtlasId:', lastAtlasId)
-    
+
     watch(() => configStore.currentAtlasConfig, async (newConfig) => {
       console.debug('[useAtlasData] currentAtlasConfig changed:', {
         newConfig: newConfig?.id,
         lastAtlasId,
         willReinitialize: newConfig && lastAtlasId !== null && lastAtlasId !== newConfig.id,
       })
-      
+
       // Track the last loaded atlas ID to detect changes
       if (newConfig) {
         const newAtlasId = newConfig.id

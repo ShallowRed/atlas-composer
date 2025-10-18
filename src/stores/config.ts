@@ -51,7 +51,7 @@ export const useConfigStore = defineStore('config', () => {
   const atlasService = computed(() => {
     // Access currentAtlasConfig to create reactive dependency on loading completion
     void currentAtlasConfig.value?.id
-    
+
     const isLoaded = isAtlasLoaded(selectedAtlas.value)
     if (!isLoaded) {
       // Return a service for the default atlas as fallback during loading

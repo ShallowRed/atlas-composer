@@ -99,10 +99,28 @@ export class AtlasCoordinator {
     const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, config.defaultPreset)
 
     // Determine composite projection from preset metadata
-    const compositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
+    let finalCompositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
+
+    // If no composite projection is set, find the first available one for this atlas
+    // This ensures composite-existing mode always has a valid projection selected
+    if (!finalCompositeProjection) {
+      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, config.defaultPreset)
+      if (availableComposites.length > 0) {
+        finalCompositeProjection = availableComposites[0]
+      }
+    }
 
     // Determine selected projection from preset metadata or mainland
-    const selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
+    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
+
+    // Ensure selected projection is valid for composite modes
+    // For composite views, projection must exist in territory projections
+    if (viewMode.startsWith('composite-') && !finalDefaults.projections[atlasService.getMainland()?.code || '']) {
+      // Fall back to first available projection or mercator
+      const mainlandCode = atlasService.getMainland()?.code
+      const mainlandProjection = mainlandCode ? finalDefaults.projections[mainlandCode] : undefined
+      selectedProjection = mainlandProjection || 'mercator'
+    }
 
     // Map display defaults are now controlled by UI store only
     const mapDisplay = {
@@ -119,7 +137,7 @@ export class AtlasCoordinator {
       translations: finalDefaults.translations,
       scales: finalDefaults.scales,
       territoryParameters,
-      compositeProjection,
+      compositeProjection: finalCompositeProjection,
       selectedProjection,
       referenceScale,
       canvasDimensions,
