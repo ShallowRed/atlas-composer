@@ -120,11 +120,11 @@ interface ViewState {
 ```
 
 **Actions**:
-- [ ] Create service file with full TypeScript interface
-- [ ] Implement all visibility methods using switch/case on viewMode
-- [ ] Extract complex conditions from current components
-- [ ] Add unit tests for all visibility rules
-- [ ] Document decision tree for each method
+- [x] Create service file with full TypeScript interface
+- [x] Implement all visibility methods using switch/case on viewMode
+- [x] Extract complex conditions from current components
+- [x] Add unit tests for all visibility rules (61 tests passing)
+- [x] Document decision tree for each method
 
 ### Phase 2: Refactor useViewState Composable
 
@@ -161,10 +161,10 @@ interface UseViewState {
 ```
 
 **Actions**:
-- [ ] Remove complex computed properties
-- [ ] Create ViewOrchestrationService instance
-- [ ] Build ViewState object from store values
-- [ ] Wrap service methods in computed refs
+- [x] Remove complex computed properties
+- [x] Create ViewOrchestrationService instance
+- [x] Build ViewState object from store values
+- [x] Wrap service methods in computed refs
 - [ ] Update composable tests
 
 ### Phase 3: Refactor MapView.vue
