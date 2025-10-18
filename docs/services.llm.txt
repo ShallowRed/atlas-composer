@@ -64,8 +64,10 @@ Pattern detection and behavioral decisions for different atlas types.
 Orchestrates atlas changes and configuration updates.
 Loads presets automatically when defaultPreset is configured.
 Extracts territory-specific projection parameters from presets for rendering.
+Ensures composite projection is always selected by using atlas metadata's defaultCompositeProjection or falling back to first available composite projection.
 - `handleAtlasChange()` - Coordinate all updates when changing atlas (async - loads preset if available)
 - Returns territoryParameters map in AtlasChangeResult for parameter store initialization
+- Determines composite projection from metadata or AtlasMetadataService.getCompositeProjections()
 - `getInitialConfiguration()` - Build initial config for atlas (async)
 
 ### TerritoryDefaultsService
@@ -616,9 +618,9 @@ Static methods for SVG overlay rendering:
 - `appendRectOverlay()` - Append dashed rectangle overlay to SVG
 
 Overlay Features:
-- **Composition Borders**: Dashed borders around overseas territory regions (dash: 8 4, width: 1.25)
-  - Only rendered for overseas territories (mainland excluded)
-  - Shows individual territory projection boundaries in composite maps
+- **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
+  - Rendered for all territories (including mainland) in composite maps
+  - Shows individual territory projection boundaries
 - **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
   - Always uses viewport-based scene bounds
   - Independent of composition borders (shows full map extent)

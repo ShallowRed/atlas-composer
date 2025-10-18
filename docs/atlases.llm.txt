@@ -3,9 +3,21 @@
 ## Core Architecture
 
 **Static Registry**: Uses `configs/atlas-registry.json` to define available atlases
-**Lazy Loading**: Atlas configurations load on-demand, not at app startup
+**Lazy Loading**: Atlas configurations load on-demand via fetch API, not bundled at build time
+**Reactive Loading**: useAtlasLoader composable with VueUse's useAsyncState manages async loading state
+**Map-based Cache**: Loaded configs cached in Map<string, LoadedAtlasConfig> for fast subsequent access
 **Adapter Pattern**: Transforms JSON → TypeScript configs
 **Grouped & Sorted**: Registry controls atlas grouping and display order in UI
+
+## Atlas Loading Flow
+
+1. **App Startup**: Registry metadata loads synchronously, default atlas preloads
+2. **User Selection**: Atlas dropdown displays groups and atlases from registry
+3. **On Demand**: When user selects atlas, useAtlasLoader initiates fetch
+4. **Fetch Config**: registry.loadAtlasAsync() fetches `/configs/{atlas}.json`
+5. **Cache**: Loaded config stored in cache, subsequent access returns cached version
+6. **Reactive**: currentAtlasConfig ref updates when loading completes
+7. **Coordination**: AtlasCoordinator orchestrates store updates and preset loading
 
 ## Atlas Registry System
 
@@ -55,9 +67,12 @@ configs/
 
 src/core/atlases/
 ├── loader.ts          # JSON → TypeScript adapter
-├── registry.ts        # Registry loader with lazy loading
+├── registry.ts        # Registry with loadAtlasAsync() and Map-based cache
 ├── utils.ts           # Territory helpers
 └── constants.ts       # Defaults
+
+src/composables/
+└── useAtlasLoader.ts  # Reactive async atlas loading with useAsyncState
 
 src/public/data/
 ├── {atlas}-territories-{res}.json  # TopoJSON geometries

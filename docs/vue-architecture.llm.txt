@@ -239,6 +239,13 @@ App.vue
 ## Composables (14 functions)
 
 ### Data Loading
+**useAtlasLoader** (24 lines)
+- Reactive async atlas configuration loading
+- Uses VueUse's useAsyncState for loading state management
+- Loads atlas config on-demand via registry.loadAtlasAsync()
+- Returns: { atlasConfig (Ref<LoadedAtlasConfig | null>), isLoading, error }
+- Used by: configStore for lazy atlas loading
+
 **useAtlasData** (128 lines)
 - Orchestrates all data loading
 - initialize(), loadDataForViewMode(), reinitialize(), reloadUnifiedData()
@@ -492,6 +499,9 @@ const { viewOrchestration } = useViewState()
 **Domain**: Configuration state and UI control
 **Responsibilities**:
 - Atlas selection (current atlas, region, territories)
+- Lazy atlas loading via useAtlasLoader composable with reactive async state
+- Current atlas config reactively updated when atlas finishes loading
+- atlasService computed re-evaluates on atlas load completion (depends on currentAtlasConfig.value?.id)
 - View mode (composite, split, unified)
 - Projection mode (existing, custom)
 - Projection parameter delegation to parameterStore (setCustomRotate, setCustomCenter, etc.)

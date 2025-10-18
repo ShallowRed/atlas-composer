@@ -841,13 +841,8 @@ export class CompositeProjection {
     territoryName: string
     bounds: [[number, number], [number, number]]
   }> {
-    // Get primary/member code(s) to exclude from borders
-    const mainlandCodes = this.config.type === 'single-focus'
-      ? [this.config.mainland.code]
-      : this.config.mainlands.map(m => m.code)
-
     return this.subProjections
-      .filter(sp => sp.bounds && !mainlandCodes.includes(sp.territoryCode))
+      .filter(sp => sp.bounds)
       .map((subProj) => {
         // Get the current clipExtent as applied to the projection (from pixelClipExtent parameter)
         const currentClipExtent = subProj.projection.clipExtent?.()
