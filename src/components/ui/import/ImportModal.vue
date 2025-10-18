@@ -5,7 +5,6 @@ import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 const props = defineProps<{
   modelValue: boolean
@@ -19,7 +18,6 @@ const emit = defineEmits<{
 }>()
 
 const configStore = useConfigStore()
-const territoryStore = useTerritoryStore()
 const parameterStore = useParameterStore()
 
 // State
@@ -127,9 +125,8 @@ function applyImport() {
     CompositeImportService.applyToStores(
       importedConfig.value,
       configStore,
-      territoryStore,
-      props.compositeProjection,
       parameterStore,
+      props.compositeProjection,
     )
 
     // Emit success and close

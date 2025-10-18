@@ -528,26 +528,24 @@ const { viewOrchestration } = useViewState()
   - showMapLimits: Display viewport bounds rectangle (default: false)
 **Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
-### territory.ts (57 lines)
-**Domain**: Territory state
-**Responsibilities**:
-- Territory projections
-- Territory translations (x, y)
-- Initialization and reset
-**Used by**: TerritoryControls, useTerritoryTransforms
-
-**Note**: Scale multipliers are stored in parameter store, not territory store.
-
 ### parameterStore (295 lines)
 **Domain**: Unified parameter registry integration
 **Responsibilities**:
 - Parameter registry integration with ProjectionParameterManager
 - Global parameter state management with registry validation
 - Territory-specific parameter overrides with registry constraints
+- Territory projections via projectionId parameter
+- Territory positions via translateOffset parameter tuple [x, y]
+- Territory scales via scaleMultiplier parameter
+- Territory clip extents via pixelClipExtent parameter
 - Parameter inheritance: territory > global > atlas > registry defaults
 - Registry-based parameter validation with family-specific constraint checking
 - Reactive version tracking via territoryParametersVersion for UI updates
 - Registry-driven constraint resolution for UI components
+- Helper methods for backward compatibility: getTerritoryProjection(), setTerritoryProjection(), getTerritoryTranslation(), setTerritoryTranslation()
+**Used by**: All territory controls, MapRenderer, TerritoryControls, composables, export/import services
+
+**Note**: Territory configuration is fully managed through the parameter system. Territory projections and positions are stored as parameters with proper validation, inheritance, and constraint checking.
 - Complete parameter export using registry definitions (getExportableParameters)
 - ProjectionParameterProvider interface implementation for rendering
 **Registry Integration**:

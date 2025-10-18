@@ -69,8 +69,15 @@ Extracts territory-specific projection parameters from presets for rendering.
 - `getInitialConfiguration()` - Build initial config for atlas (async)
 
 ### TerritoryDefaultsService
-Initialize territory projections, translations, and scales.
-- `initializeAll()` - Initialize all territory defaults
+Initializes default territory projections, translations, and scales for atlases.
+Provides centralized logic for calculating territory defaults based on atlas configuration.
+- `initializeAll()` - Initialize all territory defaults (projections, translations, scales)
+- `initializeProjections()` - Calculate default projection IDs for territories
+- `initializeTranslations()` - Calculate default pixel offsets for territories
+- `initializeScales()` - Calculate default scale multipliers for territories
+
+Returns TerritoryDefaults containing projections (Record<string, string>), translations (Record<string, {x, y}>), and scales (Record<string, number>).
+Used by config store initialization and AtlasCoordinator for setting up territory parameters on atlas changes.
 
 ### PresetLoader
 Loads preset composite projection configurations from configs/presets/ directory.
@@ -419,6 +426,21 @@ All constraint resolution, validation, and parameter management uses ParameterRe
 - `isParameterRelevant()` - Direct registry relevance checking
 - `validateParameter()` - Registry-based single parameter validation
 - `validateParameterSet()` - Batch validation using registry constraints
+
+**Territory Configuration Management**:
+Territory-specific configuration is fully managed through the parameter system:
+- Territory projections stored as `projectionId` parameter (string)
+- Territory positions stored as `translateOffset` parameter (tuple [x, y])
+- Territory scales stored as `scaleMultiplier` parameter (number)
+- Territory clip extents stored as `pixelClipExtent` parameter (tuple [x1, y1, x2, y2])
+
+Helper methods provide backward-compatible API for territory operations:
+- `getTerritoryProjection(code)` - Returns effective projectionId for territory
+- `setTerritoryProjection(code, id)` - Sets projectionId parameter
+- `getTerritoryTranslation(code)` - Returns {x, y} object from translateOffset
+- `setTerritoryTranslation(code, axis, value)` - Updates translateOffset tuple
+
+All territory parameters benefit from registry validation, inheritance (territory > global > atlas > registry defaults), and reactivity tracking.
 
 **Unified System Benefits**:
 - Single source of truth through ParameterRegistry

@@ -10,13 +10,11 @@ import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
-const territoryStore = useTerritoryStore()
 const presetDefaults = getSharedPresetDefaults()
 
 const isLoading = ref(false)
@@ -56,8 +54,19 @@ const currentPreset = computed({
         const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
 
         // Clear ALL existing parameter overrides first (from any previous preset or edits)
-        // Get all territories from territory store, not just the new preset territories
-        const allCurrentTerritoryCodes = Object.keys(territoryStore.territoryProjections)
+        // Get all territories that currently have any parameters set
+        const allCurrentTerritoryCodes = new Set<string>()
+        // Check all filtered territories for any existing parameter overrides
+        for (const territory of geoDataStore.filteredTerritories) {
+          const params = parameterStore.getTerritoryParameters(territory.code)
+          if (Object.keys(params).length > 0) {
+            allCurrentTerritoryCodes.add(territory.code)
+          }
+        }
+        // Also include territories from the new preset
+        Object.keys(defaults.projections).forEach(code => allCurrentTerritoryCodes.add(code))
+
+        // Clear overrides for all territories
         allCurrentTerritoryCodes.forEach((territoryCode) => {
           parameterStore.clearAllTerritoryOverrides(territoryCode)
         })
@@ -76,13 +85,13 @@ const currentPreset = computed({
           }
         }
 
-        // Apply to territory store - set each territory individually
+        // Apply to parameter store - set each territory individually
         Object.entries(defaults.projections).forEach(([code, projection]) => {
-          territoryStore.setTerritoryProjection(code, projection)
+          parameterStore.setTerritoryProjection(code, projection)
         })
         Object.entries(defaults.translations).forEach(([code, translation]) => {
-          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
+          parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+          parameterStore.setTerritoryTranslation(code, 'y', translation.y)
         })
         Object.entries(defaults.scales).forEach(([code, scale]) => {
           parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)

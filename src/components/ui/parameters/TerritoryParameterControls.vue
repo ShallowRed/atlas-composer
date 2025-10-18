@@ -21,7 +21,6 @@ import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.v
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 interface Props {
   /** Territory code for parameter management */
@@ -52,7 +51,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const parameterStore = useParameterStore()
-const territoryStore = useTerritoryStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
 const presetDefaults = getSharedPresetDefaults()
 
@@ -119,7 +117,7 @@ const hasOverrides = computed(() => {
   }
 
   // Check if projection differs from preset
-  const currentProjection = territoryStore.territoryProjections[props.territoryCode]
+  const currentProjection = parameterStore.getTerritoryProjection(props.territoryCode)
   if (currentProjection && territoryDefaults.projection && currentProjection !== territoryDefaults.projection) {
     return true
   }

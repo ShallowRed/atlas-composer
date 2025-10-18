@@ -131,23 +131,17 @@ export class CompositeImportService {
    *
    * @param config - Validated exported configuration
    * @param configStore - Config store instance (from useConfigStore)
-   * @param territoryStore - Territory store instance (from useTerritoryStore)
+   * @param parameterStore - Parameter store instance (from useParameterStore)
    * @param compositeProjection - CompositeProjection instance
    */
   static applyToStores(
     config: ExportedCompositeConfig,
     configStore: ReturnType<typeof import('@/stores/config').useConfigStore>,
-    territoryStore: ReturnType<typeof import('@/stores/territory').useTerritoryStore>,
+    parameterStore: ReturnType<typeof import('@/stores/parameters').useParameterStore>,
     compositeProjection: import('@/services/projection/composite-projection').CompositeProjection,
-    parameterStore?: ReturnType<typeof import('@/stores/parameters').useParameterStore>,
   ): void {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
-
-    // Parameter store is optional - if not provided, projection parameters won't be imported
-    if (!parameterStore) {
-      console.warn('[CompositeImportService] Parameter store not provided - projection parameters will not be imported')
-    }
 
     // FIRST: Apply global preset parameters to config store
     if (config.referenceScale !== undefined) {
@@ -180,39 +174,35 @@ export class CompositeImportService {
 
     // THIRD: Apply each territory configuration to stores
     config.territories.forEach((territory) => {
-      // 1. Set projection for territory
-      territoryStore.setTerritoryProjection(territory.code, territory.projection.id)
+      // 1. Set projection for territory via parameter store
+      parameterStore.setTerritoryProjection(territory.code, territory.projection.id)
 
-      // 2. Apply translation offsets
-      territoryStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
-      territoryStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
+      // 2. Apply translation offsets via parameter store
+      parameterStore.setTerritoryTranslation(territory.code, 'x', territory.layout.translateOffset[0])
+      parameterStore.setTerritoryTranslation(territory.code, 'y', territory.layout.translateOffset[1])
 
       // 3. Apply scale multiplier (AFTER scale is set above)
       // The scaleMultiplier is what the user adjusts (e.g., 1.2 = 120% scale)
-      if (parameterStore) {
-        parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.projection.parameters.scaleMultiplier)
-      }
+      parameterStore.setTerritoryParameter(territory.code, 'scaleMultiplier', territory.projection.parameters.scaleMultiplier)
 
-      // 4. Apply projection parameters to parameter store (if available)
+      // 4. Apply projection parameters to parameter store
       // This includes all exportable parameters from the parameter registry
-      if (parameterStore) {
-        try {
-          // Combine projection parameters and layout parameters
-          const params: Record<string, any> = {
-            // Projection ID from territory.projection.id (required)
-            projectionId: territory.projection.id,
-            // All other projection parameters
-            ...territory.projection.parameters,
-            // Layout parameters
-            translateOffset: territory.layout.translateOffset,
-            pixelClipExtent: territory.layout.pixelClipExtent,
-          }
+      try {
+        // Combine projection parameters and layout parameters
+        const params: Record<string, any> = {
+          // Projection ID from territory.projection.id (required)
+          projectionId: territory.projection.id,
+          // All other projection parameters
+          ...territory.projection.parameters,
+          // Layout parameters
+          translateOffset: territory.layout.translateOffset,
+          pixelClipExtent: territory.layout.pixelClipExtent,
+        }
 
-          parameterStore.setTerritoryParameters(territory.code, params)
-        }
-        catch (error) {
-          console.warn(`[CompositeImportService] Failed to set parameters for ${territory.code}:`, error)
-        }
+        parameterStore.setTerritoryParameters(territory.code, params)
+      }
+      catch (error) {
+        console.warn(`[CompositeImportService] Failed to set parameters for ${territory.code}:`, error)
       }
 
       // 5. Update projection type, then apply parameters from parameter store

@@ -10,7 +10,7 @@ import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinato
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
-import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
 
 interface Props {
@@ -43,7 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
-const territoryStore = useTerritoryStore()
+const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
 
@@ -300,6 +300,18 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   const { width, height } = computedSize.value
 
+  // Build territory projections and translations from parameter store
+  const territoryProjections: Record<string, string> = {}
+  const territoryTranslations: Record<string, { x: number, y: number }> = {}
+
+  for (const territory of geoDataStore.filteredTerritories) {
+    const projectionId = parameterStore.getTerritoryProjection(territory.code)
+    if (projectionId) {
+      territoryProjections[territory.code] = projectionId
+    }
+    territoryTranslations[territory.code] = parameterStore.getTerritoryTranslation(territory.code)
+  }
+
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
     viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
     projectionMode: configStore.projectionMode,
@@ -313,8 +325,8 @@ async function renderComposite(): Promise<Plot.Plot> {
     showCompositionBorders: uiStore.showCompositionBorders,
     showMapLimits: uiStore.showMapLimits,
     currentAtlasConfig: configStore.currentAtlasConfig,
-    territoryProjections: territoryStore.territoryProjections,
-    territoryTranslations: territoryStore.territoryTranslations,
+    territoryProjections,
+    territoryTranslations,
     // territoryScales removed - scale multipliers come from parameter store
     filteredTerritories: geoDataStore.filteredTerritories,
   })
@@ -362,7 +374,7 @@ function handleMouseDown(event: MouseEvent) {
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"
-      class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
+      class="map-plot bg-base-200 border-base-300"
       :style="{
         display: isLoading || error ? 'none' : 'flex',
         cursor: cursorStyle,
@@ -371,3 +383,10 @@ function handleMouseDown(event: MouseEvent) {
     />
   </div>
 </template>
+
+<style lang="css" scoped>
+@reference 'tailwindcss';
+.map-plot {
+  @apply h-full w-fit rounded-sm border flex-col items-center justify-center;
+}
+</style>
