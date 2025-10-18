@@ -8,7 +8,7 @@ import { useUIStore } from '@/stores/ui'
 const { t } = useI18n()
 const configStore = useConfigStore()
 const uiStore = useUIStore()
-const { isCompositeMode } = useViewState()
+const { viewOrchestration } = useViewState()
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const { isCompositeMode } = useViewState()
 
     <!-- Composition Borders Toggle -->
     <ToggleControl
-      v-show="isCompositeMode"
+      v-show="viewOrchestration.shouldShowCompositionBordersToggle.value"
       v-model="uiStore.showCompositionBorders"
       :label="t('settings.compositionBorders')"
       icon="ri-shape-2-line"
@@ -44,7 +44,7 @@ const { isCompositeMode } = useViewState()
 
     <!-- Scale Preservation Toggle -->
     <ToggleControl
-      v-show="configStore.showScalePreservation"
+      v-show="viewOrchestration.shouldShowScalePreservationToggle.value"
       v-model="configStore.scalePreservation"
       :label="t('territory.scalePreservation')"
     />

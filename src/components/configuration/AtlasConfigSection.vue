@@ -4,12 +4,14 @@ import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
+import { useViewState } from '@/composables/useViewState'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 const { viewModeOptions } = useViewMode()
+const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
 const configStore = useConfigStore()
@@ -35,21 +37,6 @@ const viewModeOptionsWithIcons = computed(() => {
     icon: getViewModeIcon(mode.value as any),
   }))
 })
-
-// Determine if territory selector should be disabled
-const isTerritorySelectDisabled = computed(() => {
-  // Disable if atlas doesn't have territory selector capability
-  if (!configStore.currentAtlasConfig?.hasTerritorySelector) {
-    return true
-  }
-  // Disable for composite-existing mode (built-in projections don't support selective territories)
-  return !configStore.showTerritorySelector
-})
-
-// Determine if projection mode toggle should be disabled
-const isProjectionModeDisabled = computed(() => {
-  return !configStore.showProjectionModeToggle
-})
 </script>
 
 <template>
@@ -68,7 +55,7 @@ const isProjectionModeDisabled = computed(() => {
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
-      :disabled="isTerritorySelectDisabled"
+      :disabled="viewOrchestration.isTerritorySelectDisabled.value"
       :options="territoryModeOptions"
     />
     <!-- Main View Mode Selector -->
@@ -76,7 +63,7 @@ const isProjectionModeDisabled = computed(() => {
       v-model="configStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
-      :disabled="configStore.isViewModeLocked"
+      :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
     />
 
@@ -85,7 +72,7 @@ const isProjectionModeDisabled = computed(() => {
       v-model="configStore.projectionMode"
       :label="t('projection.mode')"
       icon="ri-global-line"
-      :disabled="isProjectionModeDisabled"
+      :disabled="viewOrchestration.isProjectionModeDisabled.value"
       :options="[
         { value: 'uniform', label: t('projection.uniform'), translated: true, icon: 'ri-equal-line' },
         { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },

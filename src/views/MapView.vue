@@ -21,15 +21,10 @@ const { t } = useI18n()
 const { showSkeleton, initialize, setupWatchers } = useAtlasData()
 const { restoreFromUrl } = useUrlState()
 const {
-  isSplitMode,
-  isCompositeExistingMode,
   isCompositeCustomMode,
-  isUnifiedMode,
   cardTitle,
   cardIcon,
-  shouldShowRightSidebar,
-  shouldShowProjectionParams,
-  shouldShowTerritoryControls,
+  viewOrchestration,
 } = useViewState()
 
 // Track if this is the first load
@@ -91,23 +86,16 @@ onMounted(async () => {
               class="h-full"
             >
               <!-- Split Territories Mode -->
-              <template v-if="isSplitMode">
-                <SplitView />
-              </template>
+              <SplitView v-if="viewOrchestration.shouldShowSplitView.value" />
 
-              <!-- Composite Existing Mode -->
+              <!-- Composite Modes (Existing & Custom) -->
               <MapRenderer
-                v-if="isCompositeExistingMode"
+                v-if="viewOrchestration.shouldShowCompositeRenderer.value"
                 mode="composite"
               />
 
-              <!-- Composite Custom Mode -->
-              <MapRenderer
-                v-if="isCompositeCustomMode"
-                mode="composite"
-              />
               <!-- Unified Mode -->
-              <UnifiedView v-if="isUnifiedMode" />
+              <UnifiedView v-if="viewOrchestration.shouldShowUnifiedView.value" />
             </div>
           </Transition>
         </div>
@@ -126,7 +114,7 @@ onMounted(async () => {
     <template #right-sidebar>
       <!-- Projection Configuration -->
       <CardContainer
-        v-show="shouldShowRightSidebar"
+        v-show="viewOrchestration.shouldShowRightSidebar.value"
         class="flex-1"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
@@ -135,14 +123,14 @@ onMounted(async () => {
           name="fade"
           mode="out-in"
         >
-          <!-- Projection Parameters (only for unified view mode) -->
+          <!-- Projection Parameters (unified, composite-existing, split uniform modes) -->
           <ProjectionParamsControls
-            v-if="shouldShowProjectionParams"
+            v-if="viewOrchestration.shouldShowProjectionParams.value"
             key="projection-params"
           />
-          <!-- Territory Parameters (projections, translations, scales) -->
+          <!-- Territory Controls (split individual, composite-custom modes) -->
           <TerritoryControls
-            v-else-if="shouldShowTerritoryControls"
+            v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
             key="territory-controls"
             :show-transform-controls="isCompositeCustomMode"
           />

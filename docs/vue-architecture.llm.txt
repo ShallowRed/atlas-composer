@@ -398,6 +398,103 @@ App.vue
 - Warning generation
 - Validation state management
 
+## View Orchestration
+
+### ViewOrchestrationService (382 lines)
+**Location**: `src/services/view/view-orchestration-service.ts`
+
+**Purpose**: Centralized component visibility logic for all view states. Determines what UI elements should be visible or enabled based on current application state.
+
+**Architecture**:
+- Pure static service (no instance state)
+- Takes `ViewState` snapshot as input
+- Returns boolean visibility/enabled flags
+- All methods are deterministic and testable
+
+**ViewState Interface**:
+```typescript
+interface ViewState {
+  viewMode: ViewMode                          // composite-custom, composite-existing, split, unified
+  projectionMode: ProjectionMode              // uniform, individual
+  atlasConfig: AtlasConfig                    // Current atlas configuration
+  hasPresets: boolean                         // Presets available for current atlas
+  hasOverseasTerritories: boolean             // Filtered territories exist
+  isPresetLoading: boolean                    // Preset data loading state
+  showProjectionSelector: boolean             // From ProjectionUIService
+  showIndividualProjectionSelectors: boolean  // From ProjectionUIService
+  isMainlandInTerritories: boolean            // Mainland in filtered list
+  showMainland: boolean                       // Atlas has mainland config
+}
+```
+
+**Visibility Methods** (20+ methods):
+
+**Main Layout**:
+- `shouldShowRightSidebar()` - Show sidebar in non-unified modes
+- `shouldShowBottomBar()` - Always visible (display options)
+
+**Sidebar Content**:
+- `shouldShowProjectionParams()` - Show in unified, composite-existing, split-uniform modes
+- `shouldShowTerritoryControls()` - Show in split-individual, composite-custom modes
+
+**Territory Controls Sub-components**:
+- `shouldShowPresetSelector()` - Show in composite-custom with presets
+- `shouldShowImportControls()` - Show in composite-custom or split modes
+- `shouldShowGlobalProjectionControls()` - Show in composite-custom mode
+- `shouldShowTerritoryParameterControls()` - Show in composite-custom mode
+- `shouldShowMainlandAccordion()` - Show in individual mode with mainland
+- `shouldShowProjectionDropdown()` - Show in non-composite-custom modes
+
+**Empty States**:
+- `shouldShowEmptyState()` - Complex logic for mainland/overseas combinations
+- `getEmptyStateMessage()` - Returns appropriate i18n key for empty state
+
+**Control States**:
+- `isTerritorySelectDisabled()` - Disable if no hasTerritorySelector or in composite-existing
+- `isProjectionModeDisabled()` - Disable if not showProjectionModeToggle
+- `isViewModeDisabled()` - Disable if only one supported view mode
+
+**Layout Variants**:
+- `shouldShowCompositeRenderer()` - Show for both composite modes
+- `shouldShowSplitView()` - Show in split mode
+- `shouldShowUnifiedView()` - Show in unified mode
+
+**Display Options**:
+- `shouldShowCompositionBordersToggle()` - Show in composite modes
+- `shouldShowScalePreservationToggle()` - Show in split mode
+
+**Integration Pattern**:
+The service is used via `useViewState` composable, which:
+1. Aggregates state from stores into `ViewState` object
+2. Wraps all service methods in computed refs for reactivity
+3. Exposes `viewOrchestration` object to components
+
+**Example Usage** (in components):
+```vue
+<script setup>
+const { viewOrchestration } = useViewState()
+</script>
+
+<template>
+  <CardContainer v-show="viewOrchestration.shouldShowRightSidebar.value">
+    <ProjectionParamsControls v-if="viewOrchestration.shouldShowProjectionParams.value" />
+    <TerritoryControls v-else-if="viewOrchestration.shouldShowTerritoryControls.value" />
+  </CardContainer>
+</template>
+```
+
+**Benefits**:
+1. Single source of truth for all visibility logic
+2. Pure functions enable comprehensive unit testing (61 tests)
+3. Type-safe visibility decisions with explicit ViewState interface
+4. Eliminates scattered conditional logic across components
+5. Easier to reason about view state transitions
+6. Consistent behavior across all UI elements
+
+**Test Coverage**: 61 unit tests covering all visibility methods and state combinations
+
+**Used by**: MapView.vue, TerritoryControls.vue, AtlasConfigSection.vue, DisplayOptionsSection.vue (via useViewState composable)
+
 ## State Management
 
 ### configStore (357 lines)

@@ -198,6 +198,147 @@ The `updateReferenceScale()` method recalculates scales for all sub-projections 
 - `updateTerritoryParameters()` applies all supported parameters including scale, which integrates with territory scale multipliers
 
 **Scale Parameter Handling**:
+
+## View Services (src/services/view/)
+
+### ViewOrchestrationService
+**Pattern**: Static service (pure functions)
+**Location**: `src/services/view/view-orchestration-service.ts`
+**Lines**: 382
+
+**Purpose**: Centralized component visibility and control state logic for all view modes. Provides a single source of truth for determining what UI elements should be visible or enabled based on application state.
+
+**Architecture**:
+- All methods are static (no instance state)
+- Takes `ViewState` snapshot as input parameter
+- Returns boolean flags for visibility/enabled states
+- Pure functions enable comprehensive testing
+- Follows same pattern as ProjectionUIService
+
+**ViewState Interface**:
+```typescript
+interface ViewState {
+  viewMode: ViewMode                          // Current view mode
+  projectionMode: ProjectionMode              // Current projection mode
+  atlasConfig: AtlasConfig                    // Current atlas configuration
+  hasPresets: boolean                         // Presets available
+  hasOverseasTerritories: boolean             // Filtered territories exist
+  isPresetLoading: boolean                    // Loading state
+  showProjectionSelector: boolean             // From ProjectionUIService
+  showIndividualProjectionSelectors: boolean  // From ProjectionUIService
+  isMainlandInTerritories: boolean            // Mainland in filtered list
+  showMainland: boolean                       // Atlas has mainland config
+}
+```
+
+**Visibility Methods** (20+ methods):
+
+**Main Layout**:
+- `shouldShowRightSidebar(state)` - Returns true for non-unified modes
+- `shouldShowBottomBar(state)` - Always returns true (display options always visible)
+
+**Sidebar Content Switching**:
+- `shouldShowProjectionParams(state)` - Projection parameters visibility
+  - True for: unified, composite-existing, split-uniform modes
+  - False for: composite-custom, split-individual (show territory controls instead)
+- `shouldShowTerritoryControls(state)` - Territory controls visibility
+  - True for: composite-custom, split-individual modes
+  - Inverse of shouldShowProjectionParams
+
+**Territory Controls Sub-components**:
+- `shouldShowPresetSelector(state)` - Preset selector visibility
+  - True only in composite-custom mode with available presets
+- `shouldShowImportControls(state)` - Import/export controls visibility
+  - True for composite-custom or split modes
+- `shouldShowGlobalProjectionControls(state)` - Global projection controls
+  - True only in composite-custom mode
+- `shouldShowTerritoryParameterControls(state)` - Territory parameter editing
+  - True only in composite-custom mode
+- `shouldShowMainlandAccordion(state)` - Mainland territory accordion
+  - True in individual projection mode with mainland configuration
+- `shouldShowProjectionDropdown(state)` - Projection dropdown per territory
+  - True when NOT in composite-custom mode (uses parameter controls instead)
+
+**Empty State Logic**:
+- `shouldShowEmptyState(state)` - Complex logic handling mainland/overseas combinations
+  - Returns true when: no overseas territories AND (mainland not shown OR mainland not in list)
+  - Ensures empty state only shows when truly no territories to display
+- `getEmptyStateMessage(state)` - Returns appropriate i18n key
+  - 'territory.noOverseas' - Standard message for empty state
+
+**Control State Methods**:
+- `isTerritorySelectDisabled(state)` - Territory selector disabled state
+  - Disabled if: atlas doesn't have territory selector OR not showTerritorySelector
+- `isProjectionModeDisabled(state)` - Projection mode toggle disabled state
+  - Disabled if: not showProjectionModeToggle (from ProjectionUIService)
+- `isViewModeDisabled(state)` - View mode selector disabled state
+  - Disabled if: only one supported view mode in atlas config
+
+**Layout Variant Methods**:
+- `shouldShowCompositeRenderer(state)` - Composite map renderer visibility
+  - True for: composite-custom, composite-existing modes
+- `shouldShowSplitView(state)` - Split view component visibility
+  - True for: split mode
+- `shouldShowUnifiedView(state)` - Unified view component visibility
+  - True for: unified mode
+
+**Display Options Visibility**:
+- `shouldShowCompositionBordersToggle(state)` - Composition borders toggle
+  - True for: composite-custom, composite-existing modes
+- `shouldShowScalePreservationToggle(state)` - Scale preservation toggle
+  - True for: split mode
+
+**Integration Pattern**:
+Components don't call ViewOrchestrationService directly. Instead, they use the `useViewState` composable which:
+1. Aggregates state from Pinia stores (config, geoData) into ViewState object
+2. Wraps all service methods in Vue computed refs for reactivity
+3. Exposes `viewOrchestration` object with reactive properties
+
+**Usage Example** (in Vue components):
+```vue
+<script setup>
+import { useViewState } from '@/composables/useViewState'
+
+const { viewOrchestration } = useViewState()
+// viewOrchestration.shouldShowRightSidebar is a ComputedRef<boolean>
+</script>
+
+<template>
+  <!-- Access with .value in template -->
+  <CardContainer v-show="viewOrchestration.shouldShowRightSidebar.value">
+    <ProjectionParamsControls 
+      v-if="viewOrchestration.shouldShowProjectionParams.value" 
+    />
+    <TerritoryControls 
+      v-else-if="viewOrchestration.shouldShowTerritoryControls.value" 
+    />
+  </CardContainer>
+</template>
+```
+
+**Benefits**:
+1. **Single Source of Truth** - All visibility rules centralized in one service
+2. **Testability** - Pure functions with explicit inputs/outputs (61 unit tests)
+3. **Type Safety** - ViewState interface explicitly documents all dependencies
+4. **Maintainability** - Scattered conditionals replaced with named methods
+5. **Discoverability** - Developers know where to find/add visibility logic
+6. **Consistency** - Same pattern as ProjectionUIService
+
+**Migration Strategy**:
+The refactoring replaced inline template conditionals like:
+```vue
+<!-- Before -->
+<PresetSelector v-if="hasPresets && isCompositeCustomMode" />
+
+<!-- After -->
+<PresetSelector v-if="viewOrchestration.shouldShowPresetSelector.value" />
+```
+
+**Test Coverage**: 61 unit tests covering all methods and state combinations
+
+**Used by**: MapView.vue, TerritoryControls.vue, AtlasConfigSection.vue, DisplayOptionsSection.vue (all via useViewState composable)
+
+**Related Services**: ProjectionUIService (provides projection-specific UI flags)
 - Reference scale parameter: Base scale from preset configuration (defaults: 2700 for single-focus, 200 for equal-members)
 - Territory scale multiplier (regular Scale controls): Multiplies reference scale (0.5×-2.0× range)  
 - Final scale = reference scale × territory multiplier
