@@ -56,7 +56,7 @@ export class CompositeProjection {
     this.referenceScale = referenceScale
     this.canvasDimensions = canvasDimensions
     // Note: canvasDimensions stored for future use and architectural consistency
-    // Currently used by projection-service, map-overlay-service, and border-renderer
+    // Currently used by projection-service and map-overlay-service
     // Composite projections from d3-composite-projections have fixed internal configuration
     this.initialize()
   }

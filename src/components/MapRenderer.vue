@@ -6,6 +6,7 @@ import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { Cartographer } from '@/services/rendering/cartographer-service'
+import { InsetCalculator } from '@/services/rendering/inset-calculator'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useConfigStore } from '@/stores/config'
@@ -150,7 +151,9 @@ const computedSize = computed(() => {
 })
 
 const insetValue = computed(() => {
-  return props.isMainland ? 20 : 5
+  // Use InsetCalculator for consistent inset calculation
+  // In simple mode, we don't have view mode context, so use the simple calculation
+  return InsetCalculator.calculateSimpleInset(props.isMainland)
 })
 
 async function renderMap() {

@@ -228,24 +228,24 @@ export class MapOverlayService {
       .attr('pointer-events', 'none')
 
     // Use inset from config (calculated by InsetCalculator in coordinator)
-    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(config.width, config.height, config.inset) : null
-    let mapBounds: Rect | null = null
-
+    
     // Render composition borders
     if (config.showBorders) {
       if (config.viewMode === 'composite-custom') {
-        mapBounds = this.renderCustomCompositeBorders(overlayGroup, config)
+        this.renderCustomCompositeBorders(overlayGroup, config)
       }
       else if (config.viewMode === 'composite-existing') {
-        mapBounds = this.renderExistingCompositeBorders(overlayGroup, config)
+        this.renderExistingCompositeBorders(overlayGroup, config)
       }
     }
 
     // Render map limits
+    // Map limits should always use the full scene bounds (viewport-based)
+    // Composition borders only show individual territories, but map limits show the entire rendered content
     if (config.showLimits) {
-      const bounds = mapBounds || fallbackSceneBounds
-      if (bounds && bounds.width > 0 && bounds.height > 0) {
-        this.appendRectOverlay(overlayGroup, bounds, 'map-limits', '4 3', 1.5)
+      const sceneBounds = this.computeSceneBBox(config.width, config.height, config.inset)
+      if (sceneBounds && sceneBounds.width > 0 && sceneBounds.height > 0) {
+        this.appendRectOverlay(overlayGroup, sceneBounds, 'map-limits', '4 3', 1.5)
       }
     }
 

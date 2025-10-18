@@ -642,11 +642,6 @@ Coordinate map rendering by building options and orchestrating services.
 - `renderCompositeMap()` - Render composite map
 - `applyOverlays()` - Apply overlays to rendered map (calculates inset using InsetCalculator and passes to MapOverlayService)
 
-### BorderRenderer
-Border rendering strategies for different modes.
-Classes: CustomCompositeBorderRenderer, ExistingCompositeBorderRenderer
-Currently deferred integration, not fully used.
-
 ### CartographerService
 Main rendering coordinator with unified API and D3.js integration.
 Instance-based service orchestrating projection, geo-data, and rendering.
