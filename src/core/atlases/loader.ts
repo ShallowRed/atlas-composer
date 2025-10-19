@@ -186,12 +186,12 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     const overseas = secondaryTerritories.map(t => transformTerritory(t, locale))
     const all = [...mainlands, ...overseas]
 
-    // Use first member as representative (for backward compatibility)
+    // Use first member as representative mainland
     const primaryMainland = mainlands[0]!
 
     return {
       type: 'equal-members' as const,
-      mainland: primaryMainland, // For backward compatibility, use first as representative
+      mainland: primaryMainland, // First member used as representative
       mainlands,
       overseas,
       all,

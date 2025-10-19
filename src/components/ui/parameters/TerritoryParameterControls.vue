@@ -103,7 +103,7 @@ const validationResults = computed(() => {
 
 // Check if territory has parameter overrides that differ from preset defaults
 const hasOverrides = computed(() => {
-  // If no preset defaults loaded, show the reset button (legacy behavior)
+  // If no preset defaults loaded, show the reset button if there are any overrides
   if (!presetDefaults.hasPresetDefaults()) {
     return Object.keys(territoryParameters.value).length > 0
   }

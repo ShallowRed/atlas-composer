@@ -1,17 +1,8 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjectionConfig, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import {
-  geoAzimuthalEqualArea,
-  geoAzimuthalEquidistant,
-  geoConicConformal,
-  geoConicEqualArea,
-  geoEquirectangular,
-  geoMercator,
-} from 'd3-geo'
 
 import { ProjectionFactory } from '@/core/projections/factory'
-import { projectionRegistry } from '@/core/projections/registry'
 
 /**
  * Parameter provider interface for dependency injection
@@ -73,10 +64,10 @@ export class CompositeProjection {
         center: dynamicParams.center ?? configParams.center,
         rotate: dynamicParams.rotate,
         parallels: dynamicParams.parallels,
-        scale: dynamicParams.scale, // For backward compatibility only - not used
+        scale: dynamicParams.scale, // Not used (scaleMultiplier handles scaling)
         clipAngle: dynamicParams.clipAngle,
         precision: dynamicParams.precision,
-        baseScale: dynamicParams.baseScale, // For backward compatibility only - not used
+        baseScale: dynamicParams.baseScale, // Not used (referenceScale * scaleMultiplier used instead)
         scaleMultiplier: dynamicParams.scaleMultiplier ?? 1.0, // The only scale value we actually use
         pixelClipExtent: dynamicParams.pixelClipExtent, // Territory-specific clip extent
       }
@@ -335,33 +326,14 @@ export class CompositeProjection {
    * Create a projection instance by type name
    */
   private createProjectionByType(projectionType: string): GeoProjection {
-    // Try to use the new ProjectionFactory first
-    if (projectionRegistry.isValid(projectionType)) {
-      const projection = ProjectionFactory.createById(projectionType)
-      if (projection) {
-        return projection
-      }
+    const projection = ProjectionFactory.createById(projectionType)
+    if (projection) {
+      return projection
     }
 
-    // Fallback to legacy switch statement for backward compatibility
-    switch (projectionType) {
-      case 'mercator':
-        return geoMercator()
-      case 'conic-conformal':
-        return geoConicConformal()
-      case 'conic-equal-area':
-      case 'albers':
-        return geoConicEqualArea()
-      case 'azimuthal-equal-area':
-        return geoAzimuthalEqualArea()
-      case 'azimuthal-equidistant':
-        return geoAzimuthalEquidistant()
-      case 'equirectangular':
-        return geoEquirectangular()
-      default:
-        console.warn(`[CompositeProjection] Unknown projection type: ${projectionType}, falling back to Mercator`)
-        return geoMercator()
-    }
+    // Fallback to mercator if projection creation fails
+    console.warn(`[CompositeProjection] Failed to create projection: ${projectionType}, falling back to Mercator`)
+    return ProjectionFactory.createById('mercator')!
   }
 
   /**
@@ -404,58 +376,19 @@ export class CompositeProjection {
     const currentRotate = subProj.projection.rotate ? subProj.projection.rotate() : null
     const currentTranslate = subProj.projection.translate()
 
-    // Create new projection based on type
-    let newProjection: GeoProjection
-
-    // Try to use the new ProjectionFactory first
-    if (projectionRegistry.isValid(projectionType)) {
-      const factoryProjection = ProjectionFactory.createById(projectionType)
-      if (factoryProjection) {
-        newProjection = factoryProjection
-
-        // Apply parallels for conic projections if center is available
-        if (currentCenter && (projectionType.includes('conic') || projectionType === 'albers')) {
-          if ('parallels' in newProjection) {
-            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
-          }
-        }
-      }
-      else {
-        // Factory failed, fall back to legacy code
-        newProjection = this.createProjectionByType(projectionType)
-      }
+    // Create new projection using ProjectionFactory
+    const factoryProjection = ProjectionFactory.createById(projectionType)
+    if (!factoryProjection) {
+      console.error(`[CompositeProjection] Failed to create projection: ${projectionType}`)
+      return
     }
-    else {
-      // Fallback to legacy switch statement
-      switch (projectionType) {
-        case 'mercator':
-          newProjection = geoMercator()
-          break
-        case 'conic-conformal':
-          newProjection = geoConicConformal()
-          if (currentCenter) {
-            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
-          }
-          break
-        case 'conic-equal-area':
-        case 'albers':
-          newProjection = geoConicEqualArea()
-          if (currentCenter) {
-            (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
-          }
-          break
-        case 'azimuthal-equal-area':
-          newProjection = geoAzimuthalEqualArea()
-          break
-        case 'azimuthal-equidistant':
-          newProjection = geoAzimuthalEquidistant()
-          break
-        case 'equirectangular':
-          newProjection = geoEquirectangular()
-          break
-        default:
-          console.warn(`[CompositeProjection] Unknown projection type: ${projectionType}, falling back to Mercator`)
-          newProjection = geoMercator()
+
+    const newProjection = factoryProjection
+
+    // Apply parallels for conic projections if center is available
+    if (currentCenter && (projectionType.includes('conic') || projectionType === 'albers')) {
+      if ('parallels' in newProjection) {
+        (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
       }
     }
 
@@ -886,27 +819,17 @@ export class CompositeProjection {
 
   /**
    * Export configuration as JSON
-   * Uses parameter provider to get exportable parameters instead of reading from D3 instances
+   * Uses parameter provider to get exportable parameters
    */
   exportConfig() {
+    if (!this.parameterProvider) {
+      console.error('[CompositeProjection] exportConfig requires a parameter provider')
+      return { subProjections: [] }
+    }
+
     return {
       subProjections: this.subProjections.map((sp) => {
-        // Get exportable parameters from parameter provider if available
-        let parameters: Partial<ProjectionParameters> = {}
-        if (this.parameterProvider) {
-          parameters = this.parameterProvider.getExportableParameters(sp.territoryCode)
-        }
-        else {
-          // Fallback to D3 projection instances (legacy behavior)
-          parameters = {
-            center: sp.projection.center?.(),
-            scale: sp.projection.scale(),
-            rotate: sp.projection.rotate?.(),
-            parallels: (sp.projection as any).parallels?.(),
-            baseScale: sp.baseScale,
-            scaleMultiplier: sp.scaleMultiplier,
-          }
-        }
+        const parameters = this.parameterProvider!.getExportableParameters(sp.territoryCode)
 
         return {
           territoryCode: sp.territoryCode,

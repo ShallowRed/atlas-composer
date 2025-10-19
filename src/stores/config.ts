@@ -240,10 +240,6 @@ export const useConfigStore = defineStore('config', () => {
     ProjectionUIService.shouldShowTerritoryControls(viewMode.value),
   )
 
-  const showCompositeProjectionSelector = computed(() =>
-    ProjectionUIService.shouldShowCompositeProjectionSelector(viewMode.value),
-  )
-
   const projectionGroups = computed(() =>
     ProjectionUIService.getProjectionGroups(selectedAtlas.value, viewMode.value),
   )
@@ -349,7 +345,7 @@ export const useConfigStore = defineStore('config', () => {
     rotateLatitudeLocked.value = true // Reset to locked state
   }
 
-  // Individual parameter setters for backward compatibility
+  // Individual parameter setters - convenience wrappers
   const setCustomRotateLongitude = (value: number | null) => {
     const currentLatitude = parameterStore.globalParameters.rotate?.[1] ?? null
     setCustomRotate(value, currentLatitude)
@@ -687,7 +683,7 @@ export const useConfigStore = defineStore('config', () => {
     // View preset state
     currentViewPreset,
     availableViewPresets,
-    // Legacy parameter accessors - delegate to parameter store for backward compatibility
+    // Parameter accessors - delegate to parameter store
     customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
     customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),
     customCenterLongitude: computed(() => parameterStore.globalParameters.center?.[0] ?? null),
@@ -708,7 +704,6 @@ export const useConfigStore = defineStore('config', () => {
     showTerritorySelector,
     showScalePreservation,
     showTerritoryControls,
-    showCompositeProjectionSelector,
     projectionGroups,
     projectionRecommendations,
 
@@ -725,7 +720,7 @@ export const useConfigStore = defineStore('config', () => {
     setProjectionFittingMode,
     setRotateLatitudeLocked,
     resetProjectionParams,
-    // Individual parameter setters for backward compatibility
+    // Individual parameter setters - convenience wrappers
     setCustomRotateLongitude,
     setCustomRotateLatitude,
     setCustomCenterLongitude,

@@ -48,7 +48,6 @@ export class ProjectionService {
       rotate: [-2, 0],
       parallels: [44, 49],
     }
-    // Default fallback to France params for backward compatibility
     return result
   }
 

@@ -200,11 +200,5 @@ export function useViewState() {
 
     // Service-based orchestration (replaces compound conditions)
     viewOrchestration,
-
-    // Deprecated: kept for backwards compatibility during migration
-    // TODO: Remove these after components are migrated to viewOrchestration
-    shouldShowRightSidebar: viewOrchestration.shouldShowRightSidebar,
-    shouldShowProjectionParams: viewOrchestration.shouldShowProjectionParams,
-    shouldShowTerritoryControls: viewOrchestration.shouldShowTerritoryControls,
   }
 }

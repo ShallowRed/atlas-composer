@@ -115,7 +115,6 @@ export const useParameterStore = defineStore('parameters', () => {
 
   /**
    * Set projection ID for a territory
-   * Helper method for backward compatibility during migration
    */
   function setTerritoryProjection(territoryCode: string, projectionId: string) {
     setTerritoryParameter(territoryCode, 'projectionId', projectionId)
@@ -131,7 +130,6 @@ export const useParameterStore = defineStore('parameters', () => {
 
   /**
    * Set translation for a territory (single axis)
-   * Helper method for backward compatibility during migration
    */
   function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
     const effective = getEffectiveParameters(territoryCode)
@@ -144,7 +142,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
   /**
    * Get translation for a territory
-   * Returns {x, y} object for backward compatibility
+   * Returns {x, y} object
    */
   function getTerritoryTranslation(territoryCode: string): { x: number, y: number } {
     const effective = getEffectiveParameters(territoryCode)

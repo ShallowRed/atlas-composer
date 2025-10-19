@@ -105,7 +105,7 @@ export class ProjectionUIService {
       return false
     }
 
-    // Legacy manual mode (no preset): only show in unified mode
+    // Only show in unified mode (when no preset is active)
     return viewMode === 'unified'
   }
 
@@ -159,26 +159,5 @@ export class ProjectionUIService {
   static shouldShowTerritoryControls(viewMode: ViewMode): boolean {
     // Show territory translation/scale controls in custom composite mode
     return viewMode === 'composite-custom'
-  }
-
-  /**
-   * Determine if composite projection selector should be shown
-   *
-   * Note: Composite-existing mode now uses view presets exclusively
-   * This selector is deprecated and hidden
-   *
-   * @param viewMode - Current view mode
-   * @param hasViewPreset - Whether a view preset is currently loaded
-   * @returns True if composite projection selector should be visible
-   */
-  static shouldShowCompositeProjectionSelector(viewMode: ViewMode, hasViewPreset = false): boolean {
-    // Hide composite projection selector when view preset is active
-    // Composite-existing mode now uses presets exclusively
-    if (hasViewPreset && viewMode === 'composite-existing') {
-      return false
-    }
-
-    // Legacy fallback (should not be reached in normal operation)
-    return viewMode === 'composite-existing'
   }
 }
