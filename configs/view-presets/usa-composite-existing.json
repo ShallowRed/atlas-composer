@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "id": "usa-composite-existing",
+  "name": "USA - Composite Albers",
+  "description": "Projection composite Albers USA prédéfinie",
+  "atlasId": "usa",
+  "viewMode": "composite-existing",
+  "config": {
+    "projectionId": "albers-usa",
+    "globalScale": 1.0
+  }
+}

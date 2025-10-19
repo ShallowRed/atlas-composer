@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema.json",
+  "id": "world-unified-mercator",
+  "name": "Monde - Mercator",
+  "description": "Projection Mercator pour carte mondiale",
+  "atlasId": "world",
+  "viewMode": "unified",
+  "config": {
+    "projection": {
+      "id": "mercator",
+      "parameters": {
+        "center": [0, 0],
+        "scale": 1.0
+      }
+    }
+  }
+}

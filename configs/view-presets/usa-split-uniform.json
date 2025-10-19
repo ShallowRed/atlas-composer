@@ -1,0 +1,20 @@
+{
+  "$schema": "./schema.json",
+  "id": "usa-split-uniform",
+  "name": "USA - Vue séparée uniforme",
+  "description": "Projection conique conforme pour tous les territoires américains",
+  "atlasId": "usa",
+  "viewMode": "split",
+  "config": {
+    "mode": "uniform",
+    "uniform": {
+      "projection": {
+        "id": "conic-conformal",
+        "parameters": {
+          "rotate": [98, -38],
+          "parallels": [29.5, 45.5]
+        }
+      }
+    }
+  }
+}

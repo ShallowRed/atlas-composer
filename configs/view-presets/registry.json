@@ -29,6 +29,90 @@
       "atlasId": "france",
       "viewMode": "composite-existing",
       "description": "Projection composite prédéfinie de d3-composite-projections"
+    },
+    {
+      "id": "portugal-unified-default",
+      "name": "Portugal - Vista unificada padrão",
+      "atlasId": "portugal",
+      "viewMode": "unified",
+      "description": "Projeção Natural Earth centrada em Portugal"
+    },
+    {
+      "id": "portugal-split-uniform",
+      "name": "Portugal - Vista separada uniforme",
+      "atlasId": "portugal",
+      "viewMode": "split",
+      "description": "Mesma projeção cônica para todos os territórios"
+    },
+    {
+      "id": "portugal-composite-existing",
+      "name": "Portugal - Projeção composta d3",
+      "atlasId": "portugal",
+      "viewMode": "composite-existing",
+      "description": "Projeção composta predefinida de d3-composite-projections"
+    },
+    {
+      "id": "eu-unified-default",
+      "name": "EU - Vue unifiée standard",
+      "atlasId": "eu",
+      "viewMode": "unified",
+      "description": "Projection Natural Earth centrée sur l'Europe"
+    },
+    {
+      "id": "eu-split-uniform",
+      "name": "EU - Vue séparée uniforme",
+      "atlasId": "eu",
+      "viewMode": "split",
+      "description": "Projection conique conforme pour tous les territoires européens"
+    },
+    {
+      "id": "eu-composite-existing",
+      "name": "EU - Composite existant",
+      "atlasId": "eu",
+      "viewMode": "composite-existing",
+      "description": "Projection composite prédéfinie pour l'Europe"
+    },
+    {
+      "id": "usa-unified-default",
+      "name": "USA - Vue unifiée standard",
+      "atlasId": "usa",
+      "viewMode": "unified",
+      "description": "Projection Natural Earth centrée sur les États-Unis"
+    },
+    {
+      "id": "usa-split-uniform",
+      "name": "USA - Vue séparée uniforme",
+      "atlasId": "usa",
+      "viewMode": "split",
+      "description": "Projection conique conforme pour tous les territoires américains"
+    },
+    {
+      "id": "usa-composite-existing",
+      "name": "USA - Composite Albers",
+      "atlasId": "usa",
+      "viewMode": "composite-existing",
+      "description": "Projection composite Albers USA prédéfinie"
+    },
+    {
+      "id": "world-unified-default",
+      "name": "Monde - Vue unifiée standard",
+      "atlasId": "world",
+      "viewMode": "unified",
+      "description": "Projection Natural Earth pour carte mondiale"
+    },
+    {
+      "id": "world-unified-mercator",
+      "name": "Monde - Mercator",
+      "atlasId": "world",
+      "viewMode": "unified",
+      "description": "Projection Mercator pour carte mondiale"
+    },
+    {
+      "id": "world-unified-robinson",
+      "name": "Monde - Robinson",
+      "atlasId": "world",
+      "viewMode": "unified",
+      "description": "Projection Robinson pour carte mondiale"
     }
   ]
 }

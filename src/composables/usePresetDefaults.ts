@@ -44,6 +44,7 @@ export function usePresetDefaults() {
   // Store the original preset configuration for reset functionality
   const presetDefaults = ref<TerritoryDefaults | null>(null)
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
+  const presetGlobalParameters = ref<ProjectionParameters | null>(null)
 
   /**
    * Store the original preset defaults when a preset is loaded
@@ -61,11 +62,19 @@ export function usePresetDefaults() {
   }
 
   /**
+   * Store global projection parameters from view preset
+   */
+  function storeGlobalParameters(parameters: ProjectionParameters | null) {
+    presetGlobalParameters.value = parameters ? { ...parameters } : null
+  }
+
+  /**
    * Clear stored preset defaults (when switching atlases or when no preset)
    */
   function clearPresetDefaults() {
     presetDefaults.value = null
     presetParameters.value = {}
+    presetGlobalParameters.value = null
   }
 
   /**
@@ -167,7 +176,9 @@ export function usePresetDefaults() {
   return {
     presetDefaults,
     presetParameters,
+    presetGlobalParameters,
     storePresetDefaults,
+    storeGlobalParameters,
     clearPresetDefaults,
     getPresetDefaultsForTerritory,
     hasPresetDefaults,

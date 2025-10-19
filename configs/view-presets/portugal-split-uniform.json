@@ -1,0 +1,19 @@
+{
+  "id": "portugal-split-uniform",
+  "name": "Portugal - Vista separada uniforme",
+  "description": "Mesma projeção cônica para todos os territórios",
+  "atlasId": "portugal",
+  "viewMode": "split",
+  "config": {
+    "mode": "uniform",
+    "uniform": {
+      "projection": {
+        "id": "conic-conformal",
+        "parameters": {
+          "rotate": [8, -39.5],
+          "parallels": [0, 60]
+        }
+      }
+    }
+  }
+}

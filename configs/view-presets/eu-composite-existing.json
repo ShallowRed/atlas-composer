@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "id": "eu-composite-existing",
+  "name": "EU - Composite existant",
+  "description": "Projection composite prédéfinie pour l'Europe",
+  "atlasId": "eu",
+  "viewMode": "composite-existing",
+  "config": {
+    "projectionId": "conic-conformal-europe",
+    "globalScale": 1.0
+  }
+}

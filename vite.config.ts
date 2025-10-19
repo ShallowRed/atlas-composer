@@ -45,17 +45,28 @@ function serveConfigsPlugin(): Plugin {
         fs.mkdirSync(distConfigsDir, { recursive: true })
       }
 
-      // Copy all JSON files from configs to dist/configs
-      const files = fs.readdirSync(configsDir)
-      for (const file of files) {
-        const srcPath = path.join(configsDir, file)
-        const destPath = path.join(distConfigsDir, file)
+      // Recursively copy all JSON files and subdirectories from configs to dist/configs
+      function copyRecursive(srcDir: string, destDir: string) {
+        const files = fs.readdirSync(srcDir)
+        for (const file of files) {
+          const srcPath = path.join(srcDir, file)
+          const destPath = path.join(destDir, file)
 
-        // Only copy files, not directories
-        if (fs.statSync(srcPath).isFile() && file.endsWith('.json')) {
-          fs.copyFileSync(srcPath, destPath)
+          if (fs.statSync(srcPath).isDirectory()) {
+            // Create subdirectory and recurse
+            if (!fs.existsSync(destPath)) {
+              fs.mkdirSync(destPath, { recursive: true })
+            }
+            copyRecursive(srcPath, destPath)
+          }
+          else if (file.endsWith('.json')) {
+            // Copy JSON file
+            fs.copyFileSync(srcPath, destPath)
+          }
         }
       }
+
+      copyRecursive(configsDir, distConfigsDir)
     },
   }
 }

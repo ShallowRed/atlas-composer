@@ -146,7 +146,10 @@
     "scaleMultiplier": "Facteur d'échelle",
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
-    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
+    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié.",
+    "fittingMode": "Ajustement de l'échelle",
+    "autoFitting": "Ajustement automatique",
+    "manualFitting": "Contrôle manuel de l'échelle"
   },
   "projectionControls": {
     "global": {
@@ -193,13 +196,25 @@
     "error": "Échec de la copie"
   },
   "presets": {
-    "label": "Disposition prédéfinie",
-    "loading": "Chargement du preset...",
+    "label": "Mise en page prédéfinie",
+    "loading": "Chargement de la mise en page...",
     "names": {
       "default": "Par défaut",
       "test": "Test",
-      "compact": "Compacte",
-      "spread": "Étalée"
+      "compact": "Compact",
+      "spread": "Étendu"
+    }
+  },
+  "preset": {
+    "select": "Sélectionner une configuration",
+    "unified": {
+      "select": "Configuration vue unifiée"
+    },
+    "split": {
+      "select": "Configuration vue séparée"
+    },
+    "compositeExisting": {
+      "select": "Configuration projection composite"
     }
   },
   "export": {

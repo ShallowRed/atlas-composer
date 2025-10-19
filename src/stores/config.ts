@@ -1,5 +1,6 @@
 import type { ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { ViewModePreset } from '@/types/view-preset'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -8,6 +9,7 @@ import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
+import { ViewPresetLoader } from '@/services/presets/view-preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
@@ -88,6 +90,10 @@ export const useConfigStore = defineStore('config', () => {
   const referenceScale = ref<number | undefined>(undefined)
   // Canvas dimensions from preset, will be updated async with preset data (defaults to 960×500)
   const canvasDimensions = ref<{ width: number, height: number } | undefined>(undefined)
+
+  // View mode preset tracking (separate from composite-custom presets)
+  const currentViewPreset = ref<string | null>(null)
+  const availableViewPresets = ref<ViewModePreset[]>([])
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -216,7 +222,11 @@ export const useConfigStore = defineStore('config', () => {
   // Computed
   // Use ProjectionUIService for all UI visibility and grouping logic
   const showProjectionSelector = computed(() =>
-    ProjectionUIService.shouldShowProjectionSelector(viewMode.value, projectionMode.value),
+    ProjectionUIService.shouldShowProjectionSelector(
+      viewMode.value,
+      projectionMode.value,
+      currentViewPreset.value !== null,
+    ),
   )
 
   const showProjectionModeToggle = computed(() =>
@@ -343,11 +353,17 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const resetProjectionParams = () => {
-    // Reset all global parameter overrides by setting to undefined
+    // First, clear ALL global parameters
     parameterStore.setGlobalParameter('rotate', undefined)
     parameterStore.setGlobalParameter('center', undefined)
     parameterStore.setGlobalParameter('parallels', undefined)
     parameterStore.setGlobalParameter('scale', undefined)
+
+    // If view preset is active, restore preset parameters
+    if (currentViewPreset.value && presetDefaults.presetGlobalParameters.value) {
+      parameterStore.setGlobalParameters(presetDefaults.presetGlobalParameters.value)
+    }
+
     rotateLatitudeLocked.value = true // Reset to locked state
   }
 
@@ -386,8 +402,252 @@ export const useConfigStore = defineStore('config', () => {
     uiStore.initializeTheme()
   }
 
+  // View Preset Management
+  /**
+   * Load available view presets for current atlas and view mode
+   */
+  async function loadAvailableViewPresets() {
+    // Only load presets for view modes that support them
+    if (!['unified', 'split', 'composite-existing'].includes(viewMode.value)) {
+      availableViewPresets.value = []
+      return
+    }
+
+    try {
+      const presets = await ViewPresetLoader.getAvailablePresets(
+        selectedAtlas.value,
+        viewMode.value as any,
+      )
+      availableViewPresets.value = presets as any
+
+      console.info(`[ConfigStore] Loaded ${presets.length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
+    }
+    catch (error) {
+      console.error('[ConfigStore] Failed to load available view presets:', error)
+      availableViewPresets.value = []
+    }
+  }
+
+  /**
+   * Auto-load first available preset if any exist
+   */
+  async function autoLoadFirstPreset(context: string) {
+    if (availableViewPresets.value.length === 0) {
+      console.info(`[ConfigStore] No view presets available to auto-load (${context})`)
+      return
+    }
+
+    const firstPreset = availableViewPresets.value[0]
+    if (!firstPreset) {
+      return
+    }
+
+    try {
+      await loadViewPreset(firstPreset.id)
+      console.info(`[ConfigStore] Auto-loaded view preset "${firstPreset.name}" (${context})`)
+    }
+    catch (error) {
+      console.warn(`[ConfigStore] Failed to auto-load preset (${context}):`, error)
+    }
+  }
+
+  /**
+   * Load and apply a view preset
+   */
+  async function loadViewPreset(presetId: string) {
+    try {
+      const result = await ViewPresetLoader.loadPreset(presetId)
+
+      if (!result.success || !result.preset) {
+        console.error('[ConfigStore] Failed to load view preset:', result.errors)
+        throw new Error(result.errors.join(', '))
+      }
+
+      const preset = result.preset
+
+      // Validate preset matches current view mode
+      if (preset.viewMode !== viewMode.value) {
+        throw new Error(
+          `Preset is for ${preset.viewMode} mode, but current mode is ${viewMode.value}`,
+        )
+      }
+
+      // Apply preset configuration based on view mode
+      applyViewPresetConfig(preset)
+
+      // Update current preset
+      currentViewPreset.value = presetId
+
+      // Log warnings if any
+      if (result.warnings.length > 0) {
+        console.warn('[ConfigStore] View preset warnings:', result.warnings)
+      }
+
+      console.info('[ConfigStore] View preset loaded successfully:', presetId)
+    }
+    catch (error) {
+      console.error('[ConfigStore] Error loading view preset:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Apply view preset configuration to stores
+   */
+  function applyViewPresetConfig(preset: ViewModePreset) {
+    switch (preset.viewMode) {
+      case 'unified':
+        applyUnifiedPreset(preset.config as any)
+        break
+      case 'split':
+        applySplitPreset(preset.config as any)
+        break
+      case 'composite-existing':
+        applyCompositeExistingPreset(preset.config as any)
+        break
+    }
+  }
+
+  /**
+   * Apply unified view preset
+   */
+  function applyUnifiedPreset(config: any) {
+    selectedProjection.value = config.projection.id
+    if (config.projection.parameters) {
+      parameterStore.setGlobalParameters(config.projection.parameters)
+      // Store preset parameters for reset functionality
+      presetDefaults.storeGlobalParameters(config.projection.parameters)
+    }
+    else {
+      presetDefaults.storeGlobalParameters(null)
+    }
+  }
+
+  /**
+   * Apply split view preset
+   */
+  function applySplitPreset(config: any) {
+    projectionMode.value = config.mode
+
+    if (config.mode === 'uniform' && config.uniform) {
+      // Apply uniform projection
+      selectedProjection.value = config.uniform.projection.id
+      if (config.uniform.projection.parameters) {
+        parameterStore.setGlobalParameters(config.uniform.projection.parameters)
+        // Store preset parameters for reset functionality
+        presetDefaults.storeGlobalParameters(config.uniform.projection.parameters)
+      }
+      else {
+        presetDefaults.storeGlobalParameters(null)
+      }
+    }
+    else if (config.mode === 'individual' && config.individual) {
+      // Get mainland code from atlas
+      const mainland = atlasService.value.getMainland()
+      const mainlandCode = mainland?.code
+
+      // Apply mainland projection
+      if (mainlandCode && config.individual.mainland) {
+        parameterStore.setTerritoryProjection(
+          mainlandCode,
+          config.individual.mainland.projection.id,
+        )
+        if (config.individual.mainland.projection.parameters) {
+          parameterStore.setTerritoryParameters(
+            mainlandCode,
+            config.individual.mainland.projection.parameters,
+          )
+        }
+      }
+
+      // Apply territory projections
+      if (config.individual.territories) {
+        Object.entries(config.individual.territories).forEach(([code, territoryConfig]: [string, any]) => {
+          parameterStore.setTerritoryProjection(code, territoryConfig.projection.id)
+          if (territoryConfig.projection.parameters) {
+            parameterStore.setTerritoryParameters(code, territoryConfig.projection.parameters)
+          }
+        })
+      }
+    }
+  }
+
+  /**
+   * Apply composite-existing view preset
+   */
+  function applyCompositeExistingPreset(config: any) {
+    compositeProjection.value = config.projectionId
+
+    // TODO: Apply global scale when composite-existing mode supports it
+    // Currently, d3-composite-projections doesn't expose a scale multiplier
+    // This would require extending the composite projection rendering
+    if (config.globalScale !== undefined) {
+      console.info('[ConfigStore] Global scale from preset:', config.globalScale)
+      // uiStore.globalScale = config.globalScale
+    }
+  }
+
+  /**
+   * Clear current view preset
+   */
+  function clearViewPreset() {
+    currentViewPreset.value = null
+  }
+
+  // Watch view mode changes to load available presets
+  watch(viewMode, async (newMode, oldMode) => {
+    clearViewPreset()
+
+    // Clear global projection parameters when switching view modes
+    // Each view mode/preset should start fresh with its own parameters
+    parameterStore.setGlobalParameter('rotate', undefined)
+    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameter('parallels', undefined)
+    parameterStore.setGlobalParameter('scale', undefined)
+    presetDefaults.storeGlobalParameters(null)
+
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available
+    await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
+  })
+
+  // Watch atlas changes to reload available presets
+  watch(selectedAtlas, async (newAtlas, oldAtlas) => {
+    clearViewPreset()
+
+    // Clear global projection parameters when switching atlases
+    // Each atlas should start fresh with its own preset parameters
+    parameterStore.setGlobalParameter('rotate', undefined)
+    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameter('parallels', undefined)
+    parameterStore.setGlobalParameter('scale', undefined)
+    presetDefaults.storeGlobalParameters(null)
+
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available
+    await autoLoadFirstPreset(`atlas changed from ${oldAtlas} to ${newAtlas}`)
+  })
+
+  // Load initial view presets and auto-apply first one
+  ;(async () => {
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available for initial view mode
+    await autoLoadFirstPreset('initial load')
+  })()
+
   // Watch for atlas changes - use AtlasCoordinator for complex orchestration
   watch(selectedAtlas, async (newAtlasId) => {
+    // Clear global projection parameters when switching atlases
+    // Each atlas/preset should start fresh with its own parameters
+    parameterStore.setGlobalParameter('rotate', undefined)
+    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameter('parallels', undefined)
+    parameterStore.setGlobalParameter('scale', undefined)
+    presetDefaults.storeGlobalParameters(null)
+
     // Preload the new atlas before orchestration to ensure sync access works
     await loadAtlasAsync(newAtlasId)
 
@@ -458,6 +718,9 @@ export const useConfigStore = defineStore('config', () => {
     compositeProjection,
     referenceScale,
     canvasDimensions,
+    // View preset state
+    currentViewPreset,
+    availableViewPresets,
     // Legacy parameter accessors - delegate to parameter store for backward compatibility
     customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
     customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),
@@ -507,5 +770,9 @@ export const useConfigStore = defineStore('config', () => {
     setCustomParallel2,
     initializeTheme,
     initializeWithPresetMetadata,
+    // View preset actions
+    loadAvailableViewPresets,
+    loadViewPreset,
+    clearViewPreset,
   }
 })

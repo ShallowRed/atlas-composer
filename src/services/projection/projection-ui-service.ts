@@ -87,15 +87,26 @@ export class ProjectionUIService {
   /**
    * Determine if uniform projection selector should be shown
    *
+   * View preset system: unified, split, and composite-existing modes use presets to define projections
+   * Only composite-custom mode allows manual projection selection
+   *
    * @param viewMode - Current view mode
    * @param projectionMode - Current projection mode
+   * @param hasViewPreset - Whether a view preset is currently loaded
    * @returns True if uniform projection selector should be visible
    */
   static shouldShowProjectionSelector(
     viewMode: ViewMode,
     projectionMode: ProjectionMode,
+    hasViewPreset = false,
   ): boolean {
-    // Show uniform projection selector when:
+    // Hide projection selector when view preset is active
+    // Presets define projections for unified, split, and composite-existing modes
+    if (hasViewPreset && (viewMode === 'unified' || viewMode === 'split' || viewMode === 'composite-existing')) {
+      return false
+    }
+
+    // Legacy manual mode (no preset):
     // - In unified mode (single projection for all territories)
     if (viewMode === 'unified') {
       return true
@@ -177,11 +188,21 @@ export class ProjectionUIService {
   /**
    * Determine if composite projection selector should be shown
    *
+   * Note: Composite-existing mode now uses view presets exclusively
+   * This selector is deprecated and hidden
+   *
    * @param viewMode - Current view mode
+   * @param hasViewPreset - Whether a view preset is currently loaded
    * @returns True if composite projection selector should be visible
    */
-  static shouldShowCompositeProjectionSelector(viewMode: ViewMode): boolean {
-    // Show composite projection selector when using existing composite projections
+  static shouldShowCompositeProjectionSelector(viewMode: ViewMode, hasViewPreset = false): boolean {
+    // Hide composite projection selector when view preset is active
+    // Composite-existing mode now uses presets exclusively
+    if (hasViewPreset && viewMode === 'composite-existing') {
+      return false
+    }
+
+    // Legacy fallback (should not be reached in normal operation)
     return viewMode === 'composite-existing'
   }
 }

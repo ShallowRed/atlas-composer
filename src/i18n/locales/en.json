@@ -144,7 +144,10 @@
     "scaleMultiplier": "Scale Factor",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
-    "noParams": "This projection type doesn't have adjustable parameters in unified mode."
+    "noParams": "This projection type doesn't have adjustable parameters in unified mode.",
+    "fittingMode": "Scale fitting",
+    "autoFitting": "Auto fit to map",
+    "manualFitting": "Manual scale control"
   },
   "projectionControls": {
     "global": {
@@ -192,6 +195,18 @@
       "test": "Test",
       "compact": "Compact",
       "spread": "Spread"
+    }
+  },
+  "preset": {
+    "select": "Select preset",
+    "unified": {
+      "select": "Unified view preset"
+    },
+    "split": {
+      "select": "Split view preset"
+    },
+    "compositeExisting": {
+      "select": "Composite projection preset"
     }
   },
   "export": {

@@ -103,8 +103,21 @@ const currentScale = computed(() => {
   return configStore.customScale ?? RANGES.scale.default
 })
 
-// Check if any custom parameters are set
+// Check if any parameters differ from preset defaults
+// This enables the reset button when user has customized parameters
 const hasCustomParams = computed(() => {
+  // If no preset loaded, check if any parameters are explicitly set
+  if (!configStore.currentViewPreset) {
+    return configStore.customRotateLongitude !== null
+      || configStore.customRotateLatitude !== null
+      || configStore.customCenterLongitude !== null
+      || configStore.customCenterLatitude !== null
+      || configStore.customParallel1 !== null
+      || configStore.customParallel2 !== null
+  }
+
+  // Preset is loaded - check if current params differ from preset defaults
+  // For now, any non-null custom parameter indicates divergence
   return configStore.customRotateLongitude !== null
     || configStore.customRotateLatitude !== null
     || configStore.customCenterLongitude !== null
@@ -172,9 +185,10 @@ const { compositeProjectionOptions } = useProjectionConfig()
 
 <template>
   <div>
-    <!-- Composite Projection Selector (for composite-existing mode) -->
+    <!-- Composite Projection Selector (for composite-existing mode WITHOUT view preset) -->
+    <!-- Note: This is deprecated - composite-existing mode now uses view presets exclusively -->
     <DropdownControl
-      v-if="configStore.viewMode === 'composite-existing'"
+      v-if="configStore.viewMode === 'composite-existing' && !configStore.currentViewPreset"
       v-model="configStore.compositeProjection"
       :label="t('projection.composite')"
       icon="ri-global-line"
@@ -202,13 +216,27 @@ const { compositeProjectionOptions } = useProjectionConfig()
         <div
           class="flex flex-col gap-4 pt-6"
         >
-          <!-- Fitting Mode Toggle -->
-          <ToggleControl
-            :model-value="configStore.projectionFittingMode === 'manual'"
-            label="Manual Control"
-            icon="ri-settings-3-line"
-            @update:model-value="(value) => configStore.setProjectionFittingMode(value ? 'manual' : 'auto')"
-          />
+          <!-- Fitting Mode Toggle with both labels visible -->
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-3">
+              <i class="ri-settings-3-line text-base-content/70" />
+              <span class="label-text flex-1">{{ t('projectionParams.fittingMode') }}</span>
+              <div class="flex items-center gap-2 text-xs">
+                <span :class="configStore.projectionFittingMode === 'auto' ? 'font-semibold' : 'opacity-50'">
+                  {{ t('projectionParams.autoFitting') }}
+                </span>
+                <input
+                  type="checkbox"
+                  class="toggle toggle-sm"
+                  :checked="configStore.projectionFittingMode === 'manual'"
+                  @change="(e) => configStore.setProjectionFittingMode((e.target as HTMLInputElement).checked ? 'manual' : 'auto')"
+                >
+                <span :class="configStore.projectionFittingMode === 'manual' ? 'font-semibold' : 'opacity-50'">
+                  {{ t('projectionParams.manualFitting') }}
+                </span>
+              </div>
+            </label>
+          </div>
 
           <button
             class="btn btn-sm btn-soft w-full gap-1 mb-4"
