@@ -52,10 +52,10 @@ Domain: User interface and interaction
 File: docs/vue-architecture.llm.txt
 - Vue 3 components with Composition API (16 components)
 - Pinia stores for state management (4 stores: config, geoData, parameters, ui/territory)
-- Composables for reusable logic (9 composables)
+- Composables for reusable logic (16 composables including useAtlasConfig, useParameterProvider)
 - Component hierarchy and data flow
 - Comprehensive type safety (370 lines of types)
-- Test coverage (122 tests, 100% passing)
+- Test coverage (175 tests, 100% passing)
 
 ### 6. Export System
 Domain: Code generation for composite projections
@@ -183,7 +183,7 @@ DOM Update
 
 5. **UI Domain** (views/, components/, composables/)
    - Vue components and page layouts (16 components)
-   - Reusable composables for logic (9 composables)
+   - Reusable composables for logic (16 composables including useAtlasConfig, useParameterProvider)
    - Component-specific state and interactions
    - Type-safe props and events (vue-props.ts, composables.ts)
 

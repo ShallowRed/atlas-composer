@@ -6,7 +6,7 @@ Vue 3 Composition API application with TypeScript, Pinia stores, and composable-
 
 **Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
 **Test Framework**: Vitest + @vue/test-utils
-**Test Coverage**: 164 tests (100% passing)
+**Test Coverage**: 175 tests (100% passing)
 
 ## Project Structure
 
@@ -31,7 +31,7 @@ src/
 │       ├── presets/          # Preset management components
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 14 composition functions including useViewState, useTerritoryCursor, useClipExtentEditor, useProjectionPanning, useMapWatchers, useTerritoryParameters
+├── composables/              # 16 composition functions including useAtlasConfig, useParameterProvider, useViewState, useTerritoryCursor, useClipExtentEditor, useProjectionPanning, useMapWatchers, useTerritoryParameters
 ├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -259,6 +259,24 @@ App.vue
 - Returns: { showSkeleton, withMinLoadingTime }
 
 ### Store Abstraction
+**useAtlasConfig** (51 lines) - NEW (2025-10-19)
+- Centralized atlas configuration access
+- Provides: currentAtlasConfig, atlasService, isAtlasLoaded, atlasId
+- Eliminates repeated configStore.currentAtlasConfig patterns
+- Returns computed refs for reactive atlas state
+- Used by: useTerritoryTransforms.ts, and other composables needing atlas config
+- Tests: 6 tests covering basic functionality and reactivity
+- Pattern: Single source of truth for atlas configuration access
+
+**useParameterProvider** (55 lines) - NEW (2025-10-19)
+- Standardized parameter provider adapter
+- Provides: parameterProvider object with getEffectiveParameters() and getExportableParameters()
+- Connects parameter store to services (Cartographer, export services)
+- Single implementation eliminating duplicate adapter code
+- Used by: CompositeExportDialog.vue, and services needing projection parameters
+- Tests: 5 tests covering delegation and consistency
+- Pattern: Adapter pattern for parameter store integration
+
 **useProjectionConfig** (58 lines)
 - Projection configuration helpers
 - compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
@@ -274,11 +292,12 @@ App.vue
 - Returns: { hasTerritoriesForProjectionConfig }
 
 ### Component Logic
-**useTerritoryTransforms** (155 lines)
+**useTerritoryTransforms** (312 lines)
 - Territory projection management
 - Translation and scale controls (reads scale from parameter store)
 - Reset functions
 - Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
+- Uses: useAtlasConfig composable for centralized atlas access
 - Used by: TerritoryControls.vue
 
 **useTerritoryParameters** (72 lines)
