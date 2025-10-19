@@ -1,9 +1,17 @@
 <!--
   Territory Parameter Controls
 
-  Component for editing projection parameters specific to a territory
-  in custom composite mode. Provides full parameter controls with
-  inheritance indicators and validation feedback.
+  Component for editing projection parameters specific to a territory.
+  Used in both split mode and composite-custom mode.
+
+  Architectural Pattern:
+  - Parent component (SplitControls/CompositeCustomControls) handles projection selection
+  - This component focuses solely on parameter editing for the selected projection
+  - Provides parameter controls with inheritance indicators and validation feedback
+
+  Separation of Concerns:
+  - Projection selection: Parent's responsibility
+  - Parameter editing: This component's responsibility
 -->
 <script setup lang="ts">
 import type { ProjectionFamilyType } from '@/core/projections/types'
@@ -17,9 +25,9 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
 
 interface Props {
@@ -46,13 +54,20 @@ const props = withDefaults(defineProps<Props>(), {
   showInheritanceIndicators: true,
   allowParameterOverrides: true,
   showValidationFeedback: true,
+  hideProjectionDropdown: false,
 })
 
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
+const configStore = useConfigStore()
 const parameterStore = useParameterStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
 const presetDefaults = getSharedPresetDefaults()
+
+// Check if we're in composite mode - composite-specific parameters only apply there
+const isCompositeMode = computed(() => {
+  return configStore.viewMode === 'composite-custom'
+})
 
 // Get parameter constraints for this projection family
 const parameterConstraints = computed(() => {
@@ -300,14 +315,6 @@ onMounted(() => {
   // Trigger initial validation
   parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
-
-const {
-  projectionRecommendations,
-  projectionGroups,
-  territoryProjections,
-  selectedProjection,
-  setTerritoryProjection,
-} = useTerritoryTransforms()
 </script>
 
 <template>
@@ -321,17 +328,6 @@ const {
       <i class="ri-restart-line" />
       {{ t('territory.parameters.reset') }}
     </button>
-
-    <div class="mb-4">
-      <ProjectionDropdown
-        :model-value="territoryProjections[territoryCode] || selectedProjection"
-        :label="t('projection.cartographic')"
-        :projection-groups="projectionGroups"
-        :projection-recommendations="projectionRecommendations"
-        size="md"
-        @update:model-value="(value: string) => setTerritoryProjection(territoryCode, value)"
-      />
-    </div>
 
     <!-- Validation feedback -->
     <div
@@ -494,8 +490,8 @@ const {
               />
             </template>
 
-            <!-- Translate Offset Control -->
-            <template v-if="hasTranslateParameter">
+            <!-- Translate Offset Control (composite mode only) -->
+            <template v-if="hasTranslateParameter && isCompositeMode">
               <!-- Translate Offset X -->
               <RangeSlider
                 :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
@@ -527,7 +523,7 @@ const {
                   handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
                 }"
               />
-              <!-- Pixel-based ClipExtent Controls -->
+              <!-- Pixel-based ClipExtent Controls (composite mode only) -->
               <RangeSlider
                 :model-value="pixelClipExtentArray[0] ?? -100"
                 :label="t('clipExtent.left')"

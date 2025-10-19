@@ -39,10 +39,11 @@ export function useProjectionConfig() {
   })
 
   /**
-   * Get projection for mainland in individual mode
+   * Get projection for mainland in split mode
    */
   function getMainlandProjection() {
-    if (configStore.projectionMode === 'individual') {
+    // In split mode, use per-territory projections
+    if (configStore.viewMode === 'split') {
       const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
       if (mainlandCode) {
         return parameterStore.getTerritoryProjection(mainlandCode) || configStore.selectedProjection
@@ -55,11 +56,12 @@ export function useProjectionConfig() {
    * Get projection for a specific territory
    */
   function getTerritoryProjection(territoryCode: string) {
-    if (configStore.projectionMode === 'individual') {
+    // In split or composite-custom mode, use per-territory projections
+    if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
       // Use territory-specific projection if defined, otherwise use default
       return parameterStore.getTerritoryProjection(territoryCode) || configStore.selectedProjection
     }
-    // Use uniform projection
+    // Use uniform projection for unified and composite-existing modes
     return configStore.selectedProjection
   }
 

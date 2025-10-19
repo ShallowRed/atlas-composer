@@ -2,13 +2,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
+import CompositeCustomControls from '@/components/configuration/CompositeCustomControls.vue'
+import CompositeExistingControls from '@/components/configuration/CompositeExistingControls.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
+import SplitControls from '@/components/configuration/SplitControls.vue'
+import UnifiedControls from '@/components/configuration/UnifiedControls.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
-import TerritoryControls from '@/components/TerritoryControls.vue'
 import MainLayout from '@/components/ui/layout/MainLayout.vue'
-import ViewPresetSelector from '@/components/ui/presets/ViewPresetSelector.vue'
 import CardContainer from '@/components/ui/primitives/CardContainer.vue'
-import ProjectionParamsControls from '@/components/ui/projections/ProjectionParamsControls.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
@@ -23,6 +24,9 @@ const { showSkeleton, initialize, setupWatchers } = useAtlasData()
 const { restoreFromUrl } = useUrlState()
 const {
   isCompositeCustomMode,
+  isCompositeExistingMode,
+  isSplitMode,
+  isUnifiedMode,
   cardTitle,
   cardIcon,
   viewOrchestration,
@@ -120,27 +124,31 @@ onMounted(async () => {
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
-        <div class="flex flex-col gap-6">
-          <!-- View Preset Selector (for unified, split, composite-existing modes) -->
-          <ViewPresetSelector />
-
-          <Transition
-            name="fade"
-            mode="out-in"
-          >
-            <!-- Projection Parameters (unified, composite-existing modes) -->
-            <ProjectionParamsControls
-              v-if="viewOrchestration.shouldShowProjectionParams.value"
-              key="projection-params"
-            />
-            <!-- Territory Controls (split, composite-custom modes) -->
-            <TerritoryControls
-              v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
-              key="territory-controls"
-              :show-transform-controls="isCompositeCustomMode"
-            />
-          </Transition>
-        </div>
+        <Transition
+          name="fade"
+          mode="out-in"
+        >
+          <!-- Composite Custom Mode Controls -->
+          <CompositeCustomControls
+            v-if="isCompositeCustomMode"
+            key="composite-custom"
+          />
+          <!-- Unified Mode Controls -->
+          <UnifiedControls
+            v-else-if="isUnifiedMode"
+            key="unified"
+          />
+          <!-- Split Mode Controls -->
+          <SplitControls
+            v-else-if="isSplitMode"
+            key="split"
+          />
+          <!-- Composite Existing Mode Controls -->
+          <CompositeExistingControls
+            v-else-if="isCompositeExistingMode"
+            key="composite-existing"
+          />
+        </Transition>
       </CardContainer>
     </template>
   </MainLayout>

@@ -52,6 +52,7 @@ const territoriesTitle = computed(() =>
         :geo-data="geoDataStore.mainlandData"
         is-mainland
         :projection="getMainlandProjection()"
+        :territory-code="configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode"
         :full-height="false"
         :width="500"
         :height="400"
@@ -89,6 +90,7 @@ const territoriesTitle = computed(() =>
                 :region="territory.region"
                 :preserve-scale="configStore.scalePreservation"
                 :projection="getTerritoryProjection(territory.code)"
+                :territory-code="territory.code"
                 :full-height="false"
                 :h-level="4"
                 :width="200"
@@ -133,6 +135,7 @@ const territoriesTitle = computed(() =>
           :region="territory.region"
           :preserve-scale="configStore.scalePreservation"
           :projection="getTerritoryProjection(territory.code)"
+          :territory-code="territory.code"
           :width="200"
           :height="160"
         />

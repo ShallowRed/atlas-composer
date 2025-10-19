@@ -25,7 +25,6 @@ Four preset types exist in a discriminated union (`Preset`):
 - `PresetRegistry` - Unified registry for all preset types
 - `BasePresetMetadata` - Shared metadata fields (id, name, description, atlasId)
 - Configuration types: CompositeCustomConfig, UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
-- Legacy types preserved for backward compatibility (marked @deprecated)
 
 **Validators** (`validator.ts`)
 - Unified validation with strategy pattern
@@ -838,12 +837,6 @@ The reset system restores territories to their preset configuration, managed thr
   3. Add validator case to `validatePreset()`
   4. Add application handler to `PresetApplicationService`
 - No changes needed to loader, registry, or UI components
-
-**Backward Compatibility**
-- Legacy type aliases (`ExtendedPresetConfig`, `ViewModePreset`, etc.) preserved
-- Marked `@deprecated` for gradual migration
-- Existing code continues to work during transition
-- Registry version bumped to 2.0 to indicate unified format
 
 ### Migration Notes
 

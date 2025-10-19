@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
 import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
@@ -24,7 +24,8 @@ interface Props {
   width?: number
   hLevel?: number
   height?: number
-  projection?: string // Optional projection override for individual mode
+  projection?: string // Optional projection override for split/composite-custom mode
+  territoryCode?: string // Territory code for parameter resolution in split mode
   fullHeight?: boolean
   // For composite maps
   mode?: 'simple' | 'composite'
@@ -46,6 +47,18 @@ const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
+
+// Watch territory-specific parameter changes in split mode
+// Watch the effective parameters which automatically trigger when territory params change
+watch(
+  () => props.territoryCode ? parameterStore.getEffectiveParameters(props.territoryCode) : null,
+  () => {
+    if (props.territoryCode) {
+      renderMap()
+    }
+  },
+  { deep: true },
+)
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -186,6 +199,12 @@ async function renderMap() {
 
       const { width, height } = computedSize.value
       const projectionToUse = (props.projection ?? configStore.selectedProjection) as string
+
+      // Apply territory-specific parameters if territoryCode is provided (split mode)
+      if (props.territoryCode) {
+        const territoryParams = parameterStore.getEffectiveParameters(props.territoryCode)
+        cartographer.value.updateProjectionParams(territoryParams)
+      }
 
       plot = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
         geoData: props.geoData,

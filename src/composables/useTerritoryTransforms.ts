@@ -260,6 +260,9 @@ export function useTerritoryTransforms() {
    * Get territory projections from parameter store
    */
   const territoryProjections = computed(() => {
+    // Access version to ensure reactivity when projections change
+    void parameterStore.territoryParametersVersion
+
     const projectionsMap: Record<string, string> = {}
     territories.value.forEach((t) => {
       const projectionId = parameterStore.getTerritoryProjection(t.code)

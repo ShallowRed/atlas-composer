@@ -8,12 +8,10 @@
 import type {
   CompositeCustomConfig,
   CompositeExistingViewConfig,
-  ExtendedPresetConfig,
-  PresetLoadResult,
+  LoadResult,
   PresetType,
   SplitViewConfig,
   UnifiedViewConfig,
-  ViewModePreset,
   ViewPresetMode,
 } from './types'
 import type { ProjectionFamilyType } from '@/core/projections/types'
@@ -70,8 +68,8 @@ export function validatePreset(
     case 'unified':
     case 'split':
     case 'composite-existing': {
-      // Convert to ViewModePreset format for validation
-      const viewPreset: ViewModePreset = {
+      // Inline validation for view mode presets
+      const viewPreset = {
         id: preset.id || 'unknown',
         name: preset.name || 'Unknown',
         description: preset.description,
@@ -101,8 +99,8 @@ export function validatePreset(
  */
 export function validateCompositePreset(
   jsonText: string,
-  rawPreset: ExtendedPresetConfig,
-): PresetLoadResult {
+  rawPreset: CompositeCustomConfig,
+): LoadResult<CompositeCustomConfig> {
   // Validate structure using CompositeImportService
   const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
 
@@ -186,7 +184,7 @@ export function validateCompositePreset(
   // Return validated preset with parameter validation warnings
   return {
     success: true,
-    preset: extendedPreset,
+    data: extendedPreset,
     errors: [],
     warnings: [...importResult.warnings, ...paramWarnings],
   }
@@ -199,7 +197,14 @@ export function validateCompositePreset(
  * @param preset - View preset to validate
  * @returns Validation result with errors and warnings
  */
-export function validateViewPreset(preset: ViewModePreset): ViewPresetValidationResult {
+export function validateViewPreset(preset: {
+  id: string
+  name: string
+  description?: string
+  atlasId: string
+  viewMode: ViewPresetMode
+  config: UnifiedViewConfig | SplitViewConfig | CompositeExistingViewConfig
+}): ViewPresetValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
 

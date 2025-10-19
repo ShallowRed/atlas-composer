@@ -20,7 +20,12 @@ src/
 │   └── AboutView.vue         # About page
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
-│   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
+│   ├── TerritoryControls.vue # [UNUSED] Territory controls (superseded by view-mode controls, can be deleted)
+│   ├── configuration/        # View-mode-specific control components (4 components)
+│   │   ├── CompositeCustomControls.vue   # Composite-custom mode controls
+│   │   ├── UnifiedControls.vue           # Unified mode controls
+│   │   ├── SplitControls.vue             # Split mode controls
+│   │   └── CompositeExistingControls.vue # Composite-existing mode controls
 │   └── ui/                   # 28 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
@@ -44,13 +49,11 @@ App.vue
 ├── RouterView
 │   └── MapView.vue (main coordinator)
 │       ├── MapRenderer.vue (D3 rendering engine)
-│       ├── TerritoryControls.vue (territory transforms)
-│       ├── ProjectionDropdown.vue (projection selection with info modal)
-│       └── UI Components
-│           ├── ViewModeSection
-│           ├── ProjectionInfo
-│           ├── ProjectionParamsControls
-│           └── ToastNotification
+│       └── View-Mode Controls (rendered conditionally)
+│           ├── CompositeCustomControls (composite-custom mode)
+│           ├── UnifiedControls (unified mode)
+│           ├── SplitControls (split mode)
+│           └── CompositeExistingControls (composite-existing mode)
 └── AppFooter.vue (credits, links)
 ```
 
@@ -61,8 +64,9 @@ App.vue
 **Responsibilities**:
 - Orchestrates child components
 - Manages layout and sections
+- Renders view-mode-specific control components
 - No business logic (delegates to composables)
-- Uses: useAtlasData, useLoadingState
+- Uses: useAtlasData, useLoadingState, useViewState
 
 ### MapRenderer.vue (376 lines)
 **Role**: D3 rendering engine with interactive features
@@ -81,18 +85,61 @@ App.vue
 **Watchers**: All reactive dependencies handled by useMapWatchers composable
 **Cursor Coordination**: Territory dragging > Clip extent editing > Projection panning priority
 
-### TerritoryControls.vue (264 lines)
-**Role**: Territory transform and parameter controls
+### View-Mode Control Components (src/components/configuration/)
+
+Dedicated control components for each view mode provide focused, maintainable interfaces.
+
+#### CompositeCustomControls.vue
+**Role**: Controls for composite-custom mode (full territory configuration with positioning)
 **Responsibilities**:
-- Territory projection selection with dynamic family detection
-- Territory-specific parameter controls (custom composite mode)
-- Translation controls (x, y)
-- Territory scale controls (0.5×-2.0× multiplier)
-- Projection parameter controls (includes projection scale 100-10,000)
+- PresetSelector for loading saved configurations
+- ImportControls for JSON import
+- GlobalProjectionControls (canvas dimensions, reference scale)
+- Territory accordion with per-territory controls:
+  - ProjectionDropdown for projection selection (handles cartographer updates)
+  - TerritoryParameterControls for parameter editing (projection-independent)
+- Reset to defaults button for all territories
+**Pattern**: Calls `handleProjectionChange()` to update both parameter store and cartographer
+**Reactivity**: Uses `getTerritoryProjection()` helper for direct parameter store access
+- Reset to defaults functionality
+- Uses: useTerritoryTransforms, projectionRegistry, parameterStore
+
+#### UnifiedControls.vue
+**Role**: Controls for unified mode (single projection for entire atlas)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- ProjectionDropdown for global projection selection
+- Projection parameter controls (rotate, center, parallels, scale)
+- Fitting mode toggle (auto/manual)
 - Reset functionality
-- Parameter inheritance and validation feedback
-- Uses: useTerritoryTransforms, useTerritoryConfig, projectionRegistry
-- Components: TerritoryParameterControls for parameter editing per territory
+- Uses: configStore, projectionRegistry, parameter helpers
+
+#### SplitControls.vue
+**Role**: Controls for split mode (separate projections per territory without positioning)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- Territory accordion with per-territory controls:
+  - ProjectionDropdown for projection selection
+  - TerritoryParameterControls for parameter editing (no transform controls)
+- No global positioning or reference scale
+**Pattern**: Each territory has independent projection selection with parameter editing
+**Reactivity**: Uses `getTerritoryProjection()` helper for direct parameter store access
+- Uses: useTerritoryTransforms, projectionRegistry, parameterStore
+
+#### CompositeExistingControls.vue
+**Role**: Controls for composite-existing mode (d3-composite-projections)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- ProjectionDropdown for selecting pre-built composite projections
+- Limited projection parameter controls (rotate, scale if applicable)
+- Fitting mode toggle (auto/manual)
+- Reset functionality
+- Uses: configStore, projectionRegistry, parameter helpers
+
+### TerritoryControls.vue [UNUSED - Can be deleted]
+**Role**: Original territory transform and parameter controls (pre-refactoring)
+**Status**: Superseded by view-mode-specific control components
+**Note**: This file is not imported anywhere and can be safely deleted.
 
 ### ProjectionSelector.vue (114 lines)
 **Role**: Projection selection interface
@@ -185,17 +232,19 @@ App.vue
   - Updates configStore.canvasDimensions and configStore.referenceScale reactively
   - Watchers in MapRenderer trigger automatic re-rendering on parameter changes
   - Used in TerritoryControls component for composite-custom mode
-- **TerritoryParameterControls**: Territory-specific parameter editing interface
+- **TerritoryParameterControls**: Territory-specific parameter editing interface (projection-independent)
   - Uses unified `ProjectionParameters` interface across all parameter operations
   - Integrates with `parameterStore` for reactive parameter management
   - Template conditions use computed properties for parameter group visibility
-  - Provides parameter controls for individual territories in custom composite mode
+  - Provides parameter controls for individual territories (no projection selection)
   - Uses dynamic projection family detection via projectionRegistry
   - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
   - Parameter groups: Position (center/rotate), Projection-specific (parallels), View & Scale (projection scale/clipAngle), Advanced (precision/translate)
   - Validation feedback with real-time error/warning display via `ParameterRegistry`
   - Parameter inheritance indicators and override functionality
   - Reset controls for clearing territory-specific overrides
+  - **View-mode awareness**: Uses `isCompositeMode` computed to filter composite-specific parameters (translateOffset, pixelClipExtent) in split mode
+  - **Single responsibility**: Focuses solely on parameter editing; projection selection handled by parent components
 - **ParameterControlGroup**: Reusable parameter control group wrapper
   - Provides consistent styling and layout for parameter sections
   - Supports title, description, and collapsible content areas
@@ -390,7 +439,8 @@ App.vue
 - Watches projectionFittingMode: Updates cartographer.updateFittingMode() and triggers re-render
 - Watches canvasDimensions: Updates cartographer.updateCanvasDimensions() and triggers re-render
 - Watches referenceScale: Updates cartographer.updateReferenceScale() and triggers re-render
-- Mode-dependent watch: Triggers re-render on composite/simple mode dependencies
+- **Simple mode watcher**: Tracks configuration dependencies and `parameterStore.territoryParametersVersion` for territory projection/parameter changes
+- **Composite mode watcher**: Tracks composite-specific dependencies without deprecated properties
 - Deep watching with 'post' flush for optimal reactivity
 - Accepts props object (mode, geoData, projection, preserveScale) and callbacks object
 - Centralizes watcher lifecycle management with cleanup function
@@ -528,7 +578,6 @@ const { viewOrchestration } = useViewState()
   - Both values loaded from presets and editable via GlobalProjectionControls
   - Watchers in MapRenderer trigger re-rendering on changes
 - Computed properties: effectiveProjectionParams merges atlas defaults with parameterStore.globalParameters
-- Legacy parameter accessors via computed properties for backward compatibility
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
 **Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls

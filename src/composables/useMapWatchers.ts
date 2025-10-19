@@ -100,7 +100,6 @@ export function useMapWatchers(
       if (props.mode === 'composite') {
         return [
           configStore.viewMode,
-          configStore.projectionMode,
           configStore.compositeProjection,
           configStore.selectedProjection,
           configStore.territoryMode,
@@ -123,6 +122,7 @@ export function useMapWatchers(
         uiStore.showSphere,
         uiStore.showCompositionBorders,
         uiStore.showMapLimits,
+        parameterStore.territoryParametersVersion, // Watch for territory projection changes in split mode
         // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
         // watcher that calls updateProjectionParams() which updates the existing cartographer
         // Watching it here would trigger a full re-render which is unnecessary

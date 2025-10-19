@@ -29,15 +29,6 @@ export type {
   ViewPresetMode,
 } from './types'
 
-// Legacy type exports (for gradual migration)
-export type {
-  ExtendedPresetConfig,
-  PresetLoadResult,
-  ViewModePreset,
-  ViewPresetLoadResult,
-  ViewPresetRegistry,
-} from './types'
-
 // Validation utilities
 export type { ValidationResult } from './validation-utils'
 export {
