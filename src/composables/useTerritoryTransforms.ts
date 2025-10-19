@@ -4,7 +4,6 @@ import {
   SCALE_RANGE,
   TRANSLATION_RANGES,
 } from '@/core/atlases/constants'
-import { createDefaultTranslations } from '@/core/atlases/utils'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -157,11 +156,10 @@ export function useTerritoryTransforms() {
       parameterStore.clearAllTerritoryOverrides(t.code)
     }
 
-    // Reset all translations to defaults
-    const defaultTranslations = createDefaultTranslations(territories)
-    for (const [code, { x, y }] of Object.entries(defaultTranslations)) {
-      parameterStore.setTerritoryTranslation(code, 'x', x)
-      parameterStore.setTerritoryTranslation(code, 'y', y)
+    // Reset all translations to zero (no config-level defaults)
+    for (const t of territories) {
+      parameterStore.setTerritoryTranslation(t.code, 'x', 0)
+      parameterStore.setTerritoryTranslation(t.code, 'y', 0)
     }
 
     // Reset all scales to 1.0 for ALL territories
@@ -172,7 +170,7 @@ export function useTerritoryTransforms() {
 
     // Update cartographer for all territories to apply the changes
     if (geoDataStore.cartographer) {
-      territories.forEach((t) => {
+      territories.forEach((t: { code: string }) => {
         geoDataStore.cartographer?.updateTerritoryParameters(t.code)
       })
     }

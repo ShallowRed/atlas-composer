@@ -63,31 +63,29 @@ export class CompositeProjection {
 
   /**
    * Get projection parameters for a territory
-   * Uses parameter provider if available, otherwise falls back to config
+   * Uses parameter provider (required - no fallback to config)
    */
   private getParametersForTerritory(territoryCode: string, configParams: TerritoryConfig): ProjectionParameters {
     if (this.parameterProvider) {
       const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
-      // Merge config params with dynamic params (dynamic params take precedence)
-      // Use ?? instead of || to properly handle arrays and zero values
+      // Return parameters from provider, using territory center as fallback for center/rotate only
       return {
         center: dynamicParams.center ?? configParams.center,
-        rotate: dynamicParams.rotate ?? configParams.rotate,
-        parallels: dynamicParams.parallels ?? configParams.parallels,
+        rotate: dynamicParams.rotate,
+        parallels: dynamicParams.parallels,
         scale: dynamicParams.scale, // For backward compatibility only - not used
-        clipAngle: dynamicParams.clipAngle, // configParams doesn't have clipAngle
-        precision: dynamicParams.precision, // configParams doesn't have precision
+        clipAngle: dynamicParams.clipAngle,
+        precision: dynamicParams.precision,
         baseScale: dynamicParams.baseScale, // For backward compatibility only - not used
         scaleMultiplier: dynamicParams.scaleMultiplier ?? 1.0, // The only scale value we actually use
         pixelClipExtent: dynamicParams.pixelClipExtent, // Territory-specific clip extent
       }
     }
-    // Fallback to config params - convert TerritoryConfig to ProjectionParameters
+    // No parameter provider - return minimal defaults using only center from config
     return {
       center: configParams.center,
-      rotate: configParams.rotate,
-      parallels: configParams.parallels,
-      // These are parameter-only properties, not in TerritoryConfig
+      rotate: undefined,
+      parallels: undefined,
       scale: undefined,
       clipAngle: undefined,
       precision: undefined,
@@ -100,7 +98,7 @@ export class CompositeProjection {
    *
    * This implementation follows d3-composite-projections approach:
    * 1. Use a single reference scale for all projections
-   * 2. Apply territory-specific baseScaleMultiplier from territory data
+   * 2. Apply territory-specific scale multipliers from presets
    * 3. The multipliers ensure proper visual composition while maintaining proportionality
    */
   private initialize() {
@@ -126,13 +124,13 @@ export class CompositeProjection {
     // Use preset referenceScale if provided, or default to 2700
     const REFERENCE_SCALE = this.referenceScale ?? 2700
 
-    // Mainland territory - use projection type from config if available, otherwise default to Conic Conformal
-    const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
+    // Get parameters from parameter provider (required - no fallback to config)
+    const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+
+    // Mainland projection type must come from parameters/preset
+    const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
     const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
       .translate([0, 0])
-
-    // Get parameters from parameter provider or config
-    const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
 
     // For conic projections, use rotate instead of center (as d3-composite-projections does)
     // For mercator/other projections, use center
@@ -166,18 +164,19 @@ export class CompositeProjection {
       baseScale: mainlandBaseScale,
       scaleMultiplier: mainlandScaleMultiplier,
       baseTranslate: [0, 0],
-      translateOffset: mainland.offset,
+      translateOffset: [0, 0], // No config-level offset, must come from parameters
       bounds: mainland.bounds,
     })
 
-    // Overseas territories - each gets reference scale * baseScaleMultiplier
+    // Overseas territories
     overseasTerritories.forEach((territory) => {
-      const projectionType = territory.projectionType || 'mercator'
+      // Get parameters from parameter provider (required - no fallback to config)
+      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+
+      // Projection type must come from parameters/preset, default to mercator
+      const projectionType = territoryParams.projectionId || 'mercator'
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
-
-      // Get parameters from parameter provider or config
-      const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
       // Apply center/rotate based on projection type
       // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
@@ -199,11 +198,9 @@ export class CompositeProjection {
       }
 
       // Determine scale values
-      // baseScale always comes from referenceScale (not from preset)
+      // baseScale always comes from referenceScale (preset or default 2700)
       // scaleMultiplier comes from preset parameter store (defaults to 1.0)
-      // Note: territory.baseScaleMultiplier is a config-level default for territories without presets
-      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-      const territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+      const territoryBaseScale = REFERENCE_SCALE
       const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
@@ -216,7 +213,7 @@ export class CompositeProjection {
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
-        translateOffset: territory.offset,
+        translateOffset: [0, 0], // No config-level offset, must come from parameters
         bounds: territory.bounds,
       })
     })
@@ -238,12 +235,13 @@ export class CompositeProjection {
 
     // Process all mainlands equally - no special treatment for any
     mainlands.forEach((mainland) => {
-      const mainlandProjectionType = mainland.projectionType || 'conic-conformal'
+      // Get parameters from parameter provider (required - no fallback to config)
+      const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+
+      // Projection type must come from parameters/preset
+      const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
       const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
         .translate([0, 0])
-
-      // Get parameters from parameter provider or config
-      const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
 
       // For conic projections, use rotate instead of center (as d3-composite-projections does)
       // For mercator/other projections, use center
@@ -277,19 +275,20 @@ export class CompositeProjection {
         baseScale: mainlandBaseScale,
         scaleMultiplier: mainlandScaleMultiplier,
         baseTranslate: [0, 0],
-        translateOffset: mainland.offset,
+        translateOffset: [0, 0], // No config-level offset, must come from parameters
         bounds: mainland.bounds,
       })
     })
 
     // Overseas territories (if any)
     overseasTerritories.forEach((territory) => {
-      const projectionType = territory.projectionType || 'mercator'
+      // Get parameters from parameter provider (required - no fallback to config)
+      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+
+      // Projection type must come from parameters/preset, default to mercator
+      const projectionType = territoryParams.projectionId || 'mercator'
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
-
-      // Get parameters from parameter provider or config
-      const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
       // Apply center/rotate based on projection type
       // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
@@ -311,11 +310,9 @@ export class CompositeProjection {
       }
 
       // Determine scale values
-      // baseScale always comes from referenceScale (not from preset)
+      // baseScale always comes from referenceScale (preset or default 200)
       // scaleMultiplier comes from preset parameter store (defaults to 1.0)
-      // Note: territory.baseScaleMultiplier is a config-level default for territories without presets
-      const baseMultiplier = territory.baseScaleMultiplier ?? 1.0
-      const territoryBaseScale = REFERENCE_SCALE * baseMultiplier
+      const territoryBaseScale = REFERENCE_SCALE
       const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
@@ -328,7 +325,7 @@ export class CompositeProjection {
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         baseTranslate: [0, 0],
-        translateOffset: territory.offset,
+        translateOffset: [0, 0], // No config-level offset, must come from parameters
         bounds: territory.bounds,
       })
     })

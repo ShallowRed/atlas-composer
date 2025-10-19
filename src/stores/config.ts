@@ -37,9 +37,7 @@ export const useConfigStore = defineStore('config', () => {
   const getInitialProjection = () => {
     // Use fallback default for immediate initialization
     // AtlasMetadataService will update this asynchronously with preset data
-    const atlasService = new AtlasService(DEFAULT_ATLAS)
-    const mainland = atlasService.getMainland()
-    return mainland?.projectionType || 'natural-earth'
+    return 'natural-earth'
   }
   const selectedProjection = ref(getInitialProjection())
 

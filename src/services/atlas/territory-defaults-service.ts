@@ -1,7 +1,5 @@
 import type { TerritoryConfig } from '@/types'
 
-import { calculateDefaultProjections, calculateDefaultScales, createDefaultTranslations } from '@/core/atlases/utils'
-
 /**
  * Territory defaults result containing all initialization data
  */
@@ -13,15 +11,16 @@ export interface TerritoryDefaults {
 
 /**
  * Service for initializing territory default configurations
- * Centralizes initialization logic for projections, translations, and scales
+ * Provides empty defaults - all actual values should come from presets
  */
 export class TerritoryDefaultsService {
   /**
    * Initialize all territory defaults at once
+   * Returns empty maps - values must come from presets
    *
    * @param territories - All territories for the atlas
    * @param defaultProjection - Default projection to use (default: 'mercator')
-   * @returns Complete set of territory defaults
+   * @returns Complete set of empty territory defaults
    */
   static initializeAll(
     territories: TerritoryConfig[],
@@ -35,43 +34,48 @@ export class TerritoryDefaultsService {
   }
 
   /**
-   * Initialize territory projections
+   * Initialize territory projections with fallback default
    *
    * @param territories - Territories to initialize
    * @param defaultProjection - Default projection to use
-   * @returns Map of territory code to projection ID
+   * @returns Map of territory code to projection ID (all set to default)
    */
   static initializeProjections(
     territories: TerritoryConfig[],
     defaultProjection: string = 'mercator',
   ): Record<string, string> {
-    return calculateDefaultProjections(territories, defaultProjection)
+    return Object.fromEntries(
+      territories.map(t => [t.code, defaultProjection]),
+    )
   }
 
   /**
-   * Initialize territory translations (x, y offsets in pixels)
-   * Positive X = right, Negative X = left
-   * Positive Y = down, Negative Y = up
+   * Initialize territory translations to zero offset
+   * Actual offsets must come from presets
    *
    * @param territories - Territories to initialize
-   * @returns Map of territory code to translation offset
+   * @returns Map of territory code to zero translation offset
    */
   static initializeTranslations(
     territories: TerritoryConfig[],
   ): Record<string, { x: number, y: number }> {
-    return createDefaultTranslations(territories)
+    return Object.fromEntries(
+      territories.map(t => [t.code, { x: 0, y: 0 }]),
+    )
   }
 
   /**
-   * Initialize territory scales (scale multipliers for territory sizing)
-   * All territories start with default 1.0 multiplier
+   * Initialize territory scales to 1.0
+   * Actual scale multipliers must come from presets
    *
    * @param territories - Territories to initialize
-   * @returns Map of territory code to scale multiplier
+   * @returns Map of territory code to scale multiplier (all set to 1.0)
    */
   static initializeScales(
     territories: TerritoryConfig[],
   ): Record<string, number> {
-    return calculateDefaultScales(territories)
+    return Object.fromEntries(
+      territories.map(t => [t.code, 1.0]),
+    )
   }
 }

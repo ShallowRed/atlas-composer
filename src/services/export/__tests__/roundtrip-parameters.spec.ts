@@ -21,8 +21,6 @@ const mockConfig: CompositeProjectionConfig = {
     code: 'FR-MET',
     name: 'Metropolitan France',
     center: [2.5, 46.5] as [number, number],
-    offset: [0, 0] as [number, number],
-    projectionType: 'conic-conformal',
     bounds: [[-5, 41], [10, 51]] as [[number, number], [number, number]],
   },
   overseasTerritories: [
@@ -30,8 +28,6 @@ const mockConfig: CompositeProjectionConfig = {
       code: 'FR-GP',
       name: 'Guadeloupe',
       center: [-61.46, 16.14] as [number, number],
-      offset: [-324, -38] as [number, number],
-      projectionType: 'mercator',
       bounds: [[-62, 15], [-61, 17]] as [[number, number], [number, number]],
     },
   ],

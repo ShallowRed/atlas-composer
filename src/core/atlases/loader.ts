@@ -113,12 +113,6 @@ function transformTerritory(territory: JSONTerritoryConfig, locale: string): Ter
     ...(territory.region && { region: resolveI18nValue(territory.region, locale) }),
     center: territory.center,
     bounds: territory.bounds,
-    // Default offset - rendering configuration is now handled by preset files
-    offset: [0, 0],
-    // Legacy rendering property support (deprecated - remove after full preset migration)
-    ...(territory.rendering?.projectionType && {
-      projectionType: territory.rendering.projectionType,
-    }),
   }
 }
 
@@ -134,7 +128,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
       code: 'WORLD',
       name: 'World',
       center: [0, 0],
-      offset: [0, 0],
       bounds: [[-180, -90], [180, 90]],
     }
 

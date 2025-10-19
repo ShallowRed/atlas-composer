@@ -55,19 +55,6 @@ export function getTerritoryShortName(
 }
 
 /**
- * Create default territory translations from configurations
- * @param territories - Array of territory configurations
- * @returns Record of territory code to translation coordinates
- */
-export function createDefaultTranslations(
-  territories: TerritoryConfig[],
-): Record<string, { x: number, y: number }> {
-  return Object.fromEntries(
-    territories.map(t => [t.code, { x: t.offset[0], y: t.offset[1] }]),
-  )
-}
-
-/**
  * Extract territory codes from configurations
  * @param territories - Array of territory configurations
  * @returns Array of territory codes
@@ -96,34 +83,6 @@ export function isMainlandTerritory(
 
   // Check if this code matches the mainland code
   return code === mainlandCode || code === geoDataMainlandCode
-}
-
-/**
- * Calculate default projections from territory projection types
- * @param territories - Array of territory configurations
- * @param fallback - Fallback projection type (default: 'mercator')
- * @returns Record of territory code to projection type
- */
-export function calculateDefaultProjections(
-  territories: TerritoryConfig[],
-  fallback: string = 'mercator',
-): Record<string, string> {
-  return Object.fromEntries(
-    territories.map(t => [t.code, t.projectionType || fallback]),
-  )
-}
-
-/**
- * Calculate default scales (all set to 1.0)
- * @param territories - Array of territory configurations
- * @returns Record of territory code to scale
- */
-export function calculateDefaultScales(
-  territories: TerritoryConfig[],
-): Record<string, number> {
-  return Object.fromEntries(
-    territories.map(t => [t.code, t.baseScaleMultiplier ?? 1.0]),
-  )
 }
 
 /**

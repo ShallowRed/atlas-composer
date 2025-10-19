@@ -33,15 +33,6 @@ export interface JSONTerritoryConfig {
     polygonBounds?: [[number, number], [number, number]]
     duplicateFrom?: string
   }
-  rendering?: {
-    projectionType?: string
-    offset?: [number, number]
-    scale?: number
-    clipExtent?: { x1: number, y1: number, x2: number, y2: number }
-    rotate?: [number, number, number?]
-    parallels?: [number, number]
-    baseScaleMultiplier?: number
-  }
 }
 
 /**

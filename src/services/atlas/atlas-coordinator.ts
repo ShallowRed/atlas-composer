@@ -110,8 +110,8 @@ export class AtlasCoordinator {
       }
     }
 
-    // Determine selected projection from preset metadata or mainland
-    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
+    // Determine selected projection from preset metadata
+    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset)
 
     // Ensure selected projection is valid for composite modes
     // For composite views, projection must exist in territory projections
@@ -173,17 +173,14 @@ export class AtlasCoordinator {
   }
 
   /**
-   * Get selected projection based on preferences or mainland
-   *
-   * @param atlasId - Atlas identifier
+   * Get selected projection for an atlas
+   * @param atlasId - Atlas ID
    * @param defaultPreset - Default preset name
-   * @param atlasService - Atlas service instance
    * @returns Projection ID to use
    */
   private static async getSelectedProjection(
     atlasId: string,
     defaultPreset: string | undefined,
-    atlasService: AtlasService,
   ): Promise<string> {
     // First, try to get from projection preferences (for wildcard atlases like world)
     const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(atlasId, defaultPreset)
@@ -191,8 +188,7 @@ export class AtlasCoordinator {
       return projectionPrefs.recommended[0]!
     }
 
-    // Otherwise, use mainland territory projection
-    const mainland = atlasService.getMainland()
-    return mainland?.projectionType || 'natural-earth'
+    // Otherwise, use natural-earth as default (no config-level defaults)
+    return 'natural-earth'
   }
 }

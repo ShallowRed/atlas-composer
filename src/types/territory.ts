@@ -55,28 +55,8 @@ export interface TerritoryConfig {
   /** Geographic center [longitude, latitude] */
   center: Coordinates
 
-  /** Pixel offset [x, y] relative to mainland center for composite layouts */
-  offset: PixelOffset
-
   /** Geographic bounds [[minLon, minLat], [maxLon, maxLat]] */
   bounds: BoundingBox
-
-  /** Default projection type (e.g., 'mercator', 'conic-conformal', 'azimuthal') */
-  projectionType?: string
-
-  /** Projection rotation [lambda, phi, gamma?] */
-  rotate?: ProjectionRotation
-
-  /** Standard parallels for conic projections */
-  parallels?: ConicParallels
-
-  /**
-   * Scale multiplier relative to mainland for geographic proportionality
-   * - 1.0: true geographic proportions (default)
-   * - <1.0: smaller for less visual weight
-   * - >1.0: larger for better visibility
-   */
-  baseScaleMultiplier?: number
 }
 
 /**

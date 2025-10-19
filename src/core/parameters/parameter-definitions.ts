@@ -5,7 +5,7 @@
  * This file registers all parameters with the parameter registry.
  */
 
-import { parameterRegistry } from './parameter-registry'
+import { parameterRegistry } from '@/core/parameters/parameter-registry'
 
 /**
  * Register all projection parameters with the parameter registry
