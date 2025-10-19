@@ -58,7 +58,7 @@ Within each group, atlases sort by their own `sortOrder` value.
 configs/
 ├── atlas-registry.json        # Registry of available atlases
 ├── atlas-registry.schema.json # Registry validation schema
-├── schema.json                # Atlas config validation schema
+├── atlas-schema.json          # Atlas config validation schema
 ├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
 ├── usa.json
@@ -157,7 +157,7 @@ src/public/data/
 Create `configs/new-atlas.json`:
 ```json
 {
-  "$schema": "./schema.json",
+  "$schema": "./atlas-schema.json",
   "id": "new-atlas",
   "name": "New Atlas Name",
   "category": "country",
@@ -211,78 +211,20 @@ Add entry to `configs/atlas-registry.json` atlases array:
 ## Minimal Config
 
 ```json
+```json
 {
-  "$schema": "./schema.json",
-  "id": "atlas-id",
-  "name": "Atlas Name",
-  "category": "country",
-  "pattern": "single-focus",
-  "territories": [
-    {
-      "id": "250",
-      "role": "primary",
-      "code": "FR-MET",
-      "name": "Territory Name",
-      "center": [2.5, 46.5],
-      "bounds": [[-5, 41], [10, 51]],
-      "extraction": { "mainlandPolygon": 0 }
-    }
-  ]
-}
+  "$schema": "./atlas-schema.json",
+  "atlasId": "france",
 ```
 
 ## Complete Config Structure
 
 ```json
+**Example:**
+```json
 {
-  "$schema": "./schema.json",
-  "id": "atlas-id",
-  "name": "Atlas Name",
-  "description": "Brief description",
-  "category": "country",
-  "pattern": "single-focus",
-
-  "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
-  "defaultViewMode": "composite-custom",
-
-  "referenceScale": 2700,
-
-  "projectionPreferences": {
-    "recommended": ["conic-conformal", "albers"],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": ["gnomonic", "orthographic"]
-  },
-
-  "territories": [/* territory objects */],
-
-  "projection": {
-    "center": { "longitude": 2.5, "latitude": 46.5 },
-    "rotate": {
-      "mainland": [-3, 0],
-      "azimuthal": [-3, -46]
-    },
-    "parallels": { "conic": [45.9, 47.7] }
-  },
-
-  "modes": [
-    {
-      "id": "all-territories",
-      "label": "All territories",
-      "territories": ["FR-MET", "FR-GP", "FR-MQ"]
-    }
-  ],
-
-  "groups": [
-    {
-      "id": "caribbean",
-      "label": "Caribbean",
-      "territories": ["FR-GP", "FR-MQ"]
-    }
-  ]
-}
+  "$schema": "./atlas-schema.json",
+  "atlasId": "new-region",
 ```
 
 ## Internationalization (i18n)
@@ -351,7 +293,7 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `$schema` | ✅ | Reference to schema.json |
+| `$schema` | ✅ | Reference to atlas-schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name (string or i18n object) |
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |

@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "./atlas-schema.json",
   "id": "portugal",
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
@@ -42,13 +42,6 @@
       ],
       "extraction": {
         "mainlandPolygon": 1
-      },
-      "rendering": {
-        "offset": [
-          0,
-          0
-        ],
-        "projectionType": "conic-conformal"
       }
     },
     {
@@ -77,13 +70,6 @@
         "polygonIndices": [
           0
         ]
-      },
-      "rendering": {
-        "offset": [
-          -111,
-          105
-        ],
-        "projectionType": "conic-conformal"
       }
     },
     {
@@ -118,13 +104,6 @@
           7,
           8
         ]
-      },
-      "rendering": {
-        "offset": [
-          -189,
-          -84
-        ],
-        "projectionType": "conic-conformal"
       }
     }
   ],

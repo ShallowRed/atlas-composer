@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "./atlas-schema.json",
   "id": "eu",
   "name": "Europe",
   "description": "European countries including EU members (27), non-EU states, and overseas territories",
@@ -35,8 +35,7 @@
           49
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "56",
@@ -58,8 +57,7 @@
           51.5
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "100",
@@ -81,8 +79,7 @@
           44.2
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "191",
@@ -104,8 +101,7 @@
           46.5
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "196",
@@ -127,8 +123,7 @@
           35.7
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "203",
@@ -150,8 +145,7 @@
           51.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "208",
@@ -175,8 +169,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 1
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "233",
@@ -198,8 +191,7 @@
           59.7
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "246",
@@ -221,8 +213,7 @@
           70.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "250",
@@ -249,8 +240,7 @@
           0,
           1
         ]
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "276",
@@ -272,8 +262,7 @@
           55.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "300",
@@ -295,8 +284,7 @@
           41.7
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "348",
@@ -318,8 +306,7 @@
           48.6
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "372",
@@ -341,8 +328,7 @@
           55.4
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "380",
@@ -364,8 +350,7 @@
           47.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "428",
@@ -387,8 +372,7 @@
           58.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "440",
@@ -410,8 +394,7 @@
           56.5
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "442",
@@ -433,8 +416,7 @@
           50.2
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "470",
@@ -456,8 +438,7 @@
           36.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "528",
@@ -481,8 +462,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 0
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "616",
@@ -504,8 +484,7 @@
           54.8
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "620",
@@ -529,8 +508,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 1
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "642",
@@ -552,8 +530,7 @@
           48.3
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "703",
@@ -575,8 +552,7 @@
           49.6
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "705",
@@ -598,8 +574,7 @@
           46.9
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "724",
@@ -623,8 +598,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 4
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "752",
@@ -646,8 +620,7 @@
           69.1
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "250-GP",
@@ -677,12 +650,6 @@
           7,
           8
         ]
-      },
-      "rendering": {
-        "offset": [
-          -300,
-          -100
-        ]
       }
     },
     {
@@ -710,12 +677,6 @@
         "extractFrom": "250",
         "polygonIndices": [
           5
-        ]
-      },
-      "rendering": {
-        "offset": [
-          -300,
-          0
         ]
       }
     },
@@ -745,12 +706,6 @@
         "polygonIndices": [
           9
         ]
-      },
-      "rendering": {
-        "offset": [
-          -300,
-          150
-        ]
       }
     },
     {
@@ -778,12 +733,6 @@
         "extractFrom": "250",
         "polygonIndices": [
           4
-        ]
-      },
-      "rendering": {
-        "offset": [
-          300,
-          -100
         ]
       }
     },
@@ -813,12 +762,6 @@
         "polygonIndices": [
           3
         ]
-      },
-      "rendering": {
-        "offset": [
-          300,
-          -200
-        ]
       }
     },
     {
@@ -842,13 +785,7 @@
           18.13
         ]
       ],
-      "extraction": {},
-      "rendering": {
-        "offset": [
-          -300,
-          -200
-        ]
-      }
+      "extraction": {}
     },
     {
       "id": "666",
@@ -871,13 +808,7 @@
           47.15
         ]
       ],
-      "extraction": {},
-      "rendering": {
-        "offset": [
-          -300,
-          -300
-        ]
-      }
+      "extraction": {}
     },
     {
       "id": "876",
@@ -900,13 +831,7 @@
           -13.2
         ]
       ],
-      "extraction": {},
-      "rendering": {
-        "offset": [
-          300,
-          50
-        ]
-      }
+      "extraction": {}
     },
     {
       "id": "258",
@@ -929,13 +854,7 @@
           -7
         ]
       ],
-      "extraction": {},
-      "rendering": {
-        "offset": [
-          300,
-          200
-        ]
-      }
+      "extraction": {}
     },
     {
       "id": "540",
@@ -958,13 +877,7 @@
           -19.5
         ]
       ],
-      "extraction": {},
-      "rendering": {
-        "offset": [
-          300,
-          100
-        ]
-      }
+      "extraction": {}
     },
     {
       "id": "620-20",
@@ -991,12 +904,6 @@
         "extractFrom": "620",
         "polygonIndices": [
           0
-        ]
-      },
-      "rendering": {
-        "offset": [
-          200,
-          -150
         ]
       }
     },
@@ -1032,12 +939,6 @@
           7,
           8
         ]
-      },
-      "rendering": {
-        "offset": [
-          -200,
-          -100
-        ]
       }
     },
     {
@@ -1072,12 +973,6 @@
           10,
           11
         ]
-      },
-      "rendering": {
-        "offset": [
-          -200,
-          0
-        ]
       }
     },
     {
@@ -1102,8 +997,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 0
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "756",
@@ -1125,8 +1019,7 @@
           47.78
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "826",
@@ -1150,8 +1043,7 @@
       ],
       "extraction": {
         "mainlandPolygon": 0
-      },
-      "rendering": {}
+      }
     },
     {
       "id": "352",
@@ -1173,8 +1065,7 @@
           66.53
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "688",
@@ -1196,8 +1087,7 @@
           46.17
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "008",
@@ -1219,8 +1109,7 @@
           42.65
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "070",
@@ -1242,8 +1131,7 @@
           45.28
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "807",
@@ -1265,8 +1153,7 @@
           42.36
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     },
     {
       "id": "499",
@@ -1288,8 +1175,7 @@
           43.54
         ]
       ],
-      "extraction": {},
-      "rendering": {}
+      "extraction": {}
     }
   ],
   "modes": [

@@ -116,7 +116,7 @@ src/
 └── i18n/               # Internationalization
 
 configs/                # Atlas configurations
-├── schema.json            # JSON schema
+├── atlas-schema.json      # JSON schema for atlas configurations
 ├── france.json
 ├── portugal.json
 └── ...
