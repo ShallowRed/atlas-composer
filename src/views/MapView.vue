@@ -6,6 +6,7 @@ import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSect
 import MapRenderer from '@/components/MapRenderer.vue'
 import TerritoryControls from '@/components/TerritoryControls.vue'
 import MainLayout from '@/components/ui/layout/MainLayout.vue'
+import ViewPresetSelector from '@/components/ui/presets/ViewPresetSelector.vue'
 import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 import ProjectionParamsControls from '@/components/ui/projections/ProjectionParamsControls.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
@@ -119,22 +120,27 @@ onMounted(async () => {
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
-        <Transition
-          name="fade"
-          mode="out-in"
-        >
-          <!-- Projection Parameters (unified, composite-existing modes) -->
-          <ProjectionParamsControls
-            v-if="viewOrchestration.shouldShowProjectionParams.value"
-            key="projection-params"
-          />
-          <!-- Territory Controls (split, composite-custom modes) -->
-          <TerritoryControls
-            v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
-            key="territory-controls"
-            :show-transform-controls="isCompositeCustomMode"
-          />
-        </Transition>
+        <div class="flex flex-col gap-6">
+          <!-- View Preset Selector (for unified, split, composite-existing modes) -->
+          <ViewPresetSelector />
+
+          <Transition
+            name="fade"
+            mode="out-in"
+          >
+            <!-- Projection Parameters (unified, composite-existing modes) -->
+            <ProjectionParamsControls
+              v-if="viewOrchestration.shouldShowProjectionParams.value"
+              key="projection-params"
+            />
+            <!-- Territory Controls (split, composite-custom modes) -->
+            <TerritoryControls
+              v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
+              key="territory-controls"
+              :show-transform-controls="isCompositeCustomMode"
+            />
+          </Transition>
+        </div>
       </CardContainer>
     </template>
   </MainLayout>

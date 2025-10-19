@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import ViewPresetSelector from '@/components/ui/presets/ViewPresetSelector.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
@@ -68,8 +67,5 @@ const viewModeOptionsWithIcons = computed(() => {
       :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
     />
-
-    <!-- View Preset Selector (for unified, split, composite-existing modes) -->
-    <ViewPresetSelector />
   </div>
 </template>
