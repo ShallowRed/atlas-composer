@@ -413,7 +413,6 @@ App.vue
 ```typescript
 interface ViewState {
   viewMode: ViewMode                          // composite-custom, composite-existing, split, unified
-  projectionMode: ProjectionMode              // uniform, individual
   atlasConfig: AtlasConfig                    // Current atlas configuration
   hasPresets: boolean                         // Presets available for current atlas
   hasOverseasTerritories: boolean             // Filtered territories exist
@@ -432,24 +431,23 @@ interface ViewState {
 - `shouldShowBottomBar()` - Always visible (display options)
 
 **Sidebar Content**:
-- `shouldShowProjectionParams()` - Show in unified, composite-existing, split-uniform modes
-- `shouldShowTerritoryControls()` - Show in split-individual, composite-custom modes
+- `shouldShowProjectionParams()` - Show in unified, composite-existing modes
+- `shouldShowTerritoryControls()` - Show in split, composite-custom modes
 
 **Territory Controls Sub-components**:
 - `shouldShowPresetSelector()` - Show in composite-custom with presets
 - `shouldShowImportControls()` - Show in composite-custom or split modes
 - `shouldShowGlobalProjectionControls()` - Show in composite-custom mode
 - `shouldShowTerritoryParameterControls()` - Show in composite-custom mode
-- `shouldShowMainlandAccordion()` - Show in individual mode with mainland
+- `shouldShowMainlandAccordion()` - Show when mainland available (showMainland or isMainlandInTerritories)
 - `shouldShowProjectionDropdown()` - Show in non-composite-custom modes
 
 **Empty States**:
-- `shouldShowEmptyState()` - Complex logic for mainland/overseas combinations
+- `shouldShowEmptyState()` - No territories and no mainland available
 - `getEmptyStateMessage()` - Returns appropriate i18n key for empty state
 
 **Control States**:
 - `isTerritorySelectDisabled()` - Disable if no hasTerritorySelector or in composite-existing
-- `isProjectionModeDisabled()` - Disable if not showProjectionModeToggle
 - `isViewModeDisabled()` - Disable if only one supported view mode
 
 **Layout Variants**:
@@ -503,7 +501,6 @@ const { viewOrchestration } = useViewState()
 - Current atlas config reactively updated when atlas finishes loading
 - atlasService computed re-evaluates on atlas load completion (depends on currentAtlasConfig.value?.id)
 - View mode (composite, split, unified)
-- Projection mode (existing, custom)
 - Projection parameter delegation to parameterStore (setCustomRotate, setCustomCenter, etc.)
 - Projection control options (rotateLatitudeLocked, projectionFittingMode)
 - Global projection parameters (referenceScale, canvasDimensions)
@@ -756,7 +753,6 @@ Components never call services directly. Flow:
   v-show="(
     configStore.viewMode === 'unified'
     || configStore.viewMode === 'composite-existing'
-    || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
     || configStore.showProjectionSelector
     || configStore.showIndividualProjectionSelectors
   )"
@@ -771,7 +767,7 @@ Components never call services directly. Flow:
 ### Visibility Logic Architecture
 
 **configStore**: Provides computed properties via ProjectionUIService
-- `showProjectionSelector`, `showIndividualProjectionSelectors`, `showProjectionModeToggle`
+- `showProjectionSelector`, `showIndividualProjectionSelectors`
 - These delegate to ProjectionUIService.shouldShow*() methods
 - Single source of truth for component visibility rules
 

@@ -228,115 +228,69 @@ export class ViewPresetLoader {
 
   /**
    * Validate split view configuration
+   * Always uses individual projections per territory
    */
   private static validateSplitConfig(
     config: SplitViewConfig,
     errors: string[],
     warnings: string[],
   ): void {
-    if (!config.mode) {
-      errors.push('Split config missing mode')
+    // Validate mainland
+    if (!config.mainland) {
+      errors.push('Split config missing mainland')
       return
     }
 
-    if (!['uniform', 'individual'].includes(config.mode)) {
-      errors.push(`Invalid split mode: ${config.mode}. Must be 'uniform' or 'individual'`)
+    if (!config.mainland.projection?.id) {
+      errors.push('Split mainland config missing projection.id')
       return
     }
 
-    if (config.mode === 'uniform') {
-      if (!config.uniform) {
-        errors.push('Split uniform mode requires uniform configuration')
-        return
+    // Validate mainland projection
+    const mainlandProjection = projectionRegistry.get(config.mainland.projection.id)
+    if (!mainlandProjection) {
+      errors.push(`Unknown mainland projection: ${config.mainland.projection.id}`)
+    }
+    else if (config.mainland.projection.parameters) {
+      const validationResults = parameterRegistry.validateParameters(
+        config.mainland.projection.parameters,
+        mainlandProjection.family,
+      )
+
+      for (const result of validationResults) {
+        if (!result.isValid && result.error) {
+          warnings.push(`Mainland projection parameter: ${result.error}`)
+        }
+      }
+    }
+
+    // Validate territory projections
+    if (!config.territories) {
+      errors.push('Split config missing territories')
+      return
+    }
+
+    for (const [code, territoryConfig] of Object.entries(config.territories)) {
+      if (!territoryConfig.projection?.id) {
+        errors.push(`Territory ${code} missing projection.id`)
+        continue
       }
 
-      if (!config.uniform.projection?.id) {
-        errors.push('Split uniform config missing projection.id')
-        return
-      }
-
-      // Validate projection
-      const projection = projectionRegistry.get(config.uniform.projection.id)
+      const projection = projectionRegistry.get(territoryConfig.projection.id)
       if (!projection) {
-        errors.push(`Unknown projection: ${config.uniform.projection.id}`)
-        return
+        errors.push(`Territory ${code}: unknown projection ${territoryConfig.projection.id}`)
+        continue
       }
 
-      // Validate parameters
-      if (config.uniform.projection.parameters) {
+      if (territoryConfig.projection.parameters) {
         const validationResults = parameterRegistry.validateParameters(
-          config.uniform.projection.parameters,
+          territoryConfig.projection.parameters,
           projection.family,
         )
 
         for (const result of validationResults) {
           if (!result.isValid && result.error) {
-            warnings.push(`Uniform projection parameter: ${result.error}`)
-          }
-        }
-      }
-    }
-    else if (config.mode === 'individual') {
-      if (!config.individual) {
-        errors.push('Split individual mode requires individual configuration')
-        return
-      }
-
-      if (!config.individual.mainland) {
-        errors.push('Split individual config missing mainland')
-        return
-      }
-
-      if (!config.individual.mainland.projection?.id) {
-        errors.push('Split individual mainland config missing projection.id')
-        return
-      }
-
-      // Validate mainland projection
-      const mainlandProjection = projectionRegistry.get(
-        config.individual.mainland.projection.id,
-      )
-      if (!mainlandProjection) {
-        errors.push(`Unknown mainland projection: ${config.individual.mainland.projection.id}`)
-      }
-      else if (config.individual.mainland.projection.parameters) {
-        const validationResults = parameterRegistry.validateParameters(
-          config.individual.mainland.projection.parameters,
-          mainlandProjection.family,
-        )
-
-        for (const result of validationResults) {
-          if (!result.isValid && result.error) {
-            warnings.push(`Mainland projection parameter: ${result.error}`)
-          }
-        }
-      }
-
-      // Validate territory projections
-      if (config.individual.territories) {
-        for (const [code, territoryConfig] of Object.entries(config.individual.territories)) {
-          if (!territoryConfig.projection?.id) {
-            errors.push(`Territory ${code} missing projection.id`)
-            continue
-          }
-
-          const projection = projectionRegistry.get(territoryConfig.projection.id)
-          if (!projection) {
-            errors.push(`Territory ${code}: unknown projection ${territoryConfig.projection.id}`)
-            continue
-          }
-
-          if (territoryConfig.projection.parameters) {
-            const validationResults = parameterRegistry.validateParameters(
-              territoryConfig.projection.parameters,
-              projection.family,
-            )
-
-            for (const result of validationResults) {
-              if (!result.isValid && result.error) {
-                warnings.push(`Territory ${code} projection parameter: ${result.error}`)
-              }
-            }
+            warnings.push(`Territory ${code} projection parameter: ${result.error}`)
           }
         }
       }

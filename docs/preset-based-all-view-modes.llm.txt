@@ -73,9 +73,7 @@
 
 #### 4. **Split Mode** ❌ (Needs Improvement)
 **Current Implementation:**
-- Two sub-modes:
-  - **Uniform**: Single projection for all territories (`selectedProjection`)
-  - **Individual**: Per-territory projections via UI selectors
+- Always uses individual projections per territory
 - Parameters set via UI controls
 - No JSON configuration
 - No persistence
@@ -168,27 +166,18 @@ export interface UnifiedConfig {
 }
 
 export interface SplitConfig {
-  mode: 'uniform' | 'individual'
-  uniform?: {
+  mainland: {
     projection: {
       id: string
       parameters: ProjectionParameters
     }
   }
-  individual?: {
-    mainland: {
-      projection: {
-        id: string
-        parameters: ProjectionParameters
-      }
+  territories: Record<string, {
+    projection: {
+      id: string
+      parameters: ProjectionParameters
     }
-    territories: Record<string, {
-      projection: {
-        id: string
-        parameters: ProjectionParameters
-      }
-    }>
-  }
+  }>
 }
 
 export interface CompositeExistingConfig {
@@ -273,17 +262,16 @@ export interface CompositeExistingConfig {
 }
 ```
 
-**`configs/view-presets/france-split-uniform.json`**
+**`configs/view-presets/france-split-default.json`**
 ```json
 {
-  "id": "france-split-uniform",
-  "name": "France - Vue séparée uniforme",
-  "description": "Même projection conique pour tous les territoires",
+  "id": "france-split-default",
+  "name": "France - Vue séparée",
+  "description": "Projection adaptée à chaque territoire",
   "atlasId": "france",
   "viewMode": "split",
   "config": {
-    "mode": "uniform",
-    "uniform": {
+    "mainland": {
       "projection": {
         "id": "conic-conformal",
         "parameters": {
@@ -291,42 +279,18 @@ export interface CompositeExistingConfig {
           "parallels": [0, 60]
         }
       }
-    }
-  }
-}
-```
-
-**`configs/view-presets/france-split-individual.json`**
-```json
-{
-  "id": "france-split-individual",
-  "name": "France - Vue séparée optimisée",
-  "description": "Projection adaptée à chaque territoire",
-  "atlasId": "france",
-  "viewMode": "split",
-  "config": {
-    "mode": "individual",
-    "individual": {
-      "mainland": {
+    },
+    "territories": {
+      "FR-GP": {
         "projection": {
-          "id": "conic-conformal",
-          "parameters": {
-            "rotate": [-3, -46.2],
-            "parallels": [0, 60]
-          }
+          "id": "mercator",
+          "parameters": { "center": [-61.5, 16.25] }
         }
       },
-      "territories": {
-        "FR-GP": {
-          "projection": {
-            "id": "mercator",
-            "parameters": { "center": [-61.5, 16.25] }
-          }
-        },
-        "FR-MQ": {
-          "projection": {
-            "id": "mercator",
-            "parameters": { "center": [-61.03, 14.67] }
+      "FR-MQ": {
+        "projection": {
+          "id": "mercator",
+          "parameters": { "center": [-61.03, 14.67] }
           }
         }
       }
@@ -384,19 +348,18 @@ configs/
     # France view presets
     france-unified-default.json
     france-unified-europe.json
-    france-split-uniform.json
-    france-split-individual.json
+    france-split-default.json
     france-composite-existing.json
     france-composite-existing-large.json
     
     # Portugal view presets
     portugal-unified-default.json
-    portugal-split-uniform.json
+    portugal-split-default.json
     portugal-composite-existing.json
     
     # EU view presets
     eu-unified-default.json
-    eu-split-individual.json
+    eu-split-default.json
 ```
 
 **Key Points:**
@@ -504,24 +467,19 @@ export class ViewPresetLoaderService {
     const configStore = useConfigStore()
     const parameterStore = useParametersStore()
     
-    configStore.projectionMode = config.mode
+    // Apply mainland projection
+    const mainlandCode = configStore.currentAtlas?.mainlandCode
+    if (mainlandCode && config.mainland) {
+      parameterStore.setTerritoryProjection(
+        mainlandCode,
+        config.mainland.projection.id,
+        config.mainland.projection.parameters
+      )
+    }
     
-    if (config.mode === 'uniform' && config.uniform) {
-      configStore.selectedProjection = config.uniform.projection.id
-      parameterStore.setGlobalParameters(config.uniform.projection.parameters)
-    } else if (config.mode === 'individual' && config.individual) {
-      // Apply mainland projection
-      const mainlandCode = configStore.currentAtlas?.mainlandCode
-      if (mainlandCode) {
-        parameterStore.setTerritoryProjection(
-          mainlandCode,
-          config.individual.mainland.projection.id,
-          config.individual.mainland.projection.parameters
-        )
-      }
-      
-      // Apply territory projections
-      Object.entries(config.individual.territories).forEach(([code, territoryConfig]) => {
+    // Apply territory projections
+    if (config.territories) {
+      Object.entries(config.territories).forEach(([code, territoryConfig]) => {
         parameterStore.setTerritoryProjection(
           code,
           territoryConfig.projection.id,
@@ -829,8 +787,9 @@ This script would:
 4. Test and validate
 
 ### Phase 3: Split Mode Presets (Week 2-3)
+### Phase 3: Split Mode Presets (Week 2)
 1. Extend service to support split mode presets
-2. Create sample split presets (uniform + individual)
+2. Create sample split presets with individual projections per territory
 3. Update UI to show split presets
 4. Test and validate
 

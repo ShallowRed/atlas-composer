@@ -1,4 +1,3 @@
-import type { ProjectionMode } from '@/stores/config'
 import type { AtlasConfig, ViewMode } from '@/types'
 
 /**
@@ -8,8 +7,6 @@ import type { AtlasConfig, ViewMode } from '@/types'
 export interface ViewState {
   /** Current view mode */
   viewMode: ViewMode
-  /** Current projection mode */
-  projectionMode: ProjectionMode
   /** Current atlas configuration */
   atlasConfig: AtlasConfig
   /** Whether the current atlas has presets available */
@@ -94,7 +91,6 @@ export class ViewOrchestrationService {
    * Projection params are shown for:
    * - unified mode (single projection for entire map)
    * - composite-existing mode (read-only composite)
-   * - split mode when NOT in individual projection mode
    * - When projection selector is explicitly enabled
    */
   static shouldShowProjectionParams(state: ViewState): boolean {
@@ -163,15 +159,14 @@ export class ViewOrchestrationService {
   /**
    * Determine if mainland accordion section should be shown
    *
-   * Mainland section is shown in individual projection mode when:
+   * Mainland section is shown when:
    * - Atlas has mainland configuration (showMainland = true), OR
    * - Mainland is present in filtered territories list
+   *
+   * Always uses individual projections in split/composite-custom modes
    */
   static shouldShowMainlandAccordion(state: ViewState): boolean {
-    return (
-      state.projectionMode === 'individual'
-      && (state.showMainland || state.isMainlandInTerritories)
-    )
+    return state.showMainland || state.isMainlandInTerritories
   }
 
   /**
@@ -193,21 +188,14 @@ export class ViewOrchestrationService {
    *
    * Empty state is shown when:
    * - No overseas territories AND
-   * - (NOT in individual projection mode OR no mainland available)
+   * - No mainland available to show
    *
    * This indicates there's nothing to configure
    */
   static shouldShowEmptyState(state: ViewState): boolean {
     const noOverseas = !state.hasOverseasTerritories
-
-    // If in individual mode, check if we have mainland to show
-    if (state.projectionMode === 'individual') {
-      const hasMainlandToShow = state.showMainland || state.isMainlandInTerritories
-      return noOverseas && !hasMainlandToShow
-    }
-
-    // In uniform mode, empty if no overseas territories
-    return noOverseas
+    const hasMainlandToShow = state.showMainland || state.isMainlandInTerritories
+    return noOverseas && !hasMainlandToShow
   }
 
   /**
@@ -238,17 +226,6 @@ export class ViewOrchestrationService {
     // Disabled for composite-existing mode (built-in projections don't support selective territories)
     // This is determined by ProjectionUIService.shouldShowTerritorySelector
     return state.viewMode === 'composite-existing'
-  }
-
-  /**
-   * Determine if projection mode toggle should be disabled
-   *
-   * Disabled when:
-   * - Not shown by ProjectionUIService (view mode doesn't support it)
-   */
-  static isProjectionModeDisabled(state: ViewState): boolean {
-    // Projection mode toggle is only available in split and composite-custom modes
-    return !(state.viewMode === 'split' || state.viewMode === 'composite-custom')
   }
 
   /**

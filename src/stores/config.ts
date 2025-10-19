@@ -14,8 +14,6 @@ import { ProjectionUIService } from '@/services/projection/projection-ui-service
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
 
-export type ProjectionMode = 'uniform' | 'individual'
-
 export const useConfigStore = defineStore('config', () => {
   // Initialize new stores for UI and parameter state
   const uiStore = useUIStore()
@@ -82,8 +80,6 @@ export const useConfigStore = defineStore('config', () => {
     return atlasConfig.defaultViewMode
   }
   const viewMode = ref<ViewMode>(getInitialViewMode())
-  // Default to 'individual' since default viewMode is 'composite-custom'
-  const projectionMode = ref<ProjectionMode>('individual')
   // Initialize with fallback, will be updated async with preset data
   const compositeProjection = ref<string>('conic-conformal-france')
   // Reference scale from preset, will be updated async with preset data
@@ -224,17 +220,12 @@ export const useConfigStore = defineStore('config', () => {
   const showProjectionSelector = computed(() =>
     ProjectionUIService.shouldShowProjectionSelector(
       viewMode.value,
-      projectionMode.value,
       currentViewPreset.value !== null,
     ),
   )
 
-  const showProjectionModeToggle = computed(() =>
-    ProjectionUIService.shouldShowProjectionModeToggle(viewMode.value),
-  )
-
   const showIndividualProjectionSelectors = computed(() =>
-    ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value, projectionMode.value),
+    ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value),
   )
 
   const showTerritorySelector = computed(() =>
@@ -300,15 +291,6 @@ export const useConfigStore = defineStore('config', () => {
 
   const setViewMode = (mode: ViewMode) => {
     viewMode.value = mode
-    // Auto-adjust projection mode for composite-custom
-    // In composite-custom, individual projections make the most sense
-    if (mode === 'composite-custom' && projectionMode.value === 'uniform') {
-      projectionMode.value = 'individual'
-    }
-  }
-
-  const setProjectionMode = (mode: ProjectionMode) => {
-    projectionMode.value = mode
   }
 
   const setCompositeProjection = (projection: string) => {
@@ -525,50 +507,35 @@ export const useConfigStore = defineStore('config', () => {
 
   /**
    * Apply split view preset
+   * Always uses individual projections per territory
    */
   function applySplitPreset(config: any) {
-    projectionMode.value = config.mode
+    // Get mainland code from atlas
+    const mainland = atlasService.value.getMainland()
+    const mainlandCode = mainland?.code
 
-    if (config.mode === 'uniform' && config.uniform) {
-      // Apply uniform projection
-      selectedProjection.value = config.uniform.projection.id
-      if (config.uniform.projection.parameters) {
-        parameterStore.setGlobalParameters(config.uniform.projection.parameters)
-        // Store preset parameters for reset functionality
-        presetDefaults.storeGlobalParameters(config.uniform.projection.parameters)
-      }
-      else {
-        presetDefaults.storeGlobalParameters(null)
+    // Apply mainland projection
+    if (mainlandCode && config.mainland) {
+      parameterStore.setTerritoryProjection(
+        mainlandCode,
+        config.mainland.projection.id,
+      )
+      if (config.mainland.projection.parameters) {
+        parameterStore.setTerritoryParameters(
+          mainlandCode,
+          config.mainland.projection.parameters,
+        )
       }
     }
-    else if (config.mode === 'individual' && config.individual) {
-      // Get mainland code from atlas
-      const mainland = atlasService.value.getMainland()
-      const mainlandCode = mainland?.code
 
-      // Apply mainland projection
-      if (mainlandCode && config.individual.mainland) {
-        parameterStore.setTerritoryProjection(
-          mainlandCode,
-          config.individual.mainland.projection.id,
-        )
-        if (config.individual.mainland.projection.parameters) {
-          parameterStore.setTerritoryParameters(
-            mainlandCode,
-            config.individual.mainland.projection.parameters,
-          )
+    // Apply territory projections
+    if (config.territories) {
+      Object.entries(config.territories).forEach(([code, territoryConfig]: [string, any]) => {
+        parameterStore.setTerritoryProjection(code, territoryConfig.projection.id)
+        if (territoryConfig.projection.parameters) {
+          parameterStore.setTerritoryParameters(code, territoryConfig.projection.parameters)
         }
-      }
-
-      // Apply territory projections
-      if (config.individual.territories) {
-        Object.entries(config.individual.territories).forEach(([code, territoryConfig]: [string, any]) => {
-          parameterStore.setTerritoryProjection(code, territoryConfig.projection.id)
-          if (territoryConfig.projection.parameters) {
-            parameterStore.setTerritoryParameters(code, territoryConfig.projection.parameters)
-          }
-        })
-      }
+      })
     }
   }
 
@@ -714,7 +681,6 @@ export const useConfigStore = defineStore('config', () => {
     selectedProjection,
     territoryMode,
     viewMode,
-    projectionMode,
     compositeProjection,
     referenceScale,
     canvasDimensions,
@@ -738,7 +704,6 @@ export const useConfigStore = defineStore('config', () => {
     effectiveProjectionParams,
     isViewModeLocked,
     showProjectionSelector,
-    showProjectionModeToggle,
     showIndividualProjectionSelectors,
     showTerritorySelector,
     showScalePreservation,
@@ -752,7 +717,6 @@ export const useConfigStore = defineStore('config', () => {
     setSelectedProjection,
     setTerritoryMode,
     setViewMode,
-    setProjectionMode,
     setCompositeProjection,
     setCustomRotate,
     setCustomCenter,

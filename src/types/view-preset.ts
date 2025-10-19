@@ -32,37 +32,23 @@ export interface UnifiedViewConfig {
 
 /**
  * Split view mode configuration
- * Supports both uniform (single projection) and individual (per-territory) modes
+ * Always uses individual projections per territory
  */
 export interface SplitViewConfig {
-  /** Split sub-mode: uniform or individual */
-  mode: 'uniform' | 'individual'
-
-  /** Configuration for uniform mode (same projection for all territories) */
-  uniform?: {
+  /** Mainland/primary territory projection */
+  mainland: {
     projection: {
       id: string
       parameters: ProjectionParameters
     }
   }
-
-  /** Configuration for individual mode (per-territory projections) */
-  individual?: {
-    /** Mainland/primary territory projection */
-    mainland: {
-      projection: {
-        id: string
-        parameters: ProjectionParameters
-      }
+  /** Secondary territories projections keyed by territory code */
+  territories: Record<string, {
+    projection: {
+      id: string
+      parameters: ProjectionParameters
     }
-    /** Secondary territories projections keyed by territory code */
-    territories: Record<string, {
-      projection: {
-        id: string
-        parameters: ProjectionParameters
-      }
-    }>
-  }
+  }>
 }
 
 /**

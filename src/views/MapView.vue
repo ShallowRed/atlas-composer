@@ -123,12 +123,12 @@ onMounted(async () => {
           name="fade"
           mode="out-in"
         >
-          <!-- Projection Parameters (unified, composite-existing, split uniform modes) -->
+          <!-- Projection Parameters (unified, composite-existing modes) -->
           <ProjectionParamsControls
             v-if="viewOrchestration.shouldShowProjectionParams.value"
             key="projection-params"
           />
-          <!-- Territory Controls (split individual, composite-custom modes) -->
+          <!-- Territory Controls (split, composite-custom modes) -->
           <TerritoryControls
             v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
             key="territory-controls"

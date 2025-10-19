@@ -97,7 +97,6 @@ export function useViewState() {
 
     return {
       viewMode: configStore.viewMode,
-      projectionMode: configStore.projectionMode,
       atlasConfig,
       hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
       hasOverseasTerritories: geoDataStore.filteredTerritories.length > 0,
@@ -162,9 +161,6 @@ export function useViewState() {
     // Control states
     isTerritorySelectDisabled: computed(() =>
       viewState.value ? ViewOrchestrationService.isTerritorySelectDisabled(viewState.value) : true,
-    ),
-    isProjectionModeDisabled: computed(() =>
-      viewState.value ? ViewOrchestrationService.isProjectionModeDisabled(viewState.value) : true,
     ),
     isViewModeDisabled: computed(() =>
       viewState.value ? ViewOrchestrationService.isViewModeDisabled(viewState.value) : true,

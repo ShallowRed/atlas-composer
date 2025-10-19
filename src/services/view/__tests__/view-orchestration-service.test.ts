@@ -26,7 +26,6 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
 
   return {
     viewMode: 'composite-custom',
-    projectionMode: 'individual',
     atlasConfig: defaultAtlasConfig,
     hasPresets: true,
     hasOverseasTerritories: true,
@@ -220,34 +219,23 @@ describe('viewOrchestrationService', () => {
   })
 
   describe('shouldShowMainlandAccordion', () => {
-    it('should show mainland accordion in individual mode with showMainland true', () => {
+    it('should show mainland accordion with showMainland true', () => {
       const state = createViewState({
-        projectionMode: 'individual',
         showMainland: true,
       })
       expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(true)
     })
 
-    it('should show mainland accordion in individual mode with mainland in territories', () => {
+    it('should show mainland accordion with mainland in territories', () => {
       const state = createViewState({
-        projectionMode: 'individual',
         showMainland: false,
         isMainlandInTerritories: true,
       })
       expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(true)
     })
 
-    it('should NOT show mainland accordion in uniform mode', () => {
-      const state = createViewState({
-        projectionMode: 'uniform',
-        showMainland: true,
-      })
-      expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(false)
-    })
-
     it('should NOT show mainland accordion when no mainland available', () => {
       const state = createViewState({
-        projectionMode: 'individual',
         showMainland: false,
         isMainlandInTerritories: false,
       })
@@ -273,30 +261,18 @@ describe('viewOrchestrationService', () => {
   })
 
   describe('shouldShowEmptyState', () => {
-    it('should show empty state when no overseas territories and no mainland in uniform mode', () => {
+    it('should show empty state when no overseas territories and no mainland', () => {
       const state = createViewState({
         hasOverseasTerritories: false,
-        projectionMode: 'uniform',
         showMainland: false,
         isMainlandInTerritories: false,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(true)
     })
 
-    it('should show empty state when no overseas territories and no mainland in individual mode', () => {
+    it('should NOT show empty state when mainland is available', () => {
       const state = createViewState({
         hasOverseasTerritories: false,
-        projectionMode: 'individual',
-        showMainland: false,
-        isMainlandInTerritories: false,
-      })
-      expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(true)
-    })
-
-    it('should NOT show empty state when mainland is available in individual mode', () => {
-      const state = createViewState({
-        hasOverseasTerritories: false,
-        projectionMode: 'individual',
         showMainland: true,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
@@ -305,7 +281,6 @@ describe('viewOrchestrationService', () => {
     it('should NOT show empty state when overseas territories exist', () => {
       const state = createViewState({
         hasOverseasTerritories: true,
-        projectionMode: 'uniform',
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
     })
@@ -342,28 +317,6 @@ describe('viewOrchestrationService', () => {
         },
       })
       expect(ViewOrchestrationService.isTerritorySelectDisabled(state)).toBe(false)
-    })
-  })
-
-  describe('isProjectionModeDisabled', () => {
-    it('should NOT disable projection mode in split mode', () => {
-      const state = createViewState({ viewMode: 'split' })
-      expect(ViewOrchestrationService.isProjectionModeDisabled(state)).toBe(false)
-    })
-
-    it('should NOT disable projection mode in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.isProjectionModeDisabled(state)).toBe(false)
-    })
-
-    it('should disable projection mode in unified mode', () => {
-      const state = createViewState({ viewMode: 'unified' })
-      expect(ViewOrchestrationService.isProjectionModeDisabled(state)).toBe(true)
-    })
-
-    it('should disable projection mode in composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
-      expect(ViewOrchestrationService.isProjectionModeDisabled(state)).toBe(true)
     })
   })
 

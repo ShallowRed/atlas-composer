@@ -140,7 +140,6 @@ Instance-based service managing territory data cache.
 Projection grouping and UI visibility logic.
 - `getProjectionGroups()` - Group projections by category
 - `shouldShowProjectionSelector()` - Visibility for projection selector
-- `shouldShowProjectionModeSelector()` - Visibility for mode selector
 - `shouldShowCompositeProjectionSelector()` - Visibility for composite selector
 
 ### ProjectionService
@@ -228,7 +227,6 @@ The `updateReferenceScale()` method recalculates scales for all sub-projections 
 ```typescript
 interface ViewState {
   viewMode: ViewMode                          // Current view mode
-  projectionMode: ProjectionMode              // Current projection mode
   atlasConfig: AtlasConfig                    // Current atlas configuration
   hasPresets: boolean                         // Presets available
   hasOverseasTerritories: boolean             // Filtered territories exist
@@ -248,10 +246,10 @@ interface ViewState {
 
 **Sidebar Content Switching**:
 - `shouldShowProjectionParams(state)` - Projection parameters visibility
-  - True for: unified, composite-existing, split-uniform modes
-  - False for: composite-custom, split-individual (show territory controls instead)
+  - True for: unified, composite-existing modes
+  - False for: composite-custom, split (show territory controls instead)
 - `shouldShowTerritoryControls(state)` - Territory controls visibility
-  - True for: composite-custom, split-individual modes
+  - True for: composite-custom, split modes
   - Inverse of shouldShowProjectionParams
 
 **Territory Controls Sub-components**:
@@ -278,8 +276,6 @@ interface ViewState {
 **Control State Methods**:
 - `isTerritorySelectDisabled(state)` - Territory selector disabled state
   - Disabled if: atlas doesn't have territory selector OR not showTerritorySelector
-- `isProjectionModeDisabled(state)` - Projection mode toggle disabled state
-  - Disabled if: not showProjectionModeToggle (from ProjectionUIService)
 - `isViewModeDisabled(state)` - View mode selector disabled state
   - Disabled if: only one supported view mode in atlas config
 

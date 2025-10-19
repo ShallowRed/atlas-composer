@@ -45,7 +45,6 @@ export interface SimpleMapConfig {
  */
 export interface CompositeMapConfig {
   viewMode: 'composite-custom' | 'composite-existing' | 'individual'
-  projectionMode: 'uniform' | 'individual'
   territoryMode: string
   selectedProjection: string
   compositeProjection?: string
@@ -113,8 +112,6 @@ export class MapRenderCoordinator {
 
       customSettings = CompositeSettingsBuilder.buildSettings(
         compositeConfig,
-        config.projectionMode,
-        config.selectedProjection,
         config.territoryProjections || {},
         config.territoryTranslations || {},
         // territoryScales removed - handled by parameter store

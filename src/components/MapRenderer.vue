@@ -309,7 +309,6 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
     viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
-    projectionMode: configStore.projectionMode,
     territoryMode: configStore.territoryMode,
     selectedProjection: configStore.selectedProjection as string,
     compositeProjection: configStore.compositeProjection as string | undefined,

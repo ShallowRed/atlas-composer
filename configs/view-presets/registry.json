@@ -3,25 +3,18 @@
   "description": "Registry of available view mode presets",
   "presets": [
     {
-      "id": "france-unified-default",
-      "name": "France - Vue unifiée standard",
+      "id": "france-unified",
+      "name": "France - Vue unifiée",
       "atlasId": "france",
       "viewMode": "unified",
       "description": "Projection Natural Earth centrée sur la France"
     },
     {
-      "id": "france-split-uniform",
-      "name": "France - Vue séparée uniforme",
+      "id": "france-split",
+      "name": "France - Vue séparée",
       "atlasId": "france",
       "viewMode": "split",
       "description": "Même projection conique pour tous les territoires"
-    },
-    {
-      "id": "france-split-individual",
-      "name": "France - Vue séparée optimisée",
-      "atlasId": "france",
-      "viewMode": "split",
-      "description": "Projection adaptée à chaque territoire"
     },
     {
       "id": "france-composite-existing",
@@ -31,14 +24,14 @@
       "description": "Projection composite prédéfinie de d3-composite-projections"
     },
     {
-      "id": "portugal-unified-default",
+      "id": "portugal-unified",
       "name": "Portugal - Vista unificada padrão",
       "atlasId": "portugal",
       "viewMode": "unified",
       "description": "Projeção Natural Earth centrada em Portugal"
     },
     {
-      "id": "portugal-split-uniform",
+      "id": "portugal-split",
       "name": "Portugal - Vista separada uniforme",
       "atlasId": "portugal",
       "viewMode": "split",
@@ -52,15 +45,15 @@
       "description": "Projeção composta predefinida de d3-composite-projections"
     },
     {
-      "id": "eu-unified-default",
-      "name": "EU - Vue unifiée standard",
+      "id": "eu-unified",
+      "name": "EU - Vue unifiée",
       "atlasId": "eu",
       "viewMode": "unified",
       "description": "Projection Natural Earth centrée sur l'Europe"
     },
     {
-      "id": "eu-split-uniform",
-      "name": "EU - Vue séparée uniforme",
+      "id": "eu-split",
+      "name": "EU - Vue séparée",
       "atlasId": "eu",
       "viewMode": "split",
       "description": "Projection conique conforme pour tous les territoires européens"
@@ -73,14 +66,14 @@
       "description": "Projection composite prédéfinie pour l'Europe"
     },
     {
-      "id": "usa-unified-default",
+      "id": "usa-unified",
       "name": "USA - Vue unifiée standard",
       "atlasId": "usa",
       "viewMode": "unified",
       "description": "Projection Natural Earth centrée sur les États-Unis"
     },
     {
-      "id": "usa-split-uniform",
+      "id": "usa-split",
       "name": "USA - Vue séparée uniforme",
       "atlasId": "usa",
       "viewMode": "split",
@@ -99,20 +92,6 @@
       "atlasId": "world",
       "viewMode": "unified",
       "description": "Projection Natural Earth pour carte mondiale"
-    },
-    {
-      "id": "world-unified-mercator",
-      "name": "Monde - Mercator",
-      "atlasId": "world",
-      "viewMode": "unified",
-      "description": "Projection Mercator pour carte mondiale"
-    },
-    {
-      "id": "world-unified-robinson",
-      "name": "Monde - Robinson",
-      "atlasId": "world",
-      "viewMode": "unified",
-      "description": "Projection Robinson pour carte mondiale"
     }
   ]
 }

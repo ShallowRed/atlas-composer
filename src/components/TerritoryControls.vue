@@ -31,7 +31,6 @@ const {
   currentAtlasConfig,
   territoryProjections,
   selectedProjection,
-  projectionMode,
   shouldShowEmptyState,
   setTerritoryProjection,
   resetTransforms,
@@ -185,7 +184,7 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
           <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
           <AccordionItem
             v-if="viewOrchestration.shouldShowMainlandAccordion.value"
-            :title="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+            :title="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
             :subtitle="mainlandCode"
             group-name="territory-accordion"
             :checked="true"
@@ -211,7 +210,7 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
             >
               <TerritoryParameterControls
                 :territory-code="mainlandCode"
-                :territory-name="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+                :territory-name="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
                 :projection-family="getProjectionFamily(mainlandCode)"
                 :show-inheritance-indicators="true"
                 :allow-parameter-overrides="true"
@@ -223,12 +222,11 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
 
           <!-- Overseas territories (excluding mainland to avoid duplication) -->
           <AccordionItem
-            v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
+            v-for="territory in territories.filter(t => t.code !== mainlandCode)"
             :key="territory.code"
             :title="territory.name"
             :subtitle="territory.code"
             group-name="territory-accordion"
-            :checked="projectionMode === 'uniform' && index === 0"
           >
             <!-- Territory Parameter Controls (shown in composite-custom mode) -->
             <div

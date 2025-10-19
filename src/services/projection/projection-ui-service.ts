@@ -1,4 +1,3 @@
-import type { ProjectionMode } from '@/stores/config'
 import type { ViewMode } from '@/types'
 
 import { projectionRegistry } from '@/core/projections/registry'
@@ -90,14 +89,14 @@ export class ProjectionUIService {
    * View preset system: unified, split, and composite-existing modes use presets to define projections
    * Only composite-custom mode allows manual projection selection
    *
+   * Always returns false now - presets handle projection selection
+   *
    * @param viewMode - Current view mode
-   * @param projectionMode - Current projection mode
    * @param hasViewPreset - Whether a view preset is currently loaded
    * @returns True if uniform projection selector should be visible
    */
   static shouldShowProjectionSelector(
     viewMode: ViewMode,
-    projectionMode: ProjectionMode,
     hasViewPreset = false,
   ): boolean {
     // Hide projection selector when view preset is active
@@ -106,48 +105,25 @@ export class ProjectionUIService {
       return false
     }
 
-    // Legacy manual mode (no preset):
-    // - In unified mode (single projection for all territories)
-    if (viewMode === 'unified') {
-      return true
-    }
-    // - In split or custom composite mode with uniform projection
-    if (viewMode === 'split' || viewMode === 'composite-custom') {
-      return projectionMode === 'uniform'
-    }
-    return false
-  }
-
-  /**
-   * Determine if projection mode toggle should be shown
-   *
-   * @param viewMode - Current view mode
-   * @returns True if projection mode toggle should be visible
-   */
-  static shouldShowProjectionModeToggle(viewMode: ViewMode): boolean {
-    // Show projection mode toggle (uniform/individual) for split and custom composite modes
-    // Split: Can switch between uniform and individual projections per territory
-    // Custom composite: Can use individual projections with D3 composite projection pattern
-    // Existing composite: Uses predefined projections (no toggle)
-    return viewMode === 'split' || viewMode === 'composite-custom'
+    // Legacy manual mode (no preset): only show in unified mode
+    return viewMode === 'unified'
   }
 
   /**
    * Determine if individual projection selectors should be shown
    *
+   * Always uses individual projections per territory in split/composite-custom modes
+   *
    * @param viewMode - Current view mode
-   * @param projectionMode - Current projection mode
    * @returns True if per-territory projection selectors should be visible
    */
   static shouldShowIndividualProjectionSelectors(
     viewMode: ViewMode,
-    projectionMode: ProjectionMode,
   ): boolean {
-    // Show per-territory projection selectors in individual mode
+    // Show per-territory projection selectors in split and custom composite modes
     // Split: Renders each territory separately with its own projection
     // Custom composite: Uses D3 composite projection with sub-projections per territory
-    return (viewMode === 'split' || viewMode === 'composite-custom')
-      && projectionMode === 'individual'
+    return viewMode === 'split' || viewMode === 'composite-custom'
   }
 
   /**

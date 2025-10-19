@@ -71,17 +71,5 @@ const viewModeOptionsWithIcons = computed(() => {
 
     <!-- View Preset Selector (for unified, split, composite-existing modes) -->
     <ViewPresetSelector />
-
-    <!-- Projection Mode Toggle (for split and composite-custom modes) -->
-    <DropdownControl
-      v-model="configStore.projectionMode"
-      :label="t('projection.mode')"
-      icon="ri-global-line"
-      :disabled="viewOrchestration.isProjectionModeDisabled.value"
-      :options="[
-        { value: 'uniform', label: t('projection.uniform'), translated: true, icon: 'ri-equal-line' },
-        { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },
-      ]"
-    />
   </div>
 </template>
