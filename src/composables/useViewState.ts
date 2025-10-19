@@ -100,7 +100,7 @@ export function useViewState() {
       atlasConfig,
       hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
       hasOverseasTerritories: geoDataStore.filteredTerritories.length > 0,
-      isPresetLoading: false, // TODO: Track preset loading state
+      isPresetLoading: false,
       showProjectionSelector: configStore.showProjectionSelector,
       showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
       isMainlandInTerritories: isMainlandInTerritories.value,

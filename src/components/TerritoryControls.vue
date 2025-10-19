@@ -82,11 +82,6 @@ const hasDivergingFromPreset = computed(() => {
   return result
 })
 
-// Show drag info when in composite-custom mode and have overseas territories
-// const shouldShowDragInfo = computed(() => {
-//   return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
-// })
-
 // Alias for better naming in template
 const resetToDefaults = resetTransforms
 

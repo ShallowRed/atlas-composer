@@ -20,8 +20,8 @@ import type {
   ExportValidationResult,
   TerritoryRole,
 } from '@/types/export-config'
+import packageJson from '#package'
 import { projectionRegistry } from '@/core/projections/registry'
-import packageJson from '../../../package.json'
 
 import { CodeGenerator } from './code-generator'
 

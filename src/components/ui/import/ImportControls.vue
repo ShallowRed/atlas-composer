@@ -16,9 +16,7 @@ const showImportDialog = ref(false)
 
 function handleImported(_config: ExportedCompositeConfig) {
   // Configuration has been applied to stores by ImportModal
-  // Just close the dialog and maybe show a success message
   showImportDialog.value = false
-  // TODO: Add toast notification for success
 }
 </script>
 

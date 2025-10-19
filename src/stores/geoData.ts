@@ -1,4 +1,3 @@
-import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import { defineStore } from 'pinia'
 
 import { computed, ref } from 'vue'
@@ -92,7 +91,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       // Create parameter provider adapter to connect parameter store to rendering
       const parameterStore = useParameterStore()
-      const parameterProvider: ProjectionParameterProvider = {
+      const parameterProvider = {
         getEffectiveParameters: (territoryCode: string) => {
           return parameterStore.getEffectiveParameters(territoryCode)
         },

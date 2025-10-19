@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { useAtlasConfig } from '@/composables/useAtlasConfig'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import {
   SCALE_RANGE,
@@ -17,6 +18,7 @@ export function useTerritoryTransforms() {
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
   const presetDefaults = getSharedPresetDefaults()
+  const { currentAtlasConfig } = useAtlasConfig()
 
   /**
    * Get list of territories from geoData store
@@ -32,7 +34,7 @@ export function useTerritoryTransforms() {
    * Check if we should show mainland section (only for single-focus pattern)
    */
   const showMainland = computed(() => {
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = currentAtlasConfig.value
     if (!atlasConfig)
       return false
     const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
@@ -43,8 +45,7 @@ export function useTerritoryTransforms() {
    * Get mainland code from region config
    */
   const mainlandCode = computed(() => {
-    const atlasConfig = configStore.currentAtlasConfig
-    return atlasConfig?.splitModeConfig?.mainlandCode || 'MAINLAND'
+    return currentAtlasConfig.value?.splitModeConfig?.mainlandCode || 'MAINLAND'
   })
 
   /**
@@ -254,11 +255,6 @@ export function useTerritoryTransforms() {
    * Get projection groups
    */
   const projectionGroups = computed(() => configStore.projectionGroups)
-
-  /**
-   * Get current atlas config
-   */
-  const currentAtlasConfig = computed(() => configStore.currentAtlasConfig)
 
   /**
    * Get territory projections from parameter store

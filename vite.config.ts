@@ -115,6 +115,7 @@ export default defineConfig(env => ({
       '@': srcDir,
       '#configs': path.resolve(__dirname, 'configs'),
       '#types': path.resolve(__dirname, 'types'),
+      '#package': path.resolve(__dirname, 'package.json'),
     },
   },
 }))

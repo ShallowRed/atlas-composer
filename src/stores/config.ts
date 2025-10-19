@@ -541,12 +541,10 @@ export const useConfigStore = defineStore('config', () => {
   function applyCompositeExistingPreset(config: any) {
     compositeProjection.value = config.projectionId
 
-    // TODO: Apply global scale when composite-existing mode supports it
-    // Currently, d3-composite-projections doesn't expose a scale multiplier
-    // This would require extending the composite projection rendering
+    // Note: Global scale for composite-existing mode is not yet supported
+    // d3-composite-projections doesn't expose a scale multiplier API
     if (config.globalScale !== undefined) {
-      console.info('[ConfigStore] Global scale from preset:', config.globalScale)
-      // uiStore.globalScale = config.globalScale
+      console.info('[ConfigStore] Global scale from preset (not applied):', config.globalScale)
     }
   }
 
