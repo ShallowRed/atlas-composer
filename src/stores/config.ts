@@ -1,6 +1,6 @@
+import type { Preset, PresetRegistryEntry } from '@/core/presets'
 import type { ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import type { ViewModePreset } from '@/types/view-preset'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -9,7 +9,8 @@ import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
-import { ViewPresetLoader } from '@/services/presets/view-preset-loader'
+import { PresetApplicationService } from '@/services/presets/preset-application-service'
+import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
@@ -89,7 +90,7 @@ export const useConfigStore = defineStore('config', () => {
 
   // View mode preset tracking (separate from composite-custom presets)
   const currentViewPreset = ref<string | null>(null)
-  const availableViewPresets = ref<ViewModePreset[]>([])
+  const availableViewPresets = ref<PresetRegistryEntry[]>([])
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -392,10 +393,10 @@ export const useConfigStore = defineStore('config', () => {
     }
 
     try {
-      const presets = await ViewPresetLoader.getAvailablePresets(
-        selectedAtlas.value,
-        viewMode.value as any,
-      )
+      const presets = await PresetLoader.listPresets({
+        atlasId: selectedAtlas.value,
+        viewMode: viewMode.value as any,
+      })
       availableViewPresets.value = presets as any
 
       console.info(`[ConfigStore] Loaded ${presets.length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
@@ -434,19 +435,19 @@ export const useConfigStore = defineStore('config', () => {
    */
   async function loadViewPreset(presetId: string) {
     try {
-      const result = await ViewPresetLoader.loadPreset(presetId)
+      const result = await PresetLoader.loadPreset(presetId)
 
-      if (!result.success || !result.preset) {
+      if (!result.success || !result.data) {
         console.error('[ConfigStore] Failed to load view preset:', result.errors)
         throw new Error(result.errors.join(', '))
       }
 
-      const preset = result.preset
+      const preset = result.data
 
       // Validate preset matches current view mode
-      if (preset.viewMode !== viewMode.value) {
+      if (preset.type !== viewMode.value) {
         throw new Error(
-          `Preset is for ${preset.viewMode} mode, but current mode is ${viewMode.value}`,
+          `Preset is for ${preset.type} mode, but current mode is ${viewMode.value}`,
         )
       }
 
@@ -471,80 +472,18 @@ export const useConfigStore = defineStore('config', () => {
 
   /**
    * Apply view preset configuration to stores
+   * Delegates to PresetApplicationService for unified preset application logic
    */
-  function applyViewPresetConfig(preset: ViewModePreset) {
-    switch (preset.viewMode) {
-      case 'unified':
-        applyUnifiedPreset(preset.config as any)
-        break
-      case 'split':
-        applySplitPreset(preset.config as any)
-        break
-      case 'composite-existing':
-        applyCompositeExistingPreset(preset.config as any)
-        break
-    }
-  }
+  function applyViewPresetConfig(preset: Preset) {
+    const result = PresetApplicationService.applyPreset(preset)
 
-  /**
-   * Apply unified view preset
-   */
-  function applyUnifiedPreset(config: any) {
-    selectedProjection.value = config.projection.id
-    if (config.projection.parameters) {
-      parameterStore.setGlobalParameters(config.projection.parameters)
-      // Store preset parameters for reset functionality
-      presetDefaults.storeGlobalParameters(config.projection.parameters)
-    }
-    else {
-      presetDefaults.storeGlobalParameters(null)
-    }
-  }
-
-  /**
-   * Apply split view preset
-   * Always uses individual projections per territory
-   */
-  function applySplitPreset(config: any) {
-    // Get mainland code from atlas
-    const mainland = atlasService.value.getMainland()
-    const mainlandCode = mainland?.code
-
-    // Apply mainland projection
-    if (mainlandCode && config.mainland) {
-      parameterStore.setTerritoryProjection(
-        mainlandCode,
-        config.mainland.projection.id,
-      )
-      if (config.mainland.projection.parameters) {
-        parameterStore.setTerritoryParameters(
-          mainlandCode,
-          config.mainland.projection.parameters,
-        )
-      }
+    if (!result.success) {
+      console.error('[ConfigStore] Failed to apply preset:', result.errors)
+      throw new Error(result.errors.join(', '))
     }
 
-    // Apply territory projections
-    if (config.territories) {
-      Object.entries(config.territories).forEach(([code, territoryConfig]: [string, any]) => {
-        parameterStore.setTerritoryProjection(code, territoryConfig.projection.id)
-        if (territoryConfig.projection.parameters) {
-          parameterStore.setTerritoryParameters(code, territoryConfig.projection.parameters)
-        }
-      })
-    }
-  }
-
-  /**
-   * Apply composite-existing view preset
-   */
-  function applyCompositeExistingPreset(config: any) {
-    compositeProjection.value = config.projectionId
-
-    // Note: Global scale for composite-existing mode is not yet supported
-    // d3-composite-projections doesn't expose a scale multiplier API
-    if (config.globalScale !== undefined) {
-      console.info('[ConfigStore] Global scale from preset (not applied):', config.globalScale)
+    if (result.warnings.length > 0) {
+      console.warn('[ConfigStore] Preset applied with warnings:', result.warnings)
     }
   }
 

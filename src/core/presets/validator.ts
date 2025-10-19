@@ -2,14 +2,15 @@
  * Preset Validator
  *
  * Core validation logic for preset configurations.
- * Handles structure validation and parameter validation for both
- * composite-custom and view mode presets.
+ * Unified validation for all preset types (composite-custom, unified, split, composite-existing).
  */
 
 import type {
+  CompositeCustomConfig,
   CompositeExistingViewConfig,
   ExtendedPresetConfig,
   PresetLoadResult,
+  PresetType,
   SplitViewConfig,
   UnifiedViewConfig,
   ViewModePreset,
@@ -34,6 +35,60 @@ export interface ViewPresetValidationResult {
   isValid: boolean
   errors: string[]
   warnings: string[]
+}
+
+/**
+ * Unified preset validation function (strategy pattern)
+ * Routes to appropriate validator based on preset type
+ *
+ * @param preset - Any preset configuration object
+ * @param presetType - The type of preset to validate
+ * @param jsonText - Original JSON text (required for composite-custom validation)
+ * @returns Validation result
+ */
+export function validatePreset(
+  preset: any,
+  presetType: PresetType,
+  jsonText?: string,
+): ViewPresetValidationResult {
+  switch (presetType) {
+    case 'composite-custom': {
+      if (!jsonText) {
+        return {
+          isValid: false,
+          errors: ['jsonText is required for composite-custom preset validation'],
+          warnings: [],
+        }
+      }
+      const result = validateCompositePreset(jsonText, preset as CompositeCustomConfig)
+      return {
+        isValid: result.success,
+        errors: result.errors,
+        warnings: result.warnings,
+      }
+    }
+    case 'unified':
+    case 'split':
+    case 'composite-existing': {
+      // Convert to ViewModePreset format for validation
+      const viewPreset: ViewModePreset = {
+        id: preset.id || 'unknown',
+        name: preset.name || 'Unknown',
+        description: preset.description,
+        atlasId: preset.atlasId || 'unknown',
+        viewMode: presetType as ViewPresetMode,
+        config: preset.config || preset,
+      }
+      return validateViewPreset(viewPreset)
+    }
+    default: {
+      return {
+        isValid: false,
+        errors: [`Unknown preset type: ${presetType}`],
+        warnings: [],
+      }
+    }
+  }
 }
 
 /**
@@ -123,7 +178,7 @@ export function validateCompositePreset(
   }
 
   // Combine validated preset with atlas metadata
-  const extendedPreset: ExtendedPresetConfig = {
+  const extendedPreset: CompositeCustomConfig = {
     ...importResult.config!,
     atlasMetadata: rawPreset.atlasMetadata,
   }

@@ -2,50 +2,69 @@
 
 ## Overview
 
-The preset system manages saved composite projection configurations that define how territories are projected, positioned, and scaled in composite atlas views. Presets store complete projection state including projection types, parameters (rotate, center, parallels, scaleMultiplier), layout (translation offsets, clip extents), and geographic bounds for each territory.
+The preset system manages saved projection configurations for all view modes. Presets define how territories are projected, positioned, and scaled across different viewing contexts. The system uses a unified architecture with a single loader, single registry, and discriminated union types for all preset types.
+
+## Preset Types
+
+The system supports four preset types, unified under a discriminated union:
+
+1. **composite-custom** - Full custom composite projections with per-territory configuration (exportable, round-trip capable)
+2. **unified** - Single projection for entire atlas
+3. **split** - Individual projections per territory
+4. **composite-existing** - Uses d3-composite-projections library
 
 ## Architecture
 
-The preset system follows a layered architecture separating core domain logic from service implementation:
+The preset system follows a layered architecture with unified types and services:
 
 ### Core Layer (src/core/presets/)
 
 **Types** (`types.ts`)
-- Domain types for preset system
-- PresetLoadResult, ExtendedPresetConfig, AtlasProjectionMetadata
-- TerritoryDefaults (projections, translations, scales map)
-- ViewModePreset, ViewPresetLoadResult, ViewPresetRegistry
-- UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
+- Unified domain types with discriminated unions
+- `LoadResult<T>` - Generic result type for all loading operations
+- `Preset` - Discriminated union of CompositePreset | UnifiedPreset | SplitPreset | CompositeExistingPreset
+- `PresetType` - Type discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `PresetRegistry` - Unified registry for all preset types
+- `BasePresetMetadata` - Shared metadata fields (id, name, description, atlasId)
+- Configuration types: CompositeCustomConfig, UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
+- Legacy types preserved for backward compatibility (marked @deprecated)
 
 **Validators** (`validator.ts`)
-- Pure validation functions for preset configurations
-- validateCompositePreset() - Validates composite preset structure and parameters
-- validateViewPreset() - Validates view mode preset configuration
+- Unified validation with strategy pattern
+- `validatePreset()` - Routes to appropriate validator based on preset type
+- `validateCompositePreset()` - Validates composite preset structure and parameters
+- `validateViewPreset()` - Validates view mode preset configuration
 - Parameter validation using parameter registry
 - Required parameter checks for preset integrity
 
 **Converters** (`converter.ts`)
 - Pure conversion functions between formats
-- convertToDefaults() - Converts preset to TerritoryDefaults format
-- extractTerritoryParameters() - Extracts projection parameters from preset
+- `convertToDefaults()` - Converts preset to TerritoryDefaults format
+- `extractTerritoryParameters()` - Extracts projection parameters from preset
 - Registry-driven parameter extraction
 
 ### Service Layer (src/services/presets/)
 
 **PresetLoader** (`preset-loader.ts`)
-- File loading service for composite projection presets
-- Loads JSON preset files from configs/presets/ directory
-- Orchestrates validation using core validators
-- Uses core converters for format transformation
-- Static methods: loadPreset(), loadPresetMetadata(), listAvailablePresets()
-- Re-exports core converters (convertToDefaults, extractTerritoryParameters) for backward compatibility
+- Unified file loading service for ALL preset types
+- Loads JSON preset files from unified configs/presets/ directory
+- Single registry (configs/presets/registry.json) with type discriminators
+- Type-aware validation routing
+- Methods:
+  - `loadPreset(presetId)` - Loads any preset type, returns LoadResult<Preset>
+  - `listPresets(filters?)` - Lists presets with optional filtering by atlasId/type/viewMode
+  - `loadMetadata(presetId)` - Loads preset metadata without full validation
+  - `loadRegistry()` - Loads and caches unified registry
+- Re-exports core converters for backward compatibility
 
-**ViewPresetLoader** (`view-preset-loader.ts`)
-- File loading service for view mode presets
-- Loads JSON files from configs/view-presets/ directory
-- Orchestrates validation using core validators
-- Registry caching for performance
-- Static methods: loadPreset(), loadRegistry(), getAvailablePresets()
+**PresetApplicationService** (`preset-application-service.ts`)
+- Centralizes all preset application logic
+- Routes application based on preset type
+- Methods:
+  - `applyPreset(preset)` - Applies any preset type to stores
+  - Private handlers: applyCompositeCustom(), applyUnified(), applySplit(), applyCompositeExisting()
+- Returns ApplicationResult with success/errors/warnings
+- Delegates store updates (configStore, parameterStore)
 
 **AtlasMetadataService** (`atlas-metadata-service.ts`)
 - Provides clean API for accessing atlas projection metadata
@@ -64,24 +83,20 @@ The preset system follows a layered architecture separating core domain logic fr
 
 **Parameter Store** (`src/stores/parameters.ts`)
 - Manages projection parameters (center, rotate, parallels, scaleMultiplier, etc.)
-- Uses unified parameter system with single familyConstraints source of truth
+- Uses unified parameter system with familyConstraints as single source of truth
 - Supports parameter inheritance (territory overrides global defaults)
 - Provides effective parameter resolution for each territory
 - Tracks parameter changes and triggers re-renders
-- Note: Deprecated scale/baseScale parameters removed, replaced with scaleMultiplier
-
-**Territory Store** (`src/stores/territory.ts`)
-- Manages territory-level state (projections, translations)
-- Stores projection type selection per territory
-- Maintains translation offsets (x, y pixel positions)
-
-**Note**: Scale multipliers are stored in parameter store, not territory store.
 
 **Config Store** (`src/stores/config.ts`)
-- Coordinates preset metadata initialization
-- Calls `initializeWithPresetMetadata()` on application startup
-- Applies preset projections, translations, scales, and parameters to stores
-- Ensures preset loads before first render to prevent race conditions
+- Coordinates preset loading and application
+- Delegates to PresetLoader for loading
+- Delegates to PresetApplicationService for applying
+- Methods:
+  - `loadAvailableViewPresets()` - Lists available presets for current atlas/view mode
+  - `loadViewPreset(presetId)` - Loads and applies a preset
+  - `applyViewPresetConfig(preset)` - Applies preset using PresetApplicationService
+  - `clearViewPreset()` - Clears current preset
 
 ### Data Flow
 
@@ -94,16 +109,15 @@ configStore.initializeWithPresetMetadata()
   ↓
 AtlasCoordinator.handleAtlasChange()
   ↓
-PresetLoader.loadPreset() [Service Layer]
-  → validateCompositePreset() [Core Validator]
-  → convertToDefaults() [Core Converter]
+PresetLoader.loadPreset() [Unified Service]
+  → Determines preset type from registry
+  → validatePreset(type) [Unified Validator]
+  → convertToDefaults() [Core Converter] (for composite-custom)
   → extractTerritoryParameters() [Core Converter]
   ↓
-Apply to Stores:
-  - territoryStore.setTerritoryProjection()
-  - territoryStore.setTerritoryTranslation()
-  - parameterStore.setTerritoryParameter(code, 'scaleMultiplier', value)
-  - parameterStore.setTerritoryParameters()
+PresetApplicationService.applyPreset()
+  → Routes to type-specific handler
+  → Updates stores (parameterStore, configStore)
   ↓
 geoDataStore.initialize()
   ↓
@@ -114,7 +128,43 @@ CompositeProjection.initialize()
 First Render (preset values applied)
 ```
 
-## Preset File Format
+## Unified Registry Format
+
+Single registry file at `configs/presets/registry.json` contains all preset types:
+
+```json
+{
+  "version": "2.0",
+  "description": "Unified registry of all preset types",
+  "presets": [
+    {
+      "id": "france-default",
+      "atlasId": "france",
+      "type": "composite-custom",
+      "name": "France - Configuration standard",
+      "description": "...",
+      "pattern": "single-focus",
+      "territories": 10
+    },
+    {
+      "id": "france-unified",
+      "atlasId": "france",
+      "type": "unified",
+      "name": "France - Vue unifiée",
+      "description": "Projection Natural Earth centrée sur la France"
+    },
+    {
+      "id": "france-split",
+      "atlasId": "france",
+      "type": "split",
+      "name": "France - Vue séparée",
+      "description": "Même projection conique pour tous les territoires"
+    }
+  ]
+}
+```
+
+## Preset File Formats
 
 ### Structure
 
@@ -719,4 +769,58 @@ The reset system restores territories to their preset configuration, managed thr
 - `src/core/parameters/parameter-registry.ts` - Unified parameter validation and constraints (replaces parameter-constraints.ts)
 
 **Preset Files:**
-- `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations
+- `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations for all types (unified location)
+
+## Architectural Improvements (Phase 2 Unification)
+
+### Unified Architecture Benefits
+
+**Single Source of Truth**
+- One registry file (`configs/presets/registry.json`) for all preset types
+- Single directory (`configs/presets/`) contains all preset files
+- Unified `PresetLoader` handles all preset types with type-aware routing
+- Discriminated union `Preset` type provides type safety across all operations
+
+**Type Safety**
+- `PresetType` discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `LoadResult<T>` generic pattern for consistent error handling
+- TypeScript narrows types based on preset.type discriminator
+- Compile-time guarantees prevent type mismatches
+
+**Code Reduction**
+- Eliminated duplicate loader logic (ViewPresetLoader merged into PresetLoader)
+- Removed redundant validation code through unified `validatePreset()` with strategy pattern
+- Centralized application logic in `PresetApplicationService`
+- Simplified config store by delegating to services
+
+**Extensibility**
+- Adding new preset types requires:
+  1. Add type to `PresetType` union
+  2. Add interface to `Preset` discriminated union
+  3. Add validator case to `validatePreset()`
+  4. Add application handler to `PresetApplicationService`
+- No changes needed to loader, registry, or UI components
+
+**Backward Compatibility**
+- Legacy type aliases (`ExtendedPresetConfig`, `ViewModePreset`, etc.) preserved
+- Marked `@deprecated` for gradual migration
+- Existing code continues to work during transition
+- Registry version bumped to 2.0 to indicate unified format
+
+### Migration Notes
+
+**Removed Files**
+- `src/services/presets/view-preset-loader.ts` - Merged into PresetLoader
+- `configs/view-presets/registry.json` - Merged into configs/presets/registry.json
+- `configs/view-presets/*.json` - Moved to configs/presets/
+
+**Breaking Changes**
+- Config store methods removed: `applyUnifiedPreset()`, `applySplitPreset()`, `applyCompositeExistingPreset()`
+- All preset application now goes through `applyViewPresetConfig()` → `PresetApplicationService.applyPreset()`
+- Registry structure changed: added `type` discriminator field, simplified name/description to strings
+
+**API Updates**
+- `PresetLoader.listPresets(filters)` replaces separate `listAvailablePresets()` and `getAvailablePresets()`
+- `PresetLoader.loadMetadata()` replaces `loadPresetMetadata()`
+- Filter by `viewMode` now equivalent to filtering by `type` for view presets
+

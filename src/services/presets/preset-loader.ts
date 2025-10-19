@@ -1,51 +1,40 @@
 /**
- * Preset Loader Service
+ * Preset Loader Service (Unified)
  *
- * Loads preset composite projection configurations from the configs/presets/ directory.
- * Presets provide high-quality default layouts that are applied automatically on atlas initialization.
+ * Loads all preset types (composite-custom, unified, split, composite-existing)
+ * from a single unified registry and directory structure.
  *
  * Key responsibilities:
  * - Load preset files from configs/presets/
- * - Orchestrate validation and conversion using core modules
- * - Load and cache preset registry
- * - Load preset metadata for UI display
+ * - Orchestrate validation using core modules
+ * - Load and cache unified preset registry
+ * - Provide filtered preset lists by type/atlas/view mode
  */
 
 import type {
-  ExtendedPresetConfig,
-  PresetLoadResult,
+  CompositeCustomConfig,
+  LoadResult,
+  Preset,
+  PresetRegistry,
+  PresetType,
+  ViewPresetMode,
 } from '@/core/presets'
 import {
   convertToDefaults,
   extractTerritoryParameters,
   validateCompositePreset,
+  validateViewPreset,
 } from '@/core/presets'
 import { PresetFileLoader } from './loaders/preset-file-loader'
 
 /**
- * Preset registry structure
- */
-interface PresetRegistry {
-  version: string
-  description?: string
-  presets: Array<{
-    id: string
-    atlasId: string
-    name: string | Record<string, string>
-    description?: string | Record<string, string>
-    pattern: string
-    territories: number
-  }>
-}
-
-/**
- * Service for loading and managing preset configurations
+ * Unified service for loading and managing all preset types
  */
 export class PresetLoader {
   private static registry: PresetRegistry | null = null
 
   /**
-   * Load the preset registry
+   * Load the unified preset registry
    * Cached after first load
    */
   private static async loadRegistry(): Promise<PresetRegistry> {
@@ -53,11 +42,13 @@ export class PresetLoader {
       return this.registry
     }
 
-    const result = await PresetFileLoader.loadRegistry<PresetRegistry>('configs/presets/registry.json')
+    const result = await PresetFileLoader.loadRegistry<PresetRegistry>(
+      'configs/presets/registry.json',
+    )
 
     if (!result.success || !result.data) {
       console.warn('[PresetLoader] Failed to load preset registry, using empty registry')
-      return { version: '1.0', presets: [] }
+      return { version: '2.0', presets: [] }
     }
 
     this.registry = result.data
@@ -65,14 +56,26 @@ export class PresetLoader {
   }
 
   /**
-   * Load a preset configuration file
+   * Load a preset configuration file (any type)
    *
-   * @param presetId - Preset identifier (e.g., 'france-default', 'portugal-default')
+   * @param presetId - Preset identifier (e.g., 'france-default', 'france-unified')
    * @returns Load result with parsed preset and validation messages
    */
-  static async loadPreset(presetId: string): Promise<PresetLoadResult> {
-    // Use PresetFileLoader for file loading
-    const fileResult = await PresetFileLoader.loadJSON<ExtendedPresetConfig>(
+  static async loadPreset(presetId: string): Promise<LoadResult<Preset>> {
+    // Get preset type from registry
+    const registry = await this.loadRegistry()
+    const registryEntry = registry.presets.find(p => p.id === presetId)
+
+    if (!registryEntry) {
+      return {
+        success: false,
+        errors: [`Preset '${presetId}' not found in registry`],
+        warnings: [],
+      }
+    }
+
+    // Load preset file
+    const fileResult = await PresetFileLoader.loadJSON<any>(
       `configs/presets/${presetId}.json`,
     )
 
@@ -84,68 +87,120 @@ export class PresetLoader {
       }
     }
 
-    // Validate using core validator
-    // Note: Validator needs both JSON text and parsed object
-    const jsonText = JSON.stringify(fileResult.data)
-    return validateCompositePreset(jsonText, fileResult.data)
-  }
+    // Validate based on type
+    if (registryEntry.type === 'composite-custom') {
+      const jsonText = JSON.stringify(fileResult.data)
+      const validation = validateCompositePreset(jsonText, fileResult.data)
 
-  /**
-   * List available presets for a given atlas
-   *
-   * @param atlasId - Optional atlas ID to filter presets
-   * @returns Array of preset metadata available for this atlas
-   */
-  static async listAvailablePresets(atlasId?: string): Promise<PresetRegistry['presets']> {
-    const registry = await this.loadRegistry()
-
-    if (!atlasId) {
-      return registry.presets
-    }
-
-    return registry.presets.filter(preset => preset.atlasId === atlasId)
-  }
-
-  /**
-   * Load preset metadata (name, version, metadata) without full validation
-   * This is useful for populating dropdowns and lists without loading full configurations
-   *
-   * @param presetId - Preset identifier (e.g., 'france-default', 'portugal-default')
-   * @returns Preset metadata or null if loading failed
-   */
-  static async loadPresetMetadata(presetId: string): Promise<{ name?: string | Record<string, string>, metadata?: any } | null> {
-    // Try registry first (faster)
-    try {
-      const registry = await this.loadRegistry()
-      const registryEntry = registry.presets.find(p => p.id === presetId)
-
-      if (registryEntry) {
+      if (!validation.success) {
         return {
-          name: registryEntry.name,
-          metadata: {
-            atlasId: registryEntry.atlasId,
-            description: registryEntry.description,
-          },
+          success: false,
+          errors: validation.errors,
+          warnings: validation.warnings,
         }
       }
+
+      // Build Preset object
+      const preset: Preset = {
+        id: presetId,
+        name: registryEntry.name,
+        description: registryEntry.description,
+        atlasId: registryEntry.atlasId,
+        type: 'composite-custom',
+        config: fileResult.data as CompositeCustomConfig,
+      }
+
+      return {
+        success: true,
+        data: preset,
+        errors: [],
+        warnings: validation.warnings,
+      }
     }
-    catch (error) {
-      console.warn('[PresetLoader] Error loading registry for metadata:', error)
+    else {
+      // View preset (unified, split, composite-existing)
+      const validation = validateViewPreset(fileResult.data)
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          errors: validation.errors,
+          warnings: validation.warnings,
+        }
+      }
+
+      // Build Preset object
+      const preset: Preset = {
+        id: presetId,
+        name: registryEntry.name,
+        description: registryEntry.description,
+        atlasId: registryEntry.atlasId,
+        type: registryEntry.type,
+        config: fileResult.data.config,
+      } as Preset
+
+      return {
+        success: true,
+        data: preset,
+        errors: [],
+        warnings: validation.warnings,
+      }
+    }
+  }
+
+  /**
+   * List all available presets
+   *
+   * @param filters - Optional filters
+   * @param filters.atlasId - Filter by atlas ID
+   * @param filters.type - Filter by preset type
+   * @param filters.viewMode - Filter by view mode
+   * @returns Array of preset metadata
+   */
+  static async listPresets(filters?: {
+    atlasId?: string
+    type?: PresetType
+    viewMode?: ViewPresetMode
+  }): Promise<PresetRegistry['presets']> {
+    const registry = await this.loadRegistry()
+    let presets = registry.presets
+
+    if (filters?.atlasId) {
+      presets = presets.filter(p => p.atlasId === filters.atlasId)
     }
 
-    // Fallback: Load full preset file
-    const result = await PresetFileLoader.loadJSON<ExtendedPresetConfig>(
-      `configs/presets/${presetId}.json`,
-    )
+    if (filters?.type) {
+      presets = presets.filter(p => p.type === filters.type)
+    }
 
-    if (!result.success || !result.data) {
-      console.warn(`[PresetLoader] Failed to load metadata for preset '${presetId}':`, result.errors)
+    if (filters?.viewMode) {
+      presets = presets.filter(p => p.type === filters.viewMode)
+    }
+
+    return presets
+  }
+
+  /**
+   * Load preset metadata without full validation
+   * Useful for populating dropdowns and lists
+   *
+   * @param presetId - Preset identifier
+   * @returns Preset metadata or null if not found
+   */
+  static async loadMetadata(presetId: string): Promise<{ name: string, description?: string, atlasId: string, type: PresetType } | null> {
+    const registry = await this.loadRegistry()
+    const entry = registry.presets.find(p => p.id === presetId)
+
+    if (!entry) {
+      console.warn(`[PresetLoader] Preset '${presetId}' not found in registry`)
       return null
     }
 
     return {
-      name: result.data.metadata?.atlasName,
-      metadata: result.data.metadata,
+      name: entry.name,
+      description: entry.description,
+      atlasId: entry.atlasId,
+      type: entry.type,
     }
   }
 

@@ -11,7 +11,7 @@
  * - Handle projection preferences, parameters, and display defaults
  */
 
-import type { AtlasProjectionMetadata, PresetLoadResult } from '@/core/presets'
+import type { AtlasProjectionMetadata, LoadResult, Preset } from '@/core/presets'
 import { PresetLoader } from './preset-loader'
 
 export interface AtlasMetadataResult {
@@ -53,19 +53,21 @@ export class AtlasMetadataService {
     // Try to load from preset
     if (defaultPreset) {
       try {
-        const presetResult: PresetLoadResult = await PresetLoader.loadPreset(defaultPreset)
+        const presetResult: LoadResult<Preset> = await PresetLoader.loadPreset(defaultPreset)
 
-        if (presetResult.success && presetResult.preset?.atlasMetadata) {
-          const metadata = presetResult.preset.atlasMetadata
+        if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
+          const metadata = presetResult.data.config.atlasMetadata
 
-          // Cache the result
-          metadataCache.set(cacheKey, metadata)
+          if (metadata) {
+            // Cache the result
+            metadataCache.set(cacheKey, metadata)
 
-          return {
-            success: true,
-            metadata,
-            errors: [],
-            source: 'preset',
+            return {
+              success: true,
+              metadata,
+              errors: [],
+              source: 'preset',
+            }
           }
         }
       }

@@ -312,7 +312,7 @@ class PresetApplicationService {
    - Test coverage: `roundtrip-parameters.spec.ts` must pass
 
 3. **Independent Reusability**
-   - Composite presets must work outside Atlas composer
+   - Composite presets must work outside Atlas Composer
    - Format must be documented and stable
    - Schema versioning for future compatibility
 
@@ -321,83 +321,94 @@ class PresetApplicationService {
    - Exportable parameters list is single source of truth
    - No hardcoded parameter lists
 
-### Can Modify Safely
+### No Backward Compatibility Required
 
-1. **Internal loading mechanisms** (as long as format unchanged)
-2. **Validation logic** (can refactor without breaking format)
-3. **Store application logic** (internal implementation)
-4. **UI components** (as long as they load/save correct format)
-5. **View preset format** (internal to app, not exported)
+⚡ **We have no users** - we can break internal APIs freely!
+
+- Change method signatures without deprecation
+- Rename functions and types aggressively
+- Eliminate legacy patterns immediately
+- Refactor store APIs without bridges
+- Remove deprecated code paths
+- Simplify complex abstractions
+
+### Focus Areas for Aggressive Refactoring
+
+1. **Internal APIs** - Change freely, no deprecation needed
+2. **Store interfaces** - Unify and simplify
+3. **Composable signatures** - Modernize patterns
+4. **Component props** - Standardize without bridges
+5. **Service methods** - Clean up inconsistencies
+6. **Type hierarchies** - Flatten and simplify
 
 ## Improvement Recommendations
 
-### Phase 1: Foundation (No Breaking Changes)
+### Phase 1: Foundation ✅ COMPLETE
 
 **Goal**: Reduce duplication, improve maintainability
 
-- [ ] Create shared `PresetFileLoader` utility
-  - Extract common fetch + parse + validate pattern
-  - Use in both PresetLoader and ViewPresetLoader
-  - Add retry logic and better error messages
+- [x] Create shared `PresetFileLoader` utility
+- [x] Create unified `ProjectionConfig` type
+- [x] Extract common validation utilities
+- [x] Add composite preset registry
+- [x] Refactor loaders to use shared utilities
+- [x] Update validators to use shared utilities
 
-- [ ] Create unified `ProjectionConfig` type
-  - Replace scattered projection config definitions
-  - Use in both preset systems
-  - Maintain backward compatibility
+**Status**: Complete - 15-20% code reduction achieved
 
-- [ ] Extract common validation utilities
-  - `validateVersion()`, `validateAtlasId()`, `validateProjectionParameters()`
-  - Use in both validators
-  - Reduce code duplication by ~30%
+### Phase 2: Aggressive Unification (Updated - No Backward Compat)
 
-- [ ] Add composite preset registry
-  - Mirror view preset registry structure
-  - Enable dynamic preset discovery
-  - Maintain atlas config compatibility (reference registry)
+**Goal**: Maximum code reuse and simplification
 
-- [ ] Documentation updates
-  - Update docs/presets.llm.txt with unified patterns
-  - Document differences between preset types clearly
-  - Add decision flowchart: when to use which preset type
+- [ ] **Unify Preset Types**
+  - Merge PresetLoadResult and ViewPresetLoadResult into single LoadResult<T>
+  - Create single PresetConfig base interface
+  - Eliminate type duplication between systems
 
-### Phase 2: Unified Application (Refactoring)
+- [ ] **Create Unified PresetApplicationService**
+  - Single service handles all preset types
+  - Replace mode-specific functions (applyUnifiedPreset, applySplitPreset, etc.)
+  - Consistent store update pattern across all modes
+  - Simplified error handling and rollback
 
-**Goal**: Consistent preset application pattern
+- [ ] **Consolidate Loaders**
+  - Single PresetRegistry combining both registries
+  - Unified PresetLoader handling all preset types
+  - Remove ViewPresetLoader (fold into PresetLoader)
+  - Single caching strategy
 
-- [ ] Create `PresetApplicationService`
-  - Centralize all preset application logic
-  - Handle store coordination consistently
-  - Better error handling and rollback
+- [ ] **Simplify Store APIs**
+  - Rename methods for consistency (no backward compat bridge)
+  - Unify parameter application patterns
+  - Single initializeFromPreset() for all preset types
+  - Remove legacy method names immediately
 
-- [ ] Refactor store application
-  - Use PresetApplicationService in both systems
-  - Consistent parameter application order
-  - Unified reset functionality
+- [ ] **Modernize Composables**
+  - Update all composables to use unified services
+  - Change signatures for clarity (break if needed)
+  - Remove deprecated patterns
 
-- [ ] Add view preset export capability
-  - Allow users to save custom unified/split configs
-  - Store as view presets (lightweight format)
-  - Enable sharing of view configurations
+### Phase 3: Enhanced UX
 
-### Phase 3: Enhanced UX (New Features)
+**Goal**: Better preset management experience
 
-**Goal**: Better preset management UI
+- [ ] **Unified Preset Selector**
+  - Single component for all preset types
+  - Filter by atlas + mode
+  - Preview metadata before applying
 
-- [ ] Unified preset selector component
-  - Works for both composite and view presets
-  - Shows preset metadata (description, date)
-  - Preview before applying
+- [ ] **Preset Comparison**
+  - Visual diff between current and preset
+  - Show what will change
 
-- [ ] Preset comparison tool
-  - Compare current state vs preset
-  - Show what will change before applying
-  - Diff visualization
+- [ ] **View Preset Export**
+  - Enable export for unified/split modes
+  - Lightweight export format
 
-- [ ] Preset management UI
-  - List all available presets
+- [ ] **Preset Management**
+  - List all presets across types
   - Import external presets
-  - Delete custom presets
-  - Rename/organize presets
+  - Delete/rename custom presets
 
 ## Proposed Unified Architecture
 

@@ -2,13 +2,31 @@
  * Preset Domain Types
  *
  * Core type definitions for the preset system.
- * These types represent the domain model for preset configurations
- * used across both composite-custom and view mode presets.
+ * Unified types for all preset configurations (composite-custom, unified, split, composite-existing).
  */
 
 import type { ViewMode } from '@/types/composite'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+
+// ============================================================================
+// Generic Load Result Type
+// ============================================================================
+
+/**
+ * Generic result type for preset loading operations
+ * Used across all preset types for consistent error handling
+ */
+export interface LoadResult<T> {
+  success: boolean
+  data?: T
+  errors: string[]
+  warnings: string[]
+}
+
+// ============================================================================
+// Common Domain Types
+// ============================================================================
 
 /**
  * Territory defaults result containing all initialization data
@@ -45,23 +63,22 @@ export interface AtlasProjectionMetadata {
   }
 }
 
-/**
- * Extended preset configuration with atlas metadata
- * Combines exported composite config with optional atlas-level metadata
- */
-export interface ExtendedPresetConfig extends ExportedCompositeConfig {
-  /** Optional atlas-level projection metadata */
-  atlasMetadata?: AtlasProjectionMetadata
-}
+// ============================================================================
+// Base Preset Types
+// ============================================================================
 
 /**
- * Result of loading a preset configuration
+ * Base metadata shared by all presets
  */
-export interface PresetLoadResult {
-  success: boolean
-  preset?: ExtendedPresetConfig
-  errors: string[]
-  warnings: string[]
+export interface BasePresetMetadata {
+  /** Unique preset identifier */
+  id: string
+  /** Human-readable name */
+  name: string
+  /** Optional description */
+  description?: string
+  /** Target atlas ID */
+  atlasId: string
 }
 
 // ============================================================================
@@ -70,9 +87,13 @@ export interface PresetLoadResult {
 
 /**
  * View modes that support view presets
- * (composite-custom uses its own separate preset system)
  */
 export type ViewPresetMode = Extract<ViewMode, 'unified' | 'split' | 'composite-existing'>
+
+/**
+ * All supported preset types (discriminator for unified Preset type)
+ */
+export type PresetType = 'composite-custom' | ViewPresetMode
 
 /**
  * Unified view mode configuration
@@ -119,60 +140,132 @@ export interface CompositeExistingViewConfig {
   /**
    * Optional global scale multiplier
    * Applied to the entire composite projection (default: 1.0)
-   * Note: Individual projection parameters cannot be overridden
-   * (respects d3-composite-projections library design)
    */
   globalScale?: number
 }
 
 /**
- * View mode preset configuration
- * Each preset defines settings for ONE view mode
+ * Composite-custom preset configuration (exportable format with optional atlas metadata)
+ * Extends ExportedCompositeConfig with optional atlas-level projection metadata
+ */
+export interface CompositeCustomConfig extends ExportedCompositeConfig {
+  /** Optional atlas-level projection metadata */
+  atlasMetadata?: AtlasProjectionMetadata
+}
+
+// ============================================================================
+// Unified Preset Types (Discriminated Union)
+// ============================================================================
+
+/**
+ * Composite-custom preset (rich, exportable)
+ */
+export interface CompositePreset extends BasePresetMetadata {
+  type: 'composite-custom'
+  config: CompositeCustomConfig
+}
+
+/**
+ * Unified view mode preset
+ */
+export interface UnifiedPreset extends BasePresetMetadata {
+  type: 'unified'
+  config: UnifiedViewConfig
+}
+
+/**
+ * Split view mode preset
+ */
+export interface SplitPreset extends BasePresetMetadata {
+  type: 'split'
+  config: SplitViewConfig
+}
+
+/**
+ * Composite-existing view mode preset
+ */
+export interface CompositeExistingPreset extends BasePresetMetadata {
+  type: 'composite-existing'
+  config: CompositeExistingViewConfig
+}
+
+/**
+ * Unified preset type (discriminated union)
+ * Replaces separate CompositePreset and ViewModePreset types
+ */
+export type Preset
+  = | CompositePreset
+    | UnifiedPreset
+    | SplitPreset
+    | CompositeExistingPreset
+
+// ============================================================================
+// Registry Types
+// ============================================================================
+
+/**
+ * Preset metadata in registry
+ * Lightweight descriptor without full configuration
+ */
+export interface PresetRegistryEntry {
+  id: string
+  name: string
+  atlasId: string
+  type: PresetType
+  description?: string
+  /** Pattern for file path resolution (for composite presets) */
+  pattern?: string
+  /** Number of territories (for composite presets) */
+  territories?: number
+}
+
+/**
+ * Unified preset registry
+ * Single registry for all preset types
+ */
+export interface PresetRegistry {
+  version: string
+  presets: PresetRegistryEntry[]
+}
+
+// ============================================================================
+// Legacy Type Aliases (for gradual migration)
+// ============================================================================
+
+/**
+ * @deprecated Use LoadResult<CompositeCustomConfig> instead
+ */
+export interface PresetLoadResult extends LoadResult<CompositeCustomConfig> {
+  /** @deprecated Use data instead */
+  preset?: CompositeCustomConfig
+}
+
+/**
+ * @deprecated Use LoadResult<Preset> instead
+ */
+export interface ViewPresetLoadResult extends LoadResult<Preset> {
+  /** @deprecated Use data instead */
+  preset?: Preset
+}
+
+/**
+ * @deprecated Use CompositeCustomConfig instead
+ */
+export type ExtendedPresetConfig = CompositeCustomConfig
+
+/**
+ * @deprecated Use Preset with type='unified'|'split'|'composite-existing' instead
  */
 export interface ViewModePreset {
-  /** Unique preset identifier */
   id: string
-
-  /** Human-readable preset name */
   name: string
-
-  /** Optional description */
   description?: string
-
-  /** Target atlas ID (e.g., 'france', 'portugal', 'eu') */
   atlasId: string
-
-  /** View mode this preset is for */
   viewMode: ViewPresetMode
-
-  /** View mode-specific configuration */
   config: UnifiedViewConfig | SplitViewConfig | CompositeExistingViewConfig
 }
 
 /**
- * View preset registry
- * Lists all available view presets (loaded from configs/view-presets/registry.json)
+ * @deprecated Use PresetRegistry instead
  */
-export interface ViewPresetRegistry {
-  /** Schema version */
-  version: string
-
-  /** List of available presets */
-  presets: Array<{
-    id: string
-    name: string
-    atlasId: string
-    viewMode: ViewPresetMode
-    description?: string
-  }>
-}
-
-/**
- * Result of loading a view preset
- */
-export interface ViewPresetLoadResult {
-  success: boolean
-  preset?: ViewModePreset
-  errors: string[]
-  warnings: string[]
-}
+export interface ViewPresetRegistry extends PresetRegistry {}

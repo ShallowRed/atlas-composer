@@ -66,9 +66,9 @@ export class AtlasCoordinator {
     if (config.defaultPreset && viewMode === 'composite-custom') {
       try {
         const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
-        if (presetResult.success && presetResult.preset) {
-          // Convert preset to defaults and merge with territory defaults
-          const presetDefaults = PresetLoader.convertToDefaults(presetResult.preset)
+        if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
+          // Convert preset config to defaults and merge with territory defaults
+          const presetDefaults = PresetLoader.convertToDefaults(presetResult.data.config)
           finalDefaults = {
             projections: { ...finalDefaults.projections, ...presetDefaults.projections },
             translations: { ...finalDefaults.translations, ...presetDefaults.translations },
@@ -76,13 +76,13 @@ export class AtlasCoordinator {
           }
 
           // Extract territory-specific projection parameters from preset
-          territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.preset)
+          territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.data.config)
 
           // Extract referenceScale from preset
-          referenceScale = presetResult.preset.referenceScale
+          referenceScale = presetResult.data.config.referenceScale
 
           // Extract canvasDimensions from preset (if available)
-          canvasDimensions = presetResult.preset.canvasDimensions
+          canvasDimensions = presetResult.data.config.canvasDimensions
         }
         else {
           // Log warning but continue with fallback defaults

@@ -1,309 +1,181 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://atlas-composer.com/schemas/preset.json",
-  "title": "Atlas Composer Preset Configuration",
-  "description": "JSON schema for composite projection preset files. Presets use the same format as exported configurations.",
+  "$id": "https://atlas-composer.com/schemas/view-preset.json",
+  "title": "Atlas Composer View Mode Preset",
+  "description": "JSON schema for view mode preset files (unified, split, composite-existing). Separate from composite-custom presets.",
   "type": "object",
-  "required": ["version", "metadata", "pattern", "territories"],
-  "name": {
-    "oneOf": [
-      { "type": "string" },
-      {
-        "type": "object",
-        "properties": {
-          "en": { "type": "string" },
-          "fr": { "type": "string" }
-        },
-        "required": ["en"],
-        "additionalProperties": { "type": "string" }
-      }
-    ],
-    "description": "Human-readable name (string or i18n object with language codes as keys, e.g., {en: 'France', fr: 'France'}). String is used as fallback for all languages."
-  },
+  "required": ["id", "name", "atlasId", "viewMode", "config"],
   "properties": {
-    "version": {
+    "$schema": {
       "type": "string",
-      "const": "1.0",
-      "description": "Format version for future compatibility"
+      "description": "JSON Schema reference"
     },
-    "metadata": {
-      "type": "object",
-      "required": ["atlasId", "atlasName", "exportDate", "createdWith"],
-      "properties": {
-        "atlasId": {
-          "type": "string",
-          "description": "Source atlas ID (e.g., 'france', 'portugal', 'eu')"
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique preset identifier (kebab-case, e.g., 'france-unified-default')"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable preset name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional preset description"
+    },
+    "atlasId": {
+      "type": "string",
+      "enum": ["france", "portugal", "eu", "usa", "world"],
+      "description": "Target atlas ID"
+    },
+    "viewMode": {
+      "type": "string",
+      "enum": ["unified", "split", "composite-existing"],
+      "description": "View mode this preset is for"
+    },
+    "config": {
+      "description": "View mode-specific configuration",
+      "oneOf": [
+        {
+          "description": "Unified view configuration",
+          "$ref": "#/definitions/unifiedConfig"
         },
-        "atlasName": {
-          "type": "string",
-          "description": "Atlas display name"
+        {
+          "description": "Split view configuration",
+          "$ref": "#/definitions/splitConfig"
         },
-        "exportDate": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO 8601 timestamp of export"
-        },
-        "createdWith": {
-          "type": "string",
-          "description": "Application version that created the export"
-        },
-        "notes": {
-          "type": "string",
-          "description": "Optional user notes or description"
+        {
+          "description": "Composite-existing view configuration",
+          "$ref": "#/definitions/compositeExistingConfig"
         }
-      }
-    },
-    "pattern": {
-      "type": "string",
-      "enum": ["single-focus", "equal-members"],
-      "description": "Composite pattern type"
-    },
-    "referenceScale": {
-      "type": "number",
-      "minimum": 0,
-      "description": "Reference scale used across all territories (defaults to 2700 for single-focus, 200 for equal-members)"
-    },
-    "canvasDimensions": {
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "projectionParameters": {
       "type": "object",
-      "description": "Reference canvas dimensions for scaling calculations (defaults to 960×500 for d3-composite-projections standard)",
+      "description": "Projection parameters (rotate, center, parallels, etc.)",
       "properties": {
-        "width": {
-          "type": "number",
-          "minimum": 100,
-          "maximum": 5000,
-          "description": "Reference canvas width in pixels"
+        "rotate": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 3,
+          "description": "Rotation [lambda, phi, gamma] in degrees"
         },
-        "height": {
+        "center": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Center [longitude, latitude] in degrees"
+        },
+        "parallels": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Standard parallels for conic projections"
+        },
+        "scale": {
           "type": "number",
-          "minimum": 100,
-          "maximum": 5000,
-          "description": "Reference canvas height in pixels"
+          "minimum": 0,
+          "description": "Projection scale multiplier"
+        },
+        "scaleMultiplier": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Scale multiplier for composite projections"
+        },
+        "clipAngle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 180,
+          "description": "Clip angle in degrees"
+        },
+        "distance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Distance parameter for satellite projection"
+        },
+        "tilt": {
+          "type": "number",
+          "description": "Tilt parameter for satellite projection"
         }
       },
-      "required": ["width", "height"],
       "additionalProperties": false
     },
-    "territories": {
-      "type": "array",
-      "minItems": 1,
-      "description": "Array of territory configurations",
-      "items": {
-        "type": "object",
-        "required": ["code", "name", "role", "projection", "layout", "bounds"],
-        "properties": {
-          "code": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}(-[A-Z0-9]+)*$",
-            "description": "Territory code (e.g., 'FR-MET', 'FR-GP')"
-          },
-          "name": {
-            "type": "string",
-            "description": "Territory display name"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["primary", "secondary", "member"],
-            "description": "Role in the composite structure"
-          },
-          "projection": {
-            "type": "object",
-            "required": ["id", "family", "parameters"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "Projection ID from registry (e.g., 'conic-conformal', 'mercator')"
-              },
-              "family": {
-                "type": "string",
-                "description": "Projection family (e.g., 'CONIC', 'CYLINDRICAL', 'AZIMUTHAL')"
-              },
-              "parameters": {
-                "type": "object",
-                "properties": {
-                  "center": {
-                    "type": "array",
-                    "items": { "type": "number" },
-                    "minItems": 2,
-                    "maxItems": 2,
-                    "description": "Geographic center point [longitude, latitude]"
-                  },
-                  "rotate": {
-                    "type": "array",
-                    "items": { "type": "number" },
-                    "minItems": 2,
-                    "maxItems": 3,
-                    "description": "Rotation angles [lambda, phi, gamma?]"
-                  },
-                  "parallels": {
-                    "type": "array",
-                    "items": { "type": "number" },
-                    "minItems": 2,
-                    "maxItems": 2,
-                    "description": "Standard parallels for conic projections [south, north]"
-                  },
-                  "scaleMultiplier": {
-                    "type": "number",
-                    "minimum": 0.1,
-                    "maximum": 10,
-                    "description": "User's scale multiplier"
-                  },
-                  "translate": {
-                    "type": "array",
-                    "items": { "type": "number" },
-                    "minItems": 2,
-                    "maxItems": 2,
-                    "description": "Additional translation adjustment [x, y] in pixels"
-                  },
-                  "clipAngle": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 180,
-                    "description": "Clipping angle for azimuthal projections (degrees)"
-                  },
-                  "precision": {
-                    "type": "number",
-                    "minimum": 0.01,
-                    "maximum": 10,
-                    "description": "Adaptive sampling precision"
-                  }
-                }
-              }
+    "projectionConfig": {
+      "type": "object",
+      "required": ["id", "parameters"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Projection ID from registry"
+        },
+        "parameters": {
+          "$ref": "#/definitions/projectionParameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "unifiedConfig": {
+      "type": "object",
+      "required": ["projection"],
+      "properties": {
+        "projection": {
+          "$ref": "#/definitions/projectionConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "splitConfig": {
+      "type": "object",
+      "required": ["mainland", "territories"],
+      "properties": {
+        "mainland": {
+          "type": "object",
+          "required": ["projection"],
+          "properties": {
+            "projection": {
+              "$ref": "#/definitions/projectionConfig"
             }
           },
-          "layout": {
+          "additionalProperties": false
+        },
+        "territories": {
+          "type": "object",
+          "description": "Per-territory projections keyed by territory code",
+          "additionalProperties": {
             "type": "object",
-            "required": ["translateOffset"],
+            "required": ["projection"],
             "properties": {
-              "translateOffset": {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2,
-                "description": "Territory position offset from map center [x, y] in pixels"
-              },
-              "pixelClipExtent": {
-                "oneOf": [
-                  {
-                    "type": "array",
-                    "items": { "type": "number" },
-                    "minItems": 4,
-                    "maxItems": 4,
-                    "description": "Clipping extent in pixels relative to translateOffset: [x1, y1, x2, y2] where coordinates are pixel offsets from territory center"
-                  },
-                  { "type": "null" }
-                ]
+              "projection": {
+                "$ref": "#/definitions/projectionConfig"
               }
-            }
-          },
-          "bounds": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": { "type": "number" },
-              "minItems": 2,
-              "maxItems": 2
             },
-            "minItems": 2,
-            "maxItems": 2,
-            "description": "Geographic bounds [[west, south], [east, north]]"
+            "additionalProperties": false
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "atlasMetadata": {
+    "compositeExistingConfig": {
       "type": "object",
-      "description": "Optional atlas-level projection metadata extracted from atlas configuration",
+      "required": ["projectionId"],
       "properties": {
-        "compositeProjections": {
-          "type": "array",
-          "description": "List of composite projection IDs available for this atlas",
-          "items": {
-            "type": "string"
-          },
-          "examples": [
-            ["albers-usa", "albers-usa-composite"],
-            ["conic-conformal-france"]
-          ]
-        },
-        "defaultCompositeProjection": {
+        "projectionId": {
           "type": "string",
-          "description": "Default composite projection ID to use for composite-existing mode"
+          "description": "D3 composite projection ID (e.g., 'conic-conformal-france')"
         },
-        "projectionPreferences": {
-          "type": "object",
-          "description": "Projection preferences and recommendations for this atlas",
-          "properties": {
-            "recommended": {
-              "type": "array",
-              "description": "Array of recommended projection IDs for this atlas",
-              "items": {
-                "type": "string"
-              }
-            },
-            "default": {
-              "type": "object",
-              "description": "Default projections for different territory types",
-              "properties": {
-                "mainland": {
-                  "type": "string",
-                  "description": "Default projection ID for mainland territory"
-                },
-                "overseas": {
-                  "type": "string",
-                  "description": "Default projection ID for overseas territories"
-                }
-              }
-            },
-            "prohibited": {
-              "type": "array",
-              "description": "Array of projection IDs that are not suitable for this atlas",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "projectionParameters": {
-          "type": "object",
-          "description": "Atlas-level projection parameters",
-          "properties": {
-            "center": {
-              "type": "object",
-              "properties": {
-                "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
-                "latitude": { "type": "number", "minimum": -90, "maximum": 90 }
-              },
-              "required": ["longitude", "latitude"]
-            },
-            "rotate": {
-              "type": "object",
-              "properties": {
-                "mainland": {
-                  "type": "array",
-                  "items": { "type": "number" },
-                  "minItems": 2,
-                  "maxItems": 3
-                },
-                "azimuthal": {
-                  "type": "array",
-                  "items": { "type": "number" },
-                  "minItems": 2,
-                  "maxItems": 3
-                }
-              }
-            },
-            "parallels": {
-              "type": "object",
-              "properties": {
-                "conic": {
-                  "type": "array",
-                  "items": { "type": "number" },
-                  "minItems": 2,
-                  "maxItems": 2
-                }
-              }
-            }
-          }
+        "globalScale": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10,
+          "default": 1.0,
+          "description": "Optional global scale multiplier"
         }
       },
       "additionalProperties": false

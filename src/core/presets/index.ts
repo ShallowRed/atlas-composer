@@ -2,25 +2,39 @@
  * Preset Core Module
  *
  * Core domain logic for the preset system.
- * Exports types, validators, and converters for both
- * composite-custom and view mode presets.
+ * Exports types, validators, and converters for all preset types.
  */
 
 // Converters
 export { convertToDefaults, extractTerritoryParameters } from './converter'
 
-// Types
+// Types (Unified)
 export type {
   AtlasProjectionMetadata,
+  BasePresetMetadata,
+  CompositeCustomConfig,
+  CompositeExistingPreset,
   CompositeExistingViewConfig,
-  ExtendedPresetConfig,
-  PresetLoadResult,
+  CompositePreset,
+  LoadResult,
+  Preset,
+  PresetRegistry,
+  PresetRegistryEntry,
+  PresetType,
+  SplitPreset,
   SplitViewConfig,
   TerritoryDefaults,
+  UnifiedPreset,
   UnifiedViewConfig,
+  ViewPresetMode,
+} from './types'
+
+// Legacy type exports (for gradual migration)
+export type {
+  ExtendedPresetConfig,
+  PresetLoadResult,
   ViewModePreset,
   ViewPresetLoadResult,
-  ViewPresetMode,
   ViewPresetRegistry,
 } from './types'
 
@@ -38,4 +52,4 @@ export {
 
 // Validators
 export type { ViewPresetValidationResult } from './validator'
-export { validateCompositePreset, validateViewPreset } from './validator'
+export { validateCompositePreset, validatePreset, validateViewPreset } from './validator'

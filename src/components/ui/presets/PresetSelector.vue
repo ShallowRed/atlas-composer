@@ -3,18 +3,13 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { PresetApplicationService } from '@/services/presets/preset-application-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
-import { useGeoDataStore } from '@/stores/geoData'
-import { useParameterStore } from '@/stores/parameters'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
-const geoDataStore = useGeoDataStore()
-const parameterStore = useParameterStore()
-const presetDefaults = getSharedPresetDefaults()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
@@ -46,91 +41,33 @@ const currentPreset = computed({
 
     try {
       console.info(`[PresetSelector] Loading preset: ${presetId}`)
-      const result = await PresetLoader.loadPreset(presetId)
+      const loadResult = await PresetLoader.loadPreset(presetId)
 
-      if (result.success && result.preset) {
-        // Convert preset to defaults
-        const defaults = PresetLoader.convertToDefaults(result.preset)
+      if (loadResult.success && loadResult.data) {
+        // Apply preset using centralized service
+        const applyResult = PresetApplicationService.applyPreset(loadResult.data)
 
-        // Extract territory parameters from preset
-        const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
-
-        // Clear ALL existing parameter overrides first (from any previous preset or edits)
-        // Get all territories that currently have any parameters set
-        const allCurrentTerritoryCodes = new Set<string>()
-        // Check all filtered territories for any existing parameter overrides
-        for (const territory of geoDataStore.filteredTerritories) {
-          const params = parameterStore.getTerritoryParameters(territory.code)
-          if (Object.keys(params).length > 0) {
-            allCurrentTerritoryCodes.add(territory.code)
+        if (applyResult.success) {
+          // Log warnings if present but don't treat as errors
+          if (loadResult.warnings.length > 0) {
+            console.warn(`[PresetSelector] Preset loaded with warnings:`, loadResult.warnings)
           }
-        }
-        // Also include territories from the new preset
-        Object.keys(defaults.projections).forEach(code => allCurrentTerritoryCodes.add(code))
-
-        // Clear overrides for all territories
-        allCurrentTerritoryCodes.forEach((territoryCode) => {
-          parameterStore.clearAllTerritoryOverrides(territoryCode)
-        })
-
-        // Store original preset defaults for reset functionality
-        presetDefaults.storePresetDefaults(defaults, territoryParameters)
-
-        // Apply global preset parameters to config store
-        if (result.preset.referenceScale !== undefined) {
-          configStore.referenceScale = result.preset.referenceScale
-        }
-        if (result.preset.canvasDimensions) {
-          configStore.canvasDimensions = {
-            width: result.preset.canvasDimensions.width,
-            height: result.preset.canvasDimensions.height,
+          if (applyResult.warnings.length > 0) {
+            console.warn(`[PresetSelector] Preset applied with warnings:`, applyResult.warnings)
           }
+
+          // Update selected preset tracking
+          selectedPreset.value = presetId
+          console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
         }
-
-        // Apply to parameter store - set each territory individually
-        Object.entries(defaults.projections).forEach(([code, projection]) => {
-          parameterStore.setTerritoryProjection(code, projection)
-        })
-        Object.entries(defaults.translations).forEach(([code, translation]) => {
-          parameterStore.setTerritoryTranslation(code, 'x', translation.x)
-          parameterStore.setTerritoryTranslation(code, 'y', translation.y)
-        })
-        Object.entries(defaults.scales).forEach(([code, scale]) => {
-          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-        })
-
-        // Apply territory parameters from preset (after clearing to ensure clean state)
-        // Filter out 'scale' parameter since it's computed from baseScale * scaleMultiplier
-        // Applying the old computed scale value would prevent the new preset from calculating correctly
-        const parametersWithoutScale: Record<string, any> = {}
-        Object.entries(territoryParameters).forEach(([code, params]) => {
-          const { scale, ...paramsWithoutScale } = params
-          parametersWithoutScale[code] = paramsWithoutScale
-        })
-
-        parameterStore.initializeFromPreset({}, parametersWithoutScale)
-
-        // CRITICAL: Update CompositeProjection with new parameters from preset
-        // The parameter store has been updated, but the CompositeProjection needs to re-read parameters
-        if (geoDataStore.cartographer?.customComposite) {
-          // Update each territory's parameters in the CompositeProjection
-          Object.keys(parametersWithoutScale).forEach((territoryCode) => {
-            geoDataStore.cartographer?.updateTerritoryParameters(territoryCode)
-          })
+        else {
+          loadError.value = applyResult.errors.join(', ')
+          console.error(`[PresetSelector] Failed to apply preset:`, applyResult.errors)
         }
-
-        // Log warnings if present but don't treat as errors
-        if (result.warnings.length > 0) {
-          console.warn(`[PresetSelector] Preset loaded with warnings:`, result.warnings)
-        }
-
-        // Update selected preset tracking
-        selectedPreset.value = presetId
-        console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
       }
       else {
-        loadError.value = result.errors.join(', ')
-        console.error(`[PresetSelector] Failed to load preset:`, result.errors)
+        loadError.value = loadResult.errors.join(', ')
+        console.error(`[PresetSelector] Failed to load preset:`, loadResult.errors)
       }
     }
     catch (error) {
@@ -162,7 +99,7 @@ watch(availablePresets, async (newPresets) => {
   for (const presetId of newPresets) {
     if (!presetMetadata.value.has(presetId)) {
       try {
-        const metadata = await PresetLoader.loadPresetMetadata(presetId)
+        const metadata = await PresetLoader.loadMetadata(presetId)
         if (metadata) {
           presetMetadata.value.set(presetId, metadata)
         }
