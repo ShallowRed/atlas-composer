@@ -8,3 +8,4 @@
 - improve test coverage (in both direction, make sure we don't miss anything, and remove useless tests)
 - new feature : add a zoomed inset in composition
 - new feature : a two way converter between d3-composite-projections and json presets
+- new feature : usage with mapbox, leaflet, etc.

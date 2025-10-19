@@ -2,20 +2,18 @@
 
 ## Overview
 
-The preset system manages saved projection configurations for all view modes. Presets define how territories are projected, positioned, and scaled across different viewing contexts. The system uses a unified architecture with a single loader, single registry, and discriminated union types for all preset types.
+The preset system manages saved projection configurations for all view modes using a unified architecture. A single loader handles all preset types, a single registry tracks all presets, and discriminated union types provide type-safe handling across the application.
 
 ## Preset Types
 
-The system supports four preset types, unified under a discriminated union:
+Four preset types exist in a discriminated union (`Preset`):
 
-1. **composite-custom** - Full custom composite projections with per-territory configuration (exportable, round-trip capable)
-2. **unified** - Single projection for entire atlas
-3. **split** - Individual projections per territory
-4. **composite-existing** - Uses d3-composite-projections library
+1. **composite-custom** - Custom composite projections with full per-territory configuration (exportable, round-trip capable)
+2. **unified** - Single projection covering the entire atlas
+3. **split** - Individual projections per territory group
+4. **composite-existing** - Predefined projections from d3-composite-projections library
 
 ## Architecture
-
-The preset system follows a layered architecture with unified types and services:
 
 ### Core Layer (src/core/presets/)
 
@@ -46,25 +44,28 @@ The preset system follows a layered architecture with unified types and services
 ### Service Layer (src/services/presets/)
 
 **PresetLoader** (`preset-loader.ts`)
-- Unified file loading service for ALL preset types
-- Loads JSON preset files from unified configs/presets/ directory
-- Single registry (configs/presets/registry.json) with type discriminators
-- Type-aware validation routing
+- Unified loading service for all preset types
+- Loads from single directory: `configs/presets/`
+- Uses single registry: `configs/presets/registry.json` (version 2.0)
+- Type-discriminated validation routing
 - Methods:
-  - `loadPreset(presetId)` - Loads any preset type, returns LoadResult<Preset>
-  - `listPresets(filters?)` - Lists presets with optional filtering by atlasId/type/viewMode
-  - `loadMetadata(presetId)` - Loads preset metadata without full validation
-  - `loadRegistry()` - Loads and caches unified registry
-- Re-exports core converters for backward compatibility
+  - `loadPreset(presetId)` - Returns `LoadResult<Preset>` with type discrimination
+  - `listPresets(filters?)` - Filters by atlasId, type, or viewMode
+  - `loadMetadata(presetId)` - Lightweight metadata loading
+  - `loadRegistry()` - Cached registry access
+- Re-exports core converters (`convertToDefaults`, `extractTerritoryParameters`)
 
 **PresetApplicationService** (`preset-application-service.ts`)
-- Centralizes all preset application logic
-- Routes application based on preset type
+- Centralizes preset application logic using strategy pattern
+- Routes by preset.type to specialized handlers
 - Methods:
-  - `applyPreset(preset)` - Applies any preset type to stores
-  - Private handlers: applyCompositeCustom(), applyUnified(), applySplit(), applyCompositeExisting()
-- Returns ApplicationResult with success/errors/warnings
-- Delegates store updates (configStore, parameterStore)
+  - `applyPreset(preset)` - Unified entry point for all types
+  - `applyCompositeCustom(config)` - Handles composite-custom presets
+  - `applyUnified(config)` - Handles unified view presets
+  - `applySplit(config)` - Handles split view presets
+  - `applyCompositeExisting(config)` - Handles composite-existing presets
+- Returns `ApplicationResult` (success, errors, warnings)
+- Coordinates updates across configStore and parameterStore
 
 **AtlasMetadataService** (`atlas-metadata-service.ts`)
 - Provides clean API for accessing atlas projection metadata
@@ -164,9 +165,54 @@ Single registry file at `configs/presets/registry.json` contains all preset type
 }
 ```
 
+## Registry Format
+
+The unified registry (`configs/presets/registry.json` v2.0) lists all preset types:
+
+```json
+{
+  "version": "2.0",
+  "description": "Unified registry of all preset types (composite-custom, unified, split, composite-existing)",
+  "presets": [
+    {
+      "id": "france-default",
+      "name": "France - Composite personnalisée par défaut",
+      "atlasId": "france",
+      "type": "composite-custom",
+      "pattern": "single-focus",
+      "territoryCount": 9,
+      "description": "Configuration alignée avec geoConicConformalFrance"
+    },
+    {
+      "id": "france-unified",
+      "atlasId": "france",
+      "type": "unified",
+      "name": "France - Vue unifiée",
+      "description": "Projection Natural Earth centrée sur la France"
+    },
+    {
+      "id": "france-split",
+      "atlasId": "france",
+      "type": "split",
+      "name": "France - Vue séparée",
+      "description": "Même projection conique pour tous les territoires"
+    }
+  ]
+}
+```
+
+**Registry Entry Fields:**
+- `id` - Preset identifier (matches filename without extension)
+- `name` - Display name (can be string or i18n object)
+- `atlasId` - Target atlas
+- `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `description` - Optional description
+- `pattern` - (composite-custom only) Composite pattern type
+- `territoryCount` - (composite-custom only) Number of territories configured
+
 ## Preset File Formats
 
-### Structure
+### Composite-Custom Format
 
 ```json
 {
@@ -174,8 +220,8 @@ Single registry file at `configs/presets/registry.json` contains all preset type
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",
-    "exportDate": "2025-10-13T09:01:03.526Z",
-    "createdWith": "Atlas composer v1.0"
+    "exportDate": "2025-10-16T16:00:00.000Z",
+    "createdWith": "d3-composite-projections alignment"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
@@ -184,19 +230,20 @@ Single registry file at `configs/presets/registry.json` contains all preset type
       "code": "FR-MET",
       "name": "France Métropolitaine",
       "role": "primary",
-      "projectionId": "conic-conformal",
-      "projectionFamily": "CONIC",
-      "parameters": {
-        "center": [0, 0],
-        "rotate": [-3, -46.2, 0],
-        "scaleMultiplier": 1,
-        "parallels": [-2, 2]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [-3, -46.2, 0],
+          "parallels": [0, 60],
+          "scaleMultiplier": 1
+        }
       },
       "layout": {
         "translateOffset": [0, 0],
-        "clipExtent": [[-0.0996, -0.0908], [0.0967, 0.0864]]
+        "pixelClipExtent": [-268.92, -245.16, 260.99, 324]
       },
-      "bounds": [[-5, 41], [10, 51]]
+      "bounds": [[-6.5, 41], [10, 51.5]]
     }
   ]
 }
@@ -205,45 +252,36 @@ Single registry file at `configs/presets/registry.json` contains all preset type
 ### Field Definitions
 
 **Metadata**
-- `version`: Preset format version
+- `version`: Preset format version ("1.0")
 - `metadata.atlasId`: Target atlas identifier
 - `metadata.atlasName`: Human-readable atlas name
-- `metadata.exportDate`: Creation/export timestamp
-- `metadata.createdWith`: Application version
+- `metadata.exportDate`: ISO 8601 timestamp
+- `metadata.createdWith`: Application/source identifier
 
 **Composite Configuration**
-- `pattern`: Composite pattern type ("single-focus" or "equal-members")
-- `referenceScale`: Base scale for all territories (authoritative source, overrides atlas config)
-- `canvasDimensions`: Optional canvas size specification (width and height in pixels)
-  - Defines ideal canvas size for the preset
-  - Controls actual SVG display size via MapSizeCalculator
-  - Used by d3-composite-projections for projection calculations
-  - Example: `{ "width": 960, "height": 500 }`
+- `pattern`: "single-focus" | "equal-members"
+- `referenceScale`: Base scale for all territories (overrides atlas config)
+- `canvasDimensions`: Optional {width, height} in pixels
 
 **Territory Configuration**
-- `code`: Territory ISO code or identifier
-- `name`: Human-readable territory name
-- `role`: Territory role ("primary" or "secondary")
-- `projectionId`: Projection identifier from projection registry
-- `projectionFamily`: Projection family type
+- `code`: Territory ISO code
+- `name`: Territory display name
+- `role`: "primary" | "secondary"
+- `projection.id`: Projection identifier from registry
+- `projection.family`: Projection family (CONIC, CYLINDRICAL, AZIMUTHAL, etc.)
+- `projection.parameters`: Parameter object
 
-**Projection Parameters** (`parameters`)
-- `center`: [longitude, latitude] - Projection center for cylindrical/azimuthal projections
-- `rotate`: [λ, φ, γ] - Three-axis rotation for conic projections
+**Projection Parameters**
+- `rotate`: [λ, φ, γ] - Three-element rotation array (required for most projections)
 - `parallels`: [φ1, φ2] - Standard parallels for conic projections
-- `scaleMultiplier`: Scale adjustment factor applied to atlas referenceScale (typically 0.5 - 2.0)
+- `center`: [longitude, latitude] - Center point for cylindrical/azimuthal
+- `scaleMultiplier`: Scale factor applied to referenceScale (default: 1)
 
-**Note**: Deprecated `scale` and `baseScale` parameters removed - scale is now calculated as `referenceScale × scaleMultiplier`
+**Layout Properties**
+- `translateOffset`: [x, y] - Pixel offset from computed position
+- `pixelClipExtent`: [x1, y1, x2, y2] | null - Pixel-based clipping bounds
 
-**Layout Properties** (`layout`)
-- `translateOffset`: [x, y] - Pixel offset from map center
-- `clipExtent`: [[x1, y1], [x2, y2]] - Normalized clipping bounds for territory-specific content clipping
-  - Applied as territory-centered bounding box during composite projection build
-  - Uses d3-composite-projections compatible coordinate format
-  - Calculated as box dimensions centered on territory position with epsilon padding
-  - Enables precise content clipping for overseas territories and scattered regions
-
-**Geographic Bounds** (`bounds`)
+**Geographic Bounds**
 - `bounds`: [[west, south], [east, north]] - Territory bounding box in degrees
 
 ## Parameter Extraction

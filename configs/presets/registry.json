@@ -141,7 +141,7 @@
       "description": "Projection composite Albers USA prédéfinie"
     },
     {
-      "id": "world-unified-default",
+      "id": "world-unified",
       "name": "Monde - Vue unifiée standard",
       "atlasId": "world",
       "type": "unified",

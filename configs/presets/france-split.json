@@ -10,7 +10,7 @@
       "projection": {
         "id": "conic-conformal",
         "parameters": {
-          "rotate": [-3, -46.2],
+          "rotate": [-3, -46.2, 0],
           "parallels": [0, 60]
         }
       }

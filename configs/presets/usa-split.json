@@ -10,7 +10,7 @@
       "projection": {
         "id": "conic-conformal",
         "parameters": {
-          "rotate": [98, -38],
+          "rotate": [98, -38, 0],
           "parallels": [29.5, 45.5]
         }
       }
@@ -20,7 +20,7 @@
         "projection": {
           "id": "conic-conformal",
           "parameters": {
-            "rotate": [98, -38],
+            "rotate": [98, -38, 0],
             "parallels": [29.5, 45.5]
           }
         }
@@ -29,7 +29,7 @@
         "projection": {
           "id": "conic-conformal",
           "parameters": {
-            "rotate": [98, -38],
+            "rotate": [98, -38, 0],
             "parallels": [29.5, 45.5]
           }
         }
@@ -38,7 +38,7 @@
         "projection": {
           "id": "conic-conformal",
           "parameters": {
-            "rotate": [98, -38],
+            "rotate": [98, -38, 0],
             "parallels": [29.5, 45.5]
           }
         }
