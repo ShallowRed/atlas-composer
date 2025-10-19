@@ -6,14 +6,55 @@ The preset system manages saved composite projection configurations that define 
 
 ## Architecture
 
-### Core Components
+The preset system follows a layered architecture separating core domain logic from service implementation:
 
-**PresetLoader** (`src/services/presets/preset-loader.ts`)
-- Static service for loading and validating preset files
-- Loads JSON preset files from `configs/presets/` directory
-- Extracts territory parameters (projection parameters and layout properties)
-- Validates preset structure and data integrity
-- Converts preset format to internal application formats
+### Core Layer (src/core/presets/)
+
+**Types** (`types.ts`)
+- Domain types for preset system
+- PresetLoadResult, ExtendedPresetConfig, AtlasProjectionMetadata
+- TerritoryDefaults (projections, translations, scales map)
+- ViewModePreset, ViewPresetLoadResult, ViewPresetRegistry
+- UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
+
+**Validators** (`validator.ts`)
+- Pure validation functions for preset configurations
+- validateCompositePreset() - Validates composite preset structure and parameters
+- validateViewPreset() - Validates view mode preset configuration
+- Parameter validation using parameter registry
+- Required parameter checks for preset integrity
+
+**Converters** (`converter.ts`)
+- Pure conversion functions between formats
+- convertToDefaults() - Converts preset to TerritoryDefaults format
+- extractTerritoryParameters() - Extracts projection parameters from preset
+- Registry-driven parameter extraction
+
+### Service Layer (src/services/presets/)
+
+**PresetLoader** (`preset-loader.ts`)
+- File loading service for composite projection presets
+- Loads JSON preset files from configs/presets/ directory
+- Orchestrates validation using core validators
+- Uses core converters for format transformation
+- Static methods: loadPreset(), loadPresetMetadata(), listAvailablePresets()
+- Re-exports core converters (convertToDefaults, extractTerritoryParameters) for backward compatibility
+
+**ViewPresetLoader** (`view-preset-loader.ts`)
+- File loading service for view mode presets
+- Loads JSON files from configs/view-presets/ directory
+- Orchestrates validation using core validators
+- Registry caching for performance
+- Static methods: loadPreset(), loadRegistry(), getAvailablePresets()
+
+**AtlasMetadataService** (`atlas-metadata-service.ts`)
+- Provides clean API for accessing atlas projection metadata
+- Loads metadata from preset files using PresetLoader
+- Caches metadata for performance
+- Fallback defaults for atlases without presets
+- Static methods: getAtlasMetadata(), getCompositeProjections(), getProjectionPreferences()
+
+### Integration Components
 
 **AtlasCoordinator** (`src/services/atlas/atlas-coordinator.ts`)
 - Orchestrates preset loading during atlas initialization
@@ -53,10 +94,10 @@ configStore.initializeWithPresetMetadata()
   ↓
 AtlasCoordinator.handleAtlasChange()
   ↓
-PresetLoader.loadPreset()
-  ↓
-PresetLoader.convertToDefaults()
-PresetLoader.extractTerritoryParameters()
+PresetLoader.loadPreset() [Service Layer]
+  → validateCompositePreset() [Core Validator]
+  → convertToDefaults() [Core Converter]
+  → extractTerritoryParameters() [Core Converter]
   ↓
 Apply to Stores:
   - territoryStore.setTerritoryProjection()

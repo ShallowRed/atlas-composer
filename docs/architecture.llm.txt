@@ -38,7 +38,17 @@ File: docs/services.llm.txt (Parameter Management section)
 - Registry-driven UI constraints and real-time validation feedback
 - Comprehensive test coverage (32 passing tests)
 
-### 4. Service Layer
+### 4. Preset System
+Domain: Saved projection configurations
+File: docs/presets.llm.txt
+- Core preset types and validation logic (src/core/presets/)
+- Preset file loading services (src/services/presets/)
+- Territory defaults and parameter extraction
+- View mode preset management (unified, split, composite-existing)
+- Atlas metadata extraction from preset files
+- Conversion between preset format and internal application formats
+
+### 5. Service Layer
 Domain: Business logic and rendering
 File: docs/services.llm.txt
 - AtlasService: Configuration management
@@ -47,7 +57,7 @@ File: docs/services.llm.txt
 - DataLoaderService: GeoJSON data loading
 - TerritoryDataService: Territory positioning
 
-### 5. Vue Layer
+### 6. Vue Layer
 Domain: User interface and interaction
 File: docs/vue-architecture.llm.txt
 - Vue 3 components with Composition API (16 components)
@@ -57,7 +67,7 @@ File: docs/vue-architecture.llm.txt
 - Comprehensive type safety (370 lines of types)
 - Test coverage (175 tests, 100% passing)
 
-### 6. Export System
+### 7. Export System
 Domain: Code generation for composite projections
 File: docs/export.llm.txt
 - Registry-based parameter export with complete coverage
@@ -67,7 +77,7 @@ File: docs/export.llm.txt
 - D3 stream protocol implementation
 - Geographic bounds routing and stream multiplexing
 
-### 7. Build System
+### 8. Build System
 Domain: Data preparation and validation
 File: docs/scripts.llm.txt
 - prepare-geodata.ts: Natural Earth processing
@@ -94,6 +104,8 @@ src/
 ├── core/               # Core domain logic
 │   ├── atlases/            # Atlas system
 │   ├── projections/        # Projection system
+│   ├── parameters/         # Parameter registry
+│   ├── presets/            # Preset types and logic
 │   └── types/              # Shared types
 ├── services/           # Business logic layer
 │   ├── atlas/              # Atlas management
@@ -171,23 +183,36 @@ DOM Update
    - Projection registry with recommendation engine
    - D3 projection factory and creation
 
-3. **Rendering Domain** (services/rendering/)
+3. **Parameter Domain** (core/parameters/)
+   - Central parameter registry with metadata
+   - Type-safe parameter definitions with constraints
+   - Family-based parameter relevance and validation
+   - Parameter inheritance system
+
+4. **Preset Domain** (core/presets/, services/presets/)
+   - Core: Domain types (PresetLoadResult, TerritoryDefaults, ViewModePreset)
+   - Core: Validation logic (validateCompositePreset, validateViewPreset)
+   - Core: Conversion logic (convertToDefaults, extractTerritoryParameters)
+   - Services: File loading (PresetLoader, ViewPresetLoader)
+   - Services: Atlas metadata extraction (AtlasMetadataService)
+
+5. **Rendering Domain** (services/rendering/)
    - Cartographer coordination
    - Observable Plot integration
    - Map rendering logic
 
-4. **Data Domain** (services/data/)
+6. **Data Domain** (services/data/)
    - GeoJSON loading and caching
    - Natural Earth data processing
    - Territory data management
 
-5. **UI Domain** (views/, components/, composables/)
+7. **UI Domain** (views/, components/, composables/)
    - Vue components and page layouts (16 components)
    - Reusable composables for logic (16 composables including useAtlasConfig, useParameterProvider)
    - Component-specific state and interactions
    - Type-safe props and events (vue-props.ts, composables.ts)
 
-6. **State Domain** (stores/)
+8. **State Domain** (stores/)
    - Configuration state: configStore (361 lines) - Atlas, view mode, projections
    - Geographic data state: geoData (200 lines) - GeoJSON data, caching
    - UI state: ui.ts - Loading states, modals, toasts

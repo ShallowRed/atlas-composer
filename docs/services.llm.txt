@@ -78,20 +78,33 @@ Provides centralized logic for calculating territory defaults based on atlas con
 - `initializeTranslations()` - Calculate default pixel offsets for territories
 - `initializeScales()` - Calculate default scale multipliers for territories
 
-Returns TerritoryDefaults containing projections (Record<string, string>), translations (Record<string, {x, y}>), and scales (Record<string, number>).
+Returns TerritoryDefaults (imported from @/core/presets) containing projections (Record<string, string>), translations (Record<string, {x, y}>), and scales (Record<string, number>).
 Used by config store initialization and AtlasCoordinator for setting up territory parameters on atlas changes.
 
 ### PresetLoader
 Loads preset composite projection configurations from configs/presets/ directory.
-Static service providing preset loading and validation.
-- `loadPreset()` - Load and validate preset file (async)
-- `convertToDefaults()` - Convert preset to TerritoryDefaults format (projections, translations, scales)
-- `extractTerritoryParameters()` - Extract projection parameters (rotate, center, parallels) from preset
-- `validatePreset()` - Validate preset configuration
+Static service providing preset loading orchestration.
+Uses core validation and conversion logic from @/core/presets.
+- `loadPreset()` - Load and validate preset file using core validators (async)
+- `convertToDefaults()` - Re-exports core converter for TerritoryDefaults format
+- `extractTerritoryParameters()` - Re-exports core converter for projection parameters
+- `loadPresetMetadata()` - Load lightweight preset metadata (async)
 - `listAvailablePresets()` - List available presets (placeholder)
 
-Delegates validation to CompositeImportService for consistency.
-Extracts both layout properties (translation/scale) and projection parameters (rotate/center/parallels) separately.
+Delegates validation to core validateCompositePreset() function.
+Delegates conversion to core convertToDefaults() and extractTerritoryParameters() functions.
+Focuses on file I/O and orchestration, domain logic in core layer.
+
+### ViewPresetLoader
+Loads preset configurations for unified, split, and composite-existing view modes.
+Static service providing view preset loading orchestration.
+Uses core validation logic from @/core/presets.
+- `loadPreset()` - Load and validate view preset using core validators (async)
+- `loadRegistry()` - Load and cache view preset registry (async)
+- `getAvailablePresets()` - Get filtered presets for atlas and view mode (async)
+
+Delegates validation to core validateViewPreset() function.
+Focuses on file I/O, registry management, and orchestration.
 
 ### AtlasMetadataService
 Provides clean API for accessing atlas-level projection metadata from preset files.
