@@ -1,0 +1,386 @@
+# Architecture Analysis: Making Atlas Configs Completely Projection-Agnostic
+
+## Current State Analysis
+
+### Projection-Related Fields in Atlas Configs
+
+**In `JSONAtlasConfig` (types/atlas-config.ts):**
+- `defaultProjection?: string` - Line 55 - ❌ PROJECTION-RELATED
+- `pattern?: 'single-focus' | 'equal-members' | 'hierarchical'` - ✅ GEOGRAPHIC STRUCTURE (OK)
+- `defaultPreset?: string` - ✅ PRESET REFERENCE (OK)
+- `availablePresets?: string[]` - ✅ PRESET REFERENCE (OK)
+
+**In `AtlasConfig` (src/types/atlas.ts):**
+- `compositeProjectionConfig?: CompositeProjectionConfig` - ❌ PROJECTION STRUCTURE
+- `pattern: 'single-focus' | 'equal-members' | 'hierarchical'` - ✅ GEOGRAPHIC STRUCTURE (OK)
+
+### How These Fields Are Used
+
+#### 1. `defaultProjection` Field
+**Current Usage:**
+- Defined in `types/atlas-config.ts` line 55
+- Defined in `configs/schema.json` line 395
+- Used in `territory-defaults-service.ts` as fallback parameter
+
+**Analysis:**
+- This field is NOT currently read from any atlas JSON file
+- It's used only as a parameter default in `TerritoryDefaultsService.initializeProjections()`
+- Default value is hardcoded as `'mercator'`
+- **Can be removed** - not actively used by atlas configs
+
+#### 2. `compositeProjectionConfig` Field
+**Current Usage:**
+- Generated in `core/atlases/loader.ts` lines 324-334 from territory structure
+- Stored in `AtlasConfig` interface
+- Used by:
+  - `AtlasService.getCompositeConfig()` - returns the config
+  - `Cartographer` constructor - creates `CompositeProjection` instance
+  - `MapRenderCoordinator.renderCompositeMap()` - builds custom settings
+  - `CompositeSettingsBuilder.buildSettings()` - generates settings
+  - Export dialog - accesses territory structure
+
+**Analysis:**
+- This is a **derived/computed** structure, not stored in atlas JSON files
+- It's generated from `territories` array using `role` field
+- Contains only geographic structure (`TerritoryConfig[]`), NOT projection parameters
+- Used to initialize rendering infrastructure
+
+### The Core Issue
+
+**Current Architecture:**
+```
+Atlas JSON (configs/atlases/*.json)
+  → territories[] with roles (primary/secondary/member)
+  → loader extracts and categorizes territories
+  → creates CompositeProjectionConfig { mainland, overseas }
+  → stored in AtlasConfig.compositeProjectionConfig
+  → used to initialize CompositeProjection class
+```
+
+**The Problem:**
+- `CompositeProjectionConfig` contains `TerritoryConfig[]`
+- This is presented as "projection configuration" but it's really **geographic structure**
+- The name implies projection-specific info, but content is projection-agnostic
+- Creates confusion: is this projection data or geographic data?
+
+## Architectural Solution
+
+### Proposed Clean Architecture
+
+#### 1. Rename and Clarify Purpose
+
+**Change:** `CompositeProjectionConfig` → `TerritoryCompositionConfig`
+
+**Rationale:**
+- "Composition" describes what it is: how territories are composed/arranged
+- Not specific to projections - it's about geographic structure
+- Used by both projection rendering AND other features (export, UI, data loading)
+
+#### 2. Separate Concerns Clearly
+
+**Geographic Structure** (stays in atlas configs):
+```typescript
+// types/territory-composition.ts
+export interface TerritoryCompositionConfig {
+  type: 'single-focus' | 'equal-members'
+  primary: TerritoryConfig        // The main territory/territories
+  secondary: TerritoryConfig[]    // Additional territories
+}
+
+// For single-focus (France, Portugal):
+{
+  type: 'single-focus',
+  primary: { mainland },          // One primary
+  secondary: [overseas...]        // N secondary
+}
+
+// For equal-members (EU, World):
+{
+  type: 'equal-members',
+  primary: [members...],          // N equal primaries
+  secondary: []                   // Optional secondary
+}
+```
+
+**Projection Configuration** (stays in presets):
+```typescript
+// Already in configs/presets/*.json
+{
+  "referenceScale": 2700,
+  "territories": {
+    "FR-MET": {
+      "projection": { "id": "conic-conformal", "parameters": {...} },
+      "layout": { "translateOffset": [0, 0] }
+    }
+  }
+}
+```
+
+#### 3. Refactor Key Components
+
+**A. Update Type Definitions**
+
+```typescript
+// types/territory-composition.ts
+export interface SingleFocusComposition {
+  type: 'single-focus'
+  primary: TerritoryConfig
+  secondary: TerritoryConfig[]
+}
+
+export interface EqualMembersComposition {
+  type: 'equal-members'
+  primary: TerritoryConfig[]      // Changed: all members are "primary"
+  secondary: TerritoryConfig[]
+}
+
+export type TerritoryCompositionConfig = 
+  | SingleFocusComposition 
+  | EqualMembersComposition
+
+// Backward compatibility adapters
+export interface LegacyCompositeProjectionConfig {
+  // Old interface for gradual migration
+}
+```
+
+**B. Update AtlasConfig**
+
+```typescript
+// types/atlas.ts
+export interface AtlasConfig {
+  id: string
+  name: string
+  category?: AtlasCategory
+  pattern: 'single-focus' | 'equal-members' | 'hierarchical'
+  geoDataConfig: GeoDataConfig
+  
+  // RENAMED: Clear that this is geographic structure, not projection
+  territoryComposition: TerritoryCompositionConfig  // ← NEW NAME
+  
+  // Projection info comes from presets only
+  defaultPreset?: string
+  availablePresets?: string[]
+  
+  // UI/behavior config
+  supportedViewModes: ViewMode[]
+  defaultViewMode: ViewMode
+  splitModeConfig?: SplitModeConfig
+  // ... rest
+}
+```
+
+**C. Update CompositeProjection Class**
+
+```typescript
+// services/projection/composite-projection.ts
+export class CompositeProjection {
+  private subProjections: SubProjectionConfig[] = []
+  private compositeProjection: GeoProjection | null = null
+  private composition: TerritoryCompositionConfig  // ← RENAMED
+  private parameterProvider?: ProjectionParameterProvider
+  
+  constructor(
+    composition: TerritoryCompositionConfig,  // ← RENAMED
+    parameterProvider?: ProjectionParameterProvider,
+    referenceScale?: number,
+    canvasDimensions?: { width: number, height: number }
+  ) {
+    this.composition = composition
+    this.parameterProvider = parameterProvider
+    this.referenceScale = referenceScale
+    this.canvasDimensions = canvasDimensions
+    this.initialize()
+  }
+  
+  private initialize() {
+    if (this.composition.type === 'single-focus') {
+      this.initializeSingleFocus()
+    } else {
+      this.initializeEqualMembers()
+    }
+  }
+}
+```
+
+**D. Update Loader**
+
+```typescript
+// core/atlases/loader.ts
+function createTerritoryComposition(
+  territories: LoadedTerritories
+): TerritoryCompositionConfig | undefined {
+  if (territories.isWildcard) {
+    return undefined  // Wildcard atlases don't need composition config
+  }
+  
+  if (territories.type === 'single-focus') {
+    return {
+      type: 'single-focus',
+      primary: territories.mainland,
+      secondary: territories.overseas
+    }
+  } else {
+    return {
+      type: 'equal-members',
+      primary: territories.mainlands!,
+      secondary: territories.overseas
+    }
+  }
+}
+
+function createAtlasConfig(...): AtlasConfig {
+  return {
+    id: config.id,
+    name: resolveI18nValue(config.name, locale),
+    pattern: territories.type,
+    
+    // Clear naming: this is geographic composition, not projection
+    territoryComposition: createTerritoryComposition(territories),
+    
+    // Projection info from presets
+    defaultPreset: config.defaultPreset,
+    availablePresets: config.availablePresets || [],
+    // ...
+  }
+}
+```
+
+**E. Update Services**
+
+```typescript
+// services/atlas/atlas-service.ts
+export class AtlasService {
+  getComposition(): TerritoryCompositionConfig | undefined {
+    return this.atlasConfig.territoryComposition
+  }
+  
+  // Backward compatibility
+  /** @deprecated Use getComposition() instead */
+  getCompositeConfig(): TerritoryCompositionConfig | undefined {
+    return this.getComposition()
+  }
+}
+
+// services/rendering/cartographer-factory.ts
+export function createCartographer(
+  geoDataConfig: GeoDataConfig,
+  composition: TerritoryCompositionConfig | undefined,
+  parameterProvider: ProjectionParameterProvider,
+  referenceScale?: number
+): Cartographer {
+  return new Cartographer(
+    geoDataConfig,
+    composition,  // Clear: geographic structure
+    undefined,    // No projection params here
+    parameterProvider,
+    referenceScale
+  )
+}
+```
+
+#### 4. Remove `defaultProjection` Field
+
+**Steps:**
+1. Remove from `types/atlas-config.ts`
+2. Remove from `configs/schema.json`
+3. Update `TerritoryDefaultsService` to always use `'mercator'` default
+4. Update any references in documentation
+
+### Migration Strategy
+
+#### Phase 1: Add New Names (Backward Compatible)
+1. Create new `TerritoryCompositionConfig` type alongside old `CompositeProjectionConfig`
+2. Add `territoryComposition` field to `AtlasConfig` alongside old field
+3. Update loader to populate both fields
+4. Add deprecation notices to old names
+
+#### Phase 2: Update Consumers
+1. Update `CompositeProjection` class to accept either name
+2. Update services to use new name internally
+3. Update components to use new getter methods
+4. Update tests
+
+#### Phase 3: Remove Old Names
+1. Remove deprecated `CompositeProjectionConfig` type
+2. Remove deprecated `compositeProjectionConfig` field
+3. Remove backward compatibility code
+4. Update all documentation
+
+### Benefits of This Architecture
+
+1. **Clear Separation of Concerns**
+   - Geographic structure (territories, roles, relationships) in atlas configs
+   - Projection parameters (types, scales, offsets) in presets
+   - No confusion about what goes where
+
+2. **Better Naming**
+   - `TerritoryCompositionConfig` clearly describes content
+   - Not tied to projection concept
+   - Usable by non-projection features
+
+3. **Truly Projection-Agnostic Atlas Configs**
+   - Same atlas config works with any projection preset
+   - Different presets = different visual layouts
+   - Atlas only describes geography
+
+4. **Cleaner API**
+   - `atlasService.getComposition()` vs `atlasService.getCompositeConfig()`
+   - More intuitive for new developers
+   - Consistent with "composition over projection" principle
+
+5. **Future-Proof**
+   - Easy to add new composition patterns (hierarchical)
+   - Easy to add new territory relationships
+   - Projection system completely independent
+
+### Implementation Checklist
+
+- [ ] Create new `types/territory-composition.ts` file
+- [ ] Add `TerritoryCompositionConfig` type definitions
+- [ ] Update `AtlasConfig` to add `territoryComposition` field (keep old for now)
+- [ ] Update `core/atlases/loader.ts` to populate both fields
+- [ ] Update `CompositeProjection` class to accept new type
+- [ ] Add backward compatibility adapters
+- [ ] Update all service methods to use new naming
+- [ ] Update component imports and usage
+- [ ] Update tests
+- [ ] Add deprecation warnings to old names
+- [ ] Update documentation
+- [ ] Remove `defaultProjection` field
+- [ ] After validation period: remove old names
+
+## Alternative: Minimal Change Approach
+
+If full renaming is too disruptive, a minimal approach:
+
+1. **Keep current names** but document clearly:
+   - `CompositeProjectionConfig` = "Geographic territory composition for rendering"
+   - Add JSDoc: "Contains geographic structure only, not projection parameters"
+   
+2. **Remove `defaultProjection`** field entirely (unused)
+
+3. **Add clear comments** everywhere it's used:
+   ```typescript
+   // Geographic structure for composite rendering (projection-agnostic)
+   compositeProjectionConfig?: CompositeProjectionConfig
+   ```
+
+4. **Update documentation** to emphasize:
+   - This config is projection-agnostic
+   - It's about territory relationships, not projections
+   - All projection parameters come from presets
+
+This preserves existing code but removes confusion through documentation.
+
+## Recommendation
+
+**Recommended: Full Architectural Refactor**
+
+While the minimal approach is safer, the full refactor provides:
+- Long-term maintainability
+- Clear conceptual model
+- Better onboarding for new developers
+- True separation of concerns
+
+The migration can be done gradually with backward compatibility, minimizing risk while achieving architectural clarity.

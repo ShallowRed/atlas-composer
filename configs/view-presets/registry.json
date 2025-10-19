@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "description": "Registry of available view mode presets",
+  "presets": [
+    {
+      "id": "france-unified-default",
+      "name": "France - Vue unifiée standard",
+      "atlasId": "france",
+      "viewMode": "unified",
+      "description": "Projection Natural Earth centrée sur la France"
+    },
+    {
+      "id": "france-split-uniform",
+      "name": "France - Vue séparée uniforme",
+      "atlasId": "france",
+      "viewMode": "split",
+      "description": "Même projection conique pour tous les territoires"
+    },
+    {
+      "id": "france-split-individual",
+      "name": "France - Vue séparée optimisée",
+      "atlasId": "france",
+      "viewMode": "split",
+      "description": "Projection adaptée à chaque territoire"
+    },
+    {
+      "id": "france-composite-existing",
+      "name": "France - Composite d3 standard",
+      "atlasId": "france",
+      "viewMode": "composite-existing",
+      "description": "Projection composite prédéfinie de d3-composite-projections"
+    }
+  ]
+}

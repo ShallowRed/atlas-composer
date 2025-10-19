@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "id": "france-composite-existing",
+  "name": "France - Composite d3 standard",
+  "description": "Projection composite prédéfinie de d3-composite-projections",
+  "atlasId": "france",
+  "viewMode": "composite-existing",
+  "config": {
+    "projectionId": "conic-conformal-france",
+    "globalScale": 1.0
+  }
+}

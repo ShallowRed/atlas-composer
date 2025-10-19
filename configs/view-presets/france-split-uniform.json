@@ -1,0 +1,20 @@
+{
+  "$schema": "./schema.json",
+  "id": "france-split-uniform",
+  "name": "France - Vue séparée uniforme",
+  "description": "Même projection conique pour tous les territoires",
+  "atlasId": "france",
+  "viewMode": "split",
+  "config": {
+    "mode": "uniform",
+    "uniform": {
+      "projection": {
+        "id": "conic-conformal",
+        "parameters": {
+          "rotate": [-3, -46.2],
+          "parallels": [0, 60]
+        }
+      }
+    }
+  }
+}
