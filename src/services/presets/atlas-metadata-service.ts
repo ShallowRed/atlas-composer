@@ -11,7 +11,7 @@
  * - Handle projection preferences, parameters, and display defaults
  */
 
-import type { AtlasProjectionMetadata, PresetLoadResult } from './preset-loader'
+import type { AtlasProjectionMetadata, PresetLoadResult } from '@/core/presets'
 import { PresetLoader } from './preset-loader'
 
 export interface AtlasMetadataResult {

@@ -1,13 +1,5 @@
+import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryConfig } from '@/types'
-
-/**
- * Territory defaults result containing all initialization data
- */
-export interface TerritoryDefaults {
-  projections: Record<string, string>
-  translations: Record<string, { x: number, y: number }>
-  scales: Record<string, number>
-}
 
 /**
  * Service for initializing territory default configurations

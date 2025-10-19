@@ -1,4 +1,4 @@
-import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
+import type { TerritoryDefaults } from '@/core/presets'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { ref, toRaw } from 'vue'
