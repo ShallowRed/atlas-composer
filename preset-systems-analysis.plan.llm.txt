@@ -527,12 +527,102 @@ src/components/ui/presets/
 - **User Experience**: Consistent preset loading/saving across all modes
 
 ## Status
-Status: PLANNED
+Status: PHASE_1_COMPLETE
 Last Updated: 2025-10-19
+
+## Phase 1 Implementation Summary
+
+### Completed Tasks
+
+1. **PresetFileLoader Utility** ✅
+   - Created `src/services/presets/loaders/preset-file-loader.ts`
+   - Shared file loading logic with JSON parsing, size validation, error handling
+   - Supports loading from URLs and File objects
+   - Used by both PresetLoader and ViewPresetLoader
+
+2. **Unified ProjectionConfig Type** ✅
+   - Created `src/types/projection-config.ts`
+   - Provides common structure for projection definitions
+   - Exported from main types index with alias to avoid conflicts
+
+3. **Validation Utilities** ✅
+   - Created `src/core/presets/validation-utils.ts`
+   - Shared functions: validateVersion, validateAtlasId, validateProjectionId, validateProjectionParameters, validateMetadata, combineValidationResults
+   - Integrated with parameter registry for constraint validation
+   - Exported from core/presets index
+
+4. **Composite Preset Registry** ✅
+   - Created `configs/presets/registry.json`
+   - Lists all available composite presets (france-default, france-nsp, france-test, portugal-default, eu-default, usa-default)
+   - Includes metadata: name (i18n), description, pattern, territory count
+   - Mirrors view preset registry structure
+
+5. **PresetLoader Refactoring** ✅
+   - Updated `src/services/presets/preset-loader.ts` to use PresetFileLoader
+   - Added registry loading with caching
+   - Improved listAvailablePresets() to use registry and support filtering
+   - Optimized loadPresetMetadata() to check registry first
+
+6. **ViewPresetLoader Refactoring** ✅
+   - Updated `src/services/presets/view-preset-loader.ts` to use PresetFileLoader
+   - Simplified error handling using shared utility
+   - Consistent pattern with PresetLoader
+
+7. **Validator Refactoring** ✅
+   - Updated `src/core/presets/validator.ts` to use shared validation utilities
+   - Replaced custom validation logic with validateAtlasId, validateProjectionId, validateProjectionParameters
+   - More consistent error messages across validators
+
+### Impact Assessment
+
+**Code Reduction**: ~15-20% reduction in preset-related code duplication
+- PresetFileLoader eliminates ~50 lines of duplicate fetch/parse logic
+- Validation utilities eliminate ~80 lines of duplicate validation code
+- Registry pattern reduces hardcoded preset management
+
+**Build Status**: ✅ Successful
+- TypeScript compilation passes
+- Vite build completes successfully
+- No new compilation errors introduced
+
+**Test Status**: ⚠️ Mixed (pre-existing issues)
+- 175 total tests
+- 13 failures (all pre-existing, not related to Phase 1 changes)
+- Failed tests related to:
+  - `translate` parameter handling (4 failures in parameter-registration.spec.ts)
+  - Code generation tests expecting old parameter format (4 failures in code-generator.spec.ts)
+  - Composite projection invert tests (4 failures in composite-projection-invert.test.ts)
+  - Projection factory translate test (1 failure in factory.test.ts)
+
+**Breaking Changes**: None
+- All existing APIs maintained
+- Backward compatibility preserved
+- Export format unchanged
+
+### Benefits Achieved
+
+1. **Single Source of Truth**
+   - File loading logic centralized in PresetFileLoader
+   - Validation logic centralized in validation-utils
+   - Registry provides authoritative preset list
+
+2. **Easier Maintenance**
+   - Update file loading logic in one place
+   - Update validation logic in one place
+   - Add new presets by updating registry only
+
+3. **Improved Consistency**
+   - Both preset systems use same loading pattern
+   - Both use same validation utilities
+   - Error messages more consistent
+
+4. **Better Discoverability**
+   - Registry enables dynamic preset listing
+   - Metadata accessible without loading full preset
+   - Filtering by atlas ID now possible
 
 ## Next Steps
 
-1. Review this analysis with user
-2. Get feedback on priorities and constraints
-3. Implement Phase 1 improvements
-4. Test thoroughly before moving to Phase 2
+1. **Phase 2: Unified Application** (Ready to start after user validation)
+2. **Phase 3: Enhanced UX** (Depends on Phase 2)
+3. **Documentation Update** (Task 9 - update docs/presets.llm.txt)

@@ -21,6 +21,11 @@ import type { ImportResult } from '@/services/export/composite-import-service'
 import { parameterRegistry } from '@/core/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { CompositeImportService } from '@/services/export/composite-import-service'
+import {
+  validateAtlasId,
+  validateProjectionId,
+  validateProjectionParameters,
+} from './validation-utils'
 
 /**
  * Validation result for view presets
@@ -150,20 +155,27 @@ export function validateViewPreset(preset: ViewModePreset): ViewPresetValidation
   if (!preset.name) {
     errors.push('Missing required field: name')
   }
-  if (!preset.atlasId) {
-    errors.push('Missing required field: atlasId')
-  }
-  if (!preset.viewMode) {
-    errors.push('Missing required field: viewMode')
-  }
   if (!preset.config) {
     errors.push('Missing required field: config')
+  }
+
+  // Validate atlasId using shared utility
+  if (preset.atlasId) {
+    const atlasValidation = validateAtlasId(preset.atlasId, { allowUnknown: true })
+    errors.push(...atlasValidation.errors)
+    warnings.push(...atlasValidation.warnings)
+  }
+  else {
+    errors.push('Missing required field: atlasId')
   }
 
   // Validate view mode
   const validViewModes: ViewPresetMode[] = ['unified', 'split', 'composite-existing']
   if (preset.viewMode && !validViewModes.includes(preset.viewMode)) {
     errors.push(`Invalid view mode: ${preset.viewMode}. Must be one of: ${validViewModes.join(', ')}`)
+  }
+  else if (!preset.viewMode) {
+    errors.push('Missing required field: viewMode')
   }
 
   // Validate view mode-specific configuration
@@ -198,30 +210,28 @@ function validateUnifiedConfig(
     return
   }
 
-  if (!config.projection.id) {
-    errors.push('Unified config missing projection.id')
-    return
-  }
+  // Validate projection ID using shared utility
+  const projIdValidation = validateProjectionId(config.projection.id)
+  errors.push(...projIdValidation.errors)
+  warnings.push(...projIdValidation.warnings)
 
-  // Validate projection exists in registry
-  const projection = projectionRegistry.get(config.projection.id)
-  if (!projection) {
-    errors.push(`Unknown projection: ${config.projection.id}`)
-    return
-  }
+  if (projIdValidation.isValid) {
+    // Validate projection exists in registry
+    const projection = projectionRegistry.get(config.projection.id)
+    if (!projection) {
+      errors.push(`Unknown projection: ${config.projection.id}`)
+      return
+    }
 
-  // Validate parameters
-  if (config.projection.parameters) {
-    const family = projection.family
-    const validationResults = parameterRegistry.validateParameters(
-      config.projection.parameters,
-      family,
-    )
-
-    for (const result of validationResults) {
-      if (!result.isValid && result.error) {
-        warnings.push(`Projection parameter: ${result.error}`)
-      }
+    // Validate parameters using shared utility
+    if (config.projection.parameters) {
+      const paramValidation = validateProjectionParameters(
+        config.projection.parameters,
+        projection.family,
+        { context: 'unified projection' },
+      )
+      errors.push(...paramValidation.errors)
+      warnings.push(...paramValidation.warnings)
     }
   }
 }
@@ -241,8 +251,10 @@ function validateSplitConfig(
     return
   }
 
-  if (!config.mainland.projection?.id) {
-    errors.push('Split mainland config missing projection.id')
+  // Validate mainland projection ID using shared utility
+  const mainlandIdValidation = validateProjectionId(config.mainland.projection?.id)
+  if (!mainlandIdValidation.isValid) {
+    errors.push(...mainlandIdValidation.errors.map(e => `Mainland: ${e}`))
     return
   }
 
@@ -252,16 +264,13 @@ function validateSplitConfig(
     errors.push(`Unknown mainland projection: ${config.mainland.projection.id}`)
   }
   else if (config.mainland.projection.parameters) {
-    const validationResults = parameterRegistry.validateParameters(
+    const paramValidation = validateProjectionParameters(
       config.mainland.projection.parameters,
       mainlandProjection.family,
+      { context: 'mainland projection' },
     )
-
-    for (const result of validationResults) {
-      if (!result.isValid && result.error) {
-        warnings.push(`Mainland projection parameter: ${result.error}`)
-      }
-    }
+    errors.push(...paramValidation.errors)
+    warnings.push(...paramValidation.warnings)
   }
 
   // Validate territory projections
@@ -271,8 +280,10 @@ function validateSplitConfig(
   }
 
   for (const [code, territoryConfig] of Object.entries(config.territories)) {
-    if (!territoryConfig.projection?.id) {
-      errors.push(`Territory ${code} missing projection.id`)
+    // Validate projection ID using shared utility
+    const projIdValidation = validateProjectionId(territoryConfig.projection?.id)
+    if (!projIdValidation.isValid) {
+      errors.push(`Territory ${code}: ${projIdValidation.errors.join(', ')}`)
       continue
     }
 
@@ -283,16 +294,13 @@ function validateSplitConfig(
     }
 
     if (territoryConfig.projection.parameters) {
-      const validationResults = parameterRegistry.validateParameters(
+      const paramValidation = validateProjectionParameters(
         territoryConfig.projection.parameters,
         projection.family,
+        { context: `territory ${code} projection` },
       )
-
-      for (const result of validationResults) {
-        if (!result.isValid && result.error) {
-          warnings.push(`Territory ${code} projection parameter: ${result.error}`)
-        }
-      }
+      errors.push(...paramValidation.errors)
+      warnings.push(...paramValidation.warnings)
     }
   }
 }

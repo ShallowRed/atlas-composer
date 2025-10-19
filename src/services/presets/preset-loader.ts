@@ -7,7 +7,7 @@
  * Key responsibilities:
  * - Load preset files from configs/presets/
  * - Orchestrate validation and conversion using core modules
- * - List available presets for an atlas
+ * - Load and cache preset registry
  * - Load preset metadata for UI display
  */
 
@@ -20,14 +20,50 @@ import {
   extractTerritoryParameters,
   validateCompositePreset,
 } from '@/core/presets'
+import { PresetFileLoader } from './loaders/preset-file-loader'
+
+/**
+ * Preset registry structure
+ */
+interface PresetRegistry {
+  version: string
+  description?: string
+  presets: Array<{
+    id: string
+    atlasId: string
+    name: string | Record<string, string>
+    description?: string | Record<string, string>
+    pattern: string
+    territories: number
+  }>
+}
 
 /**
  * Service for loading and managing preset configurations
  */
-/**
- * Service for loading and managing preset configurations
- */
 export class PresetLoader {
+  private static registry: PresetRegistry | null = null
+
+  /**
+   * Load the preset registry
+   * Cached after first load
+   */
+  private static async loadRegistry(): Promise<PresetRegistry> {
+    if (this.registry) {
+      return this.registry
+    }
+
+    const result = await PresetFileLoader.loadRegistry<PresetRegistry>('configs/presets/registry.json')
+
+    if (!result.success || !result.data) {
+      console.warn('[PresetLoader] Failed to load preset registry, using empty registry')
+      return { version: '1.0', presets: [] }
+    }
+
+    this.registry = result.data
+    return this.registry
+  }
+
   /**
    * Load a preset configuration file
    *
@@ -35,51 +71,39 @@ export class PresetLoader {
    * @returns Load result with parsed preset and validation messages
    */
   static async loadPreset(presetId: string): Promise<PresetLoadResult> {
-    try {
-      // Construct preset file path
-      const baseUrl = import.meta.env.BASE_URL
-      const presetPath = `${baseUrl}configs/presets/${presetId}.json`
+    // Use PresetFileLoader for file loading
+    const fileResult = await PresetFileLoader.loadJSON<ExtendedPresetConfig>(
+      `configs/presets/${presetId}.json`,
+    )
 
-      // Fetch preset file
-      const response = await fetch(presetPath)
-
-      if (!response.ok) {
-        console.error(`[PresetLoader] HTTP ${response.status}: ${response.statusText}`)
-        return {
-          success: false,
-          errors: [`Failed to load preset '${presetId}': ${response.statusText}`],
-          warnings: [],
-        }
-      }
-
-      // Parse JSON
-      const jsonText = await response.text()
-      const rawPreset = JSON.parse(jsonText) as ExtendedPresetConfig
-
-      // Validate using core validator
-      return validateCompositePreset(jsonText, rawPreset)
-    }
-    catch (error) {
+    if (!fileResult.success || !fileResult.data) {
       return {
         success: false,
-        errors: [`Unexpected error loading preset '${presetId}': ${error instanceof Error ? error.message : 'Unknown error'}`],
-        warnings: [],
+        errors: fileResult.errors,
+        warnings: fileResult.warnings,
       }
     }
+
+    // Validate using core validator
+    // Note: Validator needs both JSON text and parsed object
+    const jsonText = JSON.stringify(fileResult.data)
+    return validateCompositePreset(jsonText, fileResult.data)
   }
 
   /**
    * List available presets for a given atlas
    *
-   * Note: This is a static list based on atlas configuration.
-   * In a future enhancement, this could scan the presets directory.
-   *
-   * @returns Array of preset IDs available for this atlas
+   * @param atlasId - Optional atlas ID to filter presets
+   * @returns Array of preset metadata available for this atlas
    */
-  static listAvailablePresets(): string[] {
-    // For now, return empty array - presets will be defined in atlas config
-    // In the future, this could scan the presets directory dynamically
-    return []
+  static async listAvailablePresets(atlasId?: string): Promise<PresetRegistry['presets']> {
+    const registry = await this.loadRegistry()
+
+    if (!atlasId) {
+      return registry.presets
+    }
+
+    return registry.presets.filter(preset => preset.atlasId === atlasId)
   }
 
   /**
@@ -90,31 +114,38 @@ export class PresetLoader {
    * @returns Preset metadata or null if loading failed
    */
   static async loadPresetMetadata(presetId: string): Promise<{ name?: string | Record<string, string>, metadata?: any } | null> {
+    // Try registry first (faster)
     try {
-      // Construct preset file path
-      const baseUrl = import.meta.env.BASE_URL
-      const presetPath = `${baseUrl}configs/presets/${presetId}.json`
+      const registry = await this.loadRegistry()
+      const registryEntry = registry.presets.find(p => p.id === presetId)
 
-      // Fetch preset file
-      const response = await fetch(presetPath)
-
-      if (!response.ok) {
-        console.warn(`[PresetLoader] Failed to load metadata for preset '${presetId}': ${response.statusText}`)
-        return null
-      }
-
-      // Parse only the parts we need (name and metadata)
-      const jsonText = await response.text()
-      const preset = JSON.parse(jsonText)
-
-      return {
-        name: preset.name,
-        metadata: preset.metadata,
+      if (registryEntry) {
+        return {
+          name: registryEntry.name,
+          metadata: {
+            atlasId: registryEntry.atlasId,
+            description: registryEntry.description,
+          },
+        }
       }
     }
     catch (error) {
-      console.warn(`[PresetLoader] Error loading metadata for preset '${presetId}':`, error)
+      console.warn('[PresetLoader] Error loading registry for metadata:', error)
+    }
+
+    // Fallback: Load full preset file
+    const result = await PresetFileLoader.loadJSON<ExtendedPresetConfig>(
+      `configs/presets/${presetId}.json`,
+    )
+
+    if (!result.success || !result.data) {
+      console.warn(`[PresetLoader] Failed to load metadata for preset '${presetId}':`, result.errors)
       return null
+    }
+
+    return {
+      name: result.data.metadata?.atlasName,
+      metadata: result.data.metadata,
     }
   }
 

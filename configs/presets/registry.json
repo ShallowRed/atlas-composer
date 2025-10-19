@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0",
+  "description": "Registry of available composite projection presets",
+  "presets": [
+    {
+      "id": "france-default",
+      "atlasId": "france",
+      "name": {
+        "en": "France - Standard Configuration",
+        "fr": "France - Configuration standard"
+      },
+      "description": {
+        "en": "Aligned with d3-composite-projections package, using pixel-based clipping",
+        "fr": "Aligné avec le package d3-composite-projections, utilise le clipping pixel"
+      },
+      "pattern": "single-focus",
+      "territories": 10
+    },
+    {
+      "id": "france-nsp",
+      "atlasId": "france",
+      "name": {
+        "en": "France - No Saint-Pierre-et-Miquelon",
+        "fr": "France - Sans Saint-Pierre-et-Miquelon"
+      },
+      "description": {
+        "en": "France configuration without Saint-Pierre-et-Miquelon territory",
+        "fr": "Configuration France sans le territoire de Saint-Pierre-et-Miquelon"
+      },
+      "pattern": "single-focus",
+      "territories": 9
+    },
+    {
+      "id": "france-test",
+      "atlasId": "france",
+      "name": {
+        "en": "France - Test Configuration",
+        "fr": "France - Configuration de test"
+      },
+      "description": {
+        "en": "Test configuration for development and experimentation",
+        "fr": "Configuration de test pour le développement et l'expérimentation"
+      },
+      "pattern": "single-focus",
+      "territories": 10
+    },
+    {
+      "id": "portugal-default",
+      "atlasId": "portugal",
+      "name": {
+        "en": "Portugal - Standard Configuration",
+        "fr": "Portugal - Configuration standard"
+      },
+      "description": {
+        "en": "Portugal with Azores and Madeira",
+        "fr": "Portugal avec les Açores et Madère"
+      },
+      "pattern": "single-focus",
+      "territories": 3
+    },
+    {
+      "id": "eu-default",
+      "atlasId": "eu",
+      "name": {
+        "en": "European Union - Standard Configuration",
+        "fr": "Union Européenne - Configuration standard"
+      },
+      "description": {
+        "en": "EU member states with overseas territories",
+        "fr": "États membres de l'UE avec territoires d'outre-mer"
+      },
+      "pattern": "equal-members",
+      "territories": 27
+    },
+    {
+      "id": "usa-default",
+      "atlasId": "usa",
+      "name": {
+        "en": "USA - Standard Configuration",
+        "fr": "États-Unis - Configuration standard"
+      },
+      "description": {
+        "en": "United States with Alaska, Hawaii, and territories",
+        "fr": "États-Unis avec Alaska, Hawaï et territoires"
+      },
+      "pattern": "single-focus",
+      "territories": 5
+    }
+  ]
+}

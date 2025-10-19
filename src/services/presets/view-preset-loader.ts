@@ -20,6 +20,7 @@ import type {
   ViewPresetRegistry,
 } from '@/core/presets'
 import { validateViewPreset } from '@/core/presets'
+import { PresetFileLoader } from './loaders/preset-file-loader'
 
 /**
  * Service for loading and managing view mode presets
@@ -36,22 +37,17 @@ export class ViewPresetLoader {
       return this.registry
     }
 
-    try {
-      const baseUrl = import.meta.env.BASE_URL
-      const registryPath = `${baseUrl}configs/view-presets/registry.json`
-      const response = await fetch(registryPath)
+    const result = await PresetFileLoader.loadRegistry<ViewPresetRegistry>(
+      'configs/view-presets/registry.json',
+    )
 
-      if (!response.ok) {
-        throw new Error(`Failed to load registry: ${response.statusText}`)
-      }
-
-      this.registry = await response.json()
-      return this.registry!
-    }
-    catch (error) {
-      console.error('[ViewPresetLoader] Failed to load registry:', error)
+    if (!result.success || !result.data) {
+      console.error('[ViewPresetLoader] Failed to load registry:', result.errors)
       return { version: '1.0', presets: [] }
     }
+
+    this.registry = result.data
+    return this.registry
   }
 
   /**
@@ -61,49 +57,34 @@ export class ViewPresetLoader {
    * @returns Load result with parsed preset and validation messages
    */
   static async loadPreset(presetId: string): Promise<ViewPresetLoadResult> {
-    try {
-      const baseUrl = import.meta.env.BASE_URL
-      const presetPath = `${baseUrl}configs/view-presets/${presetId}.json`
+    // Use PresetFileLoader for file loading
+    const fileResult = await PresetFileLoader.loadJSON<ViewModePreset>(
+      `configs/view-presets/${presetId}.json`,
+    )
 
-      // Fetch preset file
-      const response = await fetch(presetPath)
-
-      if (!response.ok) {
-        console.error(`[ViewPresetLoader] HTTP ${response.status}: ${response.statusText}`)
-        return {
-          success: false,
-          errors: [`Failed to load view preset '${presetId}': ${response.statusText}`],
-          warnings: [],
-        }
-      }
-
-      // Parse JSON
-      const preset = await response.json() as ViewModePreset
-
-      // Validate preset using core validator
-      const validation = validateViewPreset(preset)
-      if (!validation.isValid) {
-        return {
-          success: false,
-          errors: validation.errors,
-          warnings: validation.warnings,
-        }
-      }
-
+    if (!fileResult.success || !fileResult.data) {
       return {
-        success: true,
-        preset,
-        errors: [],
+        success: false,
+        errors: fileResult.errors,
+        warnings: fileResult.warnings,
+      }
+    }
+
+    // Validate preset using core validator
+    const validation = validateViewPreset(fileResult.data)
+    if (!validation.isValid) {
+      return {
+        success: false,
+        errors: validation.errors,
         warnings: validation.warnings,
       }
     }
-    catch (error) {
-      console.error('[ViewPresetLoader] Error loading preset:', error)
-      return {
-        success: false,
-        errors: [`Failed to load preset: ${error instanceof Error ? error.message : 'Unknown error'}`],
-        warnings: [],
-      }
+
+    return {
+      success: true,
+      preset: fileResult.data,
+      errors: [],
+      warnings: validation.warnings,
     }
   }
 

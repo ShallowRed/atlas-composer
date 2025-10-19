@@ -24,6 +24,18 @@ export type {
   ViewPresetRegistry,
 } from './types'
 
+// Validation utilities
+export type { ValidationResult } from './validation-utils'
+export {
+  combineValidationResults,
+  SUPPORTED_VERSIONS,
+  validateAtlasId,
+  validateMetadata,
+  validateProjectionId,
+  validateProjectionParameters,
+  validateVersion,
+} from './validation-utils'
+
 // Validators
 export type { ViewPresetValidationResult } from './validator'
 export { validateCompositePreset, validateViewPreset } from './validator'
