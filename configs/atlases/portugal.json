@@ -83,8 +83,7 @@
           -111,
           105
         ],
-        "projectionType": "conic-conformal",
-        "baseScaleMultiplier": 1
+        "projectionType": "conic-conformal"
       }
     },
     {
@@ -125,8 +124,7 @@
           -189,
           -84
         ],
-        "projectionType": "conic-conformal",
-        "baseScaleMultiplier": 0.6
+        "projectionType": "conic-conformal"
       }
     }
   ],

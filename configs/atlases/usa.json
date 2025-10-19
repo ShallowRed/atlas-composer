@@ -124,8 +124,7 @@
         "parallels": [
           55,
           65
-        ],
-        "baseScaleMultiplier": 0.35
+        ]
       }
     },
     {
@@ -200,8 +199,7 @@
         "parallels": [
           50,
           58
-        ],
-        "baseScaleMultiplier": 0.5
+        ]
       }
     },
     {
@@ -242,8 +240,7 @@
           -140,
           200
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1
+        "projectionType": "mercator"
       }
     },
     {
@@ -279,8 +276,7 @@
           100,
           200
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1
+        "projectionType": "mercator"
       }
     },
     {
@@ -317,8 +313,7 @@
           120,
           190
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1.5
+        "projectionType": "mercator"
       }
     },
     {
@@ -352,8 +347,7 @@
           -300,
           250
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
+        "projectionType": "mercator"
       }
     },
     {
@@ -387,8 +381,7 @@
           -200,
           280
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
+        "projectionType": "mercator"
       }
     },
     {
@@ -428,8 +421,7 @@
           -320,
           240
         ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
+        "projectionType": "mercator"
       }
     }
   ],

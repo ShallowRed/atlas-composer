@@ -18,65 +18,55 @@ Complete analysis of parameter correspondence between d3-composite-projections n
 
 ### Scale System
 
-Atlas-composer uses a **three-level scale system**:
+Atlas-composer uses a **two-level scale system**:
 
 ```typescript
-// Level 1: Reference Scale (atlas-wide)
+// Level 1: Reference Scale (atlas-wide, from preset)
 referenceScale = 2700  // For France (single-focus pattern)
 referenceScale = 200   // For EU (equal-members pattern)
 
-// Level 2: Base Scale (per territory, from config)
-baseScale = referenceScale * territory.baseScaleMultiplier
-// Note: territory.baseScaleMultiplier is optional, defaults to 1.0
-
-// Level 3: Scale Multiplier (user-adjustable, from parameter store)
-finalScale = baseScale * params.scaleMultiplier
+// Level 2: Scale Multiplier (per territory, from preset)
+finalScale = referenceScale * params.scaleMultiplier
 // Note: params.scaleMultiplier comes from preset/parameter store, defaults to 1.0
 ```
 
 ### Translation System
 
-Atlas-composer uses **pixel-based offsets**:
+Atlas-composer uses **pixel-based offsets from presets**:
 
 ```typescript
-// Territory offset from center (in pixels)
-translateOffset = territory.offset  // [x, y] in pixels
+// Territory offset from center (in pixels) - from preset parameters
+translateOffset = params.translateOffset || [0, 0]  // [x, y] in pixels
 // Applied during build() as: translate([centerX + offsetX, centerY + offsetY])
 ```
 
 ### Current State of Atlas Configs
 
-**IMPORTANT CORRECTION**: Atlas JSON configs (france.json, portugal.json, etc.) are **intentionally minimal** and contain only:
-- `center`: Geographic center coordinates (always present)
-- `bounds`: Geographic bounding box (always present)
+Atlas JSON configs (france.json, portugal.json, etc.) are **projection-agnostic** and contain only:
+- `center`: Geographic center coordinates (required)
+- `bounds`: Geographic bounding box (required)
 - Basic metadata: `code`, `name`, `role`, etc.
 
-**The following fields are OPTIONAL in atlas configs** and typically NOT present:
-- `projectionType` - Optional fallback, usually comes from presets
-- `baseScaleMultiplier` - Optional fallback, usually comes from presets  
-- `offset` - Optional fallback, usually comes from presets
-- `rotate` - Optional, usually comes from presets
-- `parallels` - Optional, usually comes from presets
+**All projection-specific parameters come from presets**:
+- `projectionType` - Defined in preset (projection.id)
+- `scaleMultiplier` - Defined in preset (projection.parameters.scaleMultiplier)
+- `translateOffset` - Defined in preset (layout.translateOffset)
+- `rotate` - Defined in preset (projection.parameters.rotate)
+- `parallels` - Defined in preset (projection.parameters.parallels)
 
-**Actual Data Flow** (Parameter Priority):
-1. **Presets** (configs/presets/*.json) - Primary source for ALL projection parameters
-2. **Territory config** (atlas JSON) - Fallback when preset doesn't define a value
-3. **Parameter registry** - Final fallback defaults
+**Data Flow** (Parameter Priority):
+1. **Presets** (configs/presets/*.json) - Primary and required source for ALL projection parameters
+2. **Parameter registry** - Final fallback defaults for standard values
 
 **Code Behavior**:
 ```typescript
 // In composite-projection.ts:
-const projectionType = territory.projectionType || 'mercator' // Falls back to 'mercator'
-const baseMultiplier = territory.baseScaleMultiplier ?? 1.0   // Falls back to 1.0
-const translateOffset = territory.offset                       // Uses territory.offset
-
-// In core/atlases/utils.ts:
-calculateDefaultProjections: t.projectionType || fallback      // Uses fallback if not in config
-calculateDefaultScales: t.baseScaleMultiplier ?? 1.0           // Uses 1.0 if not in config
-createDefaultTranslations: { x: t.offset[0], y: t.offset[1] }  // Uses offset from config
+const projectionType = params.projectionId || 'mercator'  // From preset or default
+const finalScale = referenceScale * (params.scaleMultiplier ?? 1.0)
+const translateOffset = [0, 0]  // No config-level defaults, must come from parameters
 ```
 
-**This design is intentional**: Atlas configs provide basic geographic structure, while presets contain the actual projection configuration for rendering.
+**Design Principle**: Atlas configs provide geographic structure only. Presets define complete projection configuration for rendering.
 
 ## Parameter Correspondence Table
 
@@ -94,16 +84,17 @@ createDefaultTranslations: { x: t.offset[0], y: t.offset[1] }  // Uses offset fr
 
 ### Atlas-composer Parameters
 
-| Parameter | Primary Storage | Fallback Storage | Type | Example | Description |
-|-----------|----------------|------------------|------|---------|-------------|
-| `projectionType` | Preset (projection.id) | TerritoryConfig (optional) | string | `'mercator'`, `'conic-conformal'` | Projection ID |
-| `center` | Preset (projection.parameters) | TerritoryConfig (required) | [number, number] | `[-61.46, 16.14]` | Geographic center |
-| `rotate` | Preset (projection.parameters) | TerritoryConfig (optional) | [number, number, number?] | `[-3, -46.2]` | Three-axis rotation |
-| `parallels` | Preset (projection.parameters) | TerritoryConfig (optional) | [number, number] | `[0, 60]` | Standard parallels |
-| `scaleMultiplier` | Preset (projection.parameters) | baseScaleMultiplier fallback | number | `0.6`, `1.6`, `5.0` | User-adjustable scale |
-| `translateOffset` | Preset (layout.translateOffset) | TerritoryConfig.offset fallback | [number, number] | `[-324, 155]` | Pixel offset from center |
-| `pixelClipExtent` | Preset (layout.pixelClipExtent) | None (optional) | [number, number, number, number] | `[x1, y1, x2, y2]` | Pixel-based clip box |
-| `bounds` | TerritoryConfig (required) | None | [[number, number], [number, number]] | `[[-61.81, 15.83], [-61, 16.52]]` | Geographic bounding box |
+| Parameter | Storage Location | Type | Example | Description |
+|-----------|-----------------|------|---------|-------------|
+| `projectionId` | Preset (projection.id) | string | `'mercator'`, `'conic-conformal'` | Projection type identifier |
+| `center` | TerritoryConfig (required) OR Preset (projection.parameters.center) | [number, number] | `[-61.46, 16.14]` | Geographic center |
+| `rotate` | Preset (projection.parameters.rotate) | [number, number, number?] | `[-3, -46.2]` | Three-axis rotation |
+| `parallels` | Preset (projection.parameters.parallels) | [number, number] | `[0, 60]` | Standard parallels |
+| `scaleMultiplier` | Preset (projection.parameters.scaleMultiplier) | number | `0.6`, `1.6`, `5.0` | Scale factor relative to referenceScale |
+| `translateOffset` | Preset (layout.translateOffset) | [number, number] | `[-324, 155]` | Pixel offset from center |
+| `pixelClipExtent` | Preset (layout.pixelClipExtent) | [number, number, number, number] | `[x1, y1, x2, y2]` | Pixel-based clip box |
+| `bounds` | TerritoryConfig (required) | [[number, number], [number, number]] | `[[-61.81, 15.83], [-61, 16.52]]` | Geographic bounding box |
+| `referenceScale` | Preset (root level) | number | `2700`, `200` | Atlas-wide base scale |
 
 ## Conversion Formulas
 
@@ -113,9 +104,14 @@ createDefaultTranslations: { x: t.offset[0], y: t.offset[1] }  // Uses offset fr
 // d3-composite-projections
 projection.scale(_ * multiplier)  // e.g., scale(_ * 0.6)
 
-// atlas-composer
-territory.baseScaleMultiplier = multiplier  // 0.6
-// Stored in TerritoryConfig (currently missing from JSON)
+// atlas-composer preset
+{
+  "projection": {
+    "parameters": {
+      "scaleMultiplier": 0.6  // Stored in preset
+    }
+  }
+}
 ```
 
 ### Translation: d3 → atlas-composer
@@ -126,9 +122,16 @@ projection.translate([x + offsetX * k, y + offsetY * k])
 // where k = referenceScale (e.g., 2700)
 // offsetX, offsetY are normalized coordinates
 
-// atlas-composer
-territory.offset = [offsetX * referenceScale, offsetY * referenceScale]
-// Convert to pixels: [-0.12 * 2700, 0.0575 * 2700] = [-324, 155]
+// atlas-composer preset
+{
+  "layout": {
+    "translateOffset": [
+      offsetX * referenceScale,  // Convert to pixels
+      offsetY * referenceScale
+    ]
+  }
+}
+// Example: [-0.12 * 2700, 0.0575 * 2700] = [-324, 155]
 ```
 
 ### Projection Type: d3 → atlas-composer
@@ -138,8 +141,12 @@ territory.offset = [offsetX * referenceScale, offsetY * referenceScale]
 import { geoConicConformal as conicConformal } from "d3-geo"
 var projection = conicConformal()
 
-// atlas-composer
-territory.projectionType = 'conic-conformal'
+// atlas-composer preset
+{
+  "projection": {
+    "id": "conic-conformal"  // Stored in preset
+  }
+}
 ```
 
 **Mapping Table**:
@@ -158,14 +165,31 @@ territory.projectionType = 'conic-conformal'
 // d3-composite-projections (conic projections use rotate)
 projection.rotate([-3, -46.2])
 
-// atlas-composer
-territory.rotate = [-3, -46.2]
+// atlas-composer preset
+{
+  "projection": {
+    "parameters": {
+      "rotate": [-3, -46.2]
+    }
+  }
+}
 
 // d3-composite-projections (cylindrical/azimuthal use center)
 projection.center([-61.46, 16.14])
 
-// atlas-composer
-territory.center = [-61.46, 16.14]
+// atlas-composer (center in atlas config, can be overridden in preset)
+// Atlas config:
+{
+  "center": [-61.46, 16.14]
+}
+// OR Preset:
+{
+  "projection": {
+    "parameters": {
+      "center": [-61.46, 16.14]
+    }
+  }
+}
 ```
 
 ### Parallels: d3 → atlas-composer
@@ -174,8 +198,14 @@ territory.center = [-61.46, 16.14]
 // d3-composite-projections
 projection.parallels([0, 60])
 
-// atlas-composer
-territory.parallels = [0, 60]
+// atlas-composer preset
+{
+  "projection": {
+    "parameters": {
+      "parallels": [0, 60]
+    }
+  }
+}
 ```
 
 ## France Example (Detailed Mapping)
@@ -212,43 +242,80 @@ conicConformalFrance.translate = function (_) {
 return conicConformalFrance.scale(2700)  // Default scale
 ```
 
-### Atlas-composer Equivalent (How it SHOULD be structured)
+### Atlas-composer Equivalent (Preset Structure)
 
+**Atlas Config** (`configs/atlases/france.json`) - Geographic structure only:
 ```json
 {
   "territories": [
     {
       "code": "FR-MET",
       "center": [2.5, 46.5],
-      "projectionType": "conic-conformal",
-      "rotate": [-3, -46.2],
-      "parallels": [0, 60],
-      "baseScaleMultiplier": 1.0,
-      "offset": [0, 0]
+      "bounds": [[-5, 41], [10, 51]]
     },
     {
       "code": "FR-GF",
       "center": [-53.2, 3.9],
-      "projectionType": "mercator",
-      "baseScaleMultiplier": 0.6,
-      "offset": [-324, 155.25]
+      "bounds": [[-55, 2], [-51, 6]]
     },
     {
       "code": "FR-MQ",
       "center": [-61.03, 14.67],
-      "projectionType": "mercator",
-      "baseScaleMultiplier": 1.6,
-      "offset": [-324, 35.1]
+      "bounds": [[-62, 14], [-60, 15]]
     }
   ]
 }
 ```
 
+**Preset Config** (`configs/presets/france-default.json`) - Projection parameters:
+```json
+{
+  "referenceScale": 2700,
+  "territories": {
+    "FR-MET": {
+      "projection": {
+        "id": "conic-conformal",
+        "parameters": {
+          "rotate": [-3, -46.2],
+          "parallels": [0, 60],
+          "scaleMultiplier": 1.0
+        }
+      },
+      "layout": {
+        "translateOffset": [0, 0]
+      }
+    },
+    "FR-GF": {
+      "projection": {
+        "id": "mercator",
+        "parameters": {
+          "scaleMultiplier": 0.6
+        }
+      },
+      "layout": {
+        "translateOffset": [-324, 155.25]
+      }
+    },
+    "FR-MQ": {
+      "projection": {
+        "id": "mercator",
+        "parameters": {
+          "scaleMultiplier": 1.6
+        }
+      },
+      "layout": {
+        "translateOffset": [-324, 35.1]
+      }
+    }
+  }
+}
+```
+
 **Offset Calculations**:
 ```
-FR-GF:  d3: [-0.12, 0.0575]  → atlas: [-0.12 * 2700, 0.0575 * 2700] = [-324, 155.25]
-FR-MQ:  d3: [-0.12, 0.013]   → atlas: [-0.12 * 2700, 0.013 * 2700]  = [-324, 35.1]
-FR-GP:  d3: [-0.12, -0.014]  → atlas: [-0.12 * 2700, -0.014 * 2700] = [-324, -37.8]
+FR-GF:  d3: [-0.12, 0.0575]  → preset: [-0.12 * 2700, 0.0575 * 2700] = [-324, 155.25]
+FR-MQ:  d3: [-0.12, 0.013]   → preset: [-0.12 * 2700, 0.013 * 2700]  = [-324, 35.1]
+FR-GP:  d3: [-0.12, -0.014]  → preset: [-0.12 * 2700, -0.014 * 2700] = [-324, -37.8]
 ```
 
 ## Current System Architecture
@@ -315,13 +382,14 @@ CompositeProjection.initialize() - merges config + parameters
 ### Parameter Priority (Highest to Lowest)
 
 1. **User runtime changes** (ParameterStore via UI - ephemeral)
-2. **Preset values** (loaded from `configs/presets/*.json`)
-3. **Territory config values** (from `configs/atlases/*.json` - optional fallbacks)
-4. **Parameter registry defaults** (hardcoded in code - final fallback)
+2. **Preset values** (loaded from `configs/presets/*.json` - required for projection parameters)
+3. **Parameter registry defaults** (hardcoded in code - final fallback for standard values only)
 
 ### Key Design Principle
 
 **Atlas configs are projection-agnostic**: The same `france.json` works with any projection configuration. Different presets (`france-default.json`, `france-nsp.json`) can provide completely different layouts for the same geographic structure.
+
+**Presets are required**: All projection-specific parameters (projection types, scales, offsets, rotations, parallels) MUST come from preset files. Atlas configs contain only geographic structure (center, bounds).
 
 ## Reverse Conversion: atlas-composer → d3
 
@@ -396,15 +464,15 @@ pixelClipExtent = [-378, 78.3, 268.92, 233.28]
 
 ## Summary of Conversions
 
-| Aspect | d3-composite-projections | atlas-composer | Conversion |
-|--------|-------------------------|----------------|------------|
-| **Scale** | `_ * multiplier` | `baseScaleMultiplier` | Direct copy |
-| **Translate** | `k * normalized` | `pixel offset` | multiply by referenceScale |
-| **Projection** | Function call | String ID | Name mapping |
-| **Center** | `.center([lon, lat])` | `center: [lon, lat]` | Direct copy |
-| **Rotate** | `.rotate([λ, φ, γ])` | `rotate: [λ, φ, γ]` | Direct copy |
-| **Parallels** | `.parallels([p1, p2])` | `parallels: [p1, p2]` | Direct copy |
-| **ClipExtent** | Normalized coords | Pixel coords | multiply by referenceScale |
+| Aspect | d3-composite-projections | atlas-composer (Preset) | Conversion |
+|--------|-------------------------|------------------------|------------|
+| **Scale** | `_ * multiplier` | `scaleMultiplier` | Direct copy |
+| **Translate** | `k * normalized` | `translateOffset` (pixels) | multiply by referenceScale |
+| **Projection** | Function call | `projection.id` | Name mapping |
+| **Center** | `.center([lon, lat])` | `center` (atlas or preset) | Direct copy |
+| **Rotate** | `.rotate([λ, φ, γ])` | `projection.parameters.rotate` | Direct copy |
+| **Parallels** | `.parallels([p1, p2])` | `projection.parameters.parallels` | Direct copy |
+| **ClipExtent** | Normalized coords | `pixelClipExtent` (pixels) | multiply by referenceScale |
 
 ## Conversion Targets
 
