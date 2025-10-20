@@ -258,6 +258,84 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
+  /**
+   * Load all data types for current atlas in parallel
+   * Phase 4: Preload strategy - loads territory + unified data upfront
+   * Makes view mode switching synchronous (no async delays)
+   */
+  const loadAllAtlasData = async (territoryMode: string) => {
+    if (!cartographer.value) {
+      await initialize()
+    }
+
+    const configStore = useConfigStore()
+    if (!configStore.currentAtlasConfig) {
+      throw new Error('Atlas config not loaded')
+    }
+
+    try {
+      isLoading.value = true
+      error.value = null
+
+      console.info('[GeoDataStore] Preloading all data types for atlas:', configStore.currentAtlasConfig.id)
+
+      // Load both territory and unified data in parallel
+      await Promise.all([
+        (async () => {
+          if (!cartographer.value) {
+            throw new Error('Cartographer not initialized')
+          }
+          const service = cartographer.value.geoData
+          const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig!.pattern)
+          const result = await loader.loadTerritories(service)
+          
+          mainlandData.value = result.mainlandData
+          overseasTerritoriesData.value = result.territories
+          console.info(`[GeoDataStore] Loaded ${result.territories.length} territories`)
+        })(),
+        
+        (async () => {
+          if (!cartographer.value) {
+            throw new Error('Cartographer not initialized')
+          }
+          const service = cartographer.value.geoData
+          const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig!.pattern)
+          const result = await loader.loadUnifiedData(service, territoryMode, {
+            atlasConfig: configStore.currentAtlasConfig!,
+            atlasService: configStore.atlasService,
+            hasTerritorySelector: configStore.currentAtlasConfig!.hasTerritorySelector ?? false,
+            isWildcard: configStore.currentAtlasConfig!.isWildcard ?? false,
+          })
+          
+          rawUnifiedData.value = result.data
+          console.info('[GeoDataStore] Loaded unified data')
+        })(),
+      ])
+
+      console.info('[GeoDataStore] All atlas data preloaded successfully')
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : 'Error preloading atlas data'
+      console.error('Error preloading atlas data:', err)
+      throw err
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Clear all geodata (used when switching atlases)
+   * Phase 4: Clear reset strategy
+   */
+  const clearAllData = () => {
+    console.info('[GeoDataStore] Clearing all geodata')
+    mainlandData.value = null
+    overseasTerritoriesData.value = []
+    rawUnifiedData.value = null
+    error.value = null
+  }
+
   // Removed rendering methods - rendering now handled by Cartographer directly
   // See RENDERING_REFACTOR_PROPOSAL.md for details
 
@@ -311,6 +389,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     reinitialize,
     loadTerritoryData,
     loadRawUnifiedData,
+    loadAllAtlasData,
+    clearAllData,
     clearError,
     triggerRender, // Expose method to force re-render
   }

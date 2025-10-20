@@ -17,7 +17,7 @@ import type {
 } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
@@ -91,18 +91,18 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   function setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any) {
+    // Validate parameter value - throw error instead of silently failing
+    if (value === null || value === undefined) {
+      throw new Error(`[ParameterStore] Invalid null/undefined value for ${key} on territory ${territoryCode}. InitializationService should validate before calling.`)
+    }
+
     try {
-      // Validate parameter value before setting
-      if (value === null || value === undefined) {
-        console.warn(`[ParameterStore] Attempted to set null/undefined value for ${key} on territory ${territoryCode}`)
-        return
-      }
       parameterManager.setTerritoryParameter(territoryCode, key, value)
       territoryParametersVersion.value++
     }
     catch (error) {
       console.error(`[ParameterStore] Error setting parameter ${key} for territory ${territoryCode}:`, error)
-      // Don't re-throw to prevent UI breakage
+      throw error // Re-throw to surface bugs immediately
     }
   }
 
@@ -179,6 +179,29 @@ export const useParameterStore = defineStore('parameters', () => {
   function clearAllTerritoryOverrides(territoryCode: string) {
     parameterManager.clearAllTerritoryOverrides(territoryCode)
     territoryParametersVersion.value++
+  }
+
+  /**
+   * Clear all parameters (global and all territories)
+   * Phase 4: Used by InitializationService for atlas changes
+   */
+  function clearAll() {
+    // Use parameter manager to clear everything
+    parameterManager.clearAll()
+
+    // Also clear the reactive global parameters ref
+    Object.keys(globalParameters.value).forEach((key) => {
+      delete globalParameters.value[key as keyof ProjectionParameters]
+    })
+
+    // Clear validation errors
+    validationErrors.value.clear()
+
+    // Trigger reactivity updates
+    globalParametersVersion.value++
+    territoryParametersVersion.value++
+
+    console.info('[ParameterStore] All parameters cleared')
   }
 
   // Parameter validation
@@ -308,23 +331,6 @@ export const useParameterStore = defineStore('parameters', () => {
     }
   }
 
-  // Watch for parameter changes to trigger validation
-  watch(
-    () => lastChangeEvent.value,
-    (event) => {
-      if (!event)
-        return
-
-      // Auto-validate changed parameters
-      if (event.territoryCode) {
-        // We need the projection family to validate, but we don't have it here
-        // This would need to be provided by the component using the store
-        // For now, we'll skip auto-validation and let components trigger it
-      }
-    },
-    { deep: true },
-  )
-
   /**
    * Initialize from preset with validation using parameter registry
    */
@@ -411,6 +417,7 @@ export const useParameterStore = defineStore('parameters', () => {
     // Parameter overrides
     clearTerritoryOverride,
     clearAllTerritoryOverrides,
+    clearAll,
 
     // Validation
     validateParameter,

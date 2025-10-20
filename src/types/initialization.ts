@@ -33,8 +33,8 @@ export interface ApplicationState {
     data: Preset
   } | null
   projections: {
-    selected: string
-    composite?: string
+    selected: string | null
+    composite?: string | null
   }
   parameters: {
     global: ProjectionParameters

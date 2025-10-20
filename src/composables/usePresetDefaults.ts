@@ -78,6 +78,14 @@ export function usePresetDefaults() {
   }
 
   /**
+   * Alias for clearPresetDefaults
+   * Phase 4: Used by InitializationService for consistency
+   */
+  function clearAll() {
+    clearPresetDefaults()
+  }
+
+  /**
    * Get preset defaults for a specific territory
    */
   function getPresetDefaultsForTerritory(territoryCode: string) {
@@ -180,6 +188,7 @@ export function usePresetDefaults() {
     storePresetDefaults,
     storeGlobalParameters,
     clearPresetDefaults,
+    clearAll,
     getPresetDefaultsForTerritory,
     hasPresetDefaults,
     hasDivergingParameters,

@@ -149,7 +149,6 @@ function formatPresetLabel(presetId: string, presetName?: string | Record<string
   }
   return presetId
 }
-
 </script>
 
 <template>

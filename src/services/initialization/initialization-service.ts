@@ -35,6 +35,7 @@ import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
 import { useConfigStore } from '@/stores/config'
+import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
 
@@ -46,6 +47,12 @@ export class InitializationService {
   /**
    * Initialize atlas on app startup or when user changes atlas
    *
+   * Phase 4 Reset Strategy - ON ATLAS CHANGE:
+   * - Clear ALL parameter store data (global + all territories)
+   * - Clear ALL preset defaults
+   * - Clear ALL geo data
+   * - Reload everything from new atlas preset
+   *
    * @param options - Atlas initialization options
    * @returns Initialization result with complete state or errors
    */
@@ -55,6 +62,9 @@ export class InitializationService {
     const { atlasId, preserveViewMode = false } = options
 
     try {
+      // Step 0: Clear all existing data (Phase 4: Clear reset strategy)
+      await this.clearAllApplicationData()
+
       // Step 1: Ensure atlas is loaded
       if (!isAtlasLoaded(atlasId)) {
         await loadAtlasAsync(atlasId)
@@ -170,6 +180,11 @@ export class InitializationService {
       // Step 8: Apply state to stores
       await this.applyStateToStores(state)
 
+      // Step 9: Preload all data types for the atlas
+      // Phase 4: Load both territory and unified data upfront
+      // Makes view mode switching synchronous (no async delays)
+      await this.preloadAtlasData(territoryMode)
+
       return {
         success: true,
         errors: [],
@@ -190,6 +205,12 @@ export class InitializationService {
   /**
    * Load a preset (within same atlas)
    * Used when user selects a different preset from dropdown
+   *
+   * Phase 4 Reset Strategy - ON PRESET SWITCH (same atlas, same view mode):
+   * - Clear ALL parameters
+   * - Apply new preset parameters
+   * - Keep geo data loaded (unchanged)
+   * - Update preset defaults for reset functionality
    *
    * @param options - Preset load options
    * @returns Initialization result
@@ -288,6 +309,10 @@ export class InitializationService {
       // Step 4: Apply state to stores
       if (state) {
         await this.applyStateToStores(state)
+
+        // Step 5: Preload all data types (keep existing data loaded)
+        // Only reload if data is not already present
+        await this.ensureAtlasDataLoaded(configStore.territoryMode)
       }
 
       return {
@@ -398,6 +423,9 @@ export class InitializationService {
       // Step 4: Apply state to stores
       await this.applyStateToStores(state)
 
+      // Step 5: Ensure all data types are loaded
+      await this.ensureAtlasDataLoaded(configStore.territoryMode)
+
       return {
         success: true,
         errors: [],
@@ -417,6 +445,13 @@ export class InitializationService {
 
   /**
    * Change view mode (within same atlas)
+   *
+   * Phase 4 Reset Strategy - ON VIEW MODE CHANGE (same atlas):
+   * - Keep territory data loaded (already preloaded)
+   * - Keep unified data loaded (already preloaded)
+   * - Clear ONLY global projection parameters
+   * - Load view mode preset if available
+   * - Preserve territory-specific edits in composite-custom mode
    *
    * @param options - View mode change options
    * @returns Initialization result
@@ -601,5 +636,74 @@ export class InitializationService {
 
     // Fallback to natural-earth
     return 'natural-earth'
+  }
+
+  /**
+   * Clear all application data
+   * Phase 4: Clear reset strategy
+   * Called on atlas change to ensure no contamination between atlases
+   */
+  private static async clearAllApplicationData(): Promise<void> {
+    console.info('[InitializationService] Clearing all application data')
+
+    const parameterStore = useParameterStore()
+    const geoDataStore = useGeoDataStore()
+
+    // Clear all parameters (global + territories)
+    parameterStore.clearAll()
+
+    // Clear all geodata
+    geoDataStore.clearAllData()
+
+    // Clear preset defaults
+    const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
+    const presetDefaults = getSharedPresetDefaults()
+    presetDefaults.clearAll()
+
+    console.info('[InitializationService] All application data cleared')
+  }
+
+  /**
+   * Preload all data types for the current atlas
+   * Phase 4: Preload strategy - loads territory + unified data upfront
+   * Makes view mode switching synchronous (no async delays)
+   *
+   * @param territoryMode - Territory mode to use for unified data loading
+   */
+  private static async preloadAtlasData(territoryMode: string): Promise<void> {
+    const geoDataStore = useGeoDataStore()
+
+    console.info('[InitializationService] Preloading all atlas data types')
+
+    try {
+      // Use geoDataStore's preload method that loads territory + unified data in parallel
+      await geoDataStore.loadAllAtlasData(territoryMode)
+    }
+    catch (error) {
+      console.error('[InitializationService] Failed to preload atlas data:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Ensure atlas data is loaded (only loads if not already present)
+   * Used by preset loading and imports to avoid reloading data unnecessarily
+   *
+   * @param territoryMode - Territory mode for unified data
+   */
+  private static async ensureAtlasDataLoaded(territoryMode: string): Promise<void> {
+    const geoDataStore = useGeoDataStore()
+
+    // Check if data is already loaded
+    const hasTerritoryData = geoDataStore.overseasTerritoriesData.length > 0
+    const hasUnifiedData = geoDataStore.rawUnifiedData !== null
+
+    if (hasTerritoryData && hasUnifiedData) {
+      console.info('[InitializationService] Atlas data already loaded, skipping preload')
+      return
+    }
+
+    console.info('[InitializationService] Atlas data not fully loaded, preloading...')
+    await this.preloadAtlasData(territoryMode)
   }
 }

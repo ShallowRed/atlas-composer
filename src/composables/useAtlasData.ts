@@ -35,19 +35,11 @@ export function useAtlasData() {
           await geoDataStore.initialize()
         }
 
-        // Load territory data for initial render if needed
-        // Both split and composite-custom modes need territory data for individual projections
-        if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
-          if (!geoDataStore.overseasTerritoriesData.length) {
-            await geoDataStore.loadTerritoryData()
-          }
-        }
-        // Load unified data for unified mode
-        else if (configStore.viewMode === 'unified') {
-          if (!geoDataStore.rawUnifiedData) {
-            await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-          }
-        }
+        // Phase 4: Data preloading is now handled by InitializationService
+        // All data types (territory + unified) are loaded upfront during atlas initialization
+        // This makes view mode switching synchronous with no async delays
+        // No conditional loading needed here - data is already available
+        console.info('[useAtlasData] Initialization complete, data preloaded by InitializationService')
       })
     }
     catch (err) {
@@ -97,16 +89,10 @@ export function useAtlasData() {
       await withMinLoadingTime(async () => {
         await geoDataStore.reinitialize()
 
-        // Load territory data for split and composite-custom modes
-        if (targetViewMode === 'split' || targetViewMode === 'composite-custom') {
-          console.debug('[useAtlasData] Loading territory data for split/composite-custom mode')
-          await geoDataStore.loadTerritoryData()
-        }
-        // Load unified data for unified mode
-        else if (targetViewMode === 'unified') {
-          console.debug('[useAtlasData] Loading unified data for unified mode, territoryMode:', configStore.territoryMode)
-          await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-        }
+        // Phase 4: Data preloading is now handled by InitializationService
+        // When atlas changes, InitializationService preloads all data types
+        // No conditional loading needed here - all data is already loaded
+        console.info('[useAtlasData] Reinitialize complete, data preloaded by InitializationService')
       })
     }
     catch (err) {
@@ -130,10 +116,12 @@ export function useAtlasData() {
    * Setup watchers for automatic data loading
    */
   function setupWatchers() {
-    // Watch for view mode changes to load territory data when needed
-    watch(() => configStore.viewMode, async (newMode, oldMode) => {
+    // Phase 4: View mode changes no longer trigger async data loading
+    // All data types are preloaded during initialization, making view mode switching synchronous
+    // This watcher is kept for logging but data loading is removed
+    watch(() => configStore.viewMode, (newMode, oldMode) => {
       console.info('[useAtlasData] viewMode changed:', { oldMode, newMode })
-      await loadDataForViewMode(newMode)
+      console.info('[useAtlasData] Data already preloaded, view mode switch is synchronous')
     })
 
     // Watch for atlas config changes to reinitialize data

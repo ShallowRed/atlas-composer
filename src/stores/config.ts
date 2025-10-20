@@ -34,13 +34,9 @@ export const useConfigStore = defineStore('config', () => {
   // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
   const projectionFittingMode = ref<'auto' | 'manual'>('auto')
 
-  // Initialize selectedProjection - use fallback, will be updated async with preset data
-  const getInitialProjection = () => {
-    // Use fallback default for immediate initialization
-    // AtlasMetadataService will update this asynchronously with preset data
-    return 'natural-earth'
-  }
-  const selectedProjection = ref(getInitialProjection())
+  // Projection selection - nullable until preset loads
+  // No fallback values - must wait for InitializationService to load valid preset
+  const selectedProjection = ref<string | null>(null)
 
   // Use async atlas loader for loading atlas configs on demand
   const { atlasConfig: currentAtlasConfig } = useAtlasLoader(selectedAtlas)
@@ -81,11 +77,15 @@ export const useConfigStore = defineStore('config', () => {
     return atlasConfig.defaultViewMode
   }
   const viewMode = ref<ViewMode>(getInitialViewMode())
-  // Initialize with fallback, will be updated async with preset data
-  const compositeProjection = ref<string>('conic-conformal-france')
-  // Reference scale from preset, will be updated async with preset data
+
+  // Composite projection - nullable until preset loads
+  // No fallback values - must wait for InitializationService to load valid preset
+  const compositeProjection = ref<string | null>(null)
+
+  // Reference scale from preset - undefined until loaded
   const referenceScale = ref<number | undefined>(undefined)
-  // Canvas dimensions from preset, will be updated async with preset data (defaults to 960×500)
+
+  // Canvas dimensions from preset - undefined until loaded
   const canvasDimensions = ref<{ width: number, height: number } | undefined>(undefined)
 
   // View mode preset tracking (separate from composite-custom presets)

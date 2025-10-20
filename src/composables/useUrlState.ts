@@ -26,7 +26,7 @@ export function useUrlState() {
     const state: Record<string, string> = {
       atlas: configStore.selectedAtlas,
       view: configStore.viewMode,
-      projection: configStore.selectedProjection || 'mercator',
+      projection: configStore.selectedProjection ?? 'mercator', // Fallback for URL only
       territory: configStore.territoryMode,
     }
 
@@ -46,7 +46,7 @@ export function useUrlState() {
       state.p2 = String(configStore.customParallel2)
 
     // Add composite projection if in composite mode
-    if (configStore.viewMode === 'built-in-composite') {
+    if (configStore.viewMode === 'built-in-composite' && configStore.compositeProjection) {
       state.composite = configStore.compositeProjection
     }
 
@@ -55,7 +55,7 @@ export function useUrlState() {
     const territories = atlasService.getAllTerritories()
     const defaults = TerritoryDefaultsService.initializeAll(
       territories,
-      configStore.selectedProjection || 'mercator',
+      configStore.selectedProjection ?? 'mercator', // Fallback for defaults calculation
     )
 
     // Encode territory-specific settings (scale multipliers, translations)

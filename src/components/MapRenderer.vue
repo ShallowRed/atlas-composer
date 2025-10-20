@@ -198,7 +198,13 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      const projectionToUse = (props.projection ?? configStore.selectedProjection) as string
+      const projectionToUse = props.projection ?? configStore.selectedProjection
+
+      // Check if projection is loaded
+      if (!projectionToUse) {
+        console.warn('[MapRenderer] Skipping render: projection not yet loaded')
+        return
+      }
 
       // Apply territory-specific parameters if territoryCode is provided (split mode)
       if (props.territoryCode) {
@@ -282,19 +288,24 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      MapRenderCoordinator.applyOverlays(
-        svg,
-        configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
-        {
-          showBorders: uiStore.showCompositionBorders,
-          showLimits: uiStore.showMapLimits,
-          projectionId: (configStore.compositeProjection || configStore.selectedProjection) as string,
-          width,
-          height,
-          customComposite: cartographer.value?.customComposite,
-          isMainland: props.isMainland,
-        },
-      )
+      const overlayProjectionId = configStore.compositeProjection || configStore.selectedProjection
+
+      // Only apply overlays if projection is loaded
+      if (overlayProjectionId) {
+        MapRenderCoordinator.applyOverlays(
+          svg,
+          configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
+          {
+            showBorders: uiStore.showCompositionBorders,
+            showLimits: uiStore.showMapLimits,
+            projectionId: overlayProjectionId,
+            width,
+            height,
+            customComposite: cartographer.value?.customComposite,
+            isMainland: props.isMainland,
+          },
+        )
+      }
     }
   }
   catch (err) {
@@ -326,11 +337,17 @@ async function renderComposite(): Promise<Plot.Plot> {
     territoryTranslations[territory.code] = parameterStore.getTerritoryTranslation(territory.code)
   }
 
+  // Check if projections are loaded before rendering
+  if (!configStore.selectedProjection) {
+    console.warn('[MapRenderer] Cannot render composite: selectedProjection not loaded')
+    throw new Error('Cannot render composite map: projection not loaded')
+  }
+
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
     viewMode: configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
     territoryMode: configStore.territoryMode,
-    selectedProjection: configStore.selectedProjection as string,
-    compositeProjection: configStore.compositeProjection as string | undefined,
+    selectedProjection: configStore.selectedProjection,
+    compositeProjection: configStore.compositeProjection ?? undefined,
     width,
     height,
     showGraticule: uiStore.showGraticule,
