@@ -647,12 +647,17 @@ export class InitializationService {
     uiStore.showMapLimits = state.display.showMapLimits
 
     // Store preset defaults for reset functionality
-    const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
-    const presetDefaults = getSharedPresetDefaults()
-    presetDefaults.storePresetDefaults(
-      state.territories,
-      state.parameters.territories as any,
-    )
+    // IMPORTANT: Only store for composite-custom mode
+    // Built-in-composite, unified, and split modes should not use territory defaults from presets
+    // as they manage their own positioning/parameters
+    if (state.viewMode === 'composite-custom') {
+      const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
+      const presetDefaults = getSharedPresetDefaults()
+      presetDefaults.storePresetDefaults(
+        state.territories,
+        state.parameters.territories as any,
+      )
+    }
   }
 
   /**

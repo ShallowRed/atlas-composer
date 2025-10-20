@@ -70,6 +70,21 @@ Ensures composite projection is always selected by using atlas metadata's defaul
 - Determines composite projection from metadata or AtlasMetadataService.getCompositeProjections()
 - `getInitialConfiguration()` - Build initial config for atlas (async)
 
+### InitializationService
+Centralizes application initialization logic for all scenarios.
+Handles atlas initialization, preset loading, configuration import, and view mode changes.
+Static service providing consistent initialization workflows.
+- `initializeAtlas()` - Initialize atlas on startup or atlas change
+- `loadPreset()` - Load and apply preset configuration
+- `importConfiguration()` - Import user-provided configuration
+- `changeViewMode()` - Switch view mode within same atlas
+- `applyStateToStores()` - Apply application state to Pinia stores
+
+**Preset Defaults Isolation**:
+Stores preset defaults (via usePresetDefaults) only for composite-custom mode.
+Built-in-composite, unified, and split modes do not store preset defaults, ensuring they maintain independent positioning logic.
+Built-in-composite mode relies exclusively on d3-composite-projections library positioning.
+
 ### TerritoryDefaultsService
 Initializes default territory projections, translations, and scales for atlases.
 Provides centralized logic for calculating territory defaults based on atlas configuration.

@@ -98,6 +98,18 @@ Four preset types exist in a discriminated union (`Preset`):
   - `applyViewPresetConfig(preset)` - Applies preset using PresetApplicationService
   - `clearViewPreset()` - Clears current preset
 
+**usePresetDefaults** (`src/composables/usePresetDefaults.ts`)
+- Manages original preset defaults for reset functionality
+- Stores territory projections, translations, scales, and parameters
+- Used only in composite-custom mode
+- Built-in-composite, unified, and split modes do not store preset defaults (they manage their own positioning)
+- Methods:
+  - `storePresetDefaults()` - Store preset defaults when loading composite-custom preset
+  - `clearPresetDefaults()` - Clear stored defaults
+  - `hasPresetDefaults()` - Check if defaults are available
+  - `hasDivergingParameters()` - Check if current values differ from stored defaults
+  - `getPresetDefaultsForTerritory()` - Get defaults for specific territory
+
 ## Loading Paths
 
 The preset system uses two distinct loading paths based on preset type and use case:
