@@ -4,8 +4,10 @@ import ToastNotification from '@/components/ui/export/ToastNotification.vue'
 import AppFooter from '@/components/ui/layout/AppFooter.vue'
 import AppHeader from '@/components/ui/layout/AppHeader.vue'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useUIStore } from '@/stores/ui'
 
 const geoDataStore = useGeoDataStore()
+const uiStore = useUIStore()
 </script>
 
 <template>
@@ -16,11 +18,20 @@ const geoDataStore = useGeoDataStore()
     </main>
     <AppFooter />
 
-    <!-- Global error state -->
+    <!-- Global error state from geoDataStore -->
     <ToastNotification
       :message="geoDataStore.error"
       type="error"
       @close="geoDataStore.clearError()"
+    />
+
+    <!-- Toast notifications from UI store -->
+    <ToastNotification
+      v-for="toast in uiStore.toasts"
+      :key="toast.id"
+      :message="toast.message"
+      :type="toast.type"
+      @close="uiStore.dismissToast(toast.id)"
     />
   </div>
 </template>

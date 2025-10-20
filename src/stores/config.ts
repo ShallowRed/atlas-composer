@@ -443,8 +443,17 @@ export const useConfigStore = defineStore('config', () => {
     await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
   })
 
+  // Track if we're in the middle of reverting to prevent infinite loops
+  let isReverting = false
+
   // Watch atlas changes - use InitializationService for orchestration
   watch(selectedAtlas, async (newAtlasId, oldAtlasId) => {
+    // Skip if we're reverting from a failed atlas change
+    if (isReverting) {
+      isReverting = false
+      return
+    }
+
     // Preload the new atlas before orchestration to ensure sync access works
     await loadAtlasAsync(newAtlasId)
 
@@ -456,6 +465,22 @@ export const useConfigStore = defineStore('config', () => {
 
     if (!result.success) {
       console.error('[ConfigStore] Atlas change failed:', result.errors)
+
+      // Revert to old atlas selection
+      isReverting = true
+      selectedAtlas.value = oldAtlasId
+
+      // Show error toast to user
+      const errorMessage = result.errors && result.errors.length > 0
+        ? result.errors[0]
+        : 'Failed to switch atlas'
+
+      uiStore.showToast(
+        `Cannot switch to ${newAtlasId}: ${errorMessage}`,
+        'error',
+        5000,
+      )
+
       return
     }
 
