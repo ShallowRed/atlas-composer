@@ -13,41 +13,35 @@ export function useAtlasData() {
 
   /**
    * Initialize atlas data on mount
+   * Phase 4/5 Refactor: InitializationService now handles preset loading and data preloading
+   * This method ensures theme is initialized and waits for InitializationService to complete
    */
   async function initialize() {
     try {
       // Initialize theme
       configStore.initializeTheme()
 
-      // CRITICAL: Wait for preset metadata to load before initializing geodata
-      // This ensures territory projections from presets are available before first render
-      if (typeof configStore.initializeWithPresetMetadata === 'function') {
-        await configStore.initializeWithPresetMetadata()
-      }
-      else {
-        console.warn('[useAtlasData] initializeWithPresetMetadata is not a function!')
-      }
-
-      // Wrap in minimum loading time to prevent skeleton flash
+      // Wait for InitializationService to complete
+      // InitializationService is called from config store on startup and handles:
+      // - Preset loading
+      // - GeoDataStore initialization
+      // - Data preloading (territory + unified)
       await withMinLoadingTime(async () => {
-        // Only initialize if not already initialized (important for route navigation)
+        // Poll until geoDataStore is initialized
+        // Check every 50ms for up to 5 seconds
+        const maxAttempts = 100 // 50ms * 100 = 5 seconds
+        let attempts = 0
+
+        while (!geoDataStore.isInitialized && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 50))
+          attempts++
+        }
+
         if (!geoDataStore.isInitialized) {
-          await geoDataStore.initialize()
+          throw new Error('Initialization timeout: GeoDataStore not initialized after 5 seconds')
         }
 
-        // Phase 4: Preload all data types for the current atlas
-        // This ensures both territory and unified data are available before first render
-        // Makes view mode switching synchronous with no async delays
-        const hasTerritoryData = geoDataStore.overseasTerritoriesData.length > 0
-        const hasUnifiedData = geoDataStore.rawUnifiedData !== null
-
-        if (!hasTerritoryData || !hasUnifiedData) {
-          console.info('[useAtlasData] Preloading all atlas data types for initial load')
-          await geoDataStore.loadAllAtlasData(configStore.territoryMode)
-        }
-        else {
-          console.info('[useAtlasData] Data already loaded, skipping preload')
-        }
+        console.info('[useAtlasData] InitializationService completed successfully')
       })
     }
     catch (err) {
@@ -120,23 +114,11 @@ export function useAtlasData() {
     }
   }
 
-  /**
-   * Setup watchers for automatic data loading
-   * Phase 5: Watchers moved to useApplicationState composable
-   * This function is deprecated and kept for backward compatibility
-   * All reactive orchestration now happens in useApplicationState
-   */
-  function setupWatchers() {
-    console.warn('[useAtlasData] setupWatchers is deprecated. Use useApplicationState instead.')
-    // No-op: All watchers have been moved to useApplicationState composable
-  }
-
   return {
     showSkeleton,
     initialize,
     loadDataForViewMode,
     reinitialize,
     reloadUnifiedData,
-    setupWatchers,
   }
 }

@@ -44,6 +44,7 @@ export function useMapWatchers(
   const stopWatchingProjectionParams = watch(
     () => parameterStore.globalEffectiveParameters,
     async (newParams) => {
+      console.info('[useMapWatchers] Projection params changed, calling onProjectionParamsChange')
       if (geoDataStore.cartographer && newParams) {
         geoDataStore.cartographer.updateProjectionParams(newParams)
         await callbacks.onProjectionParamsChange()
@@ -58,6 +59,7 @@ export function useMapWatchers(
   const stopWatchingFittingMode = watch(
     () => configStore.projectionFittingMode,
     async (newMode) => {
+      console.info('[useMapWatchers] Fitting mode changed, calling onFittingModeChange')
       if (geoDataStore.cartographer) {
         geoDataStore.cartographer.updateFittingMode(newMode)
         await callbacks.onFittingModeChange()
@@ -71,6 +73,7 @@ export function useMapWatchers(
   const stopWatchingCanvasDimensions = watch(
     () => configStore.canvasDimensions,
     async (newDimensions) => {
+      console.info('[useMapWatchers] Canvas dimensions changed, calling onCanvasDimensionsChange')
       if (geoDataStore.cartographer) {
         geoDataStore.cartographer.updateCanvasDimensions(newDimensions ?? null)
         await callbacks.onCanvasDimensionsChange()
@@ -85,6 +88,7 @@ export function useMapWatchers(
   const stopWatchingReferenceScale = watch(
     () => configStore.referenceScale,
     async (newScale) => {
+      console.info('[useMapWatchers] Reference scale changed, calling onReferenceScaleChange')
       if (geoDataStore.cartographer && newScale !== undefined) {
         geoDataStore.cartographer.updateReferenceScale(newScale)
         await callbacks.onReferenceScaleChange()
@@ -97,7 +101,8 @@ export function useMapWatchers(
    */
   const stopWatchingRenderKey = watch(
     () => geoDataStore.renderKey,
-    async () => {
+    async (newKey, oldKey) => {
+      console.info(`[useMapWatchers] renderKey changed: ${oldKey} → ${newKey}, triggering re-render`)
       // Force re-render when renderKey changes
       await callbacks.onDependenciesChange()
     },
@@ -109,35 +114,31 @@ export function useMapWatchers(
   const stopWatchingDependencies = watch(
     () => {
       if (props.mode === 'composite') {
-        return [
-          configStore.viewMode,
-          configStore.compositeProjection,
-          configStore.selectedProjection,
-          configStore.territoryMode,
-          configStore.scalePreservation,
-          // NOTE: referenceScale and canvasDimensions have dedicated watchers above
-          uiStore.showGraticule,
-          uiStore.showSphere,
-          uiStore.showCompositionBorders,
-          uiStore.showMapLimits,
-          parameterStore.territoryParametersVersion, // Watch parameter version for translations, projections, etc.
-          geoDataStore.filteredTerritories,
-        ]
+        return {
+          viewMode: configStore.viewMode,
+          compositeProjection: configStore.compositeProjection,
+          selectedProjection: configStore.selectedProjection,
+          territoryMode: configStore.territoryMode,
+          scalePreservation: configStore.scalePreservation,
+          showGraticule: uiStore.showGraticule,
+          showSphere: uiStore.showSphere,
+          showCompositionBorders: uiStore.showCompositionBorders,
+          showMapLimits: uiStore.showMapLimits,
+          territoryParametersVersion: parameterStore.territoryParametersVersion,
+          filteredTerritoriesCount: geoDataStore.filteredTerritories.length,
+        }
       }
-      return [
-        props.geoData,
-        props.projection,
-        configStore.selectedProjection,
-        props.preserveScale,
-        uiStore.showGraticule,
-        uiStore.showSphere,
-        uiStore.showCompositionBorders,
-        uiStore.showMapLimits,
-        parameterStore.territoryParametersVersion, // Watch for territory projection changes in split mode
-        // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
-        // watcher that calls updateProjectionParams() which updates the existing cartographer
-        // Watching it here would trigger a full re-render which is unnecessary
-      ]
+      // For simple mode, watch these dependencies
+      return {
+        projection: props.projection,
+        selectedProjection: configStore.selectedProjection,
+        preserveScale: props.preserveScale,
+        showGraticule: uiStore.showGraticule,
+        showSphere: uiStore.showSphere,
+        showCompositionBorders: uiStore.showCompositionBorders,
+        showMapLimits: uiStore.showMapLimits,
+        territoryParametersVersion: parameterStore.territoryParametersVersion,
+      }
     },
     async () => {
       await callbacks.onDependenciesChange()

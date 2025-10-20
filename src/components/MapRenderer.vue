@@ -54,7 +54,7 @@ watch(
   () => props.territoryCode ? parameterStore.getEffectiveParameters(props.territoryCode) : null,
   () => {
     if (props.territoryCode) {
-      renderMap()
+      debouncedRenderMap()
     }
   },
   { deep: true },
@@ -64,6 +64,8 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const isMounted = ref(false)
 const isRendering = ref(false)
+const pendingRender = ref(false)
+let renderDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
@@ -109,6 +111,7 @@ const cursorStyle = computed(() => {
 })
 
 // Map watchers composable for all watch statements
+// Use debouncedRenderMap to batch rapid successive calls during atlas changes
 const { cleanup: cleanupMapWatchers } = useMapWatchers(
   {
     mode: props.mode,
@@ -117,13 +120,21 @@ const { cleanup: cleanupMapWatchers } = useMapWatchers(
     preserveScale: props.preserveScale,
   },
   {
-    onProjectionParamsChange: renderMap,
-    onFittingModeChange: renderMap,
-    onCanvasDimensionsChange: renderMap,
-    onReferenceScaleChange: renderMap,
-    onDependenciesChange: renderMap,
+    onProjectionParamsChange: debouncedRenderMap,
+    onFittingModeChange: debouncedRenderMap,
+    onCanvasDimensionsChange: debouncedRenderMap,
+    onReferenceScaleChange: debouncedRenderMap,
+    onDependenciesChange: debouncedRenderMap,
   },
 )
+
+// Watch geoData prop directly for unified/split mode
+// This ensures map re-renders when territory filtering changes the data
+watch(() => props.geoData, (newData, oldData) => {
+  if (props.mode === 'simple' && newData !== oldData) {
+    debouncedRenderMap()
+  }
+}, { deep: false }) // Don't use deep, just watch reference changes
 
 // Render map on mount
 onMounted(async () => {
@@ -135,6 +146,11 @@ onMounted(async () => {
 
 // Cleanup event listeners on unmount
 onUnmounted(() => {
+  // Clear any pending debounced render
+  if (renderDebounceTimer) {
+    clearTimeout(renderDebounceTimer)
+  }
+
   cleanupProjectionPanning()
   cleanupTerritoryCursor()
   cleanupClipExtentEditor()
@@ -162,19 +178,75 @@ const computedSize = computed(() => {
   })
 })
 
+/**
+ * Debounced render function to batch multiple rapid render requests
+ */
+async function debouncedRenderMap() {
+  console.info('[MapRenderer] debouncedRenderMap() called', {
+    isReinitializing: geoDataStore.isReinitializing
+  })
+
+  // Don't schedule render if geoDataStore is reinitializing
+  if (geoDataStore.isReinitializing) {
+    console.info('[MapRenderer] Skipping debounced render - geoDataStore is reinitializing')
+    pendingRender.value = true
+    return
+  }
+
+  // Clear existing timer
+  if (renderDebounceTimer) {
+    clearTimeout(renderDebounceTimer)
+  }
+
+  // If already rendering, mark that we need another render after this one completes
+  if (isRendering.value) {
+    console.info('[MapRenderer] Render in progress, marking pendingRender = true')
+    pendingRender.value = true
+    return
+  }
+
+  // Debounce by 50ms to batch rapid successive calls
+  renderDebounceTimer = setTimeout(() => {
+    renderMap()
+  }, 50)
+}
+
 async function renderMap() {
+  console.info('[MapRenderer] renderMap() called', {
+    isMounted: isMounted.value,
+    isRendering: isRendering.value,
+    isReinitializing: geoDataStore.isReinitializing,
+    hasContainer: !!mapContainer.value,
+    hasCartographer: !!cartographer.value,
+    mode: props.mode
+  })
+
   // Don't render if not mounted yet
   if (!isMounted.value) {
+    console.warn('[MapRenderer] Skipping render - not mounted')
+    return
+  }
+
+  // Don't render if geoDataStore is reinitializing (atlas switch in progress)
+  if (geoDataStore.isReinitializing) {
+    console.warn('[MapRenderer] Skipping render - geoDataStore is reinitializing')
+    pendingRender.value = true
     return
   }
 
   // Don't render if already rendering (prevent concurrent renders)
   if (isRendering.value) {
+    console.warn('[MapRenderer] Skipping render - already rendering')
+    pendingRender.value = true
     return
   }
 
   // Check required dependencies
   if (!mapContainer.value || !cartographer.value) {
+    console.warn('[MapRenderer] Skipping render - missing dependencies', {
+      hasContainer: !!mapContainer.value,
+      hasCartographer: !!cartographer.value
+    })
     return
   }
 
@@ -315,6 +387,16 @@ async function renderMap() {
   finally {
     isLoading.value = false
     isRendering.value = false
+
+    // If a render was requested while we were rendering, trigger it now
+    if (pendingRender.value) {
+      console.info('[MapRenderer] pendingRender detected, scheduling another render')
+      pendingRender.value = false
+      // Use nextTick to ensure state has settled
+      nextTick(() => {
+        debouncedRenderMap()
+      })
+    }
   }
 }
 
@@ -323,18 +405,36 @@ async function renderComposite(): Promise<Plot.Plot> {
     throw new Error('Cartographer not initialized')
   }
 
+  console.info('[MapRenderer] renderComposite() - cartographer info:', {
+    cartographerId: (cartographer.value as any).__id,
+    cartographerAtlasId: (cartographer.value as any).__atlasId,
+    cartographerTerritories: (cartographer.value as any).__territories,
+    filteredTerritories: geoDataStore.filteredTerritories.map(t => t.code),
+    customCompositeKeys: cartographer.value.customComposite ?
+      Object.keys(cartographer.value.customComposite) :
+      'no customComposite'
+  })
+
   const { width, height } = computedSize.value
 
   // Build territory projections and translations from parameter store
+  // Use cartographer's composite config as source of truth for territories
   const territoryProjections: Record<string, string> = {}
   const territoryTranslations: Record<string, { x: number, y: number }> = {}
 
-  for (const territory of geoDataStore.filteredTerritories) {
-    const projectionId = parameterStore.getTerritoryProjection(territory.code)
+  // Get all territory codes from cartographer's customComposite
+  const territoryCodes = cartographer.value.customComposite
+    ? Object.keys(cartographer.value.customComposite)
+    : []
+
+  console.info('[MapRenderer] Building territory params for codes:', territoryCodes)
+
+  for (const territoryCode of territoryCodes) {
+    const projectionId = parameterStore.getTerritoryProjection(territoryCode)
     if (projectionId) {
-      territoryProjections[territory.code] = projectionId
+      territoryProjections[territoryCode] = projectionId
     }
-    territoryTranslations[territory.code] = parameterStore.getTerritoryTranslation(territory.code)
+    territoryTranslations[territoryCode] = parameterStore.getTerritoryTranslation(territoryCode)
   }
 
   // Check if projections are loaded before rendering

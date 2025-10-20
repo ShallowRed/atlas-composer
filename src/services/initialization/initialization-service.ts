@@ -28,6 +28,7 @@ import type {
   ViewModeChangeOptions,
 } from '@/types/initialization'
 
+import { nextTick } from 'vue'
 import { getAtlasConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
@@ -63,6 +64,8 @@ export class InitializationService {
 
     try {
       // Step 0: Clear all existing data (Phase 4: Clear reset strategy)
+      const geoDataStore = useGeoDataStore()
+      geoDataStore.setReinitializing(true)
       await this.clearAllApplicationData()
 
       // Step 1: Ensure atlas is loaded
@@ -177,13 +180,58 @@ export class InitializationService {
         },
       }
 
-      // Step 8: Apply state to stores
+      // Step 8: Filter atlas compositeConfig to only include territories defined in preset
+      // Preset is the source of truth for which territories to render
+      const filteredAtlasConfig = this.filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
+      console.info('[InitializationService] Filtered atlas config', {
+        atlasId,
+        presetTerritories: Object.keys(state.parameters.territories),
+        filteredTerritories: Object.keys(filteredAtlasConfig.compositeProjectionConfig || {}),
+      })
+
+      // Step 8a: Apply state to stores
       await this.applyStateToStores(state)
 
-      // Step 9: Preload all data types for the atlas
-      // Phase 4: Load both territory and unified data upfront
-      // Makes view mode switching synchronous (no async delays)
+      // Step 8b: Ensure Vue reactivity has settled
+      // Guarantees parameter store updates are committed before geoDataStore reads them
+      await nextTick()
+
+      // Step 8c: Validate that all territories in filtered config have parameters
+      // Only validate for composite modes (not unified/split which use global projection)
+      const validationErrors = this.validateTerritoryParameters(
+        filteredAtlasConfig,
+        state.parameters.territories,
+        state.viewMode,
+      )
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          errors: validationErrors,
+          warnings: [],
+          state: null,
+        }
+      }
+
+      // Step 8d: Validate projection parameters are correct for projection family
+      const projectionValidationErrors = this.validateProjectionParameters(state.parameters.territories)
+      if (projectionValidationErrors.length > 0) {
+        return {
+          success: false,
+          errors: projectionValidationErrors,
+          warnings: [],
+          state: null,
+        }
+      }
+
+      // Step 9: Reinitialize geoDataStore with filtered atlas config
+      await geoDataStore.reinitialize(filteredAtlasConfig)
+
+      // Step 10: Preload all data types for the atlas
       await this.preloadAtlasData(territoryMode)
+
+      // Step 11: Clear reinitializing flag and trigger render
+      geoDataStore.setReinitializing(false)
+      geoDataStore.triggerRender()
 
       return {
         success: true,
@@ -193,6 +241,10 @@ export class InitializationService {
       }
     }
     catch (error) {
+      // Clear reinitializing flag on error too
+      const geoDataStore = useGeoDataStore()
+      geoDataStore.setReinitializing(false)
+
       return {
         success: false,
         errors: [error instanceof Error ? error.message : 'Unknown error during atlas initialization'],
@@ -705,5 +757,181 @@ export class InitializationService {
 
     console.info('[InitializationService] Atlas data not fully loaded, preloading...')
     await this.preloadAtlasData(territoryMode)
+  }
+
+  /**
+   * Filter atlas config to only include territories defined in preset
+   * Preset is the source of truth for which territories should be rendered
+   *
+   * @param atlasConfig - Original atlas configuration
+   * @param territoryParameters - Territory parameters from preset
+   * @returns Filtered atlas configuration
+   */
+  private static filterAtlasConfigByPreset(
+    atlasConfig: any,
+    territoryParameters: Record<string, Record<string, unknown>>,
+  ): any {
+    const compositeConfig = atlasConfig.compositeProjectionConfig
+
+    if (!compositeConfig) {
+      // No composite config, return as-is
+      return atlasConfig
+    }
+
+    const territoriesInPreset = new Set(Object.keys(territoryParameters))
+
+    if (compositeConfig.type === 'single-focus') {
+      // Filter overseas territories to only those in preset
+      const filteredOverseas = compositeConfig.overseasTerritories.filter((t: any) =>
+        territoriesInPreset.has(t.code),
+      )
+
+      console.info(`[InitializationService] Filtered compositeConfig: ${territoriesInPreset.size} territories in preset, ${filteredOverseas.length} overseas territories`)
+
+      return {
+        ...atlasConfig,
+        compositeProjectionConfig: {
+          ...compositeConfig,
+          overseasTerritories: filteredOverseas,
+        },
+      }
+    }
+    else if (compositeConfig.type === 'equal-members') {
+      // Filter mainlands and overseas territories
+      const filteredMainlands = compositeConfig.mainlands.filter((t: any) =>
+        territoriesInPreset.has(t.code),
+      )
+      const filteredOverseas = compositeConfig.overseasTerritories.filter((t: any) =>
+        territoriesInPreset.has(t.code),
+      )
+
+      console.info(`[InitializationService] Filtered compositeConfig: ${territoriesInPreset.size} territories in preset (${filteredMainlands.length} mainlands, ${filteredOverseas.length} overseas)`)
+
+      return {
+        ...atlasConfig,
+        compositeProjectionConfig: {
+          ...compositeConfig,
+          mainlands: filteredMainlands,
+          overseasTerritories: filteredOverseas,
+        },
+      }
+    }
+
+    return atlasConfig
+  }
+
+  /**
+   * Validate that all territories in composite config have required parameters
+   * Fail fast approach: Returns errors if validation fails
+   *
+   * @param atlasConfig - Atlas configuration
+   * @param territoryParameters - Territory parameters from preset
+   * @param viewMode - Current view mode
+   * @returns Array of validation errors (empty if valid)
+   */
+  private static validateTerritoryParameters(
+    atlasConfig: any,
+    territoryParameters: Record<string, Record<string, unknown>>,
+    viewMode: string,
+  ): string[] {
+    const errors: string[] = []
+
+    // Skip validation for unified/split modes - they use global projection, not per-territory
+    if (viewMode === 'unified' || viewMode === 'split') {
+      return errors
+    }
+
+    const compositeConfig = atlasConfig.compositeProjectionConfig
+
+    if (!compositeConfig) {
+      // No composite config, no validation needed
+      return errors
+    }
+
+    // Get all territory codes that should be rendered
+    const territoriesToValidate: string[] = []
+
+    if (compositeConfig.type === 'single-focus') {
+      territoriesToValidate.push(compositeConfig.mainland.code)
+      territoriesToValidate.push(...compositeConfig.overseasTerritories.map((t: any) => t.code))
+    }
+    else if (compositeConfig.type === 'equal-members') {
+      territoriesToValidate.push(...compositeConfig.mainlands.map((t: any) => t.code))
+      territoriesToValidate.push(...compositeConfig.overseasTerritories.map((t: any) => t.code))
+    }
+
+    // Validate each territory has projectionId (only for composite modes)
+    for (const territoryCode of territoriesToValidate) {
+      const params = territoryParameters[territoryCode]
+      if (!params || !params.projectionId) {
+        errors.push(`Territory '${territoryCode}' missing required parameter 'projectionId'`)
+      }
+    }
+
+    if (errors.length > 0) {
+      console.error('[InitializationService] Territory parameter validation failed:', errors)
+    }
+
+    return errors
+  }
+
+  /**
+   * Validate projection parameters match projection family requirements
+   * Catches common mistakes like using 'center' with CONIC projections
+   *
+   * @param territoryParameters - Territory parameters from preset
+   * @returns Array of validation errors (empty if valid)
+   */
+  private static validateProjectionParameters(
+    territoryParameters: Record<string, Record<string, unknown>>,
+  ): string[] {
+    const errors: string[] = []
+
+    for (const [territoryCode, params] of Object.entries(territoryParameters)) {
+      const projectionFamily = params.projectionFamily as string | undefined
+
+      if (!projectionFamily) {
+        continue // Skip if no family defined
+      }
+
+      // Validate CONIC projections don't use 'center' parameter
+      if (projectionFamily === 'CONIC') {
+        if (params.center !== undefined) {
+          errors.push(
+            `Territory '${territoryCode}' uses CONIC projection but has 'center' parameter. ` +
+            `CONIC projections should use 'rotate' instead. ` +
+            `Expected: rotate: [lon, -lat, 0], got center: ${JSON.stringify(params.center)}`
+          )
+        }
+        if (!params.rotate) {
+          errors.push(
+            `Territory '${territoryCode}' uses CONIC projection but missing 'rotate' parameter. ` +
+            `CONIC projections require 'rotate': [longitude, -latitude, 0]`
+          )
+        }
+        if (!params.parallels || (Array.isArray(params.parallels) && params.parallels.every((p: any) => p === 0))) {
+          errors.push(
+            `Territory '${territoryCode}' uses CONIC projection but has invalid 'parallels' parameter. ` +
+            `Expected non-zero parallels like [37, 42], got: ${JSON.stringify(params.parallels)}`
+          )
+        }
+      }
+
+      // Validate CYLINDRICAL/AZIMUTHAL projections use 'center' not 'rotate'
+      if (projectionFamily === 'CYLINDRICAL' || projectionFamily === 'AZIMUTHAL') {
+        if (!params.center) {
+          errors.push(
+            `Territory '${territoryCode}' uses ${projectionFamily} projection but missing 'center' parameter. ` +
+            `${projectionFamily} projections require 'center': [longitude, latitude]`
+          )
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      console.error('[InitializationService] Projection parameter validation failed:', errors)
+    }
+
+    return errors
   }
 }

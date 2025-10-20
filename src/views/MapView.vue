@@ -13,7 +13,6 @@ import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
-import { useApplicationState } from '@/composables/useApplicationState'
 import { useAtlasData } from '@/composables/useAtlasData'
 import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
@@ -23,7 +22,6 @@ const { t } = useI18n()
 // Composables
 const { showSkeleton, initialize } = useAtlasData()
 const { restoreFromUrl } = useUrlState()
-const { setupWatchers } = useApplicationState()
 const {
   isCompositeCustomMode,
   isCompositeExistingMode,
@@ -46,7 +44,6 @@ onMounted(async () => {
   restoreFromUrl()
 
   await initialize()
-  setupWatchers()
   hasLoadedOnce.value = true
 })
 </script>

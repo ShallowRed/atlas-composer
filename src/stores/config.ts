@@ -6,7 +6,6 @@ import { computed, ref, watch } from 'vue'
 import { useAtlasLoader } from '@/composables/useAtlasLoader'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
-import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
@@ -88,6 +87,11 @@ export const useConfigStore = defineStore('config', () => {
   // Canvas dimensions from preset - undefined until loaded
   const canvasDimensions = ref<{ width: number, height: number } | undefined>(undefined)
 
+  // Active territory set for custom composite mode
+  // Tracks which territories are included in the custom composite
+  // Initially loaded from preset, can be modified by user
+  const activeTerritoryCodes = ref<Set<string>>(new Set())
+
   // View mode preset tracking (separate from composite-custom presets)
   const currentViewPreset = ref<string | null>(null)
   const availableViewPresets = ref<PresetRegistryEntry[]>([])
@@ -129,81 +133,31 @@ export const useConfigStore = defineStore('config', () => {
   // }
   // initializeTerritoryDefaults()
 
-  // Guard to prevent multiple simultaneous initializations
-  let initializationPromise: Promise<void> | null = null
+  // Reactivity System Refactor: Removed initializeWithPresetMetadata()
+  // Previously used AtlasCoordinator which is now replaced by InitializationService
+  // All initialization (startup + atlas changes) now uses InitializationService for consistency
 
-  // Async initialization to load metadata and territory defaults from presets
-  const initializeWithPresetMetadata = async () => {
-    // If already initializing, return the existing promise
-    if (initializationPromise) {
-      return initializationPromise
+  // Initialize with preset metadata on app startup
+  // Use InitializationService for consistent initialization (same as atlas changes)
+  ;(async () => {
+    try {
+      console.info('[ConfigStore] Initializing app with default atlas using InitializationService')
+      const result = await InitializationService.initializeAtlas({
+        atlasId: selectedAtlas.value,
+        preserveViewMode: false,
+      })
+
+      if (!result.success) {
+        console.error('[ConfigStore] Initial atlas initialization failed:', result.errors)
+      }
+      else {
+        console.info('[ConfigStore] Initial atlas initialization complete')
+      }
     }
-
-    // Create and store the initialization promise
-    initializationPromise = (async () => {
-      try {
-        const currentAtlasId = selectedAtlas.value
-
-        // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
-        const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
-
-        // CRITICAL: Initialize parameters FIRST (includes projectionId, scaleMultiplier, and all other parameters)
-        // This must happen before setting individual projections/translations/scales
-        if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-          // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
-          const atlasParams = {}
-
-          // Initialize parameters through the registry with validation
-          const validationErrors = parameterStore.initializeFromPreset(
-            atlasParams as any,
-            updates.territoryParameters as any,
-          )
-
-          // Handle validation errors
-          if (validationErrors.length > 0) {
-            console.warn('[ConfigStore] Parameter validation errors during preset initialization:', validationErrors)
-          // Could add user notification here in the future
-          }
-        }
-
-        // Store original preset defaults for reset functionality
-        presetDefaults.storePresetDefaults({
-          projections: updates.projections,
-          translations: updates.translations,
-          scales: updates.scales,
-        }, updates.territoryParameters)
-
-        // Apply other updates
-        selectedProjection.value = updates.selectedProjection
-        if (updates.compositeProjection) {
-          compositeProjection.value = updates.compositeProjection
-        }
-        if (updates.referenceScale !== undefined) {
-          referenceScale.value = updates.referenceScale
-        }
-        if (updates.canvasDimensions !== undefined) {
-          canvasDimensions.value = updates.canvasDimensions
-        }
-
-        // Update UI store
-        uiStore.initializeDisplayOptions({
-          showGraticule: updates.mapDisplay.showGraticule,
-          showSphere: updates.mapDisplay.showSphere,
-          showCompositionBorders: updates.mapDisplay.showCompositionBorders,
-          showMapLimits: updates.mapDisplay.showMapLimits,
-        })
-      }
-      catch (error) {
-        console.warn('[ConfigStore] Failed to load preset metadata:', error)
-        throw error // Re-throw to propagate to awaiting code
-      }
-    })()
-
-    return initializationPromise
-  }
-
-  // Initialize with preset metadata
-  initializeWithPresetMetadata()
+    catch (error) {
+      console.error('[ConfigStore] Initial atlas initialization error:', error)
+    }
+  })()
 
   // Computed
   // Use ProjectionUIService for all UI visibility and grouping logic
@@ -462,8 +416,7 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   // Watch view mode changes to load available presets
-  // Phase 5: This watcher handles UI-specific preset loading, not data loading
-  // Data loading reactions are handled by useApplicationState composable
+  // Watch view mode changes - handle preset loading and parameter clearing
   watch(viewMode, async (newMode, oldMode) => {
     clearViewPreset()
 
@@ -482,8 +435,6 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   // Watch atlas changes - use InitializationService for orchestration
-  // Phase 5: This watcher handles initialization service coordination
-  // Data reloading reactions are handled by useApplicationState composable
   watch(selectedAtlas, async (newAtlasId, oldAtlasId) => {
     // Preload the new atlas before orchestration to ensure sync access works
     await loadAtlasAsync(newAtlasId)
@@ -536,6 +487,7 @@ export const useConfigStore = defineStore('config', () => {
     compositeProjection,
     referenceScale,
     canvasDimensions,
+    activeTerritoryCodes,
     // View preset state
     currentViewPreset,
     availableViewPresets,
@@ -583,7 +535,8 @@ export const useConfigStore = defineStore('config', () => {
     setCustomParallel1,
     setCustomParallel2,
     initializeTheme,
-    initializeWithPresetMetadata,
+    // Reactivity System Refactor: initializeWithPresetMetadata removed
+    // Now using InitializationService.initializeAtlas() for all initialization
     // View preset actions
     loadAvailableViewPresets,
     loadViewPreset,

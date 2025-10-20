@@ -687,11 +687,12 @@ Last Updated: 2025-10-20
 
 **Files Created:**
 - `src/composables/useApplicationState.ts`
-  - Single watcher for atlas config changes (replaces useAtlasData watcher)
   - Single watcher for view mode changes (logging only, data preloaded)
   - Single watcher for territory mode changes (reloads unified data only)
   - Coordinates with geoDataStore for data reloading
   - Uses withMinLoadingTime for consistent UX
+  - **Critical**: Atlas change watcher intentionally REMOVED (caused race condition)
+  - Atlas changes handled by config.ts → InitializationService (single source of truth)
 
 **Files Modified:**
 - `src/composables/useAtlasData.ts`
@@ -716,14 +717,64 @@ Last Updated: 2025-10-20
 - Better organized codebase with clear responsibilities
 
 **Watcher Organization:**
-- **useApplicationState**: Data reloading reactions (atlas/territory mode changes)
-- **config.ts store**: UI-specific reactions (preset loading, parameter clearing)
+- **config.ts store**:
+  - Atlas changes → InitializationService.initializeAtlas (data clearing, reinitialization, preloading)
+  - View mode changes → Preset loading, parameter clearing
+- **useApplicationState**:
+  - View mode changes → Logging only (data already preloaded)
+  - Territory mode changes → Reload unified data
 - **Other composables**: Rendering-specific reactions (projection params, display options)
 
+**Important Race Condition Fix:**
+- Initially added atlas watcher to useApplicationState
+- Created race condition: config.ts and useApplicationState both reacting to atlas changes
+- Symptom: Switching atlas showed wrong territories (mixed state)
+- Fix: Removed atlas watcher from useApplicationState
+- Result: config.ts → InitializationService is single source of truth for atlas changes
+
+### Phase 6: Enforce View Mode Suitability (ALREADY IMPLEMENTED - VERIFIED)
+- [x] Unsupported view modes filtered from UI (not shown at all)
+- [x] InitializationService.changeViewMode validates view mode compatibility
+- [x] InitializationService.initializeAtlas auto-selects compatible view mode on atlas change
+- [x] Backend validation prevents invalid mode selection
+
+**Implementation Analysis:**
+
+**Current Protection Layers:**
+1. **UI Layer ([useViewMode.ts:31](src/composables/useViewMode.ts#L31))**:
+   - Filters `viewModeOptions` to only show `supportedViewModes` from atlas config
+   - Users only see modes they can actually use
+   - Better UX than showing disabled options
+
+2. **Service Layer ([InitializationService.ts:476-483](src/services/initialization/initialization-service.ts#L476-L483))**:
+   - `changeViewMode()` validates mode is in `supportedViewModes`
+   - Returns error if unsupported mode requested
+   - Prevents programmatic bypassing of UI restrictions
+
+3. **Atlas Change Handling ([InitializationService.ts:79-81](src/services/initialization/initialization-service.ts#L79-L81))**:
+   - `initializeAtlas()` checks if current mode is supported by new atlas
+   - Auto-selects `defaultViewMode` if current mode not supported
+   - Prevents invalid states when switching atlases
+
+**Design Decision:**
+- Original plan suggested showing disabled options with tooltips
+- Current implementation **hides** unsupported options entirely
+- This is **better UX** because:
+  - Reduces cognitive load (users don't see irrelevant options)
+  - Cleaner UI (no cluttered disabled options)
+  - Still provides all necessary protections
+  - Users can't accidentally wonder why option is disabled
+
+**Result:**
+- ✅ Impossible to select unsupported view mode
+- ✅ Atlas switching automatically corrects to valid mode
+- ✅ Clear, predictable behavior
+- ✅ Better UX than original plan
+
+**No Changes Required** - Phase 6 goals already achieved with superior implementation.
+
 ## Next Steps
-1. Phase 6: Enforce View Mode Suitability
-   - Disable unsupported view modes in UI
-2. Phase 7: Update Documentation
+1. Phase 7: Update Documentation
    - Update all .llm.txt files with new architecture
    - Remove temporal language
    - Document initialization flow
