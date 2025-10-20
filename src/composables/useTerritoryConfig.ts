@@ -14,8 +14,8 @@ export function useTerritoryConfig() {
    * Check if there are territories to configure in projection settings
    */
   const hasTerritoriesForProjectionConfig = computed(() => {
-    // Has territories
-    if (geoDataStore.filteredTerritories.length > 0) {
+    // Has overseas territories
+    if (geoDataStore.overseasTerritories.length > 0) {
       return true
     }
 

@@ -66,15 +66,10 @@ export function useClipExtentEditor() {
       handlesGroup = svgSelection.append('g').attr('class', 'clip-extent-handles')
     }
 
-    // Check if selected territory is mainland
-    const atlasConfig = configStore.currentAtlasConfig
-    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
-    const isMainland = selectedTerritoryCode.value === mainlandCode
-
-    // Get the selected territory (check both filtered territories and mainland)
-    const territories = isMainland
-      ? [] // Mainland is handled separately below
-      : geoDataStore.filteredTerritories.filter(t => t.code === selectedTerritoryCode.value)
+    // Get the selected territory from all active territories (includes mainland and overseas)
+    const selectedTerritory = geoDataStore.allActiveTerritories.find(
+      t => t.code === selectedTerritoryCode.value,
+    )
 
     // Create handle data for each territory
     const handleData: Array<{
@@ -84,9 +79,9 @@ export function useClipExtentEditor() {
       cy: number
     }> = []
 
-    // Process either the filtered territory or the mainland
+    // Process the selected territory if found
     const territoryCode = selectedTerritoryCode.value
-    if (territoryCode && (isMainland || territories.length > 0)) {
+    if (territoryCode && selectedTerritory) {
       const params = parameterStore.getEffectiveParameters(territoryCode)
       const translateOffset = params.translateOffset || [0, 0]
       const pixelClipExtent = params.pixelClipExtent

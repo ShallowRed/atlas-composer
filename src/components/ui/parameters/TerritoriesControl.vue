@@ -3,7 +3,6 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
-import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
@@ -143,9 +142,6 @@ const showMainlandAccordion = computed(() => {
     <i class="ri-restart-line" />
     {{ t('territory.resetButton') }}
   </button>
-
-  <!-- Territory Set Manager -->
-  <TerritorySetManager class="mb-6" />
 
   <!-- Accordion for all territories -->
   <div class="join join-vertical w-full">

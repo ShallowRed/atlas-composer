@@ -83,7 +83,8 @@ export function useViewState() {
   })
 
   const isMainlandInTerritories = computed(() => {
-    return geoDataStore.filteredTerritories.some(t => t.code === mainlandCode.value)
+    // Check if mainland is in the all active territories list
+    return geoDataStore.allActiveTerritories.some(t => t.code === mainlandCode.value)
   })
 
   /**
@@ -99,7 +100,7 @@ export function useViewState() {
       viewMode: configStore.viewMode,
       atlasConfig,
       hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
-      hasOverseasTerritories: geoDataStore.filteredTerritories.length > 0,
+      hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
       isPresetLoading: false,
       showProjectionSelector: configStore.showProjectionSelector,
       showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,

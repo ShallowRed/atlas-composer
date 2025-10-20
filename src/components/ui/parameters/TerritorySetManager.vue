@@ -16,7 +16,7 @@ const loadedTerritories = computed(() => {
 
 // Get territories that are currently active (included in composite)
 const activeTerritories = computed(() => {
-  return geoDataStore.filteredTerritories
+  return geoDataStore.overseasTerritories
 })
 
 // Get territories that are available to add (not currently active, excluding mainland)

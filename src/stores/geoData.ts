@@ -33,8 +33,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
   // Computed
-  // Filter territories based on view mode and territory mode
-  const filteredTerritories = computed(() => {
+  // Filter overseas/secondary territories based on view mode and territory mode
+  // Note: This does NOT include mainland - use mainlandData separately or allActiveTerritories for complete list
+  const overseasTerritories = computed(() => {
     const configStore = useConfigStore()
     const territories = overseasTerritoriesData.value
 
@@ -74,10 +75,34 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
   const territoryGroups = computed(() => {
     // Use TerritoryFilterService to group territories
-    return TerritoryFilterService.groupByRegion(filteredTerritories.value)
+    return TerritoryFilterService.groupByRegion(overseasTerritories.value)
   })
 
-  // Actions
+  /**
+   * Get all active territories including mainland (when applicable)
+   * Useful for operations that need to include both mainland and overseas
+   */
+  const allActiveTerritories = computed(() => {
+    const configStore = useConfigStore()
+    const atlasConfig = configStore.currentAtlasConfig
+    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
+
+    // Create a mainland territory object if we have mainland data
+    const mainlandTerritory: Territory | null = mainlandCode && mainlandData.value
+      ? {
+          code: mainlandCode,
+          name: atlasConfig?.splitModeConfig?.mainlandTitle || mainlandCode,
+          data: mainlandData.value,
+        } as Territory
+      : null
+
+    // Combine mainland and overseas territories
+    if (mainlandTerritory) {
+      return [mainlandTerritory, ...overseasTerritories.value]
+    }
+
+    return overseasTerritories.value
+  }) // Actions
   const initialize = async (atlasConfigOverride?: any) => {
     if (isInitialized.value)
       return
@@ -102,11 +127,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       if (atlasConfigOverride) {
         console.info('[GeoDataStore] Using filtered atlas config from InitializationService', {
-          territories: Object.keys(atlasConfigOverride.compositeProjectionConfig || {})
+          territories: Object.keys(atlasConfigOverride.compositeProjectionConfig || {}),
         })
-      } else {
+      }
+      else {
         console.info('[GeoDataStore] Using atlas config from configStore', {
-          territories: Object.keys(configStore.currentAtlasConfig?.compositeProjectionConfig || {})
+          territories: Object.keys(configStore.currentAtlasConfig?.compositeProjectionConfig || {}),
         })
       }
 
@@ -117,7 +143,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       // Use the geo data config from the selected region
       const geoDataConfig = atlasConfig.geoDataConfig
-      let compositeConfig = atlasConfig.compositeProjectionConfig
+      const compositeConfig = atlasConfig.compositeProjectionConfig
 
       // Create parameter provider adapter to connect parameter store to rendering
       const parameterStore = useParameterStore()
@@ -169,7 +195,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       console.info('[GeoDataStore] Cartographer created', {
         id: cartographerId,
         territories: Object.keys(compositeConfig || {}),
-        atlasId: atlasConfig.id
+        atlasId: atlasConfig.id,
       })
       isInitialized.value = true
     }
@@ -347,7 +373,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const reinitialize = async (atlasConfigOverride?: any) => {
     console.info('[GeoDataStore] Reinitializing - resetting state and reloading data', {
       hasOverride: !!atlasConfigOverride,
-      currentCartographer: !!cartographer.value
+      currentCartographer: !!cartographer.value,
     })
 
     // Set reinitializing flag to prevent renders during atlas switch
@@ -373,7 +399,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     console.info('[GeoDataStore] Reinitialization complete, new cartographer:', {
       hasCartographer: !!cartographer.value,
-      isInitialized: isInitialized.value
+      isInitialized: isInitialized.value,
     })
   }
 
@@ -409,7 +435,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     renderKey, // Expose render key for components to watch
 
     // Computed
-    filteredTerritories,
+    overseasTerritories,
+    allActiveTerritories,
     territoryGroups,
 
     // Actions

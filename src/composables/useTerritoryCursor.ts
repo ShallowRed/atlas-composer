@@ -152,9 +152,9 @@ export function useTerritoryCursor() {
       return true
     }
 
-    // Only allow dragging territories that are currently visible/filtered
-    const filteredTerritoryCodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
-    if (!filteredTerritoryCodes.has(territoryCode)) {
+    // Only allow dragging territories that are currently active (overseas or mainland)
+    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
+    if (!activeTerritoryCodes.has(territoryCode)) {
       return false
     }
 
@@ -388,14 +388,10 @@ export function useTerritoryCursor() {
     customComposite.build(width, height, true)
     const allBorders = customComposite.getCompositionBorders(width, height)
 
-    // Get mainland code
-    const atlasConfig = configStore.currentAtlasConfig
-    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
-
-    // Filter borders to only include territories that are currently filtered/visible (or mainland)
-    const filteredTerritorycodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
+    // Filter borders to only include territories that are currently active (overseas or mainland)
+    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
     const borders = allBorders.filter((border: any) =>
-      border.territoryCode === mainlandCode || filteredTerritorycodes.has(border.territoryCode),
+      activeTerritoryCodes.has(border.territoryCode),
     )
 
     const svgSelection = select(svg)

@@ -102,7 +102,7 @@ const territoriesTitle = computed(() =>
 
         <!-- Empty State -->
         <div
-          v-if="geoDataStore.filteredTerritories.length === 0"
+          v-if="geoDataStore.overseasTerritories.length === 0"
           class="text-gray-500"
         >
           <p>{{ t('territory.noTerritories') }}</p>
@@ -121,7 +121,7 @@ const territoriesTitle = computed(() =>
     <!-- Territories Grid (flat, no region grouping) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div
-        v-for="territory in geoDataStore.filteredTerritories"
+        v-for="territory in geoDataStore.overseasTerritories"
         :key="territory.code"
         class="flex flex-col"
       >
@@ -144,7 +144,7 @@ const territoriesTitle = computed(() =>
 
     <!-- Empty State -->
     <div
-      v-if="geoDataStore.filteredTerritories.length === 0"
+      v-if="geoDataStore.overseasTerritories.length === 0"
       class="text-gray-500"
     >
       <p>{{ t('territory.noTerritories') }}</p>

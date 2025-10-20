@@ -17,10 +17,10 @@ export function useTerritoryTransforms() {
   const { currentAtlasConfig } = useAtlasConfig()
 
   /**
-   * Get list of territories from geoData store
+   * Get list of overseas territories from geoData store
    */
   const territories = computed(() => {
-    return geoDataStore.filteredTerritories.map(t => ({
+    return geoDataStore.overseasTerritories.map(t => ({
       code: t.code,
       name: t.name,
     }))
@@ -45,10 +45,10 @@ export function useTerritoryTransforms() {
   })
 
   /**
-   * Check if mainland is in filtered territories
+   * Check if mainland is in active territories
    */
   const isMainlandInTerritories = computed(() => {
-    return geoDataStore.filteredTerritories.some(t => t.code === mainlandCode.value)
+    return geoDataStore.allActiveTerritories.some(t => t.code === mainlandCode.value)
   })
 
   /**

@@ -125,7 +125,7 @@ export function useMapWatchers(
           showCompositionBorders: uiStore.showCompositionBorders,
           showMapLimits: uiStore.showMapLimits,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
-          filteredTerritoriesCount: geoDataStore.filteredTerritories.length,
+          allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
         }
       }
       // For simple mode, watch these dependencies

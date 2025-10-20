@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+
+import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
@@ -66,5 +67,7 @@ const viewModeOptionsWithIcons = computed(() => {
       :disabled="viewOrchestration.isTerritorySelectDisabled.value"
       :options="territoryModeOptions"
     />
+    <!-- Territory Set Manager -->
+    <TerritorySetManager class="mb-6" />
   </div>
 </template>

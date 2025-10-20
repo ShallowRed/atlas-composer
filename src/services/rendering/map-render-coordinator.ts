@@ -59,7 +59,7 @@ export interface CompositeMapConfig {
   territoryProjections?: Record<string, string>
   territoryTranslations?: Record<string, { x: number, y: number }>
   // territoryScales removed - scale multipliers come from parameter store
-  filteredTerritories?: Territory[]
+  overseasTerritories?: Territory[]
 }
 
 /**
@@ -125,10 +125,10 @@ export class MapRenderCoordinator {
 
     // Get territory codes
     // For built-in-composite mode, territories may not be loaded, use undefined
-    // For composite-custom mode, use filtered territories
+    // For composite-custom mode, use overseas territories
     const territoryCodes = config.viewMode === 'built-in-composite'
       ? undefined
-      : config.filteredTerritories?.map(t => t.code)
+      : config.overseasTerritories?.map(t => t.code)
 
     const projectionId = config.compositeProjection || config.selectedProjection
 

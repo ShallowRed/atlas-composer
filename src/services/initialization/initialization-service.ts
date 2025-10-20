@@ -186,7 +186,7 @@ export class InitializationService {
       console.info('[InitializationService] Filtered atlas config', {
         atlasId,
         presetTerritories: Object.keys(state.parameters.territories),
-        filteredTerritories: Object.keys(filteredAtlasConfig.compositeProjectionConfig || {}),
+        territoriesInConfig: Object.keys(filteredAtlasConfig.compositeProjectionConfig || {}),
       })
 
       // Step 8a: Apply state to stores
@@ -902,21 +902,21 @@ export class InitializationService {
       if (projectionFamily === 'CONIC') {
         if (params.center !== undefined) {
           errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but has 'center' parameter. ` +
-            `CONIC projections should use 'rotate' instead. ` +
-            `Expected: rotate: [lon, -lat, 0], got center: ${JSON.stringify(params.center)}`
+            `Territory '${territoryCode}' uses CONIC projection but has 'center' parameter. `
+            + `CONIC projections should use 'rotate' instead. `
+            + `Expected: rotate: [lon, -lat, 0], got center: ${JSON.stringify(params.center)}`,
           )
         }
         if (!params.rotate) {
           errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but missing 'rotate' parameter. ` +
-            `CONIC projections require 'rotate': [longitude, -latitude, 0]`
+            `Territory '${territoryCode}' uses CONIC projection but missing 'rotate' parameter. `
+            + `CONIC projections require 'rotate': [longitude, -latitude, 0]`,
           )
         }
         if (!params.parallels || (Array.isArray(params.parallels) && params.parallels.every((p: any) => p === 0))) {
           errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but has invalid 'parallels' parameter. ` +
-            `Expected non-zero parallels like [37, 42], got: ${JSON.stringify(params.parallels)}`
+            `Territory '${territoryCode}' uses CONIC projection but has invalid 'parallels' parameter. `
+            + `Expected non-zero parallels like [37, 42], got: ${JSON.stringify(params.parallels)}`,
           )
         }
       }
@@ -925,8 +925,8 @@ export class InitializationService {
       if (projectionFamily === 'CYLINDRICAL' || projectionFamily === 'AZIMUTHAL') {
         if (!params.center) {
           errors.push(
-            `Territory '${territoryCode}' uses ${projectionFamily} projection but missing 'center' parameter. ` +
-            `${projectionFamily} projections require 'center': [longitude, latitude]`
+            `Territory '${territoryCode}' uses ${projectionFamily} projection but missing 'center' parameter. `
+            + `${projectionFamily} projections require 'center': [longitude, latitude]`,
           )
         }
       }

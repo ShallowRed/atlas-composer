@@ -60,11 +60,12 @@ export function useUrlState() {
 
     // Encode territory-specific settings (scale multipliers, translations)
     // Only include if different from atlas-specific defaults
+    // Include both mainland and overseas territories
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
 
     // Get scale multipliers from parameter store
-    for (const territory of geoDataStore.filteredTerritories) {
+    for (const territory of geoDataStore.allActiveTerritories) {
       const params = parameterStore.getTerritoryParameters(territory.code)
       const scale = params.scaleMultiplier ?? 1.0
       const defaultScale = defaults.scales[territory.code] ?? 1
@@ -75,7 +76,7 @@ export function useUrlState() {
     }
 
     // Get translations from parameter store
-    for (const territory of geoDataStore.filteredTerritories) {
+    for (const territory of geoDataStore.allActiveTerritories) {
       const translation = parameterStore.getTerritoryTranslation(territory.code)
       const defaultTranslation = defaults.translations[territory.code] ?? { x: 0, y: 0 }
       if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {

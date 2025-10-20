@@ -332,7 +332,7 @@ async function renderMap() {
           try {
             // Get the data that was used for rendering by calling the same method the cartographer uses
             const territoryMode = configStore.territoryMode
-            const territoryCodes = geoDataStore.filteredTerritories?.map(t => t.code)
+            const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
           }
           catch (error) {
@@ -388,7 +388,7 @@ async function renderMap() {
             height,
             customComposite: cartographer.value?.customComposite,
             isMainland: props.isMainland,
-            filteredTerritoryCodes: new Set(geoDataStore.filteredTerritories.map(t => t.code)),
+            filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
             mainlandCode: configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
           },
         )
@@ -424,7 +424,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     cartographerId: (cartographer.value as any).__id,
     cartographerAtlasId: (cartographer.value as any).__atlasId,
     cartographerTerritories: (cartographer.value as any).__territories,
-    filteredTerritories: geoDataStore.filteredTerritories.map(t => t.code),
+    overseasTerritories: geoDataStore.overseasTerritories.map(t => t.code),
     customCompositeKeys: cartographer.value.customComposite
       ? Object.keys(cartographer.value.customComposite)
       : 'no customComposite',
@@ -473,7 +473,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     territoryProjections,
     territoryTranslations,
     // territoryScales removed - scale multipliers come from parameter store
-    filteredTerritories: geoDataStore.filteredTerritories,
+    overseasTerritories: geoDataStore.overseasTerritories,
   })
 }
 
