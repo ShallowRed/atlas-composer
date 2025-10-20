@@ -155,6 +155,31 @@ export class Cartographer {
     }
   }
 
+  /**
+   * Rebuild the composite projection with a new configuration
+   * Call this when the set of territories changes (e.g., loading a preset with different territories)
+   * @param compositeConfig - New composite projection configuration
+   * @param parameterProvider - Parameter provider for territory parameters
+   * @param referenceScale - Reference scale for the projection
+   * @param canvasDimensions - Canvas dimensions for scaling
+   * @param canvasDimensions.width - Canvas width
+   * @param canvasDimensions.height - Canvas height
+   */
+  rebuildCompositeProjection(
+    compositeConfig: CompositeProjectionConfig,
+    parameterProvider?: ProjectionParameterProvider,
+    referenceScale?: number,
+    canvasDimensions?: { width: number, height: number },
+  ): void {
+    this.customComposite = new CompositeProjection(
+      compositeConfig,
+      parameterProvider,
+      referenceScale,
+      canvasDimensions,
+    )
+    console.info('[Cartographer] Rebuilt composite projection with new configuration')
+  }
+
   // Unified rendering API
   async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<Plot.Plot> {
     switch (options.mode) {

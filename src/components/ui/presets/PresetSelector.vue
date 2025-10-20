@@ -8,6 +8,7 @@ import { InitializationService } from '@/services/initialization/initialization-
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
@@ -67,10 +68,37 @@ const currentPreset = computed({
       // Trigger cartographer update if needed
       if (geoDataStore.cartographer && result.state) {
         const territoryParameters = result.state.parameters.territories
-        Object.keys(territoryParameters).forEach((territoryCode) => {
-          geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
-        })
-        console.info(`[PresetSelector] Updated cartographer for ${Object.keys(territoryParameters).length} territories`)
+
+        // Check if we need to rebuild the composite projection
+        // This happens when the new preset has a different set of territories
+        const currentAtlasConfig = configStore.currentAtlasConfig
+        if (currentAtlasConfig?.compositeProjectionConfig) {
+          // Rebuild composite projection to include all territories from the preset
+          const parameterStore = useParameterStore()
+          const parameterProvider = {
+            getEffectiveParameters: (territoryCode: string) => {
+              return parameterStore.getEffectiveParameters(territoryCode)
+            },
+            getExportableParameters: (territoryCode: string) => {
+              return parameterStore.getExportableParameters(territoryCode)
+            },
+          }
+
+          geoDataStore.cartographer.rebuildCompositeProjection(
+            currentAtlasConfig.compositeProjectionConfig,
+            parameterProvider,
+            result.state.canvas.referenceScale,
+            result.state.canvas.dimensions,
+          )
+          console.info(`[PresetSelector] Rebuilt composite projection with ${Object.keys(territoryParameters).length} territories`)
+        }
+        else {
+          // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
+          Object.keys(territoryParameters).forEach((territoryCode) => {
+            geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+          })
+          console.info(`[PresetSelector] Updated cartographer parameters for ${Object.keys(territoryParameters).length} territories`)
+        }
 
         // Trigger render
         geoDataStore.triggerRender()
