@@ -192,7 +192,7 @@ export interface ProjectionFilterContext {
   atlasId?: string
 
   /** Current view mode */
-  viewMode?: 'split' | 'composite-custom' | 'composite-existing' | 'unified'
+  viewMode?: 'split' | 'composite-custom' | 'built-in-composite' | 'unified'
 
   /** Territory being configured */
   territory?: {

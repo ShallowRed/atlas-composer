@@ -20,7 +20,7 @@ export interface Rect {
 export interface OverlayConfig {
   showBorders: boolean
   showLimits: boolean
-  viewMode: 'composite-custom' | 'composite-existing' | 'individual'
+  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
   projectionId?: string
   width: number
   height: number
@@ -161,7 +161,7 @@ export class MapOverlayService {
       if (config.viewMode === 'composite-custom') {
         this.renderCustomCompositeBorders(overlayGroup, config)
       }
-      else if (config.viewMode === 'composite-existing') {
+      else if (config.viewMode === 'built-in-composite') {
         this.renderExistingCompositeBorders(overlayGroup, config)
       }
     }

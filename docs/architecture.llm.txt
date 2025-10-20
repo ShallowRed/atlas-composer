@@ -44,7 +44,7 @@ File: docs/presets.llm.txt
 - Core preset types and validation logic (src/core/presets/)
 - Preset file loading services (src/services/presets/)
 - Territory defaults and parameter extraction
-- View mode preset management (unified, split, composite-existing)
+- View mode preset management (unified, split, built-in-composite)
 - Atlas metadata extraction from preset files
 - Conversion between preset format and internal application formats
 
@@ -116,7 +116,7 @@ src/
 └── i18n/               # Internationalization
 
 configs/                # Atlas configurations
-├── atlas-schema.json      # JSON schema for atlas configurations
+├── atlas.schema.json      # JSON schema for atlas configurations
 ├── france.json
 ├── portugal.json
 └── ...
@@ -347,7 +347,7 @@ Central type definitions:
 - Multi-atlas support (France, Portugal, Spain, EU, USA, World)
 - 20+ projections with smart recommendations
 - Interactive projection parameter controls
-- Three view modes (composite-custom, composite-existing, split, unified)
+- Three view modes (composite-custom, built-in-composite, split, unified)
 - Real-time territory positioning
 - Responsive design with theme support
 - Internationalization (EN/FR)

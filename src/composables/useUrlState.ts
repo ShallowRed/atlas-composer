@@ -47,7 +47,7 @@ export function useUrlState() {
       state.p2 = String(configStore.customParallel2)
 
     // Add composite projection if in composite mode
-    if (configStore.viewMode === 'composite-existing') {
+    if (configStore.viewMode === 'built-in-composite') {
       state.composite = configStore.compositeProjection
     }
 

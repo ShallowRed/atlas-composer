@@ -96,7 +96,7 @@ Delegates conversion to core convertToDefaults() and extractTerritoryParameters(
 Focuses on file I/O and orchestration, domain logic in core layer.
 
 ### ViewPresetLoader
-Loads preset configurations for unified, split, and composite-existing view modes.
+Loads preset configurations for unified, split, and built-in-composite view modes.
 Static service providing view preset loading orchestration.
 Uses core validation logic from @/core/presets.
 - `loadPreset()` - Load and validate view preset using core validators (async)
@@ -259,7 +259,7 @@ interface ViewState {
 
 **Sidebar Content Switching**:
 - `shouldShowProjectionParams(state)` - Projection parameters visibility
-  - True for: unified, composite-existing modes
+  - True for: unified, built-in-composite modes
   - False for: composite-custom, split (show territory controls instead)
 - `shouldShowTerritoryControls(state)` - Territory controls visibility
   - True for: composite-custom, split modes
@@ -294,7 +294,7 @@ interface ViewState {
 
 **Layout Variant Methods**:
 - `shouldShowCompositeRenderer(state)` - Composite map renderer visibility
-  - True for: composite-custom, composite-existing modes
+  - True for: composite-custom, built-in-composite modes
 - `shouldShowSplitView(state)` - Split view component visibility
   - True for: split mode
 - `shouldShowUnifiedView(state)` - Unified view component visibility
@@ -302,7 +302,7 @@ interface ViewState {
 
 **Display Options Visibility**:
 - `shouldShowCompositionBordersToggle(state)` - Composition borders toggle
-  - True for: composite-custom, composite-existing modes
+  - True for: composite-custom, built-in-composite modes
 - `shouldShowScalePreservationToggle(state)` - Scale preservation toggle
   - True for: split mode
 

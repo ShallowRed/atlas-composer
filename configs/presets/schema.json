@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://atlas-composer.com/schemas/view-preset.json",
   "title": "Atlas Composer View Mode Preset",
-  "description": "JSON schema for view mode preset files (unified, split, composite-existing). Separate from composite-custom presets.",
+  "description": "JSON schema for view mode preset files (unified, split, built-in-composite). Separate from composite-custom presets.",
   "type": "object",
   "required": ["id", "name", "atlasId", "viewMode", "config"],
   "properties": {
@@ -31,7 +31,7 @@
     },
     "viewMode": {
       "type": "string",
-      "enum": ["unified", "split", "composite-existing"],
+      "enum": ["unified", "split", "built-in-composite"],
       "description": "View mode this preset is for"
     },
     "config": {

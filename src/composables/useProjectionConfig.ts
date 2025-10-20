@@ -61,7 +61,7 @@ export function useProjectionConfig() {
       // Use territory-specific projection if defined, otherwise use default
       return parameterStore.getTerritoryProjection(territoryCode) || configStore.selectedProjection
     }
-    // Use uniform projection for unified and composite-existing modes
+    // Use uniform projection for unified and built-in-composite modes
     return configStore.selectedProjection
   }
 

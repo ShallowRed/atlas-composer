@@ -387,7 +387,7 @@ export const useConfigStore = defineStore('config', () => {
    */
   async function loadAvailableViewPresets() {
     // Only load presets for view modes that support them
-    if (!['unified', 'split', 'composite-existing'].includes(viewMode.value)) {
+    if (!['unified', 'split', 'built-in-composite'].includes(viewMode.value)) {
       availableViewPresets.value = []
       return
     }

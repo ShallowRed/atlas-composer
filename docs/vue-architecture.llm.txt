@@ -25,7 +25,7 @@ src/
 │   │   ├── CompositeCustomControls.vue   # Composite-custom mode controls
 │   │   ├── UnifiedControls.vue           # Unified mode controls
 │   │   ├── SplitControls.vue             # Split mode controls
-│   │   └── CompositeExistingControls.vue # Composite-existing mode controls
+│   │   └── BuiltInCompositeControls.vue # Composite-existing mode controls
 │   └── ui/                   # 28 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
@@ -53,7 +53,7 @@ App.vue
 │           ├── CompositeCustomControls (composite-custom mode)
 │           ├── UnifiedControls (unified mode)
 │           ├── SplitControls (split mode)
-│           └── CompositeExistingControls (composite-existing mode)
+│           └── BuiltInCompositeControls (built-in-composite mode)
 └── AppFooter.vue (credits, links)
 ```
 
@@ -126,8 +126,8 @@ Dedicated control components for each view mode provide focused, maintainable in
 **Reactivity**: Uses `getTerritoryProjection()` helper for direct parameter store access
 - Uses: useTerritoryTransforms, projectionRegistry, parameterStore
 
-#### CompositeExistingControls.vue
-**Role**: Controls for composite-existing mode (d3-composite-projections)
+#### BuiltInCompositeControls.vue
+**Role**: Controls for built-in-composite mode (d3-composite-projections)
 **Responsibilities**:
 - ViewPresetSelector for preset selection
 - ProjectionDropdown for selecting pre-built composite projections
@@ -481,7 +481,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 **ViewState Interface**:
 ```typescript
 interface ViewState {
-  viewMode: ViewMode                          // composite-custom, composite-existing, split, unified
+  viewMode: ViewMode                          // composite-custom, built-in-composite, split, unified
   atlasConfig: AtlasConfig                    // Current atlas configuration
   hasPresets: boolean                         // Presets available for current atlas
   hasOverseasTerritories: boolean             // Filtered territories exist
@@ -500,7 +500,7 @@ interface ViewState {
 - `shouldShowBottomBar()` - Always visible (display options)
 
 **Sidebar Content**:
-- `shouldShowProjectionParams()` - Show in unified, composite-existing modes
+- `shouldShowProjectionParams()` - Show in unified, built-in-composite modes
 - `shouldShowTerritoryControls()` - Show in split, composite-custom modes
 
 **Territory Controls Sub-components**:
@@ -516,7 +516,7 @@ interface ViewState {
 - `getEmptyStateMessage()` - Returns appropriate i18n key for empty state
 
 **Control States**:
-- `isTerritorySelectDisabled()` - Disable if no hasTerritorySelector or in composite-existing
+- `isTerritorySelectDisabled()` - Disable if no hasTerritorySelector or in built-in-composite
 - `isViewModeDisabled()` - Disable if only one supported view mode
 
 **Layout Variants**:
@@ -820,7 +820,7 @@ Components never call services directly. Flow:
 <CardContainer
   v-show="(
     configStore.viewMode === 'unified'
-    || configStore.viewMode === 'composite-existing'
+    || configStore.viewMode === 'built-in-composite'
     || configStore.showProjectionSelector
     || configStore.showIndividualProjectionSelectors
   )"

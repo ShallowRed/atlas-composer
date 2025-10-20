@@ -7,7 +7,7 @@ import type { ViewMode } from '@/types/composite'
 
 const VIEW_MODE_ICONS: Record<ViewMode, string> = {
   'composite-custom': 'ri-drag-move-2-line',
-  'composite-existing': 'ri-layout-4-line',
+  'built-in-composite': 'ri-layout-4-line',
   'split': 'ri-layout-grid-2-fill',
   'unified': 'ri-globe-line',
 }

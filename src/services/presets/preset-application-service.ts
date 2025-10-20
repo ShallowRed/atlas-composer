@@ -42,7 +42,7 @@ export class PresetApplicationService {
           return this.applyUnified(preset.config as UnifiedViewConfig)
         case 'split':
           return this.applySplit(preset.config as SplitViewConfig)
-        case 'composite-existing':
+        case 'built-in-composite':
           return this.applyCompositeExisting(preset.config as CompositeExistingViewConfig)
         default:
           return {
@@ -168,7 +168,7 @@ export class PresetApplicationService {
   }
 
   /**
-   * Apply composite-existing preset
+   * Apply built-in-composite preset
    * Uses d3-composite-projections library
    */
   private static applyCompositeExisting(config: CompositeExistingViewConfig): ApplicationResult {
@@ -178,7 +178,7 @@ export class PresetApplicationService {
       // Set composite projection ID
       configStore.compositeProjection = config.projectionId
 
-      // Note: Global scale for composite-existing mode is not yet fully supported
+      // Note: Global scale for built-in-composite mode is not yet fully supported
       // d3-composite-projections doesn't expose a scale multiplier API
       if (config.globalScale !== undefined) {
         console.info('[PresetApplicationService] Global scale from preset (not applied):', config.globalScale)
@@ -187,13 +187,13 @@ export class PresetApplicationService {
       return {
         success: true,
         errors: [],
-        warnings: config.globalScale !== undefined ? ['Global scale is not yet supported for composite-existing mode'] : [],
+        warnings: config.globalScale !== undefined ? ['Global scale is not yet supported for built-in-composite mode'] : [],
       }
     }
     catch (error) {
       return {
         success: false,
-        errors: [`Failed to apply composite-existing preset: ${error}`],
+        errors: [`Failed to apply built-in-composite preset: ${error}`],
         warnings: [],
       }
     }

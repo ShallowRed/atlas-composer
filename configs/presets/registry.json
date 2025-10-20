@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "description": "Unified registry of all preset types (composite-custom, unified, split, composite-existing)",
+  "description": "Unified registry of all preset types (composite-custom, unified, split, built-in-composite)",
   "presets": [
     {
       "id": "france-default",
@@ -44,10 +44,10 @@
       "description": "Même projection conique pour tous les territoires"
     },
     {
-      "id": "france-composite-existing",
+      "id": "france-built-in-composite",
       "name": "France - Composite d3 standard",
       "atlasId": "france",
-      "type": "composite-existing",
+      "type": "built-in-composite",
       "description": "Projection composite prédéfinie de d3-composite-projections"
     },
     {
@@ -74,10 +74,10 @@
       "description": "Mesma projeção cônica para todos os territórios"
     },
     {
-      "id": "portugal-composite-existing",
+      "id": "portugal-built-in-composite",
       "name": "Portugal - Projeção composta d3",
       "atlasId": "portugal",
-      "type": "composite-existing",
+      "type": "built-in-composite",
       "description": "Projeção composta predefinida de d3-composite-projections"
     },
     {
@@ -104,10 +104,10 @@
       "description": "Projection conique conforme pour tous les territoires européens"
     },
     {
-      "id": "eu-composite-existing",
+      "id": "eu-built-in-composite",
       "name": "EU - Composite existant",
       "atlasId": "eu",
-      "type": "composite-existing",
+      "type": "built-in-composite",
       "description": "Projection composite prédéfinie pour l'Europe"
     },
     {
@@ -134,10 +134,10 @@
       "description": "Projection conique conforme pour tous les territoires américains"
     },
     {
-      "id": "usa-composite-existing",
+      "id": "usa-built-in-composite",
       "name": "USA - Composite Albers",
       "atlasId": "usa",
-      "type": "composite-existing",
+      "type": "built-in-composite",
       "description": "Projection composite Albers USA prédéfinie"
     },
     {

@@ -64,8 +64,8 @@ export interface JSONAtlasConfig {
     label: I18nValue
     territories: string[]
   }>
-  viewModes?: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
-  defaultViewMode?: 'split' | 'composite-existing' | 'composite-custom' | 'unified'
+  viewModes?: Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
+  defaultViewMode?: 'split' | 'built-in-composite' | 'composite-custom' | 'unified'
   territoryModes?: Array<{
     id: string
     name: I18nValue

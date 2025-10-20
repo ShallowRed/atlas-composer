@@ -1,7 +1,7 @@
 /**
  * Preset Loader Service (Unified)
  *
- * Loads all preset types (composite-custom, unified, split, composite-existing)
+ * Loads all preset types (composite-custom, unified, split, built-in-composite)
  * from a single unified registry and directory structure.
  *
  * Key responsibilities:
@@ -118,7 +118,7 @@ export class PresetLoader {
       }
     }
     else {
-      // View preset (unified, split, composite-existing)
+      // View preset (unified, split, built-in-composite)
       const validation = validateViewPreset(fileResult.data)
 
       if (!validation.isValid) {

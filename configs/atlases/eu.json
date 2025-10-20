@@ -1,5 +1,5 @@
 {
-  "$schema": "./atlas-schema.json",
+  "$schema": "./atlas.schema.json",
   "id": "eu",
   "name": "Europe",
   "description": "European countries including EU members (27), non-EU states, and overseas territories",
@@ -9,11 +9,11 @@
     "metadata": "eu-metadata-50m.json"
   },
   "viewModes": [
-    "composite-existing",
+    "built-in-composite",
     "unified",
     "split"
   ],
-  "defaultViewMode": "composite-existing",
+  "defaultViewMode": "built-in-composite",
   "territories": [
     {
       "id": "40",

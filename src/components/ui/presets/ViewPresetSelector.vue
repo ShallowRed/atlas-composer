@@ -31,7 +31,7 @@ function getPresetIcon(viewMode: string): string {
       return 'ri-global-line'
     case 'split':
       return 'ri-layout-grid-line'
-    case 'composite-existing':
+    case 'built-in-composite':
       return 'ri-map-2-line'
     default:
       return 'ri-file-settings-line'
@@ -40,10 +40,10 @@ function getPresetIcon(viewMode: string): string {
 
 /**
  * Should show preset selector?
- * Only for unified, split, and composite-existing modes
+ * Only for unified, split, and built-in-composite modes
  */
 const shouldShow = computed(() => {
-  const supportedModes = ['unified', 'split', 'composite-existing']
+  const supportedModes = ['unified', 'split', 'built-in-composite']
   return supportedModes.includes(configStore.viewMode)
 })
 
@@ -84,7 +84,7 @@ const label = computed(() => {
       return t('preset.unified.select')
     case 'split':
       return t('preset.split.select')
-    case 'composite-existing':
+    case 'built-in-composite':
       return t('preset.compositeExisting.select')
     default:
       return t('preset.select')

@@ -74,9 +74,9 @@ describe('useUrlState', () => {
       expect(state.clat).toBe('40')
     })
 
-    it('should include composite projection in composite-existing mode', () => {
+    it('should include composite projection in built-in-composite mode', () => {
       const configStore = useConfigStore()
-      configStore.viewMode = 'composite-existing'
+      configStore.viewMode = 'built-in-composite'
       configStore.compositeProjection = 'conic-conformal-france'
 
       const { serializeState } = useUrlState()

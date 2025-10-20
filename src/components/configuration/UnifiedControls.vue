@@ -93,10 +93,6 @@ const currentParallel2 = computed(() => {
     ?? RANGES.parallel2.default
 })
 
-const currentScale = computed(() => {
-  return configStore.customScale ?? RANGES.scale.default
-})
-
 // Check if any parameters differ from defaults
 const hasCustomParams = computed(() => {
   if (!configStore.currentViewPreset) {
@@ -139,10 +135,6 @@ function updateParallel1(value: number) {
 
 function updateParallel2(value: number) {
   configStore.setCustomParallels(currentParallel1.value, value)
-}
-
-function updateScale(value: number) {
-  configStore.setCustomScale(value)
 }
 
 function reset() {
@@ -193,29 +185,7 @@ const supportsLatitudeRotation = computed(() => {
         {{ t('settings.projectionParamsTitle') }}
       </h3>
 
-      <div class="flex flex-col gap-4 pt-6">
-        <!-- Fitting Mode Toggle -->
-        <div class="form-control">
-          <label class="label cursor-pointer justify-start gap-3">
-            <i class="ri-settings-3-line text-base-content/70" />
-            <span class="label-text flex-1">{{ t('projectionParams.fittingMode') }}</span>
-            <div class="flex items-center gap-2 text-xs">
-              <span :class="configStore.projectionFittingMode === 'auto' ? 'font-semibold' : 'opacity-50'">
-                {{ t('projectionParams.autoFitting') }}
-              </span>
-              <input
-                type="checkbox"
-                class="toggle toggle-sm"
-                :checked="configStore.projectionFittingMode === 'manual'"
-                @change="(e) => configStore.setProjectionFittingMode((e.target as HTMLInputElement).checked ? 'manual' : 'auto')"
-              >
-              <span :class="configStore.projectionFittingMode === 'manual' ? 'font-semibold' : 'opacity-50'">
-                {{ t('projectionParams.manualFitting') }}
-              </span>
-            </div>
-          </label>
-        </div>
-
+      <div class="flex flex-col gap-2 pt-6">
         <!-- Reset Button -->
         <button
           class="btn btn-sm btn-soft w-full gap-1 mb-4"
@@ -290,19 +260,6 @@ const supportsLatitudeRotation = computed(() => {
           :step="RANGES.centerLatitude.step"
           unit="°"
           @update:model-value="updateCenterLatitude"
-        />
-
-        <!-- Scale (manual mode only) -->
-        <RangeSlider
-          v-if="configStore.projectionFittingMode === 'manual'"
-          :model-value="currentScale"
-          label="Scale"
-          icon="ri-zoom-in-line"
-          size="xs"
-          :min="RANGES.scale.min"
-          :max="RANGES.scale.max"
-          :step="RANGES.scale.step"
-          @update:model-value="updateScale"
         />
 
         <!-- Parallel 1 -->

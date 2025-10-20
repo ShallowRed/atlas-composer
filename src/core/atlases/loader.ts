@@ -311,7 +311,7 @@ function createAtlasConfig(
   locale: string,
 ): AtlasConfig {
   // Use view modes from config if specified, otherwise default to all modes
-  const supportedViewModes = (config.viewModes || ['split', 'composite-existing', 'composite-custom', 'unified']) as Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
+  const supportedViewModes = (config.viewModes || ['split', 'built-in-composite', 'composite-custom', 'unified']) as Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
 
   return {

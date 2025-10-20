@@ -76,8 +76,8 @@ export interface CompositeProjectionDefaults {
  *
  * Defines how territories are displayed in the atlas:
  * - split: Separate views for mainland and overseas
- * - composite-existing: Use pre-built D3 composite projection
+ * - built-in-composite: Use pre-built D3 composite projection
  * - composite-custom: Custom positioning with user-defined layout
  * - unified: Single map with all territories in geographic positions
  */
-export type ViewMode = 'split' | 'composite-existing' | 'composite-custom' | 'unified'
+export type ViewMode = 'split' | 'built-in-composite' | 'composite-custom' | 'unified'

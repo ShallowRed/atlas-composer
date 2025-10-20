@@ -284,7 +284,7 @@ async function renderMap() {
       const { width, height } = computedSize.value
       MapRenderCoordinator.applyOverlays(
         svg,
-        configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+        configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
         {
           showBorders: uiStore.showCompositionBorders,
           showLimits: uiStore.showMapLimits,
@@ -327,7 +327,7 @@ async function renderComposite(): Promise<Plot.Plot> {
   }
 
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
-    viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
+    viewMode: configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
     territoryMode: configStore.territoryMode,
     selectedProjection: configStore.selectedProjection as string,
     compositeProjection: configStore.compositeProjection as string | undefined,

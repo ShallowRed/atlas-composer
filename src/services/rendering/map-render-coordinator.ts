@@ -44,7 +44,7 @@ export interface SimpleMapConfig {
  * Configuration for composite map rendering
  */
 export interface CompositeMapConfig {
-  viewMode: 'composite-custom' | 'composite-existing' | 'individual'
+  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
   territoryMode: string
   selectedProjection: string
   compositeProjection?: string
@@ -124,9 +124,9 @@ export class MapRenderCoordinator {
       : 'composite-projection'
 
     // Get territory codes
-    // For composite-existing mode, territories may not be loaded, use undefined
+    // For built-in-composite mode, territories may not be loaded, use undefined
     // For composite-custom mode, use filtered territories
-    const territoryCodes = config.viewMode === 'composite-existing'
+    const territoryCodes = config.viewMode === 'built-in-composite'
       ? undefined
       : config.filteredTerritories?.map(t => t.code)
 
@@ -154,7 +154,7 @@ export class MapRenderCoordinator {
    */
   static applyOverlays(
     svg: SVGSVGElement,
-    viewMode: 'composite-custom' | 'composite-existing' | 'individual',
+    viewMode: 'composite-custom' | 'built-in-composite' | 'individual',
     config: {
       showBorders: boolean
       showLimits: boolean

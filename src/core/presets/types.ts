@@ -2,7 +2,7 @@
  * Preset Domain Types
  *
  * Core type definitions for the preset system.
- * Unified types for all preset configurations (composite-custom, unified, split, composite-existing).
+ * Unified types for all preset configurations (composite-custom, unified, split, built-in-composite).
  */
 
 import type { ViewMode } from '@/types/composite'
@@ -88,7 +88,7 @@ export interface BasePresetMetadata {
 /**
  * View modes that support view presets
  */
-export type ViewPresetMode = Extract<ViewMode, 'unified' | 'split' | 'composite-existing'>
+export type ViewPresetMode = Extract<ViewMode, 'unified' | 'split' | 'built-in-composite'>
 
 /**
  * All supported preset types (discriminator for unified Preset type)
@@ -185,7 +185,7 @@ export interface SplitPreset extends BasePresetMetadata {
  * Composite-existing view mode preset
  */
 export interface CompositeExistingPreset extends BasePresetMetadata {
-  type: 'composite-existing'
+  type: 'built-in-composite'
   config: CompositeExistingViewConfig
 }
 

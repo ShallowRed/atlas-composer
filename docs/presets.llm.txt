@@ -11,7 +11,7 @@ Four preset types exist in a discriminated union (`Preset`):
 1. **composite-custom** - Custom composite projections with full per-territory configuration (exportable, round-trip capable)
 2. **unified** - Single projection covering the entire atlas
 3. **split** - Individual projections per territory group
-4. **composite-existing** - Predefined projections from d3-composite-projections library
+4. **built-in-composite** - Predefined projections from d3-composite-projections library
 
 ## Architecture
 
@@ -21,7 +21,7 @@ Four preset types exist in a discriminated union (`Preset`):
 - Unified domain types with discriminated unions
 - `LoadResult<T>` - Generic result type for all loading operations
 - `Preset` - Discriminated union of CompositePreset | UnifiedPreset | SplitPreset | CompositeExistingPreset
-- `PresetType` - Type discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `PresetType` - Type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `PresetRegistry` - Unified registry for all preset types
 - `BasePresetMetadata` - Shared metadata fields (id, name, description, atlasId)
 - Configuration types: CompositeCustomConfig, UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
@@ -62,7 +62,7 @@ Four preset types exist in a discriminated union (`Preset`):
   - `applyCompositeCustom(config)` - Handles composite-custom presets
   - `applyUnified(config)` - Handles unified view presets
   - `applySplit(config)` - Handles split view presets
-  - `applyCompositeExisting(config)` - Handles composite-existing presets
+  - `applyCompositeExisting(config)` - Handles built-in-composite presets
 - Returns `ApplicationResult` (success, errors, warnings)
 - Coordinates updates across configStore and parameterStore
 
@@ -171,7 +171,7 @@ The unified registry (`configs/presets/registry.json` v2.0) lists all preset typ
 ```json
 {
   "version": "2.0",
-  "description": "Unified registry of all preset types (composite-custom, unified, split, composite-existing)",
+  "description": "Unified registry of all preset types (composite-custom, unified, split, built-in-composite)",
   "presets": [
     {
       "id": "france-default",
@@ -204,7 +204,7 @@ The unified registry (`configs/presets/registry.json` v2.0) lists all preset typ
 - `id` - Preset identifier (matches filename without extension)
 - `name` - Display name (can be string or i18n object)
 - `atlasId` - Target atlas
-- `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `description` - Optional description
 - `pattern` - (composite-custom only) Composite pattern type
 - `territoryCount` - (composite-custom only) Number of territories configured
@@ -819,7 +819,7 @@ The reset system restores territories to their preset configuration, managed thr
 - Discriminated union `Preset` type provides type safety across all operations
 
 **Type Safety**
-- `PresetType` discriminator ('composite-custom' | 'unified' | 'split' | 'composite-existing')
+- `PresetType` discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `LoadResult<T>` generic pattern for consistent error handling
 - TypeScript narrows types based on preset.type discriminator
 - Compile-time guarantees prevent type mismatches

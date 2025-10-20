@@ -70,7 +70,7 @@ Analyze the two preset systems (composite-custom presets and view-mode presets),
 
 ### 2. View-Mode Presets System
 
-**Purpose**: Manages predefined projection configurations for `unified`, `split`, and `composite-existing` view modes.
+**Purpose**: Manages predefined projection configurations for `unified`, `split`, and `built-in-composite` view modes.
 
 **File Format** (`ViewModePreset`):
 ```json
@@ -79,7 +79,7 @@ Analyze the two preset systems (composite-custom presets and view-mode presets),
   "name": "France - Vue unifiée standard",
   "description": "...",
   "atlasId": "france",
-  "viewMode": "unified" | "split" | "composite-existing",
+  "viewMode": "unified" | "split" | "built-in-composite",
   "config": {
     // Unified: single projection
     "projection": { "id": "natural-earth", "parameters": {...} }
@@ -123,7 +123,7 @@ Analyze the two preset systems (composite-custom presets and view-mode presets),
 
 | Aspect | Composite-Custom Presets | View-Mode Presets |
 |--------|-------------------------|-------------------|
-| **View Modes** | composite-custom only | unified, split, composite-existing |
+| **View Modes** | composite-custom only | unified, split, built-in-composite |
 | **File Structure** | Complex (territories array) | Simple (mode-specific configs) |
 | **Data Granularity** | Per-territory: projection, parameters, layout, bounds | Mode-level or simplified territory |
 | **Storage Location** | `configs/presets/` | `configs/view-presets/` |

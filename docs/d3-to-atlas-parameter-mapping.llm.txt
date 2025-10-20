@@ -339,8 +339,8 @@ FR-GP:  d3: [-0.12, -0.014]  → preset: [-0.12 * 2700, -0.014 * 2700] = [-324, 
 - Example: `france-default.json`, `france-nsp.json`
 
 **Schema Validation:**
-- Atlas configs: `configs/atlas-registry.schema.json`, `configs/atlas-schema.json`
-- Preset configs: `configs/presets/schema.json`
+- Atlas configs: `configs/atlas-registry.schema.json`, `configs/atlas.schema.json`
+- Preset configs: `configs/presets/preset.schema.json`
 
 ### Implementation Status
 
@@ -482,7 +482,7 @@ pixelClipExtent = [-378, 78.3, 268.92, 233.28]
 **Output**: Preset JSON file (`configs/presets/*.json`)
 
 **What to generate**:
-- Complete preset structure following `configs/presets/schema.json`
+- Complete preset structure following `configs/presets/preset.schema.json`
 - `projection.id` and `projection.parameters` for each territory
 - `layout.translateOffset` (pixel offsets)
 - `layout.pixelClipExtent` (optional, pixel-based)

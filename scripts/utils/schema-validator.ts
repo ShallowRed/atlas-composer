@@ -6,7 +6,7 @@ import process from 'node:process'
 import { logger } from '#scripts/utils/logger'
 /**
  * JSON Schema Validator
- * Runtime validation of config files against schema.json
+ * Runtime validation of config files against atlas.schema.json
  */
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
@@ -22,7 +22,7 @@ async function getSchemaValidator(): Promise<ValidateFunction> {
   }
 
   try {
-    const schemaPath = resolve(process.cwd(), 'configs/schema.json')
+    const schemaPath = resolve(process.cwd(), 'configs/atlases/atlas.schema.json')
     const schemaContent = await readFile(schemaPath, 'utf-8')
     const schema = JSON.parse(schemaContent)
 
@@ -44,7 +44,7 @@ async function getSchemaValidator(): Promise<ValidateFunction> {
   }
   catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to load schema.json: ${message}`)
+    throw new Error(`Failed to load atlas.schema.json: ${message}`)
   }
 }
 

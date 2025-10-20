@@ -58,7 +58,7 @@ Within each group, atlases sort by their own `sortOrder` value.
 configs/
 ├── atlas-registry.json        # Registry of available atlases
 ├── atlas-registry.schema.json # Registry validation schema
-├── atlas-schema.json          # Atlas config validation schema
+├── atlas.schema.json          # Atlas config validation schema
 ├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
 ├── usa.json
@@ -144,7 +144,7 @@ src/public/data/
 | Mode | Description | Use Case |
 |------|-------------|----------|
 | `split` | Separate maps per territory | Traditional atlases with distant territories |
-| `composite-existing` | Pre-built D3 composite | France, Portugal, Spain |
+| `built-in-composite` | Pre-built D3 composite | France, Portugal, Spain |
 | `composite-custom` | User-defined layout | Any atlas, full customization |
 | `unified` | Single world map | Regional groups, geographic context |
 
@@ -157,7 +157,7 @@ src/public/data/
 Create `configs/new-atlas.json`:
 ```json
 {
-  "$schema": "./atlas-schema.json",
+  "$schema": "./atlas.schema.json",
   "id": "new-atlas",
   "name": "New Atlas Name",
   "category": "country",
@@ -213,7 +213,7 @@ Add entry to `configs/atlas-registry.json` atlases array:
 ```json
 ```json
 {
-  "$schema": "./atlas-schema.json",
+  "$schema": "./atlas.schema.json",
   "atlasId": "france",
 ```
 
@@ -223,7 +223,7 @@ Add entry to `configs/atlas-registry.json` atlases array:
 **Example:**
 ```json
 {
-  "$schema": "./atlas-schema.json",
+  "$schema": "./atlas.schema.json",
   "atlasId": "new-region",
 ```
 
@@ -293,7 +293,7 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `$schema` | ✅ | Reference to atlas-schema.json |
+| `$schema` | ✅ | Reference to atlas.schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name (string or i18n object) |
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |

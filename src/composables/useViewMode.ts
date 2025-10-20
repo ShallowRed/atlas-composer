@@ -23,7 +23,7 @@ export function useViewMode() {
     const allOptions = [
       { value: 'composite-custom', label: t('mode.compositeCustom'), translated: true },
       { value: 'split', label: t('mode.split'), translated: true },
-      { value: 'composite-existing', label: t('mode.compositeExisting'), translated: true },
+      { value: 'built-in-composite', label: t('mode.compositeExisting'), translated: true },
       { value: 'unified', label: t('mode.unified'), translated: true },
     ]
 

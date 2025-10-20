@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
+import BuiltInCompositeControls from '@/components/configuration/BuiltInCompositeControls.vue'
 import CompositeCustomControls from '@/components/configuration/CompositeCustomControls.vue'
-import CompositeExistingControls from '@/components/configuration/CompositeExistingControls.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
 import SplitControls from '@/components/configuration/SplitControls.vue'
 import UnifiedControls from '@/components/configuration/UnifiedControls.vue'
@@ -144,9 +144,9 @@ onMounted(async () => {
             key="split"
           />
           <!-- Composite Existing Mode Controls -->
-          <CompositeExistingControls
+          <BuiltInCompositeControls
             v-else-if="isCompositeExistingMode"
-            key="composite-existing"
+            key="built-in-composite"
           />
         </Transition>
       </CardContainer>

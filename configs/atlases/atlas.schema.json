@@ -76,18 +76,18 @@
       "description": "Supported view modes for this atlas. Defaults to all modes if not specified.",
       "items": {
         "type": "string",
-        "enum": ["split", "composite-existing", "composite-custom", "unified"]
+        "enum": ["split", "built-in-composite", "composite-custom", "unified"]
       },
       "uniqueItems": true,
       "examples": [
-        ["composite-existing", "unified"],
-        ["split", "composite-existing", "composite-custom", "unified"]
+        ["built-in-composite", "unified"],
+        ["split", "built-in-composite", "composite-custom", "unified"]
       ]
     },
     "defaultViewMode": {
       "type": "string",
       "description": "Default view mode for this atlas. Defaults to 'composite-custom' if not specified.",
-      "enum": ["split", "composite-existing", "composite-custom", "unified"]
+      "enum": ["split", "built-in-composite", "composite-custom", "unified"]
     },
 
     "defaultPreset": {

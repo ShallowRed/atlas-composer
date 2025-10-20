@@ -53,12 +53,12 @@ export class ViewOrchestrationService {
    * Determine if right sidebar should be shown
    *
    * Right sidebar contains:
-   * - Projection parameters (unified/composite-existing modes)
+   * - Projection parameters (unified/built-in-composite modes)
    * - Territory controls (split/composite-custom modes)
    *
    * Visibility Rules:
    * - unified: Always show (projection params)
-   * - composite-existing: Always show (projection params)
+   * - built-in-composite: Always show (projection params)
    * - split: Show if NOT showing individual projection selectors
    * - composite-custom: Show if showing individual projection selectors
    * - Also show if projection selector or individual selectors are enabled
@@ -66,7 +66,7 @@ export class ViewOrchestrationService {
   static shouldShowRightSidebar(state: ViewState): boolean {
     return (
       state.viewMode === 'unified'
-      || state.viewMode === 'composite-existing'
+      || state.viewMode === 'built-in-composite'
       || (state.viewMode === 'split' && !state.showIndividualProjectionSelectors)
       || state.showProjectionSelector
       || state.showIndividualProjectionSelectors
@@ -90,13 +90,13 @@ export class ViewOrchestrationService {
    *
    * Projection params are shown for:
    * - unified mode (single projection for entire map)
-   * - composite-existing mode (read-only composite)
+   * - built-in-composite mode (read-only composite)
    * - When projection selector is explicitly enabled
    */
   static shouldShowProjectionParams(state: ViewState): boolean {
     return (
       state.viewMode === 'unified'
-      || state.viewMode === 'composite-existing'
+      || state.viewMode === 'built-in-composite'
       || (state.viewMode === 'split' && !state.showIndividualProjectionSelectors)
       || state.showProjectionSelector
     )
@@ -223,9 +223,9 @@ export class ViewOrchestrationService {
     if (!state.atlasConfig.hasTerritorySelector) {
       return true
     }
-    // Disabled for composite-existing mode (built-in projections don't support selective territories)
+    // Disabled for built-in-composite mode (built-in projections don't support selective territories)
     // This is determined by ProjectionUIService.shouldShowTerritorySelector
-    return state.viewMode === 'composite-existing'
+    return state.viewMode === 'built-in-composite'
   }
 
   /**
@@ -248,7 +248,7 @@ export class ViewOrchestrationService {
   static getMapRendererMode(state: ViewState): 'composite' | 'split' | 'unified' {
     switch (state.viewMode) {
       case 'composite-custom':
-      case 'composite-existing':
+      case 'built-in-composite':
         return 'composite'
       case 'split':
         return 'split'
@@ -277,7 +277,7 @@ export class ViewOrchestrationService {
    */
   static shouldShowCompositeRenderer(state: ViewState): boolean {
     return (
-      state.viewMode === 'composite-existing'
+      state.viewMode === 'built-in-composite'
       || state.viewMode === 'composite-custom'
     )
   }
@@ -308,7 +308,7 @@ export class ViewOrchestrationService {
   static shouldShowCompositionBordersToggle(state: ViewState): boolean {
     return (
       state.viewMode === 'composite-custom'
-      || state.viewMode === 'composite-existing'
+      || state.viewMode === 'built-in-composite'
     )
   }
 

@@ -12,7 +12,7 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     name: 'Test Atlas',
     pattern: 'single-focus',
     defaultViewMode: 'composite-custom',
-    supportedViewModes: ['composite-custom', 'composite-existing', 'split', 'unified'],
+    supportedViewModes: ['composite-custom', 'built-in-composite', 'split', 'unified'],
     hasTerritorySelector: true,
     defaultTerritoryMode: 'all',
     geoDataConfig: {
@@ -45,8 +45,8 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowRightSidebar(state)).toBe(true)
     })
 
-    it('should show right sidebar in composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
+    it('should show right sidebar in built-in-composite mode', () => {
+      const state = createViewState({ viewMode: 'built-in-composite' })
       expect(ViewOrchestrationService.shouldShowRightSidebar(state)).toBe(true)
     })
 
@@ -88,8 +88,8 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
     })
 
-    it('should show projection params in composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
+    it('should show projection params in built-in-composite mode', () => {
+      const state = createViewState({ viewMode: 'built-in-composite' })
       expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
     })
 
@@ -138,9 +138,9 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(false)
     })
 
-    it('should NOT show territory controls in composite-existing mode', () => {
+    it('should NOT show territory controls in built-in-composite mode', () => {
       const state = createViewState({
-        viewMode: 'composite-existing',
+        viewMode: 'built-in-composite',
         showIndividualProjectionSelectors: false,
       })
       expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(false)
@@ -180,7 +180,7 @@ describe('viewOrchestrationService', () => {
     })
 
     it('should NOT show import controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'composite-existing']
+      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
       modes.forEach((mode) => {
         const state = createViewState({ viewMode: mode })
         expect(ViewOrchestrationService.shouldShowImportControls(state)).toBe(false)
@@ -195,7 +195,7 @@ describe('viewOrchestrationService', () => {
     })
 
     it('should NOT show global projection controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'composite-existing']
+      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
       modes.forEach((mode) => {
         const state = createViewState({ viewMode: mode })
         expect(ViewOrchestrationService.shouldShowGlobalProjectionControls(state)).toBe(false)
@@ -210,7 +210,7 @@ describe('viewOrchestrationService', () => {
     })
 
     it('should NOT show territory parameter controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'composite-existing']
+      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
       modes.forEach((mode) => {
         const state = createViewState({ viewMode: mode })
         expect(ViewOrchestrationService.shouldShowTerritoryParameterControls(state)).toBe(false)
@@ -297,9 +297,9 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.isTerritorySelectDisabled(state)).toBe(true)
     })
 
-    it('should disable territory select in composite-existing mode', () => {
+    it('should disable territory select in built-in-composite mode', () => {
       const state = createViewState({
-        viewMode: 'composite-existing',
+        viewMode: 'built-in-composite',
         atlasConfig: {
           ...createViewState().atlasConfig,
           hasTerritorySelector: true,
@@ -348,8 +348,8 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('composite')
     })
 
-    it('should return composite for composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
+    it('should return composite for built-in-composite mode', () => {
+      const state = createViewState({ viewMode: 'built-in-composite' })
       expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('composite')
     })
 
@@ -392,8 +392,8 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowCompositeRenderer(state)).toBe(true)
     })
 
-    it('should show composite renderer in composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
+    it('should show composite renderer in built-in-composite mode', () => {
+      const state = createViewState({ viewMode: 'built-in-composite' })
       expect(ViewOrchestrationService.shouldShowCompositeRenderer(state)).toBe(true)
     })
 
@@ -414,8 +414,8 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowCompositionBordersToggle(state)).toBe(true)
     })
 
-    it('should show composition borders toggle in composite-existing mode', () => {
-      const state = createViewState({ viewMode: 'composite-existing' })
+    it('should show composition borders toggle in built-in-composite mode', () => {
+      const state = createViewState({ viewMode: 'built-in-composite' })
       expect(ViewOrchestrationService.shouldShowCompositionBordersToggle(state)).toBe(true)
     })
 

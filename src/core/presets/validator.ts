@@ -2,7 +2,7 @@
  * Preset Validator
  *
  * Core validation logic for preset configurations.
- * Unified validation for all preset types (composite-custom, unified, split, composite-existing).
+ * Unified validation for all preset types (composite-custom, unified, split, built-in-composite).
  */
 
 import type {
@@ -67,7 +67,7 @@ export function validatePreset(
     }
     case 'unified':
     case 'split':
-    case 'composite-existing': {
+    case 'built-in-composite': {
       // Inline validation for view mode presets
       const viewPreset = {
         id: preset.id || 'unknown',
@@ -230,7 +230,7 @@ export function validateViewPreset(preset: {
   }
 
   // Validate view mode
-  const validViewModes: ViewPresetMode[] = ['unified', 'split', 'composite-existing']
+  const validViewModes: ViewPresetMode[] = ['unified', 'split', 'built-in-composite']
   if (preset.viewMode && !validViewModes.includes(preset.viewMode)) {
     errors.push(`Invalid view mode: ${preset.viewMode}. Must be one of: ${validViewModes.join(', ')}`)
   }
@@ -245,7 +245,7 @@ export function validateViewPreset(preset: {
   else if (preset.viewMode === 'split') {
     validateSplitConfig(preset.config as SplitViewConfig, errors, warnings)
   }
-  else if (preset.viewMode === 'composite-existing') {
+  else if (preset.viewMode === 'built-in-composite') {
     validateCompositeExistingConfig(preset.config as CompositeExistingViewConfig, errors, warnings)
   }
 
@@ -366,7 +366,7 @@ function validateSplitConfig(
 }
 
 /**
- * Validate composite-existing view configuration
+ * Validate built-in-composite view configuration
  * Checks d3-composite-projections projection ID and globalScale
  */
 function validateCompositeExistingConfig(

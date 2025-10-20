@@ -23,7 +23,7 @@ export function useViewState() {
 
   // View Mode Flags - Simple boolean wrappers for readability
   const isCompositeMode = computed(() =>
-    configStore.viewMode === 'composite-custom' || configStore.viewMode === 'composite-existing',
+    configStore.viewMode === 'composite-custom' || configStore.viewMode === 'built-in-composite',
   )
 
   const isCompositeCustomMode = computed(() =>
@@ -31,7 +31,7 @@ export function useViewState() {
   )
 
   const isCompositeExistingMode = computed(() =>
-    configStore.viewMode === 'composite-existing',
+    configStore.viewMode === 'built-in-composite',
   )
 
   const isSplitMode = computed(() =>
@@ -50,7 +50,7 @@ export function useViewState() {
     switch (configStore.viewMode) {
       case 'split':
         return t('mode.split')
-      case 'composite-existing':
+      case 'built-in-composite':
         return t('mode.compositeExisting')
       case 'composite-custom':
         return t('mode.compositeCustom')

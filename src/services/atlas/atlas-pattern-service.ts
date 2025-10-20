@@ -45,7 +45,7 @@ export class AtlasPatternService {
   }
 
   /**
-   * Check if this pattern supports composite-existing mode
+   * Check if this pattern supports built-in-composite mode
    * Only if there are pre-built D3 composite projections available
    */
   supportsCompositeExisting(): boolean {
@@ -91,7 +91,7 @@ export class AtlasPatternService {
    */
   getRecommendedViewModes(): ViewMode[] {
     if (this.isSingleFocus()) {
-      return ['composite-custom', 'split', 'composite-existing', 'unified']
+      return ['composite-custom', 'split', 'built-in-composite', 'unified']
     }
 
     if (this.isEqualMembers()) {

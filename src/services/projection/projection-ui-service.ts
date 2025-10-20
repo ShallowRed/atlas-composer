@@ -86,7 +86,7 @@ export class ProjectionUIService {
   /**
    * Determine if uniform projection selector should be shown
    *
-   * View preset system: unified, split, and composite-existing modes use presets to define projections
+   * View preset system: unified, split, and built-in-composite modes use presets to define projections
    * Only composite-custom mode allows manual projection selection
    *
    * Always returns false now - presets handle projection selection
@@ -100,8 +100,8 @@ export class ProjectionUIService {
     hasViewPreset = false,
   ): boolean {
     // Hide projection selector when view preset is active
-    // Presets define projections for unified, split, and composite-existing modes
-    if (hasViewPreset && (viewMode === 'unified' || viewMode === 'split' || viewMode === 'composite-existing')) {
+    // Presets define projections for unified, split, and built-in-composite modes
+    if (hasViewPreset && (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite')) {
       return false
     }
 
@@ -133,10 +133,10 @@ export class ProjectionUIService {
    * @returns True if territory selector should be visible
    */
   static shouldShowTerritorySelector(viewMode: ViewMode): boolean {
-    // Hide territory selector for composite-existing mode
+    // Hide territory selector for built-in-composite mode
     // Built-in composite projections render all territories as a monolithic unit
     // and cannot selectively hide/show individual territories
-    return viewMode !== 'composite-existing'
+    return viewMode !== 'built-in-composite'
   }
 
   /**

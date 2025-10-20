@@ -9,9 +9,9 @@ const geoDataStore = useGeoDataStore()
 </script>
 
 <template>
-  <div class="bg-base-200">
+  <div class="body__inner bg-base-200">
     <AppHeader class="h-[4.5rem]" />
-    <main class="min-h-[calc(100vh-4rem)] container mx-auto py-8 flex flex-col">
+    <main>
       <RouterView class="flex-1" />
     </main>
     <AppFooter />
@@ -24,3 +24,10 @@ const geoDataStore = useGeoDataStore()
     />
   </div>
 </template>
+
+<style scoped>
+@reference "tailwindcss";
+.body__inner main {
+  @apply min-h-[calc(100vh-4rem)] container mx-auto py-8 flex flex-col;
+}
+</style>

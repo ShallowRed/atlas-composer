@@ -91,7 +91,7 @@
     "grabToMove": "Cliquer et glisser pour déplacer le territoire",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Paramètres de la projection",
+      "projectionSpecific": "Paramètres de la projection 2",
       "layout": "Mise en page",
       "view": "Paramètres de la vue",
       "advanced": "Paramètres avancés",

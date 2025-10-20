@@ -102,7 +102,7 @@ export class AtlasCoordinator {
     let finalCompositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
 
     // If no composite projection is set, find the first available one for this atlas
-    // This ensures composite-existing mode always has a valid projection selected
+    // This ensures built-in-composite mode always has a valid projection selected
     if (!finalCompositeProjection) {
       const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, config.defaultPreset)
       if (availableComposites.length > 0) {

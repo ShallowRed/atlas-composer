@@ -30,7 +30,7 @@ Create `configs/<atlas-id>.json` with this structure:
 ```json
 ```json
 {
-  "$schema": "./atlas-schema.json",
+  "$schema": "./atlas.schema.json",
   "atlasId": "your-atlas-id",
 ```
 
