@@ -24,6 +24,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isInitialized = ref(false)
+  const renderKey = ref(0) // Reactive key to trigger re-renders
 
   // Territory data
   const mainlandData = ref<GeoJSON.FeatureCollection | null>(null)
@@ -222,6 +223,14 @@ export const useGeoDataStore = defineStore('geoData', () => {
     console.info('[GeoDataStore] Reinitialization complete')
   }
 
+  /**
+   * Force a re-render of the map
+   * Increments renderKey to trigger Vue reactivity
+   */
+  const triggerRender = () => {
+    renderKey.value++
+  }
+
   return {
     // Services
     cartographer,
@@ -233,6 +242,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     mainlandData,
     overseasTerritoriesData,
     rawUnifiedData,
+    renderKey, // Expose render key for components to watch
 
     // Computed
     filteredTerritories,
@@ -244,5 +254,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     loadTerritoryData,
     loadRawUnifiedData,
     clearError,
+    triggerRender, // Expose method to force re-render
   }
 })

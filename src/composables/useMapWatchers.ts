@@ -93,6 +93,17 @@ export function useMapWatchers(
   )
 
   /**
+   * Watch for explicit render triggers (from preset switching, etc.)
+   */
+  const stopWatchingRenderKey = watch(
+    () => geoDataStore.renderKey,
+    async () => {
+      // Force re-render when renderKey changes
+      await callbacks.onDependenciesChange()
+    },
+  )
+
+  /**
    * Watch mode-dependent dependencies (composite or simple mode)
    */
   const stopWatchingDependencies = watch(
@@ -135,13 +146,14 @@ export function useMapWatchers(
   )
 
   /**
-   * Cleanup all watchers
+   * Cleanup function to stop all watchers
    */
-  function cleanup() {
+  const cleanup = () => {
     stopWatchingProjectionParams()
     stopWatchingFittingMode()
     stopWatchingCanvasDimensions()
     stopWatchingReferenceScale()
+    stopWatchingRenderKey()
     stopWatchingDependencies()
   }
 

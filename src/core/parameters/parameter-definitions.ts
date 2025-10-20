@@ -167,7 +167,7 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -175,7 +175,7 @@ export function registerAllParameters(): void {
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -183,7 +183,7 @@ export function registerAllParameters(): void {
       CONIC: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -191,7 +191,7 @@ export function registerAllParameters(): void {
       AZIMUTHAL: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,

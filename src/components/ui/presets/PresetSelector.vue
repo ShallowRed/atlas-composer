@@ -83,6 +83,23 @@ const currentPreset = computed({
             configStore.canvasDimensions = loadResult.data.config.canvasDimensions
           }
 
+          // CRITICAL: Update CompositeProjection with new parameters for each territory
+          // This triggers the projection to reinitialize with the new preset values
+          const geoDataStore = await import('@/stores/geoData').then(m => m.useGeoDataStore())
+          if (geoDataStore.cartographer) {
+            Object.keys(territoryParameters).forEach((territoryCode) => {
+              geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+            })
+            console.info(`[PresetSelector] Updated CompositeProjection for ${Object.keys(territoryParameters).length} territories`)
+
+            // Force Vue reactivity to trigger re-render
+            geoDataStore.triggerRender()
+            console.info('[PresetSelector] Triggered map re-render')
+          }
+          else {
+            console.warn('[PresetSelector] Cartographer not available, preset changes may not be visible until next render')
+          }
+
           // Log warnings if present
           if (loadResult.warnings.length > 0) {
             console.warn(`[PresetSelector] Preset loaded with warnings:`, loadResult.warnings)

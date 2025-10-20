@@ -210,7 +210,13 @@ Manual Store Updates
   → configStore.referenceScale
   → configStore.canvasDimensions
   ↓
-Render Update (new preset applied, CompositeProjection uses updated parameters)
+CRITICAL: Update CompositeProjection
+  → geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  → Called for each territory in the preset
+  → Forces CompositeProjection to read new parameters
+  → Triggers re-render with new preset configuration
+  ↓
+Render Update (new preset applied and visible)
 ```
 
 #### Path B: View Preset Switching (Unified/Split/Built-in-Composite)
