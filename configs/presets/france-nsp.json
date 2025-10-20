@@ -9,7 +9,7 @@
   "pattern": "single-focus",
   "referenceScale": 2700,
   "canvasDimensions": {
-    "width": 750,
+    "width": 760,
     "height": 500
   },
   "territories": [
@@ -36,14 +36,14 @@
       },
       "layout": {
         "translateOffset": [
-          100,
+          110,
           0
         ],
         "pixelClipExtent": [
-          -301,
-          -245.16,
-          260.99,
-          324
+          -280,
+          -250,
+          270,
+          250
         ]
       },
       "bounds": [
@@ -79,8 +79,8 @@
       },
       "layout": {
         "translateOffset": [
-          -295,
-          -65
+          -290,
+          -60
         ],
         "pixelClipExtent": [
           -40,
@@ -118,8 +118,8 @@
       },
       "layout": {
         "translateOffset": [
-          -215,
-          -65
+          -210,
+          -60
         ],
         "pixelClipExtent": [
           -40,
@@ -157,14 +157,14 @@
       },
       "layout": {
         "translateOffset": [
-          -255,
-          70
+          -250,
+          80
         ],
         "pixelClipExtent": [
           -80,
-          -95,
+          -100,
           80,
-          90
+          100
         ]
       },
       "bounds": [
@@ -196,8 +196,8 @@
       },
       "layout": {
         "translateOffset": [
-          -295,
-          -145
+          -290,
+          -140
         ],
         "pixelClipExtent": [
           -40,
@@ -235,8 +235,8 @@
       },
       "layout": {
         "translateOffset": [
-          -215,
-          -145
+          -210,
+          -140
         ],
         "pixelClipExtent": [
           -40,

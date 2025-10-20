@@ -40,9 +40,9 @@
           0
         ],
         "pixelClipExtent": [
-          -269,
+          -260,
           -250,
-          261,
+          260,
           250
         ]
       },
@@ -74,14 +74,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -38
+          -320,
+          -40
         ],
         "pixelClipExtent": [
-          -54,
-          -48,
-          55,
-          38
+          -60,
+          -50,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -112,14 +112,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          35
+          -320,
+          40
         ],
         "pixelClipExtent": [
-          -54,
-          -35,
-          55,
-          43
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -135,7 +135,7 @@
     },
     {
       "code": "FR-GF",
-      "name": "French Guiana",
+      "name": "Guyane",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -150,14 +150,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          155
+          -320,
+          160
         ],
         "pixelClipExtent": [
-          -54,
-          -76,
-          55,
-          78
+          -60,
+          -80,
+          60,
+          80
         ]
       },
       "bounds": [
@@ -188,14 +188,14 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          -96
+          320,
+          -110
         ],
         "pixelClipExtent": [
-          -52,
-          -44,
-          57,
-          42
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -226,14 +226,14 @@
       },
       "layout": {
         "translateOffset": [
-          316,
-          -173
+          320,
+          -180
         ],
         "pixelClipExtent": [
-          -55,
-          -32,
-          54,
-          33
+          -60,
+          -30,
+          60,
+          30
         ]
       },
       "bounds": [
@@ -264,14 +264,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -119
+          -320,
+          -120
         ],
         "pixelClipExtent": [
-          -54,
-          -21,
-          55,
-          33
+          -60,
+          -20,
+          60,
+          30
         ]
       },
       "bounds": [
@@ -302,14 +302,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -176
+          -320,
+          -180
         ],
         "pixelClipExtent": [
-          -54,
-          -29,
-          55,
-          36
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -340,13 +340,13 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          59
+          320,
+          60
         ],
         "pixelClipExtent": [
-          -52,
-          -27,
-          57,
+          -60,
+          -30,
+          60,
           30
         ]
       },
@@ -378,13 +378,13 @@
       },
       "layout": {
         "translateOffset": [
-          311,
-          203
+          320,
+          200
         ],
         "pixelClipExtent": [
-          -50,
-          -41,
-          59,
+          -60,
+          -40,
+          60,
           30
         ]
       },
@@ -416,13 +416,13 @@
       },
       "layout": {
         "translateOffset": [
-          297,
-          122
+          320,
+          120
         ],
         "pixelClipExtent": [
-          -36,
-          -33,
-          73,
+          -60,
+          -30,
+          60,
           40
         ]
       },
@@ -454,14 +454,14 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          -13
+          320,
+          -20
         ],
         "pixelClipExtent": [
-          -52,
-          -41,
-          57,
-          45.4
+          -60,
+          -50,
+          60,
+          50
         ]
       },
       "bounds": [

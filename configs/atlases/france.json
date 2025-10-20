@@ -19,7 +19,7 @@
     "france-test",
     "france-nsp"
   ],
-  "defaultPreset": "france-default",
+  "defaultPreset": "france-nsp",
   "defaultTerritoryMode": "metropole-drom-com",
   "territories": [
     {
