@@ -4,6 +4,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
 import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
+import { useSliderState } from '@/composables/useSliderState'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
@@ -93,15 +94,19 @@ const {
   cleanup: cleanupTerritoryCursor,
 } = useTerritoryCursor()
 
-// Track if we're currently in a drag operation (territory dragging or projection panning)
-const isInDragOperation = computed(() => _isDragging.value || isPanning.value)
-
 // Clip extent editor composable for interactive corner dragging
 const {
   renderClipExtentHandles,
   toggleTerritorySelection,
+  isDraggingCorner,
   cleanup: cleanupClipExtentEditor,
 } = useClipExtentEditor()
+
+// Global slider state tracker
+const { isSliderActive } = useSliderState()
+
+// Track if we're currently in a drag operation (territory dragging, projection panning, clip extent editing, or slider interaction)
+const isInDragOperation = computed(() => _isDragging.value || isPanning.value || isDraggingCorner.value || isSliderActive.value)
 
 // Get current cursor style based on territory dragging and projection panning
 const cursorStyle = computed(() => {

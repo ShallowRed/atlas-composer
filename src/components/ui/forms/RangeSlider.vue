@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useSliderState } from '@/composables/useSliderState'
 
 /**
  * RangeSlider - Reusable range input component with label, icon, and value display
@@ -11,6 +12,7 @@ import { computed } from 'vue'
  * - Size variants (xs, sm, md)
  * - Optional midpoint display
  * - Real-time value display
+ * - Global slider state tracking for optimized rendering
  */
 
 interface Props {
@@ -41,9 +43,28 @@ const emit = defineEmits<{
   'update:modelValue': [value: number]
 }>()
 
+// Track slider active state globally
+const { setSliderActive, setSliderInactive } = useSliderState()
+
 function handleInput(event: Event) {
   const value = Number.parseFloat((event.target as HTMLInputElement).value)
   emit('update:modelValue', value)
+}
+
+function handleMouseDown() {
+  setSliderActive()
+}
+
+function handleMouseUp() {
+  setSliderInactive()
+}
+
+function handleTouchStart() {
+  setSliderActive()
+}
+
+function handleTouchEnd() {
+  setSliderInactive()
 }
 
 // Format value with proper decimal places
@@ -87,6 +108,10 @@ const labelSizeClass = computed(() => `text-${props.size}`)
       :value="modelValue"
       :class="rangeClasses"
       @input="handleInput"
+      @mousedown="handleMouseDown"
+      @mouseup="handleMouseUp"
+      @touchstart="handleTouchStart"
+      @touchend="handleTouchEnd"
     >
     <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
       <span>{{ formatValue(min) }}{{ unit }}</span>
