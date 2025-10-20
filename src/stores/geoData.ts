@@ -288,12 +288,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
           const service = cartographer.value.geoData
           const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig!.pattern)
           const result = await loader.loadTerritories(service)
-          
+
           mainlandData.value = result.mainlandData
           overseasTerritoriesData.value = result.territories
           console.info(`[GeoDataStore] Loaded ${result.territories.length} territories`)
         })(),
-        
+
         (async () => {
           if (!cartographer.value) {
             throw new Error('Cartographer not initialized')
@@ -306,7 +306,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
             hasTerritorySelector: configStore.currentAtlasConfig!.hasTerritorySelector ?? false,
             isWildcard: configStore.currentAtlasConfig!.isWildcard ?? false,
           })
-          
+
           rawUnifiedData.value = result.data
           console.info('[GeoDataStore] Loaded unified data')
         })(),

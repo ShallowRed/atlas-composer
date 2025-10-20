@@ -676,13 +676,54 @@ Last Updated: 2025-10-20
 - Method loads territory + unified data in parallel
 - Already integrated into store API
 
+### Phase 5: Consolidate Watchers (COMPLETE)
+- [x] Created useApplicationState composable for centralized reactive orchestration
+- [x] Moved data loading watchers from useAtlasData to useApplicationState
+- [x] Documented separation of concerns:
+  - config.ts watchers: UI-specific (preset loading, parameter clearing)
+  - useApplicationState watchers: Data reloading (atlas change, territory mode change)
+- [x] Deprecated useAtlasData.setupWatchers() - now uses useApplicationState
+- [x] Integrated useApplicationState in MapView.vue
+
+**Files Created:**
+- `src/composables/useApplicationState.ts`
+  - Single watcher for atlas config changes (replaces useAtlasData watcher)
+  - Single watcher for view mode changes (logging only, data preloaded)
+  - Single watcher for territory mode changes (reloads unified data only)
+  - Coordinates with geoDataStore for data reloading
+  - Uses withMinLoadingTime for consistent UX
+
+**Files Modified:**
+- `src/composables/useAtlasData.ts`
+  - Deprecated setupWatchers() method (shows warning, no-op)
+  - All watchers moved to useApplicationState
+  - Kept initialize() and reinitialize() methods for explicit calls
+
+- `src/stores/config.ts`
+  - Added Phase 5 comments to document watcher purposes
+  - View mode watcher: UI-specific preset loading, parameter clearing
+  - Atlas watcher: InitializationService coordination, preset loading
+  - Not moved to useApplicationState (handles UI concerns, not data loading)
+
+- `src/views/MapView.vue`
+  - Imports useApplicationState instead of useAtlasData.setupWatchers
+  - Calls useApplicationState.setupWatchers() in onMounted
+
+**Benefits Achieved:**
+- Clear separation: stores = passive state, composables = reactions
+- No duplicate watchers for data loading
+- Single source of truth for reactive data orchestration
+- Better organized codebase with clear responsibilities
+
+**Watcher Organization:**
+- **useApplicationState**: Data reloading reactions (atlas/territory mode changes)
+- **config.ts store**: UI-specific reactions (preset loading, parameter clearing)
+- **Other composables**: Rendering-specific reactions (projection params, display options)
+
 ## Next Steps
-1. Phase 5: Consolidate Watchers
-   - Create useApplicationState composable
-   - Remove duplicate watchers
-2. Phase 6: Enforce View Mode Suitability
+1. Phase 6: Enforce View Mode Suitability
    - Disable unsupported view modes in UI
-3. Phase 7: Update Documentation
+2. Phase 7: Update Documentation
    - Update all .llm.txt files with new architecture
    - Remove temporal language
    - Document initialization flow

@@ -462,6 +462,8 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   // Watch view mode changes to load available presets
+  // Phase 5: This watcher handles UI-specific preset loading, not data loading
+  // Data loading reactions are handled by useApplicationState composable
   watch(viewMode, async (newMode, oldMode) => {
     clearViewPreset()
 
@@ -480,6 +482,8 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   // Watch atlas changes - use InitializationService for orchestration
+  // Phase 5: This watcher handles initialization service coordination
+  // Data reloading reactions are handled by useApplicationState composable
   watch(selectedAtlas, async (newAtlasId, oldAtlasId) => {
     // Preload the new atlas before orchestration to ensure sync access works
     await loadAtlasAsync(newAtlasId)
