@@ -213,8 +213,24 @@ export class ViewOrchestrationService {
   // ============================================================================
 
   /**
+   * Determine if territory selector dropdown should be shown
+   *
+   * Shown when:
+   * - Atlas has territory selector capability, AND
+   * - NOT in composite modes (territory selection is managed via Territory Set Manager)
+   */
+  static shouldShowTerritorySelector(state: ViewState): boolean {
+    if (!state.atlasConfig.hasTerritorySelector) {
+      return false
+    }
+    // Hide for composite modes - territory selection is managed via Territory Set Manager
+    return state.viewMode !== 'built-in-composite' && state.viewMode !== 'composite-custom'
+  }
+
+  /**
    * Determine if territory selector should be disabled
    *
+   * @deprecated Use shouldShowTerritorySelector instead
    * Disabled when:
    * - Atlas doesn't have territory selector capability, OR
    * - Territory selector should not be shown (from ProjectionUIService)

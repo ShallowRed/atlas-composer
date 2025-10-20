@@ -1,6 +1,7 @@
 import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getAtlasBehavior } from '@/core/atlases/registry'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useConfigStore } from '@/stores/config'
@@ -96,10 +97,14 @@ export function useViewState() {
     if (!atlasConfig)
       return null
 
+    const atlasId = configStore.selectedAtlas
+    const behavior = getAtlasBehavior(atlasId)
+    const hasPresets = (behavior?.availablePresets?.length ?? 0) > 0
+
     return {
       viewMode: configStore.viewMode,
       atlasConfig,
-      hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
+      hasPresets,
       hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
       isPresetLoading: false,
       showProjectionSelector: configStore.showProjectionSelector,
@@ -160,6 +165,9 @@ export function useViewState() {
     ),
 
     // Control states
+    shouldShowTerritorySelector: computed(() =>
+      viewState.value ? ViewOrchestrationService.shouldShowTerritorySelector(viewState.value) : false,
+    ),
     isTerritorySelectDisabled: computed(() =>
       viewState.value ? ViewOrchestrationService.isTerritorySelectDisabled(viewState.value) : true,
     ),

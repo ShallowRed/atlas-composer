@@ -61,17 +61,19 @@ const { isCompositeCustomMode } = useViewState()
     />
     <!-- Territory Selection (for unified and split modes) -->
     <DropdownControl
-      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
+      v-if="viewOrchestration.shouldShowTerritorySelector.value"
       v-model="configStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
-      :disabled="viewOrchestration.isTerritorySelectDisabled.value"
       :options="territoryModeOptions"
     />
-    <!-- Territory Set Manager -->
-    <TerritorySetManager
-      v-if="isCompositeCustomMode"
-      class="mb-6"
-    />
+    <!-- Territory Set Manager (for composite-custom mode) -->
+    <div v-if="isCompositeCustomMode">
+      <div class="text-sm font-medium text-base-content mb-3 flex items-center gap-2">
+        <i class="ri-map-pin-range-line" />
+        <span>{{ t('mode.select') }}</span>
+      </div>
+      <TerritorySetManager />
+    </div>
   </div>
 </template>

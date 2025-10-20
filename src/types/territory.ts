@@ -62,6 +62,8 @@ export interface TerritoryConfig {
 /**
  * Territory mode definition
  *
+ * DEPRECATED: Use TerritoryCollection instead
+ *
  * Defines which territories should be included in a specific display mode
  * (e.g., "All territories", "Major territories only", "Mainland + Caribbean")
  */
@@ -79,6 +81,8 @@ export interface TerritoryModeConfig {
 /**
  * Territory grouping for UI organization
  *
+ * DEPRECATED: Use TerritoryCollection instead
+ *
  * Groups territories by region or category for better UX
  * (e.g., "Caribbean", "Pacific", "Atlantic", "Indian Ocean")
  */
@@ -89,3 +93,46 @@ export interface TerritoryGroupConfig {
   /** Territory codes in this group */
   codes: string[]
 }
+
+/**
+ * Territory collection (unified replacement for modes and groups)
+ *
+ * Represents a collection of territories grouped by a specific strategy
+ * Type is inferred from context (grouping strategy key)
+ */
+export interface TerritoryCollection {
+  /** Unique identifier within the collection set */
+  id: string
+
+  /** Display label for this collection */
+  label: string
+
+  /** Territory codes in this collection. Use '*' for all territories. */
+  codes: string[]
+
+  /** Territory codes to exclude when using '*' */
+  exclude?: string[]
+}
+
+/**
+ * Territory collection set (replaces modes and groups arrays)
+ *
+ * Represents a grouping strategy with multiple collections
+ * (e.g., 'geographic' strategy with Caribbean/Pacific/Atlantic collections)
+ */
+export interface TerritoryCollectionSet {
+  /** Display label for the collection set */
+  label: string
+
+  /** Optional description of the grouping strategy */
+  description?: string
+
+  /** Collections within this set */
+  collections: TerritoryCollection[]
+}
+
+/**
+ * Territory collections organized by strategy
+ * Keys are user-defined collection set identifiers (e.g., 'geographic', 'administrative')
+ */
+export type TerritoryCollections = Record<string, TerritoryCollectionSet>

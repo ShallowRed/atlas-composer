@@ -88,6 +88,68 @@
             "type": "string",
             "description": "Relative path to the atlas JSON configuration file",
             "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
+          },
+          "behavior": {
+            "type": "object",
+            "description": "Application behavior configuration for this atlas",
+            "properties": {
+              "defaultPreset": {
+                "type": "string",
+                "description": "Default preset to load for this atlas"
+              },
+              "availablePresets": {
+                "type": "array",
+                "description": "List of available presets for this atlas",
+                "items": { "type": "string" },
+                "minItems": 1
+              },
+              "defaultTerritoryCollection": {
+                "type": "string",
+                "description": "Default territory collection set to use (key from atlas's territoryCollections)",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "ui": {
+                "type": "object",
+                "description": "UI-specific configuration",
+                "properties": {
+                  "territoryManager": {
+                    "type": "object",
+                    "description": "Territory manager component configuration",
+                    "properties": {
+                      "collectionSet": {
+                        "type": "string",
+                        "description": "Which territory collection set to display (key from atlas's territoryCollections)",
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                      },
+                      "showLabels": {
+                        "type": "boolean",
+                        "description": "Whether to show collection labels in UI",
+                        "default": true
+                      },
+                      "groupLayout": {
+                        "type": "string",
+                        "enum": ["stacked", "inline", "grid"],
+                        "description": "Layout strategy for territory groups",
+                        "default": "stacked"
+                      }
+                    }
+                  },
+                  "configSection": {
+                    "type": "object",
+                    "description": "Configuration section component settings",
+                    "properties": {
+                      "collectionSet": {
+                        "type": "string",
+                        "description": "Which territory collection set to use for configuration",
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
           }
         }
       }

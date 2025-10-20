@@ -251,6 +251,9 @@ Dedicated control components for each view mode provide focused, maintainable in
   - **Single responsibility**: Focuses solely on parameter editing; projection selection handled by parent components
 - **TerritorySetManager**: Territory customization UI for composite-custom mode
   - Manages which territories are included in custom composite projection
+  - Uses registry behavior to determine which collection set to display (typically 'administrative')
+  - Reads territoryCollections from atlas config via atlasSpecificConfig.territoryCollections
+  - Displays territories grouped by administrative collections (e.g., "Mainland only", "Mainland + DROM", "All territories")
   - Displays active territories with remove buttons (btn-soft style with close icon)
   - Displays available territories with add buttons (btn-ghost style with add icon)
   - Filters out mainland from available territories (mainland always visible)
@@ -275,6 +278,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 
 **Preset Components** (src/components/ui/presets/):
 - **PresetSelector**: Dropdown for manual preset selection and loading
+  - Gets available presets from registry behavior via getAtlasBehavior()
   - Displays available presets for current atlas with metadata-based labels
   - Handles async preset loading, validation, and application to stores
   - Integrates with parameter store and CompositeProjection for complete preset application
@@ -517,7 +521,7 @@ interface ViewState {
 - `shouldShowTerritoryControls()` - Show in split, composite-custom modes
 
 **Territory Controls Sub-components**:
-- `shouldShowPresetSelector()` - Show in composite-custom with presets
+- `shouldShowPresetSelector()` - Show in composite-custom when registry behavior has available presets
 - `shouldShowImportControls()` - Show in composite-custom or split modes
 - `shouldShowGlobalProjectionControls()` - Show in composite-custom mode
 - `shouldShowTerritoryParameterControls()` - Show in composite-custom mode

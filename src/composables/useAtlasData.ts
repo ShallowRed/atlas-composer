@@ -1,4 +1,3 @@
-import { watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useLoadingState } from './useLoadingState'

@@ -10,12 +10,13 @@ import type { I18nValue, JSONAtlasConfig } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '@/types/registry'
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { loadAtlasConfig } from '@/core/atlases/loader'
 
 /**
- * Atlas group definition
+ * @deprecated Use AtlasGroupDefinition from @/types/registry instead
  */
 export interface AtlasGroupDefinition {
   id: 'country' | 'region' | 'world'
@@ -24,34 +25,14 @@ export interface AtlasGroupDefinition {
 }
 
 /**
- * Atlas registry metadata entry
+ * Static atlas registry metadata from JSON
  */
-export interface AtlasRegistryEntry {
-  id: string
-  name: I18nValue | string
-  group: 'country' | 'region' | 'world'
-  sortOrder: number
-  configPath: string
-}
-
-/**
- * Atlas registry configuration
- */
-interface AtlasRegistryConfig {
-  defaultAtlas: string
-  groups: AtlasGroupDefinition[]
-  atlases: AtlasRegistryEntry[]
-}
+const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
 
 /**
  * Cache of loaded atlas configurations (lazy loading)
  */
 const LOADED_CONFIGS: Map<string, LoadedAtlasConfig> = new Map()
-
-/**
- * Static atlas registry metadata from JSON
- */
-const REGISTRY_METADATA: AtlasRegistryConfig = atlasRegistryData as AtlasRegistryConfig
 
 /**
  * Map of atlas IDs to their config paths for lazy loading
@@ -205,6 +186,15 @@ export function getProjectionParams(atlasId: string): ProjectionParameters {
 }
 
 /**
+ * Get behavior configuration for an atlas from registry
+ * Returns behavior config if defined, undefined otherwise
+ */
+export function getAtlasBehavior(atlasId: string): AtlasRegistryBehavior | undefined {
+  const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
+  return entry?.behavior
+}
+
+/**
  * Get territories for an atlas
  */
 export function getAtlasTerritories(atlasId: string) {
@@ -271,8 +261,9 @@ export interface AtlasGroup {
 
 /**
  * Get group definitions from registry
+ * @deprecated Use REGISTRY_METADATA.groups directly with AtlasRegistryGroup type
  */
-export function getGroupDefinitions(): AtlasGroupDefinition[] {
+export function getGroupDefinitions() {
   return REGISTRY_METADATA.groups
 }
 

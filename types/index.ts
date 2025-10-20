@@ -12,6 +12,9 @@
 export type {
   I18nValue,
   JSONAtlasConfig,
+  JSONTerritoryCollection,
+  JSONTerritoryCollections,
+  JSONTerritoryCollectionSet,
   JSONTerritoryConfig,
 } from './atlas-config.js'
 

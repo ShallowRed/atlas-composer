@@ -74,11 +74,16 @@ Ensures composite projection is always selected by using atlas metadata's defaul
 Centralizes application initialization logic for all scenarios.
 Handles atlas initialization, preset loading, configuration import, and view mode changes.
 Static service providing consistent initialization workflows.
+Uses registry behavior for preset configuration instead of atlas config.
 - `initializeAtlas()` - Initialize atlas on startup or atlas change
 - `loadPreset()` - Load and apply preset configuration
 - `importConfiguration()` - Import user-provided configuration
 - `changeViewMode()` - Switch view mode within same atlas
 - `applyStateToStores()` - Apply application state to Pinia stores
+
+**Preset Loading**:
+Gets defaultPreset and availablePresets from registry behavior via getAtlasBehavior().
+Does not read preset fields from atlas config (deprecated locations).
 
 **Preset Defaults Isolation**:
 Stores preset defaults (via usePresetDefaults) only for composite-custom mode.
@@ -302,7 +307,11 @@ interface ViewState {
   - 'territory.noOverseas' - Standard message for empty state
 
 **Control State Methods**:
-- `isTerritorySelectDisabled(state)` - Territory selector disabled state
+- `shouldShowTerritorySelector(state)` - Territory selector visibility
+  - Shown when: atlas has territory selector capability AND NOT in composite modes
+  - Hidden for composite modes where TerritorySetManager handles territory selection
+- `isTerritorySelectDisabled(state)` - DEPRECATED: Territory selector disabled state
+  - Use shouldShowTerritorySelector instead for visibility control
   - Disabled if: atlas doesn't have territory selector OR in composite modes (custom/built-in)
   - In composite-custom mode, territory management handled via TerritorySetManager instead
 - `isViewModeDisabled(state)` - View mode selector disabled state

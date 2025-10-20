@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { getAtlasBehavior } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
@@ -21,19 +22,21 @@ const selectedPreset = ref<string>('')
 // Cache for preset metadata to avoid repeated fetches
 const presetMetadata = ref<Map<string, { name?: string | Record<string, string> }>>(new Map())
 
-// Get available presets from current atlas config
+// Get available presets from registry behavior
 const availablePresets = computed(() => {
-  const atlasConfig = configStore.currentAtlasConfig
-  if (!atlasConfig)
+  const atlasId = configStore.selectedAtlas
+  if (!atlasId)
     return []
-  return atlasConfig.availablePresets || []
+  const behavior = getAtlasBehavior(atlasId)
+  return behavior?.availablePresets || []
 })
 
 // Current preset selection
 const currentPreset = computed({
   get: () => {
-    const atlasConfig = configStore.currentAtlasConfig
-    return selectedPreset.value || atlasConfig?.defaultPreset || ''
+    const atlasId = configStore.selectedAtlas
+    const behavior = getAtlasBehavior(atlasId)
+    return selectedPreset.value || behavior?.defaultPreset || ''
   },
   set: async (presetId: string) => {
     if (!presetId || isLoading.value)

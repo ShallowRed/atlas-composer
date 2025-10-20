@@ -36,7 +36,24 @@
       },
       "group": "country",
       "sortOrder": 10,
-      "configPath": "./atlases/france.json"
+      "configPath": "./atlases/france.json",
+      "behavior": {
+        "defaultPreset": "france-default",
+        "availablePresets": [
+          "france-default",
+          "france-test",
+          "france-nsp"
+        ],
+        "defaultTerritoryCollection": "administrative",
+        "ui": {
+          "territoryManager": {
+            "collectionSet": "geographic"
+          },
+          "configSection": {
+            "collectionSet": "administrative"
+          }
+        }
+      }
     },
     {
       "id": "portugal",
@@ -46,7 +63,22 @@
       },
       "group": "country",
       "sortOrder": 20,
-      "configPath": "./atlases/portugal.json"
+      "configPath": "./atlases/portugal.json",
+      "behavior": {
+        "defaultPreset": "portugal-default",
+        "availablePresets": [
+          "portugal-default"
+        ],
+        "defaultTerritoryCollection": "administrative",
+        "ui": {
+          "territoryManager": {
+            "collectionSet": "geographic"
+          },
+          "configSection": {
+            "collectionSet": "administrative"
+          }
+        }
+      }
     },
     {
       "id": "usa",
