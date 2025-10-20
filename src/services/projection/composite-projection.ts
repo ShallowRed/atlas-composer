@@ -23,7 +23,6 @@ interface SubProjectionConfig {
   projectionType: string // Store the projection type/ID for export
   baseScale: number // Prevents scale accumulation on rebuild
   scaleMultiplier: number // Current scale multiplier (used to preserve scale when changing projection type)
-  baseTranslate: [number, number] // Prevents translation accumulation on rebuild
   translateOffset: [number, number]
   bounds?: [[number, number], [number, number]]
 }
@@ -147,6 +146,9 @@ export class CompositeProjection {
 
     mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
+    // Get translateOffset from parameters
+    const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
+
     this.addSubProjection({
       territoryCode: mainland.code,
       territoryName: mainland.name,
@@ -154,8 +156,7 @@ export class CompositeProjection {
       projectionType: mainlandProjectionType,
       baseScale: mainlandBaseScale,
       scaleMultiplier: mainlandScaleMultiplier,
-      baseTranslate: [0, 0],
-      translateOffset: [0, 0], // No config-level offset, must come from parameters
+      translateOffset: mainlandTranslateOffset,
       bounds: mainland.bounds,
     })
 
@@ -196,6 +197,9 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
+      // Get translateOffset from parameters
+      const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
+
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
@@ -203,8 +207,7 @@ export class CompositeProjection {
         projectionType,
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
-        baseTranslate: [0, 0],
-        translateOffset: [0, 0], // No config-level offset, must come from parameters
+        translateOffset: territoryTranslateOffset,
         bounds: territory.bounds,
       })
     })
@@ -258,6 +261,9 @@ export class CompositeProjection {
 
       mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
 
+      // Get translateOffset from parameters
+      const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
+
       this.addSubProjection({
         territoryCode: mainland.code,
         territoryName: mainland.name,
@@ -265,8 +271,7 @@ export class CompositeProjection {
         projectionType: mainlandProjectionType,
         baseScale: mainlandBaseScale,
         scaleMultiplier: mainlandScaleMultiplier,
-        baseTranslate: [0, 0],
-        translateOffset: [0, 0], // No config-level offset, must come from parameters
+        translateOffset: mainlandTranslateOffset,
         bounds: mainland.bounds,
       })
     })
@@ -308,6 +313,9 @@ export class CompositeProjection {
 
       projection.scale(territoryBaseScale * territoryScaleMultiplier)
 
+      // Get translateOffset from parameters
+      const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
+
       this.addSubProjection({
         territoryCode: territory.code,
         territoryName: territory.name,
@@ -315,8 +323,7 @@ export class CompositeProjection {
         projectionType,
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
-        baseTranslate: [0, 0],
-        translateOffset: [0, 0], // No config-level offset, must come from parameters
+        translateOffset: territoryTranslateOffset,
         bounds: territory.bounds,
       })
     })
@@ -760,7 +767,7 @@ export class CompositeProjection {
    * Get composition borders for visualization
    *
    * Note: The sub-projections have already been built with translate() applied,
-   * so the projected coordinates already include baseTranslate + translateOffset.
+   * so the projected coordinates already include translateOffset.
    * We should NOT add them again here.
    *
    * @param _width - Unused, kept for API compatibility
