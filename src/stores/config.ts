@@ -8,6 +8,7 @@ import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
 import { AtlasService } from '@/services/atlas/atlas-service'
+import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
@@ -478,100 +479,48 @@ export const useConfigStore = defineStore('config', () => {
     await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
   })
 
-  // Watch atlas changes to reload available presets
-  watch(selectedAtlas, async (newAtlas, oldAtlas) => {
-    clearViewPreset()
+  // Watch atlas changes - use InitializationService for orchestration
+  watch(selectedAtlas, async (newAtlasId, oldAtlasId) => {
+    // Preload the new atlas before orchestration to ensure sync access works
+    await loadAtlasAsync(newAtlasId)
 
-    // Clear global projection parameters when switching atlases
-    // Each atlas should start fresh with its own preset parameters
-    parameterStore.setGlobalParameter('rotate', undefined)
-    parameterStore.setGlobalParameter('center', undefined)
-    parameterStore.setGlobalParameter('parallels', undefined)
-    parameterStore.setGlobalParameter('scale', undefined)
-    presetDefaults.storeGlobalParameters(null)
+    // Use InitializationService for consistent atlas change handling
+    const result = await InitializationService.initializeAtlas({
+      atlasId: newAtlasId,
+      preserveViewMode: true, // Try to keep current view mode if supported by new atlas
+    })
 
+    if (!result.success) {
+      console.error('[ConfigStore] Atlas change failed:', result.errors)
+      return
+    }
+
+    if (!result.state) {
+      console.error('[ConfigStore] Atlas change returned no state')
+      return
+    }
+
+    console.info('[ConfigStore] Atlas changed successfully:', {
+      oldAtlas: oldAtlasId,
+      newAtlas: newAtlasId,
+      newViewMode: result.state.viewMode,
+      territoryCount: Object.keys(result.state.parameters.territories).length,
+    })
+
+    // Reload view presets for the new atlas
     await loadAvailableViewPresets()
 
     // Auto-load first preset if available
-    await autoLoadFirstPreset(`atlas changed from ${oldAtlas} to ${newAtlas}`)
+    await autoLoadFirstPreset(`atlas changed from ${oldAtlasId} to ${newAtlasId}`)
   })
 
   // Load initial view presets and auto-apply first one
   ;(async () => {
     await loadAvailableViewPresets()
 
-    // Auto-load first preset if available for initial view mode
+    // Auto-load first preset if available for initial load
     await autoLoadFirstPreset('initial load')
   })()
-
-  // Watch for atlas changes - use AtlasCoordinator for complex orchestration
-  watch(selectedAtlas, async (newAtlasId) => {
-    // Clear global projection parameters when switching atlases
-    // Each atlas/preset should start fresh with its own parameters
-    parameterStore.setGlobalParameter('rotate', undefined)
-    parameterStore.setGlobalParameter('center', undefined)
-    parameterStore.setGlobalParameter('parallels', undefined)
-    parameterStore.setGlobalParameter('scale', undefined)
-    presetDefaults.storeGlobalParameters(null)
-
-    // Preload the new atlas before orchestration to ensure sync access works
-    await loadAtlasAsync(newAtlasId)
-
-    const updates = await AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
-
-    console.info('[ConfigStore] Applying atlas change updates:', {
-      newViewMode: updates.viewMode,
-      currentViewMode: viewMode.value,
-      newTerritoryMode: updates.territoryMode,
-    })
-
-    // Apply all updates from coordinator to config store
-    viewMode.value = updates.viewMode
-    territoryMode.value = updates.territoryMode
-    selectedProjection.value = updates.selectedProjection
-
-    // Store original preset defaults for reset functionality
-    presetDefaults.storePresetDefaults({
-      projections: updates.projections,
-      translations: updates.translations,
-      scales: updates.scales,
-    }, updates.territoryParameters)
-
-    // Update parameter store - use proper setter methods to maintain reactivity
-    Object.entries(updates.projections).forEach(([code, projection]) => {
-      parameterStore.setTerritoryProjection(code, projection)
-    })
-    Object.entries(updates.translations).forEach(([code, translation]) => {
-      parameterStore.setTerritoryTranslation(code, 'x', translation.x)
-      parameterStore.setTerritoryTranslation(code, 'y', translation.y)
-    })
-    Object.entries(updates.scales).forEach(([code, scale]) => {
-      parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-    })
-
-    // Load territory-specific projection parameters into parameter store
-    if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-      Object.entries(updates.territoryParameters).forEach(([territoryCode, params]) => {
-        parameterStore.setTerritoryParameters(territoryCode, params as any)
-      })
-    }
-
-    // Update UI store
-    uiStore.showGraticule = updates.mapDisplay.showGraticule
-    uiStore.showSphere = updates.mapDisplay.showSphere
-    uiStore.showCompositionBorders = updates.mapDisplay.showCompositionBorders
-    uiStore.showMapLimits = updates.mapDisplay.showMapLimits
-
-    if (updates.compositeProjection) {
-      compositeProjection.value = updates.compositeProjection
-    }
-    if (updates.referenceScale !== undefined) {
-      referenceScale.value = updates.referenceScale
-    }
-    if (updates.canvasDimensions !== undefined) {
-      canvasDimensions.value = updates.canvasDimensions
-    }
-  })
 
   return {
     // State

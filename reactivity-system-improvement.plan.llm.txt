@@ -537,8 +537,44 @@ Last Updated: 2025-10-20
 - Fail-fast error handling
 - Support for atlas initialization, preset loading, imports, and view mode changes
 
+### Phase 2: Consolidate Initialization Paths (COMPLETE)
+- [x] Refactored `PresetSelector.vue` to use InitializationService
+- [x] Refactored `ImportModal.vue` to use InitializationService
+- [x] Consolidated duplicate `watch(selectedAtlas)` in configStore
+- [x] Added InitializationService import to configStore
+- [x] All files compile without errors
+
+**Files Modified:**
+- `src/components/ui/presets/PresetSelector.vue` (262 → ~170 lines)
+  - Eliminated ~100 lines of duplicated preset loading logic
+  - Now uses `InitializationService.loadPreset()` instead of manual PresetLoader + converter
+  - Removed: convertToDefaults(), extractTerritoryParameters(), manual store updates
+  
+- `src/components/ui/import/ImportModal.vue` 
+  - Replaced `CompositeImportService.applyToStores()` with `InitializationService.importConfiguration()`
+  - Now includes cartographer updates after successful import
+  - Removed manual parameterStore dependency
+  
+- `src/stores/config.ts`
+  - Consolidated TWO `watch(selectedAtlas)` watchers into ONE
+  - Removed duplicate logic that used both AtlasCoordinator and manual preset loading
+  - Now uses `InitializationService.initializeAtlas()` for atlas changes
+  - Added InitializationService import
+
+**Code Reduction:**
+- PresetSelector: ~92 lines removed
+- configStore: ~80 lines removed (duplicate watcher + old AtlasCoordinator call)
+- ImportModal: Simplified import application logic
+
+**Benefits Achieved:**
+- Single initialization code path established
+- Eliminated ~170+ lines of duplicated initialization logic
+- Consistent validation and error handling across all init scenarios
+- Easier debugging (single service to trace)
+- Type-safe state management via ApplicationState
+
 ## Next Steps
-1. Begin Phase 2: Consolidate Initialization Paths
-2. Update PresetSelector to use InitializationService
-3. Update ImportModal to use InitializationService  
-4. Remove duplicated logic from AtlasCoordinator
+1. Begin Phase 3: Remove Fallback Mechanisms
+2. Make selectedProjection and compositeProjection nullable
+3. Remove defensive null checks in parameter store
+4. Implement strict preset validation
