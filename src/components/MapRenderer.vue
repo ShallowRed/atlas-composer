@@ -73,6 +73,7 @@ const cartographer = computed(() => geoDataStore.cartographer)
 // Projection panning composable for interactive rotation via mouse drag
 const {
   handleMouseDown: handlePanMouseDown,
+  isPanning,
   cursorStyle: panningCursorStyle,
   cleanup: cleanupProjectionPanning,
 } = useProjectionPanning(props.projection)
@@ -91,6 +92,9 @@ const {
   createBorderZoneOverlays,
   cleanup: cleanupTerritoryCursor,
 } = useTerritoryCursor()
+
+// Track if we're currently in a drag operation (territory dragging or projection panning)
+const isInDragOperation = computed(() => _isDragging.value || isPanning.value)
 
 // Clip extent editor composable for interactive corner dragging
 const {
@@ -180,10 +184,12 @@ const computedSize = computed(() => {
 
 /**
  * Debounced render function to batch multiple rapid render requests
+ * Skips debouncing when in drag operation (territory dragging or projection panning)
  */
 async function debouncedRenderMap() {
   console.info('[MapRenderer] debouncedRenderMap() called', {
     isReinitializing: geoDataStore.isReinitializing,
+    isInDragOperation: isInDragOperation.value,
   })
 
   // Don't schedule render if geoDataStore is reinitializing
@@ -202,6 +208,13 @@ async function debouncedRenderMap() {
   if (isRendering.value) {
     console.info('[MapRenderer] Render in progress, marking pendingRender = true')
     pendingRender.value = true
+    return
+  }
+
+  // Skip debouncing during drag operations for immediate feedback
+  if (isInDragOperation.value) {
+    console.info('[MapRenderer] Skipping debounce - drag operation in progress')
+    renderMap()
     return
   }
 
