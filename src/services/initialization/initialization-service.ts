@@ -436,7 +436,21 @@ export class InitializationService {
         }
         // Scale is calculated from projection parameters, not stored separately
         scales[territory.code] = territory.projection.parameters.scaleMultiplier ?? 1
-        territoryParameters[territory.code] = territory.projection.parameters || {}
+
+        // Combine projection parameters with layout parameters
+        const params: Record<string, unknown> = {
+          // Start with all projection parameters
+          ...(territory.projection.parameters || {}),
+          // Add layout parameters
+          translateOffset: territory.layout.translateOffset,
+        }
+
+        // Add pixelClipExtent if defined (stored in layout section)
+        if (territory.layout.pixelClipExtent) {
+          params.pixelClipExtent = territory.layout.pixelClipExtent
+        }
+
+        territoryParameters[territory.code] = params
       }
 
       const state: ApplicationState = {

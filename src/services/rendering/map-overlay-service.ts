@@ -190,7 +190,7 @@ export class MapOverlayService {
     selection
       .attr('class', 'composition-border')
       .attr('fill', 'none')
-      .attr('stroke', 'var(--color-neutral)')
+      .attr('stroke', ' color-mix(in oklch, var(--color-neutral) 50%, var(--color-base-100))')
       .attr('stroke-width', 1)
       // .attr('stroke-dasharray', '8 4')
       // .attr('stroke-linejoin', 'round')

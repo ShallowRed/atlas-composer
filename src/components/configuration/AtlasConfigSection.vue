@@ -39,6 +39,7 @@ const viewModeOptionsWithIcons = computed(() => {
     icon: getViewModeIcon(mode.value as any),
   }))
 })
+const { isCompositeCustomMode } = useViewState()
 </script>
 
 <template>
@@ -68,6 +69,9 @@ const viewModeOptionsWithIcons = computed(() => {
       :options="territoryModeOptions"
     />
     <!-- Territory Set Manager -->
-    <TerritorySetManager class="mb-6" />
+    <TerritorySetManager
+      v-if="isCompositeCustomMode"
+      class="mb-6"
+    />
   </div>
 </template>

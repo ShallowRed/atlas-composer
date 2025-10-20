@@ -408,6 +408,13 @@ Uses ProjectionParameters throughout for consistent parameter handling.
 All parameters use array format: center[lon, lat], rotate[lon, lat], parallels[south, north].
 No legacy format conversions - single format end-to-end.
 
+**Parameter Merging**:
+The `mergeParameters()` utility function (src/types/projection-parameters.ts) handles parameter inheritance by merging multiple parameter sets with proper array handling:
+- Array parameters are deep-copied to avoid reference issues: `center`, `rotate`, `parallels`, `translateOffset`, `pixelClipExtent`
+- Scalar parameters are shallow-copied: `scaleMultiplier`, `precision`, `clipAngle`
+- Later parameter sets override earlier ones (territory > global > atlas > defaults)
+- Deep copying ensures each territory has independent parameter instances
+
 **Parameter State Management**:
 - `setAtlasParameters()` - Set atlas-level ProjectionParameters
 - `getGlobalParameters()` - Get global parameter state
