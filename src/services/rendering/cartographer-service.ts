@@ -107,14 +107,6 @@ export class Cartographer {
   }
 
   /**
-   * Update projection fitting mode
-   * @param mode - 'auto' for domain fitting, 'manual' for center+scale control
-   */
-  updateFittingMode(mode: 'auto' | 'manual'): void {
-    this.projectionService.setFittingMode(mode)
-  }
-
-  /**
    * Update canvas dimensions for projection scaling calculations
    * @param dimensions - New canvas dimensions
    */

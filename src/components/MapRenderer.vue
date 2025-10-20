@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
+import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
 import { useMapWatchers } from '@/composables/useMapWatchers'
@@ -9,6 +10,7 @@ import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
+import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -48,6 +50,29 @@ const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
+
+// Compute showSphere based on view mode (always on for unified mode)
+const showSphere = computed<boolean>(() => {
+  const atlasConfig = configStore.currentAtlasConfig
+  if (!atlasConfig)
+    return false
+
+  const viewState: ViewState = {
+    viewMode: configStore.viewMode,
+    atlasConfig,
+    hasPresets: (atlasConfig.availablePresets?.length ?? 0) > 0,
+    hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
+    isPresetLoading: false,
+    showProjectionSelector: configStore.showProjectionSelector,
+    showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
+    isMainlandInTerritories: geoDataStore.allActiveTerritories.some(
+      t => t.code === atlasConfig.splitModeConfig?.mainlandCode || t.code === 'MAINLAND',
+    ),
+    showMainland: atlasConfig.pattern === 'single-focus',
+  }
+
+  return ViewOrchestrationService.shouldShowSphere(viewState)
+})
 
 // Watch territory-specific parameter changes in split mode
 // Watch the effective parameters which automatically trigger when territory params change
@@ -130,7 +155,6 @@ const { cleanup: cleanupMapWatchers } = useMapWatchers(
   },
   {
     onProjectionParamsChange: debouncedRenderMap,
-    onFittingModeChange: debouncedRenderMap,
     onCanvasDimensionsChange: debouncedRenderMap,
     onReferenceScaleChange: debouncedRenderMap,
     onDependenciesChange: debouncedRenderMap,
@@ -311,7 +335,7 @@ async function renderMap() {
         area: props.area,
         preserveScale: props.preserveScale,
         showGraticule: uiStore.showGraticule,
-        showSphere: uiStore.showSphere,
+        showSphere: showSphere.value,
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
       })
@@ -471,7 +495,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     width,
     height,
     showGraticule: uiStore.showGraticule,
-    showSphere: uiStore.showSphere,
+    showSphere: showSphere.value,
     showCompositionBorders: uiStore.showCompositionBorders,
     showMapLimits: uiStore.showMapLimits,
     currentAtlasConfig: configStore.currentAtlasConfig,

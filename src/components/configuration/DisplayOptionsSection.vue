@@ -35,12 +35,7 @@ const { viewOrchestration } = useViewState()
         :label="t('settings.graticule')"
         icon="ri-grid-line"
       />
-      <!-- Sphere Outline Toggle -->
-      <ToggleControl
-        v-model="uiStore.showSphere"
-        :label="t('settings.sphere')"
-        icon="ri-earth-line"
-      />
+      <!-- Globe outline automatically shown in unified mode -->
     </div>
     <div class="space-y-2">
       <!-- Scale Preservation Toggle -->

@@ -174,7 +174,6 @@ export class InitializationService {
         },
         display: {
           showGraticule: false,
-          showSphere: false,
           showCompositionBorders: true,
           showMapLimits: true,
         },
@@ -340,7 +339,6 @@ export class InitializationService {
           },
           display: {
             showGraticule: false,
-            showSphere: false,
             showCompositionBorders: true,
             showMapLimits: true,
           },
@@ -480,7 +478,6 @@ export class InitializationService {
         },
         display: {
           showGraticule: false,
-          showSphere: false,
           showCompositionBorders: true,
           showMapLimits: true,
         },
@@ -642,7 +639,6 @@ export class InitializationService {
 
     // Update UI store
     uiStore.showGraticule = state.display.showGraticule
-    uiStore.showSphere = state.display.showSphere
     uiStore.showCompositionBorders = state.display.showCompositionBorders
     uiStore.showMapLimits = state.display.showMapLimits
 

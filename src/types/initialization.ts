@@ -51,7 +51,6 @@ export interface ApplicationState {
   }
   display: {
     showGraticule: boolean
-    showSphere: boolean
     showCompositionBorders: boolean
     showMapLimits: boolean
   }

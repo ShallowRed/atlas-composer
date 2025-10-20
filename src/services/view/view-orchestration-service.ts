@@ -321,4 +321,14 @@ export class ViewOrchestrationService {
     // This is primarily used in split view
     return state.viewMode === 'split'
   }
+
+  /**
+   * Determine if globe outline (sphere) should be shown
+   *
+   * Automatically shown in unified mode only to provide geographic context
+   * and help users understand projection distortions
+   */
+  static shouldShowSphere(state: ViewState): boolean {
+    return state.viewMode === 'unified'
+  }
 }

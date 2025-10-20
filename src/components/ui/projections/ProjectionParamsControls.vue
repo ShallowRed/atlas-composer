@@ -102,10 +102,6 @@ const currentParallel2 = computed(() => {
     ?? RANGES.parallel2.default
 })
 
-const currentScale = computed(() => {
-  return configStore.customScale ?? RANGES.scale.default
-})
-
 // Check if any parameters differ from preset defaults
 // This enables the reset button when user has customized parameters
 const hasCustomParams = computed(() => {
@@ -154,10 +150,6 @@ function updateParallel2(value: number) {
   configStore.setCustomParallels(currentParallel1.value, value)
 }
 
-function updateScale(value: number) {
-  configStore.setCustomScale(value)
-}
-
 function reset() {
   configStore.resetProjectionParams()
 }
@@ -198,15 +190,6 @@ const supportsLatitudeRotation = computed(() => {
       v-if="hasAnyRelevantParams"
       class="flex flex-col gap-4 pt-6"
     >
-      <!-- Fitting Mode Toggle -->
-      <ToggleControl
-        :model-value="configStore.projectionFittingMode === 'manual'"
-        :label="t('projectionParams.fittingMode')"
-        icon="ri-settings-3-line"
-        true-label="projectionParams.manualFitting"
-        false-label="projectionParams.autoFitting"
-        @update:model-value="(value) => configStore.setProjectionFittingMode(value ? 'manual' : 'auto')"
-      />
       <button
         class="btn btn-sm btn-soft w-full gap-1 mb-4"
         :disabled="!hasCustomParams"
@@ -279,19 +262,6 @@ const supportsLatitudeRotation = computed(() => {
         :step="RANGES.centerLatitude.step"
         unit="°"
         @update:model-value="updateCenterLatitude"
-      />
-
-      <!-- Scale (manual mode only) -->
-      <RangeSlider
-        v-if="configStore.projectionFittingMode === 'manual'"
-        :model-value="currentScale"
-        label="Scale"
-        icon="ri-zoom-in-line"
-        size="xs"
-        :min="RANGES.scale.min"
-        :max="RANGES.scale.max"
-        :step="RANGES.scale.step"
-        @update:model-value="updateScale"
       />
 
       <!-- Parallel 1 (for conic projections) -->

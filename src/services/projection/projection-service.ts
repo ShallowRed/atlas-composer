@@ -12,7 +12,6 @@ export interface ProjectionOption {
 
 export class ProjectionService {
   private projectionParams: ProjectionParameters | null = null
-  private fittingMode: 'auto' | 'manual' = 'auto'
   private canvasDimensions: { width: number, height: number } | null = null
 
   /**
@@ -21,14 +20,6 @@ export class ProjectionService {
    */
   setProjectionParams(params: ProjectionParameters): void {
     this.projectionParams = params
-  }
-
-  /**
-   * Set projection fitting mode
-   * @param mode - 'auto' for domain fitting, 'manual' for center+scale control
-   */
-  setFittingMode(mode: 'auto' | 'manual'): void {
-    this.fittingMode = mode
   }
 
   /**
@@ -53,12 +44,12 @@ export class ProjectionService {
 
   /**
    * Get projection configuration using the new factory system
+   * Always uses auto-fit mode (domain fitting) for projections
    * @param type - Projection ID
    * @param data - Geographic data for domain calculation
    * @returns Projection configuration object
    */
   getProjection(type: string, data: any) {
-    const fittingMode = this.fittingMode
     // CRITICAL: Don't capture params here - access this.projectionParams directly
     // in the projection function to get latest values
 
@@ -129,7 +120,7 @@ export class ProjectionService {
       this.getParams()
 
       const config: any = {
-        type: ({ width, height }: { width: number, height: number }) => {
+        type: ({ width: _width, height: _height }: { width: number, height: number }) => {
           // CRITICAL: Get fresh params each time the function is called to get latest values
           const params = this.getParams()
 
@@ -146,35 +137,24 @@ export class ProjectionService {
             // Azimuthal projections: Use rotation for positioning
             // rotate[0] = longitude rotation (negated for correct direction)
             // rotate[1] = latitude rotation (negated for correct direction)
-            const rotate = params.rotate || [0, 0]
+            const rotate = params.rotate ?? [0, 0]
             rotateParams = [-rotate[0], -rotate[1]]
             centerParams = undefined // Don't use center for azimuthal
           }
           else if (definition.family === ProjectionFamily.CONIC) {
-            // Conic projections behavior depends on fitting mode:
-            // AUTO mode (domain fitting): Use rotate() for positioning (center is overridden by fitExtent)
-            // MANUAL mode: Use center() for positioning directly
+            // Conic projections use rotate() for positioning with auto-fit
+            // Only use center longitude/latitude (rotation is disabled in UI for conic)
             parallelsParams = params.parallels || [44, 49]
 
-            if (fittingMode === 'auto') {
-              // With domain fitting: rotate() controls what's visible
-              // Only use center longitude/latitude (rotation is disabled in UI for conic)
-              const center = params.center || [0, 0]
-              const rotateLon = -center[0]
-              const rotateLat = -center[1]
-              rotateParams = [rotateLon, rotateLat]
-              centerParams = undefined // Domain fitting will override center
-            }
-            else {
-              // Manual mode: center() works directly
-              const center = params.center || [0, 0]
-              centerParams = [center[0], center[1]]
-              rotateParams = undefined
-            }
+            const center = params.center ?? [0, 0]
+            const rotateLon = -center[0]
+            const rotateLat = -center[1]
+            rotateParams = [rotateLon, rotateLat]
+            centerParams = undefined // Domain fitting will override center
           }
           else {
             // Cylindrical, Pseudocylindrical, Polyhedral: Use rotation
-            const rotate = params.rotate || [0, 0]
+            const rotate = params.rotate ?? [0, 0]
             rotateParams = [rotate[0], rotate[1]]
             centerParams = undefined // Don't use center
           }
@@ -189,21 +169,33 @@ export class ProjectionService {
             throw new Error(`Failed to create projection: ${definition.id}`)
           }
 
-          // Apply custom scale and translate in manual mode
-          if (fittingMode === 'manual') {
-            // Center the projection on the canvas
-            projection.translate([width / 2, height / 2])
-
-            if (params.scale) {
-              projection.scale(params.scale)
-            }
-          }
-
           // Parameters are already applied by the factory
           return projection
         },
-        // Use domain for auto-fitting, omit for manual center+scale control
-        domain: fittingMode === 'auto' ? data : undefined,
+        // Always use domain for auto-fitting
+        domain: data,
+      }
+
+      // Apply zoom level if provided - this modifies the scale after auto-fit
+      const zoomLevel = (this.projectionParams as any)?.zoomLevel as number | undefined
+      if (zoomLevel && zoomLevel !== 1.0) {
+        // Wrap the projection config to apply zoom after Observable Plot's fitExtent
+        const originalType = config.type
+        config.type = (dimensions: { width: number, height: number }) => {
+          const proj = originalType(dimensions)
+          // Observable Plot will call fitExtent on this projection
+          // We need to intercept the scale after fitting
+          const originalFitExtent = proj.fitExtent.bind(proj)
+          proj.fitExtent = function (extent: [[number, number], [number, number]], object: any) {
+            // Call original fitExtent
+            const result = originalFitExtent(extent, object)
+            // Apply zoom by multiplying the fitted scale
+            const currentScale = proj.scale()
+            proj.scale(currentScale * zoomLevel)
+            return result
+          }
+          return proj
+        }
       }
 
       return config
@@ -212,7 +204,7 @@ export class ProjectionService {
     // For D3 extended projections, return factory function
     if (definition.strategy === ProjectionStrategy.D3_EXTENDED) {
       return {
-        type: ({ width, height }: { width: number, height: number }) => {
+        type: ({ width: _width, height: _height }: { width: number, height: number }) => {
           // CRITICAL: Get fresh params each time Plot calls this function
           const params = this.getParams()
 
@@ -228,16 +220,10 @@ export class ProjectionService {
           }
           else if (definition.family === ProjectionFamily.CONIC) {
             parallelsParams = params.parallels || [44, 49]
-            if (fittingMode === 'auto') {
-              const center = params.center || [0, 0]
-              rotateParams = [-center[0], -center[1]]
-              centerParams = undefined
-            }
-            else {
-              const center = params.center || [0, 0]
-              centerParams = [center[0], center[1]]
-              rotateParams = undefined
-            }
+            // Always use auto-fit mode with rotate() for positioning
+            const center = params.center || [0, 0]
+            rotateParams = [-center[0], -center[1]]
+            centerParams = undefined
           }
           else {
             const rotate = params.rotate || [0, 0]
@@ -256,20 +242,10 @@ export class ProjectionService {
             throw new Error(`Failed to create extended projection: ${type}`)
           }
 
-          // Apply custom scale and translate in manual mode
-          if (fittingMode === 'manual') {
-            // Center the projection on the canvas
-            projection.translate([width / 2, height / 2])
-
-            if (params.scale) {
-              projection.scale(params.scale)
-            }
-          }
-
           return projection
         },
-        // Use domain for auto-fitting, omit for manual center+scale control
-        domain: fittingMode === 'auto' ? data : undefined,
+        // Always use domain for auto-fitting
+        domain: data,
       }
     }
 

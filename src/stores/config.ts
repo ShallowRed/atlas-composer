@@ -30,9 +30,6 @@ export const useConfigStore = defineStore('config', () => {
   // Projection control options
   const rotateLatitudeLocked = ref<boolean>(true) // Default to locked
 
-  // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
-  const projectionFittingMode = ref<'auto' | 'manual'>('auto')
-
   // Projection selection - nullable until preset loads
   // No fallback values - must wait for InitializationService to load valid preset
   const selectedProjection = ref<string | null>(null)
@@ -108,7 +105,6 @@ export const useConfigStore = defineStore('config', () => {
   // Initialize UI store with fallback defaults - will be updated async with preset data
   uiStore.initializeDisplayOptions({
     showGraticule: false,
-    showSphere: false,
     showCompositionBorders: true,
     showMapLimits: true,
   })
@@ -257,10 +253,6 @@ export const useConfigStore = defineStore('config', () => {
   const setCustomScale = (scale: number | null) => {
     // Convert null to undefined to remove parameter override
     parameterStore.setGlobalParameter('scale', scale ?? undefined)
-  }
-
-  const setProjectionFittingMode = (mode: 'auto' | 'manual') => {
-    projectionFittingMode.value = mode
   }
 
   const setRotateLatitudeLocked = (locked: boolean) => {
@@ -517,7 +509,6 @@ export const useConfigStore = defineStore('config', () => {
     customParallel2: computed(() => parameterStore.globalParameters.parallels?.[1] ?? null),
     customScale: computed(() => parameterStore.globalParameters.scale ?? null),
     rotateLatitudeLocked,
-    projectionFittingMode,
 
     // Computed
     atlasService,
@@ -544,7 +535,6 @@ export const useConfigStore = defineStore('config', () => {
     setCustomCenter,
     setCustomParallels,
     setCustomScale,
-    setProjectionFittingMode,
     setRotateLatitudeLocked,
     resetProjectionParams,
     // Individual parameter setters - convenience wrappers

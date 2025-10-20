@@ -4,6 +4,9 @@ import { ref } from 'vue'
 /**
  * UI Store - Manages user interface state and preferences
  * Separated from domain logic (config store) for better organization
+ *
+ * Note: Globe outline (showSphere) is determined by view mode via ViewOrchestrationService,
+ * not stored as user preference
  */
 export interface ToastMessage {
   id: string
@@ -18,7 +21,6 @@ export const useUIStore = defineStore('ui', () => {
 
   // Display toggles
   const showGraticule = ref(false)
-  const showSphere = ref(false)
   const showCompositionBorders = ref(true) // Default to true for better UX with clip extent editing
   const showMapLimits = ref(true) // Default to true for better visualization
 
@@ -54,12 +56,10 @@ export const useUIStore = defineStore('ui', () => {
 
   function initializeDisplayOptions(defaults: {
     showGraticule?: boolean
-    showSphere?: boolean
     showCompositionBorders?: boolean
     showMapLimits?: boolean
   }) {
     showGraticule.value = defaults.showGraticule ?? false
-    showSphere.value = defaults.showSphere ?? false
     showCompositionBorders.value = defaults.showCompositionBorders ?? true // Default to true
     showMapLimits.value = defaults.showMapLimits ?? true // Default to true
   }
@@ -98,7 +98,6 @@ export const useUIStore = defineStore('ui', () => {
     // State
     theme,
     showGraticule,
-    showSphere,
     showCompositionBorders,
     showMapLimits,
     toasts,

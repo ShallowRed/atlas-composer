@@ -2,7 +2,7 @@
 
 ## Important :
 - fix portugal and usa default presets
-- we should handle mismatching list of territories in presets vs atlas config better, and make custom projection preset tied to a specific set of territories
+-  We should group territory tags in TerritorySetManager according to atlas defined groups. Lets also keep them at the same place wether they are active or inactive, to avoid layout shifts when toggling them.
 
 ## Nice to have :
 - improve test coverage (in both direction, make sure we don't miss anything, and remove useless tests)

@@ -154,9 +154,8 @@
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
     "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié.",
-    "fittingMode": "Ajustement de l'échelle",
-    "autoFitting": "Ajustement automatique",
-    "manualFitting": "Contrôle manuel de l'échelle"
+    "zoom": "Zoom",
+    "zoomLevel": "Niveau de zoom"
   },
   "projectionControls": {
     "global": {

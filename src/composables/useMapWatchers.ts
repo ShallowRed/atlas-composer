@@ -13,7 +13,6 @@ interface MapWatcherProps {
 
 interface MapWatcherCallbacks {
   onProjectionParamsChange: () => Promise<void>
-  onFittingModeChange: () => Promise<void>
   onCanvasDimensionsChange: () => Promise<void>
   onReferenceScaleChange: () => Promise<void>
   onDependenciesChange: () => Promise<void>
@@ -22,9 +21,8 @@ interface MapWatcherCallbacks {
 /**
  * Composable that manages all watchers for MapRenderer component.
  *
- * Consolidates 6 watch statements into a single composable:
+ * Consolidates watch statements into a single composable:
  * - effectiveProjectionParams: Updates cartographer projection parameters
- * - projectionFittingMode: Updates cartographer fitting mode
  * - canvasDimensions: Updates cartographer canvas dimensions
  * - referenceScale: Updates cartographer reference scale
  * - mode-dependent dependencies: Composite or simple mode dependencies
@@ -51,20 +49,6 @@ export function useMapWatchers(
       }
     },
     { deep: true },
-  )
-
-  /**
-   * Watch for fitting mode changes
-   */
-  const stopWatchingFittingMode = watch(
-    () => configStore.projectionFittingMode,
-    async (newMode) => {
-      console.info('[useMapWatchers] Fitting mode changed, calling onFittingModeChange')
-      if (geoDataStore.cartographer) {
-        geoDataStore.cartographer.updateFittingMode(newMode)
-        await callbacks.onFittingModeChange()
-      }
-    },
   )
 
   /**
@@ -121,7 +105,6 @@ export function useMapWatchers(
           territoryMode: configStore.territoryMode,
           scalePreservation: configStore.scalePreservation,
           showGraticule: uiStore.showGraticule,
-          showSphere: uiStore.showSphere,
           showCompositionBorders: uiStore.showCompositionBorders,
           showMapLimits: uiStore.showMapLimits,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
@@ -134,7 +117,6 @@ export function useMapWatchers(
         selectedProjection: configStore.selectedProjection,
         preserveScale: props.preserveScale,
         showGraticule: uiStore.showGraticule,
-        showSphere: uiStore.showSphere,
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
         territoryParametersVersion: parameterStore.territoryParametersVersion,
@@ -151,7 +133,6 @@ export function useMapWatchers(
    */
   const cleanup = () => {
     stopWatchingProjectionParams()
-    stopWatchingFittingMode()
     stopWatchingCanvasDimensions()
     stopWatchingReferenceScale()
     stopWatchingRenderKey()
