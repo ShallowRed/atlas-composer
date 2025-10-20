@@ -49,8 +49,34 @@ const currentPreset = computed({
         if (loadResult.data.type === 'composite-custom') {
           // Use AtlasCoordinator pattern: converters + manual store updates
           const { convertToDefaults, extractTerritoryParameters } = PresetLoader
-          const defaults = convertToDefaults(loadResult.data.config)
-          const territoryParameters = extractTerritoryParameters(loadResult.data.config)
+          const presetDefaults = convertToDefaults(loadResult.data.config)
+          const presetTerritoryParameters = extractTerritoryParameters(loadResult.data.config)
+
+          // CRITICAL: Handle territory mismatch - preset may have fewer territories than atlas allows
+          // Territories not in preset will NOT be rendered (no fallback parameters)
+          const allTerritories = configStore.atlasService.getAllTerritories()
+          const presetTerritoryCodes = new Set(Object.keys(presetDefaults.projections))
+
+          // Identify missing territories
+          const missingTerritories = allTerritories.filter(t => !presetTerritoryCodes.has(t.code))
+
+          // Use preset defaults directly (no fallback for missing territories)
+          const defaults = presetDefaults
+          const territoryParameters = presetTerritoryParameters
+
+          // Debug: Log extracted territory parameters
+          console.info('[PresetSelector] Extracted territory parameters:', Object.keys(territoryParameters).map(code => ({
+            code,
+            hasProjectionId: !!territoryParameters[code]?.projectionId,
+            projectionId: territoryParameters[code]?.projectionId,
+          })))
+
+          // Log territory mismatch information
+          if (missingTerritories.length > 0) {
+            console.info(
+              `[PresetSelector] Preset defines ${presetTerritoryCodes.size} territories, atlas allows ${allTerritories.length}. ${missingTerritories.length} territories will NOT be rendered: ${missingTerritories.map(t => t.code).join(', ')}`,
+            )
+          }
 
           // Apply to stores manually (same as AtlasCoordinator does)
           const parameterStore = await import('@/stores/parameters').then(m => m.useParameterStore())

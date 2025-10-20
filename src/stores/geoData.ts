@@ -87,7 +87,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       // Use the geo data config from the selected region
       const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
-      const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
+      let compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
 
       // Create parameter provider adapter to connect parameter store to rendering
       const parameterStore = useParameterStore()
@@ -100,6 +100,64 @@ export const useGeoDataStore = defineStore('geoData', () => {
         getExportableParameters: (territoryCode: string) => {
           return parameterStore.getExportableParameters(territoryCode)
         },
+      }
+
+      // CRITICAL: Filter compositeConfig to only include territories with projectionId in parameter store
+      // This ensures only territories defined in the preset are rendered on initial load
+      if (compositeConfig) {
+        const territoriesWithParams = new Set<string>()
+
+        // Check which territories have projectionId in parameter store
+        if (compositeConfig.type === 'single-focus') {
+          // Always include mainland
+          territoriesWithParams.add(compositeConfig.mainland.code)
+
+          // Filter overseas territories
+          const filteredOverseas = compositeConfig.overseasTerritories.filter((territory) => {
+            const params = parameterStore.getEffectiveParameters(territory.code)
+            const hasParams = !!params.projectionId
+            if (hasParams) {
+              territoriesWithParams.add(territory.code)
+            }
+            return hasParams
+          })
+
+          compositeConfig = {
+            ...compositeConfig,
+            overseasTerritories: filteredOverseas,
+          }
+
+          console.info(`[GeoDataStore] Filtered composite config: ${territoriesWithParams.size} territories with parameters (${filteredOverseas.length} overseas)`)
+        }
+        else if (compositeConfig.type === 'equal-members') {
+          // Filter mainlands
+          const filteredMainlands = compositeConfig.mainlands.filter((territory) => {
+            const params = parameterStore.getEffectiveParameters(territory.code)
+            const hasParams = !!params.projectionId
+            if (hasParams) {
+              territoriesWithParams.add(territory.code)
+            }
+            return hasParams
+          })
+
+          // Filter overseas territories
+          const filteredOverseas = compositeConfig.overseasTerritories.filter((territory) => {
+            const params = parameterStore.getEffectiveParameters(territory.code)
+            const hasParams = !!params.projectionId
+            if (hasParams) {
+              territoriesWithParams.add(territory.code)
+            }
+            return hasParams
+          })
+
+          compositeConfig = {
+            ...compositeConfig,
+            mainlands: filteredMainlands,
+            overseasTerritories: filteredOverseas,
+          }
+
+          console.info(`[GeoDataStore] Filtered composite config: ${territoriesWithParams.size} territories with parameters (${filteredMainlands.length} mainlands, ${filteredOverseas.length} overseas)`)
+        }
       }
 
       cartographer.value = new Cartographer(

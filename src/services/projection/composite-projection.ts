@@ -58,6 +58,16 @@ export class CompositeProjection {
   private getParametersForTerritory(territoryCode: string, configParams: TerritoryConfig): ProjectionParameters {
     if (this.parameterProvider) {
       const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
+
+      // Debug: Log what we got from parameter provider
+      if (!dynamicParams.projectionId) {
+        console.warn(`[CompositeProjection.getParametersForTerritory] Territory ${territoryCode}: projectionId MISSING from parameter provider!`, {
+          hasProvider: !!this.parameterProvider,
+          dynamicParamsKeys: Object.keys(dynamicParams),
+          projectionId: dynamicParams.projectionId,
+        })
+      }
+
       // Return parameters from provider, using territory center as fallback for center/rotate only
       return {
         center: dynamicParams.center ?? configParams.center,
@@ -69,6 +79,7 @@ export class CompositeProjection {
         baseScale: dynamicParams.baseScale, // Not used (referenceScale * scaleMultiplier used instead)
         scaleMultiplier: dynamicParams.scaleMultiplier ?? 1.0, // The only scale value we actually use
         pixelClipExtent: dynamicParams.pixelClipExtent, // Territory-specific clip extent
+        projectionId: dynamicParams.projectionId, // CRITICAL: Must include projectionId!
       }
     }
     // No parameter provider - return minimal defaults using only center from config
@@ -165,8 +176,14 @@ export class CompositeProjection {
       // Get parameters from parameter provider (required - no fallback to config)
       const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
-      // Projection type must come from parameters/preset, default to mercator
-      const projectionType = territoryParams.projectionId || 'mercator'
+      // Skip territories without projectionId (not in preset)
+      if (!territoryParams.projectionId) {
+        console.info(`[CompositeProjection] Skipping territory ${territory.code} - not defined in preset (projectionId missing)`)
+        return
+      }
+
+      // Projection type must come from parameters/preset
+      const projectionType = territoryParams.projectionId
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
 
@@ -281,8 +298,14 @@ export class CompositeProjection {
       // Get parameters from parameter provider (required - no fallback to config)
       const territoryParams = this.getParametersForTerritory(territory.code, territory)
 
-      // Projection type must come from parameters/preset, default to mercator
-      const projectionType = territoryParams.projectionId || 'mercator'
+      // Skip territories without projectionId (not in preset)
+      if (!territoryParams.projectionId) {
+        console.info(`[CompositeProjection] Skipping territory ${territory.code} - not defined in preset (projectionId missing)`)
+        return
+      }
+
+      // Projection type must come from parameters/preset
+      const projectionType = territoryParams.projectionId
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
 

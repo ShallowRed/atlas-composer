@@ -108,26 +108,25 @@ export const useConfigStore = defineStore('config', () => {
     showMapLimits: true,
   })
 
-  // Initialize territory defaults in the parameter store
-  const initializeTerritoryDefaults = () => {
-    const all = atlasService.value.getAllTerritories()
-    // Initialize default projection IDs and translations for all territories
-    for (const territory of all) {
-      // Set default projection ID if not already set (will be overridden by preset)
-      const currentProjection = parameterStore.getTerritoryProjection(territory.code)
-      if (!currentProjection) {
-        parameterStore.setTerritoryProjection(territory.code, 'mercator')
-      }
-      // Ensure translateOffset is initialized
-      const effective = parameterStore.getEffectiveParameters(territory.code)
-      if (!effective.translateOffset) {
-        parameterStore.setTerritoryParameter(territory.code, 'translateOffset', [0, 0])
-      }
-    }
-  }
-
-  // Call initialization
-  initializeTerritoryDefaults()
+  // REMOVED: Territory defaults initialization
+  // This was setting projectionId="mercator" for ALL territories before preset loads,
+  // causing territories not in the preset to be rendered with fallback parameters.
+  // Territory parameters are now exclusively initialized from presets via initializeFromPreset()
+  //
+  // const initializeTerritoryDefaults = () => {
+  //   const all = atlasService.value.getAllTerritories()
+  //   for (const territory of all) {
+  //     const currentProjection = parameterStore.getTerritoryProjection(territory.code)
+  //     if (!currentProjection) {
+  //       parameterStore.setTerritoryProjection(territory.code, 'mercator')
+  //     }
+  //     const effective = parameterStore.getEffectiveParameters(territory.code)
+  //     if (!effective.translateOffset) {
+  //       parameterStore.setTerritoryParameter(territory.code, 'translateOffset', [0, 0])
+  //     }
+  //   }
+  // }
+  // initializeTerritoryDefaults()
 
   // Guard to prevent multiple simultaneous initializations
   let initializationPromise: Promise<void> | null = null
@@ -147,27 +146,10 @@ export const useConfigStore = defineStore('config', () => {
         // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
         const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
 
-        Object.entries(updates.projections).forEach(([code, projection]) => {
-          parameterStore.setTerritoryProjection(code, projection)
-        })
-        Object.entries(updates.translations).forEach(([code, translation]) => {
-          parameterStore.setTerritoryTranslation(code, 'x', translation.x)
-          parameterStore.setTerritoryTranslation(code, 'y', translation.y)
-        })
-        Object.entries(updates.scales).forEach(([code, scale]) => {
-          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-        })
-
-        // Store original preset defaults for reset functionality
-        presetDefaults.storePresetDefaults({
-          projections: updates.projections,
-          translations: updates.translations,
-          scales: updates.scales,
-        }, updates.territoryParameters)
-
-        // Load projection parameters into parameter store using registry validation
+        // CRITICAL: Initialize parameters FIRST (includes projectionId, scaleMultiplier, and all other parameters)
+        // This must happen before setting individual projections/translations/scales
         if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-        // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
+          // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
           const atlasParams = {}
 
           // Initialize parameters through the registry with validation
@@ -182,6 +164,13 @@ export const useConfigStore = defineStore('config', () => {
           // Could add user notification here in the future
           }
         }
+
+        // Store original preset defaults for reset functionality
+        presetDefaults.storePresetDefaults({
+          projections: updates.projections,
+          translations: updates.translations,
+          scales: updates.scales,
+        }, updates.territoryParameters)
 
         // Apply other updates
         selectedProjection.value = updates.selectedProjection

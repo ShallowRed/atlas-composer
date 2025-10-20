@@ -169,6 +169,11 @@ extractTerritoryParameters(preset.config)
   → Extract layout properties
   → Return per-territory params
   ↓
+Territory Mismatch Handling
+  → Compare preset territories vs atlas territories
+  → Log missing territories (will NOT be rendered)
+  → Use only preset territories (no fallback for missing)
+  ↓
 Apply to Stores
   → parameterStore (projections, translations, scales, parameters)
   → configStore (referenceScale, canvasDimensions)
@@ -201,6 +206,11 @@ convertToDefaults(preset.config)
   ↓
 extractTerritoryParameters(preset.config)
   → Extract parameters and layout properties
+  ↓
+Territory Mismatch Handling
+  → Compare preset territories vs atlas territories
+  → Generate fallback parameters for missing territories
+  → Merge: fallback defaults + preset parameters (preset takes precedence)
   ↓
 Manual Store Updates
   → parameterStore.setTerritoryProjection()
@@ -800,6 +810,19 @@ Exported presets follow standard structure:
 - Verify parameter provider returns correct effective parameters
 - Ensure no race condition (preset loads after first render)
 - Verify `cartographer.updateTerritoryParameters()` called for each territory after parameter store update
+
+**Territory mismatch (preset defines fewer territories than atlas allows):**
+- Occurs when preset defines fewer territories than atlas allows (via "Territoires à inclure" selector)
+- Example: Preset with 5 overseas territories, but atlas configuration allows 12 territories
+- Behavior: Territories not in preset are NOT rendered (no fallback parameters)
+- Implementation: Three-tier filtering approach
+  1. **AtlasCoordinator**: Extracts only preset territories to parameter store
+  2. **CompositeProjection.initialize()**: Skips territories without `projectionId` parameter
+  3. **PresetSelector**: Applies only preset territories when switching presets
+- Detection: `CompositeProjection` checks for `projectionId` parameter presence
+- Missing territories logged: "Skipping territory X - not defined in preset"
+- Composition borders are only drawn for territories present in preset
+- Works consistently on initial load and preset switching
 
 ## Manual Preset Loading
 

@@ -67,16 +67,31 @@ export class AtlasCoordinator {
       try {
         const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
         if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
-          // Convert preset config to defaults and merge with territory defaults
+          // Convert preset config to defaults - territories not in preset will NOT be rendered
           const presetDefaults = PresetLoader.convertToDefaults(presetResult.data.config)
-          finalDefaults = {
-            projections: { ...finalDefaults.projections, ...presetDefaults.projections },
-            translations: { ...finalDefaults.translations, ...presetDefaults.translations },
-            scales: { ...finalDefaults.scales, ...presetDefaults.scales },
-          }
+          // Use ONLY preset defaults (no fallback merge) so missing territories don't get defaults
+          finalDefaults = presetDefaults
 
           // Extract territory-specific projection parameters from preset
           territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.data.config)
+
+          // Debug: Log what was extracted
+          console.info('[AtlasCoordinator] Extracted territory parameters:', Object.keys(territoryParameters).map(code => ({
+            code,
+            hasProjectionId: !!territoryParameters[code]?.projectionId,
+            projectionId: territoryParameters[code]?.projectionId,
+            allKeys: Object.keys(territoryParameters[code] || {}),
+          })))
+
+          // Handle territory mismatch: territories not in preset will NOT be rendered (no fallback)
+          const presetTerritoryCodes = new Set(Object.keys(presetDefaults.projections))
+          const missingTerritories = territories.filter(t => !presetTerritoryCodes.has(t.code))
+
+          if (missingTerritories.length > 0) {
+            console.info(
+              `[AtlasCoordinator] Preset '${config.defaultPreset}' defines ${presetTerritoryCodes.size} territories, atlas allows ${territories.length}. ${missingTerritories.length} territories will NOT be rendered: ${missingTerritories.map(t => t.code).join(', ')}`,
+            )
+          }
 
           // Extract referenceScale from preset
           referenceScale = presetResult.data.config.referenceScale

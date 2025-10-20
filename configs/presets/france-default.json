@@ -40,10 +40,10 @@
           0
         ],
         "pixelClipExtent": [
-          -268.92,
-          -245.16,
-          260.99,
-          324
+          -269,
+          -250,
+          261,
+          250
         ]
       },
       "bounds": [
@@ -155,9 +155,9 @@
         ],
         "pixelClipExtent": [
           -54,
-          -76.7,
-          55.08,
-          78.28
+          -76,
+          55,
+          78
         ]
       },
       "bounds": [
@@ -230,10 +230,10 @@
           -173
         ],
         "pixelClipExtent": [
-          -54.910000000000025,
-          -32.19999999999999,
-          54.170000000000016,
-          32.599999999999994
+          -55,
+          -32,
+          54,
+          33
         ]
       },
       "bounds": [
@@ -244,44 +244,6 @@
         [
           45.3,
           -12.64
-        ]
-      ]
-    },
-    {
-      "code": "FR-MF",
-      "name": "Saint-Martin",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {
-          "center": [
-            -63.082,
-            18.067
-          ],
-          "scaleMultiplier": 5
-        }
-      },
-      "layout": {
-        "translateOffset": [
-          -324,
-          -119
-        ],
-        "pixelClipExtent": [
-          -54,
-          -21,
-          55,
-          33
-        ]
-      },
-      "bounds": [
-        [
-          -63.15,
-          18.04
-        ],
-        [
-          -63,
-          18.13
         ]
       ]
     },
@@ -510,44 +472,6 @@
         [
           168,
           -19.5
-        ]
-      ]
-    },
-    {
-      "code": "FR-TF",
-      "name": "Terres australes et antarctiques françaises",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {
-          "center": [
-            69.348,
-            -49.28
-          ],
-          "scaleMultiplier": 1
-        }
-      },
-      "layout": {
-        "translateOffset": [
-          0,
-          250
-        ],
-        "pixelClipExtent": [
-          0,
-          -250,
-          0,
-          -250
-        ]
-      },
-      "bounds": [
-        [
-          39,
-          -50
-        ],
-        [
-          77,
-          -37
         ]
       ]
     }
