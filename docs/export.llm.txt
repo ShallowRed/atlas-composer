@@ -266,7 +266,7 @@ Presets provide high-quality default layouts for atlases. The export system is u
 1. **Manual Adjustment** - User adjusts territory positions, projections, and scales in composite-custom mode
 2. **Export Configuration** - User exports via Export Configuration dialog (JSON format)
 3. **Save as Preset** - Exported JSON is saved to `configs/presets/{atlas-id}-{variant}.json`
-4. **Validate** - Preset is validated against `configs/presets/schema.json`
+4. **Validate** - Preset is validated against `configs/presets/preset.schema.json`
 5. **Configure Atlas** - Atlas config references preset via `defaultPreset` field
 6. **Auto-Load** - Preset loads automatically when atlas is selected
 

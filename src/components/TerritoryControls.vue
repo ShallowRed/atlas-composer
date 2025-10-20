@@ -23,9 +23,7 @@ const { t } = useI18n()
 // Use composable for all territory transform logic
 const {
   territories,
-  showMainland,
   mainlandCode,
-  isMainlandInTerritories,
   translations,
   scales,
   projectionRecommendations,
@@ -33,19 +31,13 @@ const {
   currentAtlasConfig,
   territoryProjections,
   selectedProjection,
-  projectionMode,
   shouldShowEmptyState,
   setTerritoryProjection,
   resetTransforms,
 } = useTerritoryTransforms()
 
-// Check if presets are available for current atlas
-const hasPresets = computed(() => {
-  return (currentAtlasConfig.value.availablePresets?.length ?? 0) > 0
-})
-
-// View state for drag info display
-const { isCompositeCustomMode } = useViewState()
+// View state and orchestration
+const { isCompositeCustomMode, viewOrchestration } = useViewState()
 
 // Parameter store for checking overrides
 const parameterStore = useParameterStore()
@@ -89,11 +81,6 @@ const hasDivergingFromPreset = computed(() => {
 
   return result
 })
-
-// Show drag info when in composite-custom mode and have overseas territories
-// const shouldShowDragInfo = computed(() => {
-//   return isCompositeCustomMode.value && territories.value.length > 0 && !shouldShowEmptyState.value
-// })
 
 // Alias for better naming in template
 const resetToDefaults = resetTransforms
@@ -148,23 +135,29 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
       class="flex flex-col gap-3 mb-8"
     >
       <!-- Preset Selector (shown in composite-custom mode when presets are available) -->
-      <PresetSelector v-if="hasPresets && isCompositeCustomMode" />
+      <PresetSelector v-if="viewOrchestration.shouldShowPresetSelector.value" />
 
       <!-- Import Controls -->
-      <ImportControls />
+      <ImportControls v-if="viewOrchestration.shouldShowImportControls.value" />
     </div>
     <!-- Global Projection Controls (shown in composite-custom mode) -->
-    <div class="collapse collapse-arrow border-t rounded-none border-base-300">
+    <div
+      v-if="viewOrchestration.shouldShowGlobalProjectionControls.value"
+      class="collapse collapse-arrow border-t rounded-none border-base-300"
+    >
       <input type="checkbox">
       <h3 class="collapse-title text-sm font-semibold pl-0">
         <i class="ri-square-line mr-1" />
         {{ t('projectionControls.global.title') }}
       </h3>
       <div class="collapse-content pl-0">
-        <GlobalProjectionControls v-if="isCompositeCustomMode" />
+        <GlobalProjectionControls />
       </div>
     </div>
-    <div class="collapse collapse-arrow border-y rounded-none border-base-300">
+    <div
+      v-if="viewOrchestration.shouldShowTerritoryParameterControls.value"
+      class="collapse collapse-arrow border-y rounded-none border-base-300"
+    >
       <input type="checkbox">
       <h3 class="collapse-title text-sm font-semibold pl-0">
         <i class="ri-shapes-line mr-1" />
@@ -185,15 +178,15 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
         <div class="join join-vertical w-full">
           <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
           <AccordionItem
-            v-if="projectionMode === 'individual' && (showMainland || isMainlandInTerritories)"
-            :title="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+            v-if="viewOrchestration.shouldShowMainlandAccordion.value"
+            :title="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
             :subtitle="mainlandCode"
             group-name="territory-accordion"
             :checked="true"
           >
             <!-- Projection Selector -->
             <div
-              v-if="!isCompositeCustomMode"
+              v-if="viewOrchestration.shouldShowProjectionDropdown.value"
               class="mb-4"
             >
               <ProjectionDropdown
@@ -212,7 +205,7 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
             >
               <TerritoryParameterControls
                 :territory-code="mainlandCode"
-                :territory-name="t(currentAtlasConfig.splitModeConfig?.mainlandTitle || 'territory.mainland')"
+                :territory-name="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
                 :projection-family="getProjectionFamily(mainlandCode)"
                 :show-inheritance-indicators="true"
                 :allow-parameter-overrides="true"
@@ -224,12 +217,11 @@ function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionPara
 
           <!-- Overseas territories (excluding mainland to avoid duplication) -->
           <AccordionItem
-            v-for="(territory, index) in territories.filter(t => t.code !== mainlandCode)"
+            v-for="territory in territories.filter(t => t.code !== mainlandCode)"
             :key="territory.code"
             :title="territory.name"
             :subtitle="territory.code"
             group-name="territory-accordion"
-            :checked="projectionMode === 'uniform' && index === 0"
           >
             <!-- Territory Parameter Controls (shown in composite-custom mode) -->
             <div

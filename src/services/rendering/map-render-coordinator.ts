@@ -1,7 +1,6 @@
 import type * as Plot from '@observablehq/plot'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
-import { InsetCalculator } from '@/services/rendering/inset-calculator'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
 /**
@@ -32,7 +31,6 @@ export interface SimpleMapConfig {
   projection: string
   width: number
   height: number
-  inset: number
   isMainland?: boolean
   area?: number
   preserveScale?: boolean
@@ -46,8 +44,7 @@ export interface SimpleMapConfig {
  * Configuration for composite map rendering
  */
 export interface CompositeMapConfig {
-  viewMode: 'composite-custom' | 'composite-existing' | 'individual'
-  projectionMode: 'uniform' | 'individual'
+  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
   territoryMode: string
   selectedProjection: string
   compositeProjection?: string
@@ -62,7 +59,7 @@ export interface CompositeMapConfig {
   territoryProjections?: Record<string, string>
   territoryTranslations?: Record<string, { x: number, y: number }>
   // territoryScales removed - scale multipliers come from parameter store
-  filteredTerritories?: Territory[]
+  overseasTerritories?: Territory[]
 }
 
 /**
@@ -89,7 +86,6 @@ export class MapRenderCoordinator {
       projection: config.projection,
       width: config.width,
       height: config.height,
-      inset: config.inset,
       isMainland: config.isMainland,
       area: config.area,
       preserveScale: config.preserveScale,
@@ -116,8 +112,6 @@ export class MapRenderCoordinator {
 
       customSettings = CompositeSettingsBuilder.buildSettings(
         compositeConfig,
-        config.projectionMode,
-        config.selectedProjection,
         config.territoryProjections || {},
         config.territoryTranslations || {},
         // territoryScales removed - handled by parameter store
@@ -130,11 +124,11 @@ export class MapRenderCoordinator {
       : 'composite-projection'
 
     // Get territory codes
-    // For composite-existing mode, territories may not be loaded, use undefined
-    // For composite-custom mode, use filtered territories
-    const territoryCodes = config.viewMode === 'composite-existing'
+    // For built-in-composite mode, territories may not be loaded, use undefined
+    // For composite-custom mode, use overseas territories
+    const territoryCodes = config.viewMode === 'built-in-composite'
       ? undefined
-      : config.filteredTerritories?.map(t => t.code)
+      : config.overseasTerritories?.map(t => t.code)
 
     const projectionId = config.compositeProjection || config.selectedProjection
 
@@ -160,7 +154,7 @@ export class MapRenderCoordinator {
    */
   static applyOverlays(
     svg: SVGSVGElement,
-    viewMode: 'composite-custom' | 'composite-existing' | 'individual',
+    viewMode: 'composite-custom' | 'built-in-composite' | 'individual',
     config: {
       showBorders: boolean
       showLimits: boolean
@@ -169,11 +163,10 @@ export class MapRenderCoordinator {
       height: number
       customComposite?: any
       isMainland?: boolean
+      filteredTerritoryCodes?: Set<string>
+      mainlandCode?: string
     },
   ): void {
-    // Calculate inset to match the rendering inset
-    const inset = InsetCalculator.calculateInset(viewMode, config.isMainland)
-
     MapOverlayService.applyOverlays(svg, {
       showBorders: config.showBorders,
       showLimits: config.showLimits,
@@ -182,8 +175,9 @@ export class MapRenderCoordinator {
       width: config.width,
       height: config.height,
       customComposite: config.customComposite,
-      inset,
       isMainland: config.isMainland,
+      filteredTerritoryCodes: config.filteredTerritoryCodes,
+      mainlandCode: config.mainlandCode,
     })
   }
 }

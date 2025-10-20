@@ -9,7 +9,7 @@
   "pattern": "single-focus",
   "referenceScale": 2700,
   "canvasDimensions": {
-    "width": 750,
+    "width": 760,
     "height": 500
   },
   "territories": [
@@ -36,14 +36,14 @@
       },
       "layout": {
         "translateOffset": [
-          100,
+          110,
           0
         ],
         "pixelClipExtent": [
-          -301,
-          -245.16,
-          260.99,
-          324
+          -280,
+          -250,
+          270,
+          250
         ]
       },
       "bounds": [
@@ -79,8 +79,8 @@
       },
       "layout": {
         "translateOffset": [
-          -295,
-          -65
+          -290,
+          -60
         ],
         "pixelClipExtent": [
           -40,
@@ -118,8 +118,8 @@
       },
       "layout": {
         "translateOffset": [
-          -215,
-          -65
+          -210,
+          -60
         ],
         "pixelClipExtent": [
           -40,
@@ -157,14 +157,14 @@
       },
       "layout": {
         "translateOffset": [
-          -255,
-          70
+          -250,
+          80
         ],
         "pixelClipExtent": [
           -80,
-          -95,
+          -100,
           80,
-          90
+          100
         ]
       },
       "bounds": [
@@ -196,8 +196,8 @@
       },
       "layout": {
         "translateOffset": [
-          -295,
-          -145
+          -290,
+          -140
         ],
         "pixelClipExtent": [
           -40,
@@ -235,8 +235,8 @@
       },
       "layout": {
         "translateOffset": [
-          -215,
-          -145
+          -210,
+          -140
         ],
         "pixelClipExtent": [
           -40,
@@ -253,234 +253,6 @@
         [
           45.3,
           -12.64
-        ]
-      ]
-    },
-    {
-      "code": "FR-BL",
-      "name": "Saint-Barthélemy",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {
-          "center": [
-            -62.85,
-            17.92
-          ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
-        }
-      },
-      "layout": {
-        "translateOffset": [
-          -324,
-          -119
-        ],
-        "pixelClipExtent": [
-          -54,
-          -27,
-          55,
-          27
-        ]
-      },
-      "bounds": [
-        [
-          -62.95,
-          17.85
-        ],
-        [
-          -62.75,
-          17.95
-        ]
-      ]
-    },
-    {
-      "code": "FR-MF",
-      "name": "Saint-Martin",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          -324,
-          -119
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          -63.15,
-          18.04
-        ],
-        [
-          -63,
-          18.13
-        ]
-      ]
-    },
-    {
-      "code": "FR-PM",
-      "name": "Saint-Pierre-et-Miquelon",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          -324,
-          -176
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          -56.42,
-          46.75
-        ],
-        [
-          -56.13,
-          47.15
-        ]
-      ]
-    },
-    {
-      "code": "FR-WF",
-      "name": "Wallis-et-Futuna",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          313,
-          59
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          -178.2,
-          -14.4
-        ],
-        [
-          -176.1,
-          -13.2
-        ]
-      ]
-    },
-    {
-      "code": "FR-PF",
-      "name": "Polynésie française",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          311,
-          203
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          -154,
-          -28
-        ],
-        [
-          -134,
-          -7
-        ]
-      ]
-    },
-    {
-      "code": "FR-PF-2",
-      "name": "Polynésie française (îles éloignées)",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          297,
-          122
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          -154,
-          -28
-        ],
-        [
-          -134,
-          -7
-        ]
-      ]
-    },
-    {
-      "code": "FR-NC",
-      "name": "Nouvelle-Calédonie",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          313,
-          -13
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          163,
-          -22.7
-        ],
-        [
-          168,
-          -19.5
-        ]
-      ]
-    },
-    {
-      "code": "FR-TF",
-      "name": "Terres australes et antarctiques françaises",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {}
-      },
-      "layout": {
-        "translateOffset": [
-          0,
-          250
-        ],
-        "pixelClipExtent": null
-      },
-      "bounds": [
-        [
-          39,
-          -50
-        ],
-        [
-          77,
-          -37
         ]
       ]
     }

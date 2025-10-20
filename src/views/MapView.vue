@@ -2,12 +2,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
+import BuiltInCompositeControls from '@/components/configuration/BuiltInCompositeControls.vue'
+import CompositeCustomControls from '@/components/configuration/CompositeCustomControls.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
+import SplitControls from '@/components/configuration/SplitControls.vue'
+import UnifiedControls from '@/components/configuration/UnifiedControls.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
-import TerritoryControls from '@/components/TerritoryControls.vue'
 import MainLayout from '@/components/ui/layout/MainLayout.vue'
 import CardContainer from '@/components/ui/primitives/CardContainer.vue'
-import ProjectionParamsControls from '@/components/ui/projections/ProjectionParamsControls.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
@@ -18,18 +20,16 @@ import { useViewState } from '@/composables/useViewState'
 const { t } = useI18n()
 
 // Composables
-const { showSkeleton, initialize, setupWatchers } = useAtlasData()
+const { showSkeleton, initialize } = useAtlasData()
 const { restoreFromUrl } = useUrlState()
 const {
-  isSplitMode,
-  isCompositeExistingMode,
   isCompositeCustomMode,
+  isCompositeExistingMode,
+  isSplitMode,
   isUnifiedMode,
   cardTitle,
   cardIcon,
-  shouldShowRightSidebar,
-  shouldShowProjectionParams,
-  shouldShowTerritoryControls,
+  viewOrchestration,
 } = useViewState()
 
 // Track if this is the first load
@@ -44,7 +44,6 @@ onMounted(async () => {
   restoreFromUrl()
 
   await initialize()
-  setupWatchers()
   hasLoadedOnce.value = true
 })
 </script>
@@ -91,23 +90,16 @@ onMounted(async () => {
               class="h-full"
             >
               <!-- Split Territories Mode -->
-              <template v-if="isSplitMode">
-                <SplitView />
-              </template>
+              <SplitView v-if="viewOrchestration.shouldShowSplitView.value" />
 
-              <!-- Composite Existing Mode -->
+              <!-- Composite Modes (Existing & Custom) -->
               <MapRenderer
-                v-if="isCompositeExistingMode"
+                v-if="viewOrchestration.shouldShowCompositeRenderer.value"
                 mode="composite"
               />
 
-              <!-- Composite Custom Mode -->
-              <MapRenderer
-                v-if="isCompositeCustomMode"
-                mode="composite"
-              />
               <!-- Unified Mode -->
-              <UnifiedView v-if="isUnifiedMode" />
+              <UnifiedView v-if="viewOrchestration.shouldShowUnifiedView.value" />
             </div>
           </Transition>
         </div>
@@ -126,7 +118,7 @@ onMounted(async () => {
     <template #right-sidebar>
       <!-- Projection Configuration -->
       <CardContainer
-        v-show="shouldShowRightSidebar"
+        v-show="viewOrchestration.shouldShowRightSidebar.value"
         class="flex-1"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
@@ -135,16 +127,25 @@ onMounted(async () => {
           name="fade"
           mode="out-in"
         >
-          <!-- Projection Parameters (only for unified view mode) -->
-          <ProjectionParamsControls
-            v-if="shouldShowProjectionParams"
-            key="projection-params"
+          <!-- Composite Custom Mode Controls -->
+          <CompositeCustomControls
+            v-if="isCompositeCustomMode"
+            key="composite-custom"
           />
-          <!-- Territory Parameters (projections, translations, scales) -->
-          <TerritoryControls
-            v-else-if="shouldShowTerritoryControls"
-            key="territory-controls"
-            :show-transform-controls="isCompositeCustomMode"
+          <!-- Unified Mode Controls -->
+          <UnifiedControls
+            v-else-if="isUnifiedMode"
+            key="unified"
+          />
+          <!-- Split Mode Controls -->
+          <SplitControls
+            v-else-if="isSplitMode"
+            key="split"
+          />
+          <!-- Composite Existing Mode Controls -->
+          <BuiltInCompositeControls
+            v-else-if="isCompositeExistingMode"
+            key="built-in-composite"
           />
         </Transition>
       </CardContainer>

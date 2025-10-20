@@ -13,16 +13,6 @@ import type { CompositeProjectionConfig, ViewMode } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
 
 /**
- * Default map display preferences loaded from atlas configuration.
- */
-export interface MapDisplayDefaults {
-  showGraticule?: boolean
-  showSphere?: boolean
-  showCompositionBorders?: boolean
-  showMapLimits?: boolean
-}
-
-/**
  * Split mode configuration
  *
  * Defines labels and codes for split view mode where

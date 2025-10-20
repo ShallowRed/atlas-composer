@@ -4,7 +4,6 @@ import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-se
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 /**
  * Composable for managing application state in URL parameters
@@ -14,7 +13,6 @@ export function useUrlState() {
   const route = useRoute()
   const router = useRouter()
   const configStore = useConfigStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const geoDataStore = useGeoDataStore()
 
@@ -28,8 +26,7 @@ export function useUrlState() {
     const state: Record<string, string> = {
       atlas: configStore.selectedAtlas,
       view: configStore.viewMode,
-      projection: configStore.selectedProjection || 'mercator',
-      projMode: configStore.projectionMode,
+      projection: configStore.selectedProjection ?? 'mercator', // Fallback for URL only
       territory: configStore.territoryMode,
     }
 
@@ -49,7 +46,7 @@ export function useUrlState() {
       state.p2 = String(configStore.customParallel2)
 
     // Add composite projection if in composite mode
-    if (configStore.viewMode === 'composite-existing') {
+    if (configStore.viewMode === 'built-in-composite' && configStore.compositeProjection) {
       state.composite = configStore.compositeProjection
     }
 
@@ -58,16 +55,17 @@ export function useUrlState() {
     const territories = atlasService.getAllTerritories()
     const defaults = TerritoryDefaultsService.initializeAll(
       territories,
-      configStore.selectedProjection || 'mercator',
+      configStore.selectedProjection ?? 'mercator', // Fallback for defaults calculation
     )
 
     // Encode territory-specific settings (scale multipliers, translations)
     // Only include if different from atlas-specific defaults
+    // Include both mainland and overseas territories
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
 
     // Get scale multipliers from parameter store
-    for (const territory of geoDataStore.filteredTerritories) {
+    for (const territory of geoDataStore.allActiveTerritories) {
       const params = parameterStore.getTerritoryParameters(territory.code)
       const scale = params.scaleMultiplier ?? 1.0
       const defaultScale = defaults.scales[territory.code] ?? 1
@@ -77,11 +75,13 @@ export function useUrlState() {
       }
     }
 
-    for (const [code, translation] of Object.entries(territoryStore.territoryTranslations)) {
-      const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
+    // Get translations from parameter store
+    for (const territory of geoDataStore.allActiveTerritories) {
+      const translation = parameterStore.getTerritoryTranslation(territory.code)
+      const defaultTranslation = defaults.translations[territory.code] ?? { x: 0, y: 0 }
       if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
-        territorySettings[`tx_${code}`] = translation.x
-        territorySettings[`ty_${code}`] = translation.y
+        territorySettings[`tx_${territory.code}`] = translation.x
+        territorySettings[`ty_${territory.code}`] = translation.y
         hasSettings = true
       }
     }
@@ -104,8 +104,6 @@ export function useUrlState() {
       configStore.viewMode = params.view
     if (params.projection)
       configStore.selectedProjection = params.projection
-    if (params.projMode)
-      configStore.projectionMode = params.projMode
     if (params.territory)
       configStore.territoryMode = params.territory
 
@@ -138,11 +136,11 @@ export function useUrlState() {
           }
           else if (key.startsWith('tx_')) {
             const code = key.substring(3)
-            territoryStore.setTerritoryTranslation(code, 'x', Number(value))
+            parameterStore.setTerritoryTranslation(code, 'x', Number(value))
           }
           else if (key.startsWith('ty_')) {
             const code = key.substring(3)
-            territoryStore.setTerritoryTranslation(code, 'y', Number(value))
+            parameterStore.setTerritoryTranslation(code, 'y', Number(value))
           }
         }
       }
@@ -207,7 +205,6 @@ export function useUrlState() {
         atlas: configStore.selectedAtlas,
         view: configStore.viewMode,
         projection: configStore.selectedProjection,
-        projMode: configStore.projectionMode,
         territory: configStore.territoryMode,
       }),
       () => {

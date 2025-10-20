@@ -115,17 +115,17 @@ export class GeoDataService {
 
   /**
    * Processes geographic data into usable territory objects
-   * Handles both TopoJSON (legacy) and GeoJSON (preprocessed) formats
+   * Supports both GeoJSON (preferred) and TopoJSON (for backward compatibility) formats
    * Calculates geographic properties for each territory
    */
   private async processTerritoriesData(): Promise<void> {
     let featureCollection: GeoJSON.FeatureCollection
 
-    // Check if data is already GeoJSON FeatureCollection (preprocessed format)
+    // Check if data is already GeoJSON FeatureCollection (preferred format)
     if (this.topologyData.type === 'FeatureCollection') {
       featureCollection = this.topologyData as GeoJSON.FeatureCollection
     }
-    // Otherwise, convert from TopoJSON (legacy format)
+    // Otherwise, convert from TopoJSON (backward compatibility)
     else {
       const objectName = this.config.topologyObjectName
       if (!this.topologyData?.objects?.[objectName]) {

@@ -1,4 +1,3 @@
-import type { ProjectionMode } from '@/stores/config'
 import type { ViewMode } from '@/types'
 
 import { projectionRegistry } from '@/core/projections/registry'
@@ -87,56 +86,44 @@ export class ProjectionUIService {
   /**
    * Determine if uniform projection selector should be shown
    *
+   * View preset system: unified, split, and built-in-composite modes use presets to define projections
+   * Only composite-custom mode allows manual projection selection
+   *
+   * Always returns false now - presets handle projection selection
+   *
    * @param viewMode - Current view mode
-   * @param projectionMode - Current projection mode
+   * @param hasViewPreset - Whether a view preset is currently loaded
    * @returns True if uniform projection selector should be visible
    */
   static shouldShowProjectionSelector(
     viewMode: ViewMode,
-    projectionMode: ProjectionMode,
+    hasViewPreset = false,
   ): boolean {
-    // Show uniform projection selector when:
-    // - In unified mode (single projection for all territories)
-    if (viewMode === 'unified') {
-      return true
+    // Hide projection selector when view preset is active
+    // Presets define projections for unified, split, and built-in-composite modes
+    if (hasViewPreset && (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite')) {
+      return false
     }
-    // - In split or custom composite mode with uniform projection
-    if (viewMode === 'split' || viewMode === 'composite-custom') {
-      return projectionMode === 'uniform'
-    }
-    return false
-  }
 
-  /**
-   * Determine if projection mode toggle should be shown
-   *
-   * @param viewMode - Current view mode
-   * @returns True if projection mode toggle should be visible
-   */
-  static shouldShowProjectionModeToggle(viewMode: ViewMode): boolean {
-    // Show projection mode toggle (uniform/individual) for split and custom composite modes
-    // Split: Can switch between uniform and individual projections per territory
-    // Custom composite: Can use individual projections with D3 composite projection pattern
-    // Existing composite: Uses predefined projections (no toggle)
-    return viewMode === 'split' || viewMode === 'composite-custom'
+    // Only show in unified mode (when no preset is active)
+    return viewMode === 'unified'
   }
 
   /**
    * Determine if individual projection selectors should be shown
    *
+   * Always uses individual projections per territory in split/composite-custom modes
+   *
    * @param viewMode - Current view mode
-   * @param projectionMode - Current projection mode
    * @returns True if per-territory projection selectors should be visible
    */
   static shouldShowIndividualProjectionSelectors(
     viewMode: ViewMode,
-    projectionMode: ProjectionMode,
   ): boolean {
-    // Show per-territory projection selectors in individual mode
+    // Show per-territory projection selectors in split and custom composite modes
     // Split: Renders each territory separately with its own projection
     // Custom composite: Uses D3 composite projection with sub-projections per territory
-    return (viewMode === 'split' || viewMode === 'composite-custom')
-      && projectionMode === 'individual'
+    return viewMode === 'split' || viewMode === 'composite-custom'
   }
 
   /**
@@ -146,10 +133,10 @@ export class ProjectionUIService {
    * @returns True if territory selector should be visible
    */
   static shouldShowTerritorySelector(viewMode: ViewMode): boolean {
-    // Hide territory selector for composite-existing mode
+    // Hide territory selector for built-in-composite mode
     // Built-in composite projections render all territories as a monolithic unit
     // and cannot selectively hide/show individual territories
-    return viewMode !== 'composite-existing'
+    return viewMode !== 'built-in-composite'
   }
 
   /**
@@ -172,16 +159,5 @@ export class ProjectionUIService {
   static shouldShowTerritoryControls(viewMode: ViewMode): boolean {
     // Show territory translation/scale controls in custom composite mode
     return viewMode === 'composite-custom'
-  }
-
-  /**
-   * Determine if composite projection selector should be shown
-   *
-   * @param viewMode - Current view mode
-   * @returns True if composite projection selector should be visible
-   */
-  static shouldShowCompositeProjectionSelector(viewMode: ViewMode): boolean {
-    // Show composite projection selector when using existing composite projections
-    return viewMode === 'composite-existing'
   }
 }

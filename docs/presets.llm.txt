@@ -2,18 +2,78 @@
 
 ## Overview
 
-The preset system manages saved composite projection configurations that define how territories are projected, positioned, and scaled in composite atlas views. Presets store complete projection state including projection types, parameters (rotate, center, parallels, scaleMultiplier), layout (translation offsets, clip extents), and geographic bounds for each territory.
+The preset system manages saved projection configurations for all view modes using a unified architecture. A single loader handles all preset types, a single registry tracks all presets, and discriminated union types provide type-safe handling across the application.
+
+## Preset Types
+
+Four preset types exist in a discriminated union (`Preset`):
+
+1. **composite-custom** - Custom composite projections with full per-territory configuration (exportable, round-trip capable)
+2. **unified** - Single projection covering the entire atlas
+3. **split** - Individual projections per territory group
+4. **built-in-composite** - Predefined projections from d3-composite-projections library
 
 ## Architecture
 
-### Core Components
+### Core Layer (src/core/presets/)
 
-**PresetLoader** (`src/services/presets/preset-loader.ts`)
-- Static service for loading and validating preset files
-- Loads JSON preset files from `configs/presets/` directory
-- Extracts territory parameters (projection parameters and layout properties)
-- Validates preset structure and data integrity
-- Converts preset format to internal application formats
+**Types** (`types.ts`)
+- Unified domain types with discriminated unions
+- `LoadResult<T>` - Generic result type for all loading operations
+- `Preset` - Discriminated union of CompositePreset | UnifiedPreset | SplitPreset | CompositeExistingPreset
+- `PresetType` - Type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
+- `PresetRegistry` - Unified registry for all preset types
+- `BasePresetMetadata` - Shared metadata fields (id, name, description, atlasId)
+- Configuration types: CompositeCustomConfig, UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
+
+**Validators** (`validator.ts`)
+- Unified validation with strategy pattern
+- `validatePreset()` - Routes to appropriate validator based on preset type
+- `validateCompositePreset()` - Validates composite preset structure and parameters
+- `validateViewPreset()` - Validates view mode preset configuration
+- Parameter validation using parameter registry
+- Required parameter checks for preset integrity
+
+**Converters** (`converter.ts`)
+- Pure conversion functions between formats
+- `convertToDefaults()` - Converts preset to TerritoryDefaults format
+- `extractTerritoryParameters()` - Extracts projection parameters from preset
+- Registry-driven parameter extraction
+
+### Service Layer (src/services/presets/)
+
+**PresetLoader** (`preset-loader.ts`)
+- Unified loading service for all preset types
+- Loads from single directory: `configs/presets/`
+- Uses single registry: `configs/presets/registry.json` (version 2.0)
+- Type-discriminated validation routing
+- Methods:
+  - `loadPreset(presetId)` - Returns `LoadResult<Preset>` with type discrimination
+  - `listPresets(filters?)` - Filters by atlasId, type, or viewMode
+  - `loadMetadata(presetId)` - Lightweight metadata loading
+  - `loadRegistry()` - Cached registry access
+- Re-exports core converters (`convertToDefaults`, `extractTerritoryParameters`)
+
+**PresetApplicationService** (`preset-application-service.ts`)
+- Centralizes preset application logic using strategy pattern
+- Routes by preset.type to specialized handlers
+- Methods:
+  - `applyPreset(preset)` - Unified entry point for all types
+  - `applyCompositeCustom(config)` - Handles composite-custom presets
+  - `applyUnified(config)` - Handles unified view presets
+  - `applySplit(config)` - Handles split view presets
+  - `applyCompositeExisting(config)` - Handles built-in-composite presets
+- Returns `ApplicationResult` (success, errors, warnings)
+- Coordinates updates across configStore and parameterStore
+
+**AtlasMetadataService** (`atlas-metadata-service.ts`)
+- Provides clean API for accessing atlas projection metadata
+- Loads metadata from preset files using PresetLoader
+- Caches metadata for performance
+- Fallback defaults for atlases without presets
+- Static methods: getAtlasMetadata(), getCompositeProjections(), getProjectionPreferences()
+
+### Integration Components
 
 **AtlasCoordinator** (`src/services/atlas/atlas-coordinator.ts`)
 - Orchestrates preset loading during atlas initialization
@@ -23,29 +83,82 @@ The preset system manages saved composite projection configurations that define 
 
 **Parameter Store** (`src/stores/parameters.ts`)
 - Manages projection parameters (center, rotate, parallels, scaleMultiplier, etc.)
-- Uses unified parameter system with single familyConstraints source of truth
+- Uses unified parameter system with familyConstraints as single source of truth
 - Supports parameter inheritance (territory overrides global defaults)
 - Provides effective parameter resolution for each territory
 - Tracks parameter changes and triggers re-renders
-- Note: Deprecated scale/baseScale parameters removed, replaced with scaleMultiplier
-
-**Territory Store** (`src/stores/territory.ts`)
-- Manages territory-level state (projections, translations)
-- Stores projection type selection per territory
-- Maintains translation offsets (x, y pixel positions)
-
-**Note**: Scale multipliers are stored in parameter store, not territory store.
 
 **Config Store** (`src/stores/config.ts`)
-- Coordinates preset metadata initialization
-- Calls `initializeWithPresetMetadata()` on application startup
-- Applies preset projections, translations, scales, and parameters to stores
-- Ensures preset loads before first render to prevent race conditions
+- Coordinates preset loading and application
+- Delegates to PresetLoader for loading
+- Delegates to PresetApplicationService for applying
+- Methods:
+  - `loadAvailableViewPresets()` - Lists available presets for current atlas/view mode (filters out composite-custom)
+  - `loadViewPreset(presetId)` - Loads and applies a preset
+  - `applyViewPresetConfig(preset)` - Applies preset using PresetApplicationService
+  - `clearViewPreset()` - Clears current preset
+
+**usePresetDefaults** (`src/composables/usePresetDefaults.ts`)
+- Manages original preset defaults for reset functionality
+- Stores territory projections, translations, scales, and parameters
+- Used only in composite-custom mode
+- Built-in-composite, unified, and split modes do not store preset defaults (they manage their own positioning)
+- Methods:
+  - `storePresetDefaults()` - Store preset defaults when loading composite-custom preset
+  - `clearPresetDefaults()` - Clear stored defaults
+  - `hasPresetDefaults()` - Check if defaults are available
+  - `hasDivergingParameters()` - Check if current values differ from stored defaults
+  - `getPresetDefaultsForTerritory()` - Get defaults for specific territory
+
+## Loading Paths
+
+The preset system uses two distinct loading paths based on preset type and use case:
+
+### Composite-Custom Presets (Converter-Based Path)
+
+Loaded using converter-based initialization (two entry points):
+
+**1. Atlas Initialization (Primary Path):**
+- **Trigger:** App startup, atlas change
+- **Entry Point:** `AtlasCoordinator.handleAtlasChange()`
+- **Process:**
+  1. `PresetLoader.loadPreset(defaultPreset)` - Load from registry
+  2. `convertToDefaults()` - Extract projections, translations, scales
+  3. `extractTerritoryParameters()` - Extract all projection parameters
+  4. Apply to stores (parameterStore, configStore, uiStore)
+  5. CompositeProjection.initialize() reads parameters
+
+**2. Runtime Preset Switching (Secondary Path):**
+- **Trigger:** User selects different composite-custom preset in PresetSelector dropdown
+- **Entry Point:** `PresetSelector.vue` (composite-custom mode only)
+- **Process:**
+  1. `PresetLoader.loadPreset(presetId)` - Load from registry
+  2. Type check: if `preset.type === 'composite-custom'`
+  3. `convertToDefaults()` + `extractTerritoryParameters()` - Same as initialization
+  4. Manual store updates (parameterStore, configStore)
+  5. CompositeProjection uses updated parameters on next render
+
+**Not available:** Through view preset API (`loadAvailableViewPresets()` filters out composite-custom)
+
+**Why separate from view presets:** Requires converter-based extraction and full parameter initialization, not simple parameter setting
+
+### View Presets (Runtime Switching Path)
+
+Loaded through view preset API for runtime switching:
+- **Trigger:** User preset selection in UI
+- **Entry Point:** `configStore.loadViewPreset(presetId)`
+- **Process:**
+  1. `PresetLoader.loadPreset(presetId)` - Load from registry
+  2. `PresetApplicationService.applyPreset()` - Route to type-specific handler
+  3. Direct parameter application to stores
+- **Supported Types:** unified, split, built-in-composite
+- **Why separate:** Simple projection switching without full reinitialization
 
 ### Data Flow
 
+#### Path A: Atlas Initialization (Composite-Custom)
 ```
-Application Startup
+Application Startup / Atlas Change
   ↓
 useAtlasData.initialize()
   ↓
@@ -53,29 +166,188 @@ configStore.initializeWithPresetMetadata()
   ↓
 AtlasCoordinator.handleAtlasChange()
   ↓
-PresetLoader.loadPreset()
+PresetLoader.loadPreset(defaultPreset)
+  → Registry lookup (type: 'composite-custom')
+  → validateCompositePreset() [Full validation]
+  → Returns LoadResult<CompositePreset>
   ↓
-PresetLoader.convertToDefaults()
-PresetLoader.extractTerritoryParameters()
+convertToDefaults(preset.config)
+  → Extract projections map
+  → Extract translations map
+  → Extract scales map
   ↓
-Apply to Stores:
-  - territoryStore.setTerritoryProjection()
-  - territoryStore.setTerritoryTranslation()
-  - parameterStore.setTerritoryParameter(code, 'scaleMultiplier', value)
-  - parameterStore.setTerritoryParameters()
+extractTerritoryParameters(preset.config)
+  → Extract projection parameters
+  → Extract layout properties
+  → Return per-territory params
+  ↓
+Territory Mismatch Handling
+  → Compare preset territories vs atlas territories
+  → Log missing territories (will NOT be rendered)
+  → Use only preset territories (no fallback for missing)
+  ↓
+Apply to Stores
+  → parameterStore (projections, translations, scales, parameters)
+  → configStore (referenceScale, canvasDimensions)
+  → uiStore (display options)
   ↓
 geoDataStore.initialize()
   ↓
 CompositeProjection.initialize()
   → Reads parameters via ProjectionParameterProvider
-  → Applies preset scale, rotation, center to D3 projections
+  → Applies to D3 projections
   ↓
 First Render (preset values applied)
 ```
 
-## Preset File Format
+#### Path A2: Composite-Custom Runtime Switching
+```
+User Selects Different Composite Preset (PresetSelector dropdown)
+  ↓
+PresetSelector.vue (composite-custom mode)
+  ↓
+PresetLoader.loadPreset(presetId)
+  → Registry lookup (type: 'composite-custom')
+  → validateCompositePreset() [Full validation]
+  → Returns LoadResult<CompositePreset>
+  ↓
+Type Check: preset.type === 'composite-custom'
+  ↓
+convertToDefaults(preset.config)
+  → Extract projections, translations, scales
+  ↓
+extractTerritoryParameters(preset.config)
+  → Extract parameters and layout properties
+  ↓
+Territory Mismatch Handling
+  → Compare preset territories vs atlas territories
+  → Generate fallback parameters for missing territories
+  → Merge: fallback defaults + preset parameters (preset takes precedence)
+  ↓
+Manual Store Updates
+  → parameterStore.setTerritoryProjection()
+  → parameterStore.setTerritoryTranslation()
+  → parameterStore.setTerritoryParameter()
+  → parameterStore.initializeFromPreset()
+  → configStore.referenceScale
+  → configStore.canvasDimensions
+  ↓
+CRITICAL: Update CompositeProjection
+  → geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  → Called for each territory in the preset
+  → Forces CompositeProjection to read new parameters
+  → Triggers re-render with new preset configuration
+  ↓
+Render Update (new preset applied and visible)
+```
 
-### Structure
+#### Path B: View Preset Switching (Unified/Split/Built-in-Composite)
+```
+User Selects View Preset (ViewPresetSelector dropdown)
+  ↓
+configStore.loadViewPreset(presetId)
+  ↓
+PresetLoader.loadPreset(presetId)
+  → Registry lookup (type: 'unified'|'split'|'built-in-composite')
+  → validateViewPreset() [Simple validation]
+  → Returns LoadResult<UnifiedPreset|SplitPreset|CompositeExistingPreset>
+  ↓
+PresetApplicationService.applyPreset(preset)
+  → Routes by preset.type
+  → applyUnified() / applySplit() / applyCompositeExisting()
+  → Direct parameter application
+  ↓
+Update Stores
+  → parameterStore (projection parameters)
+  → configStore (projection ID, composite projection ID)
+  ↓
+Render Update (new projection applied)
+```
+
+## Unified Registry Format
+
+Single registry file at `configs/presets/registry.json` contains all preset types:
+
+```json
+{
+  "version": "2.0",
+  "description": "Unified registry of all preset types",
+  "presets": [
+    {
+      "id": "france-default",
+      "atlasId": "france",
+      "type": "composite-custom",
+      "name": "France - Configuration standard",
+      "description": "...",
+      "pattern": "single-focus",
+      "territories": 10
+    },
+    {
+      "id": "france-unified",
+      "atlasId": "france",
+      "type": "unified",
+      "name": "France - Vue unifiée",
+      "description": "Projection Natural Earth centrée sur la France"
+    },
+    {
+      "id": "france-split",
+      "atlasId": "france",
+      "type": "split",
+      "name": "France - Vue séparée",
+      "description": "Même projection conique pour tous les territoires"
+    }
+  ]
+}
+```
+
+## Registry Format
+
+The unified registry (`configs/presets/registry.json` v2.0) lists all preset types:
+
+```json
+{
+  "version": "2.0",
+  "description": "Unified registry of all preset types (composite-custom, unified, split, built-in-composite)",
+  "presets": [
+    {
+      "id": "france-default",
+      "name": "France - Composite personnalisée par défaut",
+      "atlasId": "france",
+      "type": "composite-custom",
+      "pattern": "single-focus",
+      "territoryCount": 9,
+      "description": "Configuration alignée avec geoConicConformalFrance"
+    },
+    {
+      "id": "france-unified",
+      "atlasId": "france",
+      "type": "unified",
+      "name": "France - Vue unifiée",
+      "description": "Projection Natural Earth centrée sur la France"
+    },
+    {
+      "id": "france-split",
+      "atlasId": "france",
+      "type": "split",
+      "name": "France - Vue séparée",
+      "description": "Même projection conique pour tous les territoires"
+    }
+  ]
+}
+```
+
+**Registry Entry Fields:**
+- `id` - Preset identifier (matches filename without extension)
+- `name` - Display name (can be string or i18n object)
+- `atlasId` - Target atlas
+- `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
+- `description` - Optional description
+- `pattern` - (composite-custom only) Composite pattern type
+- `territoryCount` - (composite-custom only) Number of territories configured
+
+## Preset File Formats
+
+### Composite-Custom Format
 
 ```json
 {
@@ -83,8 +355,8 @@ First Render (preset values applied)
   "metadata": {
     "atlasId": "france",
     "atlasName": "France",
-    "exportDate": "2025-10-13T09:01:03.526Z",
-    "createdWith": "Atlas composer v1.0"
+    "exportDate": "2025-10-16T16:00:00.000Z",
+    "createdWith": "d3-composite-projections alignment"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
@@ -93,19 +365,20 @@ First Render (preset values applied)
       "code": "FR-MET",
       "name": "France Métropolitaine",
       "role": "primary",
-      "projectionId": "conic-conformal",
-      "projectionFamily": "CONIC",
-      "parameters": {
-        "center": [0, 0],
-        "rotate": [-3, -46.2, 0],
-        "scaleMultiplier": 1,
-        "parallels": [-2, 2]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [-3, -46.2, 0],
+          "parallels": [0, 60],
+          "scaleMultiplier": 1
+        }
       },
       "layout": {
         "translateOffset": [0, 0],
-        "clipExtent": [[-0.0996, -0.0908], [0.0967, 0.0864]]
+        "pixelClipExtent": [-268.92, -245.16, 260.99, 324]
       },
-      "bounds": [[-5, 41], [10, 51]]
+      "bounds": [[-6.5, 41], [10, 51.5]]
     }
   ]
 }
@@ -114,45 +387,36 @@ First Render (preset values applied)
 ### Field Definitions
 
 **Metadata**
-- `version`: Preset format version
+- `version`: Preset format version ("1.0")
 - `metadata.atlasId`: Target atlas identifier
 - `metadata.atlasName`: Human-readable atlas name
-- `metadata.exportDate`: Creation/export timestamp
-- `metadata.createdWith`: Application version
+- `metadata.exportDate`: ISO 8601 timestamp
+- `metadata.createdWith`: Application/source identifier
 
 **Composite Configuration**
-- `pattern`: Composite pattern type ("single-focus" or "equal-members")
-- `referenceScale`: Base scale for all territories (authoritative source, overrides atlas config)
-- `canvasDimensions`: Optional canvas size specification (width and height in pixels)
-  - Defines ideal canvas size for the preset
-  - Controls actual SVG display size via MapSizeCalculator
-  - Used by d3-composite-projections for projection calculations
-  - Example: `{ "width": 960, "height": 500 }`
+- `pattern`: "single-focus" | "equal-members"
+- `referenceScale`: Base scale for all territories (overrides atlas config)
+- `canvasDimensions`: Optional {width, height} in pixels
 
 **Territory Configuration**
-- `code`: Territory ISO code or identifier
-- `name`: Human-readable territory name
-- `role`: Territory role ("primary" or "secondary")
-- `projectionId`: Projection identifier from projection registry
-- `projectionFamily`: Projection family type
+- `code`: Territory ISO code
+- `name`: Territory display name
+- `role`: "primary" | "secondary"
+- `projection.id`: Projection identifier from registry
+- `projection.family`: Projection family (CONIC, CYLINDRICAL, AZIMUTHAL, etc.)
+- `projection.parameters`: Parameter object
 
-**Projection Parameters** (`parameters`)
-- `center`: [longitude, latitude] - Projection center for cylindrical/azimuthal projections
-- `rotate`: [λ, φ, γ] - Three-axis rotation for conic projections
+**Projection Parameters**
+- `rotate`: [λ, φ, γ] - Three-element rotation array (required for most projections)
 - `parallels`: [φ1, φ2] - Standard parallels for conic projections
-- `scaleMultiplier`: Scale adjustment factor applied to atlas referenceScale (typically 0.5 - 2.0)
+- `center`: [longitude, latitude] - Center point for cylindrical/azimuthal
+- `scaleMultiplier`: Scale factor applied to referenceScale (default: 1)
 
-**Note**: Deprecated `scale` and `baseScale` parameters removed - scale is now calculated as `referenceScale × scaleMultiplier`
+**Layout Properties**
+- `translateOffset`: [x, y] - Pixel offset from computed position
+- `pixelClipExtent`: [x1, y1, x2, y2] | null - Pixel-based clipping bounds
 
-**Layout Properties** (`layout`)
-- `translateOffset`: [x, y] - Pixel offset from map center
-- `clipExtent`: [[x1, y1], [x2, y2]] - Normalized clipping bounds for territory-specific content clipping
-  - Applied as territory-centered bounding box during composite projection build
-  - Uses d3-composite-projections compatible coordinate format
-  - Calculated as box dimensions centered on territory position with epsilon padding
-  - Enables precise content clipping for overseas territories and scattered regions
-
-**Geographic Bounds** (`bounds`)
+**Geographic Bounds**
 - `bounds`: [[west, south], [east, north]] - Territory bounding box in degrees
 
 ## Parameter Extraction
@@ -559,6 +823,19 @@ Exported presets follow standard structure:
 - Ensure no race condition (preset loads after first render)
 - Verify `cartographer.updateTerritoryParameters()` called for each territory after parameter store update
 
+**Territory mismatch (preset defines fewer territories than atlas allows):**
+- Occurs when preset defines fewer territories than atlas allows (via "Territoires à inclure" selector)
+- Example: Preset with 5 overseas territories, but atlas configuration allows 12 territories
+- Behavior: Territories not in preset are NOT rendered (no fallback parameters)
+- Implementation: Three-tier filtering approach
+  1. **AtlasCoordinator**: Extracts only preset territories to parameter store
+  2. **CompositeProjection.initialize()**: Skips territories without `projectionId` parameter
+  3. **PresetSelector**: Applies only preset territories when switching presets
+- Detection: `CompositeProjection` checks for `projectionId` parameter presence
+- Missing territories logged: "Skipping territory X - not defined in preset"
+- Composition borders are only drawn for territories present in preset
+- Works consistently on initial load and preset switching
+
 ## Manual Preset Loading
 
 ### PresetSelector Component
@@ -678,4 +955,52 @@ The reset system restores territories to their preset configuration, managed thr
 - `src/core/parameters/parameter-registry.ts` - Unified parameter validation and constraints (replaces parameter-constraints.ts)
 
 **Preset Files:**
-- `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations
+- `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations for all types (unified location)
+
+## Architectural Improvements (Phase 2 Unification)
+
+### Unified Architecture Benefits
+
+**Single Source of Truth**
+- One registry file (`configs/presets/registry.json`) for all preset types
+- Single directory (`configs/presets/`) contains all preset files
+- Unified `PresetLoader` handles all preset types with type-aware routing
+- Discriminated union `Preset` type provides type safety across all operations
+
+**Type Safety**
+- `PresetType` discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
+- `LoadResult<T>` generic pattern for consistent error handling
+- TypeScript narrows types based on preset.type discriminator
+- Compile-time guarantees prevent type mismatches
+
+**Code Reduction**
+- Eliminated duplicate loader logic (ViewPresetLoader merged into PresetLoader)
+- Removed redundant validation code through unified `validatePreset()` with strategy pattern
+- Centralized application logic in `PresetApplicationService`
+- Simplified config store by delegating to services
+
+**Extensibility**
+- Adding new preset types requires:
+  1. Add type to `PresetType` union
+  2. Add interface to `Preset` discriminated union
+  3. Add validator case to `validatePreset()`
+  4. Add application handler to `PresetApplicationService`
+- No changes needed to loader, registry, or UI components
+
+### Migration Notes
+
+**Removed Files**
+- `src/services/presets/view-preset-loader.ts` - Merged into PresetLoader
+- `configs/view-presets/registry.json` - Merged into configs/presets/registry.json
+- `configs/view-presets/*.json` - Moved to configs/presets/
+
+**Breaking Changes**
+- Config store methods removed: `applyUnifiedPreset()`, `applySplitPreset()`, `applyCompositeExistingPreset()`
+- All preset application now goes through `applyViewPresetConfig()` → `PresetApplicationService.applyPreset()`
+- Registry structure changed: added `type` discriminator field, simplified name/description to strings
+
+**API Updates**
+- `PresetLoader.listPresets(filters)` replaces separate `listAvailablePresets()` and `getAvailablePresets()`
+- `PresetLoader.loadMetadata()` replaces `loadPresetMetadata()`
+- Filter by `viewMode` now equivalent to filtering by `type` for view presets
+

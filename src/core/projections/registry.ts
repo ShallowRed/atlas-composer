@@ -205,7 +205,7 @@ class ProjectionRegistry {
             return def.capabilities.supportsSplit
           case 'composite-custom':
             return def.capabilities.supportsComposite
-          case 'composite-existing':
+          case 'built-in-composite':
             return def.strategy === 'D3_COMPOSITE'
           case 'unified':
             return def.capabilities.supportsUnified
@@ -344,7 +344,7 @@ class ProjectionRegistry {
       }
 
       // Adjust for view mode compatibility
-      if (context.viewMode === 'composite-existing') {
+      if (context.viewMode === 'built-in-composite') {
         if (projection.strategy === 'D3_COMPOSITE') {
           score += 20
         }

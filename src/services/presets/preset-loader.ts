@@ -1,354 +1,210 @@
 /**
- * Preset Loader Service
+ * Preset Loader Service (Unified)
  *
- * Loads preset composite projection configurations from the configs/presets/ directory.
- * Presets provide high-quality default layouts that are applied automatically on atlas initialization.
+ * Loads all preset types (composite-custom, unified, split, built-in-composite)
+ * from a single unified registry and directory structure.
  *
  * Key responsibilities:
  * - Load preset files from configs/presets/
- * - Validate preset format using CompositeImportService
- * - Convert presets to territory defaults format
- * - List available presets for an atlas
+ * - Orchestrate validation using core modules
+ * - Load and cache unified preset registry
+ * - Provide filtered preset lists by type/atlas/view mode
  */
 
-import type { ProjectionFamilyType } from '@/core/projections/types'
-import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
-import type { ImportResult } from '@/services/export/composite-import-service'
-import type { ExportedCompositeConfig } from '@/types/export-config'
-import type { ProjectionParameters } from '@/types/projection-parameters'
-
-import { parameterRegistry } from '@/core/parameters'
-import { CompositeImportService } from '@/services/export/composite-import-service'
-
-/**
- * Atlas projection metadata extracted from atlas configuration
- */
-export interface AtlasProjectionMetadata {
-  compositeProjections?: string[]
-  defaultCompositeProjection?: string
-  projectionPreferences?: {
-    recommended?: string[]
-    default?: {
-      mainland?: string
-      overseas?: string
-    }
-    prohibited?: string[]
-  }
-  projectionParameters?: {
-    center?: { longitude: number, latitude: number }
-    rotate?: {
-      mainland?: [number, number]
-      azimuthal?: [number, number]
-    }
-    parallels?: { conic?: [number, number] }
-  }
-  mapDisplayDefaults?: {
-    showGraticule?: boolean
-    showSphere?: boolean
-    showCompositionBorders?: boolean
-    showMapLimits?: boolean
-  }
-}
+import type {
+  CompositeCustomConfig,
+  LoadResult,
+  Preset,
+  PresetRegistry,
+  PresetType,
+  ViewPresetMode,
+} from '@/core/presets'
+import {
+  convertToDefaults,
+  extractTerritoryParameters,
+  validateCompositePreset,
+  validateViewPreset,
+} from '@/core/presets'
+import { PresetFileLoader } from './loaders/preset-file-loader'
 
 /**
- * Extended preset configuration with atlas metadata
- */
-export interface ExtendedPresetConfig extends ExportedCompositeConfig {
-  /** Optional atlas-level projection metadata */
-  atlasMetadata?: AtlasProjectionMetadata
-}
-
-export interface PresetLoadResult {
-  success: boolean
-  preset?: ExtendedPresetConfig
-  errors: string[]
-  warnings: string[]
-}
-
-/**
- * Service for loading and managing preset configurations
+ * Unified service for loading and managing all preset types
  */
 export class PresetLoader {
+  private static registry: PresetRegistry | null = null
+
   /**
-   * Load a preset configuration file
+   * Load the unified preset registry
+   * Cached after first load
+   */
+  private static async loadRegistry(): Promise<PresetRegistry> {
+    if (this.registry) {
+      return this.registry
+    }
+
+    const result = await PresetFileLoader.loadRegistry<PresetRegistry>(
+      'configs/presets/registry.json',
+    )
+
+    if (!result.success || !result.data) {
+      console.warn('[PresetLoader] Failed to load preset registry, using empty registry')
+      return { version: '2.0', presets: [] }
+    }
+
+    this.registry = result.data
+    return this.registry
+  }
+
+  /**
+   * Load a preset configuration file (any type)
    *
-   * @param presetId - Preset identifier (e.g., 'france-default', 'portugal-default')
+   * @param presetId - Preset identifier (e.g., 'france-default', 'france-unified')
    * @returns Load result with parsed preset and validation messages
    */
-  static async loadPreset(presetId: string): Promise<PresetLoadResult> {
-    try {
-      // Construct preset file path
-      const baseUrl = import.meta.env.BASE_URL
-      const presetPath = `${baseUrl}configs/presets/${presetId}.json`
+  static async loadPreset(presetId: string): Promise<LoadResult<Preset>> {
+    // Get preset type from registry
+    const registry = await this.loadRegistry()
+    const registryEntry = registry.presets.find(p => p.id === presetId)
 
-      // Fetch preset file
-      const response = await fetch(presetPath)
-
-      if (!response.ok) {
-        console.error(`[PresetLoader] HTTP ${response.status}: ${response.statusText}`)
-        return {
-          success: false,
-          errors: [`Failed to load preset '${presetId}': ${response.statusText}`],
-          warnings: [],
-        }
-      }
-
-      // Parse JSON
-      const jsonText = await response.text()
-      const rawPreset = JSON.parse(jsonText) as ExtendedPresetConfig
-
-      // Validate structure using CompositeImportService
-      const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
-
-      if (!importResult.success) {
-        return {
-          success: false,
-          errors: importResult.errors,
-          warnings: importResult.warnings,
-        }
-      }
-
-      // Additional validation using parameter registry
-      const paramErrors: string[] = []
-      const paramWarnings: string[] = []
-      for (const territory of rawPreset.territories) {
-        const family = territory.projection.family as ProjectionFamilyType
-
-        // Check required parameters - these are hard errors
-        // Only check parameters that are relevant for this projection family
-        const required = parameterRegistry.getRequired()
-        for (const def of required) {
-          // Check if parameter is relevant for this projection family
-          const constraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
-          const isRelevant = constraints.relevant
-
-          if (def.requiresPreset && isRelevant) {
-            // Check if parameter exists in the appropriate location
-            let hasParameter = false
-
-            if (def.key === 'projectionId') {
-              // projectionId is stored at projection.id (not in parameters)
-              hasParameter = territory.projection?.id !== undefined
-            }
-            else if (def.key === 'translateOffset') {
-              // translateOffset is stored in layout section
-              hasParameter = territory.layout?.translateOffset !== undefined
-            }
-            else if (def.key === 'pixelClipExtent') {
-              // pixelClipExtent is stored in layout section (optional)
-              hasParameter = territory.layout?.pixelClipExtent !== undefined
-            }
-            else {
-              // Other parameters are stored in projection.parameters section
-              hasParameter = def.key in territory.projection.parameters
-            }
-
-            if (!hasParameter) {
-              paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
-            }
-          }
-        }
-
-        // Validate parameter values - these are warnings, not hard errors
-        const validationResults = parameterRegistry.validateParameters(
-          territory.projection.parameters,
-          family,
-        )
-        for (const result of validationResults) {
-          if (!result.isValid) {
-            paramWarnings.push(`Territory ${territory.code}: ${result.error}`)
-          }
-        }
-      }
-
-      // Only fail on structural/required parameter errors, not validation warnings
-      if (paramErrors.length > 0) {
-        return {
-          success: false,
-          errors: [...importResult.errors, ...paramErrors],
-          warnings: [...importResult.warnings, ...paramWarnings],
-        }
-      }
-
-      // Combine validated preset with atlas metadata
-      const extendedPreset: ExtendedPresetConfig = {
-        ...importResult.config!,
-        atlasMetadata: rawPreset.atlasMetadata,
-      }
-
-      // Return validated preset with parameter validation warnings
-      return {
-        success: true,
-        preset: extendedPreset,
-        errors: [],
-        warnings: [...importResult.warnings, ...paramWarnings],
-      }
-    }
-    catch (error) {
+    if (!registryEntry) {
       return {
         success: false,
-        errors: [`Unexpected error loading preset '${presetId}': ${error instanceof Error ? error.message : 'Unknown error'}`],
+        errors: [`Preset '${presetId}' not found in registry`],
         warnings: [],
       }
     }
-  }
 
-  /**
-   * List available presets for a given atlas
-   *
-   * Note: This is a static list based on atlas configuration.
-   * In a future enhancement, this could scan the presets directory.
-   *
-   * @returns Array of preset IDs available for this atlas
-   */
-  static listAvailablePresets(): string[] {
-    // For now, return empty array - presets will be defined in atlas config
-    // In the future, this could scan the presets directory dynamically
-    return []
-  }
+    // Load preset file
+    const fileResult = await PresetFileLoader.loadJSON<any>(
+      `configs/presets/${presetId}.json`,
+    )
 
-  /**
-   * Convert a preset configuration to territory defaults format
-   *
-   * Territory defaults are used to initialize the store state with
-   * projection, translation, and scale values for each territory.
-   *
-   * @param preset - Validated preset configuration
-   * @returns Territory defaults for store initialization
-   */
-  static convertToDefaults(preset: ExportedCompositeConfig): TerritoryDefaults {
-    const projections: Record<string, string> = {}
-    const translations: Record<string, { x: number, y: number }> = {}
-    const scales: Record<string, number> = {}
-
-    // Extract values from each territory in the preset
-    preset.territories.forEach((territory) => {
-      const code = territory.code
-
-      // Projection ID
-      projections[code] = territory.projection.id
-
-      // Translation offset
-      translations[code] = {
-        x: territory.layout.translateOffset[0],
-        y: territory.layout.translateOffset[1],
+    if (!fileResult.success || !fileResult.data) {
+      return {
+        success: false,
+        errors: fileResult.errors,
+        warnings: fileResult.warnings,
       }
-
-      // Scale multiplier
-      scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
-    })
-
-    return {
-      projections,
-      translations,
-      scales,
     }
-  }
 
-  /**
-   * Extract projection parameters from preset data for each territory
-   * @param preset - The preset configuration
-   * @returns Object mapping territory codes to their projection parameters
-   */
-  public static extractTerritoryParameters(preset: ExportedCompositeConfig): Record<string, ProjectionParameters> {
-    const result: Record<string, ProjectionParameters> = {}
+    // Validate based on type
+    if (registryEntry.type === 'composite-custom') {
+      const jsonText = JSON.stringify(fileResult.data)
+      const validation = validateCompositePreset(jsonText, fileResult.data)
 
-    for (const territory of preset.territories) {
-      // Only include parameters that are explicitly set in the territory
-      const territoryParams: Partial<ProjectionParameters> = {}
-
-      // IMPORTANT: Extract projectionId from territory.projection.id (required parameter)
-      if (territory.projection?.id) {
-        territoryParams.projectionId = territory.projection.id
-      }
-
-      if (territory.projection.parameters) {
-        // Get list of parameter keys that the registry knows about and are exportable
-        const exportableKeys = new Set(
-          parameterRegistry.getExportable().map(def => def.key),
-        )
-
-        // Only copy parameters that exist in the territory and are known by the registry
-        for (const [key, value] of Object.entries(territory.projection.parameters)) {
-          if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
-            territoryParams[key as keyof ProjectionParameters] = value as any
-          }
+      if (!validation.success) {
+        return {
+          success: false,
+          errors: validation.errors,
+          warnings: validation.warnings,
         }
       }
 
-      // Convert layout properties to parameters
-      if (territory.layout?.pixelClipExtent && Array.isArray(territory.layout.pixelClipExtent) && territory.layout.pixelClipExtent.length === 4) {
-        territoryParams.pixelClipExtent = territory.layout.pixelClipExtent as [number, number, number, number]
+      // Build Preset object
+      const preset: Preset = {
+        id: presetId,
+        name: registryEntry.name,
+        description: registryEntry.description,
+        atlasId: registryEntry.atlasId,
+        type: 'composite-custom',
+        config: fileResult.data as CompositeCustomConfig,
       }
-
-      if (territory.layout?.translateOffset && Array.isArray(territory.layout.translateOffset) && territory.layout.translateOffset.length === 2) {
-        territoryParams.translateOffset = territory.layout.translateOffset as [number, number]
-      }
-
-      result[territory.code] = territoryParams as ProjectionParameters
-    }
-
-    return result
-  }
-
-  /**
-   * Load preset metadata (name, version, metadata) without full validation
-   * This is useful for populating dropdowns and lists without loading full configurations
-   *
-   * @param presetId - Preset identifier (e.g., 'france-default', 'portugal-default')
-   * @returns Preset metadata or null if loading failed
-   */
-  static async loadPresetMetadata(presetId: string): Promise<{ name?: string | Record<string, string>, metadata?: any } | null> {
-    try {
-      // Construct preset file path
-      const baseUrl = import.meta.env.BASE_URL
-      const presetPath = `${baseUrl}configs/presets/${presetId}.json`
-
-      // Fetch preset file
-      const response = await fetch(presetPath)
-
-      if (!response.ok) {
-        console.warn(`[PresetLoader] Failed to load metadata for preset '${presetId}': ${response.statusText}`)
-        return null
-      }
-
-      // Parse only the parts we need (name and metadata)
-      const jsonText = await response.text()
-      const preset = JSON.parse(jsonText)
 
       return {
-        name: preset.name,
-        metadata: preset.metadata,
+        success: true,
+        data: preset,
+        errors: [],
+        warnings: validation.warnings,
       }
     }
-    catch (error) {
-      console.warn(`[PresetLoader] Error loading metadata for preset '${presetId}':`, error)
-      return null
+    else {
+      // View preset (unified, split, built-in-composite)
+      const validation = validateViewPreset(fileResult.data)
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          errors: validation.errors,
+          warnings: validation.warnings,
+        }
+      }
+
+      // Build Preset object
+      const preset: Preset = {
+        id: presetId,
+        name: registryEntry.name,
+        description: registryEntry.description,
+        atlasId: registryEntry.atlasId,
+        type: registryEntry.type,
+        config: fileResult.data.config,
+      } as Preset
+
+      return {
+        success: true,
+        data: preset,
+        errors: [],
+        warnings: validation.warnings,
+      }
     }
   }
 
   /**
-   * Validate a preset configuration
+   * List all available presets
    *
-   * Uses the same validation as CompositeImportService to ensure
-   * preset files conform to the expected format.
-   *
-   * @param preset - Preset configuration to validate
-   * @returns Validation result with errors and warnings
+   * @param filters - Optional filters
+   * @param filters.atlasId - Filter by atlas ID
+   * @param filters.type - Filter by preset type
+   * @param filters.viewMode - Filter by view mode
+   * @returns Array of preset metadata
    */
-  static validatePreset(preset: ExtendedPresetConfig): PresetLoadResult {
-    const validationResult = CompositeImportService.importFromJSON(JSON.stringify(preset))
+  static async listPresets(filters?: {
+    atlasId?: string
+    type?: PresetType
+    viewMode?: ViewPresetMode
+  }): Promise<PresetRegistry['presets']> {
+    const registry = await this.loadRegistry()
+    let presets = registry.presets
 
-    const extendedPreset: ExtendedPresetConfig = {
-      ...validationResult.config!,
-      atlasMetadata: preset.atlasMetadata,
+    if (filters?.atlasId) {
+      presets = presets.filter(p => p.atlasId === filters.atlasId)
+    }
+
+    if (filters?.type) {
+      presets = presets.filter(p => p.type === filters.type)
+    }
+
+    if (filters?.viewMode) {
+      presets = presets.filter(p => p.type === filters.viewMode)
+    }
+
+    return presets
+  }
+
+  /**
+   * Load preset metadata without full validation
+   * Useful for populating dropdowns and lists
+   *
+   * @param presetId - Preset identifier
+   * @returns Preset metadata or null if not found
+   */
+  static async loadMetadata(presetId: string): Promise<{ name: string, description?: string, atlasId: string, type: PresetType } | null> {
+    const registry = await this.loadRegistry()
+    const entry = registry.presets.find(p => p.id === presetId)
+
+    if (!entry) {
+      console.warn(`[PresetLoader] Preset '${presetId}' not found in registry`)
+      return null
     }
 
     return {
-      success: validationResult.success,
-      preset: extendedPreset,
-      errors: validationResult.errors,
-      warnings: validationResult.warnings,
+      name: entry.name,
+      description: entry.description,
+      atlasId: entry.atlasId,
+      type: entry.type,
     }
   }
+
+  // Re-export core converters for backward compatibility
+  static convertToDefaults = convertToDefaults
+  static extractTerritoryParameters = extractTerritoryParameters
 }

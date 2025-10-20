@@ -174,6 +174,8 @@ export function mergeParameters(
         center: params.center ? [...params.center] as [number, number] : merged.center,
         rotate: params.rotate ? [...params.rotate] as [number, number, number?] : merged.rotate,
         parallels: params.parallels ? [...params.parallels] as [number, number] : merged.parallels,
+        translateOffset: params.translateOffset ? [...params.translateOffset] as [number, number] : merged.translateOffset,
+        pixelClipExtent: params.pixelClipExtent ? [...params.pixelClipExtent] as [number, number, number, number] : merged.pixelClipExtent,
       }
     }, {} as ProjectionParameters)
 }

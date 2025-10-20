@@ -1,4 +1,4 @@
-import type { TerritoryDefaults } from '@/services/atlas/territory-defaults-service'
+import type { TerritoryDefaults } from '@/core/presets'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { ref, toRaw } from 'vue'
@@ -44,6 +44,7 @@ export function usePresetDefaults() {
   // Store the original preset configuration for reset functionality
   const presetDefaults = ref<TerritoryDefaults | null>(null)
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
+  const presetGlobalParameters = ref<ProjectionParameters | null>(null)
 
   /**
    * Store the original preset defaults when a preset is loaded
@@ -61,11 +62,27 @@ export function usePresetDefaults() {
   }
 
   /**
+   * Store global projection parameters from view preset
+   */
+  function storeGlobalParameters(parameters: ProjectionParameters | null) {
+    presetGlobalParameters.value = parameters ? { ...parameters } : null
+  }
+
+  /**
    * Clear stored preset defaults (when switching atlases or when no preset)
    */
   function clearPresetDefaults() {
     presetDefaults.value = null
     presetParameters.value = {}
+    presetGlobalParameters.value = null
+  }
+
+  /**
+   * Alias for clearPresetDefaults
+   * Phase 4: Used by InitializationService for consistency
+   */
+  function clearAll() {
+    clearPresetDefaults()
   }
 
   /**
@@ -167,8 +184,11 @@ export function usePresetDefaults() {
   return {
     presetDefaults,
     presetParameters,
+    presetGlobalParameters,
     storePresetDefaults,
+    storeGlobalParameters,
     clearPresetDefaults,
+    clearAll,
     getPresetDefaultsForTerritory,
     hasPresetDefaults,
     hasDivergingParameters,

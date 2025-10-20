@@ -62,6 +62,12 @@ export type {
   GeoDataConfig,
 } from '@/types/geo-data'
 
+// Projection configuration types
+export type {
+  ProjectionConfigWithFamily,
+  ProjectionConfig as StandardProjectionConfig,
+} from '@/types/projection-config'
+
 // Territory types
 export type {
   BoundingBox,
@@ -69,6 +75,9 @@ export type {
   Coordinates,
   PixelOffset,
   ProjectionRotation,
+  TerritoryCollection,
+  TerritoryCollections,
+  TerritoryCollectionSet,
   TerritoryConfig,
   TerritoryGroupConfig,
   TerritoryModeConfig,

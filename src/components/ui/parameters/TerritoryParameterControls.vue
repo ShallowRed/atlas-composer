@@ -1,9 +1,17 @@
 <!--
   Territory Parameter Controls
 
-  Component for editing projection parameters specific to a territory
-  in custom composite mode. Provides full parameter controls with
-  inheritance indicators and validation feedback.
+  Component for editing projection parameters specific to a territory.
+  Used in both split mode and composite-custom mode.
+
+  Architectural Pattern:
+  - Parent component (SplitControls/CompositeCustomControls) handles projection selection
+  - This component focuses solely on parameter editing for the selected projection
+  - Provides parameter controls with inheritance indicators and validation feedback
+
+  Separation of Concerns:
+  - Projection selection: Parent's responsibility
+  - Parameter editing: This component's responsibility
 -->
 <script setup lang="ts">
 import type { ProjectionFamilyType } from '@/core/projections/types'
@@ -17,11 +25,10 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 interface Props {
   /** Territory code for parameter management */
@@ -47,14 +54,20 @@ const props = withDefaults(defineProps<Props>(), {
   showInheritanceIndicators: true,
   allowParameterOverrides: true,
   showValidationFeedback: true,
+  hideProjectionDropdown: false,
 })
 
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
+const configStore = useConfigStore()
 const parameterStore = useParameterStore()
-const territoryStore = useTerritoryStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
 const presetDefaults = getSharedPresetDefaults()
+
+// Check if we're in composite mode - composite-specific parameters only apply there
+const isCompositeMode = computed(() => {
+  return configStore.viewMode === 'composite-custom'
+})
 
 // Get parameter constraints for this projection family
 const parameterConstraints = computed(() => {
@@ -105,7 +118,7 @@ const validationResults = computed(() => {
 
 // Check if territory has parameter overrides that differ from preset defaults
 const hasOverrides = computed(() => {
-  // If no preset defaults loaded, show the reset button (legacy behavior)
+  // If no preset defaults loaded, show the reset button if there are any overrides
   if (!presetDefaults.hasPresetDefaults()) {
     return Object.keys(territoryParameters.value).length > 0
   }
@@ -119,7 +132,7 @@ const hasOverrides = computed(() => {
   }
 
   // Check if projection differs from preset
-  const currentProjection = territoryStore.territoryProjections[props.territoryCode]
+  const currentProjection = parameterStore.getTerritoryProjection(props.territoryCode)
   if (currentProjection && territoryDefaults.projection && currentProjection !== territoryDefaults.projection) {
     return true
   }
@@ -302,14 +315,6 @@ onMounted(() => {
   // Trigger initial validation
   parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
-
-const {
-  projectionRecommendations,
-  projectionGroups,
-  territoryProjections,
-  selectedProjection,
-  setTerritoryProjection,
-} = useTerritoryTransforms()
 </script>
 
 <template>
@@ -323,17 +328,6 @@ const {
       <i class="ri-restart-line" />
       {{ t('territory.parameters.reset') }}
     </button>
-
-    <div class="mb-4">
-      <ProjectionDropdown
-        :model-value="territoryProjections[territoryCode] || selectedProjection"
-        :label="t('projection.cartographic')"
-        :projection-groups="projectionGroups"
-        :projection-recommendations="projectionRecommendations"
-        size="md"
-        @update:model-value="(value: string) => setTerritoryProjection(territoryCode, value)"
-      />
-    </div>
 
     <!-- Validation feedback -->
     <div
@@ -496,8 +490,8 @@ const {
               />
             </template>
 
-            <!-- Translate Offset Control -->
-            <template v-if="hasTranslateParameter">
+            <!-- Translate Offset Control (composite mode only) -->
+            <template v-if="hasTranslateParameter && isCompositeMode">
               <!-- Translate Offset X -->
               <RangeSlider
                 :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
@@ -522,14 +516,14 @@ const {
                 size="xs"
                 :min="-1000"
                 :max="1000"
-                :step="5"
+                :step="10"
                 unit="px"
                 @update:model-value="(value: number) => {
                   const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
                   handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
                 }"
               />
-              <!-- Pixel-based ClipExtent Controls -->
+              <!-- Pixel-based ClipExtent Controls (composite mode only) -->
               <RangeSlider
                 :model-value="pixelClipExtentArray[0] ?? -100"
                 :label="t('clipExtent.left')"
@@ -537,7 +531,7 @@ const {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
               />
 
@@ -548,7 +542,7 @@ const {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
               />
 
@@ -559,7 +553,7 @@ const {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
               />
 
@@ -570,7 +564,7 @@ const {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
               />
             </template>

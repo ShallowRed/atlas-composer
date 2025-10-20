@@ -5,7 +5,7 @@
     "atlasName": "France",
     "exportDate": "2025-10-16T16:00:00.000Z",
     "createdWith": "d3-composite-projections alignment",
-    "notes": "Configured to match geoConicConformalFrance from d3-composite-projections package"
+    "notes": "Configured to match geoConicConformalFrance from d3-composite-projections package - Converted to pixel-based clipExtent format"
   },
   "pattern": "single-focus",
   "referenceScale": 2700,
@@ -40,10 +40,10 @@
           0
         ],
         "pixelClipExtent": [
-          -0.0996,
-          -0.0908,
-          0.0967,
-          0.12
+          -269,
+          -250,
+          261,
+          250
         ]
       },
       "bounds": [
@@ -53,7 +53,7 @@
         ],
         [
           10,
-          52
+          51.5
         ]
       ]
     },
@@ -78,10 +78,10 @@
           -38
         ],
         "pixelClipExtent": [
-          -0.14,
-          -0.032,
-          -0.0996,
-          0
+          -54,
+          -48,
+          55,
+          38
         ]
       },
       "bounds": [
@@ -116,10 +116,10 @@
           35
         ],
         "pixelClipExtent": [
-          -0.14,
-          0,
-          -0.0996,
-          0.029
+          -54,
+          -35,
+          55,
+          43
         ]
       },
       "bounds": [
@@ -154,10 +154,10 @@
           155
         ],
         "pixelClipExtent": [
-          -0.14,
-          0.029,
-          -0.0996,
-          0.0864
+          -54,
+          -76,
+          55,
+          78
         ]
       },
       "bounds": [
@@ -192,10 +192,10 @@
           -96
         ],
         "pixelClipExtent": [
-          0.0967,
-          -0.052,
-          0.1371,
-          -0.02
+          -52,
+          -44,
+          57,
+          42
         ]
       },
       "bounds": [
@@ -230,10 +230,10 @@
           -173
         ],
         "pixelClipExtent": [
-          0.0967,
-          -0.076,
-          0.1371,
-          -0.052
+          -55,
+          -32,
+          54,
+          33
         ]
       },
       "bounds": [
@@ -249,7 +249,45 @@
     },
     {
       "code": "FR-MF",
-      "name": "Saint-Martin (Saint-Barthélemy)",
+      "name": "Saint-Martin",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -63.082,
+            18.067
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -324,
+          -119
+        ],
+        "pixelClipExtent": [
+          -54,
+          -21,
+          55,
+          33
+        ]
+      },
+      "bounds": [
+        [
+          -63.15,
+          18.04
+        ],
+        [
+          -63,
+          18.13
+        ]
+      ]
+    },
+    {
+      "code": "FR-BL",
+      "name": "Saint-Barthélemy",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -268,20 +306,20 @@
           -119
         ],
         "pixelClipExtent": [
-          -0.14,
-          -0.052,
-          -0.0996,
-          -0.032
+          -54,
+          -21,
+          55,
+          33
         ]
       },
       "bounds": [
         [
-          -63.15,
-          18.04
+          -62.95,
+          17.85
         ],
         [
-          -63,
-          18.13
+          -62.75,
+          17.95
         ]
       ]
     },
@@ -306,10 +344,10 @@
           -176
         ],
         "pixelClipExtent": [
-          -0.14,
-          -0.076,
-          -0.0996,
-          -0.052
+          -54,
+          -29,
+          55,
+          36
         ]
       },
       "bounds": [
@@ -344,10 +382,10 @@
           59
         ],
         "pixelClipExtent": [
-          0.0967,
-          0.012,
-          0.1371,
-          0.033
+          -52,
+          -27,
+          57,
+          30
         ]
       },
       "bounds": [
@@ -382,10 +420,10 @@
           203
         ],
         "pixelClipExtent": [
-          0.105,
-          0.065,
-          0.125,
-          0.08
+          -50,
+          -41,
+          59,
+          30
         ]
       },
       "bounds": [
@@ -420,10 +458,10 @@
           122
         ],
         "pixelClipExtent": [
-          0.0967,
-          0.033,
-          0.1371,
-          0.06
+          -36,
+          -33,
+          73,
+          40
         ]
       },
       "bounds": [
@@ -458,10 +496,10 @@
           -13
         ],
         "pixelClipExtent": [
-          0.0967,
-          -0.02,
-          0.1371,
-          0.012
+          -52,
+          -41,
+          57,
+          45.4
         ]
       },
       "bounds": [
@@ -496,10 +534,10 @@
           250
         ],
         "pixelClipExtent": [
-          null,
-          null,
-          null,
-          null
+          0,
+          -250,
+          0,
+          -250
         ]
       },
       "bounds": [
@@ -556,11 +594,6 @@
           49
         ]
       }
-    },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": true,
-      "showMapLimits": false
     }
   }
 }

@@ -1,0 +1,114 @@
+{
+  "$schema": "./atlas-registry.schema.json",
+  "defaultAtlas": "france",
+  "groups": [
+    {
+      "id": "world",
+      "label": {
+        "en": "World",
+        "fr": "Monde"
+      },
+      "sortOrder": 3
+    },
+    {
+      "id": "region",
+      "label": {
+        "en": "Regions & Unions",
+        "fr": "Régions & Unions"
+      },
+      "sortOrder": 2
+    },
+    {
+      "id": "country",
+      "label": {
+        "en": "Countries",
+        "fr": "Pays"
+      },
+      "sortOrder": 1
+    }
+  ],
+  "atlases": [
+    {
+      "id": "france",
+      "name": {
+        "en": "France",
+        "fr": "France"
+      },
+      "group": "country",
+      "sortOrder": 10,
+      "configPath": "./atlases/france.json",
+      "behavior": {
+        "defaultPreset": "france-default",
+        "availablePresets": [
+          "france-default",
+          "france-test",
+          "france-nsp"
+        ],
+        "defaultTerritoryCollection": "administrative",
+        "ui": {
+          "territoryManager": {
+            "collectionSet": "geographic"
+          },
+          "configSection": {
+            "collectionSet": "administrative"
+          }
+        }
+      }
+    },
+    {
+      "id": "portugal",
+      "name": {
+        "en": "Portugal",
+        "fr": "Portugal"
+      },
+      "group": "country",
+      "sortOrder": 20,
+      "configPath": "./atlases/portugal.json",
+      "behavior": {
+        "defaultPreset": "portugal-default",
+        "availablePresets": [
+          "portugal-default"
+        ],
+        "defaultTerritoryCollection": "administrative",
+        "ui": {
+          "territoryManager": {
+            "collectionSet": "geographic"
+          },
+          "configSection": {
+            "collectionSet": "administrative"
+          }
+        }
+      }
+    },
+    {
+      "id": "usa",
+      "name": {
+        "en": "United States",
+        "fr": "États-Unis"
+      },
+      "group": "country",
+      "sortOrder": 30,
+      "configPath": "./atlases/usa.json"
+    },
+    {
+      "id": "eu",
+      "name": {
+        "en": "European Union",
+        "fr": "Union Européenne"
+      },
+      "group": "region",
+      "sortOrder": 100,
+      "configPath": "./atlases/eu.json"
+    },
+    {
+      "id": "world",
+      "name": {
+        "en": "World",
+        "fr": "Monde"
+      },
+      "group": "world",
+      "sortOrder": 200,
+      "configPath": "./atlases/world.json"
+    }
+  ]
+}

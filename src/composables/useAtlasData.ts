@@ -1,4 +1,3 @@
-import { watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useLoadingState } from './useLoadingState'
@@ -13,41 +12,35 @@ export function useAtlasData() {
 
   /**
    * Initialize atlas data on mount
+   * Phase 4/5 Refactor: InitializationService now handles preset loading and data preloading
+   * This method ensures theme is initialized and waits for InitializationService to complete
    */
   async function initialize() {
     try {
       // Initialize theme
       configStore.initializeTheme()
 
-      // CRITICAL: Wait for preset metadata to load before initializing geodata
-      // This ensures territory projections from presets are available before first render
-      if (typeof configStore.initializeWithPresetMetadata === 'function') {
-        await configStore.initializeWithPresetMetadata()
-      }
-      else {
-        console.warn('[useAtlasData] initializeWithPresetMetadata is not a function!')
-      }
-
-      // Wrap in minimum loading time to prevent skeleton flash
+      // Wait for InitializationService to complete
+      // InitializationService is called from config store on startup and handles:
+      // - Preset loading
+      // - GeoDataStore initialization
+      // - Data preloading (territory + unified)
       await withMinLoadingTime(async () => {
-        // Only initialize if not already initialized (important for route navigation)
-        if (!geoDataStore.isInitialized) {
-          await geoDataStore.initialize()
+        // Poll until geoDataStore is initialized
+        // Check every 50ms for up to 5 seconds
+        const maxAttempts = 100 // 50ms * 100 = 5 seconds
+        let attempts = 0
+
+        while (!geoDataStore.isInitialized && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 50))
+          attempts++
         }
 
-        // Load territory data for initial render if needed
-        // Both split and composite-custom modes need territory data for individual projections
-        if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
-          if (!geoDataStore.overseasTerritoriesData.length) {
-            await geoDataStore.loadTerritoryData()
-          }
+        if (!geoDataStore.isInitialized) {
+          throw new Error('Initialization timeout: GeoDataStore not initialized after 5 seconds')
         }
-        // Load unified data for unified mode
-        else if (configStore.viewMode === 'unified') {
-          if (!geoDataStore.rawUnifiedData) {
-            await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-          }
-        }
+
+        console.info('[useAtlasData] InitializationService completed successfully')
       })
     }
     catch (err) {
@@ -76,23 +69,36 @@ export function useAtlasData() {
    * Reinitialize data when atlas changes
    */
   async function reinitialize() {
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig) {
+      console.warn('[useAtlasData] Cannot reinitialize - atlas config not loaded')
+      return
+    }
+
+    // Use the atlas's default view mode if current mode is not supported
+    const targetViewMode = atlasConfig.supportedViewModes.includes(configStore.viewMode)
+      ? configStore.viewMode
+      : atlasConfig.defaultViewMode
+
+    console.info('[useAtlasData] Starting reinitialize for viewMode:', {
+      currentViewMode: configStore.viewMode,
+      targetViewMode,
+      supportedViewModes: atlasConfig.supportedViewModes,
+    })
+
     try {
       await withMinLoadingTime(async () => {
         await geoDataStore.reinitialize()
 
-        // Load territory data for split and composite-custom modes
-        if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
-          await geoDataStore.loadTerritoryData()
-        }
-        // Load unified data for unified mode
-        else if (configStore.viewMode === 'unified') {
-          await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-        }
+        // Phase 4: Data preloading is now handled by InitializationService
+        // When atlas changes, InitializationService preloads all data types
+        // No conditional loading needed here - all data is already loaded
+        console.info('[useAtlasData] Reinitialize complete, data preloaded by InitializationService')
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors du changement de région'
-      console.error('Region change error:', err)
+      console.error('[useAtlasData] Region change error:', err)
     }
   }
 
@@ -107,32 +113,11 @@ export function useAtlasData() {
     }
   }
 
-  /**
-   * Setup watchers for automatic data loading
-   */
-  function setupWatchers() {
-    // Watch for view mode changes to load territory data when needed
-    watch(() => configStore.viewMode, async (newMode) => {
-      await loadDataForViewMode(newMode)
-    })
-
-    // Watch for region changes to reinitialize data
-    watch(() => configStore.selectedAtlas, async () => {
-      await reinitialize()
-    })
-
-    // Watch for territory mode changes to reload data in unified mode
-    watch(() => configStore.territoryMode, async () => {
-      await reloadUnifiedData()
-    })
-  }
-
   return {
     showSkeleton,
     initialize,
     loadDataForViewMode,
     reinitialize,
     reloadUnifiedData,
-    setupWatchers,
   }
 }

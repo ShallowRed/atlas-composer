@@ -231,7 +231,7 @@ MapRenderer.vue supports interactive mouse panning for projections with rotation
 - **Range**: 
   - Longitude: Wraps between -180° and 180°
   - Latitude: Clamped between -90° and 90° (prevents pole flipping)
-- **Updates**: Changes flow through configStore.setCustomRotate which delegates to parameterStore.setGlobalParameter and trigger re-render via effectiveProjectionParams watcher
+- **Updates**: Changes flow through configStore.setCustomRotate which delegates to parameterStore.setGlobalParameter and trigger re-render via globalEffectiveParameters watcher
 - **Latitude Lock**: Latitude rotation locked by default, unlockable via toggle in ProjectionParamsControls
   - When locked: Mouse panning only affects longitude rotation
   - When unlocked: Mouse panning affects both longitude and latitude rotation

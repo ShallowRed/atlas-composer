@@ -3,9 +3,7 @@ import type { ExportedCompositeConfig } from '@/types/export-config'
 import { computed, ref } from 'vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
-import { useConfigStore } from '@/stores/config'
-import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
+import { InitializationService } from '@/services/initialization/initialization-service'
 
 const props = defineProps<{
   modelValue: boolean
@@ -17,10 +15,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'imported': [config: ExportedCompositeConfig]
 }>()
-
-const configStore = useConfigStore()
-const territoryStore = useTerritoryStore()
-const parameterStore = useParameterStore()
 
 // State
 const isDragging = ref(false)
@@ -106,7 +100,7 @@ async function processFile(file: File) {
   }
 }
 
-function applyImport() {
+async function applyImport() {
   if (!canApply.value || !importedConfig.value) {
     return
   }
@@ -123,14 +117,35 @@ function applyImport() {
   }
 
   try {
-    // Apply to stores (including parameter store for projection parameters)
-    CompositeImportService.applyToStores(
-      importedConfig.value,
-      configStore,
-      territoryStore,
-      props.compositeProjection,
-      parameterStore,
-    )
+    // Use InitializationService for consistent import handling
+    const result = await InitializationService.importConfiguration({
+      config: importedConfig.value,
+      validateAtlasCompatibility: true,
+    })
+
+    if (!result.success) {
+      importResult.value = {
+        success: false,
+        errors: result.errors,
+        warnings: result.warnings,
+      }
+      return
+    }
+
+    // Update cartographer if needed
+    const { useGeoDataStore } = await import('@/stores/geoData')
+    const geoDataStore = useGeoDataStore()
+
+    if (geoDataStore.cartographer && result.state) {
+      const territoryParameters = result.state.parameters.territories
+      Object.keys(territoryParameters).forEach((territoryCode) => {
+        geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+      })
+      console.info(`[ImportModal] Updated cartographer for ${Object.keys(territoryParameters).length} territories`)
+
+      // Trigger render
+      geoDataStore.triggerRender()
+    }
 
     // Emit success and close
     emit('imported', importedConfig.value)

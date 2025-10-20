@@ -17,7 +17,7 @@ import type {
 } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
@@ -91,24 +91,63 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   function setTerritoryParameter(territoryCode: string, key: keyof ProjectionParameters, value: any) {
+    // Validate parameter value - throw error instead of silently failing
+    if (value === null || value === undefined) {
+      throw new Error(`[ParameterStore] Invalid null/undefined value for ${key} on territory ${territoryCode}. InitializationService should validate before calling.`)
+    }
+
     try {
-      // Validate parameter value before setting
-      if (value === null || value === undefined) {
-        console.warn(`[ParameterStore] Attempted to set null/undefined value for ${key} on territory ${territoryCode}`)
-        return
-      }
       parameterManager.setTerritoryParameter(territoryCode, key, value)
       territoryParametersVersion.value++
     }
     catch (error) {
       console.error(`[ParameterStore] Error setting parameter ${key} for territory ${territoryCode}:`, error)
-      // Don't re-throw to prevent UI breakage
+      throw error // Re-throw to surface bugs immediately
     }
   }
 
   function setTerritoryParameters(territoryCode: string, parameters: ParameterUpdate) {
     parameterManager.setTerritoryParameters(territoryCode, parameters)
     territoryParametersVersion.value++
+  }
+
+  // Territory-specific helper methods (migration from territory store)
+
+  /**
+   * Set projection ID for a territory
+   */
+  function setTerritoryProjection(territoryCode: string, projectionId: string) {
+    setTerritoryParameter(territoryCode, 'projectionId', projectionId)
+  }
+
+  /**
+   * Get projection ID for a territory
+   */
+  function getTerritoryProjection(territoryCode: string): string | undefined {
+    const effective = getEffectiveParameters(territoryCode)
+    return effective.projectionId
+  }
+
+  /**
+   * Set translation for a territory (single axis)
+   */
+  function setTerritoryTranslation(territoryCode: string, axis: 'x' | 'y', value: number) {
+    const effective = getEffectiveParameters(territoryCode)
+    const currentOffset = effective.translateOffset ?? [0, 0]
+    const newOffset: [number, number] = axis === 'x'
+      ? [value, currentOffset[1]]
+      : [currentOffset[0], value]
+    setTerritoryParameter(territoryCode, 'translateOffset', newOffset)
+  }
+
+  /**
+   * Get translation for a territory
+   * Returns {x, y} object
+   */
+  function getTerritoryTranslation(territoryCode: string): { x: number, y: number } {
+    const effective = getEffectiveParameters(territoryCode)
+    const offset = effective.translateOffset ?? [0, 0]
+    return { x: offset[0], y: offset[1] }
   }
 
   // Effective parameters (with inheritance)
@@ -140,6 +179,29 @@ export const useParameterStore = defineStore('parameters', () => {
   function clearAllTerritoryOverrides(territoryCode: string) {
     parameterManager.clearAllTerritoryOverrides(territoryCode)
     territoryParametersVersion.value++
+  }
+
+  /**
+   * Clear all parameters (global and all territories)
+   * Phase 4: Used by InitializationService for atlas changes
+   */
+  function clearAll() {
+    // Use parameter manager to clear everything
+    parameterManager.clearAll()
+
+    // Also clear the reactive global parameters ref
+    Object.keys(globalParameters.value).forEach((key) => {
+      delete globalParameters.value[key as keyof ProjectionParameters]
+    })
+
+    // Clear validation errors
+    validationErrors.value.clear()
+
+    // Trigger reactivity updates
+    globalParametersVersion.value++
+    territoryParametersVersion.value++
+
+    console.info('[ParameterStore] All parameters cleared')
   }
 
   // Parameter validation
@@ -221,6 +283,15 @@ export const useParameterStore = defineStore('parameters', () => {
     return allErrors
   })
 
+  // Global effective parameters (for unified/split modes)
+  // Returns atlas params merged with global overrides
+  const globalEffectiveParameters = computed(() => {
+    // Access versions to trigger reactivity when parameters change
+    void globalParametersVersion.value
+    void territoryParametersVersion.value // Atlas params can be affected by territory changes
+    return parameterManager.getEffectiveParameters() // No territory code = global effective params
+  })
+
   // Territory-specific computed properties
   function createTerritoryParametersComputed(territoryCode: string) {
     return computed(() => getTerritoryParameters(territoryCode))
@@ -259,23 +330,6 @@ export const useParameterStore = defineStore('parameters', () => {
       }
     }
   }
-
-  // Watch for parameter changes to trigger validation
-  watch(
-    () => lastChangeEvent.value,
-    (event) => {
-      if (!event)
-        return
-
-      // Auto-validate changed parameters
-      if (event.territoryCode) {
-        // We need the projection family to validate, but we don't have it here
-        // This would need to be provided by the component using the store
-        // For now, we'll skip auto-validation and let components trigger it
-      }
-    },
-    { deep: true },
-  )
 
   /**
    * Initialize from preset with validation using parameter registry
@@ -331,6 +385,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
     // Computed
     globalParameters,
+    globalEffectiveParameters,
     hasGlobalParameters,
     hasValidationErrors,
     allValidationErrors,
@@ -348,6 +403,12 @@ export const useParameterStore = defineStore('parameters', () => {
     setTerritoryParameter,
     setTerritoryParameters,
 
+    // Territory helpers (migration from territory store)
+    setTerritoryProjection,
+    getTerritoryProjection,
+    setTerritoryTranslation,
+    getTerritoryTranslation,
+
     // Effective parameters
     getEffectiveParameters,
     getParameterInheritance,
@@ -356,6 +417,7 @@ export const useParameterStore = defineStore('parameters', () => {
     // Parameter overrides
     clearTerritoryOverride,
     clearAllTerritoryOverrides,
+    clearAll,
 
     // Validation
     validateParameter,

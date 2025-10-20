@@ -1,24 +1,22 @@
+import type { Preset, PresetRegistryEntry } from '@/core/presets'
 import type { ViewMode } from '@/types'
-import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { useAtlasLoader } from '@/composables/useAtlasLoader'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
-import { AtlasCoordinator } from '@/services/atlas/atlas-coordinator'
+import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
+import { InitializationService } from '@/services/initialization/initialization-service'
+import { PresetApplicationService } from '@/services/presets/preset-application-service'
+import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
-
-import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
-export type ProjectionMode = 'uniform' | 'individual'
-
 export const useConfigStore = defineStore('config', () => {
-  // Initialize new stores for UI and territory state
+  // Initialize new stores for UI and parameter state
   const uiStore = useUIStore()
-  const territoryStore = useTerritoryStore()
   const parameterStore = useParameterStore()
   const presetDefaults = getSharedPresetDefaults()
 
@@ -32,171 +30,142 @@ export const useConfigStore = defineStore('config', () => {
   // Projection control options
   const rotateLatitudeLocked = ref<boolean>(true) // Default to locked
 
-  // Projection fitting mode: 'auto' uses domain fitting, 'manual' uses center+scale
-  const projectionFittingMode = ref<'auto' | 'manual'>('auto')
+  // Projection selection - nullable until preset loads
+  // No fallback values - must wait for InitializationService to load valid preset
+  const selectedProjection = ref<string | null>(null)
 
-  // Initialize selectedProjection - use fallback, will be updated async with preset data
-  const getInitialProjection = () => {
-    // Use fallback default for immediate initialization
-    // AtlasMetadataService will update this asynchronously with preset data
-    const atlasService = new AtlasService(DEFAULT_ATLAS)
-    const mainland = atlasService.getMainland()
-    return mainland?.projectionType || 'natural-earth'
-  }
-  const selectedProjection = ref(getInitialProjection())
-
-  // Computed: Current atlas configuration (needs to be before territoryMode)
-  const currentAtlasConfig = computed(() => getAtlasConfig(selectedAtlas.value))
+  // Use async atlas loader for loading atlas configs on demand
+  const { atlasConfig: currentAtlasConfig } = useAtlasLoader(selectedAtlas)
 
   // Computed: Atlas service for accessing atlas-specific data
-  const atlasService = computed(() => new AtlasService(selectedAtlas.value))
+  // Depends on both selectedAtlas AND currentAtlasConfig so it updates when atlas finishes loading
+  const atlasService = computed(() => {
+    // Access currentAtlasConfig to create reactive dependency on loading completion
+    void currentAtlasConfig.value?.id
+
+    const isLoaded = isAtlasLoaded(selectedAtlas.value)
+    if (!isLoaded) {
+      // Return a service for the default atlas as fallback during loading
+      return new AtlasService(DEFAULT_ATLAS)
+    }
+    return new AtlasService(selectedAtlas.value)
+  })
 
   // Territory mode - initialize with the default from the current atlas's config
   const getInitialTerritoryMode = () => {
-    const config = getAtlasConfig(DEFAULT_ATLAS)
+    // Use cached config since DEFAULT_ATLAS is preloaded in main.ts
+    const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
     // Use configured default territory mode if available
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
+    if (atlasConfig.defaultTerritoryMode) {
+      return atlasConfig.defaultTerritoryMode
     }
     // Otherwise use first option from territoryModeOptions
-    if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
-      return config.territoryModeOptions[0]!.value
+    if (atlasConfig.hasTerritorySelector && atlasConfig.territoryModeOptions && atlasConfig.territoryModeOptions.length > 0) {
+      return atlasConfig.territoryModeOptions[0]!.value
     }
     throw new Error('No territory mode options available for the default atlas')
   }
   const territoryMode = ref<string>(getInitialTerritoryMode())
 
-  const viewMode = ref<ViewMode>(currentAtlasConfig.value.defaultViewMode)
-  // Default to 'individual' since default viewMode is 'composite-custom'
-  const projectionMode = ref<ProjectionMode>('individual')
-  // Initialize with fallback, will be updated async with preset data
-  const compositeProjection = ref<string>('conic-conformal-france')
-  // Reference scale from preset, will be updated async with preset data
+  // Initialize viewMode with default atlas config (preloaded)
+  const getInitialViewMode = () => {
+    const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
+    return atlasConfig.defaultViewMode
+  }
+  const viewMode = ref<ViewMode>(getInitialViewMode())
+
+  // Composite projection - nullable until preset loads
+  // No fallback values - must wait for InitializationService to load valid preset
+  const compositeProjection = ref<string | null>(null)
+
+  // Reference scale from preset - undefined until loaded
   const referenceScale = ref<number | undefined>(undefined)
-  // Canvas dimensions from preset, will be updated async with preset data (defaults to 960×500)
+
+  // Canvas dimensions from preset - undefined until loaded
   const canvasDimensions = ref<{ width: number, height: number } | undefined>(undefined)
+
+  // Active territory set for custom composite mode
+  // Tracks which territories are included in the custom composite
+  // Initially loaded from preset, can be modified by user
+  const activeTerritoryCodes = ref<Set<string>>(new Set())
+
+  // View mode preset tracking (separate from composite-custom presets)
+  const currentViewPreset = ref<string | null>(null)
+  const availableViewPresets = ref<PresetRegistryEntry[]>([])
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
     const config = currentAtlasConfig.value
+    // If config hasn't loaded yet, default to not locked
+    if (!config)
+      return false
     return config.supportedViewModes.length === 1
   })
 
   // Initialize UI store with fallback defaults - will be updated async with preset data
   uiStore.initializeDisplayOptions({
     showGraticule: false,
-    showSphere: false,
-    showCompositionBorders: false,
-    showMapLimits: false,
+    showCompositionBorders: true,
+    showMapLimits: true,
   })
 
-  // Initialize territory defaults in the territory store
-  const initializeTerritoryDefaults = () => {
-    const all = atlasService.value.getAllTerritories()
-    territoryStore.initializeDefaults(all, 'mercator')
-  }
+  // REMOVED: Territory defaults initialization
+  // This was setting projectionId="mercator" for ALL territories before preset loads,
+  // causing territories not in the preset to be rendered with fallback parameters.
+  // Territory parameters are now exclusively initialized from presets via initializeFromPreset()
+  //
+  // const initializeTerritoryDefaults = () => {
+  //   const all = atlasService.value.getAllTerritories()
+  //   for (const territory of all) {
+  //     const currentProjection = parameterStore.getTerritoryProjection(territory.code)
+  //     if (!currentProjection) {
+  //       parameterStore.setTerritoryProjection(territory.code, 'mercator')
+  //     }
+  //     const effective = parameterStore.getEffectiveParameters(territory.code)
+  //     if (!effective.translateOffset) {
+  //       parameterStore.setTerritoryParameter(territory.code, 'translateOffset', [0, 0])
+  //     }
+  //   }
+  // }
+  // initializeTerritoryDefaults()
 
-  // Call initialization
-  initializeTerritoryDefaults()
+  // Reactivity System Refactor: Removed initializeWithPresetMetadata()
+  // Previously used AtlasCoordinator which is now replaced by InitializationService
+  // All initialization (startup + atlas changes) now uses InitializationService for consistency
 
-  // Guard to prevent multiple simultaneous initializations
-  let initializationPromise: Promise<void> | null = null
+  // Initialize with preset metadata on app startup
+  // Use InitializationService for consistent initialization (same as atlas changes)
+  ;(async () => {
+    try {
+      console.info('[ConfigStore] Initializing app with default atlas using InitializationService')
+      const result = await InitializationService.initializeAtlas({
+        atlasId: selectedAtlas.value,
+        preserveViewMode: false,
+      })
 
-  // Async initialization to load metadata and territory defaults from presets
-  const initializeWithPresetMetadata = async () => {
-    // If already initializing, return the existing promise
-    if (initializationPromise) {
-      return initializationPromise
+      if (!result.success) {
+        console.error('[ConfigStore] Initial atlas initialization failed:', result.errors)
+      }
+      else {
+        console.info('[ConfigStore] Initial atlas initialization complete')
+      }
     }
-
-    // Create and store the initialization promise
-    initializationPromise = (async () => {
-      try {
-        const currentAtlasId = selectedAtlas.value
-
-        // Use AtlasCoordinator to load complete preset data (just like the atlas change watcher)
-        const updates = await AtlasCoordinator.handleAtlasChange(currentAtlasId, viewMode.value)
-
-        Object.entries(updates.projections).forEach(([code, projection]) => {
-          territoryStore.setTerritoryProjection(code, projection)
-        })
-        Object.entries(updates.translations).forEach(([code, translation]) => {
-          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
-        })
-        Object.entries(updates.scales).forEach(([code, scale]) => {
-          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-        })
-
-        // Store original preset defaults for reset functionality
-        presetDefaults.storePresetDefaults({
-          projections: updates.projections,
-          translations: updates.translations,
-          scales: updates.scales,
-        }, updates.territoryParameters)
-
-        // Load projection parameters into parameter store using registry validation
-        if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-        // For now, atlas parameters are empty - they could be added later for atlas-wide defaults
-          const atlasParams = {}
-
-          // Initialize parameters through the registry with validation
-          const validationErrors = parameterStore.initializeFromPreset(
-            atlasParams as any,
-            updates.territoryParameters as any,
-          )
-
-          // Handle validation errors
-          if (validationErrors.length > 0) {
-            console.warn('[ConfigStore] Parameter validation errors during preset initialization:', validationErrors)
-          // Could add user notification here in the future
-          }
-        }
-
-        // Apply other updates
-        selectedProjection.value = updates.selectedProjection
-        if (updates.compositeProjection) {
-          compositeProjection.value = updates.compositeProjection
-        }
-        if (updates.referenceScale !== undefined) {
-          referenceScale.value = updates.referenceScale
-        }
-        if (updates.canvasDimensions !== undefined) {
-          canvasDimensions.value = updates.canvasDimensions
-        }
-
-        // Update UI store
-        uiStore.initializeDisplayOptions({
-          showGraticule: updates.mapDisplay.showGraticule,
-          showSphere: updates.mapDisplay.showSphere,
-          showCompositionBorders: updates.mapDisplay.showCompositionBorders,
-          showMapLimits: updates.mapDisplay.showMapLimits,
-        })
-      }
-      catch (error) {
-        console.warn('[ConfigStore] Failed to load preset metadata:', error)
-        throw error // Re-throw to propagate to awaiting code
-      }
-    })()
-
-    return initializationPromise
-  }
-
-  // Initialize with preset metadata
-  initializeWithPresetMetadata()
+    catch (error) {
+      console.error('[ConfigStore] Initial atlas initialization error:', error)
+    }
+  })()
 
   // Computed
   // Use ProjectionUIService for all UI visibility and grouping logic
   const showProjectionSelector = computed(() =>
-    ProjectionUIService.shouldShowProjectionSelector(viewMode.value, projectionMode.value),
-  )
-
-  const showProjectionModeToggle = computed(() =>
-    ProjectionUIService.shouldShowProjectionModeToggle(viewMode.value),
+    ProjectionUIService.shouldShowProjectionSelector(
+      viewMode.value,
+      currentViewPreset.value !== null,
+    ),
   )
 
   const showIndividualProjectionSelectors = computed(() =>
-    ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value, projectionMode.value),
+    ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value),
   )
 
   const showTerritorySelector = computed(() =>
@@ -211,10 +180,6 @@ export const useConfigStore = defineStore('config', () => {
     ProjectionUIService.shouldShowTerritoryControls(viewMode.value),
   )
 
-  const showCompositeProjectionSelector = computed(() =>
-    ProjectionUIService.shouldShowCompositeProjectionSelector(viewMode.value),
-  )
-
   const projectionGroups = computed(() =>
     ProjectionUIService.getProjectionGroups(selectedAtlas.value, viewMode.value),
   )
@@ -222,30 +187,6 @@ export const useConfigStore = defineStore('config', () => {
   const projectionRecommendations = computed(() =>
     ProjectionUIService.getProjectionRecommendations(selectedAtlas.value, viewMode.value),
   )
-
-  // Compute effective projection params by merging atlas defaults with global parameter overrides
-  const effectiveProjectionParams = computed(() => {
-    const atlasParams = atlasService.value?.getProjectionParams()
-    const globalParams = parameterStore.globalParameters
-
-    // Extract individual parameter values with proper fallbacks
-    const centerLon = globalParams.center?.[0] ?? atlasParams?.center?.[0] ?? 0
-    const centerLat = globalParams.center?.[1] ?? atlasParams?.center?.[1] ?? 0
-
-    const rotateLon = globalParams.rotate?.[0] ?? 0
-    const rotateLat = globalParams.rotate?.[1] ?? 0
-
-    const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.[0] ?? 30
-    const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.[1] ?? 60
-
-    // Build result with ProjectionParameters-compatible structure
-    return {
-      center: [centerLon, centerLat] as [number, number],
-      rotate: [rotateLon, rotateLat] as [number, number],
-      parallels: [parallel1, parallel2] as [number, number],
-      scale: globalParams.scale ?? undefined,
-    } as ProjectionParameters
-  })
 
   // Actions
   const setScalePreservation = (value: boolean) => {
@@ -262,19 +203,27 @@ export const useConfigStore = defineStore('config', () => {
 
   const setViewMode = (mode: ViewMode) => {
     viewMode.value = mode
-    // Auto-adjust projection mode for composite-custom
-    // In composite-custom, individual projections make the most sense
-    if (mode === 'composite-custom' && projectionMode.value === 'uniform') {
-      projectionMode.value = 'individual'
-    }
-  }
-
-  const setProjectionMode = (mode: ProjectionMode) => {
-    projectionMode.value = mode
   }
 
   const setCompositeProjection = (projection: string) => {
     compositeProjection.value = projection
+  }
+
+  // Territory set management for custom composite mode
+  const addTerritoryToComposite = (territoryCode: string) => {
+    activeTerritoryCodes.value.add(territoryCode)
+    // Trigger reactivity by creating new Set
+    activeTerritoryCodes.value = new Set(activeTerritoryCodes.value)
+  }
+
+  const removeTerritoryFromComposite = (territoryCode: string) => {
+    activeTerritoryCodes.value.delete(territoryCode)
+    // Trigger reactivity by creating new Set
+    activeTerritoryCodes.value = new Set(activeTerritoryCodes.value)
+  }
+
+  const setActiveTerritories = (territoryCodes: string[]) => {
+    activeTerritoryCodes.value = new Set(territoryCodes)
   }
 
   const setCustomRotate = (longitude: number | null, latitude: number | null) => {
@@ -306,24 +255,26 @@ export const useConfigStore = defineStore('config', () => {
     parameterStore.setGlobalParameter('scale', scale ?? undefined)
   }
 
-  const setProjectionFittingMode = (mode: 'auto' | 'manual') => {
-    projectionFittingMode.value = mode
-  }
-
   const setRotateLatitudeLocked = (locked: boolean) => {
     rotateLatitudeLocked.value = locked
   }
 
   const resetProjectionParams = () => {
-    // Reset all global parameter overrides by setting to undefined
+    // First, clear ALL global parameters
     parameterStore.setGlobalParameter('rotate', undefined)
     parameterStore.setGlobalParameter('center', undefined)
     parameterStore.setGlobalParameter('parallels', undefined)
     parameterStore.setGlobalParameter('scale', undefined)
+
+    // If view preset is active, restore preset parameters
+    if (currentViewPreset.value && presetDefaults.presetGlobalParameters.value) {
+      parameterStore.setGlobalParameters(presetDefaults.presetGlobalParameters.value)
+    }
+
     rotateLatitudeLocked.value = true // Reset to locked state
   }
 
-  // Individual parameter setters for backward compatibility
+  // Individual parameter setters - convenience wrappers
   const setCustomRotateLongitude = (value: number | null) => {
     const currentLatitude = parameterStore.globalParameters.rotate?.[1] ?? null
     setCustomRotate(value, currentLatitude)
@@ -358,57 +309,207 @@ export const useConfigStore = defineStore('config', () => {
     uiStore.initializeTheme()
   }
 
-  // Watch for atlas changes - use AtlasCoordinator for complex orchestration
-  watch(selectedAtlas, async (newAtlasId) => {
-    const updates = await AtlasCoordinator.handleAtlasChange(newAtlasId, viewMode.value)
+  // View Preset Management
+  /**
+   * Load available view presets for current atlas and view mode
+   */
+  async function loadAvailableViewPresets() {
+    // Only load presets for view modes that support them
+    if (!['unified', 'split', 'built-in-composite'].includes(viewMode.value)) {
+      availableViewPresets.value = []
+      return
+    }
 
-    // Apply all updates from coordinator to config store
-    viewMode.value = updates.viewMode
-    territoryMode.value = updates.territoryMode
-    selectedProjection.value = updates.selectedProjection
-
-    // Store original preset defaults for reset functionality
-    presetDefaults.storePresetDefaults({
-      projections: updates.projections,
-      translations: updates.translations,
-      scales: updates.scales,
-    }, updates.territoryParameters)
-
-    // Update territory store - use proper setter methods to maintain reactivity
-    Object.entries(updates.projections).forEach(([code, projection]) => {
-      territoryStore.setTerritoryProjection(code, projection)
-    })
-    Object.entries(updates.translations).forEach(([code, translation]) => {
-      territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-      territoryStore.setTerritoryTranslation(code, 'y', translation.y)
-    })
-    Object.entries(updates.scales).forEach(([code, scale]) => {
-      parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-    })
-
-    // Load territory-specific projection parameters into parameter store
-    if (updates.territoryParameters && Object.keys(updates.territoryParameters).length > 0) {
-      Object.entries(updates.territoryParameters).forEach(([territoryCode, params]) => {
-        parameterStore.setTerritoryParameters(territoryCode, params as any)
+    try {
+      const presets = await PresetLoader.listPresets({
+        atlasId: selectedAtlas.value,
+        viewMode: viewMode.value as any,
       })
+      // CRITICAL: Filter out composite-custom presets - they use atlas initialization path only
+      // Composite-custom presets are loaded via AtlasCoordinator.handleAtlasChange(), not view preset API
+      availableViewPresets.value = presets.filter(p => p.type !== 'composite-custom') as any
+
+      console.info(`[ConfigStore] Loaded ${presets.filter(p => p.type !== 'composite-custom').length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
+    }
+    catch (error) {
+      console.error('[ConfigStore] Failed to load available view presets:', error)
+      availableViewPresets.value = []
+    }
+  }
+
+  /**
+   * Auto-load first available preset if any exist
+   */
+  async function autoLoadFirstPreset(context: string) {
+    if (availableViewPresets.value.length === 0) {
+      console.info(`[ConfigStore] No view presets available to auto-load (${context})`)
+      return
     }
 
-    // Update UI store
-    uiStore.showGraticule = updates.mapDisplay.showGraticule
-    uiStore.showSphere = updates.mapDisplay.showSphere
-    uiStore.showCompositionBorders = updates.mapDisplay.showCompositionBorders
-    uiStore.showMapLimits = updates.mapDisplay.showMapLimits
+    const firstPreset = availableViewPresets.value[0]
+    if (!firstPreset) {
+      return
+    }
 
-    if (updates.compositeProjection) {
-      compositeProjection.value = updates.compositeProjection
+    try {
+      await loadViewPreset(firstPreset.id)
+      console.info(`[ConfigStore] Auto-loaded view preset "${firstPreset.name}" (${context})`)
     }
-    if (updates.referenceScale !== undefined) {
-      referenceScale.value = updates.referenceScale
+    catch (error) {
+      console.warn(`[ConfigStore] Failed to auto-load preset (${context}):`, error)
     }
-    if (updates.canvasDimensions !== undefined) {
-      canvasDimensions.value = updates.canvasDimensions
+  }
+
+  /**
+   * Load and apply a view preset
+   */
+  async function loadViewPreset(presetId: string) {
+    try {
+      const result = await PresetLoader.loadPreset(presetId)
+
+      if (!result.success || !result.data) {
+        console.error('[ConfigStore] Failed to load view preset:', result.errors)
+        throw new Error(result.errors.join(', '))
+      }
+
+      const preset = result.data
+
+      // Validate preset matches current view mode
+      if (preset.type !== viewMode.value) {
+        throw new Error(
+          `Preset is for ${preset.type} mode, but current mode is ${viewMode.value}`,
+        )
+      }
+
+      // Apply preset configuration based on view mode
+      applyViewPresetConfig(preset)
+
+      // Update current preset
+      currentViewPreset.value = presetId
+
+      // Log warnings if any
+      if (result.warnings.length > 0) {
+        console.warn('[ConfigStore] View preset warnings:', result.warnings)
+      }
+
+      console.info('[ConfigStore] View preset loaded successfully:', presetId)
     }
+    catch (error) {
+      console.error('[ConfigStore] Error loading view preset:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Apply view preset configuration to stores
+   * Delegates to PresetApplicationService for unified preset application logic
+   */
+  function applyViewPresetConfig(preset: Preset) {
+    const result = PresetApplicationService.applyPreset(preset)
+
+    if (!result.success) {
+      console.error('[ConfigStore] Failed to apply preset:', result.errors)
+      throw new Error(result.errors.join(', '))
+    }
+
+    if (result.warnings.length > 0) {
+      console.warn('[ConfigStore] Preset applied with warnings:', result.warnings)
+    }
+  }
+
+  /**
+   * Clear current view preset
+   */
+  function clearViewPreset() {
+    currentViewPreset.value = null
+  }
+
+  // Watch view mode changes to load available presets
+  // Watch view mode changes - handle preset loading and parameter clearing
+  watch(viewMode, async (newMode, oldMode) => {
+    clearViewPreset()
+
+    // Clear global projection parameters when switching view modes
+    // Each view mode/preset should start fresh with its own parameters
+    parameterStore.setGlobalParameter('rotate', undefined)
+    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameter('parallels', undefined)
+    parameterStore.setGlobalParameter('scale', undefined)
+    presetDefaults.storeGlobalParameters(null)
+
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available
+    await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
   })
+
+  // Track if we're in the middle of reverting to prevent infinite loops
+  let isReverting = false
+
+  // Watch atlas changes - use InitializationService for orchestration
+  watch(selectedAtlas, async (newAtlasId, oldAtlasId) => {
+    // Skip if we're reverting from a failed atlas change
+    if (isReverting) {
+      isReverting = false
+      return
+    }
+
+    // Preload the new atlas before orchestration to ensure sync access works
+    await loadAtlasAsync(newAtlasId)
+
+    // Use InitializationService for consistent atlas change handling
+    const result = await InitializationService.initializeAtlas({
+      atlasId: newAtlasId,
+      preserveViewMode: true, // Try to keep current view mode if supported by new atlas
+    })
+
+    if (!result.success) {
+      console.error('[ConfigStore] Atlas change failed:', result.errors)
+
+      // Revert to old atlas selection
+      isReverting = true
+      selectedAtlas.value = oldAtlasId
+
+      // Show error toast to user
+      const errorMessage = result.errors && result.errors.length > 0
+        ? result.errors[0]
+        : 'Failed to switch atlas'
+
+      uiStore.showToast(
+        `Cannot switch to ${newAtlasId}: ${errorMessage}`,
+        'error',
+        5000,
+      )
+
+      return
+    }
+
+    if (!result.state) {
+      console.error('[ConfigStore] Atlas change returned no state')
+      return
+    }
+
+    console.info('[ConfigStore] Atlas changed successfully:', {
+      oldAtlas: oldAtlasId,
+      newAtlas: newAtlasId,
+      newViewMode: result.state.viewMode,
+      territoryCount: Object.keys(result.state.parameters.territories).length,
+    })
+
+    // Reload view presets for the new atlas
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available
+    await autoLoadFirstPreset(`atlas changed from ${oldAtlasId} to ${newAtlasId}`)
+  })
+
+  // Load initial view presets and auto-apply first one
+  ;(async () => {
+    await loadAvailableViewPresets()
+
+    // Auto-load first preset if available for initial load
+    await autoLoadFirstPreset('initial load')
+  })()
 
   return {
     // State
@@ -417,11 +518,14 @@ export const useConfigStore = defineStore('config', () => {
     selectedProjection,
     territoryMode,
     viewMode,
-    projectionMode,
     compositeProjection,
     referenceScale,
     canvasDimensions,
-    // Legacy parameter accessors - delegate to parameter store for backward compatibility
+    activeTerritoryCodes,
+    // View preset state
+    currentViewPreset,
+    availableViewPresets,
+    // Parameter accessors - delegate to parameter store
     customRotateLongitude: computed(() => parameterStore.globalParameters.rotate?.[0] ?? null),
     customRotateLatitude: computed(() => parameterStore.globalParameters.rotate?.[1] ?? null),
     customCenterLongitude: computed(() => parameterStore.globalParameters.center?.[0] ?? null),
@@ -430,20 +534,16 @@ export const useConfigStore = defineStore('config', () => {
     customParallel2: computed(() => parameterStore.globalParameters.parallels?.[1] ?? null),
     customScale: computed(() => parameterStore.globalParameters.scale ?? null),
     rotateLatitudeLocked,
-    projectionFittingMode,
 
     // Computed
     atlasService,
     currentAtlasConfig,
-    effectiveProjectionParams,
     isViewModeLocked,
     showProjectionSelector,
-    showProjectionModeToggle,
     showIndividualProjectionSelectors,
     showTerritorySelector,
     showScalePreservation,
     showTerritoryControls,
-    showCompositeProjectionSelector,
     projectionGroups,
     projectionRecommendations,
 
@@ -452,16 +552,17 @@ export const useConfigStore = defineStore('config', () => {
     setSelectedProjection,
     setTerritoryMode,
     setViewMode,
-    setProjectionMode,
     setCompositeProjection,
+    addTerritoryToComposite,
+    removeTerritoryFromComposite,
+    setActiveTerritories,
     setCustomRotate,
     setCustomCenter,
     setCustomParallels,
     setCustomScale,
-    setProjectionFittingMode,
     setRotateLatitudeLocked,
     resetProjectionParams,
-    // Individual parameter setters for backward compatibility
+    // Individual parameter setters - convenience wrappers
     setCustomRotateLongitude,
     setCustomRotateLatitude,
     setCustomCenterLongitude,
@@ -469,6 +570,11 @@ export const useConfigStore = defineStore('config', () => {
     setCustomParallel1,
     setCustomParallel2,
     initializeTheme,
-    initializeWithPresetMetadata,
+    // Reactivity System Refactor: initializeWithPresetMetadata removed
+    // Now using InitializationService.initializeAtlas() for all initialization
+    // View preset actions
+    loadAvailableViewPresets,
+    loadViewPreset,
+    clearViewPreset,
   }
 })

@@ -6,7 +6,7 @@ import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages territory cursor interaction for drag-to-move functionality
- * Only active in composite-custom mode for overseas territories
+ * Active in composite-custom mode for all territories
  */
 export function useTerritoryCursor() {
   const configStore = useConfigStore()
@@ -24,6 +24,9 @@ export function useTerritoryCursor() {
 
   // Hover state for visual feedback
   const hoveredTerritoryCode = ref<string | null>(null)
+
+  // Grid step size for snapping (in pixels)
+  const GRID_STEP = 10
 
   /**
    * Check if territory dragging is enabled
@@ -63,13 +66,13 @@ export function useTerritoryCursor() {
     if (bordersExist) {
       // Reset all visual feedback using D3 selections for existing borders
       existingBorders
-        .style('opacity', '0.5')
+        // .style('opacity', '0.5')
         .style('stroke-width', '1.25')
 
       // Apply feedback for active territory
       if (territoryCode) {
         svgSelection.selectAll(`.composition-border[data-territory="${territoryCode}"]`)
-          .style('opacity', isDragging ? '1.0' : '0.8')
+          // .style('opacity', isDragging ? '1.0' : '0.8')
           .style('stroke-width', isDragging ? '2.0' : '1.5')
       }
     }
@@ -134,7 +137,7 @@ export function useTerritoryCursor() {
 
   /**
    * Check if a territory can be dragged
-   * Prevents mainland territories from being dragged and checks if territory is in filtered list
+   * Checks if territory is in filtered list (or is mainland) and mode is enabled
    */
   function isTerritoryDraggable(territoryCode: string): boolean {
     if (!isDragEnabled.value)
@@ -144,14 +147,14 @@ export function useTerritoryCursor() {
     const atlasConfig = configStore.currentAtlasConfig
     const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
 
-    // Don't allow dragging mainland territories
+    // Allow dragging mainland
     if (mainlandCode && territoryCode === mainlandCode) {
-      return false
+      return true
     }
 
-    // Only allow dragging territories that are currently visible/filtered
-    const filteredTerritoryCodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
-    if (!filteredTerritoryCodes.has(territoryCode)) {
+    // Only allow dragging territories that are currently active (overseas or mainland)
+    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
+    if (!activeTerritoryCodes.has(territoryCode)) {
       return false
     }
 
@@ -265,8 +268,12 @@ export function useTerritoryCursor() {
     const dx = screenDx / scale
     const dy = screenDy / scale
 
-    const newOffsetX = dragStartOffsetX.value + dx
-    const newOffsetY = dragStartOffsetY.value + dy
+    // Snap to grid step
+    const snappedDx = Math.round(dx / GRID_STEP) * GRID_STEP
+    const snappedDy = Math.round(dy / GRID_STEP) * GRID_STEP
+
+    const newOffsetX = dragStartOffsetX.value + snappedDx
+    const newOffsetY = dragStartOffsetY.value + snappedDy
 
     // Update parameter store with new position (this will update both sliders and rendering)
     parameterStore.setTerritoryParameter(dragTerritoryCode.value, 'translateOffset', [newOffsetX, newOffsetY])
@@ -381,10 +388,10 @@ export function useTerritoryCursor() {
     customComposite.build(width, height, true)
     const allBorders = customComposite.getCompositionBorders(width, height)
 
-    // Filter borders to only include territories that are currently filtered/visible
-    const filteredTerritorycodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
+    // Filter borders to only include territories that are currently active (overseas or mainland)
+    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
     const borders = allBorders.filter((border: any) =>
-      filteredTerritorycodes.has(border.territoryCode),
+      activeTerritoryCodes.has(border.territoryCode),
     )
 
     const svgSelection = select(svg)

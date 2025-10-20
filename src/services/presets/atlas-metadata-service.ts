@@ -11,7 +11,7 @@
  * - Handle projection preferences, parameters, and display defaults
  */
 
-import type { AtlasProjectionMetadata, PresetLoadResult } from './preset-loader'
+import type { AtlasProjectionMetadata, LoadResult, Preset } from '@/core/presets'
 import { PresetLoader } from './preset-loader'
 
 export interface AtlasMetadataResult {
@@ -53,19 +53,21 @@ export class AtlasMetadataService {
     // Try to load from preset
     if (defaultPreset) {
       try {
-        const presetResult: PresetLoadResult = await PresetLoader.loadPreset(defaultPreset)
+        const presetResult: LoadResult<Preset> = await PresetLoader.loadPreset(defaultPreset)
 
-        if (presetResult.success && presetResult.preset?.atlasMetadata) {
-          const metadata = presetResult.preset.atlasMetadata
+        if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
+          const metadata = presetResult.data.config.atlasMetadata
 
-          // Cache the result
-          metadataCache.set(cacheKey, metadata)
+          if (metadata) {
+            // Cache the result
+            metadataCache.set(cacheKey, metadata)
 
-          return {
-            success: true,
-            metadata,
-            errors: [],
-            source: 'preset',
+            return {
+              success: true,
+              metadata,
+              errors: [],
+              source: 'preset',
+            }
           }
         }
       }
@@ -121,23 +123,6 @@ export class AtlasMetadataService {
   }
 
   /**
-   * Get map display defaults for an atlas
-   *
-   * @param atlasId - Atlas identifier
-   * @param defaultPreset - Default preset name
-   * @returns Map display defaults object
-   */
-  static async getMapDisplayDefaults(atlasId: string, defaultPreset?: string): Promise<AtlasProjectionMetadata['mapDisplayDefaults']> {
-    const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return result.metadata?.mapDisplayDefaults || {
-      showGraticule: false,
-      showSphere: false,
-      showCompositionBorders: false,
-      showMapLimits: false,
-    }
-  }
-
-  /**
    * Clear metadata cache (useful for testing or when presets are updated)
    */
   static clearCache(): void {
@@ -159,12 +144,6 @@ export class AtlasMetadataService {
           mainland: 'natural-earth',
           overseas: 'mercator',
         },
-      },
-      mapDisplayDefaults: {
-        showGraticule: false,
-        showSphere: false,
-        showCompositionBorders: false,
-        showMapLimits: false,
       },
     }
   }

@@ -16,7 +16,8 @@
     "paths": {
       "@/*": ["./*"],
       "#configs/*": ["../configs/*"],
-      "#types/*": ["../types/*"]
+      "#types/*": ["../types/*"],
+      "#package": ["../package.json"]
     },
     "types": ["vite/client", "node"],
     "allowImportingTsExtensions": true,

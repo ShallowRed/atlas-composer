@@ -4,6 +4,9 @@ import { ref } from 'vue'
 /**
  * UI Store - Manages user interface state and preferences
  * Separated from domain logic (config store) for better organization
+ *
+ * Note: Globe outline (showSphere) is determined by view mode via ViewOrchestrationService,
+ * not stored as user preference
  */
 export interface ToastMessage {
   id: string
@@ -18,9 +21,8 @@ export const useUIStore = defineStore('ui', () => {
 
   // Display toggles
   const showGraticule = ref(false)
-  const showSphere = ref(false)
   const showCompositionBorders = ref(true) // Default to true for better UX with clip extent editing
-  const showMapLimits = ref(false)
+  const showMapLimits = ref(true) // Default to true for better visualization
 
   // Toast notifications
   const toasts = ref<ToastMessage[]>([])
@@ -28,18 +30,7 @@ export const useUIStore = defineStore('ui', () => {
 
   // Actions
   function initializeTheme() {
-    // Migration: Check for old 'atlas-theme' key from config store
-    const oldThemeKey = localStorage.getItem('atlas-theme')
-    if (oldThemeKey) {
-      // Migrate to new key
-      localStorage.setItem('theme', oldThemeKey)
-      localStorage.removeItem('atlas-theme')
-      theme.value = oldThemeKey
-      applyTheme(oldThemeKey)
-      return
-    }
-
-    // Check for saved theme preference (new key)
+    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme) {
       theme.value = savedTheme
@@ -65,14 +56,12 @@ export const useUIStore = defineStore('ui', () => {
 
   function initializeDisplayOptions(defaults: {
     showGraticule?: boolean
-    showSphere?: boolean
     showCompositionBorders?: boolean
     showMapLimits?: boolean
   }) {
     showGraticule.value = defaults.showGraticule ?? false
-    showSphere.value = defaults.showSphere ?? false
     showCompositionBorders.value = defaults.showCompositionBorders ?? true // Default to true
-    showMapLimits.value = defaults.showMapLimits ?? false
+    showMapLimits.value = defaults.showMapLimits ?? true // Default to true
   }
 
   function showToast(
@@ -109,7 +98,6 @@ export const useUIStore = defineStore('ui', () => {
     // State
     theme,
     showGraticule,
-    showSphere,
     showCompositionBorders,
     showMapLimits,
     toasts,

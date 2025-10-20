@@ -13,7 +13,6 @@ import { CompositeImportService } from '@/services/export/composite-import-servi
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 // Mock composite projection config
 const mockConfig: CompositeProjectionConfig = {
@@ -22,8 +21,6 @@ const mockConfig: CompositeProjectionConfig = {
     code: 'FR-MET',
     name: 'Metropolitan France',
     center: [2.5, 46.5] as [number, number],
-    offset: [0, 0] as [number, number],
-    projectionType: 'conic-conformal',
     bounds: [[-5, 41], [10, 51]] as [[number, number], [number, number]],
   },
   overseasTerritories: [
@@ -31,8 +28,6 @@ const mockConfig: CompositeProjectionConfig = {
       code: 'FR-GP',
       name: 'Guadeloupe',
       center: [-61.46, 16.14] as [number, number],
-      offset: [-324, -38] as [number, number],
-      projectionType: 'mercator',
       bounds: [[-62, 15], [-61, 17]] as [[number, number], [number, number]],
     },
   ],
@@ -40,7 +35,6 @@ const mockConfig: CompositeProjectionConfig = {
 
 describe('export/import parameter roundtrip', () => {
   let parameterStore: ReturnType<typeof useParameterStore>
-  let territoryStore: ReturnType<typeof useTerritoryStore>
   let configStore: ReturnType<typeof useConfigStore>
 
   beforeEach(() => {
@@ -48,7 +42,6 @@ describe('export/import parameter roundtrip', () => {
     setActivePinia(pinia)
 
     parameterStore = useParameterStore()
-    territoryStore = useTerritoryStore()
     configStore = useConfigStore()
 
     // Initialize parameter store
@@ -85,9 +78,6 @@ describe('export/import parameter roundtrip', () => {
     // Set parameters in parameter store
     for (const [territoryCode, params] of Object.entries(originalParams)) {
       parameterStore.setTerritoryParameters(territoryCode, params)
-      territoryStore.setTerritoryProjection(territoryCode, params.projectionId)
-      territoryStore.setTerritoryTranslation(territoryCode, 'x', params.translateOffset[0])
-      territoryStore.setTerritoryTranslation(territoryCode, 'y', params.translateOffset[1])
     }
 
     // Create composite projection with parameter provider
@@ -147,16 +137,15 @@ describe('export/import parameter roundtrip', () => {
     CompositeImportService.applyToStores(
       exported,
       configStore,
-      territoryStore,
-      compositeProjection,
       parameterStore,
+      compositeProjection,
     )
 
     // Verify that all parameters were restored correctly
     for (const [territoryCode, originalTerritoryParams] of Object.entries(originalParams)) {
       const restoredParams = parameterStore.getEffectiveParameters(territoryCode)
-      const territoryProjection = territoryStore.territoryProjections[territoryCode]
-      const territoryTranslation = territoryStore.territoryTranslations[territoryCode]
+      const territoryProjection = parameterStore.getTerritoryProjection(territoryCode)
+      const territoryTranslation = parameterStore.getTerritoryTranslation(territoryCode)
 
       // Verify projection ID
       expect(territoryProjection).toBe(originalTerritoryParams.projectionId)
@@ -193,7 +182,6 @@ describe('export/import parameter roundtrip', () => {
     // Set parameters in parameter store
     for (const [territoryCode, params] of Object.entries(minimalParams)) {
       parameterStore.setTerritoryParameters(territoryCode, params)
-      territoryStore.setTerritoryProjection(territoryCode, params.projectionId)
     }
 
     // Create composite projection
@@ -234,9 +222,8 @@ describe('export/import parameter roundtrip', () => {
       CompositeImportService.applyToStores(
         exported,
         configStore,
-        territoryStore,
-        compositeProjection,
         parameterStore,
+        compositeProjection,
       )
     }).not.toThrow()
   })

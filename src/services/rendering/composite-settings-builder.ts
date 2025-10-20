@@ -13,7 +13,7 @@ export interface CustomCompositeSettings {
  * CompositeSettingsBuilder
  *
  * Builds custom composite settings from atlas configuration and user preferences
- * Handles both uniform and individual projection modes
+ * Always uses individual projections per territory
  */
 export class CompositeSettingsBuilder {
   /**
@@ -41,49 +41,27 @@ export class CompositeSettingsBuilder {
   }
 
   /**
-   * Build territory projections map based on projection mode
+   * Build territory projections map
+   * Always uses individual territory projections
    */
   static buildTerritoryProjections(
-    territoryCodes: string[],
-    projectionMode: 'uniform' | 'individual',
-    selectedProjection: string,
     territoryProjections: Record<string, string>,
   ): Record<string, string> {
-    const result: Record<string, string> = {}
-
-    if (projectionMode === 'individual') {
-      // Use individual territory projections
-      Object.assign(result, territoryProjections)
-    }
-    else {
-      // Uniform mode: all territories use the same projection
-      territoryCodes.forEach((code) => {
-        result[code] = selectedProjection
-      })
-    }
-
-    return result
+    // Always use individual territory projections
+    return { ...territoryProjections }
   }
 
   /**
    * Build complete custom composite settings
+   * Always uses individual territory projections
    */
   static buildSettings(
-    compositeConfig: CompositeProjectionConfig | undefined,
-    projectionMode: 'uniform' | 'individual',
-    selectedProjection: string,
+    _compositeConfig: CompositeProjectionConfig | undefined,
     territoryProjections: Record<string, string>,
     territoryTranslations: Record<string, { x: number, y: number }>,
     // territoryScales parameter removed - no longer needed
   ): CustomCompositeSettings {
-    const territoryCodes = this.extractTerritoryCodes(compositeConfig)
-
-    const projections = this.buildTerritoryProjections(
-      territoryCodes,
-      projectionMode,
-      selectedProjection,
-      territoryProjections,
-    )
+    const projections = this.buildTerritoryProjections(territoryProjections)
 
     return {
       territoryProjections: projections,

@@ -66,23 +66,38 @@ export class AtlasCoordinator {
     if (config.defaultPreset && viewMode === 'composite-custom') {
       try {
         const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
-        if (presetResult.success && presetResult.preset) {
-          // Convert preset to defaults and merge with territory defaults
-          const presetDefaults = PresetLoader.convertToDefaults(presetResult.preset)
-          finalDefaults = {
-            projections: { ...finalDefaults.projections, ...presetDefaults.projections },
-            translations: { ...finalDefaults.translations, ...presetDefaults.translations },
-            scales: { ...finalDefaults.scales, ...presetDefaults.scales },
-          }
+        if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
+          // Convert preset config to defaults - territories not in preset will NOT be rendered
+          const presetDefaults = PresetLoader.convertToDefaults(presetResult.data.config)
+          // Use ONLY preset defaults (no fallback merge) so missing territories don't get defaults
+          finalDefaults = presetDefaults
 
           // Extract territory-specific projection parameters from preset
-          territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.preset)
+          territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.data.config)
+
+          // Debug: Log what was extracted
+          console.info('[AtlasCoordinator] Extracted territory parameters:', Object.keys(territoryParameters).map(code => ({
+            code,
+            hasProjectionId: !!territoryParameters[code]?.projectionId,
+            projectionId: territoryParameters[code]?.projectionId,
+            allKeys: Object.keys(territoryParameters[code] || {}),
+          })))
+
+          // Handle territory mismatch: territories not in preset will NOT be rendered (no fallback)
+          const presetTerritoryCodes = new Set(Object.keys(presetDefaults.projections))
+          const missingTerritories = territories.filter(t => !presetTerritoryCodes.has(t.code))
+
+          if (missingTerritories.length > 0) {
+            console.info(
+              `[AtlasCoordinator] Preset '${config.defaultPreset}' defines ${presetTerritoryCodes.size} territories, atlas allows ${territories.length}. ${missingTerritories.length} territories will NOT be rendered: ${missingTerritories.map(t => t.code).join(', ')}`,
+            )
+          }
 
           // Extract referenceScale from preset
-          referenceScale = presetResult.preset.referenceScale
+          referenceScale = presetResult.data.config.referenceScale
 
           // Extract canvasDimensions from preset (if available)
-          canvasDimensions = presetResult.preset.canvasDimensions
+          canvasDimensions = presetResult.data.config.canvasDimensions
         }
         else {
           // Log warning but continue with fallback defaults
@@ -99,18 +114,35 @@ export class AtlasCoordinator {
     const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, config.defaultPreset)
 
     // Determine composite projection from preset metadata
-    const compositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
+    let finalCompositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
 
-    // Determine selected projection from preset metadata or mainland
-    const selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset, atlasService)
+    // If no composite projection is set, find the first available one for this atlas
+    // This ensures built-in-composite mode always has a valid projection selected
+    if (!finalCompositeProjection) {
+      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, config.defaultPreset)
+      if (availableComposites.length > 0) {
+        finalCompositeProjection = availableComposites[0]
+      }
+    }
 
-    // Get map display defaults from preset metadata
-    const mapDisplayDefaults = await AtlasMetadataService.getMapDisplayDefaults(newAtlasId, config.defaultPreset)
+    // Determine selected projection from preset metadata
+    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset)
+
+    // Ensure selected projection is valid for composite modes
+    // For composite views, projection must exist in territory projections
+    if (viewMode.startsWith('composite-') && !finalDefaults.projections[atlasService.getMainland()?.code || '']) {
+      // Fall back to first available projection or mercator
+      const mainlandCode = atlasService.getMainland()?.code
+      const mainlandProjection = mainlandCode ? finalDefaults.projections[mainlandCode] : undefined
+      selectedProjection = mainlandProjection || 'mercator'
+    }
+
+    // Map display defaults are now controlled by UI store only
     const mapDisplay = {
-      showGraticule: mapDisplayDefaults?.showGraticule ?? false,
-      showSphere: mapDisplayDefaults?.showSphere ?? false,
-      showCompositionBorders: mapDisplayDefaults?.showCompositionBorders ?? false,
-      showMapLimits: mapDisplayDefaults?.showMapLimits ?? false,
+      showGraticule: false,
+      showSphere: false,
+      showCompositionBorders: true,
+      showMapLimits: true,
     }
 
     return {
@@ -120,7 +152,7 @@ export class AtlasCoordinator {
       translations: finalDefaults.translations,
       scales: finalDefaults.scales,
       territoryParameters,
-      compositeProjection,
+      compositeProjection: finalCompositeProjection,
       selectedProjection,
       referenceScale,
       canvasDimensions,
@@ -156,17 +188,14 @@ export class AtlasCoordinator {
   }
 
   /**
-   * Get selected projection based on preferences or mainland
-   *
-   * @param atlasId - Atlas identifier
+   * Get selected projection for an atlas
+   * @param atlasId - Atlas ID
    * @param defaultPreset - Default preset name
-   * @param atlasService - Atlas service instance
    * @returns Projection ID to use
    */
   private static async getSelectedProjection(
     atlasId: string,
     defaultPreset: string | undefined,
-    atlasService: AtlasService,
   ): Promise<string> {
     // First, try to get from projection preferences (for wildcard atlases like world)
     const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(atlasId, defaultPreset)
@@ -174,8 +203,7 @@ export class AtlasCoordinator {
       return projectionPrefs.recommended[0]!
     }
 
-    // Otherwise, use mainland territory projection
-    const mainland = atlasService.getMainland()
-    return mainland?.projectionType || 'natural-earth'
+    // Otherwise, use natural-earth as default (no config-level defaults)
+    return 'natural-earth'
   }
 }

@@ -1,10 +1,11 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getAtlasBehavior } from '@/core/atlases/registry'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { useConfigStore } from '@/stores/config'
-import { useTerritoryStore } from '@/stores/territory'
+import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages projection configuration and provides projection helper functions
@@ -12,17 +13,19 @@ import { useTerritoryStore } from '@/stores/territory'
 export function useProjectionConfig() {
   const { t } = useI18n()
   const configStore = useConfigStore()
-  const territoryStore = useTerritoryStore()
+  const parameterStore = useParameterStore()
 
   // Reactive state for composite projections
   const availableCompositeProjections = ref<string[]>([])
 
   // Load composite projections when atlas changes
   watch(() => configStore.selectedAtlas, async (atlasId) => {
-    if (atlasId) {
+    if (atlasId && configStore.currentAtlasConfig) {
+      const atlasBehavior = getAtlasBehavior(atlasId)
+      const defaultPreset = atlasBehavior?.defaultPreset
       const compositeProjections = await AtlasMetadataService.getCompositeProjections(
         atlasId,
-        configStore.currentAtlasConfig.defaultPreset,
+        defaultPreset,
       )
       availableCompositeProjections.value = compositeProjections || []
     }
@@ -39,13 +42,14 @@ export function useProjectionConfig() {
   })
 
   /**
-   * Get projection for mainland in individual mode
+   * Get projection for mainland in split mode
    */
   function getMainlandProjection() {
-    if (configStore.projectionMode === 'individual') {
-      const mainlandCode = configStore.currentAtlasConfig.splitModeConfig?.mainlandCode
+    // In split mode, use per-territory projections
+    if (configStore.viewMode === 'split') {
+      const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
       if (mainlandCode) {
-        return territoryStore.territoryProjections[mainlandCode] || configStore.selectedProjection
+        return parameterStore.getTerritoryProjection(mainlandCode) || configStore.selectedProjection
       }
     }
     return configStore.selectedProjection
@@ -55,11 +59,12 @@ export function useProjectionConfig() {
    * Get projection for a specific territory
    */
   function getTerritoryProjection(territoryCode: string) {
-    if (configStore.projectionMode === 'individual') {
+    // In split or composite-custom mode, use per-territory projections
+    if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
       // Use territory-specific projection if defined, otherwise use default
-      return territoryStore.territoryProjections[territoryCode] || configStore.selectedProjection
+      return parameterStore.getTerritoryProjection(territoryCode) || configStore.selectedProjection
     }
-    // Use uniform projection
+    // Use uniform projection for unified and built-in-composite modes
     return configStore.selectedProjection
   }
 

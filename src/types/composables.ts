@@ -166,23 +166,6 @@ export interface TerritoryTransforms {
    */
   selectedProjection: ComputedRef<string | undefined>
 
-  /**
-   * Projection mode
-   */
-  projectionMode: ComputedRef<'uniform' | 'individual'>
-
-  /**
-   * Translation range constants
-   */
-  TRANSLATION_RANGES: {
-    x: TranslationRange
-    y: TranslationRange
-  }
-
-  /**
-   * Scale range constants
-   */
-  SCALE_RANGE: ScaleRange
 }
 
 /**
@@ -325,6 +308,42 @@ export interface TerritoryCursor {
    * Handle mouse leave on territory element
    */
   handleTerritoryMouseLeave: () => void
+
+  /**
+   * Cleanup function to remove event listeners
+   */
+  cleanup: () => void
+}
+
+/**
+ * Return type for useProjectionPanning composable
+ */
+export interface ProjectionPanning {
+  /**
+   * Whether panning is currently active
+   */
+  isPanning: Readonly<Ref<boolean>>
+
+  /**
+   * Whether current projection supports panning
+   */
+  supportsPanning: ComputedRef<boolean>
+
+  /**
+   * Whether current projection supports latitude panning
+   */
+  supportsLatitudePanning: ComputedRef<boolean>
+
+  /**
+   * Cursor style for panning interaction
+   */
+  cursorStyle: ComputedRef<'grab' | 'grabbing' | 'default'>
+
+  /**
+   * Handle mouse down event for panning
+   * @returns true if panning started, false otherwise
+   */
+  handleMouseDown: (event: MouseEvent) => boolean
 
   /**
    * Cleanup function to remove event listeners

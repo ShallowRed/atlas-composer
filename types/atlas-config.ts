@@ -33,16 +33,34 @@ export interface JSONTerritoryConfig {
     polygonBounds?: [[number, number], [number, number]]
     duplicateFrom?: string
   }
-  rendering?: {
-    projectionType?: string
-    offset?: [number, number]
-    scale?: number
-    clipExtent?: { x1: number, y1: number, x2: number, y2: number }
-    rotate?: [number, number, number?]
-    parallels?: [number, number]
-    baseScaleMultiplier?: number
-  }
 }
+
+/**
+ * Territory collection in unified JSON format
+ * A collection groups territories based on a specific strategy
+ */
+export interface JSONTerritoryCollection {
+  id: string
+  label: I18nValue
+  territories: '*' | string[]
+  exclude?: string[]
+}
+
+/**
+ * Territory collection set in unified JSON format
+ * A set contains multiple collections representing a grouping strategy
+ */
+export interface JSONTerritoryCollectionSet {
+  label: I18nValue
+  description?: I18nValue
+  collections: JSONTerritoryCollection[]
+}
+
+/**
+ * Territory collections organized by strategy (e.g., 'geographic', 'administrative')
+ * Keys are user-defined collection set identifiers
+ */
+export type JSONTerritoryCollections = Record<string, JSONTerritoryCollectionSet>
 
 /**
  * Atlas configuration in unified JSON format
@@ -59,29 +77,37 @@ export interface JSONAtlasConfig {
     territories: string
     metadata: string
   }
+  // DEPRECATED: Use registry behavior.defaultPreset instead
   defaultPreset?: string
+  // DEPRECATED: Use registry behavior.availablePresets instead
   availablePresets?: string[]
   defaultProjection?: string
+  // DEPRECATED: Use territoryCollections instead
   modes?: Array<{
     id: string
     label: I18nValue
     territories: string[]
     exclude?: string[]
   }>
+  // DEPRECATED: Use territoryCollections instead
   groups?: Array<{
     id: string
     label: I18nValue
     territories: string[]
   }>
-  viewModes?: Array<'split' | 'composite-existing' | 'composite-custom' | 'unified'>
-  defaultViewMode?: 'split' | 'composite-existing' | 'composite-custom' | 'unified'
+  viewModes?: Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
+  defaultViewMode?: 'split' | 'built-in-composite' | 'composite-custom' | 'unified'
+  // DEPRECATED: Use territoryCollections instead
   territoryModes?: Array<{
     id: string
     name: I18nValue
     territoryCodes: '*' | string[]
     exclude?: string[]
   }>
+  // DEPRECATED: Use registry behavior.defaultTerritoryCollection instead
   defaultTerritoryMode?: string
+  // Unified territory collections (replaces modes, groups, territoryModes)
+  territoryCollections?: JSONTerritoryCollections
   metadata?: {
     source?: string
     resolution?: string

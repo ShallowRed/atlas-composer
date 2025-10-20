@@ -11,16 +11,19 @@ export function useTerritoryConfig() {
   const geoDataStore = useGeoDataStore()
 
   /**
-   * Check if there are territories to configure (including mainland)
+   * Check if there are territories to configure in projection settings
    */
   const hasTerritoriesForProjectionConfig = computed(() => {
-    // Has territories
-    if (geoDataStore.filteredTerritories.length > 0) {
+    // Has overseas territories
+    if (geoDataStore.overseasTerritories.length > 0) {
       return true
     }
 
     // Or has mainland with single-focus pattern configuration
-    const patternService = AtlasPatternService.fromPattern(configStore.currentAtlasConfig.pattern)
+    const atlasConfig = configStore.currentAtlasConfig
+    if (!atlasConfig)
+      return false
+    const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
     return patternService.isSingleFocus() && geoDataStore.mainlandData !== null
   })
 

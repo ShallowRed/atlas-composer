@@ -8,6 +8,7 @@ applyTo: "**"
 ## Project Overview
 Interactive web application for creating custom cartographic visualizations using composite projections.
 - **Stack**: Vue.js 3, TypeScript, Vite, D3.js, Observable Plot, Pinia, Tailwind CSS, DaisyUI 5
+- **Package Manager**: pnpm (ALWAYS use `pnpm` instead of `npm` or `yarn`)
 - **Key Features**: Multi-atlas support, Natural Earth integration, composite projections, JSON-driven configuration
 
 ## Documentation System
@@ -88,6 +89,8 @@ Last Updated: YYYY-MM-DD
 - Concise explanations
 
 ## Terminal Usage
+- **ALWAYS use pnpm**: `pnpm install`, `pnpm test`, `pnpm dev`, `pnpm build`
+- NEVER use npm or yarn commands
 - Long-running processes (dev servers): `isBackground=true`
 - Quick commands (build, test): `isBackground=false`
 - Use absolute paths or '.'

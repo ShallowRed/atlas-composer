@@ -20,6 +20,26 @@ export interface LoadedConfig {
 }
 
 /**
+ * Atlas registry entry
+ */
+interface AtlasRegistryEntry {
+  id: string
+  configPath: string
+}
+
+/**
+ * Atlas registry configuration
+ */
+interface AtlasRegistryConfig {
+  atlases: AtlasRegistryEntry[]
+}
+
+/**
+ * Cache for registry data
+ */
+let registryCache: AtlasRegistryConfig | null = null
+
+/**
  * Get project root directory
  */
 function getProjectRoot(): string {
@@ -34,6 +54,37 @@ function getConfigsDir(): string {
 }
 
 /**
+ * Load the atlas registry
+ */
+async function loadRegistry(): Promise<AtlasRegistryConfig> {
+  if (registryCache) {
+    return registryCache
+  }
+
+  const registryPath = path.join(getConfigsDir(), 'atlas-registry.json')
+  const registryContent = await fs.readFile(registryPath, 'utf-8')
+  registryCache = JSON.parse(registryContent)
+  return registryCache!
+}
+
+/**
+ * Get config path for an atlas from the registry
+ */
+async function getAtlasConfigPath(atlasName: string): Promise<string> {
+  const registry = await loadRegistry()
+  const entry = registry.atlases.find(a => a.id === atlasName)
+
+  if (!entry) {
+    throw new Error(`Atlas '${atlasName}' not found in registry`)
+  }
+
+  // configPath is relative like "./atlases/france.json"
+  // Remove leading "./" and join with configs directory
+  const relativePath = entry.configPath.replace(/^\.\//, '')
+  return path.join(getConfigsDir(), relativePath)
+}
+
+/**
  * Load unified JSON config and transform to backend format
  *
  * @param atlasName - Name of the atlas (e.g., 'portugal', 'france', 'eu')
@@ -41,8 +92,8 @@ function getConfigsDir(): string {
  */
 export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
   try {
-    // Load unified JSON config
-    const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
+    // Get config path from registry
+    const configPath = await getAtlasConfigPath(atlasName)
     const configContent = await fs.readFile(configPath, 'utf-8')
     const unified = JSON.parse(configContent)
 
@@ -56,15 +107,11 @@ export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
   }
   catch (error) {
     if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
-      logger.error(`Config file not found: ${atlasName}.json`)
-      logger.info(`Available configs in ${getConfigsDir()}:`)
+      logger.error(`Config file not found: ${atlasName}`)
+      logger.info(`Available configs:`)
 
       try {
-        const files = await fs.readdir(getConfigsDir())
-        const configs = files
-          .filter(f => f.endsWith('.json') && f !== 'schema.json')
-          .map(f => f.replace('.json', ''))
-
+        const configs = await listConfigs()
         configs.forEach(c => logger.log(`  - ${c}`))
       }
       catch {
@@ -88,17 +135,12 @@ export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
 /**
  * List all available configs
  *
- * @returns Array of config names (without .json extension)
+ * @returns Array of config names (atlas IDs from registry)
  */
 export async function listConfigs(): Promise<string[]> {
   try {
-    const configsDir = getConfigsDir()
-    const files = await fs.readdir(configsDir)
-
-    return files
-      .filter(f => f.endsWith('.json') && f !== 'schema.json')
-      .map(f => f.replace('.json', ''))
-      .sort()
+    const registry = await loadRegistry()
+    return registry.atlases.map(a => a.id).sort()
   }
   catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -115,8 +157,7 @@ export async function listConfigs(): Promise<string[]> {
  */
 export async function configExists(atlasName: string): Promise<boolean> {
   try {
-    const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
-    await fs.access(configPath)
+    await getAtlasConfigPath(atlasName)
     return true
   }
   catch {

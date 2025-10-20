@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import type * as Plot from '@observablehq/plot'
+import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
+import { useMapWatchers } from '@/composables/useMapWatchers'
+import { useProjectionPanning } from '@/composables/useProjectionPanning'
+import { useSliderState } from '@/composables/useSliderState'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
-import { getRelevantParameters } from '@/core/projections/parameters'
-import { projectionRegistry } from '@/core/projections/registry'
+import { getAtlasBehavior } from '@/core/atlases/registry'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
+import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 import { useUIStore } from '@/stores/ui'
 
 interface Props {
@@ -25,7 +28,8 @@ interface Props {
   width?: number
   hLevel?: number
   height?: number
-  projection?: string // Optional projection override for individual mode
+  projection?: string // Optional projection override for split/composite-custom mode
+  territoryCode?: string // Territory code for parameter resolution in split mode
   fullHeight?: boolean
   // For composite maps
   mode?: 'simple' | 'composite'
@@ -44,25 +48,66 @@ const props = withDefaults(defineProps<Props>(), {
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
-const territoryStore = useTerritoryStore()
 const parameterStore = useParameterStore()
 const uiStore = useUIStore()
 const mapContainer = ref<HTMLElement>()
+
+// Compute showSphere based on view mode (always on for unified mode)
+const showSphere = computed<boolean>(() => {
+  const atlasConfig = configStore.currentAtlasConfig
+  if (!atlasConfig)
+    return false
+
+  const atlasId = configStore.selectedAtlas
+  const behavior = getAtlasBehavior(atlasId)
+  const hasPresets = (behavior?.availablePresets?.length ?? 0) > 0
+
+  const viewState: ViewState = {
+    viewMode: configStore.viewMode,
+    atlasConfig,
+    hasPresets,
+    hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
+    isPresetLoading: false,
+    showProjectionSelector: configStore.showProjectionSelector,
+    showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
+    isMainlandInTerritories: geoDataStore.allActiveTerritories.some(
+      t => t.code === atlasConfig.splitModeConfig?.mainlandCode || t.code === 'MAINLAND',
+    ),
+    showMainland: atlasConfig.pattern === 'single-focus',
+  }
+
+  return ViewOrchestrationService.shouldShowSphere(viewState)
+})
+
+// Watch territory-specific parameter changes in split mode
+// Watch the effective parameters which automatically trigger when territory params change
+watch(
+  () => props.territoryCode ? parameterStore.getEffectiveParameters(props.territoryCode) : null,
+  () => {
+    if (props.territoryCode) {
+      debouncedRenderMap()
+    }
+  },
+  { deep: true },
+)
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const isMounted = ref(false)
 const isRendering = ref(false)
-
-// Pan interaction state
-const isPanning = ref(false)
-const panStartX = ref(0)
-const panStartY = ref(0)
-const panStartRotationLon = ref(0)
-const panStartRotationLat = ref(0)
+const pendingRender = ref(false)
+let renderDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 // Use cartographer from store
 const cartographer = computed(() => geoDataStore.cartographer)
+
+// Projection panning composable for interactive rotation via mouse drag
+const {
+  handleMouseDown: handlePanMouseDown,
+  isPanning,
+  cursorStyle: panningCursorStyle,
+  cleanup: cleanupProjectionPanning,
+} = useProjectionPanning(props.projection)
 
 // Territory cursor composable for drag-to-move functionality
 const {
@@ -83,98 +128,51 @@ const {
 const {
   renderClipExtentHandles,
   toggleTerritorySelection,
+  isDraggingCorner,
   cleanup: cleanupClipExtentEditor,
 } = useClipExtentEditor()
 
-// Check if current projection supports panning (rotateLongitude)
-const supportsPanning = computed(() => {
-  const projectionId = props.projection ?? configStore.selectedProjection
-  if (!projectionId)
-    return false
+// Global slider state tracker
+const { isSliderActive } = useSliderState()
 
-  const projection = projectionRegistry.get(projectionId as string)
-  if (!projection)
-    return false
-
-  const relevantParams = getRelevantParameters(projection.family)
-  return relevantParams.rotateLongitude
-})
-
-// Check if current projection supports latitude panning (rotateLatitude and not locked)
-const supportsLatitudePanning = computed(() => {
-  const projectionId = props.projection ?? configStore.selectedProjection
-  if (!projectionId)
-    return false
-
-  const projection = projectionRegistry.get(projectionId as string)
-  if (!projection)
-    return false
-
-  const relevantParams = getRelevantParameters(projection.family)
-  return relevantParams.rotateLatitude && !configStore.rotateLatitudeLocked
-})
+// Track if we're currently in a drag operation (territory dragging, projection panning, clip extent editing, or slider interaction)
+const isInDragOperation = computed(() => _isDragging.value || isPanning.value || isDraggingCorner.value || isSliderActive.value)
 
 // Get current cursor style based on territory dragging and projection panning
 const cursorStyle = computed(() => {
-  // Territory dragging takes precedence
+  // Territory dragging takes absolute precedence
   if (isDragEnabled.value && hoveredTerritoryCode.value) {
     return getTerritoryyCursorStyle(hoveredTerritoryCode.value)
   }
 
   // Fallback to projection panning cursor
-  if (!supportsPanning.value)
-    return 'default'
-  return isPanning.value ? 'grabbing' : 'grab'
+  return panningCursorStyle.value
 })
 
-// Watch for projection parameter changes and update cartographer
-watch(
-  () => configStore.effectiveProjectionParams,
-  async (newParams) => {
-    if (cartographer.value && newParams) {
-      cartographer.value.updateProjectionParams(newParams)
-      await renderMap()
-    }
+// Map watchers composable for all watch statements
+// Use debouncedRenderMap to batch rapid successive calls during atlas changes
+const { cleanup: cleanupMapWatchers } = useMapWatchers(
+  {
+    mode: props.mode,
+    geoData: props.geoData,
+    projection: props.projection,
+    preserveScale: props.preserveScale,
   },
-  { deep: true },
-)
-
-// Watch for fitting mode changes
-watch(
-  () => configStore.projectionFittingMode,
-  async (newMode) => {
-    if (cartographer.value) {
-      cartographer.value.updateFittingMode(newMode)
-      // Trigger a re-render with the updated mode
-      await renderMap()
-    }
+  {
+    onProjectionParamsChange: debouncedRenderMap,
+    onCanvasDimensionsChange: debouncedRenderMap,
+    onReferenceScaleChange: debouncedRenderMap,
+    onDependenciesChange: debouncedRenderMap,
   },
 )
 
-// Watch for canvas dimensions changes
-watch(
-  () => configStore.canvasDimensions,
-  async (newDimensions) => {
-    if (cartographer.value) {
-      cartographer.value.updateCanvasDimensions(newDimensions ?? null)
-      // Canvas dimensions affect SVG viewport size, trigger re-render
-      await renderMap()
-    }
-  },
-  { deep: true },
-)
-
-// Watch for reference scale changes
-watch(
-  () => configStore.referenceScale,
-  async (newScale) => {
-    if (cartographer.value && newScale !== undefined) {
-      cartographer.value.updateReferenceScale(newScale)
-      // Reference scale affects all territories, trigger re-render
-      await renderMap()
-    }
-  },
-)
+// Watch geoData prop directly for unified/split mode
+// This ensures map re-renders when territory filtering changes the data
+watch(() => props.geoData, (newData, oldData) => {
+  if (props.mode === 'simple' && newData !== oldData) {
+    debouncedRenderMap()
+  }
+}, { deep: false }) // Don't use deep, just watch reference changes
 
 // Render map on mount
 onMounted(async () => {
@@ -186,12 +184,15 @@ onMounted(async () => {
 
 // Cleanup event listeners on unmount
 onUnmounted(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('mousemove', handleMouseMove)
-    window.removeEventListener('mouseup', handleMouseUp)
+  // Clear any pending debounced render
+  if (renderDebounceTimer) {
+    clearTimeout(renderDebounceTimer)
   }
+
+  cleanupProjectionPanning()
   cleanupTerritoryCursor()
   cleanupClipExtentEditor()
+  cleanupMapWatchers()
 })
 
 // Use MapSizeCalculator service for size calculation
@@ -215,23 +216,84 @@ const computedSize = computed(() => {
   })
 })
 
-const insetValue = computed(() => {
-  return props.isMainland ? 20 : 5
-})
+/**
+ * Debounced render function to batch multiple rapid render requests
+ * Skips debouncing when in drag operation (territory dragging or projection panning)
+ */
+async function debouncedRenderMap() {
+  console.info('[MapRenderer] debouncedRenderMap() called', {
+    isReinitializing: geoDataStore.isReinitializing,
+    isInDragOperation: isInDragOperation.value,
+  })
+
+  // Don't schedule render if geoDataStore is reinitializing
+  if (geoDataStore.isReinitializing) {
+    console.info('[MapRenderer] Skipping debounced render - geoDataStore is reinitializing')
+    pendingRender.value = true
+    return
+  }
+
+  // Clear existing timer
+  if (renderDebounceTimer) {
+    clearTimeout(renderDebounceTimer)
+  }
+
+  // If already rendering, mark that we need another render after this one completes
+  if (isRendering.value) {
+    console.info('[MapRenderer] Render in progress, marking pendingRender = true')
+    pendingRender.value = true
+    return
+  }
+
+  // Skip debouncing during drag operations for immediate feedback
+  if (isInDragOperation.value) {
+    console.info('[MapRenderer] Skipping debounce - drag operation in progress')
+    renderMap()
+    return
+  }
+
+  // Debounce by 50ms to batch rapid successive calls
+  renderDebounceTimer = setTimeout(() => {
+    renderMap()
+  }, 50)
+}
 
 async function renderMap() {
+  console.info('[MapRenderer] renderMap() called', {
+    isMounted: isMounted.value,
+    isRendering: isRendering.value,
+    isReinitializing: geoDataStore.isReinitializing,
+    hasContainer: !!mapContainer.value,
+    hasCartographer: !!cartographer.value,
+    mode: props.mode,
+  })
+
   // Don't render if not mounted yet
   if (!isMounted.value) {
+    console.warn('[MapRenderer] Skipping render - not mounted')
+    return
+  }
+
+  // Don't render if geoDataStore is reinitializing (atlas switch in progress)
+  if (geoDataStore.isReinitializing) {
+    console.warn('[MapRenderer] Skipping render - geoDataStore is reinitializing')
+    pendingRender.value = true
     return
   }
 
   // Don't render if already rendering (prevent concurrent renders)
   if (isRendering.value) {
+    console.warn('[MapRenderer] Skipping render - already rendering')
+    pendingRender.value = true
     return
   }
 
   // Check required dependencies
   if (!mapContainer.value || !cartographer.value) {
+    console.warn('[MapRenderer] Skipping render - missing dependencies', {
+      hasContainer: !!mapContainer.value,
+      hasCartographer: !!cartographer.value,
+    })
     return
   }
 
@@ -255,19 +317,30 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      const projectionToUse = (props.projection ?? configStore.selectedProjection) as string
+      const projectionToUse = props.projection ?? configStore.selectedProjection
+
+      // Check if projection is loaded
+      if (!projectionToUse) {
+        console.warn('[MapRenderer] Skipping render: projection not yet loaded')
+        return
+      }
+
+      // Apply territory-specific parameters if territoryCode is provided (split mode)
+      if (props.territoryCode) {
+        const territoryParams = parameterStore.getEffectiveParameters(props.territoryCode)
+        cartographer.value.updateProjectionParams(territoryParams)
+      }
 
       plot = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
         geoData: props.geoData,
         projection: projectionToUse,
         width,
         height,
-        inset: insetValue.value,
         isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
         showGraticule: uiStore.showGraticule,
-        showSphere: uiStore.showSphere,
+        showSphere: showSphere.value,
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
       })
@@ -281,9 +354,6 @@ async function renderMap() {
 
     mapContainer.value.appendChild(plot as any)
 
-    // Wait for next tick to ensure SVG paths are rendered
-    await nextTick()
-
     const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
       // Add territory attributes for drag functionality
@@ -296,7 +366,7 @@ async function renderMap() {
           try {
             // Get the data that was used for rendering by calling the same method the cartographer uses
             const territoryMode = configStore.territoryMode
-            const territoryCodes = geoDataStore.filteredTerritories?.map(t => t.code)
+            const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
           }
           catch (error) {
@@ -337,19 +407,26 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      MapRenderCoordinator.applyOverlays(
-        svg,
-        configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
-        {
-          showBorders: uiStore.showCompositionBorders,
-          showLimits: uiStore.showMapLimits,
-          projectionId: (configStore.compositeProjection || configStore.selectedProjection) as string,
-          width,
-          height,
-          customComposite: cartographer.value?.customComposite,
-          isMainland: props.isMainland,
-        },
-      )
+      const overlayProjectionId = configStore.compositeProjection || configStore.selectedProjection
+
+      // Only apply overlays if projection is loaded
+      if (overlayProjectionId) {
+        MapRenderCoordinator.applyOverlays(
+          svg,
+          configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
+          {
+            showBorders: uiStore.showCompositionBorders,
+            showLimits: uiStore.showMapLimits,
+            projectionId: overlayProjectionId,
+            width,
+            height,
+            customComposite: cartographer.value?.customComposite,
+            isMainland: props.isMainland,
+            filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
+            mainlandCode: configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
+          },
+        )
+      }
     }
   }
   catch (err) {
@@ -359,6 +436,16 @@ async function renderMap() {
   finally {
     isLoading.value = false
     isRendering.value = false
+
+    // If a render was requested while we were rendering, trigger it now
+    if (pendingRender.value) {
+      console.info('[MapRenderer] pendingRender detected, scheduling another render')
+      pendingRender.value = false
+      // Use nextTick to ensure state has settled
+      nextTick(() => {
+        debouncedRenderMap()
+      })
+    }
   }
 }
 
@@ -367,25 +454,60 @@ async function renderComposite(): Promise<Plot.Plot> {
     throw new Error('Cartographer not initialized')
   }
 
+  console.info('[MapRenderer] renderComposite() - cartographer info:', {
+    cartographerId: (cartographer.value as any).__id,
+    cartographerAtlasId: (cartographer.value as any).__atlasId,
+    cartographerTerritories: (cartographer.value as any).__territories,
+    overseasTerritories: geoDataStore.overseasTerritories.map(t => t.code),
+    customCompositeKeys: cartographer.value.customComposite
+      ? Object.keys(cartographer.value.customComposite)
+      : 'no customComposite',
+  })
+
   const { width, height } = computedSize.value
 
+  // Build territory projections and translations from parameter store
+  // Use cartographer's composite config as source of truth for territories
+  const territoryProjections: Record<string, string> = {}
+  const territoryTranslations: Record<string, { x: number, y: number }> = {}
+
+  // Get all territory codes from cartographer's customComposite
+  const territoryCodes = cartographer.value.customComposite
+    ? Object.keys(cartographer.value.customComposite)
+    : []
+
+  console.info('[MapRenderer] Building territory params for codes:', territoryCodes)
+
+  for (const territoryCode of territoryCodes) {
+    const projectionId = parameterStore.getTerritoryProjection(territoryCode)
+    if (projectionId) {
+      territoryProjections[territoryCode] = projectionId
+    }
+    territoryTranslations[territoryCode] = parameterStore.getTerritoryTranslation(territoryCode)
+  }
+
+  // Check if projections are loaded before rendering
+  if (!configStore.selectedProjection) {
+    console.warn('[MapRenderer] Cannot render composite: selectedProjection not loaded')
+    throw new Error('Cannot render composite map: projection not loaded')
+  }
+
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
-    viewMode: configStore.viewMode as 'composite-custom' | 'composite-existing' | 'individual',
-    projectionMode: configStore.projectionMode,
+    viewMode: configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
     territoryMode: configStore.territoryMode,
-    selectedProjection: configStore.selectedProjection as string,
-    compositeProjection: configStore.compositeProjection as string | undefined,
+    selectedProjection: configStore.selectedProjection,
+    compositeProjection: configStore.compositeProjection ?? undefined,
     width,
     height,
     showGraticule: uiStore.showGraticule,
-    showSphere: uiStore.showSphere,
+    showSphere: showSphere.value,
     showCompositionBorders: uiStore.showCompositionBorders,
     showMapLimits: uiStore.showMapLimits,
     currentAtlasConfig: configStore.currentAtlasConfig,
-    territoryProjections: territoryStore.territoryProjections,
-    territoryTranslations: territoryStore.territoryTranslations,
+    territoryProjections,
+    territoryTranslations,
     // territoryScales removed - scale multipliers come from parameter store
-    filteredTerritories: geoDataStore.filteredTerritories,
+    overseasTerritories: geoDataStore.overseasTerritories,
   })
 }
 
@@ -409,117 +531,15 @@ function setupTerritoryEventListeners(svg: SVGSVGElement) {
 function handleMouseDown(event: MouseEvent) {
   const target = event.target as Element
 
-  // Check if this is a territory element first
+  // Priority 1: Territory dragging (if enabled and on territory)
   if (isDragEnabled.value && target.hasAttribute && target.hasAttribute('data-territory')) {
     handleTerritoryMouseDown(event)
     return
   }
 
-  // Fallback to projection panning
-  if (!supportsPanning.value) {
-    return
-  }
-
-  isPanning.value = true
-  panStartX.value = event.clientX
-  panStartY.value = event.clientY
-
-  // Get current rotation values
-  const currentRotationLon = configStore.customRotateLongitude
-    ?? configStore.effectiveProjectionParams?.rotate?.[0]
-    ?? 0
-  const currentRotationLat = configStore.customRotateLatitude
-    ?? configStore.effectiveProjectionParams?.rotate?.[1]
-    ?? 0
-
-  panStartRotationLon.value = currentRotationLon
-  panStartRotationLat.value = currentRotationLat
-
-  // Add global mouse move and mouse up listeners
-  window.addEventListener('mousemove', handleMouseMove)
-  window.addEventListener('mouseup', handleMouseUp)
-
-  // Prevent text selection during drag
-  event.preventDefault()
+  // Priority 2: Projection panning (if supported)
+  handlePanMouseDown(event)
 }
-
-function handleMouseMove(event: MouseEvent) {
-  if (!isPanning.value)
-    return
-
-  const dx = event.clientX - panStartX.value
-  const dy = event.clientY - panStartY.value
-
-  // Convert pixel movement to rotation degrees
-  // X-axis: Negative dx means dragging left, which should rotate map right (increase longitude)
-  // Y-axis: Negative dy means dragging up, which should rotate map down (decrease latitude)
-  // Scale factor: ~0.5 degrees per pixel for smooth interaction
-  const lonDelta = -dx * 0.5
-  const latDelta = supportsLatitudePanning.value ? -dy * 0.5 : 0
-
-  const newRotationLon = panStartRotationLon.value + lonDelta
-  const newRotationLat = panStartRotationLat.value + latDelta
-
-  // Wrap longitude rotation to -180 to 180 range
-  let wrappedLon = newRotationLon % 360
-  if (wrappedLon > 180)
-    wrappedLon -= 360
-  if (wrappedLon < -180)
-    wrappedLon += 360
-
-  // Clamp latitude rotation to -90 to 90 range (avoid flipping over poles)
-  const clampedLat = Math.max(-90, Math.min(90, newRotationLat))
-
-  // Update both rotation axes through the config store
-  configStore.setCustomRotate(wrappedLon, clampedLat)
-}
-
-function handleMouseUp() {
-  isPanning.value = false
-
-  // Remove global listeners
-  window.removeEventListener('mousemove', handleMouseMove)
-  window.removeEventListener('mouseup', handleMouseUp)
-}
-
-// Watch dependencies based on mode
-watch(() => {
-  if (props.mode === 'composite') {
-    return [
-      configStore.viewMode,
-      configStore.projectionMode,
-      configStore.compositeProjection,
-      configStore.selectedProjection,
-      configStore.territoryMode,
-      configStore.scalePreservation,
-      // NOTE: referenceScale and canvasDimensions have dedicated watchers above
-      uiStore.showGraticule,
-      uiStore.showSphere,
-      uiStore.showCompositionBorders,
-      uiStore.showMapLimits,
-      territoryStore.territoryTranslations,
-      // territoryStore.territoryScales removed - scale multipliers in parameter store
-      territoryStore.territoryProjections,
-      parameterStore.territoryParametersVersion, // Watch for parameter changes to trigger re-render
-      geoDataStore.filteredTerritories, // Watch filtered territories to re-render when selection changes
-    ]
-  }
-  return [
-    props.geoData,
-    props.projection,
-    configStore.selectedProjection,
-    props.preserveScale,
-    uiStore.showGraticule,
-    uiStore.showSphere,
-    uiStore.showCompositionBorders,
-    uiStore.showMapLimits,
-    // NOTE: effectiveProjectionParams is NOT watched here because we have a dedicated
-    // watcher that calls updateProjectionParams() which updates the existing cartographer
-    // Watching it here would trigger a full re-render which is unnecessary
-  ]
-}, async () => {
-  await renderMap()
-}, { deep: true, flush: 'post' })
 </script>
 
 <template>
@@ -533,7 +553,7 @@ watch(() => {
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"
-      class="map-plot bg-base-200 h-full w-fit rounded-sm border border-base-300 flex-col items-center justify-center"
+      class="map-plot bg-base-200 border-base-300 p-2"
       :style="{
         display: isLoading || error ? 'none' : 'flex',
         cursor: cursorStyle,
@@ -542,3 +562,10 @@ watch(() => {
     />
   </div>
 </template>
+
+<style lang="css" scoped>
+@reference 'tailwindcss';
+.map-plot {
+  @apply h-full w-fit rounded-sm border flex-col items-center justify-center;
+}
+</style>

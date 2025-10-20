@@ -6,10 +6,10 @@ import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/ui/primitives/ButtonGroup.vue'
 import LabelWithIcon from '@/components/ui/primitives/LabelWithIcon.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
+import { useParameterProvider } from '@/composables/useParameterProvider'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
-import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
 
 interface Props {
@@ -26,8 +26,8 @@ const { t } = useI18n()
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
-const parameterStore = useParameterStore()
 const uiStore = useUIStore()
+const { parameterProvider } = useParameterProvider()
 
 // Export options
 const exportFormat = ref<'json' | 'code'>('json')
@@ -44,19 +44,9 @@ const exportContent = computed(() => {
   }
 
   const atlasConfig = configStore.currentAtlasConfig
-  const compositeConfig = atlasConfig.compositeProjectionConfig
-  if (!compositeConfig) {
+  const compositeConfig = atlasConfig?.compositeProjectionConfig
+  if (!compositeConfig || !atlasConfig) {
     return '// No composite projection configuration available'
-  }
-
-  // Create parameter provider adapter for complete export
-  const parameterProvider = {
-    getEffectiveParameters: (territoryCode: string) => {
-      return parameterStore.getEffectiveParameters(territoryCode)
-    },
-    getExportableParameters: (territoryCode: string) => {
-      return parameterStore.getExportableParameters(territoryCode)
-    },
   }
 
   if (exportFormat.value === 'json') {

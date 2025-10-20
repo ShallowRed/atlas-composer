@@ -99,6 +99,13 @@
       "resetOverrides": "Réinitialiser tous les paramètres personnalisés pour ce territoire",
       "noRelevantParameters": "Aucun paramètre ajustable",
       "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels."
+    },
+    "setManager": {
+      "title": "Gestionnaire de territoires",
+      "active": "Territoires actif",
+      "remove": "Supprimer le territoire",
+      "noActive": "Aucun jeu de territoires actif",
+      "available": "Territoires disponibles"
     }
   },
   "view": {
@@ -146,7 +153,9 @@
     "scaleMultiplier": "Facteur d'échelle",
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
-    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
+    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié.",
+    "zoom": "Zoom",
+    "zoomLevel": "Niveau de zoom"
   },
   "projectionControls": {
     "global": {
@@ -193,13 +202,25 @@
     "error": "Échec de la copie"
   },
   "presets": {
-    "label": "Disposition prédéfinie",
-    "loading": "Chargement du preset...",
+    "label": "Mise en page prédéfinie",
+    "loading": "Chargement de la mise en page...",
     "names": {
       "default": "Par défaut",
       "test": "Test",
-      "compact": "Compacte",
-      "spread": "Étalée"
+      "compact": "Compact",
+      "spread": "Étendu"
+    }
+  },
+  "preset": {
+    "select": "Sélectionner une configuration",
+    "unified": {
+      "select": "Configuration vue unifiée"
+    },
+    "split": {
+      "select": "Configuration vue séparée"
+    },
+    "compositeExisting": {
+      "select": "Configuration projection composite"
     }
   },
   "export": {

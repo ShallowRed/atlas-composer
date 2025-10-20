@@ -64,25 +64,67 @@ Pattern detection and behavioral decisions for different atlas types.
 Orchestrates atlas changes and configuration updates.
 Loads presets automatically when defaultPreset is configured.
 Extracts territory-specific projection parameters from presets for rendering.
+Ensures composite projection is always selected by using atlas metadata's defaultCompositeProjection or falling back to first available composite projection.
 - `handleAtlasChange()` - Coordinate all updates when changing atlas (async - loads preset if available)
 - Returns territoryParameters map in AtlasChangeResult for parameter store initialization
+- Determines composite projection from metadata or AtlasMetadataService.getCompositeProjections()
 - `getInitialConfiguration()` - Build initial config for atlas (async)
 
+### InitializationService
+Centralizes application initialization logic for all scenarios.
+Handles atlas initialization, preset loading, configuration import, and view mode changes.
+Static service providing consistent initialization workflows.
+Uses registry behavior for preset configuration instead of atlas config.
+- `initializeAtlas()` - Initialize atlas on startup or atlas change
+- `loadPreset()` - Load and apply preset configuration
+- `importConfiguration()` - Import user-provided configuration
+- `changeViewMode()` - Switch view mode within same atlas
+- `applyStateToStores()` - Apply application state to Pinia stores
+
+**Preset Loading**:
+Gets defaultPreset and availablePresets from registry behavior via getAtlasBehavior().
+Does not read preset fields from atlas config (deprecated locations).
+
+**Preset Defaults Isolation**:
+Stores preset defaults (via usePresetDefaults) only for composite-custom mode.
+Built-in-composite, unified, and split modes do not store preset defaults, ensuring they maintain independent positioning logic.
+Built-in-composite mode relies exclusively on d3-composite-projections library positioning.
+
 ### TerritoryDefaultsService
-Initialize territory projections, translations, and scales.
-- `initializeAll()` - Initialize all territory defaults
+Initializes default territory projections, translations, and scales for atlases.
+Provides centralized logic for calculating territory defaults based on atlas configuration.
+- `initializeAll()` - Initialize all territory defaults (projections, translations, scales)
+- `initializeProjections()` - Calculate default projection IDs for territories
+- `initializeTranslations()` - Calculate default pixel offsets for territories
+- `initializeScales()` - Calculate default scale multipliers for territories
+
+Returns TerritoryDefaults (imported from @/core/presets) containing projections (Record<string, string>), translations (Record<string, {x, y}>), and scales (Record<string, number>).
+Used by config store initialization and AtlasCoordinator for setting up territory parameters on atlas changes.
 
 ### PresetLoader
 Loads preset composite projection configurations from configs/presets/ directory.
-Static service providing preset loading and validation.
-- `loadPreset()` - Load and validate preset file (async)
-- `convertToDefaults()` - Convert preset to TerritoryDefaults format (projections, translations, scales)
-- `extractTerritoryParameters()` - Extract projection parameters (rotate, center, parallels) from preset
-- `validatePreset()` - Validate preset configuration
+Static service providing preset loading orchestration.
+Uses core validation and conversion logic from @/core/presets.
+- `loadPreset()` - Load and validate preset file using core validators (async)
+- `convertToDefaults()` - Re-exports core converter for TerritoryDefaults format
+- `extractTerritoryParameters()` - Re-exports core converter for projection parameters
+- `loadPresetMetadata()` - Load lightweight preset metadata (async)
 - `listAvailablePresets()` - List available presets (placeholder)
 
-Delegates validation to CompositeImportService for consistency.
-Extracts both layout properties (translation/scale) and projection parameters (rotate/center/parallels) separately.
+Delegates validation to core validateCompositePreset() function.
+Delegates conversion to core convertToDefaults() and extractTerritoryParameters() functions.
+Focuses on file I/O and orchestration, domain logic in core layer.
+
+### ViewPresetLoader
+Loads preset configurations for unified, split, and built-in-composite view modes.
+Static service providing view preset loading orchestration.
+Uses core validation logic from @/core/presets.
+- `loadPreset()` - Load and validate view preset using core validators (async)
+- `loadRegistry()` - Load and cache view preset registry (async)
+- `getAvailablePresets()` - Get filtered presets for atlas and view mode (async)
+
+Delegates validation to core validateViewPreset() function.
+Focuses on file I/O, registry management, and orchestration.
 
 ### AtlasMetadataService
 Provides clean API for accessing atlas-level projection metadata from preset files.
@@ -91,10 +133,10 @@ Static service with metadata caching for performance.
 - `getCompositeProjections()` - Get composite projection configurations (async)
 - `getProjectionPreferences()` - Get projection preferences (async)
 - `getProjectionParameters()` - Get projection parameters (async)
-- `getMapDisplayDefaults()` - Get map display defaults (async)
 - `clearCache()` - Clear metadata cache
 
 Uses PresetLoader internally, provides fallback defaults for atlases without presets.
+Map display defaults (showGraticule, showSphere, showCompositionBorders, showMapLimits) are controlled by UI store only.
 
 ### AtlasService
 Atlas-aware facade for accessing territory data and configuration.
@@ -131,7 +173,6 @@ Instance-based service managing territory data cache.
 Projection grouping and UI visibility logic.
 - `getProjectionGroups()` - Group projections by category
 - `shouldShowProjectionSelector()` - Visibility for projection selector
-- `shouldShowProjectionModeSelector()` - Visibility for mode selector
 - `shouldShowCompositeProjectionSelector()` - Visibility for composite selector
 
 ### ProjectionService
@@ -198,6 +239,149 @@ The `updateReferenceScale()` method recalculates scales for all sub-projections 
 - `updateTerritoryParameters()` applies all supported parameters including scale, which integrates with territory scale multipliers
 
 **Scale Parameter Handling**:
+
+## View Services (src/services/view/)
+
+### ViewOrchestrationService
+**Pattern**: Static service (pure functions)
+**Location**: `src/services/view/view-orchestration-service.ts`
+**Lines**: 382
+
+**Purpose**: Centralized component visibility and control state logic for all view modes. Provides a single source of truth for determining what UI elements should be visible or enabled based on application state.
+
+**Architecture**:
+- All methods are static (no instance state)
+- Takes `ViewState` snapshot as input parameter
+- Returns boolean flags for visibility/enabled states
+- Pure functions enable comprehensive testing
+- Follows same pattern as ProjectionUIService
+
+**ViewState Interface**:
+```typescript
+interface ViewState {
+  viewMode: ViewMode                          // Current view mode
+  atlasConfig: AtlasConfig                    // Current atlas configuration
+  hasPresets: boolean                         // Presets available
+  hasOverseasTerritories: boolean             // Filtered territories exist
+  isPresetLoading: boolean                    // Loading state
+  showProjectionSelector: boolean             // From ProjectionUIService
+  showIndividualProjectionSelectors: boolean  // From ProjectionUIService
+  isMainlandInTerritories: boolean            // Mainland in filtered list
+  showMainland: boolean                       // Atlas has mainland config
+}
+```
+
+**Visibility Methods** (20+ methods):
+
+**Main Layout**:
+- `shouldShowRightSidebar(state)` - Returns true for non-unified modes
+- `shouldShowBottomBar(state)` - Always returns true (display options always visible)
+
+**Sidebar Content Switching**:
+- `shouldShowProjectionParams(state)` - Projection parameters visibility
+  - True for: unified, built-in-composite modes
+  - False for: composite-custom, split (show territory controls instead)
+- `shouldShowTerritoryControls(state)` - Territory controls visibility
+  - True for: composite-custom, split modes
+  - Inverse of shouldShowProjectionParams
+
+**Territory Controls Sub-components**:
+- `shouldShowPresetSelector(state)` - Preset selector visibility
+  - True only in composite-custom mode with available presets
+- `shouldShowImportControls(state)` - Import/export controls visibility
+  - True for composite-custom or split modes
+- `shouldShowGlobalProjectionControls(state)` - Global projection controls
+  - True only in composite-custom mode
+- `shouldShowTerritoryParameterControls(state)` - Territory parameter editing
+  - True only in composite-custom mode
+- `shouldShowMainlandAccordion(state)` - Mainland territory accordion
+  - True in individual projection mode with mainland configuration
+- `shouldShowProjectionDropdown(state)` - Projection dropdown per territory
+  - True when NOT in composite-custom mode (uses parameter controls instead)
+
+**Empty State Logic**:
+- `shouldShowEmptyState(state)` - Complex logic handling mainland/overseas combinations
+  - Returns true when: no overseas territories AND (mainland not shown OR mainland not in list)
+  - Ensures empty state only shows when truly no territories to display
+- `getEmptyStateMessage(state)` - Returns appropriate i18n key
+  - 'territory.noOverseas' - Standard message for empty state
+
+**Control State Methods**:
+- `shouldShowTerritorySelector(state)` - Territory selector visibility
+  - Shown when: atlas has territory selector capability AND NOT in composite modes
+  - Hidden for composite modes where TerritorySetManager handles territory selection
+- `isTerritorySelectDisabled(state)` - DEPRECATED: Territory selector disabled state
+  - Use shouldShowTerritorySelector instead for visibility control
+  - Disabled if: atlas doesn't have territory selector OR in composite modes (custom/built-in)
+  - In composite-custom mode, territory management handled via TerritorySetManager instead
+- `isViewModeDisabled(state)` - View mode selector disabled state
+  - Disabled if: only one supported view mode in atlas config
+
+**Layout Variant Methods**:
+- `shouldShowCompositeRenderer(state)` - Composite map renderer visibility
+  - True for: composite-custom, built-in-composite modes
+- `shouldShowSplitView(state)` - Split view component visibility
+  - True for: split mode
+- `shouldShowUnifiedView(state)` - Unified view component visibility
+  - True for: unified mode
+
+**Display Options Visibility**:
+- `shouldShowCompositionBordersToggle(state)` - Composition borders toggle
+  - True for: composite-custom, built-in-composite modes
+- `shouldShowScalePreservationToggle(state)` - Scale preservation toggle
+  - True for: split mode
+
+**Integration Pattern**:
+Components don't call ViewOrchestrationService directly. Instead, they use the `useViewState` composable which:
+1. Aggregates state from Pinia stores (config, geoData) into ViewState object
+2. Wraps all service methods in Vue computed refs for reactivity
+3. Exposes `viewOrchestration` object with reactive properties
+
+**Usage Example** (in Vue components):
+```vue
+<script setup>
+import { useViewState } from '@/composables/useViewState'
+
+const { viewOrchestration } = useViewState()
+// viewOrchestration.shouldShowRightSidebar is a ComputedRef<boolean>
+</script>
+
+<template>
+  <!-- Access with .value in template -->
+  <CardContainer v-show="viewOrchestration.shouldShowRightSidebar.value">
+    <ProjectionParamsControls 
+      v-if="viewOrchestration.shouldShowProjectionParams.value" 
+    />
+    <TerritoryControls 
+      v-else-if="viewOrchestration.shouldShowTerritoryControls.value" 
+    />
+  </CardContainer>
+</template>
+```
+
+**Benefits**:
+1. **Single Source of Truth** - All visibility rules centralized in one service
+2. **Testability** - Pure functions with explicit inputs/outputs (61 unit tests)
+3. **Type Safety** - ViewState interface explicitly documents all dependencies
+4. **Maintainability** - Scattered conditionals replaced with named methods
+5. **Discoverability** - Developers know where to find/add visibility logic
+6. **Consistency** - Same pattern as ProjectionUIService
+
+**Migration Strategy**:
+The refactoring replaced inline template conditionals like:
+```vue
+<!-- Before -->
+<PresetSelector v-if="hasPresets && isCompositeCustomMode" />
+
+<!-- After -->
+<PresetSelector v-if="viewOrchestration.shouldShowPresetSelector.value" />
+```
+
+**Test Coverage**: 61 unit tests covering all methods and state combinations
+
+**Used by**: MapView.vue, TerritoryControls.vue, AtlasConfigSection.vue, DisplayOptionsSection.vue (all via useViewState composable)
+
+**Related Services**: ProjectionUIService (provides projection-specific UI flags)
 - Reference scale parameter: Base scale from preset configuration (defaults: 2700 for single-focus, 200 for equal-members)
 - Territory scale multiplier (regular Scale controls): Multiplies reference scale (0.5×-2.0× range)  
 - Final scale = reference scale × territory multiplier
@@ -248,6 +432,13 @@ Uses ProjectionParameters throughout for consistent parameter handling.
 All parameters use array format: center[lon, lat], rotate[lon, lat], parallels[south, north].
 No legacy format conversions - single format end-to-end.
 
+**Parameter Merging**:
+The `mergeParameters()` utility function (src/types/projection-parameters.ts) handles parameter inheritance by merging multiple parameter sets with proper array handling:
+- Array parameters are deep-copied to avoid reference issues: `center`, `rotate`, `parallels`, `translateOffset`, `pixelClipExtent`
+- Scalar parameters are shallow-copied: `scaleMultiplier`, `precision`, `clipAngle`
+- Later parameter sets override earlier ones (territory > global > atlas > defaults)
+- Deep copying ensures each territory has independent parameter instances
+
 **Parameter State Management**:
 - `setAtlasParameters()` - Set atlas-level ProjectionParameters
 - `getGlobalParameters()` - Get global parameter state
@@ -278,6 +469,42 @@ All constraint resolution, validation, and parameter management uses ParameterRe
 - `isParameterRelevant()` - Direct registry relevance checking
 - `validateParameter()` - Registry-based single parameter validation
 - `validateParameterSet()` - Batch validation using registry constraints
+
+**Territory Configuration Management**:
+Territory-specific configuration is fully managed through the parameter system:
+- Territory projections stored as `projectionId` parameter (string)
+- Territory positions stored as `translateOffset` parameter (tuple [x, y])
+- Territory scales stored as `scaleMultiplier` parameter (number)
+- Territory clip extents stored as `pixelClipExtent` parameter (tuple [x1, y1, x2, y2])
+
+Helper methods provide backward-compatible API for territory operations:
+- `getTerritoryProjection(code)` - Returns effective projectionId for territory
+- `setTerritoryProjection(code, id)` - Sets projectionId parameter
+- `getTerritoryTranslation(code)` - Returns {x, y} object from translateOffset
+- `setTerritoryTranslation(code, axis, value)` - Updates translateOffset tuple
+
+All territory parameters benefit from registry validation, inheritance (territory > global > atlas > registry defaults), and reactivity tracking.
+
+**Parameter Access Patterns**:
+
+Unified parameter access across all view modes through parameter store.
+
+Global Parameters (Unified/Split modes):
+- Read: `parameterStore.globalEffectiveParameters` (reactive computed property)
+- Write: `configStore.setCustomRotate()`, `setCustomCenter()`, etc. (delegates to parameterStore)
+- Inheritance: Registry defaults → Atlas params → Global overrides
+- Usage: UnifiedControls, ProjectionParamsControls, useMapWatchers, useProjectionPanning
+
+Territory Parameters (Composite modes):
+- Read: `parameterStore.getEffectiveParameters(territoryCode)` (reactive via version tracking)
+- Write: `parameterStore.setTerritoryParameter(territoryCode, key, value)`
+- Inheritance: Registry defaults → Atlas params → Global params → Territory overrides
+- Usage: TerritoryParameterControls, CompositeCustomControls, territory-specific operations
+
+Single Source of Truth:
+All parameter inheritance logic resides in ProjectionParameterManager.getEffectiveParameters().
+No duplicate parameter merging logic exists in application code.
+Both global and territory parameters use the same underlying manager for consistency.
 
 **Unified System Benefits**:
 - Single source of truth through ParameterRegistry
@@ -442,30 +669,36 @@ Calculate map dimensions with configurable defaults.
 - `calculateSize()` - Calculate map size
 - `calculateProportionalSize()` - Calculate proportional size
 
-### InsetCalculator
-Centralized service for calculating Observable Plot inset values.
-Static methods providing single source of truth for inset calculations:
-- `calculateInset(viewMode, isMainland?)` - Calculate inset for any view mode
-- `calculateSimpleInset(isMainland)` - Calculate inset for simple rendering
-
-**Purpose**: Ensures consistent padding between Observable Plot rendering (graticules, sphere, geography) and overlay rendering (borders, limits). Observable Plot applies inset by adjusting render dimensions and offsetting content.
-
+**Purpose**: Ensures consistent padding between Observable Plot rendering (graticules, sphere, geography) and overlay rendering (borders, limits).
 ### MapOverlayService
 Render map overlays (composition borders and map limits) using D3 selection API.
 Static methods for SVG overlay rendering:
-- `applyOverlays()` - Apply overlays to rendered SVG map (uses inset from config)
+- `applyOverlays()` - Apply overlays to rendered SVG map
 - `computeSceneBBox()` - Compute viewport-based bounding box with insets
 - `boundsToRect()` - Convert projection bounds to SVG rectangle
-- `unionRect()` - Compute union of rectangles for accumulated bounds
 - `createCompositeBorderPath()` - Create border path for composite projections
 - `appendRectOverlay()` - Append dashed rectangle overlay to SVG
 
 Overlay Features:
 - **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
+  - Rendered for all territories (including mainland) in composite maps
+  - Shows individual territory projection boundaries
+  - **Territory filtering**: Filters borders to show only active territories in custom composite mode
+    - Always shows mainland border regardless of active set
+    - Filters overseas territories by filteredTerritoryCodes Set (from geoDataStore)
+    - MainlandCode parameter identifies mainland for special treatment
 - **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
+  - Always uses viewport-based scene bounds
+  - Independent of composition borders (shows full map extent)
 - Viewport-based bounds calculation using SVG dimensions and insets
-- Receives inset value from OverlayConfig (calculated by InsetCalculator in coordinator)
 - Automatic overlay group management (removes empty groups)
+
+Border Rendering Logic:
+- Composition borders and map limits are independent features
+- Map limits always use `computeSceneBBox()` for full viewport coverage
+- Composition borders show individual territories, map limits show entire map
+- Both can be enabled simultaneously without interference
+- Border filtering respects user territory selection in custom composite mode
 
 ### CompositeSettingsBuilder
 Build custom composite settings from configuration.
@@ -477,12 +710,7 @@ Build custom composite settings from configuration.
 Coordinate map rendering by building options and orchestrating services.
 - `renderSimpleMap()` - Render simple territory map
 - `renderCompositeMap()` - Render composite map
-- `applyOverlays()` - Apply overlays to rendered map (calculates inset using InsetCalculator and passes to MapOverlayService)
-
-### BorderRenderer
-Border rendering strategies for different modes.
-Classes: CustomCompositeBorderRenderer, ExistingCompositeBorderRenderer
-Currently deferred integration, not fully used.
+- `applyOverlays()` - Apply overlays to rendered map
 
 ### CartographerService
 Main rendering coordinator with unified API and D3.js integration.
@@ -496,8 +724,8 @@ Integrates with parameter provider for dynamic projection parameter updates.
 **Rendering Methods**:
 - `render()` - Unified rendering API (simple/composite modes)
 - `renderSimple()` - Simple projection rendering
-- `renderCustomComposite()` - Custom composite rendering (uses InsetCalculator for Plot inset)
-- `renderProjectionComposite()` - Projection-based composite (uses InsetCalculator for Plot inset)
+- `renderCustomComposite()` - Custom composite rendering
+- `renderProjectionComposite()` - Projection-based composite
 - `createPlot()` - Common Plot creation logic
 - `addTerritoryAttributes()` - Static method using D3 selections to add data-territory attributes to SVG paths
 

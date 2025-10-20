@@ -28,75 +28,10 @@ Note:
 Create `configs/<atlas-id>.json` with this structure:
 
 ```json
+```json
 {
-  "$schema": "./schema.json",
-  "id": "atlas-id",
-  "name": "Atlas Name",
-  "description": "Brief description",
-  
-  "projectionPreferences": {
-    "recommended": ["conic-conformal", "albers", "mercator"],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": [
-      "gnomonic",
-      "orthographic",
-      "conic-conformal-france",
-      "conic-conformal-portugal",
-      "conic-conformal-europe"
-    ]
-  },
-  
-  "territories": [
-    {
-      "id": "<natural-earth-id>",
-      "role": "primary",
-      "code": "XX-MET",
-      "name": "Primary Territory Name",
-      "iso": "XXX",
-      "center": [lon, lat],
-      "bounds": [[minLon, minLat], [maxLon, maxLat]],
-      "extraction": {
-        "mainlandPolygon": 0
-      },
-      "rendering": {
-        "offset": [0, 0],
-        "projectionType": "conic-conformal"
-      }
-    },
-    {
-      "id": "<natural-earth-id>-1",
-      "role": "secondary",
-      "code": "XX-OVS",
-      "name": "Secondary Territory Name",
-      "iso": "XXX",
-      "region": "Region Name",
-      "center": [lon, lat],
-      "bounds": [[minLon, minLat], [maxLon, maxLat]],
-      "extraction": {
-        "extractFrom": "<parent-id>",
-        "polygonIndices": [1]
-      },
-      "rendering": {
-        "offset": [-300, -100],
-        "baseScaleMultiplier": 2.0
-      }
-    }
-  ],
-  
-  "projection": {
-    "center": { "longitude": <lon>, "latitude": <lat> },
-    "rotate": {
-      "mainland": [<-lon>, 0],
-      "azimuthal": [<-lon>, <-lat>]
-    },
-    "parallels": {
-      "conic": [<south>, <north>]
-    }
-  }
-}
+  "$schema": "./atlas.schema.json",
+  "atlasId": "your-atlas-id",
 ```
 
 ### Step 3: Generate Geodata

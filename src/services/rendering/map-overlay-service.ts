@@ -1,5 +1,6 @@
+import type { Selection } from 'd3'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
-import { select } from 'd3'
+import { path, select } from 'd3'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
 
@@ -19,13 +20,14 @@ export interface Rect {
 export interface OverlayConfig {
   showBorders: boolean
   showLimits: boolean
-  viewMode: 'composite-custom' | 'composite-existing' | 'individual'
+  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
   projectionId?: string
   width: number
   height: number
   customComposite?: CompositeProjection | null
-  inset: number
   isMainland?: boolean
+  filteredTerritoryCodes?: Set<string>
+  mainlandCode?: string
 }
 
 /**
@@ -49,48 +51,17 @@ export class MapOverlayService {
   }
 
   /**
-   * Compute union of two rectangles
-   * Uses D3-style null handling for progressive accumulation
+   * Compute bounding box for the full SVG viewport
+   *
+   * NOTE: Inset functionality is disabled. Projections render to full dimensions.
    */
-  static unionRect(base: Rect | null, next: Rect | null): Rect | null {
-    if (!next)
-      return base
-    if (!base)
-      return { ...next }
-
-    const minX = Math.min(base.x, next.x)
-    const minY = Math.min(base.y, next.y)
-    const maxX = Math.max(base.x + base.width, next.x + next.width)
-    const maxY = Math.max(base.y + base.height, next.y + next.height)
-
+  static computeSceneBBox(width: number, height: number, _inset: number = 0): Rect {
     return {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
+      x: 0,
+      y: 0,
+      width,
+      height,
     }
-  }
-
-  /**
-   * Compute bounding box based on SVG viewport and insets
-   * Observable Plot applies insets to the rendering, so we account for those
-   */
-  static computeSceneBBox(width: number, height: number, inset: number = 20): Rect | null {
-    // Use the provided dimensions with inset
-    // This matches how Observable Plot renders content within the SVG viewport
-    const bounds = {
-      x: inset,
-      y: inset,
-      width: width - 2 * inset,
-      height: height - 2 * inset,
-    }
-
-    // Validate bounds
-    if (bounds.width > 0 && bounds.height > 0) {
-      return bounds
-    }
-
-    return null
   }
 
   /**
@@ -152,63 +123,23 @@ export class MapOverlayService {
       }
     }
 
-    // Fall back to drawCompositionBorders with custom context recorder
+    // Fall back to drawCompositionBorders with D3's path API
     const drawBorders = (projection as any)?.drawCompositionBorders
     if (typeof drawBorders !== 'function') {
       return null
     }
 
-    // Use custom path recorder context to capture path commands
-    const context = this.createPathRecorder()
+    // Use D3's path API to capture path commands
+    const pathBuilder = path()
 
     try {
-      drawBorders.call(projection, context)
-      const pathString = context.toString()
+      drawBorders.call(projection, pathBuilder)
+      const pathString = pathBuilder.toString()
       return pathString.length > 0 ? pathString : null
     }
     catch (err) {
       console.error('[MapOverlayService] Error drawing composition borders:', err)
       return null
-    }
-  }
-
-  /**
-   * Create a path recorder context compatible with d3-geo path
-   * Records path commands as SVG path data string
-   */
-  private static createPathRecorder() {
-    const commands: string[] = []
-    const format = (value: number) => {
-      if (!Number.isFinite(value))
-        return '0'
-      return Math.abs(value) < 1e-6 ? '0' : value.toFixed(6).replace(/\.?0+$/, '')
-    }
-
-    return {
-      moveTo(x: number, y: number) {
-        commands.push(`M${format(x)},${format(y)}`)
-      },
-      lineTo(x: number, y: number) {
-        commands.push(`L${format(x)},${format(y)}`)
-      },
-      rect(x: number, y: number, width: number, height: number) {
-        commands.push(
-          `M${format(x)},${format(y)}`,
-          `L${format(x + width)},${format(y)}`,
-          `L${format(x + width)},${format(y + height)}`,
-          `L${format(x)},${format(y + height)}`,
-          'Z',
-        )
-      },
-      closePath() {
-        commands.push('Z')
-      },
-      beginPath() {
-        // No-op for compatibility with canvas-like contexts
-      },
-      toString() {
-        return commands.join('')
-      },
     }
   }
 
@@ -224,28 +155,26 @@ export class MapOverlayService {
     // Use D3 to create overlay group
     const overlayGroup = select(svg)
       .append('g')
-      .attr('class', 'map-overlays')
+      .classed('map-overlays', true)
       .attr('pointer-events', 'none')
-
-    // Use inset from config (calculated by InsetCalculator in coordinator)
-    const fallbackSceneBounds = config.showLimits ? this.computeSceneBBox(config.width, config.height, config.inset) : null
-    let mapBounds: Rect | null = null
 
     // Render composition borders
     if (config.showBorders) {
       if (config.viewMode === 'composite-custom') {
-        mapBounds = this.renderCustomCompositeBorders(overlayGroup, config)
+        this.renderCustomCompositeBorders(overlayGroup, config)
       }
-      else if (config.viewMode === 'composite-existing') {
-        mapBounds = this.renderExistingCompositeBorders(overlayGroup, config)
+      else if (config.viewMode === 'built-in-composite') {
+        this.renderExistingCompositeBorders(overlayGroup, config)
       }
     }
 
     // Render map limits
+    // Map limits should always use the full scene bounds (viewport-based)
+    // Composition borders only show individual territories, but map limits show the entire rendered content
     if (config.showLimits) {
-      const bounds = mapBounds || fallbackSceneBounds
-      if (bounds && bounds.width > 0 && bounds.height > 0) {
-        this.appendRectOverlay(overlayGroup, bounds, 'map-limits', '4 3', 1.5)
+      const sceneBounds = this.computeSceneBBox(config.width, config.height)
+      if (sceneBounds && sceneBounds.width > 0 && sceneBounds.height > 0) {
+        this.renderMapLimits(overlayGroup, sceneBounds)
       }
     }
 
@@ -255,50 +184,76 @@ export class MapOverlayService {
     }
   }
 
+  private static compositionBorderStyle(
+    selection: Selection<any, any, any, any>,
+  ): void {
+    selection
+      .attr('class', 'composition-border')
+      .attr('fill', 'none')
+      .attr('stroke', ' color-mix(in oklch, var(--color-neutral) 50%, var(--color-base-100))')
+      .attr('stroke-width', 1)
+      // .attr('stroke-dasharray', '8 4')
+      // .attr('stroke-linejoin', 'round')
+      // .attr('opacity', 1)
+  }
+
   /**
    * Render borders for custom composite projections
+   * Uses D3 data join pattern for efficient rendering
    */
   private static renderCustomCompositeBorders(
-    overlayGroup: any,
+    overlayGroup: Selection<any, any, any, any>,
     config: OverlayConfig,
-  ): Rect | null {
+  ): void {
     const composite = config.customComposite
     if (!composite) {
-      return null
+      return
     }
 
     composite.build(config.width, config.height, true)
-    const borders = composite.getCompositionBorders(config.width, config.height)
+    let borders = composite.getCompositionBorders(config.width, config.height)
 
-    let mapBounds: Rect | null = null
+    // Filter borders to only include active territories (if filtering is enabled)
+    // Always keep mainland border visible
+    if (config.filteredTerritoryCodes) {
+      borders = borders.filter(border =>
+        border.territoryCode === config.mainlandCode // Always show mainland
+        || config.filteredTerritoryCodes!.has(border.territoryCode), // Show active territories
+      )
+    }
 
-    borders.forEach((border) => {
-      const rect = this.boundsToRect(border.bounds)
-      if (rect.width === 0 || rect.height === 0) {
-        return
-      }
+    // Filter out invalid borders
+    const validBorders = borders
+      .map(border => this.boundsToRect(border.bounds))
+      .filter(rect => rect.width > 0 && rect.height > 0)
 
-      this.appendRectOverlay(overlayGroup, rect, 'composition-border', '8 4', 1.25)
-      mapBounds = this.unionRect(mapBounds, rect)
-    })
+    // Use D3 data join pattern
+    overlayGroup
+      .selectAll('rect.composition-border')
+      .data(validBorders)
+      .join('rect')
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
+      .attr('width', d => d.width)
+      .attr('height', d => d.height)
 
-    return mapBounds
+      .call(sel => this.compositionBorderStyle(sel))
   }
 
   /**
    * Render borders for existing composite projections (from d3-composite-projections)
    */
   private static renderExistingCompositeBorders(
-    overlayGroup: any,
+    overlayGroup: Selection<any, any, any, any>,
     config: OverlayConfig,
-  ): Rect | null {
+  ): void {
     const overlayProjectionId = config.projectionId
     if (!overlayProjectionId) {
-      return null
+      return
     }
 
     // Create the border path at the FULL width/height
-    // Observable Plot creates projections at full size and applies inset internally
+    // Observable Plot creates projections at full size
     // The path coordinates will be in the full coordinate system
     const pathData = this.createCompositeBorderPath(
       overlayProjectionId,
@@ -307,65 +262,34 @@ export class MapOverlayService {
     )
 
     if (!pathData) {
-      return null
+      return
     }
 
-    // Append path without any transform
-    // The path coordinates are already in the full SVG coordinate system
-    const pathEl = overlayGroup
+    // Use D3 selection with .call() for styling
+    overlayGroup
       .append('path')
       .attr('d', pathData)
-      .attr('class', 'composition-border')
-      .attr('fill', 'none')
-      .attr('stroke', 'currentColor')
-      .attr('stroke-width', '1.25')
-      .attr('stroke-dasharray', '8 4')
-      .attr('stroke-linejoin', 'round')
-      .attr('opacity', '0.5')
-
-    // Try to get bbox for map limits calculation
-    // getBBox() returns coordinates in the element's coordinate system
-    // Since we're not applying any transform, these are directly usable
-    try {
-      const bbox = (pathEl.node() as SVGPathElement).getBBox()
-      if (Number.isFinite(bbox.width) && Number.isFinite(bbox.height) && bbox.width > 0 && bbox.height > 0) {
-        return {
-          x: bbox.x,
-          y: bbox.y,
-          width: bbox.width,
-          height: bbox.height,
-        }
-      }
-    }
-    catch {
-      // getBBox can fail in some circumstances, ignore errors
-    }
-
-    return null
+      .call(sel => this.compositionBorderStyle(sel))
   }
 
   /**
-   * Append rectangle overlay using D3 selection
+   * Render map limits (outer boundary rectangle)
    */
-  private static appendRectOverlay(
-    group: any,
-    rect: Rect,
-    className: string,
-    dash: string,
-    strokeWidth: number,
+  private static renderMapLimits(
+    overlayGroup: Selection<any, any, any, any>,
+    bounds: Rect,
   ): void {
-    group
+    overlayGroup
       .append('rect')
-      .attr('x', rect.x.toFixed(2))
-      .attr('y', rect.y.toFixed(2))
-      .attr('width', rect.width.toFixed(2))
-      .attr('height', rect.height.toFixed(2))
-      .attr('class', className)
-      .attr('fill', 'none')
-      .attr('stroke', 'currentColor')
-      .attr('stroke-width', strokeWidth.toString())
-      .attr('stroke-dasharray', dash)
-      .attr('stroke-linejoin', 'round')
-      .attr('opacity', '0.5')
+      .attr('x', bounds.x)
+      .attr('y', bounds.y)
+      .attr('width', bounds.width)
+      .attr('height', bounds.height)
+      .attr('class', 'map-limits')
+      // .style('stroke', 'currentColor')
+      .attr('stroke', 'var(--color-neutral)')
+      .style('fill', 'none')
+      .style('stroke-width', 2)
+      // .style('opacity', 0.7)
   }
 }

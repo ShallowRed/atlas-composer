@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema.json",
+  "id": "world-unified-default",
+  "name": "Monde - Vue unifiée standard",
+  "description": "Projection Natural Earth pour carte mondiale",
+  "atlasId": "world",
+  "viewMode": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "center": [0, 0],
+        "scale": 1.0
+      }
+    }
+  }
+}

@@ -115,7 +115,7 @@ describe('projectionRegistry', () => {
     it('should filter projections by view mode', () => {
       const compositeProjections = projectionRegistry.filter({
         atlasId: 'france',
-        viewMode: 'composite-existing',
+        viewMode: 'built-in-composite',
       })
       expect(compositeProjections.length).toBeGreaterThan(0)
       compositeProjections.forEach((proj) => {

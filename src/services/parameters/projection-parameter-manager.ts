@@ -226,6 +226,23 @@ export class ProjectionParameterManager {
   }
 
   /**
+   * Clear all parameters (global, atlas, and all territories)
+   * Phase 4: Used by InitializationService for atlas changes
+   */
+  clearAll(): void {
+    // Clear global parameters
+    this.globalParameters = {}
+
+    // Clear atlas parameters
+    this.atlasParameters = null
+
+    // Clear all territory parameters
+    this.territoryParameters.clear()
+
+    console.info('[ProjectionParameterManager] All parameters cleared')
+  }
+
+  /**
    * Validate parameter value
    */
   validateParameter(

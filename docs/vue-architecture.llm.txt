@@ -6,7 +6,7 @@ Vue 3 Composition API application with TypeScript, Pinia stores, and composable-
 
 **Stack**: Vue 3, TypeScript, Pinia, Vue Router, Vue I18n, Tailwind CSS, DaisyUI
 **Test Framework**: Vitest + @vue/test-utils
-**Test Coverage**: 164 tests (100% passing)
+**Test Coverage**: 175 tests (100% passing)
 
 ## Project Structure
 
@@ -20,7 +20,12 @@ src/
 │   └── AboutView.vue         # About page
 ├── components/
 │   ├── MapRenderer.vue       # D3 map rendering (147 lines)
-│   ├── TerritoryControls.vue # Territory controls (uses shouldShowEmptyState)
+│   ├── TerritoryControls.vue # [UNUSED] Territory controls (superseded by view-mode controls, can be deleted)
+│   ├── configuration/        # View-mode-specific control components (4 components)
+│   │   ├── CompositeCustomControls.vue   # Composite-custom mode controls
+│   │   ├── UnifiedControls.vue           # Unified mode controls
+│   │   ├── SplitControls.vue             # Split mode controls
+│   │   └── BuiltInCompositeControls.vue # Composite-existing mode controls
 │   └── ui/                   # 28 reusable UI components organized in subdirectories
 │       ├── layout/           # Layout and page structure components
 │       ├── primitives/       # Core reusable UI elements
@@ -31,7 +36,7 @@ src/
 │       ├── presets/          # Preset management components
 │       ├── import/           # Import-related components
 │       └── export/           # Export-related components
-├── composables/              # 12 composition functions including useViewState, useTerritoryCursor, useClipExtentEditor, useTerritoryParameters
+├── composables/              # 16 composition functions including useAtlasConfig, useParameterProvider, useViewState, useTerritoryCursor, useClipExtentEditor, useProjectionPanning, useMapWatchers, useTerritoryParameters
 ├── stores/                   # 4 Pinia stores
 └── types/                    # TypeScript definitions
 ```
@@ -44,13 +49,11 @@ App.vue
 ├── RouterView
 │   └── MapView.vue (main coordinator)
 │       ├── MapRenderer.vue (D3 rendering engine)
-│       ├── TerritoryControls.vue (territory transforms)
-│       ├── ProjectionDropdown.vue (projection selection with info modal)
-│       └── UI Components
-│           ├── ViewModeSection
-│           ├── ProjectionInfo
-│           ├── ProjectionParamsControls
-│           └── ToastNotification
+│       └── View-Mode Controls (rendered conditionally)
+│           ├── CompositeCustomControls (composite-custom mode)
+│           ├── UnifiedControls (unified mode)
+│           ├── SplitControls (split mode)
+│           └── BuiltInCompositeControls (built-in-composite mode)
 └── AppFooter.vue (credits, links)
 ```
 
@@ -61,77 +64,86 @@ App.vue
 **Responsibilities**:
 - Orchestrates child components
 - Manages layout and sections
+- Renders view-mode-specific control components
 - No business logic (delegates to composables)
-- Uses: useAtlasData, useLoadingState
+- Uses: useAtlasData, useLoadingState, useViewState
 
-### MapRenderer.vue (147 lines)
-**Role**: D3 rendering engine with interactive panning, territory dragging, and clip extent editing
+### MapRenderer.vue (376 lines)
+**Role**: D3 rendering engine with interactive features
 **Responsibilities**:
 - SVG canvas management
 - D3 projection rendering via MapRenderCoordinator
 - Territory positioning
-- Interactive mouse panning (mouse drag to rotate projections)
-- Territory dragging integration via useTerritoryCursor composable
-- Clip extent corner editing integration via useClipExtentEditor composable
-- Cursor feedback (grab/grabbing) during interaction
-- Watches projection parameters and fitting mode for reactive updates
-- Watches global parameters (referenceScale, canvasDimensions) and applies updates dynamically
-- Uses: MapRenderCoordinator, MapSizeCalculator, projectionRegistry, getRelevantParameters, useTerritoryCursor, useClipExtentEditor
-**Tests**: 10 tests covering props, rendering, store integration
+- Interactive feature integration (panning via useProjectionPanning, dragging via useTerritoryCursor, clip extent editing via useClipExtentEditor)
+- Reactive map updates via useMapWatchers
+- Uses: MapRenderCoordinator, MapSizeCalculator, useProjectionPanning, useTerritoryCursor, useClipExtentEditor, useMapWatchers
+**Tests**: 13 tests covering props, rendering, store integration
 **Interactive Features**:
-- **Panning**: Mouse drag to rotate projections (azimuthal, cylindrical, etc.)
-- **Territory Dragging**: Drag overseas territories to reposition (composite-custom mode)
-- **Clip Extent Editing**: Click territory to select, drag corner handles to adjust clipping region
-**Panning Feature**:
-- Supports 2-axis mouse drag panning for projections with `rotateLongitude` parameter
-- Tracks mouse delta (dx, dy) and converts to rotation degrees (~0.5° per pixel)
-- Updates both longitude and latitude rotation through configStore.setCustomRotate()
-- Wraps longitude to -180°/180° range, clamps latitude to -90°/90° range
-- Prevents pole flipping by clamping latitude rotation
-- Global mouse event listeners ensure smooth dragging even outside element
-- Automatically determines panning support based on projection family (via getRelevantParameters)
-- Cursor changes to 'grab' when panning available, 'grabbing' while dragging
-- Works with azimuthal, cylindrical, pseudocylindrical, and polyhedral projection families
-- **Latitude Lock**: Respects configStore.rotateLatitudeLocked state
-  - When locked: Only longitude panning (latDelta = 0)
-  - When unlocked: Full 2-axis panning
-  - Uses supportsLatitudePanning computed for conditional logic
-**Global Parameter Watchers**:
-- Watches configStore.canvasDimensions for changes
-  - Calls cartographer.updateCanvasDimensions() to update projection service
-  - Triggers re-render to apply new canvas size to SVG display
-- Watches configStore.referenceScale for changes
-  - Calls cartographer.updateReferenceScale() to recalculate all territory scales
-  - Triggers re-render with updated scale multipliers applied
-- Uses deep watching for canvasDimensions object to detect property changes
-- Ensures reactive updates without full component reinitialization
-**Territory Dragging Integration**:
-- Uses useTerritoryCursor composable for drag-to-move functionality
-- Creates border zone overlays via createBorderZoneOverlays() in composite-custom mode
-- Passes onTerritoryClick callback to enable clip extent editor territory selection
-- Handles drag start/move/stop events coordinated by useTerritoryCursor
-- Updates translateOffset parameter in real-time during drag
-**Clip Extent Editing Integration**:
-- Uses useClipExtentEditor composable for interactive corner dragging
-- Click workflow: Border zone click → toggleTerritorySelection() → renderClipExtentHandles()
-- Only shows corner handles for currently selected territory (prevents overlap)
-- Renders handles after SVG ready via renderClipExtentHandles(svg) call
-- Handle positions update automatically when parameters change
-- Coordinates with territory dragging (both use same SVG scale calculation)
-- Updates pixelClipExtent parameter in real-time during corner drag
+- **Projection Panning**: Via useProjectionPanning composable for azimuthal, cylindrical, and pseudocylindrical projections
+- **Territory Dragging**: Via useTerritoryCursor composable for composite-custom mode
+- **Clip Extent Editing**: Via useClipExtentEditor composable for corner handle editing
+**Watchers**: All reactive dependencies handled by useMapWatchers composable
+**Cursor Coordination**: Territory dragging > Clip extent editing > Projection panning priority
 
-### TerritoryControls.vue (264 lines)
-**Role**: Territory transform and parameter controls
+### View-Mode Control Components (src/components/configuration/)
+
+Dedicated control components for each view mode provide focused, maintainable interfaces.
+
+#### CompositeCustomControls.vue
+**Role**: Controls for composite-custom mode (full territory configuration with positioning)
 **Responsibilities**:
-- Territory projection selection with dynamic family detection
-- Territory-specific parameter controls (custom composite mode)
-- Translation controls (x, y)
-- Territory scale controls (0.5×-2.0× multiplier)
-- Projection parameter controls (includes projection scale 100-10,000)
+- PresetSelector for loading saved configurations
+- ImportControls for JSON import
+- GlobalProjectionControls (canvas dimensions, reference scale)
+- Territory accordion with per-territory controls:
+  - ProjectionDropdown for projection selection (handles cartographer updates)
+  - TerritoryParameterControls for parameter editing (projection-independent)
+- Reset to defaults button for all territories
+**Pattern**: Calls `handleProjectionChange()` to update both parameter store and cartographer
+**Reactivity**: Uses `getTerritoryProjection()` helper for direct parameter store access
+- Reset to defaults functionality
+- Uses: useTerritoryTransforms, projectionRegistry, parameterStore
+
+#### UnifiedControls.vue
+**Role**: Controls for unified mode (single projection for entire atlas)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- ProjectionDropdown for global projection selection
+- Projection parameter controls (rotate, center, parallels, scale)
+- Fitting mode toggle (auto/manual)
 - Reset functionality
-- Parameter inheritance and validation feedback
-- Uses: useTerritoryTransforms, useTerritoryConfig, projectionRegistry
-- Components: TerritoryParameterControls for parameter editing per territory
+**Parameter Access**:
+- Reads: `parameterStore.globalEffectiveParameters` for current values
+- Writes: `configStore.setCustomRotate()`, `setCustomCenter()`, etc. (delegates to parameterStore)
+- Parameter inheritance: Registry → Atlas → Global
+- Uses: configStore, parameterStore, projectionRegistry, parameter helpers
+
+#### SplitControls.vue
+**Role**: Controls for split mode (separate projections per territory without positioning)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- Territory accordion with per-territory controls:
+  - ProjectionDropdown for projection selection
+  - TerritoryParameterControls for parameter editing (no transform controls)
+- No global positioning or reference scale
+**Pattern**: Each territory has independent projection selection with parameter editing
+**Reactivity**: Uses `getTerritoryProjection()` helper for direct parameter store access
+- Uses: useTerritoryTransforms, projectionRegistry, parameterStore
+
+#### BuiltInCompositeControls.vue
+**Role**: Controls for built-in-composite mode (d3-composite-projections)
+**Responsibilities**:
+- ViewPresetSelector for preset selection
+- ProjectionDropdown for selecting pre-built composite projections
+- Limited projection parameter controls (rotate, scale if applicable)
+- Fitting mode toggle (auto/manual)
+- Reset functionality
+- Uses: configStore, projectionRegistry, parameter helpers
+
+### TerritoryControls.vue [UNUSED - Can be deleted]
+**Role**: Original territory transform and parameter controls (pre-refactoring)
+**Status**: Superseded by view-mode-specific control components
+**Note**: This file is not imported anywhere and can be safely deleted.
 
 ### ProjectionSelector.vue (114 lines)
 **Role**: Projection selection interface
@@ -224,17 +236,31 @@ App.vue
   - Updates configStore.canvasDimensions and configStore.referenceScale reactively
   - Watchers in MapRenderer trigger automatic re-rendering on parameter changes
   - Used in TerritoryControls component for composite-custom mode
-- **TerritoryParameterControls**: Territory-specific parameter editing interface
+- **TerritoryParameterControls**: Territory-specific parameter editing interface (projection-independent)
   - Uses unified `ProjectionParameters` interface across all parameter operations
   - Integrates with `parameterStore` for reactive parameter management
   - Template conditions use computed properties for parameter group visibility
-  - Provides parameter controls for individual territories in custom composite mode
+  - Provides parameter controls for individual territories (no projection selection)
   - Uses dynamic projection family detection via projectionRegistry
   - Supports all projection families (CONIC, AZIMUTHAL, CYLINDRICAL, etc.)
   - Parameter groups: Position (center/rotate), Projection-specific (parallels), View & Scale (projection scale/clipAngle), Advanced (precision/translate)
   - Validation feedback with real-time error/warning display via `ParameterRegistry`
   - Parameter inheritance indicators and override functionality
   - Reset controls for clearing territory-specific overrides
+  - **View-mode awareness**: Uses `isCompositeMode` computed to filter composite-specific parameters (translateOffset, pixelClipExtent) in split mode
+  - **Single responsibility**: Focuses solely on parameter editing; projection selection handled by parent components
+- **TerritorySetManager**: Territory customization UI for composite-custom mode
+  - Manages which territories are included in custom composite projection
+  - Uses registry behavior to determine which collection set to display (typically 'administrative')
+  - Reads territoryCollections from atlas config via atlasSpecificConfig.territoryCollections
+  - Displays territories grouped by administrative collections (e.g., "Mainland only", "Mainland + DROM", "All territories")
+  - Displays active territories with remove buttons (btn-soft style with close icon)
+  - Displays available territories with add buttons (btn-ghost style with add icon)
+  - Filters out mainland from available territories (mainland always visible)
+  - Limits available territories to those loaded from preset (territories with data)
+  - Calls configStore.addTerritoryToComposite() and removeTerritoryFromComposite()
+  - Triggers re-render via geoDataStore.triggerRender() after add/remove operations
+  - Used in CompositeCustomControls and TerritoriesControl components
 - **ParameterControlGroup**: Reusable parameter control group wrapper
   - Provides consistent styling and layout for parameter sections
   - Supports title, description, and collapsible content areas
@@ -252,6 +278,7 @@ App.vue
 
 **Preset Components** (src/components/ui/presets/):
 - **PresetSelector**: Dropdown for manual preset selection and loading
+  - Gets available presets from registry behavior via getAtlasBehavior()
   - Displays available presets for current atlas with metadata-based labels
   - Handles async preset loading, validation, and application to stores
   - Integrates with parameter store and CompositeProjection for complete preset application
@@ -275,9 +302,16 @@ App.vue
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (12 functions)
+## Composables (14 functions)
 
 ### Data Loading
+**useAtlasLoader** (24 lines)
+- Reactive async atlas configuration loading
+- Uses VueUse's useAsyncState for loading state management
+- Loads atlas config on-demand via registry.loadAtlasAsync()
+- Returns: { atlasConfig (Ref<LoadedAtlasConfig | null>), isLoading, error }
+- Used by: configStore for lazy atlas loading
+
 **useAtlasData** (128 lines)
 - Orchestrates all data loading
 - initialize(), loadDataForViewMode(), reinitialize(), reloadUnifiedData()
@@ -291,6 +325,24 @@ App.vue
 - Returns: { showSkeleton, withMinLoadingTime }
 
 ### Store Abstraction
+**useAtlasConfig** (51 lines) - NEW (2025-10-19)
+- Centralized atlas configuration access
+- Provides: currentAtlasConfig, atlasService, isAtlasLoaded, atlasId
+- Eliminates repeated configStore.currentAtlasConfig patterns
+- Returns computed refs for reactive atlas state
+- Used by: useTerritoryTransforms.ts, and other composables needing atlas config
+- Tests: 6 tests covering basic functionality and reactivity
+- Pattern: Single source of truth for atlas configuration access
+
+**useParameterProvider** (55 lines) - NEW (2025-10-19)
+- Standardized parameter provider adapter
+- Provides: parameterProvider object with getEffectiveParameters() and getExportableParameters()
+- Connects parameter store to services (Cartographer, export services)
+- Single implementation eliminating duplicate adapter code
+- Used by: CompositeExportDialog.vue, and services needing projection parameters
+- Tests: 5 tests covering delegation and consistency
+- Pattern: Adapter pattern for parameter store integration
+
 **useProjectionConfig** (58 lines)
 - Projection configuration helpers
 - compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
@@ -306,11 +358,12 @@ App.vue
 - Returns: { hasTerritoriesForProjectionConfig }
 
 ### Component Logic
-**useTerritoryTransforms** (155 lines)
+**useTerritoryTransforms** (312 lines)
 - Territory projection management
 - Translation and scale controls (reads scale from parameter store)
 - Reset functions
 - Empty state logic: shouldShowEmptyState computed (determines when to show "no territories" alert)
+- Uses: useAtlasConfig composable for centralized atlas access
 - Used by: TerritoryControls.vue
 
 **useTerritoryParameters** (72 lines)
@@ -379,6 +432,37 @@ App.vue
 - Click workflow: User clicks territory border zone → toggles selection → handles appear/disappear for that territory
 - Used by: MapRenderer.vue for interactive clip extent editing
 
+**useProjectionPanning** (162 lines)
+- Interactive projection panning for azimuthal, cylindrical, and pseudocylindrical projections
+- Pan state management: isPanning, drag coordinates, rotation start values
+- Projection capability detection: supportsPanning, supportsLatitudePanning
+- Mouse event handlers: handleMouseDown(), handleMouseMove(), handleMouseUp()
+- Rotation calculations: Converts pixel deltas to degrees (~0.5° per pixel)
+  - Longitude wrapping: -180° to 180° range
+  - Latitude clamping: -90° to 90° range (prevents pole flipping)
+  - Natural drag direction: drag right moves map right (positive dx increases longitude)
+- Integration with configStore.setCustomRotate() for rotation updates
+- Respects configStore.rotateLatitudeLocked for latitude lock behavior
+- Cursor feedback: 'grab' when available, 'grabbing' while panning, 'default' when disabled
+- Global event listener management with cleanup
+- Uses getRelevantParameters() to determine projection family support
+- Works with projectionRegistry for projection metadata
+- Tests: 19 tests covering capability detection, cursor styles, drag behavior, rotation calculations
+- Used by: MapRenderer.vue for interactive map rotation
+
+**useMapWatchers** (155 lines)
+- Consolidates all MapRenderer watch statements into single composable
+- Watches globalEffectiveParameters: Updates cartographer.updateProjectionParams() and triggers re-render
+- Watches projectionFittingMode: Updates cartographer.updateFittingMode() and triggers re-render
+- Watches canvasDimensions: Updates cartographer.updateCanvasDimensions() and triggers re-render
+- Watches referenceScale: Updates cartographer.updateReferenceScale() and triggers re-render
+- **Simple mode watcher**: Tracks configuration dependencies and `parameterStore.territoryParametersVersion` for territory projection/parameter changes
+- **Composite mode watcher**: Tracks composite-specific dependencies without deprecated properties
+- Deep watching with 'post' flush for optimal reactivity
+- Accepts props object (mode, geoData, projection, preserveScale) and callbacks object
+- Centralizes watcher lifecycle management with cleanup function
+- Used by: MapRenderer.vue for reactive map updates
+
 **useUrlState** (220 lines)
 - URL state serialization/deserialization for shareable links
 - serializeState(): Encodes current configuration to URL query parameters
@@ -398,14 +482,111 @@ App.vue
 - Warning generation
 - Validation state management
 
+## View Orchestration
+
+### ViewOrchestrationService (382 lines)
+**Location**: `src/services/view/view-orchestration-service.ts`
+
+**Purpose**: Centralized component visibility logic for all view states. Determines what UI elements should be visible or enabled based on current application state.
+
+**Architecture**:
+- Pure static service (no instance state)
+- Takes `ViewState` snapshot as input
+- Returns boolean visibility/enabled flags
+- All methods are deterministic and testable
+
+**ViewState Interface**:
+```typescript
+interface ViewState {
+  viewMode: ViewMode                          // composite-custom, built-in-composite, split, unified
+  atlasConfig: AtlasConfig                    // Current atlas configuration
+  hasPresets: boolean                         // Presets available for current atlas
+  hasOverseasTerritories: boolean             // Filtered territories exist
+  isPresetLoading: boolean                    // Preset data loading state
+  showProjectionSelector: boolean             // From ProjectionUIService
+  showIndividualProjectionSelectors: boolean  // From ProjectionUIService
+  isMainlandInTerritories: boolean            // Mainland in filtered list
+  showMainland: boolean                       // Atlas has mainland config
+}
+```
+
+**Visibility Methods** (20+ methods):
+
+**Main Layout**:
+- `shouldShowRightSidebar()` - Show sidebar in non-unified modes
+- `shouldShowBottomBar()` - Always visible (display options)
+
+**Sidebar Content**:
+- `shouldShowProjectionParams()` - Show in unified, built-in-composite modes
+- `shouldShowTerritoryControls()` - Show in split, composite-custom modes
+
+**Territory Controls Sub-components**:
+- `shouldShowPresetSelector()` - Show in composite-custom when registry behavior has available presets
+- `shouldShowImportControls()` - Show in composite-custom or split modes
+- `shouldShowGlobalProjectionControls()` - Show in composite-custom mode
+- `shouldShowTerritoryParameterControls()` - Show in composite-custom mode
+- `shouldShowMainlandAccordion()` - Show when mainland available (showMainland or isMainlandInTerritories)
+- `shouldShowProjectionDropdown()` - Show in non-composite-custom modes
+
+**Empty States**:
+- `shouldShowEmptyState()` - No territories and no mainland available
+- `getEmptyStateMessage()` - Returns appropriate i18n key for empty state
+
+**Control States**:
+- `isTerritorySelectDisabled()` - Disable if no hasTerritorySelector or in built-in-composite
+- `isViewModeDisabled()` - Disable if only one supported view mode
+
+**Layout Variants**:
+- `shouldShowCompositeRenderer()` - Show for both composite modes
+- `shouldShowSplitView()` - Show in split mode
+- `shouldShowUnifiedView()` - Show in unified mode
+
+**Display Options**:
+- `shouldShowCompositionBordersToggle()` - Show in composite modes
+- `shouldShowScalePreservationToggle()` - Show in split mode
+
+**Integration Pattern**:
+The service is used via `useViewState` composable, which:
+1. Aggregates state from stores into `ViewState` object
+2. Wraps all service methods in computed refs for reactivity
+3. Exposes `viewOrchestration` object to components
+
+**Example Usage** (in components):
+```vue
+<script setup>
+const { viewOrchestration } = useViewState()
+</script>
+
+<template>
+  <CardContainer v-show="viewOrchestration.shouldShowRightSidebar.value">
+    <ProjectionParamsControls v-if="viewOrchestration.shouldShowProjectionParams.value" />
+    <TerritoryControls v-else-if="viewOrchestration.shouldShowTerritoryControls.value" />
+  </CardContainer>
+</template>
+```
+
+**Benefits**:
+1. Single source of truth for all visibility logic
+2. Pure functions enable comprehensive unit testing (61 tests)
+3. Type-safe visibility decisions with explicit ViewState interface
+4. Eliminates scattered conditional logic across components
+5. Easier to reason about view state transitions
+6. Consistent behavior across all UI elements
+
+**Test Coverage**: 61 unit tests covering all visibility methods and state combinations
+
+**Used by**: MapView.vue, TerritoryControls.vue, AtlasConfigSection.vue, DisplayOptionsSection.vue (via useViewState composable)
+
 ## State Management
 
 ### configStore (357 lines)
 **Domain**: Configuration state and UI control
 **Responsibilities**:
 - Atlas selection (current atlas, region, territories)
+- Lazy atlas loading via useAtlasLoader composable with reactive async state
+- Current atlas config reactively updated when atlas finishes loading
+- atlasService computed re-evaluates on atlas load completion (depends on currentAtlasConfig.value?.id)
 - View mode (composite, split, unified)
-- Projection mode (existing, custom)
 - Projection parameter delegation to parameterStore (setCustomRotate, setCustomCenter, etc.)
 - Projection control options (rotateLatitudeLocked, projectionFittingMode)
 - Global projection parameters (referenceScale, canvasDimensions)
@@ -413,11 +594,16 @@ App.vue
   - canvasDimensions: Canvas size specification (width/height) controlling SVG display size
   - Both values loaded from presets and editable via GlobalProjectionControls
   - Watchers in MapRenderer trigger re-rendering on changes
-- Computed properties: effectiveProjectionParams merges atlas defaults with parameterStore.globalParameters
-- Legacy parameter accessors via computed properties for backward compatibility
+- Global parameter access: Delegates to parameterStore.globalEffectiveParameters for unified parameter retrieval
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
-**Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls
+- **Territory set management**: activeTerritoryCodes ref (Set<string>) tracks included territories in custom composite mode
+  - addTerritoryToComposite(code): Adds territory to active set (creates new Set for reactivity)
+  - removeTerritoryFromComposite(code): Removes territory from active set (creates new Set for reactivity)
+  - setActiveTerritories(codes[]): Replaces entire active set (used for preset loading and reset)
+  - Initialized from preset territory codes during preset loading
+  - Reset to preset defaults via useTerritoryTransforms.resetTransforms()
+**Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls, TerritorySetManager
 
 ### geoDataStore (215 lines)
 **Domain**: Geographic data and rendering coordination
@@ -427,7 +613,12 @@ App.vue
 - Loading states
 - Cartographer initialization with parameter provider injection
 - Parameter provider adapter for connecting parameter store to rendering
-**Used by**: MapRenderer, data loading composables
+- **Territory filtering**: filteredTerritories computed filters territories based on view mode
+  - Custom composite mode: Filters by configStore.activeTerritoryCodes (user-customizable set)
+  - Built-in composite mode: Returns all territories from preset (no filtering)
+  - Split/unified modes: Filters by territory mode from atlas configuration
+  - Used by MapRenderer and territory UI components for rendering active territories
+**Used by**: MapRenderer, data loading composables, TerritorySetManager
 
 ### ui.ts (81 lines)
 **Domain**: UI state
@@ -440,26 +631,24 @@ App.vue
   - showMapLimits: Display viewport bounds rectangle (default: false)
 **Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
-### territory.ts (57 lines)
-**Domain**: Territory state
-**Responsibilities**:
-- Territory projections
-- Territory translations (x, y)
-- Initialization and reset
-**Used by**: TerritoryControls, useTerritoryTransforms
-
-**Note**: Scale multipliers are stored in parameter store, not territory store.
-
 ### parameterStore (295 lines)
 **Domain**: Unified parameter registry integration
 **Responsibilities**:
 - Parameter registry integration with ProjectionParameterManager
 - Global parameter state management with registry validation
 - Territory-specific parameter overrides with registry constraints
+- Territory projections via projectionId parameter
+- Territory positions via translateOffset parameter tuple [x, y]
+- Territory scales via scaleMultiplier parameter
+- Territory clip extents via pixelClipExtent parameter
 - Parameter inheritance: territory > global > atlas > registry defaults
 - Registry-based parameter validation with family-specific constraint checking
 - Reactive version tracking via territoryParametersVersion for UI updates
 - Registry-driven constraint resolution for UI components
+- Helper methods for backward compatibility: getTerritoryProjection(), setTerritoryProjection(), getTerritoryTranslation(), setTerritoryTranslation()
+**Used by**: All territory controls, MapRenderer, TerritoryControls, composables, export/import services
+
+**Note**: Territory configuration is fully managed through the parameter system. Territory projections and positions are stored as parameters with proper validation, inheritance, and constraint checking.
 - Complete parameter export using registry definitions (getExportableParameters)
 - ProjectionParameterProvider interface implementation for rendering
 **Registry Integration**:
@@ -659,8 +848,7 @@ Components never call services directly. Flow:
 <CardContainer
   v-show="(
     configStore.viewMode === 'unified'
-    || configStore.viewMode === 'composite-existing'
-    || (configStore.viewMode === 'split' && !configStore.showIndividualProjectionSelectors)
+    || configStore.viewMode === 'built-in-composite'
     || configStore.showProjectionSelector
     || configStore.showIndividualProjectionSelectors
   )"
@@ -675,7 +863,7 @@ Components never call services directly. Flow:
 ### Visibility Logic Architecture
 
 **configStore**: Provides computed properties via ProjectionUIService
-- `showProjectionSelector`, `showIndividualProjectionSelectors`, `showProjectionModeToggle`
+- `showProjectionSelector`, `showIndividualProjectionSelectors`
 - These delegate to ProjectionUIService.shouldShow*() methods
 - Single source of truth for component visibility rules
 
@@ -686,6 +874,95 @@ Components never call services directly. Flow:
 - Does NOT duplicate configStore logic
 
 **Best Practice**: Use configStore.show* for component visibility, useViewState for view mode checks
+
+## Territory Customization Workflow (Custom Composite Mode)
+
+### Overview
+Custom composite mode allows users to select which territories to include in the composite projection. Territory set customization is managed through configStore.activeTerritoryCodes and visualized via TerritorySetManager component.
+
+### Territory Set State Flow
+
+**Initialization**:
+1. Preset loaded via PresetLoader.loadPreset()
+2. Territory codes extracted from preset.territories
+3. configStore.setActiveTerritories(territoryCodes) initializes activeTerritoryCodes Set
+4. InitializationService stores territory codes for validation
+
+**Display Filtering**:
+1. geoDataStore.filteredTerritories computed filters by activeTerritoryCodes
+2. Only territories in activeTerritoryCodes Set are visible in UI and rendered on map
+3. Mainland always visible (handled separately from overseas territories)
+
+**User Interaction**:
+1. User clicks "Add" button in TerritorySetManager
+2. TerritorySetManager calls configStore.addTerritoryToComposite(code)
+3. configStore adds code to activeTerritoryCodes Set (creates new Set for reactivity)
+4. TerritorySetManager calls geoDataStore.triggerRender()
+5. Map re-renders with new territory included
+
+**Composition Border Filtering**:
+1. MapRenderer passes filteredTerritoryCodes Set to MapOverlayService
+2. MapOverlayService.renderCustomCompositeBorders() filters borders
+3. Mainland border always rendered (checked via mainlandCode parameter)
+4. Overseas territory borders only rendered if in filteredTerritoryCodes Set
+5. Result: Visual borders match active territory set
+
+**Reset to Defaults**:
+1. User clicks reset button in TerritoriesControl
+2. TerritoriesControl.resetToDefaults() calls useTerritoryTransforms.resetTransforms()
+3. resetTransforms() extracts preset territory codes from presetDefaults
+4. Calls configStore.setActiveTerritories(presetTerritoryCodes)
+5. Calls geoDataStore.triggerRender()
+6. Territory set and parameters restored to preset state
+
+**Divergence Detection**:
+1. TerritoriesControl.hasDivergingFromPreset computed checks territory set
+2. Compares activeTerritoryCodes with preset territory codes (Set equality check)
+3. If sets differ in size or membership, reset button enabled
+4. Also checks parameter divergence for comprehensive reset detection
+
+### Component Integration
+
+**TerritorySetManager** (src/components/ui/parameters/TerritorySetManager.vue):
+- Displays active territories with remove buttons
+- Displays available territories with add buttons
+- Filters out mainland from available list
+- Limits available territories to those loaded from preset
+
+**TerritoriesControl** (src/components/ui/parameters/TerritoriesControl.vue):
+- Renders TerritorySetManager for territory selection
+- Provides reset button enabled when territory set or parameters diverge
+- Manages territory parameter controls via accordion
+
+**CompositeCustomControls** (src/components/configuration/CompositeCustomControls.vue):
+- Top-level component for custom composite mode
+- Integrates PresetSelector, TerritorySetManager, and parameter controls
+- Coordinates territory projection and parameter management
+
+### State Management
+
+**configStore** (src/stores/config.ts):
+- activeTerritoryCodes: Set<string> - Active territory codes
+- addTerritoryToComposite(code): Add territory to active set
+- removeTerritoryFromComposite(code): Remove territory from active set
+- setActiveTerritories(codes[]): Replace entire active set
+
+**geoDataStore** (src/stores/geoData.ts):
+- filteredTerritories: Computed property filtering by activeTerritoryCodes
+- overseasTerritoriesData: All loaded territory data (source for filtering)
+- triggerRender(): Force map re-render after territory set changes
+
+### Design Decisions
+
+**Why Set<string>**: O(1) membership checking for efficient filtering in computed properties and render loops.
+
+**Why filter at display level**: Keeps data loading simple and avoids reloading data when changing territory set.
+
+**Why limit to preset territories**: Adding arbitrary territories would require rebuilding CompositeProjection with new subProjections, which is architecturally complex. Limiting to preset territories ensures all territories have projection configurations and parameters.
+
+**Why always show mainland**: Mainland is the primary territory in single-focus atlases and should always be visible for context.
+
+**Why new Set for reactivity**: Vue 3 reactivity requires creating new object references when mutating Sets (ref unwrapping doesn't track Set mutations).
 
 ## Related Documentation
 

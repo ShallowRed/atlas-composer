@@ -33,8 +33,8 @@ describe('useViewState', () => {
       expect(isCompositeCustomMode.value).toBe(true)
       expect(isCompositeExistingMode.value).toBe(false)
 
-      // Test composite-existing
-      configStore.viewMode = 'composite-existing'
+      // Test built-in-composite
+      configStore.viewMode = 'built-in-composite'
       expect(isCompositeMode.value).toBe(true)
       expect(isCompositeCustomMode.value).toBe(false)
       expect(isCompositeExistingMode.value).toBe(true)
@@ -67,7 +67,7 @@ describe('useViewState', () => {
       configStore.viewMode = 'split'
       expect(cardTitle.value).toBe('mode.split')
 
-      configStore.viewMode = 'composite-existing'
+      configStore.viewMode = 'built-in-composite'
       expect(cardTitle.value).toBe('mode.compositeExisting')
 
       configStore.viewMode = 'composite-custom'
@@ -98,11 +98,11 @@ describe('useViewState', () => {
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
-    it('should show right sidebar for composite-existing mode', () => {
+    it('should show right sidebar for built-in-composite mode', () => {
       const configStore = useConfigStore()
       const { shouldShowRightSidebar } = useViewState()
 
-      configStore.viewMode = 'composite-existing'
+      configStore.viewMode = 'built-in-composite'
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
@@ -111,7 +111,6 @@ describe('useViewState', () => {
       const { shouldShowRightSidebar } = useViewState()
 
       configStore.viewMode = 'split'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
@@ -120,7 +119,6 @@ describe('useViewState', () => {
       const { shouldShowRightSidebar } = useViewState()
 
       configStore.viewMode = 'composite-custom'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
@@ -132,11 +130,11 @@ describe('useViewState', () => {
       expect(shouldShowProjectionParams.value).toBe(true)
     })
 
-    it('should show projection params for composite-existing mode', () => {
+    it('should show projection params for built-in-composite mode', () => {
       const configStore = useConfigStore()
       const { shouldShowProjectionParams } = useViewState()
 
-      configStore.viewMode = 'composite-existing'
+      configStore.viewMode = 'built-in-composite'
       expect(shouldShowProjectionParams.value).toBe(true)
     })
 
@@ -145,7 +143,6 @@ describe('useViewState', () => {
       const { shouldShowTerritoryControls } = useViewState()
 
       configStore.viewMode = 'composite-custom'
-      configStore.projectionMode = 'individual'
       expect(shouldShowTerritoryControls.value).toBe(true)
     })
 
@@ -154,7 +151,6 @@ describe('useViewState', () => {
       const { shouldShowTerritoryControls } = useViewState()
 
       configStore.viewMode = 'unified'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowTerritoryControls.value).toBe(false)
     })
   })

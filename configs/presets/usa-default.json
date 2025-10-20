@@ -3,49 +3,30 @@
   "metadata": {
     "atlasId": "usa",
     "atlasName": "United States",
-    "exportDate": "2025-10-14T13:04:45.674Z",
-    "createdWith": "Migration Script v1.0",
-    "notes": "Generated from atlas rendering configuration during migration | Atlas projection metadata migrated from atlas config"
+    "exportDate": "2025-10-20T00:00:00.000Z",
+    "createdWith": "d3-composite-projections Conversion",
+    "source": "d3-composite-projections/albersUsaTerritories.js",
+    "notes": "Parameters reproduced from d3-composite-projections built-in composite projection (extended territories version)"
   },
   "pattern": "single-focus",
-  "referenceScale": 2700,
+  "referenceScale": 1070,
   "territories": [
     {
       "code": "US-CONT",
       "name": "Contiguous United States",
       "role": "primary",
-      "projectionId": "conic-conformal",
-      "projectionFamily": "CONIC",
-      "parameters": {
-        "center": [
-          -98.5,
-          39.8
-        ],
-        "rotate": [
-          98.5,
+      "layout": {
+        "translateOffset": [
           0,
           0
         ],
-        "parallels": [
-          29.5,
-          45.5
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          100,
-          -50
+        "clipExtent": null,
+        "pixelClipExtent": [
+          -486.85,
+          -254.66,
+          486.85,
+          254.66
         ]
-        "clipAngle": null,
-        "precision": 0.1
-      },
-      "layout": {
-        "translateOffset": [
-          100,
-          -50
-        ],
-        "clipExtent": null
       },
       "bounds": [
         [
@@ -56,44 +37,40 @@
           -66.99,
           49.37
         ]
-      ]
+      ],
+      "projection": {
+        "id": "albers",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            96,
+            0,
+            0
+          ],
+          "parallels": [
+            29.5,
+            45.5
+          ],
+          "scaleMultiplier": 1
+        }
+      }
     },
     {
       "code": "US-AK",
       "name": "Alaska",
       "role": "secondary",
-      "projectionId": "albers",
-      "projectionFamily": "CONIC",
-      "parameters": {
-        "center": [
-          -152,
-          64
-        ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          55,
-          65
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -240,
-          140
-        ]
-        "clipAngle": null,
-        "precision": 0.1
-      },
       "layout": {
         "translateOffset": [
-          -240,
-          140
+          -328.49,
+          215.07
         ],
-        "clipExtent": null
+        "clipExtent": null,
+        "pixelClipExtent": [
+          -126.26,
+          -86.67,
+          99.51,
+          34.24
+        ]
       },
       "bounds": [
         [
@@ -104,92 +81,44 @@
           -130.01,
           71.41
         ]
-      ]
-    },
-    {
-      "code": "US-ALEU",
-      "name": "Aleutian Islands",
-      "role": "secondary",
-      "projectionId": "albers",
-      "projectionFamily": "CONIC",
-      "parameters": {
-        "center": [
-          -175,
-          52
-        ],
-        "rotate": [
-          0,
-          0,
-          0
-        ],
-        "parallels": [
-          50,
-          58
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -340,
-          160
-        ]
-        "clipAngle": null,
-        "precision": 0.1
-      },
-      "layout": {
-        "translateOffset": [
-          -340,
-          160
-        ],
-        "clipExtent": null
-      },
-      "bounds": [
-        [
-          -178.19,
-          51.37
-        ],
-        [
-          179.78,
-          63.73
-        ]
-      ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            154,
+            0,
+            0
+          ],
+          "center": [
+            -2,
+            58.5
+          ],
+          "parallels": [
+            55,
+            65
+          ],
+          "scaleMultiplier": 0.35
+        }
+      }
     },
     {
       "code": "US-HI",
       "name": "Hawaii",
       "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          157.5,
-          -20.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -140,
-          200
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
       "layout": {
         "translateOffset": [
-          -140,
-          200
+          -219.35,
+          226.84
         ],
-        "clipExtent": null
+        "clipExtent": null,
+        "pixelClipExtent": [
+          -9.63,
+          -49.22,
+          96.3,
+          22.47
+        ]
       },
       "bounds": [
         [
@@ -200,44 +129,44 @@
           -154.8,
           22.22
         ]
-      ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            157,
+            0,
+            0
+          ],
+          "center": [
+            -3,
+            19.9
+          ],
+          "parallels": [
+            8,
+            18
+          ],
+          "scaleMultiplier": 1
+        }
+      }
     },
     {
       "code": "US-PR",
       "name": "Puerto Rico",
       "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          66.5,
-          -18.2,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          100,
-          200
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
       "layout": {
         "translateOffset": [
-          100,
-          200
+          374.5,
+          239.68
         ],
-        "clipExtent": null
+        "clipExtent": null,
+        "pixelClipExtent": [
+          -40.66,
+          -18.83,
+          37.45,
+          9.63
+        ]
       },
       "bounds": [
         [
@@ -248,92 +177,44 @@
           -65.3,
           18.52
         ]
-      ]
-    },
-    {
-      "code": "US-VI",
-      "name": "U.S. Virgin Islands",
-      "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          64.8,
-          -18.3,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          120,
-          190
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
-      "layout": {
-        "translateOffset": [
-          120,
-          190
-        ],
-        "clipExtent": null
-      },
-      "bounds": [
-        [
-          -65.02,
-          17.7
-        ],
-        [
-          -64.58,
-          18.38
-        ]
-      ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            66,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            18
+          ],
+          "parallels": [
+            8,
+            18
+          ],
+          "scaleMultiplier": 1
+        }
+      }
     },
     {
       "code": "US-GU",
       "name": "Guam",
       "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -144.8,
-          -13.4,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          250
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
       "layout": {
         "translateOffset": [
-          -300,
-          250
+          -436.56,
+          19.26
         ],
-        "clipExtent": null
+        "clipExtent": null,
+        "pixelClipExtent": [
+          -17.55,
+          -74.79,
+          27.39,
+          76.51
+        ]
       },
       "bounds": [
         [
@@ -344,44 +225,40 @@
           144.94,
           13.62
         ]
-      ]
+      ],
+      "projection": {
+        "id": "equirectangular",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            0,
+            0
+          ],
+          "rotate": [
+            -145,
+            -16.8,
+            0
+          ],
+          "scaleMultiplier": 1
+        }
+      }
     },
     {
       "code": "US-AS",
       "name": "American Samoa",
       "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          170.7,
-          14.3,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -200,
-          280
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
       "layout": {
         "translateOffset": [
-          -200,
-          280
+          -526.44,
+          96.3
         ],
-        "clipExtent": null
+        "clipExtent": null,
+        "pixelClipExtent": [
+          72.44,
+          0.32,
+          180.51,
+          31.78
+        ]
       },
       "bounds": [
         [
@@ -392,55 +269,23 @@
           -170.57,
           -14.26
         ]
-      ]
-    },
-    {
-      "code": "US-MP",
-      "name": "Northern Mariana Islands",
-      "role": "secondary",
-      "projectionId": "mercator",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -145.7,
-          -15.2,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -320,
-          240
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
-      "layout": {
-        "translateOffset": [
-          -320,
-          240
-        ],
-        "clipExtent": null
-      },
-      "bounds": [
-        [
-          145.15,
-          14.11
-        ],
-        [
-          145.84,
-          18.81
-        ]
-      ]
+      ],
+      "projection": {
+        "id": "equirectangular",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            0,
+            0
+          ],
+          "rotate": [
+            173,
+            14,
+            0
+          ],
+          "scaleMultiplier": 2
+        }
+      }
     }
   ],
   "atlasMetadata": {

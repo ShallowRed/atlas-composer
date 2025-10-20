@@ -2,38 +2,93 @@
 
 ## Core Architecture
 
-**Registry Pattern**: Auto-discovers all configs from `configs/` folder
+**Static Registry**: Uses `configs/atlas-registry.json` to define available atlases
+**Lazy Loading**: Atlas configurations load on-demand via fetch API, not bundled at build time
+**Reactive Loading**: useAtlasLoader composable with VueUse's useAsyncState manages async loading state
+**Map-based Cache**: Loaded configs cached in Map<string, LoadedAtlasConfig> for fast subsequent access
 **Adapter Pattern**: Transforms JSON → TypeScript configs
-**Zero Code Changes**: Add new atlas by creating JSON file only
-**Category Grouping**: Atlases are grouped by geographic scope in UI dropdowns
+**Grouped & Sorted**: Registry controls atlas grouping and display order in UI
 
-## Atlas Categories
+## Atlas Loading Flow
 
-Atlases are organized into three categories for UI grouping:
+1. **App Startup**: Registry metadata loads synchronously, default atlas preloads
+2. **User Selection**: Atlas dropdown displays groups and atlases from registry
+3. **On Demand**: When user selects atlas, useAtlasLoader initiates fetch
+4. **Fetch Config**: registry.loadAtlasAsync() fetches `/configs/{atlas}.json`
+5. **Cache**: Loaded config stored in cache, subsequent access returns cached version
+6. **Reactive**: currentAtlasConfig ref updates when loading completes
+7. **Coordination**: AtlasCoordinator orchestrates store updates and preset loading
 
-| Category | Description | Examples |
-|----------|-------------|----------|
-| `country` | Individual nation-states | France, Portugal, Spain, USA, Netherlands, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark |
-| `region` | Regional groups, unions, alliances | European Union |
-| `world` | Global/world atlases | World |
+## Atlas Registry System
 
-Categories are optional in config - defaults to `country` if not specified.
-Groups display in order: Country → Region & Union → World.
+The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata and behavior configuration:
+
+### Registry Structure
+- **defaultAtlas**: Default atlas ID to load on app startup
+- **groups**: Group definitions with labels and display order
+  - **id**: Group identifier (`country`, `region`, `world`)
+  - **label**: Display label (i18n object or string)
+  - **sortOrder**: Display order (lower = earlier)
+- **atlases**: Atlas entries
+  - **id**: Unique atlas identifier (matches config filename)
+  - **name**: Display name (i18n object or string)
+  - **group**: Group ID for UI grouping
+  - **sortOrder**: Display order within group (lower = earlier)
+  - **configPath**: Relative path to atlas JSON config
+  - **behavior**: Application behavior configuration (optional)
+    - **defaultPreset**: Default preset ID to load
+    - **availablePresets**: Array of preset IDs for UI selector
+    - **defaultTerritoryCollection**: Default collection ID to activate
+    - **ui**: UI-specific configuration
+      - **territoryManager**: Territory manager behavior (composite-custom mode)
+        - **collectionSet**: Which collection set to use ('administrative' or 'geographic')
+      - **configSection**: Config section behavior (unified/split modes)
+        - **collectionSet**: Which collection set to use for territory selector dropdown
+
+The behavior object separates application-level configuration from pure atlas data.
+Atlas configs contain only territory data and collections; the registry defines how the application uses them.
+
+**Typical Configuration**:
+- `territoryManager.collectionSet`: 'administrative' (for composite-custom mode territory selection)
+- `configSection.collectionSet`: 'administrative' (for unified/split mode territory dropdown)
+
+Atlas configs are loaded lazily via fetch when accessed.
+The registry schema validates structure at build time.
+
+## Atlas Groups
+
+Groups are defined in the registry with translatable labels:
+
+| Group ID | Label (EN) | Label (FR) | Sort Order | Atlas Sort Range |
+|----------|------------|------------|------------|------------------|
+| `country` | Countries | Pays | 1 | 1-99 |
+| `region` | Regions & Unions | Régions & Unions | 2 | 100-199 |
+| `world` | World | Monde | 3 | 200+ |
+
+Groups display in order defined by their `sortOrder`.
+Within each group, atlases sort by their own `sortOrder` value.
 
 ## Directory Structure
 
 ```
 configs/
-├── schema.json        # JSON Schema validation
-├── france.json        # Atlas configurations
+├── atlas-registry.json        # Registry of available atlases
+├── atlas-registry.schema.json # Registry validation schema
+├── atlas.schema.json          # Atlas config validation schema
+├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
-└── eu.json
+├── usa.json
+├── eu.json
+└── world.json
 
 src/core/atlases/
 ├── loader.ts          # JSON → TypeScript adapter
-├── registry.ts        # Singleton auto-discovery
+├── registry.ts        # Registry with loadAtlasAsync() and Map-based cache
 ├── utils.ts           # Territory helpers
 └── constants.ts       # Defaults
+
+src/composables/
+└── useAtlasLoader.ts  # Reactive async atlas loading with useAsyncState
 
 src/public/data/
 ├── {atlas}-territories-{res}.json  # TopoJSON geometries
@@ -105,24 +160,29 @@ src/public/data/
 | Mode | Description | Use Case |
 |------|-------------|----------|
 | `split` | Separate maps per territory | Traditional atlases with distant territories |
-| `composite-existing` | Pre-built D3 composite | France, Portugal, Spain |
+| `built-in-composite` | Pre-built D3 composite | France, Portugal, Spain |
 | `composite-custom` | User-defined layout | Any atlas, full customization |
 | `unified` | Single world map | Regional groups, geographic context |
 
-## Minimal Config
+## Adding a New Atlas
 
+**Two-step process**: Create atlas config + register in atlas registry
+
+### Step 1: Create Atlas Config File
+
+Create `configs/new-atlas.json`:
 ```json
 {
-  "$schema": "./schema.json",
-  "id": "atlas-id",
-  "name": "Atlas Name",
+  "$schema": "./atlas.schema.json",
+  "id": "new-atlas",
+  "name": "New Atlas Name",
   "category": "country",
   "pattern": "single-focus",
   "territories": [
     {
       "id": "250",
       "role": "primary",
-      "code": "FR-MET",
+      "code": "NA-MET",
       "name": "Territory Name",
       "center": [2.5, 46.5],
       "bounds": [[-5, 41], [10, 51]],
@@ -132,58 +192,55 @@ src/public/data/
 }
 ```
 
-## Complete Config Structure
+### Step 2: Register in Atlas Registry
 
+### Step 2: Register in Atlas Registry
+
+Add entry to `configs/atlas-registry.json` atlases array:
 ```json
 {
-  "$schema": "./schema.json",
-  "id": "atlas-id",
-  "name": "Atlas Name",
-  "description": "Brief description",
-  "category": "country",
-  "pattern": "single-focus",
-
-  "viewModes": ["split", "composite-existing", "composite-custom", "unified"],
-  "defaultViewMode": "composite-custom",
-
-  "referenceScale": 2700,
-
-  "projectionPreferences": {
-    "recommended": ["conic-conformal", "albers"],
-    "default": {
-      "mainland": "conic-conformal",
-      "overseas": "mercator"
-    },
-    "prohibited": ["gnomonic", "orthographic"]
-  },
-
-  "territories": [/* territory objects */],
-
-  "projection": {
-    "center": { "longitude": 2.5, "latitude": 46.5 },
-    "rotate": {
-      "mainland": [-3, 0],
-      "azimuthal": [-3, -46]
-    },
-    "parallels": { "conic": [45.9, 47.7] }
-  },
-
-  "modes": [
+  "defaultAtlas": "france",
+  "groups": [...],
+  "atlases": [
     {
-      "id": "all-territories",
-      "label": "All territories",
-      "territories": ["FR-MET", "FR-GP", "FR-MQ"]
-    }
-  ],
-
-  "groups": [
-    {
-      "id": "caribbean",
-      "label": "Caribbean",
-      "territories": ["FR-GP", "FR-MQ"]
+      "id": "new-atlas",
+      "name": {
+        "en": "New Atlas",
+        "fr": "Nouvel Atlas"
+      },
+      "group": "country",
+      "sortOrder": 40,
+      "configPath": "./new-atlas.json"
     }
   ]
 }
+```
+
+**Key Points**:
+- `id` must match filename (without `.json`)
+- `sortOrder` controls position within group (1-99 for countries, 100-199 for regions, 200+ for world)
+- `group` must match a group ID defined in the `groups` array
+- Lower `sortOrder` values appear first within their group
+- Config loads on-demand via fetch when user selects the atlas
+- To set as default: change `defaultAtlas` field in registry
+
+## Minimal Config
+
+```json
+```json
+{
+  "$schema": "./atlas.schema.json",
+  "atlasId": "france",
+```
+
+## Complete Config Structure
+
+```json
+**Example:**
+```json
+{
+  "$schema": "./atlas.schema.json",
+  "atlasId": "new-region",
 ```
 
 ## Internationalization (i18n)
@@ -252,7 +309,7 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `$schema` | ✅ | Reference to schema.json |
+| `$schema` | ✅ | Reference to atlas.schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name (string or i18n object) |
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
@@ -260,44 +317,117 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
-| `defaultPreset` | ⏩ | Default preset file to load (e.g., 'france-default') |
+| `defaultPreset` | ⚠️ | DEPRECATED: Use registry behavior.defaultPreset instead |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
-| `availablePresets` | ⏩ | List of preset files for UI selector |
+| `availablePresets` | ⚠️ | DEPRECATED: Use registry behavior.availablePresets instead |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
-| `modes` | ⏩ | Territory selection presets |
-| `groups` | ⏩ | Territory groupings |
+| `territoryCollections` | ⏩ | Unified territory grouping system (administrative and geographic sets) |
+| `modes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
+| `territoryModes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
+| `defaultTerritoryMode` | ⚠️ | DEPRECATED: Use registry behavior.defaultTerritoryCollection instead |
+| `groups` | ⚠️ | DEPRECATED: Use territoryCollections.geographic instead |
+
+## Territory Collections System
+
+Territory collections provide a unified, flexible system for grouping territories by administrative or geographic criteria.
+
+### Structure
+Territory collections are organized into sets, where each set contains multiple collections:
+
+```json
+{
+  "territoryCollections": {
+    "administrative": [
+      {
+        "id": "metropole-only",
+        "label": {"en": "Metropolitan only", "fr": "Métropole uniquement"},
+        "territoryCodes": ["FR-MET"]
+      }
+    ],
+    "geographic": [
+      {
+        "id": "mainland",
+        "label": {"en": "Mainland", "fr": "Métropole"},
+        "territoryCodes": ["FR-MET"]
+      }
+    ]
+  }
+}
+```
+
+### Collection Sets
+- **administrative**: Selection presets that change the active territory set (e.g., "Metropolitan only", "All territories")
+- **geographic**: Visual groupings for organization and display (e.g., "Caribbean", "Pacific")
+
+### Collection Properties
+- **id**: Unique identifier within the set (kebab-case)
+- **label**: Display label (i18n object or string)
+- **territoryCodes**: Array of territory codes included in this collection
+
+### Usage in Registry Behavior
+The registry defines which collection set to use for specific UI elements:
+
+```json
+{
+  "behavior": {
+    "defaultTerritoryCollection": "metropole-drom",
+    "ui": {
+      "territoryManager": {
+        "collectionSet": "geographic"
+      }
+    }
+  }
+}
+```
+
+### Migration from Legacy Systems
+The territory collections system replaces two deprecated fields:
+- **modes** / **territoryModes**: Now **territoryCollections.administrative**
+- **groups**: Now **territoryCollections.geographic**
+
+Legacy configurations continue to work through automatic transformation in the loader.
+New atlases should use territoryCollections exclusively.
 
 ## Preset System
 
-**Purpose**: Provide high-quality default territory positioning for composite-custom mode
+Presets provide high-quality default territory positioning for composite-custom mode.
 
-**Location**: `configs/presets/` directory
+### Configuration
+Preset references are defined in the atlas registry behavior, not in atlas configs:
 
-**Format**: ExportedCompositeConfig JSON (same as export/import format)
+```json
+{
+  "atlases": [
+    {
+      "id": "france",
+      "behavior": {
+        "defaultPreset": "france-default",
+        "availablePresets": ["france-default", "france-compact"]
+      }
+    }
+  ]
+}
+```
 
-**Workflow**:
-1. Atlas references preset via `defaultPreset` field (e.g., "france-default")
+### Location and Format
+- **Location**: `configs/presets/` directory
+- **Format**: ExportedCompositeConfig JSON (same as export/import format)
+
+### Workflow
+1. Registry references preset via behavior.defaultPreset field
 2. PresetLoader loads preset from `configs/presets/{preset-id}.json`
 3. Preset provides default projections, translations, and scales for territories
 4. Applied automatically on atlas initialization in composite-custom mode
 
-**Benefits**:
+### Benefits
 - Users get professional defaults without manual adjustment
 - Consistent layouts across sessions
 - Easier onboarding for new users
 - Presets can be shared and versioned
 
-**Configuration**:
-```json
-{
-  "defaultPreset": "france-default",
-  "availablePresets": ["france-default", "france-compact"]
-}
-```
-
-**Creating Presets**:
+### Creating Presets
 Presets are created by exporting manually-adjusted compositions from the running application.
 See `configs/presets/README.md` for detailed instructions.
 

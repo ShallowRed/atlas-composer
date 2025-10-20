@@ -3,21 +3,17 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { getAtlasConfig } from '@/core/atlases/registry'
+import { getAtlasBehavior } from '@/core/atlases/registry'
+import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useTerritoryStore } from '@/stores/territory'
 
 const { t } = useI18n()
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
-const parameterStore = useParameterStore()
-const territoryStore = useTerritoryStore()
-const presetDefaults = getSharedPresetDefaults()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
@@ -26,16 +22,21 @@ const selectedPreset = ref<string>('')
 // Cache for preset metadata to avoid repeated fetches
 const presetMetadata = ref<Map<string, { name?: string | Record<string, string> }>>(new Map())
 
-// Get available presets from current atlas config
+// Get available presets from registry behavior
 const availablePresets = computed(() => {
-  const atlasConfig = getAtlasConfig(configStore.selectedAtlas)
-  return atlasConfig.availablePresets || []
+  const atlasId = configStore.selectedAtlas
+  if (!atlasId)
+    return []
+  const behavior = getAtlasBehavior(atlasId)
+  return behavior?.availablePresets || []
 })
 
 // Current preset selection
 const currentPreset = computed({
   get: () => {
-    return selectedPreset.value || getAtlasConfig(configStore.selectedAtlas).defaultPreset || ''
+    const atlasId = configStore.selectedAtlas
+    const behavior = getAtlasBehavior(atlasId)
+    return selectedPreset.value || behavior?.defaultPreset || ''
   },
   set: async (presetId: string) => {
     if (!presetId || isLoading.value)
@@ -46,85 +47,71 @@ const currentPreset = computed({
 
     try {
       console.info(`[PresetSelector] Loading preset: ${presetId}`)
-      const result = await PresetLoader.loadPreset(presetId)
 
-      if (result.success && result.preset) {
-        // Convert preset to defaults
-        const defaults = PresetLoader.convertToDefaults(result.preset)
+      // Use InitializationService for consistent preset loading
+      const result = await InitializationService.loadPreset({
+        presetId,
+        skipValidation: false,
+      })
 
-        // Extract territory parameters from preset
-        const territoryParameters = PresetLoader.extractTerritoryParameters(result.preset)
-
-        // Clear ALL existing parameter overrides first (from any previous preset or edits)
-        // Get all territories from territory store, not just the new preset territories
-        const allCurrentTerritoryCodes = Object.keys(territoryStore.territoryProjections)
-        allCurrentTerritoryCodes.forEach((territoryCode) => {
-          parameterStore.clearAllTerritoryOverrides(territoryCode)
-        })
-
-        // Store original preset defaults for reset functionality
-        presetDefaults.storePresetDefaults(defaults, territoryParameters)
-
-        // Apply global preset parameters to config store
-        if (result.preset.referenceScale !== undefined) {
-          configStore.referenceScale = result.preset.referenceScale
-        }
-        if (result.preset.canvasDimensions) {
-          configStore.canvasDimensions = {
-            width: result.preset.canvasDimensions.width,
-            height: result.preset.canvasDimensions.height,
-          }
-        }
-
-        // Apply to territory store - set each territory individually
-        Object.entries(defaults.projections).forEach(([code, projection]) => {
-          territoryStore.setTerritoryProjection(code, projection)
-        })
-        Object.entries(defaults.translations).forEach(([code, translation]) => {
-          territoryStore.setTerritoryTranslation(code, 'x', translation.x)
-          territoryStore.setTerritoryTranslation(code, 'y', translation.y)
-        })
-        Object.entries(defaults.scales).forEach(([code, scale]) => {
-          parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-        })
-
-        // Apply territory parameters from preset (after clearing to ensure clean state)
-        // Filter out 'scale' parameter since it's computed from baseScale * scaleMultiplier
-        // Applying the old computed scale value would prevent the new preset from calculating correctly
-        const parametersWithoutScale: Record<string, any> = {}
-        Object.entries(territoryParameters).forEach(([code, params]) => {
-          const { scale, ...paramsWithoutScale } = params
-          parametersWithoutScale[code] = paramsWithoutScale
-        })
-
-        parameterStore.initializeFromPreset({}, parametersWithoutScale)
-
-        // CRITICAL: Update CompositeProjection with new parameters from preset
-        // The parameter store has been updated, but the CompositeProjection needs to re-read parameters
-        if (geoDataStore.cartographer?.customComposite) {
-          // Update each territory's parameters in the CompositeProjection
-          Object.keys(parametersWithoutScale).forEach((territoryCode) => {
-            geoDataStore.cartographer?.updateTerritoryParameters(territoryCode)
-          })
-        }
-
-        // Log warnings if present but don't treat as errors
-        if (result.warnings.length > 0) {
-          console.warn(`[PresetSelector] Preset loaded with warnings:`, result.warnings)
-        }
-
-        // Update selected preset tracking
-        selectedPreset.value = presetId
-        console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
-      }
-      else {
+      if (!result.success) {
         loadError.value = result.errors.join(', ')
-        console.error(`[PresetSelector] Failed to load preset:`, result.errors)
+        console.error('[PresetSelector] Failed to load preset:', result.errors)
+        return
       }
+
+      // Display warnings if any
+      if (result.warnings.length > 0) {
+        console.warn('[PresetSelector] Preset loaded with warnings:', result.warnings)
+      }
+
+      // Update selected preset
+      selectedPreset.value = presetId
+
+      // Trigger cartographer update if needed
+      if (geoDataStore.cartographer && result.state) {
+        const territoryParameters = result.state.parameters.territories
+
+        // Check if we need to rebuild the composite projection
+        // This happens when the new preset has a different set of territories
+        const currentAtlasConfig = configStore.currentAtlasConfig
+        if (currentAtlasConfig?.compositeProjectionConfig) {
+          // Rebuild composite projection to include all territories from the preset
+          const parameterStore = useParameterStore()
+          const parameterProvider = {
+            getEffectiveParameters: (territoryCode: string) => {
+              return parameterStore.getEffectiveParameters(territoryCode)
+            },
+            getExportableParameters: (territoryCode: string) => {
+              return parameterStore.getExportableParameters(territoryCode)
+            },
+          }
+
+          geoDataStore.cartographer.rebuildCompositeProjection(
+            currentAtlasConfig.compositeProjectionConfig,
+            parameterProvider,
+            result.state.canvas.referenceScale,
+            result.state.canvas.dimensions,
+          )
+          console.info(`[PresetSelector] Rebuilt composite projection with ${Object.keys(territoryParameters).length} territories`)
+        }
+        else {
+          // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
+          Object.keys(territoryParameters).forEach((territoryCode) => {
+            geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+          })
+          console.info(`[PresetSelector] Updated cartographer parameters for ${Object.keys(territoryParameters).length} territories`)
+        }
+
+        // Trigger render
+        geoDataStore.triggerRender()
+      }
+
+      console.info(`[PresetSelector] Successfully loaded preset: ${presetId}`)
     }
     catch (error) {
       loadError.value = error instanceof Error ? error.message : 'Unknown error'
-      console.error(`[PresetSelector] Error loading preset:`, error)
+      console.error('[PresetSelector] Error loading preset:', error)
     }
     finally {
       isLoading.value = false
@@ -151,7 +138,7 @@ watch(availablePresets, async (newPresets) => {
   for (const presetId of newPresets) {
     if (!presetMetadata.value.has(presetId)) {
       try {
-        const metadata = await PresetLoader.loadPresetMetadata(presetId)
+        const metadata = await PresetLoader.loadMetadata(presetId)
         if (metadata) {
           presetMetadata.value.set(presetId, metadata)
         }

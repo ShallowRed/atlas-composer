@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { getAtlasSpecificConfig } from '@/core/atlases/registry'
+import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 
 interface TerritoryModeOption {
@@ -20,6 +20,13 @@ export function useTerritoryModeOptions() {
 
   const options = computed<TerritoryModeOption[]>(() => {
     const atlasId = configStore.selectedAtlas
+
+    // Wait for atlas to load before accessing config
+    // Check both currentAtlasConfig (from useAtlasLoader) and cache state
+    if (!configStore.currentAtlasConfig || !isAtlasLoaded(atlasId)) {
+      return []
+    }
+
     const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
 
     if (!atlasSpecificConfig.rawModeLabels) {

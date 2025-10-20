@@ -5,7 +5,7 @@
  * This file registers all parameters with the parameter registry.
  */
 
-import { parameterRegistry } from './parameter-registry'
+import { parameterRegistry } from '@/core/parameters/parameter-registry'
 
 /**
  * Register all projection parameters with the parameter registry
@@ -167,7 +167,7 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -175,7 +175,7 @@ export function registerAllParameters(): void {
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -183,7 +183,7 @@ export function registerAllParameters(): void {
       CONIC: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,
@@ -191,7 +191,55 @@ export function registerAllParameters(): void {
       AZIMUTHAL: {
         relevant: true,
         required: false,
-        min: 0.1,
+        min: 0.01,
+        max: 10,
+        step: 0.1,
+        defaultValue: 1.0,
+      },
+    },
+  })
+
+  // Zoom parameters (unified mode only)
+
+  parameterRegistry.register({
+    key: 'zoomLevel',
+    displayName: 'Zoom Level',
+    description: 'Zoom multiplier applied to auto-fit scale (unified mode only)',
+    type: 'number',
+    unit: 'multiplier',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: false, // Optional parameter
+    familyConstraints: {
+      CYLINDRICAL: {
+        relevant: true, // Available for unified mode zoom
+        required: false,
+        min: 0.5,
+        max: 10,
+        step: 0.1,
+        defaultValue: 1.0,
+      },
+      PSEUDOCYLINDRICAL: {
+        relevant: true,
+        required: false,
+        min: 0.5,
+        max: 10,
+        step: 0.1,
+        defaultValue: 1.0,
+      },
+      CONIC: {
+        relevant: true,
+        required: false,
+        min: 0.5,
+        max: 10,
+        step: 0.1,
+        defaultValue: 1.0,
+      },
+      AZIMUTHAL: {
+        relevant: true,
+        required: false,
+        min: 0.5,
         max: 10,
         step: 0.1,
         defaultValue: 1.0,

@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema.json",
+  "id": "eu-unified-default",
+  "name": "EU - Vue unifiée standard",
+  "description": "Projection Natural Earth centrée sur l'Europe",
+  "atlasId": "eu",
+  "viewMode": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "center": [10, 52],
+        "scale": 1.0
+      }
+    }
+  }
+}

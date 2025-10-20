@@ -25,6 +25,9 @@ export function useClipExtentEditor() {
   const dragStartClipExtent = ref<[number, number, number, number]>([0, 0, 0, 0])
   const dragSvgElement = ref<SVGSVGElement | null>(null)
 
+  // Grid step size for snapping (in pixels)
+  const GRID_STEP = 5
+
   /**
    * Check if clip extent editing is enabled
    * Only enabled in composite-custom mode
@@ -63,8 +66,8 @@ export function useClipExtentEditor() {
       handlesGroup = svgSelection.append('g').attr('class', 'clip-extent-handles')
     }
 
-    // Get only the selected territory
-    const territories = geoDataStore.filteredTerritories.filter(
+    // Get the selected territory from all active territories (includes mainland and overseas)
+    const selectedTerritory = geoDataStore.allActiveTerritories.find(
       t => t.code === selectedTerritoryCode.value,
     )
 
@@ -76,33 +79,32 @@ export function useClipExtentEditor() {
       cy: number
     }> = []
 
-    territories.forEach((territory) => {
-      const territoryCode = territory.code
+    // Process the selected territory if found
+    const territoryCode = selectedTerritoryCode.value
+    if (territoryCode && selectedTerritory) {
       const params = parameterStore.getEffectiveParameters(territoryCode)
       const translateOffset = params.translateOffset || [0, 0]
       const pixelClipExtent = params.pixelClipExtent
 
-      if (!pixelClipExtent || pixelClipExtent.length !== 4) {
-        return // Skip territories without valid clip extent
+      if (pixelClipExtent && pixelClipExtent.length === 4) {
+        const [x1, y1, x2, y2] = pixelClipExtent
+
+        // Calculate center position of territory
+        const canvasDims = configStore.canvasDimensions || { width: 960, height: 500 }
+        const centerX = canvasDims.width / 2
+        const centerY = canvasDims.height / 2
+        const territoryX = centerX + translateOffset[0]
+        const territoryY = centerY + translateOffset[1]
+
+        // Four corners: topLeft, topRight, bottomRight, bottomLeft
+        handleData.push(
+          { territoryCode, cornerIndex: 0, cx: territoryX + x1, cy: territoryY + y1 }, // top-left
+          { territoryCode, cornerIndex: 1, cx: territoryX + x2, cy: territoryY + y1 }, // top-right
+          { territoryCode, cornerIndex: 2, cx: territoryX + x2, cy: territoryY + y2 }, // bottom-right
+          { territoryCode, cornerIndex: 3, cx: territoryX + x1, cy: territoryY + y2 }, // bottom-left
+        )
       }
-
-      const [x1, y1, x2, y2] = pixelClipExtent
-
-      // Calculate center position of territory
-      const canvasDims = configStore.canvasDimensions || { width: 960, height: 500 }
-      const centerX = canvasDims.width / 2
-      const centerY = canvasDims.height / 2
-      const territoryX = centerX + translateOffset[0]
-      const territoryY = centerY + translateOffset[1]
-
-      // Four corners: topLeft, topRight, bottomRight, bottomLeft
-      handleData.push(
-        { territoryCode, cornerIndex: 0, cx: territoryX + x1, cy: territoryY + y1 }, // top-left
-        { territoryCode, cornerIndex: 1, cx: territoryX + x2, cy: territoryY + y1 }, // top-right
-        { territoryCode, cornerIndex: 2, cx: territoryX + x2, cy: territoryY + y2 }, // bottom-right
-        { territoryCode, cornerIndex: 3, cx: territoryX + x1, cy: territoryY + y2 }, // bottom-left
-      )
-    })
+    }
 
     // Bind data to corner handles
     const handles = handlesGroup.selectAll('.clip-corner-handle')
@@ -194,33 +196,37 @@ export function useClipExtentEditor() {
     let newX2 = origX2
     let newY2 = origY2
 
+    // Snap to grid step
+    const snappedDx = Math.round(dx / GRID_STEP) * GRID_STEP
+    const snappedDy = Math.round(dy / GRID_STEP) * GRID_STEP
+
     // Update the appropriate corner
     // Corner indices: 0=topLeft, 1=topRight, 2=bottomRight, 3=bottomLeft
     switch (dragCornerIndex.value) {
       case 0: // top-left: adjust x1, y1
-        newX1 = origX1 + dx
-        newY1 = origY1 + dy
+        newX1 = origX1 + snappedDx
+        newY1 = origY1 + snappedDy
         break
       case 1: // top-right: adjust x2, y1
-        newX2 = origX2 + dx
-        newY1 = origY1 + dy
+        newX2 = origX2 + snappedDx
+        newY1 = origY1 + snappedDy
         break
       case 2: // bottom-right: adjust x2, y2
-        newX2 = origX2 + dx
-        newY2 = origY2 + dy
+        newX2 = origX2 + snappedDx
+        newY2 = origY2 + snappedDy
         break
       case 3: // bottom-left: adjust x1, y2
-        newX1 = origX1 + dx
-        newY2 = origY2 + dy
+        newX1 = origX1 + snappedDx
+        newY2 = origY2 + snappedDy
         break
     }
 
     // Update parameter store
     const newClipExtent: [number, number, number, number] = [
-      Math.round(newX1),
-      Math.round(newY1),
-      Math.round(newX2),
-      Math.round(newY2),
+      newX1,
+      newY1,
+      newX2,
+      newY2,
     ]
 
     parameterStore.setTerritoryParameter(dragCornerTerritoryCode.value, 'pixelClipExtent', newClipExtent)

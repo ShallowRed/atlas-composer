@@ -2,14 +2,18 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+
+import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
+import { useViewState } from '@/composables/useViewState'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 const { viewModeOptions } = useViewMode()
+const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
 const configStore = useConfigStore()
@@ -17,10 +21,10 @@ const configStore = useConfigStore()
 // Get territory mode options with reactive translation
 const { options: territoryModeOptions } = useTerritoryModeOptions()
 
-// Get grouped atlases with translated category labels and flags
+// Get grouped atlases with translated labels and flags
 const atlasGroupsWithIcons = computed(() => {
   return getAvailableAtlasesGrouped().map(group => ({
-    label: t(`atlas.categories.${group.category}`),
+    label: group.label, // Already translated by registry
     options: group.options.map(atlas => ({
       ...atlas,
       icon: getAtlasFlag(atlas.value),
@@ -35,21 +39,7 @@ const viewModeOptionsWithIcons = computed(() => {
     icon: getViewModeIcon(mode.value as any),
   }))
 })
-
-// Determine if territory selector should be disabled
-const isTerritorySelectDisabled = computed(() => {
-  // Disable if atlas doesn't have territory selector capability
-  if (!configStore.currentAtlasConfig?.hasTerritorySelector) {
-    return true
-  }
-  // Disable for composite-existing mode (built-in projections don't support selective territories)
-  return !configStore.showTerritorySelector
-})
-
-// Determine if projection mode toggle should be disabled
-const isProjectionModeDisabled = computed(() => {
-  return !configStore.showProjectionModeToggle
-})
+const { isCompositeCustomMode } = useViewState()
 </script>
 
 <template>
@@ -61,35 +51,29 @@ const isProjectionModeDisabled = computed(() => {
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
     />
-
-    <!-- Territory Selection (for composite modes) -->
-    <DropdownControl
-      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
-      v-model="configStore.territoryMode"
-      :label="t('mode.select')"
-      icon="ri-map-pin-range-line"
-      :disabled="isTerritorySelectDisabled"
-      :options="territoryModeOptions"
-    />
     <!-- Main View Mode Selector -->
     <DropdownControl
       v-model="configStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
-      :disabled="configStore.isViewModeLocked"
+      :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
     />
-
-    <!-- Projection Mode Toggle (for split and composite-custom modes) -->
+    <!-- Territory Selection (for unified and split modes) -->
     <DropdownControl
-      v-model="configStore.projectionMode"
-      :label="t('projection.mode')"
-      icon="ri-global-line"
-      :disabled="isProjectionModeDisabled"
-      :options="[
-        { value: 'uniform', label: t('projection.uniform'), translated: true, icon: 'ri-equal-line' },
-        { value: 'individual', label: t('projection.individual'), translated: true, icon: 'ri-list-view' },
-      ]"
+      v-if="viewOrchestration.shouldShowTerritorySelector.value"
+      v-model="configStore.territoryMode"
+      :label="t('mode.select')"
+      icon="ri-map-pin-range-line"
+      :options="territoryModeOptions"
     />
+    <!-- Territory Set Manager (for composite-custom mode) -->
+    <div v-if="isCompositeCustomMode">
+      <div class="text-sm font-medium text-base-content mb-3 flex items-center gap-2">
+        <i class="ri-map-pin-range-line" />
+        <span>{{ t('mode.select') }}</span>
+      </div>
+      <TerritorySetManager />
+    </div>
   </div>
 </template>

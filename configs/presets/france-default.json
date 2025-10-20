@@ -40,10 +40,10 @@
           0
         ],
         "pixelClipExtent": [
-          -268.92,
-          -245.16,
-          260.99,
-          324
+          -260,
+          -250,
+          260,
+          250
         ]
       },
       "bounds": [
@@ -74,14 +74,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -38
+          -320,
+          -40
         ],
         "pixelClipExtent": [
-          -54,
-          -48,
-          55,
-          38
+          -60,
+          -50,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -112,14 +112,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          35
+          -320,
+          40
         ],
         "pixelClipExtent": [
-          -54,
-          -35,
-          55,
-          43
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -135,7 +135,7 @@
     },
     {
       "code": "FR-GF",
-      "name": "French Guiana",
+      "name": "Guyane",
       "role": "secondary",
       "projection": {
         "id": "mercator",
@@ -150,14 +150,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          155
+          -320,
+          160
         ],
         "pixelClipExtent": [
-          -54,
-          -76.7,
-          55.08,
-          78.28
+          -60,
+          -80,
+          60,
+          80
         ]
       },
       "bounds": [
@@ -188,14 +188,14 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          -96
+          320,
+          -110
         ],
         "pixelClipExtent": [
-          -52,
-          -44,
-          57,
-          42
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -226,14 +226,14 @@
       },
       "layout": {
         "translateOffset": [
-          316,
-          -173
+          320,
+          -180
         ],
         "pixelClipExtent": [
-          -54.910000000000025,
-          -32.19999999999999,
-          54.170000000000016,
-          32.599999999999994
+          -60,
+          -30,
+          60,
+          30
         ]
       },
       "bounds": [
@@ -244,44 +244,6 @@
         [
           45.3,
           -12.64
-        ]
-      ]
-    },
-    {
-      "code": "FR-MF",
-      "name": "Saint-Martin",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {
-          "center": [
-            -63.082,
-            18.067
-          ],
-          "scaleMultiplier": 5
-        }
-      },
-      "layout": {
-        "translateOffset": [
-          -324,
-          -119
-        ],
-        "pixelClipExtent": [
-          -54,
-          -21,
-          55,
-          33
-        ]
-      },
-      "bounds": [
-        [
-          -63.15,
-          18.04
-        ],
-        [
-          -63,
-          18.13
         ]
       ]
     },
@@ -302,14 +264,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -119
+          -320,
+          -120
         ],
         "pixelClipExtent": [
-          -54,
-          -27,
-          55,
-          27
+          -60,
+          -20,
+          60,
+          30
         ]
       },
       "bounds": [
@@ -340,14 +302,14 @@
       },
       "layout": {
         "translateOffset": [
-          -324,
-          -176
+          -320,
+          -180
         ],
         "pixelClipExtent": [
-          -54,
-          -29,
-          55,
-          36
+          -60,
+          -40,
+          60,
+          40
         ]
       },
       "bounds": [
@@ -378,13 +340,13 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          59
+          320,
+          60
         ],
         "pixelClipExtent": [
-          -52,
-          -27,
-          57,
+          -60,
+          -30,
+          60,
           30
         ]
       },
@@ -416,13 +378,13 @@
       },
       "layout": {
         "translateOffset": [
-          311,
-          203
+          320,
+          200
         ],
         "pixelClipExtent": [
-          -50,
-          -41,
-          59,
+          -60,
+          -40,
+          60,
           30
         ]
       },
@@ -454,13 +416,13 @@
       },
       "layout": {
         "translateOffset": [
-          297,
-          122
+          320,
+          120
         ],
         "pixelClipExtent": [
-          -36,
-          -33,
-          73,
+          -60,
+          -30,
+          60,
           40
         ]
       },
@@ -492,14 +454,14 @@
       },
       "layout": {
         "translateOffset": [
-          313,
-          -13
+          320,
+          -20
         ],
         "pixelClipExtent": [
-          -52,
-          -41,
-          57,
-          45.4
+          -60,
+          -50,
+          60,
+          50
         ]
       },
       "bounds": [
@@ -510,44 +472,6 @@
         [
           168,
           -19.5
-        ]
-      ]
-    },
-    {
-      "code": "FR-TF",
-      "name": "Terres australes et antarctiques françaises",
-      "role": "secondary",
-      "projection": {
-        "id": "mercator",
-        "family": "CYLINDRICAL",
-        "parameters": {
-          "center": [
-            69.348,
-            -49.28
-          ],
-          "scaleMultiplier": 1
-        }
-      },
-      "layout": {
-        "translateOffset": [
-          0,
-          250
-        ],
-        "pixelClipExtent": [
-          0,
-          -250,
-          0,
-          -250
-        ]
-      },
-      "bounds": [
-        [
-          39,
-          -50
-        ],
-        [
-          77,
-          -37
         ]
       ]
     }
@@ -594,11 +518,6 @@
           49
         ]
       }
-    },
-    "mapDisplayDefaults": {
-      "showGraticule": false,
-      "showCompositionBorders": false,
-      "showMapLimits": false
     }
   }
 }

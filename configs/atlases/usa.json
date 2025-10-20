@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "./atlas.schema.json",
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, Hawaii, and territories",
@@ -9,12 +9,12 @@
     "metadata": "usa-metadata-50m.json"
   },
   "viewModes": [
-    "composite-existing",
+    "built-in-composite",
     "composite-custom",
     "split",
     "unified"
   ],
-  "defaultViewMode": "composite-existing",
+  "defaultViewMode": "built-in-composite",
   "territories": [
     {
       "id": "840",
@@ -39,21 +39,6 @@
       ],
       "extraction": {
         "mainlandPolygon": 75
-      },
-      "rendering": {
-        "offset": [
-          100,
-          -50
-        ],
-        "projectionType": "conic-conformal",
-        "parallels": [
-          29.5,
-          45.5
-        ],
-        "rotate": [
-          98.5,
-          0
-        ]
       }
     },
     {
@@ -114,18 +99,6 @@
           57,
           58
         ]
-      },
-      "rendering": {
-        "offset": [
-          -240,
-          140
-        ],
-        "projectionType": "albers",
-        "parallels": [
-          55,
-          65
-        ],
-        "baseScaleMultiplier": 0.35
       }
     },
     {
@@ -190,18 +163,6 @@
           66,
           67
         ]
-      },
-      "rendering": {
-        "offset": [
-          -340,
-          160
-        ],
-        "projectionType": "albers",
-        "parallels": [
-          50,
-          58
-        ],
-        "baseScaleMultiplier": 0.5
       }
     },
     {
@@ -236,14 +197,6 @@
           73,
           74
         ]
-      },
-      "rendering": {
-        "offset": [
-          -140,
-          200
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1
       }
     },
     {
@@ -273,14 +226,6 @@
           1,
           2
         ]
-      },
-      "rendering": {
-        "offset": [
-          100,
-          200
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1
       }
     },
     {
@@ -311,14 +256,6 @@
           1,
           2
         ]
-      },
-      "rendering": {
-        "offset": [
-          120,
-          190
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 1.5
       }
     },
     {
@@ -346,14 +283,6 @@
         "polygonIndices": [
           0
         ]
-      },
-      "rendering": {
-        "offset": [
-          -300,
-          250
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
       }
     },
     {
@@ -381,14 +310,6 @@
         "polygonIndices": [
           0
         ]
-      },
-      "rendering": {
-        "offset": [
-          -200,
-          280
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
       }
     },
     {
@@ -422,14 +343,6 @@
           4,
           5
         ]
-      },
-      "rendering": {
-        "offset": [
-          -320,
-          240
-        ],
-        "projectionType": "mercator",
-        "baseScaleMultiplier": 2
       }
     }
   ],
