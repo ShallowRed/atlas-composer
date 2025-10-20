@@ -183,7 +183,7 @@ const computedSize = computed(() => {
  */
 async function debouncedRenderMap() {
   console.info('[MapRenderer] debouncedRenderMap() called', {
-    isReinitializing: geoDataStore.isReinitializing
+    isReinitializing: geoDataStore.isReinitializing,
   })
 
   // Don't schedule render if geoDataStore is reinitializing
@@ -218,7 +218,7 @@ async function renderMap() {
     isReinitializing: geoDataStore.isReinitializing,
     hasContainer: !!mapContainer.value,
     hasCartographer: !!cartographer.value,
-    mode: props.mode
+    mode: props.mode,
   })
 
   // Don't render if not mounted yet
@@ -245,7 +245,7 @@ async function renderMap() {
   if (!mapContainer.value || !cartographer.value) {
     console.warn('[MapRenderer] Skipping render - missing dependencies', {
       hasContainer: !!mapContainer.value,
-      hasCartographer: !!cartographer.value
+      hasCartographer: !!cartographer.value,
     })
     return
   }
@@ -375,6 +375,8 @@ async function renderMap() {
             height,
             customComposite: cartographer.value?.customComposite,
             isMainland: props.isMainland,
+            filteredTerritoryCodes: new Set(geoDataStore.filteredTerritories.map(t => t.code)),
+            mainlandCode: configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
           },
         )
       }
@@ -410,9 +412,9 @@ async function renderComposite(): Promise<Plot.Plot> {
     cartographerAtlasId: (cartographer.value as any).__atlasId,
     cartographerTerritories: (cartographer.value as any).__territories,
     filteredTerritories: geoDataStore.filteredTerritories.map(t => t.code),
-    customCompositeKeys: cartographer.value.customComposite ?
-      Object.keys(cartographer.value.customComposite) :
-      'no customComposite'
+    customCompositeKeys: cartographer.value.customComposite
+      ? Object.keys(cartographer.value.customComposite)
+      : 'no customComposite',
   })
 
   const { width, height } = computedSize.value

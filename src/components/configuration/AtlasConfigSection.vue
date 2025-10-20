@@ -49,15 +49,6 @@ const viewModeOptionsWithIcons = computed(() => {
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
     />
-    <!-- Territory Selection (for composite modes) -->
-    <DropdownControl
-      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
-      v-model="configStore.territoryMode"
-      :label="t('mode.select')"
-      icon="ri-map-pin-range-line"
-      :disabled="viewOrchestration.isTerritorySelectDisabled.value"
-      :options="territoryModeOptions"
-    />
     <!-- Main View Mode Selector -->
     <DropdownControl
       v-model="configStore.viewMode"
@@ -65,6 +56,15 @@ const viewModeOptionsWithIcons = computed(() => {
       icon="ri-layout-grid-line"
       :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
+    />
+    <!-- Territory Selection (for unified and split modes) -->
+    <DropdownControl
+      v-if="configStore.currentAtlasConfig?.hasTerritorySelector"
+      v-model="configStore.territoryMode"
+      :label="t('mode.select')"
+      icon="ri-map-pin-range-line"
+      :disabled="viewOrchestration.isTerritorySelectDisabled.value"
+      :options="territoryModeOptions"
     />
   </div>
 </template>

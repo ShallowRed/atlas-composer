@@ -91,7 +91,7 @@
     "grabToMove": "Cliquer et glisser pour déplacer le territoire",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Paramètres de la projection 2",
+      "projectionSpecific": "Paramètres de la projection",
       "layout": "Mise en page",
       "view": "Paramètres de la vue",
       "advanced": "Paramètres avancés",
@@ -99,6 +99,13 @@
       "resetOverrides": "Réinitialiser tous les paramètres personnalisés pour ce territoire",
       "noRelevantParameters": "Aucun paramètre ajustable",
       "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels."
+    },
+    "setManager": {
+      "title": "Gestionnaire de territoires",
+      "active": "Territoires actif",
+      "remove": "Supprimer le territoire",
+      "noActive": "Aucun jeu de territoires actif",
+      "available": "Territoires disponibles"
     }
   },
   "view": {

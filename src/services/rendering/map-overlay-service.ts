@@ -26,6 +26,8 @@ export interface OverlayConfig {
   height: number
   customComposite?: CompositeProjection | null
   isMainland?: boolean
+  filteredTerritoryCodes?: Set<string>
+  mainlandCode?: string
 }
 
 /**
@@ -209,7 +211,16 @@ export class MapOverlayService {
     }
 
     composite.build(config.width, config.height, true)
-    const borders = composite.getCompositionBorders(config.width, config.height)
+    let borders = composite.getCompositionBorders(config.width, config.height)
+
+    // Filter borders to only include active territories (if filtering is enabled)
+    // Always keep mainland border visible
+    if (config.filteredTerritoryCodes) {
+      borders = borders.filter(border =>
+        border.territoryCode === config.mainlandCode || // Always show mainland
+        config.filteredTerritoryCodes!.has(border.territoryCode) // Show active territories
+      )
+    }
 
     // Filter out invalid borders
     const validBorders = borders

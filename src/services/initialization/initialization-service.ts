@@ -598,6 +598,10 @@ export class InitializationService {
       configStore.canvasDimensions = state.canvas.dimensions
     }
 
+    // Initialize active territory codes for custom composite mode
+    const territoryCodes = Object.keys(state.parameters.territories)
+    configStore.setActiveTerritories(territoryCodes)
+
     // Update parameter store with territory parameters
     if (state.parameters.territories && Object.keys(state.parameters.territories).length > 0) {
       const validationErrors = parameterStore.initializeFromPreset(

@@ -213,6 +213,23 @@ export const useConfigStore = defineStore('config', () => {
     compositeProjection.value = projection
   }
 
+  // Territory set management for custom composite mode
+  const addTerritoryToComposite = (territoryCode: string) => {
+    activeTerritoryCodes.value.add(territoryCode)
+    // Trigger reactivity by creating new Set
+    activeTerritoryCodes.value = new Set(activeTerritoryCodes.value)
+  }
+
+  const removeTerritoryFromComposite = (territoryCode: string) => {
+    activeTerritoryCodes.value.delete(territoryCode)
+    // Trigger reactivity by creating new Set
+    activeTerritoryCodes.value = new Set(activeTerritoryCodes.value)
+  }
+
+  const setActiveTerritories = (territoryCodes: string[]) => {
+    activeTerritoryCodes.value = new Set(territoryCodes)
+  }
+
   const setCustomRotate = (longitude: number | null, latitude: number | null) => {
     // Convert null values to undefined to remove parameter overrides
     const rotateValue = longitude !== null || latitude !== null
@@ -520,6 +537,9 @@ export const useConfigStore = defineStore('config', () => {
     setTerritoryMode,
     setViewMode,
     setCompositeProjection,
+    addTerritoryToComposite,
+    removeTerritoryFromComposite,
+    setActiveTerritories,
     setCustomRotate,
     setCustomCenter,
     setCustomParallels,

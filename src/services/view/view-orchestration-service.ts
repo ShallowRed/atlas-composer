@@ -223,9 +223,8 @@ export class ViewOrchestrationService {
     if (!state.atlasConfig.hasTerritorySelector) {
       return true
     }
-    // Disabled for built-in-composite mode (built-in projections don't support selective territories)
-    // This is determined by ProjectionUIService.shouldShowTerritorySelector
-    return state.viewMode === 'built-in-composite'
+    // Disabled for composite modes - territory selection is managed via Territory Set Manager
+    return state.viewMode === 'built-in-composite' || state.viewMode === 'composite-custom'
   }
 
   /**

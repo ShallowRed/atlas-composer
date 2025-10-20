@@ -249,6 +249,15 @@ Dedicated control components for each view mode provide focused, maintainable in
   - Reset controls for clearing territory-specific overrides
   - **View-mode awareness**: Uses `isCompositeMode` computed to filter composite-specific parameters (translateOffset, pixelClipExtent) in split mode
   - **Single responsibility**: Focuses solely on parameter editing; projection selection handled by parent components
+- **TerritorySetManager**: Territory customization UI for composite-custom mode
+  - Manages which territories are included in custom composite projection
+  - Displays active territories with remove buttons (btn-soft style with close icon)
+  - Displays available territories with add buttons (btn-ghost style with add icon)
+  - Filters out mainland from available territories (mainland always visible)
+  - Limits available territories to those loaded from preset (territories with data)
+  - Calls configStore.addTerritoryToComposite() and removeTerritoryFromComposite()
+  - Triggers re-render via geoDataStore.triggerRender() after add/remove operations
+  - Used in CompositeCustomControls and TerritoriesControl components
 - **ParameterControlGroup**: Reusable parameter control group wrapper
   - Provides consistent styling and layout for parameter sections
   - Supports title, description, and collapsible content areas
@@ -584,7 +593,13 @@ const { viewOrchestration } = useViewState()
 - Global parameter access: Delegates to parameterStore.globalEffectiveParameters for unified parameter retrieval
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
-**Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls
+- **Territory set management**: activeTerritoryCodes ref (Set<string>) tracks included territories in custom composite mode
+  - addTerritoryToComposite(code): Adds territory to active set (creates new Set for reactivity)
+  - removeTerritoryFromComposite(code): Removes territory from active set (creates new Set for reactivity)
+  - setActiveTerritories(codes[]): Replaces entire active set (used for preset loading and reset)
+  - Initialized from preset territory codes during preset loading
+  - Reset to preset defaults via useTerritoryTransforms.resetTransforms()
+**Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls, TerritorySetManager
 
 ### geoDataStore (215 lines)
 **Domain**: Geographic data and rendering coordination
@@ -594,7 +609,12 @@ const { viewOrchestration } = useViewState()
 - Loading states
 - Cartographer initialization with parameter provider injection
 - Parameter provider adapter for connecting parameter store to rendering
-**Used by**: MapRenderer, data loading composables
+- **Territory filtering**: filteredTerritories computed filters territories based on view mode
+  - Custom composite mode: Filters by configStore.activeTerritoryCodes (user-customizable set)
+  - Built-in composite mode: Returns all territories from preset (no filtering)
+  - Split/unified modes: Filters by territory mode from atlas configuration
+  - Used by MapRenderer and territory UI components for rendering active territories
+**Used by**: MapRenderer, data loading composables, TerritorySetManager
 
 ### ui.ts (81 lines)
 **Domain**: UI state
@@ -850,6 +870,95 @@ Components never call services directly. Flow:
 - Does NOT duplicate configStore logic
 
 **Best Practice**: Use configStore.show* for component visibility, useViewState for view mode checks
+
+## Territory Customization Workflow (Custom Composite Mode)
+
+### Overview
+Custom composite mode allows users to select which territories to include in the composite projection. Territory set customization is managed through configStore.activeTerritoryCodes and visualized via TerritorySetManager component.
+
+### Territory Set State Flow
+
+**Initialization**:
+1. Preset loaded via PresetLoader.loadPreset()
+2. Territory codes extracted from preset.territories
+3. configStore.setActiveTerritories(territoryCodes) initializes activeTerritoryCodes Set
+4. InitializationService stores territory codes for validation
+
+**Display Filtering**:
+1. geoDataStore.filteredTerritories computed filters by activeTerritoryCodes
+2. Only territories in activeTerritoryCodes Set are visible in UI and rendered on map
+3. Mainland always visible (handled separately from overseas territories)
+
+**User Interaction**:
+1. User clicks "Add" button in TerritorySetManager
+2. TerritorySetManager calls configStore.addTerritoryToComposite(code)
+3. configStore adds code to activeTerritoryCodes Set (creates new Set for reactivity)
+4. TerritorySetManager calls geoDataStore.triggerRender()
+5. Map re-renders with new territory included
+
+**Composition Border Filtering**:
+1. MapRenderer passes filteredTerritoryCodes Set to MapOverlayService
+2. MapOverlayService.renderCustomCompositeBorders() filters borders
+3. Mainland border always rendered (checked via mainlandCode parameter)
+4. Overseas territory borders only rendered if in filteredTerritoryCodes Set
+5. Result: Visual borders match active territory set
+
+**Reset to Defaults**:
+1. User clicks reset button in TerritoriesControl
+2. TerritoriesControl.resetToDefaults() calls useTerritoryTransforms.resetTransforms()
+3. resetTransforms() extracts preset territory codes from presetDefaults
+4. Calls configStore.setActiveTerritories(presetTerritoryCodes)
+5. Calls geoDataStore.triggerRender()
+6. Territory set and parameters restored to preset state
+
+**Divergence Detection**:
+1. TerritoriesControl.hasDivergingFromPreset computed checks territory set
+2. Compares activeTerritoryCodes with preset territory codes (Set equality check)
+3. If sets differ in size or membership, reset button enabled
+4. Also checks parameter divergence for comprehensive reset detection
+
+### Component Integration
+
+**TerritorySetManager** (src/components/ui/parameters/TerritorySetManager.vue):
+- Displays active territories with remove buttons
+- Displays available territories with add buttons
+- Filters out mainland from available list
+- Limits available territories to those loaded from preset
+
+**TerritoriesControl** (src/components/ui/parameters/TerritoriesControl.vue):
+- Renders TerritorySetManager for territory selection
+- Provides reset button enabled when territory set or parameters diverge
+- Manages territory parameter controls via accordion
+
+**CompositeCustomControls** (src/components/configuration/CompositeCustomControls.vue):
+- Top-level component for custom composite mode
+- Integrates PresetSelector, TerritorySetManager, and parameter controls
+- Coordinates territory projection and parameter management
+
+### State Management
+
+**configStore** (src/stores/config.ts):
+- activeTerritoryCodes: Set<string> - Active territory codes
+- addTerritoryToComposite(code): Add territory to active set
+- removeTerritoryFromComposite(code): Remove territory from active set
+- setActiveTerritories(codes[]): Replace entire active set
+
+**geoDataStore** (src/stores/geoData.ts):
+- filteredTerritories: Computed property filtering by activeTerritoryCodes
+- overseasTerritoriesData: All loaded territory data (source for filtering)
+- triggerRender(): Force map re-render after territory set changes
+
+### Design Decisions
+
+**Why Set<string>**: O(1) membership checking for efficient filtering in computed properties and render loops.
+
+**Why filter at display level**: Keeps data loading simple and avoids reloading data when changing territory set.
+
+**Why limit to preset territories**: Adding arbitrary territories would require rebuilding CompositeProjection with new subProjections, which is architecturally complex. Limiting to preset territories ensures all territories have projection configurations and parameters.
+
+**Why always show mainland**: Mainland is the primary territory in single-focus atlases and should always be visible for context.
+
+**Why new Set for reactivity**: Vue 3 reactivity requires creating new object references when mutating Sets (ref unwrapping doesn't track Set mutations).
 
 ## Related Documentation
 

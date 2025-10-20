@@ -3,6 +3,7 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
+import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
@@ -50,6 +51,25 @@ const hasDivergingFromPreset = computed(() => {
   }
 
   void parameterStore.territoryParametersVersion
+
+  // Check if territory set has changed (for custom composite mode)
+  if (configStore.viewMode === 'composite-custom') {
+    const presetDefaults_ = presetDefaults.presetDefaults.value
+    if (presetDefaults_) {
+      const presetTerritoryCodes = new Set(Object.keys(presetDefaults_.projections))
+      const activeTerritoryCodes = configStore.activeTerritoryCodes
+
+      // Check if sets are different
+      if (presetTerritoryCodes.size !== activeTerritoryCodes.size) {
+        return true
+      }
+      for (const code of presetTerritoryCodes) {
+        if (!activeTerritoryCodes.has(code)) {
+          return true
+        }
+      }
+    }
+  }
 
   const allTerritoriesToCheck = configStore.atlasService.getAllTerritories()
 
@@ -123,6 +143,10 @@ const showMainlandAccordion = computed(() => {
     <i class="ri-restart-line" />
     {{ t('territory.resetButton') }}
   </button>
+
+  <!-- Territory Set Manager -->
+  <TerritorySetManager class="mb-6" />
+
   <!-- Accordion for all territories -->
   <div class="join join-vertical w-full">
     <!-- Mainland section -->

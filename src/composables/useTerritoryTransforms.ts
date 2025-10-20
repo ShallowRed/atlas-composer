@@ -130,6 +130,10 @@ export function useTerritoryTransforms() {
           parameterStore.setTerritoryParameters(territoryCode, params as any)
         })
 
+        // Reset active territory set to preset defaults (for custom composite mode)
+        const presetTerritoryCodes = Object.keys(originalDefaults.projections)
+        configStore.setActiveTerritories(presetTerritoryCodes)
+
         // Update cartographer for all territories to apply the changes
         if (geoDataStore.cartographer) {
           Object.entries(originalDefaults.projections).forEach(([code, projectionId]) => {
@@ -140,7 +144,7 @@ export function useTerritoryTransforms() {
           })
         }
 
-        console.info('[Reset] Restored to preset defaults')
+        console.info('[Reset] Restored to preset defaults including territory set')
         return
       }
     }

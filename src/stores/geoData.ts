@@ -42,9 +42,16 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return []
     }
 
-    // For composite modes, return all territories from preset (no filtering)
+    // For custom composite mode, filter by active territory codes
+    // User can add/remove territories from the active set
+    if (configStore.viewMode === 'composite-custom') {
+      const activeCodes = configStore.activeTerritoryCodes
+      return territories.filter(t => activeCodes.has(t.code))
+    }
+
+    // For built-in composite mode, return all territories from preset (no filtering)
     // Preset is the source of truth for what to render
-    if (configStore.viewMode === 'composite-custom' || configStore.viewMode === 'built-in-composite') {
+    if (configStore.viewMode === 'built-in-composite') {
       return territories
     }
 
