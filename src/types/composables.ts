@@ -166,23 +166,6 @@ export interface TerritoryTransforms {
    */
   selectedProjection: ComputedRef<string | undefined>
 
-  /**
-   * Projection mode
-   */
-  projectionMode: ComputedRef<'uniform' | 'individual'>
-
-  /**
-   * Translation range constants
-   */
-  TRANSLATION_RANGES: {
-    x: TranslationRange
-    y: TranslationRange
-  }
-
-  /**
-   * Scale range constants
-   */
-  SCALE_RANGE: ScaleRange
 }
 
 /**

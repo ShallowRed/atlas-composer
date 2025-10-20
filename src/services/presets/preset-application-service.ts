@@ -63,14 +63,26 @@ export class PresetApplicationService {
 
   /**
    * Apply composite-custom preset
-   * Full custom composite projection with per-territory configuration
    *
-   * Note: For now, delegates to config store which has complex logic for this.
-   * TODO: Extract full logic here in future refactoring.
+   * Note: This handler is defensive code only. Composite-custom presets
+   * are loaded through AtlasCoordinator during atlas initialization, not
+   * through the view preset API. This method exists to complete the
+   * strategy pattern and provide clear error messaging if misused.
+   *
+   * Correct loading path:
+   * - AtlasCoordinator.handleAtlasChange()
+   * - → PresetLoader.loadPreset()
+   * - → convertToDefaults() + extractTerritoryParameters()
+   * - → Apply to stores (parameterStore, configStore)
+   *
+   * The view preset API (this service) is only for unified, split, and
+   * built-in-composite presets which have simpler application requirements.
+   * Composite-custom presets require full initialization sequence with
+   * parameter extraction and coordinator orchestration.
    */
   private static applyCompositeCustom(_config: CompositeCustomConfig): ApplicationResult {
-    // Composite-custom presets are handled through a different path
-    // They're loaded on atlas initialization, not through view preset system
+    // This should never be called due to filtering in loadAvailableViewPresets()
+    // but we provide a clear error message as defensive programming
     return {
       success: false,
       errors: ['Composite-custom presets should be loaded through atlas initialization, not view preset API'],

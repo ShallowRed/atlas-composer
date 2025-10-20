@@ -93,15 +93,60 @@ Four preset types exist in a discriminated union (`Preset`):
 - Delegates to PresetLoader for loading
 - Delegates to PresetApplicationService for applying
 - Methods:
-  - `loadAvailableViewPresets()` - Lists available presets for current atlas/view mode
+  - `loadAvailableViewPresets()` - Lists available presets for current atlas/view mode (filters out composite-custom)
   - `loadViewPreset(presetId)` - Loads and applies a preset
   - `applyViewPresetConfig(preset)` - Applies preset using PresetApplicationService
   - `clearViewPreset()` - Clears current preset
 
+## Loading Paths
+
+The preset system uses two distinct loading paths based on preset type and use case:
+
+### Composite-Custom Presets (Converter-Based Path)
+
+Loaded using converter-based initialization (two entry points):
+
+**1. Atlas Initialization (Primary Path):**
+- **Trigger:** App startup, atlas change
+- **Entry Point:** `AtlasCoordinator.handleAtlasChange()`
+- **Process:**
+  1. `PresetLoader.loadPreset(defaultPreset)` - Load from registry
+  2. `convertToDefaults()` - Extract projections, translations, scales
+  3. `extractTerritoryParameters()` - Extract all projection parameters
+  4. Apply to stores (parameterStore, configStore, uiStore)
+  5. CompositeProjection.initialize() reads parameters
+
+**2. Runtime Preset Switching (Secondary Path):**
+- **Trigger:** User selects different composite-custom preset in PresetSelector dropdown
+- **Entry Point:** `PresetSelector.vue` (composite-custom mode only)
+- **Process:**
+  1. `PresetLoader.loadPreset(presetId)` - Load from registry
+  2. Type check: if `preset.type === 'composite-custom'`
+  3. `convertToDefaults()` + `extractTerritoryParameters()` - Same as initialization
+  4. Manual store updates (parameterStore, configStore)
+  5. CompositeProjection uses updated parameters on next render
+
+**Not available:** Through view preset API (`loadAvailableViewPresets()` filters out composite-custom)
+
+**Why separate from view presets:** Requires converter-based extraction and full parameter initialization, not simple parameter setting
+
+### View Presets (Runtime Switching Path)
+
+Loaded through view preset API for runtime switching:
+- **Trigger:** User preset selection in UI
+- **Entry Point:** `configStore.loadViewPreset(presetId)`
+- **Process:**
+  1. `PresetLoader.loadPreset(presetId)` - Load from registry
+  2. `PresetApplicationService.applyPreset()` - Route to type-specific handler
+  3. Direct parameter application to stores
+- **Supported Types:** unified, split, built-in-composite
+- **Why separate:** Simple projection switching without full reinitialization
+
 ### Data Flow
 
+#### Path A: Atlas Initialization (Composite-Custom)
 ```
-Application Startup
+Application Startup / Atlas Change
   ↓
 useAtlasData.initialize()
   ↓
@@ -109,23 +154,86 @@ configStore.initializeWithPresetMetadata()
   ↓
 AtlasCoordinator.handleAtlasChange()
   ↓
-PresetLoader.loadPreset() [Unified Service]
-  → Determines preset type from registry
-  → validatePreset(type) [Unified Validator]
-  → convertToDefaults() [Core Converter] (for composite-custom)
-  → extractTerritoryParameters() [Core Converter]
+PresetLoader.loadPreset(defaultPreset)
+  → Registry lookup (type: 'composite-custom')
+  → validateCompositePreset() [Full validation]
+  → Returns LoadResult<CompositePreset>
   ↓
-PresetApplicationService.applyPreset()
-  → Routes to type-specific handler
-  → Updates stores (parameterStore, configStore)
+convertToDefaults(preset.config)
+  → Extract projections map
+  → Extract translations map
+  → Extract scales map
+  ↓
+extractTerritoryParameters(preset.config)
+  → Extract projection parameters
+  → Extract layout properties
+  → Return per-territory params
+  ↓
+Apply to Stores
+  → parameterStore (projections, translations, scales, parameters)
+  → configStore (referenceScale, canvasDimensions)
+  → uiStore (display options)
   ↓
 geoDataStore.initialize()
   ↓
 CompositeProjection.initialize()
   → Reads parameters via ProjectionParameterProvider
-  → Applies preset scale, rotation, center to D3 projections
+  → Applies to D3 projections
   ↓
 First Render (preset values applied)
+```
+
+#### Path A2: Composite-Custom Runtime Switching
+```
+User Selects Different Composite Preset (PresetSelector dropdown)
+  ↓
+PresetSelector.vue (composite-custom mode)
+  ↓
+PresetLoader.loadPreset(presetId)
+  → Registry lookup (type: 'composite-custom')
+  → validateCompositePreset() [Full validation]
+  → Returns LoadResult<CompositePreset>
+  ↓
+Type Check: preset.type === 'composite-custom'
+  ↓
+convertToDefaults(preset.config)
+  → Extract projections, translations, scales
+  ↓
+extractTerritoryParameters(preset.config)
+  → Extract parameters and layout properties
+  ↓
+Manual Store Updates
+  → parameterStore.setTerritoryProjection()
+  → parameterStore.setTerritoryTranslation()
+  → parameterStore.setTerritoryParameter()
+  → parameterStore.initializeFromPreset()
+  → configStore.referenceScale
+  → configStore.canvasDimensions
+  ↓
+Render Update (new preset applied, CompositeProjection uses updated parameters)
+```
+
+#### Path B: View Preset Switching (Unified/Split/Built-in-Composite)
+```
+User Selects View Preset (ViewPresetSelector dropdown)
+  ↓
+configStore.loadViewPreset(presetId)
+  ↓
+PresetLoader.loadPreset(presetId)
+  → Registry lookup (type: 'unified'|'split'|'built-in-composite')
+  → validateViewPreset() [Simple validation]
+  → Returns LoadResult<UnifiedPreset|SplitPreset|CompositeExistingPreset>
+  ↓
+PresetApplicationService.applyPreset(preset)
+  → Routes by preset.type
+  → applyUnified() / applySplit() / applyCompositeExisting()
+  → Direct parameter application
+  ↓
+Update Stores
+  → parameterStore (projection parameters)
+  → configStore (projection ID, composite projection ID)
+  ↓
+Render Update (new projection applied)
 ```
 
 ## Unified Registry Format

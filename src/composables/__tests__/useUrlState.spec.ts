@@ -39,7 +39,6 @@ describe('useUrlState', () => {
       configStore.selectedAtlas = 'france'
       configStore.viewMode = 'composite-custom'
       configStore.selectedProjection = 'azimuthal-equal-area'
-      configStore.projectionMode = 'individual'
       configStore.territoryMode = 'all'
 
       // Territory defaults are already initialized by config store
@@ -193,7 +192,6 @@ describe('useUrlState', () => {
       expect(configStore.selectedAtlas).toBe('portugal')
       expect(configStore.viewMode).toBe('split')
       expect(configStore.selectedProjection).toBe('mercator')
-      expect(configStore.projectionMode).toBe('uniform')
       expect(configStore.territoryMode).toBe('mainland')
     })
 
@@ -362,7 +360,6 @@ describe('useUrlState', () => {
       configStore.selectedAtlas = 'france'
       configStore.viewMode = 'composite-custom'
       configStore.selectedProjection = 'azimuthal-equal-area'
-      configStore.projectionMode = 'individual'
       configStore.territoryMode = 'all'
       configStore.setCustomRotateLongitude(10)
       configStore.setCustomRotateLatitude(20)

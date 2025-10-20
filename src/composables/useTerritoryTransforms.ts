@@ -1,10 +1,6 @@
 import { computed } from 'vue'
 import { useAtlasConfig } from '@/composables/useAtlasConfig'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import {
-  SCALE_RANGE,
-  TRANSLATION_RANGES,
-} from '@/core/atlases/constants'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -297,8 +293,6 @@ export function useTerritoryTransforms() {
     isMainlandInTerritories,
     translations,
     scales,
-    translationRanges: TRANSLATION_RANGES,
-    scaleRange: SCALE_RANGE,
     projectionRecommendations,
     projectionGroups,
     currentAtlasConfig,

@@ -111,7 +111,6 @@ describe('useViewState', () => {
       const { shouldShowRightSidebar } = useViewState()
 
       configStore.viewMode = 'split'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
@@ -120,7 +119,6 @@ describe('useViewState', () => {
       const { shouldShowRightSidebar } = useViewState()
 
       configStore.viewMode = 'composite-custom'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowRightSidebar.value).toBe(true)
     })
 
@@ -145,7 +143,6 @@ describe('useViewState', () => {
       const { shouldShowTerritoryControls } = useViewState()
 
       configStore.viewMode = 'composite-custom'
-      configStore.projectionMode = 'individual'
       expect(shouldShowTerritoryControls.value).toBe(true)
     })
 
@@ -154,7 +151,6 @@ describe('useViewState', () => {
       const { shouldShowTerritoryControls } = useViewState()
 
       configStore.viewMode = 'unified'
-      configStore.projectionMode = 'uniform'
       expect(shouldShowTerritoryControls.value).toBe(false)
     })
   })

@@ -83,7 +83,6 @@ describe('useProjectionConfig', () => {
         const result = useProjectionConfig()
 
         // Set to uniform mode
-        configStore.projectionMode = 'uniform'
         configStore.selectedProjection = 'natural-earth'
 
         return result
@@ -99,7 +98,6 @@ describe('useProjectionConfig', () => {
         const result = useProjectionConfig()
 
         // Set to individual mode
-        configStore.projectionMode = 'individual'
         configStore.selectedProjection = 'natural-earth'
 
         return result
@@ -116,8 +114,6 @@ describe('useProjectionConfig', () => {
         const configStore = useConfigStore()
         const result = useProjectionConfig()
 
-        // Set to uniform mode
-        configStore.projectionMode = 'uniform'
         configStore.selectedProjection = 'mercator'
 
         return result
@@ -133,7 +129,6 @@ describe('useProjectionConfig', () => {
         const result = useProjectionConfig()
 
         // Set to individual mode
-        configStore.projectionMode = 'individual'
         configStore.selectedProjection = 'mercator'
 
         return result
@@ -149,7 +144,6 @@ describe('useProjectionConfig', () => {
         const result = useProjectionConfig()
 
         // Set to individual mode
-        configStore.projectionMode = 'individual'
         configStore.selectedProjection = 'natural-earth'
 
         return result

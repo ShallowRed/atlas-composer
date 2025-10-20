@@ -40,29 +40,75 @@ const currentPreset = computed({
     loadError.value = null
 
     try {
-      console.info(`[PresetSelector] Loading preset: ${presetId}`)
+      console.info(`[PresetSelector] Loading composite-custom preset: ${presetId}`)
       const loadResult = await PresetLoader.loadPreset(presetId)
 
       if (loadResult.success && loadResult.data) {
-        // Apply preset using centralized service
-        const applyResult = PresetApplicationService.applyPreset(loadResult.data)
+        // Composite-custom presets use the atlas initialization path, not PresetApplicationService
+        // We need to check if this is a composite-custom preset and handle it appropriately
+        if (loadResult.data.type === 'composite-custom') {
+          // Use AtlasCoordinator pattern: converters + manual store updates
+          const { convertToDefaults, extractTerritoryParameters } = PresetLoader
+          const defaults = convertToDefaults(loadResult.data.config)
+          const territoryParameters = extractTerritoryParameters(loadResult.data.config)
 
-        if (applyResult.success) {
-          // Log warnings if present but don't treat as errors
+          // Apply to stores manually (same as AtlasCoordinator does)
+          const parameterStore = await import('@/stores/parameters').then(m => m.useParameterStore())
+
+          // Apply projections, translations, scales
+          Object.entries(defaults.projections).forEach(([code, projection]) => {
+            parameterStore.setTerritoryProjection(code, projection)
+          })
+          Object.entries(defaults.translations).forEach(([code, translation]) => {
+            parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+            parameterStore.setTerritoryTranslation(code, 'y', translation.y)
+          })
+          Object.entries(defaults.scales).forEach(([code, scale]) => {
+            parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
+          })
+
+          // Apply territory parameters
+          if (territoryParameters && Object.keys(territoryParameters).length > 0) {
+            const validationErrors = parameterStore.initializeFromPreset({}, territoryParameters as any)
+            if (validationErrors.length > 0) {
+              console.warn('[PresetSelector] Parameter validation warnings:', validationErrors)
+            }
+          }
+
+          // Apply global preset parameters to config store
+          if (loadResult.data.config.referenceScale !== undefined) {
+            configStore.referenceScale = loadResult.data.config.referenceScale
+          }
+          if (loadResult.data.config.canvasDimensions) {
+            configStore.canvasDimensions = loadResult.data.config.canvasDimensions
+          }
+
+          // Log warnings if present
           if (loadResult.warnings.length > 0) {
             console.warn(`[PresetSelector] Preset loaded with warnings:`, loadResult.warnings)
           }
-          if (applyResult.warnings.length > 0) {
-            console.warn(`[PresetSelector] Preset applied with warnings:`, applyResult.warnings)
-          }
 
-          // Update selected preset tracking
           selectedPreset.value = presetId
-          console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
+          console.info(`[PresetSelector] Successfully applied composite-custom preset: ${presetId}`)
         }
         else {
-          loadError.value = applyResult.errors.join(', ')
-          console.error(`[PresetSelector] Failed to apply preset:`, applyResult.errors)
+          // For non-composite-custom presets (shouldn't happen in this component, but handle gracefully)
+          const applyResult = PresetApplicationService.applyPreset(loadResult.data)
+
+          if (applyResult.success) {
+            if (loadResult.warnings.length > 0) {
+              console.warn(`[PresetSelector] Preset loaded with warnings:`, loadResult.warnings)
+            }
+            if (applyResult.warnings.length > 0) {
+              console.warn(`[PresetSelector] Preset applied with warnings:`, applyResult.warnings)
+            }
+            selectedPreset.value = presetId
+            console.info(`[PresetSelector] Successfully applied preset: ${presetId}`)
+          }
+          else {
+            loadError.value = applyResult.errors.join(', ')
+            console.error(`[PresetSelector] Failed to apply preset:`, applyResult.errors)
+          }
         }
       }
       else {

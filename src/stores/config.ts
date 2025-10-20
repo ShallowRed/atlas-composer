@@ -372,9 +372,11 @@ export const useConfigStore = defineStore('config', () => {
         atlasId: selectedAtlas.value,
         viewMode: viewMode.value as any,
       })
-      availableViewPresets.value = presets as any
+      // CRITICAL: Filter out composite-custom presets - they use atlas initialization path only
+      // Composite-custom presets are loaded via AtlasCoordinator.handleAtlasChange(), not view preset API
+      availableViewPresets.value = presets.filter(p => p.type !== 'composite-custom') as any
 
-      console.info(`[ConfigStore] Loaded ${presets.length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
+      console.info(`[ConfigStore] Loaded ${presets.filter(p => p.type !== 'composite-custom').length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
     }
     catch (error) {
       console.error('[ConfigStore] Failed to load available view presets:', error)

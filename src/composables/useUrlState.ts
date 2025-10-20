@@ -27,7 +27,6 @@ export function useUrlState() {
       atlas: configStore.selectedAtlas,
       view: configStore.viewMode,
       projection: configStore.selectedProjection || 'mercator',
-      projMode: configStore.projectionMode,
       territory: configStore.territoryMode,
     }
 
@@ -104,8 +103,6 @@ export function useUrlState() {
       configStore.viewMode = params.view
     if (params.projection)
       configStore.selectedProjection = params.projection
-    if (params.projMode)
-      configStore.projectionMode = params.projMode
     if (params.territory)
       configStore.territoryMode = params.territory
 
@@ -207,7 +204,6 @@ export function useUrlState() {
         atlas: configStore.selectedAtlas,
         view: configStore.viewMode,
         projection: configStore.selectedProjection,
-        projMode: configStore.projectionMode,
         territory: configStore.territoryMode,
       }),
       () => {
