@@ -49,7 +49,6 @@ const viewModeOptionsWithIcons = computed(() => {
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
     />
-
     <!-- Territory Selection (for composite modes) -->
     <DropdownControl
       v-if="configStore.currentAtlasConfig?.hasTerritorySelector"

@@ -42,7 +42,7 @@ export function useMapWatchers(
    * Watch for projection parameter changes and update cartographer
    */
   const stopWatchingProjectionParams = watch(
-    () => configStore.effectiveProjectionParams,
+    () => parameterStore.globalEffectiveParameters,
     async (newParams) => {
       if (geoDataStore.cartographer && newParams) {
         geoDataStore.cartographer.updateProjectionParams(newParams)

@@ -453,6 +453,27 @@ Helper methods provide backward-compatible API for territory operations:
 
 All territory parameters benefit from registry validation, inheritance (territory > global > atlas > registry defaults), and reactivity tracking.
 
+**Parameter Access Patterns**:
+
+Unified parameter access across all view modes through parameter store.
+
+Global Parameters (Unified/Split modes):
+- Read: `parameterStore.globalEffectiveParameters` (reactive computed property)
+- Write: `configStore.setCustomRotate()`, `setCustomCenter()`, etc. (delegates to parameterStore)
+- Inheritance: Registry defaults → Atlas params → Global overrides
+- Usage: UnifiedControls, ProjectionParamsControls, useMapWatchers, useProjectionPanning
+
+Territory Parameters (Composite modes):
+- Read: `parameterStore.getEffectiveParameters(territoryCode)` (reactive via version tracking)
+- Write: `parameterStore.setTerritoryParameter(territoryCode, key, value)`
+- Inheritance: Registry defaults → Atlas params → Global params → Territory overrides
+- Usage: TerritoryParameterControls, CompositeCustomControls, territory-specific operations
+
+Single Source of Truth:
+All parameter inheritance logic resides in ProjectionParameterManager.getEffectiveParameters().
+No duplicate parameter merging logic exists in application code.
+Both global and territory parameters use the same underlying manager for consistency.
+
 **Unified System Benefits**:
 - Single source of truth through ParameterRegistry
 - Family-specific constraints with comprehensive validation

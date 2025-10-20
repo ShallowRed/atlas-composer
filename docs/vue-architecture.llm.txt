@@ -112,7 +112,11 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Projection parameter controls (rotate, center, parallels, scale)
 - Fitting mode toggle (auto/manual)
 - Reset functionality
-- Uses: configStore, projectionRegistry, parameter helpers
+**Parameter Access**:
+- Reads: `parameterStore.globalEffectiveParameters` for current values
+- Writes: `configStore.setCustomRotate()`, `setCustomCenter()`, etc. (delegates to parameterStore)
+- Parameter inheritance: Registry → Atlas → Global
+- Uses: configStore, parameterStore, projectionRegistry, parameter helpers
 
 #### SplitControls.vue
 **Role**: Controls for split mode (separate projections per territory without positioning)
@@ -435,7 +439,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 
 **useMapWatchers** (155 lines)
 - Consolidates all MapRenderer watch statements into single composable
-- Watches effectiveProjectionParams: Updates cartographer.updateProjectionParams() and triggers re-render
+- Watches globalEffectiveParameters: Updates cartographer.updateProjectionParams() and triggers re-render
 - Watches projectionFittingMode: Updates cartographer.updateFittingMode() and triggers re-render
 - Watches canvasDimensions: Updates cartographer.updateCanvasDimensions() and triggers re-render
 - Watches referenceScale: Updates cartographer.updateReferenceScale() and triggers re-render
@@ -577,7 +581,7 @@ const { viewOrchestration } = useViewState()
   - canvasDimensions: Canvas size specification (width/height) controlling SVG display size
   - Both values loaded from presets and editable via GlobalProjectionControls
   - Watchers in MapRenderer trigger re-rendering on changes
-- Computed properties: effectiveProjectionParams merges atlas defaults with parameterStore.globalParameters
+- Global parameter access: Delegates to parameterStore.globalEffectiveParameters for unified parameter retrieval
 - Territory parameter initialization on atlas change via AtlasCoordinator
 - Loads preset parameters into parameter store
 **Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls

@@ -260,6 +260,15 @@ export const useParameterStore = defineStore('parameters', () => {
     return allErrors
   })
 
+  // Global effective parameters (for unified/split modes)
+  // Returns atlas params merged with global overrides
+  const globalEffectiveParameters = computed(() => {
+    // Access versions to trigger reactivity when parameters change
+    void globalParametersVersion.value
+    void territoryParametersVersion.value // Atlas params can be affected by territory changes
+    return parameterManager.getEffectiveParameters() // No territory code = global effective params
+  })
+
   // Territory-specific computed properties
   function createTerritoryParametersComputed(territoryCode: string) {
     return computed(() => getTerritoryParameters(territoryCode))
@@ -370,6 +379,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
     // Computed
     globalParameters,
+    globalEffectiveParameters,
     hasGlobalParameters,
     hasValidationErrors,
     allValidationErrors,

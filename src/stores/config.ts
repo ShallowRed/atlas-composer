@@ -1,6 +1,5 @@
 import type { Preset, PresetRegistryEntry } from '@/core/presets'
 import type { ViewMode } from '@/types'
-import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -248,30 +247,6 @@ export const useConfigStore = defineStore('config', () => {
   const projectionRecommendations = computed(() =>
     ProjectionUIService.getProjectionRecommendations(selectedAtlas.value, viewMode.value),
   )
-
-  // Compute effective projection params by merging atlas defaults with global parameter overrides
-  const effectiveProjectionParams = computed(() => {
-    const atlasParams = atlasService.value?.getProjectionParams()
-    const globalParams = parameterStore.globalParameters
-
-    // Extract individual parameter values with proper fallbacks
-    const centerLon = globalParams.center?.[0] ?? atlasParams?.center?.[0] ?? 0
-    const centerLat = globalParams.center?.[1] ?? atlasParams?.center?.[1] ?? 0
-
-    const rotateLon = globalParams.rotate?.[0] ?? 0
-    const rotateLat = globalParams.rotate?.[1] ?? 0
-
-    const parallel1 = globalParams.parallels?.[0] ?? atlasParams?.parallels?.[0] ?? 30
-    const parallel2 = globalParams.parallels?.[1] ?? atlasParams?.parallels?.[1] ?? 60
-
-    // Build result with ProjectionParameters-compatible structure
-    return {
-      center: [centerLon, centerLat] as [number, number],
-      rotate: [rotateLon, rotateLat] as [number, number],
-      parallels: [parallel1, parallel2] as [number, number],
-      scale: globalParams.scale ?? undefined,
-    } as ProjectionParameters
-  })
 
   // Actions
   const setScalePreservation = (value: boolean) => {
@@ -634,7 +609,6 @@ export const useConfigStore = defineStore('config', () => {
     // Computed
     atlasService,
     currentAtlasConfig,
-    effectiveProjectionParams,
     isViewModeLocked,
     showProjectionSelector,
     showIndividualProjectionSelectors,

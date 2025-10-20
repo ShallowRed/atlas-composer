@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { getRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useConfigStore } from '@/stores/config'
+import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages interactive projection panning via mouse drag
@@ -10,6 +11,7 @@ import { useConfigStore } from '@/stores/config'
  */
 export function useProjectionPanning(projectionOverride?: string) {
   const configStore = useConfigStore()
+  const parameterStore = useParameterStore()
 
   // Pan state
   const isPanning = ref(false)
@@ -118,12 +120,13 @@ export function useProjectionPanning(projectionOverride?: string) {
     panStartX.value = event.clientX
     panStartY.value = event.clientY
 
-    // Get current rotation values
+    // Get current rotation values from parameter store
+    const effectiveParams = parameterStore.globalEffectiveParameters
     const currentRotationLon = configStore.customRotateLongitude
-      ?? configStore.effectiveProjectionParams?.rotate?.[0]
+      ?? effectiveParams?.rotate?.[0]
       ?? 0
     const currentRotationLat = configStore.customRotateLatitude
-      ?? configStore.effectiveProjectionParams?.rotate?.[1]
+      ?? effectiveParams?.rotate?.[1]
       ?? 0
 
     panStartRotationLon.value = currentRotationLon

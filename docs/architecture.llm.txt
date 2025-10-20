@@ -325,14 +325,20 @@ pnpm run validate-configs # Validate atlas configurations
 Two primary stores:
 1. **configStore** (stores/config.ts)
    - Selected atlas, projection, view mode
-   - Custom projection parameters
+   - Custom projection parameters (delegates to parameterStore)
    - UI preferences (theme, language)
-   - Computed: effectiveProjectionParams
+   - Parameter writes via convenience methods (setCustomRotate, setCustomCenter, etc.)
 
 2. **geoDataStore** (stores/geoData.ts)
    - Loaded GeoJSON data
    - Cartographer service instance
    - Data loading state
+
+3. **parameterStore** (stores/parameters.ts)
+   - Global and territory-specific projection parameters
+   - Parameter inheritance and validation
+   - Single source of truth for effective parameters
+   - Reactive parameter access via globalEffectiveParameters
 
 ## Type System
 

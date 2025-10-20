@@ -87,10 +87,11 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // Use the geo data config from the selected region
       const geoDataConfig = configStore.currentAtlasConfig.geoDataConfig
       const compositeConfig = configStore.currentAtlasConfig.compositeProjectionConfig
-      const projectionParams = configStore.effectiveProjectionParams
 
       // Create parameter provider adapter to connect parameter store to rendering
       const parameterStore = useParameterStore()
+      const projectionParams = parameterStore.globalEffectiveParameters
+
       const parameterProvider = {
         getEffectiveParameters: (territoryCode: string) => {
           return parameterStore.getEffectiveParameters(territoryCode)
