@@ -516,7 +516,7 @@ onMounted(() => {
                 size="xs"
                 :min="-1000"
                 :max="1000"
-                :step="5"
+                :step="10"
                 unit="px"
                 @update:model-value="(value: number) => {
                   const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
@@ -531,7 +531,7 @@ onMounted(() => {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
               />
 
@@ -542,7 +542,7 @@ onMounted(() => {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
               />
 
@@ -553,7 +553,7 @@ onMounted(() => {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
               />
 
@@ -564,7 +564,7 @@ onMounted(() => {
                 size="xs"
                 :min="-500"
                 :max="500"
-                :step="5"
+                :step="10"
                 @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
               />
             </template>

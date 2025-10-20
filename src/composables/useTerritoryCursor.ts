@@ -66,13 +66,13 @@ export function useTerritoryCursor() {
     if (bordersExist) {
       // Reset all visual feedback using D3 selections for existing borders
       existingBorders
-        .style('opacity', '0.5')
+        // .style('opacity', '0.5')
         .style('stroke-width', '1.25')
 
       // Apply feedback for active territory
       if (territoryCode) {
         svgSelection.selectAll(`.composition-border[data-territory="${territoryCode}"]`)
-          .style('opacity', isDragging ? '1.0' : '0.8')
+          // .style('opacity', isDragging ? '1.0' : '0.8')
           .style('stroke-width', isDragging ? '2.0' : '1.5')
       }
     }

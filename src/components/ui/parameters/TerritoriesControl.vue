@@ -95,7 +95,7 @@ const resetToDefaults = resetTransforms
 
 // Helper function to get current projection for a territory (reactive)
 function getTerritoryProjection(territoryCode: string): string {
-  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value
+  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || 'mercator'
 }
 
 // Helper function to get projection family for a territory
@@ -106,6 +106,19 @@ function getProjectionFamily(territoryCode: string) {
   }
   const definition = projectionRegistry.get(projectionId)
   return definition?.family || ProjectionFamily.AZIMUTHAL
+}
+
+// Handler for projection dropdown changes
+function handleProjectionChange(territoryCode: string, projectionId: string) {
+  // Update parameter store
+  setTerritoryProjection(territoryCode, projectionId)
+
+  // Update cartographer to recreate the D3 projection object
+  if (geoDataStore.cartographer) {
+    geoDataStore.cartographer.updateTerritoryProjection(territoryCode, projectionId)
+    // Also update parameters to apply them to the new projection
+    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
+  }
 }
 
 // Parameter control event handlers
@@ -160,7 +173,7 @@ const showMainlandAccordion = computed(() => {
           :label="t('projection.cartographic')"
           :projection-groups="projectionGroups"
           :recommendations="projectionRecommendations"
-          @update:model-value="(value: string) => setTerritoryProjection(mainlandCode, value)"
+          @update:model-value="(value: string) => handleProjectionChange(mainlandCode, value)"
         />
       </div>
 
@@ -193,7 +206,7 @@ const showMainlandAccordion = computed(() => {
           :label="t('projection.cartographic')"
           :projection-groups="projectionGroups"
           :recommendations="projectionRecommendations"
-          @update:model-value="(value: string) => setTerritoryProjection(territory.code, value)"
+          @update:model-value="(value: string) => handleProjectionChange(territory.code, value)"
         />
       </div>
 

@@ -190,11 +190,11 @@ export class MapOverlayService {
     selection
       .attr('class', 'composition-border')
       .attr('fill', 'none')
-      .attr('stroke', 'currentColor')
+      .attr('stroke', 'var(--color-neutral)')
       .attr('stroke-width', 1)
       // .attr('stroke-dasharray', '8 4')
       // .attr('stroke-linejoin', 'round')
-      .attr('opacity', 0.3)
+      // .attr('opacity', 1)
   }
 
   /**
@@ -217,8 +217,8 @@ export class MapOverlayService {
     // Always keep mainland border visible
     if (config.filteredTerritoryCodes) {
       borders = borders.filter(border =>
-        border.territoryCode === config.mainlandCode || // Always show mainland
-        config.filteredTerritoryCodes!.has(border.territoryCode) // Show active territories
+        border.territoryCode === config.mainlandCode // Always show mainland
+        || config.filteredTerritoryCodes!.has(border.territoryCode), // Show active territories
       )
     }
 
@@ -236,6 +236,7 @@ export class MapOverlayService {
       .attr('y', d => d.y)
       .attr('width', d => d.width)
       .attr('height', d => d.height)
+
       .call(sel => this.compositionBorderStyle(sel))
   }
 
@@ -285,9 +286,10 @@ export class MapOverlayService {
       .attr('width', bounds.width)
       .attr('height', bounds.height)
       .attr('class', 'map-limits')
-      .style('stroke', 'currentColor')
+      // .style('stroke', 'currentColor')
+      .attr('stroke', 'var(--color-neutral)')
       .style('fill', 'none')
       .style('stroke-width', 2)
-      .style('opacity', 0.7)
+      // .style('opacity', 0.7)
   }
 }
