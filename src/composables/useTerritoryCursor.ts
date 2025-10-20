@@ -6,7 +6,7 @@ import { useParameterStore } from '@/stores/parameters'
 
 /**
  * Manages territory cursor interaction for drag-to-move functionality
- * Only active in composite-custom mode for overseas territories
+ * Active in composite-custom mode for all territories
  */
 export function useTerritoryCursor() {
   const configStore = useConfigStore()
@@ -24,6 +24,9 @@ export function useTerritoryCursor() {
 
   // Hover state for visual feedback
   const hoveredTerritoryCode = ref<string | null>(null)
+
+  // Grid step size for snapping (in pixels)
+  const GRID_STEP = 10
 
   /**
    * Check if territory dragging is enabled
@@ -134,7 +137,7 @@ export function useTerritoryCursor() {
 
   /**
    * Check if a territory can be dragged
-   * Prevents mainland territories from being dragged and checks if territory is in filtered list
+   * Checks if territory is in filtered list (or is mainland) and mode is enabled
    */
   function isTerritoryDraggable(territoryCode: string): boolean {
     if (!isDragEnabled.value)
@@ -144,9 +147,9 @@ export function useTerritoryCursor() {
     const atlasConfig = configStore.currentAtlasConfig
     const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
 
-    // Don't allow dragging mainland territories
+    // Allow dragging mainland
     if (mainlandCode && territoryCode === mainlandCode) {
-      return false
+      return true
     }
 
     // Only allow dragging territories that are currently visible/filtered
@@ -265,8 +268,12 @@ export function useTerritoryCursor() {
     const dx = screenDx / scale
     const dy = screenDy / scale
 
-    const newOffsetX = dragStartOffsetX.value + dx
-    const newOffsetY = dragStartOffsetY.value + dy
+    // Snap to grid step
+    const snappedDx = Math.round(dx / GRID_STEP) * GRID_STEP
+    const snappedDy = Math.round(dy / GRID_STEP) * GRID_STEP
+
+    const newOffsetX = dragStartOffsetX.value + snappedDx
+    const newOffsetY = dragStartOffsetY.value + snappedDy
 
     // Update parameter store with new position (this will update both sliders and rendering)
     parameterStore.setTerritoryParameter(dragTerritoryCode.value, 'translateOffset', [newOffsetX, newOffsetY])
@@ -381,10 +388,14 @@ export function useTerritoryCursor() {
     customComposite.build(width, height, true)
     const allBorders = customComposite.getCompositionBorders(width, height)
 
-    // Filter borders to only include territories that are currently filtered/visible
+    // Get mainland code
+    const atlasConfig = configStore.currentAtlasConfig
+    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
+
+    // Filter borders to only include territories that are currently filtered/visible (or mainland)
     const filteredTerritorycodes = new Set(geoDataStore.filteredTerritories.map(t => t.code))
     const borders = allBorders.filter((border: any) =>
-      filteredTerritorycodes.has(border.territoryCode),
+      border.territoryCode === mainlandCode || filteredTerritorycodes.has(border.territoryCode),
     )
 
     const svgSelection = select(svg)
