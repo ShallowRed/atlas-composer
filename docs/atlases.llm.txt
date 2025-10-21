@@ -38,7 +38,6 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
   - **behavior**: Application behavior configuration (optional)
     - **defaultPreset**: Default preset ID to load
     - **availablePresets**: Array of preset IDs for UI selector
-    - **defaultTerritoryCollection**: Default collection ID to activate
     - **ui**: UI-specific configuration
       - **territoryManager**: Territory manager behavior (composite-custom mode)
         - **collectionSet**: Which collection set to use ('administrative' or 'geographic')

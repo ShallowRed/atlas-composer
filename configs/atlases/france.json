@@ -377,14 +377,156 @@
     }
   ],
   "territoryCollections": {
-    "administrative": {
+    "geographic": {
       "label": {
-        "en": "Administrative Selection",
-        "fr": "Sélection Administrative"
+        "en": "Geographic regions",
+        "fr": "Régions géographiques"
       },
       "description": {
-        "en": "Territory groupings based on administrative status",
-        "fr": "Groupes de territoires basés sur le statut administratif"
+        "en": "Territory groupings based on geographic location",
+        "fr": "Groupes de territoires basés sur la localisation géographique"
+      },
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {
+            "en": "Metropolitan France",
+            "fr": "France Métropolitaine"
+          },
+          "territories": [
+            "FR-MET"
+          ]
+        },
+        {
+          "id": "caribbean",
+          "label": {
+            "en": "Caribbean",
+            "fr": "Caraïbes"
+          },
+          "territories": [
+            "FR-GP",
+            "FR-MQ",
+            "FR-GF",
+            "FR-BL",
+            "FR-MF"
+          ]
+        },
+        {
+          "id": "indian-ocean",
+          "label": {
+            "en": "Indian Ocean",
+            "fr": "Océan Indien"
+          },
+          "territories": [
+            "FR-RE",
+            "FR-YT",
+            "FR-TF"
+          ]
+        },
+        {
+          "id": "pacific",
+          "label": {
+            "en": "Pacific Ocean",
+            "fr": "Océan Pacifique"
+          },
+          "territories": [
+            "FR-NC",
+            "FR-PF",
+            "FR-PF-2",
+            "FR-WF"
+          ]
+        },
+        {
+          "id": "north-atlantic",
+          "label": {
+            "en": "North Atlantic",
+            "fr": "Atlantique Nord"
+          },
+          "territories": [
+            "FR-PM"
+          ]
+        }
+      ]
+    },
+    "legal-status": {
+      "label": {
+        "en": "Legal Status",
+        "fr": "Statut juridique"
+      },
+      "description": {
+        "en": "Territory groupings by legal and administrative status (DROM, COM, etc.)",
+        "fr": "Groupes de territoires par statut juridique et administratif (DROM, COM, etc.)"
+      },
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {
+            "en": "Metropolitan France",
+            "fr": "France Métropolitaine"
+          },
+          "territories": [
+            "FR-MET"
+          ]
+        },
+        {
+          "id": "drom",
+          "label": {
+            "en": "Overseas Departments (DROM)",
+            "fr": "DROM"
+          },
+          "territories": [
+            "FR-GP",
+            "FR-MQ",
+            "FR-GF",
+            "FR-RE",
+            "FR-YT"
+          ]
+        },
+        {
+          "id": "com",
+          "label": {
+            "en": "Overseas Collectivities (COM)",
+            "fr": "COM"
+          },
+          "territories": [
+            "FR-PM",
+            "FR-MF",
+            "FR-BL",
+            "FR-WF",
+            "FR-PF",
+            "FR-PF-2"
+          ]
+        },
+        {
+          "id": "sui-generis",
+          "label": {
+            "en": "Sui generis status",
+            "fr": "Statut sui generis"
+          },
+          "territories": [
+            "FR-NC"
+          ]
+        },
+        {
+          "id": "administered",
+          "label": {
+            "en": "Administered Territories",
+            "fr": "Territoires administrés"
+          },
+          "territories": [
+            "FR-TF"
+          ]
+        }
+      ]
+    },
+    "incremental": {
+      "label": {
+        "en": "Incremental Selection",
+        "fr": "Sélection Incrémentale"
+      },
+      "description": {
+        "en": "Progressive territory combinations from mainland to all overseas territories",
+        "fr": "Combinaisons progressives de territoires de la métropole à tous les territoires d'outre-mer"
       },
       "collections": [
         {
@@ -453,77 +595,6 @@
             "FR-NC",
             "FR-TF",
             "FR-WF",
-            "FR-PM"
-          ]
-        }
-      ]
-    },
-    "geographic": {
-      "label": {
-        "en": "Geographic Regions",
-        "fr": "Régions Géographiques"
-      },
-      "description": {
-        "en": "Territory groupings based on geographic location",
-        "fr": "Groupes de territoires basés sur la localisation géographique"
-      },
-      "collections": [
-        {
-          "id": "mainland",
-          "label": {
-            "en": "Metropolitan France",
-            "fr": "France Métropolitaine"
-          },
-          "territories": [
-            "FR-MET"
-          ]
-        },
-        {
-          "id": "caribbean",
-          "label": {
-            "en": "Caribbean",
-            "fr": "Caraïbes"
-          },
-          "territories": [
-            "FR-GP",
-            "FR-MQ",
-            "FR-GF",
-            "FR-BL",
-            "FR-MF"
-          ]
-        },
-        {
-          "id": "indian-ocean",
-          "label": {
-            "en": "Indian Ocean",
-            "fr": "Océan Indien"
-          },
-          "territories": [
-            "FR-RE",
-            "FR-YT",
-            "FR-TF"
-          ]
-        },
-        {
-          "id": "pacific",
-          "label": {
-            "en": "Pacific Ocean",
-            "fr": "Océan Pacifique"
-          },
-          "territories": [
-            "FR-NC",
-            "FR-PF",
-            "FR-PF-2",
-            "FR-WF"
-          ]
-        },
-        {
-          "id": "north-atlantic",
-          "label": {
-            "en": "North Atlantic",
-            "fr": "Atlantique Nord"
-          },
-          "territories": [
             "FR-PM"
           ]
         }

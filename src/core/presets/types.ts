@@ -204,6 +204,7 @@ export type Preset
 // ============================================================================
 
 /**
+ * @deprecated Use PresetDefinition from @/types/registry instead
  * Preset metadata in registry
  * Lightweight descriptor without full configuration
  */
@@ -220,6 +221,8 @@ export interface PresetRegistryEntry {
 }
 
 /**
+ * @deprecated Preset registry is now part of atlas-registry.json
+ * Use AtlasRegistry from @/types/registry instead
  * Unified preset registry
  * Single registry for all preset types
  */

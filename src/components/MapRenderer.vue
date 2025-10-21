@@ -528,7 +528,7 @@ function handleMouseDown(event: MouseEvent) {
     <div
       v-show="!isLoading && !error"
       ref="mapContainer"
-      class="map-plot bg-base-200 border-base-300 p-2"
+      class="map-plot w-full bg-base-200 border-base-300 p-2"
       :style="{
         display: isLoading || error ? 'none' : 'flex',
         cursor: cursorStyle,
@@ -541,6 +541,6 @@ function handleMouseDown(event: MouseEvent) {
 <style lang="css" scoped>
 @reference 'tailwindcss';
 .map-plot {
-  @apply h-full w-fit rounded-sm border flex-col items-center justify-center;
+  @apply h-full w-full rounded-sm border flex-col items-center justify-center;
 }
 </style>

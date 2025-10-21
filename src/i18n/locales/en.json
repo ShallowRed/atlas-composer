@@ -109,7 +109,9 @@
       "noActive": "No active territory set",
       "available": "Available territories",
       "add": "Click to add",
-      "noCollections": "No territory collections available"
+      "noCollections": "No territory collections available",
+      "groupingLogic": "Grouping logic",
+      "switchGrouping": "Switch grouping"
     }
   },
   "view": {

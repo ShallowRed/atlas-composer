@@ -29,7 +29,7 @@ import type {
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
-import { getAtlasBehavior, getAtlasConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasConfig, getDefaultPreset, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -99,17 +99,17 @@ export class InitializationService {
       let referenceScale: number | undefined
       let canvasDimensions: { width: number, height: number } | undefined
 
-      // Get default preset from registry behavior
-      const atlasBehavior = getAtlasBehavior(atlasId)
-      const defaultPreset = atlasBehavior?.defaultPreset
+      // Get default preset from registry
+      const defaultPresetDef = getDefaultPreset(atlasId)
+      const defaultPresetId = defaultPresetDef?.id
 
-      if (defaultPreset && viewMode === 'composite-custom') {
-        const presetResult = await PresetLoader.loadPreset(defaultPreset)
+      if (defaultPresetId && viewMode === 'composite-custom') {
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.success || !presetResult.data) {
           return {
             success: false,
-            errors: [`Failed to load default preset '${defaultPreset}': ${presetResult.errors.join(', ')}`],
+            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
             warnings: presetResult.warnings || [],
             state: null,
           }
@@ -140,12 +140,12 @@ export class InitializationService {
       // Step 5: Get atlas metadata
       const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(
         atlasId,
-        defaultPreset,
+        defaultPresetId,
       )
 
       // Step 6: Determine projections
-      const compositeProjection = await this.getCompositeProjection(atlasId, defaultPreset, atlasMetadata)
-      const selectedProjection = await this.getSelectedProjection(atlasId, defaultPreset, atlasMetadata)
+      const compositeProjection = await this.getCompositeProjection(atlasId, defaultPresetId, atlasMetadata)
+      const selectedProjection = await this.getSelectedProjection(atlasId, defaultPresetId, atlasMetadata)
 
       // Step 7: Build application state
       const state: ApplicationState = {
@@ -157,7 +157,7 @@ export class InitializationService {
         territoryMode,
         preset: preset
           ? {
-              id: defaultPreset || 'unknown',
+              id: defaultPresetId || 'unknown',
               type: preset.type,
               data: preset,
             }

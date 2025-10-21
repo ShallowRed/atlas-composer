@@ -16,10 +16,12 @@ import type {
   LoadResult,
   Preset,
   PresetRegistry,
+  PresetRegistryEntry,
   PresetType,
   ViewPresetMode,
 } from '@/core/presets'
 
+import { REGISTRY_METADATA } from '@/core/atlases/registry'
 import {
   convertToDefaults,
   extractTerritoryParameters,
@@ -32,6 +34,38 @@ import { PresetFileLoader } from './loaders/preset-file-loader'
 const debug = logger.presets.loader
 
 /**
+ * Transform atlas registry to legacy PresetRegistry format for backward compatibility
+ */
+function atlasRegistryToPresetRegistry(): PresetRegistry {
+  const atlases = REGISTRY_METADATA.atlases
+  const presets: PresetRegistryEntry[] = []
+
+  for (const atlas of atlases) {
+    if (atlas.presets) {
+      for (const preset of atlas.presets) {
+        // Convert PresetDefinition to PresetRegistryEntry
+        presets.push({
+          id: preset.id,
+          name: typeof preset.name === 'string' ? preset.name : (preset.name.en ?? preset.id),
+          atlasId: atlas.id,
+          type: preset.type,
+          description: preset.description
+            ? (typeof preset.description === 'string' ? preset.description : (preset.description.en ?? undefined))
+            : undefined,
+          pattern: preset.pattern,
+          territories: preset.territoryCount,
+        })
+      }
+    }
+  }
+
+  return {
+    version: '2.0',
+    presets,
+  }
+}
+
+/**
  * Unified service for loading and managing all preset types
  */
 export class PresetLoader {
@@ -40,22 +74,18 @@ export class PresetLoader {
   /**
    * Load the unified preset registry
    * Cached after first load
+   *
+   * @deprecated Preset registry is now part of atlas-registry.json
+   * This method transforms the atlas registry to the old format for compatibility
    */
   private static async loadRegistry(): Promise<PresetRegistry> {
     if (this.registry) {
       return this.registry
     }
 
-    const result = await PresetFileLoader.loadRegistry<PresetRegistry>(
-      'configs/presets/registry.json',
-    )
-
-    if (!result.success || !result.data) {
-      debug('Failed to load preset registry, using empty registry')
-      return { version: '2.0', presets: [] }
-    }
-
-    this.registry = result.data
+    // Use atlas registry as source of truth
+    debug('Loading preset registry from atlas registry')
+    this.registry = atlasRegistryToPresetRegistry()
     return this.registry
   }
 

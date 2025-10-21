@@ -1,6 +1,6 @@
 import type { ViewMode } from '@/types'
 
-import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig, getDefaultPreset } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -65,10 +65,14 @@ export class AtlasCoordinator {
     let referenceScale: number | undefined
     let canvasDimensions: { width: number, height: number } | undefined
 
+    // Get default preset from registry
+    const defaultPreset = getDefaultPreset(newAtlasId)
+    const defaultPresetId = defaultPreset?.id
+
     // Load preset if available and in composite-custom mode
-    if (config.defaultPreset && viewMode === 'composite-custom') {
+    if (defaultPresetId && viewMode === 'composite-custom') {
       try {
-        const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
         if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
           // Convert preset config to defaults - territories not in preset will NOT be rendered
           const presetDefaults = PresetLoader.convertToDefaults(presetResult.data.config)
@@ -93,7 +97,7 @@ export class AtlasCoordinator {
           if (missingTerritories.length > 0) {
             debug(
               'Preset "%s" defines %d territories, atlas allows %d. %d territories will NOT be rendered: %s',
-              config.defaultPreset,
+              defaultPresetId,
               presetTerritoryCodes.size,
               territories.length,
               missingTerritories.length,
@@ -109,17 +113,17 @@ export class AtlasCoordinator {
         }
         else {
           // Log warning but continue with fallback defaults
-          debug('Failed to load preset "%s": %o', config.defaultPreset, presetResult.errors)
+          debug('Failed to load preset "%s": %o', defaultPresetId, presetResult.errors)
         }
       }
       catch (error) {
         // Log error but continue with fallback defaults
-        debug('Error loading preset "%s": %o', config.defaultPreset, error)
+        debug('Error loading preset "%s": %o', defaultPresetId, error)
       }
     }
 
     // Get atlas metadata from preset system
-    const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, config.defaultPreset)
+    const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, defaultPresetId)
 
     // Determine composite projection from preset metadata
     let finalCompositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
@@ -127,14 +131,14 @@ export class AtlasCoordinator {
     // If no composite projection is set, find the first available one for this atlas
     // This ensures built-in-composite mode always has a valid projection selected
     if (!finalCompositeProjection) {
-      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, config.defaultPreset)
+      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, defaultPresetId)
       if (availableComposites.length > 0) {
         finalCompositeProjection = availableComposites[0]
       }
     }
 
     // Determine selected projection from preset metadata
-    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset)
+    let selectedProjection = await this.getSelectedProjection(newAtlasId, defaultPresetId)
 
     // Ensure selected projection is valid for composite modes
     // For composite views, projection must exist in territory projections

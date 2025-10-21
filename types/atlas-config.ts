@@ -104,7 +104,7 @@ export interface JSONAtlasConfig {
     territoryCodes: '*' | string[]
     exclude?: string[]
   }>
-  // DEPRECATED: Use registry behavior.defaultTerritoryCollection instead
+  // DEPRECATED: Only used for legacy atlases with `modes` array. Default is now automatically the last mode from the collection set.
   defaultTerritoryMode?: string
   // Unified territory collections (replaces modes, groups, territoryModes)
   territoryCollections?: JSONTerritoryCollections

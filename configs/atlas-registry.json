@@ -1,6 +1,5 @@
 {
   "$schema": "./atlas-registry.schema.json",
-  "defaultAtlas": "france",
   "groups": [
     {
       "id": "world",
@@ -8,13 +7,13 @@
         "en": "World",
         "fr": "Monde"
       },
-      "sortOrder": 3
+      "sortOrder": 1
     },
     {
       "id": "region",
       "label": {
-        "en": "Regions & Unions",
-        "fr": "Régions & Unions"
+        "en": "Regions & unions",
+        "fr": "Régions & unions"
       },
       "sortOrder": 2
     },
@@ -24,7 +23,7 @@
         "en": "Countries",
         "fr": "Pays"
       },
-      "sortOrder": 1
+      "sortOrder": 3
     }
   ],
   "atlases": [
@@ -35,22 +34,97 @@
         "fr": "France"
       },
       "group": "country",
-      "sortOrder": 10,
+      "sortOrder": 1,
+      "isDefault": true,
       "configPath": "./atlases/france.json",
+      "presets": [
+        {
+          "id": "france-default",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "pattern": "single-focus",
+          "territoryCount": 9,
+          "description": {
+            "en": "Configuration aligned with geoConicConformalFrance from d3-composite-projections",
+            "fr": "Configuration alignée avec geoConicConformalFrance de d3-composite-projections"
+          }
+        },
+        {
+          "id": "france-test",
+          "name": {
+            "en": "Test composite",
+            "fr": "Composite test"
+          },
+          "type": "composite-custom",
+          "pattern": "single-focus",
+          "territoryCount": 9,
+          "description": {
+            "en": "Test configuration for France",
+            "fr": "Configuration de test pour la France"
+          }
+        },
+        {
+          "id": "france-nsp",
+          "name": {
+            "en": "NSP composite",
+            "fr": "Composite NSP"
+          },
+          "type": "composite-custom",
+          "pattern": "single-focus",
+          "territoryCount": 9,
+          "description": {
+            "en": "NSP configuration for France",
+            "fr": "Configuration NSP pour la France"
+          }
+        },
+        {
+          "id": "france-unified",
+          "name": {
+            "en": "Unified view",
+            "fr": "Vue unifiée"
+          },
+          "type": "unified",
+          "description": {
+            "en": "Natural Earth projection centered on France",
+            "fr": "Projection Natural Earth centrée sur la France"
+          }
+        },
+        {
+          "id": "france-split",
+          "name": {
+            "en": "Split view",
+            "fr": "Vue séparée"
+          },
+          "type": "split",
+          "description": {
+            "en": "Same conic projection for all territories",
+            "fr": "Même projection conique pour tous les territoires"
+          }
+        },
+        {
+          "id": "france-built-in-composite",
+          "name": {
+            "en": "Standard d3 composite",
+            "fr": "Composite d3 standard"
+          },
+          "type": "built-in-composite",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
+        }
+      ],
       "behavior": {
-        "defaultPreset": "france-default",
-        "availablePresets": [
-          "france-default",
-          "france-test",
-          "france-nsp"
-        ],
-        "defaultTerritoryCollection": "administrative",
-        "ui": {
+        "collectionSets": {
           "territoryManager": {
             "collectionSet": "geographic"
           },
           "configSection": {
-            "collectionSet": "administrative"
+            "collectionSet": "incremental"
           }
         }
       }
@@ -64,18 +138,66 @@
       "group": "country",
       "sortOrder": 20,
       "configPath": "./atlases/portugal.json",
+      "presets": [
+        {
+          "id": "portugal-default",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "pattern": "single-focus",
+          "territoryCount": 3,
+          "description": {
+            "en": "Custom configuration for continental Portugal and islands",
+            "fr": "Configuration personnalisée pour le Portugal continental et les îles"
+          }
+        },
+        {
+          "id": "portugal-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "description": {
+            "en": "Natural Earth projection centered on Portugal",
+            "fr": "Projection Natural Earth centrée sur le Portugal"
+          }
+        },
+        {
+          "id": "portugal-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "description": {
+            "en": "Same conic projection for all territories",
+            "fr": "Même projection conique pour tous les territoires"
+          }
+        },
+        {
+          "id": "portugal-built-in-composite",
+          "name": {
+            "en": "d3 composite projection",
+            "fr": "Projection composite d3"
+          },
+          "type": "built-in-composite",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
+        }
+      ],
       "behavior": {
-        "defaultPreset": "portugal-default",
-        "availablePresets": [
-          "portugal-default"
-        ],
-        "defaultTerritoryCollection": "administrative",
-        "ui": {
+        "collectionSets": {
           "territoryManager": {
             "collectionSet": "geographic"
           },
           "configSection": {
-            "collectionSet": "administrative"
+            "collectionSet": "incremental"
           }
         }
       }
@@ -88,7 +210,60 @@
       },
       "group": "country",
       "sortOrder": 30,
-      "configPath": "./atlases/usa.json"
+      "configPath": "./atlases/usa.json",
+      "presets": [
+        {
+          "id": "usa-default",
+          "name": {
+            "en": "Custom Composite Default",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "pattern": "single-focus",
+          "territoryCount": 5,
+          "description": {
+            "en": "Custom composite projection aligned with d3-composite-projections geoAlbersUsa",
+            "fr": "Projection composite personnalisée alignée avec geoAlbersUsa de d3-composite-projections"
+          }
+        },
+        {
+          "id": "usa-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "description": {
+            "en": "Natural Earth projection centered on the United States",
+            "fr": "Projection Natural Earth centrée sur les États-Unis"
+          }
+        },
+        {
+          "id": "usa-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "description": {
+            "en": "Conic conformal projection for all American territories",
+            "fr": "Projection conique conforme pour tous les territoires américains"
+          }
+        },
+        {
+          "id": "usa-built-in-composite",
+          "name": {
+            "en": "Albers Composite",
+            "fr": "Composite Albers"
+          },
+          "type": "built-in-composite",
+          "description": {
+            "en": "Predefined Albers USA composite projection",
+            "fr": "Projection composite Albers USA prédéfinie"
+          }
+        }
+      ]
     },
     {
       "id": "eu",
@@ -98,7 +273,60 @@
       },
       "group": "region",
       "sortOrder": 100,
-      "configPath": "./atlases/eu.json"
+      "configPath": "./atlases/eu.json",
+      "presets": [
+        {
+          "id": "eu-default",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "pattern": "equal-members",
+          "territoryCount": 28,
+          "description": {
+            "en": "Composite configuration for the European Union",
+            "fr": "Configuration composite pour l'Union européenne"
+          }
+        },
+        {
+          "id": "eu-unified",
+          "name": {
+            "en": "Unified view",
+            "fr": "Vue unifiée"
+          },
+          "type": "unified",
+          "description": {
+            "en": "Natural Earth projection centered on Europe",
+            "fr": "Projection Natural Earth centrée sur l'Europe"
+          }
+        },
+        {
+          "id": "eu-split",
+          "name": {
+            "en": "Split view",
+            "fr": "Vue séparée"
+          },
+          "type": "split",
+          "description": {
+            "en": "Conformal conic projection for all European territories",
+            "fr": "Projection conique conforme pour tous les territoires européens"
+          }
+        },
+        {
+          "id": "eu-built-in-composite",
+          "name": {
+            "en": "Existing composite",
+            "fr": "Composite existant"
+          },
+          "type": "built-in-composite",
+          "description": {
+            "en": "Predefined composite projection for Europe",
+            "fr": "Projection composite prédéfinie pour l'Europe"
+          }
+        }
+      ]
     },
     {
       "id": "world",
@@ -108,7 +336,22 @@
       },
       "group": "world",
       "sortOrder": 200,
-      "configPath": "./atlases/world.json"
+      "configPath": "./atlases/world.json",
+      "presets": [
+        {
+          "id": "world-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "isDefault": true,
+          "description": {
+            "en": "Natural Earth projection for world map",
+            "fr": "Projection Natural Earth pour carte mondiale"
+          }
+        }
+      ]
     }
   ]
 }

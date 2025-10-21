@@ -6,7 +6,7 @@
  * Atlas configurations are only loaded when accessed, improving initial load time.
  */
 
-import type { I18nValue, JSONAtlasConfig } from '#types'
+import type { JSONAtlasConfig } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -19,18 +19,9 @@ import { logger } from '@/utils/logger'
 const debug = logger.atlas.loader
 
 /**
- * @deprecated Use AtlasGroupDefinition from @/types/registry instead
- */
-export interface AtlasGroupDefinition {
-  id: 'country' | 'region' | 'world'
-  label: I18nValue | string
-  sortOrder: number
-}
-
-/**
  * Static atlas registry metadata from JSON
  */
-const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
+export const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
 
 /**
  * Cache of loaded atlas configurations (lazy loading)
@@ -92,8 +83,11 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
       throw new Error(`Invalid atlas config: missing required fields (id, territories)`)
     }
 
+    // Get behavior from registry for this atlas
+    const behavior = getAtlasBehavior(atlasId)
+
     // Load and cache the config
-    const loadedConfig = loadAtlasConfig(jsonConfig)
+    const loadedConfig = loadAtlasConfig(jsonConfig, behavior)
     LOADED_CONFIGS.set(atlasId, loadedConfig)
 
     debug('Successfully loaded atlas %s from network', atlasId)
@@ -121,9 +115,37 @@ function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
 }
 
 /**
+ * Get the default atlas entry from registry
+ * Uses isDefault flag, falls back to deprecated defaultAtlas field
+ */
+export function getDefaultAtlas(): AtlasRegistryEntry {
+  // Try new isDefault flag first
+  const defaultEntry = REGISTRY_METADATA.atlases.find(e => e.isDefault)
+  if (defaultEntry) {
+    return defaultEntry
+  }
+
+  // Fall back to deprecated defaultAtlas field
+  if (REGISTRY_METADATA.defaultAtlas) {
+    debug('Using deprecated defaultAtlas field, update to use isDefault flag')
+    const entry = REGISTRY_METADATA.atlases.find(e => e.id === REGISTRY_METADATA.defaultAtlas)
+    if (entry) {
+      return entry
+    }
+  }
+
+  // Ultimate fallback: first atlas
+  debug('No default atlas defined, using first atlas')
+  if (REGISTRY_METADATA.atlases.length === 0) {
+    throw new Error('[Registry] No atlases defined in registry')
+  }
+  return REGISTRY_METADATA.atlases[0]!
+}
+
+/**
  * Default atlas ID from registry
  */
-export const DEFAULT_ATLAS = REGISTRY_METADATA.defaultAtlas
+export const DEFAULT_ATLAS = getDefaultAtlas().id
 
 /**
  * Pre-load the default atlas into cache
@@ -321,4 +343,72 @@ export function hasAtlas(atlasId: string): boolean {
  */
 export function getAtlasIds(): string[] {
   return Array.from(CONFIG_PATHS.keys())
+}
+
+// ============================================================================
+// Preset Helpers
+// ============================================================================
+
+/**
+ * Get all presets for an atlas from registry
+ * Returns empty array if atlas has no presets defined
+ */
+export function getAtlasPresets(atlasId: string) {
+  const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
+  return entry?.presets ?? []
+}
+
+/**
+ * Get default preset for an atlas
+ * Uses isDefault flag, falls back to deprecated behavior.defaultPreset
+ */
+export function getDefaultPreset(atlasId: string) {
+  const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
+  if (!entry) {
+    debug('No atlas entry found for %s', atlasId)
+    return undefined
+  }
+
+  debug('Looking for default preset in atlas %s, has %d presets', atlasId, entry.presets?.length ?? 0)
+
+  // Try new isDefault flag in presets array
+  if (entry.presets) {
+    const defaultPreset = entry.presets.find(p => p.isDefault)
+    if (defaultPreset) {
+      debug('Found default preset %s via isDefault flag', defaultPreset.id)
+      return defaultPreset
+    }
+  }
+
+  // Fall back to deprecated behavior.defaultPreset field
+  if (entry.behavior?.defaultPreset) {
+    debug('Using deprecated behavior.defaultPreset for %s, update to use isDefault flag', atlasId)
+    const presetId = entry.behavior.defaultPreset
+    // Try to find it in presets array
+    if (entry.presets) {
+      const preset = entry.presets.find(p => p.id === presetId)
+      if (preset) {
+        return preset
+      }
+    }
+    // Return synthetic preset definition for backward compatibility
+    return {
+      id: presetId,
+      name: { en: presetId, fr: presetId },
+      type: 'composite-custom' as const,
+      isDefault: true,
+    }
+  }
+
+  // No default preset defined
+  debug('No default preset found for atlas %s', atlasId)
+  return undefined
+}
+
+/**
+ * Get a specific preset by ID for an atlas
+ */
+export function getPresetById(atlasId: string, presetId: string) {
+  const presets = getAtlasPresets(atlasId)
+  return presets.find(p => p.id === presetId)
 }

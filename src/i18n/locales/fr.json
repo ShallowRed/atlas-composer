@@ -110,7 +110,9 @@
       "noActive": "Aucun jeu de territoires actif",
       "available": "Territoires disponibles",
       "add": "Cliquer pour ajouter",
-      "noCollections": "Aucune collection de territoires disponible"
+      "noCollections": "Aucune collection de territoires disponible",
+      "groupingLogic": "Logique de regroupement",
+      "switchGrouping": "Changer le regroupement"
     }
   },
   "view": {

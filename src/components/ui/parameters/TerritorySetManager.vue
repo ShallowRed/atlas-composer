@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAtlasBehavior, getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
@@ -47,11 +47,53 @@ const atlasCollections = computed(() => {
   return atlasSpecificConfig.territoryCollections
 })
 
-// Get which collection set to display from registry behavior
-const collectionSetToDisplay = computed(() => {
+// Get available collection sets
+const availableCollectionSets = computed(() => {
+  const collections = atlasCollections.value
+  if (!collections) {
+    return []
+  }
+
+  return Object.entries(collections).map(([key, value]) => ({
+    id: key,
+    label: value.label,
+  }))
+})
+
+// Get the default collection set from registry behavior
+const defaultCollectionSet = computed(() => {
   const atlasId = configStore.selectedAtlas
   const behavior = getAtlasBehavior(atlasId)
-  return behavior?.ui?.territoryManager?.collectionSet ?? 'geographic'
+  const defaultFromRegistry = behavior?.collectionSets?.territoryManager?.collectionSet
+
+  // If no default in registry, use the first available collection set
+  if (!defaultFromRegistry && atlasCollections.value) {
+    const firstKey = Object.keys(atlasCollections.value)[0]
+    return firstKey
+  }
+
+  return defaultFromRegistry
+})
+
+// Local state for selected collection set (initialized reactively with default from registry)
+const selectedCollectionSet = ref<string | undefined>(defaultCollectionSet.value)
+
+// Watch for changes to default (e.g., when switching atlases)
+watch(() => defaultCollectionSet.value, (newDefault) => {
+  if (newDefault && (!selectedCollectionSet.value || !atlasCollections.value?.[selectedCollectionSet.value])) {
+    selectedCollectionSet.value = newDefault
+  }
+})
+
+// Get which collection set to display - use local state or fallback to default
+const collectionSetToDisplay = computed(() => {
+  // If user has manually selected a collection set, use that
+  if (selectedCollectionSet.value && atlasCollections.value?.[selectedCollectionSet.value]) {
+    return selectedCollectionSet.value
+  }
+
+  // Otherwise use the default from registry
+  return defaultCollectionSet.value
 })
 
 // Group territories according to atlas configuration
@@ -61,7 +103,12 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     return []
   }
 
-  const collectionSet = collections[collectionSetToDisplay.value]
+  const collectionSetKey = collectionSetToDisplay.value
+  if (!collectionSetKey) {
+    return []
+  }
+
+  const collectionSet = collections[collectionSetKey]
   if (!collectionSet) {
     return []
   }
@@ -102,6 +149,30 @@ function toggleTerritory(code: string, isActive: boolean) {
 
 <template>
   <div class="space-y-6">
+    <!-- Collection Set Selector -->
+    <div
+      v-if="availableCollectionSets.length > 1"
+      class="space-y-2"
+    >
+      <label class="label">
+        <span class="label-text text-xs font-medium">
+          {{ t('territory.setManager.groupingLogic') }}
+        </span>
+      </label>
+      <select
+        v-model="selectedCollectionSet"
+        class="select select-sm w-full"
+      >
+        <option
+          v-for="collectionSet in availableCollectionSets"
+          :key="collectionSet.id"
+          :value="collectionSet.id"
+        >
+          {{ collectionSet.label }}
+        </option>
+      </select>
+    </div>
+
     <!-- Territory Groups -->
     <div
       v-for="group in territoryGroups"

@@ -3,12 +3,13 @@
   "title": "Atlas Registry",
   "description": "Registry of available atlas configurations with grouping and sorting",
   "type": "object",
-  "required": ["defaultAtlas", "groups", "atlases"],
+  "required": ["groups", "atlases"],
   "properties": {
     "defaultAtlas": {
       "type": "string",
-      "description": "Default atlas to load on application startup",
-      "pattern": "^[a-z0-9-]+$"
+      "description": "DEPRECATED: Use isDefault flag in atlas entry instead. Default atlas to load on application startup",
+      "pattern": "^[a-z0-9-]+$",
+      "deprecated": true
     },
     "groups": {
       "type": "array",
@@ -84,10 +85,79 @@
             "description": "Order within group (lower numbers appear first)",
             "minimum": 0
           },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this is the default atlas to load on application startup"
+          },
           "configPath": {
             "type": "string",
             "description": "Relative path to the atlas JSON configuration file",
             "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
+          },
+          "presets": {
+            "type": "array",
+            "description": "Available presets for this atlas",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "type"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique preset identifier",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "name": {
+                  "description": "Display name for the preset (can be i18n object or string)",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "en": { "type": "string" },
+                        "fr": { "type": "string" }
+                      },
+                      "required": ["en"]
+                    }
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Preset type discriminator",
+                  "enum": ["composite-custom", "unified", "split", "built-in-composite"]
+                },
+                "isDefault": {
+                  "type": "boolean",
+                  "description": "Whether this is the default preset for the atlas"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Pattern for composite presets (e.g., 'single-focus', 'equal-members')"
+                },
+                "territoryCount": {
+                  "type": "number",
+                  "description": "Number of territories for composite presets",
+                  "minimum": 1
+                },
+                "description": {
+                  "description": "Description of the preset (can be i18n object or string)",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "en": { "type": "string" },
+                        "fr": { "type": "string" }
+                      },
+                      "required": ["en"]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "behavior": {
             "type": "object",
@@ -95,22 +165,19 @@
             "properties": {
               "defaultPreset": {
                 "type": "string",
-                "description": "Default preset to load for this atlas"
+                "description": "DEPRECATED: Use isDefault flag in preset definition instead. Default preset to load for this atlas",
+                "deprecated": true
               },
               "availablePresets": {
                 "type": "array",
-                "description": "List of available presets for this atlas",
+                "description": "DEPRECATED: All presets in atlas.presets array are available. List of available presets for this atlas",
                 "items": { "type": "string" },
-                "minItems": 1
+                "minItems": 1,
+                "deprecated": true
               },
-              "defaultTerritoryCollection": {
-                "type": "string",
-                "description": "Default territory collection set to use (key from atlas's territoryCollections)",
-                "pattern": "^[a-z][a-z0-9-]*$"
-              },
-              "ui": {
+              "collectionSets": {
                 "type": "object",
-                "description": "UI-specific configuration",
+                "description": "Collection set configuration for different UI contexts",
                 "properties": {
                   "territoryManager": {
                     "type": "object",

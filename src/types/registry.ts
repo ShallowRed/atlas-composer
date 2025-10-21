@@ -11,6 +11,38 @@
 import type { I18nValue } from '../../types/atlas-config'
 
 /**
+ * Preset type discriminator
+ */
+export type PresetType = 'composite-custom' | 'unified' | 'split' | 'built-in-composite'
+
+/**
+ * Preset definition in atlas registry
+ * Replaces the old PresetRegistryEntry from core/presets/types.ts
+ */
+export interface PresetDefinition {
+  /** Unique preset identifier (e.g., 'france-default') */
+  id: string
+
+  /** Display name for the preset (i18n support) */
+  name: I18nValue
+
+  /** Preset type discriminator */
+  type: PresetType
+
+  /** Whether this is the default preset for the atlas */
+  isDefault?: boolean
+
+  /** Pattern for composite presets (e.g., 'single-focus', 'equal-members') */
+  pattern?: string
+
+  /** Number of territories for composite presets */
+  territoryCount?: number
+
+  /** Description of the preset (i18n support) */
+  description?: I18nValue
+}
+
+/**
  * UI configuration for the territory manager component
  */
 export interface TerritoryManagerUIConfig {
@@ -51,17 +83,20 @@ export interface AtlasUIBehavior {
  * This is separate from the atlas data structure itself.
  */
 export interface AtlasRegistryBehavior {
-  /** Default preset to load for this atlas */
+  /**
+   * @deprecated Use isDefault flag in PresetDefinition instead
+   * Default preset to load for this atlas
+   */
   defaultPreset?: string
 
-  /** List of available presets for this atlas */
+  /**
+   * @deprecated All presets in atlas.presets array are available
+   * List of available presets for this atlas
+   */
   availablePresets?: string[]
 
-  /** Default territory collection set to use (key from atlas's territoryCollections) */
-  defaultTerritoryCollection?: string
-
-  /** UI-specific configuration */
-  ui?: AtlasUIBehavior
+  /** Collection set configuration for different UI contexts */
+  collectionSets?: AtlasUIBehavior
 }
 
 /**
@@ -94,8 +129,14 @@ export interface AtlasRegistryEntry {
   /** Order within group */
   sortOrder: number
 
+  /** Whether this is the default atlas to load on startup */
+  isDefault?: boolean
+
   /** Relative path to the atlas JSON configuration file */
   configPath: string
+
+  /** Available presets for this atlas */
+  presets?: PresetDefinition[]
 
   /** Application behavior configuration for this atlas */
   behavior?: AtlasRegistryBehavior
@@ -105,8 +146,11 @@ export interface AtlasRegistryEntry {
  * Complete atlas registry configuration
  */
 export interface AtlasRegistry {
-  /** Default atlas to load on application startup */
-  defaultAtlas: string
+  /**
+   * @deprecated Use isDefault flag in AtlasRegistryEntry instead
+   * Default atlas to load on application startup
+   */
+  defaultAtlas?: string
 
   /** Atlas group definitions */
   groups: AtlasRegistryGroup[]
