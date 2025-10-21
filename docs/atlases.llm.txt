@@ -21,10 +21,9 @@
 
 ## Atlas Registry System
 
-The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata and behavior configuration:
+The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata, behavior configuration, and inline preset definitions:
 
 ### Registry Structure
-- **defaultAtlas**: Default atlas ID to load on app startup
 - **groups**: Group definitions with labels and display order
   - **id**: Group identifier (`country`, `region`, `world`)
   - **label**: Display label (i18n object or string)
@@ -34,18 +33,27 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
   - **name**: Display name (i18n object or string)
   - **group**: Group ID for UI grouping
   - **sortOrder**: Display order within group (lower = earlier)
+  - **isDefault**: Boolean flag marking default atlas (replaces root defaultAtlas field)
   - **configPath**: Relative path to atlas JSON config
+  - **presets**: Array of preset definitions (inline, not referenced)
+    - **id**: Unique preset identifier
+    - **name**: Display name (i18n object)
+    - **type**: Preset type (`composite-custom`, `unified`, `split`, `built-in-composite`)
+    - **isDefault**: Boolean flag marking default preset for this atlas
+    - **pattern**: Pattern type for composite presets (e.g., `single-focus`)
+    - **territoryCount**: Number of territories in composite preset
+    - **description**: Preset description (i18n object, optional)
   - **behavior**: Application behavior configuration (optional)
-    - **defaultPreset**: Default preset ID to load
-    - **availablePresets**: Array of preset IDs for UI selector
-    - **ui**: UI-specific configuration
+    - **collectionSets**: UI-specific configuration
       - **territoryManager**: Territory manager behavior (composite-custom mode)
-        - **collectionSet**: Which collection set to use ('administrative' or 'geographic')
+        - **collectionSet**: Which collection set to use (`administrative` or `geographic`)
       - **configSection**: Config section behavior (unified/split modes)
         - **collectionSet**: Which collection set to use for territory selector dropdown
 
 The behavior object separates application-level configuration from pure atlas data.
-Atlas configs contain only territory data and collections; the registry defines how the application uses them.
+Atlas configs contain only territory data and collections; the registry defines how the application uses them and which presets are available.
+
+Presets are defined inline within their atlas entry, providing single source of truth for atlas metadata and available presets.
 
 **Typical Configuration**:
 - `territoryManager.collectionSet`: 'administrative' (for composite-custom mode territory selection)
@@ -316,17 +324,11 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
 | `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
-| `defaultPreset` | ⚠️ | DEPRECATED: Use registry behavior.defaultPreset instead |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
-| `availablePresets` | ⚠️ | DEPRECATED: Use registry behavior.availablePresets instead |
 | `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
 | `territoryCollections` | ⏩ | Unified territory grouping system (administrative and geographic sets) |
-| `modes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
-| `territoryModes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
-| `defaultTerritoryMode` | ⚠️ | DEPRECATED: Use registry behavior.defaultTerritoryCollection instead |
-| `groups` | ⚠️ | DEPRECATED: Use territoryCollections.geographic instead |
 
 ## Territory Collections System
 
@@ -381,44 +383,52 @@ The registry defines which collection set to use for specific UI elements:
 }
 ```
 
-### Migration from Legacy Systems
-The territory collections system replaces two deprecated fields:
-- **modes** / **territoryModes**: Now **territoryCollections.administrative**
-- **groups**: Now **territoryCollections.geographic**
-
-Legacy configurations continue to work through automatic transformation in the loader.
-New atlases should use territoryCollections exclusively.
-
 ## Preset System
 
 Presets provide high-quality default territory positioning for composite-custom mode.
 
 ### Configuration
-Preset references are defined in the atlas registry behavior, not in atlas configs:
+Presets are defined inline within atlas entries in the registry (`configs/atlas-registry.json`):
 
 ```json
 {
   "atlases": [
     {
       "id": "france",
-      "behavior": {
-        "defaultPreset": "france-default",
-        "availablePresets": ["france-default", "france-compact"]
-      }
+      "name": {"en": "France", "fr": "France"},
+      "presets": [
+        {
+          "id": "france-default",
+          "name": {"en": "France - Default", "fr": "France - Par défaut"},
+          "type": "composite-custom",
+          "configPath": "configs/presets/france-default.json",
+          "isDefault": true,
+          "pattern": "single-focus",
+          "territoryCount": 10
+        },
+        {
+          "id": "france-unified",
+          "name": {"en": "France - Unified", "fr": "France - Vue unifiée"},
+          "type": "unified",
+          "configPath": "configs/presets/france-unified.json"
+        }
+      ]
     }
   ]
 }
 ```
 
 ### Location and Format
-- **Location**: `configs/presets/` directory
+- **Registry**: Preset metadata defined inline in `configs/atlas-registry.json`
+- **Config Files**: Preset configurations stored in `configs/presets/` directory
 - **Format**: ExportedCompositeConfig JSON (same as export/import format)
 
 ### Workflow
-1. Registry references preset via behavior.defaultPreset field
-2. PresetLoader loads preset from `configs/presets/{preset-id}.json`
-3. Preset provides default projections, translations, and scales for territories
-4. Applied automatically on atlas initialization in composite-custom mode
+1. Application queries atlas registry for available presets using `getAtlasPresets(atlasId)`
+2. Default preset identified by `isDefault: true` flag in preset definition
+3. PresetLoader loads preset config from path specified in `configPath` field
+4. Preset provides default projections, translations, and scales for territories
+5. Applied automatically on atlas initialization in composite-custom mode
 
 ### Benefits
 - Users get professional defaults without manual adjustment

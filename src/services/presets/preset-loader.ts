@@ -1,94 +1,35 @@
 /**
- * Preset Loader Service (Unified)
+ * Preset Loader Service
  *
  * Loads all preset types (composite-custom, unified, split, built-in-composite)
- * from a single unified registry and directory structure.
+ * from the atlas registry and preset files.
  *
  * Key responsibilities:
  * - Load preset files from configs/presets/
  * - Orchestrate validation using core modules
- * - Load and cache unified preset registry
- * - Provide filtered preset lists by type/atlas/view mode
+ * - Query preset metadata from atlas registry
  */
 
 import type {
   CompositeCustomConfig,
   LoadResult,
   Preset,
-  PresetRegistry,
-  PresetRegistryEntry,
-  PresetType,
-  ViewPresetMode,
 } from '@/core/presets'
 
-import { REGISTRY_METADATA } from '@/core/atlases/registry'
+import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { getPresetById } from '@/core/atlases/registry'
 import {
   convertToDefaults,
   extractTerritoryParameters,
   validateCompositePreset,
   validateViewPreset,
 } from '@/core/presets'
-import { logger } from '@/utils/logger'
-import { PresetFileLoader } from './loaders/preset-file-loader'
-
-const debug = logger.presets.loader
-
-/**
- * Transform atlas registry to legacy PresetRegistry format for backward compatibility
- */
-function atlasRegistryToPresetRegistry(): PresetRegistry {
-  const atlases = REGISTRY_METADATA.atlases
-  const presets: PresetRegistryEntry[] = []
-
-  for (const atlas of atlases) {
-    if (atlas.presets) {
-      for (const preset of atlas.presets) {
-        // Convert PresetDefinition to PresetRegistryEntry
-        presets.push({
-          id: preset.id,
-          name: typeof preset.name === 'string' ? preset.name : (preset.name.en ?? preset.id),
-          atlasId: atlas.id,
-          type: preset.type,
-          description: preset.description
-            ? (typeof preset.description === 'string' ? preset.description : (preset.description.en ?? undefined))
-            : undefined,
-          pattern: preset.pattern,
-          territories: preset.territoryCount,
-        })
-      }
-    }
-  }
-
-  return {
-    version: '2.0',
-    presets,
-  }
-}
+import { PresetFileLoader } from '@/services/presets/loaders/preset-file-loader'
 
 /**
  * Unified service for loading and managing all preset types
  */
 export class PresetLoader {
-  private static registry: PresetRegistry | null = null
-
-  /**
-   * Load the unified preset registry
-   * Cached after first load
-   *
-   * @deprecated Preset registry is now part of atlas-registry.json
-   * This method transforms the atlas registry to the old format for compatibility
-   */
-  private static async loadRegistry(): Promise<PresetRegistry> {
-    if (this.registry) {
-      return this.registry
-    }
-
-    // Use atlas registry as source of truth
-    debug('Loading preset registry from atlas registry')
-    this.registry = atlasRegistryToPresetRegistry()
-    return this.registry
-  }
-
   /**
    * Load a preset configuration file (any type)
    *
@@ -96,14 +37,22 @@ export class PresetLoader {
    * @returns Load result with parsed preset and validation messages
    */
   static async loadPreset(presetId: string): Promise<LoadResult<Preset>> {
-    // Get preset type from registry
-    const registry = await this.loadRegistry()
-    const registryEntry = registry.presets.find(p => p.id === presetId)
-
-    if (!registryEntry) {
+    // Find preset in atlas registry
+    // Extract atlas ID from preset ID (e.g., 'france-default' -> 'france')
+    const atlasId = presetId.split('-')[0]
+    if (!atlasId) {
       return {
         success: false,
-        errors: [`Preset '${presetId}' not found in registry`],
+        errors: [`Invalid preset ID format: '${presetId}'`],
+        warnings: [],
+      }
+    }
+
+    const presetDef = getPresetById(atlasId, presetId)
+    if (!presetDef) {
+      return {
+        success: false,
+        errors: [`Preset '${presetId}' not found in atlas registry`],
         warnings: [],
       }
     }
@@ -122,7 +71,7 @@ export class PresetLoader {
     }
 
     // Validate based on type
-    if (registryEntry.type === 'composite-custom') {
+    if (presetDef.type === 'composite-custom') {
       const jsonText = JSON.stringify(fileResult.data)
       const validation = validateCompositePreset(jsonText, fileResult.data)
 
@@ -134,12 +83,17 @@ export class PresetLoader {
         }
       }
 
+      // Resolve i18n name
+      const locale = getCurrentLocale()
+      const name = resolveI18nValue(presetDef.name, locale)
+      const description = presetDef.description ? resolveI18nValue(presetDef.description, locale) : undefined
+
       // Build Preset object
       const preset: Preset = {
         id: presetId,
-        name: registryEntry.name,
-        description: registryEntry.description,
-        atlasId: registryEntry.atlasId,
+        name,
+        description,
+        atlasId,
         type: 'composite-custom',
         config: fileResult.data as CompositeCustomConfig,
       }
@@ -163,13 +117,18 @@ export class PresetLoader {
         }
       }
 
+      // Resolve i18n name
+      const locale = getCurrentLocale()
+      const name = resolveI18nValue(presetDef.name, locale)
+      const description = presetDef.description ? resolveI18nValue(presetDef.description, locale) : undefined
+
       // Build Preset object
       const preset: Preset = {
         id: presetId,
-        name: registryEntry.name,
-        description: registryEntry.description,
-        atlasId: registryEntry.atlasId,
-        type: registryEntry.type,
+        name,
+        description,
+        atlasId,
+        type: presetDef.type,
         config: fileResult.data.config,
       } as Preset
 
@@ -179,62 +138,6 @@ export class PresetLoader {
         errors: [],
         warnings: validation.warnings,
       }
-    }
-  }
-
-  /**
-   * List all available presets
-   *
-   * @param filters - Optional filters
-   * @param filters.atlasId - Filter by atlas ID
-   * @param filters.type - Filter by preset type
-   * @param filters.viewMode - Filter by view mode
-   * @returns Array of preset metadata
-   */
-  static async listPresets(filters?: {
-    atlasId?: string
-    type?: PresetType
-    viewMode?: ViewPresetMode
-  }): Promise<PresetRegistry['presets']> {
-    const registry = await this.loadRegistry()
-    let presets = registry.presets
-
-    if (filters?.atlasId) {
-      presets = presets.filter(p => p.atlasId === filters.atlasId)
-    }
-
-    if (filters?.type) {
-      presets = presets.filter(p => p.type === filters.type)
-    }
-
-    if (filters?.viewMode) {
-      presets = presets.filter(p => p.type === filters.viewMode)
-    }
-
-    return presets
-  }
-
-  /**
-   * Load preset metadata without full validation
-   * Useful for populating dropdowns and lists
-   *
-   * @param presetId - Preset identifier
-   * @returns Preset metadata or null if not found
-   */
-  static async loadMetadata(presetId: string): Promise<{ name: string, description?: string, atlasId: string, type: PresetType } | null> {
-    const registry = await this.loadRegistry()
-    const entry = registry.presets.find(p => p.id === presetId)
-
-    if (!entry) {
-      debug('Preset "%s" not found in registry', presetId)
-      return null
-    }
-
-    return {
-      name: entry.name,
-      description: entry.description,
-      atlasId: entry.atlasId,
-      type: entry.type,
     }
   }
 

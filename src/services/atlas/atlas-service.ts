@@ -7,7 +7,7 @@
  */
 
 import type { AtlasSpecificConfig } from '@/core/atlases/loader'
-import type { AtlasConfig, CompositeProjectionConfig, TerritoryCollections, TerritoryConfig, TerritoryGroupConfig, TerritoryModeConfig } from '@/types'
+import type { AtlasConfig, CompositeProjectionConfig, TerritoryCollection, TerritoryCollections, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
 import {
@@ -89,16 +89,8 @@ export class AtlasService {
   /**
    * Get territory mode configurations
    */
-  getTerritoryModes(): Record<string, TerritoryModeConfig> {
+  getTerritoryModes(): Record<string, TerritoryCollection> {
     return this.specificConfig.territoryModes
-  }
-
-  /**
-   * Get territory groups
-   * @deprecated Use getTerritoryCollections() instead
-   */
-  getTerritoryGroups(): Record<string, TerritoryGroupConfig> | undefined {
-    return this.specificConfig.territoryGroups
   }
 
   /**

@@ -1,9 +1,5 @@
 # TODO List
 
-- Make sure we have a schema for preset, covering all types (unified, split, built-in composite, composite-custom)
-- move config schemas to /configs/schemas
-- Make sure validate config script actually validate atlas, preset and registry schemas
-
 ## Important :
 - fix portugal and usa default presets
 - add other usa composite projections (e.g. albers usa)

@@ -23,15 +23,49 @@ Note:
 - Which polygon is mainland (largest, marked as MAINLAND)
 - Which polygons are overseas territories
 
-### Step 2: Create JSON Configuration
+### Step 2: Create Atlas Configuration
 
-Create `configs/<atlas-id>.json` with this structure:
+Create `configs/atlases/<atlas-id>.json` with this structure:
 
-```json
 ```json
 {
-  "$schema": "./atlas.schema.json",
-  "atlasId": "your-atlas-id",
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "your-atlas-id",
+  "name": {
+    "en": "Atlas Name",
+    "fr": "Nom de l'atlas"
+  },
+  "dataSources": {
+    "territories": "your-atlas-territories-50m.json",
+    "metadata": "your-atlas-metadata-50m.json"
+  },
+  "pattern": "single-focus",
+  "territories": [
+    {
+      "id": "123",
+      "code": "XY-CODE",
+      "name": { "en": "Territory Name" },
+      "role": "primary"
+    }
+  ]
+}
+```
+
+See [configs/schemas/atlas.schema.json](../configs/schemas/atlas.schema.json) for full schema definition.
+
+### Step 2b: Register Atlas
+
+Add atlas entry to `configs/atlas-registry.json`:
+
+```json
+{
+  "id": "your-atlas-id",
+  "name": { "en": "Atlas Name" },
+  "group": "country",
+  "sortOrder": 10,
+  "configPath": "./atlases/your-atlas-id.json",
+  "presets": []
+}
 ```
 
 ### Step 3: Generate Geodata
@@ -52,7 +86,55 @@ pnpm geodata:validate <atlas-id>
 
 Must show "✓ VALID" before proceeding.
 
-### Step 5: Test
+### Step 5: Create Presets (Optional)
+
+Presets provide pre-configured projection settings for different view modes.
+
+#### Preset Types
+
+1. **composite-custom** - Full custom composite configuration with per-territory layout
+   - Schema: [configs/schemas/preset-composite-custom.schema.json](../configs/schemas/preset-composite-custom.schema.json)
+   - Example: `configs/presets/france-default.json`
+
+2. **unified** - Single projection for entire atlas
+   - Schema: [configs/schemas/preset-unified.schema.json](../configs/schemas/preset-unified.schema.json)
+   - Example: `configs/presets/france-unified.json`
+
+3. **split** - Individual projections per territory
+   - Schema: [configs/schemas/preset-split.schema.json](../configs/schemas/preset-split.schema.json)
+   - Example: `configs/presets/france-split.json`
+
+4. **built-in-composite** - Uses d3-composite-projections library
+   - Schema: [configs/schemas/preset-built-in-composite.schema.json](../configs/schemas/preset-built-in-composite.schema.json)
+   - Example: `configs/presets/france-built-in-composite.json`
+
+#### Creating a Preset
+
+1. Create preset file in `configs/presets/<atlas-id>-<preset-name>.json`
+2. Add appropriate `$schema` reference
+3. Register preset in `configs/atlas-registry.json` under the atlas's `presets` array
+
+Example unified preset:
+```json
+{
+  "$schema": "../schemas/preset-unified.schema.json",
+  "id": "atlas-unified-default",
+  "name": { "en": "Unified View" },
+  "atlasId": "your-atlas-id",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "center": [0, 45],
+        "scale": 1.0
+      }
+    }
+  }
+}
+```
+
+### Step 6: Test
 
 ```bash
 pnpm dev
@@ -63,6 +145,7 @@ Check:
 - All territories render
 - All view modes work
 - Projections show correctly
+- Presets load and apply correctly
 
 ## Key Field Reference
 
@@ -155,9 +238,23 @@ Check:
 - Mix `primary`/`secondary` with `member` roles
 - Edit generated TopoJSON files manually
 
+## Schema Reference
+
+All configuration schemas are located in `configs/schemas/`:
+
+- **atlas.schema.json** - Atlas configuration schema
+- **atlas-registry.schema.json** - Atlas registry schema
+- **preset-composite-custom.schema.json** - Composite-custom preset schema
+- **preset-unified.schema.json** - Unified view preset schema
+- **preset-split.schema.json** - Split view preset schema
+- **preset-built-in-composite.schema.json** - Built-in composite preset schema
+- **preset.schema.json** - Unified preset schema (validates any preset type)
+- **preset-definitions.schema.json** - Shared type definitions
+
 ## Complete Example
 
-See `configs/france.json` or `configs/portugal.json` for working examples.
+See `configs/atlases/france.json` or `configs/atlases/portugal.json` for working atlas examples.
+See `configs/presets/france-*.json` for working preset examples.
 
 For full documentation, see:
 - docs/atlases.llm.txt - Atlas system architecture

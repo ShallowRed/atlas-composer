@@ -3,7 +3,7 @@
   "name": "Portugal - Vista separada uniforme",
   "description": "Mesma projeção cônica para todos os territórios",
   "atlasId": "portugal",
-  "viewMode": "split",
+  "type": "split",
   "config": {
     "mainland": {
       "projection": {

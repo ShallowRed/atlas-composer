@@ -81,17 +81,8 @@ export interface AtlasConfig {
   /** Options for territory mode selector */
   territoryModeOptions?: TerritoryModeOption[]
 
-  /**
-   * Default territory mode (e.g., 'all-territories', 'metropole-only')
-   * @deprecated Only used for legacy atlases with `modes` array. For new atlases, the default is automatically the last mode from the collection set specified in registry behavior.ui.configSection.collectionSet
-   */
-  defaultTerritoryMode?: string
-
   /** Default preset to load for composite-custom mode (e.g., 'france-default') */
   defaultPreset?: string
-
-  /** Available presets for UI selector */
-  availablePresets?: string[]
 
   /** Configuration for CompositeProjection class (mainland/overseas structure) */
   compositeProjectionConfig?: CompositeProjectionConfig

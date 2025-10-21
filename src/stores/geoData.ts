@@ -76,11 +76,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     })
   })
 
-  const territoryGroups = computed(() => {
-    // Use TerritoryFilterService to group territories
-    return TerritoryFilterService.groupByRegion(overseasTerritories.value)
-  })
-
   /**
    * Get all active territories including mainland (when applicable)
    * Useful for operations that need to include both mainland and overseas
@@ -385,7 +380,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     // Computed
     overseasTerritories,
     allActiveTerritories,
-    territoryGroups,
 
     // Actions
     initialize,

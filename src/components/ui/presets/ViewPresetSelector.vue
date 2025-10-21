@@ -20,7 +20,7 @@ const presetOptions = computed<DropdownOption[]>(() => {
     value: preset.id,
     label: preset.name,
     translated: true, // Preset names are already in final form
-    icon: getPresetIcon(preset.viewMode),
+    icon: getPresetIcon(preset.type),
   }))
 })
 

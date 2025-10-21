@@ -108,23 +108,11 @@ Uses core validation and conversion logic from @/core/presets.
 - `loadPreset()` - Load and validate preset file using core validators (async)
 - `convertToDefaults()` - Re-exports core converter for TerritoryDefaults format
 - `extractTerritoryParameters()` - Re-exports core converter for projection parameters
-- `loadPresetMetadata()` - Load lightweight preset metadata (async)
-- `listAvailablePresets()` - List available presets (placeholder)
 
 Delegates validation to core validateCompositePreset() function.
 Delegates conversion to core convertToDefaults() and extractTerritoryParameters() functions.
+Loads presets by querying atlas registry for preset definitions, then loading config files from paths specified in registry.
 Focuses on file I/O and orchestration, domain logic in core layer.
-
-### ViewPresetLoader
-Loads preset configurations for unified, split, and built-in-composite view modes.
-Static service providing view preset loading orchestration.
-Uses core validation logic from @/core/presets.
-- `loadPreset()` - Load and validate view preset using core validators (async)
-- `loadRegistry()` - Load and cache view preset registry (async)
-- `getAvailablePresets()` - Get filtered presets for atlas and view mode (async)
-
-Delegates validation to core validateViewPreset() function.
-Focuses on file I/O, registry management, and orchestration.
 
 ### AtlasMetadataService
 Provides clean API for accessing atlas-level projection metadata from preset files.
@@ -143,7 +131,6 @@ Atlas-aware facade for accessing territory data and configuration.
 Instance-based service providing unified API for components.
 - `getTerritories()` - Get filtered/grouped territories
 - `getTerritoryModes()` - Get available display modes
-- `getTerritoryGroups()` - Get territory groupings
 - `getProjectionParams()` - Get projection parameters (ProjectionParameters format)
 
 ## Data Services (src/services/data/)

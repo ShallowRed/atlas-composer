@@ -77,35 +77,8 @@ export interface JSONAtlasConfig {
     territories: string
     metadata: string
   }
-  // DEPRECATED: Use registry behavior.defaultPreset instead
-  defaultPreset?: string
-  // DEPRECATED: Use registry behavior.availablePresets instead
-  availablePresets?: string[]
-  defaultProjection?: string
-  // DEPRECATED: Use territoryCollections instead
-  modes?: Array<{
-    id: string
-    label: I18nValue
-    territories: string[]
-    exclude?: string[]
-  }>
-  // DEPRECATED: Use territoryCollections instead
-  groups?: Array<{
-    id: string
-    label: I18nValue
-    territories: string[]
-  }>
   viewModes?: Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
   defaultViewMode?: 'split' | 'built-in-composite' | 'composite-custom' | 'unified'
-  // DEPRECATED: Use territoryCollections instead
-  territoryModes?: Array<{
-    id: string
-    name: I18nValue
-    territoryCodes: '*' | string[]
-    exclude?: string[]
-  }>
-  // DEPRECATED: Only used for legacy atlases with `modes` array. Default is now automatically the last mode from the collection set.
-  defaultTerritoryMode?: string
   // Unified territory collections (replaces modes, groups, territoryModes)
   territoryCollections?: JSONTerritoryCollections
   metadata?: {

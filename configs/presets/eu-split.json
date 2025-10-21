@@ -1,10 +1,10 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../schemas/preset.schema.json",
   "id": "eu-split-uniform",
   "name": "EU - Vue séparée uniforme",
   "description": "Projection conique conforme pour tous les territoires européens",
   "atlasId": "eu",
-  "viewMode": "split",
+  "type": "split",
   "config": {
     "mainland": {
       "projection": {

@@ -1,5 +1,5 @@
 {
-  "$schema": "./atlas.schema.json",
+  "$schema": "../schemas/atlas.schema.json",
   "id": "world",
   "name": "World",
   "description": "World atlas with wildcard territory loading (work in progress)",
@@ -12,7 +12,6 @@
     "unified"
   ],
   "defaultViewMode": "unified",
-  "defaultTerritoryMode": "without-antarctica",
   "territories": "*",
   "modes": [
     {

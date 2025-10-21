@@ -60,41 +60,6 @@ export interface TerritoryConfig {
 }
 
 /**
- * Territory mode definition
- *
- * DEPRECATED: Use TerritoryCollection instead
- *
- * Defines which territories should be included in a specific display mode
- * (e.g., "All territories", "Major territories only", "Mainland + Caribbean")
- */
-export interface TerritoryModeConfig {
-  /** Display label for the mode (e.g., "Métropole + majeurs") */
-  label: string
-
-  /** Territory codes to include in this mode. Can include "*" for wildcard (all territories) */
-  codes: string[]
-
-  /** Territory codes to exclude when using wildcard. Only used with wildcard modes. */
-  exclude?: string[]
-}
-
-/**
- * Territory grouping for UI organization
- *
- * DEPRECATED: Use TerritoryCollection instead
- *
- * Groups territories by region or category for better UX
- * (e.g., "Caribbean", "Pacific", "Atlantic", "Indian Ocean")
- */
-export interface TerritoryGroupConfig {
-  /** Display label for the group */
-  label: string
-
-  /** Territory codes in this group */
-  codes: string[]
-}
-
-/**
  * Territory collection (unified replacement for modes and groups)
  *
  * Represents a collection of territories grouped by a specific strategy

@@ -188,10 +188,6 @@ export class AtlasCoordinator {
    * @returns Territory mode to use
    */
   private static getTerritoryMode(config: any): string {
-    // Use configured default territory mode if available
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
-    }
     // Otherwise use first option from territoryModeOptions
     if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
       return config.territoryModeOptions[0]!.value

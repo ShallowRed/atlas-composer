@@ -67,7 +67,7 @@ export interface ConfigSectionUIConfig {
 /**
  * UI-specific configuration for atlas behavior
  */
-export interface AtlasUIBehavior {
+export interface AtlasCollectionSetConfig {
   /** Territory manager component configuration */
   territoryManager?: TerritoryManagerUIConfig
 
@@ -79,24 +79,12 @@ export interface AtlasUIBehavior {
  * Application behavior configuration for an atlas
  *
  * Defines how the application should behave with this atlas,
- * including defaults, available options, and UI preferences.
+ * including UI preferences and collection set configuration.
  * This is separate from the atlas data structure itself.
  */
 export interface AtlasRegistryBehavior {
-  /**
-   * @deprecated Use isDefault flag in PresetDefinition instead
-   * Default preset to load for this atlas
-   */
-  defaultPreset?: string
-
-  /**
-   * @deprecated All presets in atlas.presets array are available
-   * List of available presets for this atlas
-   */
-  availablePresets?: string[]
-
   /** Collection set configuration for different UI contexts */
-  collectionSets?: AtlasUIBehavior
+  collectionSets?: AtlasCollectionSetConfig[]
 }
 
 /**
@@ -146,12 +134,6 @@ export interface AtlasRegistryEntry {
  * Complete atlas registry configuration
  */
 export interface AtlasRegistry {
-  /**
-   * @deprecated Use isDefault flag in AtlasRegistryEntry instead
-   * Default atlas to load on application startup
-   */
-  defaultAtlas?: string
-
   /** Atlas group definitions */
   groups: AtlasRegistryGroup[]
 

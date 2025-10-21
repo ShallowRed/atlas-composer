@@ -1,11 +1,12 @@
-import type { Preset, PresetRegistryEntry } from '@/core/presets'
+import type { Preset } from '@/core/presets'
 import type { ViewMode } from '@/types'
+import type { PresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useAtlasLoader } from '@/composables/useAtlasLoader'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { DEFAULT_ATLAS, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasPresets, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
@@ -58,10 +59,6 @@ export const useConfigStore = defineStore('config', () => {
   const getInitialTerritoryMode = () => {
     // Use cached config since DEFAULT_ATLAS is preloaded in main.ts
     const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
-    // Use configured default territory mode if available
-    if (atlasConfig.defaultTerritoryMode) {
-      return atlasConfig.defaultTerritoryMode
-    }
     // Otherwise use first option from territoryModeOptions
     if (atlasConfig.hasTerritorySelector && atlasConfig.territoryModeOptions && atlasConfig.territoryModeOptions.length > 0) {
       return atlasConfig.territoryModeOptions[0]!.value
@@ -94,7 +91,7 @@ export const useConfigStore = defineStore('config', () => {
 
   // View mode preset tracking (separate from composite-custom presets)
   const currentViewPreset = ref<string | null>(null)
-  const availableViewPresets = ref<PresetRegistryEntry[]>([])
+  const availableViewPresets = ref<PresetDefinition[]>([])
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -324,15 +321,15 @@ export const useConfigStore = defineStore('config', () => {
     }
 
     try {
-      const presets = await PresetLoader.listPresets({
-        atlasId: selectedAtlas.value,
-        viewMode: viewMode.value as any,
-      })
-      // CRITICAL: Filter out composite-custom presets - they use atlas initialization path only
-      // Composite-custom presets are loaded via AtlasCoordinator.handleAtlasChange(), not view preset API
-      availableViewPresets.value = presets.filter(p => p.type !== 'composite-custom') as any
+      // Get presets from atlas registry
+      const allPresets = getAtlasPresets(selectedAtlas.value)
 
-      debug('Loaded %d view presets for %s %s', presets.filter(p => p.type !== 'composite-custom').length, selectedAtlas.value, viewMode.value)
+      // Filter by current view mode
+      const presets = allPresets.filter(p => p.type === viewMode.value)
+
+      availableViewPresets.value = presets
+
+      debug('Loaded %d view presets for %s %s', presets.length, selectedAtlas.value, viewMode.value)
     }
     catch (err) {
       debug('Failed to load available view presets: %O', err)

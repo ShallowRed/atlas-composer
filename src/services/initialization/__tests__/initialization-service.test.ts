@@ -16,7 +16,6 @@ vi.mock('@/core/atlases/registry', () => ({
     defaultPreset: 'france-default',
     hasTerritorySelector: true,
     territoryModeOptions: [{ value: 'all', label: 'All territories' }],
-    defaultTerritoryMode: 'all',
   })),
   isAtlasLoaded: vi.fn(() => true),
   loadAtlasAsync: vi.fn(async () => ({

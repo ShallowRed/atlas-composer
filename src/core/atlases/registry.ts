@@ -116,25 +116,15 @@ function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
 
 /**
  * Get the default atlas entry from registry
- * Uses isDefault flag, falls back to deprecated defaultAtlas field
+ * Uses isDefault flag
  */
 export function getDefaultAtlas(): AtlasRegistryEntry {
-  // Try new isDefault flag first
   const defaultEntry = REGISTRY_METADATA.atlases.find(e => e.isDefault)
   if (defaultEntry) {
     return defaultEntry
   }
 
-  // Fall back to deprecated defaultAtlas field
-  if (REGISTRY_METADATA.defaultAtlas) {
-    debug('Using deprecated defaultAtlas field, update to use isDefault flag')
-    const entry = REGISTRY_METADATA.atlases.find(e => e.id === REGISTRY_METADATA.defaultAtlas)
-    if (entry) {
-      return entry
-    }
-  }
-
-  // Ultimate fallback: first atlas
+  // Fallback: first atlas
   debug('No default atlas defined, using first atlas')
   if (REGISTRY_METADATA.atlases.length === 0) {
     throw new Error('[Registry] No atlases defined in registry')
@@ -286,14 +276,6 @@ export interface AtlasGroup {
 }
 
 /**
- * Get group definitions from registry
- * @deprecated Use REGISTRY_METADATA.groups directly with AtlasRegistryGroup type
- */
-export function getGroupDefinitions() {
-  return REGISTRY_METADATA.groups
-}
-
-/**
  * Get available atlases grouped by category for UI selector
  * Uses registry metadata without loading configs for better performance
  * Groups atlases by their group field and uses group definitions for labels
@@ -360,7 +342,7 @@ export function getAtlasPresets(atlasId: string) {
 
 /**
  * Get default preset for an atlas
- * Uses isDefault flag, falls back to deprecated behavior.defaultPreset
+ * Uses isDefault flag in preset definitions
  */
 export function getDefaultPreset(atlasId: string) {
   const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
@@ -371,32 +353,11 @@ export function getDefaultPreset(atlasId: string) {
 
   debug('Looking for default preset in atlas %s, has %d presets', atlasId, entry.presets?.length ?? 0)
 
-  // Try new isDefault flag in presets array
   if (entry.presets) {
     const defaultPreset = entry.presets.find(p => p.isDefault)
     if (defaultPreset) {
       debug('Found default preset %s via isDefault flag', defaultPreset.id)
       return defaultPreset
-    }
-  }
-
-  // Fall back to deprecated behavior.defaultPreset field
-  if (entry.behavior?.defaultPreset) {
-    debug('Using deprecated behavior.defaultPreset for %s, update to use isDefault flag', atlasId)
-    const presetId = entry.behavior.defaultPreset
-    // Try to find it in presets array
-    if (entry.presets) {
-      const preset = entry.presets.find(p => p.id === presetId)
-      if (preset) {
-        return preset
-      }
-    }
-    // Return synthetic preset definition for backward compatibility
-    return {
-      id: presetId,
-      name: { en: presetId, fr: presetId },
-      type: 'composite-custom' as const,
-      isDefault: true,
     }
   }
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "./atlas.schema.json",
+  "$schema": "../schemas/atlas.schema.json",
   "id": "france",
   "name": {
     "en": "France",

@@ -14,7 +14,6 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     defaultViewMode: 'composite-custom',
     supportedViewModes: ['composite-custom', 'built-in-composite', 'split', 'unified'],
     hasTerritorySelector: true,
-    defaultTerritoryMode: 'all',
     geoDataConfig: {
       dataPath: '/data/test.json',
       metadataPath: '/data/test-metadata.json',

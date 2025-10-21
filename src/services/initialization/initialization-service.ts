@@ -663,9 +663,6 @@ export class InitializationService {
    * Get territory mode for an atlas
    */
   private static getTerritoryMode(config: any): string {
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
-    }
     if (config.hasTerritorySelector && config.territoryModeOptions?.length > 0) {
       return config.territoryModeOptions[0]!.value
     }

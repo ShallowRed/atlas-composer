@@ -19,7 +19,7 @@ src/
 │   ├── MapView.vue           # Main view (simplified with useViewState)
 │   └── AboutView.vue         # About page
 ├── components/
-│   ├── MapRenderer.vue       # D3 map rendering (147 lines)
+│   ├── MapRenderer.vue       # D3 map rendering
 │   ├── TerritoryControls.vue # [UNUSED] Territory controls (superseded by view-mode controls, can be deleted)
 │   ├── configuration/        # View-mode-specific control components (4 components)
 │   │   ├── CompositeCustomControls.vue   # Composite-custom mode controls
@@ -59,7 +59,7 @@ App.vue
 
 ## Key Components
 
-### MapView.vue (142 lines)
+### MapView.vue
 **Role**: Main coordinator component
 **Responsibilities**:
 - Orchestrates child components
@@ -68,7 +68,7 @@ App.vue
 - No business logic (delegates to composables)
 - Uses: useAtlasData, useLoadingState, useViewState
 
-### MapRenderer.vue (376 lines)
+### MapRenderer.vue
 **Role**: D3 rendering engine with interactive features
 **Responsibilities**:
 - SVG canvas management
@@ -145,7 +145,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 **Status**: Superseded by view-mode-specific control components
 **Note**: This file is not imported anywhere and can be safely deleted.
 
-### ProjectionSelector.vue (114 lines)
+### ProjectionSelector.vue
 **Role**: Projection selection interface
 **Responsibilities**:
 - Projection search/filter
@@ -170,7 +170,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - **Modal**: Standardized dialog wrapper with slots for title, content, and actions
 
 **Form Controls** (src/components/ui/forms/):
-- **CheckboxControl**: Checkboxes for boolean settings (42 lines)
+- **CheckboxControl**: Checkboxes for boolean settings
 - **RangeSlider**: Range input with label, icon, value display, and customizable styling
 - **DropdownControl**: Accessible DaisyUI dropdown selections with icon/badge support (590 lines, 42 tests)
   - Two modes: standard (fieldset wrapper) and inline (for navbar use)
@@ -195,7 +195,7 @@ Dedicated control components for each view mode provide focused, maintainable in
   - isNavigating flag prevents blur events during arrow navigation
   - Exports DropdownOption and DropdownOptionGroup interfaces
   - Comprehensive test suite covers rendering, state management, selection, keyboard navigation, accessibility, and edge cases
-- **ToggleControl**: Toggle switches for boolean settings (42 lines)
+- **ToggleControl**: Toggle switches for boolean settings
 
 **Settings Components** (src/components/ui/settings/):
 - **LanguageSelector**: Language selection dropdown using DropdownControl in inline mode
@@ -305,14 +305,14 @@ Dedicated control components for each view mode provide focused, maintainable in
 ## Composables (14 functions)
 
 ### Data Loading
-**useAtlasLoader** (24 lines)
+**useAtlasLoader**
 - Reactive async atlas configuration loading
 - Uses VueUse's useAsyncState for loading state management
 - Loads atlas config on-demand via registry.loadAtlasAsync()
 - Returns: { atlasConfig (Ref<LoadedAtlasConfig | null>), isLoading, error }
 - Used by: configStore for lazy atlas loading
 
-**useAtlasData** (128 lines)
+**useAtlasData**
 - Orchestrates atlas initialization and data reloading
 - initialize(): Waits for InitializationService to complete preset loading and data preloading
 - reinitialize(): Handles atlas switching via geoDataStore.reinitialize()
@@ -321,13 +321,13 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Data loading handled by InitializationService (preloads all data types during startup)
 - Tests: 13 tests
 
-**useLoadingState** (32 lines)
+**useLoadingState**
 - Manages skeleton loading state
 - withMinLoadingTime() - Ensures minimum loading duration
 - Returns: { showSkeleton, withMinLoadingTime }
 
 ### Store Abstraction
-**useAtlasConfig** (51 lines) - NEW (2025-10-19)
+**useAtlasConfig** - NEW (2025-10-19)
 - Centralized atlas configuration access
 - Provides: currentAtlasConfig, atlasService, isAtlasLoaded, atlasId
 - Eliminates repeated configStore.currentAtlasConfig patterns
@@ -336,7 +336,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Tests: 6 tests covering basic functionality and reactivity
 - Pattern: Single source of truth for atlas configuration access
 
-**useParameterProvider** (55 lines) - NEW (2025-10-19)
+**useParameterProvider** - NEW (2025-10-19)
 - Standardized parameter provider adapter
 - Provides: parameterProvider object with getEffectiveParameters() and getExportableParameters()
 - Connects parameter store to services (Cartographer, export services)
@@ -345,22 +345,22 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Tests: 5 tests covering delegation and consistency
 - Pattern: Adapter pattern for parameter store integration
 
-**useProjectionConfig** (58 lines)
+**useProjectionConfig**
 - Projection configuration helpers
 - compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
 - Returns: { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection }
 - Tests: 8 tests
 
-**useViewMode** (34 lines)
+**useViewMode**
 - View mode options
 - Returns: { viewModeOptions }
 
-**useTerritoryConfig** (27 lines)
+**useTerritoryConfig**
 - Territory configuration state
 - Returns: { hasTerritoriesForProjectionConfig }
 
 ### Component Logic
-**useTerritoryTransforms** (312 lines)
+**useTerritoryTransforms**
 - Territory projection management
 - Translation and scale controls (reads scale from parameter store)
 - Reset functions
@@ -368,14 +368,14 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Uses: useAtlasConfig composable for centralized atlas access
 - Used by: TerritoryControls.vue
 
-**useTerritoryParameters** (72 lines)
+**useTerritoryParameters**
 - Territory-specific parameter management for custom composite mode
 - Encapsulates parameter state, validation, and inheritance logic
 - Integrates with parameter store for reactive parameter updates
 - Provides parameter constraints and validation results by projection family
 - Used by: TerritoryParameterControls.vue
 
-**useViewState** (110 lines) - NEW
+**useViewState** - NEW
 - View mode boolean flags for template readability
 - Card UI helpers (title, icon)
 - Compound visibility conditions
@@ -385,7 +385,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Used by: MapView.vue, DisplayOptionsSection.vue
 - Pattern: Wraps configStore.viewMode checks with semantic computed properties
 
-**useProjectionRecommendations** (78 lines)
+**useProjectionRecommendations**
 - Projection recommendation badge system
 - getBadge(): Returns Remix icon class (ri-star-fill, ri-star-line, ri-star-half-line)
 - getCssClass(): Returns color class (text-success, text-info, text-base-content)
@@ -393,7 +393,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - getRecommendation(): Returns full recommendation object
 - Used by: ProjectionDropdown.vue
 
-**useTerritoryCursor** (477 lines)
+**useTerritoryCursor**
 - Territory drag-to-move functionality for composite-custom mode with D3.js integration
 - SVG coordinate mapping: getSVGScale() calculates screen-to-canvas pixel ratio from CTM (Current Transformation Matrix)
 - Accurate drag movement: Converts screen pixel deltas to SVG canvas pixels by dividing by scale factor
@@ -411,7 +411,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Clean resource management: Automatic cleanup of temporary borders and observers
 - Used by: MapRenderer.vue for territory dragging interaction and clip extent editor integration
 
-**useClipExtentEditor** (302 lines)
+**useClipExtentEditor**
 - Interactive clip extent corner editing for composite-custom mode with D3.js integration
 - Territory selection system: selectedTerritoryCode tracks which territory shows corner handles
 - Selection methods: selectTerritory(), deselectTerritory(), toggleTerritorySelection()
@@ -434,7 +434,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Click workflow: User clicks territory border zone → toggles selection → handles appear/disappear for that territory
 - Used by: MapRenderer.vue for interactive clip extent editing
 
-**useProjectionPanning** (162 lines)
+**useProjectionPanning**
 - Interactive projection panning for azimuthal, cylindrical, and pseudocylindrical projections
 - Pan state management: isPanning, drag coordinates, rotation start values
 - Projection capability detection: supportsPanning, supportsLatitudePanning
@@ -452,7 +452,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Tests: 19 tests covering capability detection, cursor styles, drag behavior, rotation calculations
 - Used by: MapRenderer.vue for interactive map rotation
 
-**useMapWatchers** (155 lines)
+**useMapWatchers**
 - Consolidates all MapRenderer watch statements into single composable
 - Watches globalEffectiveParameters: Updates cartographer.updateProjectionParams() and triggers re-render
 - Watches projectionFittingMode: Updates cartographer.updateFittingMode() and triggers re-render
@@ -465,7 +465,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Centralizes watcher lifecycle management with cleanup function
 - Used by: MapRenderer.vue for reactive map updates
 
-**useUrlState** (220 lines)
+**useUrlState**
 - URL state serialization/deserialization for shareable links
 - serializeState(): Encodes current configuration to URL query parameters
 - deserializeState(): Restores configuration from URL parameters
@@ -479,14 +479,14 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Used by: MapView.vue (restoration), ShareButton.vue (URL generation)
 
 ### Validation
-**useProjectionValidation** (148 lines)
+**useProjectionValidation**
 - Projection selection validation
 - Warning generation
 - Validation state management
 
 ## View Orchestration
 
-### ViewOrchestrationService (382 lines)
+### ViewOrchestrationService
 **Location**: `src/services/view/view-orchestration-service.ts`
 
 **Purpose**: Centralized component visibility logic for all view states. Determines what UI elements should be visible or enabled based on current application state.
@@ -581,7 +581,7 @@ const { viewOrchestration } = useViewState()
 
 ## State Management
 
-### configStore (357 lines)
+### configStore
 **Domain**: Configuration state and UI control
 **Responsibilities**:
 - Atlas selection (current atlas, region, territories)
@@ -607,7 +607,7 @@ const { viewOrchestration } = useViewState()
   - Reset to preset defaults via useTerritoryTransforms.resetTransforms()
 **Used by**: All configuration components, MapRenderer, TerritoryControls, GlobalProjectionControls, TerritorySetManager
 
-### geoDataStore (215 lines)
+### geoDataStore
 **Domain**: Geographic data and rendering coordination
 **Responsibilities**:
 - GeoJSON data caching
@@ -625,7 +625,7 @@ const { viewOrchestration } = useViewState()
   - reloadUnifiedData(territoryMode): Reloads unified data when territory mode changes
 **Used by**: MapRenderer, data loading composables, TerritorySetManager
 
-### ui.ts (81 lines)
+### ui.ts
 **Domain**: UI state
 **Responsibilities**:
 - Theme management (light/dark)
@@ -636,7 +636,7 @@ const { viewOrchestration } = useViewState()
   - showMapLimits: Display viewport bounds rectangle (default: false)
 **Used by**: ThemeSelector, DisplayOptionsSection, MapRenderer
 
-### parameterStore (295 lines)
+### parameterStore
 **Domain**: Unified parameter registry integration
 **Responsibilities**:
 - Parameter registry integration with ProjectionParameterManager
@@ -738,7 +738,7 @@ renderMap() with registry-validated parameters
 
 ## Type Safety
 
-### vue-props.ts (130 lines)
+### vue-props.ts
 Centralized prop type definitions:
 - MapRendererProps
 - ViewComponentProps
@@ -747,7 +747,7 @@ Centralized prop type definitions:
 - DisplayOptionsSectionProps
 - All props include default values exported as constants
 
-### composables.ts (240 lines)
+### composables.ts
 Composable return type interfaces:
 - LoadingState
 - ProjectionConfig

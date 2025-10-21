@@ -5,12 +5,6 @@
   "type": "object",
   "required": ["groups", "atlases"],
   "properties": {
-    "defaultAtlas": {
-      "type": "string",
-      "description": "DEPRECATED: Use isDefault flag in atlas entry instead. Default atlas to load on application startup",
-      "pattern": "^[a-z0-9-]+$",
-      "deprecated": true
-    },
     "groups": {
       "type": "array",
       "description": "Atlas group definitions with labels and display order",
@@ -163,18 +157,6 @@
             "type": "object",
             "description": "Application behavior configuration for this atlas",
             "properties": {
-              "defaultPreset": {
-                "type": "string",
-                "description": "DEPRECATED: Use isDefault flag in preset definition instead. Default preset to load for this atlas",
-                "deprecated": true
-              },
-              "availablePresets": {
-                "type": "array",
-                "description": "DEPRECATED: All presets in atlas.presets array are available. List of available presets for this atlas",
-                "items": { "type": "string" },
-                "minItems": 1,
-                "deprecated": true
-              },
               "collectionSets": {
                 "type": "object",
                 "description": "Collection set configuration for different UI contexts",

@@ -3,7 +3,7 @@
   "name": "Portugal - Vista unificada padrão",
   "description": "Projeção Natural Earth centrada em Portugal",
   "atlasId": "portugal",
-  "viewMode": "unified",
+  "type": "unified",
   "config": {
     "projection": {
       "id": "natural-earth",

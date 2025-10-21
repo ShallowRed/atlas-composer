@@ -1,4 +1,5 @@
 {
+  "$schema": "../schemas/preset-composite-custom.schema.json",
   "version": "1.0",
   "metadata": {
     "atlasId": "portugal",

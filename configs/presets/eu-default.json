@@ -1,4 +1,5 @@
 {
+  "$schema": "../schemas/preset-composite-custom.schema.json",
   "version": "1.0",
   "metadata": {
     "atlasId": "eu",
@@ -14,26 +15,25 @@
       "code": "AT",
       "name": "Austria",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -13.33,
-          -47.33,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -13.33,
+            -47.33,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -53,26 +53,25 @@
       "code": "BE",
       "name": "Belgium",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -4.67,
-          -50.63,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -4.67,
+            -50.63,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -92,26 +91,25 @@
       "code": "BG",
       "name": "Bulgaria",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -25,
-          -43,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -25,
+            -43,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -131,26 +129,25 @@
       "code": "HR",
       "name": "Croatia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -16,
-          -45,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -16,
+            -45,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -170,26 +167,25 @@
       "code": "CY",
       "name": "Cyprus",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -33,
-          -35,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -33,
+            -35,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -209,26 +205,25 @@
       "code": "CZ",
       "name": "Czech Republic",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -15.5,
-          -49.75,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -15.5,
+            -49.75,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -248,26 +243,25 @@
       "code": "DK",
       "name": "Denmark",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -10,
-          -56,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -10,
+            -56,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -287,26 +281,25 @@
       "code": "EE",
       "name": "Estonia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -25.5,
-          -59,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -25.5,
+            -59,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -326,26 +319,25 @@
       "code": "FI",
       "name": "Finland",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -26,
-          -64,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -26,
+            -64,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -365,26 +357,25 @@
       "code": "FR",
       "name": "France",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -2.5,
-          -46.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -2.5,
+            -46.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -404,26 +395,25 @@
       "code": "DE",
       "name": "Germany",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -10.5,
-          -51,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -10.5,
+            -51,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -443,26 +433,25 @@
       "code": "GR",
       "name": "Greece",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -22,
-          -39,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -22,
+            -39,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -482,26 +471,25 @@
       "code": "HU",
       "name": "Hungary",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -19.5,
-          -47,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -19.5,
+            -47,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -521,26 +509,25 @@
       "code": "IE",
       "name": "Ireland",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          8,
-          -53.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            8,
+            -53.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -560,26 +547,25 @@
       "code": "IT",
       "name": "Italy",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -12.5,
-          -42.8,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -12.5,
+            -42.8,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -599,26 +585,25 @@
       "code": "LV",
       "name": "Latvia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -25,
-          -57,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -25,
+            -57,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -638,26 +623,25 @@
       "code": "LT",
       "name": "Lithuania",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -24,
-          -55.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -24,
+            -55.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -677,26 +661,25 @@
       "code": "LU",
       "name": "Luxembourg",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -6.13,
-          -49.75,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -6.13,
+            -49.75,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -716,26 +699,25 @@
       "code": "MT",
       "name": "Malta",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -14.4,
-          -35.9,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -14.4,
+            -35.9,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -755,26 +737,25 @@
       "code": "NL",
       "name": "Netherlands",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -5.5,
-          -52.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -5.5,
+            -52.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -794,26 +775,25 @@
       "code": "PL",
       "name": "Poland",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -19.5,
-          -52,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -19.5,
+            -52,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -833,26 +813,25 @@
       "code": "PT",
       "name": "Portugal",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          8,
-          -39.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            8,
+            -39.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -872,26 +851,25 @@
       "code": "RO",
       "name": "Romania",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -25,
-          -46,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -25,
+            -46,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -911,26 +889,25 @@
       "code": "SK",
       "name": "Slovakia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -19.5,
-          -48.7,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -19.5,
+            -48.7,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -950,26 +927,25 @@
       "code": "SI",
       "name": "Slovenia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -14.8,
-          -46.1,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -14.8,
+            -46.1,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -989,26 +965,25 @@
       "code": "ES",
       "name": "Spain",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          4,
-          -40,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            4,
+            -40,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1028,26 +1003,25 @@
       "code": "SE",
       "name": "Sweden",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -15,
-          -62,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -15,
+            -62,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1067,30 +1041,27 @@
       "code": "FR-GP",
       "name": "Guadeloupe",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          61.46,
-          -16.14,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          -100
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            61.46,
+            -16.14,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1114,30 +1085,27 @@
       "code": "FR-MQ",
       "name": "Martinique",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          61.03,
-          -14.67,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          0
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            61.03,
+            -14.67,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1161,30 +1129,27 @@
       "code": "FR-GF",
       "name": "French Guiana",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          53.2,
-          -3.9,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          150
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            53.2,
+            -3.9,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1208,30 +1173,27 @@
       "code": "FR-RE",
       "name": "Réunion",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -55.52,
-          21.13,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          -100
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -55.52,
+            21.13,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1255,30 +1217,27 @@
       "code": "FR-YT",
       "name": "Mayotte",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -45.16,
-          12.8,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          -200
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -45.16,
+            12.8,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1302,30 +1261,27 @@
       "code": "FR-MF",
       "name": "Saint-Martin",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          63.082,
-          -18.067,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          -200
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            63.082,
+            -18.067,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1349,30 +1305,27 @@
       "code": "FR-PM",
       "name": "Saint-Pierre-et-Miquelon",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          56.23,
-          -46.93,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -300,
-          -300
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            56.23,
+            -46.93,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1396,30 +1349,27 @@
       "code": "FR-WF",
       "name": "Wallis and Futuna",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          178.1,
-          14.3,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          50
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            178.1,
+            14.3,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1443,30 +1393,27 @@
       "code": "FR-PF",
       "name": "French Polynesia",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          150.55,
-          17.11,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          200
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            150.55,
+            17.11,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1490,30 +1437,27 @@
       "code": "FR-NC",
       "name": "New Caledonia",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -165.6,
-          21.3,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          300,
-          100
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -165.6,
+            21.3,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1537,30 +1481,27 @@
       "code": "PT-20",
       "name": "Madeira",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          16.9,
-          -32.75,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          200,
-          -150
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            16.9,
+            -32.75,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1584,30 +1525,27 @@
       "code": "PT-30",
       "name": "Azores",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          28,
-          -38.5,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -200,
-          -100
-        ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            28,
+            -38.5,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "translateOffset": [
@@ -1631,73 +1569,69 @@
       "code": "ES-CN",
       "name": "Canary Islands",
       "role": "secondary",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          15.5,
-          -28.3,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1,
-        "translateOffset": [
-          -200,
-          0
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            15.5,
+            -28.3,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": null,
+          "precision": 0.1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        },
+        "layout": {
+          "translateOffset": [
+            -200,
+            0
+          ],
+          "clipExtent": null
+        },
+        "bounds": [
+          [
+            -18.2,
+            27.6
+          ],
+          [
+            -13.4,
+            29.4
+          ]
         ]
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
-      },
-      "layout": {
-        "translateOffset": [
-          -200,
-          0
-        ],
-        "clipExtent": null
-      },
-      "bounds": [
-        [
-          -18.2,
-          27.6
-        ],
-        [
-          -13.4,
-          29.4
-        ]
-      ]
+      }
     },
     {
       "code": "NO",
       "name": "Norway",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -10,
-          -64,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -10,
+            -64,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1717,26 +1651,25 @@
       "code": "CH",
       "name": "Switzerland",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -8.2,
-          -46.8,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -8.2,
+            -46.8,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1756,26 +1689,25 @@
       "code": "GB",
       "name": "United Kingdom",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          2,
-          -54,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            2,
+            -54,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1795,26 +1727,25 @@
       "code": "IS",
       "name": "Iceland",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          19,
-          -65,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            19,
+            -65,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1834,26 +1765,25 @@
       "code": "RS",
       "name": "Serbia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -21,
-          -44,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -21,
+            -44,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1873,26 +1803,25 @@
       "code": "AL",
       "name": "Albania",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -20,
-          -41,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -20,
+            -41,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1912,26 +1841,25 @@
       "code": "BA",
       "name": "Bosnia and Herzegovina",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -18,
-          -44,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -18,
+            -44,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1951,26 +1879,25 @@
       "code": "MK",
       "name": "North Macedonia",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -21.7,
-          -41.6,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -21.7,
+            -41.6,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null
@@ -1990,26 +1917,25 @@
       "code": "ME",
       "name": "Montenegro",
       "role": "member",
-      "projectionFamily": "CYLINDRICAL",
-      "parameters": {
-        "rotate": [
-          -19.3,
-          -42.7,
-          0
-        ],
-        "scale": 2700,
-        "baseScale": 2700,
-        "scaleMultiplier": 1
-        "clipAngle": null,
-        "precision": 0.1,
-        "center": [
-          0,
-          0
-        ],
-        "parallels": [
-          30,
-          60
-        ]
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -19.3,
+            -42.7,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "center": [
+            0,
+            0
+          ],
+          "parallels": [
+            30,
+            60
+          ]
+        }
       },
       "layout": {
         "clipExtent": null

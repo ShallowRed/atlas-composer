@@ -10,8 +10,6 @@ import type {
   TerritoryCollection,
   TerritoryCollections,
   TerritoryConfig,
-  TerritoryGroupConfig,
-  TerritoryModeConfig,
 } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
@@ -78,8 +76,7 @@ export interface ProjectionPreferences {
 
 export interface AtlasSpecificConfig {
   projectionParams: ProjectionParameters
-  territoryModes: Record<string, TerritoryModeConfig>
-  territoryGroups?: Record<string, TerritoryGroupConfig>
+  territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
   projectionPreferences?: ProjectionPreferences
   // Raw i18n values for reactive translation
@@ -214,7 +211,7 @@ function createTerritoryModes(
   isSingleFocusPattern: boolean,
   locale: string,
   allTerritoryCodes?: string[],
-): Record<string, TerritoryModeConfig> {
+): Record<string, TerritoryCollection> {
   return Object.fromEntries(
     (config.modes || []).map((mode) => {
       let codes = mode.territories
@@ -245,29 +242,13 @@ function createTerritoryModes(
       return [
         mode.id,
         {
+          id: mode.id,
           label: resolveI18nValue(mode.label, locale),
           codes,
           exclude: mode.exclude, // Store exclusions for runtime resolution
         },
       ]
     }),
-  )
-}
-
-/**
- * Create territory group configurations
- * Resolves i18n values for group labels
- * DEPRECATED: Use createTerritoryCollections instead
- */
-function createTerritoryGroups(config: JSONAtlasConfig, locale: string): Record<string, TerritoryGroupConfig> {
-  return Object.fromEntries(
-    (config.groups || []).map(group => [
-      group.id.toUpperCase(),
-      {
-        label: resolveI18nValue(group.label, locale),
-        codes: group.territories,
-      },
-    ]),
   )
 }
 
@@ -371,26 +352,12 @@ function createAtlasConfig(
   config: JSONAtlasConfig,
   territories: LoadedTerritories,
   geoDataConfig: GeoDataConfig,
-  territoryModes: Record<string, TerritoryModeConfig>,
+  territoryModes: Record<string, TerritoryCollection>,
   locale: string,
 ): AtlasConfig {
   // Use view modes from config if specified, otherwise default to all modes
   const supportedViewModes = (config.viewModes || ['split', 'built-in-composite', 'composite-custom', 'unified']) as Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
   const defaultViewMode = config.defaultViewMode || 'composite-custom'
-
-  // Determine default territory mode
-  // Priority: atlas config > last mode from collection set > last legacy mode > 'all-territories'
-  let defaultTerritoryMode = config.defaultTerritoryMode
-  if (!defaultTerritoryMode) {
-    const modeKeys = Object.keys(territoryModes)
-    if (modeKeys.length > 0) {
-      // Use the last mode from the selected collection set or legacy modes
-      defaultTerritoryMode = modeKeys[modeKeys.length - 1]
-    }
-    else {
-      defaultTerritoryMode = 'all-territories'
-    }
-  }
 
   return {
     id: config.id,
@@ -400,9 +367,7 @@ function createAtlasConfig(
     geoDataConfig,
     supportedViewModes,
     defaultViewMode,
-    defaultTerritoryMode,
     defaultPreset: config.defaultPreset,
-    availablePresets: config.availablePresets || [],
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
     compositeProjectionConfig: territories.isWildcard
       ? undefined
@@ -467,11 +432,11 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
 
   // Determine which territory collection set to use for territory modes
   // Priority: registry behavior > first available
-  const collectionSetKey = registryBehavior?.collectionSets?.configSection?.collectionSet
+  const collectionSetKey = registryBehavior?.collectionSets?.[0]?.configSection?.collectionSet
     || (jsonConfig.territoryCollections ? Object.keys(jsonConfig.territoryCollections)[0] : undefined)
 
   // Create territory modes from legacy modes or new territory collections
-  let territoryModes: Record<string, TerritoryModeConfig>
+  let territoryModes: Record<string, TerritoryCollection>
   let rawModeLabels: Record<string, I18nValue>
 
   if (jsonConfig.modes && jsonConfig.modes.length > 0) {
@@ -517,6 +482,7 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
         return [
           collection.id,
           {
+            id: collection.id,
             label: resolveI18nValue(collection.label, locale),
             codes,
             exclude: collection.exclude,
@@ -533,8 +499,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
     territoryModes = {}
     rawModeLabels = {}
   }
-
-  const territoryGroups = createTerritoryGroups(jsonConfig, locale)
 
   // Create territory collections from territoryCollections field
   let territoryCollections: TerritoryCollections | undefined
@@ -576,7 +540,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
   const atlasSpecificConfig: AtlasSpecificConfig = {
     projectionParams,
     territoryModes,
-    territoryGroups,
     territoryCollections,
     projectionPreferences,
     rawModeLabels,
