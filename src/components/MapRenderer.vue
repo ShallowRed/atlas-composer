@@ -16,6 +16,20 @@ import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
+import { logger } from '@/utils/logger'
+
+const props = withDefaults(defineProps<Props>(), {
+  geoData: null,
+  isMainland: false,
+  preserveScale: false,
+  width: 200,
+  height: 160,
+  hLevel: 3,
+  mode: 'simple',
+  fullHeight: true,
+})
+
+const debug = logger.vue.component
 
 interface Props {
   // For simple territory maps
@@ -34,17 +48,6 @@ interface Props {
   // For composite maps
   mode?: 'simple' | 'composite'
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  geoData: null,
-  isMainland: false,
-  preserveScale: false,
-  width: 200,
-  height: 160,
-  hLevel: 3,
-  mode: 'simple',
-  fullHeight: true,
-})
 
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
@@ -221,14 +224,8 @@ const computedSize = computed(() => {
  * Skips debouncing when in drag operation (territory dragging or projection panning)
  */
 async function debouncedRenderMap() {
-  console.info('[MapRenderer] debouncedRenderMap() called', {
-    isReinitializing: geoDataStore.isReinitializing,
-    isInDragOperation: isInDragOperation.value,
-  })
-
   // Don't schedule render if geoDataStore is reinitializing
   if (geoDataStore.isReinitializing) {
-    console.info('[MapRenderer] Skipping debounced render - geoDataStore is reinitializing')
     pendingRender.value = true
     return
   }
@@ -240,14 +237,12 @@ async function debouncedRenderMap() {
 
   // If already rendering, mark that we need another render after this one completes
   if (isRendering.value) {
-    console.info('[MapRenderer] Render in progress, marking pendingRender = true')
     pendingRender.value = true
     return
   }
 
   // Skip debouncing during drag operations for immediate feedback
   if (isInDragOperation.value) {
-    console.info('[MapRenderer] Skipping debounce - drag operation in progress')
     renderMap()
     return
   }
@@ -259,41 +254,29 @@ async function debouncedRenderMap() {
 }
 
 async function renderMap() {
-  console.info('[MapRenderer] renderMap() called', {
-    isMounted: isMounted.value,
-    isRendering: isRendering.value,
-    isReinitializing: geoDataStore.isReinitializing,
-    hasContainer: !!mapContainer.value,
-    hasCartographer: !!cartographer.value,
-    mode: props.mode,
-  })
-
   // Don't render if not mounted yet
   if (!isMounted.value) {
-    console.warn('[MapRenderer] Skipping render - not mounted')
+    debug('Skipping render - not mounted yet')
     return
   }
 
   // Don't render if geoDataStore is reinitializing (atlas switch in progress)
   if (geoDataStore.isReinitializing) {
-    console.warn('[MapRenderer] Skipping render - geoDataStore is reinitializing')
+    debug('Skipping render - geoDataStore reinitializing')
     pendingRender.value = true
     return
   }
 
   // Don't render if already rendering (prevent concurrent renders)
   if (isRendering.value) {
-    console.warn('[MapRenderer] Skipping render - already rendering')
+    debug('Skipping render - already rendering, will retry after')
     pendingRender.value = true
     return
   }
 
   // Check required dependencies
   if (!mapContainer.value || !cartographer.value) {
-    console.warn('[MapRenderer] Skipping render - missing dependencies', {
-      hasContainer: !!mapContainer.value,
-      hasCartographer: !!cartographer.value,
-    })
+    debug('Skipping render - missing dependencies (container: %s, cartographer: %s)', !!mapContainer.value, !!cartographer.value)
     return
   }
 
@@ -321,7 +304,7 @@ async function renderMap() {
 
       // Check if projection is loaded
       if (!projectionToUse) {
-        console.warn('[MapRenderer] Skipping render: projection not yet loaded')
+        debug('Skipping render: projection not yet loaded')
         return
       }
 
@@ -369,8 +352,8 @@ async function renderMap() {
             const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
           }
-          catch (error) {
-            console.error('Failed to fetch raw unified data from cartographer:', error) // Debug log
+          catch (err) {
+            debug('Failed to fetch raw unified data: %O', err)
           }
         }
         // In simple mode, use props or store data
@@ -431,7 +414,7 @@ async function renderMap() {
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
-    console.error('Error rendering map:', err)
+    debug('Error rendering map: %O', err)
   }
   finally {
     isLoading.value = false
@@ -439,7 +422,7 @@ async function renderMap() {
 
     // If a render was requested while we were rendering, trigger it now
     if (pendingRender.value) {
-      console.info('[MapRenderer] pendingRender detected, scheduling another render')
+      debug('Pending render detected, scheduling another render')
       pendingRender.value = false
       // Use nextTick to ensure state has settled
       nextTick(() => {
@@ -454,15 +437,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     throw new Error('Cartographer not initialized')
   }
 
-  console.info('[MapRenderer] renderComposite() - cartographer info:', {
-    cartographerId: (cartographer.value as any).__id,
-    cartographerAtlasId: (cartographer.value as any).__atlasId,
-    cartographerTerritories: (cartographer.value as any).__territories,
-    overseasTerritories: geoDataStore.overseasTerritories.map(t => t.code),
-    customCompositeKeys: cartographer.value.customComposite
-      ? Object.keys(cartographer.value.customComposite)
-      : 'no customComposite',
-  })
+  debug('renderComposite() starting - territories: %o', geoDataStore.overseasTerritories.map(t => t.code))
 
   const { width, height } = computedSize.value
 
@@ -476,7 +451,7 @@ async function renderComposite(): Promise<Plot.Plot> {
     ? Object.keys(cartographer.value.customComposite)
     : []
 
-  console.info('[MapRenderer] Building territory params for codes:', territoryCodes)
+  debug('Building territory params for %d territories', territoryCodes.length)
 
   for (const territoryCode of territoryCodes) {
     const projectionId = parameterStore.getTerritoryProjection(territoryCode)
@@ -488,7 +463,7 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   // Check if projections are loaded before rendering
   if (!configStore.selectedProjection) {
-    console.warn('[MapRenderer] Cannot render composite: selectedProjection not loaded')
+    debug('Cannot render composite: selectedProjection not loaded')
     throw new Error('Cannot render composite map: projection not loaded')
   }
 

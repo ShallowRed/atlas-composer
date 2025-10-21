@@ -1,9 +1,13 @@
 import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.vue.composable
 
 /**
  * Composable for managing application state in URL parameters
@@ -21,7 +25,7 @@ export function useUrlState() {
    * Only includes territory settings that differ from atlas-specific defaults
    */
   function serializeState() {
-    console.debug('[useUrlState] Serializing state...')
+    debug('Serializing state...')
 
     const state: Record<string, string> = {
       atlas: configStore.selectedAtlas,
@@ -145,7 +149,7 @@ export function useUrlState() {
         }
       }
       catch (error) {
-        console.error('Failed to parse territory settings from URL:', error)
+        debug('Failed to parse territory settings from URL: %o', error)
       }
     }
   }
@@ -190,7 +194,7 @@ export function useUrlState() {
       return true
     }
     catch (error) {
-      console.error('Failed to copy URL:', error)
+      debug('Failed to copy URL: %o', error)
       return false
     }
   }

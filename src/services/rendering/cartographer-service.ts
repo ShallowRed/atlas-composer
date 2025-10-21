@@ -7,6 +7,10 @@ import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
+import { logger } from '@/utils/logger'
+
+const debug = logger.render.cartographer
+
 // Unified rendering options
 export interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -93,7 +97,7 @@ export class Cartographer {
       this.geoDataService.getTerritoryInfo()
     }
     catch (error) {
-      console.error('Cartographer initialization error:', error)
+      debug('Cartographer initialization error: %O', error)
       throw error
     }
   }
@@ -169,7 +173,7 @@ export class Cartographer {
       referenceScale,
       canvasDimensions,
     )
-    console.info('[Cartographer] Rebuilt composite projection with new configuration')
+    debug('Rebuilt composite projection with new configuration')
   }
 
   // Unified rendering API

@@ -19,13 +19,17 @@ import type {
   PresetType,
   ViewPresetMode,
 } from '@/core/presets'
+
 import {
   convertToDefaults,
   extractTerritoryParameters,
   validateCompositePreset,
   validateViewPreset,
 } from '@/core/presets'
+import { logger } from '@/utils/logger'
 import { PresetFileLoader } from './loaders/preset-file-loader'
+
+const debug = logger.presets.loader
 
 /**
  * Unified service for loading and managing all preset types
@@ -47,7 +51,7 @@ export class PresetLoader {
     )
 
     if (!result.success || !result.data) {
-      console.warn('[PresetLoader] Failed to load preset registry, using empty registry')
+      debug('Failed to load preset registry, using empty registry')
       return { version: '2.0', presets: [] }
     }
 
@@ -192,7 +196,7 @@ export class PresetLoader {
     const entry = registry.presets.find(p => p.id === presetId)
 
     if (!entry) {
-      console.warn(`[PresetLoader] Preset '${presetId}' not found in registry`)
+      debug('Preset "%s" not found in registry', presetId)
       return null
     }
 

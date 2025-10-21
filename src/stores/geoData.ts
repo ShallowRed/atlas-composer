@@ -7,6 +7,9 @@ import { TerritoryFilterService } from '@/services/data/territory-filter-service
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.store.geoData
 
 export interface Territory {
   name: string
@@ -113,33 +116,24 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      console.info('[GeoDataStore] Initializing for atlas:', configStore.selectedAtlas)
+      debug('Initializing for atlas: %s', configStore.selectedAtlas)
 
       // Use provided atlas config or fall back to store
       const atlasConfig = atlasConfigOverride || configStore.currentAtlasConfig
 
       // Wait for atlas config to be loaded before initializing
       if (!atlasConfig) {
-        console.warn('[GeoDataStore] Atlas config not loaded yet, deferring initialization')
+        debug('Atlas config not loaded yet, deferring initialization')
         isLoading.value = false
         return
       }
 
       if (atlasConfigOverride) {
-        console.info('[GeoDataStore] Using filtered atlas config from InitializationService', {
-          territories: Object.keys(atlasConfigOverride.compositeProjectionConfig || {}),
-        })
+        debug('Using filtered atlas config from InitializationService (territories: %d)', Object.keys(atlasConfigOverride.compositeProjectionConfig || {}).length)
       }
       else {
-        console.info('[GeoDataStore] Using atlas config from configStore', {
-          territories: Object.keys(configStore.currentAtlasConfig?.compositeProjectionConfig || {}),
-        })
+        debug('Using atlas config from configStore (territories: %d)', Object.keys(configStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)
       }
-
-      console.debug('[GeoDataStore] Atlas config loaded:', {
-        atlasId: atlasConfig.id,
-        viewModes: atlasConfig.supportedViewModes,
-      })
 
       // Use the geo data config from the selected region
       const geoDataConfig = atlasConfig.geoDataConfig
@@ -166,13 +160,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // InitializationService validates parameters before creating Cartographer.
       // If preset is invalid, initialization fails explicitly (fail fast) rather than
       // silently filtering territories.
-      console.info(`[GeoDataStore] Using composite config directly from preset (no filtering)`)
+      debug('Using composite config directly from preset (no filtering)')
       if (compositeConfig) {
         if (compositeConfig.type === 'single-focus') {
-          console.info(`[GeoDataStore] Composite config: 1 mainland + ${compositeConfig.overseasTerritories.length} overseas territories`)
+          debug('Composite config: 1 mainland + %d overseas territories', compositeConfig.overseasTerritories.length)
         }
         else if (compositeConfig.type === 'equal-members') {
-          console.info(`[GeoDataStore] Composite config: ${compositeConfig.mainlands.length} mainlands + ${compositeConfig.overseasTerritories.length} overseas territories`)
+          debug('Composite config: %d mainlands + %d overseas territories', compositeConfig.mainlands.length, compositeConfig.overseasTerritories.length)
         }
       }
 
@@ -192,16 +186,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
       ;(cartographer.value as any).__atlasId = atlasConfig.id
       ;(cartographer.value as any).__territories = Object.keys(compositeConfig || {})
 
-      console.info('[GeoDataStore] Cartographer created', {
-        id: cartographerId,
-        territories: Object.keys(compositeConfig || {}),
-        atlasId: atlasConfig.id,
-      })
+      debug('Cartographer created (id: %d, atlas: %s, territories: %d)', cartographerId, atlasConfig.id, Object.keys(compositeConfig || {}).length)
       isInitialized.value = true
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error initializing geo data'
-      console.error('Geo data store initialization error:', err)
+      debug('Geo data store initialization error: %O', err)
       throw err
     }
     finally {
@@ -238,7 +228,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading territory data'
-      console.error('Error loading territory data:', err)
+      debug('Error loading territory data: %O', err)
       throw err
     }
     finally {
@@ -277,7 +267,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error loading raw unified data'
-      console.error('Error loading raw unified data:', err)
+      debug('Error loading raw unified data: %O', err)
       throw err
     }
     finally {
@@ -304,7 +294,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      console.info('[GeoDataStore] Preloading all data types for atlas:', configStore.currentAtlasConfig.id)
+      debug('Preloading all data types for atlas: %s', configStore.currentAtlasConfig.id)
 
       // Load both territory and unified data in parallel
       await Promise.all([
@@ -318,7 +308,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
           mainlandData.value = result.mainlandData
           overseasTerritoriesData.value = result.territories
-          console.info(`[GeoDataStore] Loaded ${result.territories.length} territories`)
+          debug('Loaded %d territories', result.territories.length)
         })(),
 
         (async () => {
@@ -335,15 +325,15 @@ export const useGeoDataStore = defineStore('geoData', () => {
           })
 
           rawUnifiedData.value = result.data
-          console.info('[GeoDataStore] Loaded unified data')
+          debug('Loaded unified data')
         })(),
       ])
 
-      console.info('[GeoDataStore] All atlas data preloaded successfully')
+      debug('All atlas data preloaded successfully')
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : 'Error preloading atlas data'
-      console.error('Error preloading atlas data:', err)
+      debug('Error preloading atlas data: %O', err)
       throw err
     }
     finally {
@@ -356,7 +346,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
    * Phase 4: Clear reset strategy
    */
   const clearAllData = () => {
-    console.info('[GeoDataStore] Clearing all geodata')
+    debug('Clearing all geodata')
     mainlandData.value = null
     overseasTerritoriesData.value = []
     rawUnifiedData.value = null
@@ -371,10 +361,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
   }
 
   const reinitialize = async (atlasConfigOverride?: any) => {
-    console.info('[GeoDataStore] Reinitializing - resetting state and reloading data', {
-      hasOverride: !!atlasConfigOverride,
-      currentCartographer: !!cartographer.value,
-    })
+    debug('Reinitializing - resetting state and reloading data (override: %s)', !!atlasConfigOverride)
 
     // Set reinitializing flag to prevent renders during atlas switch
     isReinitializing.value = true
@@ -388,7 +375,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     const oldCartographer = cartographer.value
     cartographer.value = null
     if (oldCartographer) {
-      console.info('[GeoDataStore] Cleared existing cartographer instance')
+      debug('Cleared existing cartographer instance')
     }
 
     // Reinitialize with optional filtered config
@@ -397,10 +384,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     // Clear reinitializing flag - renders can now proceed
     isReinitializing.value = false
 
-    console.info('[GeoDataStore] Reinitialization complete, new cartographer:', {
-      hasCartographer: !!cartographer.value,
-      isInitialized: isInitialized.value,
-    })
+    debug('Reinitialization complete (cartographer: %s, initialized: %s)', !!cartographer.value, isInitialized.value)
   }
 
   /**
@@ -408,7 +392,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
    * Increments renderKey to trigger Vue reactivity
    */
   const triggerRender = () => {
-    console.info(`[GeoDataStore] triggerRender() called - renderKey: ${renderKey.value} → ${renderKey.value + 1}`)
+    debug('triggerRender() - renderKey: %d → %d', renderKey.value, renderKey.value + 1)
     renderKey.value++
   }
 
@@ -417,7 +401,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
    */
   const setReinitializing = (value: boolean) => {
     isReinitializing.value = value
-    console.info(`[GeoDataStore] setReinitializing(${value})`)
   }
 
   return {

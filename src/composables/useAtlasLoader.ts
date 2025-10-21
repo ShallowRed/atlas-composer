@@ -8,6 +8,9 @@ import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import { useAsyncState } from '@vueuse/core'
 import { computed, toValue, watch } from 'vue'
 import { isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.loader
 
 export interface UseAtlasLoaderOptions {
   /**
@@ -69,7 +72,7 @@ export function useAtlasLoader(
 
       // Check if already loaded
       if (isAtlasLoaded(id)) {
-        console.debug(`[useAtlasLoader] Atlas '${id}' already loaded from cache`)
+        debug('Atlas %s already loaded from cache', id)
       }
 
       return await loadAtlasAsync(id)
@@ -80,12 +83,12 @@ export function useAtlasLoader(
       resetOnExecute: false, // Keep previous config while loading new one
       onSuccess: (loadedConfig) => {
         if (loadedConfig) {
-          console.info(`[useAtlasLoader] Successfully loaded atlas '${loadedConfig.atlasConfig.id}'`)
+          debug('Successfully loaded atlas %s', loadedConfig.atlasConfig.id)
           onSuccess?.(loadedConfig)
         }
       },
       onError: (err) => {
-        console.error('[useAtlasLoader] Failed to load atlas:', err)
+        debug('Failed to load atlas: %o', err)
         onError?.(err as Error)
       },
     },
@@ -96,7 +99,7 @@ export function useAtlasLoader(
     () => toValue(atlasId),
     async (newId, oldId) => {
       if (newId !== oldId) {
-        console.info(`[useAtlasLoader] Atlas changed from '${oldId}' to '${newId}', loading...`)
+        debug('Atlas changed from %s to %s, loading...', oldId, newId)
         await execute()
       }
     },

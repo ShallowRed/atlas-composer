@@ -105,7 +105,9 @@
       "active": "Territoires actif",
       "remove": "Supprimer le territoire",
       "noActive": "Aucun jeu de territoires actif",
-      "available": "Territoires disponibles"
+      "available": "Territoires disponibles",
+      "add": "Cliquer pour ajouter",
+      "noCollections": "Aucune collection de territoires disponible"
     }
   },
   "view": {

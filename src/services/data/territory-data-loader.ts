@@ -3,6 +3,9 @@ import type { TerritoryConfig } from '@/types'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
+import { logger } from '@/utils/logger'
+
+const debug = logger.data.loader
 
 // Using any for GeoDataService to avoid circular dependency and complex type issues
 type GeoDataService = any
@@ -177,7 +180,7 @@ export class TerritoryDataLoader {
     }
     else {
       // Default to equal members for unknown patterns
-      console.warn('[TerritoryDataLoader] Unknown pattern, defaulting to equal-members strategy')
+      debug('Unknown pattern, defaulting to equal-members strategy')
       return new EqualMembersLoadStrategy()
     }
   }

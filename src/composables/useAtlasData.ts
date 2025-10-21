@@ -1,6 +1,9 @@
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { logger } from '@/utils/logger'
 import { useLoadingState } from './useLoadingState'
+
+const debug = logger.atlas.loader
 
 /**
  * Manages atlas data loading based on view mode and configuration changes
@@ -40,12 +43,12 @@ export function useAtlasData() {
           throw new Error('Initialization timeout: GeoDataStore not initialized after 5 seconds')
         }
 
-        console.info('[useAtlasData] InitializationService completed successfully')
+        debug('InitializationService completed successfully')
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
-      console.error('Initialization error:', err)
+      debug('Initialization error: %O', err)
     }
   }
 
@@ -71,7 +74,7 @@ export function useAtlasData() {
   async function reinitialize() {
     const atlasConfig = configStore.currentAtlasConfig
     if (!atlasConfig) {
-      console.warn('[useAtlasData] Cannot reinitialize - atlas config not loaded')
+      debug('Cannot reinitialize - atlas config not loaded')
       return
     }
 
@@ -80,11 +83,7 @@ export function useAtlasData() {
       ? configStore.viewMode
       : atlasConfig.defaultViewMode
 
-    console.info('[useAtlasData] Starting reinitialize for viewMode:', {
-      currentViewMode: configStore.viewMode,
-      targetViewMode,
-      supportedViewModes: atlasConfig.supportedViewModes,
-    })
+    debug('Starting reinitialize (current: %s, target: %s, supported: %o)', configStore.viewMode, targetViewMode, atlasConfig.supportedViewModes)
 
     try {
       await withMinLoadingTime(async () => {
@@ -93,12 +92,12 @@ export function useAtlasData() {
         // Phase 4: Data preloading is now handled by InitializationService
         // When atlas changes, InitializationService preloads all data types
         // No conditional loading needed here - all data is already loaded
-        console.info('[useAtlasData] Reinitialize complete, data preloaded by InitializationService')
+        debug('Reinitialize complete, data preloaded by InitializationService')
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors du changement de région'
-      console.error('[useAtlasData] Region change error:', err)
+      debug('Region change error: %O', err)
     }
   }
 

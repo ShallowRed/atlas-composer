@@ -5,6 +5,9 @@ import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.service
 
 /**
  * Configuration updates to apply when atlas changes
@@ -76,7 +79,7 @@ export class AtlasCoordinator {
           territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.data.config)
 
           // Debug: Log what was extracted
-          console.info('[AtlasCoordinator] Extracted territory parameters:', Object.keys(territoryParameters).map(code => ({
+          debug('Extracted territory parameters: %o', Object.keys(territoryParameters).map(code => ({
             code,
             hasProjectionId: !!territoryParameters[code]?.projectionId,
             projectionId: territoryParameters[code]?.projectionId,
@@ -88,8 +91,13 @@ export class AtlasCoordinator {
           const missingTerritories = territories.filter(t => !presetTerritoryCodes.has(t.code))
 
           if (missingTerritories.length > 0) {
-            console.info(
-              `[AtlasCoordinator] Preset '${config.defaultPreset}' defines ${presetTerritoryCodes.size} territories, atlas allows ${territories.length}. ${missingTerritories.length} territories will NOT be rendered: ${missingTerritories.map(t => t.code).join(', ')}`,
+            debug(
+              'Preset "%s" defines %d territories, atlas allows %d. %d territories will NOT be rendered: %s',
+              config.defaultPreset,
+              presetTerritoryCodes.size,
+              territories.length,
+              missingTerritories.length,
+              missingTerritories.map(t => t.code).join(', '),
             )
           }
 
@@ -101,12 +109,12 @@ export class AtlasCoordinator {
         }
         else {
           // Log warning but continue with fallback defaults
-          console.warn(`Failed to load preset '${config.defaultPreset}':`, presetResult.errors)
+          debug('Failed to load preset "%s": %o', config.defaultPreset, presetResult.errors)
         }
       }
       catch (error) {
         // Log error but continue with fallback defaults
-        console.error(`Error loading preset '${config.defaultPreset}':`, error)
+        debug('Error loading preset "%s": %o', config.defaultPreset, error)
       }
     }
 

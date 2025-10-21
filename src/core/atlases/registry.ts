@@ -14,6 +14,9 @@ import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '@
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { loadAtlasConfig } from '@/core/atlases/loader'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.loader
 
 /**
  * @deprecated Use AtlasGroupDefinition from @/types/registry instead
@@ -73,7 +76,7 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
     // configPath is relative (e.g., "./atlases/france.json"), so we join it with the base URL
     const relativePath = configPath.replace(/^\.\//, '') // Remove leading "./"
     const url = `${getConfigBaseUrl()}${relativePath}`
-    console.info(`[Registry] Fetching atlas '${atlasId}' from ${url}...`)
+    debug('Fetching atlas %s from %s', atlasId, url)
 
     const response = await fetch(url)
 
@@ -92,7 +95,7 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
     const loadedConfig = loadAtlasConfig(jsonConfig)
     LOADED_CONFIGS.set(atlasId, loadedConfig)
 
-    console.info(`[Registry] Successfully loaded atlas '${atlasId}'`)
+    debug('Successfully loaded atlas %s', atlasId)
     return loadedConfig
   }
   catch (error) {
@@ -150,7 +153,7 @@ export function getLoadedConfig(atlasId: string): LoadedAtlasConfig {
   }
   catch (error) {
     // Fallback to default atlas if requested one doesn't exist in cache
-    console.warn(`[Registry] Atlas '${atlasId}' not cached, falling back to '${DEFAULT_ATLAS}':`, error)
+    debug('Atlas %s not cached, falling back to %s: %o', atlasId, DEFAULT_ATLAS, error)
     try {
       return loadAtlasSync(DEFAULT_ATLAS)
     }

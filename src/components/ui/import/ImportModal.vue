@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { computed, ref } from 'vue'
+
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
+import { logger } from '@/utils/logger'
 
 const props = defineProps<{
   modelValue: boolean
@@ -15,6 +17,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'imported': [config: ExportedCompositeConfig]
 }>()
+
+const debug = logger.vue.component
 
 // State
 const isDragging = ref(false)
@@ -107,7 +111,7 @@ async function applyImport() {
 
   // Check if composite projection exists
   if (!props.compositeProjection) {
-    console.error('[ImportModal] Cannot apply import: composite projection is not available')
+    debug('Cannot apply import: composite projection is not available')
     importResult.value = {
       success: false,
       errors: ['Cannot apply import: composite projection not initialized. Switch to composite-custom mode first.'],
@@ -141,7 +145,7 @@ async function applyImport() {
       Object.keys(territoryParameters).forEach((territoryCode) => {
         geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
       })
-      console.info(`[ImportModal] Updated cartographer for ${Object.keys(territoryParameters).length} territories`)
+      debug('Updated cartographer for %d territories', Object.keys(territoryParameters).length)
 
       // Trigger render
       geoDataStore.triggerRender()
@@ -152,7 +156,7 @@ async function applyImport() {
     handleClose()
   }
   catch (error) {
-    console.error('[ImportModal] Error applying import:', error)
+    debug('Error applying import: %o', error)
     importResult.value = {
       success: false,
       errors: [`Failed to apply import: ${error instanceof Error ? error.message : 'Unknown error'}`],

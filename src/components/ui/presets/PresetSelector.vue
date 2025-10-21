@@ -10,7 +10,9 @@ import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
 
+const debug = logger.vue.component
 const { t } = useI18n()
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
@@ -46,7 +48,7 @@ const currentPreset = computed({
     loadError.value = null
 
     try {
-      console.info(`[PresetSelector] Loading preset: ${presetId}`)
+      debug('Loading preset: %s', presetId)
 
       // Use InitializationService for consistent preset loading
       const result = await InitializationService.loadPreset({
@@ -56,13 +58,13 @@ const currentPreset = computed({
 
       if (!result.success) {
         loadError.value = result.errors.join(', ')
-        console.error('[PresetSelector] Failed to load preset:', result.errors)
+        debug('Failed to load preset: %o', result.errors)
         return
       }
 
       // Display warnings if any
       if (result.warnings.length > 0) {
-        console.warn('[PresetSelector] Preset loaded with warnings:', result.warnings)
+        debug('Preset loaded with warnings: %o', result.warnings)
       }
 
       // Update selected preset
@@ -93,25 +95,25 @@ const currentPreset = computed({
             result.state.canvas.referenceScale,
             result.state.canvas.dimensions,
           )
-          console.info(`[PresetSelector] Rebuilt composite projection with ${Object.keys(territoryParameters).length} territories`)
+          debug('Rebuilt composite projection with %d territories', Object.keys(territoryParameters).length)
         }
         else {
           // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
           Object.keys(territoryParameters).forEach((territoryCode) => {
             geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
           })
-          console.info(`[PresetSelector] Updated cartographer parameters for ${Object.keys(territoryParameters).length} territories`)
+          debug('Updated cartographer parameters for %d territories', Object.keys(territoryParameters).length)
         }
 
         // Trigger render
         geoDataStore.triggerRender()
       }
 
-      console.info(`[PresetSelector] Successfully loaded preset: ${presetId}`)
+      debug('Successfully loaded preset: %s', presetId)
     }
     catch (error) {
       loadError.value = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[PresetSelector] Error loading preset:', error)
+      debug('Error loading preset: %o', error)
     }
     finally {
       isLoading.value = false
@@ -144,7 +146,7 @@ watch(availablePresets, async (newPresets) => {
         }
       }
       catch (error) {
-        console.warn(`Failed to load metadata for preset ${presetId}:`, error)
+        debug('Failed to load metadata for preset %s: %o', presetId, error)
       }
     }
   }

@@ -3,6 +3,9 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily, ProjectionStrategy } from '@/core/projections/types'
+import { logger } from '@/utils/logger'
+
+const debug = logger.projection.service
 
 export interface ProjectionOption {
   value: string
@@ -55,7 +58,7 @@ export class ProjectionService {
 
     const definition = projectionRegistry.get(type)
     if (!definition) {
-      console.error(`[ProjectionService] Projection not found: ${type}`)
+      debug('Projection not found: %s', type)
       const params = this.getParams()
       return {
         type: 'conic-equal-area' as const,
@@ -83,7 +86,7 @@ export class ProjectionService {
       if (definition.metadata?.requiresCustomFit) {
         const customFit = definition.metadata.customFit
         if (!customFit) {
-          console.error(`[ProjectionService] Projection ${type} requires custom fit but no customFit metadata provided`)
+          debug('Projection %s requires custom fit but no customFit metadata provided', type)
           return {
             type: () => projection,
             domain: data,
@@ -238,7 +241,7 @@ export class ProjectionService {
           })
 
           if (!projection) {
-            console.error(`[ProjectionService] Failed to create extended projection: ${type}`)
+            debug('Failed to create extended projection: %s', type)
             throw new Error(`Failed to create extended projection: ${type}`)
           }
 
@@ -250,7 +253,7 @@ export class ProjectionService {
     }
 
     // Should never reach here, but fallback just in case
-    console.warn(`[ProjectionService] Unknown projection strategy for ${type}. Falling back to conic-equal-area.`)
+    debug('Unknown projection strategy for %s. Falling back to conic-equal-area', type)
     const params = this.getParams()
     return {
       type: 'conic-equal-area' as const,
@@ -289,7 +292,7 @@ export class ProjectionService {
   createProjection(id: string, parameters: any = {}) {
     const projection = ProjectionFactory.createById(id, parameters)
     if (!projection) {
-      console.warn(`[ProjectionService] Could not create projection: ${id}`)
+      debug('Could not create projection: %s', id)
       return null
     }
     return projection

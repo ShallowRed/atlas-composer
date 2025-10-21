@@ -11,6 +11,13 @@ import { CompositeExportService } from '@/services/export/composite-export-servi
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useUIStore } from '@/stores/ui'
+import { logger } from '@/utils/logger'
+
+defineProps<Props>()
+
+const emit = defineEmits<Emits>()
+
+const debug = logger.vue.component
 
 interface Props {
   modelValue: boolean
@@ -20,8 +27,6 @@ interface Emits {
   (e: 'update:modelValue', value: boolean): void
 }
 
-defineProps<Props>()
-const emit = defineEmits<Emits>()
 const { t } = useI18n()
 
 const configStore = useConfigStore()
@@ -119,7 +124,7 @@ function downloadFile() {
     downloadSuccess()
   }
   catch (error) {
-    console.error('Failed to download file:', error)
+    debug('Failed to download file: %o', error)
     uiStore.showToast(t('export.downloadError'), 'error')
   }
 }
@@ -130,7 +135,7 @@ async function copyToClipboard() {
     uiStore.showToast(t('export.copySuccess'), 'success')
   }
   catch (error) {
-    console.error('Failed to copy to clipboard:', error)
+    debug('Failed to copy to clipboard: %o', error)
     uiStore.showToast(t('export.copyError'), 'error')
   }
 }

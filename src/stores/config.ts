@@ -13,6 +13,9 @@ import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
+import { logger } from '@/utils/logger'
+
+const debug = logger.store.config
 
 export const useConfigStore = defineStore('config', () => {
   // Initialize new stores for UI and parameter state
@@ -137,21 +140,21 @@ export const useConfigStore = defineStore('config', () => {
   // Use InitializationService for consistent initialization (same as atlas changes)
   ;(async () => {
     try {
-      console.info('[ConfigStore] Initializing app with default atlas using InitializationService')
+      debug('Initializing app with default atlas using InitializationService')
       const result = await InitializationService.initializeAtlas({
         atlasId: selectedAtlas.value,
         preserveViewMode: false,
       })
 
       if (!result.success) {
-        console.error('[ConfigStore] Initial atlas initialization failed:', result.errors)
+        debug('Initial atlas initialization failed: %O', result.errors)
       }
       else {
-        console.info('[ConfigStore] Initial atlas initialization complete')
+        debug('Initial atlas initialization complete')
       }
     }
-    catch (error) {
-      console.error('[ConfigStore] Initial atlas initialization error:', error)
+    catch (err) {
+      debug('Initial atlas initialization error: %O', err)
     }
   })()
 
@@ -329,10 +332,10 @@ export const useConfigStore = defineStore('config', () => {
       // Composite-custom presets are loaded via AtlasCoordinator.handleAtlasChange(), not view preset API
       availableViewPresets.value = presets.filter(p => p.type !== 'composite-custom') as any
 
-      console.info(`[ConfigStore] Loaded ${presets.filter(p => p.type !== 'composite-custom').length} view presets for ${selectedAtlas.value} ${viewMode.value}`)
+      debug('Loaded %d view presets for %s %s', presets.filter(p => p.type !== 'composite-custom').length, selectedAtlas.value, viewMode.value)
     }
-    catch (error) {
-      console.error('[ConfigStore] Failed to load available view presets:', error)
+    catch (err) {
+      debug('Failed to load available view presets: %O', err)
       availableViewPresets.value = []
     }
   }
@@ -342,7 +345,7 @@ export const useConfigStore = defineStore('config', () => {
    */
   async function autoLoadFirstPreset(context: string) {
     if (availableViewPresets.value.length === 0) {
-      console.info(`[ConfigStore] No view presets available to auto-load (${context})`)
+      debug('No view presets available to auto-load (%s)', context)
       return
     }
 
@@ -353,10 +356,10 @@ export const useConfigStore = defineStore('config', () => {
 
     try {
       await loadViewPreset(firstPreset.id)
-      console.info(`[ConfigStore] Auto-loaded view preset "${firstPreset.name}" (${context})`)
+      debug('Auto-loaded view preset "%s" (%s)', firstPreset.name, context)
     }
-    catch (error) {
-      console.warn(`[ConfigStore] Failed to auto-load preset (${context}):`, error)
+    catch (err) {
+      debug('Failed to auto-load preset (%s): %O', context, err)
     }
   }
 
@@ -368,7 +371,7 @@ export const useConfigStore = defineStore('config', () => {
       const result = await PresetLoader.loadPreset(presetId)
 
       if (!result.success || !result.data) {
-        console.error('[ConfigStore] Failed to load view preset:', result.errors)
+        debug('Failed to load view preset: %O', result.errors)
         throw new Error(result.errors.join(', '))
       }
 
@@ -389,14 +392,14 @@ export const useConfigStore = defineStore('config', () => {
 
       // Log warnings if any
       if (result.warnings.length > 0) {
-        console.warn('[ConfigStore] View preset warnings:', result.warnings)
+        debug('View preset warnings: %O', result.warnings)
       }
 
-      console.info('[ConfigStore] View preset loaded successfully:', presetId)
+      debug('View preset loaded successfully: %s', presetId)
     }
-    catch (error) {
-      console.error('[ConfigStore] Error loading view preset:', error)
-      throw error
+    catch (err) {
+      debug('Error loading view preset: %O', err)
+      throw err
     }
   }
 
@@ -408,12 +411,12 @@ export const useConfigStore = defineStore('config', () => {
     const result = PresetApplicationService.applyPreset(preset)
 
     if (!result.success) {
-      console.error('[ConfigStore] Failed to apply preset:', result.errors)
+      debug('Failed to apply preset: %O', result.errors)
       throw new Error(result.errors.join(', '))
     }
 
     if (result.warnings.length > 0) {
-      console.warn('[ConfigStore] Preset applied with warnings:', result.warnings)
+      debug('Preset applied with warnings: %O', result.warnings)
     }
   }
 
@@ -464,7 +467,7 @@ export const useConfigStore = defineStore('config', () => {
     })
 
     if (!result.success) {
-      console.error('[ConfigStore] Atlas change failed:', result.errors)
+      debug('Atlas change failed: %O', result.errors)
 
       // Revert to old atlas selection
       isReverting = true
@@ -485,16 +488,11 @@ export const useConfigStore = defineStore('config', () => {
     }
 
     if (!result.state) {
-      console.error('[ConfigStore] Atlas change returned no state')
+      debug('Atlas change returned no state')
       return
     }
 
-    console.info('[ConfigStore] Atlas changed successfully:', {
-      oldAtlas: oldAtlasId,
-      newAtlas: newAtlasId,
-      newViewMode: result.state.viewMode,
-      territoryCount: Object.keys(result.state.parameters.territories).length,
-    })
+    debug('Atlas changed successfully: %s -> %s (viewMode: %s, territories: %d)', oldAtlasId, newAtlasId, result.state.viewMode, Object.keys(result.state.parameters.territories).length)
 
     // Reload view presets for the new atlas
     await loadAvailableViewPresets()

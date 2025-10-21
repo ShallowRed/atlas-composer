@@ -12,9 +12,13 @@ import type {
   SplitViewConfig,
   UnifiedViewConfig,
 } from '@/core/presets'
+
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.presets.manager
 
 /**
  * Application result with success status and error messages
@@ -193,7 +197,7 @@ export class PresetApplicationService {
       // Note: Global scale for built-in-composite mode is not yet fully supported
       // d3-composite-projections doesn't expose a scale multiplier API
       if (config.globalScale !== undefined) {
-        console.info('[PresetApplicationService] Global scale from preset (not applied):', config.globalScale)
+        debug('Global scale from preset (not applied): %d', config.globalScale)
       }
 
       return {

@@ -1,8 +1,12 @@
 import { watch } from 'vue'
+
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
+import { logger } from '@/utils/logger'
+
+const debug = logger.vue.composable
 
 interface MapWatcherProps {
   mode: 'simple' | 'composite'
@@ -42,7 +46,7 @@ export function useMapWatchers(
   const stopWatchingProjectionParams = watch(
     () => parameterStore.globalEffectiveParameters,
     async (newParams) => {
-      console.info('[useMapWatchers] Projection params changed, calling onProjectionParamsChange')
+      debug('Projection params changed, calling onProjectionParamsChange')
       if (geoDataStore.cartographer && newParams) {
         geoDataStore.cartographer.updateProjectionParams(newParams)
         await callbacks.onProjectionParamsChange()
@@ -57,7 +61,7 @@ export function useMapWatchers(
   const stopWatchingCanvasDimensions = watch(
     () => configStore.canvasDimensions,
     async (newDimensions) => {
-      console.info('[useMapWatchers] Canvas dimensions changed, calling onCanvasDimensionsChange')
+      debug('Canvas dimensions changed, calling onCanvasDimensionsChange')
       if (geoDataStore.cartographer) {
         geoDataStore.cartographer.updateCanvasDimensions(newDimensions ?? null)
         await callbacks.onCanvasDimensionsChange()
@@ -72,7 +76,7 @@ export function useMapWatchers(
   const stopWatchingReferenceScale = watch(
     () => configStore.referenceScale,
     async (newScale) => {
-      console.info('[useMapWatchers] Reference scale changed, calling onReferenceScaleChange')
+      debug('Reference scale changed, calling onReferenceScaleChange')
       if (geoDataStore.cartographer && newScale !== undefined) {
         geoDataStore.cartographer.updateReferenceScale(newScale)
         await callbacks.onReferenceScaleChange()
@@ -86,7 +90,7 @@ export function useMapWatchers(
   const stopWatchingRenderKey = watch(
     () => geoDataStore.renderKey,
     async (newKey, oldKey) => {
-      console.info(`[useMapWatchers] renderKey changed: ${oldKey} → ${newKey}, triggering re-render`)
+      debug('renderKey changed: %s → %s, triggering re-render', oldKey, newKey)
       // Force re-render when renderKey changes
       await callbacks.onDependenciesChange()
     },
