@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset.json",
+  "title": "Atlas Composer Preset (Unified)",
+  "description": "Unified schema that validates any preset type (composite-custom, unified, split, built-in-composite)",
+  "oneOf": [
+    {
+      "description": "Composite-custom preset with full territory configuration",
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["version", "metadata", "pattern", "referenceScale", "canvasDimensions", "territories"],
+          "properties": {
+            "version": { "type": "string" },
+            "metadata": {
+              "type": "object",
+              "required": ["atlasId"],
+              "properties": {
+                "atlasId": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "$ref": "preset-composite-custom.schema.json"
+        }
+      ]
+    },
+    {
+      "description": "Unified view preset",
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "unified" }
+          }
+        },
+        {
+          "$ref": "preset-unified.schema.json"
+        }
+      ]
+    },
+    {
+      "description": "Split view preset",
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "split" }
+          }
+        },
+        {
+          "$ref": "preset-split.schema.json"
+        }
+      ]
+    },
+    {
+      "description": "Built-in composite preset",
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "built-in-composite" }
+          }
+        },
+        {
+          "$ref": "preset-built-in-composite.schema.json"
+        }
+      ]
+    }
+  ]
+}

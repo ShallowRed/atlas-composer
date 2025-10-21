@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset-definitions.json",
+  "title": "Atlas Composer Preset Definitions",
+  "description": "Shared type definitions for all preset schemas",
+  "definitions": {
+    "i18nString": {
+      "description": "Internationalized string (string or object with language codes)",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
+        }
+      ]
+    },
+    "projectionParameters": {
+      "type": "object",
+      "description": "Projection parameters (rotate, center, parallels, scale, etc.)",
+      "properties": {
+        "rotate": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 3,
+          "description": "Rotation [lambda, phi, gamma] in degrees"
+        },
+        "center": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Center [longitude, latitude] in degrees"
+        },
+        "parallels": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Standard parallels for conic projections"
+        },
+        "scale": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Projection scale multiplier"
+        },
+        "scaleMultiplier": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Scale multiplier for composite projections"
+        },
+        "clipAngle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 180,
+          "description": "Clip angle in degrees"
+        },
+        "distance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Distance parameter for satellite projection"
+        },
+        "tilt": {
+          "type": "number",
+          "description": "Tilt parameter for satellite projection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "projectionConfig": {
+      "type": "object",
+      "required": ["id", "parameters"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Projection ID from registry (e.g., 'natural-earth', 'mercator', 'conic-conformal')"
+        },
+        "parameters": {
+          "$ref": "#/definitions/projectionParameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "projectionFamily": {
+      "type": "string",
+      "enum": ["CYLINDRICAL", "CONIC", "AZIMUTHAL", "PSEUDOCYLINDRICAL", "POLYCONIC", "MISCELLANEOUS"],
+      "description": "Projection family category"
+    },
+    "territoryRole": {
+      "type": "string",
+      "enum": ["primary", "secondary", "member", "embedded"],
+      "description": "Territory role: 'primary' for single-focus mainland, 'secondary' for overseas territories, 'member' for equal-members atlases, 'embedded' for enclaves"
+    },
+    "layoutConfig": {
+      "type": "object",
+      "required": ["translateOffset", "pixelClipExtent"],
+      "properties": {
+        "translateOffset": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Translation offset [x, y] in pixels"
+        },
+        "pixelClipExtent": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Clip extent [x0, y0, x1, y1] in pixels"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bounds": {
+      "type": "array",
+      "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

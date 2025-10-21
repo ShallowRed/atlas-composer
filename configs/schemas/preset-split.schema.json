@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset-split.json",
+  "title": "Split View Preset",
+  "description": "Schema for split view mode presets (individual projections per territory)",
+  "type": "object",
+  "required": ["id", "name", "atlasId", "type", "config"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique preset identifier (kebab-case, e.g., 'france-split-optimized')"
+    },
+    "name": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Human-readable preset name"
+    },
+    "description": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Optional preset description"
+    },
+    "atlasId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Target atlas ID"
+    },
+    "type": {
+      "type": "string",
+      "const": "split",
+      "description": "Preset type discriminator"
+    },
+    "config": {
+      "type": "object",
+      "required": ["mainland", "territories"],
+      "properties": {
+        "mainland": {
+          "type": "object",
+          "required": ["projection"],
+          "properties": {
+            "projection": {
+              "$ref": "preset-definitions.schema.json#/definitions/projectionConfig"
+            }
+          },
+          "additionalProperties": false
+        },
+        "territories": {
+          "type": "object",
+          "description": "Per-territory projections keyed by territory code",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["projection"],
+            "properties": {
+              "projection": {
+                "$ref": "preset-definitions.schema.json#/definitions/projectionConfig"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

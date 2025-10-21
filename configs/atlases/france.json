@@ -1,0 +1,607 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "france",
+  "name": {
+    "en": "France",
+    "fr": "France"
+  },
+  "description": {
+    "en": "Metropolitan France and overseas territories",
+    "fr": "France métropolitaine et territoires d'outre-mer"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "france-territories-50m.json",
+    "metadata": "france-metadata-50m.json"
+  },
+  "territories": [
+    {
+      "id": "250",
+      "role": "primary",
+      "code": "FR-MET",
+      "name": "France Métropolitaine",
+      "shortName": "Métropole",
+      "iso": "FRA",
+      "center": [
+        2.5,
+        46.5
+      ],
+      "bounds": [
+        [
+          -6.5,
+          41
+        ],
+        [
+          10,
+          51
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "250-GP",
+      "role": "secondary",
+      "code": "FR-GP",
+      "name": "Guadeloupe",
+      "iso": "GLP",
+      "region": "Caraïbes",
+      "center": [
+        -61.46,
+        16.14
+      ],
+      "bounds": [
+        [
+          -61.81,
+          15.83
+        ],
+        [
+          -61,
+          16.52
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          6,
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "id": "250-MQ",
+      "role": "secondary",
+      "code": "FR-MQ",
+      "name": "Martinique",
+      "iso": "MTQ",
+      "region": "Caraïbes",
+      "center": [
+        -61.03,
+        14.67
+      ],
+      "bounds": [
+        [
+          -61.23,
+          14.39
+        ],
+        [
+          -60.81,
+          14.88
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          5
+        ]
+      }
+    },
+    {
+      "id": "250-GF",
+      "role": "secondary",
+      "code": "FR-GF",
+      "name": "Guyane",
+      "shortName": "Guyane Française",
+      "iso": "GUF",
+      "region": "Caraïbes",
+      "center": [
+        -53.2,
+        3.9
+      ],
+      "bounds": [
+        [
+          -54.6,
+          2.1
+        ],
+        [
+          -51.6,
+          5.8
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          9
+        ]
+      }
+    },
+    {
+      "id": "250-RE",
+      "role": "secondary",
+      "code": "FR-RE",
+      "name": "La Réunion",
+      "iso": "REU",
+      "region": "Océan Indien",
+      "center": [
+        55.52,
+        -21.13
+      ],
+      "bounds": [
+        [
+          55.22,
+          -21.39
+        ],
+        [
+          55.84,
+          -20.87
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          4
+        ]
+      }
+    },
+    {
+      "id": "250-YT",
+      "role": "secondary",
+      "code": "FR-YT",
+      "name": "Mayotte",
+      "iso": "MYT",
+      "region": "Océan Indien",
+      "center": [
+        45.16,
+        -12.8
+      ],
+      "bounds": [
+        [
+          44.98,
+          -13
+        ],
+        [
+          45.3,
+          -12.64
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "250",
+        "polygonIndices": [
+          3
+        ]
+      }
+    },
+    {
+      "id": "652",
+      "role": "secondary",
+      "code": "FR-BL",
+      "name": "Saint-Barthélemy",
+      "iso": "BLM",
+      "region": "Caraïbes",
+      "center": [
+        -62.85,
+        17.9
+      ],
+      "bounds": [
+        [
+          -62.95,
+          17.85
+        ],
+        [
+          -62.75,
+          17.95
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "663",
+      "role": "secondary",
+      "code": "FR-MF",
+      "name": "Saint-Martin",
+      "iso": "MAF",
+      "region": "Caraïbes",
+      "center": [
+        -63.082,
+        18.067
+      ],
+      "bounds": [
+        [
+          -63.15,
+          18.04
+        ],
+        [
+          -63,
+          18.13
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "666",
+      "role": "secondary",
+      "code": "FR-PM",
+      "name": "Saint-Pierre-et-Miquelon",
+      "iso": "SPM",
+      "region": "Atlantique Nord",
+      "center": [
+        -56.23,
+        46.93
+      ],
+      "bounds": [
+        [
+          -56.42,
+          46.75
+        ],
+        [
+          -56.13,
+          47.15
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "876",
+      "role": "secondary",
+      "code": "FR-WF",
+      "name": "Wallis-et-Futuna",
+      "iso": "WLF",
+      "region": "Océan Pacifique",
+      "center": [
+        -178.1,
+        -14.3
+      ],
+      "bounds": [
+        [
+          -178.2,
+          -14.4
+        ],
+        [
+          -176.1,
+          -13.2
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "258",
+      "role": "secondary",
+      "code": "FR-PF",
+      "name": "Polynésie française",
+      "shortName": "Îles de la Société",
+      "iso": "PYF",
+      "region": "Océan Pacifique",
+      "center": [
+        -150.55,
+        -17.11
+      ],
+      "bounds": [
+        [
+          -154,
+          -28
+        ],
+        [
+          -134,
+          -7
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "258-2",
+      "role": "secondary",
+      "code": "FR-PF-2",
+      "name": "Polynésie française (îles éloignées)",
+      "shortName": "Marquises, Tuamotu",
+      "iso": "PYF",
+      "region": "Océan Pacifique",
+      "center": [
+        -150.55,
+        -17.11
+      ],
+      "bounds": [
+        [
+          -154,
+          -28
+        ],
+        [
+          -134,
+          -7
+        ]
+      ],
+      "extraction": {
+        "duplicateFrom": "258"
+      }
+    },
+    {
+      "id": "540",
+      "role": "secondary",
+      "code": "FR-NC",
+      "name": "Nouvelle-Calédonie",
+      "iso": "NCL",
+      "region": "Océan Pacifique",
+      "center": [
+        165.8,
+        -21.07
+      ],
+      "bounds": [
+        [
+          163,
+          -22.7
+        ],
+        [
+          168,
+          -19.5
+        ]
+      ],
+      "extraction": {}
+    },
+    {
+      "id": "260",
+      "role": "secondary",
+      "code": "FR-TF",
+      "name": "Terres australes et antarctiques françaises",
+      "shortName": "TAAF",
+      "iso": "ATF",
+      "region": "Océan Indien",
+      "center": [
+        69.348,
+        -49.28
+      ],
+      "bounds": [
+        [
+          39,
+          -50
+        ],
+        [
+          77,
+          -37
+        ]
+      ],
+      "extraction": {}
+    }
+  ],
+  "territoryCollections": {
+    "geographic": {
+      "label": {
+        "en": "Geographic regions",
+        "fr": "Régions géographiques"
+      },
+      "selectionType": "mutually-exclusive",
+      "description": {
+        "en": "Territory groupings based on geographic location",
+        "fr": "Groupes de territoires basés sur la localisation géographique"
+      },
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {
+            "en": "Metropolitan France",
+            "fr": "France Métropolitaine"
+          },
+          "territories": [
+            "FR-MET"
+          ]
+        },
+        {
+          "id": "caribbean",
+          "label": {
+            "en": "Caribbean",
+            "fr": "Caraïbes"
+          },
+          "territories": [
+            "FR-GP",
+            "FR-MQ",
+            "FR-GF",
+            "FR-BL",
+            "FR-MF"
+          ]
+        },
+        {
+          "id": "indian-ocean",
+          "label": {
+            "en": "Indian Ocean",
+            "fr": "Océan Indien"
+          },
+          "territories": [
+            "FR-RE",
+            "FR-YT",
+            "FR-TF"
+          ]
+        },
+        {
+          "id": "pacific",
+          "label": {
+            "en": "Pacific Ocean",
+            "fr": "Océan Pacifique"
+          },
+          "territories": [
+            "FR-NC",
+            "FR-PF",
+            "FR-PF-2",
+            "FR-WF"
+          ]
+        },
+        {
+          "id": "north-atlantic",
+          "label": {
+            "en": "North Atlantic",
+            "fr": "Atlantique Nord"
+          },
+          "territories": [
+            "FR-PM"
+          ]
+        }
+      ]
+    },
+    "legal-status": {
+      "label": {
+        "en": "Legal Status",
+        "fr": "Statut juridique"
+      },
+      "selectionType": "mutually-exclusive",
+      "description": {
+        "en": "Territory groupings by legal and administrative status (DROM, COM, etc.)",
+        "fr": "Groupes de territoires par statut juridique et administratif (DROM, COM, etc.)"
+      },
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {
+            "en": "Metropolitan France",
+            "fr": "France Métropolitaine"
+          },
+          "territories": [
+            "FR-MET"
+          ]
+        },
+        {
+          "id": "drom",
+          "label": {
+            "en": "Overseas Departments (DROM)",
+            "fr": "DROM"
+          },
+          "territories": [
+            "FR-GP",
+            "FR-MQ",
+            "FR-GF",
+            "FR-RE",
+            "FR-YT"
+          ]
+        },
+        {
+          "id": "com",
+          "label": {
+            "en": "Overseas Collectivities (COM)",
+            "fr": "COM"
+          },
+          "territories": [
+            "FR-PM",
+            "FR-MF",
+            "FR-BL",
+            "FR-WF",
+            "FR-PF",
+            "FR-PF-2"
+          ]
+        },
+        {
+          "id": "sui-generis",
+          "label": {
+            "en": "Sui generis status",
+            "fr": "Statut sui generis"
+          },
+          "territories": [
+            "FR-NC"
+          ]
+        },
+        {
+          "id": "administered",
+          "label": {
+            "en": "Administered Territories",
+            "fr": "Territoires administrés"
+          },
+          "territories": [
+            "FR-TF"
+          ]
+        }
+      ]
+    },
+    "incremental": {
+      "label": {
+        "en": "Incremental Selection",
+        "fr": "Sélection Incrémentale"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Progressive territory combinations from mainland to all overseas territories",
+        "fr": "Combinaisons progressives de territoires de la métropole à tous les territoires d'outre-mer"
+      },
+      "collections": [
+        {
+          "id": "metropole-only",
+          "label": {
+            "en": "Mainland only",
+            "fr": "Métropole uniquement"
+          },
+          "territories": [
+            "FR-MET"
+          ]
+        },
+        {
+          "id": "metropole-drom",
+          "label": {
+            "en": "Mainland + Overseas Departments",
+            "fr": "Métropole + DROM"
+          },
+          "territories": [
+            "FR-MET",
+            "FR-GF",
+            "FR-RE",
+            "FR-GP",
+            "FR-MQ",
+            "FR-YT"
+          ]
+        },
+        {
+          "id": "metropole-drom-com",
+          "label": {
+            "en": "Mainland + Overseas Departments + Collectivities",
+            "fr": "Métropole + DROM + COM"
+          },
+          "territories": [
+            "FR-MET",
+            "FR-GF",
+            "FR-RE",
+            "FR-GP",
+            "FR-MQ",
+            "FR-YT",
+            "FR-PM",
+            "FR-BL",
+            "FR-PF",
+            "FR-WF",
+            "FR-PF-2",
+            "FR-NC"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "FR-MET",
+            "FR-GF",
+            "FR-RE",
+            "FR-GP",
+            "FR-MQ",
+            "FR-YT",
+            "FR-BL",
+            "FR-MF",
+            "FR-PF",
+            "FR-PF-2",
+            "FR-NC",
+            "FR-TF",
+            "FR-WF",
+            "FR-PM"
+          ]
+        }
+      ]
+    }
+  }
+}

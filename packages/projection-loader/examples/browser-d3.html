@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standalone Projection Loader - Browser Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    #map {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .info {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Standalone Projection Loader - Browser Example</h1>
+  
+  <div class="info">
+    <p>This example demonstrates using the standalone projection loader in a browser with D3.js from CDN.</p>
+    <p>The loader uses a <strong>plugin architecture</strong> with <strong>zero dependencies</strong> - you register only the projections you need.</p>
+  </div>
+
+  <svg id="map" width="960" height="600"></svg>
+
+  <!-- Load D3 from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+
+  <script type="module">
+    // In a real browser setup, you would import from your bundled module
+    // For this example, we'll simulate the loader API
+    
+    // Simulate the projection registry (in reality, imported from standalone-projection-loader)
+    const projectionRegistry = new Map();
+
+    function registerProjection(name, factory) {
+      projectionRegistry.set(name, factory);
+      console.log(`✓ Registered projection: ${name}`);
+    }
+
+    function registerProjections(factories) {
+      Object.entries(factories).forEach(([name, factory]) => {
+        registerProjection(name, factory);
+      });
+    }
+
+    // Example: Register D3 projections manually
+    registerProjections({
+      'mercator': () => d3.geoMercator(),
+      'albers': () => d3.geoAlbers(),
+      'conicConformal': () => d3.geoConicConformal(),
+      'azimuthalEqualArea': () => d3.geoAzimuthalEqualArea(),
+    });
+
+    // Example composite projection configuration for France
+    const franceConfig = {
+      name: "France",
+      projections: [
+        {
+          id: "mainland",
+          bounds: [[-5, 41], [10, 52]],
+          projection: {
+            type: "conicConformal",
+            center: [2.5, 46.5],
+            rotation: [0, 0, 0],
+            parallels: [44, 49],
+            scale: 2800
+          }
+        },
+        {
+          id: "corsica",
+          bounds: [[8.5, 41.3], [9.6, 43.1]],
+          projection: {
+            type: "conicConformal",
+            center: [9, 42],
+            rotation: [0, 0, 0],
+            parallels: [41.5, 42.5],
+            scale: 5000
+          }
+        },
+        {
+          id: "guadeloupe",
+          bounds: [[-61.8, 15.8], [-61, 16.5]],
+          projection: {
+            type: "mercator",
+            center: [-61.4, 16.15],
+            scale: 15000
+          }
+        },
+        {
+          id: "martinique",
+          bounds: [[-61.3, 14.3], [-60.8, 14.9]],
+          projection: {
+            type: "mercator",
+            center: [-61, 14.6],
+            scale: 15000
+          }
+        }
+      ],
+      layout: {
+        width: 960,
+        height: 600,
+        positions: {
+          "mainland": { x: 480, y: 280 },
+          "corsica": { x: 750, y: 450 },
+          "guadeloupe": { x: 150, y: 100 },
+          "martinique": { x: 150, y: 300 }
+        }
+      }
+    };
+
+    // Simple projection loader implementation (simplified for demo)
+    function createSubProjection(config) {
+      const factory = projectionRegistry.get(config.projection.type);
+      if (!factory) {
+        throw new Error(`Projection "${config.projection.type}" not registered. Please register it first.`);
+      }
+      
+      const projection = factory();
+      
+      if (config.projection.center && projection.center) {
+        projection.center(config.projection.center);
+      }
+      if (config.projection.rotate && projection.rotate) {
+        projection.rotate(config.projection.rotate);
+      }
+      if (config.projection.parallels && projection.parallels) {
+        projection.parallels(config.projection.parallels);
+      }
+      if (config.projection.scale && projection.scale) {
+        projection.scale(config.projection.scale);
+      }
+      
+      return projection;
+    }
+
+    // Load world data and render
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+      .then(response => response.json())
+      .then(world => {
+        const countries = topojson.feature(world, world.objects.countries);
+        const svg = d3.select('#map');
+        
+        // Render each sub-projection
+        franceConfig.projections.forEach(subConfig => {
+          const projection = createSubProjection(subConfig);
+          const path = d3.geoPath(projection);
+          
+          const g = svg.append('g')
+            .attr('transform', `translate(${franceConfig.layout.positions[subConfig.id].x}, ${franceConfig.layout.positions[subConfig.id].y})`);
+          
+          // Filter and render relevant features
+          g.selectAll('path')
+            .data(countries.features)
+            .enter()
+            .append('path')
+            .attr('d', path)
+            .attr('fill', '#e0e0e0')
+            .attr('stroke', '#999')
+            .attr('stroke-width', 0.5);
+        });
+
+        console.log('✓ Map rendered successfully!');
+      })
+      .catch(error => {
+        console.error('Error loading map data:', error);
+      });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+</body>
+</html>

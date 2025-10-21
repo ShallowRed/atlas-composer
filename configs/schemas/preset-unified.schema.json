@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset-unified.json",
+  "title": "Unified View Preset",
+  "description": "Schema for unified view mode presets (single projection for entire atlas)",
+  "type": "object",
+  "required": ["id", "name", "atlasId", "type", "config"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique preset identifier (kebab-case, e.g., 'france-unified-default')"
+    },
+    "name": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Human-readable preset name"
+    },
+    "description": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Optional preset description"
+    },
+    "atlasId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Target atlas ID"
+    },
+    "type": {
+      "type": "string",
+      "const": "unified",
+      "description": "Preset type discriminator"
+    },
+    "config": {
+      "type": "object",
+      "required": ["projection"],
+      "properties": {
+        "projection": {
+          "$ref": "preset-definitions.schema.json#/definitions/projectionConfig"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,415 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "usa",
+  "name": "United States",
+  "description": "United States mainland, Alaska, Hawaii, and territories",
+  "category": "country",
+  "dataSources": {
+    "territories": "usa-territories-50m.json",
+    "metadata": "usa-metadata-50m.json"
+  },
+  "territories": [
+    {
+      "id": "840",
+      "code": "US-CONT",
+      "name": "Contiguous United States",
+      "shortName": "Mainland",
+      "role": "primary",
+      "iso": "USA",
+      "center": [
+        -98.5,
+        39.8
+      ],
+      "bounds": [
+        [
+          -124.71,
+          25.13
+        ],
+        [
+          -66.99,
+          49.37
+        ]
+      ],
+      "extraction": {
+        "mainlandPolygon": 75
+      }
+    },
+    {
+      "id": "840-AK",
+      "code": "US-AK",
+      "name": "Alaska",
+      "shortName": "Alaska",
+      "role": "secondary",
+      "iso": "USA",
+      "region": "Pacific North",
+      "center": [
+        -152,
+        64
+      ],
+      "bounds": [
+        [
+          -168.09,
+          54.77
+        ],
+        [
+          -130.01,
+          71.41
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "840",
+        "polygonIndices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          12,
+          15,
+          16,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58
+        ]
+      }
+    },
+    {
+      "id": "840-ALEU",
+      "code": "US-ALEU",
+      "name": "Aleutian Islands",
+      "shortName": "Aleutians",
+      "role": "secondary",
+      "iso": "USA",
+      "region": "Pacific North",
+      "center": [
+        -175,
+        52
+      ],
+      "bounds": [
+        [
+          -178.19,
+          51.37
+        ],
+        [
+          179.78,
+          63.73
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "840",
+        "polygonIndices": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          13,
+          14,
+          17,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "id": "840-HI",
+      "code": "US-HI",
+      "name": "Hawaii",
+      "role": "secondary",
+      "iso": "USA",
+      "region": "Pacific Central",
+      "center": [
+        -157.5,
+        20.5
+      ],
+      "bounds": [
+        [
+          -160.24,
+          18.96
+        ],
+        [
+          -154.8,
+          22.22
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "840",
+        "polygonIndices": [
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74
+        ]
+      }
+    },
+    {
+      "id": "630",
+      "code": "US-PR",
+      "name": "Puerto Rico",
+      "role": "secondary",
+      "iso": "PRI",
+      "region": "Caribbean",
+      "center": [
+        -66.5,
+        18.2
+      ],
+      "bounds": [
+        [
+          -67.94,
+          17.95
+        ],
+        [
+          -65.3,
+          18.52
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "850",
+      "code": "US-VI",
+      "name": "U.S. Virgin Islands",
+      "shortName": "Virgin Is.",
+      "role": "secondary",
+      "iso": "VIR",
+      "region": "Caribbean",
+      "center": [
+        -64.8,
+        18.3
+      ],
+      "bounds": [
+        [
+          -65.02,
+          17.7
+        ],
+        [
+          -64.58,
+          18.38
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "316",
+      "code": "US-GU",
+      "name": "Guam",
+      "role": "secondary",
+      "iso": "GUM",
+      "region": "Pacific West",
+      "center": [
+        144.8,
+        13.4
+      ],
+      "bounds": [
+        [
+          144.65,
+          13.26
+        ],
+        [
+          144.94,
+          13.62
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "016",
+      "code": "US-AS",
+      "name": "American Samoa",
+      "role": "secondary",
+      "iso": "ASM",
+      "region": "Pacific South",
+      "center": [
+        -170.7,
+        -14.3
+      ],
+      "bounds": [
+        [
+          -170.82,
+          -14.36
+        ],
+        [
+          -170.57,
+          -14.26
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "580",
+      "code": "US-MP",
+      "name": "Northern Mariana Islands",
+      "shortName": "N. Mariana Is.",
+      "role": "secondary",
+      "iso": "MNP",
+      "region": "Pacific West",
+      "center": [
+        145.7,
+        15.2
+      ],
+      "bounds": [
+        [
+          145.15,
+          14.11
+        ],
+        [
+          145.84,
+          18.81
+        ]
+      ],
+      "extraction": {
+        "polygonIndices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    }
+  ],
+  "modes": [
+    {
+      "id": "mainland-only",
+      "label": {
+        "en": "Contiguous US only",
+        "fr": "États-Unis contigus uniquement"
+      },
+      "territories": [
+        "US-CONT"
+      ]
+    },
+    {
+      "id": "fifty-states",
+      "label": {
+        "en": "50 states (Alaska + Hawaii)",
+        "fr": "50 états (Alaska + Hawaï)"
+      },
+      "territories": [
+        "US-CONT",
+        "US-AK",
+        "US-HI"
+      ]
+    },
+    {
+      "id": "states-territories",
+      "label": {
+        "en": "States + Major territories",
+        "fr": "États + territoires majeurs"
+      },
+      "territories": [
+        "US-CONT",
+        "US-AK",
+        "US-HI",
+        "US-PR",
+        "US-GU"
+      ]
+    },
+    {
+      "id": "all-territories",
+      "label": {
+        "en": "All US territories",
+        "fr": "Tous les territoires américains"
+      },
+      "territories": [
+        "US-CONT",
+        "US-AK",
+        "US-HI",
+        "US-PR",
+        "US-VI",
+        "US-GU",
+        "US-AS",
+        "US-MP"
+      ]
+    },
+    {
+      "id": "everything",
+      "label": {
+        "en": "Complete (inc. Aleutians)",
+        "fr": "Complet (inc. Aléoutiennes)"
+      },
+      "territories": [
+        "US-CONT",
+        "US-AK",
+        "US-ALEU",
+        "US-HI",
+        "US-PR",
+        "US-VI",
+        "US-GU",
+        "US-AS",
+        "US-MP"
+      ]
+    }
+  ]
+}

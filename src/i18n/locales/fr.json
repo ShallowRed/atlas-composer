@@ -1,0 +1,508 @@
+{
+  "app": {
+    "title": "Atlas composer",
+    "subtitle": "Visualisations cartographiques interactives pour territoires dispersés"
+  },
+  "nav": {
+    "map": "App",
+    "about": "À propos"
+  },
+  "atlas": {
+    "select": "Sélectionner un atlas",
+    "categories": {
+      "country": "Pays",
+      "region": "Région & Union",
+      "world": "Monde"
+    },
+    "france": "France",
+    "portugal": "Portugal",
+    "spain": "Espagne",
+    "europe": "Union Européenne",
+    "usa": "États-Unis",
+    "territories": {
+      "france": {
+        "mainland": "France Métropolitaine",
+        "overseas": "Territoires d'outre-mer"
+      },
+      "portugal": {
+        "mainland": "Portugal Continental",
+        "overseas": "Régions Autonomes"
+      },
+      "spain": {
+        "mainland": "Espagne Péninsulaire",
+        "overseas": "Territoires d'outre-mer"
+      },
+      "europe": {
+        "territories": "États membres"
+      },
+      "usa": {
+        "mainland": "États-Unis Continentaux",
+        "overseas": "Territoires"
+      },
+      "world": {
+        "territories": "Pays"
+      }
+    }
+  },
+  "projection": {
+    "select": "Sélectionner une projection",
+    "type": "Type de projection",
+    "mode": "Mode de projection",
+    "cartographic": "Projection cartographique",
+    "uniform": "Uniforme",
+    "individual": "Individuelle",
+    "mercator": "Mercator",
+    "naturalEarth": "Natural Earth",
+    "equalEarth": "Equal Earth",
+    "composite": "Projection composite",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée",
+    "custom": "Personnalisée"
+  },
+  "mode": {
+    "select": "Territoires à inclure",
+    "view": "Mode de visualisation",
+    "all": "Tous les territoires",
+    "mainland": "Métropole uniquement",
+    "overseas": "Outre-mer uniquement",
+    "split": "Territoires séparés",
+    "compositeCustom": "Projection composite personnalisée",
+    "compositeExisting": "Projection composite existante",
+    "unified": "Projection unifiée"
+  },
+  "territory": {
+    "controls": "Contrôles des territoires",
+    "byTerritory": "Par territoire",
+    "groupBy": "Regrouper par",
+    "territorySettings": "Paramètres par territoire",
+    "position": "Position",
+    "positionX": "Position horizontale (X)",
+    "positionY": "Position verticale (Y)",
+    "scale": "Facteur d'échelle",
+    "reset": "Réinitialiser tout",
+    "resetButton": "Réinitialiser",
+    "mainland": "Métropole",
+    "overseas": "Territoires d'outre-mer",
+    "territories": "Territoires",
+    "noOverseas": "Aucun territoire d'outre-mer à ajuster. Sélectionnez un mode incluant des territoires ultramarins dans « Territoires à inclure ».",
+    "noTerritories": "Aucun territoire disponible.",
+    "checkData": "Vérifiez les données ou changez de région.",
+    "adjustPosition": "Ajustez la position et l'échelle des territoires à l'aide des curseurs ci-dessous",
+    "scalePreservation": "Préserver les rapports de taille",
+    "dragToMove": "Glisser pour déplacer",
+    "dragHint": "Faites glisser les territoires sur la carte pour les repositionner, ou utilisez les contrôles ci-dessous pour des ajustements précis",
+    "grabToMove": "Cliquer et glisser pour déplacer le territoire",
+    "parameters": {
+      "position": "Position",
+      "projectionSpecific": "Paramètres de la projection",
+      "layout": "Mise en page",
+      "view": "Paramètres de la vue",
+      "advanced": "Paramètres avancés",
+      "reset": "Réinitialiser",
+      "resetOverrides": "Réinitialiser tous les paramètres personnalisés pour ce territoire",
+      "noRelevantParameters": "Aucun paramètre ajustable",
+      "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels."
+    },
+    "setManager": {
+      "title": "Gestionnaire de territoires",
+      "active": "Territoires actif",
+      "remove": "Supprimer le territoire",
+      "noActive": "Aucun jeu de territoires actif",
+      "available": "Territoires disponibles",
+      "add": "Cliquer pour ajouter",
+      "noCollections": "Aucune collection de territoires disponible",
+      "groupingLogic": "Logique de regroupement",
+      "switchGrouping": "Changer le regroupement"
+    }
+  },
+  "view": {
+    "unified": "Vue unifiée",
+    "composite": "Vue composite",
+    "individual": "Territoires individuels",
+    "split": "Territoires séparés"
+  },
+  "common": {
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "search": "Rechercher",
+    "showProjectionInformation": "Afficher les informations sur la projection",
+    "projectionInformation": "Informations sur la projection",
+    "searchProjections": "Rechercher des projections..."
+  },
+  "settings": {
+    "title": "Configuration",
+    "atlasConfigTitle": "Configuration de l'atlas",
+    "viewConfigTitle": "Configuration de la vue",
+    "displayOptionsTitle": "Options d'affichage",
+    "territoryConfigTitle": "Configuration de la projection",
+    "projectionConfigTitle": "Configuration de la projection",
+    "projectionParamsTitle": "Paramètres de la projection",
+    "projectionTitle": "Sélecteur de projection",
+    "theme": "Thème",
+    "language": "Langue",
+    "resolution": "Résolution des données",
+    "region": "Atlas",
+    "graticule": "Afficher le graticule",
+    "sphere": "Afficher le contour du globe",
+    "compositionBorders": "Afficher les bordures de composition",
+    "mapLimits": "Afficher les limites de la carte"
+  },
+  "projectionParams": {
+    "title": "Paramètres de projection",
+    "rotateLongitude": "Rotation longitude",
+    "rotateLatitude": "Rotation latitude",
+    "unlockLatitude": "Déverrouiller la rotation latitude",
+    "lockLatitude": "Verrouiller la rotation latitude",
+    "centerLongitude": "Centre longitude",
+    "centerLatitude": "Centre latitude",
+    "parallel1": "Parallèle standard 1",
+    "parallel2": "Parallèle standard 2",
+    "scaleMultiplier": "Facteur d'échelle",
+    "reset": "Réinitialiser",
+    "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
+    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié.",
+    "zoom": "Zoom",
+    "zoomLevel": "Niveau de zoom"
+  },
+  "projectionControls": {
+    "global": {
+      "title": "Paramètres généraux",
+      "description": "Ces paramètres contrôlent la taille d'affichage idéale et l'échelle de base de votre projection composite. Les dimensions du canevas définissent la taille de la zone de visualisation SVG, tandis que l'échelle de référence contrôle le niveau de zoom de tous les territoires.",
+      "canvasDimensions": "Dimensions du canevas",
+      "canvasWidth": "Largeur du canevas",
+      "canvasHeight": "Hauteur du canevas",
+      "lockAspectRatio": "Verrouiller le ratio d'aspect",
+      "referenceScale": "Échelle de référence",
+      "scaleValue": "Échelle de Référence",
+      "scaleWarning": "Modifier l'échelle de référence affectera tous les territoires. Les multiplicateurs d'échelle individuels sont préservés.",
+      "resetToDefaults": "Réinitialiser"
+    }
+  },
+  "clipExtent": {
+    "left": "Limite gauche",
+    "right": "Limite droite",
+    "top": "Limite supérieure",
+    "bottom": "Limite inférieure"
+  },
+  "actions": {
+    "loading": "Chargement...",
+    "loadingData": "Chargement des données...",
+    "preparingMaps": "Préparation des cartes géographiques",
+    "error": "Erreur",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "apply": "Appliquer",
+    "export": "Exporter",
+    "import": "Importer",
+    "search": "Rechercher",
+    "closeSearch": "Fermer la recherche",
+    "searchProjections": "Rechercher des projections...",
+    "clear": "Effacer",
+    "noProjectionsFound": "Aucune projection trouvée correspondant à votre recherche",
+    "showProjectionInformation": "Afficher les informations de projection",
+    "projectionInformation": "Informations de Projection"
+  },
+  "share": {
+    "button": "Partager",
+    "copied": "Copié !",
+    "error": "Échec de la copie"
+  },
+  "presets": {
+    "label": "Mise en page prédéfinie",
+    "loading": "Chargement de la mise en page...",
+    "names": {
+      "default": "Par défaut",
+      "test": "Test",
+      "compact": "Compact",
+      "spread": "Étendu"
+    }
+  },
+  "preset": {
+    "select": "Sélectionner une configuration",
+    "unified": {
+      "select": "Configuration vue unifiée"
+    },
+    "split": {
+      "select": "Configuration vue séparée"
+    },
+    "compositeExisting": {
+      "select": "Configuration projection composite"
+    }
+  },
+  "export": {
+    "title": "Exporter la Projection Composite",
+    "formatLabel": "Format d'Export",
+    "formatJson": "Configuration JSON",
+    "formatCode": "Code JavaScript/TypeScript",
+    "targetLibrary": "Bibliothèque Cible",
+    "language": "Langage",
+    "options": "Options",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "includeComments": "Inclure les commentaires",
+    "includeExamples": "Inclure les exemples d'utilisation",
+    "preview": "Aperçu",
+    "copyToClipboard": "Copier dans le Presse-papiers",
+    "downloadFile": "Télécharger le Fichier",
+    "copiedSuccess": "Copié dans le presse-papiers !",
+    "copyFailed": "Échec de la copie dans le presse-papiers",
+    "copySuccess": "Configuration copiée dans le presse-papiers avec succès !",
+    "copyError": "Échec de la copie dans le presse-papiers. Veuillez réessayer.",
+    "downloadSuccess": "Fichier téléchargé avec succès !",
+    "downloadError": "Échec du téléchargement du fichier. Veuillez réessayer."
+  },
+  "about": {
+    "title": "À propos d'Atlas composer",
+    "pageTitle": "À propos",
+    "intro": "Un outil interactif pour créer des visualisations cartographiques personnalisées de pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
+    "why": {
+      "title": "Pourquoi cet outil ?",
+      "description": "Afficher un pays et ses territoires distants sur une même carte est un défi cartographique. Comment représenter des régions séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ? Cet outil explore différentes solutions en utilisant des projections composites, à l'image de la projection Albers USA qui affiche l'Alaska et Hawaï aux côtés des États-Unis continentaux."
+    },
+    "features": {
+      "title": "Fonctionnalités clés",
+      "compositeExisting": "Appliquer des projections composites préconfigurées",
+      "compositeCustom": "Créer des compositions personnalisées en positionnant les territoires de manière interactive",
+      "split": "Voir les territoires séparément avec des projections optimisées",
+      "unified": "Afficher tous les territoires dans une projection globale unique",
+      "export": "Exporter les configurations en JSON ou code prêt à l'emploi"
+    },
+    "atlases": {
+      "title": "Atlas disponibles (pour l'instant)",
+      "france": "France",
+      "portugal": "Portugal",
+      "spain": "Espagne",
+      "europe": "Union Européenne",
+      "usa": "États-Unis"
+    },
+    "technologies": {
+      "title": "Construit Avec",
+      "description": "Vue 3, TypeScript, D3.js, Observable Plot, Pinia, Tailwind CSS et daisyUI. Alimenté par les géodonnées Natural Earth."
+    },
+    "cta": "Explorer",
+    "footer": {
+      "title": "Atlas composer",
+      "description": "Visualisations cartographiques interactives pour territoires dispersés",
+      "builtWith": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
+      "license": "Code source ouvert sous licence",
+      "madeWith": "Réalisé avec",
+      "by": "par"
+    }
+  },
+  "projections": {
+    "categories": {
+      "COMPOSITE": "Projections Composites",
+      "CONIC": "Projections Coniques",
+      "AZIMUTHAL": "Projections Azimutales",
+      "CYLINDRICAL": "Projections Cylindriques",
+      "WORLD": "Projections Mondiales",
+      "COMPROMISE": "Projections de Compromis",
+      "ARTISTIC": "Projections Artistiques"
+    },
+    "conicConformalFrance": {
+      "name": "Conic Conformal France (Composite)",
+      "description": "Projection composite optimisée pour la France, intégrant le territoire métropolitain et les départements d'outre-mer"
+    },
+    "conicConformalPortugal": {
+      "name": "Conic Conformal Portugal (Composite)",
+      "description": "Projection composite optimisée pour le Portugal, incluant le continent et les archipels atlantiques (Açores, Madère)"
+    },
+    "conicConformalSpain": {
+      "name": "Conic Conformal Espagne (Composite)",
+      "description": "Projection composite optimisée pour l'Espagne, incluant le continent, les îles Baléares et les îles Canaries"
+    },
+    "conicConformalEurope": {
+      "name": "Conic Conformal Europe (Composite)",
+      "description": "Projection composite optimisée pour l'Union Européenne et ses territoires d'outre-mer"
+    },
+    "albersUsa": {
+      "name": "Albers États-Unis (D3 Native)",
+      "description": "Projection composite native de D3 pour les États-Unis avec positionnement fixe"
+    },
+    "albersUsaComposite": {
+      "name": "Albers États-Unis (Composite)",
+      "description": "Projection composite améliorée de d3-composite-projections avec meilleure personnalisation"
+    },
+    "albersUsaTerritories": {
+      "name": "Albers États-Unis avec Territoires",
+      "description": "Projection composite étendue incluant Porto Rico, Îles Vierges américaines, Guam, Samoa américaines et Îles Mariannes du Nord"
+    },
+    "conicConformalNetherlands": {
+      "name": "Conique Conforme Pays-Bas (Composite)",
+      "description": "Projection composite optimisée pour les Pays-Bas, incluant le territoire métropolitain et les territoires caribéens (Bonaire, Saba, Sint Eustatius)"
+    },
+    "conicEquidistantJapan": {
+      "name": "Conique Équidistante Japon (Composite)",
+      "description": "Projection composite optimisée pour le Japon, incluant Honshu, Hokkaido, Kyushu et Okinawa"
+    },
+    "mercatorEcuador": {
+      "name": "Mercator Équateur (Composite)",
+      "description": "Projection composite optimisée pour l'Équateur, incluant le territoire continental et les îles Galápagos"
+    },
+    "transverseMercatorChile": {
+      "name": "Mercator Transverse Chili (Composite)",
+      "description": "Projection composite optimisée pour le Chili, incluant le territoire continental, l'île de Pâques et Juan Fernández"
+    },
+    "mercatorMalaysia": {
+      "name": "Mercator Malaisie (Composite)",
+      "description": "Projection composite optimisée pour la Malaisie, incluant la péninsule malaise et la Malaisie orientale (Bornéo)"
+    },
+    "mercatorEquatorialGuinea": {
+      "name": "Mercator Guinée Équatoriale (Composite)",
+      "description": "Projection composite optimisée pour la Guinée équatoriale, incluant le Río Muni et Bioko"
+    },
+    "albersUk": {
+      "name": "Albers Royaume-Uni (Composite)",
+      "description": "Projection composite optimisée pour le Royaume-Uni, incluant la Grande-Bretagne et les îles Shetland"
+    },
+    "transverseMercatorDenmark": {
+      "name": "Mercator Transverse Danemark (Composite)",
+      "description": "Projection composite optimisée pour le Danemark, incluant le Jutland, la Zélande et Bornholm"
+    },
+    "conicConformal": {
+      "name": "Conique Conforme (Lambert)",
+      "description": "Préserve les angles et les formes. Idéale pour les régions de latitudes moyennes"
+    },
+    "conicEqualArea": {
+      "name": "Conique Équivalente (Albers)",
+      "description": "Préserve les surfaces. Parfaite pour les cartes thématiques des régions de latitudes moyennes"
+    },
+    "mercator": {
+      "name": "Mercator",
+      "description": "Préserve les angles et les directions. Couramment utilisée pour la navigation et les régions tropicales"
+    },
+    "conicEquidistant": {
+      "name": "Conique Équidistante",
+      "description": "Préserve les distances le long des méridiens. Bonne pour les régions à grande étendue nord-sud"
+    },
+    "azimuthalEqualArea": {
+      "name": "Azimutale Équivalente (Lambert)",
+      "description": "Préserve les surfaces. Excellente pour les régions polaires et vues hémisphériques"
+    },
+    "azimuthalEquidistant": {
+      "name": "Azimutale Équidistante",
+      "description": "Préserve les distances depuis le centre. Idéale pour la navigation polaire et cartes de couverture radio"
+    },
+    "stereographic": {
+      "name": "Stéréographique",
+      "description": "Projection azimutale conforme. Excellente pour les régions polaires"
+    },
+    "orthographic": {
+      "name": "Orthographique",
+      "description": "Simule une vue depuis l'espace. Visualisation en forme de globe"
+    },
+    "gnomonic": {
+      "name": "Gnomonique",
+      "description": "Les grands cercles apparaissent comme des lignes droites. Utile pour la planification de routes de navigation"
+    },
+    "equirectangular": {
+      "name": "Équirectangulaire (Plate Carrée)",
+      "description": "Projection rectangulaire simple. Méridiens et parallèles régulièrement espacés"
+    },
+    "naturalEarth": {
+      "name": "Natural Earth",
+      "description": "Projection mondiale visuellement attrayante avec distorsions équilibrées"
+    },
+    "robinson": {
+      "name": "Robinson",
+      "description": "Projection mondiale classique. Utilisée par National Geographic"
+    },
+    "eckert4": {
+      "name": "Eckert IV",
+      "description": "Projection pseudocylindrique équivalente pour cartes mondiales"
+    },
+    "winkelTripel": {
+      "name": "Winkel Tripel",
+      "description": "Projection de compromis pour cartes mondiales de référence générale"
+    },
+    "mollweide": {
+      "name": "Mollweide",
+      "description": "Pseudocylindrique équivalente. Largement utilisée pour les cartes mondiales"
+    },
+    "miller": {
+      "name": "Cylindrique de Miller",
+      "description": "Mercator modifiée avec distorsion polaire réduite"
+    },
+    "sinusoidal": {
+      "name": "Sinusoïdale",
+      "description": "Pseudocylindrique équivalente. Simple et largement reconnue"
+    },
+    "wagner6": {
+      "name": "Wagner VI",
+      "description": "Projection pseudocylindrique de compromis populaire"
+    },
+    "hammer": {
+      "name": "Hammer",
+      "description": "Variante azimutale équivalente. Excellente pour les cartes mondiales"
+    },
+    "eckert1": {
+      "name": "Eckert I",
+      "description": "Pseudocylindrique avec parallèles rectilignes"
+    },
+    "eckert2": {
+      "name": "Eckert II",
+      "description": "Pseudocylindrique équivalente avec parallèles rectilignes"
+    },
+    "eckert3": {
+      "name": "Eckert III",
+      "description": "Pseudocylindrique avec parallèles elliptiques"
+    },
+    "eckert5": {
+      "name": "Eckert V",
+      "description": "Pseudocylindrique équivalente avec parallèles elliptiques"
+    },
+    "eckert6": {
+      "name": "Eckert VI",
+      "description": "Pseudocylindrique équivalente avec parallèles sinusoïdaux"
+    },
+    "armadillo": {
+      "name": "Armadillo",
+      "description": "Projection polyédrique artistique avec apparence visuelle unique"
+    },
+    "polyhedralButterfly": {
+      "name": "Papillon Polyédrique",
+      "description": "Globe déplié en forme de papillon. Éducatif et artistique"
+    },
+    "loximuthal": {
+      "name": "Loximuthal",
+      "description": "Les loxodromies depuis le centre sont droites. Navigation maritime"
+    },
+    "polyhedralWaterman": {
+      "name": "Papillon de Waterman",
+      "description": "Projection polyédrique avec distorsion minimale des surfaces"
+    },
+    "recommendations": {
+      "general": "Projection appropriée",
+      "atlasOptimized": "Optimisée pour cet atlas",
+      "atlasRecommended": "Recommandée par la configuration de l'atlas",
+      "atlasProhibited": "Non adaptée pour cet atlas",
+      "territoryExcellent": "Excellente pour ce type de territoire",
+      "territoryGood": "Bonne pour ce type de territoire",
+      "notSuitable": "Non recommandée pour ce contexte"
+    },
+    "properties": {
+      "area": "Superficie",
+      "angle": "Angles",
+      "distance": "Distance",
+      "direction": "Direction",
+      "interrupted": "Interrompue"
+    },
+    "info": {
+      "preserves": "Préserve",
+      "distorts": "Déforme",
+      "compatibility": "Compatible avec",
+      "creator": "Créateur",
+      "year": "Année"
+    }
+  },
+  "validation": {
+    "errors": {
+      "title": "Erreur de validation"
+    },
+    "warnings": {
+      "title": "Avertissement de validation"
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "name": "@atlas-composer/projection-loader",
+  "type": "module",
+  "version": "1.1.0-rc.10",
+  "description": "Zero-dependency standalone loader for composite map projections with plugin architecture. Supports Atlas composer 2.0+ presets with backward compatibility.",
+  "author": "Lucas Poulain (ShallowRed)",
+  "license": "MIT",
+  "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/projection-loader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShallowRed/atlas-composer.git",
+    "directory": "packages/projection-loader"
+  },
+  "bugs": {
+    "url": "https://github.com/ShallowRed/atlas-composer/issues"
+  },
+  "keywords": [
+    "cartography",
+    "composite",
+    "d3",
+    "d3-geo",
+    "geography",
+    "gis",
+    "map",
+    "observable-plot",
+    "projection",
+    "tree-shakeable",
+    "zero-dependencies"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./helpers": {
+      "types": "./dist/d3-projection-helpers.d.ts",
+      "import": "./dist/d3-projection-helpers.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "size": "size-limit",
+    "size:why": "size-limit --why"
+  },
+  "size-limit": [
+    {
+      "name": "Main bundle (ESM)",
+      "path": "dist/index.js",
+      "limit": "10 KB",
+      "gzip": true
+    },
+    {
+      "name": "D3 helpers (optional)",
+      "path": "dist/d3-projection-helpers.js",
+      "limit": "3 KB",
+      "gzip": true
+    }
+  ],
+  "peerDependencies": {
+    "d3-geo": ">=3.0.0",
+    "d3-geo-projection": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "d3-geo": {
+      "optional": false
+    },
+    "d3-geo-projection": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.2.0",
+    "@types/d3-geo": "^3.1.0",
+    "d3-geo": "^3.1.1",
+    "d3-geo-projection": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

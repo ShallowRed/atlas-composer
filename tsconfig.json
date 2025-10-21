@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "references": [
+    { "path": "./src" },
+    { "path": "./scripts" }
+  ],
+  "files": []
+}

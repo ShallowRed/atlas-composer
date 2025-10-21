@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "remixicon/fonts/remixicon.css";
+
+@plugin "daisyui" {
+  /* themes: fantasy --default; */
+  themes: all;
+  /* themes: light --default, dark --prefersdark; */
+}
+
+:root {
+  --bg-base-150: oklch(50% var(--base-200));
+}
+
+/* Fade transition for smooth loading/rendering */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+}
+
+/* Instant appear for skeleton, fade out only */
+.fade-instant-enter-active {
+  transition: none;
+}
+
+.fade-instant-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-instant-enter-from {
+  opacity: 1;
+}
+
+.fade-instant-leave-to {
+  opacity: 0;
+}
