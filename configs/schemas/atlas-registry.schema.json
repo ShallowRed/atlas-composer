@@ -134,11 +134,6 @@
                   "type": "string",
                   "description": "Pattern for composite presets (e.g., 'single-focus', 'equal-members')"
                 },
-                "territoryCount": {
-                  "type": "number",
-                  "description": "Number of territories for composite presets",
-                  "minimum": 1
-                },
                 "description": {
                   "description": "Description of the preset (can be i18n object or string)",
                   "oneOf": [

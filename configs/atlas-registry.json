@@ -47,7 +47,6 @@
           "type": "composite-custom",
           "isDefault": true,
           "pattern": "single-focus",
-          "territoryCount": 9,
           "configPath": "./presets/france/france-customcomposite-pseudod3cp.json",
           "description": {
             "en": "Configuration almost aligned with geoConicConformalFrance from d3-composite-projections",
@@ -62,7 +61,6 @@
           },
           "type": "composite-custom",
           "pattern": "single-focus",
-          "territoryCount": 9,
           "configPath": "./presets/france/france-customcomposite-proportionnald3cp.json",
           "description": {
             "en": "Proportional composite configuration for France",
@@ -77,7 +75,6 @@
           },
           "type": "composite-custom",
           "pattern": "single-focus",
-          "territoryCount": 9,
           "configPath": "./presets/france/france-customcomposite-nsp.json",
           "description": {
             "en": "NSP configuration for France",
@@ -151,7 +148,6 @@
           "type": "composite-custom",
           "isDefault": true,
           "pattern": "single-focus",
-          "territoryCount": 3,
           "configPath": "./presets/portugal/portugal-default.json",
           "description": {
             "en": "Custom configuration for continental Portugal and islands",
@@ -178,7 +174,7 @@
             "fr": "Vue séparée uniforme"
           },
           "type": "split",
-          "configPath": "./presets/portugal-split.json",
+          "configPath": "./presets/portugal/portugal-split.json",
           "description": {
             "en": "Same conic projection for all territories",
             "fr": "Même projection conique pour tous les territoires"
@@ -191,7 +187,7 @@
             "fr": "Projection composite d3"
           },
           "type": "built-in-composite",
-          "configPath": "./presets/portugal-built-in-composite.json",
+          "configPath": "./presets/portugal/portugal-built-in-composite.json",
           "description": {
             "en": "Predefined composite projection from d3-composite-projections",
             "fr": "Projection composite prédéfinie de d3-composite-projections"
@@ -223,8 +219,7 @@
           "type": "composite-custom",
           "isDefault": true,
           "pattern": "single-focus",
-          "territoryCount": 5,
-          "configPath": "./presets/usa-default.json",
+          "configPath": "./presets/usa/usa-default.json",
           "description": {
             "en": "Custom composite projection aligned with d3-composite-projections geoAlbersUsa",
             "fr": "Projection composite personnalisée alignée avec geoAlbersUsa de d3-composite-projections"
@@ -237,7 +232,7 @@
             "fr": "Vue unifiée standard"
           },
           "type": "unified",
-          "configPath": "./presets/usa-unified.json",
+          "configPath": "./presets/usa/usa-unified.json",
           "description": {
             "en": "Natural Earth projection centered on the United States",
             "fr": "Projection Natural Earth centrée sur les États-Unis"
@@ -250,7 +245,7 @@
             "fr": "Vue séparée uniforme"
           },
           "type": "split",
-          "configPath": "./presets/usa-split.json",
+          "configPath": "./presets/usa/usa-split.json",
           "description": {
             "en": "Conic conformal projection for all American territories",
             "fr": "Projection conique conforme pour tous les territoires américains"
@@ -263,7 +258,7 @@
             "fr": "Composite Albers"
           },
           "type": "built-in-composite",
-          "configPath": "./presets/usa-built-in-composite.json",
+          "configPath": "./presets/usa/usa-built-in-composite.json",
           "description": {
             "en": "Predefined Albers USA composite projection",
             "fr": "Projection composite Albers USA prédéfinie"
@@ -272,17 +267,17 @@
       ]
     },
     {
-      "id": "eu",
+      "id": "europe",
       "name": {
-        "en": "European Union",
-        "fr": "Union Européenne"
+        "en": "Europea",
+        "fr": "Europe"
       },
       "group": "region",
       "sortOrder": 100,
-      "configPath": "./atlases/eu.json",
+      "configPath": "./atlases/europe.json",
       "presets": [
         {
-          "id": "eu-default",
+          "id": "europe-builtincomposite-d3cp",
           "name": {
             "en": "Default custom composite",
             "fr": "Composite personnalisée par défaut"
@@ -290,7 +285,6 @@
           "type": "composite-custom",
           "isDefault": true,
           "pattern": "equal-members",
-          "territoryCount": 28,
           "configPath": "./presets/eu-default.json",
           "description": {
             "en": "Composite configuration for the European Union",

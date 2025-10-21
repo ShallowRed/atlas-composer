@@ -29,7 +29,7 @@ import type {
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
-import { getAtlasConfig, getAvailableViewModes, getDefaultPreset, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -102,8 +102,8 @@ export class InitializationService {
       let referenceScale: number | undefined
       let canvasDimensions: { width: number, height: number } | undefined
 
-      // Get default preset from registry
-      const defaultPresetDef = getDefaultPreset(atlasId)
+      // Get default preset for the current view mode from registry
+      const defaultPresetDef = getDefaultPresetForViewMode(atlasId, viewMode)
       const defaultPresetId = defaultPresetDef?.id
 
       // For composite-custom mode, preset is REQUIRED

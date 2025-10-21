@@ -41,7 +41,6 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
     - **type**: Preset type (`composite-custom`, `unified`, `split`, `built-in-composite`)
     - **isDefault**: Boolean flag marking default preset for this atlas
     - **pattern**: Pattern type for composite presets (e.g., `single-focus`)
-    - **territoryCount**: Number of territories in composite preset
     - **configPath**: Path to preset configuration file
     - **description**: Preset description (i18n object, optional)
   - **behavior**: Application behavior configuration (optional)
@@ -440,7 +439,6 @@ Presets are defined inline within atlas entries in the registry (`configs/atlas-
           "configPath": "./presets/france/france-default.json",
           "isDefault": true,
           "pattern": "single-focus",
-          "territoryCount": 10
         },
         {
           "id": "france-unified",

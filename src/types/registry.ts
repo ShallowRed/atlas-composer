@@ -38,9 +38,6 @@ export interface PresetDefinition {
   /** Pattern for composite presets (e.g., 'single-focus', 'equal-members') */
   pattern?: string
 
-  /** Number of territories for composite presets */
-  territoryCount?: number
-
   /** Description of the preset (i18n support) */
   description?: I18nValue
 }

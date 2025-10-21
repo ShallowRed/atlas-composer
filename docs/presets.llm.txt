@@ -289,7 +289,6 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
       "atlasId": "france",
       "type": "composite-custom",
       "pattern": "single-focus",
-      "territoryCount": 9,
       "description": "Configuration alignée avec geoConicConformalFrance"
     },
     {
@@ -317,7 +316,6 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
 - `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `configPath` - Required. Relative path to preset config file (e.g., "./presets/france/france-default.json" or "./presets/portugal-default.json")
 - `pattern` - (composite-custom only) Composite pattern type
-- `territoryCount` - (composite-custom only) Number of territories configured
 - `isDefault` - (optional) Marks the default preset for the atlas
 
 ## Preset File Formats

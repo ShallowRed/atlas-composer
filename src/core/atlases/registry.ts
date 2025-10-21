@@ -367,6 +367,36 @@ export function getDefaultPreset(atlasId: string) {
 }
 
 /**
+ * Get default preset for a specific view mode
+ * Filters presets by view mode type, then finds default within that filtered set
+ * Falls back to first preset of that type if no default is marked
+ */
+export function getDefaultPresetForViewMode(
+  atlasId: string,
+  viewMode: 'split' | 'built-in-composite' | 'composite-custom' | 'unified',
+) {
+  const presets = getAtlasPresets(atlasId)
+  const viewModePresets = presets.filter(p => p.type === viewMode)
+
+  if (viewModePresets.length === 0) {
+    debug('No presets found for view mode %s in atlas %s', viewMode, atlasId)
+    return undefined
+  }
+
+  // Look for default within this view mode
+  const defaultPreset = viewModePresets.find(p => p.isDefault)
+  if (defaultPreset) {
+    debug('Found default preset %s for view mode %s', defaultPreset.id, viewMode)
+    return defaultPreset
+  }
+
+  // Fallback to first preset of this type
+  const firstPreset = viewModePresets[0]
+  debug('No default for view mode %s, using first preset %s', viewMode, firstPreset?.id)
+  return firstPreset
+}
+
+/**
  * Get a specific preset by ID for an atlas
  */
 export function getPresetById(atlasId: string, presetId: string) {
