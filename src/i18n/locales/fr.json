@@ -38,6 +38,9 @@
       "usa": {
         "mainland": "États-Unis Continentaux",
         "overseas": "Territoires"
+      },
+      "world": {
+        "territories": "Pays"
       }
     }
   },

@@ -15,10 +15,3 @@ COM: Saint-Pierre-et-Miquelon, Saint-Martin, Saint-Barthélemy, Wallis-et-Futuna
 Statut sui generis: Nouvelle-Calédonie
 Terrutoires administrés: Terres australes et antarctiques françaises
 Possession d'États: Clipperton
-
-[intlify] Not found 'atlas.territories.world.territories' key in 'fr' locale messages. shared.mjs:8:17
-[intlify] Fall back to translate 'atlas.territories.world.territories' key with 'en' locale. shared.mjs:8:17
-[intlify] Not found 'atlas.territories.world.territories' key in 'en' locale messages. shared.mjs:8:17
-[intlify] Not found 'atlas.territories.world.territories' key in 'fr' locale messages. shared.mjs:8:17
-[intlify] Fall back to translate 'atlas.territories.world.territories' key with 'en' locale. shared.mjs:8:17
-[intlify] Not found 'atlas.territories.world.territories' key in 'en' locale messages.
