@@ -9,7 +9,7 @@ import { useParameterStore } from '@/stores/parameters'
  * Supports 2-axis rotation for projections with rotateLongitude parameter
  * Respects rotateLatitudeLocked state for latitude panning control
  */
-export function useProjectionPanning(projectionOverride?: string) {
+export function useProjectionPanning(projectionOverride?: string | null) {
   const configStore = useConfigStore()
   const parameterStore = useParameterStore()
 

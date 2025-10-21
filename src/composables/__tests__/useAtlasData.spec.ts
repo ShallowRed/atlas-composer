@@ -31,21 +31,6 @@ describe('useAtlasData', () => {
     })
   })
 
-  describe('loadDataForViewMode', () => {
-    it('should be a function', () => {
-      const { loadDataForViewMode } = useAtlasData()
-      expect(typeof loadDataForViewMode).toBe('function')
-    })
-
-    it('should accept viewMode parameter', () => {
-      const { loadDataForViewMode } = useAtlasData()
-      const result = loadDataForViewMode('composite-custom')
-      expect(result).toBeInstanceOf(Promise)
-      // Catch the promise to prevent unhandled rejection
-      result.catch(() => {})
-    })
-  })
-
   describe('reinitialize', () => {
     it('should be a function', () => {
       const { reinitialize } = useAtlasData()
@@ -73,18 +58,6 @@ describe('useAtlasData', () => {
       expect(result).toBeInstanceOf(Promise)
       // Catch the promise to prevent unhandled rejection
       result.catch(() => {})
-    })
-  })
-
-  describe('setupWatchers', () => {
-    it('should be a function', () => {
-      const { setupWatchers } = useAtlasData()
-      expect(typeof setupWatchers).toBe('function')
-    })
-
-    it('should setup watchers without errors', () => {
-      const { setupWatchers } = useAtlasData()
-      expect(() => setupWatchers()).not.toThrow()
     })
   })
 

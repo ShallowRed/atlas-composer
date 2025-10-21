@@ -21,6 +21,9 @@ import { computed, ref } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
+import { logger } from '@/utils/logger'
+
+const debug = logger.store.parameters
 
 export const useParameterStore = defineStore('parameters', () => {
   // Internal parameter manager instance
@@ -100,9 +103,9 @@ export const useParameterStore = defineStore('parameters', () => {
       parameterManager.setTerritoryParameter(territoryCode, key, value)
       territoryParametersVersion.value++
     }
-    catch (error) {
-      console.error(`[ParameterStore] Error setting parameter ${key} for territory ${territoryCode}:`, error)
-      throw error // Re-throw to surface bugs immediately
+    catch (err) {
+      debug('Error setting parameter %s for territory %s: %O', key, territoryCode, err)
+      throw err // Re-throw to surface bugs immediately
     }
   }
 
@@ -201,7 +204,7 @@ export const useParameterStore = defineStore('parameters', () => {
     globalParametersVersion.value++
     territoryParametersVersion.value++
 
-    console.info('[ParameterStore] All parameters cleared')
+    debug('All parameters cleared')
   }
 
   // Parameter validation

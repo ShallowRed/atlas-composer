@@ -4,13 +4,14 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { getAtlasBehavior } from '@/core/atlases/registry'
+import { getAtlasPresets } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
-import { PresetLoader } from '@/services/presets/preset-loader'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
 
+const debug = logger.vue.component
 const { t } = useI18n()
 const configStore = useConfigStore()
 const geoDataStore = useGeoDataStore()
@@ -19,24 +20,20 @@ const isLoading = ref(false)
 const loadError = ref<string | null>(null)
 const selectedPreset = ref<string>('')
 
-// Cache for preset metadata to avoid repeated fetches
-const presetMetadata = ref<Map<string, { name?: string | Record<string, string> }>>(new Map())
-
-// Get available presets from registry behavior
-const availablePresets = computed(() => {
-  const atlasId = configStore.selectedAtlas
-  if (!atlasId)
-    return []
-  const behavior = getAtlasBehavior(atlasId)
-  return behavior?.availablePresets || []
-})
-
 // Current preset selection
 const currentPreset = computed({
   get: () => {
     const atlasId = configStore.selectedAtlas
-    const behavior = getAtlasBehavior(atlasId)
-    return selectedPreset.value || behavior?.defaultPreset || ''
+    const viewMode = configStore.viewMode
+    if (!atlasId || !viewMode)
+      return ''
+
+    // Get default preset for current view mode
+    const presets = getAtlasPresets(atlasId)
+    const viewModePresets = presets.filter(p => p.type === viewMode)
+    const defaultPreset = viewModePresets.find(p => p.isDefault) || viewModePresets[0]
+
+    return selectedPreset.value || defaultPreset?.id || ''
   },
   set: async (presetId: string) => {
     if (!presetId || isLoading.value)
@@ -46,7 +43,7 @@ const currentPreset = computed({
     loadError.value = null
 
     try {
-      console.info(`[PresetSelector] Loading preset: ${presetId}`)
+      debug('Loading preset: %s', presetId)
 
       // Use InitializationService for consistent preset loading
       const result = await InitializationService.loadPreset({
@@ -56,13 +53,13 @@ const currentPreset = computed({
 
       if (!result.success) {
         loadError.value = result.errors.join(', ')
-        console.error('[PresetSelector] Failed to load preset:', result.errors)
+        debug('Failed to load preset: %o', result.errors)
         return
       }
 
       // Display warnings if any
       if (result.warnings.length > 0) {
-        console.warn('[PresetSelector] Preset loaded with warnings:', result.warnings)
+        debug('Preset loaded with warnings: %o', result.warnings)
       }
 
       // Update selected preset
@@ -93,25 +90,25 @@ const currentPreset = computed({
             result.state.canvas.referenceScale,
             result.state.canvas.dimensions,
           )
-          console.info(`[PresetSelector] Rebuilt composite projection with ${Object.keys(territoryParameters).length} territories`)
+          debug('Rebuilt composite projection with %d territories', Object.keys(territoryParameters).length)
         }
         else {
           // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
           Object.keys(territoryParameters).forEach((territoryCode) => {
             geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
           })
-          console.info(`[PresetSelector] Updated cartographer parameters for ${Object.keys(territoryParameters).length} territories`)
+          debug('Updated cartographer parameters for %d territories', Object.keys(territoryParameters).length)
         }
 
         // Trigger render
         geoDataStore.triggerRender()
       }
 
-      console.info(`[PresetSelector] Successfully loaded preset: ${presetId}`)
+      debug('Successfully loaded preset: %s', presetId)
     }
     catch (error) {
       loadError.value = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[PresetSelector] Error loading preset:', error)
+      debug('Error loading preset: %o', error)
     }
     finally {
       isLoading.value = false
@@ -119,39 +116,30 @@ const currentPreset = computed({
   },
 })
 
-// Preset options for dropdown - loads metadata asynchronously
+// Preset options for dropdown - gets metadata directly from atlas registry
+// Filtered by current view mode
 const presetOptions = computed(() => {
-  return availablePresets.value.map((presetId) => {
-    // Try to get cached metadata first
-    const metadata = presetMetadata.value.get(presetId)
+  const atlasId = configStore.selectedAtlas
+  const viewMode = configStore.viewMode
+  if (!atlasId || !viewMode)
+    return []
 
+  const presets = getAtlasPresets(atlasId)
+
+  // Filter presets by current view mode
+  const filteredPresets = presets.filter(preset => preset.type === viewMode)
+
+  return filteredPresets.map((preset) => {
     return {
-      value: presetId,
-      label: formatPresetLabel(presetId, metadata?.name),
+      value: preset.id,
+      label: formatPresetLabel(preset.id, preset.name),
       translated: true, // formatPresetLabel returns already-translated text, not translation keys
     }
   })
 })
 
-// Load metadata for all available presets
-watch(availablePresets, async (newPresets) => {
-  for (const presetId of newPresets) {
-    if (!presetMetadata.value.has(presetId)) {
-      try {
-        const metadata = await PresetLoader.loadMetadata(presetId)
-        if (metadata) {
-          presetMetadata.value.set(presetId, metadata)
-        }
-      }
-      catch (error) {
-        console.warn(`Failed to load metadata for preset ${presetId}:`, error)
-      }
-    }
-  }
-}, { immediate: true })
-
-// Reset selected preset when atlas changes
-watch(() => configStore.selectedAtlas, () => {
+// Reset selected preset when atlas or view mode changes
+watch(() => [configStore.selectedAtlas, configStore.viewMode], () => {
   selectedPreset.value = ''
 }, { immediate: true })
 

@@ -1,0 +1,330 @@
+{
+  "$schema": "../../schemas/preset-composite-custom.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "usa",
+    "atlasName": "United States",
+    "exportDate": "2025-10-20T00:00:00.000Z",
+    "createdWith": "d3-composite-projections Conversion",
+    "source": "d3-composite-projections/albersUsaTerritories.js",
+    "notes": "Parameters reproduced from d3-composite-projections built-in composite projection (extended territories version)"
+  },
+  "pattern": "single-focus",
+  "referenceScale": 1070,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "US-CONT",
+      "name": "Contiguous United States",
+      "role": "primary",
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -486.85,
+          -254.66,
+          486.85,
+          254.66
+        ]
+      },
+      "bounds": [
+        [
+          -124.71,
+          25.13
+        ],
+        [
+          -66.99,
+          49.37
+        ]
+      ],
+      "projection": {
+        "id": "albers",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            96,
+            0,
+            0
+          ],
+          "parallels": [
+            29.5,
+            45.5
+          ],
+          "scaleMultiplier": 1
+        }
+      }
+    },
+    {
+      "code": "US-AK",
+      "name": "Alaska",
+      "role": "secondary",
+      "layout": {
+        "translateOffset": [
+          -328.49,
+          215.07
+        ],
+        "pixelClipExtent": [
+          -126.26,
+          -86.67,
+          99.51,
+          34.24
+        ]
+      },
+      "bounds": [
+        [
+          -168.09,
+          54.77
+        ],
+        [
+          -130.01,
+          71.41
+        ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            154,
+            0,
+            0
+          ],
+          "center": [
+            -2,
+            58.5
+          ],
+          "parallels": [
+            55,
+            65
+          ],
+          "scaleMultiplier": 0.35
+        }
+      }
+    },
+    {
+      "code": "US-HI",
+      "name": "Hawaii",
+      "role": "secondary",
+      "layout": {
+        "translateOffset": [
+          -219.35,
+          226.84
+        ],
+        "pixelClipExtent": [
+          -9.63,
+          -49.22,
+          96.3,
+          22.47
+        ]
+      },
+      "bounds": [
+        [
+          -160.24,
+          18.96
+        ],
+        [
+          -154.8,
+          22.22
+        ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            157,
+            0,
+            0
+          ],
+          "center": [
+            -3,
+            19.9
+          ],
+          "parallels": [
+            8,
+            18
+          ],
+          "scaleMultiplier": 1
+        }
+      }
+    },
+    {
+      "code": "US-PR",
+      "name": "Puerto Rico",
+      "role": "secondary",
+      "layout": {
+        "translateOffset": [
+          374.5,
+          239.68
+        ],
+        "pixelClipExtent": [
+          -40.66,
+          -18.83,
+          37.45,
+          9.63
+        ]
+      },
+      "bounds": [
+        [
+          -67.94,
+          17.95
+        ],
+        [
+          -65.3,
+          18.52
+        ]
+      ],
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            66,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            18
+          ],
+          "parallels": [
+            8,
+            18
+          ],
+          "scaleMultiplier": 1
+        }
+      }
+    },
+    {
+      "code": "US-GU",
+      "name": "Guam",
+      "role": "secondary",
+      "layout": {
+        "translateOffset": [
+          -436.56,
+          19.26
+        ],
+        "pixelClipExtent": [
+          -17.55,
+          -74.79,
+          27.39,
+          76.51
+        ]
+      },
+      "bounds": [
+        [
+          144.65,
+          13.26
+        ],
+        [
+          144.94,
+          13.62
+        ]
+      ],
+      "projection": {
+        "id": "equirectangular",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            0,
+            0
+          ],
+          "rotate": [
+            -145,
+            -16.8,
+            0
+          ],
+          "scaleMultiplier": 1
+        }
+      }
+    },
+    {
+      "code": "US-AS",
+      "name": "American Samoa",
+      "role": "secondary",
+      "layout": {
+        "translateOffset": [
+          -526.44,
+          96.3
+        ],
+        "pixelClipExtent": [
+          72.44,
+          0.32,
+          180.51,
+          31.78
+        ]
+      },
+      "bounds": [
+        [
+          -170.82,
+          -14.36
+        ],
+        [
+          -170.57,
+          -14.26
+        ]
+      ],
+      "projection": {
+        "id": "equirectangular",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            0,
+            0
+          ],
+          "rotate": [
+            173,
+            14,
+            0
+          ],
+          "scaleMultiplier": 2
+        }
+      }
+    }
+  ],
+  "atlasMetadata": {
+    "compositeProjections": [
+      "albers-usa",
+      "albers-usa-composite",
+      "albers-usa-territories"
+    ],
+    "defaultCompositeProjection": "albers-usa",
+    "projectionPreferences": {
+      "recommended": [
+        "conic-conformal",
+        "conic-equal-area"
+      ],
+      "default": {
+        "mainland": "albers",
+        "overseas": "albers"
+      }
+    },
+    "projectionParameters": {
+      "center": {
+        "longitude": -98.5,
+        "latitude": 39.8
+      },
+      "rotate": {
+        "mainland": [
+          98.5,
+          0
+        ],
+        "azimuthal": [
+          98.5,
+          -39.8
+        ]
+      },
+      "parallels": {
+        "conic": [
+          29.5,
+          45.5
+        ]
+      }
+    }
+  }
+}

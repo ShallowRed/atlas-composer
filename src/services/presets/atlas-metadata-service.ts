@@ -12,7 +12,11 @@
  */
 
 import type { AtlasProjectionMetadata, LoadResult, Preset } from '@/core/presets'
+
+import { logger } from '@/utils/logger'
 import { PresetLoader } from './preset-loader'
+
+const debug = logger.presets.metadata
 
 export interface AtlasMetadataResult {
   success: boolean
@@ -72,7 +76,7 @@ export class AtlasMetadataService {
         }
       }
       catch (error) {
-        console.warn(`[AtlasMetadataService] Failed to load preset metadata for ${atlasId}:`, error)
+        debug('Failed to load preset metadata for %s: %o', atlasId, error)
       }
     }
 
@@ -165,7 +169,7 @@ export class AtlasMetadataService {
         return ['conic-conformal-spain']
       case 'usa':
         return ['albers-usa', 'albers-usa-composite']
-      case 'eu':
+      case 'europe':
         return ['conic-conformal-europe']
       default:
         return [`conic-conformal-${atlasId}`]

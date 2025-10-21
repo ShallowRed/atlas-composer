@@ -198,32 +198,3 @@ export type Preset
     | UnifiedPreset
     | SplitPreset
     | CompositeExistingPreset
-
-// ============================================================================
-// Registry Types
-// ============================================================================
-
-/**
- * Preset metadata in registry
- * Lightweight descriptor without full configuration
- */
-export interface PresetRegistryEntry {
-  id: string
-  name: string
-  atlasId: string
-  type: PresetType
-  description?: string
-  /** Pattern for file path resolution (for composite presets) */
-  pattern?: string
-  /** Number of territories (for composite presets) */
-  territories?: number
-}
-
-/**
- * Unified preset registry
- * Single registry for all preset types
- */
-export interface PresetRegistry {
-  version: string
-  presets: PresetRegistryEntry[]
-}

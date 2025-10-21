@@ -15,7 +15,11 @@ import type {
   ProjectionStrategyType,
 } from './types'
 import type { ProjectionPreferences } from '@/core/atlases/loader'
+
 import { ALL_PROJECTIONS } from '@/core/projections/definitions'
+import { logger } from '@/utils/logger'
+
+const debug = logger.projection.registry
 
 /**
  * Projection Registry Class
@@ -76,7 +80,7 @@ class ProjectionRegistry {
         return { recommended: ['conic-conformal-portugal'], prohibited: [] }
       case 'usa':
         return { recommended: ['albers-usa', 'albers-usa-composite'], prohibited: [] }
-      case 'eu':
+      case 'europe':
         return { recommended: ['conic-conformal-europe'], prohibited: [] }
       default:
         return { recommended: [`conic-conformal-${atlasId}`], prohibited: [] }
@@ -99,10 +103,11 @@ class ProjectionRegistry {
         // Check for collision with existing projections
         const existing = this.definitions.get(alias)
         if (existing && existing.id !== definition.id) {
-          console.error(
-            `[Registry] Alias collision detected! Alias "${alias}" from projection "${definition.id}" `
-            + `conflicts with existing projection "${existing.id}". `
-            + `The alias will be overwritten.`,
+          debug(
+            'Alias collision detected! Alias "%s" from projection "%s" conflicts with existing projection "%s". The alias will be overwritten.',
+            alias,
+            definition.id,
+            existing.id,
           )
         }
         this.definitions.set(alias, definition)

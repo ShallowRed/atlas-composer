@@ -74,7 +74,7 @@ export interface ExportedTerritory {
  * Contextual information about the export
  */
 export interface ExportMetadata {
-  /** Source atlas ID (e.g., 'france', 'portugal', 'eu') */
+  /** Source atlas ID (e.g., 'france', 'portugal', 'europe') */
   atlasId: string
 
   /** Atlas display name */

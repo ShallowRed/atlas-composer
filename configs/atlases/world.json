@@ -1,5 +1,5 @@
 {
-  "$schema": "./atlas.schema.json",
+  "$schema": "../schemas/atlas.schema.json",
   "id": "world",
   "name": "World",
   "description": "World atlas with wildcard territory loading (work in progress)",
@@ -8,11 +8,6 @@
     "territories": "world-countries-110m.json",
     "metadata": "world-metadata-110m.json"
   },
-  "viewModes": [
-    "unified"
-  ],
-  "defaultViewMode": "unified",
-  "defaultTerritoryMode": "without-antarctica",
   "territories": "*",
   "modes": [
     {

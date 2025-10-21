@@ -3,6 +3,9 @@ import type { CompositeProjection } from '@/services/projection/composite-projec
 import { path, select } from 'd3'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
+import { logger } from '@/utils/logger'
+
+const debug = logger.render.overlay
 
 /**
  * Rectangle bounds in SVG coordinate space
@@ -119,7 +122,7 @@ export class MapOverlayService {
         return pathString.length > 0 ? pathString : null
       }
       catch (err) {
-        console.error('[MapOverlayService] Error getting composition borders:', err)
+        debug('Error getting composition borders: %O', err)
       }
     }
 
@@ -138,7 +141,7 @@ export class MapOverlayService {
       return pathString.length > 0 ? pathString : null
     }
     catch (err) {
-      console.error('[MapOverlayService] Error drawing composition borders:', err)
+      debug('Error drawing composition borders: %O', err)
       return null
     }
   }

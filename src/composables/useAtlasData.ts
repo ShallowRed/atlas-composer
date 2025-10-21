@@ -1,6 +1,10 @@
+import { getAvailableViewModes, getDefaultViewMode } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { logger } from '@/utils/logger'
 import { useLoadingState } from './useLoadingState'
+
+const debug = logger.atlas.loader
 
 /**
  * Manages atlas data loading based on view mode and configuration changes
@@ -40,29 +44,13 @@ export function useAtlasData() {
           throw new Error('Initialization timeout: GeoDataStore not initialized after 5 seconds')
         }
 
-        console.info('[useAtlasData] InitializationService completed successfully')
+        debug('InitializationService completed successfully')
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
-      console.error('Initialization error:', err)
+      debug('Initialization error: %O', err)
     }
-  }
-
-  /**
-   * Load data based on current view mode
-   */
-  async function loadDataForViewMode(viewMode: string) {
-    await withMinLoadingTime(async () => {
-      // Load territory data for split and composite-custom modes (needed for individual projections)
-      if ((viewMode === 'split' || viewMode === 'composite-custom') && !geoDataStore.overseasTerritoriesData.length) {
-        await geoDataStore.loadTerritoryData()
-      }
-      // Load unified data for unified mode
-      else if (viewMode === 'unified' && !geoDataStore.rawUnifiedData) {
-        await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-      }
-    })
   }
 
   /**
@@ -71,20 +59,17 @@ export function useAtlasData() {
   async function reinitialize() {
     const atlasConfig = configStore.currentAtlasConfig
     if (!atlasConfig) {
-      console.warn('[useAtlasData] Cannot reinitialize - atlas config not loaded')
+      debug('Cannot reinitialize - atlas config not loaded')
       return
     }
 
     // Use the atlas's default view mode if current mode is not supported
-    const targetViewMode = atlasConfig.supportedViewModes.includes(configStore.viewMode)
+    const availableViewModes = getAvailableViewModes(atlasConfig.id)
+    const targetViewMode = availableViewModes.includes(configStore.viewMode)
       ? configStore.viewMode
-      : atlasConfig.defaultViewMode
+      : getDefaultViewMode(atlasConfig.id)
 
-    console.info('[useAtlasData] Starting reinitialize for viewMode:', {
-      currentViewMode: configStore.viewMode,
-      targetViewMode,
-      supportedViewModes: atlasConfig.supportedViewModes,
-    })
+    debug('Starting reinitialize (current: %s, target: %s, available: %o)', configStore.viewMode, targetViewMode, availableViewModes)
 
     try {
       await withMinLoadingTime(async () => {
@@ -93,12 +78,12 @@ export function useAtlasData() {
         // Phase 4: Data preloading is now handled by InitializationService
         // When atlas changes, InitializationService preloads all data types
         // No conditional loading needed here - all data is already loaded
-        console.info('[useAtlasData] Reinitialize complete, data preloaded by InitializationService')
+        debug('Reinitialize complete, data preloaded by InitializationService')
       })
     }
     catch (err) {
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors du changement de région'
-      console.error('[useAtlasData] Region change error:', err)
+      debug('Region change error: %O', err)
     }
   }
 
@@ -108,7 +93,7 @@ export function useAtlasData() {
   async function reloadUnifiedData() {
     if (configStore.viewMode === 'unified') {
       await withMinLoadingTime(async () => {
-        await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
+        await geoDataStore.reloadUnifiedData(configStore.territoryMode)
       })
     }
   }
@@ -116,7 +101,6 @@ export function useAtlasData() {
   return {
     showSkeleton,
     initialize,
-    loadDataForViewMode,
     reinitialize,
     reloadUnifiedData,
   }

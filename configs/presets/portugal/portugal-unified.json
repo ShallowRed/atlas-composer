@@ -1,0 +1,16 @@
+{
+  "id": "portugal-unified",
+  "name": "Portugal - Vista unificada padrão",
+  "description": "Projeção Natural Earth centrada em Portugal",
+  "atlasId": "portugal",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "center": [-15, 38],
+        "scale": 1.0
+      }
+    }
+  }
+}

@@ -12,7 +12,7 @@ const ATLAS_ICONS: Record<string, AtlasIconConfig> = {
   'france': { icon: 'ri-flag-line', flag: '🇫🇷' },
   'portugal': { icon: 'ri-flag-line', flag: '🇵🇹' },
   'spain': { icon: 'ri-flag-line', flag: '🇪🇸' },
-  'eu': { icon: 'ri-flag-line', flag: '🇪🇺' },
+  'europe': { icon: 'ri-flag-line', flag: '🇪🇺' },
   'usa': { icon: 'ri-flag-line', flag: '🇺🇸' },
   'netherlands': { icon: 'ri-flag-line', flag: '🇳🇱' },
   'japan': { icon: 'ri-flag-line', flag: '🇯🇵' },

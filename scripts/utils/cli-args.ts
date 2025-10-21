@@ -34,7 +34,7 @@ export function parseArgs(): ParsedArgs {
   const args = process.argv.slice(2)
 
   const parsed: ParsedArgs = {
-    atlas: null, // For prepare/validate scripts (france, portugal, eu)
+    atlas: null, // For prepare/validate scripts (france, portugal, europe)
     country: null, // Alias for dev scripts (lookup, analyze)
     resolution: null,
     help: false,

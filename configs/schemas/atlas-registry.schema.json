@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Registry",
+  "description": "Registry of available atlas configurations with grouping and sorting",
+  "type": "object",
+  "required": ["groups", "atlases"],
+  "properties": {
+    "groups": {
+      "type": "array",
+      "description": "Atlas group definitions with labels and display order",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "sortOrder"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique group identifier",
+            "enum": ["country", "region", "world"]
+          },
+          "label": {
+            "description": "Display label for the group (can be i18n object or string)",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"]
+              }
+            ]
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Display order of groups (lower numbers appear first)",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "atlases": {
+      "type": "array",
+      "description": "List of available atlases",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "group", "sortOrder", "configPath"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the atlas (matches config file name)",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "name": {
+            "description": "Display name for the atlas (can be i18n object or string)",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "en": { "type": "string" },
+                  "fr": { "type": "string" }
+                },
+                "required": ["en"]
+              }
+            ]
+          },
+          "group": {
+            "type": "string",
+            "description": "Category for grouping atlases in UI",
+            "enum": ["country", "region", "world"]
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Order within group (lower numbers appear first)",
+            "minimum": 0
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this is the default atlas to load on application startup"
+          },
+          "configPath": {
+            "type": "string",
+            "description": "Relative path to the atlas JSON configuration file",
+            "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
+          },
+          "presets": {
+            "type": "array",
+            "description": "Available presets for this atlas",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "type", "configPath"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique preset identifier",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "name": {
+                  "description": "Display name for the preset (can be i18n object or string)",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "en": { "type": "string" },
+                        "fr": { "type": "string" }
+                      },
+                      "required": ["en"]
+                    }
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Preset type discriminator",
+                  "enum": ["composite-custom", "unified", "split", "built-in-composite"]
+                },
+                "configPath": {
+                  "type": "string",
+                  "description": "Relative path to the preset JSON configuration file",
+                  "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
+                },
+                "isDefault": {
+                  "type": "boolean",
+                  "description": "Whether this is the default preset for the atlas"
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Pattern for composite presets (e.g., 'single-focus', 'equal-members')"
+                },
+                "description": {
+                  "description": "Description of the preset (can be i18n object or string)",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "en": { "type": "string" },
+                        "fr": { "type": "string" }
+                      },
+                      "required": ["en"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "behavior": {
+            "type": "object",
+            "description": "Application behavior configuration for this atlas. VALIDATION RULES: (1) territoryManager and territoryGroups keys MUST reference collection sets with selectionType='mutually-exclusive'. (2) territoryScope key MUST reference a collection set with selectionType='incremental'. These rules are enforced at runtime.",
+            "properties": {
+              "collectionSets": {
+                "type": "object",
+                "description": "Maps UI component locations to territory collection set keys. Keys identify where in the UI a collection set is used (e.g., 'territoryManager', 'territoryScope', 'territoryGroups'). Values are keys from the atlas's territoryCollections configuration. VALIDATION: territoryManager/territoryGroups require 'mutually-exclusive' collections; territoryScope requires 'incremental' collections.",
+                "patternProperties": {
+                  "^[a-zA-Z][a-zA-Z0-9]*$": {
+                    "type": "string",
+                    "description": "Territory collection set key to use for this UI location",
+                    "pattern": "^[a-z][a-z0-9-]*$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  }
+}

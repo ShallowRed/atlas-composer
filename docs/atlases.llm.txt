@@ -21,10 +21,9 @@
 
 ## Atlas Registry System
 
-The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata and behavior configuration:
+The atlas registry (`configs/atlas-registry.json`) defines all available atlases with metadata, behavior configuration, and inline preset definitions:
 
 ### Registry Structure
-- **defaultAtlas**: Default atlas ID to load on app startup
 - **groups**: Group definitions with labels and display order
   - **id**: Group identifier (`country`, `region`, `world`)
   - **label**: Display label (i18n object or string)
@@ -34,19 +33,32 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
   - **name**: Display name (i18n object or string)
   - **group**: Group ID for UI grouping
   - **sortOrder**: Display order within group (lower = earlier)
+  - **isDefault**: Boolean flag marking default atlas
   - **configPath**: Relative path to atlas JSON config
+  - **presets**: Array of preset definitions (inline, not referenced)
+    - **id**: Unique preset identifier
+    - **name**: Display name (i18n object)
+    - **type**: Preset type (`composite-custom`, `unified`, `split`, `built-in-composite`)
+    - **isDefault**: Boolean flag marking default preset for this atlas
+    - **pattern**: Pattern type for composite presets (e.g., `single-focus`)
+    - **configPath**: Path to preset configuration file
+    - **description**: Preset description (i18n object, optional)
   - **behavior**: Application behavior configuration (optional)
-    - **defaultPreset**: Default preset ID to load
-    - **availablePresets**: Array of preset IDs for UI selector
-    - **defaultTerritoryCollection**: Default collection ID to activate
-    - **ui**: UI-specific configuration
+    - **collectionSets**: UI-specific configuration
       - **territoryManager**: Territory manager behavior (composite-custom mode)
-        - **collectionSet**: Which collection set to use ('administrative' or 'geographic')
+        - **collectionSet**: Which collection set to use (`administrative` or `geographic`)
       - **configSection**: Config section behavior (unified/split modes)
         - **collectionSet**: Which collection set to use for territory selector dropdown
 
 The behavior object separates application-level configuration from pure atlas data.
-Atlas configs contain only territory data and collections; the registry defines how the application uses them.
+Atlas configs contain only territory data and collections; the registry defines how the application uses them and which presets are available.
+
+Presets are defined inline within their atlas entry, providing single source of truth for atlas metadata and available presets.
+Each preset type in the registry defines an available view mode for that atlas.
+
+**View Mode Discovery**: The application queries the registry to determine available view modes:
+- `getAvailableViewModes(atlasId)` - Returns unique preset types for the atlas
+- `getDefaultViewMode(atlasId)` - Returns type of preset marked with `isDefault: true`
 
 **Typical Configuration**:
 - `territoryManager.collectionSet`: 'administrative' (for composite-custom mode territory selection)
@@ -78,7 +90,7 @@ configs/
 ├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
 ├── usa.json
-├── eu.json
+├── europe.json
 └── world.json
 
 src/core/atlases/
@@ -157,12 +169,23 @@ src/public/data/
 
 ## View Modes
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| `split` | Separate maps per territory | Traditional atlases with distant territories |
-| `built-in-composite` | Pre-built D3 composite | France, Portugal, Spain |
-| `composite-custom` | User-defined layout | Any atlas, full customization |
-| `unified` | Single world map | Regional groups, geographic context |
+View modes are determined dynamically from registry presets:
+
+| Mode | Description | Determined By |
+|------|-------------|---------------|
+| `composite-custom` | User-defined layout | Preset with type='composite-custom' exists in registry |
+| `built-in-composite` | Pre-built D3 composite | Preset with type='built-in-composite' exists in registry |
+| `split` | Separate maps per territory | Preset with type='split' exists in registry |
+| `unified` | Single world map | Preset with type='unified' exists in registry |
+
+**Default View Mode**: Determined by the preset marked with `isDefault: true` in the registry entry for the atlas.
+
+**Pattern Recommendations**: `AtlasPatternService` provides recommended view modes based on atlas pattern:
+- `single-focus`: Recommends composite-custom, split, built-in-composite, unified
+- `equal-members`: Recommends unified, composite-custom
+- `hierarchical`: Recommends composite-custom, unified
+
+The registry defines what view modes are AVAILABLE (via presets), while the pattern service suggests what view modes are RECOMMENDED (based on territory structure).
 
 ## Adding a New Atlas
 
@@ -315,56 +338,68 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description (string or i18n object) |
-| `viewModes` | ⏩ | Supported view modes (default: all) |
-| `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
-| `defaultPreset` | ⚠️ | DEPRECATED: Use registry behavior.defaultPreset instead |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
-| `availablePresets` | ⚠️ | DEPRECATED: Use registry behavior.availablePresets instead |
-| `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
-| `territoryCollections` | ⏩ | Unified territory grouping system (administrative and geographic sets) |
-| `modes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
-| `territoryModes` | ⚠️ | DEPRECATED: Use territoryCollections.administrative instead |
-| `defaultTerritoryMode` | ⚠️ | DEPRECATED: Use registry behavior.defaultTerritoryCollection instead |
-| `groups` | ⚠️ | DEPRECATED: Use territoryCollections.geographic instead |
+| `territoryCollections` | ⏩ | Unified territory grouping system with selection type constraints |
+
+**View Modes**: Available view modes are determined dynamically from registry presets. Each preset type (composite-custom, unified, split, built-in-composite) defines an available view mode. The default view mode is determined by the preset marked with `isDefault: true` in the registry.
 
 ## Territory Collections System
 
-Territory collections provide a unified, flexible system for grouping territories by administrative or geographic criteria.
+Territory collections provide a unified, flexible system for grouping territories by administrative or geographic criteria. Each collection set defines a selection type that constrains how it can be used in the UI.
 
 ### Structure
-Territory collections are organized into sets, where each set contains multiple collections:
+Territory collections are organized into sets, where each set contains multiple collections and a selection type:
 
 ```json
 {
   "territoryCollections": {
-    "administrative": [
-      {
-        "id": "metropole-only",
-        "label": {"en": "Metropolitan only", "fr": "Métropole uniquement"},
-        "territoryCodes": ["FR-MET"]
-      }
-    ],
-    "geographic": [
-      {
-        "id": "mainland",
-        "label": {"en": "Mainland", "fr": "Métropole"},
-        "territoryCodes": ["FR-MET"]
-      }
-    ]
+    "administrative": {
+      "label": {"en": "Administrative", "fr": "Administratif"},
+      "selectionType": "incremental",
+      "collections": [
+        {
+          "id": "metropole-only",
+          "label": {"en": "Metropolitan only", "fr": "Métropole uniquement"},
+          "territories": ["FR-MET"]
+        }
+      ]
+    },
+    "geographic": {
+      "label": {"en": "Geographic", "fr": "Géographique"},
+      "selectionType": "mutually-exclusive",
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {"en": "Mainland", "fr": "Métropole"},
+          "territories": ["FR-MET"]
+        }
+      ]
+    }
   }
 }
 ```
 
-### Collection Sets
-- **administrative**: Selection presets that change the active territory set (e.g., "Metropolitan only", "All territories")
-- **geographic**: Visual groupings for organization and display (e.g., "Caribbean", "Pacific")
+### Collection Set Properties
+- **label**: Display label for the collection set (i18n object or string)
+- **selectionType**: Defines selection behavior:
+  - `"incremental"`: Progressive territory additions (used for territoryScope dropdowns)
+  - `"mutually-exclusive"`: Single collection selection (used for territoryManager and territoryGroups)
+- **description** (optional): Explanation of the grouping strategy
+- **collections**: Array of collection objects
 
 ### Collection Properties
 - **id**: Unique identifier within the set (kebab-case)
 - **label**: Display label (i18n object or string)
-- **territoryCodes**: Array of territory codes included in this collection
+- **territories**: Array of territory codes or `"*"` for all territories
+- **exclude** (optional): Array of territory codes to exclude when using `"*"`
+
+### Selection Type Usage
+The selection type determines which UI components can use a collection set:
+
+- **incremental** collections: Used in territory scope dropdowns (split/unified modes) where users select progressive combinations (e.g., "Mainland only" → "Mainland + DROM" → "All territories")
+- **mutually-exclusive** collections: Used in territory manager (composite mode) and territory groupings (split view) where only one collection can be active at a time (e.g., "Caribbean" OR "Pacific", not both)
 
 ### Usage in Registry Behavior
 The registry defines which collection set to use for specific UI elements:
@@ -372,54 +407,62 @@ The registry defines which collection set to use for specific UI elements:
 ```json
 {
   "behavior": {
-    "defaultTerritoryCollection": "metropole-drom",
-    "ui": {
-      "territoryManager": {
-        "collectionSet": "geographic"
-      }
+    "collectionSets": {
+      "territoryManager": "legal-status",
+      "territoryScope": "incremental",
+      "territoryGroups": "geographic"
     }
   }
 }
 ```
 
-### Migration from Legacy Systems
-The territory collections system replaces two deprecated fields:
-- **modes** / **territoryModes**: Now **territoryCollections.administrative**
-- **groups**: Now **territoryCollections.geographic**
-
-Legacy configurations continue to work through automatic transformation in the loader.
-New atlases should use territoryCollections exclusively.
+Validation enforces that `territoryManager` and `territoryGroups` reference mutually-exclusive collection sets, while `territoryScope` references incremental collection sets.
 
 ## Preset System
 
 Presets provide high-quality default territory positioning for composite-custom mode.
 
 ### Configuration
-Preset references are defined in the atlas registry behavior, not in atlas configs:
+Presets are defined inline within atlas entries in the registry (`configs/atlas-registry.json`):
 
 ```json
 {
   "atlases": [
     {
       "id": "france",
-      "behavior": {
-        "defaultPreset": "france-default",
-        "availablePresets": ["france-default", "france-compact"]
-      }
+      "name": {"en": "France", "fr": "France"},
+      "presets": [
+        {
+          "id": "france-default",
+          "name": {"en": "France - Default", "fr": "France - Par défaut"},
+          "type": "composite-custom",
+          "configPath": "./presets/france/france-default.json",
+          "isDefault": true,
+          "pattern": "single-focus",
+        },
+        {
+          "id": "france-unified",
+          "name": {"en": "France - Unified", "fr": "France - Vue unifiée"},
+          "type": "unified",
+          "configPath": "./presets/france/france-unified.json"
+        }
+      ]
     }
   ]
 }
 ```
 
 ### Location and Format
-- **Location**: `configs/presets/` directory
+- **Registry**: Preset metadata defined inline in `configs/atlas-registry.json`
+- **Config Files**: Preset configurations stored in `configs/presets/` directory
 - **Format**: ExportedCompositeConfig JSON (same as export/import format)
 
 ### Workflow
-1. Registry references preset via behavior.defaultPreset field
-2. PresetLoader loads preset from `configs/presets/{preset-id}.json`
-3. Preset provides default projections, translations, and scales for territories
-4. Applied automatically on atlas initialization in composite-custom mode
+1. Application queries atlas registry for available presets using `getAtlasPresets(atlasId)`
+2. Default preset identified by `isDefault: true` flag in preset definition
+3. PresetLoader loads preset config from path specified in `configPath` field
+4. Preset provides default projections, translations, and scales for territories
+5. Applied automatically on atlas initialization in composite-custom mode
 
 ### Benefits
 - Users get professional defaults without manual adjustment

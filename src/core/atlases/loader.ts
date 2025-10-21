@@ -10,10 +10,9 @@ import type {
   TerritoryCollection,
   TerritoryCollections,
   TerritoryConfig,
-  TerritoryGroupConfig,
-  TerritoryModeConfig,
 } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { AtlasRegistryBehavior } from '@/types/registry'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 /**
@@ -60,7 +59,7 @@ function getFallbackProjectionPreferences(atlasId: string): ProjectionPreference
       return { recommended: ['conic-conformal-portugal'] }
     case 'usa':
       return { recommended: ['albers-usa', 'albers-usa-composite'] }
-    case 'eu':
+    case 'europe':
       return { recommended: ['conic-conformal-europe'] }
     default:
       return { recommended: [`conic-conformal-${atlasId}`] }
@@ -77,8 +76,7 @@ export interface ProjectionPreferences {
 
 export interface AtlasSpecificConfig {
   projectionParams: ProjectionParameters
-  territoryModes: Record<string, TerritoryModeConfig>
-  territoryGroups?: Record<string, TerritoryGroupConfig>
+  territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
   projectionPreferences?: ProjectionPreferences
   // Raw i18n values for reactive translation
@@ -204,73 +202,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
 }
 
 /**
- * Create territory mode configurations
- * Resolves i18n values for mode labels
- */
-function createTerritoryModes(
-  config: JSONAtlasConfig,
-  mainlandCode: string,
-  isSingleFocusPattern: boolean,
-  locale: string,
-  allTerritoryCodes?: string[],
-): Record<string, TerritoryModeConfig> {
-  return Object.fromEntries(
-    (config.modes || []).map((mode) => {
-      let codes = mode.territories
-
-      // For wildcard modes, keep the "*" marker for runtime resolution
-      // For non-wildcard modes with known territories, process normally
-      if (codes.includes('*') && !allTerritoryCodes) {
-        // Wildcard atlas (like world): keep "*" for runtime resolution
-        codes = ['*']
-      }
-      else if (codes.includes('*') && allTerritoryCodes) {
-        // Non-wildcard atlas with explicit territories: expand now
-        codes = [...allTerritoryCodes]
-
-        // Handle exclusions
-        if (mode.exclude && Array.isArray(mode.exclude)) {
-          const excludeList = mode.exclude
-          codes = codes.filter((code: string) => !excludeList.includes(code))
-        }
-      }
-
-      // For single-focus atlases (France, Portugal): filter out primary code (it's shown separately)
-      // For equal-members atlases (EU, World): include all codes (all territories are equal)
-      if (isSingleFocusPattern && !codes.includes('*')) {
-        codes = codes.filter((code: string) => code !== mainlandCode)
-      }
-
-      return [
-        mode.id,
-        {
-          label: resolveI18nValue(mode.label, locale),
-          codes,
-          exclude: mode.exclude, // Store exclusions for runtime resolution
-        },
-      ]
-    }),
-  )
-}
-
-/**
- * Create territory group configurations
- * Resolves i18n values for group labels
- * DEPRECATED: Use createTerritoryCollections instead
- */
-function createTerritoryGroups(config: JSONAtlasConfig, locale: string): Record<string, TerritoryGroupConfig> {
-  return Object.fromEntries(
-    (config.groups || []).map(group => [
-      group.id.toUpperCase(),
-      {
-        label: resolveI18nValue(group.label, locale),
-        codes: group.territories,
-      },
-    ]),
-  )
-}
-
-/**
  * Create territory collections from unified territoryCollections config
  * Resolves i18n values for collection set and collection labels
  */
@@ -318,6 +249,7 @@ function createTerritoryCollections(
 
     result[setKey] = {
       label: resolveI18nValue(setConfig.label, locale),
+      selectionType: setConfig.selectionType,
       description: setConfig.description
         ? resolveI18nValue(setConfig.description, locale)
         : undefined,
@@ -370,25 +302,15 @@ function createAtlasConfig(
   config: JSONAtlasConfig,
   territories: LoadedTerritories,
   geoDataConfig: GeoDataConfig,
-  territoryModes: Record<string, TerritoryModeConfig>,
+  territoryModes: Record<string, TerritoryCollection>,
   locale: string,
 ): AtlasConfig {
-  // Use view modes from config if specified, otherwise default to all modes
-  const supportedViewModes = (config.viewModes || ['split', 'built-in-composite', 'composite-custom', 'unified']) as Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
-  const defaultViewMode = config.defaultViewMode || 'composite-custom'
-
   return {
     id: config.id,
     name: resolveI18nValue(config.name, locale),
     category: config.category,
     pattern: territories.type,
     geoDataConfig,
-    supportedViewModes,
-    defaultViewMode,
-    defaultTerritoryMode:
-      config.defaultTerritoryMode || config.modes?.[config.modes.length - 1]?.id || 'all-territories',
-    defaultPreset: config.defaultPreset,
-    availablePresets: config.availablePresets || [],
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
     compositeProjectionConfig: territories.isWildcard
       ? undefined
@@ -412,7 +334,7 @@ function createAtlasConfig(
         ? `atlas.territories.${config.id}.overseas`
         : `atlas.territories.${config.id}.territories`,
     },
-    hasTerritorySelector: (config.modes || []).length > 0 || (config.territoryCollections?.administrative?.collections || []).length > 0,
+    hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0 && Object.keys(territoryModes).length > 0),
     isWildcard: territories.isWildcard === true,
     territoryModeOptions: Object.keys(territoryModes).map(modeId => ({
       value: modeId,
@@ -429,8 +351,11 @@ function createAtlasConfig(
  * into all necessary configuration objects for the application.
  *
  * Resolves i18n values based on current locale.
+ *
+ * @param jsonConfig - The atlas JSON configuration
+ * @param registryBehavior - Optional registry behavior configuration for this atlas
  */
-export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig {
+export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: AtlasRegistryBehavior): LoadedAtlasConfig {
   // Get current locale for i18n resolution
   const locale = getCurrentLocale()
 
@@ -448,28 +373,38 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
     ? undefined // Will be resolved at runtime by GeoDataService
     : territories.all.map(t => t.code)
 
-  // Create territory modes from legacy modes or new administrative collections
-  let territoryModes: Record<string, TerritoryModeConfig>
+  // Determine which territory collection set to use for territory modes (scope dropdown)
+  // Only use if explicitly configured in registry behavior
+  // If not configured or invalid, territoryModes will be empty and dropdown hidden
+  let collectionSetKey: string | undefined
+
+  if (registryBehavior?.collectionSets?.territoryScope) {
+    collectionSetKey = registryBehavior.collectionSets.territoryScope
+    // Validate that it exists and selection type
+    const collectionSet = jsonConfig.territoryCollections?.[collectionSetKey]
+    if (!collectionSet) {
+      console.warn(
+        `territoryScope in atlas '${jsonConfig.id}' references non-existent collection set '${collectionSetKey}'. `
+        + `Territory selector will be hidden.`,
+      )
+      collectionSetKey = undefined
+    }
+    else if (collectionSet.selectionType !== 'incremental') {
+      console.warn(
+        `territoryScope in atlas '${jsonConfig.id}' references collection set '${collectionSetKey}' with selectionType='${collectionSet.selectionType}', but 'incremental' is recommended`,
+      )
+    }
+  }
+
+  // Create territory modes from territory collections
+  let territoryModes: Record<string, TerritoryCollection>
   let rawModeLabels: Record<string, I18nValue>
 
-  if (jsonConfig.modes && jsonConfig.modes.length > 0) {
-    // Use legacy modes
-    territoryModes = createTerritoryModes(
-      jsonConfig,
-      territories.mainland.code,
-      isSingleFocusPattern,
-      locale,
-      allTerritoryCodes,
-    )
-    rawModeLabels = Object.fromEntries(
-      jsonConfig.modes.map(mode => [mode.id, mode.label]),
-    )
-  }
-  else if (jsonConfig.territoryCollections?.administrative) {
-    // Transform new administrative collections to legacy territoryModes format
-    const adminSet = jsonConfig.territoryCollections.administrative
+  if (collectionSetKey && jsonConfig.territoryCollections?.[collectionSetKey]) {
+    // Transform territory collections to legacy territoryModes format
+    const collectionSet = jsonConfig.territoryCollections[collectionSetKey]!
     territoryModes = Object.fromEntries(
-      adminSet.collections.map((collection) => {
+      collectionSet.collections.map((collection) => {
         let codes: string[] = []
 
         if (collection.territories === '*') {
@@ -495,6 +430,7 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
         return [
           collection.id,
           {
+            id: collection.id,
             label: resolveI18nValue(collection.label, locale),
             codes,
             exclude: collection.exclude,
@@ -503,16 +439,22 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
       }),
     )
     rawModeLabels = Object.fromEntries(
-      adminSet.collections.map(c => [c.id, c.label]),
+      collectionSet.collections.map(c => [c.id, c.label]),
     )
   }
   else {
-    // No modes or administrative collections
+    // No valid collection set found - don't create synthetic fallback
+    // This will hide the territory selector dropdown in the UI
+    if (jsonConfig.territoryCollections && Object.keys(jsonConfig.territoryCollections).length > 0) {
+      console.warn(
+        `No valid territory collection set found for atlas '${jsonConfig.id}'. `
+        + `Registry specifies '${collectionSetKey}' but it doesn't exist. `
+        + `Territory selector will be hidden. Available collection sets: ${Object.keys(jsonConfig.territoryCollections).join(', ')}`,
+      )
+    }
     territoryModes = {}
     rawModeLabels = {}
   }
-
-  const territoryGroups = createTerritoryGroups(jsonConfig, locale)
 
   // Create territory collections from territoryCollections field
   let territoryCollections: TerritoryCollections | undefined
@@ -546,15 +488,13 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig): LoadedAtlasConfig 
   const projectionPreferences = getFallbackProjectionPreferences(jsonConfig.id)
 
   // Store raw i18n values for reactive translation (rawModeLabels already created above)
-  const rawGroupLabels = Object.fromEntries(
-    (jsonConfig.groups || []).map(group => [group.id.toUpperCase(), group.label]),
-  )
+  // Groups are no longer supported in atlas configs
+  const rawGroupLabels: Record<string, I18nValue> = {}
 
   // Create atlas-specific config
   const atlasSpecificConfig: AtlasSpecificConfig = {
     projectionParams,
     territoryModes,
-    territoryGroups,
     territoryCollections,
     projectionPreferences,
     rawModeLabels,

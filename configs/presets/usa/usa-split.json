@@ -1,0 +1,48 @@
+{
+    "$schema": "../../schemas/preset.schema.json",
+  "id": "usa-split-uniform",
+  "name": "USA - Vue séparée uniforme",
+  "description": "Projection conique conforme pour tous les territoires américains",
+  "atlasId": "usa",
+  "type": "split",
+  "config": {
+    "mainland": {
+      "projection": {
+        "id": "conic-conformal",
+        "parameters": {
+          "rotate": [98, -38, 0],
+          "parallels": [29.5, 45.5]
+        }
+      }
+    },
+    "territories": {
+      "US-AK": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [98, -38, 0],
+            "parallels": [29.5, 45.5]
+          }
+        }
+      },
+      "US-HI": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [98, -38, 0],
+            "parallels": [29.5, 45.5]
+          }
+        }
+      },
+      "US-PR": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [98, -38, 0],
+            "parallels": [29.5, 45.5]
+          }
+        }
+      }
+    }
+  }
+}

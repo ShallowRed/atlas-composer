@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getAvailableViewModes } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 
 /**
@@ -17,7 +18,7 @@ export function useViewMode() {
     if (!atlasConfig)
       return []
 
-    const supportedModes = atlasConfig.supportedViewModes || []
+    const supportedModes = getAvailableViewModes(atlasConfig.id)
 
     // All possible view mode options
     const allOptions = [

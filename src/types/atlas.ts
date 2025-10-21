@@ -5,11 +5,11 @@
  * Scope: Frontend types for atlas setup and initialization
  *
  * These types define the complete configuration for a geographic atlas
- * (France, Portugal, EU, etc.), including data sources, view modes,
+ * (France, Portugal, EU, etc.), including data sources,
  * projection settings, and UI configuration.
  */
 
-import type { CompositeProjectionConfig, ViewMode } from '@/types/composite'
+import type { CompositeProjectionConfig } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
 
 /**
@@ -57,7 +57,7 @@ export type AtlasCategory = 'country' | 'region' | 'world'
  * to configure map rendering, data loading, and UI behavior.
  */
 export interface AtlasConfig {
-  /** Unique identifier (e.g., 'france', 'portugal', 'eu') */
+  /** Unique identifier (e.g., 'france', 'portugal', 'europe') */
   id: string
 
   /** Display name (e.g., 'France', 'Portugal', 'European Union') */
@@ -69,26 +69,14 @@ export interface AtlasConfig {
   /** Data loading configuration */
   geoDataConfig: GeoDataConfig
 
-  /** Supported view modes for this atlas */
-  supportedViewModes: ViewMode[]
-
-  /** Default view mode on initialization */
-  defaultViewMode: ViewMode
-
   /** Configuration for split view mode */
   splitModeConfig?: SplitModeConfig
 
   /** Options for territory mode selector */
   territoryModeOptions?: TerritoryModeOption[]
 
-  /** Default territory mode (e.g., 'all-territories', 'metropole-only') */
-  defaultTerritoryMode?: string
-
   /** Default preset to load for composite-custom mode (e.g., 'france-default') */
   defaultPreset?: string
-
-  /** Available presets for UI selector */
-  availablePresets?: string[]
 
   /** Configuration for CompositeProjection class (mainland/overseas structure) */
   compositeProjectionConfig?: CompositeProjectionConfig

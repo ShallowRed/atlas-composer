@@ -13,7 +13,7 @@ interface Props {
   options?: DropdownOption[]
   optionGroups?: DropdownOptionGroup[]
   isOpen: boolean
-  localValue?: string
+  localValue?: string | null
   ariaLabelledby?: string
   ariaLabel?: string
   inline?: boolean

@@ -11,7 +11,7 @@
  * Examples:
  *   npm run geodata:prepare portugal
  *   npm run geodata:prepare france --resolution=10m
- *   npm run geodata:prepare eu
+ *   npm run geodata:prepare europe
  */
 
 import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
@@ -500,7 +500,7 @@ async function main(): Promise<void> {
         'Downloads Natural Earth world data and filters specific territories',
         'npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]',
         {
-          '<atlas>': 'Atlas name (portugal, france, eu)',
+          '<atlas>': 'Atlas name (portugal, france, europe)',
           '--resolution=<val>': 'Natural Earth resolution (10m, 50m, 110m) [default: 50m]',
           '--help': 'Show this help message',
         },

@@ -18,8 +18,6 @@ export type {
   CompositePreset,
   LoadResult,
   Preset,
-  PresetRegistry,
-  PresetRegistryEntry,
   PresetType,
   SplitPreset,
   SplitViewConfig,

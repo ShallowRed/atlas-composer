@@ -9,7 +9,10 @@
  */
 
 import type { ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
+import { logger } from '@/utils/logger'
 import { CompositeExportService } from './composite-export-service'
+
+const debug = logger.export.service
 
 export interface ImportResult {
   success: boolean
@@ -168,7 +171,7 @@ export class CompositeImportService {
         })
       }
       catch (error) {
-        console.warn('[CompositeImportService] Error setting scale values:', error)
+        debug('Error setting scale values: %o', error)
       }
     }
 
@@ -195,15 +198,10 @@ export class CompositeImportService {
         // Set all parameters at once (more efficient and atomic)
         parameterStore.setTerritoryParameters(territory.code, params)
 
-        console.info(`[CompositeImportService] Applied parameters for ${territory.code}:`, {
-          projectionId: params.projectionId,
-          hasPixelClipExtent: !!params.pixelClipExtent,
-          pixelClipExtent: params.pixelClipExtent,
-          translateOffset: params.translateOffset,
-        })
+        debug('Applied parameters for %s: projectionId=%s hasPixelClipExtent=%s pixelClipExtent=%o translateOffset=%o', territory.code, params.projectionId, !!params.pixelClipExtent, params.pixelClipExtent, params.translateOffset)
       }
       catch (error) {
-        console.error(`[CompositeImportService] Failed to set parameters for ${territory.code}:`, error)
+        debug('Failed to set parameters for %s: %o', territory.code, error)
         throw error // Re-throw to surface the issue instead of silently failing
       }
 
@@ -223,7 +221,7 @@ export class CompositeImportService {
           }
         }
         catch (error) {
-          console.warn(`[CompositeImportService] Failed to update projection for ${territory.code}:`, error)
+          debug('Failed to update projection for %s: %o', territory.code, error)
         }
       }
     })
@@ -245,7 +243,7 @@ export class CompositeImportService {
         })
       }
       catch (error) {
-        console.warn('[CompositeImportService] Error syncing imported values with composite projection:', error)
+        debug('Error syncing imported values with composite projection: %o', error)
       }
     }
 

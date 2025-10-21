@@ -1,0 +1,12 @@
+{
+  "$schema": "../../schemas/preset-built-in-composite.schema.json",
+  "id": "europe-built-in-composite",
+  "name": "Europe - Composite conique conforme",
+  "description": "Vue composite de l'Europe en projection conique conforme",
+  "atlasId": "europe",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "conic-conformal-europe",
+    "globalScale": 1.0
+  }
+}

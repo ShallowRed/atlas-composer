@@ -1,0 +1,11 @@
+{
+  "id": "portugal-built-in-composite",
+  "name": "Portugal - Projeção composta d3",
+  "description": "Projeção composta predefinida de d3-composite-projections",
+  "atlasId": "portugal",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "conic-conformal-portugal",
+    "globalScale": 1.0
+  }
+}

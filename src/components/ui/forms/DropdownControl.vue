@@ -27,7 +27,7 @@ type OptionGroup = DropdownOptionGroup
 interface Props {
   label: string
   icon?: string
-  modelValue?: string
+  modelValue?: string | null
   disabled?: boolean
   options?: Option[]
   optionGroups?: OptionGroup[]

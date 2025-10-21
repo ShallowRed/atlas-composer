@@ -1,6 +1,9 @@
 import type { GeoDataConfig, TerritoryConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
+import { logger } from '@/utils/logger'
+
+const debug = logger.data.loader
 
 /**
  * Represents a territory (mainland or overseas)
@@ -72,7 +75,7 @@ export class GeoDataService {
         this.topologyData = await response.json()
       }
       catch (parseError) {
-        console.error('TopoJSON parse error:', parseError)
+        debug('TopoJSON parse error: %O', parseError)
         throw new Error(`Invalid JSON in geographic data file: ${this.config.dataPath}`)
       }
 
@@ -98,7 +101,7 @@ export class GeoDataService {
         this.metadata = await metaResponse.json()
       }
       catch (parseError) {
-        console.error('Metadata parse error:', parseError)
+        debug('Metadata parse error: %O', parseError)
         throw new Error(`Invalid JSON in metadata file: ${this.config.metadataPath}`)
       }
 
@@ -108,7 +111,7 @@ export class GeoDataService {
       this.isLoaded = true
     }
     catch (error) {
-      console.error('Data loading error:', error)
+      debug('Data loading error: %O', error)
       throw error
     }
   }

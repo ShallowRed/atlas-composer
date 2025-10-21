@@ -35,7 +35,7 @@ const testCases = [
   },
   {
     name: 'EU (Migration Format)',
-    file: 'eu-default.json',
+    file: 'europe-default.json',
     description: 'Migration script format with mixed properties',
   },
 ]

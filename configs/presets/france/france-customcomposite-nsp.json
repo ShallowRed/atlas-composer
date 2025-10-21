@@ -1,0 +1,261 @@
+{
+  "$schema": "../../schemas/preset-composite-custom.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "france",
+    "atlasName": "France",
+    "exportDate": "2025-10-17T21:04:33.403Z",
+    "createdWith": "Atlas composer v1.0"
+  },
+  "pattern": "single-focus",
+  "referenceScale": 2700,
+  "canvasDimensions": {
+    "width": 760,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "FR-MET",
+      "name": "France Métropolitaine",
+      "role": "primary",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -3,
+            -46.2,
+            0
+          ],
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "conic-conformal"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          110,
+          0
+        ],
+        "pixelClipExtent": [
+          -280,
+          -250,
+          270,
+          250
+        ]
+      },
+      "bounds": [
+        [
+          -6.5,
+          41
+        ],
+        [
+          10,
+          51
+        ]
+      ]
+    },
+    {
+      "code": "FR-GP",
+      "name": "Guadeloupe",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -61.46,
+            16.14
+          ],
+          "parallels": [
+            12,
+            60
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -290,
+          -60
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
+        ]
+      },
+      "bounds": [
+        [
+          -61.81,
+          15.83
+        ],
+        [
+          -61,
+          16.52
+        ]
+      ]
+    },
+    {
+      "code": "FR-MQ",
+      "name": "Martinique",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -61.03,
+            14.67
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -210,
+          -60
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
+        ]
+      },
+      "bounds": [
+        [
+          -61.23,
+          14.39
+        ],
+        [
+          -60.81,
+          14.88
+        ]
+      ]
+    },
+    {
+      "code": "FR-GF",
+      "name": "Guyane",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -53.2,
+            3.9
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -250,
+          80
+        ],
+        "pixelClipExtent": [
+          -80,
+          -100,
+          80,
+          100
+        ]
+      },
+      "bounds": [
+        [
+          -54.6,
+          2.1
+        ],
+        [
+          -51.6,
+          5.8
+        ]
+      ]
+    },
+    {
+      "code": "FR-RE",
+      "name": "La Réunion",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            55.52,
+            -21.13
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -290,
+          -140
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
+        ]
+      },
+      "bounds": [
+        [
+          55.22,
+          -21.39
+        ],
+        [
+          55.84,
+          -20.87
+        ]
+      ]
+    },
+    {
+      "code": "FR-YT",
+      "name": "Mayotte",
+      "role": "secondary",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            45.16,
+            -12.8
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -210,
+          -140
+        ],
+        "pixelClipExtent": [
+          -40,
+          -40,
+          40,
+          40
+        ]
+      },
+      "bounds": [
+        [
+          44.98,
+          -13
+        ],
+        [
+          45.3,
+          -12.64
+        ]
+      ]
+    }
+  ]
+}

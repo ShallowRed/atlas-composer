@@ -45,6 +45,9 @@ import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionStrategy } from '@/core/projections/types'
+import { logger } from '@/utils/logger'
+
+const debug = logger.projection.factory
 
 /**
  * Projection Factory Class
@@ -64,7 +67,7 @@ export class ProjectionFactory {
   public static create(options: CreateProjectionOptions): GeoProjection | null {
     // Validate options
     if (!options || !options.projection) {
-      console.error('[ProjectionFactory] Invalid options: projection is required')
+      debug('Invalid options: projection is required')
       return null
     }
 
@@ -75,7 +78,7 @@ export class ProjectionFactory {
     if (typeof projection === 'string') {
       definition = projectionRegistry.get(projection)
       if (!definition) {
-        console.error(`[ProjectionFactory] Unknown projection: ${projection}`)
+        debug('Unknown projection: %s', projection)
         return null
       }
     }
@@ -101,9 +104,7 @@ export class ProjectionFactory {
         return this.createD3Composite(definition.id, finalParams)
 
       default:
-        console.error(
-          `[ProjectionFactory] Unknown strategy: ${definition.strategy}`,
-        )
+        debug('Unknown strategy: %s', definition.strategy)
         return null
     }
   }
@@ -185,7 +186,7 @@ export class ProjectionFactory {
         break
 
       default:
-        console.error(`[ProjectionFactory] Unknown D3 builtin: ${id}`)
+        debug('Unknown D3 builtin: %s', id)
         return null
     }
 
@@ -279,7 +280,7 @@ export class ProjectionFactory {
         break
 
       default:
-        console.error(`[ProjectionFactory] Unknown D3 extended: ${id}`)
+        debug('Unknown D3 extended: %s', id)
         return null
     }
 
@@ -319,8 +320,8 @@ export class ProjectionFactory {
       case 'conic-conformal-europe':
       case 'europe-composite':
       case 'composite-europe':
-      case 'eu-composite':
-      case 'composite-eu':
+      case 'europe-composite':
+      case 'composite-europe':
         projectionFn = d3CompositeProjEurope.default
         break
 
@@ -391,12 +392,12 @@ export class ProjectionFactory {
         break
 
       default:
-        console.error(`[ProjectionFactory] Unknown composite projection: ${id}`)
+        debug('Unknown composite projection: %s', id)
         return null
     }
 
     if (!projectionFn) {
-      console.error(`[ProjectionFactory] Projection function is null for: ${id}`)
+      debug('Projection function is null for: %s', id)
       return null
     }
 

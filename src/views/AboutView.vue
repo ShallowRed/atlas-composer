@@ -62,7 +62,7 @@ const { t } = useI18n()
             <li>{{ t('about.atlases.france') }}</li>
             <li>{{ t('about.atlases.portugal') }}</li>
             <li>{{ t('about.atlases.spain') }}</li>
-            <li>{{ t('about.atlases.eu') }}</li>
+            <li>{{ t('about.atlases.europe') }}</li>
             <li>{{ t('about.atlases.usa') }}</li>
           </ul>
         </div>

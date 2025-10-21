@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset-built-in-composite.json",
+  "title": "Built-in Composite Preset",
+  "description": "Schema for built-in composite view mode presets (d3-composite-projections)",
+  "type": "object",
+  "required": ["id", "name", "atlasId", "type", "config"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique preset identifier (kebab-case, e.g., 'france-built-in-composite')"
+    },
+    "name": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Human-readable preset name"
+    },
+    "description": {
+      "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+      "description": "Optional preset description"
+    },
+    "atlasId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Target atlas ID"
+    },
+    "type": {
+      "type": "string",
+      "const": "built-in-composite",
+      "description": "Preset type discriminator"
+    },
+    "config": {
+      "type": "object",
+      "required": ["projectionId"],
+      "properties": {
+        "projectionId": {
+          "type": "string",
+          "description": "D3 composite projection ID (e.g., 'conic-conformal-france', 'albersUsa')"
+        },
+        "globalScale": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10,
+          "default": 1.0,
+          "description": "Optional global scale multiplier"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

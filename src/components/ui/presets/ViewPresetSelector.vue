@@ -6,7 +6,9 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useConfigStore } from '@/stores/config'
+import { logger } from '@/utils/logger'
 
+const debug = logger.vue.component
 const { t } = useI18n()
 const configStore = useConfigStore()
 
@@ -18,7 +20,7 @@ const presetOptions = computed<DropdownOption[]>(() => {
     value: preset.id,
     label: preset.name,
     translated: true, // Preset names are already in final form
-    icon: getPresetIcon(preset.viewMode),
+    icon: getPresetIcon(preset.type),
   }))
 })
 
@@ -60,7 +62,7 @@ async function handlePresetChange(presetId: string) {
     await configStore.loadViewPreset(presetId)
   }
   catch (error) {
-    console.error('[ViewPresetSelector] Failed to load preset:', error)
+    debug('Failed to load preset: %o', error)
     // Could show error toast here
   }
 }

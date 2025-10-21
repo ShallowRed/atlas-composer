@@ -29,7 +29,7 @@ import type {
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
-import { getAtlasBehavior, getAtlasConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -39,6 +39,9 @@ import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useUIStore } from '@/stores/ui'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.service
 
 /**
  * Central initialization service
@@ -63,12 +66,7 @@ export class InitializationService {
     const { atlasId, preserveViewMode = false } = options
 
     try {
-      // Step 0: Clear all existing data (Phase 4: Clear reset strategy)
-      const geoDataStore = useGeoDataStore()
-      geoDataStore.setReinitializing(true)
-      await this.clearAllApplicationData()
-
-      // Step 1: Ensure atlas is loaded
+      // Step 1: Ensure atlas is loaded (BEFORE clearing data)
       if (!isAtlasLoaded(atlasId)) {
         await loadAtlasAsync(atlasId)
       }
@@ -76,15 +74,23 @@ export class InitializationService {
       const atlasConfig = getAtlasConfig(atlasId)
       const atlasService = new AtlasService(atlasId)
 
-      // Step 2: Determine view mode
+      // Step 2: Validate configuration (BEFORE clearing data)
+      // Determine view mode
       const configStore = useConfigStore()
       const currentViewMode = configStore.viewMode as ViewMode
-      const viewMode = preserveViewMode && atlasConfig.supportedViewModes.includes(currentViewMode)
+      const availableViewModes = getAvailableViewModes(atlasId)
+      const viewMode = preserveViewMode && availableViewModes.includes(currentViewMode)
         ? currentViewMode
-        : atlasConfig.defaultViewMode
+        : getDefaultViewMode(atlasId)
 
-      // Step 3: Determine territory mode
+      // Determine territory mode (validate it exists BEFORE clearing data)
       const territoryMode = this.getTerritoryMode(atlasConfig)
+
+      // Step 3: Clear all existing data (AFTER validation succeeds)
+      // Only clear data once we know the atlas can be loaded successfully
+      const geoDataStore = useGeoDataStore()
+      geoDataStore.setReinitializing(true)
+      await this.clearAllApplicationData()
 
       // Step 4: Load and validate preset (if available and in composite-custom mode)
       let preset: Preset | null = null
@@ -96,17 +102,27 @@ export class InitializationService {
       let referenceScale: number | undefined
       let canvasDimensions: { width: number, height: number } | undefined
 
-      // Get default preset from registry behavior
-      const atlasBehavior = getAtlasBehavior(atlasId)
-      const defaultPreset = atlasBehavior?.defaultPreset
+      // Get default preset for the current view mode from registry
+      const defaultPresetDef = getDefaultPresetForViewMode(atlasId, viewMode)
+      const defaultPresetId = defaultPresetDef?.id
 
-      if (defaultPreset && viewMode === 'composite-custom') {
-        const presetResult = await PresetLoader.loadPreset(defaultPreset)
+      // For composite-custom mode, preset is REQUIRED
+      if (viewMode === 'composite-custom') {
+        if (!defaultPresetId) {
+          return {
+            success: false,
+            errors: [`No default preset defined for atlas '${atlasId}' in composite-custom mode`],
+            warnings: [],
+            state: null,
+          }
+        }
+
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.success || !presetResult.data) {
           return {
             success: false,
-            errors: [`Failed to load default preset '${defaultPreset}': ${presetResult.errors.join(', ')}`],
+            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
             warnings: presetResult.warnings || [],
             state: null,
           }
@@ -133,16 +149,61 @@ export class InitializationService {
           canvasDimensions = preset.config.canvasDimensions
         }
       }
+      // For unified/split/built-in-composite modes, preset is also REQUIRED
+      else if (['unified', 'split', 'built-in-composite'].includes(viewMode)) {
+        if (!defaultPresetId) {
+          return {
+            success: false,
+            errors: [`No default preset defined for atlas '${atlasId}' in ${viewMode} mode`],
+            warnings: [],
+            state: null,
+          }
+        }
+
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
+
+        if (!presetResult.success || !presetResult.data) {
+          return {
+            success: false,
+            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
+            warnings: presetResult.warnings || [],
+            state: null,
+          }
+        }
+
+        preset = presetResult.data
+
+        // Validate preset type matches view mode
+        if (preset.type !== viewMode) {
+          return {
+            success: false,
+            errors: [`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`],
+            warnings: [],
+            state: null,
+          }
+        }
+
+        // Validate preset
+        const validation = PresetValidationService.validatePreset(preset, atlasConfig)
+        if (!validation.isValid) {
+          return {
+            success: false,
+            errors: validation.errors,
+            warnings: validation.warnings,
+            state: null,
+          }
+        }
+      }
 
       // Step 5: Get atlas metadata
       const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(
         atlasId,
-        defaultPreset,
+        defaultPresetId,
       )
 
       // Step 6: Determine projections
-      const compositeProjection = await this.getCompositeProjection(atlasId, defaultPreset, atlasMetadata)
-      const selectedProjection = await this.getSelectedProjection(atlasId, defaultPreset, atlasMetadata)
+      const compositeProjection = await this.getCompositeProjection(atlasId, defaultPresetId, atlasMetadata)
+      const selectedProjection = await this.getSelectedProjection(atlasId, defaultPresetId, atlasMetadata)
 
       // Step 7: Build application state
       const state: ApplicationState = {
@@ -154,7 +215,7 @@ export class InitializationService {
         territoryMode,
         preset: preset
           ? {
-              id: defaultPreset || 'unknown',
+              id: defaultPresetId || 'unknown',
               type: preset.type,
               data: preset,
             }
@@ -186,11 +247,7 @@ export class InitializationService {
       // Step 8: Filter atlas compositeConfig to only include territories defined in preset
       // Preset is the source of truth for which territories to render
       const filteredAtlasConfig = this.filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
-      console.info('[InitializationService] Filtered atlas config', {
-        atlasId,
-        presetTerritories: Object.keys(state.parameters.territories),
-        territoriesInConfig: Object.keys(filteredAtlasConfig.compositeProjectionConfig || {}),
-      })
+      debug('Filtered atlas config for %s: %d preset territories', atlasId, Object.keys(state.parameters.territories).length)
 
       // Step 8a: Apply state to stores
       await this.applyStateToStores(state)
@@ -540,7 +597,8 @@ export class InitializationService {
       }
 
       // Step 1: Validate view mode is supported
-      if (!atlasConfig.supportedViewModes.includes(viewMode as ViewMode)) {
+      const availableViewModes = getAvailableViewModes(atlasConfig.id)
+      if (!availableViewModes.includes(viewMode as ViewMode)) {
         return {
           success: false,
           errors: [`View mode '${viewMode}' is not supported by atlas '${atlasConfig.id}'`],
@@ -625,7 +683,7 @@ export class InitializationService {
       )
 
       if (validationErrors.length > 0) {
-        console.warn('[InitializationService] Parameter validation warnings:', validationErrors)
+        debug('Parameter validation warnings: %O', validationErrors)
       }
     }
 
@@ -664,12 +722,16 @@ export class InitializationService {
    * Get territory mode for an atlas
    */
   private static getTerritoryMode(config: any): string {
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
-    }
     if (config.hasTerritorySelector && config.territoryModeOptions?.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
+
+    // For atlases without territory selector (e.g., wildcard atlases like world)
+    // Return a default mode identifier
+    if (!config.hasTerritorySelector || config.isWildcard) {
+      return 'all-territories'
+    }
+
     throw new Error('No territory mode options available for atlas')
   }
 
@@ -719,7 +781,7 @@ export class InitializationService {
    * Called on atlas change to ensure no contamination between atlases
    */
   private static async clearAllApplicationData(): Promise<void> {
-    console.info('[InitializationService] Clearing all application data')
+    debug('Clearing all application data')
 
     const parameterStore = useParameterStore()
     const geoDataStore = useGeoDataStore()
@@ -735,7 +797,7 @@ export class InitializationService {
     const presetDefaults = getSharedPresetDefaults()
     presetDefaults.clearAll()
 
-    console.info('[InitializationService] All application data cleared')
+    debug('All application data cleared')
   }
 
   /**
@@ -748,14 +810,14 @@ export class InitializationService {
   private static async preloadAtlasData(territoryMode: string): Promise<void> {
     const geoDataStore = useGeoDataStore()
 
-    console.info('[InitializationService] Preloading all atlas data types')
+    debug('Preloading all atlas data types')
 
     try {
       // Use geoDataStore's preload method that loads territory + unified data in parallel
       await geoDataStore.loadAllAtlasData(territoryMode)
     }
     catch (error) {
-      console.error('[InitializationService] Failed to preload atlas data:', error)
+      debug('Failed to preload atlas data: %o', error)
       throw error
     }
   }
@@ -774,11 +836,11 @@ export class InitializationService {
     const hasUnifiedData = geoDataStore.rawUnifiedData !== null
 
     if (hasTerritoryData && hasUnifiedData) {
-      console.info('[InitializationService] Atlas data already loaded, skipping preload')
+      debug('Atlas data already loaded, skipping preload')
       return
     }
 
-    console.info('[InitializationService] Atlas data not fully loaded, preloading...')
+    debug('Atlas data not fully loaded, preloading...')
     await this.preloadAtlasData(territoryMode)
   }
 
@@ -809,7 +871,7 @@ export class InitializationService {
         territoriesInPreset.has(t.code),
       )
 
-      console.info(`[InitializationService] Filtered compositeConfig: ${territoriesInPreset.size} territories in preset, ${filteredOverseas.length} overseas territories`)
+      debug('Filtered single-focus: %d territories in preset, %d overseas', territoriesInPreset.size, filteredOverseas.length)
 
       return {
         ...atlasConfig,
@@ -828,7 +890,7 @@ export class InitializationService {
         territoriesInPreset.has(t.code),
       )
 
-      console.info(`[InitializationService] Filtered compositeConfig: ${territoriesInPreset.size} territories in preset (${filteredMainlands.length} mainlands, ${filteredOverseas.length} overseas)`)
+      debug('Filtered equal-members: %d territories in preset (%d mainlands, %d overseas)', territoriesInPreset.size, filteredMainlands.length, filteredOverseas.length)
 
       return {
         ...atlasConfig,
@@ -859,8 +921,8 @@ export class InitializationService {
   ): string[] {
     const errors: string[] = []
 
-    // Skip validation for unified/split modes - they use global projection, not per-territory
-    if (viewMode === 'unified' || viewMode === 'split') {
+    // Skip validation for unified/split/built-in-composite modes - they use global projection, not per-territory
+    if (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite') {
       return errors
     }
 
@@ -892,7 +954,7 @@ export class InitializationService {
     }
 
     if (errors.length > 0) {
-      console.error('[InitializationService] Territory parameter validation failed:', errors)
+      debug('Territory parameter validation failed: %O', errors)
     }
 
     return errors
@@ -952,7 +1014,7 @@ export class InitializationService {
     }
 
     if (errors.length > 0) {
-      console.error('[InitializationService] Projection parameter validation failed:', errors)
+      debug('Projection parameter validation failed: %O', errors)
     }
 
     return errors

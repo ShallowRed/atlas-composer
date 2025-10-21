@@ -17,7 +17,7 @@
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
-    "eu": "European Union",
+    "europe": "European Union",
     "usa": "United States",
     "territories": {
       "france": {
@@ -32,12 +32,15 @@
         "mainland": "Peninsular Spain",
         "overseas": "Overseas territories"
       },
-      "eu": {
+      "europe": {
         "territories": "Member States"
       },
       "usa": {
         "mainland": "Continental United States",
         "overseas": "Territories"
+      },
+      "world": {
+        "territories": "Countries"
       }
     }
   },
@@ -98,6 +101,17 @@
       "resetOverrides": "Reset all parameter overrides for this territory",
       "noRelevantParameters": "No adjustable parameters",
       "noRelevantParametersMessage": "This projection family ({family}) has no adjustable parameters for individual territories."
+    },
+    "setManager": {
+      "title": "Territory manager",
+      "active": "Active territories",
+      "remove": "Remove territory",
+      "noActive": "No active territory set",
+      "available": "Available territories",
+      "add": "Click to add",
+      "noCollections": "No territory collections available",
+      "groupingLogic": "Grouping logic",
+      "switchGrouping": "Switch grouping"
     }
   },
   "view": {
@@ -251,7 +265,7 @@
       "france": "France",
       "portugal": "Portugal",
       "spain": "Spain",
-      "eu": "European Union",
+      "europe": "European Union",
       "usa": "United States"
     },
     "technologies": {

@@ -71,7 +71,7 @@ describe('compositeExportService', () => {
 
       const exported = CompositeExportService.exportToJSON(
         compositeProj,
-        'eu',
+        'europe',
         'European Union',
         mockEqualMembersConfig,
       )

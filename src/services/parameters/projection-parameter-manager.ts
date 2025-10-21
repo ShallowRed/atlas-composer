@@ -17,9 +17,10 @@ import type {
 } from '@/types/projection-parameters'
 
 import { getRelevantParameters } from '@/core/projections/parameters'
-import {
-  mergeParameters,
-} from '@/types/projection-parameters'
+import { mergeParameters } from '@/types/projection-parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.parameters.manager
 
 /**
  * Parameter manager configuration
@@ -239,7 +240,7 @@ export class ProjectionParameterManager {
     // Clear all territory parameters
     this.territoryParameters.clear()
 
-    console.info('[ProjectionParameterManager] All parameters cleared')
+    debug('All parameters cleared')
   }
 
   /**

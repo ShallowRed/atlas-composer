@@ -41,7 +41,7 @@ jobs:
         run: |
           pnpm run geodata:prepare france
           pnpm run geodata:prepare portugal
-          pnpm run geodata:prepare eu
+          pnpm run geodata:prepare europe
 
       - name: Build
         run: pnpm build

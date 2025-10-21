@@ -213,8 +213,8 @@ DOM Update
    - Type-safe props and events (vue-props.ts, composables.ts)
 
 8. **State Domain** (stores/)
-   - Configuration state: configStore (361 lines) - Atlas, view mode, projections
-   - Geographic data state: geoData (200 lines) - GeoJSON data, caching
+   - Configuration state: configStore - Atlas, view mode, projections
+   - Geographic data state: geoData - GeoJSON data, caching
    - UI state: ui.ts - Loading states, modals, toasts
    - Territory state: territory.ts - Territory-specific transforms
    - Reactive computed properties and watchers
@@ -238,31 +238,31 @@ App.vue
 
 ### Composables (9 total)
 **Data Loading**:
-- useAtlasData (128 lines) - Orchestrates all data loading
-- useLoadingState (32 lines) - Skeleton loading state
+- useAtlasData - Orchestrates all data loading
+- useLoadingState - Skeleton loading state
 
 **Store Abstraction**:
-- useProjectionConfig (58 lines) - Projection helpers
-- useViewMode (34 lines) - View mode options
-- useTerritoryConfig (27 lines) - Territory configuration
+- useProjectionConfig - Projection helpers
+- useViewMode - View mode options
+- useTerritoryConfig - Territory configuration
 
 **Component Logic**:
-- useTerritoryTransforms (155 lines) - Territory control logic
-- useProjectionFiltering (91 lines) - Projection search/filter
-- useProjectionRecommendations (78 lines) - Recommendation display
+- useTerritoryTransforms - Territory control logic
+- useProjectionFiltering - Projection search/filter
+- useProjectionRecommendations - Recommendation display
 
 **Validation**:
-- useProjectionValidation (148 lines) - Projection validation
+- useProjectionValidation - Projection validation
 
 ### State Management
-**configStore** (361 lines):
+**configStore**:
 - Atlas selection (current atlas, region, territories)
 - View mode (composite, split, unified)
 - Projection mode (existing, custom)
 - Projection parameters (custom overrides)
 - Computed: effective parameters with priority resolution
 
-**geoDataStore** (200 lines):
+**geoDataStore**:
 - GeoJSON data caching
 - Territory data management
 - Loading states
@@ -272,12 +272,12 @@ App.vue
 - Territory: Territory-specific transforms and states
 
 ### Type Safety
-**vue-props.ts** (130 lines):
+**vue-props.ts**:
 - MapRendererProps, ViewComponentProps
 - TerritoryControlsProps, ProjectionSelectorProps
 - Centralized prop definitions with defaults
 
-**composables.ts** (240 lines):
+**composables.ts**:
 - Return type interfaces for all composables
 - LoadingState, ProjectionConfig, TerritoryConfig, ViewModeConfig
 - TerritoryTransforms, AtlasData, ProjectionFiltering
@@ -373,8 +373,8 @@ The standalone projection loader is published as `@atlas-composer/projection-loa
 ```
 packages/projection-loader/
 ├── src/
-│   ├── standalone-projection-loader.ts    # Core loader (628 lines)
-│   ├── d3-projection-helpers.ts           # Optional D3 factories (134 lines)
+│   ├── standalone-projection-loader.ts    # Core loader
+│   ├── d3-projection-helpers.ts           # Optional D3 factories
 │   └── index.ts                           # Public exports
 ├── __tests__/                             # Test suite (19 tests)
 ├── examples/                              # Usage examples (5 examples)

@@ -36,7 +36,7 @@ function getConfigsDir(): string {
 /**
  * Load unified JSON config and transform to backend format
  *
- * @param atlasName - Name of the atlas (e.g., 'portugal', 'france', 'eu')
+ * @param atlasName - Name of the atlas (e.g., 'portugal', 'france', 'europe')
  * @returns Both unified and backend formats
  */
 export async function loadConfig(atlasName: string): Promise<LoadedConfig> {

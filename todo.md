@@ -2,9 +2,11 @@
 
 ## Important :
 - fix portugal and usa default presets
--  We should group territory tags in TerritorySetManager according to atlas defined groups. Lets also keep them at the same place wether they are active or inactive, to avoid layout shifts when toggling them.
+- add other usa composite projections (e.g. albers usa)
+- fix or remove zoom in unified view
 
 ## Nice to have :
+- imporve error handling : when preset is wrong or not found, we should not have a single change in render or ui, this is not the case right now
 - improve test coverage (in both direction, make sure we don't miss anything, and remove useless tests)
 - new feature : add a zoomed inset in composition
 - new feature : a two way converter between d3-composite-projections and json presets

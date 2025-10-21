@@ -1,0 +1,12 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "id": "usa-built-in-composite",
+  "name": "USA - Composite Albers",
+  "description": "Projection composite Albers USA prédéfinie",
+  "atlasId": "usa",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "albers-usa",
+    "globalScale": 1.0
+  }
+}

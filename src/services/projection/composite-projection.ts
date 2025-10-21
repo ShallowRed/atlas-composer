@@ -3,6 +3,9 @@ import type { CompositeProjectionConfig, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { ProjectionFactory } from '@/core/projections/factory'
+import { logger } from '@/utils/logger'
+
+const debug = logger.projection.composite
 
 /**
  * Parameter provider interface for dependency injection
@@ -61,7 +64,7 @@ export class CompositeProjection {
 
       // Debug: Log what we got from parameter provider
       if (!dynamicParams.projectionId) {
-        console.warn(`[CompositeProjection.getParametersForTerritory] Territory ${territoryCode}: projectionId MISSING from parameter provider!`, {
+        debug('Territory %s: projectionId MISSING from parameter provider', territoryCode, {
           hasProvider: !!this.parameterProvider,
           dynamicParamsKeys: Object.keys(dynamicParams),
           projectionId: dynamicParams.projectionId,
@@ -178,7 +181,7 @@ export class CompositeProjection {
 
       // Skip territories without projectionId (not in preset)
       if (!territoryParams.projectionId) {
-        console.info(`[CompositeProjection] Skipping territory ${territory.code} - not defined in preset (projectionId missing)`)
+        debug('Skipping territory %s - not defined in preset (projectionId missing)', territory.code)
         return
       }
 
@@ -300,7 +303,7 @@ export class CompositeProjection {
 
       // Skip territories without projectionId (not in preset)
       if (!territoryParams.projectionId) {
-        console.info(`[CompositeProjection] Skipping territory ${territory.code} - not defined in preset (projectionId missing)`)
+        debug('Skipping territory %s - not defined in preset (projectionId missing)', territory.code)
         return
       }
 
@@ -362,7 +365,7 @@ export class CompositeProjection {
     }
 
     // Fallback to mercator if projection creation fails
-    console.warn(`[CompositeProjection] Failed to create projection: ${projectionType}, falling back to Mercator`)
+    debug('Failed to create projection: %s, falling back to Mercator', projectionType)
     return ProjectionFactory.createById('mercator')!
   }
 
@@ -409,7 +412,7 @@ export class CompositeProjection {
     // Create new projection using ProjectionFactory
     const factoryProjection = ProjectionFactory.createById(projectionType)
     if (!factoryProjection) {
-      console.error(`[CompositeProjection] Failed to create projection: ${projectionType}`)
+      debug('Failed to create projection: %s', projectionType)
       return
     }
 
@@ -527,13 +530,13 @@ export class CompositeProjection {
    */
   updateTerritoryParameters(territoryCode: string) {
     if (!this.parameterProvider) {
-      console.warn(`[CompositeProjection] No parameter provider available for territory ${territoryCode}`)
+      debug('No parameter provider available for territory %s', territoryCode)
       return // No parameter provider, nothing to update
     }
 
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (!subProj) {
-      console.warn(`[CompositeProjection] Territory ${territoryCode} not found in subprojections`)
+      debug('Territory %s not found in subprojections', territoryCode)
       return
     }
 
@@ -543,7 +546,7 @@ export class CompositeProjection {
       const projection = subProj.projection
 
       if (!projection) {
-        console.error(`[CompositeProjection] Projection not found for territory ${territoryCode}`)
+        debug('Projection not found for territory %s', territoryCode)
         return
       }
 
@@ -555,7 +558,7 @@ export class CompositeProjection {
           projection.rotate(rotate)
         }
         else {
-          console.warn(`[CompositeProjection] Invalid rotate parameters for ${territoryCode}:`, params.rotate)
+          debug('Invalid rotate parameters for %s: %o', territoryCode, params.rotate)
         }
       }
       else if (params.center) {
@@ -565,7 +568,7 @@ export class CompositeProjection {
           projection.center(center)
         }
         else {
-          console.warn(`[CompositeProjection] Invalid center parameters for ${territoryCode}:`, params.center)
+          debug('Invalid center parameters for %s: %o', territoryCode, params.center)
         }
       }
 
@@ -576,7 +579,7 @@ export class CompositeProjection {
           (projection as any).parallels(parallels)
         }
         else {
-          console.warn(`[CompositeProjection] Invalid parallels parameters for ${territoryCode}:`, params.parallels)
+          debug('Invalid parallels parameters for %s: %o', territoryCode, params.parallels)
         }
       }
 
@@ -603,7 +606,7 @@ export class CompositeProjection {
       this.compositeProjection = null
     }
     catch (error) {
-      console.error(`[CompositeProjection] Error updating parameters for territory ${territoryCode}:`, error)
+      debug('Error updating parameters for territory %s: %o', territoryCode, error)
       // Don't re-throw, just log the error to prevent UI breakage
     }
   }
@@ -678,7 +681,7 @@ export class CompositeProjection {
           else {
             // If projection fails (e.g. due to rotation), don't set clipExtent
             // This allows the territory to render without clipping
-            console.warn(`[CompositeProjection] Failed to project bounds for ${subProj.territoryCode}, skipping clipExtent`)
+            debug('Failed to project bounds for %s, skipping clipExtent', subProj.territoryCode)
           }
         }
       }
@@ -853,7 +856,7 @@ export class CompositeProjection {
    */
   exportConfig() {
     if (!this.parameterProvider) {
-      console.error('[CompositeProjection] exportConfig requires a parameter provider')
+      debug('exportConfig requires a parameter provider')
       return { subProjections: [] }
     }
 

@@ -69,6 +69,7 @@ Ensures composite projection is always selected by using atlas metadata's defaul
 - Returns territoryParameters map in AtlasChangeResult for parameter store initialization
 - Determines composite projection from metadata or AtlasMetadataService.getCompositeProjections()
 - `getInitialConfiguration()` - Build initial config for atlas (async)
+- `getTerritoryMode()` - Determine territory mode (all-territories for wildcard atlases, split otherwise)
 
 ### InitializationService
 Centralizes application initialization logic for all scenarios.
@@ -80,6 +81,25 @@ Uses registry behavior for preset configuration instead of atlas config.
 - `importConfiguration()` - Import user-provided configuration
 - `changeViewMode()` - Switch view mode within same atlas
 - `applyStateToStores()` - Apply application state to Pinia stores
+
+**Validation Order**:
+Validates configuration BEFORE clearing any data to preserve UI state on failed initialization.
+Steps:
+1. Validate atlas configuration exists
+2. Validate preset exists for view mode
+3. Clear existing data
+4. Initialize new atlas/preset
+
+This fail-fast approach prevents UI corruption when switching atlases or view modes.
+
+**Required Presets**:
+All view modes require valid presets to function:
+- `composite-custom` - Requires preset with type='composite-custom'
+- `unified` - Requires preset with type='unified'
+- `split` - Requires preset with type='split'
+- `built-in-composite` - Requires preset with type='built-in-composite'
+
+Initialization fails immediately if preset is not found, preventing silent fallbacks.
 
 **Preset Loading**:
 Gets defaultPreset and availablePresets from registry behavior via getAtlasBehavior().
@@ -108,23 +128,11 @@ Uses core validation and conversion logic from @/core/presets.
 - `loadPreset()` - Load and validate preset file using core validators (async)
 - `convertToDefaults()` - Re-exports core converter for TerritoryDefaults format
 - `extractTerritoryParameters()` - Re-exports core converter for projection parameters
-- `loadPresetMetadata()` - Load lightweight preset metadata (async)
-- `listAvailablePresets()` - List available presets (placeholder)
 
 Delegates validation to core validateCompositePreset() function.
 Delegates conversion to core convertToDefaults() and extractTerritoryParameters() functions.
+Loads presets by querying atlas registry for preset definitions, then loading config files from paths specified in registry.
 Focuses on file I/O and orchestration, domain logic in core layer.
-
-### ViewPresetLoader
-Loads preset configurations for unified, split, and built-in-composite view modes.
-Static service providing view preset loading orchestration.
-Uses core validation logic from @/core/presets.
-- `loadPreset()` - Load and validate view preset using core validators (async)
-- `loadRegistry()` - Load and cache view preset registry (async)
-- `getAvailablePresets()` - Get filtered presets for atlas and view mode (async)
-
-Delegates validation to core validateViewPreset() function.
-Focuses on file I/O, registry management, and orchestration.
 
 ### AtlasMetadataService
 Provides clean API for accessing atlas-level projection metadata from preset files.
@@ -143,14 +151,14 @@ Atlas-aware facade for accessing territory data and configuration.
 Instance-based service providing unified API for components.
 - `getTerritories()` - Get filtered/grouped territories
 - `getTerritoryModes()` - Get available display modes
-- `getTerritoryGroups()` - Get territory groupings
 - `getProjectionParams()` - Get projection parameters (ProjectionParameters format)
 
 ## Data Services (src/services/data/)
 
 ### TerritoryDataLoader
 Strategy pattern for loading territory data based on atlas pattern.
-- `loadTerritoryData()` - Load data using appropriate strategy
+- `loadTerritories()` - Load territory data using appropriate strategy
+- `loadUnifiedData()` - Load unified data with territory filtering
 Strategies: SingleFocusLoadStrategy, EqualMembersLoadStrategy
 
 ### TerritoryFilterService

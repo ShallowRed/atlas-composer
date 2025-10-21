@@ -79,8 +79,6 @@ export type {
   TerritoryCollections,
   TerritoryCollectionSet,
   TerritoryConfig,
-  TerritoryGroupConfig,
-  TerritoryModeConfig,
 } from '@/types/territory'
 
 // Vue component prop types

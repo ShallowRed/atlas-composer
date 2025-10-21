@@ -4,6 +4,8 @@
 
 The preset system manages saved projection configurations for all view modes using a unified architecture. A single loader handles all preset types, a single registry tracks all presets, and discriminated union types provide type-safe handling across the application.
 
+Presets are REQUIRED for all view modes to function. The application fails fast during initialization if a view mode has no corresponding preset defined in the registry. Available view modes are determined by the preset types defined in the registry for each atlas.
+
 ## Preset Types
 
 Four preset types exist in a discriminated union (`Preset`):
@@ -12,6 +14,16 @@ Four preset types exist in a discriminated union (`Preset`):
 2. **unified** - Single projection covering the entire atlas
 3. **split** - Individual projections per territory group
 4. **built-in-composite** - Predefined projections from d3-composite-projections library
+
+Each preset type corresponds to a view mode of the same name. The availability of a view mode depends on having at least one preset of that type defined in the registry for the atlas.
+
+**Preset → View Mode Relationship**:
+- Preset type `composite-custom` → View mode `composite-custom`
+- Preset type `unified` → View mode `unified`
+- Preset type `split` → View mode `split`
+- Preset type `built-in-composite` → View mode `built-in-composite`
+
+The application discovers available view modes by extracting unique preset types from the registry using `getAvailableViewModes(atlasId)`.
 
 ## Architecture
 
@@ -22,9 +34,9 @@ Four preset types exist in a discriminated union (`Preset`):
 - `LoadResult<T>` - Generic result type for all loading operations
 - `Preset` - Discriminated union of CompositePreset | UnifiedPreset | SplitPreset | CompositeExistingPreset
 - `PresetType` - Type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
-- `PresetRegistry` - Unified registry for all preset types
 - `BasePresetMetadata` - Shared metadata fields (id, name, description, atlasId)
 - Configuration types: CompositeCustomConfig, UnifiedViewConfig, SplitViewConfig, CompositeExistingViewConfig
+- `PresetDefinition` type lives in `src/types/registry.ts` (part of atlas registry)
 
 **Validators** (`validator.ts`)
 - Unified validation with strategy pattern
@@ -45,14 +57,12 @@ Four preset types exist in a discriminated union (`Preset`):
 **PresetLoader** (`preset-loader.ts`)
 - Unified loading service for all preset types
 - Loads from single directory: `configs/presets/`
-- Uses single registry: `configs/presets/registry.json` (version 2.0)
+- Queries atlas registry for preset metadata via `getPresetById()`
 - Type-discriminated validation routing
 - Methods:
   - `loadPreset(presetId)` - Returns `LoadResult<Preset>` with type discrimination
-  - `listPresets(filters?)` - Filters by atlasId, type, or viewMode
-  - `loadMetadata(presetId)` - Lightweight metadata loading
-  - `loadRegistry()` - Cached registry access
 - Re-exports core converters (`convertToDefaults`, `extractTerritoryParameters`)
+- Directly uses atlas registry, no separate preset registry or transformation layer
 
 **PresetApplicationService** (`preset-application-service.ts`)
 - Centralizes preset application logic using strategy pattern
@@ -93,7 +103,7 @@ Four preset types exist in a discriminated union (`Preset`):
 - Delegates to PresetLoader for loading
 - Delegates to PresetApplicationService for applying
 - Methods:
-  - `loadAvailableViewPresets()` - Lists available presets for current atlas/view mode (filters out composite-custom)
+  - `loadAvailableViewPresets()` - Queries atlas registry via `getAtlasPresets()` for current atlas/view mode (filters to match view mode)
   - `loadViewPreset(presetId)` - Loads and applies a preset
   - `applyViewPresetConfig(preset)` - Applies preset using PresetApplicationService
   - `clearViewPreset()` - Clears current preset
@@ -264,45 +274,9 @@ Update Stores
 Render Update (new projection applied)
 ```
 
-## Unified Registry Format
-
-Single registry file at `configs/presets/registry.json` contains all preset types:
-
-```json
-{
-  "version": "2.0",
-  "description": "Unified registry of all preset types",
-  "presets": [
-    {
-      "id": "france-default",
-      "atlasId": "france",
-      "type": "composite-custom",
-      "name": "France - Configuration standard",
-      "description": "...",
-      "pattern": "single-focus",
-      "territories": 10
-    },
-    {
-      "id": "france-unified",
-      "atlasId": "france",
-      "type": "unified",
-      "name": "France - Vue unifiée",
-      "description": "Projection Natural Earth centrée sur la France"
-    },
-    {
-      "id": "france-split",
-      "atlasId": "france",
-      "type": "split",
-      "name": "France - Vue séparée",
-      "description": "Même projection conique pour tous les territoires"
-    }
-  ]
-}
-```
-
 ## Registry Format
 
-The unified registry (`configs/presets/registry.json` v2.0) lists all preset types:
+Presets are defined inline within atlas entries in `configs/atlas-registry.json`:
 
 ```json
 {
@@ -315,7 +289,6 @@ The unified registry (`configs/presets/registry.json` v2.0) lists all preset typ
       "atlasId": "france",
       "type": "composite-custom",
       "pattern": "single-focus",
-      "territoryCount": 9,
       "description": "Configuration alignée avec geoConicConformalFrance"
     },
     {
@@ -336,14 +309,14 @@ The unified registry (`configs/presets/registry.json` v2.0) lists all preset typ
 }
 ```
 
-**Registry Entry Fields:**
-- `id` - Preset identifier (matches filename without extension)
-- `name` - Display name (can be string or i18n object)
-- `atlasId` - Target atlas
+**Preset Definition Fields:**
+- `id` - Preset identifier (e.g., 'france-default')
+- `name` - Display name (string or i18n object with en/fr keys)
+- `description` - Optional description (string or i18n object)
 - `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
-- `description` - Optional description
+- `configPath` - Required. Relative path to preset config file (e.g., "./presets/france/france-default.json" or "./presets/portugal-default.json")
 - `pattern` - (composite-custom only) Composite pattern type
-- `territoryCount` - (composite-custom only) Number of territories configured
+- `isDefault` - (optional) Marks the default preset for the atlas
 
 ## Preset File Formats
 
@@ -957,50 +930,38 @@ The reset system restores territories to their preset configuration, managed thr
 **Preset Files:**
 - `configs/presets/{atlasId}-{presetName}.json` - Saved preset configurations for all types (unified location)
 
-## Architectural Improvements (Phase 2 Unification)
+## Architecture
 
-### Unified Architecture Benefits
+### Single Source of Truth
 
-**Single Source of Truth**
-- One registry file (`configs/presets/registry.json`) for all preset types
-- Single directory (`configs/presets/`) contains all preset files
-- Unified `PresetLoader` handles all preset types with type-aware routing
-- Discriminated union `Preset` type provides type safety across all operations
+Presets are stored inline within atlas entries in `configs/atlas-registry.json`:
+- Each atlas contains a `presets` array with full `PresetDefinition` entries
+- `PresetDefinition` includes metadata (id, name, type) and config file path
+- No separate preset registry file
+- Preset config files remain in `configs/presets/` directory
 
-**Type Safety**
+### Type Safety
+
 - `PresetType` discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `LoadResult<T>` generic pattern for consistent error handling
 - TypeScript narrows types based on preset.type discriminator
 - Compile-time guarantees prevent type mismatches
 
-**Code Reduction**
-- Eliminated duplicate loader logic (ViewPresetLoader merged into PresetLoader)
-- Removed redundant validation code through unified `validatePreset()` with strategy pattern
-- Centralized application logic in `PresetApplicationService`
-- Simplified config store by delegating to services
+### Registry Queries
 
-**Extensibility**
-- Adding new preset types requires:
-  1. Add type to `PresetType` union
-  2. Add interface to `Preset` discriminated union
-  3. Add validator case to `validatePreset()`
-  4. Add application handler to `PresetApplicationService`
-- No changes needed to loader, registry, or UI components
+Components and services query atlas registry directly:
+- `getAtlasPresets(atlasId)` - Returns all presets for an atlas
+- `getDefaultPreset(atlasId)` - Returns preset marked with `isDefault: true`
+- `getPresetById(presetId)` - Returns specific preset by ID
+- No transformation layer between registry and application code
 
-### Migration Notes
+### Preset Loading
 
-**Removed Files**
-- `src/services/presets/view-preset-loader.ts` - Merged into PresetLoader
-- `configs/view-presets/registry.json` - Merged into configs/presets/registry.json
-- `configs/view-presets/*.json` - Moved to configs/presets/
+`PresetLoader` loads configuration files:
+1. Query atlas registry for `PresetDefinition` (includes `configPath`)
+2. Load JSON from `configPath` using fetch
+3. Validate against preset type schema
+4. Return typed preset configuration
 
-**Breaking Changes**
-- Config store methods removed: `applyUnifiedPreset()`, `applySplitPreset()`, `applyCompositeExistingPreset()`
-- All preset application now goes through `applyViewPresetConfig()` → `PresetApplicationService.applyPreset()`
-- Registry structure changed: added `type` discriminator field, simplified name/description to strings
-
-**API Updates**
-- `PresetLoader.listPresets(filters)` replaces separate `listAvailablePresets()` and `getAvailablePresets()`
-- `PresetLoader.loadMetadata()` replaces `loadPresetMetadata()`
-- Filter by `viewMode` now equivalent to filtering by `type` for view presets
+Focus on file I/O, validation delegates to core layer.
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "./atlas.schema.json",
+  "$schema": "../schemas/atlas.schema.json",
   "id": "usa",
   "name": "United States",
   "description": "United States mainland, Alaska, Hawaii, and territories",
@@ -8,13 +8,6 @@
     "territories": "usa-territories-50m.json",
     "metadata": "usa-metadata-50m.json"
   },
-  "viewModes": [
-    "built-in-composite",
-    "composite-custom",
-    "split",
-    "unified"
-  ],
-  "defaultViewMode": "built-in-composite",
   "territories": [
     {
       "id": "840",
@@ -418,9 +411,5 @@
         "US-MP"
       ]
     }
-  ],
-  "defaultPreset": "usa-default",
-  "availablePresets": [
-    "usa-default"
   ]
 }

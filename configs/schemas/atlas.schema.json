@@ -1,0 +1,328 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Geographic Atlas Configuration",
+  "description": "Unified configuration for geographic atlases including territories, projections, and UI settings",
+  "type": "object",
+  "required": ["id", "name", "territories"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'europe')",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
+        }
+      ],
+      "description": "Human-readable name (string or i18n object with language codes as keys, e.g., {en: 'France', fr: 'France'}). String is used as fallback for all languages."
+    },
+    "description": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
+        }
+      ],
+      "description": "Brief description of the atlas (string or i18n object with language codes as keys). String is used as fallback for all languages."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["country", "region", "world"],
+      "description": "Atlas category for UI grouping: 'country' for individual nation-states, 'region' for regional groups/unions, 'world' for global atlases. Defaults to 'country' if not specified."
+    },
+    "dataSources": {
+      "type": "object",
+      "description": "Data source files for territories and metadata",
+      "properties": {
+        "territories": {
+          "type": "string",
+          "description": "Path to the GeoJSON file containing territory geometries",
+          "examples": ["world-countries-110m.json", "france-regions-50m.json"]
+        },
+        "metadata": {
+          "type": "string",
+          "description": "Path to the JSON file containing territory metadata",
+          "examples": ["world-metadata-110m.json", "france-metadata-50m.json"]
+        }
+      },
+      "required": ["territories", "metadata"]
+    },
+    "pattern": {
+      "type": "string",
+      "enum": ["single-focus", "equal-members", "hierarchical"],
+      "description": "Atlas pattern type: 'single-focus' for traditional atlases with one primary territory (mainland) and secondary territories (overseas), 'equal-members' for atlases where all territories are equal (EU, world), 'hierarchical' for complex multi-level structures (future)"
+    },
+    "viewModes": {
+      "type": "array",
+      "description": "Supported view modes for this atlas. Defaults to all modes if not specified.",
+      "items": {
+        "type": "string",
+        "enum": ["split", "built-in-composite", "composite-custom", "unified"]
+      },
+      "uniqueItems": true,
+      "examples": [
+        ["built-in-composite", "unified"],
+        ["split", "built-in-composite", "composite-custom", "unified"]
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "naturalEarthIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Natural Earth feature IDs"
+        },
+        "iso3": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 3166-1 alpha-3 country code"
+        },
+        "region": {
+          "type": "string",
+          "description": "Geographic region (e.g., 'Europe', 'Asia')"
+        }
+      }
+    },
+    "territories": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["*"],
+          "description": "Use '*' to load all territories from data file (for equal-members patterns like world atlas)"
+        },
+        {
+          "type": "array",
+          "description": "List of territories",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "code", "name", "role"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
+              },
+              "code": {
+                "type": "string",
+                "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
+                "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
+              },
+              "name": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Territory name (string or i18n object with language codes as keys)"
+              },
+              "shortName": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Short territory name (string or i18n object with language codes as keys)"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["primary", "secondary", "member", "embedded"],
+                "description": "Territory role in the atlas. Use 'primary' for single-focus primary territory (mainland), 'member' for equal-members territories (EU member states, all world countries), 'secondary' for remote territories (overseas, islands), 'embedded' for enclaves/exclaves"
+              },
+              "iso": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$",
+                "description": "ISO 3166-1 alpha-3 code"
+              },
+              "region": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "en": { "type": "string" },
+                      "fr": { "type": "string" }
+                    },
+                    "required": ["en"],
+                    "additionalProperties": { "type": "string" }
+                  }
+                ],
+                "description": "Geographic sub-region (string or i18n object with language codes as keys, e.g., 'Atlantic', 'Indian Ocean')"
+              },
+              "bounds": {
+                "type": "array",
+                "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+                "items": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "center": {
+                "type": "array",
+                "description": "Geographic center [longitude, latitude]",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "extraction": {
+                "type": "object",
+                "description": "How to extract this territory from Natural Earth data",
+                "properties": {
+                  "extractFrom": {
+                    "type": "string",
+                    "description": "Parent territory ID to extract from"
+                  },
+                  "mainlandPolygon": {
+                    "type": "integer",
+                    "description": "Index of the mainland polygon in MultiPolygon",
+                    "minimum": 0
+                  },
+                  "polygonIndices": {
+                    "type": "array",
+                    "description": "Indices of polygons to extract",
+                    "items": { "type": "integer", "minimum": 0 },
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "territoryCollections": {
+      "type": "object",
+      "description": "Unified territory collections for different grouping strategies. Pure data structure - application behavior defined in registry.",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "type": "object",
+          "required": ["label", "selectionType", "collections"],
+          "properties": {
+            "label": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "properties": {
+                    "en": { "type": "string" },
+                    "fr": { "type": "string" }
+                  },
+                  "required": ["en"],
+                  "additionalProperties": { "type": "string" }
+                }
+              ],
+              "description": "Display label for the collection set"
+            },
+            "selectionType": {
+              "type": "string",
+              "enum": ["incremental", "mutually-exclusive"],
+              "description": "Selection behavior: 'incremental' allows progressive territory additions (for territoryScope), 'mutually-exclusive' allows only one collection at a time (for territoryManager/territoryGroups)"
+            },
+            "description": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "properties": {
+                    "en": { "type": "string" },
+                    "fr": { "type": "string" }
+                  },
+                  "additionalProperties": { "type": "string" }
+                }
+              ],
+              "description": "Optional description explaining the grouping strategy"
+            },
+            "collections": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["id", "label", "territories"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "description": "Collection identifier"
+                  },
+                  "label": {
+                    "oneOf": [
+                      { "type": "string" },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "en": { "type": "string" },
+                          "fr": { "type": "string" }
+                        },
+                        "required": ["en"],
+                        "additionalProperties": { "type": "string" }
+                      }
+                    ],
+                    "description": "Display label for this collection"
+                  },
+                  "territories": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "enum": ["*"],
+                        "description": "Use '*' to include all territories"
+                      },
+                      {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "minItems": 1,
+                        "description": "Array of territory codes"
+                      }
+                    ]
+                  },
+                  "exclude": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Territory codes to exclude when using '*'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

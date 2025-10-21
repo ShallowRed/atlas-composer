@@ -1,10 +1,13 @@
 import type { ViewMode } from '@/types'
 
-import { DEFAULT_ATLAS, getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig, getAvailableViewModes, getDefaultPreset, getDefaultViewMode } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.service
 
 /**
  * Configuration updates to apply when atlas changes
@@ -48,9 +51,10 @@ export class AtlasCoordinator {
     const atlasService = new AtlasService(newAtlasId)
 
     // Determine new view mode (use default if current is not supported)
-    const viewMode = config.supportedViewModes.includes(currentViewMode)
+    const availableViewModes = getAvailableViewModes(newAtlasId)
+    const viewMode = availableViewModes.includes(currentViewMode)
       ? currentViewMode
-      : config.defaultViewMode
+      : getDefaultViewMode(newAtlasId)
 
     // Determine territory mode
     const territoryMode = this.getTerritoryMode(config)
@@ -62,10 +66,14 @@ export class AtlasCoordinator {
     let referenceScale: number | undefined
     let canvasDimensions: { width: number, height: number } | undefined
 
+    // Get default preset from registry
+    const defaultPreset = getDefaultPreset(newAtlasId)
+    const defaultPresetId = defaultPreset?.id
+
     // Load preset if available and in composite-custom mode
-    if (config.defaultPreset && viewMode === 'composite-custom') {
+    if (defaultPresetId && viewMode === 'composite-custom') {
       try {
-        const presetResult = await PresetLoader.loadPreset(config.defaultPreset)
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
         if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
           // Convert preset config to defaults - territories not in preset will NOT be rendered
           const presetDefaults = PresetLoader.convertToDefaults(presetResult.data.config)
@@ -76,7 +84,7 @@ export class AtlasCoordinator {
           territoryParameters = PresetLoader.extractTerritoryParameters(presetResult.data.config)
 
           // Debug: Log what was extracted
-          console.info('[AtlasCoordinator] Extracted territory parameters:', Object.keys(territoryParameters).map(code => ({
+          debug('Extracted territory parameters: %o', Object.keys(territoryParameters).map(code => ({
             code,
             hasProjectionId: !!territoryParameters[code]?.projectionId,
             projectionId: territoryParameters[code]?.projectionId,
@@ -88,8 +96,13 @@ export class AtlasCoordinator {
           const missingTerritories = territories.filter(t => !presetTerritoryCodes.has(t.code))
 
           if (missingTerritories.length > 0) {
-            console.info(
-              `[AtlasCoordinator] Preset '${config.defaultPreset}' defines ${presetTerritoryCodes.size} territories, atlas allows ${territories.length}. ${missingTerritories.length} territories will NOT be rendered: ${missingTerritories.map(t => t.code).join(', ')}`,
+            debug(
+              'Preset "%s" defines %d territories, atlas allows %d. %d territories will NOT be rendered: %s',
+              defaultPresetId,
+              presetTerritoryCodes.size,
+              territories.length,
+              missingTerritories.length,
+              missingTerritories.map(t => t.code).join(', '),
             )
           }
 
@@ -101,17 +114,17 @@ export class AtlasCoordinator {
         }
         else {
           // Log warning but continue with fallback defaults
-          console.warn(`Failed to load preset '${config.defaultPreset}':`, presetResult.errors)
+          debug('Failed to load preset "%s": %o', defaultPresetId, presetResult.errors)
         }
       }
       catch (error) {
         // Log error but continue with fallback defaults
-        console.error(`Error loading preset '${config.defaultPreset}':`, error)
+        debug('Error loading preset "%s": %o', defaultPresetId, error)
       }
     }
 
     // Get atlas metadata from preset system
-    const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, config.defaultPreset)
+    const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(newAtlasId, defaultPresetId)
 
     // Determine composite projection from preset metadata
     let finalCompositeProjection = atlasMetadata.metadata?.defaultCompositeProjection
@@ -119,14 +132,14 @@ export class AtlasCoordinator {
     // If no composite projection is set, find the first available one for this atlas
     // This ensures built-in-composite mode always has a valid projection selected
     if (!finalCompositeProjection) {
-      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, config.defaultPreset)
+      const availableComposites = await AtlasMetadataService.getCompositeProjections(newAtlasId, defaultPresetId)
       if (availableComposites.length > 0) {
         finalCompositeProjection = availableComposites[0]
       }
     }
 
     // Determine selected projection from preset metadata
-    let selectedProjection = await this.getSelectedProjection(newAtlasId, config.defaultPreset)
+    let selectedProjection = await this.getSelectedProjection(newAtlasId, defaultPresetId)
 
     // Ensure selected projection is valid for composite modes
     // For composite views, projection must exist in territory projections
@@ -166,7 +179,7 @@ export class AtlasCoordinator {
    * @returns Initial configuration
    */
   static async getInitialConfiguration(): Promise<AtlasChangeResult> {
-    return this.handleAtlasChange(DEFAULT_ATLAS, getAtlasConfig(DEFAULT_ATLAS).defaultViewMode)
+    return this.handleAtlasChange(DEFAULT_ATLAS, getDefaultViewMode(DEFAULT_ATLAS))
   }
 
   /**
@@ -176,14 +189,17 @@ export class AtlasCoordinator {
    * @returns Territory mode to use
    */
   private static getTerritoryMode(config: any): string {
-    // Use configured default territory mode if available
-    if (config.defaultTerritoryMode) {
-      return config.defaultTerritoryMode
-    }
-    // Otherwise use first option from territoryModeOptions
+    // Use first option from territoryModeOptions if available
     if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
+
+    // For atlases without territory selector (e.g., wildcard atlases like world)
+    // Return a default mode identifier
+    if (!config.hasTerritorySelector || config.isWildcard) {
+      return 'all-territories'
+    }
+
     throw new Error('No territory mode options available for atlas')
   }
 

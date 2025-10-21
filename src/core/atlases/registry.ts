@@ -6,7 +6,7 @@
  * Atlas configurations are only loaded when accessed, improving initial load time.
  */
 
-import type { I18nValue, JSONAtlasConfig } from '#types'
+import type { JSONAtlasConfig } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -14,20 +14,14 @@ import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '@
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { loadAtlasConfig } from '@/core/atlases/loader'
+import { logger } from '@/utils/logger'
 
-/**
- * @deprecated Use AtlasGroupDefinition from @/types/registry instead
- */
-export interface AtlasGroupDefinition {
-  id: 'country' | 'region' | 'world'
-  label: I18nValue | string
-  sortOrder: number
-}
+const debug = logger.atlas.loader
 
 /**
  * Static atlas registry metadata from JSON
  */
-const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
+export const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
 
 /**
  * Cache of loaded atlas configurations (lazy loading)
@@ -59,6 +53,7 @@ function getConfigBaseUrl(): string {
 export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig> {
   // Check cache first
   if (LOADED_CONFIGS.has(atlasId)) {
+    debug('Atlas %s already loaded from cache', atlasId)
     return LOADED_CONFIGS.get(atlasId)!
   }
 
@@ -73,7 +68,7 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
     // configPath is relative (e.g., "./atlases/france.json"), so we join it with the base URL
     const relativePath = configPath.replace(/^\.\//, '') // Remove leading "./"
     const url = `${getConfigBaseUrl()}${relativePath}`
-    console.info(`[Registry] Fetching atlas '${atlasId}' from ${url}...`)
+    debug('Fetching atlas %s from %s', atlasId, url)
 
     const response = await fetch(url)
 
@@ -88,11 +83,14 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
       throw new Error(`Invalid atlas config: missing required fields (id, territories)`)
     }
 
+    // Get behavior from registry for this atlas
+    const behavior = getAtlasBehavior(atlasId)
+
     // Load and cache the config
-    const loadedConfig = loadAtlasConfig(jsonConfig)
+    const loadedConfig = loadAtlasConfig(jsonConfig, behavior)
     LOADED_CONFIGS.set(atlasId, loadedConfig)
 
-    console.info(`[Registry] Successfully loaded atlas '${atlasId}'`)
+    debug('Successfully loaded atlas %s from network', atlasId)
     return loadedConfig
   }
   catch (error) {
@@ -117,9 +115,27 @@ function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
 }
 
 /**
+ * Get the default atlas entry from registry
+ * Uses isDefault flag
+ */
+export function getDefaultAtlas(): AtlasRegistryEntry {
+  const defaultEntry = REGISTRY_METADATA.atlases.find(e => e.isDefault)
+  if (defaultEntry) {
+    return defaultEntry
+  }
+
+  // Fallback: first atlas
+  debug('No default atlas defined, using first atlas')
+  if (REGISTRY_METADATA.atlases.length === 0) {
+    throw new Error('[Registry] No atlases defined in registry')
+  }
+  return REGISTRY_METADATA.atlases[0]!
+}
+
+/**
  * Default atlas ID from registry
  */
-export const DEFAULT_ATLAS = REGISTRY_METADATA.defaultAtlas
+export const DEFAULT_ATLAS = getDefaultAtlas().id
 
 /**
  * Pre-load the default atlas into cache
@@ -150,7 +166,7 @@ export function getLoadedConfig(atlasId: string): LoadedAtlasConfig {
   }
   catch (error) {
     // Fallback to default atlas if requested one doesn't exist in cache
-    console.warn(`[Registry] Atlas '${atlasId}' not cached, falling back to '${DEFAULT_ATLAS}':`, error)
+    debug('Atlas %s not cached, falling back to %s: %o', atlasId, DEFAULT_ATLAS, error)
     try {
       return loadAtlasSync(DEFAULT_ATLAS)
     }
@@ -260,14 +276,6 @@ export interface AtlasGroup {
 }
 
 /**
- * Get group definitions from registry
- * @deprecated Use REGISTRY_METADATA.groups directly with AtlasRegistryGroup type
- */
-export function getGroupDefinitions() {
-  return REGISTRY_METADATA.groups
-}
-
-/**
  * Get available atlases grouped by category for UI selector
  * Uses registry metadata without loading configs for better performance
  * Groups atlases by their group field and uses group definitions for labels
@@ -317,4 +325,112 @@ export function hasAtlas(atlasId: string): boolean {
  */
 export function getAtlasIds(): string[] {
   return Array.from(CONFIG_PATHS.keys())
+}
+
+// ============================================================================
+// Preset Helpers
+// ============================================================================
+
+/**
+ * Get all presets for an atlas from registry
+ * Returns empty array if atlas has no presets defined
+ */
+export function getAtlasPresets(atlasId: string) {
+  const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
+  return entry?.presets ?? []
+}
+
+/**
+ * Get default preset for an atlas
+ * Uses isDefault flag in preset definitions
+ */
+export function getDefaultPreset(atlasId: string) {
+  const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
+  if (!entry) {
+    debug('No atlas entry found for %s', atlasId)
+    return undefined
+  }
+
+  debug('Looking for default preset in atlas %s, has %d presets', atlasId, entry.presets?.length ?? 0)
+
+  if (entry.presets) {
+    const defaultPreset = entry.presets.find(p => p.isDefault)
+    if (defaultPreset) {
+      debug('Found default preset %s via isDefault flag', defaultPreset.id)
+      return defaultPreset
+    }
+  }
+
+  // No default preset defined
+  debug('No default preset found for atlas %s', atlasId)
+  return undefined
+}
+
+/**
+ * Get default preset for a specific view mode
+ * Filters presets by view mode type, then finds default within that filtered set
+ * Falls back to first preset of that type if no default is marked
+ */
+export function getDefaultPresetForViewMode(
+  atlasId: string,
+  viewMode: 'split' | 'built-in-composite' | 'composite-custom' | 'unified',
+) {
+  const presets = getAtlasPresets(atlasId)
+  const viewModePresets = presets.filter(p => p.type === viewMode)
+
+  if (viewModePresets.length === 0) {
+    debug('No presets found for view mode %s in atlas %s', viewMode, atlasId)
+    return undefined
+  }
+
+  // Look for default within this view mode
+  const defaultPreset = viewModePresets.find(p => p.isDefault)
+  if (defaultPreset) {
+    debug('Found default preset %s for view mode %s', defaultPreset.id, viewMode)
+    return defaultPreset
+  }
+
+  // Fallback to first preset of this type
+  const firstPreset = viewModePresets[0]
+  debug('No default for view mode %s, using first preset %s', viewMode, firstPreset?.id)
+  return firstPreset
+}
+
+/**
+ * Get a specific preset by ID for an atlas
+ */
+export function getPresetById(atlasId: string, presetId: string) {
+  const presets = getAtlasPresets(atlasId)
+  return presets.find(p => p.id === presetId)
+}
+
+/**
+ * Get available view modes for an atlas
+ * Derived from unique preset types defined in registry
+ * Returns array of view modes that have at least one preset
+ */
+export function getAvailableViewModes(atlasId: string): Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'> {
+  const presets = getAtlasPresets(atlasId)
+  const uniqueTypes = new Set(presets.map(p => p.type))
+  return Array.from(uniqueTypes)
+}
+
+/**
+ * Get default view mode for an atlas
+ * Uses type of default preset if defined, falls back to first preset type, then 'composite-custom'
+ */
+export function getDefaultViewMode(atlasId: string): 'split' | 'built-in-composite' | 'composite-custom' | 'unified' {
+  const defaultPreset = getDefaultPreset(atlasId)
+  if (defaultPreset) {
+    return defaultPreset.type
+  }
+
+  // Fallback: use first preset's type
+  const presets = getAtlasPresets(atlasId)
+  if (presets.length > 0 && presets[0]) {
+    return presets[0].type
+  }
+
+  // Last resort: composite-custom
+  return 'composite-custom'
 }

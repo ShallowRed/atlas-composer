@@ -562,8 +562,8 @@ export function createFranceProjection() {
 
 ### Files in Package
 - `src/index.ts` - Main exports (loader + registration)
-- `src/standalone-projection-loader.ts` - Core loader implementation (628 lines)
-- `src/d3-projection-helpers.ts` - Optional D3 projection factories (134 lines)
+- `src/standalone-projection-loader.ts` - Core loader implementation
+- `src/d3-projection-helpers.ts` - Optional D3 projection factories
 - `__tests__/standalone-projection-loader.spec.ts` - Test suite (19 tests)
 - `examples/` - Usage examples (node-basic, tree-shakeable, custom-projection, etc.)
 - `README.md` - Usage documentation with examples

@@ -1,10 +1,14 @@
 import { computed } from 'vue'
+
 import { useAtlasConfig } from '@/composables/useAtlasConfig'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.vue.composable
 
 /**
  * Manages territory transformation controls (projections, translations, scales)
@@ -144,7 +148,7 @@ export function useTerritoryTransforms() {
           })
         }
 
-        console.info('[Reset] Restored to preset defaults including territory set')
+        debug('Restored to preset defaults including territory set')
         return
       }
     }
@@ -176,7 +180,7 @@ export function useTerritoryTransforms() {
       })
     }
 
-    console.info('[Reset] Restored to fallback defaults (no preset available)')
+    debug('Restored to fallback defaults (no preset available)')
   }
 
   /**
@@ -218,7 +222,7 @@ export function useTerritoryTransforms() {
           geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
         }
 
-        console.info(`[Reset] Restored territory ${territoryCode} to preset defaults`)
+        debug('Restored territory %s to preset defaults', territoryCode)
         return
       }
     }
@@ -243,7 +247,7 @@ export function useTerritoryTransforms() {
       geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
     }
 
-    console.info(`[Reset] Restored territory ${territoryCode} to fallback defaults (no preset available)`)
+    debug('Restored territory %s to fallback defaults (no preset available)', territoryCode)
   }
 
   /**

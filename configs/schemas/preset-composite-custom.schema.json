@@ -1,0 +1,214 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.com/schemas/preset-composite-custom.json",
+  "title": "Composite-Custom Preset",
+  "description": "Schema for composite-custom presets with full territory configuration",
+  "type": "object",
+  "required": ["version", "metadata", "pattern", "referenceScale", "canvasDimensions", "territories"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Preset format version (e.g., '1.0')"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["atlasId"],
+      "properties": {
+        "atlasId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Target atlas ID"
+        },
+        "atlasName": {
+          "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+          "description": "Human-readable atlas name"
+        },
+        "exportDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Export timestamp in ISO 8601 format"
+        },
+        "createdWith": {
+          "type": "string",
+          "description": "Tool or method used to create this preset"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about the preset"
+        }
+      },
+      "additionalProperties": true
+    },
+    "pattern": {
+      "type": "string",
+      "enum": ["single-focus", "equal-members", "hierarchical"],
+      "description": "Atlas pattern: 'single-focus' for mainland+overseas, 'equal-members' for equal territories"
+    },
+    "referenceScale": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Reference scale for the composite projection"
+    },
+    "canvasDimensions": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Canvas width in pixels"
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Canvas height in pixels"
+        }
+      },
+      "additionalProperties": false
+    },
+    "territories": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of territory configurations",
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "role", "projection", "layout"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$",
+            "description": "Territory code (e.g., 'FR-MET', 'PT-20', 'DE')"
+          },
+          "name": {
+            "$ref": "preset-definitions.schema.json#/definitions/i18nString",
+            "description": "Territory display name"
+          },
+          "role": {
+            "$ref": "preset-definitions.schema.json#/definitions/territoryRole"
+          },
+          "projection": {
+            "type": "object",
+            "required": ["id", "family", "parameters"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Projection ID from registry"
+              },
+              "family": {
+                "$ref": "preset-definitions.schema.json#/definitions/projectionFamily"
+              },
+              "parameters": {
+                "$ref": "preset-definitions.schema.json#/definitions/projectionParameters"
+              }
+            },
+            "additionalProperties": false
+          },
+          "layout": {
+            "$ref": "preset-definitions.schema.json#/definitions/layoutConfig"
+          },
+          "bounds": {
+            "$ref": "preset-definitions.schema.json#/definitions/bounds"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "atlasMetadata": {
+      "type": "object",
+      "description": "Optional atlas-level projection metadata",
+      "properties": {
+        "compositeProjections": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Available d3-composite-projections for this atlas"
+        },
+        "defaultCompositeProjection": {
+          "type": "string",
+          "description": "Default composite projection ID"
+        },
+        "projectionPreferences": {
+          "type": "object",
+          "properties": {
+            "recommended": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Recommended projection IDs for this atlas"
+            },
+            "default": {
+              "type": "object",
+              "properties": {
+                "mainland": {
+                  "type": "string",
+                  "description": "Default projection for mainland territories"
+                },
+                "overseas": {
+                  "type": "string",
+                  "description": "Default projection for overseas territories"
+                }
+              },
+              "additionalProperties": false
+            },
+            "prohibited": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Prohibited projection IDs (inappropriate for this atlas)"
+            }
+          },
+          "additionalProperties": false
+        },
+        "projectionParameters": {
+          "type": "object",
+          "description": "Recommended projection parameters",
+          "properties": {
+            "center": {
+              "type": "object",
+              "properties": {
+                "longitude": { "type": "number" },
+                "latitude": { "type": "number" }
+              },
+              "required": ["longitude", "latitude"]
+            },
+            "rotate": {
+              "type": "object",
+              "properties": {
+                "mainland": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "azimuthal": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "additionalProperties": false
+            },
+            "parallels": {
+              "type": "object",
+              "properties": {
+                "conic": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
