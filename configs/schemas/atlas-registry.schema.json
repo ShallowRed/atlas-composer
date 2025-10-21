@@ -93,7 +93,7 @@
             "description": "Available presets for this atlas",
             "items": {
               "type": "object",
-              "required": ["id", "name", "type"],
+              "required": ["id", "name", "type", "configPath"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -120,6 +120,11 @@
                   "type": "string",
                   "description": "Preset type discriminator",
                   "enum": ["composite-custom", "unified", "split", "built-in-composite"]
+                },
+                "configPath": {
+                  "type": "string",
+                  "description": "Relative path to the preset JSON configuration file",
+                  "pattern": "^\\./([a-z0-9-]+/)*[a-z0-9-]+\\.json$"
                 },
                 "isDefault": {
                   "type": "boolean",

@@ -401,7 +401,7 @@ Presets are defined inline within atlas entries in the registry (`configs/atlas-
           "id": "france-default",
           "name": {"en": "France - Default", "fr": "France - Par défaut"},
           "type": "composite-custom",
-          "configPath": "configs/presets/france-default.json",
+          "configPath": "./presets/france/france-default.json",
           "isDefault": true,
           "pattern": "single-focus",
           "territoryCount": 10
@@ -410,7 +410,7 @@ Presets are defined inline within atlas entries in the registry (`configs/atlas-
           "id": "france-unified",
           "name": {"en": "France - Unified", "fr": "France - Vue unifiée"},
           "type": "unified",
-          "configPath": "configs/presets/france-unified.json"
+          "configPath": "./presets/france/france-unified.json"
         }
       ]
     }

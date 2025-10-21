@@ -32,6 +32,9 @@ export interface PresetDefinition {
   /** Whether this is the default preset for the atlas */
   isDefault?: boolean
 
+  /** Relative path to the preset JSON configuration file */
+  configPath: string
+
   /** Pattern for composite presets (e.g., 'single-focus', 'equal-members') */
   pattern?: string
 
@@ -40,6 +43,18 @@ export interface PresetDefinition {
 
   /** Description of the preset (i18n support) */
   description?: I18nValue
+}
+
+/**
+ * Preset definition with resolved i18n values
+ * Used for UI display after locale resolution
+ */
+export interface ResolvedPresetDefinition extends Omit<PresetDefinition, 'name' | 'description'> {
+  /** Display name (resolved to current locale) */
+  name: string
+
+  /** Description (resolved to current locale) */
+  description?: string
 }
 
 /**

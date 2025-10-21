@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/preset.schema.json",
+    "$schema": "../../schemas/preset.schema.json",
   "id": "world-unified-default",
   "name": "Monde - Vue unifiée standard",
   "description": "Projection Natural Earth pour carte mondiale",

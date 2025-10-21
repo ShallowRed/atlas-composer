@@ -110,9 +110,9 @@ Presets provide pre-configured projection settings for different view modes.
 
 #### Creating a Preset
 
-1. Create preset file in `configs/presets/<atlas-id>-<preset-name>.json`
+1. Create preset file in `configs/presets/<atlas-id>-<preset-name>.json` (or organize in subdirectories like `configs/presets/<atlas-id>/<preset-name>.json`)
 2. Add appropriate `$schema` reference
-3. Register preset in `configs/atlas-registry.json` under the atlas's `presets` array
+3. Register preset in `configs/atlas-registry.json` under the atlas's `presets` array with `configPath` field pointing to the preset file
 
 Example unified preset:
 ```json

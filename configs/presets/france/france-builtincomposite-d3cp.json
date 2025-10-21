@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/preset-built-in-composite.schema.json",
+  "$schema": "../../schemas/preset-built-in-composite.schema.json",
   "id": "france-built-in-composite",
   "name": "France - Composite d3 standard",
   "description": "Projection composite prédéfinie de d3-composite-projections",

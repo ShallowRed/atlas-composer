@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/preset.schema.json",
+    "$schema": "../../schemas/preset.schema.json",
   "id": "eu-unified-default",
   "name": "EU - Vue unifiée standard",
   "description": "Projection Natural Earth centrée sur l'Europe",

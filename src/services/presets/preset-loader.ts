@@ -57,10 +57,19 @@ export class PresetLoader {
       }
     }
 
-    // Load preset file
-    const fileResult = await PresetFileLoader.loadJSON<any>(
-      `configs/presets/${presetId}.json`,
-    )
+    // Verify configPath is defined
+    if (!presetDef.configPath) {
+      return {
+        success: false,
+        errors: [`Preset '${presetId}' has no configPath defined in atlas registry`],
+        warnings: [],
+      }
+    }
+
+    // Load preset file using configPath from registry
+    // Remove leading "./" from configPath (e.g., "./presets/france/france-default.json" -> "configs/presets/france/france-default.json")
+    const relativePath = presetDef.configPath.replace(/^\.\//, 'configs/')
+    const fileResult = await PresetFileLoader.loadJSON<any>(relativePath)
 
     if (!fileResult.success || !fileResult.data) {
       return {
@@ -107,7 +116,13 @@ export class PresetLoader {
     }
     else {
       // View preset (unified, split, built-in-composite)
-      const validation = validateViewPreset(fileResult.data)
+      // Build validation data with viewMode from registry type
+      const validationData = {
+        ...fileResult.data,
+        viewMode: presetDef.type as 'unified' | 'split' | 'built-in-composite',
+      }
+
+      const validation = validateViewPreset(validationData)
 
       if (!validation.isValid) {
         return {

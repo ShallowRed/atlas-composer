@@ -299,11 +299,11 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
 ```
 
 **Preset Definition Fields:**
-- `id` - Preset identifier (matches filename without extension)
+- `id` - Preset identifier (e.g., 'france-default')
 - `name` - Display name (string or i18n object with en/fr keys)
 - `description` - Optional description (string or i18n object)
 - `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
-- `configPath` - Relative path to preset config file (e.g., "configs/presets/france-default.json")
+- `configPath` - Required. Relative path to preset config file (e.g., "./presets/france/france-default.json" or "./presets/portugal-default.json")
 - `pattern` - (composite-custom only) Composite pattern type
 - `territoryCount` - (composite-custom only) Number of territories configured
 - `isDefault` - (optional) Marks the default preset for the atlas

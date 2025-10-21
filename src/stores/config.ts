@@ -1,6 +1,6 @@
 import type { Preset } from '@/core/presets'
 import type { ViewMode } from '@/types'
-import type { PresetDefinition } from '@/types/registry'
+import type { ResolvedPresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -91,7 +91,7 @@ export const useConfigStore = defineStore('config', () => {
 
   // View mode preset tracking (separate from composite-custom presets)
   const currentViewPreset = ref<string | null>(null)
-  const availableViewPresets = ref<PresetDefinition[]>([])
+  const availableViewPresets = ref<ResolvedPresetDefinition[]>([])
 
   // Computed: Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -324,8 +324,17 @@ export const useConfigStore = defineStore('config', () => {
       // Get presets from atlas registry
       const allPresets = getAtlasPresets(selectedAtlas.value)
 
-      // Filter by current view mode
-      const presets = allPresets.filter(p => p.type === viewMode.value)
+      // Filter by current view mode and resolve i18n values
+      const { resolveI18nValue, getCurrentLocale } = await import('@/core/atlases/i18n-utils')
+      const locale = getCurrentLocale()
+
+      const presets = allPresets
+        .filter(p => p.type === viewMode.value)
+        .map(p => ({
+          ...p,
+          name: resolveI18nValue(p.name, locale),
+          description: p.description ? resolveI18nValue(p.description, locale) : undefined,
+        }))
 
       availableViewPresets.value = presets
 
@@ -346,14 +355,20 @@ export const useConfigStore = defineStore('config', () => {
       return
     }
 
-    const firstPreset = availableViewPresets.value[0]
-    if (!firstPreset) {
+    // Prefer default preset if available
+    const defaultPreset = availableViewPresets.value.find(p => p.isDefault)
+    const presetToLoad = defaultPreset || availableViewPresets.value[0]
+
+    if (!presetToLoad) {
       return
     }
 
     try {
-      await loadViewPreset(firstPreset.id)
-      debug('Auto-loaded view preset "%s" (%s)', firstPreset.name, context)
+      await loadViewPreset(presetToLoad.id)
+      debug('Auto-loaded view preset "%s"%s (%s)',
+        presetToLoad.name,
+        defaultPreset ? ' (default)' : '',
+        context)
     }
     catch (err) {
       debug('Failed to auto-load preset (%s): %O', context, err)

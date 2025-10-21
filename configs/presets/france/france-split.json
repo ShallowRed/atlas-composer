@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/preset-split.schema.json",
+  "$schema": "../../schemas/preset-split.schema.json",
   "id": "france-split-individual",
   "name": "France - Vue séparée optimisée",
   "description": "Projection adaptée à chaque territoire",
