@@ -1,5 +1,7 @@
 import type { AtlasConfig, ViewMode } from '@/types'
 
+import { getAvailableViewModes } from '@/core/atlases/registry'
+
 /**
  * View state snapshot for orchestration decisions
  * Aggregates all state needed to determine component visibility
@@ -250,7 +252,8 @@ export class ViewOrchestrationService {
    * - Atlas only supports one view mode
    */
   static isViewModeDisabled(state: ViewState): boolean {
-    return state.atlasConfig.supportedViewModes.length === 1
+    const availableViewModes = getAvailableViewModes(state.atlasConfig.id)
+    return availableViewModes.length === 1
   }
 
   // ============================================================================

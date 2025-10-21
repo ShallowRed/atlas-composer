@@ -373,3 +373,34 @@ export function getPresetById(atlasId: string, presetId: string) {
   const presets = getAtlasPresets(atlasId)
   return presets.find(p => p.id === presetId)
 }
+
+/**
+ * Get available view modes for an atlas
+ * Derived from unique preset types defined in registry
+ * Returns array of view modes that have at least one preset
+ */
+export function getAvailableViewModes(atlasId: string): Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'> {
+  const presets = getAtlasPresets(atlasId)
+  const uniqueTypes = new Set(presets.map(p => p.type))
+  return Array.from(uniqueTypes)
+}
+
+/**
+ * Get default view mode for an atlas
+ * Uses type of default preset if defined, falls back to first preset type, then 'composite-custom'
+ */
+export function getDefaultViewMode(atlasId: string): 'split' | 'built-in-composite' | 'composite-custom' | 'unified' {
+  const defaultPreset = getDefaultPreset(atlasId)
+  if (defaultPreset) {
+    return defaultPreset.type
+  }
+
+  // Fallback: use first preset's type
+  const presets = getAtlasPresets(atlasId)
+  if (presets.length > 0 && presets[0]) {
+    return presets[0].type
+  }
+
+  // Last resort: composite-custom
+  return 'composite-custom'
+}

@@ -5,11 +5,11 @@
  * Scope: Frontend types for atlas setup and initialization
  *
  * These types define the complete configuration for a geographic atlas
- * (France, Portugal, EU, etc.), including data sources, view modes,
+ * (France, Portugal, EU, etc.), including data sources,
  * projection settings, and UI configuration.
  */
 
-import type { CompositeProjectionConfig, ViewMode } from '@/types/composite'
+import type { CompositeProjectionConfig } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
 
 /**
@@ -68,12 +68,6 @@ export interface AtlasConfig {
 
   /** Data loading configuration */
   geoDataConfig: GeoDataConfig
-
-  /** Supported view modes for this atlas */
-  supportedViewModes: ViewMode[]
-
-  /** Default view mode on initialization */
-  defaultViewMode: ViewMode
 
   /** Configuration for split view mode */
   splitModeConfig?: SplitModeConfig

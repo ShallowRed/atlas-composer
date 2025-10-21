@@ -305,18 +305,12 @@ function createAtlasConfig(
   territoryModes: Record<string, TerritoryCollection>,
   locale: string,
 ): AtlasConfig {
-  // Use view modes from config if specified, otherwise default to all modes
-  const supportedViewModes = (config.viewModes || ['split', 'built-in-composite', 'composite-custom', 'unified']) as Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'>
-  const defaultViewMode = config.defaultViewMode || 'composite-custom'
-
   return {
     id: config.id,
     name: resolveI18nValue(config.name, locale),
     category: config.category,
     pattern: territories.type,
     geoDataConfig,
-    supportedViewModes,
-    defaultViewMode,
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
     compositeProjectionConfig: territories.isWildcard
       ? undefined

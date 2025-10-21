@@ -8,11 +8,6 @@
     "territories": "eu-territories-50m.json",
     "metadata": "eu-metadata-50m.json"
   },
-  "viewModes": [
-    "built-in-composite",
-    "unified",
-    "split"
-  ],
   "territories": [
     {
       "id": "40",

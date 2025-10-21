@@ -11,17 +11,25 @@ import { InitializationService } from '../initialization-service'
 vi.mock('@/core/atlases/registry', () => ({
   getAtlasConfig: vi.fn(() => ({
     id: 'france',
-    defaultViewMode: 'composite-custom',
-    supportedViewModes: ['composite-custom', 'unified', 'split'],
+    pattern: 'single-focus',
     defaultPreset: 'france-default',
     hasTerritorySelector: true,
     territoryModeOptions: [{ value: 'all', label: 'All territories' }],
+    geoDataConfig: {
+      dataPath: '/data/france.json',
+      metadataPath: '/data/france-metadata.json',
+      topologyObjectName: 'territories',
+      mainlandCode: 'FR-MET',
+      overseasTerritories: [],
+    },
   })),
+  getAvailableViewModes: vi.fn(() => ['composite-custom', 'unified', 'split']),
+  getDefaultViewMode: vi.fn(() => 'composite-custom'),
   isAtlasLoaded: vi.fn(() => true),
   loadAtlasAsync: vi.fn(async () => ({
     atlasConfig: {
       id: 'france',
-      defaultViewMode: 'composite-custom',
+      pattern: 'single-focus',
     },
   })),
 }))
@@ -232,14 +240,14 @@ describe('initializationService', () => {
     })
 
     it('should reject unsupported view mode', async () => {
+      // built-in-composite is not in the mocked availableViewModes
       const result = await InitializationService.changeViewMode({
         viewMode: 'built-in-composite',
         autoLoadPreset: false,
       })
 
-      // Note: This would fail if built-in-composite is not in supportedViewModes
-      // In our mock, it is supported, so adjust test or mock accordingly
-      expect(result.success).toBe(true)
+      // Should fail because built-in-composite is not in available view modes
+      expect(result.success).toBe(false)
     })
   })
 

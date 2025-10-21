@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useAtlasLoader } from '@/composables/useAtlasLoader'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { DEFAULT_ATLAS, getAtlasPresets, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasPresets, getAvailableViewModes, getDefaultViewMode, getLoadedConfig, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
@@ -69,8 +69,7 @@ export const useConfigStore = defineStore('config', () => {
 
   // Initialize viewMode with default atlas config (preloaded)
   const getInitialViewMode = () => {
-    const { atlasConfig } = getLoadedConfig(DEFAULT_ATLAS)
-    return atlasConfig.defaultViewMode
+    return getDefaultViewMode(DEFAULT_ATLAS)
   }
   const viewMode = ref<ViewMode>(getInitialViewMode())
 
@@ -99,7 +98,8 @@ export const useConfigStore = defineStore('config', () => {
     // If config hasn't loaded yet, default to not locked
     if (!config)
       return false
-    return config.supportedViewModes.length === 1
+    const availableViewModes = getAvailableViewModes(config.id)
+    return availableViewModes.length === 1
   })
 
   // Initialize UI store with fallback defaults - will be updated async with preset data
@@ -365,10 +365,7 @@ export const useConfigStore = defineStore('config', () => {
 
     try {
       await loadViewPreset(presetToLoad.id)
-      debug('Auto-loaded view preset "%s"%s (%s)',
-        presetToLoad.name,
-        defaultPreset ? ' (default)' : '',
-        context)
+      debug('Auto-loaded view preset "%s"%s (%s)', presetToLoad.name, defaultPreset ? ' (default)' : '', context)
     }
     catch (err) {
       debug('Failed to auto-load preset (%s): %O', context, err)

@@ -8,9 +8,6 @@
     "territories": "world-countries-110m.json",
     "metadata": "world-metadata-110m.json"
   },
-  "viewModes": [
-    "unified"
-  ],
   "territories": "*",
   "modes": [
     {

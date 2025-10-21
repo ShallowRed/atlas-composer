@@ -8,12 +8,6 @@
     "territories": "usa-territories-50m.json",
     "metadata": "usa-metadata-50m.json"
   },
-  "viewModes": [
-    "built-in-composite",
-    "composite-custom",
-    "split",
-    "unified"
-  ],
   "territories": [
     {
       "id": "840",

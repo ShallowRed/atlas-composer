@@ -29,7 +29,7 @@ import type {
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
-import { getAtlasConfig, getDefaultPreset, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasConfig, getAvailableViewModes, getDefaultPreset, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -82,9 +82,10 @@ export class InitializationService {
       // Step 2: Determine view mode
       const configStore = useConfigStore()
       const currentViewMode = configStore.viewMode as ViewMode
-      const viewMode = preserveViewMode && atlasConfig.supportedViewModes.includes(currentViewMode)
+      const availableViewModes = getAvailableViewModes(atlasId)
+      const viewMode = preserveViewMode && availableViewModes.includes(currentViewMode)
         ? currentViewMode
-        : atlasConfig.defaultViewMode
+        : getDefaultViewMode(atlasId)
 
       // Step 3: Determine territory mode
       const territoryMode = this.getTerritoryMode(atlasConfig)
@@ -539,7 +540,8 @@ export class InitializationService {
       }
 
       // Step 1: Validate view mode is supported
-      if (!atlasConfig.supportedViewModes.includes(viewMode as ViewMode)) {
+      const availableViewModes = getAvailableViewModes(atlasConfig.id)
+      if (!availableViewModes.includes(viewMode as ViewMode)) {
         return {
           success: false,
           errors: [`View mode '${viewMode}' is not supported by atlas '${atlasConfig.id}'`],

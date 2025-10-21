@@ -323,6 +323,7 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
+| `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |

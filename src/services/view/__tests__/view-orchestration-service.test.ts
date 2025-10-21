@@ -1,7 +1,15 @@
 import type { ViewState } from '../view-orchestration-service'
 import type { AtlasConfig, ViewMode } from '@/types'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ViewOrchestrationService } from '../view-orchestration-service'
+
+// Mock the registry
+vi.mock('@/core/atlases/registry', () => ({
+  getAvailableViewModes: vi.fn((_atlasId: string) => {
+    // Default mock returns all modes
+    return ['composite-custom', 'built-in-composite', 'split', 'unified']
+  }),
+}))
 
 /**
  * Helper to create a default ViewState for testing
@@ -11,8 +19,6 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     id: 'test',
     name: 'Test Atlas',
     pattern: 'single-focus',
-    defaultViewMode: 'composite-custom',
-    supportedViewModes: ['composite-custom', 'built-in-composite', 'split', 'unified'],
     hasTerritorySelector: true,
     geoDataConfig: {
       dataPath: '/data/test.json',
@@ -320,21 +326,27 @@ describe('viewOrchestrationService', () => {
   })
 
   describe('isViewModeDisabled', () => {
-    it('should disable view mode when only one view mode is supported', () => {
+    it('should disable view mode when only one view mode is supported', async () => {
+      const { getAvailableViewModes } = await import('@/core/atlases/registry')
+      vi.mocked(getAvailableViewModes).mockReturnValueOnce(['unified'])
+
       const state = createViewState({
         atlasConfig: {
           ...createViewState().atlasConfig,
-          supportedViewModes: ['unified'],
+          id: 'test-single-mode',
         },
       })
       expect(ViewOrchestrationService.isViewModeDisabled(state)).toBe(true)
     })
 
-    it('should NOT disable view mode when multiple view modes are supported', () => {
+    it('should NOT disable view mode when multiple view modes are supported', async () => {
+      const { getAvailableViewModes } = await import('@/core/atlases/registry')
+      vi.mocked(getAvailableViewModes).mockReturnValueOnce(['unified', 'split', 'composite-custom'])
+
       const state = createViewState({
         atlasConfig: {
           ...createViewState().atlasConfig,
-          supportedViewModes: ['unified', 'split', 'composite-custom'],
+          id: 'test-multi-mode',
         },
       })
       expect(ViewOrchestrationService.isViewModeDisabled(state)).toBe(false)

@@ -1,6 +1,6 @@
 import type { ViewMode } from '@/types'
 
-import { DEFAULT_ATLAS, getAtlasConfig, getDefaultPreset } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS, getAtlasConfig, getAvailableViewModes, getDefaultPreset, getDefaultViewMode } from '@/core/atlases/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -51,9 +51,10 @@ export class AtlasCoordinator {
     const atlasService = new AtlasService(newAtlasId)
 
     // Determine new view mode (use default if current is not supported)
-    const viewMode = config.supportedViewModes.includes(currentViewMode)
+    const availableViewModes = getAvailableViewModes(newAtlasId)
+    const viewMode = availableViewModes.includes(currentViewMode)
       ? currentViewMode
-      : config.defaultViewMode
+      : getDefaultViewMode(newAtlasId)
 
     // Determine territory mode
     const territoryMode = this.getTerritoryMode(config)
@@ -178,7 +179,7 @@ export class AtlasCoordinator {
    * @returns Initial configuration
    */
   static async getInitialConfiguration(): Promise<AtlasChangeResult> {
-    return this.handleAtlasChange(DEFAULT_ATLAS, getAtlasConfig(DEFAULT_ATLAS).defaultViewMode)
+    return this.handleAtlasChange(DEFAULT_ATLAS, getDefaultViewMode(DEFAULT_ATLAS))
   }
 
   /**

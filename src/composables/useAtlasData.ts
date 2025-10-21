@@ -1,3 +1,4 @@
+import { getAvailableViewModes, getDefaultViewMode } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { logger } from '@/utils/logger'
@@ -63,11 +64,12 @@ export function useAtlasData() {
     }
 
     // Use the atlas's default view mode if current mode is not supported
-    const targetViewMode = atlasConfig.supportedViewModes.includes(configStore.viewMode)
+    const availableViewModes = getAvailableViewModes(atlasConfig.id)
+    const targetViewMode = availableViewModes.includes(configStore.viewMode)
       ? configStore.viewMode
-      : atlasConfig.defaultViewMode
+      : getDefaultViewMode(atlasConfig.id)
 
-    debug('Starting reinitialize (current: %s, target: %s, supported: %o)', configStore.viewMode, targetViewMode, atlasConfig.supportedViewModes)
+    debug('Starting reinitialize (current: %s, target: %s, available: %o)', configStore.viewMode, targetViewMode, availableViewModes)
 
     try {
       await withMinLoadingTime(async () => {
