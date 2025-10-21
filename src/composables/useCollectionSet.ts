@@ -6,7 +6,7 @@
 import type { ComputedRef } from 'vue'
 import type { TerritoryCollections } from '@/types'
 import { computed } from 'vue'
-import { getAtlasBehavior, getAtlasSpecificConfig } from '@/core/atlases/registry'
+import { getAtlasBehavior, getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { logger } from '@/utils/logger'
 
@@ -37,35 +37,27 @@ export function getValidatedCollectionSetKey(
   const collectionSetKey = behavior?.collectionSets?.[uiLocation]
 
   if (!collectionSetKey) {
-    // No mapping in registry, fallback to first available
-    const firstKey = Object.keys(territoryCollections)[0]
-    if (firstKey && requiredSelectionType !== 'any') {
-      const firstSet = territoryCollections[firstKey]
-      if (firstSet && firstSet.selectionType !== requiredSelectionType) {
-        debug(
-          `Warning: No ${uiLocation} mapping in registry for atlas '${atlasId}'. First available collection set '${firstKey}' has selectionType='${firstSet.selectionType}' but '${requiredSelectionType}' is required.`,
-        )
-      }
-    }
-    return firstKey
+    // No mapping in registry - no fallback
+    debug(
+      `No ${uiLocation} mapping in registry for atlas '${atlasId}'. No fallback applied.`,
+    )
+    return undefined
+  }
+
+  // Validate that the referenced collection set exists
+  const collectionSet = territoryCollections[collectionSetKey]
+  if (!collectionSet) {
+    debug(
+      `Error: Collection set '${collectionSetKey}' referenced by ${uiLocation} does not exist in atlas '${atlasId}'.`,
+    )
+    return undefined
   }
 
   // Validate selection type if requirement specified
-  if (requiredSelectionType !== 'any') {
-    const collectionSet = territoryCollections[collectionSetKey]
-    if (!collectionSet) {
-      debug(
-        `Error: Collection set '${collectionSetKey}' referenced by ${uiLocation} does not exist in atlas '${atlasId}'`,
-      )
-      return undefined
-    }
-
-    if (collectionSet.selectionType !== requiredSelectionType) {
-      debug(
-        `Error: ${uiLocation} in atlas '${atlasId}' references collection set '${collectionSetKey}' with selectionType='${collectionSet.selectionType}', but '${requiredSelectionType}' is required`,
-      )
-      // Return it anyway but log the error - component should handle gracefully
-    }
+  if (requiredSelectionType !== 'any' && collectionSet.selectionType !== requiredSelectionType) {
+    debug(
+      `Warning: ${uiLocation} in atlas '${atlasId}' references collection set '${collectionSetKey}' with selectionType='${collectionSet.selectionType}', but '${requiredSelectionType}' is expected`,
+    )
   }
 
   return collectionSetKey
@@ -86,6 +78,12 @@ export function useCollectionSet(
 
   return computed(() => {
     const atlasId = configStore.selectedAtlas
+
+    // Check if atlas is loaded before accessing config
+    if (!isAtlasLoaded(atlasId)) {
+      return undefined
+    }
+
     const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
     const territoryCollections = atlasSpecificConfig.territoryCollections
 

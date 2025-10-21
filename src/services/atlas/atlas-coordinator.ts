@@ -189,10 +189,17 @@ export class AtlasCoordinator {
    * @returns Territory mode to use
    */
   private static getTerritoryMode(config: any): string {
-    // Otherwise use first option from territoryModeOptions
+    // Use first option from territoryModeOptions if available
     if (config.hasTerritorySelector && config.territoryModeOptions && config.territoryModeOptions.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
+
+    // For atlases without territory selector (e.g., wildcard atlases like world)
+    // Return a default mode identifier
+    if (!config.hasTerritorySelector || config.isWildcard) {
+      return 'all-territories'
+    }
+
     throw new Error('No territory mode options available for atlas')
   }
 

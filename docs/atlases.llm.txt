@@ -33,7 +33,7 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
   - **name**: Display name (i18n object or string)
   - **group**: Group ID for UI grouping
   - **sortOrder**: Display order within group (lower = earlier)
-  - **isDefault**: Boolean flag marking default atlas (replaces root defaultAtlas field)
+  - **isDefault**: Boolean flag marking default atlas
   - **configPath**: Relative path to atlas JSON config
   - **presets**: Array of preset definitions (inline, not referenced)
     - **id**: Unique preset identifier
@@ -42,6 +42,7 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
     - **isDefault**: Boolean flag marking default preset for this atlas
     - **pattern**: Pattern type for composite presets (e.g., `single-focus`)
     - **territoryCount**: Number of territories in composite preset
+    - **configPath**: Path to preset configuration file
     - **description**: Preset description (i18n object, optional)
   - **behavior**: Application behavior configuration (optional)
     - **collectionSets**: UI-specific configuration
@@ -54,6 +55,11 @@ The behavior object separates application-level configuration from pure atlas da
 Atlas configs contain only territory data and collections; the registry defines how the application uses them and which presets are available.
 
 Presets are defined inline within their atlas entry, providing single source of truth for atlas metadata and available presets.
+Each preset type in the registry defines an available view mode for that atlas.
+
+**View Mode Discovery**: The application queries the registry to determine available view modes:
+- `getAvailableViewModes(atlasId)` - Returns unique preset types for the atlas
+- `getDefaultViewMode(atlasId)` - Returns type of preset marked with `isDefault: true`
 
 **Typical Configuration**:
 - `territoryManager.collectionSet`: 'administrative' (for composite-custom mode territory selection)
@@ -164,12 +170,23 @@ src/public/data/
 
 ## View Modes
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| `split` | Separate maps per territory | Traditional atlases with distant territories |
-| `built-in-composite` | Pre-built D3 composite | France, Portugal, Spain |
-| `composite-custom` | User-defined layout | Any atlas, full customization |
-| `unified` | Single world map | Regional groups, geographic context |
+View modes are determined dynamically from registry presets:
+
+| Mode | Description | Determined By |
+|------|-------------|---------------|
+| `composite-custom` | User-defined layout | Preset with type='composite-custom' exists in registry |
+| `built-in-composite` | Pre-built D3 composite | Preset with type='built-in-composite' exists in registry |
+| `split` | Separate maps per territory | Preset with type='split' exists in registry |
+| `unified` | Single world map | Preset with type='unified' exists in registry |
+
+**Default View Mode**: Determined by the preset marked with `isDefault: true` in the registry entry for the atlas.
+
+**Pattern Recommendations**: `AtlasPatternService` provides recommended view modes based on atlas pattern:
+- `single-focus`: Recommends composite-custom, split, built-in-composite, unified
+- `equal-members`: Recommends unified, composite-custom
+- `hierarchical`: Recommends composite-custom, unified
+
+The registry defines what view modes are AVAILABLE (via presets), while the pattern service suggests what view modes are RECOMMENDED (based on territory structure).
 
 ## Adding a New Atlas
 
@@ -322,12 +339,12 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description (string or i18n object) |
-| `viewModes` | ⏩ | Supported view modes (default: all) |
-| `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
 | `territoryCollections` | ⏩ | Unified territory grouping system with selection type constraints |
+
+**View Modes**: Available view modes are determined dynamically from registry presets. Each preset type (composite-custom, unified, split, built-in-composite) defines an available view mode. The default view mode is determined by the preset marked with `isDefault: true` in the registry.
 
 ## Territory Collections System
 

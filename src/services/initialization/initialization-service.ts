@@ -66,12 +66,7 @@ export class InitializationService {
     const { atlasId, preserveViewMode = false } = options
 
     try {
-      // Step 0: Clear all existing data (Phase 4: Clear reset strategy)
-      const geoDataStore = useGeoDataStore()
-      geoDataStore.setReinitializing(true)
-      await this.clearAllApplicationData()
-
-      // Step 1: Ensure atlas is loaded
+      // Step 1: Ensure atlas is loaded (BEFORE clearing data)
       if (!isAtlasLoaded(atlasId)) {
         await loadAtlasAsync(atlasId)
       }
@@ -79,7 +74,8 @@ export class InitializationService {
       const atlasConfig = getAtlasConfig(atlasId)
       const atlasService = new AtlasService(atlasId)
 
-      // Step 2: Determine view mode
+      // Step 2: Validate configuration (BEFORE clearing data)
+      // Determine view mode
       const configStore = useConfigStore()
       const currentViewMode = configStore.viewMode as ViewMode
       const availableViewModes = getAvailableViewModes(atlasId)
@@ -87,8 +83,14 @@ export class InitializationService {
         ? currentViewMode
         : getDefaultViewMode(atlasId)
 
-      // Step 3: Determine territory mode
+      // Determine territory mode (validate it exists BEFORE clearing data)
       const territoryMode = this.getTerritoryMode(atlasConfig)
+
+      // Step 3: Clear all existing data (AFTER validation succeeds)
+      // Only clear data once we know the atlas can be loaded successfully
+      const geoDataStore = useGeoDataStore()
+      geoDataStore.setReinitializing(true)
+      await this.clearAllApplicationData()
 
       // Step 4: Load and validate preset (if available and in composite-custom mode)
       let preset: Preset | null = null
@@ -104,7 +106,17 @@ export class InitializationService {
       const defaultPresetDef = getDefaultPreset(atlasId)
       const defaultPresetId = defaultPresetDef?.id
 
-      if (defaultPresetId && viewMode === 'composite-custom') {
+      // For composite-custom mode, preset is REQUIRED
+      if (viewMode === 'composite-custom') {
+        if (!defaultPresetId) {
+          return {
+            success: false,
+            errors: [`No default preset defined for atlas '${atlasId}' in composite-custom mode`],
+            warnings: [],
+            state: null,
+          }
+        }
+
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.success || !presetResult.data) {
@@ -135,6 +147,51 @@ export class InitializationService {
           territoryParameters = PresetLoader.extractTerritoryParameters(preset.config)
           referenceScale = preset.config.referenceScale
           canvasDimensions = preset.config.canvasDimensions
+        }
+      }
+      // For unified/split/built-in-composite modes, preset is also REQUIRED
+      else if (['unified', 'split', 'built-in-composite'].includes(viewMode)) {
+        if (!defaultPresetId) {
+          return {
+            success: false,
+            errors: [`No default preset defined for atlas '${atlasId}' in ${viewMode} mode`],
+            warnings: [],
+            state: null,
+          }
+        }
+
+        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
+
+        if (!presetResult.success || !presetResult.data) {
+          return {
+            success: false,
+            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
+            warnings: presetResult.warnings || [],
+            state: null,
+          }
+        }
+
+        preset = presetResult.data
+
+        // Validate preset type matches view mode
+        if (preset.type !== viewMode) {
+          return {
+            success: false,
+            errors: [`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`],
+            warnings: [],
+            state: null,
+          }
+        }
+
+        // Validate preset
+        const validation = PresetValidationService.validatePreset(preset, atlasConfig)
+        if (!validation.isValid) {
+          return {
+            success: false,
+            errors: validation.errors,
+            warnings: validation.warnings,
+            state: null,
+          }
         }
       }
 
@@ -668,6 +725,13 @@ export class InitializationService {
     if (config.hasTerritorySelector && config.territoryModeOptions?.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
+
+    // For atlases without territory selector (e.g., wildcard atlases like world)
+    // Return a default mode identifier
+    if (!config.hasTerritorySelector || config.isWildcard) {
+      return 'all-territories'
+    }
+
     throw new Error('No territory mode options available for atlas')
   }
 

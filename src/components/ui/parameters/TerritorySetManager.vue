@@ -74,10 +74,8 @@ const selectedCollectionSet = ref<string | undefined>(defaultCollectionSet.value
 
 // Watch for changes to default (e.g., when switching atlases)
 watch(() => defaultCollectionSet.value, (newDefault) => {
-  if (newDefault && (!selectedCollectionSet.value || !atlasCollections.value?.[selectedCollectionSet.value])) {
-    selectedCollectionSet.value = newDefault
-  }
-})
+  selectedCollectionSet.value = newDefault
+}, { immediate: true })
 
 // Get which collection set to display - use local state or fallback to default
 const collectionSetToDisplay = computed(() => {
@@ -93,13 +91,38 @@ const collectionSetToDisplay = computed(() => {
 // Group territories according to atlas configuration
 const territoryGroups = computed((): TerritoryGroup[] => {
   const collections = atlasCollections.value
+
+  // Guard: Ensure atlas is fully loaded before accessing data
+  const currentAtlasId = configStore.selectedAtlas
+  if (!isAtlasLoaded(currentAtlasId)) {
+    return []
+  }
+
   if (!collections) {
     return []
   }
 
   const collectionSetKey = collectionSetToDisplay.value
   if (!collectionSetKey) {
-    return []
+    // Fallback: create single group with all territories
+    const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+    const allTerritories = loadedTerritories.value
+      .filter(t => t.code !== mainlandCode)
+      .map(territory => ({
+        code: territory.code,
+        name: territory.name,
+        isActive: activeCodes.value.has(territory.code),
+      }))
+
+    if (allTerritories.length === 0) {
+      return []
+    }
+
+    return [{
+      id: 'all-territories',
+      label: '', // Empty label so no group title is shown
+      territories: allTerritories,
+    }]
   }
 
   const collectionSet = collections[collectionSetKey]
@@ -173,8 +196,11 @@ function toggleTerritory(code: string, isActive: boolean) {
       :key="group.id"
       class="space-y-2"
     >
-      <!-- Group Label -->
-      <div class="text-xs font-medium text-base-content/70">
+      <!-- Group Label (only show if label is not empty) -->
+      <div
+        v-if="group.label"
+        class="text-xs font-medium text-base-content/70"
+      >
         {{ group.label }}
       </div>
 

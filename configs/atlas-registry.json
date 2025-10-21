@@ -152,7 +152,7 @@
           "isDefault": true,
           "pattern": "single-focus",
           "territoryCount": 3,
-          "configPath": "./presets/portugal-default.json",
+          "configPath": "./presets/portugal/portugal-default.json",
           "description": {
             "en": "Custom configuration for continental Portugal and islands",
             "fr": "Configuration personnalisée pour le Portugal continental et les îles"
@@ -165,7 +165,7 @@
             "fr": "Vue unifiée standard"
           },
           "type": "unified",
-          "configPath": "./presets/portugal-unified.json",
+          "configPath": "./presets/portugal/portugal-unified.json",
           "description": {
             "en": "Natural Earth projection centered on Portugal",
             "fr": "Projection Natural Earth centrée sur le Portugal"
@@ -200,9 +200,7 @@
       ],
       "behavior": {
         "collectionSets": {
-          "territoryManager": "legal-status",
-          "territoryScope": "incremental",
-          "territoryGroups": "geographic"
+
         }
       }
     },
@@ -358,7 +356,7 @@
           },
           "type": "unified",
           "isDefault": true,
-          "configPath": "./presets/world-unified.json",
+          "configPath": "./presets/world/world-unified.json",
           "description": {
             "en": "Natural Earth projection for world map",
             "fr": "Projection Natural Earth pour carte mondiale"

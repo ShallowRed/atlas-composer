@@ -67,14 +67,12 @@ const selectedGrouping = ref<string | undefined>(defaultGrouping.value)
 // Watch for atlas changes to reset grouping to default
 watch(() => configStore.selectedAtlas, () => {
   selectedGrouping.value = defaultGrouping.value
-})
+}, { immediate: true })
 
 // Watch default grouping changes (e.g., when atlas loads)
 watch(defaultGrouping, (newDefault) => {
-  if (newDefault && !selectedGrouping.value) {
-    selectedGrouping.value = newDefault
-  }
-})
+  selectedGrouping.value = newDefault
+}, { immediate: true })
 
 /**
  * Grouping options for dropdown
@@ -106,22 +104,30 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const collections = atlasCollections.value
   const territories = geoDataStore.overseasTerritories
 
+  // Guard: Ensure we're looking at the right atlas's data
+  // If atlas is loading, territories might be stale from previous atlas
+  const currentAtlasId = configStore.selectedAtlas
+  if (!isAtlasLoaded(currentAtlasId)) {
+    return new Map()
+  }
+
   if (!collections || !territories || territories.length === 0) {
     return new Map()
   }
 
   const collectionSetKey = selectedGrouping.value
   if (!collectionSetKey) {
-    // Fallback: group by region if no collection set defined
-    const groups = new Map<string, Territory[]>()
-    for (const territory of territories) {
-      const region = territory.region || 'Other'
-      if (!groups.has(region)) {
-        groups.set(region, [])
-      }
-      groups.get(region)!.push(territory)
+    // No collection set defined - show all territories without grouping
+    // Create a single anonymous group with all territories
+    const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+    const allTerritories = territories.filter(t => t.code !== mainlandCode)
+
+    if (allTerritories.length === 0) {
+      return new Map()
     }
-    return groups
+
+    // Use empty string as key so no group title is rendered
+    return new Map([['', allTerritories]])
   }
 
   const collectionSet = collections[collectionSetKey]
@@ -195,10 +201,13 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
         <!-- Region Groups -->
         <div
           v-for="[regionName, territories] in territoryGroups"
-          :key="regionName"
+          :key="regionName || 'ungrouped'"
           class="join-item border border-base-300 p-3 bg-base-200/25"
         >
-          <h4 class="text-sm font-semibold mb-2">
+          <h4
+            v-if="regionName"
+            class="text-sm font-semibold mb-2"
+          >
             {{ regionName }}
           </h4>
           <div class="flex flex-wrap gap-4">

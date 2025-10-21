@@ -69,6 +69,7 @@ Ensures composite projection is always selected by using atlas metadata's defaul
 - Returns territoryParameters map in AtlasChangeResult for parameter store initialization
 - Determines composite projection from metadata or AtlasMetadataService.getCompositeProjections()
 - `getInitialConfiguration()` - Build initial config for atlas (async)
+- `getTerritoryMode()` - Determine territory mode (all-territories for wildcard atlases, split otherwise)
 
 ### InitializationService
 Centralizes application initialization logic for all scenarios.
@@ -80,6 +81,25 @@ Uses registry behavior for preset configuration instead of atlas config.
 - `importConfiguration()` - Import user-provided configuration
 - `changeViewMode()` - Switch view mode within same atlas
 - `applyStateToStores()` - Apply application state to Pinia stores
+
+**Validation Order**:
+Validates configuration BEFORE clearing any data to preserve UI state on failed initialization.
+Steps:
+1. Validate atlas configuration exists
+2. Validate preset exists for view mode
+3. Clear existing data
+4. Initialize new atlas/preset
+
+This fail-fast approach prevents UI corruption when switching atlases or view modes.
+
+**Required Presets**:
+All view modes require valid presets to function:
+- `composite-custom` - Requires preset with type='composite-custom'
+- `unified` - Requires preset with type='unified'
+- `split` - Requires preset with type='split'
+- `built-in-composite` - Requires preset with type='built-in-composite'
+
+Initialization fails immediately if preset is not found, preventing silent fallbacks.
 
 **Preset Loading**:
 Gets defaultPreset and availablePresets from registry behavior via getAtlasBehavior().

@@ -334,7 +334,7 @@ function createAtlasConfig(
         ? `atlas.territories.${config.id}.overseas`
         : `atlas.territories.${config.id}.territories`,
     },
-    hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0),
+    hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0 && Object.keys(territoryModes).length > 0),
     isWildcard: territories.isWildcard === true,
     territoryModeOptions: Object.keys(territoryModes).map(modeId => ({
       value: modeId,
@@ -374,23 +374,26 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
     : territories.all.map(t => t.code)
 
   // Determine which territory collection set to use for territory modes (scope dropdown)
-  // Priority: registry behavior > first available
-  // Validate that it's an incremental collection set if specified in registry
+  // Only use if explicitly configured in registry behavior
+  // If not configured or invalid, territoryModes will be empty and dropdown hidden
   let collectionSetKey: string | undefined
 
   if (registryBehavior?.collectionSets?.territoryScope) {
     collectionSetKey = registryBehavior.collectionSets.territoryScope
-    // Validate selection type
+    // Validate that it exists and selection type
     const collectionSet = jsonConfig.territoryCollections?.[collectionSetKey]
-    if (collectionSet && collectionSet.selectionType !== 'incremental') {
+    if (!collectionSet) {
+      console.warn(
+        `territoryScope in atlas '${jsonConfig.id}' references non-existent collection set '${collectionSetKey}'. `
+        + `Territory selector will be hidden.`,
+      )
+      collectionSetKey = undefined
+    }
+    else if (collectionSet.selectionType !== 'incremental') {
       console.warn(
         `territoryScope in atlas '${jsonConfig.id}' references collection set '${collectionSetKey}' with selectionType='${collectionSet.selectionType}', but 'incremental' is recommended`,
       )
     }
-  }
-  else if (jsonConfig.territoryCollections) {
-    // Fallback to first available
-    collectionSetKey = Object.keys(jsonConfig.territoryCollections)[0]
   }
 
   // Create territory modes from territory collections
@@ -440,7 +443,15 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
     )
   }
   else {
-    // No modes or territory collections
+    // No valid collection set found - don't create synthetic fallback
+    // This will hide the territory selector dropdown in the UI
+    if (jsonConfig.territoryCollections && Object.keys(jsonConfig.territoryCollections).length > 0) {
+      console.warn(
+        `No valid territory collection set found for atlas '${jsonConfig.id}'. `
+        + `Registry specifies '${collectionSetKey}' but it doesn't exist. `
+        + `Territory selector will be hidden. Available collection sets: ${Object.keys(jsonConfig.territoryCollections).join(', ')}`,
+      )
+    }
     territoryModes = {}
     rawModeLabels = {}
   }

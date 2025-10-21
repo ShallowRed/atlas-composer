@@ -4,6 +4,8 @@
 
 The preset system manages saved projection configurations for all view modes using a unified architecture. A single loader handles all preset types, a single registry tracks all presets, and discriminated union types provide type-safe handling across the application.
 
+Presets are REQUIRED for all view modes to function. The application fails fast during initialization if a view mode has no corresponding preset defined in the registry. Available view modes are determined by the preset types defined in the registry for each atlas.
+
 ## Preset Types
 
 Four preset types exist in a discriminated union (`Preset`):
@@ -12,6 +14,16 @@ Four preset types exist in a discriminated union (`Preset`):
 2. **unified** - Single projection covering the entire atlas
 3. **split** - Individual projections per territory group
 4. **built-in-composite** - Predefined projections from d3-composite-projections library
+
+Each preset type corresponds to a view mode of the same name. The availability of a view mode depends on having at least one preset of that type defined in the registry for the atlas.
+
+**Preset → View Mode Relationship**:
+- Preset type `composite-custom` → View mode `composite-custom`
+- Preset type `unified` → View mode `unified`
+- Preset type `split` → View mode `split`
+- Preset type `built-in-composite` → View mode `built-in-composite`
+
+The application discovers available view modes by extracting unique preset types from the registry using `getAvailableViewModes(atlasId)`.
 
 ## Architecture
 
