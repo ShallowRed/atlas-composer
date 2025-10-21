@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getAtlasBehavior } from '@/core/atlases/registry'
+import { getDefaultPreset } from '@/core/atlases/registry'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -21,11 +21,11 @@ export function useProjectionConfig() {
   // Load composite projections when atlas changes
   watch(() => configStore.selectedAtlas, async (atlasId) => {
     if (atlasId && configStore.currentAtlasConfig) {
-      const atlasBehavior = getAtlasBehavior(atlasId)
-      const defaultPreset = atlasBehavior?.defaultPreset
+      // Get default preset from atlas registry
+      const defaultPresetDef = getDefaultPreset(atlasId)
       const compositeProjections = await AtlasMetadataService.getCompositeProjections(
         atlasId,
-        defaultPreset,
+        defaultPresetDef?.id,
       )
       availableCompositeProjections.value = compositeProjections || []
     }

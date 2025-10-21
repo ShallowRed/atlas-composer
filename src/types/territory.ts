@@ -89,6 +89,9 @@ export interface TerritoryCollectionSet {
   /** Display label for the collection set */
   label: string
 
+  /** Selection behavior: 'incremental' allows progressive additions, 'mutually-exclusive' allows only one collection at a time */
+  selectionType: 'incremental' | 'mutually-exclusive'
+
   /** Optional description of the grouping strategy */
   description?: string
 

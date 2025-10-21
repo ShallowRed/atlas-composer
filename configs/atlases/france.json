@@ -382,6 +382,7 @@
         "en": "Geographic regions",
         "fr": "Régions géographiques"
       },
+      "selectionType": "mutually-exclusive",
       "description": {
         "en": "Territory groupings based on geographic location",
         "fr": "Groupes de territoires basés sur la localisation géographique"
@@ -453,6 +454,7 @@
         "en": "Legal Status",
         "fr": "Statut juridique"
       },
+      "selectionType": "mutually-exclusive",
       "description": {
         "en": "Territory groupings by legal and administrative status (DROM, COM, etc.)",
         "fr": "Groupes de territoires par statut juridique et administratif (DROM, COM, etc.)"
@@ -524,6 +526,7 @@
         "en": "Incremental Selection",
         "fr": "Sélection Incrémentale"
       },
+      "selectionType": "incremental",
       "description": {
         "en": "Progressive territory combinations from mainland to all overseas territories",
         "fr": "Combinaisons progressives de territoires de la métropole à tous les territoires d'outre-mer"

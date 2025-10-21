@@ -42,7 +42,7 @@ interface Props {
   width?: number
   hLevel?: number
   height?: number
-  projection?: string // Optional projection override for split/composite-custom mode
+  projection?: string | null // Optional projection override for split/composite-custom mode
   territoryCode?: string // Territory code for parameter resolution in split mode
   fullHeight?: boolean
   // For composite maps

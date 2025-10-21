@@ -84,11 +84,6 @@
         ["split", "built-in-composite", "composite-custom", "unified"]
       ]
     },
-    "defaultViewMode": {
-      "type": "string",
-      "description": "Default view mode for this atlas. Defaults to 'composite-custom' if not specified.",
-      "enum": ["split", "built-in-composite", "composite-custom", "unified"]
-    },
     "metadata": {
       "type": "object",
       "properties": {
@@ -238,7 +233,7 @@
       "patternProperties": {
         "^[a-z][a-z0-9-]*$": {
           "type": "object",
-          "required": ["label", "collections"],
+          "required": ["label", "selectionType", "collections"],
           "properties": {
             "label": {
               "oneOf": [
@@ -254,6 +249,11 @@
                 }
               ],
               "description": "Display label for the collection set"
+            },
+            "selectionType": {
+              "type": "string",
+              "enum": ["incremental", "mutually-exclusive"],
+              "description": "Selection behavior: 'incremental' allows progressive territory additions (for territoryScope), 'mutually-exclusive' allows only one collection at a time (for territoryManager/territoryGroups)"
             },
             "description": {
               "oneOf": [

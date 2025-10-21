@@ -85,6 +85,20 @@ App.vue
 **Watchers**: All reactive dependencies handled by useMapWatchers composable
 **Cursor Coordination**: Territory dragging > Clip extent editing > Projection panning priority
 
+### View-Mode Render Components (src/components/views/)
+
+View components handle visual rendering for different atlas modes.
+
+#### SplitView.vue
+**Role**: Renders territories in separate projections (split/unified modes)
+**Responsibilities**:
+- Pattern detection for layout (single-focus vs equal-members)
+- Territory grouping via useCollectionSet composable (mutually-exclusive type)
+- Filters grouping dropdown to show only mutually-exclusive collection sets
+- Groups territories for visual organization without duplicate tracking (guaranteed by mutually-exclusive constraint)
+- Renders mainland and overseas territories with MapRenderer
+- Uses: useCollectionSet, useProjectionConfig, getAtlasSpecificConfig
+
 ### View-Mode Control Components (src/components/configuration/)
 
 Dedicated control components for each view mode provide focused, maintainable interfaces.
@@ -251,9 +265,10 @@ Dedicated control components for each view mode provide focused, maintainable in
   - **Single responsibility**: Focuses solely on parameter editing; projection selection handled by parent components
 - **TerritorySetManager**: Territory customization UI for composite-custom mode
   - Manages which territories are included in custom composite projection
-  - Uses registry behavior to determine which collection set to display (typically 'administrative')
+  - Uses useCollectionSet composable to get validated collection set key (mutually-exclusive type)
+  - Filters dropdown options to only show mutually-exclusive collection sets
   - Reads territoryCollections from atlas config via atlasSpecificConfig.territoryCollections
-  - Displays territories grouped by administrative collections (e.g., "Mainland only", "Mainland + DROM", "All territories")
+  - Displays territories grouped by collections (e.g., "Mainland only", "Mainland + DROM", "All territories")
   - Displays active territories with remove buttons (btn-soft style with close icon)
   - Displays available territories with add buttons (btn-ghost style with add icon)
   - Filters out mainland from available territories (mainland always visible)
@@ -302,7 +317,7 @@ Dedicated control components for each view mode provide focused, maintainable in
   - Translation support with Vue I18n integration
 - ToggleControl used in DisplayOptionsSection (4 instances) and TerritoryControls (1 instance)
 
-## Composables (14 functions)
+## Composables (15 functions)
 
 ### Data Loading
 **useAtlasLoader**
@@ -344,6 +359,20 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Used by: CompositeExportDialog.vue, and services needing projection parameters
 - Tests: 5 tests covering delegation and consistency
 - Pattern: Adapter pattern for parameter store integration
+
+**useCollectionSet**
+- Territory collection set validation and retrieval
+- Validates collection sets against selection type requirements (incremental vs mutually-exclusive)
+- Returns validated collection set key from registry behavior
+- Helper functions:
+  - useCollectionSet(uiLocation, requiredSelectionType): Returns reactive collection set key
+  - getValidatedCollectionSetKey(): Validates and retrieves collection set key
+  - filterCollectionSetsByType(): Filters collection sets by selection type for UI dropdowns
+- Selection type enforcement:
+  - `incremental`: Progressive territory additions (territoryScope)
+  - `mutually-exclusive`: Single collection selection (territoryManager, territoryGroups)
+- Used by: TerritorySetManager.vue, SplitView.vue, loader.ts
+- Ensures UI components only show appropriate collection sets based on usage context
 
 **useProjectionConfig**
 - Projection configuration helpers

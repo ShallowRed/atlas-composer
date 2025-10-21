@@ -11,7 +11,7 @@ const debug = logger.vue.composable
 interface MapWatcherProps {
   mode: 'simple' | 'composite'
   geoData?: GeoJSON.FeatureCollection | null
-  projection?: string
+  projection?: string | null
   preserveScale?: boolean
 }
 

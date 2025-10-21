@@ -160,44 +160,16 @@
           },
           "behavior": {
             "type": "object",
-            "description": "Application behavior configuration for this atlas",
+            "description": "Application behavior configuration for this atlas. VALIDATION RULES: (1) territoryManager and territoryGroups keys MUST reference collection sets with selectionType='mutually-exclusive'. (2) territoryScope key MUST reference a collection set with selectionType='incremental'. These rules are enforced at runtime.",
             "properties": {
               "collectionSets": {
                 "type": "object",
-                "description": "Collection set configuration for different UI contexts",
-                "properties": {
-                  "territoryManager": {
-                    "type": "object",
-                    "description": "Territory manager component configuration",
-                    "properties": {
-                      "collectionSet": {
-                        "type": "string",
-                        "description": "Which territory collection set to display (key from atlas's territoryCollections)",
-                        "pattern": "^[a-z][a-z0-9-]*$"
-                      },
-                      "showLabels": {
-                        "type": "boolean",
-                        "description": "Whether to show collection labels in UI",
-                        "default": true
-                      },
-                      "groupLayout": {
-                        "type": "string",
-                        "enum": ["stacked", "inline", "grid"],
-                        "description": "Layout strategy for territory groups",
-                        "default": "stacked"
-                      }
-                    }
-                  },
-                  "configSection": {
-                    "type": "object",
-                    "description": "Configuration section component settings",
-                    "properties": {
-                      "collectionSet": {
-                        "type": "string",
-                        "description": "Which territory collection set to use for configuration",
-                        "pattern": "^[a-z][a-z0-9-]*$"
-                      }
-                    }
+                "description": "Maps UI component locations to territory collection set keys. Keys identify where in the UI a collection set is used (e.g., 'territoryManager', 'territoryScope', 'territoryGroups'). Values are keys from the atlas's territoryCollections configuration. VALIDATION: territoryManager/territoryGroups require 'mutually-exclusive' collections; territoryScope requires 'incremental' collections.",
+                "patternProperties": {
+                  "^[a-zA-Z][a-zA-Z0-9]*$": {
+                    "type": "string",
+                    "description": "Territory collection set key to use for this UI location",
+                    "pattern": "^[a-z][a-z0-9-]*$"
                   }
                 },
                 "additionalProperties": false

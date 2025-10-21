@@ -202,57 +202,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
 }
 
 /**
- * Create territory mode configurations
- * Resolves i18n values for mode labels
- */
-function createTerritoryModes(
-  config: JSONAtlasConfig,
-  mainlandCode: string,
-  isSingleFocusPattern: boolean,
-  locale: string,
-  allTerritoryCodes?: string[],
-): Record<string, TerritoryCollection> {
-  return Object.fromEntries(
-    (config.modes || []).map((mode) => {
-      let codes = mode.territories
-
-      // For wildcard modes, keep the "*" marker for runtime resolution
-      // For non-wildcard modes with known territories, process normally
-      if (codes.includes('*') && !allTerritoryCodes) {
-        // Wildcard atlas (like world): keep "*" for runtime resolution
-        codes = ['*']
-      }
-      else if (codes.includes('*') && allTerritoryCodes) {
-        // Non-wildcard atlas with explicit territories: expand now
-        codes = [...allTerritoryCodes]
-
-        // Handle exclusions
-        if (mode.exclude && Array.isArray(mode.exclude)) {
-          const excludeList = mode.exclude
-          codes = codes.filter((code: string) => !excludeList.includes(code))
-        }
-      }
-
-      // For single-focus atlases (France, Portugal): filter out primary code (it's shown separately)
-      // For equal-members atlases (EU, World): include all codes (all territories are equal)
-      if (isSingleFocusPattern && !codes.includes('*')) {
-        codes = codes.filter((code: string) => code !== mainlandCode)
-      }
-
-      return [
-        mode.id,
-        {
-          id: mode.id,
-          label: resolveI18nValue(mode.label, locale),
-          codes,
-          exclude: mode.exclude, // Store exclusions for runtime resolution
-        },
-      ]
-    }),
-  )
-}
-
-/**
  * Create territory collections from unified territoryCollections config
  * Resolves i18n values for collection set and collection labels
  */
@@ -300,6 +249,7 @@ function createTerritoryCollections(
 
     result[setKey] = {
       label: resolveI18nValue(setConfig.label, locale),
+      selectionType: setConfig.selectionType,
       description: setConfig.description
         ? resolveI18nValue(setConfig.description, locale)
         : undefined,
@@ -367,7 +317,6 @@ function createAtlasConfig(
     geoDataConfig,
     supportedViewModes,
     defaultViewMode,
-    defaultPreset: config.defaultPreset,
     // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
     compositeProjectionConfig: territories.isWildcard
       ? undefined
@@ -391,7 +340,7 @@ function createAtlasConfig(
         ? `atlas.territories.${config.id}.overseas`
         : `atlas.territories.${config.id}.territories`,
     },
-    hasTerritorySelector: (config.modes || []).length > 0 || (config.territoryCollections && Object.keys(config.territoryCollections).length > 0),
+    hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0),
     isWildcard: territories.isWildcard === true,
     territoryModeOptions: Object.keys(territoryModes).map(modeId => ({
       value: modeId,
@@ -430,31 +379,33 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
     ? undefined // Will be resolved at runtime by GeoDataService
     : territories.all.map(t => t.code)
 
-  // Determine which territory collection set to use for territory modes
+  // Determine which territory collection set to use for territory modes (scope dropdown)
   // Priority: registry behavior > first available
-  const collectionSetKey = registryBehavior?.collectionSets?.[0]?.configSection?.collectionSet
-    || (jsonConfig.territoryCollections ? Object.keys(jsonConfig.territoryCollections)[0] : undefined)
+  // Validate that it's an incremental collection set if specified in registry
+  let collectionSetKey: string | undefined
 
-  // Create territory modes from legacy modes or new territory collections
+  if (registryBehavior?.collectionSets?.territoryScope) {
+    collectionSetKey = registryBehavior.collectionSets.territoryScope
+    // Validate selection type
+    const collectionSet = jsonConfig.territoryCollections?.[collectionSetKey]
+    if (collectionSet && collectionSet.selectionType !== 'incremental') {
+      console.warn(
+        `territoryScope in atlas '${jsonConfig.id}' references collection set '${collectionSetKey}' with selectionType='${collectionSet.selectionType}', but 'incremental' is recommended`,
+      )
+    }
+  }
+  else if (jsonConfig.territoryCollections) {
+    // Fallback to first available
+    collectionSetKey = Object.keys(jsonConfig.territoryCollections)[0]
+  }
+
+  // Create territory modes from territory collections
   let territoryModes: Record<string, TerritoryCollection>
   let rawModeLabels: Record<string, I18nValue>
 
-  if (jsonConfig.modes && jsonConfig.modes.length > 0) {
-    // Use legacy modes
-    territoryModes = createTerritoryModes(
-      jsonConfig,
-      territories.mainland.code,
-      isSingleFocusPattern,
-      locale,
-      allTerritoryCodes,
-    )
-    rawModeLabels = Object.fromEntries(
-      jsonConfig.modes.map(mode => [mode.id, mode.label]),
-    )
-  }
-  else if (collectionSetKey && jsonConfig.territoryCollections?.[collectionSetKey]) {
+  if (collectionSetKey && jsonConfig.territoryCollections?.[collectionSetKey]) {
     // Transform territory collections to legacy territoryModes format
-    const collectionSet = jsonConfig.territoryCollections[collectionSetKey]
+    const collectionSet = jsonConfig.territoryCollections[collectionSetKey]!
     territoryModes = Object.fromEntries(
       collectionSet.collections.map((collection) => {
         let codes: string[] = []
@@ -532,9 +483,8 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
   const projectionPreferences = getFallbackProjectionPreferences(jsonConfig.id)
 
   // Store raw i18n values for reactive translation (rawModeLabels already created above)
-  const rawGroupLabels = Object.fromEntries(
-    (jsonConfig.groups || []).map(group => [group.id.toUpperCase(), group.label]),
-  )
+  // Groups are no longer supported in atlas configs
+  const rawGroupLabels: Record<string, I18nValue> = {}
 
   // Create atlas-specific config
   const atlasSpecificConfig: AtlasSpecificConfig = {

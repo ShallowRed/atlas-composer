@@ -74,6 +74,7 @@
   "territory": {
     "controls": "Contrôles des territoires",
     "byTerritory": "Par territoire",
+    "groupBy": "Regrouper par",
     "territorySettings": "Paramètres par territoire",
     "position": "Position",
     "positionX": "Position horizontale (X)",

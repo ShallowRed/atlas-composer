@@ -52,6 +52,7 @@ export interface JSONTerritoryCollection {
  */
 export interface JSONTerritoryCollectionSet {
   label: I18nValue
+  selectionType: 'incremental' | 'mutually-exclusive'
   description?: I18nValue
   collections: JSONTerritoryCollection[]
 }

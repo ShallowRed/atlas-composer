@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getAtlasBehavior, getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
+import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
+import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -47,33 +48,26 @@ const atlasCollections = computed(() => {
   return atlasSpecificConfig.territoryCollections
 })
 
-// Get available collection sets
+// Get available collection sets (only mutually-exclusive ones for territoryManager)
 const availableCollectionSets = computed(() => {
   const collections = atlasCollections.value
   if (!collections) {
     return []
   }
 
-  return Object.entries(collections).map(([key, value]) => ({
-    id: key,
-    label: value.label,
-  }))
+  // Filter to only show mutually-exclusive collection sets
+  const allowedKeys = filterCollectionSetsByType(collections, 'mutually-exclusive')
+
+  return Object.entries(collections)
+    .filter(([key]) => allowedKeys.includes(key))
+    .map(([key, value]) => ({
+      id: key,
+      label: value.label,
+    }))
 })
 
 // Get the default collection set from registry behavior
-const defaultCollectionSet = computed(() => {
-  const atlasId = configStore.selectedAtlas
-  const behavior = getAtlasBehavior(atlasId)
-  const defaultFromRegistry = behavior?.collectionSets?.territoryManager?.collectionSet
-
-  // If no default in registry, use the first available collection set
-  if (!defaultFromRegistry && atlasCollections.value) {
-    const firstKey = Object.keys(atlasCollections.value)[0]
-    return firstKey
-  }
-
-  return defaultFromRegistry
-})
+const defaultCollectionSet = useCollectionSet('territoryManager', 'mutually-exclusive')
 
 // Local state for selected collection set (initialized reactively with default from registry)
 const selectedCollectionSet = ref<string | undefined>(defaultCollectionSet.value)

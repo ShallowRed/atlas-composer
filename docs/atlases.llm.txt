@@ -323,49 +323,66 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
 | `description` | ⏩ | Brief description (string or i18n object) |
 | `viewModes` | ⏩ | Supported view modes (default: all) |
-| `defaultViewMode` | ⏩ | Initial view mode (default: composite-custom) |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
-| `projectionPreferences` | ⚠️ | Highly recommended for proper projections |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
-| `territoryCollections` | ⏩ | Unified territory grouping system (administrative and geographic sets) |
+| `territoryCollections` | ⏩ | Unified territory grouping system with selection type constraints |
 
 ## Territory Collections System
 
-Territory collections provide a unified, flexible system for grouping territories by administrative or geographic criteria.
+Territory collections provide a unified, flexible system for grouping territories by administrative or geographic criteria. Each collection set defines a selection type that constrains how it can be used in the UI.
 
 ### Structure
-Territory collections are organized into sets, where each set contains multiple collections:
+Territory collections are organized into sets, where each set contains multiple collections and a selection type:
 
 ```json
 {
   "territoryCollections": {
-    "administrative": [
-      {
-        "id": "metropole-only",
-        "label": {"en": "Metropolitan only", "fr": "Métropole uniquement"},
-        "territoryCodes": ["FR-MET"]
-      }
-    ],
-    "geographic": [
-      {
-        "id": "mainland",
-        "label": {"en": "Mainland", "fr": "Métropole"},
-        "territoryCodes": ["FR-MET"]
-      }
-    ]
+    "administrative": {
+      "label": {"en": "Administrative", "fr": "Administratif"},
+      "selectionType": "incremental",
+      "collections": [
+        {
+          "id": "metropole-only",
+          "label": {"en": "Metropolitan only", "fr": "Métropole uniquement"},
+          "territories": ["FR-MET"]
+        }
+      ]
+    },
+    "geographic": {
+      "label": {"en": "Geographic", "fr": "Géographique"},
+      "selectionType": "mutually-exclusive",
+      "collections": [
+        {
+          "id": "mainland",
+          "label": {"en": "Mainland", "fr": "Métropole"},
+          "territories": ["FR-MET"]
+        }
+      ]
+    }
   }
 }
 ```
 
-### Collection Sets
-- **administrative**: Selection presets that change the active territory set (e.g., "Metropolitan only", "All territories")
-- **geographic**: Visual groupings for organization and display (e.g., "Caribbean", "Pacific")
+### Collection Set Properties
+- **label**: Display label for the collection set (i18n object or string)
+- **selectionType**: Defines selection behavior:
+  - `"incremental"`: Progressive territory additions (used for territoryScope dropdowns)
+  - `"mutually-exclusive"`: Single collection selection (used for territoryManager and territoryGroups)
+- **description** (optional): Explanation of the grouping strategy
+- **collections**: Array of collection objects
 
 ### Collection Properties
 - **id**: Unique identifier within the set (kebab-case)
 - **label**: Display label (i18n object or string)
-- **territoryCodes**: Array of territory codes included in this collection
+- **territories**: Array of territory codes or `"*"` for all territories
+- **exclude** (optional): Array of territory codes to exclude when using `"*"`
+
+### Selection Type Usage
+The selection type determines which UI components can use a collection set:
+
+- **incremental** collections: Used in territory scope dropdowns (split/unified modes) where users select progressive combinations (e.g., "Mainland only" → "Mainland + DROM" → "All territories")
+- **mutually-exclusive** collections: Used in territory manager (composite mode) and territory groupings (split view) where only one collection can be active at a time (e.g., "Caribbean" OR "Pacific", not both)
 
 ### Usage in Registry Behavior
 The registry defines which collection set to use for specific UI elements:
@@ -373,15 +390,16 @@ The registry defines which collection set to use for specific UI elements:
 ```json
 {
   "behavior": {
-    "defaultTerritoryCollection": "metropole-drom",
-    "ui": {
-      "territoryManager": {
-        "collectionSet": "geographic"
-      }
+    "collectionSets": {
+      "territoryManager": "legal-status",
+      "territoryScope": "incremental",
+      "territoryGroups": "geographic"
     }
   }
 }
 ```
+
+Validation enforces that `territoryManager` and `territoryGroups` reference mutually-exclusive collection sets, while `territoryScope` references incremental collection sets.
 
 ## Preset System
 

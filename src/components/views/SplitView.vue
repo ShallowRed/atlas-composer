@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { Territory } from '@/stores/geoData'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
+import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -34,6 +38,117 @@ const mainlandTitle = computed(() =>
 const territoriesTitle = computed(() =>
   configStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
 )
+
+/**
+ * Get atlas territory collections configuration
+ */
+const atlasCollections = computed(() => {
+  const atlasId = configStore.selectedAtlas
+  if (!isAtlasLoaded(atlasId)) {
+    return undefined
+  }
+
+  const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
+  return atlasSpecificConfig.territoryCollections
+})
+
+/**
+ * Get the default grouping from registry behavior
+ * Uses territoryGroups config for split/unified views visual grouping
+ */
+const defaultGrouping = useCollectionSet('territoryGroups', 'mutually-exclusive')
+
+/**
+ * Local state for selected grouping strategy
+ * Initialized with default from registry, can be changed by user
+ */
+const selectedGrouping = ref<string | undefined>(defaultGrouping.value)
+
+// Watch for atlas changes to reset grouping to default
+watch(() => configStore.selectedAtlas, () => {
+  selectedGrouping.value = defaultGrouping.value
+})
+
+// Watch default grouping changes (e.g., when atlas loads)
+watch(defaultGrouping, (newDefault) => {
+  if (newDefault && !selectedGrouping.value) {
+    selectedGrouping.value = newDefault
+  }
+})
+
+/**
+ * Grouping options for dropdown
+ * Only show mutually-exclusive collection sets (filter out incremental ones)
+ */
+const groupingOptions = computed(() => {
+  if (!atlasCollections.value) {
+    return []
+  }
+
+  // Filter to only show mutually-exclusive collection sets
+  const allowedKeys = filterCollectionSetsByType(atlasCollections.value, 'mutually-exclusive')
+
+  return Object.entries(atlasCollections.value)
+    .filter(([key]) => allowedKeys.includes(key))
+    .map(([key, collectionSet]) => ({
+      value: key,
+      label: collectionSet.label,
+      translated: false, // Will be translated by i18n
+    }))
+})
+
+/**
+ * Group territories by collection (same logic as TerritorySetManager)
+ * Uses atlas territoryCollections configuration for grouping
+ * Since we only use mutually-exclusive collection sets, territories won't appear in multiple groups
+ */
+const territoryGroups = computed<Map<string, Territory[]>>(() => {
+  const collections = atlasCollections.value
+  const territories = geoDataStore.overseasTerritories
+
+  if (!collections || !territories || territories.length === 0) {
+    return new Map()
+  }
+
+  const collectionSetKey = selectedGrouping.value
+  if (!collectionSetKey) {
+    // Fallback: group by region if no collection set defined
+    const groups = new Map<string, Territory[]>()
+    for (const territory of territories) {
+      const region = territory.region || 'Other'
+      if (!groups.has(region)) {
+        groups.set(region, [])
+      }
+      groups.get(region)!.push(territory)
+    }
+    return groups
+  }
+
+  const collectionSet = collections[collectionSetKey]
+  if (!collectionSet) {
+    return new Map()
+  }
+
+  const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+  const territoriesByCode = new Map(territories.map(t => [t.code, t]))
+
+  // Convert territory collections to Map<label, Territory[]>
+  // No need to track duplicates since mutually-exclusive sets guarantee no overlap
+  const groups = new Map<string, Territory[]>()
+
+  for (const collection of collectionSet.collections) {
+    const groupTerritories = collection.codes
+      .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code))
+      .map(code => territoriesByCode.get(code)!)
+      .filter(t => t !== undefined)
+
+    if (groupTerritories.length > 0) {
+      groups.set(collection.label, groupTerritories)
+    }
+  }
+
+  return groups
+})
 </script>
 
 <template>
@@ -42,6 +157,15 @@ const territoriesTitle = computed(() =>
     v-if="isSingleFocusPattern"
     class="flex flex-row flex flex-wrap gap-4"
   >
+    <!-- Grouping dropdown -->
+    <DropdownControl
+      v-if="groupingOptions.length > 1"
+      v-model="selectedGrouping"
+      :label="t('territory.groupBy')"
+      icon="ri-group-line"
+      :options="groupingOptions"
+      class="max-w-xs"
+    />
     <!-- Primary territory -->
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
@@ -60,15 +184,17 @@ const territoriesTitle = computed(() =>
     </div>
 
     <div :class="{ 'flex-1': !configStore.scalePreservation }">
-      <h3 class="text-base font-semibold mb-4">
-        <i class="ri-map-pin-add-line" />
-        {{ t(territoriesTitle) }}
-      </h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-semibold">
+          <i class="ri-map-pin-add-line" />
+          {{ t(territoriesTitle) }}
+        </h3>
+      </div>
 
       <div class="join join-vertical">
         <!-- Region Groups -->
         <div
-          v-for="[regionName, territories] in geoDataStore.territoryGroups"
+          v-for="[regionName, territories] in territoryGroups"
           :key="regionName"
           class="join-item border border-base-300 p-3 bg-base-200/25"
         >

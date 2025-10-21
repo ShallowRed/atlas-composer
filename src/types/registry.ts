@@ -58,39 +58,6 @@ export interface ResolvedPresetDefinition extends Omit<PresetDefinition, 'name' 
 }
 
 /**
- * UI configuration for the territory manager component
- */
-export interface TerritoryManagerUIConfig {
-  /** Which territory collection set to display (key from atlas's territoryCollections) */
-  collectionSet?: string
-
-  /** Whether to show collection labels in UI */
-  showLabels?: boolean
-
-  /** Layout strategy for territory groups */
-  groupLayout?: 'stacked' | 'inline' | 'grid'
-}
-
-/**
- * UI configuration for the configuration section component
- */
-export interface ConfigSectionUIConfig {
-  /** Which territory collection set to use for configuration */
-  collectionSet?: string
-}
-
-/**
- * UI-specific configuration for atlas behavior
- */
-export interface AtlasCollectionSetConfig {
-  /** Territory manager component configuration */
-  territoryManager?: TerritoryManagerUIConfig
-
-  /** Configuration section component settings */
-  configSection?: ConfigSectionUIConfig
-}
-
-/**
  * Application behavior configuration for an atlas
  *
  * Defines how the application should behave with this atlas,
@@ -98,8 +65,29 @@ export interface AtlasCollectionSetConfig {
  * This is separate from the atlas data structure itself.
  */
 export interface AtlasRegistryBehavior {
-  /** Collection set configuration for different UI contexts */
-  collectionSets?: AtlasCollectionSetConfig[]
+  /**
+   * Maps UI component locations to territory collection set keys
+   *
+   * Keys identify where in the UI a collection set is used:
+   * - "territoryManager": TerritorySetManager component (composite-custom mode)
+   *   Controls which territories can be selected for the custom composite
+   *
+   * - "territoryScope": Territory dropdown in AtlasConfigSection (split/unified modes)
+   *   Controls which territories are included in the view (filtering)
+   *
+   * - "territoryGroups": Visual grouping in SplitView (split/unified modes)
+   *   Controls how territories are organized visually into groups
+   *
+   * Values are keys from the atlas's territoryCollections configuration
+   *
+   * Example:
+   * {
+   *   "territoryManager": "legal-status",
+   *   "territoryScope": "incremental",
+   *   "territoryGroups": "geographic"
+   * }
+   */
+  collectionSets?: Record<string, string>
 }
 
 /**

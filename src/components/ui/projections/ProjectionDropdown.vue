@@ -23,7 +23,7 @@ interface ProjectionGroup {
 
 interface Props {
   label: string
-  modelValue?: string
+  modelValue?: string | null
   projectionGroups: ProjectionGroup[]
   recommendations?: ProjectionRecommendation[]
   showRecommendations?: boolean

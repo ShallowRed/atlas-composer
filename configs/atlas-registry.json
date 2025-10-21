@@ -126,12 +126,9 @@
       ],
       "behavior": {
         "collectionSets": {
-          "territoryManager": {
-            "collectionSet": "geographic"
-          },
-          "configSection": {
-            "collectionSet": "incremental"
-          }
+          "territoryManager": "legal-status",
+          "territoryScope": "incremental",
+          "territoryGroups": "geographic"
         }
       }
     },
@@ -203,12 +200,9 @@
       ],
       "behavior": {
         "collectionSets": {
-          "territoryManager": {
-            "collectionSet": "geographic"
-          },
-          "configSection": {
-            "collectionSet": "incremental"
-          }
+          "territoryManager": "legal-status",
+          "territoryScope": "incremental",
+          "territoryGroups": "geographic"
         }
       }
     },
