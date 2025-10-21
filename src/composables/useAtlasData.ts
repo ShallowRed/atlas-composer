@@ -53,22 +53,6 @@ export function useAtlasData() {
   }
 
   /**
-   * Load data based on current view mode
-   */
-  async function loadDataForViewMode(viewMode: string) {
-    await withMinLoadingTime(async () => {
-      // Load territory data for split and composite-custom modes (needed for individual projections)
-      if ((viewMode === 'split' || viewMode === 'composite-custom') && !geoDataStore.overseasTerritoriesData.length) {
-        await geoDataStore.loadTerritoryData()
-      }
-      // Load unified data for unified mode
-      else if (viewMode === 'unified' && !geoDataStore.rawUnifiedData) {
-        await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
-      }
-    })
-  }
-
-  /**
    * Reinitialize data when atlas changes
    */
   async function reinitialize() {
@@ -107,7 +91,7 @@ export function useAtlasData() {
   async function reloadUnifiedData() {
     if (configStore.viewMode === 'unified') {
       await withMinLoadingTime(async () => {
-        await geoDataStore.loadRawUnifiedData(configStore.territoryMode)
+        await geoDataStore.reloadUnifiedData(configStore.territoryMode)
       })
     }
   }
@@ -115,7 +99,6 @@ export function useAtlasData() {
   return {
     showSkeleton,
     initialize,
-    loadDataForViewMode,
     reinitialize,
     reloadUnifiedData,
   }

@@ -9,7 +9,7 @@ const geoDataStore = useGeoDataStore()
 
 // Watch territory mode changes and reload unified data
 watch(() => configStore.territoryMode, async (newMode) => {
-  await geoDataStore.loadRawUnifiedData(newMode)
+  await geoDataStore.reloadUnifiedData(newMode)
 }, { immediate: true })
 </script>
 

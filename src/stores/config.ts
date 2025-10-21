@@ -442,8 +442,22 @@ export const useConfigStore = defineStore('config', () => {
 
     await loadAvailableViewPresets()
 
-    // Auto-load first preset if available
-    await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
+    // For composite-custom mode with no view presets, reload the atlas default preset
+    if (newMode === 'composite-custom' && availableViewPresets.value.length === 0) {
+      const atlasId = selectedAtlas.value
+      if (atlasId) {
+        debug('Reloading default composite preset for composite-custom mode')
+        // Re-initialize atlas to reload default preset
+        await InitializationService.initializeAtlas({
+          atlasId,
+          preserveViewMode: true, // Keep composite-custom mode
+        })
+      }
+    }
+    else {
+      // Auto-load first preset if available
+      await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
+    }
   })
 
   // Track if we're in the middle of reverting to prevent infinite loops

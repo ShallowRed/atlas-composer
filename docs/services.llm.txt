@@ -150,7 +150,8 @@ Instance-based service providing unified API for components.
 
 ### TerritoryDataLoader
 Strategy pattern for loading territory data based on atlas pattern.
-- `loadTerritoryData()` - Load data using appropriate strategy
+- `loadTerritories()` - Load territory data using appropriate strategy
+- `loadUnifiedData()` - Load unified data with territory filtering
 Strategies: SingleFocusLoadStrategy, EqualMembersLoadStrategy
 
 ### TerritoryFilterService

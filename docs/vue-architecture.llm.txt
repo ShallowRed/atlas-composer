@@ -313,10 +313,12 @@ Dedicated control components for each view mode provide focused, maintainable in
 - Used by: configStore for lazy atlas loading
 
 **useAtlasData** (128 lines)
-- Orchestrates all data loading
-- initialize(), loadDataForViewMode(), reinitialize(), reloadUnifiedData()
-- setupWatchers() - Consolidates all data loading watchers
-- Returns: { showSkeleton, initialize, loadDataForViewMode, reinitialize, reloadUnifiedData, setupWatchers }
+- Orchestrates atlas initialization and data reloading
+- initialize(): Waits for InitializationService to complete preset loading and data preloading
+- reinitialize(): Handles atlas switching via geoDataStore.reinitialize()
+- reloadUnifiedData(): Reloads unified data when territory mode changes in unified view
+- Returns: { showSkeleton, initialize, reinitialize, reloadUnifiedData }
+- Data loading handled by InitializationService (preloads all data types during startup)
 - Tests: 13 tests
 
 **useLoadingState** (32 lines)
@@ -613,11 +615,14 @@ const { viewOrchestration } = useViewState()
 - Loading states
 - Cartographer initialization with parameter provider injection
 - Parameter provider adapter for connecting parameter store to rendering
-- **Territory filtering**: filteredTerritories computed filters territories based on view mode
+- **Territory filtering**: overseasTerritories computed filters territories based on view mode
   - Custom composite mode: Filters by configStore.activeTerritoryCodes (user-customizable set)
   - Built-in composite mode: Returns all territories from preset (no filtering)
   - Split/unified modes: Filters by territory mode from atlas configuration
   - Used by MapRenderer and territory UI components for rendering active territories
+- **Data loading methods**:
+  - loadAllAtlasData(territoryMode): Loads both territory and unified data in parallel during initialization
+  - reloadUnifiedData(territoryMode): Reloads unified data when territory mode changes
 **Used by**: MapRenderer, data loading composables, TerritorySetManager
 
 ### ui.ts (81 lines)

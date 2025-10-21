@@ -199,64 +199,28 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  const loadTerritoryData = async () => {
-    if (!cartographer.value) {
-      await initialize()
-    }
-
+  /**
+   * Reload unified data for a specific territory mode
+   * Used when territory mode changes in unified view
+   * Assumes cartographer is already initialized
+   */
+  const reloadUnifiedData = async (territoryMode: string) => {
     const configStore = useConfigStore()
 
-    try {
-      isLoading.value = true
-      error.value = null
-
-      // Access the geoDataService through the cartographer's public API
-      if (!cartographer.value) {
-        throw new Error('Cartographer not initialized')
-      }
-      if (!configStore.currentAtlasConfig) {
-        throw new Error('Atlas config not loaded')
-      }
-      const service = cartographer.value.geoData
-
-      // Use TerritoryDataLoader with strategy pattern to load data
-      const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig.pattern)
-      const result = await loader.loadTerritories(service)
-
-      mainlandData.value = result.mainlandData
-      overseasTerritoriesData.value = result.territories
-    }
-    catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error loading territory data'
-      debug('Error loading territory data: %O', err)
-      throw err
-    }
-    finally {
-      isLoading.value = false
-    }
-  }
-
-  const loadRawUnifiedData = async (mode: string) => {
     if (!cartographer.value) {
-      await initialize()
+      throw new Error('Cannot reload unified data: Cartographer not initialized')
+    }
+    if (!configStore.currentAtlasConfig) {
+      throw new Error('Cannot reload unified data: Atlas config not loaded')
     }
 
     try {
       isLoading.value = true
       error.value = null
 
-      const configStore = useConfigStore()
-      if (!cartographer.value) {
-        throw new Error('Cartographer not initialized')
-      }
-      if (!configStore.currentAtlasConfig) {
-        throw new Error('Atlas config not loaded')
-      }
       const service = cartographer.value.geoData
-
-      // Use TerritoryDataLoader to handle unified data loading
       const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig.pattern)
-      const result = await loader.loadUnifiedData(service, mode, {
+      const result = await loader.loadUnifiedData(service, territoryMode, {
         atlasConfig: configStore.currentAtlasConfig,
         atlasService: configStore.atlasService,
         hasTerritorySelector: configStore.currentAtlasConfig.hasTerritorySelector ?? false,
@@ -264,10 +228,11 @@ export const useGeoDataStore = defineStore('geoData', () => {
       })
 
       rawUnifiedData.value = result.data
+      debug('Reloaded unified data for mode: %s', territoryMode)
     }
     catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error loading raw unified data'
-      debug('Error loading raw unified data: %O', err)
+      error.value = err instanceof Error ? err.message : 'Error reloading unified data'
+      debug('Error reloading unified data: %O', err)
       throw err
     }
     finally {
@@ -426,8 +391,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     initialize,
     reinitialize,
     setReinitializing,
-    loadTerritoryData,
-    loadRawUnifiedData,
+    reloadUnifiedData,
     loadAllAtlasData,
     clearAllData,
     clearError,
