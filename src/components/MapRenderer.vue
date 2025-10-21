@@ -7,7 +7,7 @@ import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useSliderState } from '@/composables/useSliderState'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
-import { getAtlasBehavior } from '@/core/atlases/registry'
+import { getAtlasPresets } from '@/core/atlases/registry'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
@@ -62,8 +62,8 @@ const showSphere = computed<boolean>(() => {
     return false
 
   const atlasId = configStore.selectedAtlas
-  const behavior = getAtlasBehavior(atlasId)
-  const hasPresets = (behavior?.availablePresets?.length ?? 0) > 0
+  const presets = getAtlasPresets(atlasId)
+  const hasPresets = presets.length > 0
 
   const viewState: ViewState = {
     viewMode: configStore.viewMode,

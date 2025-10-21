@@ -1,7 +1,7 @@
 import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getAtlasBehavior } from '@/core/atlases/registry'
+import { getAtlasPresets } from '@/core/atlases/registry'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useConfigStore } from '@/stores/config'
@@ -98,8 +98,8 @@ export function useViewState() {
       return null
 
     const atlasId = configStore.selectedAtlas
-    const behavior = getAtlasBehavior(atlasId)
-    const hasPresets = (behavior?.availablePresets?.length ?? 0) > 0
+    const presets = getAtlasPresets(atlasId)
+    const hasPresets = presets.length > 0
 
     return {
       viewMode: configStore.viewMode,

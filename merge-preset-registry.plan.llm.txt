@@ -177,18 +177,17 @@ Two separate registries with overlapping concerns:
   - Update `listPresets()` to query atlas registry
 
 ### Phase 5: Component Updates
-- [ ] File: `src/components/ui/presets/PresetSelector.vue`
+- [x] File: `src/components/ui/presets/PresetSelector.vue`
   - Update to query presets from atlas registry
   - Use `getAtlasPresets(currentAtlas)` instead of filtering preset registry
   - Update UI to display i18n preset names/descriptions
+  - Removed async metadata loading (now direct from registry)
 
-- [ ] File: `src/services/atlas/atlas-coordinator.ts`
-  - Update to use `getDefaultPreset()` from atlas registry
-  - Remove dependency on separate preset registry lookup
+- [x] File: `src/components/MapRenderer.vue`
+  - Updated to use `getAtlasPresets()` instead of `behavior.availablePresets`
 
-- [ ] File: `src/stores/config.ts`
-  - Update `loadAvailableViewPresets()` to use atlas registry
-  - Update preset filtering logic
+- [x] File: `src/composables/useViewState.ts`
+  - Updated to use `getAtlasPresets()` instead of `behavior.availablePresets`
 
 ### Phase 6: Test Updates
 - [ ] File: `src/services/presets/__tests__/preset-loader.spec.ts`
