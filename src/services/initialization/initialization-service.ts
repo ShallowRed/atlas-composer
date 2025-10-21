@@ -921,8 +921,8 @@ export class InitializationService {
   ): string[] {
     const errors: string[] = []
 
-    // Skip validation for unified/split modes - they use global projection, not per-territory
-    if (viewMode === 'unified' || viewMode === 'split') {
+    // Skip validation for unified/split/built-in-composite modes - they use global projection, not per-territory
+    if (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite') {
       return errors
     }
 

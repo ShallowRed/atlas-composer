@@ -79,7 +79,7 @@ describe('registry + factory integration', () => {
 
     it('should use top recommendation for europe atlas', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'eu',
+        atlasId: 'europe',
         viewMode: 'split',
       })
 
@@ -302,7 +302,7 @@ describe('registry + factory integration', () => {
     it('should support complete europe atlas workflow', () => {
       // 1. Get recommendations for Europe
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'eu',
+        atlasId: 'europe',
         viewMode: 'split',
       })
 

@@ -64,7 +64,7 @@ src/core/projections/
     regional?: number           // 0-100 for country/region maps
     france?: number             // Atlas-specific scores
     portugal?: number
-    eu?: number
+    europe?: number
   }
 
   recommendedForAtlases?: string[]  // ['france', 'portugal']
@@ -138,7 +138,7 @@ The registry matches these criteria against territory properties to determine su
 
 ```typescript
 interface ProjectionFilterContext {
-  atlasId?: string              // 'france' | 'portugal' | 'spain' | 'eu'
+  atlasId?: string              // 'france' | 'portugal' | 'spain' | 'europe'
   viewMode?: ViewMode           // 'composite' | 'split' | 'individual'
   territory?: {                 // Territory being configured
     id: string

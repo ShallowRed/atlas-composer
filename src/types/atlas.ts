@@ -57,7 +57,7 @@ export type AtlasCategory = 'country' | 'region' | 'world'
  * to configure map rendering, data loading, and UI behavior.
  */
 export interface AtlasConfig {
-  /** Unique identifier (e.g., 'france', 'portugal', 'eu') */
+  /** Unique identifier (e.g., 'france', 'portugal', 'europe') */
   id: string
 
   /** Display name (e.g., 'France', 'Portugal', 'European Union') */

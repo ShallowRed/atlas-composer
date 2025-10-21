@@ -169,7 +169,7 @@ export class AtlasMetadataService {
         return ['conic-conformal-spain']
       case 'usa':
         return ['albers-usa', 'albers-usa-composite']
-      case 'eu':
+      case 'europe':
         return ['conic-conformal-europe']
       default:
         return [`conic-conformal-${atlasId}`]

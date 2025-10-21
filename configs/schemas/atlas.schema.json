@@ -11,7 +11,7 @@
     },
     "id": {
       "type": "string",
-      "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'eu')",
+      "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'europe')",
       "pattern": "^[a-z][a-z0-9-]*$"
     },
     "name": {

@@ -22,7 +22,7 @@ async function getSchemaValidator(): Promise<ValidateFunction> {
   }
 
   try {
-    const schemaPath = resolve(process.cwd(), 'configs/atlases/atlas.schema.json')
+    const schemaPath = resolve(process.cwd(), 'configs/schemas/atlas.schema.json')
     const schemaContent = await readFile(schemaPath, 'utf-8')
     const schema = JSON.parse(schemaContent)
 

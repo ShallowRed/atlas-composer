@@ -90,7 +90,7 @@ configs/
 ├── france.json                # Atlas configurations (loaded on demand)
 ├── portugal.json
 ├── usa.json
-├── eu.json
+├── europe.json
 └── world.json
 
 src/core/atlases/

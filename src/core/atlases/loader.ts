@@ -59,7 +59,7 @@ function getFallbackProjectionPreferences(atlasId: string): ProjectionPreference
       return { recommended: ['conic-conformal-portugal'] }
     case 'usa':
       return { recommended: ['albers-usa', 'albers-usa-composite'] }
-    case 'eu':
+    case 'europe':
       return { recommended: ['conic-conformal-europe'] }
     default:
       return { recommended: [`conic-conformal-${atlasId}`] }

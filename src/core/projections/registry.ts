@@ -80,7 +80,7 @@ class ProjectionRegistry {
         return { recommended: ['conic-conformal-portugal'], prohibited: [] }
       case 'usa':
         return { recommended: ['albers-usa', 'albers-usa-composite'], prohibited: [] }
-      case 'eu':
+      case 'europe':
         return { recommended: ['conic-conformal-europe'], prohibited: [] }
       default:
         return { recommended: [`conic-conformal-${atlasId}`], prohibited: [] }

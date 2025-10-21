@@ -17,7 +17,7 @@
     "france": "France",
     "portugal": "Portugal",
     "spain": "Spain",
-    "eu": "European Union",
+    "europe": "European Union",
     "usa": "United States",
     "territories": {
       "france": {
@@ -32,7 +32,7 @@
         "mainland": "Peninsular Spain",
         "overseas": "Overseas territories"
       },
-      "eu": {
+      "europe": {
         "territories": "Member States"
       },
       "usa": {
@@ -265,7 +265,7 @@
       "france": "France",
       "portugal": "Portugal",
       "spain": "Spain",
-      "eu": "European Union",
+      "europe": "European Union",
       "usa": "United States"
     },
     "technologies": {

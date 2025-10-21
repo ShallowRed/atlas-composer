@@ -18,7 +18,7 @@ registerProjections({
 const presets = [
   { name: 'France', file: 'france-default.json' },
   { name: 'Portugal', file: 'portugal-default.json' },
-  { name: 'EU', file: 'eu-default.json' },
+  { name: 'EU', file: 'europe-default.json' },
 ]
 
 console.log('Testing multiple presets from the updated app...\n')

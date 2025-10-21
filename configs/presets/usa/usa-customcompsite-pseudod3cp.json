@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/preset-composite-custom.schema.json",
+  "$schema": "../../schemas/preset-composite-custom.schema.json",
   "version": "1.0",
   "metadata": {
     "atlasId": "usa",
@@ -11,6 +11,10 @@
   },
   "pattern": "single-focus",
   "referenceScale": 1070,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
   "territories": [
     {
       "code": "US-CONT",
@@ -21,7 +25,6 @@
           0,
           0
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           -486.85,
           -254.66,
@@ -65,7 +68,6 @@
           -328.49,
           215.07
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           -126.26,
           -86.67,
@@ -113,7 +115,6 @@
           -219.35,
           226.84
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           -9.63,
           -49.22,
@@ -161,7 +162,6 @@
           374.5,
           239.68
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           -40.66,
           -18.83,
@@ -209,7 +209,6 @@
           -436.56,
           19.26
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           -17.55,
           -74.79,
@@ -253,7 +252,6 @@
           -526.44,
           96.3
         ],
-        "clipExtent": null,
         "pixelClipExtent": [
           72.44,
           0.32,

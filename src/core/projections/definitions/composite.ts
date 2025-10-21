@@ -178,7 +178,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     center: [10, 50], // Approximate center of Europe
   },
 
-  aliases: ['europe-composite', 'composite-europe', 'eu-composite', 'composite-eu'],
+  aliases: ['europe-composite', 'composite-europe', 'europe-composite', 'composite-europe'],
 
   metadata: {
     infoUrl: 'https://github.com/rveciana/d3-composite-projections',

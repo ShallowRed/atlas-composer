@@ -1,9 +1,9 @@
 {
-    "$schema": "../../schemas/preset.schema.json",
-  "id": "eu-unified-default",
+  "$schema": "../../schemas/preset-unified.schema.json",
+  "id": "europe-unified-default",
   "name": "EU - Vue unifiée standard",
   "description": "Projection Natural Earth centrée sur l'Europe",
-  "atlasId": "eu",
+  "atlasId": "europe",
   "type": "unified",
   "config": {
     "projection": {

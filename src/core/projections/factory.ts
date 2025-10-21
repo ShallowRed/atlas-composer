@@ -320,8 +320,8 @@ export class ProjectionFactory {
       case 'conic-conformal-europe':
       case 'europe-composite':
       case 'composite-europe':
-      case 'eu-composite':
-      case 'composite-eu':
+      case 'europe-composite':
+      case 'composite-europe':
         projectionFn = d3CompositeProjEurope.default
         break
 
