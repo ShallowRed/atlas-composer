@@ -7,7 +7,7 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import { useAsyncState } from '@vueuse/core'
 import { computed, toValue, watch } from 'vue'
-import { isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { loadAtlasAsync } from '@/core/atlases/registry'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
@@ -69,12 +69,7 @@ export function useAtlasLoader(
   } = useAsyncState(
     async () => {
       const id = toValue(atlasId)
-
-      // Check if already loaded
-      if (isAtlasLoaded(id)) {
-        debug('Atlas %s already loaded from cache', id)
-      }
-
+      // loadAtlasAsync now handles all cache/network logging
       return await loadAtlasAsync(id)
     },
     null,
@@ -83,7 +78,6 @@ export function useAtlasLoader(
       resetOnExecute: false, // Keep previous config while loading new one
       onSuccess: (loadedConfig) => {
         if (loadedConfig) {
-          debug('Successfully loaded atlas %s', loadedConfig.atlasConfig.id)
           onSuccess?.(loadedConfig)
         }
       },

@@ -62,6 +62,7 @@ function getConfigBaseUrl(): string {
 export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig> {
   // Check cache first
   if (LOADED_CONFIGS.has(atlasId)) {
+    debug('Atlas %s already loaded from cache', atlasId)
     return LOADED_CONFIGS.get(atlasId)!
   }
 
@@ -95,7 +96,7 @@ export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig
     const loadedConfig = loadAtlasConfig(jsonConfig)
     LOADED_CONFIGS.set(atlasId, loadedConfig)
 
-    debug('Successfully loaded atlas %s', atlasId)
+    debug('Successfully loaded atlas %s from network', atlasId)
     return loadedConfig
   }
   catch (error) {
