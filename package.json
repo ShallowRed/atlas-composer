@@ -5,6 +5,7 @@
   "private": true,
   "license": "MIT",
   "imports": {
+    "#package": "./package.json",
     "#types": "./types/index.ts",
     "#types/*": "./types/*.ts",
     "#scripts/*": "./scripts/*.ts"
@@ -14,16 +15,19 @@
     "dev:debug": "VITE_DEBUG=ac:* vite",
     "dev:debug:store": "VITE_DEBUG=ac:store:* vite",
     "dev:debug:render": "VITE_DEBUG=ac:render:* vite",
+    "dev:debug:overlay": "VITE_DEBUG=ac:render:overlay vite",
     "dev:debug:projection": "VITE_DEBUG=ac:projection:* vite",
     "dev:debug:preset": "VITE_DEBUG=ac:presets:* vite",
     "kill-all-dev": "pkill -f 'vite'",
-    "build": "pnpm build:loader && tsc && vite build",
+    "build": "pnpm build:core && pnpm build:loader && tsc && vite build",
     "build:analyze": "ANALYZE=true pnpm build",
+    "build:core": "pnpm --filter @atlas-composer/projection-core build",
     "build:loader": "pnpm --filter @atlas-composer/projection-loader build",
     "preview": "vite preview",
-    "typecheck": "pnpm typecheck:frontend && pnpm typecheck:scripts && pnpm typecheck:loader",
+    "typecheck": "pnpm typecheck:frontend && pnpm typecheck:scripts && pnpm typecheck:loader && pnpm typecheck:core",
     "typecheck:frontend": "vue-tsc --noEmit -p src/tsconfig.json",
     "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.json",
+    "typecheck:core": "pnpm --filter @atlas-composer/projection-core typecheck",
     "typecheck:loader": "pnpm --filter @atlas-composer/projection-loader typecheck",
     "lint": "eslint --ext .ts,.tsx,.vue src",
     "lint:fix": "eslint --fix --ext .ts,.tsx,.vue src",
@@ -41,6 +45,7 @@
     "import:config": "tsx scripts/import-config.ts"
   },
   "dependencies": {
+    "@atlas-composer/projection-core": "workspace:*",
     "@observablehq/plot": "^0.6.17",
     "d3": "^7.9.0",
     "d3-composite-projections": "^2.0.0",
