@@ -1,0 +1,52 @@
+{
+  "name": "@atlas-composer/projection-core",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Core utilities for composite map projections. Zero-dependency pure functions for stream handling, bounds checking, and projection composition.",
+  "author": "Lucas Poulain (ShallowRed)",
+  "license": "MIT",
+  "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/projection-core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShallowRed/atlas-composer.git",
+    "directory": "packages/projection-core"
+  },
+  "bugs": {
+    "url": "https://github.com/ShallowRed/atlas-composer/issues"
+  },
+  "keywords": [
+    "cartography",
+    "composite",
+    "d3",
+    "d3-geo",
+    "geography",
+    "gis",
+    "map",
+    "projection",
+    "zero-dependencies"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2"
+  }
+}

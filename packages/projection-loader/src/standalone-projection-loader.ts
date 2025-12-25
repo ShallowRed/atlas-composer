@@ -4,8 +4,9 @@
  * A pure JavaScript/TypeScript module that consumes exported composite projection
  * configurations and creates D3-compatible projections using a plugin architecture.
  *
- * This package has ZERO dependencies. Users must register projection factories
- * before loading configurations.
+ * This package uses @atlas-composer/projection-core for the shared composite
+ * projection building logic. Users must register projection factories before
+ * loading configurations.
  *
  * @example
  * ```typescript
@@ -22,6 +23,13 @@
  *
  * @packageDocumentation
  */
+
+import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
+
+import {
+  buildCompositeProjection,
+  calculateClipExtentFromPixelOffset,
+} from '@atlas-composer/projection-core'
 
 /**
  * Generic projection-like interface that matches D3 projections
@@ -288,182 +296,34 @@ export function loadCompositeProjection(
     throw new Error('Configuration must contain at least one territory')
   }
 
-  // Create sub-projections for each territory
-  const subProjections = config.territories.map((territory) => {
+  // Create sub-projections for each territory and convert to SubProjectionEntry format
+  const entries: SubProjectionEntry[] = config.territories.map((territory) => {
     const proj = createSubProjection(territory, width, height, config.referenceScale, debug)
 
     return {
-      territory,
-      projection: proj,
-      bounds: territory.bounds,
+      id: territory.code,
+      name: territory.name,
+      projection: proj as CoreProjectionLike,
+      bounds: {
+        minLon: territory.bounds[0][0],
+        minLat: territory.bounds[0][1],
+        maxLon: territory.bounds[1][0],
+        maxLat: territory.bounds[1][1],
+      },
     }
   })
 
   if (debug) {
     console.log('[CompositeProjection] Created sub-projections:', {
       territories: config.territories.map(t => ({ code: t.code, name: t.name })),
-      count: subProjections.length,
+      count: entries.length,
     })
   }
 
-  // Point capture mechanism (like Atlas Composer's CompositeProjection)
-  let capturedPoint: [number, number] | null = null
-  const pointStream = {
-    point: (x: number, y: number) => {
-      capturedPoint = [x, y]
-    },
-    lineStart: () => {},
-    lineEnd: () => {},
-    polygonStart: () => {},
-    polygonEnd: () => {},
-    sphere: () => {},
-  }
+  // Use projection-core to build the composite projection
+  const composite = buildCompositeProjection({ entries, debug })
 
-  // Create point capture for each sub-projection
-  const subProjPoints = subProjections.map(subProj => ({
-    subProj: {
-      territoryCode: subProj.territory.code,
-      territoryName: subProj.territory.name,
-      bounds: subProj.bounds,
-      projection: subProj.projection,
-    },
-    stream: subProj.projection.stream(pointStream),
-  }))
-
-  // Main projection function (like Atlas Composer's CompositeProjection)
-  const compositeProjection = (coordinates: [number, number]): [number, number] | null => {
-    const [lon, lat] = coordinates
-
-    capturedPoint = null
-
-    // Try each sub-projection's bounds
-    for (const { subProj, stream } of subProjPoints) {
-      if (subProj.bounds) {
-        const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
-
-        if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
-          // Project through stream (offset already applied in projection.translate)
-          stream.point(lon, lat)
-
-          if (capturedPoint) {
-            return capturedPoint
-          }
-        }
-      }
-    }
-
-    // No match found
-    return null
-  }
-
-  // Multiplex stream (like Atlas Composer's CompositeProjection)
-  ;(compositeProjection as any).stream = (stream: any) => {
-    const streams = subProjections.map(sp => sp.projection.stream(stream))
-    return {
-      point: (x: number, y: number) => {
-        for (const s of streams) s.point(x, y)
-      },
-      sphere: () => {
-        for (const s of streams) {
-          if (s.sphere)
-            s.sphere()
-        }
-      },
-      lineStart: () => {
-        for (const s of streams) s.lineStart()
-      },
-      lineEnd: () => {
-        for (const s of streams) s.lineEnd()
-      },
-      polygonStart: () => {
-        for (const s of streams) s.polygonStart()
-      },
-      polygonEnd: () => {
-        for (const s of streams) s.polygonEnd()
-      },
-    }
-  }
-
-  // Add invert method (like Atlas Composer's CompositeProjection)
-  // Validates inverted coordinates against territory bounds to ensure correct territory match
-  ;(compositeProjection as any).invert = (coordinates: [number, number]) => {
-    if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
-      return null
-    }
-
-    const [x, y] = coordinates
-
-    // Try each sub-projection's invert and validate against territory bounds
-    for (const { projection, bounds } of subProjections) {
-      if ((projection as any).invert) {
-        try {
-          const result = (projection as any).invert([x, y])
-          if (result && Array.isArray(result) && result.length >= 2) {
-            const [lon, lat] = result
-
-            // Validate that the inverted coordinates fall within this territory's bounds
-            if (bounds && bounds.length === 2 && bounds[0].length === 2 && bounds[1].length === 2) {
-              const [[minLon, minLat], [maxLon, maxLat]] = bounds
-
-              // Check if coordinates are within bounds (with small tolerance for edge cases)
-              const tolerance = 0.01 // Small tolerance for floating point comparison
-              if (lon >= minLon - tolerance && lon <= maxLon + tolerance
-                && lat >= minLat - tolerance && lat <= maxLat + tolerance) {
-                if (debug) {
-                  console.log(`[Invert] Successfully inverted [${x}, ${y}] to [${lon}, ${lat}] (validated bounds)`)
-                }
-                return result as [number, number]
-              }
-              else if (debug) {
-                console.log(`[Invert] Rejected inversion [${lon}, ${lat}] - outside bounds ${JSON.stringify(bounds)}`)
-              }
-            }
-            else {
-              // If no bounds available, accept the first successful invert (legacy behavior)
-              if (debug) {
-                console.log(`[Invert] No bounds for validation, accepting [${lon}, ${lat}]`)
-              }
-              return result as [number, number]
-            }
-          }
-        }
-        catch (error) {
-          // Continue to next projection
-          if (debug) {
-            console.warn('[Invert] Error in sub-projection invert:', error)
-          }
-        }
-      }
-    }
-
-    if (debug) {
-      console.log(`[Invert] Failed to invert coordinates [${x}, ${y}]`)
-    }
-    return null
-  }
-
-  // Add scale and translate methods (like Atlas Composer's CompositeProjection)
-  ;(compositeProjection as any).scale = function (_s?: number): any {
-    if (arguments.length === 0) {
-      // Return scale from first sub-projection as reference
-      return subProjections[0] ? subProjections[0].projection.scale?.() || 1 : 1
-    }
-    // Setting scale - not typically used for composite projections
-    // Individual territories manage their own scales
-    return compositeProjection
-  }
-
-  ;(compositeProjection as any).translate = function (_t?: [number, number]): any {
-    if (arguments.length === 0) {
-      // Return center point as reference
-      return [width / 2, height / 2]
-    }
-    // Setting translate - not typically used for composite projections
-    // Individual territories manage their own translations
-    return compositeProjection
-  }
-
-  return compositeProjection as ProjectionLike
+  return composite as ProjectionLike
 }
 
 /**
@@ -549,24 +409,20 @@ function createSubProjection(
   // Apply clipping - this is CRITICAL for composite projections
   // Each sub-projection MUST have clipping to avoid geometry processing conflicts
   if (layout.pixelClipExtent && projection.clipExtent) {
-    // pixelClipExtent is in pixel coordinates relative to territory center
-    // Format: [x1, y1, x2, y2] as direct pixel offsets
-    const [x1, y1, x2, y2] = layout.pixelClipExtent
-    const epsilon = 1e-6 // Small value for padding
-
     // Get territory center from translate
     const territoryCenter = projection.translate?.() || [width / 2, height / 2]
 
-    const pixelClipExtent: [[number, number], [number, number]] = [
-      [territoryCenter[0] + x1 + epsilon, territoryCenter[1] + y1 + epsilon],
-      [territoryCenter[0] + x2 - epsilon, territoryCenter[1] + y2 - epsilon],
-    ]
+    // Use core utility for clip extent calculation
+    const clipExtent = calculateClipExtentFromPixelOffset(
+      territoryCenter,
+      layout.pixelClipExtent,
+    )
 
-    projection.clipExtent(pixelClipExtent)
+    projection.clipExtent(clipExtent)
     if (debug) {
       console.log(
         `[Clipping] Applied pixelClipExtent for ${territory.code}:`,
-        `original: [${x1}, ${y1}, ${x2}, ${y2}] -> transformed: ${JSON.stringify(pixelClipExtent)}`,
+        `original: ${JSON.stringify(layout.pixelClipExtent)} -> transformed: ${JSON.stringify(clipExtent)}`,
       )
     }
   }
