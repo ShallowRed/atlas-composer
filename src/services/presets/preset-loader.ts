@@ -15,6 +15,7 @@ import type {
   LoadResult,
   Preset,
 } from '@/core/presets'
+import type { AtlasId, PresetId } from '@/types'
 
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getPresetById } from '@/core/atlases/registry'
@@ -36,10 +37,10 @@ export class PresetLoader {
    * @param presetId - Preset identifier (e.g., 'france-default', 'france-unified')
    * @returns Load result with parsed preset and validation messages
    */
-  static async loadPreset(presetId: string): Promise<LoadResult<Preset>> {
+  static async loadPreset(presetId: PresetId): Promise<LoadResult<Preset>> {
     // Find preset in atlas registry
     // Extract atlas ID from preset ID (e.g., 'france-default' -> 'france')
-    const atlasId = presetId.split('-')[0]
+    const atlasId = presetId.split('-')[0] as AtlasId | undefined
     if (!atlasId) {
       return {
         success: false,

@@ -6,7 +6,7 @@
  */
 
 import type { Preset } from '@/core/presets'
-import type { AtlasConfig } from '@/types'
+import type { AtlasConfig, AtlasId } from '@/types'
 
 import type { ValidationResult } from '@/types/initialization'
 import { getAvailableViewModes } from '@/core/atlases/registry'
@@ -98,7 +98,8 @@ export class PresetValidationService {
     const warnings: string[] = []
 
     // Check if view mode is supported by atlas
-    const availableViewModes = getAvailableViewModes(atlasConfig.id)
+    // Convert: atlasConfig.id from LoadedAtlasConfig
+    const availableViewModes = getAvailableViewModes(atlasConfig.id as AtlasId)
     if (!availableViewModes.includes(preset.type as any)) {
       errors.push(`Preset type '${preset.type}' is not supported by atlas '${atlasConfig.id}'`)
       return { isValid: false, errors, warnings }

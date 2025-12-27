@@ -1,4 +1,4 @@
-import type { AtlasConfig, ViewMode } from '@/types'
+import type { AtlasConfig, AtlasId, ViewMode } from '@/types'
 
 import { getAvailableViewModes } from '@/core/atlases/registry'
 
@@ -92,13 +92,14 @@ export class ViewOrchestrationService {
    *
    * Projection params are shown for:
    * - unified mode (single projection for entire map)
-   * - built-in-composite mode (read-only composite)
+   * - split mode (when not showing individual projection selectors)
    * - When projection selector is explicitly enabled
+   *
+   * NOT shown for built-in-composite - projections are fixed by d3-composite-projections library
    */
   static shouldShowProjectionParams(state: ViewState): boolean {
     return (
       state.viewMode === 'unified'
-      || state.viewMode === 'built-in-composite'
       || (state.viewMode === 'split' && !state.showIndividualProjectionSelectors)
       || state.showProjectionSelector
     )
@@ -230,29 +231,14 @@ export class ViewOrchestrationService {
   }
 
   /**
-   * Determine if territory selector should be disabled
-   *
-   * @deprecated Use shouldShowTerritorySelector instead
-   * Disabled when:
-   * - Atlas doesn't have territory selector capability, OR
-   * - Territory selector should not be shown (from ProjectionUIService)
-   */
-  static isTerritorySelectDisabled(state: ViewState): boolean {
-    if (!state.atlasConfig.hasTerritorySelector) {
-      return true
-    }
-    // Disabled for composite modes - territory selection is managed via Territory Set Manager
-    return state.viewMode === 'built-in-composite' || state.viewMode === 'composite-custom'
-  }
-
-  /**
    * Determine if view mode selector should be disabled
    *
    * Disabled when:
    * - Atlas only supports one view mode
    */
   static isViewModeDisabled(state: ViewState): boolean {
-    const availableViewModes = getAvailableViewModes(state.atlasConfig.id)
+    // Convert: atlasConfig.id from ViewState
+    const availableViewModes = getAvailableViewModes(state.atlasConfig.id as AtlasId)
     return availableViewModes.length === 1
   }
 

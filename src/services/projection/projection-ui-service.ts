@@ -1,6 +1,7 @@
-import type { ViewMode } from '@/types'
+import type { AtlasId, ViewMode } from '@/types'
 
 import { projectionRegistry } from '@/core/projections/registry'
+import { ViewModeSelection } from '@/core/view'
 
 /**
  * Options for projection grouping
@@ -22,6 +23,9 @@ export interface ProjectionGroup {
 /**
  * Service for projection UI logic
  * Handles projection grouping, filtering, and UI state decisions
+ *
+ * Domain Model Integration:
+ * - Uses ViewModeSelection value object for view mode logic
  */
 export class ProjectionUIService {
   /**
@@ -32,7 +36,7 @@ export class ProjectionUIService {
    * @returns Array of projection groups organized by category
    */
   static getProjectionGroups(
-    atlasId: string,
+    atlasId: AtlasId,
     viewMode: ViewMode,
   ): ProjectionGroup[] {
     // Use projection registry for context-aware filtering
@@ -73,7 +77,7 @@ export class ProjectionUIService {
    * @returns Array of recommended projections
    */
   static getProjectionRecommendations(
-    atlasId: string,
+    atlasId: AtlasId,
     viewMode: ViewMode,
   ) {
     return projectionRegistry.recommend({
@@ -89,8 +93,6 @@ export class ProjectionUIService {
    * View preset system: unified, split, and built-in-composite modes use presets to define projections
    * Only composite-custom mode allows manual projection selection
    *
-   * Always returns false now - presets handle projection selection
-   *
    * @param viewMode - Current view mode
    * @param hasViewPreset - Whether a view preset is currently loaded
    * @returns True if uniform projection selector should be visible
@@ -99,14 +101,15 @@ export class ProjectionUIService {
     viewMode: ViewMode,
     hasViewPreset = false,
   ): boolean {
-    // Hide projection selector when view preset is active
-    // Presets define projections for unified, split, and built-in-composite modes
-    if (hasViewPreset && (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite')) {
+    const selection = new ViewModeSelection(viewMode)
+
+    // Hide projection selector when view preset is active for non-custom modes
+    if (hasViewPreset && !selection.isCustomComposite()) {
       return false
     }
 
     // Only show in unified mode (when no preset is active)
-    return viewMode === 'unified'
+    return selection.isUnified()
   }
 
   /**
@@ -120,10 +123,9 @@ export class ProjectionUIService {
   static shouldShowIndividualProjectionSelectors(
     viewMode: ViewMode,
   ): boolean {
+    const selection = new ViewModeSelection(viewMode)
     // Show per-territory projection selectors in split and custom composite modes
-    // Split: Renders each territory separately with its own projection
-    // Custom composite: Uses D3 composite projection with sub-projections per territory
-    return viewMode === 'split' || viewMode === 'composite-custom'
+    return selection.isSplit() || selection.isCustomComposite()
   }
 
   /**
@@ -133,10 +135,10 @@ export class ProjectionUIService {
    * @returns True if territory selector should be visible
    */
   static shouldShowTerritorySelector(viewMode: ViewMode): boolean {
+    const selection = new ViewModeSelection(viewMode)
     // Hide territory selector for built-in-composite mode
     // Built-in composite projections render all territories as a monolithic unit
-    // and cannot selectively hide/show individual territories
-    return viewMode !== 'built-in-composite'
+    return !selection.isBuiltInComposite()
   }
 
   /**
@@ -146,8 +148,9 @@ export class ProjectionUIService {
    * @returns True if scale preservation toggle should be visible
    */
   static shouldShowScalePreservation(viewMode: ViewMode): boolean {
+    const selection = new ViewModeSelection(viewMode)
     // Show scale preservation only in split view mode
-    return viewMode === 'split'
+    return selection.isSplit()
   }
 
   /**
@@ -157,7 +160,8 @@ export class ProjectionUIService {
    * @returns True if territory translation/scale controls should be visible
    */
   static shouldShowTerritoryControls(viewMode: ViewMode): boolean {
-    // Show territory translation/scale controls in custom composite mode
-    return viewMode === 'composite-custom'
+    const selection = new ViewModeSelection(viewMode)
+    // Use domain model method - territory controls shown for split and custom composite
+    return selection.showsTerritoryControls()
   }
 }

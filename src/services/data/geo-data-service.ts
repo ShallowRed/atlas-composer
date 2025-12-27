@@ -1,6 +1,10 @@
+import type { GeoDataError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { GeoDataConfig, TerritoryConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
+import { Errors } from '@/core/types/errors'
+import { err, ok } from '@/core/types/result'
 import { logger } from '@/utils/logger'
 
 const debug = logger.data.loader
@@ -46,10 +50,11 @@ export class GeoDataService {
   /**
    * Loads and processes geographic data from the configured data source
    * Downloads TopoJSON and metadata, then converts to processable format
+   * @returns Result with void on success, or GeoDataError on failure
    */
-  async loadData(): Promise<void> {
+  async loadData(): Promise<Result<void, GeoDataError>> {
     if (this.isLoaded) {
-      return
+      return ok(undefined)
     }
 
     try {
@@ -59,15 +64,15 @@ export class GeoDataService {
       // Check response status before attempting to parse JSON
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(`Geographic data file not found: ${this.config.dataPath}`)
+          return err(Errors.geoDataNotFound(this.config.dataPath))
         }
-        throw new Error(`Failed to load geographic data (HTTP ${response.status})`)
+        return err(Errors.geoDataNetworkError(this.config.dataPath, response.status))
       }
 
       // Verify content type is JSON before parsing
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`Geographic data file not found or invalid: ${this.config.dataPath}`)
+        return err(Errors.geoDataNotFound(this.config.dataPath))
       }
 
       // Parse JSON only if response was successful
@@ -76,7 +81,7 @@ export class GeoDataService {
       }
       catch (parseError) {
         debug('TopoJSON parse error: %O', parseError)
-        throw new Error(`Invalid JSON in geographic data file: ${this.config.dataPath}`)
+        return err(Errors.geoDataInvalidJson(this.config.dataPath, String(parseError)))
       }
 
       // Load metadata with territory information
@@ -85,15 +90,15 @@ export class GeoDataService {
       // Check response status before attempting to parse JSON
       if (!metaResponse.ok) {
         if (metaResponse.status === 404) {
-          throw new Error(`Metadata file not found: ${this.config.metadataPath}`)
+          return err(Errors.geoDataNotFound(this.config.metadataPath))
         }
-        throw new Error(`Failed to load metadata (HTTP ${metaResponse.status})`)
+        return err(Errors.geoDataNetworkError(this.config.metadataPath, metaResponse.status))
       }
 
       // Verify content type is JSON before parsing
       const metaContentType = metaResponse.headers.get('content-type')
       if (!metaContentType || !metaContentType.includes('application/json')) {
-        throw new Error(`Metadata file not found or invalid: ${this.config.metadataPath}`)
+        return err(Errors.geoDataNotFound(this.config.metadataPath))
       }
 
       // Parse JSON only if response was successful
@@ -102,17 +107,21 @@ export class GeoDataService {
       }
       catch (parseError) {
         debug('Metadata parse error: %O', parseError)
-        throw new Error(`Invalid JSON in metadata file: ${this.config.metadataPath}`)
+        return err(Errors.geoDataInvalidJson(this.config.metadataPath, String(parseError)))
       }
 
       // Convert TopoJSON to GeoJSON and process each territory
-      await this.processTerritoriesData()
+      const processResult = await this.processTerritoriesData()
+      if (!processResult.ok) {
+        return processResult
+      }
 
       this.isLoaded = true
+      return ok(undefined)
     }
     catch (error) {
       debug('Data loading error: %O', error)
-      throw error
+      return err(Errors.geoDataInvalidStructure(this.config.dataPath, String(error)))
     }
   }
 
@@ -120,8 +129,9 @@ export class GeoDataService {
    * Processes geographic data into usable territory objects
    * Supports both GeoJSON (preferred) and TopoJSON (for backward compatibility) formats
    * Calculates geographic properties for each territory
+   * @returns Result with void on success, or GeoDataError on failure
    */
-  private async processTerritoriesData(): Promise<void> {
+  private async processTerritoriesData(): Promise<Result<void, GeoDataError>> {
     let featureCollection: GeoJSON.FeatureCollection
 
     // Check if data is already GeoJSON FeatureCollection (preferred format)
@@ -132,7 +142,7 @@ export class GeoDataService {
     else {
       const objectName = this.config.topologyObjectName
       if (!this.topologyData?.objects?.[objectName]) {
-        throw new Error(`Invalid data structure: missing object "${objectName}"`)
+        return err(Errors.geoDataMissingObject(objectName))
       }
 
       // Convert TopoJSON topology to GeoJSON FeatureCollection
@@ -189,6 +199,8 @@ export class GeoDataService {
 
       this.territoryData.set(territory.code, territoryData)
     }
+
+    return ok(undefined)
   }
 
   /**
@@ -229,11 +241,24 @@ export class GeoDataService {
   }
 
   /**
+   * Internal helper to ensure data is loaded, throws if loading fails
+   * Used by methods that need data loaded but don't want to propagate Result
+   */
+  private async ensureLoaded(): Promise<void> {
+    const result = await this.loadData()
+    if (!result.ok) {
+      // This should only happen if loadData was never called before
+      // or if it failed on the first attempt
+      throw new Error(`GeoData load failed: ${result.error.type}`)
+    }
+  }
+
+  /**
    * Returns the mainland territory geographic data
    * @returns FeatureCollection containing mainland territory, or null if no mainland configured
    */
   async getMainLandData(): Promise<GeoJSON.FeatureCollection | null> {
-    await this.loadData()
+    await this.ensureLoaded()
 
     // Return null if this region doesn't have a mainland concept
     if (!this.config.mainlandCode) {
@@ -258,7 +283,7 @@ export class GeoDataService {
    * @returns FeatureCollection containing all territory data with original coordinates
    */
   async getCompleteData(): Promise<GeoJSON.FeatureCollection> {
-    await this.loadData()
+    await this.ensureLoaded()
 
     const allFeatures: GeoJSON.Feature[] = []
 
@@ -279,7 +304,7 @@ export class GeoDataService {
    * @returns Array of overseas territory objects with geographic and metadata
    */
   async getOverseasData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
-    await this.loadData()
+    await this.ensureLoaded()
     const overseasData = []
 
     // Add all overseas territories (pre-processed, already separated in source data)
@@ -320,7 +345,7 @@ export class GeoDataService {
    * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
    */
   async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
-    await this.loadData()
+    await this.ensureLoaded()
 
     // Handle regions without mainland concept (like EU, World)
     if (!this.config.mainlandCode) {
@@ -387,12 +412,12 @@ export class GeoDataService {
   }
 
   async getTerritory(code: string): Promise<TerritoryGeoData | null> {
-    await this.loadData()
+    await this.ensureLoaded()
     return this.territoryData.get(code) || null
   }
 
   async getAllTerritories(): Promise<TerritoryGeoData[]> {
-    await this.loadData()
+    await this.ensureLoaded()
     return Array.from(this.territoryData.values())
   }
 

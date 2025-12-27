@@ -1,230 +1,298 @@
 /**
- * Roundtrip Test for Export/Import Parameter Completeness
+ * Roundtrip Test for Export/Import JSON Fidelity
  *
- * Verifies that all parameters survive the export/import cycle without loss
+ * Verifies that exported configurations can be imported back without data loss.
+ * Tests JSON structure preservation, not store integration (see integration tests for full flow).
  */
 
-import type { CompositeProjectionConfig } from '@/types'
 import type { ExportedCompositeConfig } from '@/types/export-config'
-import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
-import { CompositeProjection } from '@/services/projection/composite-projection'
-import { useConfigStore } from '@/stores/config'
-import { useParameterStore } from '@/stores/parameters'
+import { createTerritoryCode } from '@/types/branded'
 
-// Mock composite projection config
-const mockConfig: CompositeProjectionConfig = {
-  type: 'single-focus',
-  mainland: {
-    code: 'FR-MET',
-    name: 'Metropolitan France',
-    center: [2.5, 46.5] as [number, number],
-    bounds: [[-5, 41], [10, 51]] as [[number, number], [number, number]],
-  },
-  overseasTerritories: [
-    {
-      code: 'FR-GP',
-      name: 'Guadeloupe',
-      center: [-61.46, 16.14] as [number, number],
-      bounds: [[-62, 15], [-61, 17]] as [[number, number], [number, number]],
+describe('export/import JSON roundtrip', () => {
+  /**
+   * Complete valid configuration with all supported parameters
+   */
+  const fullConfig: ExportedCompositeConfig = {
+    version: '1.0',
+    metadata: {
+      atlasId: 'france',
+      atlasName: 'France',
+      exportDate: '2025-01-01T12:00:00.000Z',
+      createdWith: 'Atlas composer v1.0',
+      notes: 'Test configuration with all parameters',
     },
-  ],
-}
-
-describe('export/import parameter roundtrip', () => {
-  let parameterStore: ReturnType<typeof useParameterStore>
-  let configStore: ReturnType<typeof useConfigStore>
-
-  beforeEach(() => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-
-    parameterStore = useParameterStore()
-    configStore = useConfigStore()
-
-    // Initialize parameter store
-    parameterStore.initialize()
-  })
-
-  it('should preserve all parameters in export/import roundtrip', () => {
-    // Set up initial parameters with all possible values
-    const originalParams = {
-      'FR-MET': {
-        projectionId: 'conic-conformal',
-        center: [2.5, 46.5] as [number, number],
-        rotate: [-3, -46.2, 0] as [number, number, number],
-        parallels: [45, 50] as [number, number],
-        scaleMultiplier: 1.2,
-        translateOffset: [0, 0] as [number, number],
-        clipAngle: 90,
-        precision: 0.1,
-        pixelClipExtent: [-100, -100, 100, 100] as [number, number, number, number],
+    pattern: 'single-focus',
+    referenceScale: 2700,
+    canvasDimensions: { width: 960, height: 500 },
+    territories: [
+      {
+        code: 'FR-MET',
+        name: 'France Metropolitaine',
+        role: 'primary',
+        projection: {
+          id: 'conic-conformal',
+          family: 'conic',
+          parameters: {
+            center: [2.5, 46.5],
+            rotate: [-3, -46.2, 0],
+            parallels: [45, 50],
+            scaleMultiplier: 1.2,
+            clipAngle: 90,
+            precision: 0.1,
+          },
+        },
+        layout: {
+          translateOffset: [0, 0],
+          pixelClipExtent: null,
+        },
+        bounds: [[-5, 41], [10, 51]],
       },
-      'FR-GP': {
-        projectionId: 'mercator',
-        center: [-61.46, 16.14] as [number, number],
-        rotate: [0, 0, 0] as [number, number, number],
-        parallels: [30, 60] as [number, number],
-        scaleMultiplier: 1.4,
-        translateOffset: [-324, -38] as [number, number],
-        clipAngle: 180,
-        precision: 0.05,
-        pixelClipExtent: [-50, -50, 50, 50] as [number, number, number, number],
+      {
+        code: 'FR-GP',
+        name: 'Guadeloupe',
+        role: 'secondary',
+        projection: {
+          id: 'mercator',
+          family: 'cylindrical',
+          parameters: {
+            center: [-61.46, 16.14],
+            scaleMultiplier: 1.4,
+          },
+        },
+        layout: {
+          translateOffset: [-324, -38],
+          pixelClipExtent: [-54, -48, 55, 38],
+        },
+        bounds: [[-62, 15], [-61, 17]],
       },
-    }
+    ],
+  }
 
-    // Set parameters in parameter store
-    for (const [territoryCode, params] of Object.entries(originalParams)) {
-      parameterStore.setTerritoryParameters(territoryCode, params)
-    }
+  describe('json serialization roundtrip', () => {
+    it('should preserve all fields through JSON stringify/parse cycle', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
 
-    // Create composite projection with parameter provider
-    const compositeProjection = new CompositeProjection(mockConfig, {
-      getEffectiveParameters: (territoryCode: string) => {
-        return parameterStore.getEffectiveParameters(territoryCode)
-      },
-      getExportableParameters: (territoryCode: string) => {
-        return parameterStore.getExportableParameters(territoryCode)
-      },
+      expect(parsed.version).toBe(fullConfig.version)
+      expect(parsed.metadata).toEqual(fullConfig.metadata)
+      expect(parsed.pattern).toBe(fullConfig.pattern)
+      expect(parsed.referenceScale).toBe(fullConfig.referenceScale)
+      expect(parsed.canvasDimensions).toEqual(fullConfig.canvasDimensions)
+      expect(parsed.territories).toHaveLength(fullConfig.territories.length)
     })
 
-    // Export the configuration
-    const exported: ExportedCompositeConfig = CompositeExportService.exportToJSON(
-      compositeProjection,
-      'test-atlas',
-      'Test Atlas',
-      mockConfig,
-      {
-        getEffectiveParameters: (territoryCode: string) => {
-          return parameterStore.getEffectiveParameters(territoryCode)
-        },
-        getExportableParameters: (territoryCode: string) => {
-          return parameterStore.getExportableParameters(territoryCode)
-        },
-      },
-      2700,
-      { width: 960, height: 500 },
-      'Roundtrip test',
-    )
+    it('should preserve all territory parameters', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
 
-    // Verify that all parameters are in the exported config
-    for (const territory of exported.territories) {
-      const originalTerritoryParams = originalParams[territory.code as keyof typeof originalParams]
+      for (let i = 0; i < fullConfig.territories.length; i++) {
+        const original = fullConfig.territories[i]
+        const restored = parsed.territories[i]
 
-      // Verify projection ID
-      expect(territory.projection.id).toBe(originalTerritoryParams.projectionId)
-
-      // Verify all projection parameters
-      expect(territory.projection.parameters.center).toEqual(originalTerritoryParams.center)
-      expect(territory.projection.parameters.rotate).toEqual(originalTerritoryParams.rotate)
-      expect(territory.projection.parameters.parallels).toEqual(originalTerritoryParams.parallels)
-      expect(territory.projection.parameters.scaleMultiplier).toBe(originalTerritoryParams.scaleMultiplier)
-      expect(territory.projection.parameters.clipAngle).toBe(originalTerritoryParams.clipAngle)
-      expect(territory.projection.parameters.precision).toBe(originalTerritoryParams.precision)
-
-      // Verify layout parameters
-      expect(territory.layout.translateOffset).toEqual(originalTerritoryParams.translateOffset)
-      expect(territory.layout.pixelClipExtent).toEqual(originalTerritoryParams.pixelClipExtent)
-    }
-
-    // Reset stores for import
-    parameterStore.reset()
-    parameterStore.initialize()
-
-    // Import the configuration back
-    CompositeImportService.applyToStores(
-      exported,
-      configStore,
-      parameterStore,
-      compositeProjection,
-    )
-
-    // Verify that all parameters were restored correctly
-    for (const [territoryCode, originalTerritoryParams] of Object.entries(originalParams)) {
-      const restoredParams = parameterStore.getEffectiveParameters(territoryCode)
-      const territoryProjection = parameterStore.getTerritoryProjection(territoryCode)
-      const territoryTranslation = parameterStore.getTerritoryTranslation(territoryCode)
-
-      // Verify projection ID
-      expect(territoryProjection).toBe(originalTerritoryParams.projectionId)
-      expect(restoredParams.projectionId).toBe(originalTerritoryParams.projectionId)
-
-      // Verify all projection parameters
-      expect(restoredParams.center).toEqual(originalTerritoryParams.center)
-      expect(restoredParams.rotate).toEqual(originalTerritoryParams.rotate)
-      expect(restoredParams.parallels).toEqual(originalTerritoryParams.parallels)
-      expect(restoredParams.scaleMultiplier).toBe(originalTerritoryParams.scaleMultiplier)
-      expect(restoredParams.clipAngle).toBe(originalTerritoryParams.clipAngle)
-      expect(restoredParams.precision).toBe(originalTerritoryParams.precision)
-      expect(restoredParams.pixelClipExtent).toEqual(originalTerritoryParams.pixelClipExtent)
-
-      // Verify layout parameters
-      expect(restoredParams.translateOffset).toEqual(originalTerritoryParams.translateOffset)
-      expect(territoryTranslation).toEqual({
-        x: originalTerritoryParams.translateOffset[0],
-        y: originalTerritoryParams.translateOffset[1],
-      })
-    }
-  })
-
-  it('should handle partial parameter sets gracefully', () => {
-    // Set up minimal parameters
-    const minimalParams = {
-      'FR-MET': {
-        projectionId: 'conic-conformal',
-        scaleMultiplier: 1.0,
-        translateOffset: [0, 0] as [number, number],
-      },
-    }
-
-    // Set parameters in parameter store
-    for (const [territoryCode, params] of Object.entries(minimalParams)) {
-      parameterStore.setTerritoryParameters(territoryCode, params)
-    }
-
-    // Create composite projection
-    const compositeProjection = new CompositeProjection(mockConfig, {
-      getEffectiveParameters: (territoryCode: string) => {
-        return parameterStore.getEffectiveParameters(territoryCode)
-      },
-      getExportableParameters: (territoryCode: string) => {
-        return parameterStore.getExportableParameters(territoryCode)
-      },
+        expect(restored?.code).toBe(original?.code)
+        expect(restored?.name).toBe(original?.name)
+        expect(restored?.role).toBe(original?.role)
+        expect(restored?.projection.id).toBe(original?.projection.id)
+        expect(restored?.projection.family).toBe(original?.projection.family)
+        expect(restored?.projection.parameters).toEqual(original?.projection.parameters)
+        expect(restored?.layout).toEqual(original?.layout)
+        expect(restored?.bounds).toEqual(original?.bounds)
+      }
     })
 
-    // Export and import should work without errors
-    const exported = CompositeExportService.exportToJSON(
-      compositeProjection,
-      'test-atlas',
-      'Test Atlas',
-      mockConfig,
-      {
-        getEffectiveParameters: (territoryCode: string) => {
-          return parameterStore.getEffectiveParameters(territoryCode)
-        },
-        getExportableParameters: (territoryCode: string) => {
-          return parameterStore.getExportableParameters(territoryCode)
-        },
-      },
-    )
+    it('should preserve pixelClipExtent values exactly', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
 
-    // Verify export has required fields
-    expect(exported.territories).toHaveLength(2)
-    const firstTerritory = exported.territories[0]
-    expect(firstTerritory).toBeDefined()
-    expect(firstTerritory!.projection.id).toBe('conic-conformal')
-    expect(firstTerritory!.projection.parameters.scaleMultiplier).toBe(1.0)
+      const guadeloupe = parsed.territories.find(t => t.code === 'FR-GP')
+      expect(guadeloupe?.layout.pixelClipExtent).toEqual([-54, -48, 55, 38])
 
-    // Import should not throw
-    expect(() => {
-      CompositeImportService.applyToStores(
-        exported,
-        configStore,
-        parameterStore,
-        compositeProjection,
+      const mainland = parsed.territories.find(t => t.code === 'FR-MET')
+      expect(mainland?.layout.pixelClipExtent).toBeNull()
+    })
+  })
+
+  describe('import validation after export', () => {
+    it('should successfully import a valid exported configuration', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      expect(result.success).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.config).toBeDefined()
+    })
+
+    it('should validate exported configuration passes validation', () => {
+      const validationResult = CompositeExportService.validateExportedConfig(fullConfig)
+
+      expect(validationResult.valid).toBe(true)
+      expect(validationResult.errors).toHaveLength(0)
+    })
+
+    it('should have matching territory count after import', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      expect(result.config?.territories.length).toBe(fullConfig.territories.length)
+    })
+  })
+
+  describe('parameter preservation', () => {
+    it('should preserve center coordinates', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+
+      expect(mainlandImported?.projection.parameters.center).toEqual(
+        mainlandOriginal?.projection.parameters.center,
       )
-    }).not.toThrow()
+    })
+
+    it('should preserve rotate triplet', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+
+      expect(mainlandImported?.projection.parameters.rotate).toEqual(
+        mainlandOriginal?.projection.parameters.rotate,
+      )
+    })
+
+    it('should preserve parallels tuple', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+
+      expect(mainlandImported?.projection.parameters.parallels).toEqual(
+        mainlandOriginal?.projection.parameters.parallels,
+      )
+    })
+
+    it('should preserve scaleMultiplier', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      for (const original of fullConfig.territories) {
+        const imported = result.config?.territories.find(t => t.code === original.code)
+        expect(imported?.projection.parameters.scaleMultiplier).toBe(
+          original.projection.parameters.scaleMultiplier,
+        )
+      }
+    })
+
+    it('should preserve translateOffset', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      for (const original of fullConfig.territories) {
+        const imported = result.config?.territories.find(t => t.code === original.code)
+        expect(imported?.layout.translateOffset).toEqual(original.layout.translateOffset)
+      }
+    })
+
+    it('should preserve optional parameters when present', () => {
+      const jsonString = JSON.stringify(fullConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+
+      expect(mainlandImported?.projection.parameters.clipAngle).toBe(
+        mainlandOriginal?.projection.parameters.clipAngle,
+      )
+      expect(mainlandImported?.projection.parameters.precision).toBe(
+        mainlandOriginal?.projection.parameters.precision,
+      )
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle configuration without optional fields', () => {
+      const minimalConfig: ExportedCompositeConfig = {
+        version: '1.0',
+        metadata: {
+          atlasId: 'test',
+          atlasName: 'Test',
+          exportDate: new Date().toISOString(),
+          createdWith: 'Test',
+        },
+        pattern: 'single-focus',
+        territories: [
+          {
+            code: createTerritoryCode('TEST'),
+            name: 'Test Territory',
+            role: 'primary',
+            projection: {
+              id: 'mercator',
+              family: 'cylindrical',
+              parameters: {
+                scaleMultiplier: 1.0,
+              },
+            },
+            layout: { translateOffset: [0, 0] },
+            bounds: [[0, 0], [1, 1]],
+          },
+        ],
+      }
+
+      const jsonString = JSON.stringify(minimalConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      expect(result.success).toBe(true)
+      expect(result.config?.referenceScale).toBeUndefined()
+      expect(result.config?.canvasDimensions).toBeUndefined()
+    })
+
+    it('should preserve floating point precision', () => {
+      const preciseConfig: ExportedCompositeConfig = {
+        ...fullConfig,
+        territories: [
+          {
+            ...fullConfig.territories[0]!,
+            projection: {
+              ...fullConfig.territories[0]!.projection,
+              parameters: {
+                center: [2.123456, 46.654321],
+                scaleMultiplier: 1.234567,
+              },
+            },
+          },
+        ],
+      }
+
+      const jsonString = JSON.stringify(preciseConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      const imported = result.config?.territories[0]
+      expect(imported?.projection.parameters.center).toEqual([2.123456, 46.654321])
+      expect(imported?.projection.parameters.scaleMultiplier).toBe(1.234567)
+    })
+
+    it('should handle equal-members pattern', () => {
+      const equalMembersConfig: ExportedCompositeConfig = {
+        ...fullConfig,
+        pattern: 'equal-members',
+        territories: fullConfig.territories.map(t => ({
+          ...t,
+          role: 'member' as const,
+        })),
+      }
+
+      const jsonString = JSON.stringify(equalMembersConfig)
+      const result = CompositeImportService.importFromJSON(jsonString)
+
+      expect(result.success).toBe(true)
+      expect(result.config?.pattern).toBe('equal-members')
+      expect(result.config?.territories.every(t => t.role === 'member')).toBe(true)
+    })
   })
 })

@@ -1,5 +1,6 @@
 import type { Territory } from '@/stores/geoData'
 import type { TerritoryConfig } from '@/types'
+import type { TerritoryCode } from '@/types/branded'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'
 
@@ -44,7 +45,7 @@ export class TerritoryFilterService {
       options.territoryMode,
       options.territoryModes,
     )
-    const allowedCodes = allowedTerritories.map(t => t.code)
+    const allowedCodes: TerritoryCode[] = allowedTerritories.map(t => t.code)
 
     // Filter territories based on mode
     return territories.filter(territory =>
@@ -78,8 +79,8 @@ export class TerritoryFilterService {
    * @param territories - Territories to extract codes from
    * @returns Array of territory codes
    */
-  static getTerritoryCodes(territories: TerritoryConfig[]): string[] {
-    return territories.map(t => t.code)
+  static getTerritoryCodes(territories: TerritoryConfig[]): TerritoryCode[] {
+    return territories.map(t => t.code as TerritoryCode)
   }
 
   /**
@@ -90,7 +91,7 @@ export class TerritoryFilterService {
    * @returns True if territory is allowed, false otherwise
    */
   static isTerritoryAllowed(
-    territoryCode: string,
+    territoryCode: TerritoryCode,
     options: TerritoryFilterOptions,
   ): boolean {
     if (!options.hasTerritorySelector) {

@@ -13,9 +13,12 @@ import type {
   UnifiedViewConfig,
 } from '@/core/presets'
 
+import type { ProjectionId, TerritoryCode } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 import { logger } from '@/utils/logger'
 
 const debug = logger.presets.manager
@@ -69,20 +72,20 @@ export class PresetApplicationService {
    * Apply composite-custom preset
    *
    * Note: This handler is defensive code only. Composite-custom presets
-   * are loaded through AtlasCoordinator during atlas initialization, not
-   * through the view preset API. This method exists to complete the
+   * are loaded through InitializationService during atlas initialization,
+   * not through the view preset API. This method exists to complete the
    * strategy pattern and provide clear error messaging if misused.
    *
    * Correct loading path:
-   * - AtlasCoordinator.handleAtlasChange()
-   * - → PresetLoader.loadPreset()
-   * - → convertToDefaults() + extractTerritoryParameters()
-   * - → Apply to stores (parameterStore, configStore)
+   * - InitializationService.initializeAtlas()
+   * - -> PresetLoader.loadPreset()
+   * - -> convertToDefaults() + extractTerritoryParameters()
+   * - -> Apply to stores (parameterStore, projectionStore, viewStore)
    *
    * The view preset API (this service) is only for unified, split, and
    * built-in-composite presets which have simpler application requirements.
    * Composite-custom presets require full initialization sequence with
-   * parameter extraction and coordinator orchestration.
+   * parameter extraction and service orchestration.
    */
   private static applyCompositeCustom(_config: CompositeCustomConfig): ApplicationResult {
     // This should never be called due to filtering in loadAvailableViewPresets()
@@ -99,20 +102,24 @@ export class PresetApplicationService {
    * Single projection for entire atlas
    */
   private static applyUnified(config: UnifiedViewConfig): ApplicationResult {
-    const configStore = useConfigStore()
+    const projectionStore = useProjectionStore()
     const parameterStore = useParameterStore()
     const presetDefaults = getSharedPresetDefaults()
 
     try {
-      // Set projection
-      configStore.selectedProjection = config.projection.id
+      // Convert: config.projection.id from preset is string
+      projectionStore.selectedProjection = config.projection.id as ProjectionId
 
-      // Apply projection parameters
+      // Apply projection parameters as atlas defaults (not global overrides)
+      // This ensures hasCustomParams returns false on initial load
+      // Note: Legacy to canonical conversion is handled by parameterStore.setAtlasParameters
       if (config.projection.parameters) {
-        parameterStore.setGlobalParameters(config.projection.parameters)
-        presetDefaults.storeGlobalParameters(config.projection.parameters)
+        const params = { ...config.projection.parameters } as ProjectionParameters
+        parameterStore.setAtlasParameters(params)
+        presetDefaults.storeGlobalParameters(params)
       }
       else {
+        parameterStore.setAtlasParameters({})
         presetDefaults.storeGlobalParameters(null)
       }
 
@@ -136,23 +143,26 @@ export class PresetApplicationService {
    * Individual projections per territory
    */
   private static applySplit(config: SplitViewConfig): ApplicationResult {
-    const configStore = useConfigStore()
+    const atlasStore = useAtlasStore()
     const parameterStore = useParameterStore()
 
     try {
       // Get mainland code from atlas
-      const mainland = configStore.atlasService?.getMainland()
+      const mainland = atlasStore.atlasService?.getMainland()
       const mainlandCode = mainland?.code
 
       // Apply mainland projection
       if (mainlandCode && config.mainland) {
         parameterStore.setTerritoryProjection(
-          mainlandCode,
-          config.mainland.projection.id,
+          // Convert: Territory code from config
+          mainlandCode as TerritoryCode,
+          // Convert: Projection ID from config
+          config.mainland.projection.id as ProjectionId,
         )
         if (config.mainland.projection.parameters) {
           parameterStore.setTerritoryParameters(
-            mainlandCode,
+            // Convert: Territory code from config
+            mainlandCode as TerritoryCode,
             config.mainland.projection.parameters,
           )
         }
@@ -161,9 +171,10 @@ export class PresetApplicationService {
       // Apply territory projections
       if (config.territories) {
         for (const [code, territoryConfig] of Object.entries(config.territories)) {
-          parameterStore.setTerritoryProjection(code, territoryConfig.projection.id)
+          // Convert: Territory codes and projection IDs from config
+          parameterStore.setTerritoryProjection(code as TerritoryCode, territoryConfig.projection.id as ProjectionId)
           if (territoryConfig.projection.parameters) {
-            parameterStore.setTerritoryParameters(code, territoryConfig.projection.parameters)
+            parameterStore.setTerritoryParameters(code as TerritoryCode, territoryConfig.projection.parameters)
           }
         }
       }
@@ -188,11 +199,11 @@ export class PresetApplicationService {
    * Uses d3-composite-projections library
    */
   private static applyCompositeExisting(config: CompositeExistingViewConfig): ApplicationResult {
-    const configStore = useConfigStore()
+    const projectionStore = useProjectionStore()
 
     try {
-      // Set composite projection ID
-      configStore.compositeProjection = config.projectionId
+      // Convert: config.projectionId from preset is string
+      projectionStore.compositeProjection = config.projectionId as ProjectionId
 
       // Note: Global scale for built-in-composite mode is not yet fully supported
       // d3-composite-projections doesn't expose a scale multiplier API

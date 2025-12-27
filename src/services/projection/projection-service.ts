@@ -1,3 +1,4 @@
+import type { GeoProjection } from 'd3-geo'
 import type { ProjectionFilterContext, ProjectionRecommendation } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { ProjectionFactory } from '@/core/projections/factory'
@@ -16,6 +17,7 @@ export interface ProjectionOption {
 export class ProjectionService {
   private projectionParams: ProjectionParameters | null = null
   private canvasDimensions: { width: number, height: number } | null = null
+  private autoFitDomainEnabled: boolean = true
 
   /**
    * Set region-specific projection parameters
@@ -34,6 +36,15 @@ export class ProjectionService {
   }
 
   /**
+   * Set auto fit domain mode
+   * @param enabled - When true, uses domain fitting (auto-zoom to data extent)
+   *                  When false, uses manual fitting with scaleMultiplier control
+   */
+  setAutoFitDomain(enabled: boolean): void {
+    this.autoFitDomainEnabled = enabled
+  }
+
+  /**
    * Get projection parameters (or use default France params as fallback)
    */
   private getParams(): ProjectionParameters {
@@ -43,6 +54,21 @@ export class ProjectionService {
       parallels: [44, 49],
     }
     return result
+  }
+
+  /**
+   * Get canonical positioning from parameters
+   *
+   * Extracts the geographic focus point from parameters.
+   * Parameters are normalized to canonical format (focusLongitude/focusLatitude)
+   * at entry points (setAtlasParameters, setTerritoryParameters).
+   */
+  private getCanonicalPositioning(params: ProjectionParameters): { focusLongitude: number, focusLatitude: number, rotateGamma: number } {
+    return {
+      focusLongitude: params.focusLongitude ?? 0,
+      focusLatitude: params.focusLatitude ?? 0,
+      rotateGamma: params.rotateGamma ?? 0,
+    }
   }
 
   /**
@@ -127,44 +153,41 @@ export class ProjectionService {
           // CRITICAL: Get fresh params each time the function is called to get latest values
           const params = this.getParams()
 
+          // Get positioning from canonical format (focusLongitude/focusLatitude)
+          // or fall back to legacy format (rotate/center) for backward compatibility
+          const positioning = this.getCanonicalPositioning(params)
+
           // Determine parameter strategy based on projection family
           // D3 projection behavior (from documentation):
           // - AZIMUTHAL: Primary positioning via rotate(), center() is secondary
-          // - CONIC: Uses both center() AND rotate(), plus parallels()
+          // - CONIC: Uses rotate() for positioning with auto-fit, plus parallels()
           // - CYLINDRICAL/PSEUDOCYLINDRICAL: Primary positioning via rotate()
-          let rotateParams: [number, number] | undefined
+          let rotateParams: [number, number, number] | undefined
           let centerParams: [number, number] | undefined
           let parallelsParams: [number, number] | undefined
 
           if (definition.family === ProjectionFamily.AZIMUTHAL) {
             // Azimuthal projections: Use rotation for positioning
-            // rotate[0] = longitude rotation (negated for correct direction)
-            // rotate[1] = latitude rotation (negated for correct direction)
-            const rotate = params.rotate ?? [0, 0]
-            rotateParams = [-rotate[0], -rotate[1]]
+            // Canonical format focusLongitude/focusLatitude is negated for D3 rotate()
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined // Don't use center for azimuthal
           }
           else if (definition.family === ProjectionFamily.CONIC) {
             // Conic projections use rotate() for positioning with auto-fit
-            // Only use center longitude/latitude (rotation is disabled in UI for conic)
             parallelsParams = params.parallels || [44, 49]
-
-            const center = params.center ?? [0, 0]
-            const rotateLon = -center[0]
-            const rotateLat = -center[1]
-            rotateParams = [rotateLon, rotateLat]
+            // Canonical format: focusLongitude/focusLatitude negated for rotate()
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined // Domain fitting will override center
           }
           else {
             // Cylindrical, Pseudocylindrical, Polyhedral: Use rotation
-            const rotate = params.rotate ?? [0, 0]
-            rotateParams = [rotate[0], rotate[1]]
+            // For cylindrical projections, the canonical focusLongitude maps to rotation
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined // Don't use center
           }
 
           const projection = ProjectionFactory.createById(definition.id, {
             center: centerParams,
-            rotate: rotateParams,
             parallels: parallelsParams,
           })
 
@@ -172,33 +195,55 @@ export class ProjectionService {
             throw new Error(`Failed to create projection: ${definition.id}`)
           }
 
+          // Apply rotation after creation to ensure it's properly set
+          // This avoids issues with Observable Plot's fitExtent interfering with rotation
+          if (rotateParams) {
+            projection.rotate(rotateParams)
+          }
+
           // Parameters are already applied by the factory
           return projection
         },
-        // Always use domain for auto-fitting
+        // Domain kept for auto-fit mode, removed for manual scale mode
         domain: data,
       }
 
-      // Apply zoom level if provided - this modifies the scale after auto-fit
-      const zoomLevel = (this.projectionParams as any)?.zoomLevel as number | undefined
-      if (zoomLevel && zoomLevel !== 1.0) {
-        // Wrap the projection config to apply zoom after Observable Plot's fitExtent
+      // When autoFitDomain is enabled, use Plot's domain fitting (no scale control)
+      // When disabled, use manual fitting with scaleMultiplier control
+      if (!this.autoFitDomainEnabled) {
+        // Apply scaleMultiplier by wrapping the type function
+        // Instead of trying to intercept fitExtent (which Plot may not call),
+        // we manually fit and apply scale within our type function
         const originalType = config.type
+        const getParamsBound = this.getParams.bind(this)
+        const geoData = data // Capture data for fitting
         config.type = (dimensions: { width: number, height: number }) => {
+          const { width, height } = dimensions
           const proj = originalType(dimensions)
-          // Observable Plot will call fitExtent on this projection
-          // We need to intercept the scale after fitting
-          const originalFitExtent = proj.fitExtent.bind(proj)
-          proj.fitExtent = function (extent: [[number, number], [number, number]], object: any) {
-            // Call original fitExtent
-            const result = originalFitExtent(extent, object)
-            // Apply zoom by multiplying the fitted scale
+
+          // Get fresh scaleMultiplier at render time
+          const currentParams = getParamsBound()
+          const scaleMultiplier = (currentParams.scaleMultiplier as number | undefined) ?? 1.0
+
+          // Manually fit the projection to the extent, then apply scaleMultiplier
+          // This replaces Plot's domain fitting with our own controlled fitting
+          const inset = 0
+          proj.fitExtent(
+            [[inset, inset], [width - inset, height - inset]],
+            geoData,
+          )
+
+          // Apply scale multiplier after fitting
+          if (scaleMultiplier !== 1.0) {
             const currentScale = proj.scale()
-            proj.scale(currentScale * zoomLevel)
-            return result
+            proj.scale(currentScale * scaleMultiplier)
           }
+
           return proj
         }
+
+        // Remove domain since we're doing manual fitting
+        delete config.domain
       }
 
       return config
@@ -206,37 +251,35 @@ export class ProjectionService {
 
     // For D3 extended projections, return factory function
     if (definition.strategy === ProjectionStrategy.D3_EXTENDED) {
-      return {
+      const extConfig: any = {
         type: ({ width: _width, height: _height }: { width: number, height: number }) => {
           // CRITICAL: Get fresh params each time Plot calls this function
           const params = this.getParams()
 
+          // Get positioning from canonical format
+          const positioning = this.getCanonicalPositioning(params)
+
           // Determine parameter strategy based on projection family (same as D3_BUILTIN)
-          let rotateParams: [number, number] | undefined
+          let rotateParams: [number, number, number] | undefined
           let centerParams: [number, number] | undefined
           let parallelsParams: [number, number] | undefined
 
           if (definition.family === ProjectionFamily.AZIMUTHAL) {
-            const rotate = params.rotate || [0, 0]
-            rotateParams = [-rotate[0], -rotate[1]]
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined
           }
           else if (definition.family === ProjectionFamily.CONIC) {
             parallelsParams = params.parallels || [44, 49]
-            // Always use auto-fit mode with rotate() for positioning
-            const center = params.center || [0, 0]
-            rotateParams = [-center[0], -center[1]]
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined
           }
           else {
-            const rotate = params.rotate || [0, 0]
-            rotateParams = [rotate[0], rotate[1]]
+            rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
             centerParams = undefined
           }
 
           const projection = ProjectionFactory.createById(type, {
             center: centerParams,
-            rotate: rotateParams,
             parallels: parallelsParams,
           })
 
@@ -245,11 +288,53 @@ export class ProjectionService {
             throw new Error(`Failed to create extended projection: ${type}`)
           }
 
+          // Apply rotation after creation
+          if (rotateParams) {
+            projection.rotate(rotateParams)
+          }
+
           return projection
         },
-        // Always use domain for auto-fitting
+        // Domain kept for auto-fit mode, removed for manual scale mode
         domain: data,
       }
+
+      // When autoFitDomain is enabled, use Plot's domain fitting (no scale control)
+      // When disabled, use manual fitting with scaleMultiplier control
+      if (!this.autoFitDomainEnabled) {
+        // Apply scaleMultiplier by wrapping the type function with manual fitting
+        const originalExtType = extConfig.type
+        const getParamsBound = this.getParams.bind(this)
+        const geoData = data // Capture data for fitting
+        extConfig.type = (dimensions: { width: number, height: number }) => {
+          const { width, height } = dimensions
+          const proj = originalExtType(dimensions)
+
+          // Get fresh scaleMultiplier at render time
+          const currentParams = getParamsBound()
+          const scaleMultiplier = (currentParams.scaleMultiplier as number | undefined) ?? 1.0
+
+          // Manually fit the projection to the extent, then apply scaleMultiplier
+          const inset = 0
+          proj.fitExtent(
+            [[inset, inset], [width - inset, height - inset]],
+            geoData,
+          )
+
+          // Apply scale multiplier after fitting
+          if (scaleMultiplier !== 1.0) {
+            const currentScale = proj.scale()
+            proj.scale(currentScale * scaleMultiplier)
+          }
+
+          return proj
+        }
+
+        // Remove domain since we're doing manual fitting
+        delete extConfig.domain
+      }
+
+      return extConfig
     }
 
     // Should never reach here, but fallback just in case
@@ -303,5 +388,85 @@ export class ProjectionService {
    */
   isValidProjection(id: string): boolean {
     return projectionRegistry.isValid(id)
+  }
+
+  /**
+   * Get a fitted D3 GeoProjection for direct D3 rendering
+   *
+   * Unlike getProjection() which returns config for Observable Plot,
+   * this returns an actual D3 GeoProjection instance, fitted to the
+   * specified extent and data.
+   *
+   * @param type - Projection ID
+   * @param data - Geographic data for domain calculation
+   * @param width - Width to fit to
+   * @param height - Height to fit to
+   * @param fitToSphere - If true, fit to sphere instead of data
+   * @returns Fitted D3 GeoProjection
+   */
+  getD3Projection(
+    type: string,
+    data: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' },
+    width: number,
+    height: number,
+    fitToSphere = false,
+  ): GeoProjection | null {
+    const definition = projectionRegistry.get(type)
+    if (!definition) {
+      debug('Projection not found for D3: %s', type)
+      return null
+    }
+
+    // Get current parameters
+    const params = this.getParams()
+    const positioning = this.getCanonicalPositioning(params)
+
+    // Determine parameter strategy based on projection family
+    let rotateParams: [number, number, number] | undefined
+    let parallelsParams: [number, number] | undefined
+
+    if (definition.family === ProjectionFamily.AZIMUTHAL) {
+      rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
+    }
+    else if (definition.family === ProjectionFamily.CONIC) {
+      parallelsParams = params.parallels || [44, 49]
+      rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
+    }
+    else {
+      rotateParams = [-positioning.focusLongitude, -positioning.focusLatitude, positioning.rotateGamma]
+    }
+
+    // Create the projection
+    const projection = ProjectionFactory.createById(definition.id, {
+      parallels: parallelsParams,
+    })
+
+    if (!projection) {
+      debug('Failed to create D3 projection: %s', type)
+      return null
+    }
+
+    // Apply rotation
+    if (rotateParams) {
+      projection.rotate(rotateParams)
+    }
+
+    // Fit to extent
+    const inset = 0
+    const domain = fitToSphere ? { type: 'Sphere' as const } : data
+    projection.fitExtent(
+      [[inset, inset], [width - inset, height - inset]],
+      domain as GeoJSON.GeoJsonObject,
+    )
+
+    // Apply scale multiplier if set
+    const scaleMultiplier = (params.scaleMultiplier as number | undefined) ?? 1.0
+    if (scaleMultiplier !== 1.0 && !this.autoFitDomainEnabled) {
+      const currentScale = projection.scale()
+      projection.scale(currentScale * scaleMultiplier)
+    }
+
+    debug('Created fitted D3 projection: %s (%dx%d)', type, width, height)
+    return projection
   }
 }

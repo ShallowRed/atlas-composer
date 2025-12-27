@@ -1,5 +1,6 @@
 import type { CompositeProjectionConfig } from '@/types'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
 
 describe('compositeProjection - invert/forward chain', () => {
@@ -11,14 +12,14 @@ describe('compositeProjection - invert/forward chain', () => {
     const config: CompositeProjectionConfig = {
       type: 'single-focus',
       mainland: {
-        code: 'FR',
+        code: createTerritoryCode('FR'),
         name: 'France Mainland',
         center: [2, 46],
         bounds: [[-5, 42], [8, 51]],
       },
       overseasTerritories: [
         {
-          code: 'FR-GF',
+          code: createTerritoryCode('FR-GF'),
           name: 'French Guiana',
           center: [-53, 4],
           bounds: [[-55, 2], [-51, 6]],
@@ -155,7 +156,7 @@ describe('compositeProjection - invert/forward chain', () => {
   describe('translation Offset Effects', () => {
     it('should maintain invert accuracy after translation offset changes', () => {
       // Apply a translation offset to French Guiana
-      compositeProjection.updateTranslationOffset('FR-GF', [-200, 150])
+      compositeProjection.updateTranslationOffset(createTerritoryCode('FR-GF'), [-200, 150])
 
       // Rebuild projection with new offset
       const newBuiltProjection = compositeProjection.build(800, 600, true)
@@ -183,14 +184,14 @@ describe('compositeProjection - invert/forward chain', () => {
       const guianaGeo = [-53, 4] as [number, number] // French Guiana center
 
       // First: Set offset to [0, 0] and get screen position
-      compositeProjection.updateTranslationOffset('FR-GF', [0, 0])
+      compositeProjection.updateTranslationOffset(createTerritoryCode('FR-GF'), [0, 0])
       const projection1 = compositeProjection.build(800, 600, true)
       const screen1 = projection1(guianaGeo)
 
       // Second: Set offset to [-200, 150] and get screen position
       const offsetX = -200
       const offsetY = 150
-      compositeProjection.updateTranslationOffset('FR-GF', [offsetX, offsetY])
+      compositeProjection.updateTranslationOffset(createTerritoryCode('FR-GF'), [offsetX, offsetY])
       const projection2 = compositeProjection.build(800, 600, true)
       const screen2 = projection2(guianaGeo)
 

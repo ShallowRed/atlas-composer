@@ -12,7 +12,9 @@
  */
 
 import type { AtlasProjectionMetadata, LoadResult, Preset } from '@/core/presets'
+import type { AtlasId, PresetId, ProjectionId } from '@/types/branded'
 
+import { getDefaultCompositeProjections } from '@/core/projections/defaults'
 import { logger } from '@/utils/logger'
 import { PresetLoader } from './preset-loader'
 
@@ -41,7 +43,7 @@ export class AtlasMetadataService {
    * @param defaultPreset - Default preset name to load metadata from
    * @returns Atlas metadata result with projection configuration
    */
-  static async getAtlasMetadata(atlasId: string, defaultPreset?: string): Promise<AtlasMetadataResult> {
+  static async getAtlasMetadata(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasMetadataResult> {
     // Check cache first
     const cacheKey = `${atlasId}-${defaultPreset || 'default'}`
     const cached = metadataCache.get(cacheKey)
@@ -97,9 +99,9 @@ export class AtlasMetadataService {
    * @param defaultPreset - Default preset name
    * @returns Array of composite projection IDs
    */
-  static async getCompositeProjections(atlasId: string, defaultPreset?: string): Promise<string[]> {
+  static async getCompositeProjections(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId[]> {
     const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return result.metadata?.compositeProjections || this.getDefaultCompositeProjections(atlasId)
+    return (result.metadata?.compositeProjections || getDefaultCompositeProjections(atlasId)) as ProjectionId[]
   }
 
   /**
@@ -109,7 +111,7 @@ export class AtlasMetadataService {
    * @param defaultPreset - Default preset name
    * @returns Projection preferences object
    */
-  static async getProjectionPreferences(atlasId: string, defaultPreset?: string): Promise<AtlasProjectionMetadata['projectionPreferences']> {
+  static async getProjectionPreferences(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionPreferences']> {
     const result = await this.getAtlasMetadata(atlasId, defaultPreset)
     return result.metadata?.projectionPreferences
   }
@@ -121,16 +123,9 @@ export class AtlasMetadataService {
    * @param defaultPreset - Default preset name
    * @returns Projection parameters object
    */
-  static async getProjectionParameters(atlasId: string, defaultPreset?: string): Promise<AtlasProjectionMetadata['projectionParameters']> {
+  static async getProjectionParameters(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionParameters']> {
     const result = await this.getAtlasMetadata(atlasId, defaultPreset)
     return result.metadata?.projectionParameters
-  }
-
-  /**
-   * Clear metadata cache (useful for testing or when presets are updated)
-   */
-  static clearCache(): void {
-    metadataCache.clear()
   }
 
   /**
@@ -139,9 +134,9 @@ export class AtlasMetadataService {
    * @param atlasId - Atlas identifier
    * @returns Basic fallback metadata
    */
-  private static getFallbackMetadata(atlasId: string): AtlasProjectionMetadata {
+  private static getFallbackMetadata(atlasId: AtlasId): AtlasProjectionMetadata {
     return {
-      compositeProjections: this.getDefaultCompositeProjections(atlasId),
+      compositeProjections: getDefaultCompositeProjections(atlasId),
       projectionPreferences: {
         recommended: ['natural-earth', 'robinson', 'mercator'],
         default: {
@@ -153,26 +148,9 @@ export class AtlasMetadataService {
   }
 
   /**
-   * Get default composite projections for an atlas
-   *
-   * @param atlasId - Atlas identifier
-   * @returns Array of default composite projection IDs
+   * Clear metadata cache (useful for testing or when presets are updated)
    */
-  private static getDefaultCompositeProjections(atlasId: string): string[] {
-    // Return common default based on atlas ID
-    switch (atlasId) {
-      case 'france':
-        return ['conic-conformal-france']
-      case 'portugal':
-        return ['conic-conformal-portugal']
-      case 'spain':
-        return ['conic-conformal-spain']
-      case 'usa':
-        return ['albers-usa', 'albers-usa-composite']
-      case 'europe':
-        return ['conic-conformal-europe']
-      default:
-        return [`conic-conformal-${atlasId}`]
-    }
+  static clearCache(): void {
+    metadataCache.clear()
   }
 }

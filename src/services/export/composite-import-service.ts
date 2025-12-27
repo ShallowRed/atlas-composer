@@ -8,6 +8,7 @@
  * - Apply imported configurations to stores
  */
 
+import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ExportedCompositeConfig, ExportValidationResult } from '@/types/export-config'
 import { logger } from '@/utils/logger'
 import { CompositeExportService } from './composite-export-service'
@@ -114,7 +115,7 @@ export class CompositeImportService {
    */
   static checkAtlasCompatibility(
     config: ExportedCompositeConfig,
-    currentAtlasId: string,
+    currentAtlasId: AtlasId,
   ): ExportValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
@@ -133,25 +134,27 @@ export class CompositeImportService {
    * This is meant to be called from a component that has access to the stores
    *
    * @param config - Validated exported configuration
-   * @param configStore - Config store instance (from useConfigStore)
+   * @param projectionStore - Projection store instance (from useProjectionStore)
+   * @param viewStore - View store instance (from useViewStore)
    * @param parameterStore - Parameter store instance (from useParameterStore)
    * @param compositeProjection - CompositeProjection instance
    */
   static applyToStores(
     config: ExportedCompositeConfig,
-    configStore: ReturnType<typeof import('@/stores/config').useConfigStore>,
+    projectionStore: ReturnType<typeof import('@/stores/projection').useProjectionStore>,
+    viewStore: ReturnType<typeof import('@/stores/view').useViewStore>,
     parameterStore: ReturnType<typeof import('@/stores/parameters').useParameterStore>,
     compositeProjection: import('@/services/projection/composite-projection').CompositeProjection,
   ): void {
     // Note: This method assumes the caller has already validated the config
     // and confirmed atlas compatibility
 
-    // FIRST: Apply global preset parameters to config store
+    // FIRST: Apply global preset parameters to projection store
     if (config.referenceScale !== undefined) {
-      configStore.referenceScale = config.referenceScale
+      projectionStore.referenceScale = config.referenceScale
     }
     if (config.canvasDimensions) {
-      configStore.canvasDimensions = {
+      projectionStore.canvasDimensions = {
         width: config.canvasDimensions.width,
         height: config.canvasDimensions.height,
       }
@@ -196,7 +199,7 @@ export class CompositeImportService {
         }
 
         // Set all parameters at once (more efficient and atomic)
-        parameterStore.setTerritoryParameters(territory.code, params)
+        parameterStore.setTerritoryParameters(territory.code as TerritoryCode, params)
 
         debug('Applied parameters for %s: projectionId=%s hasPixelClipExtent=%s pixelClipExtent=%o translateOffset=%o', territory.code, params.projectionId, !!params.pixelClipExtent, params.pixelClipExtent, params.translateOffset)
       }
@@ -211,13 +214,13 @@ export class CompositeImportService {
           // First update projection type (may have changed during import)
           // This preserves the current center/rotate/scale but updates the projection algorithm
           if (typeof compositeProjection.updateTerritoryProjection === 'function') {
-            compositeProjection.updateTerritoryProjection(territory.code, territory.projection.id)
+            compositeProjection.updateTerritoryProjection(territory.code as TerritoryCode, territory.projection.id as ProjectionId)
           }
 
           // Then apply parameters from parameter store (which now has the imported values)
           // This will overwrite the preserved values with the imported ones
           if (typeof compositeProjection.updateTerritoryParameters === 'function') {
-            compositeProjection.updateTerritoryParameters(territory.code)
+            compositeProjection.updateTerritoryParameters(territory.code as TerritoryCode)
           }
         }
         catch (error) {
@@ -233,12 +236,12 @@ export class CompositeImportService {
         // Apply translation offsets and scale multipliers
         config.territories.forEach((territory) => {
           if (typeof compositeProjection.updateTranslationOffset === 'function') {
-            compositeProjection.updateTranslationOffset(territory.code, territory.layout.translateOffset)
+            compositeProjection.updateTranslationOffset(territory.code as TerritoryCode, territory.layout.translateOffset)
           }
 
           // Apply the scale multiplier
           if (typeof compositeProjection.updateScale === 'function' && territory.projection.parameters.scaleMultiplier !== undefined) {
-            compositeProjection.updateScale(territory.code, territory.projection.parameters.scaleMultiplier)
+            compositeProjection.updateScale(territory.code as TerritoryCode, territory.projection.parameters.scaleMultiplier)
           }
         })
       }
@@ -248,6 +251,6 @@ export class CompositeImportService {
     }
 
     // Switch to custom composite view mode to show the imported configuration
-    configStore.viewMode = 'composite-custom'
+    viewStore.viewMode = 'composite-custom'
   }
 }

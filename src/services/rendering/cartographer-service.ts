@@ -1,12 +1,12 @@
+import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import * as Plot from '@observablehq/plot'
-import { select } from 'd3'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
-import { getTerritoryFillColor, getTerritoryStrokeColor } from '@/utils/color-utils'
+import { D3MapRenderer } from '@/services/rendering/d3-map-renderer'
 import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
@@ -56,6 +56,12 @@ export class Cartographer {
   private geoDataService: GeoDataService
   public customComposite: CompositeProjection | null = null
 
+  /**
+   * The projection used for the last render call.
+   * Available for overlay services to use the exact same projection.
+   */
+  private _lastProjection: GeoProjection | null = null
+
   constructor(
     geoDataConfig: GeoDataConfig,
     compositeConfig?: CompositeProjectionConfig,
@@ -84,6 +90,14 @@ export class Cartographer {
   }
 
   /**
+   * Get the projection used for the last render call.
+   * This allows overlay services to use the exact same projection instance.
+   */
+  get lastProjection(): GeoProjection | null {
+    return this._lastProjection
+  }
+
+  /**
    * Public getter for GeoDataService
    * Provides type-safe access to geo data operations
    */
@@ -92,14 +106,12 @@ export class Cartographer {
   }
 
   async init(): Promise<void> {
-    try {
-      await this.geoDataService.loadData()
-      this.geoDataService.getTerritoryInfo()
+    const result = await this.geoDataService.loadData()
+    if (!result.ok) {
+      debug('Cartographer initialization error: %O', result.error)
+      throw new Error(`Failed to load geographic data: ${result.error.type}`)
     }
-    catch (error) {
-      debug('Cartographer initialization error: %O', error)
-      throw error
-    }
+    this.geoDataService.getTerritoryInfo()
   }
 
   /**
@@ -119,6 +131,15 @@ export class Cartographer {
   }
 
   /**
+   * Update auto fit domain mode
+   * @param enabled - When true, uses domain fitting (auto-zoom to data extent)
+   *                  When false, uses manual fitting with scaleMultiplier control
+   */
+  updateAutoFitDomain(enabled: boolean): void {
+    this.projectionService.setAutoFitDomain(enabled)
+  }
+
+  /**
    * Update reference scale for composite projection
    * @param scale - New reference scale
    */
@@ -133,7 +154,7 @@ export class Cartographer {
    * Call this when territory-specific projection parameters change (rotate, center, parallels, etc.)
    * @param territoryCode - Territory code to update
    */
-  updateTerritoryParameters(territoryCode: string): void {
+  updateTerritoryParameters(territoryCode: TerritoryCode): void {
     if (this.customComposite) {
       this.customComposite.updateTerritoryParameters(territoryCode)
     }
@@ -145,7 +166,7 @@ export class Cartographer {
    * @param territoryCode - Territory code to update
    * @param projectionType - New projection type (e.g., 'conic-conformal', 'azimuthal-equal-area')
    */
-  updateTerritoryProjection(territoryCode: string, projectionType: string): void {
+  updateTerritoryProjection(territoryCode: TerritoryCode, projectionType: ProjectionId): void {
     if (this.customComposite) {
       this.customComposite.updateTerritoryProjection(territoryCode, projectionType)
     }
@@ -177,7 +198,7 @@ export class Cartographer {
   }
 
   // Unified rendering API
-  async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<Plot.Plot> {
+  async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<SVGSVGElement> {
     switch (options.mode) {
       case 'simple':
         return this.renderSimple(options)
@@ -191,60 +212,38 @@ export class Cartographer {
   }
 
   /**
-   * Creates a Plot with the specified data, projection, and dimensions
+   * Creates an SVG with the specified data, projection, and dimensions
    * Common rendering logic shared by all render modes
+   *
+   * Note: Graticule is now rendered as an overlay by GraticuleOverlayService
+   * for scale-adaptive density.
    */
-  private createPlot(
+  private createSvg(
     data: GeoJSON.FeatureCollection,
-    projection: any,
+    projection: GeoProjection,
     width: number,
     height: number,
-    showGraticule = true,
     showSphere = false,
-  ): Plot.Plot {
+  ): SVGSVGElement {
     const { mainlandCode } = this.geoDataService.config
     const geoDataMainlandCode = this.geoDataService.config.mainlandCode
 
-    const marks: any[] = []
+    // Create SVG container
+    const svg = D3MapRenderer.createSvgElement(width, height)
 
     // Add sphere outline if enabled (should be rendered first, behind other elements)
     if (showSphere) {
-      marks.push(
-        Plot.sphere({ stroke: 'currentColor', strokeWidth: 1.5 }),
-      )
+      D3MapRenderer.renderSphere(svg, projection)
     }
 
-    // Add graticule if enabled
-    if (showGraticule) {
-      marks.push(
-        Plot.graticule(),
-      )
-    }
-
-    // Add geography
-    marks.push(
-      Plot.geo(data, {
-        tip: true,
-        channels: {
-          name: (d: any) => d.properties.name,
-        },
-        fill: (d: any) => {
-          const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-          return getTerritoryFillColor(code, mainlandCode, geoDataMainlandCode)
-        },
-        stroke: (d: any) => {
-          const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-          return getTerritoryStrokeColor(code, mainlandCode, geoDataMainlandCode)
-        },
-      }),
-    )
-
-    return Plot.plot({
-      width,
-      height,
-      projection,
-      marks,
+    // Add territories
+    D3MapRenderer.renderTerritories(svg, data, projection, {
+      mainlandCode,
+      geoDataMainlandCode,
+      enableTooltips: true,
     })
+
+    return svg
   }
 
   /**
@@ -266,47 +265,61 @@ export class Cartographer {
    * Renders a simple map with a single projection
    * Data is provided directly in options
    */
-  private renderSimple(options: SimpleRenderOptions): Plot.Plot {
-    const { geoData, projection, width, height, showGraticule, showSphere } = options
-    let projectionFn = this.projectionService.getProjection(projection, geoData)
+  private renderSimple(options: SimpleRenderOptions): SVGSVGElement {
+    const { geoData, projection, width, height, showSphere } = options
 
-    // When showing sphere, use sphere as domain instead of data for proper fitting
-    if (showSphere && typeof projectionFn === 'object' && 'domain' in projectionFn) {
-      projectionFn = {
-        ...projectionFn,
-        domain: { type: 'Sphere' },
-      }
+    // Get fitted D3 projection
+    const projectionFn = this.projectionService.getD3Projection(
+      projection,
+      geoData,
+      width,
+      height,
+      showSphere, // fitToSphere when showing sphere
+    )
+
+    if (!projectionFn) {
+      throw new Error(`Failed to create projection: ${projection}`)
     }
 
-    return this.createPlot(geoData, projectionFn, width, height, showGraticule, showSphere)
+    // Store for overlay use
+    this._lastProjection = projectionFn
+
+    return this.createSvg(geoData, projectionFn, width, height, showSphere)
   }
 
   /**
    * Renders a composite map using a built-in composite projection (e.g., d3-composite-projections)
    * Fetches raw data and applies a pre-configured composite projection
    */
-  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, projection, width, height, showGraticule, showSphere } = options
+  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
+    const { territoryMode, territoryCodes, projection, width, height, showSphere } = options
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
-    let projectionFn = this.projectionService.getProjection(projection, rawData)
 
-    // When showing sphere, use sphere as domain instead of data for proper fitting
-    if (showSphere && typeof projectionFn === 'object' && 'domain' in projectionFn) {
-      projectionFn = {
-        ...projectionFn,
-        domain: { type: 'Sphere' },
-      }
+    // Get fitted D3 projection
+    const projectionFn = this.projectionService.getD3Projection(
+      projection,
+      rawData,
+      width,
+      height,
+      showSphere,
+    )
+
+    if (!projectionFn) {
+      throw new Error(`Failed to create projection: ${projection}`)
     }
 
-    return this.createPlot(rawData, projectionFn, width, height, showGraticule, showSphere)
+    // Store for overlay use
+    this._lastProjection = projectionFn
+
+    return this.createSvg(rawData, projectionFn, width, height, showSphere)
   }
 
   /**
    * Renders a custom composite map with individually positioned territories
    * Fetches raw data, applies custom settings, and uses CompositeProjection
    */
-  private async renderCustomComposite(options: CompositeRenderOptions): Promise<Plot.Plot> {
-    const { territoryMode, territoryCodes, width, height, settings, showGraticule, showSphere } = options
+  private async renderCustomComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
+    const { territoryMode, territoryCodes, width, height, settings, showSphere } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -319,12 +332,13 @@ export class Cartographer {
 
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
-    // Dynamic projection that rebuilds on resize
-    const projectionFn = ({ width: w, height: h }: { width: number, height: number }) => {
-      return this.customComposite!.build(w, h, true)
-    }
+    // Build the composite projection with current dimensions
+    const projectionFn = this.customComposite.build(width, height, true)
 
-    return this.createPlot(rawData, projectionFn, width, height, showGraticule, showSphere)
+    // Store for overlay use
+    this._lastProjection = projectionFn as GeoProjection
+
+    return this.createSvg(rawData, projectionFn as GeoProjection, width, height, showSphere)
   }
 
   private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
@@ -341,14 +355,14 @@ export class Cartographer {
         // Only update if projection type is different from current
         const subProj = (composite as any).subProjections?.find((sp: any) => sp.territoryCode === code)
         if (subProj && subProj.projectionType !== proj) {
-          composite.updateTerritoryProjection(code, proj as any)
+          composite.updateTerritoryProjection(code as TerritoryCode, proj as ProjectionId)
         }
       }
     }
 
     if (territoryTranslations) {
       for (const [code, translation] of Object.entries(territoryTranslations)) {
-        composite.updateTranslationOffset(code, [translation.x, translation.y])
+        composite.updateTranslationOffset(code as TerritoryCode, [translation.x, translation.y])
       }
     }
 
@@ -357,39 +371,12 @@ export class Cartographer {
   }
 
   /**
-   * Add data-territory attributes to SVG paths for territory identification using D3.js
+   * Add data-territory attributes to SVG paths for territory identification
    * Should be called after plot is rendered and appended to DOM
+   *
+   * Delegates to D3MapRenderer.addTerritoryAttributes
    */
-  static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection) {
-    const svgSelection = select(svg)
-    const pathSelection = svgSelection.selectAll('path')
-
-    // Use D3 selection to process paths and add territory attributes
-    pathSelection.each(function (_d, i) {
-      const path = this as SVGPathElement
-
-      // Check if Observable Plot has bound data to this element
-      const boundData = (path as any).__data__
-
-      if (boundData?.properties) {
-        const territoryCode = boundData.properties.code || boundData.properties.INSEE_DEP
-        if (territoryCode) {
-          select(path).attr('data-territory', territoryCode)
-          return // Exit early if we successfully added the attribute
-        }
-      }
-
-      // Fallback: try to match by index if bound data approach failed
-      if (i < data.features.length) {
-        const feature = data.features[i]
-        if (feature) {
-          const territoryCode = feature.properties?.code || feature.properties?.INSEE_DEP
-
-          if (territoryCode) {
-            select(path).attr('data-territory', territoryCode)
-          }
-        }
-      }
-    })
+  static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection): void {
+    D3MapRenderer.addTerritoryAttributes(svg, data)
   }
 }

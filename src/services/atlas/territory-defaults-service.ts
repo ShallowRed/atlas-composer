@@ -1,5 +1,6 @@
 import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryConfig } from '@/types'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 
 /**
  * Service for initializing territory default configurations
@@ -16,7 +17,7 @@ export class TerritoryDefaultsService {
    */
   static initializeAll(
     territories: TerritoryConfig[],
-    defaultProjection: string = 'mercator',
+    defaultProjection: ProjectionId = 'mercator' as ProjectionId,
   ): TerritoryDefaults {
     return {
       projections: this.initializeProjections(territories, defaultProjection),
@@ -34,11 +35,11 @@ export class TerritoryDefaultsService {
    */
   static initializeProjections(
     territories: TerritoryConfig[],
-    defaultProjection: string = 'mercator',
-  ): Record<string, string> {
+    defaultProjection: ProjectionId = 'mercator' as ProjectionId,
+  ): Record<TerritoryCode, ProjectionId> {
     return Object.fromEntries(
       territories.map(t => [t.code, defaultProjection]),
-    )
+    ) as Record<TerritoryCode, ProjectionId>
   }
 
   /**
@@ -50,10 +51,10 @@ export class TerritoryDefaultsService {
    */
   static initializeTranslations(
     territories: TerritoryConfig[],
-  ): Record<string, { x: number, y: number }> {
+  ): Record<TerritoryCode, { x: number, y: number }> {
     return Object.fromEntries(
       territories.map(t => [t.code, { x: 0, y: 0 }]),
-    )
+    ) as Record<TerritoryCode, { x: number, y: number }>
   }
 
   /**
@@ -65,9 +66,9 @@ export class TerritoryDefaultsService {
    */
   static initializeScales(
     territories: TerritoryConfig[],
-  ): Record<string, number> {
+  ): Record<TerritoryCode, number> {
     return Object.fromEntries(
       territories.map(t => [t.code, 1.0]),
-    )
+    ) as Record<TerritoryCode, number>
   }
 }

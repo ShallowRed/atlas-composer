@@ -140,7 +140,7 @@ describe('codeGenerator', () => {
       expect(code).toContain('export function createFranceProjection()')
       expect(code).toContain('registerProjection')
       expect(code).toContain('loadCompositeProjection')
-      expect(code).toContain('"projectionId": "conic-conformal"')
+      expect(code).toContain('"id": "conic-conformal"')
       expect(code).toContain('2.5')
       expect(code).toContain('46.5')
       expect(code).toContain('-3')
@@ -199,8 +199,8 @@ describe('codeGenerator', () => {
       expect(code).toContain('Composite Projection for Portugal')
       expect(code).toContain('loadCompositeProjection')
       expect(code).toContain('registerProjection')
-      expect(code).toContain('"projectionId": "conic-conformal"')
-      expect(code).toContain('"projectionId": "mercator"')
+      expect(code).toContain('"id": "conic-conformal"')
+      expect(code).toContain('"id": "mercator"')
     })
 
     it('should throw error for unsupported format', () => {
@@ -277,9 +277,9 @@ describe('codeGenerator', () => {
 
       expect(code).toContain('"name": "France Métropolitaine"')
       expect(code).toContain('"role": "primary"')
-      expect(code).toContain('"projectionId": "conic-conformal"')
+      expect(code).toContain('"id": "conic-conformal"')
       expect(code).toContain('"role": "secondary"')
-      expect(code).toContain('"projectionId": "mercator"')
+      expect(code).toContain('"id": "mercator"')
     })
 
     it('should configure projection parameters correctly', () => {
@@ -422,11 +422,13 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
+            projection: {
+              ...territory.projection,
+              id: 'conic-equal-area',
+            },
           },
         ],
       }
-
-      config.territories[0]!.projection.id = 'conic-equal-area'
 
       const code = generator.generate(config, {
         format: 'd3',
@@ -445,10 +447,13 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
+            projection: {
+              ...territory.projection,
+              id: 'transverse-mercator',
+            },
           },
         ],
       }
-      config.territories[0]!.projection.id = 'transverse-mercator'
 
       const code = generator.generate(config, {
         format: 'd3',
@@ -467,10 +472,13 @@ describe('codeGenerator', () => {
         territories: [
           {
             ...territory,
+            projection: {
+              ...territory.projection,
+              id: 'azimuthal-equal-area',
+            },
           },
         ],
       }
-      config.territories[0]!.projection.id = 'azimuthal-equal-area'
 
       const code = generator.generate(config, {
         format: 'd3',

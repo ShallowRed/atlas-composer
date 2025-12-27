@@ -1,8 +1,22 @@
+import type { ProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type { GeoProjection } from 'd3-geo'
+
 import type { CompositeProjectionConfig, TerritoryConfig } from '@/types'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
+import type { CanonicalPositioning } from '@/types/positioning'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
+import { buildCompositeProjection, calculateClipExtentFromPixelOffset } from '@atlas-composer/projection-core'
+import {
+  applyCanonicalPositioning,
+  extractCanonicalFromProjection,
+  inferCanonicalFromLegacy,
+  toPositioningFamily,
+} from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionFamily } from '@/core/projections/types'
+import { isConicProjection } from '@/types/d3-geo-extended'
 import { logger } from '@/utils/logger'
 
 const debug = logger.projection.composite
@@ -12,18 +26,19 @@ const debug = logger.projection.composite
  * Allows CompositeProjection to get dynamic parameters without direct store coupling
  */
 export interface ProjectionParameterProvider {
-  getEffectiveParameters: (territoryCode: string) => ProjectionParameters
-  getExportableParameters: (territoryCode: string) => ProjectionParameters
+  getEffectiveParameters: (territoryCode: TerritoryCode) => ProjectionParameters
+  getExportableParameters: (territoryCode: TerritoryCode) => ProjectionParameters
+  setTerritoryParameters?: (territoryCode: TerritoryCode, parameters: Partial<ProjectionParameters>) => void
 }
 
 /**
  * Configuration for a sub-projection within a composite projection
  */
 interface SubProjectionConfig {
-  territoryCode: string
+  territoryCode: TerritoryCode
   territoryName: string
   projection: GeoProjection
-  projectionType: string // Store the projection type/ID for export
+  projectionType: ProjectionId // Store the projection type/ID for export
   baseScale: number // Prevents scale accumulation on rebuild
   scaleMultiplier: number // Current scale multiplier (used to preserve scale when changing projection type)
   translateOffset: [number, number]
@@ -56,25 +71,33 @@ export class CompositeProjection {
 
   /**
    * Get projection parameters for a territory
-   * Uses parameter provider (required - no fallback to config)
+   * Returns parameters in canonical format (focusLongitude/focusLatitude)
+   * Normalizes legacy format from config when needed
    */
-  private getParametersForTerritory(territoryCode: string, configParams: TerritoryConfig): ProjectionParameters {
+  private getParametersForTerritory(territoryCode: TerritoryCode, configParams: TerritoryConfig): ProjectionParameters {
     if (this.parameterProvider) {
       const dynamicParams = this.parameterProvider.getEffectiveParameters(territoryCode)
 
-      // Debug: Log what we got from parameter provider
-      if (!dynamicParams.projectionId) {
-        debug('Territory %s: projectionId MISSING from parameter provider', territoryCode, {
-          hasProvider: !!this.parameterProvider,
-          dynamicParamsKeys: Object.keys(dynamicParams),
-          projectionId: dynamicParams.projectionId,
+      // Get canonical positioning from dynamic params (already normalized by parameter manager)
+      // Fall back to config center if no positioning set
+      let focusLongitude = dynamicParams.focusLongitude
+      let focusLatitude = dynamicParams.focusLatitude
+      const rotateGamma = dynamicParams.rotateGamma ?? 0
+
+      // If no canonical positioning from provider, convert from config's legacy format
+      if (focusLongitude === undefined && focusLatitude === undefined && configParams.center) {
+        const canonical = inferCanonicalFromLegacy({
+          center: configParams.center as [number, number],
         })
+        focusLongitude = canonical.focusLongitude
+        focusLatitude = canonical.focusLatitude
       }
 
-      // Return parameters from provider, using territory center as fallback for center/rotate only
+      // Return parameters in canonical format
       return {
-        center: dynamicParams.center ?? configParams.center,
-        rotate: dynamicParams.rotate,
+        focusLongitude,
+        focusLatitude,
+        rotateGamma,
         parallels: dynamicParams.parallels,
         scale: dynamicParams.scale, // Not used (scaleMultiplier handles scaling)
         clipAngle: dynamicParams.clipAngle,
@@ -85,14 +108,81 @@ export class CompositeProjection {
         projectionId: dynamicParams.projectionId, // CRITICAL: Must include projectionId!
       }
     }
-    // No parameter provider - return minimal defaults using only center from config
+
+    // No parameter provider - convert config's legacy format to canonical
+    if (configParams.center) {
+      const canonical = inferCanonicalFromLegacy({
+        center: configParams.center as [number, number],
+      })
+      return {
+        focusLongitude: canonical.focusLongitude,
+        focusLatitude: canonical.focusLatitude,
+        rotateGamma: 0,
+        parallels: undefined,
+        scale: undefined,
+        clipAngle: undefined,
+        precision: undefined,
+      }
+    }
+
+    return {}
+  }
+
+  /**
+   * Get canonical positioning from parameters
+   *
+   * Extracts the geographic focus point from parameters.
+   * Parameters should already be in canonical format from getParametersForTerritory.
+   */
+  private getCanonicalPositioning(params: ProjectionParameters): CanonicalPositioning {
     return {
-      center: configParams.center,
-      rotate: undefined,
-      parallels: undefined,
-      scale: undefined,
-      clipAngle: undefined,
-      precision: undefined,
+      focusLongitude: params.focusLongitude ?? 0,
+      focusLatitude: params.focusLatitude ?? 0,
+      rotateGamma: params.rotateGamma ?? 0,
+    }
+  }
+
+  /**
+   * Apply positioning parameters to a projection based on its family.
+   *
+   * This method uses the CANONICAL POSITIONING format (focusLongitude/focusLatitude)
+   * and converts to the appropriate D3 method based on projection family:
+   *
+   * - CYLINDRICAL: Uses center() directly
+   * - CONIC/AZIMUTHAL: Uses rotate() with negated coordinates
+   * - OTHER: Uses rotate() as default
+   *
+   * The canonical format eliminates the need for runtime coordinate conversions
+   * and ensures the store always has consistent values regardless of projection family.
+   */
+  private applyPositioningParameters(
+    projection: GeoProjection,
+    projectionType: string,
+    params: ProjectionParameters,
+    _territoryCode?: string,
+  ): void {
+    const projectionDef = projectionRegistry.get(projectionType)
+    const family = toPositioningFamily(projectionDef?.family)
+
+    // Get canonical positioning (projection-agnostic format)
+    const canonical = this.getCanonicalPositioning(params)
+
+    // Apply canonical positioning using the positioning module
+    applyCanonicalPositioning(projection, canonical, family)
+
+    // Apply parallels if supported (conic projections)
+    if (isConicProjection(projection)) {
+      if (params.parallels) {
+        projection.parallels(params.parallels)
+      }
+      else {
+        // Derive parallels from focus latitude if not provided
+        const centerLat = canonical.focusLatitude
+        if (centerLat !== 0) {
+          const parallels: [number, number] = [centerLat - 2, centerLat + 2]
+          projection.parallels(parallels)
+        }
+      }
     }
   }
 
@@ -128,28 +218,20 @@ export class CompositeProjection {
     // Use preset referenceScale if provided, or default to 2700
     const REFERENCE_SCALE = this.referenceScale ?? 2700
 
-    // Get parameters from parameter provider (required - no fallback to config)
-    const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+    // Convert: mainland.code from TerritoryConfig
+    const mainlandParams = this.getParametersForTerritory(mainland.code as TerritoryCode, mainland)
 
     // Mainland projection type must come from parameters/preset
     const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
     const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
       .translate([0, 0])
 
-    // For conic projections, use rotate instead of center (as d3-composite-projections does)
-    // For mercator/other projections, use center
-    if (mainlandProjection.rotate && mainlandParams.rotate) {
-      // Conic projection: use rotate to position
-      mainlandProjection.rotate(mainlandParams.rotate as [number, number] | [number, number, number])
-    }
-    else if (mainlandParams.center) {
-      // Mercator/other: use center to position
-      mainlandProjection.center(mainlandParams.center as [number, number])
-    }
+    // Apply positioning parameters based on projection family
+    this.applyPositioningParameters(mainlandProjection, mainlandProjectionType, mainlandParams, mainland.code)
 
     // Apply parallels if supported and provided
-    if ((mainlandProjection as any).parallels && mainlandParams.parallels) {
-      (mainlandProjection as any).parallels(mainlandParams.parallels)
+    if (isConicProjection(mainlandProjection) && mainlandParams.parallels) {
+      mainlandProjection.parallels(mainlandParams.parallels)
     }
 
     // Determine scale values
@@ -164,10 +246,11 @@ export class CompositeProjection {
     const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
 
     this.addSubProjection({
-      territoryCode: mainland.code,
+      // Convert: mainland.code and mainlandProjectionType from TerritoryConfig
+      territoryCode: mainland.code as TerritoryCode,
       territoryName: mainland.name,
       projection: mainlandProjection,
-      projectionType: mainlandProjectionType,
+      projectionType: mainlandProjectionType as ProjectionId,
       baseScale: mainlandBaseScale,
       scaleMultiplier: mainlandScaleMultiplier,
       translateOffset: mainlandTranslateOffset,
@@ -176,8 +259,8 @@ export class CompositeProjection {
 
     // Overseas territories
     overseasTerritories.forEach((territory) => {
-      // Get parameters from parameter provider (required - no fallback to config)
-      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+      // Convert: territory.code from TerritoryConfig
+      const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode, territory)
 
       // Skip territories without projectionId (not in preset)
       if (!territoryParams.projectionId) {
@@ -190,23 +273,12 @@ export class CompositeProjection {
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
 
-      // Apply center/rotate based on projection type
-      // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
-      const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
-
-      if (isConicProjection && projection.rotate && territoryParams.rotate) {
-        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
-      }
-      else if (territoryParams.center) {
-        projection.center(territoryParams.center as [number, number])
-      }
-      else if (projection.rotate && territoryParams.rotate) {
-        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
-      }
+      // Apply positioning parameters based on projection family
+      this.applyPositioningParameters(projection, projectionType, territoryParams, territory.code)
 
       // Apply parallels if supported
-      if ((projection as any).parallels && territoryParams.parallels) {
-        (projection as any).parallels(territoryParams.parallels)
+      if (isConicProjection(projection) && territoryParams.parallels) {
+        projection.parallels(territoryParams.parallels)
       }
 
       // Determine scale values
@@ -221,10 +293,10 @@ export class CompositeProjection {
       const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
 
       this.addSubProjection({
-        territoryCode: territory.code,
+        territoryCode: territory.code as TerritoryCode,
         territoryName: territory.name,
         projection,
-        projectionType,
+        projectionType: projectionType as ProjectionId,
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         translateOffset: territoryTranslateOffset,
@@ -250,27 +322,19 @@ export class CompositeProjection {
     // Process all mainlands equally - no special treatment for any
     mainlands.forEach((mainland) => {
       // Get parameters from parameter provider (required - no fallback to config)
-      const mainlandParams = this.getParametersForTerritory(mainland.code, mainland)
+      const mainlandParams = this.getParametersForTerritory(mainland.code as TerritoryCode, mainland)
 
       // Projection type must come from parameters/preset
       const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
       const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
         .translate([0, 0])
 
-      // For conic projections, use rotate instead of center (as d3-composite-projections does)
-      // For mercator/other projections, use center
-      if (mainlandProjection.rotate && mainlandParams.rotate) {
-        // Conic projection: use rotate to position
-        mainlandProjection.rotate(mainlandParams.rotate as [number, number] | [number, number, number])
-      }
-      else if (mainlandParams.center) {
-        // Mercator/other: use center to position
-        mainlandProjection.center(mainlandParams.center as [number, number])
-      }
+      // Apply positioning parameters based on projection family
+      this.applyPositioningParameters(mainlandProjection, mainlandProjectionType, mainlandParams, mainland.code)
 
       // Apply parallels if supported and provided
-      if ((mainlandProjection as any).parallels && mainlandParams.parallels) {
-        (mainlandProjection as any).parallels(mainlandParams.parallels)
+      if (isConicProjection(mainlandProjection) && mainlandParams.parallels) {
+        mainlandProjection.parallels(mainlandParams.parallels)
       }
 
       // Determine scale values
@@ -285,10 +349,10 @@ export class CompositeProjection {
       const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
 
       this.addSubProjection({
-        territoryCode: mainland.code,
+        territoryCode: mainland.code as TerritoryCode,
         territoryName: mainland.name,
         projection: mainlandProjection,
-        projectionType: mainlandProjectionType,
+        projectionType: mainlandProjectionType as ProjectionId,
         baseScale: mainlandBaseScale,
         scaleMultiplier: mainlandScaleMultiplier,
         translateOffset: mainlandTranslateOffset,
@@ -299,7 +363,7 @@ export class CompositeProjection {
     // Overseas territories (if any)
     overseasTerritories.forEach((territory) => {
       // Get parameters from parameter provider (required - no fallback to config)
-      const territoryParams = this.getParametersForTerritory(territory.code, territory)
+      const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode, territory)
 
       // Skip territories without projectionId (not in preset)
       if (!territoryParams.projectionId) {
@@ -312,23 +376,12 @@ export class CompositeProjection {
       const projection = this.createProjectionByType(projectionType)
         .translate([0, 0])
 
-      // Apply center/rotate based on projection type
-      // For conic projections, prefer rotate; for cylindrical/azimuthal, prefer center
-      const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
-
-      if (isConicProjection && projection.rotate && territoryParams.rotate) {
-        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
-      }
-      else if (territoryParams.center) {
-        projection.center(territoryParams.center as [number, number])
-      }
-      else if (projection.rotate && territoryParams.rotate) {
-        projection.rotate(territoryParams.rotate as [number, number] | [number, number, number])
-      }
+      // Apply positioning parameters based on projection family
+      this.applyPositioningParameters(projection, projectionType, territoryParams, territory.code)
 
       // Apply parallels if supported
-      if ((projection as any).parallels && territoryParams.parallels) {
-        (projection as any).parallels(territoryParams.parallels)
+      if (isConicProjection(projection) && territoryParams.parallels) {
+        projection.parallels(territoryParams.parallels)
       }
 
       // Determine scale values
@@ -343,10 +396,10 @@ export class CompositeProjection {
       const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
 
       this.addSubProjection({
-        territoryCode: territory.code,
+        territoryCode: territory.code as TerritoryCode,
         territoryName: territory.name,
         projection,
-        projectionType,
+        projectionType: projectionType as ProjectionId,
         baseScale: territoryBaseScale,
         scaleMultiplier: territoryScaleMultiplier,
         translateOffset: territoryTranslateOffset,
@@ -390,11 +443,12 @@ export class CompositeProjection {
 
   /**
    * Update projection type for a specific territory
-   * Preserves center, scale, and translate from the existing projection
+   * Preserves scale and translate from the existing projection
+   * Resets positioning parameters (center/rotate) when switching between projection families
    */
   updateTerritoryProjection(
-    territoryCode: string,
-    projectionType: string,
+    territoryCode: TerritoryCode,
+    projectionType: ProjectionId,
   ) {
     const subProj = this.subProjections.find((sp) => {
       return sp.territoryCode === territoryCode
@@ -403,11 +457,27 @@ export class CompositeProjection {
       return
     }
 
-    // Save current settings
+    // Detect old and new projection families using registry
+    const oldDef = projectionRegistry.get(subProj.projectionType)
+    const newDef = projectionRegistry.get(projectionType)
+    const oldFamily = oldDef?.family || 'OTHER'
+    const newFamily = newDef?.family || 'OTHER'
+    const familyChanged = oldFamily !== newFamily
+
+    // Check if we have custom positioning parameters in the store
+    const exportableParams = this.parameterProvider?.getExportableParameters(territoryCode) || {}
+    const hasCustomPositioning
+      = (exportableParams.center !== undefined && exportableParams.center !== null)
+        || (exportableParams.rotate !== undefined && exportableParams.rotate !== null)
+
+    // Get current scaleMultiplier from store (may have been updated before this call)
+    const storeParams = this.parameterProvider?.getEffectiveParameters(territoryCode)
+    const storeScaleMultiplier = storeParams?.scaleMultiplier ?? subProj.scaleMultiplier
+
+    // Save current settings BEFORE updating subProj
     const currentScale = subProj.projection.scale()
-    const currentCenter = subProj.projection.center ? subProj.projection.center() : null
-    const currentRotate = subProj.projection.rotate ? subProj.projection.rotate() : null
     const currentTranslate = subProj.projection.translate()
+    const oldScaleMultiplier = subProj.scaleMultiplier
 
     // Create new projection using ProjectionFactory
     const factoryProjection = ProjectionFactory.createById(projectionType)
@@ -418,33 +488,82 @@ export class CompositeProjection {
 
     const newProjection = factoryProjection
 
-    // Apply parallels for conic projections if center is available
-    if (currentCenter && (projectionType.includes('conic') || projectionType === 'albers')) {
-      if ('parallels' in newProjection) {
-        (newProjection as any).parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+    // Restore translate (always preserve)
+    newProjection.translate(currentTranslate)
+
+    // ALWAYS sync scaleMultiplier from store - the store may have been updated
+    // (e.g., during reset) before this method is called
+    subProj.scaleMultiplier = storeScaleMultiplier
+
+    // Scale handling: use store value when changing families or when scaleMultiplier changed
+    // Compare store value with OLD multiplier (not the updated one)
+    const scaleMultiplierChanged = Math.abs(storeScaleMultiplier - oldScaleMultiplier) > 0.01
+    if (familyChanged || scaleMultiplierChanged) {
+      // Apply scale from store (baseScale * scaleMultiplier)
+      const newScale = subProj.baseScale * subProj.scaleMultiplier
+      newProjection.scale(newScale)
+    }
+    else {
+      // Preserve scale when staying in same family with same multiplier
+      newProjection.scale(currentScale)
+    }
+
+    if (familyChanged) {
+      // Family changed - reset positioning parameters to prevent CONIC rotation
+      // from affecting CYLINDRICAL center, etc.
+      debug('Family changed from %s to %s for %s - resetting positioning parameters', oldFamily, newFamily, territoryCode)
+
+      // Check if we have custom positioning parameters in the store
+      // If we do, we want to preserve the visual position
+      // If we don't (i.e. using defaults), we should let defaults take over
+
+      if (hasCustomPositioning) {
+        // Extract current position and apply to new projection using canonical format
+        const currentCanonical = extractCanonicalFromProjection(
+          subProj.projection,
+          toPositioningFamily(oldFamily),
+        )
+
+        // Apply canonical positioning to new projection
+        applyCanonicalPositioning(
+          newProjection,
+          currentCanonical,
+          toPositioningFamily(newFamily),
+        )
+
+        // Apply default parallels for conic projections
+        if (newFamily === ProjectionFamily.CONIC && isConicProjection(newProjection)) {
+          newProjection.parallels([currentCanonical.focusLatitude - 2, currentCanonical.focusLatitude + 2])
+        }
+      }
+    }
+    else {
+      // Family unchanged - restore positioning parameters from old projection
+      const currentCenter = subProj.projection.center ? subProj.projection.center() : null
+      const currentRotate = subProj.projection.rotate ? subProj.projection.rotate() : null
+
+      if (currentCenter && newProjection.center) {
+        newProjection.center(currentCenter)
+      }
+      if (currentRotate && newProjection.rotate) {
+        newProjection.rotate(currentRotate)
+      }
+
+      // Apply parallels for conic projections if center is available
+      if (currentCenter && (projectionType.includes('conic') || projectionType === 'albers')) {
+        if (isConicProjection(newProjection)) {
+          newProjection.parallels([currentCenter[1] - 2, currentCenter[1] + 2])
+        }
       }
     }
 
-    // Restore settings
-    newProjection.scale(currentScale)
-    if (currentCenter && newProjection.center) {
-      newProjection.center(currentCenter)
-    }
-    if (currentRotate && newProjection.rotate) {
-      newProjection.rotate(currentRotate)
-    }
-    newProjection.translate(currentTranslate)
-
     // Update the projection
     subProj.projection = newProjection
+    subProj.projectionType = projectionType
 
-    // Recalculate baseScale only if needed
-    // Check if current scale matches baseScale * multiplier (within tolerance)
-    const expectedScale = subProj.baseScale * subProj.scaleMultiplier
-    if (Math.abs(currentScale - expectedScale) > 0.1) {
-      // Scale doesn't match expected value - recalculate baseScale
-      // currentScale = baseScale * multiplier, so we need to extract the base scale
-      subProj.baseScale = currentScale / subProj.scaleMultiplier
+    // If family changed and we didn't preserve custom parameters, apply defaults
+    if (familyChanged && !hasCustomPositioning) {
+      this.updateTerritoryParameters(territoryCode)
     }
 
     this.compositeProjection = null // Force rebuild
@@ -453,7 +572,7 @@ export class CompositeProjection {
   /**
    * Update translation offset for a territory
    */
-  updateTranslationOffset(territoryCode: string, offset: [number, number]) {
+  updateTranslationOffset(territoryCode: TerritoryCode, offset: [number, number]) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
       subProj.translateOffset = offset
@@ -497,7 +616,7 @@ export class CompositeProjection {
   /**
    * Update scale for a territory
    */
-  updateScale(territoryCode: string, scaleMultiplier: number) {
+  updateScale(territoryCode: TerritoryCode, scaleMultiplier: number) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
       // Check if user has manually overridden the scale parameter
@@ -526,12 +645,15 @@ export class CompositeProjection {
 
   /**
    * Update projection parameters for a territory
-   * Uses parameter provider to get updated parameters and applies them to the projection
+   *
+   * Uses canonical positioning format (focusLongitude/focusLatitude) to apply
+   * positioning parameters to the projection. The canonical format is projection-
+   * agnostic and converted to the appropriate D3 method based on projection family.
    */
-  updateTerritoryParameters(territoryCode: string) {
+  updateTerritoryParameters(territoryCode: TerritoryCode) {
     if (!this.parameterProvider) {
       debug('No parameter provider available for territory %s', territoryCode)
-      return // No parameter provider, nothing to update
+      return
     }
 
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
@@ -541,64 +663,50 @@ export class CompositeProjection {
     }
 
     try {
-      // Get updated parameters from parameter provider
       const params = this.parameterProvider.getEffectiveParameters(territoryCode)
       const projection = subProj.projection
 
       if (!projection) {
-        debug('Projection not found for territory %s', territoryCode)
         return
       }
 
-      // Apply center/rotate based on what's available
-      if (projection.rotate && params.rotate) {
-        // Validate rotate parameters
-        const rotate = params.rotate as [number, number] | [number, number, number]
-        if (Array.isArray(rotate) && rotate.length >= 2 && rotate.every(r => typeof r === 'number' && !Number.isNaN(r))) {
-          projection.rotate(rotate)
+      // Get projection family from registry
+      const projectionDef = projectionRegistry.get(subProj.projectionType)
+      const family = toPositioningFamily(projectionDef?.family)
+
+      // Get canonical positioning and apply to projection
+      const canonical = this.getCanonicalPositioning(params)
+      applyCanonicalPositioning(projection, canonical, family)
+
+      // Apply parallels if supported (conic projections)
+      if (isConicProjection(projection)) {
+        if (params.parallels) {
+          const parallels = params.parallels as [number, number]
+          if (Array.isArray(parallels) && parallels.length === 2) {
+            projection.parallels(parallels)
+          }
         }
         else {
-          debug('Invalid rotate parameters for %s: %o', territoryCode, params.rotate)
-        }
-      }
-      else if (params.center) {
-        // Validate center parameters
-        const center = params.center as [number, number]
-        if (Array.isArray(center) && center.length === 2 && center.every(c => typeof c === 'number' && !Number.isNaN(c))) {
-          projection.center(center)
-        }
-        else {
-          debug('Invalid center parameters for %s: %o', territoryCode, params.center)
+          // Derive parallels from focus latitude if not provided
+          if (canonical.focusLatitude !== 0) {
+            const derivedParallels: [number, number] = [canonical.focusLatitude - 2, canonical.focusLatitude + 2]
+            projection.parallels(derivedParallels)
+          }
         }
       }
 
-      // Apply parallels if supported
-      if ((projection as any).parallels && params.parallels) {
-        const parallels = params.parallels as [number, number]
-        if (Array.isArray(parallels) && parallels.length === 2 && parallels.every(p => typeof p === 'number' && !Number.isNaN(p))) {
-          (projection as any).parallels(parallels)
-        }
-        else {
-          debug('Invalid parallels parameters for %s: %o', territoryCode, params.parallels)
-        }
-      }
-
-      // CRITICAL: Update scaleMultiplier from params if provided
+      // Update scaleMultiplier from params if provided
       if (params.scaleMultiplier !== undefined && typeof params.scaleMultiplier === 'number' && !Number.isNaN(params.scaleMultiplier)) {
         subProj.scaleMultiplier = params.scaleMultiplier
       }
 
-      // CRITICAL: Re-apply scale after updating parameters
+      // Re-apply scale after updating parameters
       // Some D3 projections may reset scale when rotate/center/parallels are changed
-      // Calculate scale from baseScale × scaleMultiplier (referenceScale is already in baseScale)
-      // Note: scale parameter is not user-editable - it's computed only
       const correctScale = subProj.baseScale * subProj.scaleMultiplier
       projection.scale(correctScale)
 
-      // Note: translate parameter is applied during build() to combine with territory positioning
-
       // Apply precision if supported
-      if (projection.precision && params.precision !== undefined && typeof params.precision === 'number' && !Number.isNaN(params.precision)) {
+      if (projection.precision && params.precision !== undefined && typeof params.precision === 'number') {
         projection.precision(params.precision)
       }
 
@@ -607,7 +715,6 @@ export class CompositeProjection {
     }
     catch (error) {
       debug('Error updating parameters for territory %s: %o', territoryCode, error)
-      // Don't re-throw, just log the error to prevent UI breakage
     }
   }
 
@@ -651,13 +758,14 @@ export class CompositeProjection {
       if (parameterProvider) {
         const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
         if (params.pixelClipExtent && Array.isArray(params.pixelClipExtent) && params.pixelClipExtent.length === 4) {
-          const [px1, py1, px2, py2] = params.pixelClipExtent
           const territoryCenter = newTranslate // Territory position already calculated above
 
-          const clipExtentScreen: [[number, number], [number, number]] = [
-            [territoryCenter[0] + px1 + epsilon, territoryCenter[1] + py1 + epsilon],
-            [territoryCenter[0] + px2 - epsilon, territoryCenter[1] + py2 - epsilon],
-          ]
+          // Use core utility for clip extent calculation
+          const clipExtentScreen = calculateClipExtentFromPixelOffset(
+            territoryCenter,
+            params.pixelClipExtent as [number, number, number, number],
+          )
+
           subProj.projection.clipExtent(clipExtentScreen)
         }
       }
@@ -667,123 +775,38 @@ export class CompositeProjection {
           const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
 
           // Project the bounds corners to get clip extent in screen coordinates
-          // NOW the projection already includes the offset
           const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
           const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
 
           if (topLeft && bottomRight) {
             // Set clip extent (already in final coordinate space thanks to translate)
-            subProj.projection.clipExtent([
+            const clipExtent: [[number, number], [number, number]] = [
               [topLeft[0], topLeft[1]],
               [bottomRight[0], bottomRight[1]],
-            ])
-          }
-          else {
-            // If projection fails (e.g. due to rotation), don't set clipExtent
-            // This allows the territory to render without clipping
-            debug('Failed to project bounds for %s, skipping clipExtent', subProj.territoryCode)
+            ]
+            subProj.projection.clipExtent(clipExtent)
           }
         }
       }
     })
 
-    // Point capture mechanism (like albersUsa)
-    let capturedPoint: [number, number] | null = null
-    const pointStream = {
-      point: (x: number, y: number) => {
-        capturedPoint = [x, y]
-      },
-      lineStart: () => {},
-      lineEnd: () => {},
-      polygonStart: () => {},
-      polygonEnd: () => {},
-      sphere: () => {},
-    }
-
-    // Create point capture for each sub-projection
-    const subProjPoints = this.subProjections.map(subProj => ({
-      subProj,
-      stream: subProj.projection.stream(pointStream),
+    // Convert sub-projections to SubProjectionEntry format for core builder
+    const entries: SubProjectionEntry[] = this.subProjections.map(subProj => ({
+      id: subProj.territoryCode,
+      name: subProj.territoryName,
+      projection: subProj.projection as unknown as ProjectionLike,
+      bounds: subProj.bounds
+        ? {
+            minLon: subProj.bounds[0][0],
+            minLat: subProj.bounds[0][1],
+            maxLon: subProj.bounds[1][0],
+            maxLat: subProj.bounds[1][1],
+          }
+        : undefined,
     }))
 
-    // Main projection function (like albersUsa)
-    const compositeProjection = (coordinates: [number, number]): [number, number] | null => {
-      const [lon, lat] = coordinates
-
-      capturedPoint = null
-
-      // Try each sub-projection's bounds
-      for (const { subProj, stream } of subProjPoints) {
-        if (subProj.bounds) {
-          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
-
-          if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
-            // Project through stream (offset already applied in projection.translate)
-            stream.point(lon, lat)
-
-            if (capturedPoint) {
-              return capturedPoint
-            }
-          }
-        }
-      }
-
-      // No match found
-      return null
-    }
-
-    // Multiplex stream (like albersUsa) - now with proper clip regions
-    ;(compositeProjection as any).stream = (stream: any) => {
-      const streams = this.subProjections.map(sp => sp.projection.stream(stream))
-      return {
-        point: (x: number, y: number) => {
-          for (const s of streams) s.point(x, y)
-        },
-        sphere: () => {
-          for (const s of streams) {
-            if (s.sphere)
-              s.sphere()
-          }
-        },
-        lineStart: () => {
-          for (const s of streams) s.lineStart()
-        },
-        lineEnd: () => {
-          for (const s of streams) s.lineEnd()
-        },
-        polygonStart: () => {
-          for (const s of streams) s.polygonStart()
-        },
-        polygonEnd: () => {
-          for (const s of streams) s.polygonEnd()
-        },
-      }
-    }
-
-    // Add invert
-    ;(compositeProjection as any).invert = (coordinates: [number, number]) => {
-      if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
-        return null
-      }
-
-      const [x, y] = coordinates
-
-      // Try each sub-projection's invert
-      // No need to manually adjust coordinates - D3 projection.invert() already
-      // handles the translate() that was applied in build()
-      for (const subProj of this.subProjections) {
-        const inverted = subProj.projection.invert?.([x, y])
-        if (inverted && subProj.bounds) {
-          const [lon, lat] = inverted
-          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
-          if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
-            return inverted
-          }
-        }
-      }
-
-      return null
-    }
+    // Use projection-core to build the composite projection
+    const compositeProjection = buildCompositeProjection({ entries })
 
     this.compositeProjection = compositeProjection as any
     return compositeProjection as any
@@ -874,5 +897,94 @@ export class CompositeProjection {
         }
       }),
     }
+  }
+
+  /**
+   * Get effective scales for all territories
+   *
+   * Returns the actual scale value used by each territory's projection.
+   * This is calculated as: baseScale * scaleMultiplier
+   *
+   * Used by GraticuleOverlayService to determine appropriate graticule
+   * density for each territory in composite projections.
+   *
+   * @returns Map of territory code to effective scale value
+   */
+  getEffectiveScales(): Map<string, number> {
+    const scales = new Map<string, number>()
+
+    for (const subProj of this.subProjections) {
+      // Get the current scale from the projection
+      const projectionScale = subProj.projection.scale?.() ?? 1000
+
+      // Alternatively, calculate from stored values
+      const calculatedScale = subProj.baseScale * subProj.scaleMultiplier
+
+      // Use projection scale if available, otherwise calculated
+      const effectiveScale = projectionScale || calculatedScale
+
+      scales.set(subProj.territoryCode, effectiveScale)
+    }
+
+    return scales
+  }
+
+  /**
+   * Get effective scale for a single territory
+   *
+   * @param territoryCode - Territory code to get scale for
+   * @returns Effective scale value or undefined if territory not found
+   */
+  getEffectiveScale(territoryCode: TerritoryCode): number | undefined {
+    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
+    if (!subProj) {
+      return undefined
+    }
+
+    return subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier)
+  }
+
+  /**
+   * Get sub-projection data for a territory
+   * Used for efficient graticule rendering where each territory uses its own projection
+   *
+   * @param territoryCode - Territory code
+   * @returns Sub-projection data or undefined if not found
+   */
+  getSubProjectionData(territoryCode: string): {
+    projection: GeoProjection
+    bounds?: [[number, number], [number, number]]
+    scale: number
+  } | undefined {
+    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
+    if (!subProj) {
+      return undefined
+    }
+
+    return {
+      projection: subProj.projection,
+      bounds: subProj.bounds,
+      scale: subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier),
+    }
+  }
+
+  /**
+   * Get all sub-projection data for graticule rendering
+   * More efficient than using the composite projection for each territory
+   *
+   * @returns Array of sub-projection data
+   */
+  getAllSubProjectionData(): Array<{
+    territoryCode: string
+    projection: GeoProjection
+    bounds?: [[number, number], [number, number]]
+    scale: number
+  }> {
+    return this.subProjections.map(subProj => ({
+      territoryCode: subProj.territoryCode,
+      projection: subProj.projection,
+      bounds: subProj.bounds,
+      scale: subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier),
+    }))
   }
 }

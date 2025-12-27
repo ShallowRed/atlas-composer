@@ -4,6 +4,7 @@
 
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { describe, expect, it } from 'vitest'
+import { createAtlasId } from '@/types/branded'
 import { CompositeImportService } from '../composite-import-service'
 
 describe('compositeImportService', () => {
@@ -167,14 +168,14 @@ describe('compositeImportService', () => {
 
   describe('checkAtlasCompatibility', () => {
     it('should pass when atlas IDs match', () => {
-      const result = CompositeImportService.checkAtlasCompatibility(validConfig, 'france')
+      const result = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('france'))
 
       expect(result.valid).toBe(true)
       expect(result.warnings).toHaveLength(0)
     })
 
     it('should warn when atlas IDs do not match', () => {
-      const result = CompositeImportService.checkAtlasCompatibility(validConfig, 'portugal')
+      const result = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('portugal'))
 
       expect(result.valid).toBe(true) // Still valid, just a warning
       expect(result.warnings.length).toBeGreaterThan(0)

@@ -93,9 +93,9 @@ describe('viewOrchestrationService', () => {
       expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
     })
 
-    it('should show projection params in built-in-composite mode', () => {
+    it('should NOT show projection params in built-in-composite mode (projections are fixed)', () => {
       const state = createViewState({ viewMode: 'built-in-composite' })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
+      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(false)
     })
 
     it('should show projection params in split mode when NOT showing individual selectors', () => {
@@ -288,40 +288,6 @@ describe('viewOrchestrationService', () => {
         hasOverseasTerritories: true,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
-    })
-  })
-
-  describe('isTerritorySelectDisabled', () => {
-    it('should disable territory select when atlas has no territory selector', () => {
-      const state = createViewState({
-        atlasConfig: {
-          ...createViewState().atlasConfig,
-          hasTerritorySelector: false,
-        },
-      })
-      expect(ViewOrchestrationService.isTerritorySelectDisabled(state)).toBe(true)
-    })
-
-    it('should disable territory select in built-in-composite mode', () => {
-      const state = createViewState({
-        viewMode: 'built-in-composite',
-        atlasConfig: {
-          ...createViewState().atlasConfig,
-          hasTerritorySelector: true,
-        },
-      })
-      expect(ViewOrchestrationService.isTerritorySelectDisabled(state)).toBe(true)
-    })
-
-    it('should NOT disable territory select in composite-custom mode with capability', () => {
-      const state = createViewState({
-        viewMode: 'composite-custom',
-        atlasConfig: {
-          ...createViewState().atlasConfig,
-          hasTerritorySelector: true,
-        },
-      })
-      expect(ViewOrchestrationService.isTerritorySelectDisabled(state)).toBe(false)
     })
   })
 

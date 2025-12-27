@@ -7,7 +7,7 @@
  */
 
 import type { AtlasSpecificConfig } from '@/core/atlases/loader'
-import type { AtlasConfig, CompositeProjectionConfig, TerritoryCollection, TerritoryCollections, TerritoryConfig } from '@/types'
+import type { AtlasConfig, AtlasId, CompositeProjectionConfig, TerritoryCode, TerritoryCollection, TerritoryCollections, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
 import {
@@ -22,11 +22,11 @@ import {
 import { getTerritoriesForMode, getTerritoryByCode, getTerritoryNameFromArray } from '@/core/atlases/utils'
 
 export class AtlasService {
-  private atlasId: string
+  private atlasId: AtlasId
   private atlasConfig: AtlasConfig
   private specificConfig: AtlasSpecificConfig
 
-  constructor(atlasId: string) {
+  constructor(atlasId: AtlasId) {
     this.atlasId = atlasId
     this.atlasConfig = getAtlasConfig(atlasId)
     this.specificConfig = getAtlasSpecificConfig(atlasId)
@@ -35,7 +35,7 @@ export class AtlasService {
   /**
    * Get atlas ID
    */
-  getAtlasId(): string {
+  getAtlasId(): AtlasId {
     return this.atlasId
   }
 
@@ -126,7 +126,7 @@ export class AtlasService {
   /**
    * Get territory by code
    */
-  getTerritoryByCode(code: string): TerritoryConfig | undefined {
+  getTerritoryByCode(code: TerritoryCode): TerritoryConfig | undefined {
     const all = this.getAllTerritories()
     return getTerritoryByCode(all, code)
   }
@@ -134,7 +134,7 @@ export class AtlasService {
   /**
    * Get territory name
    */
-  getTerritoryName(code: string): string {
+  getTerritoryName(code: TerritoryCode): string {
     const all = this.getAllTerritories()
     return getTerritoryNameFromArray(all, code)
   }

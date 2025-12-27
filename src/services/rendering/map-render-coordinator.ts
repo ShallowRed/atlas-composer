@@ -1,6 +1,9 @@
-import type * as Plot from '@observablehq/plot'
+import type { GeoProjection } from 'd3-geo'
+import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
+import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
 /**
@@ -19,8 +22,10 @@ export interface Territory {
  * Accepts what the store provides (simplified interface)
  */
 export interface CartographerLike {
-  render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<Plot.Plot>
+  render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<SVGSVGElement>
   customComposite?: any
+  /** The projection used for the last render call */
+  lastProjection?: GeoProjection | null
 }
 
 /**
@@ -79,7 +84,7 @@ export class MapRenderCoordinator {
   static async renderSimpleMap(
     cartographer: CartographerLike,
     config: SimpleMapConfig,
-  ): Promise<Plot.Plot> {
+  ): Promise<SVGSVGElement> {
     const options: SimpleRenderOptions = {
       mode: 'simple',
       geoData: config.geoData,
@@ -104,7 +109,7 @@ export class MapRenderCoordinator {
   static async renderCompositeMap(
     cartographer: CartographerLike,
     config: CompositeMapConfig,
-  ): Promise<Plot.Plot> {
+  ): Promise<SVGSVGElement> {
     // Build custom settings if in custom mode
     let customSettings
     if (config.viewMode === 'composite-custom') {
@@ -178,6 +183,52 @@ export class MapRenderCoordinator {
       isMainland: config.isMainland,
       filteredTerritoryCodes: config.filteredTerritoryCodes,
       mainlandCode: config.mainlandCode,
+    })
+  }
+
+  /**
+   * Apply graticule overlay to a rendered SVG map
+   *
+   * Renders scale-adaptive graticule lines with dash-pattern-based visual hierarchy.
+   * For composite projections, uses territory-specific scales for appropriate density.
+   *
+   * @param svg - SVG element to append overlays to
+   * @param config - Graticule overlay configuration
+   */
+  static applyGraticuleOverlay(
+    svg: SVGSVGElement,
+    config: {
+      showGraticule: boolean
+      width: number
+      height: number
+      projection?: GeoProjection
+      projectionId?: string
+      viewMode?: 'composite-custom' | 'built-in-composite' | 'individual' | 'simple'
+      customComposite?: CompositeProjection | null
+      effectiveScale?: number
+      geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
+      projectionParams?: ProjectionParameters
+      showSphere?: boolean
+      filteredTerritoryCodes?: Set<string>
+    },
+  ): void {
+    if (!config.showGraticule) {
+      return
+    }
+
+    GraticuleOverlayService.applyGraticuleOverlays(svg, {
+      showGraticule: config.showGraticule,
+      width: config.width,
+      height: config.height,
+      projection: config.projection as GeoProjection,
+      projectionId: config.projectionId,
+      viewMode: config.viewMode,
+      customComposite: config.customComposite,
+      effectiveScale: config.effectiveScale,
+      geoData: config.geoData,
+      projectionParams: config.projectionParams,
+      showSphere: config.showSphere,
+      filteredTerritoryCodes: config.filteredTerritoryCodes,
     })
   }
 }

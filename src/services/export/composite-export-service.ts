@@ -10,6 +10,7 @@
 
 import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { CompositeProjectionConfig } from '@/types'
+import type { AtlasId, TerritoryCode } from '@/types/branded'
 import type {
   CodeGenerationOptions,
   CompositePattern,
@@ -136,7 +137,7 @@ export class CompositeExportService {
    */
   static exportToJSON(
     compositeProjection: CompositeProjection,
-    atlasId: string,
+    atlasId: AtlasId,
     atlasName: string,
     compositeConfig: CompositeProjectionConfig,
     parameterProvider?: ProjectionParameterProvider,
@@ -398,7 +399,7 @@ export class CompositeExportService {
    * Determine territory role based on position in composite config
    */
   private static determineTerritoryRole(
-    territoryCode: string,
+    territoryCode: TerritoryCode,
     compositeConfig: CompositeProjectionConfig,
   ): TerritoryRole {
     if (compositeConfig.type === 'single-focus') {
