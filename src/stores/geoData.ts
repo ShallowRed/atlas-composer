@@ -1,19 +1,22 @@
-import { defineStore } from 'pinia'
+import type { TerritoryCode } from '@/types'
 
+import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
 
 import { Cartographer } from '@/services/rendering/cartographer-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.store.geoData
 
 export interface Territory {
   name: string
-  code: string
+  code: TerritoryCode
   area: number
   region: string
   data: GeoJSON.FeatureCollection
@@ -39,7 +42,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
   // Filter overseas/secondary territories based on view mode and territory mode
   // Note: This does NOT include mainland - use mainlandData separately or allActiveTerritories for complete list
   const overseasTerritories = computed(() => {
-    const configStore = useConfigStore()
+    const atlasStore = useAtlasStore()
+    const viewStore = useViewStore()
     const territories = overseasTerritoriesData.value
 
     if (!territories || territories.length === 0) {
@@ -48,29 +52,30 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     // For custom composite mode, filter by active territory codes
     // User can add/remove territories from the active set
-    if (configStore.viewMode === 'composite-custom') {
-      const activeCodes = configStore.activeTerritoryCodes
-      return territories.filter(t => activeCodes.has(t.code))
+    if (viewStore.viewMode === 'composite-custom') {
+      const activeCodes = viewStore.activeTerritoryCodes
+      // Convert: Territory.code from GeoJSON
+      return territories.filter(t => activeCodes.has(t.code as TerritoryCode))
     }
 
     // For built-in composite mode, return all territories from preset (no filtering)
     // Preset is the source of truth for what to render
-    if (configStore.viewMode === 'built-in-composite') {
+    if (viewStore.viewMode === 'built-in-composite') {
       return territories
     }
 
     // For split/unified modes, filter by territory mode if atlas has territory selector
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig || !atlasConfig.hasTerritorySelector) {
       return territories
     }
 
-    const atlasService = configStore.atlasService
+    const atlasService = atlasStore.atlasService
 
     // Use TerritoryFilterService to filter territories based on selected mode
     return TerritoryFilterService.filterTerritories(territories, {
       hasTerritorySelector: atlasConfig.hasTerritorySelector,
-      territoryMode: configStore.territoryMode,
+      territoryMode: viewStore.territoryMode,
       allTerritories: atlasService.getAllTerritories(),
       territoryModes: atlasService.getTerritoryModes() as any,
     })
@@ -81,8 +86,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
    * Useful for operations that need to include both mainland and overseas
    */
   const allActiveTerritories = computed(() => {
-    const configStore = useConfigStore()
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasStore = useAtlasStore()
+    const atlasConfig = atlasStore.currentAtlasConfig
     const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
 
     // Create a mainland territory object if we have mainland data
@@ -105,16 +110,17 @@ export const useGeoDataStore = defineStore('geoData', () => {
     if (isInitialized.value)
       return
 
-    const configStore = useConfigStore()
+    const atlasStore = useAtlasStore()
+    const projectionStore = useProjectionStore()
 
     try {
       isLoading.value = true
       error.value = null
 
-      debug('Initializing for atlas: %s', configStore.selectedAtlas)
+      debug('Initializing for atlas: %s', atlasStore.selectedAtlasId)
 
       // Use provided atlas config or fall back to store
-      const atlasConfig = atlasConfigOverride || configStore.currentAtlasConfig
+      const atlasConfig = atlasConfigOverride || atlasStore.currentAtlasConfig
 
       // Wait for atlas config to be loaded before initializing
       if (!atlasConfig) {
@@ -127,7 +133,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         debug('Using filtered atlas config from InitializationService (territories: %d)', Object.keys(atlasConfigOverride.compositeProjectionConfig || {}).length)
       }
       else {
-        debug('Using atlas config from configStore (territories: %d)', Object.keys(configStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)
+        debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)
       }
 
       // Use the geo data config from the selected region
@@ -140,10 +146,16 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       const parameterProvider = {
         getEffectiveParameters: (territoryCode: string) => {
-          return parameterStore.getEffectiveParameters(territoryCode)
+          // Convert: Parameter provider adapter boundary
+          return parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
         },
         getExportableParameters: (territoryCode: string) => {
-          return parameterStore.getExportableParameters(territoryCode)
+          // Convert: Parameter provider adapter boundary
+          return parameterStore.getExportableParameters(territoryCode as TerritoryCode)
+        },
+        setTerritoryParameters: (territoryCode: string, parameters: Partial<any>) => {
+          // Convert: Parameter provider adapter boundary
+          parameterStore.setTerritoryParameters(territoryCode as TerritoryCode, parameters)
         },
       }
 
@@ -170,10 +182,20 @@ export const useGeoDataStore = defineStore('geoData', () => {
         compositeConfig,
         projectionParams,
         parameterProvider,
-        configStore.referenceScale,
-        configStore.canvasDimensions,
+        projectionStore.referenceScale,
+        projectionStore.canvasDimensions,
       )
       await cartographer.value.init()
+
+      // CRITICAL: Re-read effective parameters after init to catch any
+      // atlas parameters that were set during initialization but after
+      // projectionParams was captured above. This ensures the cartographer
+      // has the latest parameters before first render.
+      const latestParams = parameterStore.globalEffectiveParameters
+      if (latestParams && Object.keys(latestParams).length > 0) {
+        cartographer.value.updateProjectionParams(latestParams)
+        debug('Updated cartographer with latest params after init: %O', latestParams)
+      }
 
       // Store a timestamp ID to track cartographer instances
       const cartographerId = Date.now()
@@ -200,12 +222,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
    * Assumes cartographer is already initialized
    */
   const reloadUnifiedData = async (territoryMode: string) => {
-    const configStore = useConfigStore()
+    const atlasStore = useAtlasStore()
 
     if (!cartographer.value) {
       throw new Error('Cannot reload unified data: Cartographer not initialized')
     }
-    if (!configStore.currentAtlasConfig) {
+    if (!atlasStore.currentAtlasConfig) {
       throw new Error('Cannot reload unified data: Atlas config not loaded')
     }
 
@@ -214,12 +236,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
       error.value = null
 
       const service = cartographer.value.geoData
-      const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig.pattern)
+      const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig.pattern)
       const result = await loader.loadUnifiedData(service, territoryMode, {
-        atlasConfig: configStore.currentAtlasConfig,
-        atlasService: configStore.atlasService,
-        hasTerritorySelector: configStore.currentAtlasConfig.hasTerritorySelector ?? false,
-        isWildcard: configStore.currentAtlasConfig.isWildcard ?? false,
+        atlasConfig: atlasStore.currentAtlasConfig,
+        atlasService: atlasStore.atlasService,
+        hasTerritorySelector: atlasStore.currentAtlasConfig.hasTerritorySelector ?? false,
+        isWildcard: atlasStore.currentAtlasConfig.isWildcard ?? false,
       })
 
       rawUnifiedData.value = result.data
@@ -245,8 +267,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
       await initialize()
     }
 
-    const configStore = useConfigStore()
-    if (!configStore.currentAtlasConfig) {
+    const atlasStore = useAtlasStore()
+    if (!atlasStore.currentAtlasConfig) {
       throw new Error('Atlas config not loaded')
     }
 
@@ -254,7 +276,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      debug('Preloading all data types for atlas: %s', configStore.currentAtlasConfig.id)
+      debug('Preloading all data types for atlas: %s', atlasStore.currentAtlasConfig.id)
 
       // Load both territory and unified data in parallel
       await Promise.all([
@@ -263,7 +285,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
             throw new Error('Cartographer not initialized')
           }
           const service = cartographer.value.geoData
-          const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig!.pattern)
+          const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig!.pattern)
           const result = await loader.loadTerritories(service)
 
           mainlandData.value = result.mainlandData
@@ -276,12 +298,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
             throw new Error('Cartographer not initialized')
           }
           const service = cartographer.value.geoData
-          const loader = TerritoryDataLoader.fromPattern(configStore.currentAtlasConfig!.pattern)
+          const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig!.pattern)
           const result = await loader.loadUnifiedData(service, territoryMode, {
-            atlasConfig: configStore.currentAtlasConfig!,
-            atlasService: configStore.atlasService,
-            hasTerritorySelector: configStore.currentAtlasConfig!.hasTerritorySelector ?? false,
-            isWildcard: configStore.currentAtlasConfig!.isWildcard ?? false,
+            atlasConfig: atlasStore.currentAtlasConfig!,
+            atlasService: atlasStore.atlasService,
+            hasTerritorySelector: atlasStore.currentAtlasConfig!.hasTerritorySelector ?? false,
+            isWildcard: atlasStore.currentAtlasConfig!.isWildcard ?? false,
           })
 
           rawUnifiedData.value = result.data

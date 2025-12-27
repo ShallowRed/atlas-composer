@@ -4,6 +4,7 @@
  */
 
 import type { ComputedRef, Ref } from 'vue'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 
 /**
  * Return type for useLoadingState composable
@@ -26,11 +27,6 @@ export interface LoadingState {
  */
 export interface ProjectionConfig {
   /**
-   * Available composite projection options for current atlas
-   */
-  compositeProjectionOptions: ComputedRef<Array<{ value: string, label: string }>>
-
-  /**
    * Get projection for mainland in individual mode
    */
   getMainlandProjection: () => string | undefined
@@ -38,17 +34,7 @@ export interface ProjectionConfig {
   /**
    * Get projection for a specific territory
    */
-  getTerritoryProjection: (territoryCode: string) => string | undefined
-}
-
-/**
- * Return type for useTerritoryConfig composable
- */
-export interface TerritoryConfig {
-  /**
-   * Whether territories exist for projection configuration
-   */
-  hasTerritoriesForProjectionConfig: ComputedRef<boolean>
+  getTerritoryProjection: (territoryCode: TerritoryCode) => string | undefined
 }
 
 /**
@@ -65,7 +51,7 @@ export interface ViewModeConfig {
  * Territory information for controls
  */
 export interface TerritoryInfo {
-  code: string
+  code: TerritoryCode
   name: string
 }
 
@@ -124,17 +110,17 @@ export interface TerritoryTransforms {
   /**
    * Set translation for a territory
    */
-  setTerritoryTranslation: (territoryCode: string, axis: 'x' | 'y', value: number) => void
+  setTerritoryTranslation: (territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) => void
 
   /**
    * Set scale for a territory
    */
-  setTerritoryScale: (territoryCode: string, value: number) => void
+  setTerritoryScale: (territoryCode: TerritoryCode, value: number) => void
 
   /**
    * Set projection for a territory
    */
-  setTerritoryProjection: (territoryCode: string, projectionId: string) => void
+  setTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
 
   /**
    * Reset transforms to defaults
@@ -219,27 +205,27 @@ export interface ProjectionRecommendations {
   /**
    * Get recommendation badge for a projection
    */
-  getRecommendationBadge: (projectionId: string) => RecommendationBadge | null
+  getRecommendationBadge: (projectionId: ProjectionId) => RecommendationBadge | null
 
   /**
    * Get CSS class for projection based on recommendations
    */
-  getProjectionClass: (projectionId: string) => string
+  getProjectionClass: (projectionId: ProjectionId) => string
 
   /**
    * Check if projection is recommended
    */
-  isRecommended: (projectionId: string) => boolean
+  isRecommended: (projectionId: ProjectionId) => boolean
 
   /**
    * Check if projection is in current group
    */
-  isInGroup: (projectionId: string) => boolean
+  isInGroup: (projectionId: ProjectionId) => boolean
 
   /**
    * Get tooltip for projection
    */
-  getTooltip: (projectionId: string) => string
+  getTooltip: (projectionId: ProjectionId) => string
 }
 
 /**

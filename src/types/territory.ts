@@ -8,6 +8,8 @@
  * derived from JSON configs but enhanced for rendering purposes.
  */
 
+import type { TerritoryCode } from './branded'
+
 /**
  * Geographic coordinates [longitude, latitude]
  */
@@ -41,7 +43,7 @@ export type ConicParallels = [number, number]
  */
 export interface TerritoryConfig {
   /** Unique territory identifier (e.g., 'FR-GP', 'US-HI', 'PT-20') */
-  code: string
+  code: TerritoryCode
 
   /** Full display name (e.g., 'Guadeloupe', 'Hawaii') */
   name: string

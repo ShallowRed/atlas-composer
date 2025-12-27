@@ -4,6 +4,7 @@
 
 import type { Preset } from '@/core/presets'
 import type { AtlasConfig } from '@/types'
+import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -22,28 +23,28 @@ export interface InitializationResult {
  */
 export interface ApplicationState {
   atlas: {
-    id: string
+    id: AtlasId
     config: AtlasConfig
   }
   viewMode: string
   territoryMode: string
   preset: {
-    id: string
+    id: PresetId
     type: string
     data: Preset
   } | null
   projections: {
-    selected: string | null
-    composite?: string | null
+    selected: ProjectionId | null
+    composite?: ProjectionId | null
   }
   parameters: {
     global: ProjectionParameters
-    territories: Record<string, ProjectionParameters>
+    territories: Record<TerritoryCode, ProjectionParameters>
   }
   territories: {
-    projections: Record<string, string>
-    translations: Record<string, { x: number, y: number }>
-    scales: Record<string, number>
+    projections: Record<TerritoryCode, ProjectionId>
+    translations: Record<TerritoryCode, { x: number, y: number }>
+    scales: Record<TerritoryCode, number>
   }
   canvas: {
     referenceScale?: number
@@ -60,7 +61,7 @@ export interface ApplicationState {
  * Options for atlas initialization
  */
 export interface AtlasInitializationOptions {
-  atlasId: string
+  atlasId: AtlasId
   preserveViewMode?: boolean // Try to keep current view mode if supported
 }
 
@@ -68,7 +69,7 @@ export interface AtlasInitializationOptions {
  * Options for preset loading
  */
 export interface PresetLoadOptions {
-  presetId: string
+  presetId: PresetId
   skipValidation?: boolean // For testing only
 }
 

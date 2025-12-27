@@ -12,17 +12,39 @@ import type { ProjectionFamilyType } from '@/core/projections/types'
  * Consolidates all parameter types into a single interface with optional metadata
  */
 export interface ProjectionParameters {
-  /** Geographic center point [longitude, latitude] */
+  // ==========================================================================
+  // CANONICAL POSITIONING (Primary - projection-agnostic)
+  // ==========================================================================
+  // These are the preferred positioning parameters. They represent the geographic
+  // focus point and are converted to center() or rotate() based on projection family.
+
+  /** Longitude of the geographic focus point (-180 to 180) */
+  focusLongitude?: number
+
+  /** Latitude of the geographic focus point (-90 to 90) */
+  focusLatitude?: number
+
+  /** Third rotation axis for 3-axis rotation (-180 to 180) */
+  rotateGamma?: number
+
+  // ==========================================================================
+  // LEGACY POSITIONING (Deprecated - for backward compatibility)
+  // ==========================================================================
+  // These are kept for backward compatibility. New code should use
+  // focusLongitude/focusLatitude. During loading, these are converted to canonical.
+
+  /** @deprecated Use focusLongitude/focusLatitude instead. Geographic center [longitude, latitude] */
   center?: [number, number]
 
-  /** Rotation angles [lambda, phi, gamma] - gamma is optional */
+  /** @deprecated Use focusLongitude/focusLatitude instead. Rotation [lambda, phi, gamma] */
   rotate?: [number, number, number?]
+
+  // ==========================================================================
+  // PROJECTION-SPECIFIC PARAMETERS
+  // ==========================================================================
 
   /** Standard parallels for conic projections [south, north] */
   parallels?: [number, number]
-
-  /** Territory position offset from map center [x, y] in pixels */
-  translateOffset?: [number, number]
 
   /** Clipping angle for azimuthal projections (degrees) */
   clipAngle?: number
@@ -30,18 +52,28 @@ export interface ProjectionParameters {
   /** Precision for adaptive sampling */
   precision?: number
 
-  // Optional metadata fields for extended functionality
-  /** Projection family for parameter validation */
-  family?: ProjectionFamilyType
+  // ==========================================================================
+  // LAYOUT PARAMETERS
+  // ==========================================================================
 
-  /** Projection ID from registry */
-  projectionId?: string
+  /** Territory position offset from map center [x, y] in pixels */
+  translateOffset?: [number, number]
 
   /** User's scale multiplier applied to atlas referenceScale */
   scaleMultiplier?: number
 
   /** Pixel-based clipExtent override relative to translateOffset [x1, y1, x2, y2] */
   pixelClipExtent?: [number, number, number, number]
+
+  // ==========================================================================
+  // METADATA
+  // ==========================================================================
+
+  /** Projection family for parameter validation */
+  family?: ProjectionFamilyType
+
+  /** Projection ID from registry */
+  projectionId?: string
 
   // Index signature to allow dynamic property access (for parameter management)
   [key: string]: any

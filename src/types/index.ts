@@ -22,6 +22,26 @@ export type {
   TerritoryModeOption,
 } from '@/types/atlas'
 
+// Branded types for domain identifiers
+export type {
+  AtlasId,
+  PresetId,
+  ProjectionId,
+  TerritoryCode,
+} from '@/types/branded'
+
+export {
+  createAtlasId,
+  createPresetId,
+  createProjectionId,
+  createTerritoryCode,
+  isAtlasId,
+  isPresetId,
+  isProjectionId,
+  isTerritoryCode,
+  unwrapBrand,
+} from '@/types/branded'
+
 // Composable return types
 export type {
   AtlasData,
@@ -30,7 +50,6 @@ export type {
   ProjectionRecommendations,
   RecommendationBadge,
   ScaleRange,
-  TerritoryConfig as TerritoryConfigComposable,
   TerritoryInfo,
   TerritoryTransforms,
   TranslationRange,
@@ -62,11 +81,21 @@ export type {
   GeoDataConfig,
 } from '@/types/geo-data'
 
-// Projection configuration types
+// Positioning types (canonical format)
 export type {
-  ProjectionConfigWithFamily,
-  ProjectionConfig as StandardProjectionConfig,
-} from '@/types/projection-config'
+  CanonicalPositioning,
+  D3Center,
+  D3Rotate,
+  PositioningApplication,
+  PositioningFamily,
+} from '@/types/positioning'
+
+export {
+  DEFAULT_CANONICAL_POSITIONING,
+  isCanonicalPositioning,
+  isD3Center,
+  isD3Rotate,
+} from '@/types/positioning'
 
 // Territory types
 export type {
