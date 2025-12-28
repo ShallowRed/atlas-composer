@@ -1,4 +1,5 @@
 import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
+import type { TerritoryCode } from '@/types'
 import { useParameterStore } from '@/stores/parameters'
 
 /**
@@ -39,14 +40,14 @@ export function useParameterProvider() {
     /**
      * Get effective parameters for a territory (with inheritance)
      */
-    getEffectiveParameters: (territoryCode: string) => {
+    getEffectiveParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getEffectiveParameters(territoryCode)
     },
 
     /**
      * Get exportable parameters for a territory (only overrides)
      */
-    getExportableParameters: (territoryCode: string) => {
+    getExportableParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getExportableParameters(territoryCode)
     },
   }

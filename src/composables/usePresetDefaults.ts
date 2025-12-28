@@ -1,4 +1,5 @@
 import type { TerritoryDefaults } from '@/core/presets'
+import type { TerritoryCode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { ref, toRaw } from 'vue'
@@ -93,11 +94,13 @@ export function usePresetDefaults() {
       return null
     }
 
+    // Convert: function receives string but Records are keyed by TerritoryCode
+    const code = territoryCode as TerritoryCode
     return {
-      projection: presetDefaults.value.projections[territoryCode],
-      translation: presetDefaults.value.translations[territoryCode],
-      scale: presetDefaults.value.scales[territoryCode],
-      parameters: presetParameters.value[territoryCode],
+      projection: presetDefaults.value.projections[code],
+      translation: presetDefaults.value.translations[code],
+      scale: presetDefaults.value.scales[code],
+      parameters: presetParameters.value[code],
     }
   }
 
@@ -123,8 +126,9 @@ export function usePresetDefaults() {
 
     // Check projections
     if (currentProjections) {
+      // Convert: Object.entries returns [string, ...] but Record uses TerritoryCode keys
       for (const [territoryCode, currentProjection] of Object.entries(currentProjections)) {
-        const presetProjection = presetDefaults.value.projections[territoryCode]
+        const presetProjection = presetDefaults.value.projections[territoryCode as TerritoryCode]
         if (presetProjection && currentProjection !== presetProjection) {
           return true
         }
@@ -133,7 +137,7 @@ export function usePresetDefaults() {
 
     // Check translations
     for (const [territoryCode, currentTranslation] of Object.entries(currentTranslations)) {
-      const presetTranslation = presetDefaults.value.translations[territoryCode]
+      const presetTranslation = presetDefaults.value.translations[territoryCode as TerritoryCode]
       if (presetTranslation) {
         if (
           currentTranslation.x !== presetTranslation.x
@@ -146,7 +150,7 @@ export function usePresetDefaults() {
 
     // Check scales
     for (const [territoryCode, currentScale] of Object.entries(currentScales)) {
-      const presetScale = presetDefaults.value.scales[territoryCode]
+      const presetScale = presetDefaults.value.scales[territoryCode as TerritoryCode]
       if (presetScale && currentScale !== presetScale) {
         return true
       }
@@ -154,7 +158,7 @@ export function usePresetDefaults() {
 
     // Check territory parameters - compare actual values with deep comparison for arrays
     for (const [territoryCode, currentParams] of Object.entries(territoryParameters)) {
-      const presetParams = presetParameters.value[territoryCode]
+      const presetParams = presetParameters.value[territoryCode as TerritoryCode]
       if (presetParams) {
         // Get union of all parameter keys from both current and preset
         const allParamKeys = new Set([

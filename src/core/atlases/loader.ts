@@ -11,6 +11,7 @@ import type {
   TerritoryCollections,
   TerritoryConfig,
 } from '@/types'
+import type { TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
@@ -109,7 +110,7 @@ export type { CompositeProjectionDefaults } from '@/types'
  */
 function transformTerritory(territory: JSONTerritoryConfig, locale: string): TerritoryConfig {
   return {
-    code: territory.code,
+    code: territory.code as TerritoryCode,
     name: resolveI18nValue(territory.name, locale),
     ...(territory.shortName && { shortName: resolveI18nValue(territory.shortName, locale) }),
     ...(territory.region && { region: resolveI18nValue(territory.region, locale) }),
@@ -127,7 +128,7 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
   if (config.territories === '*') {
     // Create placeholder territory for wildcard atlases
     const placeholderTerritory: TerritoryConfig = {
-      code: 'WORLD',
+      code: 'WORLD' as TerritoryCode,
       name: 'World',
       center: [0, 0],
       bounds: [[-180, -90], [180, 90]],

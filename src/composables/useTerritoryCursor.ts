@@ -1,17 +1,20 @@
+import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useViewStore } from '@/stores/view'
 
 /**
  * Manages territory cursor interaction for drag-to-move functionality
  * Active in composite-custom mode for all territories
  */
 export function useTerritoryCursor() {
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
   const geoDataStore = useGeoDataStore()
+  const viewStore = useViewStore()
 
   // Drag state
   const isDragging = ref(false)
@@ -33,7 +36,7 @@ export function useTerritoryCursor() {
    * Only enabled in composite-custom mode
    */
   const isDragEnabled = computed(() => {
-    return configStore.viewMode === 'composite-custom'
+    return viewStore.viewMode === 'composite-custom'
   })
 
   /**
@@ -144,7 +147,7 @@ export function useTerritoryCursor() {
       return false
 
     // Get mainland code from atlas config
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
 
     // Allow dragging mainland
@@ -154,7 +157,7 @@ export function useTerritoryCursor() {
 
     // Only allow dragging territories that are currently active (overseas or mainland)
     const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
-    if (!activeTerritoryCodes.has(territoryCode)) {
+    if (!activeTerritoryCodes.has(territoryCode as TerritoryCode)) {
       return false
     }
 
@@ -222,7 +225,8 @@ export function useTerritoryCursor() {
     dragStartY.value = event.clientY
 
     // Get current territory offset from parameter store
-    const params = parameterStore.getEffectiveParameters(territoryCode)
+    // Convert: territoryCode parameter is string
+    const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
     const currentTranslateOffset = params.translateOffset || [0, 0]
     dragStartOffsetX.value = currentTranslateOffset[0]
     dragStartOffsetY.value = currentTranslateOffset[1]
@@ -276,7 +280,8 @@ export function useTerritoryCursor() {
     const newOffsetY = dragStartOffsetY.value + snappedDy
 
     // Update parameter store with new position (this will update both sliders and rendering)
-    parameterStore.setTerritoryParameter(dragTerritoryCode.value, 'translateOffset', [newOffsetX, newOffsetY])
+    // Convert: dragTerritoryCode is string ref
+    parameterStore.setTerritoryParameter(dragTerritoryCode.value as TerritoryCode, 'translateOffset', [newOffsetX, newOffsetY])
   }
 
   /**

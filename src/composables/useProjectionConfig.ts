@@ -1,58 +1,32 @@
-import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { getDefaultPreset } from '@/core/atlases/registry'
-import { projectionRegistry } from '@/core/projections/registry'
-import { ProjectionFamily } from '@/core/projections/types'
-import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
-import { useConfigStore } from '@/stores/config'
+import type { TerritoryCode } from '@/types/branded'
+import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 /**
- * Manages projection configuration and provides projection helper functions
+ * Provides view-mode-aware projection resolution for territories.
+ * Handles the logic of when to use per-territory projections vs uniform projection.
  */
 export function useProjectionConfig() {
-  const { t } = useI18n()
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
-
-  // Reactive state for composite projections
-  const availableCompositeProjections = ref<string[]>([])
-
-  // Load composite projections when atlas changes
-  watch(() => configStore.selectedAtlas, async (atlasId) => {
-    if (atlasId && configStore.currentAtlasConfig) {
-      // Get default preset from atlas registry
-      const defaultPresetDef = getDefaultPreset(atlasId)
-      const compositeProjections = await AtlasMetadataService.getCompositeProjections(
-        atlasId,
-        defaultPresetDef?.id,
-      )
-      availableCompositeProjections.value = compositeProjections || []
-    }
-  }, { immediate: true })
-
-  /**
-   * Get available composite projections for current atlas
-   */
-  const compositeProjectionOptions = computed(() => {
-    // Get all composite projections from registry and filter by region
-    return projectionRegistry.getAll()
-      .filter(def => def.family === ProjectionFamily.COMPOSITE && availableCompositeProjections.value.includes(def.id))
-      .map(def => ({ value: def.id, label: t(def.name), translated: true }))
-  })
+  const projectionStore = useProjectionStore()
+  const viewStore = useViewStore()
 
   /**
    * Get projection for mainland in split mode
    */
   function getMainlandProjection() {
     // In split mode, use per-territory projections
-    if (configStore.viewMode === 'split') {
-      const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+    if (viewStore.viewMode === 'split') {
+      const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
       if (mainlandCode) {
-        return parameterStore.getTerritoryProjection(mainlandCode) || configStore.selectedProjection
+        // Convert: mainlandCode from config is string
+        return parameterStore.getTerritoryProjection(mainlandCode as TerritoryCode) || projectionStore.selectedProjection
       }
     }
-    return configStore.selectedProjection
+    return projectionStore.selectedProjection
   }
 
   /**
@@ -60,16 +34,15 @@ export function useProjectionConfig() {
    */
   function getTerritoryProjection(territoryCode: string) {
     // In split or composite-custom mode, use per-territory projections
-    if (configStore.viewMode === 'split' || configStore.viewMode === 'composite-custom') {
-      // Use territory-specific projection if defined, otherwise use default
-      return parameterStore.getTerritoryProjection(territoryCode) || configStore.selectedProjection
+    if (viewStore.viewMode === 'split' || viewStore.viewMode === 'composite-custom') {
+      // Convert: territoryCode parameter is string from various sources
+      return parameterStore.getTerritoryProjection(territoryCode as TerritoryCode) || projectionStore.selectedProjection
     }
     // Use uniform projection for unified and built-in-composite modes
-    return configStore.selectedProjection
+    return projectionStore.selectedProjection
   }
 
   return {
-    compositeProjectionOptions,
     getMainlandProjection,
     getTerritoryProjection,
   }

@@ -5,6 +5,7 @@
 
 import type { MaybeRefOrGetter } from 'vue'
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
+import type { AtlasId } from '@/types'
 import { useAsyncState } from '@vueuse/core'
 import { computed, toValue, watch } from 'vue'
 import { loadAtlasAsync } from '@/core/atlases/registry'
@@ -69,8 +70,8 @@ export function useAtlasLoader(
   } = useAsyncState(
     async () => {
       const id = toValue(atlasId)
-      // loadAtlasAsync now handles all cache/network logging
-      return await loadAtlasAsync(id)
+      // Convert: id from ref/getter might be string, loadAtlasAsync expects AtlasId
+      return await loadAtlasAsync(id as AtlasId)
     },
     null,
     {

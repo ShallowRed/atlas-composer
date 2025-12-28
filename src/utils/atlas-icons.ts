@@ -3,6 +3,8 @@
  * Maps atlas IDs to visual indicators (flags/icons)
  */
 
+import type { AtlasId } from '@/types/branded'
+
 export interface AtlasIconConfig {
   icon: string // Remix icon class or flag emoji
   flag?: string // Country flag emoji
@@ -28,13 +30,13 @@ const ATLAS_ICONS: Record<string, AtlasIconConfig> = {
 /**
  * Get icon configuration for an atlas
  */
-export function getAtlasIcon(atlasId: string): AtlasIconConfig {
+export function getAtlasIcon(atlasId: AtlasId): AtlasIconConfig {
   return ATLAS_ICONS[atlasId] || { icon: 'ri-map-2-line' }
 }
 
 /**
  * Get flag emoji for an atlas (for display in dropdown options)
  */
-export function getAtlasFlag(atlasId: string): string | undefined {
+export function getAtlasFlag(atlasId: AtlasId): string | undefined {
   return ATLAS_ICONS[atlasId]?.flag
 }

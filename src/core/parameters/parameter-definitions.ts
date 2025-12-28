@@ -11,18 +11,84 @@ import { parameterRegistry } from '@/core/parameters/parameter-registry'
  * Register all projection parameters with the parameter registry
  */
 export function registerAllParameters(): void {
-  // Core positioning parameters
+  // ==========================================================================
+  // CANONICAL POSITIONING PARAMETERS (New unified format)
+  // ==========================================================================
+  // These are the PRIMARY positioning parameters. They represent the geographic
+  // focus point in a projection-agnostic way. At render time, they are converted
+  // to the appropriate D3 method (center or rotate) based on projection family.
+
+  parameterRegistry.register({
+    key: 'focusLongitude',
+    displayName: 'Focus Longitude',
+    description: 'Longitude of the geographic focus point. Converted to center() or rotate() based on projection family.',
+    type: 'number',
+    unit: 'degrees',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: false, // Derived from legacy center/rotate during loading
+    familyConstraints: {
+      CYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
+      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
+      CONIC: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
+      AZIMUTHAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
+    },
+  })
+
+  parameterRegistry.register({
+    key: 'focusLatitude',
+    displayName: 'Focus Latitude',
+    description: 'Latitude of the geographic focus point. Converted to center() or rotate() based on projection family.',
+    type: 'number',
+    unit: 'degrees',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: false, // Derived from legacy center/rotate during loading
+    familyConstraints: {
+      CYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
+      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
+      CONIC: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
+      AZIMUTHAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
+    },
+  })
+
+  parameterRegistry.register({
+    key: 'rotateGamma',
+    displayName: 'Rotation Gamma',
+    description: 'Third rotation axis (roll/tilt). Only used by projections that support 3-axis rotation.',
+    type: 'number',
+    unit: 'degrees',
+    source: 'preset',
+    mutable: true,
+    exportable: true,
+    requiresPreset: false,
+    familyConstraints: {
+      CYLINDRICAL: { relevant: false, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
+      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
+      CONIC: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
+      AZIMUTHAL: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
+    },
+  })
+
+  // ==========================================================================
+  // LEGACY POSITIONING PARAMETERS (Deprecated - for backward compatibility)
+  // ==========================================================================
+  // These parameters are kept for backward compatibility with existing presets.
+  // New code should use focusLongitude/focusLatitude instead.
+  // During preset loading, center/rotate are converted to canonical format.
 
   parameterRegistry.register({
     key: 'center',
-    displayName: 'Center',
-    description: 'Geographic center point [longitude, latitude] - used by cylindrical and azimuthal projections',
+    displayName: 'Center (Legacy)',
+    description: '[DEPRECATED] Geographic center point [longitude, latitude]. Use focusLongitude/focusLatitude instead.',
     type: 'tuple2',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true, // Core positioning parameter
+    requiresPreset: true,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true,
@@ -32,12 +98,12 @@ export function registerAllParameters(): void {
         defaultValue: [0, 0],
       },
       PSEUDOCYLINDRICAL: {
-        relevant: false, // Uses rotation instead
+        relevant: false,
         required: false,
         defaultValue: [0, 0],
       },
       CONIC: {
-        relevant: false, // Conic projections use rotate, not center
+        relevant: false,
         required: false,
         defaultValue: [0, 0],
       },
@@ -53,17 +119,17 @@ export function registerAllParameters(): void {
 
   parameterRegistry.register({
     key: 'rotate',
-    displayName: 'Rotation',
-    description: 'Three-axis rotation [lambda, phi, gamma] - used by conic projections',
+    displayName: 'Rotation (Legacy)',
+    description: '[DEPRECATED] Three-axis rotation [lambda, phi, gamma]. Use focusLongitude/focusLatitude instead.',
     type: 'tuple3',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: true, // Core positioning parameter
+    requiresPreset: true,
     familyConstraints: {
       CYLINDRICAL: {
-        relevant: false, // Cylindrical projections use center, not rotate
+        relevant: false,
         required: false,
         defaultValue: [0, 0, 0],
         validate: (value) => {
@@ -88,7 +154,7 @@ export function registerAllParameters(): void {
         defaultValue: [0, 0, 0],
       },
       CONIC: {
-        relevant: true, // Conic projections use rotate
+        relevant: true,
         required: false,
         min: [-180, -90, -180],
         max: [180, 90, 180],

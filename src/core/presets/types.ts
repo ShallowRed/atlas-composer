@@ -5,6 +5,7 @@
  * Unified types for all preset configurations (composite-custom, unified, split, built-in-composite).
  */
 
+import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -33,9 +34,9 @@ export interface LoadResult<T> {
  * Used to initialize store state with preset values
  */
 export interface TerritoryDefaults {
-  projections: Record<string, string>
-  translations: Record<string, { x: number, y: number }>
-  scales: Record<string, number>
+  projections: Record<TerritoryCode, ProjectionId>
+  translations: Record<TerritoryCode, { x: number, y: number }>
+  scales: Record<TerritoryCode, number>
 }
 
 /**
@@ -78,7 +79,7 @@ export interface BasePresetMetadata {
   /** Optional description */
   description?: string
   /** Target atlas ID */
-  atlasId: string
+  atlasId: AtlasId
 }
 
 // ============================================================================

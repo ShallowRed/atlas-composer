@@ -1,6 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useConfigStore } from '@/stores/config'
+import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { createProjectionId } from '@/types/branded'
 import { useProjectionPanning } from '../useProjectionPanning'
 
 function withSetup<T>(composable: () => T): T {
@@ -22,8 +24,8 @@ describe('useProjectionPanning', () => {
 
   describe('panning capability detection', () => {
     it('returns supportsPanning true for projections with rotateLongitude', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { supportsPanning } = withSetup(() => useProjectionPanning())
 
@@ -31,8 +33,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns supportsPanning false when no projection selected', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = ''
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('')
 
       const { supportsPanning } = withSetup(() => useProjectionPanning())
 
@@ -40,8 +42,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns supportsPanning false for unknown projection', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'unknown-projection'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('unknown-projection')
 
       const { supportsPanning } = withSetup(() => useProjectionPanning())
 
@@ -49,8 +51,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('respects projection override parameter', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'mercator'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('mercator')
 
       const { supportsPanning } = withSetup(() => useProjectionPanning('orthographic'))
 
@@ -58,9 +60,9 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns supportsLatitudePanning true when projection has rotateLatitude and not locked', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      configStore.rotateLatitudeLocked = false
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = false
 
       const { supportsLatitudePanning } = withSetup(() => useProjectionPanning())
 
@@ -68,9 +70,9 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns supportsLatitudePanning false when rotateLatitudeLocked is true', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      configStore.rotateLatitudeLocked = true
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = true
 
       const { supportsLatitudePanning } = withSetup(() => useProjectionPanning())
 
@@ -80,8 +82,8 @@ describe('useProjectionPanning', () => {
 
   describe('cursor style', () => {
     it('returns "grab" when panning available and not active', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { cursorStyle } = withSetup(() => useProjectionPanning())
 
@@ -89,8 +91,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns "default" when panning not supported', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = ''
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('')
 
       const { cursorStyle } = withSetup(() => useProjectionPanning())
 
@@ -98,8 +100,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('returns "grabbing" when panning active', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { cursorStyle, handleMouseDown } = withSetup(() => useProjectionPanning())
 
@@ -112,8 +114,8 @@ describe('useProjectionPanning', () => {
 
   describe('mouse event handling', () => {
     it('handleMouseDown starts panning and returns true when supported', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { handleMouseDown, isPanning } = withSetup(() => useProjectionPanning())
 
@@ -125,8 +127,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('handleMouseDown returns false when panning not supported', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = ''
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('')
 
       const { handleMouseDown, isPanning } = withSetup(() => useProjectionPanning())
 
@@ -138,8 +140,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('adds global event listeners on mousedown', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
       const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
@@ -154,8 +156,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('removes global event listeners on mouseup', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
 
       const { handleMouseDown, isPanning } = withSetup(() => useProjectionPanning())
@@ -175,10 +177,11 @@ describe('useProjectionPanning', () => {
   })
 
   describe('rotation calculations', () => {
-    it('updates rotation via configStore.setCustomRotate on mousemove', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      const setCustomRotateSpy = vi.spyOn(configStore, 'setCustomRotate')
+    it('updates rotation via parameterStore.setGlobalParameter on mousemove', () => {
+      const projectionStore = useProjectionStore()
+      const parameterStore = useParameterStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
 
@@ -188,39 +191,46 @@ describe('useProjectionPanning', () => {
       const moveEvent = new MouseEvent('mousemove', { clientX: 150, clientY: 120 })
       window.dispatchEvent(moveEvent)
 
-      expect(setCustomRotateSpy).toHaveBeenCalled()
+      expect(setGlobalParameterSpy).toHaveBeenCalledWith('focusLongitude', expect.any(Number))
 
-      setCustomRotateSpy.mockRestore()
+      setGlobalParameterSpy.mockRestore()
     })
 
     it('wraps longitude to -180/180 range', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      configStore.setCustomRotate(170, 0)
-      const setCustomRotateSpy = vi.spyOn(configStore, 'setCustomRotate')
+      const projectionStore = useProjectionStore()
+      const parameterStore = useParameterStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      // Set initial focusLongitude to 170
+      parameterStore.setGlobalParameter('focusLongitude', 170)
+      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
 
       const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
       handleMouseDown(downEvent)
 
-      // Move 50 pixels left (should add 25 degrees: 170 + 25 = 195, wraps to -165)
+      // Move 50 pixels left (should subtract 25 degrees: 170 - 25 wraps correctly)
       const moveEvent = new MouseEvent('mousemove', { clientX: 50, clientY: 100 })
       window.dispatchEvent(moveEvent)
 
-      const [longitude] = setCustomRotateSpy.mock.lastCall!
+      // Find the focusLongitude call
+      const lonCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLongitude')
+      expect(lonCall).toBeDefined()
+      const longitude = lonCall![1] as number
       expect(longitude).toBeGreaterThanOrEqual(-180)
       expect(longitude).toBeLessThanOrEqual(180)
 
-      setCustomRotateSpy.mockRestore()
+      setGlobalParameterSpy.mockRestore()
     })
 
     it('clamps latitude to -90/90 range', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      configStore.rotateLatitudeLocked = false
-      configStore.setCustomRotate(0, 80)
-      const setCustomRotateSpy = vi.spyOn(configStore, 'setCustomRotate')
+      const projectionStore = useProjectionStore()
+      const parameterStore = useParameterStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = false
+      // Set initial focusLatitude to 80
+      parameterStore.setGlobalParameter('focusLatitude', 80)
+      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
 
@@ -231,19 +241,23 @@ describe('useProjectionPanning', () => {
       const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 50 })
       window.dispatchEvent(moveEvent)
 
-      const [, latitude] = setCustomRotateSpy.mock.lastCall!
+      // Find the focusLatitude call
+      const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
+      expect(latCall).toBeDefined()
+      const latitude = latCall![1] as number
       expect(latitude).toBeGreaterThanOrEqual(-90)
       expect(latitude).toBeLessThanOrEqual(90)
 
-      setCustomRotateSpy.mockRestore()
+      setGlobalParameterSpy.mockRestore()
     })
 
     it('does not update latitude when rotateLatitudeLocked is true', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
-      configStore.rotateLatitudeLocked = true
-      configStore.setCustomRotate(0, 10)
-      const setCustomRotateSpy = vi.spyOn(configStore, 'setCustomRotate')
+      const projectionStore = useProjectionStore()
+      const parameterStore = useParameterStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = true
+      parameterStore.setGlobalParameter('focusLatitude', 10)
+      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
 
@@ -254,17 +268,18 @@ describe('useProjectionPanning', () => {
       const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 150 })
       window.dispatchEvent(moveEvent)
 
-      const [, latitude] = setCustomRotateSpy.mock.lastCall!
-      expect(latitude).toBe(10) // Unchanged
+      // Check that focusLatitude was NOT called
+      const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
+      expect(latCall).toBeUndefined()
 
-      setCustomRotateSpy.mockRestore()
+      setGlobalParameterSpy.mockRestore()
     })
   })
 
   describe('cleanup', () => {
     it('removes event listeners on cleanup', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
 
       const { handleMouseDown, cleanup } = withSetup(() => useProjectionPanning())
@@ -281,8 +296,8 @@ describe('useProjectionPanning', () => {
     })
 
     it('resets panning state on cleanup', () => {
-      const configStore = useConfigStore()
-      configStore.selectedProjection = 'orthographic'
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { handleMouseDown, cleanup, isPanning } = withSetup(() => useProjectionPanning())
 

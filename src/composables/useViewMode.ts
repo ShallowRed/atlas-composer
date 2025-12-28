@@ -1,24 +1,26 @@
+import type { AtlasId } from '@/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAvailableViewModes } from '@/core/atlases/registry'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 
 /**
  * Manages view mode configuration and provides view mode options
  */
 export function useViewMode() {
   const { t } = useI18n()
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
 
   /**
    * Get available view modes for current atlas
    */
   const viewModeOptions = computed(() => {
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig)
       return []
 
-    const supportedModes = getAvailableViewModes(atlasConfig.id)
+    // Convert: atlasConfig.id from LoadedAtlasConfig
+    const supportedModes = getAvailableViewModes(atlasConfig.id as AtlasId)
 
     // All possible view mode options
     const allOptions = [

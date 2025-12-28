@@ -1,0 +1,294 @@
+/**
+ * CompositeConfiguration Aggregate
+ *
+ * Aggregate root for composite projection configuration.
+ * Manages the collection of territory projections and enforces domain invariants.
+ *
+ * DDD Pattern: Aggregate
+ * - Aggregate root with controlled access to child entities (TerritoryProjectionConfig)
+ * - Enforces invariants across the entire composite configuration
+ * - Provides transactional consistency boundary
+ */
+
+import type { ProjectionFamilyType } from './types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
+
+/**
+ * Domain error for composite configuration violations
+ */
+export class CompositeConfigurationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CompositeConfigurationError'
+  }
+}
+
+/**
+ * Canvas dimensions for composite projection
+ */
+export interface CompositeCanvasDimensions {
+  width: number
+  height: number
+}
+
+/**
+ * Role of a territory in the composite projection
+ */
+export type CompositeTerritoryRole = 'primary' | 'secondary' | 'member'
+
+/**
+ * Territory projection configuration within the composite
+ */
+export interface TerritoryProjectionConfig {
+  /** Territory code (e.g., 'FR-MET', 'FR-GP') */
+  code: string
+  /** Territory display name */
+  name: string
+  /** Role in the composite (primary, secondary, member) */
+  role: CompositeTerritoryRole
+  /** Projection ID (e.g., 'conic-conformal', 'mercator') */
+  projectionId: string
+  /** Projection family */
+  family: ProjectionFamilyType
+  /** Projection parameters */
+  parameters: ProjectionParameters
+  /** Layout: translation offset [x, y] in pixels */
+  translateOffset: [number, number]
+  /** Layout: pixel clip extent [x1, y1, x2, y2] or null */
+  pixelClipExtent: [number, number, number, number] | null
+}
+
+/**
+ * Serializable composite configuration for export/import
+ */
+export interface SerializedCompositeConfig {
+  atlasId: string
+  atlasName: string
+  referenceScale: number
+  canvasDimensions: CompositeCanvasDimensions
+  territories: TerritoryProjectionConfig[]
+}
+
+/**
+ * CompositeConfiguration Aggregate Root
+ *
+ * Manages a complete composite projection configuration including:
+ * - Atlas identity
+ * - Global projection settings (referenceScale, canvasDimensions)
+ * - Territory-specific projection configurations
+ *
+ * Enforces domain invariants:
+ * - At least one territory must exist
+ * - All scale multipliers must be positive
+ * - Territory codes must be unique
+ */
+export class CompositeConfiguration {
+  private territories: Map<string, TerritoryProjectionConfig> = new Map()
+
+  readonly atlasId: string
+  readonly atlasName: string
+  private _referenceScale: number
+  private _canvasDimensions: CompositeCanvasDimensions
+
+  /**
+   * Create a new CompositeConfiguration
+   */
+  constructor(
+    atlasId: string,
+    atlasName: string,
+    referenceScale: number,
+    canvasDimensions: CompositeCanvasDimensions,
+  ) {
+    if (!atlasId || atlasId.trim() === '') {
+      throw new CompositeConfigurationError('Atlas ID is required')
+    }
+    if (referenceScale <= 0) {
+      throw new CompositeConfigurationError('Reference scale must be positive')
+    }
+    if (canvasDimensions.width <= 0 || canvasDimensions.height <= 0) {
+      throw new CompositeConfigurationError('Canvas dimensions must be positive')
+    }
+
+    this.atlasId = atlasId
+    this.atlasName = atlasName
+    this._referenceScale = referenceScale
+    this._canvasDimensions = { ...canvasDimensions }
+  }
+
+  /**
+   * Get the reference scale
+   */
+  get referenceScale(): number {
+    return this._referenceScale
+  }
+
+  /**
+   * Update the reference scale
+   */
+  setReferenceScale(scale: number): void {
+    if (scale <= 0) {
+      throw new CompositeConfigurationError('Reference scale must be positive')
+    }
+    this._referenceScale = scale
+  }
+
+  /**
+   * Get the canvas dimensions
+   */
+  get canvasDimensions(): CompositeCanvasDimensions {
+    return { ...this._canvasDimensions }
+  }
+
+  /**
+   * Update the canvas dimensions
+   */
+  setCanvasDimensions(dimensions: CompositeCanvasDimensions): void {
+    if (dimensions.width <= 0 || dimensions.height <= 0) {
+      throw new CompositeConfigurationError('Canvas dimensions must be positive')
+    }
+    this._canvasDimensions = { ...dimensions }
+  }
+
+  /**
+   * Add a territory projection configuration
+   *
+   * @throws CompositeConfigurationError if validation fails
+   */
+  addTerritory(config: TerritoryProjectionConfig): void {
+    this.validateTerritory(config)
+    this.territories.set(config.code, { ...config })
+  }
+
+  /**
+   * Update an existing territory configuration
+   *
+   * @throws CompositeConfigurationError if territory not found or validation fails
+   */
+  updateTerritory(code: string, updates: Partial<TerritoryProjectionConfig>): void {
+    const existing = this.territories.get(code)
+    if (!existing) {
+      throw new CompositeConfigurationError(`Territory not found: ${code}`)
+    }
+
+    const updated: TerritoryProjectionConfig = {
+      ...existing,
+      ...updates,
+      code, // Prevent code change
+    }
+
+    this.validateTerritory(updated)
+    this.territories.set(code, updated)
+  }
+
+  /**
+   * Remove a territory from the configuration
+   *
+   * @throws CompositeConfigurationError if trying to remove the last territory
+   */
+  removeTerritory(code: string): boolean {
+    if (this.territories.size <= 1 && this.territories.has(code)) {
+      throw new CompositeConfigurationError('Cannot remove the last territory')
+    }
+    return this.territories.delete(code)
+  }
+
+  /**
+   * Get a territory configuration by code
+   */
+  getTerritory(code: string): TerritoryProjectionConfig | undefined {
+    const config = this.territories.get(code)
+    return config ? { ...config } : undefined
+  }
+
+  /**
+   * Get all territory codes
+   */
+  getTerritoryCodes(): string[] {
+    return Array.from(this.territories.keys())
+  }
+
+  /**
+   * Get all territories as an array
+   */
+  getAllTerritories(): TerritoryProjectionConfig[] {
+    return Array.from(this.territories.values()).map(t => ({ ...t }))
+  }
+
+  /**
+   * Get the number of territories
+   */
+  get territoryCount(): number {
+    return this.territories.size
+  }
+
+  /**
+   * Check if a territory exists
+   */
+  hasTerritory(code: string): boolean {
+    return this.territories.has(code)
+  }
+
+  /**
+   * Get primary territories (mainland)
+   */
+  getPrimaryTerritories(): TerritoryProjectionConfig[] {
+    return this.getAllTerritories().filter(t => t.role === 'primary')
+  }
+
+  /**
+   * Get secondary territories (overseas)
+   */
+  getSecondaryTerritories(): TerritoryProjectionConfig[] {
+    return this.getAllTerritories().filter(t => t.role === 'secondary')
+  }
+
+  /**
+   * Serialize the configuration
+   *
+   * The aggregate knows how to serialize itself.
+   */
+  toJSON(): SerializedCompositeConfig {
+    return {
+      atlasId: this.atlasId,
+      atlasName: this.atlasName,
+      referenceScale: this._referenceScale,
+      canvasDimensions: { ...this._canvasDimensions },
+      territories: this.getAllTerritories(),
+    }
+  }
+
+  /**
+   * Create a CompositeConfiguration from serialized data
+   */
+  static fromJSON(data: SerializedCompositeConfig): CompositeConfiguration {
+    const composite = new CompositeConfiguration(
+      data.atlasId,
+      data.atlasName,
+      data.referenceScale,
+      data.canvasDimensions,
+    )
+
+    for (const territory of data.territories) {
+      composite.addTerritory(territory)
+    }
+
+    return composite
+  }
+
+  /**
+   * Validate a territory configuration
+   */
+  private validateTerritory(config: TerritoryProjectionConfig): void {
+    if (!config.code || config.code.trim() === '') {
+      throw new CompositeConfigurationError('Territory code is required')
+    }
+
+    if (!config.projectionId || config.projectionId.trim() === '') {
+      throw new CompositeConfigurationError(`Projection ID is required for territory: ${config.code}`)
+    }
+
+    if (config.parameters.scaleMultiplier !== undefined && config.parameters.scaleMultiplier <= 0) {
+      throw new CompositeConfigurationError(`Scale multiplier must be positive for territory: ${config.code}`)
+    }
+  }
+}

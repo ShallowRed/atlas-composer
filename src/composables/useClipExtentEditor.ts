@@ -1,17 +1,20 @@
+import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
-import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 /**
  * Manages interactive editing of pixelClipExtent via corner dragging
  * Renders visual handles at clip extent corners in composite-custom mode
  */
 export function useClipExtentEditor() {
-  const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
+  const projectionStore = useProjectionStore()
+  const viewStore = useViewStore()
 
   // Selection state - which territory is currently selected for editing
   const selectedTerritoryCode = ref<string | null>(null)
@@ -33,7 +36,7 @@ export function useClipExtentEditor() {
    * Only enabled in composite-custom mode
    */
   const isEditingEnabled = computed(() => {
-    return configStore.viewMode === 'composite-custom'
+    return viewStore.viewMode === 'composite-custom'
   })
 
   /**
@@ -82,7 +85,8 @@ export function useClipExtentEditor() {
     // Process the selected territory if found
     const territoryCode = selectedTerritoryCode.value
     if (territoryCode && selectedTerritory) {
-      const params = parameterStore.getEffectiveParameters(territoryCode)
+      // Convert: selectedTerritoryCode might be string from various sources
+      const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
       const translateOffset = params.translateOffset || [0, 0]
       const pixelClipExtent = params.pixelClipExtent
 
@@ -90,7 +94,7 @@ export function useClipExtentEditor() {
         const [x1, y1, x2, y2] = pixelClipExtent
 
         // Calculate center position of territory
-        const canvasDims = configStore.canvasDimensions || { width: 960, height: 500 }
+        const canvasDims = projectionStore.canvasDimensions || { width: 960, height: 500 }
         const centerX = canvasDims.width / 2
         const centerY = canvasDims.height / 2
         const territoryX = centerX + translateOffset[0]
@@ -157,7 +161,8 @@ export function useClipExtentEditor() {
     dragStartY.value = event.clientY
 
     // Get current clip extent
-    const params = parameterStore.getEffectiveParameters(territoryCode)
+    // Convert: territoryCode from parameter is string
+    const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
     const pixelClipExtent = params.pixelClipExtent || [-100, -100, 100, 100]
     dragStartClipExtent.value = [...pixelClipExtent] as [number, number, number, number]
 
@@ -229,7 +234,8 @@ export function useClipExtentEditor() {
       newY2,
     ]
 
-    parameterStore.setTerritoryParameter(dragCornerTerritoryCode.value, 'pixelClipExtent', newClipExtent)
+    // Convert: dragCornerTerritoryCode is string ref
+    parameterStore.setTerritoryParameter(dragCornerTerritoryCode.value as TerritoryCode, 'pixelClipExtent', newClipExtent)
 
     // Update visual handles
     if (dragSvgElement.value) {

@@ -1,9 +1,10 @@
 import { watch } from 'vue'
 
-import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.composable
@@ -35,13 +36,15 @@ export function useMapWatchers(
   props: MapWatcherProps,
   callbacks: MapWatcherCallbacks,
 ) {
-  const configStore = useConfigStore()
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
+  const projectionStore = useProjectionStore()
   const uiStore = useUIStore()
+  const viewStore = useViewStore()
 
   /**
    * Watch for projection parameter changes and update cartographer
+   * immediate: true ensures params are applied on component mount, not just on changes
    */
   const stopWatchingProjectionParams = watch(
     () => parameterStore.globalEffectiveParameters,
@@ -52,14 +55,14 @@ export function useMapWatchers(
         await callbacks.onProjectionParamsChange()
       }
     },
-    { deep: true },
+    { deep: true, immediate: true },
   )
 
   /**
    * Watch for canvas dimensions changes
    */
   const stopWatchingCanvasDimensions = watch(
-    () => configStore.canvasDimensions,
+    () => projectionStore.canvasDimensions,
     async (newDimensions) => {
       debug('Canvas dimensions changed, calling onCanvasDimensionsChange')
       if (geoDataStore.cartographer) {
@@ -74,12 +77,27 @@ export function useMapWatchers(
    * Watch for reference scale changes
    */
   const stopWatchingReferenceScale = watch(
-    () => configStore.referenceScale,
+    () => projectionStore.referenceScale,
     async (newScale) => {
       debug('Reference scale changed, calling onReferenceScaleChange')
       if (geoDataStore.cartographer && newScale !== undefined) {
         geoDataStore.cartographer.updateReferenceScale(newScale)
         await callbacks.onReferenceScaleChange()
+      }
+    },
+  )
+
+  /**
+   * Watch for auto fit domain changes
+   * This toggles between domain fitting (auto-zoom) and manual scale control
+   */
+  const stopWatchingAutoFitDomain = watch(
+    () => projectionStore.autoFitDomain,
+    async (enabled) => {
+      debug('Auto fit domain changed: %s', enabled)
+      if (geoDataStore.cartographer) {
+        geoDataStore.cartographer.updateAutoFitDomain(enabled)
+        await callbacks.onDependenciesChange()
       }
     },
   )
@@ -103,11 +121,11 @@ export function useMapWatchers(
     () => {
       if (props.mode === 'composite') {
         return {
-          viewMode: configStore.viewMode,
-          compositeProjection: configStore.compositeProjection,
-          selectedProjection: configStore.selectedProjection,
-          territoryMode: configStore.territoryMode,
-          scalePreservation: configStore.scalePreservation,
+          viewMode: viewStore.viewMode,
+          compositeProjection: projectionStore.compositeProjection,
+          selectedProjection: projectionStore.selectedProjection,
+          territoryMode: viewStore.territoryMode,
+          scalePreservation: projectionStore.scalePreservation,
           showGraticule: uiStore.showGraticule,
           showCompositionBorders: uiStore.showCompositionBorders,
           showMapLimits: uiStore.showMapLimits,
@@ -118,7 +136,7 @@ export function useMapWatchers(
       // For simple mode, watch these dependencies
       return {
         projection: props.projection,
-        selectedProjection: configStore.selectedProjection,
+        selectedProjection: projectionStore.selectedProjection,
         preserveScale: props.preserveScale,
         showGraticule: uiStore.showGraticule,
         showCompositionBorders: uiStore.showCompositionBorders,
@@ -139,6 +157,7 @@ export function useMapWatchers(
     stopWatchingProjectionParams()
     stopWatchingCanvasDimensions()
     stopWatchingReferenceScale()
+    stopWatchingAutoFitDomain()
     stopWatchingRenderKey()
     stopWatchingDependencies()
   }

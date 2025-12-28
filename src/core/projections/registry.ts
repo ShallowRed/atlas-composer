@@ -16,6 +16,7 @@ import type {
 } from './types'
 import type { ProjectionPreferences } from '@/core/atlases/loader'
 
+import { getDefaultProjectionPreferences } from '@/core/projections/defaults'
 import { ALL_PROJECTIONS } from '@/core/projections/definitions'
 import { logger } from '@/utils/logger'
 
@@ -61,30 +62,13 @@ class ProjectionRegistry {
 
   /**
    * Get projection preferences for an atlas with fallback defaults
-   * Uses sync fallback logic to maintain compatibility
+   * Uses centralized defaults from projections/defaults.ts
    *
    * @param atlasId - Atlas identifier
    * @returns Projection preferences or fallback defaults
    */
-  private getProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
-    // Provide fallback defaults based on atlas ID
-    // AtlasMetadataService can be used asynchronously to update these later
-    switch (atlasId) {
-      case 'world':
-        return { recommended: ['natural-earth', 'robinson'], prohibited: [] }
-      case 'france':
-        return { recommended: ['conic-conformal-france'], prohibited: [] }
-      case 'spain':
-        return { recommended: ['conic-conformal-spain'], prohibited: [] }
-      case 'portugal':
-        return { recommended: ['conic-conformal-portugal'], prohibited: [] }
-      case 'usa':
-        return { recommended: ['albers-usa', 'albers-usa-composite'], prohibited: [] }
-      case 'europe':
-        return { recommended: ['conic-conformal-europe'], prohibited: [] }
-      default:
-        return { recommended: [`conic-conformal-${atlasId}`], prohibited: [] }
-    }
+  private getProjectionPreferences(atlasId: string): ProjectionPreferences {
+    return getDefaultProjectionPreferences(atlasId)
   }
 
   /**

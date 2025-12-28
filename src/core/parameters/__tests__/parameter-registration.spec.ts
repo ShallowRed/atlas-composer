@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import { createTerritoryCode } from '@/types/branded'
 
 import { parameterRegistry } from '../index'
 
@@ -35,7 +36,8 @@ describe('parameter registration system', () => {
   })
 
   it('should have all translation parameters', () => {
-    expect(parameterRegistry.get('translate')).toBeDefined()
+    // Note: 'translate' is a D3 internal parameter, not registered in our registry
+    // Only translateOffset is registered for preset-based layout positioning
     expect(parameterRegistry.get('translateOffset')).toBeDefined()
   })
 
@@ -77,7 +79,7 @@ describe('parameter registration system', () => {
     // Only scaleMultiplier should be exportable for scale adjustments
     expect(exportableKeys).toContain('scaleMultiplier')
     expect(exportableKeys).toContain('translateOffset')
-    expect(exportableKeys).toContain('translate')
+    // Note: 'translate' is D3 internal, not in our registry
     expect(exportableKeys).toContain('clipAngle')
     expect(exportableKeys).toContain('precision')
 
@@ -90,7 +92,6 @@ describe('parameter registration system', () => {
     expect(requiredKeys).toContain('translateOffset')
 
     // Optional parameters should not be required
-    expect(requiredKeys).not.toContain('translate') // has default
     expect(requiredKeys).not.toContain('clipAngle') // has default
     expect(requiredKeys).not.toContain('precision') // has default
   })
@@ -158,7 +159,7 @@ describe('parameter registration system', () => {
   describe('default value generation', () => {
     it('should provide defaults for optional parameters', () => {
       const mockTerritory = {
-        code: 'TEST',
+        code: createTerritoryCode('TEST'),
         name: 'Test Territory',
         center: [0, 0] as [number, number],
         offset: [0, 0] as [number, number],
@@ -168,7 +169,7 @@ describe('parameter registration system', () => {
       const cylindricalDefaults = parameterRegistry.getDefaults(mockTerritory, 'CYLINDRICAL')
 
       // Should have defaults for optional parameters relevant to CYLINDRICAL
-      expect(cylindricalDefaults.translate).toEqual([0, 0])
+      expect(cylindricalDefaults.translateOffset).toEqual([0, 0])
       expect(cylindricalDefaults.precision).toBe(0.1)
 
       // Test AZIMUTHAL-specific defaults
@@ -185,10 +186,7 @@ describe('parameter registration system', () => {
     expect(parameterRegistry.get('center')?.mutable).toBe(true)
     expect(parameterRegistry.get('rotate')?.mutable).toBe(true)
     expect(parameterRegistry.get('scaleMultiplier')?.mutable).toBe(true)
-    expect(parameterRegistry.get('translate')?.mutable).toBe(true)
-
-    // User-editable parameters
-    expect(parameterRegistry.get('scaleMultiplier')?.mutable).toBe(true)
+    expect(parameterRegistry.get('translateOffset')?.mutable).toBe(true)
   })
 
   it('should have correct parameter sources', () => {

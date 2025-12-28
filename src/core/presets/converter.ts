@@ -6,10 +6,12 @@
  */
 
 import type { TerritoryDefaults } from './types'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { parameterRegistry } from '@/core/parameters'
+import { inferCanonicalFromLegacy } from '@/core/positioning'
 
 /**
  * Convert a preset configuration to territory defaults format
@@ -21,16 +23,16 @@ import { parameterRegistry } from '@/core/parameters'
  * @returns Territory defaults for store initialization
  */
 export function convertToDefaults(preset: ExportedCompositeConfig): TerritoryDefaults {
-  const projections: Record<string, string> = {}
-  const translations: Record<string, { x: number, y: number }> = {}
-  const scales: Record<string, number> = {}
+  const projections: Record<TerritoryCode, ProjectionId> = {} as Record<TerritoryCode, ProjectionId>
+  const translations: Record<TerritoryCode, { x: number, y: number }> = {} as Record<TerritoryCode, { x: number, y: number }>
+  const scales: Record<TerritoryCode, number> = {} as Record<TerritoryCode, number>
 
   // Extract values from each territory in the preset
   preset.territories.forEach((territory) => {
-    const code = territory.code
+    const code = territory.code as TerritoryCode
 
     // Projection ID
-    projections[code] = territory.projection.id
+    projections[code] = territory.projection.id as ProjectionId
 
     // Translation offset
     translations[code] = {
@@ -54,6 +56,10 @@ export function convertToDefaults(preset: ExportedCompositeConfig): TerritoryDef
  *
  * Extracts all parameters known by the parameter registry, including
  * layout properties (translateOffset, pixelClipExtent).
+ *
+ * IMPORTANT: This function converts legacy center/rotate parameters to
+ * canonical focusLongitude/focusLatitude format. This ensures the store
+ * always uses the projection-agnostic canonical format.
  *
  * @param preset - The preset configuration
  * @returns Object mapping territory codes to their projection parameters
@@ -83,6 +89,35 @@ export function extractTerritoryParameters(
         if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
           territoryParams[key as keyof ProjectionParameters] = value as any
         }
+      }
+
+      // =======================================================================
+      // CANONICAL CONVERSION: Convert legacy center/rotate to canonical format
+      // =======================================================================
+      // If the preset has center or rotate but no focusLongitude/focusLatitude,
+      // convert them to canonical format. This ensures the store always uses
+      // the projection-agnostic format.
+      const hasLegacyPositioning = territoryParams.center || territoryParams.rotate
+      const hasCanonicalPositioning = territoryParams.focusLongitude !== undefined
+        || territoryParams.focusLatitude !== undefined
+
+      if (hasLegacyPositioning && !hasCanonicalPositioning) {
+        const canonical = inferCanonicalFromLegacy({
+          center: territoryParams.center as [number, number] | undefined,
+          rotate: territoryParams.rotate as [number, number, number] | undefined,
+        })
+
+        // Set canonical parameters
+        territoryParams.focusLongitude = canonical.focusLongitude
+        territoryParams.focusLatitude = canonical.focusLatitude
+        if (canonical.rotateGamma !== 0) {
+          territoryParams.rotateGamma = canonical.rotateGamma
+        }
+
+        // Clear legacy parameters - we don't need them anymore
+        // The canonical format is now the source of truth
+        delete territoryParams.center
+        delete territoryParams.rotate
       }
     }
 

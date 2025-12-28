@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import type { ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionId } from '@/types/branded'
 
 import { computed, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,11 +24,11 @@ export function useProjectionRecommendations(
     )
   })
 
-  function getRecommendation(projectionId: string): ProjectionRecommendation | undefined {
+  function getRecommendation(projectionId: ProjectionId): ProjectionRecommendation | undefined {
     return recommendationMap.value.get(projectionId)
   }
 
-  function getBadge(projectionId: string): string {
+  function getBadge(projectionId: ProjectionId): string {
     const rec = getRecommendation(projectionId)
     if (!rec)
       return ''
@@ -44,7 +45,7 @@ export function useProjectionRecommendations(
     }
   }
 
-  function getCssClass(projectionId: string): string {
+  function getCssClass(projectionId: ProjectionId): string {
     const rec = getRecommendation(projectionId)
     if (!rec)
       return ''
@@ -61,7 +62,7 @@ export function useProjectionRecommendations(
     }
   }
 
-  function getTooltip(projectionId: string): string {
+  function getTooltip(projectionId: ProjectionId): string {
     const rec = getRecommendation(projectionId)
     if (!rec)
       return ''

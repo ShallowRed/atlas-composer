@@ -4,8 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useViewStore } from '@/stores/view'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 /**
@@ -19,28 +20,29 @@ import { getViewModeIcon } from '@/utils/view-mode-icons'
  */
 export function useViewState() {
   const { t } = useI18n()
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
   const geoDataStore = useGeoDataStore()
+  const viewStore = useViewStore()
 
   // View Mode Flags - Simple boolean wrappers for readability
   const isCompositeMode = computed(() =>
-    configStore.viewMode === 'composite-custom' || configStore.viewMode === 'built-in-composite',
+    viewStore.viewMode === 'composite-custom' || viewStore.viewMode === 'built-in-composite',
   )
 
   const isCompositeCustomMode = computed(() =>
-    configStore.viewMode === 'composite-custom',
+    viewStore.viewMode === 'composite-custom',
   )
 
   const isCompositeExistingMode = computed(() =>
-    configStore.viewMode === 'built-in-composite',
+    viewStore.viewMode === 'built-in-composite',
   )
 
   const isSplitMode = computed(() =>
-    configStore.viewMode === 'split',
+    viewStore.viewMode === 'split',
   )
 
   const isUnifiedMode = computed(() =>
-    configStore.viewMode === 'unified',
+    viewStore.viewMode === 'unified',
   )
 
   // Card UI Helpers
@@ -48,7 +50,7 @@ export function useViewState() {
    * Get card title based on current view mode
    */
   const cardTitle = computed(() => {
-    switch (configStore.viewMode) {
+    switch (viewStore.viewMode) {
       case 'split':
         return t('mode.split')
       case 'built-in-composite':
@@ -66,12 +68,12 @@ export function useViewState() {
    * Get card icon based on current view mode
    */
   const cardIcon = computed(() =>
-    getViewModeIcon(configStore.viewMode),
+    getViewModeIcon(viewStore.viewMode),
   )
 
   // Helper computed properties for ViewState
   const showMainland = computed(() => {
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig)
       return false
     const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
@@ -79,7 +81,7 @@ export function useViewState() {
   })
 
   const mainlandCode = computed(() => {
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     return atlasConfig?.splitModeConfig?.mainlandCode || 'MAINLAND'
   })
 
@@ -93,22 +95,22 @@ export function useViewState() {
    * Aggregates all state needed for orchestration decisions
    */
   const viewState = computed<ViewState | null>(() => {
-    const atlasConfig = configStore.currentAtlasConfig
+    const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig)
       return null
 
-    const atlasId = configStore.selectedAtlas
+    const atlasId = atlasStore.selectedAtlasId
     const presets = getAtlasPresets(atlasId)
     const hasPresets = presets.length > 0
 
     return {
-      viewMode: configStore.viewMode,
+      viewMode: viewStore.viewMode,
       atlasConfig,
       hasPresets,
       hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
       isPresetLoading: false,
-      showProjectionSelector: configStore.showProjectionSelector,
-      showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
+      showProjectionSelector: viewStore.showProjectionSelector,
+      showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
       isMainlandInTerritories: isMainlandInTerritories.value,
       showMainland: showMainland.value,
     }
@@ -167,9 +169,6 @@ export function useViewState() {
     // Control states
     shouldShowTerritorySelector: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowTerritorySelector(viewState.value) : false,
-    ),
-    isTerritorySelectDisabled: computed(() =>
-      viewState.value ? ViewOrchestrationService.isTerritorySelectDisabled(viewState.value) : true,
     ),
     isViewModeDisabled: computed(() =>
       viewState.value ? ViewOrchestrationService.isViewModeDisabled(viewState.value) : true,

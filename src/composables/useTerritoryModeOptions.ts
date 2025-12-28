@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 
 interface TerritoryModeOption {
   value: string
@@ -15,15 +15,15 @@ interface TerritoryModeOption {
  * Labels update automatically when locale changes
  */
 export function useTerritoryModeOptions() {
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
   const { locale } = useI18n()
 
   const options = computed<TerritoryModeOption[]>(() => {
-    const atlasId = configStore.selectedAtlas
+    const atlasId = atlasStore.selectedAtlasId
 
     // Wait for atlas to load before accessing config
     // Check both currentAtlasConfig (from useAtlasLoader) and cache state
-    if (!configStore.currentAtlasConfig || !isAtlasLoaded(atlasId)) {
+    if (!atlasStore.currentAtlasConfig || !isAtlasLoaded(atlasId)) {
       return []
     }
 

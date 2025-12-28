@@ -9,6 +9,7 @@
 import type { JSONAtlasConfig } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
+import type { AtlasId, PresetId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '@/types/registry'
 import atlasRegistryData from '#configs/atlas-registry.json'
@@ -50,7 +51,7 @@ function getConfigBaseUrl(): string {
  * Truly lazy - only loads the specific atlas file when called
  * @public
  */
-export async function loadAtlasAsync(atlasId: string): Promise<LoadedAtlasConfig> {
+export async function loadAtlasAsync(atlasId: AtlasId): Promise<LoadedAtlasConfig> {
   // Check cache first
   if (LOADED_CONFIGS.has(atlasId)) {
     debug('Atlas %s already loaded from cache', atlasId)
@@ -135,7 +136,7 @@ export function getDefaultAtlas(): AtlasRegistryEntry {
 /**
  * Default atlas ID from registry
  */
-export const DEFAULT_ATLAS = getDefaultAtlas().id
+export const DEFAULT_ATLAS = getDefaultAtlas().id as AtlasId
 
 /**
  * Pre-load the default atlas into cache
@@ -399,7 +400,7 @@ export function getDefaultPresetForViewMode(
 /**
  * Get a specific preset by ID for an atlas
  */
-export function getPresetById(atlasId: string, presetId: string) {
+export function getPresetById(atlasId: AtlasId, presetId: PresetId) {
   const presets = getAtlasPresets(atlasId)
   return presets.find(p => p.id === presetId)
 }
@@ -409,7 +410,7 @@ export function getPresetById(atlasId: string, presetId: string) {
  * Derived from unique preset types defined in registry
  * Returns array of view modes that have at least one preset
  */
-export function getAvailableViewModes(atlasId: string): Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'> {
+export function getAvailableViewModes(atlasId: AtlasId): Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'> {
   const presets = getAtlasPresets(atlasId)
   const uniqueTypes = new Set(presets.map(p => p.type))
   return Array.from(uniqueTypes)
@@ -419,7 +420,7 @@ export function getAvailableViewModes(atlasId: string): Array<'split' | 'built-i
  * Get default view mode for an atlas
  * Uses type of default preset if defined, falls back to first preset type, then 'composite-custom'
  */
-export function getDefaultViewMode(atlasId: string): 'split' | 'built-in-composite' | 'composite-custom' | 'unified' {
+export function getDefaultViewMode(atlasId: AtlasId): 'split' | 'built-in-composite' | 'composite-custom' | 'unified' {
   const defaultPreset = getDefaultPreset(atlasId)
   if (defaultPreset) {
     return defaultPreset.type

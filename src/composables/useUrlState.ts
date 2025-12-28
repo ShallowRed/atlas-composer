@@ -1,10 +1,14 @@
+import type { TerritoryCode } from '@/types'
 import { computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
+import { useRoute, useRouter } from 'vue-router'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
+import { createProjectionId } from '@/types/branded'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.composable
@@ -16,8 +20,10 @@ const debug = logger.vue.composable
 export function useUrlState() {
   const route = useRoute()
   const router = useRouter()
-  const configStore = useConfigStore()
+  const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
+  const projectionStore = useProjectionStore()
+  const viewStore = useViewStore()
   const geoDataStore = useGeoDataStore()
 
   /**
@@ -28,38 +34,39 @@ export function useUrlState() {
     debug('Serializing state...')
 
     const state: Record<string, string> = {
-      atlas: configStore.selectedAtlas,
-      view: configStore.viewMode,
-      projection: configStore.selectedProjection ?? 'mercator', // Fallback for URL only
-      territory: configStore.territoryMode,
+      atlas: atlasStore.selectedAtlasId,
+      view: viewStore.viewMode,
+      projection: projectionStore.selectedProjection ?? 'mercator', // Fallback for URL only
+      territory: viewStore.territoryMode,
     }
 
     // Add projection parameters if customized
 
-    if (configStore.customRotateLongitude !== null)
-      state.rlon = String(configStore.customRotateLongitude)
-    if (configStore.customRotateLatitude !== null)
-      state.rlat = String(configStore.customRotateLatitude)
-    if (configStore.customCenterLongitude !== null)
-      state.clon = String(configStore.customCenterLongitude)
-    if (configStore.customCenterLatitude !== null)
-      state.clat = String(configStore.customCenterLatitude)
-    if (configStore.customParallel1 !== null)
-      state.p1 = String(configStore.customParallel1)
-    if (configStore.customParallel2 !== null)
-      state.p2 = String(configStore.customParallel2)
+    if (projectionStore.customRotateLongitude !== null)
+      state.rlon = String(projectionStore.customRotateLongitude)
+    if (projectionStore.customRotateLatitude !== null)
+      state.rlat = String(projectionStore.customRotateLatitude)
+    if (projectionStore.customCenterLongitude !== null)
+      state.clon = String(projectionStore.customCenterLongitude)
+    if (projectionStore.customCenterLatitude !== null)
+      state.clat = String(projectionStore.customCenterLatitude)
+    if (projectionStore.customParallel1 !== null)
+      state.p1 = String(projectionStore.customParallel1)
+    if (projectionStore.customParallel2 !== null)
+      state.p2 = String(projectionStore.customParallel2)
 
     // Add composite projection if in composite mode
-    if (configStore.viewMode === 'built-in-composite' && configStore.compositeProjection) {
-      state.composite = configStore.compositeProjection
+    if (viewStore.viewMode === 'built-in-composite' && projectionStore.compositeProjection) {
+      state.composite = projectionStore.compositeProjection
     }
 
     // Get atlas-specific defaults to compare against
-    const atlasService = configStore.atlasService
+    const atlasService = atlasStore.atlasService
     const territories = atlasService.getAllTerritories()
     const defaults = TerritoryDefaultsService.initializeAll(
       territories,
-      configStore.selectedProjection ?? 'mercator', // Fallback for defaults calculation
+      // Convert: Fallback string to ProjectionId for defaults calculation
+      projectionStore.selectedProjection ?? createProjectionId('mercator'),
     )
 
     // Encode territory-specific settings (scale multipliers, translations)
@@ -70,9 +77,11 @@ export function useUrlState() {
 
     // Get scale multipliers from parameter store
     for (const territory of geoDataStore.allActiveTerritories) {
-      const params = parameterStore.getTerritoryParameters(territory.code)
+      // Convert: Territory.code from GeoJSON
+      const code = territory.code as TerritoryCode
+      const params = parameterStore.getTerritoryParameters(code)
       const scale = params.scaleMultiplier ?? 1.0
-      const defaultScale = defaults.scales[territory.code] ?? 1
+      const defaultScale = defaults.scales[code] ?? 1
       if (scale !== defaultScale) {
         territorySettings[`s_${territory.code}`] = scale
         hasSettings = true
@@ -81,8 +90,10 @@ export function useUrlState() {
 
     // Get translations from parameter store
     for (const territory of geoDataStore.allActiveTerritories) {
-      const translation = parameterStore.getTerritoryTranslation(territory.code)
-      const defaultTranslation = defaults.translations[territory.code] ?? { x: 0, y: 0 }
+      // Convert: Territory.code from GeoJSON
+      const code = territory.code as TerritoryCode
+      const translation = parameterStore.getTerritoryTranslation(code)
+      const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
       if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
         territorySettings[`tx_${territory.code}`] = translation.x
         territorySettings[`ty_${territory.code}`] = translation.y
@@ -103,31 +114,31 @@ export function useUrlState() {
   function deserializeState(params: Record<string, any>) {
     // Basic configuration
     if (params.atlas)
-      configStore.selectedAtlas = params.atlas
+      atlasStore.selectedAtlasId = params.atlas
     if (params.view)
-      configStore.viewMode = params.view
+      viewStore.setViewMode(params.view)
     if (params.projection)
-      configStore.selectedProjection = params.projection
+      projectionStore.setSelectedProjection(params.projection)
     if (params.territory)
-      configStore.territoryMode = params.territory
+      viewStore.setTerritoryMode(params.territory)
 
     // Projection parameters
     if (params.rlon !== undefined)
-      configStore.setCustomRotateLongitude(Number(params.rlon))
+      projectionStore.setCustomRotateLongitude(Number(params.rlon))
     if (params.rlat !== undefined)
-      configStore.setCustomRotateLatitude(Number(params.rlat))
+      projectionStore.setCustomRotateLatitude(Number(params.rlat))
     if (params.clon !== undefined)
-      configStore.setCustomCenterLongitude(Number(params.clon))
+      projectionStore.setCustomCenterLongitude(Number(params.clon))
     if (params.clat !== undefined)
-      configStore.setCustomCenterLatitude(Number(params.clat))
+      projectionStore.setCustomCenterLatitude(Number(params.clat))
     if (params.p1 !== undefined)
-      configStore.setCustomParallel1(Number(params.p1))
+      projectionStore.setCustomParallel1(Number(params.p1))
     if (params.p2 !== undefined)
-      configStore.setCustomParallel2(Number(params.p2))
+      projectionStore.setCustomParallel2(Number(params.p2))
 
     // Composite projection
     if (params.composite)
-      configStore.compositeProjection = params.composite
+      projectionStore.setCompositeProjection(params.composite)
 
     // Territory settings
     if (params.t) {
@@ -136,15 +147,18 @@ export function useUrlState() {
         for (const [key, value] of Object.entries(settings)) {
           if (key.startsWith('s_')) {
             const code = key.substring(2)
-            parameterStore.setTerritoryParameter(code, 'scaleMultiplier', Number(value))
+            // Convert: Territory code from URL parameter
+            parameterStore.setTerritoryParameter(code as TerritoryCode, 'scaleMultiplier', Number(value))
           }
           else if (key.startsWith('tx_')) {
             const code = key.substring(3)
-            parameterStore.setTerritoryTranslation(code, 'x', Number(value))
+            // Convert: Territory code from URL parameter
+            parameterStore.setTerritoryTranslation(code as TerritoryCode, 'x', Number(value))
           }
           else if (key.startsWith('ty_')) {
             const code = key.substring(3)
-            parameterStore.setTerritoryTranslation(code, 'y', Number(value))
+            // Convert: Territory code from URL parameter
+            parameterStore.setTerritoryTranslation(code as TerritoryCode, 'y', Number(value))
           }
         }
       }
@@ -206,10 +220,10 @@ export function useUrlState() {
     // Watch for config changes and update URL
     watch(
       () => ({
-        atlas: configStore.selectedAtlas,
-        view: configStore.viewMode,
-        projection: configStore.selectedProjection,
-        territory: configStore.territoryMode,
+        atlas: atlasStore.selectedAtlasId,
+        view: viewStore.viewMode,
+        projection: projectionStore.selectedProjection,
+        territory: viewStore.territoryMode,
       }),
       () => {
         updateUrl()

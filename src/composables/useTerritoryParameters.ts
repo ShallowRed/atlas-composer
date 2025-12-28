@@ -1,4 +1,5 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { computed } from 'vue'
@@ -10,7 +11,7 @@ import { useParameterStore } from '@/stores/parameters'
  * Provides reactive access to territory parameter state and operations
  * for use in territory control components.
  */
-export function useTerritoryParameters(territoryCode: string) {
+export function useTerritoryParameters(territoryCode: TerritoryCode) {
   // Get parameter store
   const parameterStore = useParameterStore()
 

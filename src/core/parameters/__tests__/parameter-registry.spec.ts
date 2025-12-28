@@ -5,6 +5,7 @@
 import type { ParameterDefinition } from '../parameter-registry'
 
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createTerritoryCode } from '@/types/branded'
 
 import { registerAllParameters } from '../parameter-definitions'
 import { parameterRegistry } from '../parameter-registry'
@@ -101,7 +102,7 @@ describe('parameterRegistry', () => {
     it('should return constraints for family', () => {
       const constraints = parameterRegistry.getConstraintsForFamily('scaleMultiplier', 'CYLINDRICAL')
       expect(constraints.relevant).toBe(true)
-      expect(constraints.min).toBe(0.1)
+      expect(constraints.min).toBe(0.01)
       expect(constraints.max).toBe(10)
     })
 
@@ -119,9 +120,9 @@ describe('parameterRegistry', () => {
     })
 
     it('should reject invalid number parameters', () => {
-      const tooLow = parameterRegistry.validate('scaleMultiplier', 0.05, 'CYLINDRICAL')
+      const tooLow = parameterRegistry.validate('scaleMultiplier', 0.005, 'CYLINDRICAL')
       expect(tooLow.isValid).toBe(false)
-      expect(tooLow.error).toContain('must be >= 0.1')
+      expect(tooLow.error).toContain('must be >= 0.01')
 
       const tooHigh = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
       expect(tooHigh.isValid).toBe(false)
@@ -156,7 +157,7 @@ describe('parameterRegistry', () => {
 
     it('should return validation errors for multiple invalid parameters', () => {
       const params = {
-        scaleMultiplier: 0.05, // Too low
+        scaleMultiplier: 0.005, // Too low (below 0.01)
         center: [-200, 100] as [number, number], // Out of range
       }
 
@@ -179,7 +180,7 @@ describe('parameterRegistry', () => {
   describe('default values', () => {
     it('should return default parameters for territory and family', () => {
       const mockTerritory = {
-        code: 'TEST',
+        code: createTerritoryCode('TEST'),
         name: 'Test Territory',
         center: [0, 0] as [number, number],
         referenceScale: 1000,

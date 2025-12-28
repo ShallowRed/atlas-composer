@@ -320,8 +320,6 @@ export class ProjectionFactory {
       case 'conic-conformal-europe':
       case 'europe-composite':
       case 'composite-europe':
-      case 'europe-composite':
-      case 'composite-europe':
         projectionFn = d3CompositeProjEurope.default
         break
 
@@ -437,6 +435,11 @@ export class ProjectionFactory {
     // Apply scale
     if (params.scale) {
       projection.scale(params.scale)
+    }
+
+    // Apply translate (pixel offset for projection center)
+    if (params.translate) {
+      projection.translate(params.translate)
     }
 
     // Apply clip angle (for azimuthal projections)

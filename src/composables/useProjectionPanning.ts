@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { getRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
-import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 
 /**
  * Manages interactive projection panning via mouse drag
@@ -10,8 +10,8 @@ import { useParameterStore } from '@/stores/parameters'
  * Respects rotateLatitudeLocked state for latitude panning control
  */
 export function useProjectionPanning(projectionOverride?: string | null) {
-  const configStore = useConfigStore()
   const parameterStore = useParameterStore()
+  const projectionStore = useProjectionStore()
 
   // Pan state
   const isPanning = ref(false)
@@ -24,7 +24,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
    * Check if current projection supports panning (rotateLongitude parameter)
    */
   const supportsPanning = computed(() => {
-    const projectionId = projectionOverride ?? configStore.selectedProjection
+    const projectionId = projectionOverride ?? projectionStore.selectedProjection
     if (!projectionId)
       return false
 
@@ -41,7 +41,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
    * Requires rotateLatitude parameter and rotateLatitudeLocked must be false
    */
   const supportsLatitudePanning = computed(() => {
-    const projectionId = projectionOverride ?? configStore.selectedProjection
+    const projectionId = projectionOverride ?? projectionStore.selectedProjection
     if (!projectionId)
       return false
 
@@ -50,7 +50,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
       return false
 
     const relevantParams = getRelevantParameters(projection.family)
-    return relevantParams.rotateLatitude && !configStore.rotateLatitudeLocked
+    return relevantParams.rotateLatitude && !projectionStore.rotateLatitudeLocked
   })
 
   /**
@@ -73,11 +73,11 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     const dy = event.clientY - panStartY.value
 
     // Convert pixel movement to rotation degrees
-    // X-axis: Positive dx means dragging right, map follows right (decrease longitude)
-    // Y-axis: Negative dy means dragging up, which should rotate map down (decrease latitude)
+    // X-axis: Positive dx means dragging right, map should follow (increase focusLongitude)
+    // Y-axis: Positive dy means dragging down, map should follow (decrease focusLatitude)
     // Scale factor: ~0.5 degrees per pixel for smooth interaction
-    const lonDelta = dx * 0.5
-    const latDelta = supportsLatitudePanning.value ? -dy * 0.5 : 0
+    const lonDelta = -dx * 0.5
+    const latDelta = supportsLatitudePanning.value ? dy * 0.5 : 0
 
     const newRotationLon = panStartRotationLon.value + lonDelta
     const newRotationLat = panStartRotationLat.value + latDelta
@@ -92,8 +92,12 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     // Clamp latitude rotation to -90 to 90 range (avoid flipping over poles)
     const clampedLat = Math.max(-90, Math.min(90, newRotationLat))
 
-    // Update both rotation axes through the config store
-    configStore.setCustomRotate(wrappedLon, clampedLat)
+    // Update using canonical parameters through parameterStore
+    // This ensures UI sliders and panning stay in sync
+    parameterStore.setGlobalParameter('focusLongitude', wrappedLon)
+    if (supportsLatitudePanning.value) {
+      parameterStore.setGlobalParameter('focusLatitude', clampedLat)
+    }
   }
 
   /**
@@ -120,14 +124,10 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     panStartX.value = event.clientX
     panStartY.value = event.clientY
 
-    // Get current rotation values from parameter store
+    // Get current rotation values from canonical parameters
     const effectiveParams = parameterStore.globalEffectiveParameters
-    const currentRotationLon = configStore.customRotateLongitude
-      ?? effectiveParams?.rotate?.[0]
-      ?? 0
-    const currentRotationLat = configStore.customRotateLatitude
-      ?? effectiveParams?.rotate?.[1]
-      ?? 0
+    const currentRotationLon = effectiveParams?.focusLongitude ?? 0
+    const currentRotationLat = effectiveParams?.focusLatitude ?? 0
 
     panStartRotationLon.value = currentRotationLon
     panStartRotationLat.value = currentRotationLat
