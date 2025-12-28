@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type * as Plot from '@observablehq/plot'
 import type { ViewState } from '@/services/view/view-orchestration-service'
+import type { TerritoryCode } from '@/types/branded'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
 import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useSliderState } from '@/composables/useSliderState'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
+import { TRANSITION_DURATION } from '@/config/transitions'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -43,13 +46,15 @@ interface Props {
   hLevel?: number
   height?: number
   projection?: string | null // Optional projection override for split/composite-custom mode
-  territoryCode?: string // Territory code for parameter resolution in split mode
+  territoryCode?: TerritoryCode // Territory code for parameter resolution in split mode
   fullHeight?: boolean
   // For composite maps
   mode?: 'simple' | 'composite'
 }
 
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const projectionStore = useProjectionStore()
+const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
 const uiStore = useUIStore()
@@ -57,22 +62,22 @@ const mapContainer = ref<HTMLElement>()
 
 // Compute showSphere based on view mode (always on for unified mode)
 const showSphere = computed<boolean>(() => {
-  const atlasConfig = configStore.currentAtlasConfig
+  const atlasConfig = atlasStore.currentAtlasConfig
   if (!atlasConfig)
     return false
 
-  const atlasId = configStore.selectedAtlas
+  const atlasId = atlasStore.selectedAtlasId
   const presets = getAtlasPresets(atlasId)
   const hasPresets = presets.length > 0
 
   const viewState: ViewState = {
-    viewMode: configStore.viewMode,
+    viewMode: viewStore.viewMode,
     atlasConfig,
     hasPresets,
     hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
     isPresetLoading: false,
-    showProjectionSelector: configStore.showProjectionSelector,
-    showIndividualProjectionSelectors: configStore.showIndividualProjectionSelectors,
+    showProjectionSelector: viewStore.showProjectionSelector,
+    showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
     isMainlandInTerritories: geoDataStore.allActiveTerritories.some(
       t => t.code === atlasConfig.splitModeConfig?.mainlandCode || t.code === 'MAINLAND',
     ),
@@ -94,7 +99,7 @@ watch(
   { deep: true },
 )
 
-const isLoading = ref(false)
+const isLoading = ref(true)
 const error = ref<string | null>(null)
 const isMounted = ref(false)
 const isRendering = ref(false)
@@ -177,12 +182,20 @@ watch(() => props.geoData, (newData, oldData) => {
   }
 }, { deep: false }) // Don't use deep, just watch reference changes
 
-// Render map on mount
+// Render map on mount - delay to allow browser to paint initial hidden state
 onMounted(async () => {
-  // Wait for DOM to be ready
+  // Wait for Vue to commit the initial render
   await nextTick()
   isMounted.value = true
-  await renderMap()
+
+  // CRITICAL: Use setTimeout to break completely out of Vue's synchronous
+  // update batching. This ensures the browser paints the initial state
+  // (isLoading=true, opacity=0) before we start rendering.
+  // Without this delay, Vue batches all updates and the browser only
+  // paints the final state (isLoading=false, opacity=1).
+  setTimeout(async () => {
+    await renderMap()
+  }, TRANSITION_DURATION.renderDelay)
 })
 
 // Cleanup event listeners on unmount
@@ -190,6 +203,11 @@ onUnmounted(() => {
   // Clear any pending debounced render
   if (renderDebounceTimer) {
     clearTimeout(renderDebounceTimer)
+  }
+
+  // Clear the map container to remove all SVG elements
+  if (mapContainer.value) {
+    mapContainer.value.innerHTML = ''
   }
 
   cleanupProjectionPanning()
@@ -200,11 +218,11 @@ onUnmounted(() => {
 
 // Use MapSizeCalculator service for size calculation
 const computedSize = computed(() => {
-  // Use canvas dimensions from config store if available (for composite mode)
-  const config = configStore.canvasDimensions
+  // Use canvas dimensions from projection store if available (for composite mode)
+  const config = projectionStore.canvasDimensions
     ? {
-        compositeWidth: configStore.canvasDimensions.width,
-        compositeHeight: configStore.canvasDimensions.height,
+        compositeWidth: projectionStore.canvasDimensions.width,
+        compositeHeight: projectionStore.canvasDimensions.height,
       }
     : undefined
 
@@ -284,13 +302,14 @@ async function renderMap() {
     isRendering.value = true
     isLoading.value = true
     error.value = null
+
     mapContainer.value.innerHTML = ''
 
-    let plot: Plot.Plot
+    let svg: SVGSVGElement
 
     // Handle composite mode
     if (props.mode === 'composite') {
-      plot = await renderComposite()
+      svg = await renderComposite()
     }
     else {
       // Handle simple mode - geoData is required
@@ -300,7 +319,7 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      const projectionToUse = props.projection ?? configStore.selectedProjection
+      const projectionToUse = props.projection ?? projectionStore.selectedProjection
 
       // Check if projection is loaded
       if (!projectionToUse) {
@@ -314,7 +333,7 @@ async function renderMap() {
         cartographer.value.updateProjectionParams(territoryParams)
       }
 
-      plot = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
+      svg = await MapRenderCoordinator.renderSimpleMap(cartographer.value, {
         geoData: props.geoData,
         projection: projectionToUse,
         width,
@@ -335,9 +354,8 @@ async function renderMap() {
       return
     }
 
-    mapContainer.value.appendChild(plot as any)
+    mapContainer.value.appendChild(svg)
 
-    const svg = mapContainer.value.querySelector('svg')
     if (svg instanceof SVGSVGElement) {
       // Add territory attributes for drag functionality
 
@@ -348,7 +366,7 @@ async function renderMap() {
         if (props.mode === 'composite' && cartographer.value?.geoData) {
           try {
             // Get the data that was used for rendering by calling the same method the cartographer uses
-            const territoryMode = configStore.territoryMode
+            const territoryMode = viewStore.territoryMode
             const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
           }
@@ -366,7 +384,7 @@ async function renderMap() {
         }
 
         // Create border zone overlays for improved drag UX (custom composite mode only)
-        if (props.mode === 'composite' && configStore.viewMode === 'composite-custom' && cartographer.value?.customComposite) {
+        if (props.mode === 'composite' && viewStore.viewMode === 'composite-custom' && cartographer.value?.customComposite) {
           createBorderZoneOverlays(
             svg,
             cartographer.value.customComposite,
@@ -390,25 +408,69 @@ async function renderMap() {
       }
 
       const { width, height } = computedSize.value
-      const overlayProjectionId = configStore.compositeProjection || configStore.selectedProjection
+      const overlayProjectionId = projectionStore.compositeProjection || projectionStore.selectedProjection
+
+      // Determine geoData for graticule overlay (same data used for rendering)
+      let graticuleGeoData: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' } | undefined
+      if (props.mode === 'composite') {
+        // For composite mode, try to get the unified data
+        if (cartographer.value?.geoData) {
+          const territoryMode = viewStore.territoryMode
+          const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
+          graticuleGeoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes) ?? undefined
+        }
+      }
+      else {
+        // For simple mode, use props.geoData
+        graticuleGeoData = props.geoData ?? undefined
+      }
+
+      // Get projection parameters for graticule
+      const graticuleParams = props.territoryCode
+        ? parameterStore.getEffectiveParameters(props.territoryCode)
+        : parameterStore.globalParameters
+
+      // Determine the effective view mode for graticule rendering
+      // Only use composite-custom mode when in actual composite rendering mode
+      const isCompositeMode = props.mode === 'composite'
+      const effectiveViewMode = isCompositeMode
+        ? viewStore.viewMode as 'composite-custom' | 'built-in-composite'
+        : 'simple'
 
       // Only apply overlays if projection is loaded
       if (overlayProjectionId) {
         MapRenderCoordinator.applyOverlays(
           svg,
-          configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
+          isCompositeMode ? viewStore.viewMode as 'composite-custom' | 'built-in-composite' : 'individual',
           {
             showBorders: uiStore.showCompositionBorders,
             showLimits: uiStore.showMapLimits,
             projectionId: overlayProjectionId,
             width,
             height,
-            customComposite: cartographer.value?.customComposite,
+            customComposite: isCompositeMode ? cartographer.value?.customComposite : undefined,
             isMainland: props.isMainland,
             filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
-            mainlandCode: configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
+            mainlandCode: atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
           },
         )
+
+        // Apply graticule overlay (scale-adaptive graticule lines)
+        // Use the same projection that was used for rendering to ensure alignment
+        const renderProjection = cartographer.value?.lastProjection ?? undefined
+        MapRenderCoordinator.applyGraticuleOverlay(svg, {
+          showGraticule: uiStore.showGraticule,
+          width,
+          height,
+          projection: renderProjection,
+          projectionId: overlayProjectionId,
+          viewMode: effectiveViewMode,
+          customComposite: isCompositeMode ? (cartographer.value?.customComposite as any) : undefined,
+          geoData: graticuleGeoData,
+          projectionParams: graticuleParams,
+          showSphere: showSphere.value,
+          filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
+        })
       }
     }
   }
@@ -432,7 +494,7 @@ async function renderMap() {
   }
 }
 
-async function renderComposite(): Promise<Plot.Plot> {
+async function renderComposite(): Promise<SVGSVGElement> {
   if (!cartographer.value) {
     throw new Error('Cartographer not initialized')
   }
@@ -453,32 +515,34 @@ async function renderComposite(): Promise<Plot.Plot> {
 
   debug('Building territory params for %d territories', territoryCodes.length)
 
+  // Convert: Object.keys returns string[], need to convert to TerritoryCode
   for (const territoryCode of territoryCodes) {
-    const projectionId = parameterStore.getTerritoryProjection(territoryCode)
+    const brandedCode = territoryCode as TerritoryCode
+    const projectionId = parameterStore.getTerritoryProjection(brandedCode)
     if (projectionId) {
       territoryProjections[territoryCode] = projectionId
     }
-    territoryTranslations[territoryCode] = parameterStore.getTerritoryTranslation(territoryCode)
+    territoryTranslations[territoryCode] = parameterStore.getTerritoryTranslation(brandedCode)
   }
 
   // Check if projections are loaded before rendering
-  if (!configStore.selectedProjection) {
+  if (!projectionStore.selectedProjection) {
     debug('Cannot render composite: selectedProjection not loaded')
     throw new Error('Cannot render composite map: projection not loaded')
   }
 
   return await MapRenderCoordinator.renderCompositeMap(cartographer.value, {
-    viewMode: configStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
-    territoryMode: configStore.territoryMode,
-    selectedProjection: configStore.selectedProjection,
-    compositeProjection: configStore.compositeProjection ?? undefined,
+    viewMode: viewStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
+    territoryMode: viewStore.territoryMode,
+    selectedProjection: projectionStore.selectedProjection,
+    compositeProjection: projectionStore.compositeProjection ?? undefined,
     width,
     height,
     showGraticule: uiStore.showGraticule,
     showSphere: showSphere.value,
     showCompositionBorders: uiStore.showCompositionBorders,
     showMapLimits: uiStore.showMapLimits,
-    currentAtlasConfig: configStore.currentAtlasConfig,
+    currentAtlasConfig: atlasStore.currentAtlasConfig,
     territoryProjections,
     territoryTranslations,
     // territoryScales removed - scale multipliers come from parameter store
@@ -526,11 +590,14 @@ function handleMouseDown(event: MouseEvent) {
     }"
   >
     <div
-      v-show="!isLoading && !error"
       ref="mapContainer"
       class="map-plot w-full bg-base-200 border-base-300 p-2"
+      :class="{
+        'map-ready': !isLoading && !error,
+        'map-loading': isLoading || error,
+      }"
       :style="{
-        display: isLoading || error ? 'none' : 'flex',
+        display: 'flex',
         cursor: cursorStyle,
       }"
       @mousedown="handleMouseDown"
@@ -542,5 +609,14 @@ function handleMouseDown(event: MouseEvent) {
 @reference 'tailwindcss';
 .map-plot {
   @apply h-full w-full rounded-sm border flex-col items-center justify-center;
+  transition: opacity var(--transition-fade) ease;
+}
+
+.map-loading {
+  opacity: 0;
+}
+
+.map-ready {
+  opacity: 1;
 }
 </style>
