@@ -10,8 +10,16 @@ import '@/styles.css'
 // Enable debug logging based on environment variable
 // This allows: VITE_DEBUG=ac:* pnpm dev
 if (import.meta.env.VITE_DEBUG) {
+  // Clear any existing debug config to prevent conflicts
+  localStorage.removeItem('debug')
+  // Set the new debug pattern
   localStorage.debug = import.meta.env.VITE_DEBUG
   console.log(`🐛 Debug logging enabled: ${import.meta.env.VITE_DEBUG}`)
+  console.log(`   To disable: localStorage.removeItem('debug')`)
+}
+else if (localStorage.debug) {
+  console.log(`🐛 Debug logging from localStorage: ${localStorage.debug}`)
+  console.log(`   To disable: localStorage.removeItem('debug')`)
 }
 
 const debug = logger.atlas.loader

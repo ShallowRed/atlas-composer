@@ -9,12 +9,17 @@
 
 :root {
   --bg-base-150: oklch(50% var(--base-200));
+
+  /* Centralized transition durations - keep in sync with src/config/transitions.ts */
+  --transition-fade: 250ms;
+  --transition-fade-instant-leave: 200ms;
+  --transition-slide: 200ms;
 }
 
 /* Fade transition for smooth loading/rendering */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fade) ease;
 }
 
 .fade-enter-from,
@@ -27,13 +32,13 @@
   opacity: 1;
 }
 
-/* Instant appear for skeleton, fade out only */
+/* Instant appear, fade out only */
 .fade-instant-enter-active {
   transition: none;
 }
 
 .fade-instant-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fade-instant-leave) ease;
 }
 
 .fade-instant-enter-from {
