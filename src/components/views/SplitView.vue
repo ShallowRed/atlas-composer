@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Territory } from '@/stores/geoData'
+import type { TerritoryCode } from '@/types/branded'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
@@ -8,11 +9,14 @@ import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useC
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useProjectionStore } from '@/stores/projection'
+import { createTerritoryCode } from '@/types/branded'
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
 
 const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
@@ -24,7 +28,7 @@ const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
  * Not extracted to composable as it's only used here.
  */
 const isSingleFocusPattern = computed(() => {
-  const atlasConfig = configStore.currentAtlasConfig
+  const atlasConfig = atlasStore.currentAtlasConfig
   if (!atlasConfig)
     return false
   const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
@@ -33,17 +37,17 @@ const isSingleFocusPattern = computed(() => {
 
 // Safe accessors for atlas config with fallbacks
 const mainlandTitle = computed(() =>
-  configStore.currentAtlasConfig?.splitModeConfig?.mainlandTitle ?? 'territory.mainland',
+  atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandTitle ?? 'territory.mainland',
 )
 const territoriesTitle = computed(() =>
-  configStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
+  atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
 )
 
 /**
  * Get atlas territory collections configuration
  */
 const atlasCollections = computed(() => {
-  const atlasId = configStore.selectedAtlas
+  const atlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(atlasId)) {
     return undefined
   }
@@ -65,7 +69,7 @@ const defaultGrouping = useCollectionSet('territoryGroups', 'mutually-exclusive'
 const selectedGrouping = ref<string | undefined>(defaultGrouping.value)
 
 // Watch for atlas changes to reset grouping to default
-watch(() => configStore.selectedAtlas, () => {
+watch(() => atlasStore.selectedAtlasId, () => {
   selectedGrouping.value = defaultGrouping.value
 }, { immediate: true })
 
@@ -106,7 +110,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   // Guard: Ensure we're looking at the right atlas's data
   // If atlas is loading, territories might be stale from previous atlas
-  const currentAtlasId = configStore.selectedAtlas
+  const currentAtlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(currentAtlasId)) {
     return new Map()
   }
@@ -119,7 +123,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   if (!collectionSetKey) {
     // No collection set defined - show all territories without grouping
     // Create a single anonymous group with all territories
-    const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+    const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
     const allTerritories = territories.filter(t => t.code !== mainlandCode)
 
     if (allTerritories.length === 0) {
@@ -135,7 +139,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     return new Map()
   }
 
-  const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+  const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
   const territoriesByCode = new Map(territories.map(t => [t.code, t]))
 
   // Convert territory collections to Map<label, Territory[]>
@@ -144,8 +148,8 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   for (const collection of collectionSet.collections) {
     const groupTerritories = collection.codes
-      .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code))
-      .map(code => territoriesByCode.get(code)!)
+      .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
+      .map(code => territoriesByCode.get(code as TerritoryCode)!)
       .filter(t => t !== undefined)
 
     if (groupTerritories.length > 0) {
@@ -161,7 +165,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
   <div
     v-if="isSingleFocusPattern"
-    class="flex flex-row flex flex-wrap gap-4"
+    class="flex flex-row flex-wrap gap-4"
   >
     <!-- Grouping dropdown -->
     <DropdownControl
@@ -173,7 +177,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
       class="max-w-xs"
     />
     <!-- Primary territory -->
-    <div :class="{ 'flex-1': !configStore.scalePreservation }">
+    <div :class="{ 'flex-1': !projectionStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-map-pin-range-line" />
         {{ t(mainlandTitle) }}
@@ -182,14 +186,14 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
         :geo-data="geoDataStore.mainlandData"
         is-mainland
         :projection="getMainlandProjection()"
-        :territory-code="configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode"
+        :territory-code="atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode ? createTerritoryCode(atlasStore.currentAtlasConfig.splitModeConfig.mainlandCode) : undefined"
         :full-height="false"
         :width="500"
         :height="400"
       />
     </div>
 
-    <div :class="{ 'flex-1': !configStore.scalePreservation }">
+    <div :class="{ 'flex-1': !projectionStore.scalePreservation }">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-semibold">
           <i class="ri-map-pin-add-line" />
@@ -223,9 +227,9 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
                 :title="territory.name"
                 :area="territory.area"
                 :region="territory.region"
-                :preserve-scale="configStore.scalePreservation"
+                :preserve-scale="projectionStore.scalePreservation"
                 :projection="getTerritoryProjection(territory.code)"
-                :territory-code="territory.code"
+                :territory-code="createTerritoryCode(territory.code)"
                 :full-height="false"
                 :h-level="4"
                 :width="200"
@@ -268,9 +272,9 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
           :title="territory.name"
           :area="territory.area"
           :region="territory.region"
-          :preserve-scale="configStore.scalePreservation"
+          :preserve-scale="projectionStore.scalePreservation"
           :projection="getTerritoryProjection(territory.code)"
-          :territory-code="territory.code"
+          :territory-code="createTerritoryCode(territory.code)"
           :width="200"
           :height="160"
         />
@@ -289,3 +293,21 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Stabilize title heights to prevent layout shift during transitions */
+h3 {
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+h4 {
+  min-height: 1.25rem;
+  line-height: 1.25rem;
+}
+
+h5 {
+  min-height: 1rem;
+  line-height: 1rem;
+}
+</style>

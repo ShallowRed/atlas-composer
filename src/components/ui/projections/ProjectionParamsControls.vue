@@ -1,197 +1,188 @@
 <script setup lang="ts">
+/**
+ * Projection Parameter Controls
+ *
+ * Controls for editing projection parameters in unified/split modes.
+ * Uses canonical parameter format (focusLongitude/focusLatitude) via parameterStore,
+ * matching the pattern used by TerritoryParameterControls in composite-custom mode.
+ */
+import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
-import { getRelevantParameters, hasRelevantParameters } from '@/core/projections/parameters'
+import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
+import { getRelevantParameters } from '@/core/projections/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
-import { useConfigStore } from '@/stores/config'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const projectionStore = useProjectionStore()
+const viewStore = useViewStore()
 const parameterStore = useParameterStore()
-
-// Parameter ranges and steps
-const RANGES = {
-  rotateLongitude: { min: -180, max: 180, step: 1, default: 0 },
-  rotateLatitude: { min: -90, max: 90, step: 1, default: 0 },
-  centerLongitude: { min: -180, max: 180, step: 1, default: 0 },
-  centerLatitude: { min: -90, max: 90, step: 1, default: 0 },
-  parallel1: { min: 0, max: 90, step: 1, default: 30 },
-  parallel2: { min: 0, max: 90, step: 1, default: 60 },
-  scale: { min: 100, max: 5000, step: 50, default: 1000 },
-}
+const presetDefaults = getSharedPresetDefaults()
 
 // Get current projection definition
 const currentProjection = computed(() => {
-  if (!configStore.selectedProjection) {
+  if (!projectionStore.selectedProjection) {
     return undefined
   }
-  return projectionRegistry.get(configStore.selectedProjection)
+  return projectionRegistry.get(projectionStore.selectedProjection)
+})
+
+// Get projection family for parameter constraints
+const projectionFamily = computed<ProjectionFamilyType>(() => {
+  return currentProjection.value?.family ?? 'OTHER'
 })
 
 // Get effective parameters from parameter store (atlas params + global overrides)
 const effectiveParams = computed(() => parameterStore.globalEffectiveParameters)
 
-/**
- * Get the relevant parameters for the current projection
- * Uses centralized configuration from parameters.ts
- * Conditionally disables rotateLatitude based on lock state
- */
-const relevantParams = computed(() => {
-  const projection = currentProjection.value
-  if (!projection) {
-    return getRelevantParameters('OTHER')
+// Get parameter constraints for this projection family
+const parameterConstraints = computed(() => {
+  return parameterStore.getParameterConstraints(projectionFamily.value)
+})
+
+// Get parameter range from registry
+function getParameterRange(paramKey: keyof ProjectionParameters) {
+  const constraints = parameterConstraints.value.constraints[paramKey]
+  if (!constraints) {
+    // Fallback ranges if constraint not found
+    const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
+      focusLongitude: { min: -180, max: 180, step: 1 },
+      focusLatitude: { min: -90, max: 90, step: 1 },
+      rotateGamma: { min: -180, max: 180, step: 1 },
+      parallel1: { min: -90, max: 90, step: 1 },
+      parallel2: { min: -90, max: 90, step: 1 },
+      scaleMultiplier: { min: 0.1, max: 10, step: 0.1 },
+    }
+    return fallbackRanges[paramKey as string] || { min: 0, max: 100, step: 1 }
   }
 
-  const baseParams = getRelevantParameters(projection.family)
-
-  // Override rotateLatitude based on lock state
   return {
-    ...baseParams,
-    rotateLatitude: baseParams.rotateLatitude && !configStore.rotateLatitudeLocked,
+    min: constraints.min ?? 0,
+    max: constraints.max ?? 100,
+    step: constraints.step ?? 1,
   }
-})
-
-// Get current values or defaults
-const currentRotateLongitude = computed(() => {
-  if (configStore.customRotateLongitude !== null) {
-    return configStore.customRotateLongitude
-  }
-  const rotate = effectiveParams.value?.rotate
-  if (Array.isArray(rotate)) {
-    return rotate[0]
-  }
-  return RANGES.rotateLongitude.default
-})
-
-const currentRotateLatitude = computed(() => {
-  if (configStore.customRotateLatitude !== null) {
-    return configStore.customRotateLatitude
-  }
-  const rotate = effectiveParams.value?.rotate
-  if (Array.isArray(rotate)) {
-    return rotate[1]
-  }
-  return RANGES.rotateLatitude.default
-})
-
-const currentCenterLongitude = computed(() => {
-  return configStore.customCenterLongitude
-    ?? effectiveParams.value?.center?.[0]
-    ?? RANGES.centerLongitude.default
-})
-
-const currentCenterLatitude = computed(() => {
-  return configStore.customCenterLatitude
-    ?? effectiveParams.value?.center?.[1]
-    ?? RANGES.centerLatitude.default
-})
-
-const currentParallel1 = computed(() => {
-  return configStore.customParallel1
-    ?? effectiveParams.value?.parallels?.[0]
-    ?? RANGES.parallel1.default
-})
-
-const currentParallel2 = computed(() => {
-  return configStore.customParallel2
-    ?? effectiveParams.value?.parallels?.[1]
-    ?? RANGES.parallel2.default
-})
-
-// Check if any parameters differ from preset defaults
-// This enables the reset button when user has customized parameters
-const hasCustomParams = computed(() => {
-  // If no preset loaded, check if any parameters are explicitly set
-  if (!configStore.currentViewPreset) {
-    return configStore.customRotateLongitude !== null
-      || configStore.customRotateLatitude !== null
-      || configStore.customCenterLongitude !== null
-      || configStore.customCenterLatitude !== null
-      || configStore.customParallel1 !== null
-      || configStore.customParallel2 !== null
-  }
-
-  // Preset is loaded - check if current params differ from preset defaults
-  // For now, any non-null custom parameter indicates divergence
-  return configStore.customRotateLongitude !== null
-    || configStore.customRotateLatitude !== null
-    || configStore.customCenterLongitude !== null
-    || configStore.customCenterLatitude !== null
-    || configStore.customParallel1 !== null
-    || configStore.customParallel2 !== null
-})
-
-// Update functions for projection parameters
-function updateRotateLongitude(value: number) {
-  configStore.setCustomRotate(value, currentRotateLatitude.value)
 }
 
-function updateRotateLatitude(value: number) {
-  configStore.setCustomRotate(currentRotateLongitude.value, value)
-}
-
-function updateCenterLongitude(value: number) {
-  configStore.setCustomCenter(value, currentCenterLatitude.value)
-}
-
-function updateCenterLatitude(value: number) {
-  configStore.setCustomCenter(currentCenterLongitude.value, value)
-}
-
-function updateParallel1(value: number) {
-  configStore.setCustomParallels(value, currentParallel2.value)
-}
-
-function updateParallel2(value: number) {
-  configStore.setCustomParallels(currentParallel1.value, value)
-}
-
-function reset() {
-  configStore.resetProjectionParams()
-}
-/**
- * Check if there are any parameters to show for the current projection
- */
-const hasAnyRelevantParams = computed(() => {
-  const projection = currentProjection.value
-  if (!projection)
-    return false
-
-  return hasRelevantParameters(projection.family)
+// Get list of relevant parameters for this projection family
+const relevantParameters = computed(() => {
+  return Object.entries(parameterConstraints.value.constraints)
+    .filter(([, constraint]: [string, any]) => constraint.relevant)
+    .map(([key]) => key as keyof ProjectionParameters)
 })
 
-/**
- * Check if the current projection supports latitude rotation (regardless of lock state)
- */
+// Parameter range computed properties
+const focusLongitudeRange = computed(() => getParameterRange('focusLongitude'))
+const focusLatitudeRange = computed(() => getParameterRange('focusLatitude'))
+const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
+const parallel1Range = computed(() => getParameterRange('parallel1'))
+const parallel2Range = computed(() => getParameterRange('parallel2'))
+const scaleMultiplierRange = computed(() => getParameterRange('scaleMultiplier'))
+
+// Check which parameters are relevant
+const hasFocusLongitudeParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'focusLongitude')
+})
+
+const hasFocusLatitudeParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'focusLatitude')
+})
+
+const hasRotateGammaParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'rotateGamma')
+})
+
+const hasParallelsParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'parallels')
+})
+
+// Check if projection supports latitude rotation (regardless of lock state)
 const supportsLatitudeRotation = computed(() => {
   const projection = currentProjection.value
   if (!projection)
     return false
-
   const baseParams = getRelevantParameters(projection.family)
   return baseParams.rotateLatitude
 })
+
+// Check if there are any parameters to show
+const hasAnyRelevantParams = computed(() => {
+  return relevantParameters.value.length > 0 || true // Always show scale
+})
+
+// Check if parameters differ from preset defaults
+const hasCustomParams = computed(() => {
+  // Check if user has set any global parameter overrides that differ from preset
+  const globalParams = parameterStore.globalParameters
+  const globalDefaults = presetDefaults.presetGlobalParameters.value
+
+  // If no global params set, nothing to reset
+  if (Object.keys(globalParams).length === 0) {
+    return false
+  }
+
+  // If no preset defaults, any params are custom
+  if (!globalDefaults) {
+    return true
+  }
+
+  // Check if any param differs from preset default
+  for (const [key, value] of Object.entries(globalParams)) {
+    const defaultValue = globalDefaults[key as keyof ProjectionParameters]
+    // Simple comparison - arrays would need deep comparison
+    if (Array.isArray(value) && Array.isArray(defaultValue)) {
+      if (value.length !== defaultValue.length || value.some((v, i) => v !== defaultValue[i])) {
+        return true
+      }
+    }
+    else if (value !== defaultValue) {
+      return true
+    }
+  }
+
+  return false
+})
+
+// Handle parameter value changes
+function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
+  parameterStore.setGlobalParameter(key, value)
+}
+
+// Reset all parameters to preset defaults
+function reset() {
+  // Clear all global parameter overrides
+  // Atlas parameters (set by preset) will take effect automatically
+  const currentParams = { ...parameterStore.globalParameters }
+  for (const key of Object.keys(currentParams)) {
+    // Reset by setting to undefined (which will fall back to atlas/preset defaults)
+    parameterStore.setGlobalParameter(key as keyof ProjectionParameters, undefined)
+  }
+}
 </script>
 
 <template>
   <div>
-    <!-- Uniform Projection Selector (for uniform projection mode) -->
+    <!-- Projection Selector -->
     <ProjectionDropdown
-      v-model="configStore.selectedProjection"
+      v-model="projectionStore.selectedProjection"
       :label="t('projection.cartographic')"
-      :projection-groups="configStore.projectionGroups"
-      :recommendations="configStore.projectionRecommendations"
+      :projection-groups="viewStore.projectionGroups"
+      :recommendations="viewStore.projectionRecommendations"
     />
+
     <div
       v-if="hasAnyRelevantParams"
       class="flex flex-col gap-4 pt-6"
     >
+      <!-- Reset Button -->
       <button
-        class="btn btn-sm btn-soft w-full gap-1 mb-4"
+        class="btn btn-sm btn-soft w-full gap-1 mb-2"
         :disabled="!hasCustomParams"
         @click="reset"
       >
@@ -199,98 +190,144 @@ const supportsLatitudeRotation = computed(() => {
         {{ t('projectionParams.reset') }}
       </button>
 
-      <!-- Rotate Longitude -->
-      <RangeSlider
-        v-if="relevantParams.rotateLongitude"
-        :model-value="currentRotateLongitude"
-        :label="t('projectionParams.rotateLongitude')"
-        icon="ri-compass-3-line"
-        size="xs"
-        :min="RANGES.rotateLongitude.min"
-        :max="RANGES.rotateLongitude.max"
-        :step="RANGES.rotateLongitude.step"
-        unit="°"
-        @update:model-value="updateRotateLongitude"
-      />
+      <!-- Position Parameters (Focus Longitude/Latitude - Canonical Format) -->
+      <template v-if="hasFocusLongitudeParameter || hasFocusLatitudeParameter || hasRotateGammaParameter">
+        <div class="space-y-2">
+          <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
+            <i class="ri-compass-3-line" />
+            {{ t('territory.parameters.projectionSpecific') }}
+          </h4>
 
-      <div class="flex flex-col gap-1">
-        <!-- Latitude Lock Toggle (only show for projections that support latitude rotation) -->
+          <!-- Focus Longitude -->
+          <RangeSlider
+            v-if="hasFocusLongitudeParameter"
+            :model-value="effectiveParams.focusLongitude ?? 0"
+            :label="t('projectionParams.focusLongitude')"
+            icon="ri-map-pin-line"
+            size="xs"
+            :min="focusLongitudeRange.min"
+            :max="focusLongitudeRange.max"
+            :step="focusLongitudeRange.step"
+            unit="°"
+            @update:model-value="(value: number) => handleParameterChange('focusLongitude', value)"
+          />
+
+          <!-- Latitude Lock Toggle (only show for projections that support latitude rotation) -->
+          <div
+            v-if="supportsLatitudeRotation"
+            class="flex flex-col gap-1"
+          >
+            <ToggleControl
+              :model-value="!projectionStore.rotateLatitudeLocked"
+              :label="t(projectionStore.rotateLatitudeLocked ? 'projectionParams.unlockLatitude' : 'projectionParams.lockLatitude')"
+              icon="ri-lock-unlock-line"
+              @update:model-value="(value: boolean) => projectionStore.setRotateLatitudeLocked(!value)"
+            />
+
+            <!-- Focus Latitude -->
+            <RangeSlider
+              v-if="hasFocusLatitudeParameter && !projectionStore.rotateLatitudeLocked"
+              :model-value="effectiveParams.focusLatitude ?? 0"
+              :label="t('projectionParams.focusLatitude')"
+              icon="ri-map-pin-2-line"
+              size="xs"
+              :min="focusLatitudeRange.min"
+              :max="focusLatitudeRange.max"
+              :step="focusLatitudeRange.step"
+              unit="°"
+              @update:model-value="(value: number) => handleParameterChange('focusLatitude', value)"
+            />
+          </div>
+
+          <!-- Rotate Gamma (roll/tilt) -->
+          <RangeSlider
+            v-if="hasRotateGammaParameter"
+            :model-value="effectiveParams.rotateGamma ?? 0"
+            :label="t('projectionParams.rotateGamma')"
+            icon="ri-rotate-lock-line"
+            size="xs"
+            :min="rotateGammaRange.min"
+            :max="rotateGammaRange.max"
+            :step="rotateGammaRange.step"
+            unit="°"
+            @update:model-value="(value: number) => handleParameterChange('rotateGamma', value)"
+          />
+        </div>
+      </template>
+
+      <!-- Parallels (for conic projections) -->
+      <template v-if="hasParallelsParameter">
+        <div class="space-y-2">
+          <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
+            <i class="ri-subtract-line" />
+            {{ t('projectionParams.parallels') }}
+          </h4>
+
+          <!-- Parallel 1 -->
+          <RangeSlider
+            :model-value="effectiveParams.parallels?.[0] ?? 30"
+            :label="t('projectionParams.parallel1')"
+            icon="ri-subtract-line"
+            size="xs"
+            :min="parallel1Range.min"
+            :max="parallel1Range.max"
+            :step="parallel1Range.step"
+            unit="°"
+            show-midpoint
+            @update:model-value="(value: number) => {
+              const currentParallels = effectiveParams.parallels ?? [30, 60]
+              handleParameterChange('parallels', [value, currentParallels[1]])
+            }"
+          />
+
+          <!-- Parallel 2 -->
+          <RangeSlider
+            :model-value="effectiveParams.parallels?.[1] ?? 60"
+            :label="t('projectionParams.parallel2')"
+            icon="ri-subtract-line"
+            size="xs"
+            :min="parallel2Range.min"
+            :max="parallel2Range.max"
+            :step="parallel2Range.step"
+            unit="°"
+            show-midpoint
+            @update:model-value="(value: number) => {
+              const currentParallels = effectiveParams.parallels ?? [30, 60]
+              handleParameterChange('parallels', [currentParallels[0], value])
+            }"
+          />
+        </div>
+      </template>
+
+      <!-- Scale Control Mode -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
+          <i class="ri-zoom-in-line" />
+          {{ t('territory.parameters.layout') }}
+        </h4>
+
+        <!-- Auto-fit Toggle -->
         <ToggleControl
-          v-if="supportsLatitudeRotation"
-          :model-value="!configStore.rotateLatitudeLocked"
-          :label="t(configStore.rotateLatitudeLocked ? 'projectionParams.unlockLatitude' : 'projectionParams.lockLatitude')"
-          icon="ri-lock-unlock-line"
-          @update:model-value="(value) => configStore.setRotateLatitudeLocked(!value)"
+          :model-value="!projectionStore.autoFitDomain"
+          :label="t(projectionStore.autoFitDomain ? 'projectionParams.enableCustomScale' : 'projectionParams.disableCustomScale')"
+          icon="ri-aspect-ratio-line"
+          @update:model-value="(value: boolean) => projectionStore.setAutoFitDomain(!value)"
         />
-        <!-- Rotate Latitude -->
+
+        <!-- Scale Multiplier (only show when auto-fit is disabled) -->
         <RangeSlider
-          v-if="relevantParams.rotateLatitude"
-          :model-value="currentRotateLatitude"
-          :label="t('projectionParams.rotateLatitude')"
-          icon="ri-compass-4-line"
+          v-if="!projectionStore.autoFitDomain"
+          :model-value="effectiveParams.scaleMultiplier ?? 1.0"
+          :label="t('projectionParams.scaleMultiplier')"
+          icon="ri-zoom-in-line"
           size="xs"
-          :min="RANGES.rotateLatitude.min"
-          :max="RANGES.rotateLatitude.max"
-          :step="RANGES.rotateLatitude.step"
-          unit="°"
-          @update:model-value="updateRotateLatitude"
+          :min="scaleMultiplierRange.min"
+          :max="scaleMultiplierRange.max"
+          :step="scaleMultiplierRange.step"
+          unit="×"
+          @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
         />
       </div>
-
-      <!-- Center Longitude -->
-      <RangeSlider
-        v-if="relevantParams.centerLongitude"
-        :model-value="currentCenterLongitude"
-        :label="t('projectionParams.centerLongitude')"
-        icon="ri-map-pin-line"
-        size="xs"
-        :min="RANGES.centerLongitude.min"
-        :max="RANGES.centerLongitude.max"
-        :step="RANGES.centerLongitude.step"
-        unit="°"
-        @update:model-value="updateCenterLongitude"
-      />
-
-      <!-- Center Latitude -->
-      <RangeSlider
-        v-if="relevantParams.centerLatitude"
-        :model-value="currentCenterLatitude"
-        :label="t('projectionParams.centerLatitude')"
-        icon="ri-map-pin-2-line"
-        :min="RANGES.centerLatitude.min"
-        :max="RANGES.centerLatitude.max"
-        :step="RANGES.centerLatitude.step"
-        unit="°"
-        @update:model-value="updateCenterLatitude"
-      />
-
-      <!-- Parallel 1 (for conic projections) -->
-      <RangeSlider
-        v-if="relevantParams.parallels"
-        :model-value="currentParallel1"
-        :label="t('projectionParams.parallel1')"
-        icon="ri-subtract-line"
-        :min="RANGES.parallel1.min"
-        :max="RANGES.parallel1.max"
-        :step="RANGES.parallel1.step"
-        unit="°"
-        show-midpoint
-        @update:model-value="updateParallel1"
-      />
-
-      <!-- Parallel 2 (for conic projections) -->
-      <RangeSlider
-        v-if="relevantParams.parallels"
-        :model-value="currentParallel2"
-        :label="t('projectionParams.parallel2')"
-        icon="ri-subtract-line"
-        :min="RANGES.parallel2.min"
-        :max="RANGES.parallel2.max"
-        :step="RANGES.parallel2.step"
-        unit="°"
-        show-midpoint
-        @update:model-value="updateParallel2"
-      />
     </div>
   </div>
 </template>

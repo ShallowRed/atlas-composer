@@ -150,12 +150,18 @@
   },
   "projectionParams": {
     "title": "Paramètres de projection",
+    "focusLongitude": "Longitude de focus",
+    "focusLatitude": "Latitude de focus",
+    "rotateGamma": "Rotation gamma",
     "rotateLongitude": "Rotation longitude",
     "rotateLatitude": "Rotation latitude",
     "unlockLatitude": "Déverrouiller la rotation latitude",
     "lockLatitude": "Verrouiller la rotation latitude",
+    "enableCustomScale": "Activer l'échelle personnalisée",
+    "disableCustomScale": "Désactiver l'échelle personnalisée",
     "centerLongitude": "Centre longitude",
     "centerLatitude": "Centre latitude",
+    "parallels": "Parallèles standards",
     "parallel1": "Parallèle standard 1",
     "parallel2": "Parallèle standard 2",
     "scaleMultiplier": "Facteur d'échelle",
@@ -503,6 +509,37 @@
     },
     "warnings": {
       "title": "Avertissement de validation"
+    }
+  },
+  "errors": {
+    "unknown": "Une erreur inattendue s'est produite",
+    "atlas": {
+      "notFound": "Atlas \"{id}\" introuvable",
+      "loadFailed": "Echec du chargement de l'atlas \"{id}\"",
+      "configInvalid": "Configuration invalide pour l'atlas \"{id}\""
+    },
+    "geoData": {
+      "notFound": "Fichier de donnees geographiques introuvable",
+      "invalidJson": "Format de donnees geographiques invalide",
+      "networkError": "Echec du chargement des donnees geographiques (HTTP {status})",
+      "missingObject": "Objet geographique \"{name}\" manquant",
+      "invalidStructure": "Structure de donnees geographiques invalide"
+    },
+    "preset": {
+      "notFound": "Preset \"{id}\" introuvable",
+      "invalidJson": "Format de preset invalide pour \"{id}\"",
+      "validationFailed": "Validation du preset \"{id}\" echouee",
+      "typeMismatch": "Type de preset \"{id}\" incorrect : attendu {expected}, obtenu {actual}",
+      "loadFailed": "Echec du chargement du preset \"{id}\""
+    },
+    "projection": {
+      "notFound": "Projection \"{id}\" introuvable",
+      "createFailed": "Echec de creation de la projection \"{id}\"",
+      "invalidParams": "Parametres invalides pour la projection \"{id}\""
+    },
+    "network": {
+      "fetchFailed": "Echec de la requete reseau",
+      "timeout": "Delai de la requete reseau depasse"
     }
   }
 }

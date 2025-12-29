@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import MapRenderer from '@/components/MapRenderer.vue'
-import { useConfigStore } from '@/stores/config'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
-const configStore = useConfigStore()
+const projectionStore = useProjectionStore()
+const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
 // Watch territory mode changes and reload unified data
-watch(() => configStore.territoryMode, async (newMode) => {
+watch(() => viewStore.territoryMode, async (newMode) => {
   await geoDataStore.reloadUnifiedData(newMode)
 }, { immediate: true })
 </script>
@@ -16,7 +18,7 @@ watch(() => configStore.territoryMode, async (newMode) => {
 <template>
   <MapRenderer
     :geo-data="geoDataStore.rawUnifiedData"
-    :projection="configStore.selectedProjection"
+    :projection="projectionStore.selectedProjection"
     :width="800"
     :height="600"
   />

@@ -1,15 +1,17 @@
 <script setup lang="ts">
+import type { AtlasId } from '@/types/branded'
 import type { CodeGenerationOptions } from '@/types/export-config'
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
+import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/ui/primitives/ButtonGroup.vue'
 import LabelWithIcon from '@/components/ui/primitives/LabelWithIcon.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useParameterProvider } from '@/composables/useParameterProvider'
 import { CompositeExportService } from '@/services/export/composite-export-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 import { logger } from '@/utils/logger'
 
@@ -29,7 +31,8 @@ interface Emits {
 
 const { t } = useI18n()
 
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { parameterProvider } = useParameterProvider()
@@ -48,33 +51,35 @@ const exportContent = computed(() => {
     return '// No custom composite projection available'
   }
 
-  const atlasConfig = configStore.currentAtlasConfig
+  const atlasConfig = atlasStore.currentAtlasConfig
   const compositeConfig = atlasConfig?.compositeProjectionConfig
   if (!compositeConfig || !atlasConfig) {
     return '// No composite projection configuration available'
   }
 
   if (exportFormat.value === 'json') {
+    // Convert: atlasConfig.id is loaded from JSON, needs to be branded AtlasId
     const exported = CompositeExportService.exportToJSON(
       cartographer.customComposite as any,
-      atlasConfig.id,
+      atlasConfig.id as AtlasId,
       atlasConfig.name,
       compositeConfig,
       parameterProvider,
-      configStore.referenceScale,
-      configStore.canvasDimensions,
+      projectionStore.referenceScale,
+      projectionStore.canvasDimensions,
     )
     return JSON.stringify(exported, null, 2)
   }
   else {
+    // Convert: atlasConfig.id is loaded from JSON, needs to be branded AtlasId
     const exported = CompositeExportService.exportToJSON(
       cartographer.customComposite as any,
-      atlasConfig.id,
+      atlasConfig.id as AtlasId,
       atlasConfig.name,
       compositeConfig,
       parameterProvider,
-      configStore.referenceScale,
-      configStore.canvasDimensions,
+      projectionStore.referenceScale,
+      projectionStore.canvasDimensions,
     )
 
     const options: CodeGenerationOptions = {
@@ -101,7 +106,7 @@ const fileExtension = computed(() => {
 })
 
 const fileName = computed(() => {
-  const atlasId = configStore.selectedAtlas || 'projection'
+  const atlasId = atlasStore.selectedAtlasId || 'projection'
   return `${atlasId}-projection.${fileExtension.value}`
 })
 

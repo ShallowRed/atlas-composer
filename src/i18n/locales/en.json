@@ -148,11 +148,18 @@
   },
   "projectionParams": {
     "title": "Projection Parameters",
+    "focusLongitude": "Focus Longitude",
+    "focusLatitude": "Focus Latitude",
+    "rotateGamma": "Rotation Gamma",
     "rotateLongitude": "Rotate longitude",
     "rotateLatitude": "Rotate latitude",
     "unlockLatitude": "Unlock latitude rotation",
+    "lockLatitude": "Lock latitude rotation",
+    "enableCustomScale": "Enable custom scale",
+    "disableCustomScale": "Disable custom scale",
     "centerLongitude": "Center longitude",
     "centerLatitude": "Center latitude",
+    "parallels": "Standard Parallels",
     "parallel1": "Standard parallel 1",
     "parallel2": "Standard parallel 2",
     "scaleMultiplier": "Scale Factor",
@@ -486,6 +493,37 @@
       "compatibility": "Compatible with",
       "creator": "Creator",
       "year": "Year"
+    }
+  },
+  "errors": {
+    "unknown": "An unexpected error occurred",
+    "atlas": {
+      "notFound": "Atlas \"{id}\" not found",
+      "loadFailed": "Failed to load atlas \"{id}\"",
+      "configInvalid": "Invalid configuration for atlas \"{id}\""
+    },
+    "geoData": {
+      "notFound": "Geographic data file not found",
+      "invalidJson": "Invalid geographic data format",
+      "networkError": "Failed to load geographic data (HTTP {status})",
+      "missingObject": "Missing geographic object \"{name}\"",
+      "invalidStructure": "Invalid geographic data structure"
+    },
+    "preset": {
+      "notFound": "Preset \"{id}\" not found",
+      "invalidJson": "Invalid preset format for \"{id}\"",
+      "validationFailed": "Preset \"{id}\" validation failed",
+      "typeMismatch": "Preset \"{id}\" type mismatch: expected {expected}, got {actual}",
+      "loadFailed": "Failed to load preset \"{id}\""
+    },
+    "projection": {
+      "notFound": "Projection \"{id}\" not found",
+      "createFailed": "Failed to create projection \"{id}\"",
+      "invalidParams": "Invalid parameters for projection \"{id}\""
+    },
+    "network": {
+      "fetchFailed": "Network request failed",
+      "timeout": "Network request timed out"
     }
   }
 }

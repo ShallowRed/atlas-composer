@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useResizeObserver, useScroll } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { useMutationObserver, useResizeObserver, useScroll } from '@vueuse/core'
+import { computed, nextTick, ref, watch } from 'vue'
 
 interface Props {
   /**
@@ -17,23 +17,52 @@ withDefaults(defineProps<Props>(), {
 
 const scrollContainerRef = ref<HTMLElement>()
 
+// Track if content actually overflows the container
+const hasScrollableContent = ref(false)
+
 // Use VueUse's useScroll to track scroll state and get measure function
 const { arrivedState, measure } = useScroll(scrollContainerRef, {
   offset: { bottom: 1 }, // Small offset to detect if we're really at the bottom
 })
 
-// Also watch for size changes to remeasure
-useResizeObserver(scrollContainerRef, () => {
+// Check if content overflows and update state
+function checkOverflow() {
+  if (!scrollContainerRef.value) {
+    hasScrollableContent.value = false
+    return
+  }
+  const el = scrollContainerRef.value
+  hasScrollableContent.value = el.scrollHeight > el.clientHeight
   measure()
+}
+
+// Watch for size changes to remeasure
+useResizeObserver(scrollContainerRef, () => {
+  checkOverflow()
 })
 
+// Watch for content changes (children added/removed) to remeasure
+useMutationObserver(
+  scrollContainerRef,
+  () => {
+    nextTick(() => checkOverflow())
+  },
+  { childList: true, subtree: true },
+)
+
+// Also measure after the component is mounted and on any re-renders
+watch(scrollContainerRef, () => {
+  nextTick(() => checkOverflow())
+}, { immediate: true })
+
 const hasOverflowBottom = computed(() => {
-  // Overflow exists if we're not at the bottom (meaning there's more content below)
-  return !arrivedState.bottom
+  // Must have scrollable content AND not be at the bottom
+  return hasScrollableContent.value && !arrivedState.bottom
 })
 
 const hasOverflowTop = computed(() => {
-  return !arrivedState.top
+  // Must have scrollable content AND not be at the top
+  return hasScrollableContent.value && !arrivedState.top
 })
 </script>
 
@@ -71,8 +100,9 @@ const hasOverflowTop = computed(() => {
   flex: 1;
 }
 
-.scrollable-content--has-overflow-bottom::after,
-.scrollable-content--has-overflow-top::before {
+/* Gradient pseudo-elements - always present but opacity controlled */
+.scrollable-content::after,
+.scrollable-content::before {
   content: '';
   position: absolute;
   left: 0;
@@ -80,15 +110,26 @@ const hasOverflowTop = computed(() => {
   height: 2rem;
   pointer-events: none;
   z-index: 10;
+  opacity: 0;
+  transition: opacity var(--transition-fade) ease;
 }
 
-.scrollable-content--has-overflow-bottom::after {
+.scrollable-content::after {
   bottom: 0;
   background: linear-gradient(to bottom, transparent, var(--gradient-color));
 }
 
-.scrollable-content--has-overflow-top::before {
+.scrollable-content::before {
   top: 0;
   background: linear-gradient(to top, transparent, var(--gradient-color));
+}
+
+/* Show gradients when overflow is detected */
+.scrollable-content--has-overflow-bottom::after {
+  opacity: 1;
+}
+
+.scrollable-content--has-overflow-top::before {
+  opacity: 1;
 }
 </style>

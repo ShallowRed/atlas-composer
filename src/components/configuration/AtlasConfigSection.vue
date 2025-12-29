@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import type { AtlasId } from '@/types/branded'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 
+import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
+import { useViewStore } from '@/stores/view'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
@@ -16,7 +18,8 @@ const { viewModeOptions } = useViewMode()
 const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const viewStore = useViewStore()
 
 // Get territory mode options with reactive translation
 const { options: territoryModeOptions } = useTerritoryModeOptions()
@@ -27,7 +30,8 @@ const atlasGroupsWithIcons = computed(() => {
     label: group.label, // Already translated by registry
     options: group.options.map(atlas => ({
       ...atlas,
-      icon: getAtlasFlag(atlas.value),
+      // Convert: string from registry needs to be cast for icon lookup
+      icon: getAtlasFlag(atlas.value as AtlasId),
     })),
   }))
 })
@@ -46,14 +50,14 @@ const { isCompositeCustomMode } = useViewState()
   <div class="flex flex-col gap-6">
     <!-- Region Selector -->
     <DropdownControl
-      v-model="configStore.selectedAtlas"
+      v-model="atlasStore.selectedAtlasId"
       :label="t('settings.region')"
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
     />
     <!-- Main View Mode Selector -->
     <DropdownControl
-      v-model="configStore.viewMode"
+      v-model="viewStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
       :disabled="viewOrchestration.isViewModeDisabled.value"
@@ -62,7 +66,7 @@ const { isCompositeCustomMode } = useViewState()
     <!-- Territory Selection (for unified and split modes) -->
     <DropdownControl
       v-if="viewOrchestration.shouldShowTerritorySelector.value"
-      v-model="configStore.territoryMode"
+      v-model="viewStore.territoryMode"
       :label="t('mode.select')"
       icon="ri-map-pin-range-line"
       :options="territoryModeOptions"

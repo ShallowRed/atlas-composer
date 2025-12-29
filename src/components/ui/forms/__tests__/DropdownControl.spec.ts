@@ -73,7 +73,7 @@ describe('dropdownControl', () => {
   })
 
   describe('rendering', () => {
-    it('should render standard fieldset version by default', () => {
+    it('should render standard version with label by default', () => {
       wrapper = mount(DropdownControl, {
         props: {
           label: 'test.label',
@@ -85,9 +85,10 @@ describe('dropdownControl', () => {
         },
       })
 
-      expect(wrapper.find('fieldset').exists()).toBe(true)
-      expect(wrapper.find('legend').exists()).toBe(true)
-      expect(wrapper.find('.btn').exists()).toBe(true)
+      // Standard version uses label element instead of fieldset
+      expect(wrapper.find('label').exists()).toBe(true)
+      expect(wrapper.find('.label-text').exists()).toBe(true)
+      expect(wrapper.find('.dropdown').exists()).toBe(true)
     })
 
     it('should render inline version when inline prop is true', () => {

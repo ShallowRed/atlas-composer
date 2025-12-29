@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { PresetId, TerritoryCode } from '@/types/branded'
+
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -6,25 +8,27 @@ import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
 const { t } = useI18n()
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
-const selectedPreset = ref<string>('')
+const selectedPreset = ref<PresetId | ''>('')
 
 // Current preset selection
 const currentPreset = computed({
   get: () => {
-    const atlasId = configStore.selectedAtlas
-    const viewMode = configStore.viewMode
+    const atlasId = atlasStore.selectedAtlasId
+    const viewMode = viewStore.viewMode
     if (!atlasId || !viewMode)
       return ''
 
@@ -35,7 +39,7 @@ const currentPreset = computed({
 
     return selectedPreset.value || defaultPreset?.id || ''
   },
-  set: async (presetId: string) => {
+  set: async (presetId: PresetId) => {
     if (!presetId || isLoading.value)
       return
 
@@ -71,15 +75,15 @@ const currentPreset = computed({
 
         // Check if we need to rebuild the composite projection
         // This happens when the new preset has a different set of territories
-        const currentAtlasConfig = configStore.currentAtlasConfig
+        const currentAtlasConfig = atlasStore.currentAtlasConfig
         if (currentAtlasConfig?.compositeProjectionConfig) {
           // Rebuild composite projection to include all territories from the preset
           const parameterStore = useParameterStore()
           const parameterProvider = {
-            getEffectiveParameters: (territoryCode: string) => {
+            getEffectiveParameters: (territoryCode: TerritoryCode) => {
               return parameterStore.getEffectiveParameters(territoryCode)
             },
-            getExportableParameters: (territoryCode: string) => {
+            getExportableParameters: (territoryCode: TerritoryCode) => {
               return parameterStore.getExportableParameters(territoryCode)
             },
           }
@@ -94,8 +98,9 @@ const currentPreset = computed({
         }
         else {
           // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
+          // Convert: Object.keys returns string[]
           Object.keys(territoryParameters).forEach((territoryCode) => {
-            geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+            geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
           })
           debug('Updated cartographer parameters for %d territories', Object.keys(territoryParameters).length)
         }
@@ -119,8 +124,8 @@ const currentPreset = computed({
 // Preset options for dropdown - gets metadata directly from atlas registry
 // Filtered by current view mode
 const presetOptions = computed(() => {
-  const atlasId = configStore.selectedAtlas
-  const viewMode = configStore.viewMode
+  const atlasId = atlasStore.selectedAtlasId
+  const viewMode = viewStore.viewMode
   if (!atlasId || !viewMode)
     return []
 
@@ -132,19 +137,20 @@ const presetOptions = computed(() => {
   return filteredPresets.map((preset) => {
     return {
       value: preset.id,
-      label: formatPresetLabel(preset.id, preset.name),
+      // Convert: preset.id is PresetId, formatPresetLabel expects PresetId
+      label: formatPresetLabel(preset.id as PresetId, preset.name),
       translated: true, // formatPresetLabel returns already-translated text, not translation keys
     }
   })
 })
 
 // Reset selected preset when atlas or view mode changes
-watch(() => [configStore.selectedAtlas, configStore.viewMode], () => {
-  selectedPreset.value = ''
+watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
+  selectedPreset.value = '' as const
 }, { immediate: true })
 
 // Format preset ID into readable label using name from schema if available
-function formatPresetLabel(presetId: string, presetName?: string | Record<string, string>): string {
+function formatPresetLabel(presetId: PresetId, presetName?: string | Record<string, string>): string {
   // If preset has a name property, use i18n resolution
   if (presetName) {
     if (typeof presetName === 'string') {

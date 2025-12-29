@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
 import BuiltInCompositeControls from '@/components/configuration/BuiltInCompositeControls.vue'
@@ -16,11 +16,19 @@ import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useAtlasData } from '@/composables/useAtlasData'
 import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
+import { useAppStore } from '@/stores/app'
+import { useAtlasStore } from '@/stores/atlas'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 
+// Stores
+const appStore = useAppStore()
+const atlasStore = useAtlasStore()
+const viewStore = useViewStore()
+
 // Composables
-const { showSkeleton, initialize } = useAtlasData()
+const { initialize } = useAtlasData()
 const { restoreFromUrl } = useUrlState()
 const {
   isCompositeCustomMode,
@@ -32,11 +40,11 @@ const {
   viewOrchestration,
 } = useViewState()
 
-// Track if this is the first load
-const hasLoadedOnce = ref(false)
+// Transition configuration
+const controlPanelTransition = { name: 'fade', mode: 'out-in' } as const
 
-// Use instant transition only on first load, fade afterwards
-const skeletonTransition = computed(() => hasLoadedOnce.value ? 'fade' : 'fade-instant')
+// Composite key for transitions - changes on atlas OR view mode change
+const contentKey = computed(() => `${atlasStore.selectedAtlasId}-${viewStore.viewMode}`)
 
 // Lifecycle
 onMounted(async () => {
@@ -44,7 +52,6 @@ onMounted(async () => {
   restoreFromUrl()
 
   await initialize()
-  hasLoadedOnce.value = true
 })
 </script>
 
@@ -70,36 +77,38 @@ onMounted(async () => {
         <template #actions>
           <ShareButton />
         </template>
-        <!-- Loading state for main content -->
-        <div class="relative h-full w-full">
-          <Transition :name="skeletonTransition">
+        <!-- Main content container -->
+        <div class="main-content-wrapper relative h-full w-full">
+          <!-- Content layer -->
+          <Transition
+            name="fade"
+            mode="out-in"
+          >
             <div
-              v-if="showSkeleton"
-              key="skeleton"
-              class="absolute inset-0 rounded-sm border border-base-300"
-            >
-              <div class="skeleton rounded-none h-full w-full opacity-50" />
-            </div>
-          </Transition>
-
-          <!-- Content when loaded -->
-          <Transition name="fade">
-            <div
-              v-if="!showSkeleton"
-              key="content"
-              class="h-full"
+              :key="contentKey"
+              class="relative h-full"
             >
               <!-- Split Territories Mode -->
               <SplitView v-if="viewOrchestration.shouldShowSplitView.value" />
 
               <!-- Composite Modes (Existing & Custom) -->
               <MapRenderer
-                v-if="viewOrchestration.shouldShowCompositeRenderer.value"
+                v-else-if="viewOrchestration.shouldShowCompositeRenderer.value"
                 mode="composite"
               />
 
               <!-- Unified Mode -->
-              <UnifiedView v-if="viewOrchestration.shouldShowUnifiedView.value" />
+              <UnifiedView v-else-if="viewOrchestration.shouldShowUnifiedView.value" />
+            </div>
+          </Transition>
+
+          <!-- Skeleton overlay - ON TOP of content, fades out when ready -->
+          <Transition name="fade">
+            <div
+              v-if="!isSplitMode && (appStore.showSkeleton || appStore.showSkeletonForViewSwitch)"
+              class="absolute inset-0 z-20 rounded-sm border border-base-300 bg-base-100"
+            >
+              <div class="skeleton rounded-none h-full w-full opacity-50" />
             </div>
           </Transition>
         </div>
@@ -123,32 +132,50 @@ onMounted(async () => {
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
-        <Transition
-          name="fade"
-          mode="out-in"
-        >
-          <!-- Composite Custom Mode Controls -->
-          <CompositeCustomControls
-            v-if="isCompositeCustomMode"
-            key="composite-custom"
-          />
-          <!-- Unified Mode Controls -->
-          <UnifiedControls
-            v-else-if="isUnifiedMode"
-            key="unified"
-          />
-          <!-- Split Mode Controls -->
-          <SplitControls
-            v-else-if="isSplitMode"
-            key="split"
-          />
-          <!-- Composite Existing Mode Controls -->
-          <BuiltInCompositeControls
-            v-else-if="isCompositeExistingMode"
-            key="built-in-composite"
-          />
-        </Transition>
+        <div class="control-panel-container">
+          <Transition v-bind="controlPanelTransition">
+            <div :key="contentKey">
+              <!-- Composite Custom Mode Controls -->
+              <CompositeCustomControls
+                v-if="isCompositeCustomMode"
+              />
+              <!-- Unified Mode Controls -->
+              <UnifiedControls
+                v-else-if="isUnifiedMode"
+              />
+              <!-- Split Mode Controls -->
+              <SplitControls
+                v-else-if="isSplitMode"
+              />
+              <!-- Composite Existing Mode Controls -->
+              <BuiltInCompositeControls
+                v-else-if="isCompositeExistingMode"
+              />
+            </div>
+          </Transition>
+        </div>
       </CardContainer>
     </template>
   </MainLayout>
 </template>
+
+<style scoped>
+.control-panel-container {
+  position: relative;
+}
+
+/* During leave transition, take the leaving element out of flow */
+.control-panel-container :deep(.fade-leave-active) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Main content leaving element should overlay during cross-fade */
+.main-content-wrapper :deep(.fade-leave-active) {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+</style>

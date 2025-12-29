@@ -2,11 +2,11 @@
 import { useI18n } from 'vue-i18n'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import { useViewState } from '@/composables/useViewState'
-import { useConfigStore } from '@/stores/config'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const projectionStore = useProjectionStore()
 const uiStore = useUIStore()
 const { viewOrchestration } = useViewState()
 </script>
@@ -41,7 +41,7 @@ const { viewOrchestration } = useViewState()
       <!-- Scale Preservation Toggle -->
       <ToggleControl
         v-show="viewOrchestration.shouldShowScalePreservationToggle.value"
-        v-model="configStore.scalePreservation"
+        v-model="projectionStore.scalePreservation"
         :label="t('territory.scalePreservation')"
       />
     </div>

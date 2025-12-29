@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import type { DropdownOption } from '@/components/ui/forms/DropdownControl.vue'
+import type { PresetId } from '@/types/branded'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import { useConfigStore } from '@/stores/config'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
 const { t } = useI18n()
-const configStore = useConfigStore()
+const viewStore = useViewStore()
 
 /**
  * Computed dropdown options from available view presets
  */
 const presetOptions = computed<DropdownOption[]>(() => {
-  return configStore.availableViewPresets.map(preset => ({
+  return viewStore.availableViewPresets.map(preset => ({
     value: preset.id,
     label: preset.name,
     translated: true, // Preset names are already in final form
@@ -46,20 +47,20 @@ function getPresetIcon(viewMode: string): string {
  */
 const shouldShow = computed(() => {
   const supportedModes = ['unified', 'split', 'built-in-composite']
-  return supportedModes.includes(configStore.viewMode)
+  return supportedModes.includes(viewStore.viewMode)
 })
 
 /**
  * Handle preset selection
  */
-async function handlePresetChange(presetId: string) {
+async function handlePresetChange(presetId: PresetId | '') {
   if (!presetId) {
-    configStore.clearViewPreset()
+    viewStore.clearViewPreset()
     return
   }
 
   try {
-    await configStore.loadViewPreset(presetId)
+    await viewStore.loadViewPreset(presetId)
   }
   catch (error) {
     debug('Failed to load preset: %o', error)
@@ -71,8 +72,8 @@ async function handlePresetChange(presetId: string) {
  * Computed model value for the dropdown
  */
 const selectedPreset = computed({
-  get: () => configStore.currentViewPreset || '',
-  set: (value: string) => {
+  get: () => viewStore.currentViewPreset || '',
+  set: (value: PresetId | '') => {
     handlePresetChange(value)
   },
 })
@@ -81,7 +82,7 @@ const selectedPreset = computed({
  * Label based on current view mode
  */
 const label = computed(() => {
-  switch (configStore.viewMode) {
+  switch (viewStore.viewMode) {
     case 'unified':
       return t('preset.unified.select')
     case 'split':

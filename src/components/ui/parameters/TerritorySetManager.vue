@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import type { TerritoryCode } from '@/types/branded'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
 interface TerritoryItem {
@@ -39,7 +42,7 @@ const activeCodes = computed(() => {
 
 // Get atlas territory collections configuration
 const atlasCollections = computed(() => {
-  const atlasId = configStore.selectedAtlas
+  const atlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(atlasId)) {
     return undefined
   }
@@ -93,7 +96,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
   const collections = atlasCollections.value
 
   // Guard: Ensure atlas is fully loaded before accessing data
-  const currentAtlasId = configStore.selectedAtlas
+  const currentAtlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(currentAtlasId)) {
     return []
   }
@@ -105,7 +108,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
   const collectionSetKey = collectionSetToDisplay.value
   if (!collectionSetKey) {
     // Fallback: create single group with all territories
-    const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+    const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
     const allTerritories = loadedTerritories.value
       .filter(t => t.code !== mainlandCode)
       .map(territory => ({
@@ -130,7 +133,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     return []
   }
 
-  const mainlandCode = configStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+  const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
   const territoriesByCode = new Map(loadedTerritories.value.map(t => [t.code, t]))
 
   // Convert territory collections to TerritoryGroup[]
@@ -139,13 +142,13 @@ const territoryGroups = computed((): TerritoryGroup[] => {
       id: collection.id,
       label: collection.label,
       territories: collection.codes
-        .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code))
+        .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
         .map((code) => {
-          const territory = territoriesByCode.get(code)!
+          const territory = territoriesByCode.get(code as TerritoryCode)!
           return {
             code,
             name: territory.name,
-            isActive: activeCodes.value.has(code),
+            isActive: activeCodes.value.has(code as TerritoryCode),
           }
         }),
     }))
@@ -153,11 +156,12 @@ const territoryGroups = computed((): TerritoryGroup[] => {
 })
 
 function toggleTerritory(code: string, isActive: boolean) {
+  // Convert: code from template is string, store expects TerritoryCode
   if (isActive) {
-    configStore.removeTerritoryFromComposite(code)
+    viewStore.removeTerritoryFromComposite(code as TerritoryCode)
   }
   else {
-    configStore.addTerritoryToComposite(code)
+    viewStore.addTerritoryToComposite(code as TerritoryCode)
   }
   // Trigger re-render
   geoDataStore.triggerRender()

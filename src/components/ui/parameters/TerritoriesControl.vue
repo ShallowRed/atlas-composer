@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,9 +10,10 @@ import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 
@@ -37,8 +39,11 @@ const geoDataStore = useGeoDataStore()
 // Parameter store for checking overrides
 const parameterStore = useParameterStore()
 
-// Config store for accessing all territories
-const configStore = useConfigStore()
+// Atlas store for accessing all territories
+const atlasStore = useAtlasStore()
+
+// View store for view mode and active territories
+const viewStore = useViewStore()
 
 // Preset defaults for checking divergence
 const presetDefaults = getSharedPresetDefaults()
@@ -52,29 +57,31 @@ const hasDivergingFromPreset = computed(() => {
   void parameterStore.territoryParametersVersion
 
   // Check if territory set has changed (for custom composite mode)
-  if (configStore.viewMode === 'composite-custom') {
+  if (viewStore.viewMode === 'composite-custom') {
     const presetDefaults_ = presetDefaults.presetDefaults.value
     if (presetDefaults_) {
+      // Convert: Object.keys returns string[], need to convert for comparison
       const presetTerritoryCodes = new Set(Object.keys(presetDefaults_.projections))
-      const activeTerritoryCodes = configStore.activeTerritoryCodes
+      const activeTerritoryCodes = viewStore.activeTerritoryCodes
 
       // Check if sets are different
       if (presetTerritoryCodes.size !== activeTerritoryCodes.size) {
         return true
       }
       for (const code of presetTerritoryCodes) {
-        if (!activeTerritoryCodes.has(code)) {
+        if (!activeTerritoryCodes.has(code as TerritoryCode)) {
           return true
         }
       }
     }
   }
 
-  const allTerritoriesToCheck = configStore.atlasService.getAllTerritories()
+  const allTerritoriesToCheck = atlasStore.atlasService.getAllTerritories()
 
   const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
+  // Convert: getAllTerritories() returns territory objects with string codes from JSON
   for (const territory of allTerritoriesToCheck) {
-    const territoryParams = parameterStore.getTerritoryParameters(territory.code)
+    const territoryParams = parameterStore.getTerritoryParameters(territory.code as TerritoryCode)
     if (Object.keys(territoryParams).length > 0) {
       allTerritoryParameters[territory.code] = territoryParams
     }
@@ -94,12 +101,12 @@ const hasDivergingFromPreset = computed(() => {
 const resetToDefaults = resetTransforms
 
 // Helper function to get current projection for a territory (reactive)
-function getTerritoryProjection(territoryCode: string): string {
-  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || 'mercator'
+function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId {
+  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || 'mercator' as ProjectionId
 }
 
 // Helper function to get projection family for a territory
-function getProjectionFamily(territoryCode: string) {
+function getProjectionFamily(territoryCode: TerritoryCode) {
   const projectionId = getTerritoryProjection(territoryCode)
   if (!projectionId) {
     return ProjectionFamily.AZIMUTHAL
@@ -109,7 +116,7 @@ function getProjectionFamily(territoryCode: string) {
 }
 
 // Handler for projection dropdown changes
-function handleProjectionChange(territoryCode: string, projectionId: string) {
+function handleProjectionChange(territoryCode: TerritoryCode, projectionId: ProjectionId) {
   // Update parameter store
   setTerritoryProjection(territoryCode, projectionId)
 
@@ -122,13 +129,13 @@ function handleProjectionChange(territoryCode: string, projectionId: string) {
 }
 
 // Parameter control event handlers
-function handleParameterChange(territoryCode: string, _key: keyof ProjectionParameters, _value: unknown) {
+function handleParameterChange(territoryCode: TerritoryCode, _key: keyof ProjectionParameters, _value: unknown) {
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
 }
 
-function handleOverrideCleared(territoryCode: string, _key: keyof ProjectionParameters) {
+function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof ProjectionParameters) {
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
@@ -173,7 +180,7 @@ const showMainlandAccordion = computed(() => {
           :label="t('projection.cartographic')"
           :projection-groups="projectionGroups"
           :recommendations="projectionRecommendations"
-          @update:model-value="(value: string) => handleProjectionChange(mainlandCode, value)"
+          @update:model-value="(value: ProjectionId) => handleProjectionChange(mainlandCode, value)"
         />
       </div>
 
@@ -206,7 +213,7 @@ const showMainlandAccordion = computed(() => {
           :label="t('projection.cartographic')"
           :projection-groups="projectionGroups"
           :recommendations="projectionRecommendations"
-          @update:model-value="(value: string) => handleProjectionChange(territory.code, value)"
+          @update:model-value="(value: ProjectionId) => handleProjectionChange(territory.code, value)"
         />
       </div>
 

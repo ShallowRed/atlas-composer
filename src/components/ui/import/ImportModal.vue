@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AtlasId, TerritoryCode } from '@/types/branded'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { computed, ref } from 'vue'
 
@@ -9,7 +10,7 @@ import { logger } from '@/utils/logger'
 
 const props = defineProps<{
   modelValue: boolean
-  atlasId: string
+  atlasId: AtlasId
   compositeProjection: any
 }>()
 
@@ -142,8 +143,9 @@ async function applyImport() {
 
     if (geoDataStore.cartographer && result.state) {
       const territoryParameters = result.state.parameters.territories
+      // Convert: Object.keys returns string[], need TerritoryCode for store methods
       Object.keys(territoryParameters).forEach((territoryCode) => {
-        geoDataStore.cartographer!.updateTerritoryParameters(territoryCode)
+        geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
       })
       debug('Updated cartographer for %d territories', Object.keys(territoryParameters).length)
 

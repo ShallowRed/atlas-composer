@@ -4,11 +4,13 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CompositeExportDialog from '@/components/ui/export/CompositeExportDialog.vue'
 import ImportModal from '@/components/ui/import/ImportModal.vue'
-import { useConfigStore } from '@/stores/config'
+import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
-const configStore = useConfigStore()
+const atlasStore = useAtlasStore()
+const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
 const showExportDialog = ref(false)
@@ -23,7 +25,7 @@ function handleImported(_config: ExportedCompositeConfig) {
 <template>
   <!-- Import/Export Buttons (for composite-custom mode) -->
   <div
-    v-if="configStore.viewMode === 'composite-custom'"
+    v-if="viewStore.viewMode === 'composite-custom'"
     class="join w-full"
   >
     <button
@@ -45,7 +47,7 @@ function handleImported(_config: ExportedCompositeConfig) {
   <!-- Import Dialog -->
   <ImportModal
     v-model="showImportDialog"
-    :atlas-id="configStore.selectedAtlas"
+    :atlas-id="atlasStore.selectedAtlasId"
     :composite-projection="geoDataStore.cartographer?.customComposite"
     @imported="handleImported"
   />

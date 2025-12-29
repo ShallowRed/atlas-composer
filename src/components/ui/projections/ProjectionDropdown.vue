@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionId } from '@/types/branded'
 
 import { computed, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,7 +24,7 @@ interface ProjectionGroup {
 
 interface Props {
   label: string
-  modelValue?: string | null
+  modelValue?: ProjectionId | null
   projectionGroups: ProjectionGroup[]
   recommendations?: ProjectionRecommendation[]
   showRecommendations?: boolean
@@ -40,8 +41,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'change': [value: string]
+  'update:modelValue': [value: ProjectionId]
+  'change': [value: ProjectionId]
 }>()
 
 const { t } = useI18n()
@@ -60,8 +61,9 @@ const projectionGroupsWithBadges = computed(() => {
   return props.projectionGroups.map(group => ({
     ...group,
     options: group.options?.map((option) => {
-      const badge = props.showRecommendations ? getBadge(option.value) : undefined
-      const cssClass = badge ? getCssClass(option.value) : undefined
+      // Convert: option.value is string from registry, cast to ProjectionId for recommendation lookup
+      const badge = props.showRecommendations ? getBadge(option.value as ProjectionId) : undefined
+      const cssClass = badge ? getCssClass(option.value as ProjectionId) : undefined
 
       // Combine badge icon with CSS class if both exist
       const badgeWithClass = badge && cssClass ? `${badge} ${cssClass}` : badge
@@ -90,9 +92,10 @@ function closeInfoModal() {
   showInfoModal.value = false
 }
 
+// Convert: v-model from dropdown gives string, convert to ProjectionId at boundary
 function handleUpdate(value: string) {
-  emit('update:modelValue', value)
-  emit('change', value)
+  emit('update:modelValue', value as ProjectionId)
+  emit('change', value as ProjectionId)
 }
 </script>
 
@@ -107,7 +110,7 @@ function handleUpdate(value: string) {
     <!-- Dropdown -->
     <DropdownControl
       v-else
-      :model-value="modelValue"
+      :model-value="modelValue as string"
       :label="label"
       icon="ri-global-line"
       :disabled="disabled"
