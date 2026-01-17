@@ -11,7 +11,6 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
-// Unified rendering options
 export interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
 }
@@ -47,7 +46,6 @@ export interface CompositeRenderOptions extends RenderOptions {
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
   territoryTranslations: Record<string, { x: number, y: number }>
-  // territoryScales removed - scale multipliers now come from parameter store
 }
 
 export class Cartographer {
@@ -55,10 +53,6 @@ export class Cartographer {
   private geoDataService: GeoDataService
   public customComposite: CompositeProjection | null = null
 
-  /**
-   * The projection used for the last render call.
-   * Available for overlay services to use the exact same projection.
-   */
   private _lastProjection: GeoProjection | null = null
 
   constructor(
@@ -72,34 +66,23 @@ export class Cartographer {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
 
-    // Set projection parameters if provided
     if (projectionParams) {
       this.projectionService.setProjectionParams(projectionParams)
     }
 
-    // Set canvas dimensions if provided
     if (canvasDimensions) {
       this.projectionService.setCanvasDimensions(canvasDimensions)
     }
 
-    // Only create CompositeProjection if config is provided
     if (compositeConfig) {
       this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale, canvasDimensions)
     }
   }
 
-  /**
-   * Get the projection used for the last render call.
-   * This allows overlay services to use the exact same projection instance.
-   */
   get lastProjection(): GeoProjection | null {
     return this._lastProjection
   }
 
-  /**
-   * Public getter for GeoDataService
-   * Provides type-safe access to geo data operations
-   */
   get geoData(): GeoDataService {
     return this.geoDataService
   }

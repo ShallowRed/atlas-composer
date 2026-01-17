@@ -1,21 +1,6 @@
-/**
- * CompositeConfiguration Aggregate
- *
- * Aggregate root for composite projection configuration.
- * Manages the collection of territory projections and enforces domain invariants.
- *
- * DDD Pattern: Aggregate
- * - Aggregate root with controlled access to child entities (TerritoryProjectionConfig)
- * - Enforces invariants across the entire composite configuration
- * - Provides transactional consistency boundary
- */
-
 import type { ProjectionFamilyType } from './types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-/**
- * Domain error for composite configuration violations
- */
 export class CompositeConfigurationError extends Error {
   constructor(message: string) {
     super(message)
@@ -23,37 +8,21 @@ export class CompositeConfigurationError extends Error {
   }
 }
 
-/**
- * Canvas dimensions for composite projection
- */
 export interface CompositeCanvasDimensions {
   width: number
   height: number
 }
 
-/**
- * Territory projection configuration within the composite
- */
 export interface TerritoryProjectionConfig {
-  /** Territory code (e.g., 'FR-MET', 'FR-GP') */
   code: string
-  /** Territory display name */
   name: string
-  /** Projection ID (e.g., 'conic-conformal', 'mercator') */
   projectionId: string
-  /** Projection family */
   family: ProjectionFamilyType
-  /** Projection parameters */
   parameters: ProjectionParameters
-  /** Layout: translation offset [x, y] in pixels */
   translateOffset: [number, number]
-  /** Layout: pixel clip extent [x1, y1, x2, y2] or null */
   pixelClipExtent: [number, number, number, number] | null
 }
 
-/**
- * Serializable composite configuration for export/import
- */
 export interface SerializedCompositeConfig {
   atlasId: string
   atlasName: string
@@ -62,19 +31,6 @@ export interface SerializedCompositeConfig {
   territories: TerritoryProjectionConfig[]
 }
 
-/**
- * CompositeConfiguration Aggregate Root
- *
- * Manages a complete composite projection configuration including:
- * - Atlas identity
- * - Global projection settings (referenceScale, canvasDimensions)
- * - Territory-specific projection configurations
- *
- * Enforces domain invariants:
- * - At least one territory must exist
- * - All scale multipliers must be positive
- * - Territory codes must be unique
- */
 export class CompositeConfiguration {
   private territories: Map<string, TerritoryProjectionConfig> = new Map()
 

@@ -1,94 +1,49 @@
-/**
- * Projection Parameters Configuration
- *
- * Centralized configuration for which parameters are relevant for each projection family.
- * This ensures consistency between UI controls and projection application logic.
- */
-
 import type { ProjectionFamilyType } from './types'
 import { ProjectionFamily } from './types'
 
-/**
- * Parameter set for a projection family
- */
 export interface ProjectionParameterSet {
-  /**
-   * Longitude rotation (λ) - rotates the projection around the vertical axis
-   * Applicable to most projections for centering on different meridians
-   */
   rotateLongitude: boolean
-
-  /**
-   * Latitude rotation (φ) - rotates the projection around the horizontal axis
-   * Primarily used for azimuthal projections to change the point of tangency
-   */
   rotateLatitude: boolean
-
-  /**
-   * Center longitude - sets the central meridian of the projection
-   * Used as an alternative to rotation for some projections
-   */
   centerLongitude: boolean
-
-  /**
-   * Center latitude - sets the central parallel of the projection
-   * Used as an alternative to rotation for some projections
-   */
   centerLatitude: boolean
-
-  /**
-   * Standard parallels - defines the two parallels of zero distortion
-   * Only applicable to conic projections
-   */
   parallels: boolean
 }
 
-/**
- * Configuration map of projection families to their relevant parameters
- *
- * Based on D3 projection behavior:
- * - CYLINDRICAL: Uses rotation for centering, no parallels
- * - PSEUDOCYLINDRICAL: Uses rotation for centering, no parallels
- * - CONIC: Uses rotation, center, and parallels (two standard parallels)
- * - AZIMUTHAL: Uses rotation (including latitude) and center for positioning
- * - COMPOSITE: Typically uses pre-configured parameters, not user-adjustable
- * - POLYHEDRAL: Complex projections with fixed geometry, not user-adjustable
- */
 export const PROJECTION_PARAMETERS_BY_FAMILY: Record<ProjectionFamilyType, ProjectionParameterSet> = {
   [ProjectionFamily.CYLINDRICAL]: {
-    rotateLongitude: true, // Rotate to center on different meridians
-    rotateLatitude: true, // Rotate vertically for alternative viewpoints
-    centerLongitude: false, // Rotation is preferred for cylindrical
-    centerLatitude: false, // Fixed at equator for standard cylindrical
-    parallels: false, // No standard parallels in cylindrical
+    rotateLongitude: true,
+    rotateLatitude: true,
+    centerLongitude: false,
+    centerLatitude: false,
+    parallels: false,
   },
 
   [ProjectionFamily.PSEUDOCYLINDRICAL]: {
-    rotateLongitude: true, // Rotate to center on different meridians
-    rotateLatitude: true, // Rotate vertically for alternative viewpoints
-    centerLongitude: false, // Rotation is preferred
-    centerLatitude: false, // Fixed at equator for standard pseudocylindrical
-    parallels: false, // No standard parallels
+    rotateLongitude: true,
+    rotateLatitude: true,
+    centerLongitude: false,
+    centerLatitude: false,
+    parallels: false,
   },
 
   [ProjectionFamily.CONIC]: {
-    rotateLongitude: false, // Merged with center longitude in implementation
-    rotateLatitude: false, // Not used for conic
-    centerLongitude: true, // Sets the central meridian (includes rotation)
-    centerLatitude: true, // Sets the origin parallel
-    parallels: true, // Two standard parallels define the cone
+    rotateLongitude: false,
+    rotateLatitude: false,
+    centerLongitude: true,
+    centerLatitude: true,
+    parallels: true,
   },
 
   [ProjectionFamily.AZIMUTHAL]: {
-    rotateLongitude: true, // Rotate around vertical axis
-    rotateLatitude: true, // Rotate around horizontal axis (unique to azimuthal)
-    centerLongitude: false, // Don't show - rotation handles this
-    centerLatitude: false, // Don't show - rotation handles this
-    parallels: false, // No parallels in azimuthal
+    rotateLongitude: true,
+    rotateLatitude: true,
+    centerLongitude: false,
+    centerLatitude: false,
+    parallels: false,
   },
 
   [ProjectionFamily.COMPOSITE]: {
-    rotateLongitude: false, // Composite projections use fixed positioning
+    rotateLongitude: false,
     rotateLatitude: false,
     centerLongitude: false,
     centerLatitude: false,
