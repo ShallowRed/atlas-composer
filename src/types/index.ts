@@ -66,14 +66,12 @@ export type {
 // Export/import configuration types
 export type {
   CodeGenerationOptions,
-  CompositePattern,
   ExportedCompositeConfig,
   ExportedProjectionParameters,
   ExportedTerritory,
   ExportedTerritoryLayout,
   ExportMetadata,
   ExportValidationResult,
-  TerritoryRole,
 } from '@/types/export-config'
 
 // Geographic data types

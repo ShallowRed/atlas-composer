@@ -29,16 +29,6 @@ export const ARMADILLO: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    usable: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'regional' },
-      { scale: 'local' },
-    ],
-  },
-
   metadata: {
     experimental: true,
   },
@@ -63,16 +53,6 @@ export const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
     supportsSplit: false,
     supportsUnified: true,
     isInterrupted: true,
-  },
-
-  suitability: {
-    usable: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'regional' },
-      { scale: 'local' },
-    ],
   },
 
   aliases: ['butterfly'],
@@ -100,19 +80,6 @@ export const LOXIMUTHAL: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    good: [
-      { scale: 'global' },
-    ],
-    usable: [
-      { latitudeRange: { min: -30, max: 30 } },
-    ],
-    avoid: [
-      { scale: 'regional' },
-      { scale: 'local' },
-    ],
   },
 
   creator: 'Karl Siemon & Waldo Tobler',
@@ -143,16 +110,6 @@ export const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
     supportsSplit: false,
     supportsUnified: true,
     isInterrupted: true,
-  },
-
-  suitability: {
-    good: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'regional' },
-      { scale: 'local' },
-    ],
   },
 
   aliases: ['waterman'],

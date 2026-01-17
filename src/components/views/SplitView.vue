@@ -18,23 +18,11 @@ const atlasStore = useAtlasStore()
 const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
 
-const { getPrimaryTerritoryProjection, getTerritoryProjection } = useProjectionConfig()
+const { getTerritoryProjection } = useProjectionConfig()
 
-/**
- * Check if atlas has a primary territory for split view
- * This determines if we show the two-panel layout (primary + others)
- */
-const hasPrimaryTerritory = computed(() => {
-  const atlasConfig = atlasStore.currentAtlasConfig
-  return !!atlasConfig?.splitModeConfig?.primaryTerritoryCode
-})
-
-// Safe accessors for atlas config with fallbacks
-const primaryTitle = computed(() =>
-  atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTitle ?? 'territory.primary',
-)
-const otherTerritoriesTitle = computed(() =>
-  atlasStore.currentAtlasConfig?.splitModeConfig?.otherTerritoriesTitle ?? 'territory.territories',
+// Safe accessor for territories title with fallback
+const territoriesTitle = computed(() =>
+  atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
 )
 
 /**
@@ -94,7 +82,7 @@ const groupingOptions = computed(() => {
 })
 
 /**
- * Group territories by collection (same logic as TerritorySetManager)
+ * Group territories by collection
  * Uses atlas territoryCollections configuration for grouping
  * Since we only use mutually-exclusive collection sets, territories won't appear in multiple groups
  */
@@ -116,16 +104,12 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const collectionSetKey = selectedGrouping.value
   if (!collectionSetKey) {
     // No collection set defined - show all territories without grouping
-    // Create a single anonymous group with all territories
-    const primaryCode = atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode
-    const allTerritories = territories.filter(t => t.code !== primaryCode)
-
-    if (allTerritories.length === 0) {
+    if (territories.length === 0) {
       return new Map()
     }
 
     // Use empty string as key so no group title is rendered
-    return new Map([['', allTerritories]])
+    return new Map([['', territories]])
   }
 
   const collectionSet = collections[collectionSetKey]
@@ -133,16 +117,14 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     return new Map()
   }
 
-  const primaryCode = atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode
   const territoriesByCode = new Map(territories.map(t => [t.code, t]))
 
   // Convert territory collections to Map<label, Territory[]>
-  // No need to track duplicates since mutually-exclusive sets guarantee no overlap
   const groups = new Map<string, Territory[]>()
 
   for (const collection of collectionSet.collections) {
     const groupTerritories = collection.codes
-      .filter(code => code !== primaryCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
+      .filter(code => code !== '*' && territoriesByCode.has(code as TerritoryCode))
       .map(code => territoriesByCode.get(code as TerritoryCode)!)
       .filter(t => t !== undefined)
 
@@ -153,14 +135,15 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   return groups
 })
+
+/**
+ * Check if we should use grouped display (has groups defined)
+ */
+const hasGroups = computed(() => territoryGroups.value.size > 0)
 </script>
 
 <template>
-  <!-- Primary territory + other territories split layout -->
-  <div
-    v-if="hasPrimaryTerritory"
-    class="flex flex-row flex-wrap gap-4"
-  >
+  <div class="flex flex-col gap-4">
     <!-- Grouping dropdown -->
     <DropdownControl
       v-if="groupingOptions.length > 1"
@@ -170,33 +153,18 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
       :options="groupingOptions"
       class="max-w-xs"
     />
-    <!-- Primary territory -->
-    <div :class="{ 'flex-1': !projectionStore.scalePreservation }">
+
+    <div>
       <h3 class="text-base font-semibold mb-4">
-        <i class="ri-map-pin-range-line" />
-        {{ t(primaryTitle) }}
+        <i class="ri-map-pin-line" />
+        {{ t(territoriesTitle) }}
       </h3>
-      <MapRenderer
-        :geo-data="geoDataStore.primaryTerritoryData"
-        is-primary
-        :projection="getPrimaryTerritoryProjection()"
-        :territory-code="atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode ? createTerritoryCode(atlasStore.currentAtlasConfig.splitModeConfig.primaryTerritoryCode) : undefined"
-        :full-height="false"
-        :width="500"
-        :height="400"
-      />
-    </div>
 
-    <div :class="{ 'flex-1': !projectionStore.scalePreservation }">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold">
-          <i class="ri-map-pin-add-line" />
-          {{ t(otherTerritoriesTitle) }}
-        </h3>
-      </div>
-
-      <div class="join join-vertical">
-        <!-- Region Groups -->
+      <!-- Grouped display -->
+      <div
+        v-if="hasGroups"
+        class="join join-vertical w-full"
+      >
         <div
           v-for="[regionName, territories] in territoryGroups"
           :key="regionName || 'ungrouped'"
@@ -232,58 +200,45 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Empty State -->
+      <!-- Flat grid display (fallback when no groups) -->
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         <div
-          v-if="geoDataStore.filteredTerritories.length === 0"
-          class="text-gray-500"
+          v-for="territory in geoDataStore.filteredTerritories"
+          :key="territory.code"
+          class="flex flex-col"
         >
-          <p>{{ t('territory.noTerritories') }}</p>
+          <h4 class="text-sm font-medium mb-1">
+            {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
+          </h4>
+          <MapRenderer
+            :geo-data="territory.data"
+            :title="territory.name"
+            :area="territory.area"
+            :region="territory.region"
+            :preserve-scale="projectionStore.scalePreservation"
+            :projection="getTerritoryProjection(territory.code)"
+            :territory-code="createTerritoryCode(territory.code)"
+            :width="200"
+            :height="160"
+          />
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Multi-mainland pattern: All territories in a single grid (EU, ASEAN, etc.) -->
-  <div v-else>
-    <h3 class="text-base font-semibold mb-4">
-      <i class="ri-map-pin-line" />
-      {{ t(territoriesTitle) }}
-    </h3>
-
-    <!-- Territories Grid (flat, no region grouping) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Empty State -->
       <div
-        v-for="territory in geoDataStore.filteredTerritories"
-        :key="territory.code"
-        class="flex flex-col"
+        v-if="geoDataStore.filteredTerritories.length === 0"
+        class="text-gray-500"
       >
-        <h4 class="text-sm font-medium mb-1">
-          {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
-        </h4>
-        <MapRenderer
-          :geo-data="territory.data"
-          :title="territory.name"
-          :area="territory.area"
-          :region="territory.region"
-          :preserve-scale="projectionStore.scalePreservation"
-          :projection="getTerritoryProjection(territory.code)"
-          :territory-code="createTerritoryCode(territory.code)"
-          :width="200"
-          :height="160"
-        />
+        <p>{{ t('territory.noTerritories') }}</p>
+        <p class="text-sm mt-2">
+          {{ t('territory.checkData') }}
+        </p>
       </div>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-if="geoDataStore.filteredTerritories.length === 0"
-      class="text-gray-500"
-    >
-      <p>{{ t('territory.noTerritories') }}</p>
-      <p class="text-sm mt-2">
-        {{ t('territory.checkData') }}
-      </p>
     </div>
   </div>
 </template>

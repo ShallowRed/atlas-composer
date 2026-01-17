@@ -122,16 +122,6 @@ function getPolygonStats(polygon: any[], index: number): PolygonStats {
 }
 
 /**
- * Distance between two centers in degrees
- * @param a - First center
- * @param b - Second center
- * @returns Distance in degrees
- */
-function distanceBetweenCenters(a: Center, b: Center): number {
-  return Math.hypot((a.lon ?? 0) - (b.lon ?? 0), (a.lat ?? 0) - (b.lat ?? 0))
-}
-
-/**
  * Pretty-print a country feature with geometry insights
  * @param country - GeoJSON feature
  * @param resolution - Resolution string
@@ -185,32 +175,24 @@ function describeCountry(country: GeoJSONFeature, resolution: string, index: num
   }
 
   const polygonStats = polygons.map((polygon: any, idx: number) => getPolygonStats(polygon, idx))
-  const mainland = polygonStats.reduce((largest: PolygonStats, current: PolygonStats) =>
-    current.approxArea > largest.approxArea ? current : largest, polygonStats[0])
 
   logger.subsection(`Polygon Breakdown (${polygons.length})`)
   const separateCandidates: SeparateCandidate[] = []
 
-  for (const stats of polygonStats) {
-    const isMainland = stats.index === mainland.index
-    const distance = distanceBetweenCenters(stats.center, mainland.center)
-    const likelySeparate = !isMainland && (distance > 5 || stats.approxArea < mainland.approxArea * 0.1)
+  // Sort by area for analysis
+  const sortedStats = [...polygonStats].sort((a, b) => b.approxArea - a.approxArea)
 
-    if (isMainland) {
-      logger.highlight(`Polygon ${stats.index}: MAINLAND CANDIDATE`)
-    }
-    else {
-      logger.log(`Polygon ${stats.index}:`)
-    }
-
+  for (const stats of sortedStats) {
+    logger.log(`Polygon ${stats.index}:`)
     logger.log(`  Bounds: ${formatBounds(stats.bounds)}`)
     logger.log(`  Approx area: ${stats.approxArea.toFixed(2)} deg²`)
     logger.log(`  Rings: ${stats.ringCount}`)
-    logger.log(`  Distance from mainland: ${distance.toFixed(2)}°`)
 
-    if (likelySeparate) {
-      logger.warning('  Likely separate territory / island')
-      separateCandidates.push({ stats, distance })
+    // Flag small distant polygons as potential separate territories
+    const isSmall = stats.approxArea < sortedStats[0].approxArea * 0.1
+    if (isSmall && polygonStats.length > 1) {
+      logger.warning('  Potential separate territory (small polygon)')
+      separateCandidates.push({ stats, distance: 0 })
     }
 
     logger.newline()

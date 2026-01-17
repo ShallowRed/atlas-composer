@@ -17,7 +17,6 @@ describe('compositeConfiguration', () => {
   const createValidTerritory = (code: string): TerritoryProjectionConfig => ({
     code,
     name: `Territory ${code}`,
-    role: 'primary',
     projectionId: 'conic-conformal',
     family: 'CONIC',
     parameters: {},

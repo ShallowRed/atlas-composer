@@ -933,44 +933,19 @@ export class InitializationService {
 
     const territoriesInPreset = new Set(Object.keys(territoryParameters))
 
-    if (compositeConfig.type === 'single-focus') {
-      // Filter overseas territories to only those in preset
-      const filteredOverseas = compositeConfig.overseasTerritories.filter((t: any) =>
-        territoriesInPreset.has(t.code),
-      )
+    // Filter territories to only those in preset - all territories treated equally
+    const filteredTerritories = compositeConfig.territories.filter((t: any) =>
+      territoriesInPreset.has(t.code),
+    )
 
-      debug('Filtered single-focus: %d territories in preset, %d overseas', territoriesInPreset.size, filteredOverseas.length)
+    debug('Filtered territories: %d in preset, %d filtered', territoriesInPreset.size, filteredTerritories.length)
 
-      return {
-        ...atlasConfig,
-        compositeProjectionConfig: {
-          ...compositeConfig,
-          overseasTerritories: filteredOverseas,
-        },
-      }
+    return {
+      ...atlasConfig,
+      compositeProjectionConfig: {
+        territories: filteredTerritories,
+      },
     }
-    else if (compositeConfig.type === 'equal-members') {
-      // Filter mainlands and overseas territories
-      const filteredMainlands = compositeConfig.mainlands.filter((t: any) =>
-        territoriesInPreset.has(t.code),
-      )
-      const filteredOverseas = compositeConfig.overseasTerritories.filter((t: any) =>
-        territoriesInPreset.has(t.code),
-      )
-
-      debug('Filtered equal-members: %d territories in preset (%d mainlands, %d overseas)', territoriesInPreset.size, filteredMainlands.length, filteredOverseas.length)
-
-      return {
-        ...atlasConfig,
-        compositeProjectionConfig: {
-          ...compositeConfig,
-          mainlands: filteredMainlands,
-          overseasTerritories: filteredOverseas,
-        },
-      }
-    }
-
-    return atlasConfig
   }
 
   /**
@@ -1001,17 +976,8 @@ export class InitializationService {
       return errors
     }
 
-    // Get all territory codes that should be rendered
-    const territoriesToValidate: string[] = []
-
-    if (compositeConfig.type === 'single-focus') {
-      territoriesToValidate.push(compositeConfig.mainland.code)
-      territoriesToValidate.push(...compositeConfig.overseasTerritories.map((t: any) => t.code))
-    }
-    else if (compositeConfig.type === 'equal-members') {
-      territoriesToValidate.push(...compositeConfig.mainlands.map((t: any) => t.code))
-      territoriesToValidate.push(...compositeConfig.overseasTerritories.map((t: any) => t.code))
-    }
+    // Get all territory codes that should be rendered - all territories treated equally
+    const territoriesToValidate: string[] = compositeConfig.territories?.map((t: any) => t.code) ?? []
 
     // Validate each territory has projectionId (only for composite modes)
     for (const territoryCode of territoriesToValidate) {

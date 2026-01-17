@@ -44,7 +44,7 @@ pnpm geodata:prepare <atlas> [--resolution=10m|50m|110m]
 1. Load & validate JSON config from `configs/<atlas>.json`
 2. Download Natural Earth data at specified resolution
 3. Filter territories by Natural Earth ID
-4. Extract embedded territories (overseas from mainland)
+4. Extract embedded territories (separate polygons from source features)
 5. Duplicate territories for projection needs
 6. Generate optimized TopoJSON output
 
@@ -134,14 +134,13 @@ Found: France
 Geometry: MultiPolygon
   Polygons: 8
 
-Polygon #0 (Mainland):
+Polygon #0:
   Bounds: lon [-5.14, 9.56], lat [41.33, 51.09]
   Area:   ~35,892 km²
 
-Polygon #1 (Overseas):
+Polygon #1:
   Bounds: lon [-61.81, -61.00], lat [15.83, 16.52]
   Area:   ~165 km²
-  Distance: ~6,600 km from mainland
 ```
 
 ### 4. analyze-country.ts
@@ -166,39 +165,17 @@ Analyzing country ID: 250
 Country: France (FRA)
 Type: MultiPolygon with 8 polygons
 
-Polygon Analysis:
+Polygons (sorted by area):
 
-#0 - MAINLAND (91.2% of total area)
+#0 (91.2% of total area)
   Bounds:  [[-5.14, 41.33], [9.56, 51.09]]
   Center:  [2.21, 46.21]
   Area:    35,892 km²
-  Region:  Europe
 
-#1 - CARIBBEAN (0.4% of total area)
+#1 (0.4% of total area)
   Bounds:  [[-61.81, 15.83], [-61.00, 16.52]]
   Center:  [-61.40, 16.18]
   Area:    165 km²
-  Region:  Caribbean
-  Distance: 6,623 km from mainland
-
-Configuration Suggestions:
-
-Mainland Territory:
-{
-  "id": "250",
-  "code": "FR-MET",
-  "name": "Metropolitan France",
-  "role": "mainland"
-}
-
-Overseas Territories:
-{
-  "id": "250-1",
-  "code": "FR-GP",
-  "name": "Guadeloupe",
-  "role": "overseas",
-  "bounds": [[-61.81, 15.83], [-61.00, 16.52]]
-}
 ```
 
 ## Directory Structure
@@ -267,16 +244,16 @@ if (!result.valid) {
 ```typescript
 import { logger } from '#scripts/utils/logger'
 
-logger.info('Processing...')      // Blue
-logger.success('✓ Complete')      // Green
-logger.error('✗ Failed')          // Red
-logger.warn('⚠ Warning')          // Yellow
-logger.section('=== Step 1 ===')  // Cyan
+logger.info('Processing...') // Blue
+logger.success('✓ Complete') // Green
+logger.error('✗ Failed') // Red
+logger.warn('⚠ Warning') // Yellow
+logger.section('=== Step 1 ===') // Cyan
 ```
 
 ## Territory Extraction
 
-**Problem**: Natural Earth stores mainland + overseas in single MultiPolygon
+**Problem**: Natural Earth stores multiple territories in single MultiPolygon
 
 **Solution**: Extract polygons by matching geographic bounds
 
@@ -284,10 +261,7 @@ logger.section('=== Step 1 ===')  // Cyan
 ```json
 {
   "id": "250",
-  "code": "FR-MET",
-  "extraction": {
-    "mainlandPolygon": 0  // Keep only polygon #0 (mainland)
-  }
+  "code": "FR-MET"
 }
 
 {
@@ -305,7 +279,7 @@ logger.section('=== Step 1 ===')  // Cyan
 2. Calculate polygon bounds
 3. Compare with extraction rule bounds (0.5° tolerance)
 4. If match: separate polygon into new feature
-5. Remaining polygons stay in mainland
+5. Remaining polygons stay in source feature
 
 **Critical**: Bounds format must be nested arrays `[[minLon, minLat], [maxLon, maxLat]]`
 
@@ -320,8 +294,8 @@ logger.section('=== Step 1 ===')  // Cyan
 {
   "duplicates": [
     {
-      "sourceCode": "258",      // French Polynesia
-      "targetCode": "FR-PF-2"   // Duplicate with new ID
+      "sourceCode": "258", // French Polynesia
+      "targetCode": "FR-PF-2" // Duplicate with new ID
     }
   ]
 }
@@ -368,8 +342,8 @@ rm -rf node_modules/.cache/natural-earth
 ### 6. Naming Conventions
 
 **Territory Codes**:
-- Mainland: `{ISO}-MET` (e.g., `FR-MET`)
-- Overseas: `{ISO}-{ABBR}` (e.g., `FR-GP`)
+- Metropolitan: `{ISO}-MET` (e.g., `FR-MET` for France Metropolitaine)
+- Overseas: `{ISO}-{ABBR}` (e.g., `FR-GP` for Guadeloupe)
 - Duplicates: `{ISO}-{ABBR}-{N}` (e.g., `FR-PF-2`)
 
 **Files**:

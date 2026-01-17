@@ -108,7 +108,6 @@ export interface ExportedConfig {
     createdWith?: string
     notes?: string
   }
-  pattern: string
   referenceScale?: number
   canvasDimensions?: {
     width: number

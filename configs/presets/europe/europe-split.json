@@ -6,15 +6,6 @@
   "atlasId": "europe",
   "type": "split",
   "config": {
-    "mainland": {
-      "projection": {
-        "id": "conic-conformal",
-        "parameters": {
-          "rotate": [-10, -52, 0],
-          "parallels": [40, 60]
-        }
-      }
-    },
     "territories": {
       "AT": {
         "projection": {

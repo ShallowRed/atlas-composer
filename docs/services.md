@@ -52,14 +52,6 @@ Used when service provides pure transformations, utility functions, or stateless
 
 ## Atlas Services (src/services/atlas/)
 
-### AtlasPatternService
-Pattern detection and behavioral decisions for different atlas types.
-- `isSingleFocus()` - Check if atlas has single mainland
-- `isEqualMembers()` - Check if atlas has equal member states
-- `supportsSplitView()` - Check if split view is supported
-- `getDefaultViewMode()` - Get recommended view mode
-- `getPrimaryTerritoryRole()` - Determine mainland vs member role
-
 ### AtlasCoordinator
 Orchestrates atlas changes and configuration updates.
 Loads presets automatically when defaultPreset is configured.
@@ -165,26 +157,11 @@ Pure functions determining when to show/hide territory UI elements.
 
 **Methods**:
 - `shouldShowEmptyState()` - Determines if empty state alert should be shown
-  - Business Rule: Show when no territories AND no mainland visible
-  - Inputs: territory count, atlas pattern, mainland presence
+  - Business Rule: Show when no territories visible
   - Returns boolean
-- `shouldShowMainland()` - Determines if mainland section should be shown
-  - Business Rule: Only single-focus atlases show mainland
-  - Input: atlas pattern
+- `hasVisibleTerritories()` - Checks if any territories are currently visible
+  - Utility helper for territory presence detection
   - Returns boolean
-- `hasMainlandInList()` - Checks if mainland code is in territory list
-  - Utility helper for mainland presence detection
-  - Inputs: territory codes array, mainland code
-  - Returns boolean
-
-**Example**:
-```typescript
-const shouldShow = TerritoryVisibilityService.shouldShowEmptyState({
-  territoryCount: 0,
-  atlasPattern: 'equal-members',
-  hasMainlandInActiveTerritories: false,
-}) // Returns true - no territories and no mainland
-```
 
 ### TerritoryResetService
 Static service for calculating territory reset operations.
@@ -244,10 +221,9 @@ const data = service.getTerritoryData()
 ## Data Services (src/services/data/)
 
 ### TerritoryDataLoader
-Strategy pattern for loading territory data based on atlas pattern.
-- `loadTerritories()` - Load territory data using appropriate strategy
+Loads territory data treating all territories equally.
+- `loadTerritories()` - Load territory data for rendering
 - `loadUnifiedData()` - Load unified data with territory filtering
-Strategies: SingleFocusLoadStrategy, EqualMembersLoadStrategy
 
 ### TerritoryFilterService
 Filter and group territories based on display modes.
@@ -301,7 +277,7 @@ Conversion to D3 methods happens at render time based on projection family.
 
 **Key Functions**:
 - `centerToCanonical()` - Convert D3 center to canonical format
-- `rotateToCanonical()` - Convert D3 rotate to canonical format  
+- `rotateToCanonical()` - Convert D3 rotate to canonical format
 - `canonicalToCenter()` - Convert canonical to D3 center
 - `canonicalToRotate()` - Convert canonical to D3 rotate
 - `applyCanonicalPositioning()` - Apply canonical positioning to projection based on family
@@ -311,9 +287,9 @@ Conversion to D3 methods happens at render time based on projection family.
 **Canonical Format**:
 ```typescript
 interface CanonicalPositioning {
-  focusLongitude: number  // -180 to 180
-  focusLatitude: number   // -90 to 90
-  rotateGamma?: number    // -180 to 180
+  focusLongitude: number // -180 to 180
+  focusLatitude: number // -90 to 90
+  rotateGamma?: number // -180 to 180
 }
 ```
 
@@ -409,15 +385,15 @@ Uses `@atlas-composer/projection-core` for composite projection building:
 **ViewState Interface**:
 ```typescript
 interface ViewState {
-  viewMode: ViewMode                          // Current view mode
-  atlasConfig: AtlasConfig                    // Current atlas configuration
-  hasPresets: boolean                         // Presets available
-  hasOverseasTerritories: boolean             // Filtered territories exist
-  isPresetLoading: boolean                    // Loading state
-  showProjectionSelector: boolean             // From ProjectionUIService
-  showIndividualProjectionSelectors: boolean  // From ProjectionUIService
-  isMainlandInTerritories: boolean            // Mainland in filtered list
-  showMainland: boolean                       // Atlas has mainland config
+  viewMode: ViewMode // Current view mode
+  atlasConfig: AtlasConfig // Current atlas configuration
+  hasPresets: boolean // Presets available
+  hasOverseasTerritories: boolean // Filtered territories exist
+  isPresetLoading: boolean // Loading state
+  showProjectionSelector: boolean // From ProjectionUIService
+  showIndividualProjectionSelectors: boolean // From ProjectionUIService
+  isMainlandInTerritories: boolean // Mainland in filtered list
+  showMainland: boolean // Atlas has mainland config
 }
 ```
 
@@ -444,17 +420,13 @@ interface ViewState {
   - True only in composite-custom mode
 - `shouldShowTerritoryParameterControls(state)` - Territory parameter editing
   - True only in composite-custom mode
-- `shouldShowMainlandAccordion(state)` - Mainland territory accordion
-  - True in individual projection mode with mainland configuration
 - `shouldShowProjectionDropdown(state)` - Projection dropdown per territory
   - True when NOT in composite-custom mode (uses parameter controls instead)
 
 **Empty State Logic**:
-- `shouldShowEmptyState(state)` - Complex logic handling mainland/overseas combinations
-  - Returns true when: no overseas territories AND (mainland not shown OR mainland not in list)
-  - Ensures empty state only shows when truly no territories to display
+- `shouldShowEmptyState(state)` - Determines when to show empty state
+  - Returns true when no territories are visible
 - `getEmptyStateMessage(state)` - Returns appropriate i18n key
-  - 'territory.noOverseas' - Standard message for empty state
 
 **Control State Methods**:
 - `shouldShowTerritorySelector(state)` - Territory selector visibility
@@ -495,11 +467,11 @@ const { viewOrchestration } = useViewState()
 <template>
   <!-- Access with .value in template -->
   <CardContainer v-show="viewOrchestration.shouldShowRightSidebar.value">
-    <ProjectionParamsControls 
-      v-if="viewOrchestration.shouldShowProjectionParams.value" 
+    <ProjectionParamsControls
+      v-if="viewOrchestration.shouldShowProjectionParams.value"
     />
-    <TerritoryControls 
-      v-else-if="viewOrchestration.shouldShowTerritoryControls.value" 
+    <TerritoryControls
+      v-else-if="viewOrchestration.shouldShowTerritoryControls.value"
     />
   </CardContainer>
 </template>
@@ -529,7 +501,7 @@ The refactoring replaced inline template conditionals like:
 
 **Related Services**: ProjectionUIService (provides projection-specific UI flags)
 - Reference scale parameter: Base scale from preset configuration (defaults: 2700 for single-focus, 200 for equal-members)
-- Territory scale multiplier (regular Scale controls): Multiplies reference scale (0.5×-2.0× range)  
+- Territory scale multiplier (regular Scale controls): Multiplies reference scale (0.5×-2.0× range)
 - Final scale = reference scale × territory multiplier
 - Reference scale parameter sourced from preset configuration, not atlas configuration
 
@@ -609,7 +581,7 @@ The `mergeParameters()` utility function (src/types/projection-parameters.ts) ha
 
 **Event System**:
 - Parameter change events with territory context
-- Validation error events with registry-based error messages  
+- Validation error events with registry-based error messages
 - Territory parameter lifecycle events (set, clear, validate)
 
 ### Parameter System Integration
@@ -684,9 +656,8 @@ Static methods for configuration serialization and code generation.
 **Configuration Format**:
 - `version` - Schema version (currently '1.0')
 - `metadata` - Atlas info, export date, creator
-- `pattern` - Atlas pattern (single-focus/equal-members)
 - `territories[]` - Array of territory configurations
-  - `code, name, role` - Territory identification
+  - `code, name` - Territory identification
   - `projection` - Projection configuration
     - `id` - Projection identifier (e.g., 'conic-conformal')
     - `family` - Projection family (e.g., 'CONIC')
@@ -858,12 +829,9 @@ Static methods for SVG overlay rendering:
 
 Overlay Features:
 - **Composition Borders**: Dashed borders around territory regions (dash: 8 4, width: 1.25)
-  - Rendered for all territories (including mainland) in composite maps
+  - Rendered for all territories in composite maps
   - Shows individual territory projection boundaries
   - **Territory filtering**: Filters borders to show only active territories in custom composite mode
-    - Always shows mainland border regardless of active set
-    - Filters overseas territories by filteredTerritoryCodes Set (from geoDataStore)
-    - MainlandCode parameter identifies mainland for special treatment
 - **Map Limits**: Dashed border around entire rendered content (dash: 4 3, width: 1.5)
   - Always uses viewport-based scene bounds
   - Independent of composition borders (shows full map extent)
@@ -975,7 +943,7 @@ Static methods for configuration serialization:
 - Includes metadata (atlasId, exportDate, version)
 - Exports territories with projection parameters, layout, and bounds
 
-### CompositeImportService  
+### CompositeImportService
 Import and restore composite projection configurations from JSON.
 Static methods for configuration import:
 - `importFromJSON()` - Parse and validate JSON string
@@ -1041,7 +1009,7 @@ Existing services use instance pattern for:
 - Legacy compatibility
 
 ### Strategy Pattern
-TerritoryDataLoader uses strategies for pattern-specific loading logic.
+TerritoryDataLoader uses strategies for data loading based on view mode.
 
 ### Coordinator Pattern
 InitializationService and MapRenderCoordinator orchestrate complex multi-step operations.

@@ -50,7 +50,7 @@ interface ExtractedTerritory {
 }
 
 interface ExtractionResult {
-  mainland: GeoJSONFeature
+  remaining: GeoJSONFeature
   extracted: GeoJSONFeature[]
 }
 
@@ -96,32 +96,32 @@ async function saveData(filename: string, data: any): Promise<void> {
 
 /**
  * Extracts sub-territories from a MultiPolygon GeoJSON feature based on bounds matching
- * @param mainlandFeature - GeoJSON feature with MultiPolygon geometry
+ * @param sourceFeature - GeoJSON feature with MultiPolygon geometry
  * @param config - Territory configuration with extraction rules
- * @returns Object with mainland feature and extracted territory features
+ * @returns Object with remaining feature and extracted territory features
  */
 function extractEmbeddedTerritories(
-  mainlandFeature: GeoJSONFeature,
+  sourceFeature: GeoJSONFeature,
   config: Record<string, BackendTerritory>,
 ): ExtractionResult {
-  if (!mainlandFeature.geometry || mainlandFeature.geometry.type !== 'MultiPolygon') {
+  if (!sourceFeature.geometry || sourceFeature.geometry.type !== 'MultiPolygon') {
     return {
-      mainland: mainlandFeature,
+      remaining: sourceFeature,
       extracted: [],
     }
   }
 
   const extracted: GeoJSONFeature[] = []
-  const mainlandPolygons: any[] = []
+  const remainingPolygons: any[] = []
 
   // Find territories to extract (those with extractFrom property)
   const extractionRules = Object.entries(config)
-    .filter(([_, terr]) => terr.extractFrom && String(terr.extractFrom) === String(mainlandFeature.id || mainlandFeature.properties?.id))
+    .filter(([_, terr]) => terr.extractFrom && String(terr.extractFrom) === String(sourceFeature.id || sourceFeature.properties?.id))
     .map(([id, terr]) => ({ id, ...terr }))
 
   if (extractionRules.length === 0) {
     return {
-      mainland: mainlandFeature,
+      remaining: sourceFeature,
       extracted: [],
     }
   }
@@ -152,18 +152,18 @@ function extractEmbeddedTerritories(
 
     // Extract polygons by index
     for (const index of rule.polygonIndices) {
-      if (index >= 0 && index < mainlandFeature.geometry.coordinates.length) {
-        extractedGroups.get(rule.id)!.polygons.push(mainlandFeature.geometry.coordinates[index])
+      if (index >= 0 && index < sourceFeature.geometry.coordinates.length) {
+        extractedGroups.get(rule.id)!.polygons.push(sourceFeature.geometry.coordinates[index])
         extractedIndices.add(index)
       }
       else {
-        logger.warning(`  Polygon index ${index} out of range for ${rule.code} (total: ${mainlandFeature.geometry.coordinates.length})`)
+        logger.warning(`  Polygon index ${index} out of range for ${rule.code} (total: ${sourceFeature.geometry.coordinates.length})`)
       }
     }
   }
 
   // Process bounds-based extraction for remaining polygons
-  mainlandFeature.geometry.coordinates.forEach((polygon: any, index: number) => {
+  sourceFeature.geometry.coordinates.forEach((polygon: any, index: number) => {
     // Skip if already extracted by index
     if (extractedIndices.has(index)) {
       return
@@ -214,9 +214,9 @@ function extractEmbeddedTerritories(
       }
     }
 
-    // If not matched by any extraction rule, it's part of mainland
+    // If not matched, keep in remaining polygons
     if (!matched) {
-      mainlandPolygons.push(polygon)
+      remainingPolygons.push(polygon)
     }
   })
 
@@ -239,11 +239,11 @@ function extractEmbeddedTerritories(
   }
 
   return {
-    mainland: {
-      ...mainlandFeature,
+    remaining: {
+      ...sourceFeature,
       geometry: {
-        ...mainlandFeature.geometry,
-        coordinates: mainlandPolygons,
+        ...sourceFeature.geometry,
+        coordinates: remainingPolygons,
       },
     },
     extracted,
@@ -402,7 +402,7 @@ function filterTerritories(
     )
 
     if (hasExtractions) {
-      const { mainland, extracted } = extractEmbeddedTerritories(feature, territoriesConfig)
+      const { remaining, extracted } = extractEmbeddedTerritories(feature, territoriesConfig)
 
       // Log extraction
       if (extracted.length > 0) {
@@ -411,8 +411,8 @@ function filterTerritories(
         extractionResults.push(...extracted)
       }
 
-      // Return mainland with filtered polygons
-      return mainland
+      // Return remaining feature with filtered polygons
+      return remaining
     }
 
     return feature
@@ -420,40 +420,6 @@ function filterTerritories(
 
   // Add extracted territories to processed features
   processedFeatures.push(...extractionResults)
-
-  // STEP 2.5: Apply mainlandPolygon filter for territories that specify it
-  processedFeatures = processedFeatures.map((feature) => {
-    const territoryId = feature.properties!.id
-    const territory = territoriesConfig[territoryId]
-
-    if (!territory || territory.mainlandPolygon === undefined) {
-      return feature
-    }
-
-    // If mainlandPolygon is specified, extract only that polygon
-    if (feature.geometry && feature.geometry.type === 'MultiPolygon') {
-      const mainlandIndex = territory.mainlandPolygon
-      if (mainlandIndex >= 0 && mainlandIndex < feature.geometry.coordinates.length) {
-        // Convert to Polygon (single polygon)
-        return {
-          ...feature,
-          geometry: {
-            type: 'Polygon',
-            coordinates: feature.geometry.coordinates[mainlandIndex],
-          },
-        }
-      }
-      else {
-        logger.warning(`  mainlandPolygon index ${mainlandIndex} out of range for ${territory.code} (total: ${feature.geometry.coordinates.length})`)
-      }
-    }
-    else if (feature.geometry && feature.geometry.type === 'Polygon' && territory.mainlandPolygon === 0) {
-      // Already a single polygon, keep as is
-      return feature
-    }
-
-    return feature
-  })
 
   // STEP 3: Duplicate territories for multiple projections (like FR-PF-2)
   const finalFeatures = duplicateTerritories(processedFeatures, territoriesConfig)

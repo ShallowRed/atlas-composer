@@ -87,9 +87,9 @@ export interface AtlasSpecificConfig {
 }
 
 export interface LoadedTerritories {
-  /** First territory (used as primary for split view) */
+  /** First territory (convenience accessor) */
   first: TerritoryConfig
-  /** All territories (equal, no hierarchy) */
+  /** All territories (treated equally) */
   all: TerritoryConfig[]
   /** True if territories should be loaded dynamically from data file */
   isWildcard?: boolean
@@ -149,7 +149,7 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     throw new Error(`No territories found in ${config.id}`)
   }
 
-  // Use first territory as representative (for split view primary territory)
+  // Get first territory as convenience accessor
   const firstTerritory = allTerritories[0]!
 
   return {
@@ -265,9 +265,7 @@ function createAtlasConfig(
           territories: territories.all,
         },
     splitModeConfig: {
-      primaryTitle: `atlas.territories.${config.id}.territories`,
-      primaryTerritoryCode: territories.first?.code,
-      otherTerritoriesTitle: `atlas.territories.${config.id}.territories`,
+      territoriesTitle: `atlas.territories.${config.id}.territories`,
     },
     hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0 && Object.keys(territoryModes).length > 0),
     isWildcard: territories.isWildcard === true,

@@ -35,7 +35,7 @@ export class TerritoryDataLoader {
 
   /**
    * Load territory data
-   * All territories loaded equally; first territory used as "primary" for split view
+   * All territories are loaded and treated equally
    */
   async loadTerritories(service: GeoDataService): Promise<TerritoryLoadResult> {
     const allTerritoriesData = await service.getAllTerritories()

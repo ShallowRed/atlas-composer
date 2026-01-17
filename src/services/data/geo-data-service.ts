@@ -254,25 +254,6 @@ export class GeoDataService {
   }
 
   /**
-   * Returns the first/primary territory geographic data (for split view)
-   * @returns FeatureCollection containing first territory, or null if none
-   */
-  async getPrimaryTerritoryData(): Promise<GeoJSON.FeatureCollection | null> {
-    await this.ensureLoaded()
-
-    const territories = Array.from(this.territoryData.values())
-    if (territories.length === 0) {
-      return null
-    }
-
-    const primary = territories[0]
-    return {
-      type: 'FeatureCollection',
-      features: [primary.feature],
-    }
-  }
-
-  /**
    * Returns the complete, unmodified territory data for all territories
    * Used for built-in composite projections that handle positioning internally
    * @returns FeatureCollection containing all territory data with original coordinates

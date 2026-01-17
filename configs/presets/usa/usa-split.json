@@ -6,16 +6,16 @@
   "atlasId": "usa",
   "type": "split",
   "config": {
-    "mainland": {
-      "projection": {
-        "id": "conic-conformal",
-        "parameters": {
-          "rotate": [98, -38, 0],
-          "parallels": [29.5, 45.5]
-        }
-      }
-    },
     "territories": {
+      "US-CONT": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [98, -38, 0],
+            "parallels": [29.5, 45.5]
+          }
+        }
+      },
       "US-AK": {
         "projection": {
           "id": "conic-conformal",

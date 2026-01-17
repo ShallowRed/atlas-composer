@@ -70,22 +70,6 @@ export function useViewState() {
     getViewModeIcon(viewStore.viewMode),
   )
 
-  // Helper computed properties for ViewState
-  const showPrimaryTerritory = computed(() => {
-    const atlasConfig = atlasStore.currentAtlasConfig
-    return !!atlasConfig?.splitModeConfig?.primaryTerritoryCode
-  })
-
-  const primaryTerritoryCode = computed(() => {
-    const atlasConfig = atlasStore.currentAtlasConfig
-    return atlasConfig?.splitModeConfig?.primaryTerritoryCode || 'PRIMARY'
-  })
-
-  const isPrimaryTerritoryInActive = computed(() => {
-    // Check if primary territory is in the all active territories list
-    return geoDataStore.allActiveTerritories.some(t => t.code === primaryTerritoryCode.value)
-  })
-
   /**
    * Build ViewState snapshot for service calls
    * Aggregates all state needed for orchestration decisions
@@ -103,12 +87,10 @@ export function useViewState() {
       viewMode: viewStore.viewMode,
       atlasConfig,
       hasPresets,
-      hasOtherTerritories: geoDataStore.otherTerritories.length > 0,
+      hasTerritories: geoDataStore.allActiveTerritories.length > 0,
       isPresetLoading: false,
       showProjectionSelector: viewStore.showProjectionSelector,
       showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
-      isPrimaryTerritoryInActive: isPrimaryTerritoryInActive.value,
-      showPrimaryTerritory: showPrimaryTerritory.value,
     }
   })
 
@@ -146,9 +128,6 @@ export function useViewState() {
     ),
     shouldShowTerritoryParameterControls: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowTerritoryParameterControls(viewState.value) : false,
-    ),
-    shouldShowMainlandAccordion: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowMainlandAccordion(viewState.value) : false,
     ),
     shouldShowProjectionDropdown: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowProjectionDropdown(viewState.value) : false,

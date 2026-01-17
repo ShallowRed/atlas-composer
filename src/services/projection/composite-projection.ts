@@ -48,7 +48,7 @@ interface SubProjectionConfig {
 /**
  * Custom composite projection that allows individual projections per territory
  * with manual positioning (insets)
- * Supports both traditional (1 mainland + N overseas) and multi-mainland (N mainlands + M overseas) patterns
+ * Supports any number of territories with equal treatment
  */
 export class CompositeProjection {
   private subProjections: SubProjectionConfig[] = []
@@ -110,7 +110,7 @@ export class CompositeProjection {
     }
 
     // No parameter provider - convert config's legacy format to canonical
-    // Use projectionId directly from config if available
+    // Without parameter provider, we cannot get projectionId (territories without preset are skipped)
     if (configParams.center) {
       const canonical = inferCanonicalFromLegacy({
         center: configParams.center as [number, number],
@@ -123,12 +123,12 @@ export class CompositeProjection {
         scale: undefined,
         clipAngle: undefined,
         precision: undefined,
-        projectionId: configParams.projectionId,
+        projectionId: undefined,
       }
     }
 
     return {
-      projectionId: configParams.projectionId,
+      projectionId: undefined,
     }
   }
 
@@ -579,7 +579,7 @@ export class CompositeProjection {
       return this.compositeProjection
     }
 
-    // Center point for the map (mainland territory will be centered here)
+    // Center point for the map
     const centerX = width / 2
     const centerY = height / 2
 
@@ -599,7 +599,7 @@ export class CompositeProjection {
       }
 
       // All territories are positioned relative to the map center
-      // Mainland has offset [0,0] or close to it, so it will be centered
+      // Primary territory has offset [0,0] or close to it, so it will be centered
       // Others have their configured offsets relative to center
       const newTranslate: [number, number] = [
         centerX + translateOffset[0],

@@ -14,9 +14,8 @@
  *
  * Output:
  *   - Lists all polygons with their bounds and areas
- *   - Identifies likely mainland (largest polygon)
  *   - Groups polygons by geographic proximity
- *   - Suggests configuration structure
+ *   - Suggests configuration structure for territory extraction
  */
 
 import process from 'node:process'
@@ -239,37 +238,28 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
     analyzePolygon(polygon, i),
   )
 
-  // Sort by area (largest first)
+  // Sort by area (largest first) for display
   const sortedPolygons = [...polygons].sort((a, b) => b.area - a.area)
-
-  // Identify mainland (largest polygon)
-  const mainland = sortedPolygons[0]
 
   // Print analysis
   logger.section('Polygon Analysis')
   logger.newline()
 
-  sortedPolygons.forEach((polygon) => {
-    const isMainland = polygon.index === mainland.index
+  sortedPolygons.forEach((polygon, rank) => {
     const [[minLon, minLat], [maxLon, maxLat]] = polygon.bounds
     const [centerLon, centerLat] = polygon.center
 
-    if (isMainland) {
-      logger.highlight(`Polygon ${polygon.index}:`)
-    }
-    else {
-      logger.log(`Polygon ${polygon.index}:`)
-    }
+    logger.log(`Polygon ${polygon.index}:`)
     logger.log(`  Bounds: [${minLon.toFixed(2)}, ${minLat.toFixed(2)}] → [${maxLon.toFixed(2)}, ${maxLat.toFixed(2)}]`)
     logger.log(`  Center: [${centerLon.toFixed(2)}, ${centerLat.toFixed(2)}]`)
-    logger.log(`  Area: ${polygon.area.toFixed(2)} sq° ${isMainland ? '(LARGEST - MAINLAND)' : ''}`)
+    logger.log(`  Area: ${polygon.area.toFixed(2)} sq°${rank === 0 ? ' (largest)' : ''}`)
     logger.log(`  Rings: ${polygon.ringCount}`)
     logger.log(`  Region: ${polygon.region}`)
     logger.newline()
   })
 
-  // Group by proximity
-  const groups = groupPolygonsByProximity(polygons.filter((p: PolygonMetadata) => p.index !== mainland.index))
+  // Group all polygons by proximity
+  const groups = groupPolygonsByProximity(polygons)
 
   if (groups.length > 0) {
     logger.section('Suggested Territory Groupings')
@@ -300,9 +290,8 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
   console.log(`{
   '${countryId}': {
     name: '${countryName}',
-    code: 'XX-MAIN',  // Choose your code
-    iso: '${isoCode}',
-    mainlandPolygon: ${mainland.index}
+    code: 'XX',  // Choose your code
+    iso: '${isoCode}'
   },`)
 
   let extractCount = 0

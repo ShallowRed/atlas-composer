@@ -287,7 +287,6 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
       "name": "France - Composite personnalisée par défaut",
       "atlasId": "france",
       "type": "composite-custom",
-      "pattern": "single-focus",
       "description": "Configuration alignée avec geoConicConformalFrance"
     },
     {
@@ -314,7 +313,6 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
 - `description` - Optional description (string or i18n object)
 - `type` - Preset type discriminator ('composite-custom' | 'unified' | 'split' | 'built-in-composite')
 - `configPath` - Required. Relative path to preset config file (e.g., "./presets/france/france-default.json" or "./presets/portugal-default.json")
-- `pattern` - (composite-custom only) Composite pattern type
 - `isDefault` - (optional) Marks the default preset for the atlas
 
 ## Preset File Formats
@@ -330,13 +328,11 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
     "exportDate": "2025-10-16T16:00:00.000Z",
     "createdWith": "d3-composite-projections alignment"
   },
-  "pattern": "single-focus",
   "referenceScale": 2700,
   "territories": [
     {
       "code": "FR-MET",
       "name": "France Métropolitaine",
-      "role": "primary",
       "projection": {
         "id": "conic-conformal",
         "family": "CONIC",
@@ -366,14 +362,12 @@ Presets are defined inline within atlas entries in `configs/atlas-registry.json`
 - `metadata.createdWith`: Application/source identifier
 
 **Composite Configuration**
-- `pattern`: "single-focus" | "equal-members"
 - `referenceScale`: Base scale for all territories (overrides atlas config)
 - `canvasDimensions`: Optional {width, height} in pixels
 
 **Territory Configuration**
 - `code`: Territory ISO code
 - `name`: Territory display name
-- `role`: "primary" | "secondary"
 - `projection.id`: Projection identifier from registry
 - `projection.family`: Projection family (CONIC, CYLINDRICAL, AZIMUTHAL, etc.)
 - `projection.parameters`: Parameter object
@@ -513,7 +507,7 @@ updateTerritoryParameters(territoryCode):
 const expectedScale = subProj.baseScale * subProj.scaleMultiplier
 if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) {
   // User has overridden scale parameter - don't overwrite with multiplier
-  return
+
 }
 // Otherwise: allow multiplier to update scale
 ```
@@ -523,7 +517,8 @@ if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) 
 if (params.scale !== undefined) {
   // User set scale parameter directly - use it
   correctScale = params.scale
-} else {
+}
+else {
   // Use calculated scale from baseScale × scaleMultiplier
   correctScale = subProj.baseScale * subProj.scaleMultiplier
 }
@@ -558,11 +553,13 @@ projection.scale(correctScale)
 const isConicProjection = projectionType.includes('conic') || projectionType.includes('albers')
 
 if (isConicProjection && projection.rotate && params.rotate) {
-  projection.rotate(params.rotate)  // For conic: use rotate
-} else if (params.center) {
-  projection.center(params.center)   // For cylindrical: use center
-} else if (projection.rotate && params.rotate) {
-  projection.rotate(params.rotate)   // Fallback to rotate
+  projection.rotate(params.rotate) // For conic: use rotate
+}
+else if (params.center) {
+  projection.center(params.center) // For cylindrical: use center
+}
+else if (projection.rotate && params.rotate) {
+  projection.rotate(params.rotate) // Fallback to rotate
 }
 ```
 
@@ -656,7 +653,7 @@ async function initialize() {
 ```typescript
 let initializationPromise: Promise<void> | null = null
 
-const initializeWithPresetMetadata = async () => {
+async function initializeWithPresetMetadata() {
   // If already initializing, return the existing promise
   if (initializationPromise) {
     return initializationPromise
@@ -684,7 +681,7 @@ Preset data applies to stores in this order:
 ### CompositeProjection Initialization
 
 During `CompositeProjection.initialize()`:
-1. Iterates through territories (mainland + overseas)
+1. Iterates through all atlas territories
 2. Calls `getParametersForTerritory()` to merge preset parameters
 3. Applies projection type (creates D3 projection)
 4. Applies positioning parameters (center or rotate)
@@ -777,12 +774,12 @@ Exported presets follow standard structure:
 - View parameters slider: Verify `updateTerritoryParameters()` respects params.scale
 - Both: Ensure `compositeProjection = null` triggers rebuild after changes
 
-**Mainland uses wrong projection type:**
+**Primary territory uses wrong projection type:**
 - Verify preset projection type matches expected value
 - Check `InitializationService.initializeAtlas()` applies projections to parameter store
 - Ensure `cartographer.applyCustomCompositeSettings()` doesn't override projection unnecessarily
 
-**Overseas territories positioned incorrectly:**
+**Territories positioned incorrectly:**
 - Verify projection uses correct positioning method (center vs rotate)
 - Check `isConicProjection` logic in initialization
 - Ensure cylindrical projections use `.center()` not `.rotate()`
@@ -842,7 +839,7 @@ async function loadPreset(presetId: string) {
   }
 
   // 4. Clear existing parameter overrides
-  allCurrentTerritoryCodes.forEach(code => {
+  allCurrentTerritoryCodes.forEach((code) => {
     parameterStore.clearAllTerritoryOverrides(code)
   })
 
@@ -853,7 +850,7 @@ async function loadPreset(presetId: string) {
   parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
 
   // 6. CRITICAL: Update CompositeProjection with new parameters
-  Object.keys(parametersWithoutScale).forEach(territoryCode => {
+  Object.keys(parametersWithoutScale).forEach((territoryCode) => {
     cartographer.updateTerritoryParameters(territoryCode)
   })
 }
@@ -875,7 +872,7 @@ The reset system restores territories to their preset configuration, managed thr
 
 **Global Reset** (`resetTransforms()`)
 - Restores all territories to preset defaults (projections, translations, scales, parameters)
-- Checks all territories via `atlasStore.atlasService.getAllTerritories()` including mainland
+- Checks all territories via `atlasStore.atlasService.getAllTerritories()`
 - Clears parameter overrides for all territories
 - Applies preset projections, translations, scales, and parameters to stores
 - Triggers cartographer updates for all territories via `updateTerritoryParameters()`
@@ -891,7 +888,7 @@ The reset system restores territories to their preset configuration, managed thr
 **Reset Divergence Detection**
 - Global reset button enables when any territory diverges from preset
 - Uses `usePresetDefaults().hasDivergingParameters()` to detect changes
-- Checks all territories including mainland via `getAllTerritories()`
+- Checks all territories via `getAllTerritories()`
 - Compares current state (projections, translations, scales, parameters) against preset defaults
 - Territory-specific reset buttons enable when individual territory has overrides
 
@@ -961,4 +958,3 @@ Components and services query atlas registry directly:
 4. Return typed preset configuration
 
 Focus on file I/O, validation delegates to core layer.
-

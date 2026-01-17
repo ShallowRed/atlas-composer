@@ -16,7 +16,6 @@ import type {
 import type { ProjectionId, TerritoryCode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { logger } from '@/utils/logger'
@@ -143,31 +142,9 @@ export class PresetApplicationService {
    * Individual projections per territory
    */
   private static applySplit(config: SplitViewConfig): ApplicationResult {
-    const atlasStore = useAtlasStore()
     const parameterStore = useParameterStore()
 
     try {
-      // Get mainland code from atlas
-      const mainland = atlasStore.atlasService?.getMainland()
-      const mainlandCode = mainland?.code
-
-      // Apply mainland projection
-      if (mainlandCode && config.mainland) {
-        parameterStore.setTerritoryProjection(
-          // Convert: Territory code from config
-          mainlandCode as TerritoryCode,
-          // Convert: Projection ID from config
-          config.mainland.projection.id as ProjectionId,
-        )
-        if (config.mainland.projection.parameters) {
-          parameterStore.setTerritoryParameters(
-            // Convert: Territory code from config
-            mainlandCode as TerritoryCode,
-            config.mainland.projection.parameters,
-          )
-        }
-      }
-
       // Apply territory projections
       if (config.territories) {
         for (const [code, territoryConfig] of Object.entries(config.territories)) {

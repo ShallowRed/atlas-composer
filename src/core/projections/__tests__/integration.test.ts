@@ -289,8 +289,8 @@ describe('registry + factory integration', () => {
       expect(projection).toBeDefined()
 
       // 4. Use projection for Portuguese territories
-      const mainlandPortugal = projection!([-8, 39])
-      expect(mainlandPortugal).toBeDefined()
+      const continentalPortugal = projection!([-8, 39])
+      expect(continentalPortugal).toBeDefined()
 
       const madeira = projection!([-16.9, 32.7])
       expect(madeira).toBeDefined()
@@ -320,8 +320,8 @@ describe('registry + factory integration', () => {
       expect(projection).toBeDefined()
 
       // 4. Use projection for European territories
-      const mainlandEurope = projection!([10, 50])
-      expect(mainlandEurope).toBeDefined()
+      const continentalEurope = projection!([10, 50])
+      expect(continentalEurope).toBeDefined()
 
       const canaryIslands = projection!([-15.5, 28])
       expect(canaryIslands).toBeDefined()

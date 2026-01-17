@@ -48,7 +48,7 @@ export type ProjectionId = Brand<string, 'ProjectionId'>
 export type PresetId = Brand<string, 'PresetId'>
 
 /**
- * Territory code (e.g., 'FR-GUA', 'US-HI', 'mainland')
+ * Territory code (e.g., 'FR-GP', 'US-HI', 'PT-CONT')
  */
 export type TerritoryCode = Brand<string, 'TerritoryCode'>
 

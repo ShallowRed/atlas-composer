@@ -19,7 +19,7 @@ import type { ProjectionLike, StreamLike } from '../types'
  *
  * @example
  * ```typescript
- * const multiplex = createStreamMultiplexer([mainlandProj, alaskaProj, hawaiiProj])
+ * const multiplex = createStreamMultiplexer([usaProj, alaskaProj, hawaiiProj])
  *
  * // Use as projection.stream method
  * compositeProjection.stream = multiplex

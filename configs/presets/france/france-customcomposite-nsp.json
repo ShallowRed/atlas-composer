@@ -7,7 +7,6 @@
     "exportDate": "2025-10-17T21:04:33.403Z",
     "createdWith": "Atlas composer v1.0"
   },
-  "pattern": "single-focus",
   "referenceScale": 2700,
   "canvasDimensions": {
     "width": 760,
@@ -17,7 +16,6 @@
     {
       "code": "FR-MET",
       "name": "France Métropolitaine",
-      "role": "primary",
       "projection": {
         "id": "conic-conformal",
         "family": "CONIC",
@@ -61,7 +59,6 @@
     {
       "code": "FR-GP",
       "name": "Guadeloupe",
-      "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",
@@ -104,7 +101,6 @@
     {
       "code": "FR-MQ",
       "name": "Martinique",
-      "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",
@@ -143,7 +139,6 @@
     {
       "code": "FR-GF",
       "name": "Guyane",
-      "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",
@@ -182,7 +177,6 @@
     {
       "code": "FR-RE",
       "name": "La Réunion",
-      "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",
@@ -221,7 +215,6 @@
     {
       "code": "FR-YT",
       "name": "Mayotte",
-      "role": "secondary",
       "projection": {
         "id": "mercator",
         "family": "CYLINDRICAL",

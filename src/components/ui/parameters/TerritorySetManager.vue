@@ -108,9 +108,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
   const collectionSetKey = collectionSetToDisplay.value
   if (!collectionSetKey) {
     // Fallback: create single group with all territories
-    const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
     const allTerritories = loadedTerritories.value
-      .filter(t => t.code !== mainlandCode)
       .map(territory => ({
         code: territory.code,
         name: territory.name,
@@ -133,7 +131,6 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     return []
   }
 
-  const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
   const territoriesByCode = new Map(loadedTerritories.value.map(t => [t.code, t]))
 
   // Convert territory collections to TerritoryGroup[]
@@ -142,7 +139,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
       id: collection.id,
       label: collection.label,
       territories: collection.codes
-        .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
+        .filter(code => code !== '*' && territoriesByCode.has(code as TerritoryCode))
         .map((code) => {
           const territory = territoriesByCode.get(code as TerritoryCode)!
           return {

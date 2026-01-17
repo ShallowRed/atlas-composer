@@ -22,8 +22,8 @@ Atlas-composer uses a **two-level scale system**:
 
 ```typescript
 // Level 1: Reference Scale (atlas-wide, from preset)
-referenceScale = 2700  // For France (single-focus pattern)
-referenceScale = 200   // For EU (equal-members pattern)
+referenceScale = 2700  // For France
+referenceScale = 200   // For EU
 
 // Level 2: Scale Multiplier (per territory, from preset)
 finalScale = referenceScale * params.scaleMultiplier
@@ -45,7 +45,7 @@ translateOffset = params.translateOffset || [0, 0]  // [x, y] in pixels
 Atlas JSON configs (france.json, portugal.json, etc.) are **projection-agnostic** and contain only:
 - `center`: Geographic center coordinates (required)
 - `bounds`: Geographic bounding box (required)
-- Basic metadata: `code`, `name`, `role`, etc.
+- Basic metadata: `code`, `name`, etc.
 
 **All projection-specific parameters come from presets**:
 - `projectionType` - Defined in preset (projection.id)
@@ -398,7 +398,7 @@ To generate d3-composite-projections JavaScript:
 ```javascript
 // Template
 export default function() {
-  var ${mainlandName} = ${projectionConstructor}()
+  var ${primaryName} = ${projectionConstructor}()
     .${centerOrRotate}(${coordinates})
     ${parallelsIfNeeded}
   
@@ -410,13 +410,13 @@ export default function() {
   }
   
   composite.scale = function(_) {
-    ${mainlandName}.scale(_)
+    ${primaryName}.scale(_)
     ${territoryName}.scale(_ * ${scaleMultiplier})
-    return composite.translate(${mainlandName}.translate())
+    return composite.translate(${primaryName}.translate())
   }
   
   composite.translate = function(_) {
-    var k = ${mainlandName}.scale()
+    var k = ${primaryName}.scale()
     var x = +_[0], y = +_[1]
     
     ${territoryName}

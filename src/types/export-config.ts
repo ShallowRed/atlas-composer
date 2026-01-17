@@ -83,11 +83,6 @@ export interface ExportMetadata {
 }
 
 /**
- * Pattern type for composite projection structure
- */
-export type CompositePattern = 'single-focus' | 'equal-members'
-
-/**
  * Supported configuration versions
  */
 export type ConfigVersion = '1.0'
@@ -114,10 +109,7 @@ export interface BaseExportedConfig {
   /** Export metadata */
   metadata: ExportMetadata
 
-  /** Composite pattern type */
-  pattern: CompositePattern
-
-  /** Base scale for all territories (defaults to 2700 for single-focus, 200 for equal-members) */
+  /** Base scale for all territories */
   referenceScale?: number
 
   /** Reference canvas dimensions (defaults to 960×500 for d3-composite-projections standard) */

@@ -6,16 +6,16 @@
   "atlasId": "france",
   "type": "split",
   "config": {
-    "mainland": {
-      "projection": {
-        "id": "conic-conformal",
-        "parameters": {
-          "rotate": [-3, -46.2, 0],
-          "parallels": [0, 60]
-        }
-      }
-    },
     "territories": {
+      "FR-MET": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-3, -46.2, 0],
+            "parallels": [0, 60]
+          }
+        }
+      },
       "FR-GP": {
         "projection": {
           "id": "mercator",

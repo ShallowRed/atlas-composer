@@ -9,17 +9,14 @@
  */
 
 import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
-import type { CompositeProjectionConfig } from '@/types'
-import type { AtlasId, TerritoryCode } from '@/types/branded'
+import type { AtlasId } from '@/types/branded'
 import type {
   CodeGenerationOptions,
-  CompositePattern,
   ExportedCompositeConfig,
   ExportedProjectionParameters,
   ExportedTerritory,
   ExportMetadata,
   ExportValidationResult,
-  TerritoryRole,
 } from '@/types/export-config'
 import packageJson from '#package'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -126,7 +123,6 @@ export class CompositeExportService {
    * @param compositeProjection - The CompositeProjection instance to export
    * @param atlasId - Atlas identifier (e.g., 'france', 'portugal')
    * @param atlasName - Atlas display name
-   * @param compositeConfig - Original composite configuration for pattern info
    * @param parameterProvider - Parameter provider object for accessing territory parameters
    * @param referenceScale - Reference scale for projection
    * @param canvasDimensions - Canvas dimensions with width and height properties
@@ -139,7 +135,6 @@ export class CompositeExportService {
     compositeProjection: CompositeProjection,
     atlasId: AtlasId,
     atlasName: string,
-    compositeConfig: CompositeProjectionConfig,
     parameterProvider?: ProjectionParameterProvider,
     referenceScale?: number,
     canvasDimensions?: { width: number, height: number },
@@ -148,20 +143,11 @@ export class CompositeExportService {
     // Get raw export from CompositeProjection
     const rawExport = compositeProjection.exportConfig()
 
-    // Extract pattern from config
-    const pattern: CompositePattern = compositeConfig.type
-
-    // Transform territories to export format
+    // Transform territories to export format (all territories treated equally)
     const territories = rawExport.subProjections.map((subProj): ExportedTerritory => {
       // Resolve projection ID from projection type/name
       const projectionId = this.resolveProjectionId(subProj.projectionType)
       const projectionDef = projectionRegistry.get(projectionId)
-
-      // Determine territory role
-      const role: TerritoryRole = this.determineTerritoryRole(
-        subProj.territoryCode,
-        compositeConfig,
-      )
 
       // Get all exportable parameters from parameter provider if available
       let projectionParameters: ExportedProjectionParameters
@@ -199,7 +185,6 @@ export class CompositeExportService {
       return {
         code: subProj.territoryCode,
         name: subProj.territoryName,
-        role,
         projection: {
           id: projectionId,
           family: projectionDef?.family || 'unknown',
@@ -225,7 +210,6 @@ export class CompositeExportService {
     return {
       version: '1.0',
       metadata,
-      pattern,
       referenceScale,
       canvasDimensions,
       territories,
@@ -264,14 +248,6 @@ export class CompositeExportService {
       if (!config.metadata.exportDate) {
         errors.push('Missing metadata.exportDate')
       }
-    }
-
-    // Check pattern
-    if (!config.pattern) {
-      errors.push('Missing pattern')
-    }
-    else if (!['single-focus', 'equal-members'].includes(config.pattern)) {
-      errors.push(`Invalid pattern: ${config.pattern}`)
     }
 
     // Check territories
@@ -393,26 +369,6 @@ export class CompositeExportService {
       .replace(/^-/, '')
 
     return kebabCase
-  }
-
-  /**
-   * Determine territory role based on position in composite config
-   */
-  private static determineTerritoryRole(
-    territoryCode: TerritoryCode,
-    compositeConfig: CompositeProjectionConfig,
-  ): TerritoryRole {
-    if (compositeConfig.type === 'single-focus') {
-      if (compositeConfig.mainland.code === territoryCode) {
-        return 'primary'
-      }
-      return 'secondary'
-    }
-    else {
-      // equal-members pattern
-      const isMainland = compositeConfig.mainlands.some(m => m.code === territoryCode)
-      return isMainland ? 'member' : 'secondary'
-    }
   }
 
   /**

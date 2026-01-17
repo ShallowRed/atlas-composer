@@ -1,6 +1,8 @@
+import type { ProjectionParameterProvider } from '../composite-projection'
 import type { CompositeProjectionConfig } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createTerritoryCode } from '@/types/branded'
+import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
 
 describe('compositeProjection - invert/forward chain', () => {
@@ -8,31 +10,48 @@ describe('compositeProjection - invert/forward chain', () => {
   let builtProjection: any
 
   beforeEach(() => {
-    // Create a simple composite projection config with France mainland and overseas territories
-    // Include pixelClipExtent for proper territory isolation during inversion
+    // Create a simple composite projection config with France metropolitan and other territories
     const config: CompositeProjectionConfig = {
       territories: [
         {
           code: createTerritoryCode('FR'),
-          name: 'France Mainland',
+          name: 'France Metropolitan',
           center: [2, 46],
           bounds: [[-5, 42], [8, 51]],
-          projectionId: 'conic-conformal',
-          // Mainland takes most of the canvas (default clip extent)
         },
         {
           code: createTerritoryCode('FR-GF'),
           name: 'French Guiana',
           center: [-53, 4],
           bounds: [[-55, 2], [-51, 6]],
-          projectionId: 'mercator',
-          // Clip to bottom-left corner of canvas
-          pixelClipExtent: [[0, 450], [150, 600]],
         },
       ],
     }
 
-    compositeProjection = new CompositeProjection(config)
+    // Mock parameter provider to supply projectionId and pixelClipExtent
+    const mockParameterProvider: ProjectionParameterProvider = {
+      getEffectiveParameters: (territoryCode) => {
+        const params: ProjectionParameters = {
+          scaleMultiplier: 1.0,
+        }
+        if (territoryCode === 'FR') {
+          params.projectionId = createProjectionId('conic-conformal')
+          params.focusLongitude = 2
+          params.focusLatitude = 46
+        }
+        else if (territoryCode === 'FR-GF') {
+          params.projectionId = createProjectionId('mercator')
+          params.focusLongitude = -53
+          params.focusLatitude = 4
+          // Clip to bottom-left corner of canvas for proper territory isolation [minX, minY, maxX, maxY]
+          params.pixelClipExtent = [0, 450, 150, 600]
+        }
+        return params
+      },
+      getExportableParameters: territoryCode => mockParameterProvider.getEffectiveParameters(territoryCode),
+    }
+
+    compositeProjection = new CompositeProjection(config, mockParameterProvider)
     builtProjection = compositeProjection.build(800, 600)
   })
 
@@ -43,12 +62,12 @@ describe('compositeProjection - invert/forward chain', () => {
     })
 
     it('should invert center points correctly', () => {
-      // Test mainland center
-      const mainlandCenter = builtProjection([2, 46]) // France center
-      expect(mainlandCenter).toBeDefined()
+      // Test metropolitan France center
+      const franceCenter = builtProjection([2, 46]) // France center
+      expect(franceCenter).toBeDefined()
 
-      if (mainlandCenter) {
-        const inverted = builtProjection.invert(mainlandCenter)
+      if (franceCenter) {
+        const inverted = builtProjection.invert(franceCenter)
         expect(inverted).toBeDefined()
 
         if (inverted) {
@@ -59,9 +78,9 @@ describe('compositeProjection - invert/forward chain', () => {
       }
     })
 
-    it('should project overseas territory points', () => {
+    it('should project secondary territory points', () => {
       // Test French Guiana center - projection should produce valid screen coordinates
-      // Note: Inversion for overseas territories requires proper clip extent configuration
+      // Note: Inversion for secondary territories requires proper clip extent configuration
       // to determine which sub-projection the screen point belongs to
       const guianaCenter = builtProjection([-53, 4]) // French Guiana center
       expect(guianaCenter).toBeDefined()
@@ -77,10 +96,10 @@ describe('compositeProjection - invert/forward chain', () => {
   })
 
   describe('round-trip Conversion', () => {
-    // Only test mainland points which always round-trip correctly
-    // Overseas territory round-trip depends on proper clip extent configuration
+    // Only test metropolitan France points which always round-trip correctly
+    // Secondary territory round-trip depends on proper clip extent configuration
     const testPoints = [
-      [2, 46], // France mainland center
+      [2, 46], // France metropolitan center
       [0, 47], // Near France
       [5, 45], // Southeast France
     ]
@@ -159,15 +178,15 @@ describe('compositeProjection - invert/forward chain', () => {
   })
 
   describe('translation Offset Effects', () => {
-    it('should maintain invert accuracy after translation offset changes for mainland', () => {
-      // Apply a translation offset to France mainland
+    it('should maintain invert accuracy after translation offset changes', () => {
+      // Apply a translation offset to France metropolitan
       compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [50, -30])
 
       // Rebuild projection with new offset
       const newBuiltProjection = compositeProjection.build(800, 600, true)
 
       // Test that invert still works correctly for the moved territory
-      const franceGeo = [2, 46] // France mainland center
+      const franceGeo = [2, 46] // France metropolitan center
       const screenPoint = newBuiltProjection(franceGeo as [number, number])
 
       expect(screenPoint).toBeDefined()
@@ -186,7 +205,7 @@ describe('compositeProjection - invert/forward chain', () => {
     it('should show expected screen coordinate changes after translation', () => {
       // Test the correct behavior: Compare the same geographic point
       // with different territory translation offsets
-      const franceGeo = [2, 46] as [number, number] // France mainland center
+      const franceGeo = [2, 46] as [number, number] // France metropolitan center
 
       // First: Set offset to [0, 0] and get screen position
       compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [0, 0])

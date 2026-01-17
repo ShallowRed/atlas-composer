@@ -84,7 +84,7 @@ import { buildCompositeProjection } from '@atlas-composer/projection-core'
 // Build a composite projection from sub-projection entries
 const composite = buildCompositeProjection({
   entries: [
-    { id: 'mainland', name: 'Mainland', projection: mainlandProj, bounds: mainlandBounds },
+    { id: 'usa', name: 'Continental USA', projection: usaProj, bounds: usaBounds },
     { id: 'alaska', name: 'Alaska', projection: alaskaProj, bounds: alaskaBounds },
   ],
 })

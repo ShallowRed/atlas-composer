@@ -2,11 +2,10 @@
  * Projection System Type Definitions
  *
  * Domain: Projection metadata and capabilities
- * Scope: Projection registry, D3 projection functions, suitability
+ * Scope: Projection registry, D3 projection functions
  *
  * This module defines the metadata structure for map projections,
- * including their properties, capabilities, and suitability for
- * different geographic contexts.
+ * including their properties and capabilities.
  *
  * Note: For atlas layout and territory composition types,
  * see src/types/composite.d.ts
@@ -14,22 +13,6 @@
 
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-
-/**
- * Geographic context for a territory or region
- */
-export interface GeographicContext {
-  /** Type of territory (mainland, overseas, island, etc.) */
-  territoryType?: 'mainland' | 'overseas' | 'island' | 'archipelago' | 'peninsula'
-  /** Geographic region */
-  region?: 'europe' | 'africa' | 'asia' | 'oceania' | 'americas' | 'polar' | 'world'
-  /** Latitude range (for polar/equatorial suitability) */
-  latitudeRange?: { min: number, max: number }
-  /** Longitude range (for extent calculations) */
-  longitudeRange?: { min: number, max: number }
-  /** Scale level (local, regional, continental, global) */
-  scale?: 'local' | 'regional' | 'continental' | 'global'
-}
 
 /**
  * Projection capabilities - what the projection preserves or distorts
@@ -49,20 +32,6 @@ export interface ProjectionCapabilities {
   recommendedMaxScale?: number
   /** Whether the projection is interrupted/discontinuous */
   isInterrupted?: boolean
-}
-
-/**
- * Projection suitability for different contexts
- */
-export interface ProjectionSuitability {
-  /** Contexts where this projection is excellent (+++) */
-  excellent?: GeographicContext[]
-  /** Contexts where this projection is good (++) */
-  good?: GeographicContext[]
-  /** Contexts where this projection is usable (+) */
-  usable?: GeographicContext[]
-  /** Contexts where this projection is NOT recommended */
-  avoid?: GeographicContext[]
 }
 
 /**
@@ -149,9 +118,6 @@ export interface ProjectionDefinition {
   /** Projection capabilities */
   capabilities: ProjectionCapabilities
 
-  /** Geographic suitability */
-  suitability: ProjectionSuitability
-
   /** Default parameters */
   defaultParameters?: ProjectionParameters
 
@@ -194,13 +160,6 @@ export interface ProjectionFilterContext {
   /** Current view mode */
   viewMode?: 'split' | 'composite-custom' | 'built-in-composite' | 'unified'
 
-  /** Territory being configured */
-  territory?: {
-    id: string
-    type: 'mainland' | 'overseas' | 'island' | 'archipelago' | 'peninsula'
-    region?: string
-  }
-
   /** Required capabilities */
   requiredCapabilities?: Partial<ProjectionCapabilities>
 
@@ -221,7 +180,7 @@ export interface ProjectionRecommendation {
   /** Recommendation score (0-100) */
   score: number
 
-  /** Suitability level */
+  /** Recommendation level */
   level: 'excellent' | 'good' | 'usable' | 'not-recommended'
 
   /** Reason for recommendation (i18n key) */

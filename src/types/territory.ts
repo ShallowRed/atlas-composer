@@ -38,8 +38,8 @@ export type ConicParallels = [number, number]
 /**
  * Configuration for a single territory
  *
- * Represents a geographic territory (mainland or overseas) with
- * all necessary information for rendering and positioning.
+ * Represents a geographic territory with all necessary
+ * information for rendering and positioning.
  */
 export interface TerritoryConfig {
   /** Unique territory identifier (e.g., 'FR-GP', 'US-HI', 'PT-20') */

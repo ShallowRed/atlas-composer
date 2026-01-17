@@ -29,7 +29,6 @@ describe('standalone-projection-loader', () => {
       exportDate: '2025-10-16T16:00:00.000Z',
       createdWith: 'atlas-composer',
     },
-    pattern: 'single-focus',
     referenceScale: 2700,
     canvasDimensions: {
       width: 960,
@@ -39,7 +38,6 @@ describe('standalone-projection-loader', () => {
       {
         code: 'FR-MET',
         name: 'France Métropolitaine',
-        role: 'primary',
         projection: {
           id: 'conic-conformal',
           family: 'CONIC',
@@ -61,7 +59,6 @@ describe('standalone-projection-loader', () => {
       {
         code: 'FR-GP',
         name: 'Guadeloupe',
-        role: 'secondary',
         projection: {
           id: 'mercator',
           family: 'CYLINDRICAL',
@@ -276,13 +273,11 @@ describe('standalone-projection-loader', () => {
           atlasId: 'test',
           atlasName: 'Test',
         },
-        pattern: 'single-focus',
         referenceScale: 2700,
         territories: [
           {
             code: 'TEST',
             name: 'Test Territory',
-            role: 'primary',
             projection: {
               id: 'mercator',
               family: 'CYLINDRICAL',
@@ -319,13 +314,11 @@ describe('standalone-projection-loader', () => {
           atlasId: 'test',
           atlasName: 'Test',
         },
-        pattern: 'single-focus',
         referenceScale: 2700,
         territories: [
           {
             code: 'TEST',
             name: 'Test Territory',
-            role: 'primary',
             projection: {
               id: 'mercator',
               family: 'CYLINDRICAL',

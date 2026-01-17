@@ -23,7 +23,6 @@ import { logger } from '@/utils/logger'
 
 const props = withDefaults(defineProps<Props>(), {
   geoData: null,
-  isMainland: false,
   preserveScale: false,
   width: 200,
   height: 160,
@@ -40,7 +39,6 @@ interface Props {
   title?: string
   area?: number
   region?: string
-  isMainland?: boolean
   preserveScale?: boolean
   width?: number
   hLevel?: number
@@ -74,14 +72,10 @@ const showSphere = computed<boolean>(() => {
     viewMode: viewStore.viewMode,
     atlasConfig,
     hasPresets,
-    hasOtherTerritories: geoDataStore.filteredTerritories.length > 0,
+    hasTerritories: geoDataStore.allActiveTerritories.length > 0,
     isPresetLoading: false,
     showProjectionSelector: viewStore.showProjectionSelector,
     showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
-    isPrimaryTerritoryInActive: geoDataStore.allActiveTerritories.some(
-      t => t.code === atlasConfig.splitModeConfig?.primaryTerritoryCode,
-    ),
-    showPrimaryTerritory: geoDataStore.firstTerritory !== null,
   }
 
   return ViewOrchestrationService.shouldShowSphere(viewState)
@@ -228,7 +222,6 @@ const computedSize = computed(() => {
 
   return MapSizeCalculator.calculateSize({
     mode: props.mode === 'composite' ? 'composite' : 'territory',
-    isMainland: props.isMainland,
     preserveScale: props.preserveScale,
     area: props.area,
     width: props.width,
@@ -338,7 +331,6 @@ async function renderMap() {
         projection: projectionToUse,
         width,
         height,
-        isMainland: props.isMainland,
         area: props.area,
         preserveScale: props.preserveScale,
         showGraticule: uiStore.showGraticule,
@@ -449,7 +441,6 @@ async function renderMap() {
             width,
             height,
             customComposite: isCompositeMode ? cartographer.value?.customComposite : undefined,
-            isMainland: props.isMainland,
             filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
           },
         )

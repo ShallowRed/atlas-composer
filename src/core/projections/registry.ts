@@ -3,11 +3,10 @@
  *
  * Singleton registry that manages all projection definitions and provides
  * methods for querying, filtering, and recommending projections based on
- * geographic context.
+ * atlas preferences.
  */
 
 import type {
-  GeographicContext,
   ProjectionCategoryType,
   ProjectionDefinition,
   ProjectionFilterContext,
@@ -27,8 +26,8 @@ const debug = logger.projection.registry
  *
  * Singleton that manages all projection definitions and provides methods for:
  * - Querying projections by ID, category, or strategy
- * - Filtering projections by atlas, view mode, and geographic context
- * - Recommending projections with suitability scoring
+ * - Filtering projections by atlas, view mode, and capabilities
+ * - Recommending projections based on atlas preferences
  */
 class ProjectionRegistry {
   private definitions: Map<string, ProjectionDefinition>
@@ -240,41 +239,6 @@ class ProjectionRegistry {
   }
 
   /**
-   * Check if a geographic context matches the territory
-   */
-  private matchesContext(
-    ctx: GeographicContext,
-    territory?: { id: string, type: string, region?: string },
-  ): boolean {
-    // Check territory type
-    if (ctx.territoryType && territory?.type !== ctx.territoryType) {
-      return false
-    }
-
-    // Check region
-    if (ctx.region && territory?.region !== ctx.region) {
-      return false
-    }
-
-    // Check scale - match 'global' or 'regional' contexts
-    if (ctx.scale) {
-      // For now, we'll consider all territories as 'regional' unless specified
-      // This is a simplification - in the future, we could add scale metadata to territories
-      const territoryScale = 'regional'
-      if (territoryScale !== ctx.scale) {
-        return false
-      }
-    }
-
-    // Note: latitudeRange matching would require territory bounds data
-    // which is not currently available in the context.territory object
-    // For now, we skip latitude range matching
-
-    // If no specific criteria defined, or all checked criteria match
-    return true
-  }
-
-  /**
    * Recommend projections for a given context with scoring
    */
   public recommend(context: ProjectionFilterContext = {}): ProjectionRecommendation[] {
@@ -303,33 +267,6 @@ class ProjectionRegistry {
         score = -50 // Set to negative score for prohibited projections
         level = 'not-recommended'
         reason = 'projections.recommendations.atlasProhibited'
-      }
-
-      // Check territory context with proper geographic context matching
-      if (context.territory) {
-        // Check excellent suitability
-        if (projection.suitability.excellent?.some(ctx => this.matchesContext(ctx, context.territory))) {
-          score += 30
-          level = 'excellent'
-          reason = 'projections.recommendations.territoryExcellent'
-        }
-        // Check good suitability
-        else if (projection.suitability.good?.some(ctx => this.matchesContext(ctx, context.territory))) {
-          score += 20
-          level = 'good'
-          reason = 'projections.recommendations.territoryGood'
-        }
-        // Check usable suitability
-        else if (projection.suitability.usable?.some(ctx => this.matchesContext(ctx, context.territory))) {
-          score += 10
-          level = 'usable'
-        }
-        // Check if should be avoided
-        else if (projection.suitability.avoid?.some(ctx => this.matchesContext(ctx, context.territory))) {
-          score -= 40
-          level = 'not-recommended'
-          reason = 'projections.recommendations.notSuitable'
-        }
       }
 
       // Adjust for view mode compatibility

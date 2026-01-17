@@ -93,11 +93,6 @@
       "enum": ["CYLINDRICAL", "CONIC", "AZIMUTHAL", "PSEUDOCYLINDRICAL", "POLYCONIC", "MISCELLANEOUS"],
       "description": "Projection family category"
     },
-    "territoryRole": {
-      "type": "string",
-      "enum": ["primary", "secondary", "member", "embedded"],
-      "description": "Territory role: 'primary' for single-focus mainland, 'secondary' for overseas territories, 'member' for equal-members atlases, 'embedded' for enclaves"
-    },
     "layoutConfig": {
       "type": "object",
       "required": ["translateOffset", "pixelClipExtent"],

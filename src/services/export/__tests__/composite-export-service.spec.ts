@@ -19,13 +19,11 @@ describe('compositeExportService', () => {
         exportDate: new Date().toISOString(),
         createdWith: 'Atlas composer v1.0',
       },
-      pattern: 'single-focus',
       referenceScale: 2700,
       territories: [
         {
           code: 'FR-MET',
           name: 'France Metropolitaine',
-          role: 'primary',
           projection: {
             id: 'conic-conformal',
             family: 'conic',
@@ -44,7 +42,6 @@ describe('compositeExportService', () => {
         {
           code: 'FR-GP',
           name: 'Guadeloupe',
-          role: 'secondary',
           projection: {
             id: 'mercator',
             family: 'cylindrical',
@@ -103,28 +100,6 @@ describe('compositeExportService', () => {
 
       expect(result.valid).toBe(false)
       expect(result.errors.some(e => e.includes('metadata'))).toBe(true)
-    })
-
-    it('should detect invalid pattern', () => {
-      const invalidConfig = {
-        ...validConfig,
-        pattern: 'invalid-pattern' as ExportedCompositeConfig['pattern'],
-      }
-
-      const result = CompositeExportService.validateExportedConfig(invalidConfig)
-
-      expect(result.valid).toBe(false)
-      expect(result.errors.some(e => e.includes('Invalid pattern'))).toBe(true)
-    })
-
-    it('should accept valid patterns', () => {
-      const patterns: ExportedCompositeConfig['pattern'][] = ['single-focus', 'equal-members']
-
-      for (const pattern of patterns) {
-        const config = { ...validConfig, pattern }
-        const result = CompositeExportService.validateExportedConfig(config)
-        expect(result.errors.some(e => e.includes('Invalid pattern'))).toBe(false)
-      }
     })
 
     it('should detect empty territories array', () => {
@@ -288,13 +263,11 @@ describe('compositeExportService', () => {
         exportDate: '2025-01-01T00:00:00.000Z',
         createdWith: 'Atlas composer v1.0',
       },
-      pattern: 'single-focus',
       referenceScale: 2700,
       territories: [
         {
           code: 'FR-MET',
           name: 'France Metropolitaine',
-          role: 'primary',
           projection: {
             id: 'conic-conformal',
             family: 'conic',

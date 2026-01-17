@@ -14,7 +14,6 @@ export interface MapRendererProps {
   title?: string
   area?: number
   region?: string
-  isMainland?: boolean
   preserveScale?: boolean
   width?: number
   height?: number
@@ -28,7 +27,6 @@ export interface MapRendererProps {
  * Default values for MapRenderer props
  */
 export const mapRendererDefaults: Required<Omit<MapRendererProps, 'geoData' | 'title' | 'area' | 'region' | 'projection'>> = {
-  isMainland: false,
   preserveScale: false,
   width: 200,
   height: 160,
@@ -64,12 +62,6 @@ export interface TerritoryControlsProps {
    * Display name of the territory
    */
   territoryName: string
-
-  /**
-   * Whether this is the mainland territory
-   * @default false
-   */
-  isMainland?: boolean
 }
 
 /**

@@ -9,7 +9,7 @@
       "allOf": [
         {
           "type": "object",
-          "required": ["version", "metadata", "pattern", "referenceScale", "canvasDimensions", "territories"],
+          "required": ["version", "metadata", "referenceScale", "canvasDimensions", "territories"],
           "properties": {
             "version": { "type": "string" },
             "metadata": {

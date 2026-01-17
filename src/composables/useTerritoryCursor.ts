@@ -1,7 +1,6 @@
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
-import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
@@ -11,7 +10,6 @@ import { useViewStore } from '@/stores/view'
  * Active in composite-custom mode for all territories
  */
 export function useTerritoryCursor() {
-  const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
   const geoDataStore = useGeoDataStore()
   const viewStore = useViewStore()
@@ -140,22 +138,13 @@ export function useTerritoryCursor() {
 
   /**
    * Check if a territory can be dragged
-   * Checks if territory is in filtered list (or is mainland) and mode is enabled
+   * Checks if territory is in active list and drag mode is enabled
    */
   function isTerritoryDraggable(territoryCode: string): boolean {
     if (!isDragEnabled.value)
       return false
 
-    // Get mainland code from atlas config
-    const atlasConfig = atlasStore.currentAtlasConfig
-    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
-
-    // Allow dragging mainland
-    if (mainlandCode && territoryCode === mainlandCode) {
-      return true
-    }
-
-    // Only allow dragging territories that are currently active (overseas or mainland)
+    // Only allow dragging territories that are currently active
     const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
     if (!activeTerritoryCodes.has(territoryCode as TerritoryCode)) {
       return false
@@ -393,7 +382,7 @@ export function useTerritoryCursor() {
     customComposite.build(width, height, true)
     const allBorders = customComposite.getCompositionBorders(width, height)
 
-    // Filter borders to only include territories that are currently active (overseas or mainland)
+    // Filter borders to only include territories that are currently active
     const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
     const borders = allBorders.filter((border: any) =>
       activeTerritoryCodes.has(border.territoryCode),

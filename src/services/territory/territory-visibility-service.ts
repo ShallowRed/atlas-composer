@@ -13,29 +13,12 @@ export class TerritoryVisibilityService {
    *
    * Business Rules:
    * - Show empty state when no territories are active
-   * - If first territory is in active territories, hide empty state
    *
-   * @param params - Territory visibility parameters
+   * @param territoryCount - Number of active territories
    * @returns true if empty state should be shown
    */
-  static shouldShowEmptyState(params: {
-    territoryCount: number
-    hasMainlandInActiveTerritories?: boolean
-  }): boolean {
-    const { territoryCount, hasMainlandInActiveTerritories = false } = params
-
-    // If we have territories, never show empty state
-    if (territoryCount > 0) {
-      return false
-    }
-
-    // If primary/first territory is in active list, hide empty state
-    if (hasMainlandInActiveTerritories) {
-      return false
-    }
-
-    // Show empty state only when no territories active
-    return true
+  static shouldShowEmptyState(territoryCount: number): boolean {
+    return territoryCount === 0
   }
 
   /**

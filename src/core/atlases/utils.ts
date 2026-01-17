@@ -108,7 +108,7 @@ export function getTerritoriesForMode(
     return []
   }
 
-  // If no codes specified, return empty (mode shows only mainland)
+  // If no codes specified, return empty (mode shows no territories)
   if (modeDefinition.codes.length === 0) {
     return []
   }
@@ -128,18 +128,4 @@ export function getTerritoriesForMode(
   // Return territories matching the codes in this mode
   const codesSet = new Set(codes)
   return territories.filter(t => codesSet.has(t.code))
-}
-
-/**
- * Pattern Utilities
- * Helper functions for working with atlas patterns
- */
-
-/**
- * Check if an atlas pattern supports split view (primary vs secondary)
- * @param pattern - Atlas pattern type
- * @returns True if split view is supported
- */
-export function supportsSplitView(pattern: 'single-focus' | 'equal-members' | 'hierarchical'): boolean {
-  return pattern === 'single-focus'
 }

@@ -36,7 +36,6 @@ export interface SimpleMapConfig {
   projection: string
   width: number
   height: number
-  isMainland?: boolean
   area?: number
   preserveScale?: boolean
   showGraticule: boolean
@@ -91,7 +90,6 @@ export class MapRenderCoordinator {
       projection: config.projection,
       width: config.width,
       height: config.height,
-      isMainland: config.isMainland,
       area: config.area,
       preserveScale: config.preserveScale,
       showGraticule: config.showGraticule,
@@ -167,7 +165,6 @@ export class MapRenderCoordinator {
       width: number
       height: number
       customComposite?: any
-      isMainland?: boolean
       filteredTerritoryCodes?: Set<string>
     },
   ): void {
@@ -179,7 +176,6 @@ export class MapRenderCoordinator {
       width: config.width,
       height: config.height,
       customComposite: config.customComposite,
-      isMainland: config.isMainland,
       filteredTerritoryCodes: config.filteredTerritoryCodes,
     })
   }

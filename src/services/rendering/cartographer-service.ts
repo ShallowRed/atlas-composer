@@ -22,7 +22,6 @@ export interface SimpleRenderOptions extends RenderOptions {
   projection: string
   width: number
   height: number
-  isMainland?: boolean
   area?: number
   preserveScale?: boolean
   showGraticule?: boolean

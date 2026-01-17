@@ -48,16 +48,12 @@ export interface AtlasProjectionMetadata {
   defaultCompositeProjection?: string
   projectionPreferences?: {
     recommended?: string[]
-    default?: {
-      mainland?: string
-      overseas?: string
-    }
     prohibited?: string[]
   }
   projectionParameters?: {
     center?: { longitude: number, latitude: number }
     rotate?: {
-      mainland?: [number, number]
+      conic?: [number, number]
       azimuthal?: [number, number]
     }
     parallels?: { conic?: [number, number] }
@@ -111,17 +107,10 @@ export interface UnifiedViewConfig {
 
 /**
  * Split view mode configuration
- * Always uses individual projections per territory
+ * Uses individual projections per territory
  */
 export interface SplitViewConfig {
-  /** Mainland/primary territory projection */
-  mainland: {
-    projection: {
-      id: string
-      parameters: ProjectionParameters
-    }
-  }
-  /** Secondary territories projections keyed by territory code */
+  /** Territory projections keyed by territory code */
   territories: Record<string, {
     projection: {
       id: string

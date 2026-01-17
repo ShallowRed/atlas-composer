@@ -13,18 +13,14 @@ export interface ViewState {
   atlasConfig: AtlasConfig
   /** Whether the current atlas has presets available */
   hasPresets: boolean
-  /** Whether the current atlas has other territories (beyond primary) */
-  hasOtherTerritories: boolean
+  /** Whether the current atlas has any active territories */
+  hasTerritories: boolean
   /** Whether a preset is currently loading */
   isPresetLoading: boolean
   /** Whether projection selector should be shown (from ProjectionUIService) */
   showProjectionSelector: boolean
   /** Whether individual projection selectors should be shown (from ProjectionUIService) */
   showIndividualProjectionSelectors: boolean
-  /** Whether primary territory is in filtered territories */
-  isPrimaryTerritoryInActive: boolean
-  /** Whether to show primary territory section (for split view) */
-  showPrimaryTerritory: boolean
 }
 
 /**
@@ -160,19 +156,6 @@ export class ViewOrchestrationService {
   }
 
   /**
-   * Determine if primary territory accordion section should be shown
-   *
-   * Primary territory section is shown when:
-   * - Atlas has primary territory configuration (showPrimaryTerritory = true), OR
-   * - Primary territory is present in filtered territories list
-   *
-   * Always uses individual projections in split/composite-custom modes
-   */
-  static shouldShowPrimaryTerritoryAccordion(state: ViewState): boolean {
-    return state.showPrimaryTerritory || state.isPrimaryTerritoryInActive
-  }
-
-  /**
    * Determine if projection dropdown should be shown in territory accordions
    *
    * Projection dropdown is shown when NOT in composite-custom mode
@@ -189,25 +172,16 @@ export class ViewOrchestrationService {
   /**
    * Determine if empty state should be shown in territory controls
    *
-   * Empty state is shown when:
-   * - No other territories AND
-   * - No primary territory available to show
-   *
-   * This indicates there's nothing to configure
+   * Empty state is shown when no territories are active
    */
   static shouldShowEmptyState(state: ViewState): boolean {
-    const noOtherTerritories = !state.hasOtherTerritories
-    const hasPrimaryToShow = state.showPrimaryTerritory || state.isPrimaryTerritoryInActive
-    return noOtherTerritories && !hasPrimaryToShow
+    return !state.hasTerritories
   }
 
   /**
    * Get appropriate empty state message
    */
-  static getEmptyStateMessage(state: ViewState): string {
-    if (!state.hasOtherTerritories) {
-      return 'territory.noTerritories'
-    }
+  static getEmptyStateMessage(_state: ViewState): string {
     return 'territory.noTerritories'
   }
 
@@ -261,19 +235,6 @@ export class ViewOrchestrationService {
       default:
         return 'composite'
     }
-  }
-
-  /**
-   * Get split view pattern based on atlas configuration
-   *
-   * single-focus: One primary territory + N secondary territories (France, Portugal, USA)
-   * multi-mainland: All territories in a grid (EU, ASEAN, etc.)
-   */
-  static getSplitViewPattern(state: ViewState): 'single-focus' | 'multi-mainland' {
-    // Pattern is determined by atlas configuration
-    return state.atlasConfig.pattern === 'single-focus'
-      ? 'single-focus'
-      : 'multi-mainland'
   }
 
   /**

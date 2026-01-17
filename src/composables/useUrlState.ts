@@ -71,7 +71,6 @@ export function useUrlState() {
 
     // Encode territory-specific settings (scale multipliers, translations)
     // Only include if different from atlas-specific defaults
-    // Include both mainland and overseas territories
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
 

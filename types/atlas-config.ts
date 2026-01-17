@@ -26,7 +26,6 @@ export interface JSONTerritoryConfig {
   center: [number, number]
   bounds: [[number, number], [number, number]]
   extraction?: {
-    mainlandPolygon?: number
     extractFrom?: string
     polygonIndices?: number[]
     polygonBounds?: [[number, number], [number, number]]
@@ -96,8 +95,6 @@ export interface JSONAtlasConfig {
     }
   }
   splitModeConfig?: {
-    mainlandTitle?: string
-    mainlandCode?: string
     territoriesTitle: string
   }
   territoryModeOptions?: Array<{ value: string, label: string }>

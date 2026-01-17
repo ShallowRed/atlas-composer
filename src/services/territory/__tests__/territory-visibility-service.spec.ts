@@ -4,28 +4,15 @@ import { TerritoryVisibilityService } from '../territory-visibility-service'
 describe('territoryVisibilityService', () => {
   describe('shouldShowEmptyState', () => {
     it('should return false when territories exist', () => {
-      const result = TerritoryVisibilityService.shouldShowEmptyState({
-        territoryCount: 2,
-      })
+      const result = TerritoryVisibilityService.shouldShowEmptyState(2)
 
       expect(result).toBe(false)
     })
 
     it('should return true when no territories', () => {
-      const result = TerritoryVisibilityService.shouldShowEmptyState({
-        territoryCount: 0,
-      })
+      const result = TerritoryVisibilityService.shouldShowEmptyState(0)
 
       expect(result).toBe(true)
-    })
-
-    it('should return false when no territories but primary in active', () => {
-      const result = TerritoryVisibilityService.shouldShowEmptyState({
-        territoryCount: 0,
-        hasMainlandInActiveTerritories: true,
-      })
-
-      expect(result).toBe(false)
     })
   })
 

@@ -298,41 +298,13 @@ function validateUnifiedConfig(
 
 /**
  * Validate split view configuration
- * Checks mainland and territory projections
+ * Checks territory projections
  */
 function validateSplitConfig(
   config: SplitViewConfig,
   errors: string[],
   warnings: string[],
 ): void {
-  // Validate mainland
-  if (!config.mainland) {
-    errors.push('Split config missing mainland')
-    return
-  }
-
-  // Validate mainland projection ID using shared utility
-  const mainlandIdValidation = validateProjectionId(config.mainland.projection?.id)
-  if (!mainlandIdValidation.isValid) {
-    errors.push(...mainlandIdValidation.errors.map(e => `Mainland: ${e}`))
-    return
-  }
-
-  // Validate mainland projection
-  const mainlandProjection = projectionRegistry.get(config.mainland.projection.id)
-  if (!mainlandProjection) {
-    errors.push(`Unknown mainland projection: ${config.mainland.projection.id}`)
-  }
-  else if (config.mainland.projection.parameters) {
-    const paramValidation = validateProjectionParameters(
-      config.mainland.projection.parameters,
-      mainlandProjection.family,
-      { context: 'mainland projection' },
-    )
-    errors.push(...paramValidation.errors)
-    warnings.push(...paramValidation.warnings)
-  }
-
   // Validate territory projections
   if (!config.territories) {
     errors.push('Split config missing territories')

@@ -43,10 +43,6 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
     }
 
     // Add extraction properties
-    if (territory.extraction?.mainlandPolygon !== undefined) {
-      backendTerritory.mainlandPolygon = territory.extraction.mainlandPolygon
-    }
-
     if (territory.extraction?.extractFrom) {
       backendTerritory.extractFrom = Number.parseInt(territory.extraction.extractFrom)
     }

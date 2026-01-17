@@ -30,20 +30,6 @@ export const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { region: 'polar', latitudeRange: { min: 60, max: 90 } },
-      { region: 'polar', latitudeRange: { min: -90, max: -60 } },
-    ],
-    good: [
-      { scale: 'global' },
-      { scale: 'regional', latitudeRange: { min: 45, max: 75 } },
-    ],
-    usable: [
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Johann Heinrich Lambert',
   year: 1772,
 }
@@ -69,16 +55,6 @@ export const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { region: 'polar', latitudeRange: { min: 60, max: 90 } },
-      { region: 'polar', latitudeRange: { min: -90, max: -60 } },
-    ],
-    good: [
-      { scale: 'global' },
-      { scale: 'regional' },
-    ],
-  },
 }
 
 /**
@@ -101,19 +77,6 @@ export const STEREOGRAPHIC: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { region: 'polar', latitudeRange: { min: 60, max: 90 } },
-      { region: 'polar', latitudeRange: { min: -90, max: -60 } },
-    ],
-    good: [
-      { scale: 'global' },
-      { latitudeRange: { min: 45, max: 75 } },
-    ],
-    usable: [
-      { scale: 'regional' },
-    ],
-  },
 }
 
 /**
@@ -136,14 +99,6 @@ export const ORTHOGRAPHIC: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    good: [
-      { scale: 'global' },
-    ],
-    usable: [
-      { scale: 'regional' },
-    ],
-  },
 }
 
 /**
@@ -166,14 +121,6 @@ export const GNOMONIC: ProjectionDefinition = {
     supportsUnified: false,
   },
 
-  suitability: {
-    good: [
-      { scale: 'local', latitudeRange: { min: -60, max: 60 } },
-    ],
-    usable: [
-      { scale: 'regional', latitudeRange: { min: -45, max: 45 } },
-    ],
-  },
 }
 
 /**

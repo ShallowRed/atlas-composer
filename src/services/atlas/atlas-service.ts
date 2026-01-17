@@ -53,7 +53,7 @@ export class AtlasService {
   }
 
   /**
-   * Get first/primary territory (for split view)
+   * Get first territory (convenience accessor)
    */
   getFirstTerritory(): TerritoryConfig {
     return getFirstTerritory(this.atlasId)

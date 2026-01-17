@@ -89,13 +89,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   })
 
   /**
-   * Atlas pattern (single-focus, equal-members, hierarchical)
-   */
-  const pattern = computed(() => {
-    return currentAtlasConfig.value?.pattern ?? 'single-focus'
-  })
-
-  /**
    * Whether the atlas has a territory selector
    */
   const hasTerritorySelector = computed(() => {
@@ -117,20 +110,6 @@ export const useAtlasStore = defineStore('atlas', () => {
       return territoryModeOptions.value[0]!.value
     }
     return 'all'
-  })
-
-  /**
-   * Mainland territory (for single-focus atlases)
-   */
-  const mainland = computed<TerritoryConfig | undefined>(() => {
-    return atlasService.value.getMainland()
-  })
-
-  /**
-   * Overseas/secondary territories
-   */
-  const overseasTerritories = computed<TerritoryConfig[]>(() => {
-    return atlasService.value.getOverseasTerritories()
   })
 
   // ============================================
@@ -204,13 +183,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   }
 
   /**
-   * Check if atlas has mainland/overseas split
-   */
-  function hasMainlandOverseasSplit(): boolean {
-    return atlasService.value.hasMainlandOverseasSplit()
-  }
-
-  /**
    * Get the initial territory mode for the current atlas
    * Used during initialization
    */
@@ -240,19 +212,15 @@ export const useAtlasStore = defineStore('atlas', () => {
     // Computed (Domain Logic)
     atlasService,
     territories,
-    pattern,
     hasTerritorySelector,
     territoryModeOptions,
     defaultTerritoryMode,
-    mainland,
-    overseasTerritories,
 
     // Actions
     selectAtlas,
     getTerritoryByCode,
     getTerritoryName,
     getTerritoriesForMode,
-    hasMainlandOverseasSplit,
     getInitialTerritoryMode,
   }
 })

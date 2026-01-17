@@ -37,7 +37,7 @@ const config = {
   name: 'Europe',
   projections: [
     {
-      id: 'mainland',
+      id: 'continental',
       bounds: [[-10, 35], [40, 70]],
       projection: {
         type: 'conicConformal',
@@ -60,7 +60,7 @@ const config = {
     width: 800,
     height: 600,
     positions: {
-      mainland: { x: 400, y: 300 },
+      continental: { x: 400, y: 300 },
       canary: { x: 150, y: 500 },
     },
   },

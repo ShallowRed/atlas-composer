@@ -328,12 +328,6 @@ function clearFile() {
             {{ importedConfig.metadata.atlasName }}
           </dd>
           <dt class="text-base-content/70">
-            Pattern:
-          </dt>
-          <dd class="font-medium">
-            {{ importedConfig.pattern }}
-          </dd>
-          <dt class="text-base-content/70">
             Territories:
           </dt>
           <dd class="font-medium">

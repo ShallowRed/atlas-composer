@@ -175,8 +175,7 @@ Create `configs/new-atlas.json`:
       "code": "NA-MET",
       "name": "Territory Name",
       "center": [2.5, 46.5],
-      "bounds": [[-5, 41], [10, 51]],
-      "extraction": { "mainlandPolygon": 0 }
+      "bounds": [[-5, 41], [10, 51]]
     }
   ]
 }

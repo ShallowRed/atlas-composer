@@ -28,16 +28,6 @@ export const NATURAL_EARTH: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   aliases: ['naturalEarth1'],
 
   creator: 'Tom Patterson',
@@ -69,16 +59,6 @@ export const ROBINSON: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Arthur H. Robinson',
   year: 1963,
 
@@ -108,16 +88,6 @@ export const ECKERT4: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Max Eckert',
   year: 1906,
 
@@ -145,16 +115,6 @@ export const WINKEL_TRIPEL: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
   },
 
   aliases: ['winkelTripel', 'winkel3'],
@@ -188,16 +148,6 @@ export const MOLLWEIDE: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   aliases: ['mollweide'],
 
   creator: 'Karl Mollweide',
@@ -229,18 +179,6 @@ export const MILLER: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    good: [
-      { scale: 'continental' },
-    ],
-    avoid: [
-      { scale: 'local' },
-    ],
-  },
-
   creator: 'Osborn Maitland Miller',
   year: 1942,
 
@@ -268,15 +206,6 @@ export const SINUSOIDAL: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-    ],
   },
 
   aliases: ['sinusoidal', 'sansonFlamsteed', 'mercatorEqualArea'],
@@ -310,16 +239,6 @@ export const WAGNER6: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   aliases: ['wagner6', 'wagnerVI'],
 
   creator: 'Karlheinz Wagner',
@@ -349,16 +268,6 @@ export const HAMMER: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
   },
 
   aliases: ['hammer', 'hammerAitoff'],
@@ -392,16 +301,6 @@ export const ECKERT1: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Max Eckert',
   year: 1906,
 
@@ -429,16 +328,6 @@ export const ECKERT2: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
   },
 
   creator: 'Max Eckert',
@@ -470,16 +359,6 @@ export const ECKERT3: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Max Eckert',
   year: 1906,
 
@@ -509,16 +388,6 @@ export const ECKERT5: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
-  },
-
   creator: 'Max Eckert',
   year: 1906,
 
@@ -546,16 +415,6 @@ export const ECKERT6: ProjectionDefinition = {
     supportsComposite: false,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    excellent: [
-      { scale: 'global' },
-    ],
-    avoid: [
-      { scale: 'local' },
-      { scale: 'regional' },
-    ],
   },
 
   creator: 'Max Eckert',

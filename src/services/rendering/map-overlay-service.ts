@@ -28,7 +28,6 @@ export interface OverlayConfig {
   width: number
   height: number
   customComposite?: CompositeProjection | null
-  isMainland?: boolean
   filteredTerritoryCodes?: Set<string>
 }
 

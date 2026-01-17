@@ -16,12 +16,10 @@ describe('compositeImportService', () => {
       exportDate: '2025-10-10T12:00:00.000Z',
       createdWith: 'Atlas composer v1.0',
     },
-    pattern: 'single-focus',
     territories: [
       {
         code: 'FRA',
-        name: 'Mainland France',
-        role: 'primary',
+        name: 'Metropolitan France',
         projection: {
           id: 'azimuthal-equal-area',
           family: 'azimuthal',
@@ -87,16 +85,6 @@ describe('compositeImportService', () => {
 
       expect(result.success).toBe(false)
       expect(result.errors).toContain('Missing metadata')
-    })
-
-    it('should reject config with invalid pattern', () => {
-      const invalidConfig = { ...validConfig, pattern: 'invalid-pattern' as any }
-      const jsonString = JSON.stringify(invalidConfig)
-
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(false)
-      expect(result.errors.some(e => e.includes('Invalid pattern'))).toBe(true)
     })
 
     it('should reject config with no territories', () => {

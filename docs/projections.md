@@ -3,8 +3,8 @@
 ## Core Features
 
 - **Type Safety**: Full TypeScript support
-- **Metadata-Rich**: Capabilities, suitability scores, recommendations
-- **Smart Recommendations**: Context-aware scoring (atlas, view mode, geography)
+- **Metadata-Rich**: Capabilities, atlas preferences, recommendations
+- **Smart Recommendations**: Context-aware scoring (atlas, view mode)
 - **20+ Projections**: D3 builtin, extended, and composite projections
 - **Extensible**: Simple definition files for new projections
 
@@ -54,17 +54,6 @@ src/core/projections/
     supportsGraticule?: boolean
     supportsClipping?: boolean      // D3 clipExtent support
     supportsCompositeClipping?: boolean  // Territory-specific clipExtent for composite projections
-  }
-
-  suitability: {
-    polar?: number              // 0-100 for Arctic/Antarctic
-    midLatitude?: number        // 0-100 for temperate zones (30-60°)
-    equatorial?: number         // 0-100 for tropical zones (±30°)
-    global?: number             // 0-100 for world maps
-    regional?: number           // 0-100 for country/region maps
-    france?: number             // Atlas-specific scores
-    portugal?: number
-    europe?: number
   }
 
   recommendedForAtlases?: string[]  // ['france', 'portugal']
@@ -117,41 +106,33 @@ Composite projections support territory-specific clipExtent for precise content 
 
 ## Recommendation System
 
-The recommendation engine evaluates projections based on geographic context matching.
+The recommendation engine evaluates projections based on atlas preferences and view mode compatibility.
 
-### Context Matching
-Suitability levels (excellent, good, usable, avoid) contain `GeographicContext` objects with criteria:
-- `territoryType`: mainland, overseas, island, archipelago, peninsula
-- `region`: europe, africa, asia, oceania, americas, polar, world
-- `scale`: local, regional, continental, global
-- `latitudeRange`: { min, max } for latitude-based matching
-
-The registry matches these criteria against territory properties to determine suitability.
+### Recommendation Scoring
+- Atlas recommended projections receive higher scores
+- Atlas prohibited projections receive negative scores
+- View mode compatibility (composite projections for built-in-composite mode)
+- Scores determine final recommendation level
 
 ### Recommendation Levels
-- **excellent** (ri-star-fill): Atlas recommended list OR matches excellent suitability
-- **good** (ri-star-line): Matches good suitability criteria
-- **usable** (ri-star-half-line): Matches usable suitability OR default level
-- **not-recommended**: Atlas prohibited list OR matches avoid criteria
+- **excellent** (ri-star-fill): Atlas recommended list (score >= 80)
+- **good** (ri-star-line): Good compatibility (score >= 60)
+- **usable** (ri-star-half-line): Default level (score >= 40)
+- **not-recommended**: Atlas prohibited list (score < 40)
 
 ### Filter Context
 
 ```typescript
 interface ProjectionFilterContext {
-  atlasId?: string              // 'france' | 'portugal' | 'spain' | 'europe'
-  viewMode?: ViewMode           // 'composite' | 'split' | 'individual'
-  territory?: {                 // Territory being configured
-    id: string
-    type: 'mainland' | 'overseas' | 'island' | 'archipelago' | 'peninsula'
-    region?: string
-  }
+  atlasId?: string // 'france' | 'portugal' | 'spain' | 'europe'
+  viewMode?: ViewMode // 'composite' | 'split' | 'individual'
   category?: ProjectionCategory
   family?: ProjectionFamily
   capabilities?: {
     preservesArea?: boolean
     preservesAngles?: boolean
   }
-  limit?: number                // Max results
+  limit?: number // Max results
 }
 ```
 
@@ -206,26 +187,26 @@ Uses single `ProjectionParameters` interface across all systems:
 ```typescript
 interface ProjectionParameters {
   // Canonical positioning (projection-agnostic)
-  focusLongitude?: number           // Geographic focus longitude (-180 to 180)
-  focusLatitude?: number            // Geographic focus latitude (-90 to 90)
-  rotateGamma?: number              // Third rotation axis (roll/tilt)
-  
+  focusLongitude?: number // Geographic focus longitude (-180 to 180)
+  focusLatitude?: number // Geographic focus latitude (-90 to 90)
+  rotateGamma?: number // Third rotation axis (roll/tilt)
+
   // Legacy positioning (deprecated, converted to canonical on load)
-  center?: [number, number]         // [DEPRECATED] Use focusLongitude/focusLatitude
+  center?: [number, number] // [DEPRECATED] Use focusLongitude/focusLatitude
   rotate?: [number, number, number?] // [DEPRECATED] Use focusLongitude/focusLatitude
-  
+
   // Other parameters
-  parallels?: [number, number]      // Standard parallels [south, north] for conic
-  scale?: number                    // Current scale value
-  clipAngle?: number                // Clipping angle for azimuthal (degrees)
-  precision?: number                // Precision for adaptive sampling
-  
+  parallels?: [number, number] // Standard parallels [south, north] for conic
+  scale?: number // Current scale value
+  clipAngle?: number // Clipping angle for azimuthal (degrees)
+  precision?: number // Precision for adaptive sampling
+
   // Optional metadata fields
-  family?: ProjectionFamilyType     // Projection family for validation
-  projectionId?: string             // Projection ID from registry
-  baseScale?: number                // Base scale before user adjustments
-  scaleMultiplier?: number          // User's scale multiplier
-  [key: string]: any                // Index signature for dynamic access
+  family?: ProjectionFamilyType // Projection family for validation
+  projectionId?: string // Projection ID from registry
+  baseScale?: number // Base scale before user adjustments
+  scaleMultiplier?: number // User's scale multiplier
+  [key: string]: any // Index signature for dynamic access
 }
 ```
 
@@ -237,9 +218,9 @@ independently of projection family. Conversion to D3 methods happens at render t
 **Canonical Format**:
 ```typescript
 interface CanonicalPositioning {
-  focusLongitude: number  // -180 to 180
-  focusLatitude: number   // -90 to 90
-  rotateGamma?: number    // -180 to 180 (optional third axis)
+  focusLongitude: number // -180 to 180
+  focusLatitude: number // -90 to 90
+  rotateGamma?: number // -180 to 180 (optional third axis)
 }
 ```
 
@@ -352,7 +333,7 @@ else if (isConic && params.center && projection.rotate) {
 }
 // AZIMUTHAL: rotate IS the viewpoint
 else if (isAzimuthal && projection.rotate) {
-  projection.rotate(rotate)  // or convert center to rotate as fallback
+  projection.rotate(rotate) // or convert center to rotate as fallback
 }
 // OTHER: Use rotate if provided
 else if (params.rotate && projection.rotate) {
@@ -367,7 +348,7 @@ MapRenderer.vue supports interactive mouse panning for projections with rotation
 - **Interaction**: Click and drag on the map to rotate the projection in both axes
 - **Visual feedback**: Cursor changes to grab/grabbing during interaction
 - **Scaling**: 0.5 degrees per pixel for smooth control
-- **Range**: 
+- **Range**:
   - Longitude: Wraps between -180 and 180
   - Latitude: Clamped between -90 and 90 (prevents pole flipping)
 - **Updates**: Changes flow through projectionStore.setCustomRotate which delegates to parameterStore.setGlobalParameter and trigger re-render via globalEffectiveParameters watcher
@@ -417,7 +398,7 @@ Parameter system uses centralized `ProjectionParameterManager` with inheritance 
 
 **Parameter Inheritance Priority**:
 1. Territory-specific overrides (highest priority)
-2. Global parameter defaults 
+2. Global parameter defaults
 3. Atlas parameter defaults (lowest priority)
 
 **Dynamic Projection Family Detection**:
@@ -472,17 +453,12 @@ export const myProjection: ProjectionDefinition = {
   family: 'conic',
   strategy: 'D3_BUILTIN',
   d3Name: 'geoConicConformal',
-  
+
   capabilities: {
     preservesAngles: true,
     supportsSplit: true
   },
-  
-  suitability: {
-    midLatitude: 85,
-    regional: 90
-  },
-  
+
   description: 'Description of projection'
 }
 ```

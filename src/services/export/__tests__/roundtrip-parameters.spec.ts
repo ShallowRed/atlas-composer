@@ -24,14 +24,12 @@ describe('export/import JSON roundtrip', () => {
       createdWith: 'Atlas composer v1.0',
       notes: 'Test configuration with all parameters',
     },
-    pattern: 'single-focus',
     referenceScale: 2700,
     canvasDimensions: { width: 960, height: 500 },
     territories: [
       {
         code: 'FR-MET',
         name: 'France Metropolitaine',
-        role: 'primary',
         projection: {
           id: 'conic-conformal',
           family: 'conic',
@@ -53,7 +51,6 @@ describe('export/import JSON roundtrip', () => {
       {
         code: 'FR-GP',
         name: 'Guadeloupe',
-        role: 'secondary',
         projection: {
           id: 'mercator',
           family: 'cylindrical',
@@ -78,7 +75,6 @@ describe('export/import JSON roundtrip', () => {
 
       expect(parsed.version).toBe(fullConfig.version)
       expect(parsed.metadata).toEqual(fullConfig.metadata)
-      expect(parsed.pattern).toBe(fullConfig.pattern)
       expect(parsed.referenceScale).toBe(fullConfig.referenceScale)
       expect(parsed.canvasDimensions).toEqual(fullConfig.canvasDimensions)
       expect(parsed.territories).toHaveLength(fullConfig.territories.length)
@@ -94,7 +90,6 @@ describe('export/import JSON roundtrip', () => {
 
         expect(restored?.code).toBe(original?.code)
         expect(restored?.name).toBe(original?.name)
-        expect(restored?.role).toBe(original?.role)
         expect(restored?.projection.id).toBe(original?.projection.id)
         expect(restored?.projection.family).toBe(original?.projection.family)
         expect(restored?.projection.parameters).toEqual(original?.projection.parameters)
@@ -110,8 +105,8 @@ describe('export/import JSON roundtrip', () => {
       const guadeloupe = parsed.territories.find(t => t.code === 'FR-GP')
       expect(guadeloupe?.layout.pixelClipExtent).toEqual([-54, -48, 55, 38])
 
-      const mainland = parsed.territories.find(t => t.code === 'FR-MET')
-      expect(mainland?.layout.pixelClipExtent).toBeNull()
+      const franceMet = parsed.territories.find(t => t.code === 'FR-MET')
+      expect(franceMet?.layout.pixelClipExtent).toBeNull()
     })
   })
 
@@ -145,11 +140,11 @@ describe('export/import JSON roundtrip', () => {
       const jsonString = JSON.stringify(fullConfig)
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
 
-      expect(mainlandImported?.projection.parameters.center).toEqual(
-        mainlandOriginal?.projection.parameters.center,
+      expect(franceMetImported?.projection.parameters.center).toEqual(
+        franceMetOriginal?.projection.parameters.center,
       )
     })
 
@@ -157,11 +152,11 @@ describe('export/import JSON roundtrip', () => {
       const jsonString = JSON.stringify(fullConfig)
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
 
-      expect(mainlandImported?.projection.parameters.rotate).toEqual(
-        mainlandOriginal?.projection.parameters.rotate,
+      expect(franceMetImported?.projection.parameters.rotate).toEqual(
+        franceMetOriginal?.projection.parameters.rotate,
       )
     })
 
@@ -169,11 +164,11 @@ describe('export/import JSON roundtrip', () => {
       const jsonString = JSON.stringify(fullConfig)
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
 
-      expect(mainlandImported?.projection.parameters.parallels).toEqual(
-        mainlandOriginal?.projection.parameters.parallels,
+      expect(franceMetImported?.projection.parameters.parallels).toEqual(
+        franceMetOriginal?.projection.parameters.parallels,
       )
     })
 
@@ -203,14 +198,14 @@ describe('export/import JSON roundtrip', () => {
       const jsonString = JSON.stringify(fullConfig)
       const result = CompositeImportService.importFromJSON(jsonString)
 
-      const mainlandOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const mainlandImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
 
-      expect(mainlandImported?.projection.parameters.clipAngle).toBe(
-        mainlandOriginal?.projection.parameters.clipAngle,
+      expect(franceMetImported?.projection.parameters.clipAngle).toBe(
+        franceMetOriginal?.projection.parameters.clipAngle,
       )
-      expect(mainlandImported?.projection.parameters.precision).toBe(
-        mainlandOriginal?.projection.parameters.precision,
+      expect(franceMetImported?.projection.parameters.precision).toBe(
+        franceMetOriginal?.projection.parameters.precision,
       )
     })
   })
@@ -225,12 +220,10 @@ describe('export/import JSON roundtrip', () => {
           exportDate: new Date().toISOString(),
           createdWith: 'Test',
         },
-        pattern: 'single-focus',
         territories: [
           {
             code: createTerritoryCode('TEST'),
             name: 'Test Territory',
-            role: 'primary',
             projection: {
               id: 'mercator',
               family: 'cylindrical',
@@ -275,24 +268,6 @@ describe('export/import JSON roundtrip', () => {
       const imported = result.config?.territories[0]
       expect(imported?.projection.parameters.center).toEqual([2.123456, 46.654321])
       expect(imported?.projection.parameters.scaleMultiplier).toBe(1.234567)
-    })
-
-    it('should handle equal-members pattern', () => {
-      const equalMembersConfig: ExportedCompositeConfig = {
-        ...fullConfig,
-        pattern: 'equal-members',
-        territories: fullConfig.territories.map(t => ({
-          ...t,
-          role: 'member' as const,
-        })),
-      }
-
-      const jsonString = JSON.stringify(equalMembersConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(true)
-      expect(result.config?.pattern).toBe('equal-members')
-      expect(result.config?.territories.every(t => t.role === 'member')).toBe(true)
     })
   })
 })

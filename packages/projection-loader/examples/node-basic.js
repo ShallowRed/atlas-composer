@@ -47,7 +47,7 @@ const usaConfig = {
   name: 'United States',
   projections: [
     {
-      id: 'mainland',
+      id: 'continental',
       bounds: [[-130, 24], [-65, 50]],
       projection: {
         type: 'albers',
@@ -81,7 +81,7 @@ const usaConfig = {
     width: 960,
     height: 600,
     positions: {
-      mainland: { x: 480, y: 300 },
+      continental: { x: 480, y: 300 },
       alaska: { x: 200, y: 500 },
       hawaii: { x: 400, y: 550 },
     },

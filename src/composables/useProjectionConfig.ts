@@ -1,5 +1,4 @@
 import type { TerritoryCode } from '@/types/branded'
-import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
@@ -9,25 +8,9 @@ import { useViewStore } from '@/stores/view'
  * Handles the logic of when to use per-territory projections vs uniform projection.
  */
 export function useProjectionConfig() {
-  const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
-
-  /**
-   * Get projection for mainland in split mode
-   */
-  function getMainlandProjection() {
-    // In split mode, use per-territory projections
-    if (viewStore.viewMode === 'split') {
-      const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
-      if (mainlandCode) {
-        // Convert: mainlandCode from config is string
-        return parameterStore.getTerritoryProjection(mainlandCode as TerritoryCode) || projectionStore.selectedProjection
-      }
-    }
-    return projectionStore.selectedProjection
-  }
 
   /**
    * Get projection for a specific territory
@@ -43,7 +26,6 @@ export function useProjectionConfig() {
   }
 
   return {
-    getMainlandProjection,
     getTerritoryProjection,
   }
 }

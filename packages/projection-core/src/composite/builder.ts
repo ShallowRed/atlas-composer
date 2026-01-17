@@ -46,7 +46,7 @@ function normalizeBounds(bounds: GeoBounds | GeoBoundsArray): GeoBounds {
  * @example
  * ```typescript
  * // Create sub-projections (e.g., using d3-geo)
- * const mainlandProj = d3.geoAlbers()
+ * const usaProj = d3.geoAlbers()
  *   .center([0, 38])
  *   .rotate([96, 0])
  *   .scale(1000)
@@ -60,9 +60,9 @@ function normalizeBounds(bounds: GeoBounds | GeoBoundsArray): GeoBounds {
  * const composite = buildCompositeProjection({
  *   entries: [
  *     {
- *       id: 'mainland',
- *       name: 'Mainland USA',
- *       projection: mainlandProj,
+ *       id: 'usa',
+ *       name: 'Continental USA',
+ *       projection: usaProj,
  *       bounds: { minLon: -125, minLat: 24, maxLon: -66, maxLat: 50 }
  *     },
  *     {

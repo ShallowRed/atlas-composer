@@ -30,28 +30,6 @@ export const MERCATOR: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'overseas', region: 'americas', latitudeRange: { min: -30, max: 30 } },
-      { territoryType: 'overseas', region: 'africa', latitudeRange: { min: -30, max: 30 } },
-      { territoryType: 'overseas', region: 'asia', latitudeRange: { min: -30, max: 30 } },
-      { territoryType: 'overseas', region: 'oceania', latitudeRange: { min: -30, max: 30 } },
-      { territoryType: 'island', latitudeRange: { min: -30, max: 30 } },
-    ],
-    good: [
-      { territoryType: 'overseas', scale: 'local' },
-      { territoryType: 'island', scale: 'local' },
-    ],
-    usable: [
-      { territoryType: 'mainland', latitudeRange: { min: -40, max: 40 } },
-    ],
-    avoid: [
-      { latitudeRange: { min: 60, max: 90 } }, // Extreme distortion at high latitudes
-      { latitudeRange: { min: -90, max: -60 } },
-      { scale: 'global' }, // Not suitable for world maps due to infinite poles
-    ],
-  },
-
   defaultParameters: {},
 
   aliases: ['web-mercator'],
@@ -83,20 +61,6 @@ export const EQUIRECTANGULAR: ProjectionDefinition = {
     supportsComposite: true,
     supportsSplit: true,
     supportsUnified: true,
-  },
-
-  suitability: {
-    good: [
-      { scale: 'global' },
-      { latitudeRange: { min: -30, max: 30 } },
-    ],
-    usable: [
-      { scale: 'regional' },
-    ],
-    avoid: [
-      { latitudeRange: { min: 60, max: 90 } },
-      { latitudeRange: { min: -90, max: -60 } },
-    ],
   },
 
   aliases: ['plateCarree', 'geographic'],

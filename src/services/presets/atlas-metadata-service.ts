@@ -139,10 +139,6 @@ export class AtlasMetadataService {
       compositeProjections: getDefaultCompositeProjections(atlasId),
       projectionPreferences: {
         recommended: ['natural-earth', 'robinson', 'mercator'],
-        default: {
-          mainland: 'natural-earth',
-          overseas: 'mercator',
-        },
       },
     }
   }

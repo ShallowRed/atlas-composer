@@ -20,24 +20,29 @@ export function createMockAtlasConfig(atlasId: AtlasId = 'france' as AtlasId): L
   const atlasConfig = {
     id: atlasId,
     name: 'France',
-    pattern: 'single-focus' as const,
     geoDataConfig: {
       dataPath: '/data/france-territories-50m.json',
       metadataPath: '/data/france-metadata-50m.json',
       topologyObjectName: 'territories',
-      overseasTerritories: [{
-        code: 'FR-GP' as TerritoryCode,
-        name: 'Guadeloupe',
-        center: [-61.46, 16.14] as [number, number],
-        bounds: [[-61.81, 15.83], [-61, 16.52]] as [[number, number], [number, number]],
-      }],
+      territories: [
+        {
+          code: 'FR-MET' as TerritoryCode,
+          name: 'France Metropolitaine',
+          center: [2.5, 46.5] as [number, number],
+          bounds: [[-5, 41], [10, 51]] as [[number, number], [number, number]],
+        },
+        {
+          code: 'FR-GP' as TerritoryCode,
+          name: 'Guadeloupe',
+          center: [-61.46, 16.14] as [number, number],
+          bounds: [[-61.81, 15.83], [-61, 16.52]] as [[number, number], [number, number]],
+        },
+      ],
     },
   }
 
   const atlasSpecificConfig = {
     splitModeConfig: {
-      mainlandCode: 'FR-MET' as TerritoryCode,
-      mainlandTitle: 'territory.mainland',
       territoriesTitle: 'territory.territories',
     },
     territoryCollections: {
@@ -77,14 +82,13 @@ export function createMockAtlasConfig(atlasId: AtlasId = 'france' as AtlasId): L
  */
 export function createMockCompositeConfig(): CompositeProjectionConfig {
   return {
-    type: 'single-focus',
-    mainland: {
-      code: 'FR-MET' as TerritoryCode,
-      name: 'France Métropolitaine',
-      center: [2.5, 46.5],
-      bounds: [[-5, 41], [10, 51]],
-    },
-    overseasTerritories: [
+    territories: [
+      {
+        code: 'FR-MET' as TerritoryCode,
+        name: 'France Metropolitaine',
+        center: [2.5, 46.5],
+        bounds: [[-5, 41], [10, 51]],
+      },
       {
         code: 'FR-GP' as TerritoryCode,
         name: 'Guadeloupe',

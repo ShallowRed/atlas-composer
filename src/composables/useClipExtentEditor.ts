@@ -69,7 +69,7 @@ export function useClipExtentEditor() {
       handlesGroup = svgSelection.append('g').attr('class', 'clip-extent-handles')
     }
 
-    // Get the selected territory from all active territories (includes mainland and overseas)
+    // Get the selected territory from all active territories
     const selectedTerritory = geoDataStore.allActiveTerritories.find(
       t => t.code === selectedTerritoryCode.value,
     )

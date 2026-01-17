@@ -30,13 +30,6 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'overseas', scale: 'regional' },
-    ],
-  },
-
   defaultParameters: {
     // Parameters are handled by d3-composite-projections
     center: [2.5, 46.5], // Approximate center of France
@@ -74,13 +67,6 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'archipelago', region: 'europe' },
-    ],
   },
 
   defaultParameters: {
@@ -121,14 +107,6 @@ export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'archipelago', region: 'europe' },
-      { territoryType: 'archipelago', region: 'africa' },
-    ],
-  },
-
   defaultParameters: {
     center: [-3, 40], // Approximate center of Spain
   },
@@ -165,13 +143,6 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'overseas', scale: 'regional' },
-    ],
   },
 
   defaultParameters: {
@@ -211,14 +182,6 @@ export const ALBERS_USA: ProjectionDefinition = {
     supportsSplit: true, // Can be used in split view mode
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'americas' },
-      { territoryType: 'overseas', region: 'americas' },
-      { territoryType: 'overseas', region: 'oceania' },
-    ],
   },
 
   defaultParameters: {
@@ -261,14 +224,6 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'americas' },
-      { territoryType: 'overseas', region: 'americas' },
-      { territoryType: 'overseas', region: 'oceania' },
-    ],
-  },
-
   defaultParameters: {
     center: [-98.5, 39.8],
   },
@@ -305,14 +260,6 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'americas' },
-      { territoryType: 'overseas', region: 'americas' },
-      { territoryType: 'overseas', region: 'oceania' },
-    ],
   },
 
   defaultParameters: {
@@ -353,13 +300,6 @@ export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'overseas', region: 'americas' },
-    ],
-  },
-
   defaultParameters: {
     center: [5.5, 52.2],
   },
@@ -396,13 +336,6 @@ export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'asia' },
-      { territoryType: 'archipelago', region: 'asia' },
-    ],
   },
 
   defaultParameters: {
@@ -443,13 +376,6 @@ export const MERCATOR_ECUADOR: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'americas' },
-      { territoryType: 'archipelago', region: 'americas' },
-    ],
-  },
-
   defaultParameters: {
     center: [-78.5, -1.5],
   },
@@ -486,14 +412,6 @@ export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'americas' },
-      { territoryType: 'overseas', region: 'americas' },
-      { territoryType: 'overseas', region: 'oceania' },
-    ],
   },
 
   defaultParameters: {
@@ -534,13 +452,6 @@ export const MERCATOR_MALAYSIA: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'asia' },
-      { territoryType: 'overseas', region: 'asia' },
-    ],
-  },
-
   defaultParameters: {
     center: [112, 4],
   },
@@ -577,13 +488,6 @@ export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'africa' },
-      { territoryType: 'overseas', region: 'africa' },
-    ],
   },
 
   defaultParameters: {
@@ -624,13 +528,6 @@ export const ALBERS_UK: ProjectionDefinition = {
     isInterrupted: false,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'archipelago', region: 'europe' },
-    ],
-  },
-
   defaultParameters: {
     center: [-2, 55.4],
   },
@@ -667,13 +564,6 @@ export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
-  },
-
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe' },
-      { territoryType: 'archipelago', region: 'europe' },
-    ],
   },
 
   defaultParameters: {

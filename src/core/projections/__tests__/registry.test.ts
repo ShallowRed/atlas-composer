@@ -133,14 +133,6 @@ describe('projectionRegistry', () => {
       })
     })
 
-    it('should filter by territory', () => {
-      const mainlandProjections = projectionRegistry.filter({
-        atlasId: 'france',
-        territory: { id: 'FRA', type: 'mainland', region: 'europe' },
-      })
-      expect(mainlandProjections.length).toBeGreaterThan(0)
-    })
-
     it('should return empty array for unknown atlas', () => {
       const projections = projectionRegistry.filter({
         atlasId: 'unknown-atlas',
@@ -198,7 +190,7 @@ describe('projectionRegistry', () => {
       }
     })
 
-    it('should assign suitability levels correctly', () => {
+    it('should assign recommendation levels correctly', () => {
       const recommendations = projectionRegistry.recommend({
         atlasId: 'france',
       })
@@ -208,10 +200,10 @@ describe('projectionRegistry', () => {
       const usable = recommendations.filter(r => r.level === 'usable')
       const notRecommended = recommendations.filter(r => r.level === 'not-recommended')
 
-      excellent.forEach(r => expect(r.score).toBeGreaterThanOrEqual(35))
-      good.forEach(r => expect(r.score).toBeGreaterThanOrEqual(25))
-      usable.forEach(r => expect(r.score).toBeGreaterThanOrEqual(0))
-      notRecommended.forEach(r => expect(r.score).toBeLessThan(0))
+      excellent.forEach(r => expect(r.score).toBeGreaterThanOrEqual(80))
+      good.forEach(r => expect(r.score).toBeGreaterThanOrEqual(60))
+      usable.forEach(r => expect(r.score).toBeGreaterThanOrEqual(40))
+      notRecommended.forEach(r => expect(r.score).toBeLessThan(40))
     })
   })
 

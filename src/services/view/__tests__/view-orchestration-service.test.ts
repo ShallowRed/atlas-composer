@@ -1,6 +1,7 @@
 import type { ViewState } from '../view-orchestration-service'
 import type { AtlasConfig, ViewMode } from '@/types'
 import { describe, expect, it, vi } from 'vitest'
+import { createTerritoryCode } from '@/types/branded'
 import { ViewOrchestrationService } from '../view-orchestration-service'
 
 // Mock the registry
@@ -23,7 +24,12 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
       dataPath: '/data/test.json',
       metadataPath: '/data/test-metadata.json',
       topologyObjectName: 'territories',
-      territories: [{ code: 'TEST-MAIN', name: 'Test Main' }],
+      territories: [{
+        code: createTerritoryCode('TEST-MAIN'),
+        name: 'Test Main',
+        center: [0, 0],
+        bounds: [[-10, -10], [10, 10]],
+      }],
     },
   }
 
@@ -31,12 +37,10 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     viewMode: 'composite-custom',
     atlasConfig: defaultAtlasConfig,
     hasPresets: true,
-    hasOtherTerritories: true,
+    hasTerritories: true,
     isPresetLoading: false,
     showProjectionSelector: false,
     showIndividualProjectionSelectors: true,
-    isPrimaryTerritoryInActive: false,
-    showPrimaryTerritory: true,
     ...overrides,
   }
 }
@@ -221,31 +225,6 @@ describe('viewOrchestrationService', () => {
     })
   })
 
-  describe('shouldShowPrimaryTerritoryAccordion', () => {
-    it('should show primary territory accordion with showPrimaryTerritory true', () => {
-      const state = createViewState({
-        showPrimaryTerritory: true,
-      })
-      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(true)
-    })
-
-    it('should show primary territory accordion with primary territory in active', () => {
-      const state = createViewState({
-        showPrimaryTerritory: false,
-        isPrimaryTerritoryInActive: true,
-      })
-      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(true)
-    })
-
-    it('should NOT show primary territory accordion when no primary territory available', () => {
-      const state = createViewState({
-        showPrimaryTerritory: false,
-        isPrimaryTerritoryInActive: false,
-      })
-      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(false)
-    })
-  })
-
   describe('shouldShowProjectionDropdown', () => {
     it('should show projection dropdown in split mode', () => {
       const state = createViewState({ viewMode: 'split' })
@@ -264,26 +243,16 @@ describe('viewOrchestrationService', () => {
   })
 
   describe('shouldShowEmptyState', () => {
-    it('should show empty state when no territories and no primary territory', () => {
+    it('should show empty state when no territories', () => {
       const state = createViewState({
-        hasOtherTerritories: false,
-        showPrimaryTerritory: false,
-        isPrimaryTerritoryInActive: false,
+        hasTerritories: false,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(true)
     })
 
-    it('should NOT show empty state when primary territory is available', () => {
+    it('should NOT show empty state when territories exist', () => {
       const state = createViewState({
-        hasOtherTerritories: false,
-        showPrimaryTerritory: true,
-      })
-      expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
-    })
-
-    it('should NOT show empty state when other territories exist', () => {
-      const state = createViewState({
-        hasOtherTerritories: true,
+        hasTerritories: true,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
     })
@@ -336,28 +305,6 @@ describe('viewOrchestrationService', () => {
     it('should return unified for unified mode', () => {
       const state = createViewState({ viewMode: 'unified' })
       expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('unified')
-    })
-  })
-
-  describe('getSplitViewPattern', () => {
-    it('should return single-focus for single-focus pattern', () => {
-      const state = createViewState({
-        atlasConfig: {
-          ...createViewState().atlasConfig,
-          pattern: 'single-focus',
-        },
-      })
-      expect(ViewOrchestrationService.getSplitViewPattern(state)).toBe('single-focus')
-    })
-
-    it('should return multi-mainland for equal-members pattern', () => {
-      const state = createViewState({
-        atlasConfig: {
-          ...createViewState().atlasConfig,
-          pattern: 'equal-members',
-        },
-      })
-      expect(ViewOrchestrationService.getSplitViewPattern(state)).toBe('multi-mainland')
     })
   })
 

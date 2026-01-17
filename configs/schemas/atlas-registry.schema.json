@@ -130,10 +130,6 @@
                   "type": "boolean",
                   "description": "Whether this is the default preset for the atlas"
                 },
-                "pattern": {
-                  "type": "string",
-                  "description": "Pattern for composite presets (e.g., 'single-focus', 'equal-members')"
-                },
                 "description": {
                   "description": "Description of the preset (can be i18n object or string)",
                   "oneOf": [

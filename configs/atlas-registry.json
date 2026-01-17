@@ -46,7 +46,6 @@
           },
           "type": "composite-custom",
           "isDefault": true,
-          "pattern": "single-focus",
           "configPath": "./presets/france/france-customcomposite-pseudod3cp.json",
           "description": {
             "en": "Configuration almost aligned with geoConicConformalFrance from d3-composite-projections",
@@ -60,7 +59,6 @@
             "fr": "Composite proportionnelle"
           },
           "type": "composite-custom",
-          "pattern": "single-focus",
           "configPath": "./presets/france/france-customcomposite-proportionnald3cp.json",
           "description": {
             "en": "Proportional composite configuration for France",
@@ -74,7 +72,6 @@
             "fr": "Composite NSP"
           },
           "type": "composite-custom",
-          "pattern": "single-focus",
           "configPath": "./presets/france/france-customcomposite-nsp.json",
           "description": {
             "en": "NSP configuration for France",
@@ -147,7 +144,6 @@
           },
           "type": "composite-custom",
           "isDefault": true,
-          "pattern": "single-focus",
           "configPath": "./presets/portugal/portugal-default.json",
           "description": {
             "en": "Custom configuration for continental Portugal and islands",
@@ -218,7 +214,6 @@
           },
           "type": "built-in-composite",
           "isDefault": true,
-          "pattern": "single-focus",
           "configPath": "./presets/usa/usa-builtincomposite-d3cp.json",
           "description": {
             "en": "Custom composite projection aligned with d3-composite-projections albersUsa",
@@ -232,7 +227,6 @@
             "fr": "Composite personnalisée par défaut avec territoires"
           },
           "type": "built-in-composite",
-          "pattern": "single-focus",
           "configPath": "./presets/usa/usa-builtincomposite-d3cpterritories.json",
           "description": {
             "en": "Custom composite projection aligned with d3-composite-projections albersUsaTerritories",
@@ -298,7 +292,6 @@
           },
           "type": "built-in-composite",
           "isDefault": true,
-          "pattern": "equal-members",
           "configPath": "./presets/europe/europe-builtincomposite-d3cp.json",
           "description": {
             "en": "Predefined composite projection from d3-composite-projections",

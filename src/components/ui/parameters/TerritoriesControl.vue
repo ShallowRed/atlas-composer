@@ -23,10 +23,8 @@ const {
   scales,
   territoryProjections,
   territories,
-  mainlandCode,
   projectionRecommendations,
   projectionGroups,
-  currentAtlasConfig,
   selectedProjection,
   resetTransforms,
   setTerritoryProjection,
@@ -140,16 +138,6 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
 }
-
-// Check if we should show mainland accordion
-const showMainlandAccordion = computed(() => {
-  if (!currentAtlasConfig.value) {
-    return false
-  }
-  const hasMainlandConfig = currentAtlasConfig.value.splitModeConfig !== undefined
-  const isMainlandInTerritories = territories.value.some(t => t.code === mainlandCode.value)
-  return hasMainlandConfig || isMainlandInTerritories
-})
 </script>
 
 <template>
@@ -163,48 +151,15 @@ const showMainlandAccordion = computed(() => {
     {{ t('territory.resetButton') }}
   </button>
 
-  <!-- Accordion for all territories -->
+  <!-- Accordion for all territories (treated equally) -->
   <div class="join join-vertical w-full">
-    <!-- Mainland section -->
     <AccordionItem
-      v-if="showMainlandAccordion"
-      :title="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-      :subtitle="mainlandCode"
-      group-name="territory-accordion"
-      :checked="true"
-    >
-      <!-- Projection Selector -->
-      <div class="mb-4">
-        <ProjectionDropdown
-          :model-value="getTerritoryProjection(mainlandCode)"
-          :label="t('projection.cartographic')"
-          :projection-groups="projectionGroups"
-          :recommendations="projectionRecommendations"
-          @update:model-value="(value: ProjectionId) => handleProjectionChange(mainlandCode, value)"
-        />
-      </div>
-
-      <!-- Territory Parameter Controls for Mainland -->
-      <div class="mb-4">
-        <TerritoryParameterControls
-          :territory-code="mainlandCode"
-          :territory-name="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-          :projection-family="getProjectionFamily(mainlandCode)"
-          :show-inheritance-indicators="true"
-          :allow-parameter-overrides="true"
-          @parameter-changed="handleParameterChange"
-          @override-cleared="handleOverrideCleared"
-        />
-      </div>
-    </AccordionItem>
-
-    <!-- Overseas territories -->
-    <AccordionItem
-      v-for="territory in territories.filter(t => t.code !== mainlandCode)"
+      v-for="(territory, index) in territories"
       :key="territory.code"
       :title="territory.name"
       :subtitle="territory.code"
       group-name="territory-accordion"
+      :checked="index === 0"
     >
       <!-- Projection Selector -->
       <div class="mb-4">

@@ -377,8 +377,8 @@ Dedicated control components for each view mode provide focused, maintainable in
 
 **useProjectionConfig**
 - Projection configuration helpers
-- compositeProjectionOptions, getMainlandProjection(), getTerritoryProjection()
-- Returns: { compositeProjectionOptions, getMainlandProjection, getTerritoryProjection }
+- compositeProjectionOptions, getProjectionForTerritory()
+- Returns: { compositeProjectionOptions, getProjectionForTerritory }
 - Tests: 8 tests
 
 **useViewMode**
@@ -429,7 +429,7 @@ Dedicated control components for each view mode provide focused, maintainable in
 **useTerritoryVisibility**
 - Single responsibility: Territory visibility business rules
 - Delegates to TerritoryVisibilityService for logic
-- Returns computed refs: showMainland, mainlandCode, isMainlandInTerritories, shouldShowEmptyState
+- Returns computed refs for territory visibility state
 - Pattern: Service handles business rules (pure), composable handles Vue reactivity
 - Tests: Via TerritoryVisibilityService (13 unit tests)
 
@@ -1081,9 +1081,8 @@ Custom composite mode allows users to select which territories to include in the
 **Composition Border Filtering**:
 1. MapRenderer passes filteredTerritoryCodes Set to MapOverlayService
 2. MapOverlayService.renderCustomCompositeBorders() filters borders
-3. Mainland border always rendered (checked via mainlandCode parameter)
-4. Overseas territory borders only rendered if in filteredTerritoryCodes Set
-5. Result: Visual borders match active territory set
+3. Only active territory borders are rendered (those in filteredTerritoryCodes Set)
+4. Result: Visual borders match active territory set
 
 **Reset to Defaults**:
 1. User clicks reset button in TerritoriesControl

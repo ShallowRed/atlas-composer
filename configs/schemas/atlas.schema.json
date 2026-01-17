@@ -104,7 +104,7 @@
         {
           "type": "string",
           "enum": ["*"],
-          "description": "Use '*' to load all territories from data file (for equal-members patterns like world atlas)"
+          "description": "Use '*' to load all territories from data file dynamically"
         },
         {
           "type": "array",
@@ -200,11 +200,6 @@
                   "extractFrom": {
                     "type": "string",
                     "description": "Parent territory ID to extract from"
-                  },
-                  "mainlandPolygon": {
-                    "type": "integer",
-                    "description": "Index of the mainland polygon in MultiPolygon",
-                    "minimum": 0
                   },
                   "polygonIndices": {
                     "type": "array",

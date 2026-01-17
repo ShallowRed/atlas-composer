@@ -20,8 +20,7 @@ vi.mock('@/core/atlases/registry', () => ({
       dataPath: '/data/france.json',
       metadataPath: '/data/france-metadata.json',
       topologyObjectName: 'territories',
-      mainlandCode: 'FR-MET',
-      overseasTerritories: [],
+      additionalTerritories: [],
     },
   })),
   getAvailableViewModes: vi.fn(() => ['composite-custom', 'unified', 'split']),
@@ -271,13 +270,11 @@ describe('initializationService', () => {
           exportDate: '2024-01-01',
           createdWith: '1.0.0',
         },
-        pattern: 'single-focus' as const,
         referenceScale: 2700,
         territories: [
           {
             code: 'FR-MET',
             name: 'Metropolitan France',
-            role: 'primary' as const,
             projection: {
               id: 'conic-conformal',
               family: 'CONIC',
@@ -329,12 +326,10 @@ describe('initializationService', () => {
           exportDate: '2024-01-01',
           createdWith: '1.0.0',
         },
-        pattern: 'single-focus' as const,
         territories: [
           {
             code: 'PT-MET',
             name: 'Metropolitan Portugal',
-            role: 'primary' as const,
             projection: {
               id: 'conic-conformal',
               family: 'CONIC',

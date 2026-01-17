@@ -26,12 +26,6 @@ export interface MapSizeConfig {
   maxHeight: number
 
   /**
-   * Fixed dimensions for mainland territories
-   */
-  mainlandWidth: number
-  mainlandHeight: number
-
-  /**
    * Fixed dimensions for composite maps
    */
   compositeWidth: number
@@ -59,8 +53,6 @@ export class MapSizeCalculator {
     minHeight: 40,
     maxWidth: 300,
     maxHeight: 240,
-    mainlandWidth: 500,
-    mainlandHeight: 400,
     compositeWidth: 800,
     compositeHeight: 600,
   }
@@ -70,7 +62,6 @@ export class MapSizeCalculator {
    *
    * @param options - Calculation options
    * @param options.mode - Map rendering mode
-   * @param options.isMainland - Whether this is a mainland territory
    * @param options.preserveScale - Whether to preserve area-based scale
    * @param options.area - Territory area in km²
    * @param options.width - Explicit width override
@@ -80,7 +71,6 @@ export class MapSizeCalculator {
    */
   static calculateSize(options: {
     mode?: 'composite' | 'territory'
-    isMainland?: boolean
     preserveScale?: boolean
     area?: number
     width?: number
@@ -102,14 +92,6 @@ export class MapSizeCalculator {
       return {
         width: options.width,
         height: options.height,
-      }
-    }
-
-    // For mainland territories, use fixed dimensions
-    if (options.isMainland) {
-      return {
-        width: config.mainlandWidth,
-        height: config.mainlandHeight,
       }
     }
 

@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { ProjectionFilterContext, ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionFilterContext } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -363,14 +363,6 @@ export class ProjectionService {
   }
 
   /**
-   * Get projection recommendations for a given context
-   * Returns projections ranked by suitability score
-   */
-  getRecommendations(context: ProjectionFilterContext = {}): ProjectionRecommendation[] {
-    return projectionRegistry.recommend(context)
-  }
-
-  /**
    * Create a projection using the new factory (for future use)
    * This method can gradually replace getProjection()
    */
@@ -456,7 +448,8 @@ export class ProjectionService {
     const domain = fitToSphere ? { type: 'Sphere' as const } : data
     projection.fitExtent(
       [[inset, inset], [width - inset, height - inset]],
-      domain as GeoJSON.GeoJsonObject,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      domain as any,
     )
 
     // Apply scale multiplier if set

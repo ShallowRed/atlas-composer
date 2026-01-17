@@ -327,7 +327,7 @@ App.vue
 
 **viewStore** (view.ts - 414 lines):
 - View mode (composite-custom, split, unified, built-in-composite)
-- Territory mode (all, selected, mainland)
+- Territory mode (all, selected)
 - Current preset (currentViewPreset)
 - Visibility rules and UI state
 
@@ -355,7 +355,6 @@ App.vue
 - Return type interfaces for all composables
 - LoadingState, ProjectionConfig, TerritoryConfig, ViewModeConfig
 - TerritoryTransforms, AtlasData, ProjectionFiltering
-
 
 ## Reference Files
 

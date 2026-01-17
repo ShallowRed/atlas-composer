@@ -27,11 +27,6 @@ export interface LoadingState {
  */
 export interface ProjectionConfig {
   /**
-   * Get projection for mainland in individual mode
-   */
-  getMainlandProjection: () => string | undefined
-
-  /**
    * Get projection for a specific territory
    */
   getTerritoryProjection: (territoryCode: TerritoryCode) => string | undefined
@@ -83,19 +78,9 @@ export interface TerritoryTransforms {
   territories: ComputedRef<TerritoryInfo[]>
 
   /**
-   * Whether to show mainland section
+   * Whether to show empty state (no territories active)
    */
-  showMainland: ComputedRef<boolean>
-
-  /**
-   * Mainland territory code
-   */
-  mainlandCode: ComputedRef<string>
-
-  /**
-   * Whether mainland is in filtered territories
-   */
-  isMainlandInTerritories: ComputedRef<boolean>
+  shouldShowEmptyState: ComputedRef<boolean>
 
   /**
    * Territory translations (x, y coordinates)
@@ -271,7 +256,7 @@ export interface TerritoryCursor {
   hoveredTerritoryCode: ComputedRef<string | null>
 
   /**
-   * Check if a territory can be dragged (excludes mainland)
+   * Check if a territory can be dragged (only active territories are draggable)
    */
   isTerritoryDraggable: (territoryCode: string) => boolean
 

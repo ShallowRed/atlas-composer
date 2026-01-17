@@ -158,8 +158,8 @@ Marks end of polygon:
 Critical requirement: Each GeoJSON feature must independently select its stream.
 
 The `activeStream = null` reset in `polygonStart()` ensures:
-- First polygon (mainland) selects stream based on its first point
-- Second polygon (overseas territory) selects different stream based on its first point
+- First polygon selects stream based on its first point
+- Second polygon selects different stream based on its first point
 - No stream leakage between features
 
 Without this reset, all features would use the same stream (first feature's stream), causing territories to disappear or render in wrong locations.

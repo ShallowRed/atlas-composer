@@ -9,7 +9,6 @@
     "source": "d3-composite-projections/albersUsaTerritories.js",
     "notes": "Parameters reproduced from d3-composite-projections built-in composite projection (extended territories version)"
   },
-  "pattern": "single-focus",
   "referenceScale": 1070,
   "canvasDimensions": {
     "width": 960,
@@ -19,7 +18,6 @@
     {
       "code": "US-CONT",
       "name": "Contiguous United States",
-      "role": "primary",
       "layout": {
         "translateOffset": [
           0,
@@ -62,7 +60,6 @@
     {
       "code": "US-AK",
       "name": "Alaska",
-      "role": "secondary",
       "layout": {
         "translateOffset": [
           -328.49,
@@ -109,7 +106,6 @@
     {
       "code": "US-HI",
       "name": "Hawaii",
-      "role": "secondary",
       "layout": {
         "translateOffset": [
           -219.35,
@@ -156,7 +152,6 @@
     {
       "code": "US-PR",
       "name": "Puerto Rico",
-      "role": "secondary",
       "layout": {
         "translateOffset": [
           374.5,
@@ -203,7 +198,6 @@
     {
       "code": "US-GU",
       "name": "Guam",
-      "role": "secondary",
       "layout": {
         "translateOffset": [
           -436.56,
@@ -246,7 +240,6 @@
     {
       "code": "US-AS",
       "name": "American Samoa",
-      "role": "secondary",
       "layout": {
         "translateOffset": [
           -526.44,
@@ -298,11 +291,7 @@
       "recommended": [
         "conic-conformal",
         "conic-equal-area"
-      ],
-      "default": {
-        "mainland": "albers",
-        "overseas": "albers"
-      }
+      ]
     },
     "projectionParameters": {
       "center": {
@@ -310,7 +299,7 @@
         "latitude": 39.8
       },
       "rotate": {
-        "mainland": [
+        "conic": [
           98.5,
           0
         ],

@@ -13,7 +13,6 @@ export interface BackendTerritory {
   name: string
   code: string
   iso: string
-  mainlandPolygon?: number
   extractFrom?: number
   polygonIndices?: number[]
   bounds?: [[number, number], [number, number]]

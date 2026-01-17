@@ -61,9 +61,6 @@ export function useTerritoryTransforms() {
     territoryProjections: territoryData.projections,
 
     // Visibility (from useTerritoryVisibility)
-    showMainland: territoryVisibility.showMainland,
-    mainlandCode: territoryVisibility.mainlandCode,
-    isMainlandInTerritories: territoryVisibility.isMainlandInTerritories,
     shouldShowEmptyState: territoryVisibility.shouldShowEmptyState,
 
     // Commands (from useTerritoryCommands)

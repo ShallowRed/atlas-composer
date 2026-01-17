@@ -15,18 +15,11 @@ import type { GeoDataConfig } from '@/types/geo-data'
 /**
  * Split mode configuration
  *
- * Defines labels and codes for split view mode where
- * the primary territory and other territories are shown separately.
+ * Defines labels for split view mode.
  */
 export interface SplitModeConfig {
-  /** Title for primary territory section (e.g., 'France Métropolitaine', 'Continental Portugal') */
-  primaryTitle?: string
-
-  /** Code for primary territory (e.g., 'FR-MET', 'PT-CONT') */
-  primaryTerritoryCode?: string
-
-  /** Title for other territories section (e.g., 'Territoires ultramarins', 'Regiões autónomas') */
-  otherTerritoriesTitle: string
+  /** Title for territories section */
+  territoriesTitle: string
 }
 
 /**
@@ -78,7 +71,7 @@ export interface AtlasConfig {
   /** Default preset to load for composite-custom mode (e.g., 'france-default') */
   defaultPreset?: string
 
-  /** Configuration for CompositeProjection class (mainland/overseas structure) */
+  /** Configuration for CompositeProjection class (territory layout) */
   compositeProjectionConfig?: CompositeProjectionConfig
 
   /** Whether to show the territory selector in the UI */

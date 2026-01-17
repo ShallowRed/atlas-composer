@@ -33,11 +33,11 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const isReinitializing = ref(false) // Prevents renders during atlas switches
   const renderKey = ref(0) // Reactive key to trigger re-renders
 
-  // Territory data - single array, first territory used as primary when needed
+  // Territory data - all territories treated equally
   const territoriesData = ref<Territory[]>([])
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
-  // Computed: first territory (used as primary in split view)
+  // Computed: first territory (convenience accessor)
   const firstTerritory = computed(() => territoriesData.value[0] ?? null)
 
   // Computed: filter territories based on view mode and territory mode
@@ -148,12 +148,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // silently filtering territories.
       debug('Using composite config directly from preset (no filtering)')
       if (compositeConfig) {
-        if (compositeConfig.type === 'single-focus') {
-          debug('Composite config: 1 mainland + %d overseas territories', compositeConfig.overseasTerritories.length)
-        }
-        else if (compositeConfig.type === 'equal-members') {
-          debug('Composite config: %d mainlands + %d overseas territories', compositeConfig.mainlands.length, compositeConfig.overseasTerritories.length)
-        }
+        const territoryCount = compositeConfig.territories?.length ?? 0
+        debug('Composite config: %d territories', territoryCount)
       }
 
       cartographer.value = new Cartographer(

@@ -35,21 +35,11 @@
     },
     "config": {
       "type": "object",
-      "required": ["mainland", "territories"],
+      "required": ["territories"],
       "properties": {
-        "mainland": {
-          "type": "object",
-          "required": ["projection"],
-          "properties": {
-            "projection": {
-              "$ref": "preset-definitions.schema.json#/definitions/projectionConfig"
-            }
-          },
-          "additionalProperties": false
-        },
         "territories": {
           "type": "object",
-          "description": "Per-territory projections keyed by territory code",
+          "description": "Territory projections keyed by territory code",
           "additionalProperties": {
             "type": "object",
             "required": ["projection"],

@@ -220,7 +220,7 @@ export function getAtlasTerritories(atlasId: string) {
 }
 
 /**
- * Get first/primary territory for an atlas (for split view)
+ * Get first territory for an atlas (convenience accessor)
  */
 export function getFirstTerritory(atlasId: string) {
   return getAtlasTerritories(atlasId).first

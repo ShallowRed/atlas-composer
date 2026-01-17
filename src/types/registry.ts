@@ -35,9 +35,6 @@ export interface PresetDefinition {
   /** Relative path to the preset JSON configuration file */
   configPath: string
 
-  /** Pattern for composite presets (e.g., 'single-focus', 'equal-members') */
-  pattern?: string
-
   /** Description of the preset (i18n support) */
   description?: I18nValue
 }

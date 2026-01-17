@@ -8,7 +8,7 @@
  * loaded, processed, and prepared for rendering.
  */
 
-import type { BoundingBox, TerritoryConfig } from '@/types/territory'
+import type { TerritoryConfig } from '@/types/territory'
 
 /**
  * Configuration for the geographic data service

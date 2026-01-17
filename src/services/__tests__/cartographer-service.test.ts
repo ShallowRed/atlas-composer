@@ -9,8 +9,14 @@ describe('cartographer service integration', () => {
     dataPath: '/data/france-territories-50m.json',
     metadataPath: '/data/france-metadata-50m.json',
     topologyObjectName: 'territories',
-    mainlandCode: 'FR-MET',
-    overseasTerritories: [],
+    territories: [
+      {
+        code: 'FR-MET' as any,
+        name: 'France Metropolitaine',
+        center: [2.5, 46.5],
+        bounds: [[-5, 41], [10, 51]],
+      },
+    ],
   }
 
   beforeEach(() => {

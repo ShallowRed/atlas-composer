@@ -36,7 +36,7 @@ function normalizeBounds(bounds: GeoBounds | GeoBoundsArray): GeoBounds {
  * @example
  * ```typescript
  * const entries = [
- *   { id: 'mainland', projection: mainlandProj, bounds: mainlandBounds },
+ *   { id: 'usa', projection: usaProj, bounds: usaBounds },
  *   { id: 'alaska', projection: alaskaProj, bounds: alaskaBounds },
  * ]
  *

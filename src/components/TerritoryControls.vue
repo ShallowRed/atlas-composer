@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectionId, TerritoryCode } from '@/types/branded'
+import type { TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,7 +9,6 @@ import TerritoryParameterControls from '@/components/ui/parameters/TerritoryPara
 import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { useViewState } from '@/composables/useViewState'
@@ -24,16 +23,11 @@ const { t } = useI18n()
 // Use composable for all territory transform logic
 const {
   territories,
-  mainlandCode,
   translations,
   scales,
-  projectionRecommendations,
-  projectionGroups,
-  currentAtlasConfig,
   territoryProjections,
   selectedProjection,
   shouldShowEmptyState,
-  setTerritoryProjection,
   resetTransforms,
 } = useTerritoryTransforms()
 
@@ -62,7 +56,7 @@ const hasDivergingFromPreset = computed(() => {
   void parameterStore.territoryParametersVersion
 
   // Get all territory parameter overrides
-  // Need to check ALL territories including mainland, not just filtered territories
+  // Need to check ALL territories, not just filtered territories
   const allTerritoriesToCheck = atlasStore.atlasService.getAllTerritories() // Use ALL territories, not filteredTerritories
 
   const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
@@ -115,7 +109,7 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
 
 <template>
   <div>
-    <!-- Message when no territories are available (and no mainland in individual mode) -->
+    <!-- Message when no territories are available in selected scope -->
     <Alert
       v-if="shouldShowEmptyState"
       type="info"
@@ -176,54 +170,15 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
           {{ t('territory.resetButton') }}
         </button>
 
-        <!-- Accordion for all territories -->
+        <!-- Accordion for all territories (all treated equally) -->
         <div class="join join-vertical w-full">
-          <!-- Mainland section (shown when has mainland config OR when mainland is in territories list) -->
           <AccordionItem
-            v-if="viewOrchestration.shouldShowMainlandAccordion.value"
-            :title="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-            :subtitle="mainlandCode"
-            group-name="territory-accordion"
-            :checked="true"
-          >
-            <!-- Projection Selector -->
-            <div
-              v-if="viewOrchestration.shouldShowProjectionDropdown.value"
-              class="mb-4"
-            >
-              <ProjectionDropdown
-                :model-value="territoryProjections[mainlandCode] || selectedProjection"
-                :label="t('projection.cartographic')"
-                :projection-groups="projectionGroups"
-                :recommendations="projectionRecommendations"
-                @update:model-value="(value: ProjectionId) => setTerritoryProjection(mainlandCode, value)"
-              />
-            </div>
-
-            <!-- Territory Parameter Controls for Mainland (shown in composite-custom mode) -->
-            <div
-              v-if="isCompositeCustomMode"
-              class="mb-4"
-            >
-              <TerritoryParameterControls
-                :territory-code="mainlandCode"
-                :territory-name="t(currentAtlasConfig?.splitModeConfig?.mainlandTitle || 'territory.mainland')"
-                :projection-family="getProjectionFamily(mainlandCode)"
-                :show-inheritance-indicators="true"
-                :allow-parameter-overrides="true"
-                @parameter-changed="handleParameterChange"
-                @override-cleared="handleOverrideCleared"
-              />
-            </div>
-          </AccordionItem>
-
-          <!-- Overseas territories (excluding mainland to avoid duplication) -->
-          <AccordionItem
-            v-for="territory in territories.filter(t => t.code !== mainlandCode)"
+            v-for="(territory, index) in territories"
             :key="territory.code"
             :title="territory.name"
             :subtitle="territory.code"
             group-name="territory-accordion"
+            :checked="index === 0"
           >
             <!-- Territory Parameter Controls (shown in composite-custom mode) -->
             <div

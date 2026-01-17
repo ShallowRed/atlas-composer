@@ -139,7 +139,6 @@ export class CodeGenerator {
     }
 
     lines.push(' *')
-    lines.push(` * Pattern: ${config.pattern}`)
     lines.push(` * Territories: ${config.territories.map(t => t.name).join(', ')}`)
     lines.push(` * Language: ${language}`)
     lines.push(' */')

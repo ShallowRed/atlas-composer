@@ -20,8 +20,8 @@ pnpm geodata:analyze <id>
 
 Note:
 - Polygon indices (zero-based: 0, 1, 2, ...)
-- Which polygon is mainland (largest, marked as MAINLAND)
-- Which polygons are overseas territories
+- Polygons sorted by area (largest first)
+- Use indices to identify territories for extraction
 
 ### Step 2: Create Atlas Configuration
 
@@ -39,13 +39,11 @@ Create `configs/atlases/<atlas-id>.json` with this structure:
     "territories": "your-atlas-territories-50m.json",
     "metadata": "your-atlas-metadata-50m.json"
   },
-  "pattern": "single-focus",
   "territories": [
     {
       "id": "123",
       "code": "XY-CODE",
-      "name": { "en": "Territory Name" },
-      "role": "primary"
+      "name": { "en": "Territory Name" }
     }
   ]
 }
@@ -151,13 +149,6 @@ Check:
 
 ### Territory Extraction Methods
 
-**Primary territory only (removes other polygons):**
-```json
-"extraction": {
-  "mainlandPolygon": 0
-}
-```
-
 **Extract polygon(s) by index (RECOMMENDED):**
 ```json
 "extraction": {
@@ -181,19 +172,6 @@ Check:
   "polygonBounds": [[-69.99, 12.41], [-69.84, 12.63]]
 }
 ```
-
-### Atlas Patterns
-
-- `single-focus` - 1 primary + N secondary territories (France, Portugal, Netherlands, USA)
-- `equal-members` - N equal territories (EU, World, ASEAN)
-- `hierarchical` - Complex multi-level structures (future use)
-
-### Territory Roles
-
-- `primary` - Main territory (for single-focus atlases)
-- `secondary` - Distant/remote territory (for single-focus atlases)
-- `member` - Equal member territory (for equal-members atlases like EU, world)
-- `embedded` - Enclave/exclave within another territory
 
 ### Projection Preferences by Region
 
@@ -221,21 +199,17 @@ Check:
 
 ## Critical Rules
 
-✅ DO:
+DO:
 - Use `pnpm geodata:analyze` for polygon indices
 - Use zero-based indices (0, 1, 2, ...)
 - Add other atlas composites to `prohibited` list
 - Use `polygonIndices` (plural, array)
 - Validate after every change
-- Use `primary` role for single-focus primary territory
-- Use `member` role for equal-members atlases (EU, world)
 
-❌ DON'T:
+DON'T:
 - Guess polygon indices
 - Use `polygonIndex` (singular)
 - Forget validation step
-- Use old role names (`mainland`, `overseas`, `member-state`)
-- Mix `primary`/`secondary` with `member` roles
 - Edit generated TopoJSON files manually
 
 ## Schema Reference

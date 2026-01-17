@@ -31,24 +31,6 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
     recommendedMaxScale: 5000000,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
-      { territoryType: 'mainland', region: 'americas', latitudeRange: { min: 30, max: 60 } },
-    ],
-    good: [
-      { territoryType: 'mainland', latitudeRange: { min: 20, max: 70 } },
-      { territoryType: 'island', scale: 'regional' },
-    ],
-    usable: [
-      { territoryType: 'overseas', scale: 'local' },
-    ],
-    avoid: [
-      { latitudeRange: { min: -10, max: 10 } }, // Not good for equatorial regions
-      { scale: 'global' }, // Not suitable for world maps
-    ],
-  },
-
   defaultParameters: {
     parallels: [30, 60],
   },
@@ -86,24 +68,6 @@ export const ALBERS: ProjectionDefinition = {
     recommendedMaxScale: 5000000,
   },
 
-  suitability: {
-    excellent: [
-      { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
-      { territoryType: 'mainland', region: 'americas', latitudeRange: { min: 30, max: 60 } },
-    ],
-    good: [
-      { territoryType: 'mainland', latitudeRange: { min: 20, max: 70 } },
-      { territoryType: 'island', scale: 'regional' },
-    ],
-    usable: [
-      { territoryType: 'overseas', scale: 'local' },
-    ],
-    avoid: [
-      { latitudeRange: { min: -10, max: 10 } },
-      { scale: 'global' },
-    ],
-  },
-
   defaultParameters: {
     parallels: [30, 60],
   },
@@ -138,21 +102,6 @@ export const CONIC_EQUIDISTANT: ProjectionDefinition = {
     supportsSplit: true,
     supportsUnified: true,
     recommendedMaxScale: 5000000,
-  },
-
-  suitability: {
-    good: [
-      { territoryType: 'mainland', region: 'europe', latitudeRange: { min: 30, max: 60 } },
-      { territoryType: 'mainland', region: 'americas', latitudeRange: { min: 30, max: 60 } },
-    ],
-    usable: [
-      { territoryType: 'mainland', latitudeRange: { min: 20, max: 70 } },
-      { territoryType: 'island', scale: 'regional' },
-    ],
-    avoid: [
-      { latitudeRange: { min: -10, max: 10 } },
-      { scale: 'global' },
-    ],
   },
 
   defaultParameters: {
