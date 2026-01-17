@@ -37,11 +37,11 @@ export function useParameterProvider() {
    * Implements ProjectionParameterProvider interface
    */
   const parameterProvider: ProjectionParameterProvider = {
-        getEffectiveParameters: (territoryCode: TerritoryCode) => {
+    getEffectiveParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getEffectiveParameters(territoryCode)
     },
 
-        getExportableParameters: (territoryCode: TerritoryCode) => {
+    getExportableParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getExportableParameters(territoryCode)
     },
   }

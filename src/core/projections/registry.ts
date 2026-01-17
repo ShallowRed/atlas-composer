@@ -134,7 +134,7 @@ class ProjectionRegistry {
     return undefined
   }
 
-    public getAll(): ProjectionDefinition[] {
+  public getAll(): ProjectionDefinition[] {
     const seen = new Set<string>()
     const projections: ProjectionDefinition[] = []
 
@@ -148,11 +148,11 @@ class ProjectionRegistry {
     return projections
   }
 
-    public getByCategory(category: ProjectionCategoryType): ProjectionDefinition[] {
+  public getByCategory(category: ProjectionCategoryType): ProjectionDefinition[] {
     return this.getAll().filter(def => def.category === category)
   }
 
-    public getByStrategy(strategy: ProjectionStrategyType): ProjectionDefinition[] {
+  public getByStrategy(strategy: ProjectionStrategyType): ProjectionDefinition[] {
     return this.getAll().filter(def => def.strategy === strategy)
   }
 
@@ -295,11 +295,11 @@ class ProjectionRegistry {
     return recommendations
   }
 
-    public isValid(id: string): boolean {
+  public isValid(id: string): boolean {
     return this.get(id) !== undefined
   }
 
-    public getCategories(): ProjectionCategoryType[] {
+  public getCategories(): ProjectionCategoryType[] {
     const categories = new Set<ProjectionCategoryType>()
     this.getAll().forEach((def) => {
       categories.add(def.category)

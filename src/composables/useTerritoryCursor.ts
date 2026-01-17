@@ -98,7 +98,7 @@ export function useTerritoryCursor() {
     }
   }
 
-    function createTemporaryBorder(svg: SVGSVGElement, territoryCode: string, isDragging: boolean) {
+  function createTemporaryBorder(svg: SVGSVGElement, territoryCode: string, isDragging: boolean) {
     // Remove any existing temporary borders
     select(svg).selectAll('.temporary-composition-border').remove()
 
@@ -170,7 +170,7 @@ export function useTerritoryCursor() {
     return null
   }
 
-    function getCursorStyle(territoryCode: string | null): string {
+  function getCursorStyle(territoryCode: string | null): string {
     if (!territoryCode || !isDragEnabled.value)
       return 'default'
 

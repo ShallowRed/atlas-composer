@@ -106,11 +106,11 @@ export class ProjectionParameterManager {
     return result
   }
 
-    getGlobalParameters(): ProjectionParameters {
+  getGlobalParameters(): ProjectionParameters {
     return { ...this.globalParameters }
   }
 
-    setGlobalParameter(key: keyof ProjectionParameters, value: any): void {
+  setGlobalParameter(key: keyof ProjectionParameters, value: any): void {
     const previousValue = this.globalParameters[key]
 
     if (value === undefined) {
@@ -125,7 +125,7 @@ export class ProjectionParameterManager {
     this.emitChangeEvent(key, value, previousValue, undefined, 'global')
   }
 
-    setGlobalParameters(parameters: ParameterUpdate): void {
+  setGlobalParameters(parameters: ParameterUpdate): void {
     const previousParams = { ...this.globalParameters }
     this.globalParameters = mergeParameters(this.globalParameters, parameters)
 
@@ -136,11 +136,11 @@ export class ProjectionParameterManager {
     })
   }
 
-    getTerritoryParameters(territoryCode: TerritoryCode): ProjectionParameters {
+  getTerritoryParameters(territoryCode: TerritoryCode): ProjectionParameters {
     return { ...(this.territoryParameters.get(territoryCode) || {}) }
   }
 
-    setTerritoryParameter(territoryCode: TerritoryCode, key: keyof ProjectionParameters, value: any): void {
+  setTerritoryParameter(territoryCode: TerritoryCode, key: keyof ProjectionParameters, value: any): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     const previousValue = currentParams[key]
 
@@ -167,7 +167,7 @@ export class ProjectionParameterManager {
     })
   }
 
-    getEffectiveParameters(territoryCode?: string): ProjectionParameters {
+  getEffectiveParameters(territoryCode?: string): ProjectionParameters {
     const atlasParams = this.atlasParameters || {}
     const territoryParams = territoryCode ? this.territoryParameters.get(territoryCode) || {} : {}
 
@@ -179,7 +179,7 @@ export class ProjectionParameterManager {
     )
   }
 
-    getParameterInheritance(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterInheritance {
+  getParameterInheritance(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterInheritance {
     const territoryParams = this.territoryParameters.get(territoryCode) || {}
     const atlasParams = this.atlasParameters || {}
     const effectiveValue = this.getEffectiveParameters(territoryCode)[key as string]
@@ -208,7 +208,7 @@ export class ProjectionParameterManager {
     }
   }
 
-    getParameterSource(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterSource {
+  getParameterSource(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterSource {
     return this.getParameterInheritance(territoryCode, key).source
   }
 
@@ -268,7 +268,7 @@ export class ProjectionParameterManager {
     debug('All parameters cleared')
   }
 
-    validateParameter(
+  validateParameter(
     family: ProjectionFamilyType,
     key: keyof ProjectionParameters,
     value: any,
@@ -339,7 +339,7 @@ export class ProjectionParameterManager {
     return { isValid: true }
   }
 
-    getParameterConstraints(family: ProjectionFamilyType): Record<keyof ProjectionParameters, ParameterConstraints> {
+  getParameterConstraints(family: ProjectionFamilyType): Record<keyof ProjectionParameters, ParameterConstraints> {
     const relevantParams = getRelevantParameters(family)
     const constraints: Partial<Record<keyof ProjectionParameters, ParameterConstraints>> = {}
 
@@ -408,11 +408,11 @@ export class ProjectionParameterManager {
     return constraints as Record<keyof ProjectionParameters, ParameterConstraints>
   }
 
-    addChangeListener(listener: ParameterChangeListener): void {
+  addChangeListener(listener: ParameterChangeListener): void {
     this.listeners.add(listener)
   }
 
-    removeChangeListener(listener: ParameterChangeListener): void {
+  removeChangeListener(listener: ParameterChangeListener): void {
     this.listeners.delete(listener)
   }
 

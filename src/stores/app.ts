@@ -53,7 +53,6 @@ export type TransitionType
     | 'fade' // Standard fade
 
 export const useAppStore = defineStore('app', () => {
-
   /**
    * Current application state
    */

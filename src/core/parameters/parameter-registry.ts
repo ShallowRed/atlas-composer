@@ -91,30 +91,30 @@ export class ParameterRegistry {
     this.definitions.set(def.key as string, def)
   }
 
-    get(key: string): ParameterDefinition | undefined {
+  get(key: string): ParameterDefinition | undefined {
     return this.definitions.get(key)
   }
 
-    getAll(): ParameterDefinition[] {
+  getAll(): ParameterDefinition[] {
     return Array.from(this.definitions.values())
   }
 
-    getExportable(): ParameterDefinition[] {
+  getExportable(): ParameterDefinition[] {
     return this.getAll().filter(def => def.exportable)
   }
 
-    getRequired(): ParameterDefinition[] {
+  getRequired(): ParameterDefinition[] {
     return this.getAll().filter(def => def.requiresPreset)
   }
 
-    getRelevant(family: ProjectionFamilyType): ParameterDefinition[] {
+  getRelevant(family: ProjectionFamilyType): ParameterDefinition[] {
     return this.getAll().filter((def) => {
       const familyConstraint = def.familyConstraints?.[family]
       return familyConstraint?.relevant || false
     })
   }
 
-    getConstraintsForFamily(key: string, family: ProjectionFamilyType): ParameterConstraint {
+  getConstraintsForFamily(key: string, family: ProjectionFamilyType): ParameterConstraint {
     const def = this.get(key)
     if (!def) {
       return { relevant: false, required: false }
@@ -134,7 +134,7 @@ export class ParameterRegistry {
     return { relevant: false, required: false }
   }
 
-    validate(key: string, value: any, family: ProjectionFamilyType): ValidationResult {
+  validate(key: string, value: any, family: ProjectionFamilyType): ValidationResult {
     const def = this.get(key)
     if (!def) {
       return { isValid: false, error: `Unknown parameter: ${key}` }
@@ -162,7 +162,7 @@ export class ParameterRegistry {
     return typeValidation
   }
 
-    validateParameters(params: Partial<ProjectionParameters>, family: ProjectionFamilyType): ValidationResult[] {
+  validateParameters(params: Partial<ProjectionParameters>, family: ProjectionFamilyType): ValidationResult[] {
     const results: ValidationResult[] = []
 
     for (const [key, value] of Object.entries(params)) {
@@ -184,7 +184,7 @@ export class ParameterRegistry {
     return results
   }
 
-    getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
+  getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
     const defaults: ProjectionParameters = {}
 
     // Include both relevant and computed parameters (like scale)
@@ -211,7 +211,7 @@ export class ParameterRegistry {
     return defaults
   }
 
-    validateCompleteness(): ValidationResult[] {
+  validateCompleteness(): ValidationResult[] {
     const errors: ValidationResult[] = []
 
     // Current parameter keys from ProjectionParameters interface

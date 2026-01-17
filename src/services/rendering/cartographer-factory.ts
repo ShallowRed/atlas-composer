@@ -46,11 +46,11 @@ export class CartographerFactory {
     return cartographer
   }
 
-    static getInstance(regionId: string): Cartographer | undefined {
+  static getInstance(regionId: string): Cartographer | undefined {
     return this.instances.get(regionId)
   }
 
-    static hasInstance(regionId: string): boolean {
+  static hasInstance(regionId: string): boolean {
     return this.instances.has(regionId)
   }
 
@@ -68,7 +68,7 @@ export class CartographerFactory {
     this.instances.clear()
   }
 
-    static getCachedRegions(): string[] {
+  static getCachedRegions(): string[] {
     return Array.from(this.instances.keys())
   }
 }

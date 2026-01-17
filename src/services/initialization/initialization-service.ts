@@ -786,7 +786,7 @@ export class InitializationService {
     }
   }
 
-    private static getTerritoryMode(config: any): string {
+  private static getTerritoryMode(config: any): string {
     if (config.hasTerritorySelector && config.territoryModeOptions?.length > 0) {
       return config.territoryModeOptions[0]!.value
     }
@@ -800,7 +800,7 @@ export class InitializationService {
     throw new Error('No territory mode options available for atlas')
   }
 
-    private static async getCompositeProjection(
+  private static async getCompositeProjection(
     atlasId: AtlasId,
     defaultPreset: PresetId | undefined,
     _atlasMetadata: any,
@@ -816,7 +816,7 @@ export class InitializationService {
     return undefined
   }
 
-    private static async getSelectedProjection(
+  private static async getSelectedProjection(
     atlasId: AtlasId,
     defaultPreset: PresetId | undefined,
     _atlasMetadata: any,

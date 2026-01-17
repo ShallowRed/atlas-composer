@@ -125,7 +125,7 @@ export class ProjectionFactory {
     return this.create({ projection: id, parameters })
   }
 
-    private static createD3Builtin(
+  private static createD3Builtin(
     id: string,
     params: ProjectionParameters,
   ): GeoProjection | null {
@@ -191,7 +191,7 @@ export class ProjectionFactory {
     return this.applyParameters(projection, params)
   }
 
-    private static createD3Extended(
+  private static createD3Extended(
     id: string,
     params: ProjectionParameters,
   ): GeoProjection | null {
@@ -282,7 +282,7 @@ export class ProjectionFactory {
     return this.applyParameters(projection, params)
   }
 
-    private static createD3Composite(
+  private static createD3Composite(
     id: string,
     params: ProjectionParameters,
   ): GeoProjection | null {

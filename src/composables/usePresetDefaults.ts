@@ -86,7 +86,7 @@ export function usePresetDefaults() {
     clearPresetDefaults()
   }
 
-    function getPresetDefaultsForTerritory(territoryCode: string) {
+  function getPresetDefaultsForTerritory(territoryCode: string) {
     if (!presetDefaults.value) {
       return null
     }
@@ -101,11 +101,11 @@ export function usePresetDefaults() {
     }
   }
 
-    function hasPresetDefaults() {
+  function hasPresetDefaults() {
     return presetDefaults.value !== null
   }
 
-    function hasDivergingParameters(
+  function hasDivergingParameters(
     currentTranslations: Record<string, { x: number, y: number }>,
     currentScales: Record<string, number>,
     territoryParameters: Record<string, Record<string, unknown>>,

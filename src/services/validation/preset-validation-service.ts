@@ -46,7 +46,7 @@ export class PresetValidationService {
     return { isValid: false, errors, warnings }
   }
 
-    private static validateCompositePreset(preset: Preset, _atlasConfig: AtlasConfig): ValidationResult {
+  private static validateCompositePreset(preset: Preset, _atlasConfig: AtlasConfig): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
 
@@ -87,7 +87,7 @@ export class PresetValidationService {
     return { isValid: true, errors, warnings, metadata }
   }
 
-    private static validateViewPreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
+  private static validateViewPreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
 
@@ -114,7 +114,7 @@ export class PresetValidationService {
     return { isValid: true, errors, warnings }
   }
 
-    static validateViewModeCompatibility(preset: Preset, viewMode: string): ValidationResult {
+  static validateViewModeCompatibility(preset: Preset, viewMode: string): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
 

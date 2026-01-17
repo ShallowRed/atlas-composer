@@ -39,7 +39,7 @@ export function useClipExtentEditor() {
     return viewStore.viewMode === 'composite-custom'
   })
 
-    function getSVGScale(svg: SVGSVGElement): number {
+  function getSVGScale(svg: SVGSVGElement): number {
     const ctm = svg.getScreenCTM()
     if (ctm) {
       return Math.sqrt(ctm.a * ctm.a + ctm.b * ctm.b)

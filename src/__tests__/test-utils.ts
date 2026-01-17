@@ -114,6 +114,7 @@ export function setupTestPinia() {
  * Returns a function to restore the original implementation
  */
 export function mockAtlasRegistry(atlasConfig: LoadedAtlasConfig = createMockAtlasConfig()) {
+  // eslint-disable-next-line ts/no-require-imports
   const atlasRegistry = require('@/core/atlases/registry')
 
   const originalLoadAtlasAsync = atlasRegistry.loadAtlasAsync
@@ -153,11 +154,10 @@ export function createTestApp() {
  */
 export function withSetup<T>(composable: () => T): [T, { app: any, unmount: () => void }] {
   const { app } = createTestApp()
-  let result: T
 
   // Setup composable and mount
   app.mount(document.createElement('div'))
-  result = composable()
+  const result = composable()
 
   return [
     result!,

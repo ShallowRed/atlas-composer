@@ -47,7 +47,7 @@ export class TerritoryDataService {
     this.parameterStore = parameterStore
   }
 
-    getTerritoryData(): TerritoryDataAggregates {
+  getTerritoryData(): TerritoryDataAggregates {
     const territories = this.getTerritories()
 
     return {
@@ -58,14 +58,14 @@ export class TerritoryDataService {
     }
   }
 
-    private getTerritories(): TerritoryData[] {
+  private getTerritories(): TerritoryData[] {
     return this.geoDataStore.filteredTerritories.map((t): TerritoryData => ({
       code: t.code as TerritoryCode,
       name: t.name,
     }))
   }
 
-    private getTranslations(territories: TerritoryData[]): Record<string, Translation> {
+  private getTranslations(territories: TerritoryData[]): Record<string, Translation> {
     const translationsMap: Record<string, Translation> = {}
     territories.forEach((t) => {
       translationsMap[t.code] = this.parameterStore.getTerritoryTranslation(t.code)
@@ -73,7 +73,7 @@ export class TerritoryDataService {
     return translationsMap
   }
 
-    private getScales(territories: TerritoryData[]): Record<string, number> {
+  private getScales(territories: TerritoryData[]): Record<string, number> {
     const scalesMap: Record<string, number> = {}
     territories.forEach((t) => {
       const params = this.parameterStore.getTerritoryParameters(t.code)
@@ -82,7 +82,7 @@ export class TerritoryDataService {
     return scalesMap
   }
 
-    private getProjections(territories: TerritoryData[]): Record<string, ProjectionId> {
+  private getProjections(territories: TerritoryData[]): Record<string, ProjectionId> {
     // Trigger reactivity
     void this.parameterStore.territoryParametersVersion
 

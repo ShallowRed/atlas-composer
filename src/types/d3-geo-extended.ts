@@ -5,7 +5,7 @@ import type { GeoProjection } from 'd3-geo'
  * This includes projections like Albers, Conic Conformal, and Conic Equal Area.
  */
 export interface GeoConicProjection extends GeoProjection {
-    parallels: (() => [number, number]) & ((parallels: [number, number]) => this)
+  parallels: (() => [number, number]) & ((parallels: [number, number]) => this)
 }
 
 /**

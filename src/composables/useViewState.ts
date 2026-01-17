@@ -45,7 +45,7 @@ export function useViewState() {
   )
 
   // Card UI Helpers
-    const cardTitle = computed(() => {
+  const cardTitle = computed(() => {
     switch (viewStore.viewMode) {
       case 'split':
         return t('mode.split')
@@ -60,7 +60,7 @@ export function useViewState() {
     }
   })
 
-    const cardIcon = computed(() =>
+  const cardIcon = computed(() =>
     getViewModeIcon(viewStore.viewMode),
   )
 
