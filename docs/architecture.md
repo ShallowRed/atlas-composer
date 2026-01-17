@@ -205,6 +205,78 @@ D3/Observable Plot (rendering)
 DOM Update
 ```
 
+## Distributable Packages
+
+Atlas Composer exports several NPM packages for external consumption:
+
+### Package Hierarchy
+
+```
+┌─────────────────────────────────┐
+│  @atlas-composer/specification  │ ← Types + JSON Schemas (source of truth)
+└────────────────┬────────────────┘
+                 │
+    ┌────────────┼────────────┐
+    │            │            │
+    ▼            ▼            ▼
+┌────────┐ ┌──────────┐ ┌──────────────┐
+│ loader │ │ preset-  │ │ web app      │
+│        │ │ library  │ │ (src/)       │
+└────┬───┘ └──────────┘ └──────────────┘
+     │
+     ▼
+┌────────────────┐
+│ projection-    │ ← Pure D3 utilities
+│ core           │
+└────────────────┘
+```
+
+### @atlas-composer/specification
+- **Location**: `packages/specification/`
+- **Purpose**: Single source of truth for the composite projection format
+- **Exports**: TypeScript types, JSON schemas, validation utilities
+- **Dependencies**: None (zero dependencies)
+- **Documentation**: [packages/specification/README.md](../packages/specification/README.md)
+
+### @atlas-composer/preset-library
+- **Location**: `packages/preset-library/`
+- **Purpose**: Curated collection of ready-to-use composite presets
+- **Exports**: Preset catalog API, preset JSON files
+- **Dependencies**: `@atlas-composer/specification`
+- **Note**: Only composite-custom presets are exported by default; view mode presets are for web app only
+- **Documentation**: [packages/preset-library/README.md](../packages/preset-library/README.md)
+
+### @atlas-composer/projection-loader
+- **Location**: `packages/projection-loader/`
+- **Purpose**: Runtime loader for composite projection configurations
+- **Exports**: `loadCompositeProjection`, `registerProjection`, D3 helpers
+- **Dependencies**: `@atlas-composer/projection-core`, `@atlas-composer/specification`
+- **Bundle Size**: ~6KB (94% smaller than full D3 projection bundle)
+- **Documentation**: [packages/projection-loader/README.md](../packages/projection-loader/README.md)
+
+### @atlas-composer/projection-core
+- **Location**: `packages/projection-core/`
+- **Purpose**: Low-level utilities for building composite projections
+- **Exports**: Stream utilities, bounds checking, composite builder
+- **Dependencies**: None (pure D3-compatible functions)
+- **Documentation**: [packages/projection-core/README.md](../packages/projection-core/README.md)
+
+### Build Commands
+
+```bash
+# Build all packages in dependency order
+pnpm build:packages
+
+# Build individual packages
+pnpm build:specification
+pnpm build:preset-library
+pnpm build:loader
+pnpm build:core
+
+# Type check all packages
+pnpm typecheck:packages
+```
+
 ## Domain Boundaries
 
 1. **Configuration Domain** (core/atlases/)
