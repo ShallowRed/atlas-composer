@@ -70,4 +70,11 @@ export interface PresetFilterOptions {
   region?: PresetRegion
   /** Filter by tags (any match) */
   tags?: string[]
+  /**
+   * Include view mode presets (unified, split, built-in-composite).
+   * By default, only composite-custom presets are returned.
+   * View mode presets are designed for the Atlas Composer web app.
+   * @default false
+   */
+  includeViewModes?: boolean
 }

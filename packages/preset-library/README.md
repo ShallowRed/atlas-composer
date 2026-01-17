@@ -41,50 +41,29 @@ if (config) {
 
 ## Available Presets
 
-### France
+### Composite Presets (Ready to Use)
 
-| Preset ID | Type | Description |
-|-----------|------|-------------|
-| `france-standard` | composite-custom | Standard layout with overseas territories |
-| `france-proportional` | composite-custom | D3CP-style proportional layout |
-| `france-pseudo-d3cp` | composite-custom | Mimics d3-composite-projections |
-| `france-builtin-d3cp` | built-in-composite | Uses d3-composite-projections library |
-| `france-split` | split | Territories displayed separately |
-| `france-unified` | unified | Single world projection |
+These are the curated composite projection configurations that work directly with `@atlas-composer/projection-loader`:
 
-### Portugal
+| Preset ID | Atlas | Description |
+|-----------|-------|-------------|
+| `france-standard` | France | Standard layout with overseas territories |
+| `france-proportional` | France | D3CP-style proportional layout |
+| `france-pseudo-d3cp` | France | Mimics d3-composite-projections |
+| `portugal-standard` | Portugal | Standard with Azores and Madeira |
+| `usa-pseudo-d3cp` | USA | Custom D3CP-style layout |
 
-| Preset ID | Type | Description |
-|-----------|------|-------------|
-| `portugal-standard` | composite-custom | Standard with Azores and Madeira |
-| `portugal-builtin` | built-in-composite | Uses d3-composite-projections |
-| `portugal-split` | split | Territories separately |
-| `portugal-unified` | unified | Single projection |
+### View Mode Presets (Atlas Composer App)
 
-### USA
+These presets are designed for the Atlas Composer web application and are not directly loadable:
 
-| Preset ID | Type | Description |
-|-----------|------|-------------|
-| `usa-albers` | built-in-composite | Albers projection (D3 built-in) |
-| `usa-pseudo-d3cp` | composite-custom | Custom D3CP-style layout |
-| `usa-builtin-d3cp` | built-in-composite | Uses d3-composite-projections |
-| `usa-builtin-territories` | built-in-composite | Includes PR, Guam, etc. |
-| `usa-split` | split | States displayed separately |
-| `usa-unified` | unified | Single projection |
+| Type | Description |
+|------|-------------|
+| `built-in-composite` | References d3-composite-projections library functions |
+| `split` | Territories displayed in separate viewports |
+| `unified` | All territories in a single world projection |
 
-### Europe
-
-| Preset ID | Type | Description |
-|-----------|------|-------------|
-| `europe-builtin` | built-in-composite | Uses d3-composite-projections |
-| `europe-split` | split | Countries separately |
-| `europe-unified` | unified | Single projection |
-
-### World
-
-| Preset ID | Type | Description |
-|-----------|------|-------------|
-| `world-unified` | unified | Natural Earth projection |
+Use `listPresets({ includeViewModes: true })` to include these in listings.
 
 ## API Reference
 
@@ -93,14 +72,17 @@ if (config) {
 ```typescript
 import { getDefaultPreset, getPresetsForAtlas, listPresets } from '@atlas-composer/preset-library'
 
-// List all presets
-const all = listPresets()
+// List composite presets (default - excludes view modes)
+const composites = listPresets()
 
 // Filter by atlas
 const france = listPresets({ atlasId: 'france' })
 
-// Filter by type
-const composites = listPresets({ type: 'composite-custom' })
+// Include view mode presets
+const allFrance = listPresets({ atlasId: 'france', includeViewModes: true })
+
+// Filter by type (explicitly includes that type)
+const unified = listPresets({ type: 'unified' })
 
 // Filter by region
 const european = listPresets({ region: 'europe' })
@@ -108,11 +90,24 @@ const european = listPresets({ region: 'europe' })
 // Filter by tags
 const d3cpStyle = listPresets({ tags: ['d3cp-style'] })
 
-// Get all presets for an atlas
+// Get composite presets for an atlas
 const usaPresets = getPresetsForAtlas('usa')
 
-// Get default preset for an atlas
+// Get default composite preset for an atlas
 const defaultFrance = getDefaultPreset('france')
+```
+
+### View Mode Presets
+
+```typescript
+import { isViewModeType, listViewModePresets } from '@atlas-composer/preset-library'
+
+// List all view mode presets
+const viewModes = listViewModePresets()
+
+// Check if a type is a view mode
+isViewModeType('unified') // true
+isViewModeType('composite-custom') // false
 ```
 
 ### Loading Presets

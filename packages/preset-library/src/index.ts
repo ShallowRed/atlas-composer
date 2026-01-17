@@ -29,25 +29,46 @@ export type { PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, P
 export { catalog, getAllPresets, getPresetMetadata }
 
 /**
+ * View mode preset types (designed for Atlas Composer web app, not external consumers).
+ */
+const VIEW_MODE_TYPES: PresetType[] = ['unified', 'split', 'built-in-composite']
+
+/**
  * List presets matching the given filter options.
+ *
+ * By default, only `composite-custom` presets are returned. These are the
+ * curated, exportable composite projection configurations that work with
+ * `@atlas-composer/projection-loader`.
+ *
+ * Set `includeViewModes: true` to also include view mode presets (unified,
+ * split, built-in-composite) which are designed for the Atlas Composer web app.
  *
  * @param options - Filter options
  * @returns Array of matching preset metadata
  *
  * @example
  * ```typescript
+ * // All composite presets (default behavior)
+ * listPresets()
+ *
  * // All France composite presets
- * listPresets({ atlasId: 'france', type: 'composite-custom' })
+ * listPresets({ atlasId: 'france' })
  *
- * // All built-in composite presets
- * listPresets({ type: 'built-in-composite' })
+ * // Include view mode presets
+ * listPresets({ includeViewModes: true })
  *
- * // All presets with 'd3cp-style' tag
- * listPresets({ tags: ['d3cp-style'] })
+ * // Filter by specific type
+ * listPresets({ type: 'composite-custom', includeViewModes: true })
  * ```
  */
 export function listPresets(options: PresetFilterOptions = {}): PresetMetadata[] {
   let results = getAllPresets()
+
+  // By default, exclude view mode presets (unified, split, built-in-composite)
+  // These are designed for the Atlas Composer web app, not external consumers
+  if (!options.includeViewModes && !options.type) {
+    results = results.filter(p => !VIEW_MODE_TYPES.includes(p.type))
+  }
 
   if (options.atlasId) {
     results = results.filter(p => p.atlasId === options.atlasId)
@@ -71,10 +92,13 @@ export function listPresets(options: PresetFilterOptions = {}): PresetMetadata[]
 }
 
 /**
- * Get presets for a specific atlas.
+ * Get composite presets for a specific atlas.
+ *
+ * Returns only composite-custom presets by default.
+ * Use `listPresets({ atlasId, includeViewModes: true })` to include view modes.
  *
  * @param atlasId - Atlas identifier
- * @returns Array of preset metadata for the atlas
+ * @returns Array of composite preset metadata for the atlas
  */
 export function getPresetsForAtlas(atlasId: string): PresetMetadata[] {
   return listPresets({ atlasId })
@@ -217,4 +241,27 @@ export function listRegions(): PresetRegion[] {
  */
 export function listTypes(): PresetType[] {
   return ['composite-custom', 'built-in-composite', 'split', 'unified']
+}
+
+/**
+ * Check if a preset type is a view mode (designed for Atlas Composer web app).
+ */
+export function isViewModeType(type: PresetType): boolean {
+  return VIEW_MODE_TYPES.includes(type)
+}
+
+/**
+ * List only composite-custom presets.
+ * Alias for `listPresets()` with explicit intent.
+ */
+export function listCompositePresets(): PresetMetadata[] {
+  return listPresets({ type: 'composite-custom', includeViewModes: true })
+}
+
+/**
+ * List view mode presets (unified, split, built-in-composite).
+ * These are designed for the Atlas Composer web app.
+ */
+export function listViewModePresets(): PresetMetadata[] {
+  return getAllPresets().filter(p => VIEW_MODE_TYPES.includes(p.type))
 }
