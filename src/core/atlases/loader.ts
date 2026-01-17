@@ -87,9 +87,8 @@ export interface AtlasSpecificConfig {
 }
 
 export interface LoadedTerritories {
-  type: 'single-focus' | 'equal-members' | 'hierarchical'
   mainland: TerritoryConfig
-  mainlands?: TerritoryConfig[]
+  mainlands: TerritoryConfig[]
   overseas: TerritoryConfig[]
   all: TerritoryConfig[]
   isWildcard?: boolean // True if territories should be loaded dynamically from data file
@@ -120,7 +119,8 @@ function transformTerritory(territory: JSONTerritoryConfig, locale: string): Ter
 }
 
 /**
- * Extract territories and detect pattern type from role usage
+ * Extract territories from config
+ * All territories are treated equally - no hierarchy
  */
 function extractTerritories(config: JSONAtlasConfig, locale: string) {
   // Handle wildcard "*" - return placeholder for dynamic loading
@@ -135,7 +135,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     }
 
     return {
-      type: 'equal-members' as const,
       mainland: placeholderTerritory,
       mainlands: [placeholderTerritory],
       overseas: [],
@@ -144,61 +143,21 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     }
   }
 
-  // Collect primary territories and members
-  const primaryTerritories = config.territories.filter(t => t.role === 'primary')
-  const memberTerritories = config.territories.filter(t => t.role === 'member')
-  const secondaryTerritories = config.territories.filter(t => t.role === 'secondary')
+  // Transform all territories
+  const allTerritories = config.territories.map(t => transformTerritory(t, locale))
 
-  // Validate: must have either primaries or members, not both
-  if (primaryTerritories.length > 0 && memberTerritories.length > 0) {
-    throw new Error(
-      `Atlas ${config.id} has both 'primary' and 'member' roles. `
-      + `Use 'primary'+'secondary' for single-focus or 'member' for equal-members pattern.`,
-    )
+  if (allTerritories.length === 0) {
+    throw new Error(`No territories found in ${config.id}`)
   }
 
-  if (primaryTerritories.length === 0 && memberTerritories.length === 0) {
-    throw new Error(`No primary or member territories found in ${config.id}`)
-  }
+  // Use first territory as representative (for backward compatibility with APIs expecting 'mainland')
+  const firstTerritory = allTerritories[0]!
 
-  // Single-focus pattern: 1 primary + N secondary territories
-  if (primaryTerritories.length > 0) {
-    if (primaryTerritories.length > 1) {
-      throw new Error(
-        `Atlas ${config.id} has multiple 'primary' territories. `
-        + `For equal territories, use 'member' role instead.`,
-      )
-    }
-
-    const mainland = transformTerritory(primaryTerritories[0]!, locale)
-    const overseas = secondaryTerritories.map(t => transformTerritory(t, locale))
-    const all = [mainland, ...overseas]
-
-    return {
-      type: 'single-focus' as const,
-      mainland,
-      overseas,
-      all,
-      mainlands: undefined, // Not used in single-focus pattern
-    }
-  }
-
-  // Equal-members pattern: N equal members + optional secondary territories
-  else {
-    const mainlands = memberTerritories.map(t => transformTerritory(t, locale))
-    const overseas = secondaryTerritories.map(t => transformTerritory(t, locale))
-    const all = [...mainlands, ...overseas]
-
-    // Use first member as representative mainland
-    const primaryMainland = mainlands[0]!
-
-    return {
-      type: 'equal-members' as const,
-      mainland: primaryMainland, // First member used as representative
-      mainlands,
-      overseas,
-      all,
-    }
+  return {
+    mainland: firstTerritory, // First territory used as representative
+    mainlands: allTerritories, // All territories are equal
+    overseas: [], // No longer used for categorization
+    all: allTerritories,
   }
 }
 
@@ -279,14 +238,11 @@ function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerrito
     metadataPath,
     // World atlas uses 'countries' as object name, others use 'territories'
     topologyObjectName: territories.isWildcard ? 'countries' : 'territories',
-    // For equal-members atlases, don't set a single primary code (all territories are equal)
-    mainlandCode: territories.type === 'single-focus' ? territories.mainland.code : undefined,
+    // No mainland distinction - all territories are equal
+    mainlandCode: undefined,
     mainlandBounds: territories.mainland.bounds,
-    // For equal-members atlases (like EU), include all territories (members + secondary)
-    // For single-focus atlases, only include secondary territories
-    overseasTerritories: territories.type === 'equal-members'
-      ? [...(territories.mainlands || []), ...territories.overseas]
-      : territories.overseas,
+    // All territories treated equally
+    overseasTerritories: territories.all,
     // Pass wildcard flag from territories configuration
     isWildcard: territories.isWildcard === true,
   }
@@ -310,30 +266,17 @@ function createAtlasConfig(
     id: config.id,
     name: resolveI18nValue(config.name, locale),
     category: config.category,
-    pattern: territories.type,
     geoDataConfig,
-    // For wildcard atlases, compositeProjectionConfig is not needed (unified view only)
+    // All territories are equal - use unified composite config
     compositeProjectionConfig: territories.isWildcard
       ? undefined
-      : territories.type === 'single-focus'
-        ? {
-            type: 'single-focus',
-            mainland: territories.mainland,
-            overseasTerritories: territories.overseas,
-          }
-        : {
-            type: 'equal-members',
-            mainlands: territories.mainlands!,
-            overseasTerritories: territories.overseas,
-          },
+      : {
+          territories: territories.all,
+        },
     splitModeConfig: {
-      mainlandTitle: territories.type === 'single-focus'
-        ? `atlas.territories.${config.id}.mainland`
-        : `atlas.territories.${config.id}.territories`,
+      mainlandTitle: `atlas.territories.${config.id}.territories`,
       mainlandCode: territories.mainland?.code,
-      territoriesTitle: territories.type === 'single-focus'
-        ? `atlas.territories.${config.id}.overseas`
-        : `atlas.territories.${config.id}.territories`,
+      territoriesTitle: `atlas.territories.${config.id}.territories`,
     },
     hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0 && Object.keys(territoryModes).length > 0),
     isWildcard: territories.isWildcard === true,
@@ -366,8 +309,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
   // Get projection parameters with fallback defaults (sync version)
   const projectionParams = getFallbackProjectionParameters(jsonConfig.id)
 
-  // Create territory modes and groups
-  const isSingleFocusPattern = territories.type === 'single-focus'
   // For wildcard atlases, we'll need to get codes from the actual data later
   // For now, use placeholder or generate from config
   const allTerritoryCodes = territories.isWildcard
@@ -421,11 +362,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
         }
         else {
           codes = collection.territories
-        }
-
-        // For single-focus atlases: filter out mainland code
-        if (isSingleFocusPattern && !codes.includes('*')) {
-          codes = codes.filter((code: string) => code !== territories.mainland.code)
         }
 
         return [

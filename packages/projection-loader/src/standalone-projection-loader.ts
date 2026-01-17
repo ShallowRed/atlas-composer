@@ -120,7 +120,6 @@ export interface ExportedConfig {
 export interface Territory {
   code: string
   name: string
-  role: string
   projection: {
     id: string
     family: string

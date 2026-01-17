@@ -169,7 +169,6 @@ export class MapRenderCoordinator {
       customComposite?: any
       isMainland?: boolean
       filteredTerritoryCodes?: Set<string>
-      mainlandCode?: string
     },
   ): void {
     MapOverlayService.applyOverlays(svg, {
@@ -182,7 +181,6 @@ export class MapRenderCoordinator {
       customComposite: config.customComposite,
       isMainland: config.isMainland,
       filteredTerritoryCodes: config.filteredTerritoryCodes,
-      mainlandCode: config.mainlandCode,
     })
   }
 

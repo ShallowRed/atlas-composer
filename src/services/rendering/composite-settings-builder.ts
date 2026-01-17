@@ -20,24 +20,12 @@ export class CompositeSettingsBuilder {
    * Extract territory codes from composite projection configuration
    */
   static extractTerritoryCodes(compositeConfig: CompositeProjectionConfig | undefined): string[] {
-    const territoryCodes: string[] = []
-
     if (!compositeConfig) {
-      return territoryCodes
+      return []
     }
 
-    // Add primary/member code(s)
-    if (compositeConfig.type === 'single-focus') {
-      territoryCodes.push(compositeConfig.mainland.code)
-    }
-    else {
-      compositeConfig.mainlands.forEach((m: any) => territoryCodes.push(m.code))
-    }
-
-    // Add all secondary territory codes
-    compositeConfig.overseasTerritories.forEach((t: any) => territoryCodes.push(t.code))
-
-    return territoryCodes
+    // All territories are treated equally
+    return compositeConfig.territories.map(t => t.code)
   }
 
   /**

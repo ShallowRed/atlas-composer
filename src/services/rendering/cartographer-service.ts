@@ -225,9 +225,6 @@ export class Cartographer {
     height: number,
     showSphere = false,
   ): SVGSVGElement {
-    const { mainlandCode } = this.geoDataService.config
-    const geoDataMainlandCode = this.geoDataService.config.mainlandCode
-
     // Create SVG container
     const svg = D3MapRenderer.createSvgElement(width, height)
 
@@ -236,10 +233,8 @@ export class Cartographer {
       D3MapRenderer.renderSphere(svg, projection)
     }
 
-    // Add territories
+    // Add territories - all rendered with same color (no hierarchy distinction)
     D3MapRenderer.renderTerritories(svg, data, projection, {
-      mainlandCode,
-      geoDataMainlandCode,
       enableTooltips: true,
     })
 

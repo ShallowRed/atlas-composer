@@ -5,8 +5,7 @@
  * Scope: Frontend types for atlas layout configuration
  *
  * These types define how territories are arranged in composite atlases
- * (traditional 1+N, multi-mainland N+M patterns) and how they're displayed
- * (split, composite, unified view modes).
+ * and how they're displayed (split, composite, unified view modes).
  *
  * Note: For projection system metadata (D3 projections, capabilities, etc.),
  * see src/core/projections/types.d.ts
@@ -15,43 +14,15 @@
 import type { TerritoryConfig } from '@/types/territory'
 
 /**
- * Single-focus composite projection configuration
- *
- * Used for atlases with a single primary territory and multiple secondary territories
- * Examples: France (mainland + DROM), Portugal (continental + islands)
- *
- * Pattern: 1 primary + N secondary territories
- */
-export interface SingleFocusCompositeConfig {
-  type: 'single-focus'
-  mainland: TerritoryConfig
-  overseasTerritories: TerritoryConfig[]
-}
-
-/**
- * Equal-members composite projection configuration
- *
- * Used for atlases with multiple equal member territories
- * Examples: EU (member states), World (all countries), ASEAN (member states)
- *
- * Pattern: N equal members + optional secondary territories
- */
-export interface EqualMembersCompositeConfig {
-  type: 'equal-members'
-  mainlands: TerritoryConfig[]
-  overseasTerritories: TerritoryConfig[]
-}
-
-/**
  * Composite projection configuration
  *
- * Union type supporting both projection patterns:
- * - Single-focus: Single primary with secondary territories
- * - Equal-members: Multiple equal members with optional secondary
+ * Used for atlases with multiple territories displayed in a composite layout.
+ * All territories are treated equally - no hierarchy or role distinction.
  */
-export type CompositeProjectionConfig
-  = | SingleFocusCompositeConfig
-    | EqualMembersCompositeConfig
+export interface CompositeProjectionConfig {
+  /** All territories in the composite */
+  territories: TerritoryConfig[]
+}
 
 /**
  * Default composite projection settings

@@ -8,11 +8,6 @@
 import type { ProjectionParameters } from './projection-parameters'
 
 /**
- * Role of a territory in the composite projection
- */
-export type TerritoryRole = 'primary' | 'secondary' | 'member'
-
-/**
  * Exported projection parameters
  * Contains all parameters needed to reconstruct a D3 projection
  * Uses the unified parameter system for consistency
@@ -45,9 +40,6 @@ export interface ExportedTerritory {
 
   /** Territory display name */
   name: string
-
-  /** Role in the composite structure */
-  role: TerritoryRole
 
   // Projection configuration
   /** Projection configuration */

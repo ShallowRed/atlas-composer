@@ -110,6 +110,7 @@ export class CompositeProjection {
     }
 
     // No parameter provider - convert config's legacy format to canonical
+    // Use projectionId directly from config if available
     if (configParams.center) {
       const canonical = inferCanonicalFromLegacy({
         center: configParams.center as [number, number],
@@ -122,10 +123,13 @@ export class CompositeProjection {
         scale: undefined,
         clipAngle: undefined,
         precision: undefined,
+        projectionId: configParams.projectionId,
       }
     }
 
-    return {}
+    return {
+      projectionId: configParams.projectionId,
+    }
   }
 
   /**
@@ -196,70 +200,22 @@ export class CompositeProjection {
    * 3. The multipliers ensure proper visual composition while maintaining proportionality
    */
   private initialize() {
-    if (this.config.type === 'single-focus') {
-      this.initializeSingleFocus()
-    }
-    else {
-      this.initializeEqualMembers()
-    }
+    this.initializeTerritories()
   }
 
   /**
-   * Initialize single-focus pattern: 1 primary + N secondary territories
+   * Initialize all territories equally - no hierarchy distinction
    */
-  private initializeSingleFocus() {
-    if (this.config.type !== 'single-focus') {
-      return
-    }
-    const { mainland, overseasTerritories } = this.config
+  private initializeTerritories() {
+    const { territories } = this.config
 
-    // Reference scale for all territories (like d3-composite-projections does)
-    // This is the "base unit" that all territories scale relative to
+    // Reference scale for all territories
     // Use preset referenceScale if provided, or default to 2700
     const REFERENCE_SCALE = this.referenceScale ?? 2700
 
-    // Convert: mainland.code from TerritoryConfig
-    const mainlandParams = this.getParametersForTerritory(mainland.code as TerritoryCode, mainland)
-
-    // Mainland projection type must come from parameters/preset
-    const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
-    const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
-      .translate([0, 0])
-
-    // Apply positioning parameters based on projection family
-    this.applyPositioningParameters(mainlandProjection, mainlandProjectionType, mainlandParams, mainland.code)
-
-    // Apply parallels if supported and provided
-    if (isConicProjection(mainlandProjection) && mainlandParams.parallels) {
-      mainlandProjection.parallels(mainlandParams.parallels)
-    }
-
-    // Determine scale values
-    // baseScale always comes from referenceScale (not from preset)
-    // scaleMultiplier comes from preset parameter store (defaults to 1.0)
-    const mainlandBaseScale = REFERENCE_SCALE
-    const mainlandScaleMultiplier = mainlandParams.scaleMultiplier ?? 1.0
-
-    mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
-
-    // Get translateOffset from parameters
-    const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
-
-    this.addSubProjection({
-      // Convert: mainland.code and mainlandProjectionType from TerritoryConfig
-      territoryCode: mainland.code as TerritoryCode,
-      territoryName: mainland.name,
-      projection: mainlandProjection,
-      projectionType: mainlandProjectionType as ProjectionId,
-      baseScale: mainlandBaseScale,
-      scaleMultiplier: mainlandScaleMultiplier,
-      translateOffset: mainlandTranslateOffset,
-      bounds: mainland.bounds,
-    })
-
-    // Overseas territories
-    overseasTerritories.forEach((territory) => {
-      // Convert: territory.code from TerritoryConfig
+    // Process all territories equally - no special treatment
+    territories.forEach((territory) => {
+      // Get parameters from parameter provider (required - no fallback to config)
       const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode, territory)
 
       // Skip territories without projectionId (not in preset)
@@ -276,116 +232,13 @@ export class CompositeProjection {
       // Apply positioning parameters based on projection family
       this.applyPositioningParameters(projection, projectionType, territoryParams, territory.code)
 
-      // Apply parallels if supported
+      // Apply parallels if supported and provided
       if (isConicProjection(projection) && territoryParams.parallels) {
         projection.parallels(territoryParams.parallels)
-      }
-
-      // Determine scale values
-      // baseScale always comes from referenceScale (preset or default 2700)
-      // scaleMultiplier comes from preset parameter store (defaults to 1.0)
-      const territoryBaseScale = REFERENCE_SCALE
-      const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
-
-      projection.scale(territoryBaseScale * territoryScaleMultiplier)
-
-      // Get translateOffset from parameters
-      const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
-
-      this.addSubProjection({
-        territoryCode: territory.code as TerritoryCode,
-        territoryName: territory.name,
-        projection,
-        projectionType: projectionType as ProjectionId,
-        baseScale: territoryBaseScale,
-        scaleMultiplier: territoryScaleMultiplier,
-        translateOffset: territoryTranslateOffset,
-        bounds: territory.bounds,
-      })
-    })
-  }
-
-  /**
-   * Initialize equal-members pattern: N equal members + M secondary territories
-   * All members are treated equally with no hierarchy
-   */
-  private initializeEqualMembers() {
-    if (this.config.type !== 'equal-members') {
-      return
-    }
-    const { mainlands, overseasTerritories } = this.config
-
-    // Reference scale for all territories
-    // Use preset referenceScale if provided, or default to 200 for equal-members
-    const REFERENCE_SCALE = this.referenceScale ?? 200
-
-    // Process all mainlands equally - no special treatment for any
-    mainlands.forEach((mainland) => {
-      // Get parameters from parameter provider (required - no fallback to config)
-      const mainlandParams = this.getParametersForTerritory(mainland.code as TerritoryCode, mainland)
-
-      // Projection type must come from parameters/preset
-      const mainlandProjectionType = mainlandParams.projectionId || 'conic-conformal'
-      const mainlandProjection = this.createProjectionByType(mainlandProjectionType)
-        .translate([0, 0])
-
-      // Apply positioning parameters based on projection family
-      this.applyPositioningParameters(mainlandProjection, mainlandProjectionType, mainlandParams, mainland.code)
-
-      // Apply parallels if supported and provided
-      if (isConicProjection(mainlandProjection) && mainlandParams.parallels) {
-        mainlandProjection.parallels(mainlandParams.parallels)
       }
 
       // Determine scale values
       // baseScale always comes from referenceScale (not from preset)
-      // scaleMultiplier comes from preset parameter store (defaults to 1.0)
-      const mainlandBaseScale = REFERENCE_SCALE
-      const mainlandScaleMultiplier = mainlandParams.scaleMultiplier ?? 1.0
-
-      mainlandProjection.scale(mainlandBaseScale * mainlandScaleMultiplier)
-
-      // Get translateOffset from parameters
-      const mainlandTranslateOffset = (mainlandParams.translateOffset as [number, number] | undefined) ?? [0, 0]
-
-      this.addSubProjection({
-        territoryCode: mainland.code as TerritoryCode,
-        territoryName: mainland.name,
-        projection: mainlandProjection,
-        projectionType: mainlandProjectionType as ProjectionId,
-        baseScale: mainlandBaseScale,
-        scaleMultiplier: mainlandScaleMultiplier,
-        translateOffset: mainlandTranslateOffset,
-        bounds: mainland.bounds,
-      })
-    })
-
-    // Overseas territories (if any)
-    overseasTerritories.forEach((territory) => {
-      // Get parameters from parameter provider (required - no fallback to config)
-      const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode, territory)
-
-      // Skip territories without projectionId (not in preset)
-      if (!territoryParams.projectionId) {
-        debug('Skipping territory %s - not defined in preset (projectionId missing)', territory.code)
-        return
-      }
-
-      // Projection type must come from parameters/preset
-      const projectionType = territoryParams.projectionId
-      const projection = this.createProjectionByType(projectionType)
-        .translate([0, 0])
-
-      // Apply positioning parameters based on projection family
-      this.applyPositioningParameters(projection, projectionType, territoryParams, territory.code)
-
-      // Apply parallels if supported
-      if (isConicProjection(projection) && territoryParams.parallels) {
-        projection.parallels(territoryParams.parallels)
-      }
-
-      // Determine scale values
-      // baseScale always comes from referenceScale (preset or default 200)
       // scaleMultiplier comes from preset parameter store (defaults to 1.0)
       const territoryBaseScale = REFERENCE_SCALE
       const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0

@@ -11,10 +11,6 @@ const debug = logger.render.cartographer
  * Options for territory rendering
  */
 export interface TerritoryRenderOptions {
-  /** Mainland territory code for color differentiation */
-  mainlandCode?: string
-  /** Alternative mainland code from geoData config */
-  geoDataMainlandCode?: string
   /** Whether to enable tooltips on hover */
   enableTooltips?: boolean
   /** Callback when territory is hovered */
@@ -154,8 +150,6 @@ export class D3MapRenderer {
     options: TerritoryRenderOptions = {},
   ): GeoPath {
     const {
-      mainlandCode,
-      geoDataMainlandCode,
       enableTooltips = true,
       onHover,
       onClick,
@@ -170,19 +164,14 @@ export class D3MapRenderer {
       .attr('class', 'territories')
 
     // Render each feature as a path
+    // All territories use the same color - no hierarchy distinction
     const paths = territoriesGroup
       .selectAll<SVGPathElement, GeoJSON.Feature>('path')
       .data(geoData.features)
       .join('path')
       .attr('d', d => path(d) || '')
-      .attr('fill', (d) => {
-        const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-        return getTerritoryFillColor(code, mainlandCode, geoDataMainlandCode)
-      })
-      .attr('stroke', (d) => {
-        const code = d.properties?.code || d.properties?.INSEE_DEP || 'unknown'
-        return getTerritoryStrokeColor(code, mainlandCode, geoDataMainlandCode)
-      })
+      .attr('fill', getTerritoryFillColor())
+      .attr('stroke', getTerritoryStrokeColor())
       .attr('stroke-width', 1)
       .attr('data-territory', d => d.properties?.code || d.properties?.INSEE_DEP || '')
 

@@ -267,29 +267,17 @@ describe('compositeConfiguration', () => {
       beforeEach(() => {
         config.addTerritory({
           ...createValidTerritory('FR-MET'),
-          role: 'primary',
         })
-        config.addTerritory({
-          ...createValidTerritory('FR-GP'),
-          role: 'secondary',
-        })
-        config.addTerritory({
-          ...createValidTerritory('FR-MQ'),
-          role: 'secondary',
-        })
+        config.addTerritory(createValidTerritory('FR-GP'))
+        config.addTerritory(createValidTerritory('FR-MQ'))
       })
 
-      it('should get primary territories', () => {
-        const primary = config.getPrimaryTerritories()
-        expect(primary).toHaveLength(1)
-        expect(primary[0]?.code).toBe('FR-MET')
-      })
-
-      it('should get secondary territories', () => {
-        const secondary = config.getSecondaryTerritories()
-        expect(secondary).toHaveLength(2)
-        expect(secondary.map(t => t.code)).toContain('FR-GP')
-        expect(secondary.map(t => t.code)).toContain('FR-MQ')
+      it('should return all territories when filtering by getAllTerritories', () => {
+        const all = config.getAllTerritories()
+        expect(all).toHaveLength(3)
+        expect(all.map(t => t.code)).toContain('FR-MET')
+        expect(all.map(t => t.code)).toContain('FR-GP')
+        expect(all.map(t => t.code)).toContain('FR-MQ')
       })
     })
   })

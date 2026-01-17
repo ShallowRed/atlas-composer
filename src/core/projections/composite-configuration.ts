@@ -32,11 +32,6 @@ export interface CompositeCanvasDimensions {
 }
 
 /**
- * Role of a territory in the composite projection
- */
-export type CompositeTerritoryRole = 'primary' | 'secondary' | 'member'
-
-/**
  * Territory projection configuration within the composite
  */
 export interface TerritoryProjectionConfig {
@@ -44,8 +39,6 @@ export interface TerritoryProjectionConfig {
   code: string
   /** Territory display name */
   name: string
-  /** Role in the composite (primary, secondary, member) */
-  role: CompositeTerritoryRole
   /** Projection ID (e.g., 'conic-conformal', 'mercator') */
   projectionId: string
   /** Projection family */
@@ -226,20 +219,6 @@ export class CompositeConfiguration {
    */
   hasTerritory(code: string): boolean {
     return this.territories.has(code)
-  }
-
-  /**
-   * Get primary territories (mainland)
-   */
-  getPrimaryTerritories(): TerritoryProjectionConfig[] {
-    return this.getAllTerritories().filter(t => t.role === 'primary')
-  }
-
-  /**
-   * Get secondary territories (overseas)
-   */
-  getSecondaryTerritories(): TerritoryProjectionConfig[] {
-    return this.getAllTerritories().filter(t => t.role === 'secondary')
   }
 
   /**

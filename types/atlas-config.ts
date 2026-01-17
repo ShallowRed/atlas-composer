@@ -18,7 +18,6 @@ export type I18nValue = string | Record<string, string>
  */
 export interface JSONTerritoryConfig {
   id: string
-  role: 'primary' | 'secondary' | 'member' | 'embedded'
   code: string
   name: I18nValue
   shortName?: I18nValue

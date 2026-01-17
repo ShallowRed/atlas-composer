@@ -451,7 +451,6 @@ async function renderMap() {
             customComposite: isCompositeMode ? cartographer.value?.customComposite : undefined,
             isMainland: props.isMainland,
             filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
-            mainlandCode: atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode,
           },
         )
 
