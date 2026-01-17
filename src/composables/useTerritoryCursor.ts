@@ -515,13 +515,11 @@ export function useTerritoryCursor() {
   }
 
   return {
-    // State
     isDragEnabled,
     isDragging,
     dragTerritoryCode,
     hoveredTerritoryCode,
 
-    // Methods
     isTerritoryDraggable,
     getTerritoryCodeFromElement,
     getCursorStyle,

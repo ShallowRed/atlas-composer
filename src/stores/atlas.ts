@@ -30,7 +30,6 @@ import { logger } from '@/utils/logger'
 const debug = logger.store.config // Reuse existing logger namespace
 
 export const useAtlasStore = defineStore('atlas', () => {
-  // State
 
   /**
    * Currently selected atlas ID
@@ -185,7 +184,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   // Return Public API
 
   return {
-    // State
     selectedAtlasId,
     isLoading,
     error,
@@ -201,7 +199,6 @@ export const useAtlasStore = defineStore('atlas', () => {
     territoryModeOptions,
     defaultTerritoryMode,
 
-    // Actions
     selectAtlas,
     getTerritoryByCode,
     getTerritoryName,

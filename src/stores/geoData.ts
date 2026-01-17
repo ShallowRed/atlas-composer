@@ -26,7 +26,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   // Services
   const cartographer = ref<Cartographer | null>(null)
 
-  // State
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isInitialized = ref(false)
@@ -358,7 +357,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     // Services
     cartographer,
 
-    // State
     isLoading,
     error,
     isInitialized,
@@ -367,12 +365,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
     rawUnifiedData,
     renderKey, // Expose render key for components to watch
 
-    // Computed
     firstTerritory,
     filteredTerritories,
     allActiveTerritories,
 
-    // Actions
     initialize,
     reinitialize,
     setReinitializing,

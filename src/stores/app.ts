@@ -53,7 +53,6 @@ export type TransitionType
     | 'fade' // Standard fade
 
 export const useAppStore = defineStore('app', () => {
-  // State
 
   /**
    * Current application state
@@ -272,7 +271,6 @@ export const useAppStore = defineStore('app', () => {
   }
 
   return {
-    // State
     state,
     error,
     isFirstLoad,
@@ -288,7 +286,6 @@ export const useAppStore = defineStore('app', () => {
     showSkeleton,
     showSkeletonForViewSwitch,
 
-    // Actions
     startLoadingAtlas,
     startLoadingGeoData,
     startLoadingPreset,

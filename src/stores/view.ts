@@ -46,7 +46,6 @@ export const useViewStore = defineStore('view', () => {
   const getUIStore = () => useUIStore()
   const presetDefaults = getSharedPresetDefaults()
 
-  // State
 
   // Territory mode - initialize with the default from the atlas store
   const territoryMode = ref<string>(getAtlasStore().getInitialTerritoryMode())
@@ -386,7 +385,6 @@ export const useViewStore = defineStore('view', () => {
   })
 
   return {
-    // State
     territoryMode,
     viewMode,
     activeTerritoryCodes,
@@ -406,7 +404,6 @@ export const useViewStore = defineStore('view', () => {
     projectionGroups,
     projectionRecommendations,
 
-    // Actions
     setTerritoryMode,
     setViewMode,
     addTerritoryToComposite,

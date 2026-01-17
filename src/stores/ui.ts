@@ -28,7 +28,6 @@ export const useUIStore = defineStore('ui', () => {
   const toasts = ref<ToastMessage[]>([])
   let toastIdCounter = 0
 
-  // Actions
   function initializeTheme() {
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme')
@@ -95,14 +94,12 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   return {
-    // State
     theme,
     showGraticule,
     showCompositionBorders,
     showMapLimits,
     toasts,
 
-    // Actions
     initializeTheme,
     setTheme,
     initializeDisplayOptions,

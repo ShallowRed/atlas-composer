@@ -298,12 +298,10 @@ export function useClipExtentEditor() {
   }
 
   return {
-    // State
     isEditingEnabled,
     isDraggingCorner,
     selectedTerritoryCode,
 
-    // Methods
     renderClipExtentHandles,
     selectTerritory,
     deselectTerritory,
