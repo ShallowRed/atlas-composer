@@ -48,7 +48,10 @@
     "geodata:validate": "tsx scripts/validate-configs.ts",
     "export:config": "tsx scripts/export-config.ts",
     "export:all": "tsx scripts/export-all.ts",
-    "import:config": "tsx scripts/import-config.ts"
+    "import:config": "tsx scripts/import-config.ts",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build:packages && changeset publish"
   },
   "dependencies": {
     "@atlas-composer/projection-core": "workspace:*",
@@ -72,6 +75,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
+    "@changesets/cli": "^2.29.8",
     "@tailwindcss/postcss": "^4.1.14",
     "@tailwindcss/vite": "^4.1.14",
     "@types/d3": "^7.4.3",
