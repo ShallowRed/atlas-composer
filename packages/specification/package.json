@@ -1,0 +1,59 @@
+{
+  "name": "@atlas-composer/specification",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "JSON Schema specification and TypeScript types for Atlas Composer composite map projections",
+  "author": "Lucas Poulain (ShallowRed)",
+  "license": "MIT",
+  "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/specification#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShallowRed/atlas-composer.git",
+    "directory": "packages/specification"
+  },
+  "bugs": {
+    "url": "https://github.com/ShallowRed/atlas-composer/issues"
+  },
+  "keywords": [
+    "atlas-composer",
+    "cartography",
+    "composite-projection",
+    "d3-geo",
+    "geojson",
+    "json-schema",
+    "map-projection",
+    "specification",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/composite-projection": {
+      "import": "./schemas/composite-projection.schema.json"
+    },
+    "./schemas/definitions": {
+      "import": "./schemas/definitions.schema.json"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist",
+    "schemas"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "~5.9.3"
+  }
+}

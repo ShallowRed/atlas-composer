@@ -1,0 +1,61 @@
+{
+  "$schema": "../../schemas/preset-split.schema.json",
+  "id": "france-split-individual",
+  "name": "France - Vue séparée optimisée",
+  "description": "Projection adaptée à chaque territoire",
+  "atlasId": "france",
+  "type": "split",
+  "config": {
+    "territories": {
+      "FR-MET": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-3, -46.2, 0],
+            "parallels": [0, 60]
+          }
+        }
+      },
+      "FR-GP": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [-61.5, 16.25]
+          }
+        }
+      },
+      "FR-MQ": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [-61.03, 14.67]
+          }
+        }
+      },
+      "FR-GF": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [-53, 4]
+          }
+        }
+      },
+      "FR-RE": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [55.5, -21]
+          }
+        }
+      },
+      "FR-YT": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [45.16, -12.83]
+          }
+        }
+      }
+    }
+  }
+}

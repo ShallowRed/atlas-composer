@@ -25,6 +25,14 @@
  */
 
 import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
+import type {
+  CompositeProjectionConfig,
+  GeoBounds,
+  I18nString,
+  LayoutConfig,
+  ProjectionParameters as SpecProjectionParameters,
+  TerritoryConfig,
+} from '@atlas-composer/specification'
 
 import {
   buildCompositeProjection,
@@ -96,55 +104,47 @@ export interface StreamLike {
  */
 export type ProjectionFactory = () => ProjectionLike
 
+// Re-export specification types for convenience
+export type { CompositeProjectionConfig, GeoBounds, I18nString, LayoutConfig, TerritoryConfig }
+
 /**
- * Exported configuration format (subset needed for loading)
+ * Resolve an I18nString to a plain string.
+ * For i18n objects, returns the English value or the first available translation.
  */
-export interface ExportedConfig {
-  version: string
-  metadata: {
-    atlasId: string
-    atlasName: string
-    exportDate?: string
-    createdWith?: string
-    notes?: string
+function resolveI18nString(value: I18nString): string {
+  if (typeof value === 'string') {
+    return value
   }
-  referenceScale?: number
-  canvasDimensions?: {
-    width: number
-    height: number
-  }
-  territories: Territory[]
+  // Return English first, or the first available language
+  return value.en || Object.values(value).find(v => typeof v === 'string') || ''
 }
 
-export interface Territory {
-  code: string
-  name: string
-  projection: {
-    id: string
-    family: string
-    parameters: ProjectionParameters
-  }
-  layout: Layout
-  bounds: [[number, number], [number, number]]
-}
+/**
+ * Projection parameters with loader-specific extensions.
+ * @deprecated Specification now includes all legacy parameters
+ */
+export type ProjectionParameters = SpecProjectionParameters
 
-export interface ProjectionParameters {
-  center?: [number, number]
-  rotate?: [number, number, number]
-  scaleMultiplier?: number
-  parallels?: [number, number]
-  clipAngle?: number
-  precision?: number
-  // Legacy export format support
-  focusLongitude?: number
-  focusLatitude?: number
-}
+/**
+ * Exported configuration format.
+ * Alias for CompositeProjectionConfig for backward compatibility.
+ * @deprecated Use CompositeProjectionConfig from @atlas-composer/specification
+ */
+export type ExportedConfig = CompositeProjectionConfig
 
-export interface Layout {
-  translateOffset?: [number, number]
-  /** Pixel-based clip extent relative to territory center [x1, y1, x2, y2] */
-  pixelClipExtent?: [number, number, number, number] | null
-}
+/**
+ * Territory configuration.
+ * Alias for TerritoryConfig for backward compatibility.
+ * @deprecated Use TerritoryConfig from @atlas-composer/specification
+ */
+export type Territory = TerritoryConfig
+
+/**
+ * Layout configuration.
+ * Alias for LayoutConfig for backward compatibility.
+ * @deprecated Use LayoutConfig from @atlas-composer/specification
+ */
+export type Layout = LayoutConfig
 
 /**
  * Options for creating the composite projection
@@ -303,7 +303,7 @@ export function loadCompositeProjection(
 
     return {
       id: territory.code,
-      name: territory.name,
+      name: resolveI18nString(territory.name),
       projection: proj as CoreProjectionLike,
       bounds: {
         minLon: territory.bounds[0][0],
@@ -316,7 +316,7 @@ export function loadCompositeProjection(
 
   if (debug) {
     console.log('[CompositeProjection] Created sub-projections:', {
-      territories: config.territories.map(t => ({ code: t.code, name: t.name })),
+      territories: config.territories.map(t => ({ code: t.code, name: resolveI18nString(t.name) })),
       count: entries.length,
     })
   }

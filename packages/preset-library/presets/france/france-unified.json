@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/preset-unified.schema.json",
+  "id": "france-unified-default",
+  "name": "France - Vue unifiée standard",
+  "description": "Projection Natural Earth centrée sur la France",
+  "atlasId": "france",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "center": [-10, 45],
+        "scale": 1.0
+      }
+    }
+  }
+}

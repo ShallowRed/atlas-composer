@@ -1,0 +1,283 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.github.io/specification/v1/definitions.schema.json",
+  "title": "Atlas Composer Specification Definitions",
+  "description": "Shared type definitions for Atlas Composer composite projection schemas (v1.0)",
+  "definitions": {
+    "i18nString": {
+      "description": "Internationalized string (plain string or object with language codes)",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
+        }
+      ]
+    },
+    "geoBounds": {
+      "type": "array",
+      "description": "Geographic bounding box [[minLon, minLat], [maxLon, maxLat]]",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "projectionFamily": {
+      "type": "string",
+      "enum": ["CYLINDRICAL", "CONIC", "AZIMUTHAL", "PSEUDOCYLINDRICAL", "POLYCONIC", "MISCELLANEOUS"],
+      "description": "Projection family category determining applicable parameters"
+    },
+    "projectionParameters": {
+      "type": "object",
+      "description": "Projection parameters for geographic transformation",
+      "properties": {
+        "rotate": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 3,
+          "description": "Rotation [lambda, phi, gamma?] in degrees"
+        },
+        "center": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Center [longitude, latitude] in degrees"
+        },
+        "parallels": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Standard parallels [south, north] for conic projections"
+        },
+        "scaleMultiplier": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1,
+          "description": "Scale multiplier relative to referenceScale"
+        },
+        "scale": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Direct scale value (prefer scaleMultiplier)"
+        },
+        "clipAngle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 180,
+          "description": "Clip angle in degrees for azimuthal projections"
+        },
+        "distance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Distance from Earth center in radii (satellite projection)"
+        },
+        "tilt": {
+          "type": "number",
+          "description": "Tilt angle in degrees (satellite projection)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "layoutConfig": {
+      "type": "object",
+      "description": "Layout configuration for territory positioning",
+      "required": ["translateOffset", "pixelClipExtent"],
+      "properties": {
+        "translateOffset": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Translation offset [x, y] in pixels from canvas center"
+        },
+        "pixelClipExtent": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Clip extent [x1, y1, x2, y2] in pixels relative to territory center"
+        }
+      },
+      "additionalProperties": false
+    },
+    "territoryConfig": {
+      "type": "object",
+      "description": "Configuration for a single territory",
+      "required": ["code", "name", "projection", "layout"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$",
+          "description": "Territory code (ISO 3166-2 pattern, e.g., 'FR-MET', 'US-AK')"
+        },
+        "name": {
+          "$ref": "#/definitions/i18nString",
+          "description": "Human-readable territory name"
+        },
+        "projection": {
+          "type": "object",
+          "required": ["id", "family", "parameters"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "D3 projection identifier (e.g., 'mercator', 'conic-conformal')"
+            },
+            "family": {
+              "$ref": "#/definitions/projectionFamily"
+            },
+            "parameters": {
+              "$ref": "#/definitions/projectionParameters"
+            }
+          },
+          "additionalProperties": false
+        },
+        "layout": {
+          "$ref": "#/definitions/layoutConfig"
+        },
+        "bounds": {
+          "$ref": "#/definitions/geoBounds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "configMetadata": {
+      "type": "object",
+      "description": "Configuration metadata for provenance tracking",
+      "required": ["atlasId"],
+      "properties": {
+        "atlasId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Target atlas identifier"
+        },
+        "atlasName": {
+          "$ref": "#/definitions/i18nString",
+          "description": "Human-readable atlas name"
+        },
+        "exportDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Export timestamp in ISO 8601 format"
+        },
+        "createdWith": {
+          "type": "string",
+          "description": "Tool or method used to create this configuration"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about the configuration"
+        }
+      },
+      "additionalProperties": true
+    },
+    "canvasDimensions": {
+      "type": "object",
+      "description": "Canvas dimensions in pixels",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Canvas width in pixels"
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Canvas height in pixels"
+        }
+      },
+      "additionalProperties": false
+    },
+    "atlasMetadata": {
+      "type": "object",
+      "description": "Optional atlas-level projection metadata",
+      "properties": {
+        "compositeProjections": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Available d3-composite-projections IDs"
+        },
+        "defaultCompositeProjection": {
+          "type": "string",
+          "description": "Default composite projection ID"
+        },
+        "projectionPreferences": {
+          "type": "object",
+          "properties": {
+            "recommended": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Recommended projection IDs"
+            },
+            "prohibited": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Prohibited projection IDs"
+            }
+          },
+          "additionalProperties": false
+        },
+        "projectionParameters": {
+          "type": "object",
+          "description": "Recommended projection parameters",
+          "properties": {
+            "center": {
+              "type": "object",
+              "properties": {
+                "longitude": { "type": "number" },
+                "latitude": { "type": "number" }
+              },
+              "required": ["longitude", "latitude"]
+            },
+            "rotate": {
+              "type": "object",
+              "properties": {
+                "conic": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "azimuthal": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "additionalProperties": false
+            },
+            "parallels": {
+              "type": "object",
+              "properties": {
+                "conic": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

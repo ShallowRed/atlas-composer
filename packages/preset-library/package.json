@@ -1,0 +1,71 @@
+{
+  "name": "@atlas-composer/preset-library",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Curated collection of composite map projection presets for Atlas Composer",
+  "author": "Lucas Poulain (ShallowRed)",
+  "license": "MIT",
+  "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/preset-library#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShallowRed/atlas-composer.git",
+    "directory": "packages/preset-library"
+  },
+  "bugs": {
+    "url": "https://github.com/ShallowRed/atlas-composer/issues"
+  },
+  "keywords": [
+    "atlas-composer",
+    "cartography",
+    "composite-projection",
+    "d3-geo",
+    "france",
+    "map-projection",
+    "portugal",
+    "presets",
+    "usa"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./france/*": {
+      "import": "./presets/france/*.json"
+    },
+    "./portugal/*": {
+      "import": "./presets/portugal/*.json"
+    },
+    "./usa/*": {
+      "import": "./presets/usa/*.json"
+    },
+    "./europe/*": {
+      "import": "./presets/europe/*.json"
+    },
+    "./world/*": {
+      "import": "./presets/world/*.json"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist",
+    "presets"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@atlas-composer/specification": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "~5.9.3"
+  }
+}

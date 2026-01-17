@@ -1,0 +1,48 @@
+{
+  "$schema": "../../schemas/preset-split.schema.json",
+  "id": "europe-split-uniform",
+  "name": "EU - Vue séparée uniforme",
+  "description": "Projection conique conforme pour tous les territoires européens",
+  "atlasId": "europe",
+  "type": "split",
+  "config": {
+    "territories": {
+      "AT": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-10, -52],
+            "parallels": [40, 60]
+          }
+        }
+      },
+      "BE": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-10, -52],
+            "parallels": [40, 60]
+          }
+        }
+      },
+      "FR": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-10, -52],
+            "parallels": [40, 60]
+          }
+        }
+      },
+      "DE": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [-10, -52],
+            "parallels": [40, 60]
+          }
+        }
+      }
+    }
+  }
+}

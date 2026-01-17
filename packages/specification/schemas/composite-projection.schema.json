@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.github.io/specification/v1/composite-projection.schema.json",
+  "title": "Atlas Composer Composite Projection Configuration",
+  "description": "Schema for composite map projection configurations exported from Atlas Composer (v1.0)",
+  "type": "object",
+  "required": ["version", "metadata", "referenceScale", "canvasDimensions", "territories"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Specification version (e.g., '1.0')",
+      "examples": ["1.0"]
+    },
+    "metadata": {
+      "$ref": "definitions.schema.json#/definitions/configMetadata"
+    },
+    "referenceScale": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Reference scale for territory scaling. Individual territories use scaleMultiplier relative to this value."
+    },
+    "canvasDimensions": {
+      "$ref": "definitions.schema.json#/definitions/canvasDimensions"
+    },
+    "territories": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of territory configurations, each with its own projection and layout",
+      "items": {
+        "$ref": "definitions.schema.json#/definitions/territoryConfig"
+      }
+    },
+    "atlasMetadata": {
+      "$ref": "definitions.schema.json#/definitions/atlasMetadata"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "version": "1.0",
+      "metadata": {
+        "atlasId": "france",
+        "atlasName": "France",
+        "exportDate": "2025-10-17T21:04:33.403Z",
+        "createdWith": "Atlas Composer v2.0"
+      },
+      "referenceScale": 2700,
+      "canvasDimensions": {
+        "width": 760,
+        "height": 500
+      },
+      "territories": [
+        {
+          "code": "FR-MET",
+          "name": "France Metropolitaine",
+          "projection": {
+            "id": "conic-conformal",
+            "family": "CONIC",
+            "parameters": {
+              "rotate": [-3, -46.5, 0],
+              "parallels": [44, 49],
+              "scaleMultiplier": 1
+            }
+          },
+          "layout": {
+            "translateOffset": [110, 0],
+            "pixelClipExtent": [-280, -250, 270, 250]
+          },
+          "bounds": [[-6.5, 41], [10, 51]]
+        }
+      ]
+    }
+  ]
+}

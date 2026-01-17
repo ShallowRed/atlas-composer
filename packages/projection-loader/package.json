@@ -82,7 +82,8 @@
     }
   },
   "dependencies": {
-    "@atlas-composer/projection-core": "workspace:*"
+    "@atlas-composer/projection-core": "workspace:*",
+    "@atlas-composer/specification": "workspace:*"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.2.0",

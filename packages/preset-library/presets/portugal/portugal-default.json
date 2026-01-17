@@ -1,0 +1,185 @@
+{
+  "$schema": "../../schemas/preset-composite-custom.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "portugal",
+    "atlasName": "Portugal",
+    "exportDate": "2025-10-20T00:00:00.000Z",
+    "createdWith": "d3-composite-projections Conversion",
+    "source": "d3-composite-projections/conicConformalPortugal.js",
+    "notes": "Parameters reproduced from d3-composite-projections built-in composite projection"
+  },
+  "referenceScale": 4200,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "PT-CONT",
+      "name": "Portugal Continental",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            10,
+            -39.3,
+            0
+          ],
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -48.3,
+          -478.0,
+          884.1,
+          282.7
+        ]
+      },
+      "bounds": [
+        [
+          -9.5,
+          37
+        ],
+        [
+          -6.2,
+          42.2
+        ]
+      ]
+    },
+    {
+      "code": "PT-20",
+      "name": "Madeira",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            17,
+            -32.7,
+            0
+          ],
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 1.0
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -111.3,
+          105
+        ],
+        "pixelClipExtent": [
+          -51.66,
+          -65.94,
+          62.58,
+          49.56
+        ]
+      },
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ]
+    },
+    {
+      "code": "PT-30",
+      "name": "Azores",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            27.8,
+            -38.6,
+            0
+          ],
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 0.6
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -189,
+          -84
+        ],
+        "pixelClipExtent": [
+          -137.76,
+          -89.46,
+          139.86,
+          122.22
+        ]
+      },
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ]
+    }
+  ],
+  "atlasMetadata": {
+    "compositeProjections": [
+      "conic-conformal-portugal"
+    ],
+    "projectionPreferences": {
+      "recommended": [
+        "conic-conformal",
+        "albers",
+        "azimuthal-equal-area"
+      ],
+      "prohibited": [
+        "gnomonic",
+        "orthographic",
+        "conic-conformal-france",
+        "conic-conformal-europe"
+      ]
+    },
+    "projectionParameters": {
+      "center": {
+        "longitude": -8,
+        "latitude": 39.5
+      },
+      "rotate": {
+        "conic": [
+          8,
+          0
+        ],
+        "azimuthal": [
+          8,
+          -39.5
+        ]
+      },
+      "parallels": {
+        "conic": [
+          37,
+          42
+        ]
+      }
+    }
+  }
+}
