@@ -43,7 +43,6 @@ export const useParameterStore = defineStore('parameters', () => {
   const territoryParametersVersion = ref(0)
 
   /**
-   * Initialize the parameter store with atlas parameters
    */
   function initialize(atlasParams?: ProjectionParameters) {
     if (atlasParams) {
@@ -86,7 +85,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Set atlas-level parameters (from presets)
    * These become the baseline defaults for this atlas/preset
    */
   function setAtlasParameters(parameters: ProjectionParameters) {
@@ -128,14 +126,12 @@ export const useParameterStore = defineStore('parameters', () => {
   // Territory-specific helper methods (migration from territory store)
 
   /**
-   * Set projection ID for a territory
    */
   function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
     setTerritoryParameter(territoryCode, 'projectionId', projectionId)
   }
 
   /**
-   * Get projection ID for a territory
    */
   function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {
     const effective = getEffectiveParameters(territoryCode)
@@ -143,7 +139,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Set translation for a territory (single axis)
    */
   function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
     const effective = getEffectiveParameters(territoryCode)
@@ -155,7 +150,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Get translation for a territory
    * Returns {x, y} object
    */
   function getTerritoryTranslation(territoryCode: TerritoryCode): { x: number, y: number } {
@@ -347,7 +341,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Initialize from preset with validation using parameter registry
    */
   function initializeFromPreset(
     atlasParams: ProjectionParameters,
@@ -375,7 +368,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Get complete parameters for export using parameter registry
    */
   function getExportableParameters(territoryCode: string): ProjectionParameters {
     // Convert: public API accepts string

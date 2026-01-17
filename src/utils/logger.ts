@@ -91,7 +91,6 @@ export const logger = {
 } as const
 
 /**
- * Create a custom debug logger with a specific namespace
  * Use this for one-off or dynamic namespaces
  *
  * @param namespace - Debug namespace (e.g., 'ac:custom:feature')
@@ -118,7 +117,6 @@ export function disableDebug(): void {
 }
 
 /**
- * Check if a namespace is enabled
  *
  * @param namespace - Namespace to check
  * @returns True if enabled

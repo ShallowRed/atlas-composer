@@ -12,9 +12,7 @@ import type { ProjectionFamilyType } from '@/core/projections/types'
  * Consolidates all parameter types into a single interface with optional metadata
  */
 export interface ProjectionParameters {
-  // ==========================================================================
   // CANONICAL POSITIONING (Primary - projection-agnostic)
-  // ==========================================================================
   // These are the preferred positioning parameters. They represent the geographic
   // focus point and are converted to center() or rotate() based on projection family.
 
@@ -27,9 +25,7 @@ export interface ProjectionParameters {
   /** Third rotation axis for 3-axis rotation (-180 to 180) */
   rotateGamma?: number
 
-  // ==========================================================================
   // LEGACY POSITIONING (Deprecated - for backward compatibility)
-  // ==========================================================================
   // These are kept for backward compatibility. New code should use
   // focusLongitude/focusLatitude. During loading, these are converted to canonical.
 
@@ -39,9 +35,7 @@ export interface ProjectionParameters {
   /** @deprecated Use focusLongitude/focusLatitude instead. Rotation [lambda, phi, gamma] */
   rotate?: [number, number, number?]
 
-  // ==========================================================================
   // PROJECTION-SPECIFIC PARAMETERS
-  // ==========================================================================
 
   /** Standard parallels for conic projections [south, north] */
   parallels?: [number, number]
@@ -52,9 +46,7 @@ export interface ProjectionParameters {
   /** Precision for adaptive sampling */
   precision?: number
 
-  // ==========================================================================
   // LAYOUT PARAMETERS
-  // ==========================================================================
 
   /** Territory position offset from map center [x, y] in pixels */
   translateOffset?: [number, number]
@@ -65,9 +57,7 @@ export interface ProjectionParameters {
   /** Pixel-based clipExtent override relative to translateOffset [x1, y1, x2, y2] */
   pixelClipExtent?: [number, number, number, number]
 
-  // ==========================================================================
   // METADATA
-  // ==========================================================================
 
   /** Projection family for parameter validation */
   family?: ProjectionFamilyType

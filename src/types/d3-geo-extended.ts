@@ -6,7 +6,6 @@ import type { GeoProjection } from 'd3-geo'
  */
 export interface GeoConicProjection extends GeoProjection {
   /**
-   * Get or set the standard parallels for the conic projection.
    */
   parallels: (() => [number, number]) & ((parallels: [number, number]) => this)
 }

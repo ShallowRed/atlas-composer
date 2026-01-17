@@ -7,9 +7,7 @@
 
 import type { AtlasId, PresetId, ProjectionId } from '@/types/branded'
 
-// ============================================================================
 // Error Type Unions
-// ============================================================================
 
 /**
  * All application errors
@@ -64,9 +62,7 @@ export type NetworkError
   = | { type: 'NETWORK_FETCH_FAILED', url: string, reason?: string }
     | { type: 'NETWORK_TIMEOUT', url: string }
 
-// ============================================================================
 // Error Constructors
-// ============================================================================
 
 /**
  * Error factory functions for convenience and consistency
@@ -181,9 +177,7 @@ export const Errors = {
   }),
 } as const
 
-// ============================================================================
 // Type Guards
-// ============================================================================
 
 export function isAtlasError(error: AppError): error is AtlasError {
   return error.type.startsWith('ATLAS_')

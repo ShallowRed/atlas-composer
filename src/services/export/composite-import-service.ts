@@ -107,7 +107,6 @@ export class CompositeImportService {
   }
 
   /**
-   * Check if an imported config matches the current atlas
    *
    * @param config - Imported configuration
    * @param currentAtlasId - Current atlas ID

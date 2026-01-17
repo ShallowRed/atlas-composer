@@ -8,7 +8,6 @@ import type { ProjectionId, TerritoryCode } from '@/types/branded'
  */
 export class TerritoryDefaultsService {
   /**
-   * Initialize all territory defaults at once
    * Returns empty maps - values must come from presets
    *
    * @param territories - All territories for the atlas
@@ -27,7 +26,6 @@ export class TerritoryDefaultsService {
   }
 
   /**
-   * Initialize territory projections with fallback default
    *
    * @param territories - Territories to initialize
    * @param defaultProjection - Default projection to use
@@ -43,7 +41,6 @@ export class TerritoryDefaultsService {
   }
 
   /**
-   * Initialize territory translations to zero offset
    * Actual offsets must come from presets
    *
    * @param territories - Territories to initialize
@@ -58,7 +55,6 @@ export class TerritoryDefaultsService {
   }
 
   /**
-   * Initialize territory scales to 1.0
    * Actual scale multipliers must come from presets
    *
    * @param territories - Territories to initialize

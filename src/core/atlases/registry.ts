@@ -321,9 +321,7 @@ export function getAtlasIds(): string[] {
   return Array.from(CONFIG_PATHS.keys())
 }
 
-// ============================================================================
 // Preset Helpers
-// ============================================================================
 
 /**
  * Get all presets for an atlas from registry

@@ -1,16 +1,3 @@
-/**
- * GraticuleOverlayService
- *
- * SVG rendering service for scale-adaptive graticule lines.
- * Follows the pattern established by MapOverlayService.
- *
- * Design principles:
- * - Static service with pure rendering methods
- * - Uses D3 selection for SVG manipulation
- * - Supports both simple and composite projection modes
- * - Visual hierarchy via dash patterns (solid for major, dashed for minor)
- */
-
 import type { Selection } from 'd3'
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
@@ -29,42 +16,17 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.overlay
 
-/**
- * Extended overlay config for internal use
- */
 interface InternalGraticuleConfig extends GraticuleOverlayConfig {
-  /** Composite projection instance (for multi-territory rendering) */
   customComposite?: CompositeProjection | null
-  /** View mode */
   viewMode?: 'composite-custom' | 'built-in-composite' | 'individual' | 'simple'
-  /** Projection ID for creating projection when not provided */
   projectionId?: string
-  /** GeoJSON data for domain fitting */
   geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
-  /** Projection parameters (rotation, parallels, etc.) */
   projectionParams?: ProjectionParameters
-  /** Whether sphere domain was used for rendering */
   showSphere?: boolean
-  /** Set of territory codes to include (filters which territories get graticules) */
   filteredTerritoryCodes?: Set<string>
 }
 
-/**
- * GraticuleOverlayService
- *
- * Renders scale-adaptive graticule lines as SVG overlays.
- * Uses dash patterns for visual hierarchy.
- */
 export class GraticuleOverlayService {
-  /**
-   * Apply graticule overlays to rendered SVG map
-   *
-   * Main entry point for graticule rendering.
-   * Determines rendering mode and delegates appropriately.
-   *
-   * @param svg - SVG element to append overlays to
-   * @param config - Graticule overlay configuration
-   */
   static applyGraticuleOverlays(
     svg: SVGSVGElement,
     config: InternalGraticuleConfig,
@@ -75,16 +37,13 @@ export class GraticuleOverlayService {
 
     debug('applyGraticuleOverlays: showGraticule=%s, viewMode=%s, projectionId=%s', config.showGraticule, config.viewMode, config.projectionId)
 
-    // Remove any existing graticule overlay from previous render
     const existingOverlay = select(svg).select('.graticule-overlays')
     if (!existingOverlay.empty()) {
       existingOverlay.remove()
     }
 
-    // Ensure we have a projection to work with
     let projection: GeoProjection | undefined = config.projection
 
-    // For composite-custom mode, use the composite projection's built projection
     if (config.viewMode === 'composite-custom' && config.customComposite) {
       projection = config.customComposite.build(config.width, config.height)
       debug('Using customComposite.build() projection for overlay')
@@ -134,7 +93,6 @@ export class GraticuleOverlayService {
   }
 
   /**
-   * Create a projection for overlay rendering
    */
   private static createProjectionForOverlay(
     projectionId: string,

@@ -43,9 +43,7 @@ export interface ViewState {
  * - Testable: Can be tested independently of Vue components
  */
 export class ViewOrchestrationService {
-  // ============================================================================
   // Main Layout Visibility
-  // ============================================================================
 
   /**
    * Determine if right sidebar should be shown
@@ -79,9 +77,7 @@ export class ViewOrchestrationService {
     return true
   }
 
-  // ============================================================================
   // Sidebar Content Visibility
-  // ============================================================================
 
   /**
    * Determine if projection parameters should be shown in right sidebar
@@ -115,9 +111,7 @@ export class ViewOrchestrationService {
     )
   }
 
-  // ============================================================================
   // Territory Controls Sub-Components
-  // ============================================================================
 
   /**
    * Determine if preset selector should be shown
@@ -165,9 +159,7 @@ export class ViewOrchestrationService {
     return state.viewMode !== 'composite-custom'
   }
 
-  // ============================================================================
   // Empty States
-  // ============================================================================
 
   /**
    * Determine if empty state should be shown in territory controls
@@ -185,9 +177,7 @@ export class ViewOrchestrationService {
     return 'territory.noTerritories'
   }
 
-  // ============================================================================
   // Control States (Enabled/Disabled)
-  // ============================================================================
 
   /**
    * Determine if territory selector dropdown should be shown
@@ -216,9 +206,7 @@ export class ViewOrchestrationService {
     return availableViewModes.length === 1
   }
 
-  // ============================================================================
   // Layout Variants
-  // ============================================================================
 
   /**
    * Get the appropriate map renderer mode based on view mode
@@ -261,9 +249,7 @@ export class ViewOrchestrationService {
     return state.viewMode === 'unified'
   }
 
-  // ============================================================================
   // Display Options Visibility
-  // ============================================================================
 
   /**
    * Determine if composition borders toggle should be shown

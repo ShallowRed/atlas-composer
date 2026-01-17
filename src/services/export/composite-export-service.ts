@@ -217,7 +217,6 @@ export class CompositeExportService {
   }
 
   /**
-   * Validate an exported configuration
    *
    * @param config - Configuration to validate
    * @returns Validation result with errors and warnings

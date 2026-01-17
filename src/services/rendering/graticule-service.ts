@@ -155,7 +155,6 @@ export class GraticuleService {
   }
 
   /**
-   * Get all defined graticule levels
    *
    * @returns Array of all GraticuleLevel configurations
    */
@@ -177,7 +176,6 @@ export class GraticuleService {
   }
 
   /**
-   * Get level configuration by level number
    *
    * @param levelNum - Level number (0-5)
    * @returns GraticuleLevel configuration

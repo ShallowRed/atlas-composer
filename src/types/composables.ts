@@ -42,7 +42,6 @@ export interface TerritoryTransforms {
   setTerritoryScale: (territoryCode: TerritoryCode, value: number) => void
 
   /**
-   * Set projection for a territory
    */
   setTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
 
@@ -88,12 +87,10 @@ export interface AtlasData {
   showSkeleton: Ref<boolean>
 
   /**
-   * Initialize data for current atlas
    */
   initialize: () => Promise<void>
 
   /**
-   * Load data for specific view mode
    */
   loadDataForViewMode: (viewMode: string) => Promise<void>
 
@@ -132,7 +129,6 @@ export interface TerritoryCursor {
   isTerritoryDraggable: (territoryCode: string) => boolean
 
   /**
-   * Get cursor style for territory element
    */
   getCursorStyle: (territoryCode: string | null) => string
 

@@ -28,14 +28,12 @@ const ATLAS_ICONS: Record<string, AtlasIconConfig> = {
 }
 
 /**
- * Get icon configuration for an atlas
  */
 export function getAtlasIcon(atlasId: AtlasId): AtlasIconConfig {
   return ATLAS_ICONS[atlasId] || { icon: 'ri-map-2-line' }
 }
 
 /**
- * Get flag emoji for an atlas (for display in dropdown options)
  */
 export function getAtlasFlag(atlasId: AtlasId): string | undefined {
   return ATLAS_ICONS[atlasId]?.flag

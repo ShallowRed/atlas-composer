@@ -16,7 +16,6 @@ export class CartographerFactory {
   private static instances = new Map<string, Cartographer>()
 
   /**
-   * Create or retrieve a Cartographer instance for a region
    * Instances are cached to avoid re-initialization
    */
   static async create(regionId: string): Promise<Cartographer> {
@@ -48,14 +47,12 @@ export class CartographerFactory {
   }
 
   /**
-   * Get cached instance for a region (if exists)
    */
   static getInstance(regionId: string): Cartographer | undefined {
     return this.instances.get(regionId)
   }
 
   /**
-   * Check if an instance exists for a region
    */
   static hasInstance(regionId: string): boolean {
     return this.instances.has(regionId)
@@ -76,7 +73,6 @@ export class CartographerFactory {
   }
 
   /**
-   * Get all cached region IDs
    */
   static getCachedRegions(): string[] {
     return Array.from(this.instances.keys())

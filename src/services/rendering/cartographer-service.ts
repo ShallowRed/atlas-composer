@@ -97,7 +97,6 @@ export class Cartographer {
   }
 
   /**
-   * Update projection parameters
    * Call this when custom projection parameters change
    */
   updateProjectionParams(params: ProjectionParameters): void {
@@ -105,7 +104,6 @@ export class Cartographer {
   }
 
   /**
-   * Update canvas dimensions for projection scaling calculations
    * @param dimensions - New canvas dimensions
    */
   updateCanvasDimensions(dimensions: { width: number, height: number } | null): void {
@@ -113,7 +111,6 @@ export class Cartographer {
   }
 
   /**
-   * Update auto fit domain mode
    * @param enabled - When true, uses domain fitting (auto-zoom to data extent)
    *                  When false, uses manual fitting with scaleMultiplier control
    */
@@ -122,7 +119,6 @@ export class Cartographer {
   }
 
   /**
-   * Update reference scale for composite projection
    * @param scale - New reference scale
    */
   updateReferenceScale(scale: number | undefined): void {
@@ -132,7 +128,6 @@ export class Cartographer {
   }
 
   /**
-   * Update territory projection parameters
    * Call this when territory-specific projection parameters change (rotate, center, parallels, etc.)
    * @param territoryCode - Territory code to update
    */
@@ -143,7 +138,6 @@ export class Cartographer {
   }
 
   /**
-   * Update territory projection type
    * Call this when the projection type changes for a territory
    * @param territoryCode - Territory code to update
    * @param projectionType - New projection type (e.g., 'conic-conformal', 'azimuthal-equal-area')
@@ -348,7 +342,6 @@ export class Cartographer {
   }
 
   /**
-   * Add data-territory attributes to SVG paths for territory identification
    * Should be called after plot is rendered and appended to DOM
    *
    * Delegates to D3MapRenderer.addTerritoryAttributes
