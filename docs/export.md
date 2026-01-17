@@ -37,12 +37,10 @@ Export system now integrates with the unified parameter registry for complete pa
 ### ExportedCompositeConfig Type
 Serialized projection configuration with:
 - `metadata` - Export metadata (atlasId, atlasName, exportDate, createdWith, notes)
-- `pattern` - Composite pattern type (single-focus, equal-members)
 - `referenceScale` - Base scale for territory scaling
 - `territories[]` - Array of territory configurations
   - `code` - Territory identifier
   - `name` - Territory display name
-  - `role` - Territory role (mainland, overseas, secondary)
   - `projectionId` - D3 projection identifier
   - `projectionFamily` - Projection family type
   - `parameters` - Complete registry-based parameter set

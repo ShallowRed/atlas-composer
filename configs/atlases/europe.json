@@ -11,7 +11,6 @@
   "territories": [
     {
       "id": "40",
-      "role": "member",
       "code": "AT",
       "name": "Austria",
       "iso": "AUT",
@@ -33,7 +32,6 @@
     },
     {
       "id": "56",
-      "role": "member",
       "code": "BE",
       "name": "Belgium",
       "iso": "BEL",
@@ -55,7 +53,6 @@
     },
     {
       "id": "100",
-      "role": "member",
       "code": "BG",
       "name": "Bulgaria",
       "iso": "BGR",
@@ -77,7 +74,6 @@
     },
     {
       "id": "191",
-      "role": "member",
       "code": "HR",
       "name": "Croatia",
       "iso": "HRV",
@@ -99,7 +95,6 @@
     },
     {
       "id": "196",
-      "role": "member",
       "code": "CY",
       "name": "Cyprus",
       "iso": "CYP",
@@ -121,7 +116,6 @@
     },
     {
       "id": "203",
-      "role": "member",
       "code": "CZ",
       "name": "Czech Republic",
       "iso": "CZE",
@@ -143,7 +137,6 @@
     },
     {
       "id": "208",
-      "role": "member",
       "code": "DK",
       "name": "Denmark",
       "iso": "DNK",
@@ -167,7 +160,6 @@
     },
     {
       "id": "233",
-      "role": "member",
       "code": "EE",
       "name": "Estonia",
       "iso": "EST",
@@ -189,7 +181,6 @@
     },
     {
       "id": "246",
-      "role": "member",
       "code": "FI",
       "name": "Finland",
       "iso": "FIN",
@@ -211,7 +202,6 @@
     },
     {
       "id": "250",
-      "role": "member",
       "code": "FR",
       "name": "France",
       "iso": "FRA",
@@ -238,7 +228,6 @@
     },
     {
       "id": "276",
-      "role": "member",
       "code": "DE",
       "name": "Germany",
       "iso": "DEU",
@@ -260,7 +249,6 @@
     },
     {
       "id": "300",
-      "role": "member",
       "code": "GR",
       "name": "Greece",
       "iso": "GRC",
@@ -282,7 +270,6 @@
     },
     {
       "id": "348",
-      "role": "member",
       "code": "HU",
       "name": "Hungary",
       "iso": "HUN",
@@ -304,7 +291,6 @@
     },
     {
       "id": "372",
-      "role": "member",
       "code": "IE",
       "name": "Ireland",
       "iso": "IRL",
@@ -326,7 +312,6 @@
     },
     {
       "id": "380",
-      "role": "member",
       "code": "IT",
       "name": "Italy",
       "iso": "ITA",
@@ -348,7 +333,6 @@
     },
     {
       "id": "428",
-      "role": "member",
       "code": "LV",
       "name": "Latvia",
       "iso": "LVA",
@@ -370,7 +354,6 @@
     },
     {
       "id": "440",
-      "role": "member",
       "code": "LT",
       "name": "Lithuania",
       "iso": "LTU",
@@ -392,7 +375,6 @@
     },
     {
       "id": "442",
-      "role": "member",
       "code": "LU",
       "name": "Luxembourg",
       "iso": "LUX",
@@ -414,7 +396,6 @@
     },
     {
       "id": "470",
-      "role": "member",
       "code": "MT",
       "name": "Malta",
       "iso": "MLT",
@@ -436,7 +417,6 @@
     },
     {
       "id": "528",
-      "role": "member",
       "code": "NL",
       "name": "Netherlands",
       "iso": "NLD",
@@ -460,7 +440,6 @@
     },
     {
       "id": "616",
-      "role": "member",
       "code": "PL",
       "name": "Poland",
       "iso": "POL",
@@ -482,7 +461,6 @@
     },
     {
       "id": "620",
-      "role": "member",
       "code": "PT",
       "name": "Portugal",
       "iso": "PRT",
@@ -506,7 +484,6 @@
     },
     {
       "id": "642",
-      "role": "member",
       "code": "RO",
       "name": "Romania",
       "iso": "ROU",
@@ -528,7 +505,6 @@
     },
     {
       "id": "703",
-      "role": "member",
       "code": "SK",
       "name": "Slovakia",
       "iso": "SVK",
@@ -550,7 +526,6 @@
     },
     {
       "id": "705",
-      "role": "member",
       "code": "SI",
       "name": "Slovenia",
       "iso": "SVN",
@@ -572,7 +547,6 @@
     },
     {
       "id": "724",
-      "role": "member",
       "code": "ES",
       "name": "Spain",
       "iso": "ESP",
@@ -596,7 +570,6 @@
     },
     {
       "id": "752",
-      "role": "member",
       "code": "SE",
       "name": "Sweden",
       "iso": "SWE",
@@ -618,7 +591,6 @@
     },
     {
       "id": "250-GP",
-      "role": "secondary",
       "code": "FR-GP",
       "name": "Guadeloupe",
       "iso": "GLP",
@@ -648,7 +620,6 @@
     },
     {
       "id": "250-MQ",
-      "role": "secondary",
       "code": "FR-MQ",
       "name": "Martinique",
       "iso": "MTQ",
@@ -676,7 +647,6 @@
     },
     {
       "id": "250-GF",
-      "role": "secondary",
       "code": "FR-GF",
       "name": "French Guiana",
       "iso": "GUF",
@@ -704,7 +674,6 @@
     },
     {
       "id": "250-RE",
-      "role": "secondary",
       "code": "FR-RE",
       "name": "Réunion",
       "iso": "REU",
@@ -732,7 +701,6 @@
     },
     {
       "id": "250-YT",
-      "role": "secondary",
       "code": "FR-YT",
       "name": "Mayotte",
       "iso": "MYT",
@@ -760,7 +728,6 @@
     },
     {
       "id": "663",
-      "role": "secondary",
       "code": "FR-MF",
       "name": "Saint-Martin",
       "iso": "MAF",
@@ -783,7 +750,6 @@
     },
     {
       "id": "666",
-      "role": "secondary",
       "code": "FR-PM",
       "name": "Saint-Pierre-et-Miquelon",
       "iso": "SPM",
@@ -806,7 +772,6 @@
     },
     {
       "id": "876",
-      "role": "secondary",
       "code": "FR-WF",
       "name": "Wallis and Futuna",
       "iso": "WLF",
@@ -829,7 +794,6 @@
     },
     {
       "id": "258",
-      "role": "secondary",
       "code": "FR-PF",
       "name": "French Polynesia",
       "iso": "PYF",
@@ -852,7 +816,6 @@
     },
     {
       "id": "540",
-      "role": "secondary",
       "code": "FR-NC",
       "name": "New Caledonia",
       "iso": "NCL",
@@ -875,7 +838,6 @@
     },
     {
       "id": "620-20",
-      "role": "secondary",
       "code": "PT-20",
       "name": "Madeira",
       "iso": "PRT",
@@ -903,7 +865,6 @@
     },
     {
       "id": "620-30",
-      "role": "secondary",
       "code": "PT-30",
       "name": "Azores",
       "iso": "PRT",
@@ -937,7 +898,6 @@
     },
     {
       "id": "724-CN",
-      "role": "secondary",
       "code": "ES-CN",
       "name": "Canary Islands",
       "iso": "ESP",
@@ -971,7 +931,6 @@
     },
     {
       "id": "578",
-      "role": "member",
       "code": "NO",
       "name": "Norway",
       "iso": "NOR",
@@ -995,7 +954,6 @@
     },
     {
       "id": "756",
-      "role": "member",
       "code": "CH",
       "name": "Switzerland",
       "iso": "CHE",
@@ -1017,7 +975,6 @@
     },
     {
       "id": "826",
-      "role": "member",
       "code": "GB",
       "name": "United Kingdom",
       "iso": "GBR",
@@ -1041,7 +998,6 @@
     },
     {
       "id": "352",
-      "role": "member",
       "code": "IS",
       "name": "Iceland",
       "iso": "ISL",
@@ -1063,7 +1019,6 @@
     },
     {
       "id": "688",
-      "role": "member",
       "code": "RS",
       "name": "Serbia",
       "iso": "SRB",
@@ -1085,7 +1040,6 @@
     },
     {
       "id": "008",
-      "role": "member",
       "code": "AL",
       "name": "Albania",
       "iso": "ALB",
@@ -1107,7 +1061,6 @@
     },
     {
       "id": "070",
-      "role": "member",
       "code": "BA",
       "name": "Bosnia and Herzegovina",
       "iso": "BIH",
@@ -1129,7 +1082,6 @@
     },
     {
       "id": "807",
-      "role": "member",
       "code": "MK",
       "name": "North Macedonia",
       "iso": "MKD",
@@ -1151,7 +1103,6 @@
     },
     {
       "id": "499",
-      "role": "member",
       "code": "ME",
       "name": "Montenegro",
       "iso": "MNE",

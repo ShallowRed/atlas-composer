@@ -40,7 +40,6 @@ The atlas registry (`configs/atlas-registry.json`) defines all available atlases
     - **name**: Display name (i18n object)
     - **type**: Preset type (`composite-custom`, `unified`, `split`, `built-in-composite`)
     - **isDefault**: Boolean flag marking default preset for this atlas
-    - **pattern**: Pattern type for composite presets (e.g., `single-focus`)
     - **configPath**: Path to preset configuration file
     - **description**: Preset description (i18n object, optional)
   - **behavior**: Application behavior configuration (optional)
@@ -107,65 +106,42 @@ src/public/data/
 └── {atlas}-metadata-{res}.json     # Territory metadata
 ```
 
-## Territory Patterns
+## Territory Configuration
 
-### Pattern 1: Single-Focus (1 Primary + N Secondary)
-**Pattern ID**: `single-focus`
-**Examples**: France, Portugal, Netherlands, USA, Japan, Ecuador, Chile, Malaysia, Equatorial Guinea, United Kingdom, Denmark
-**Structure**: Single primary territory + multiple secondary territories
+All territories in an atlas are treated equally. A composite projection is simply N territories placed on a canvas with individual projection settings. There is no hierarchy or role distinction between territories.
+
+### Territory Entry Structure
 
 ```json
 {
-  "pattern": "single-focus",
   "territories": [
     {
-      "role": "primary",
       "code": "FR-MET",
-      "name": "France Métropolitaine"
+      "name": "France Metropolitaine",
+      "center": [2.5, 46.5],
+      "bounds": [[-6.5, 41], [10, 51]]
     },
     {
-      "role": "secondary",
       "code": "FR-GP",
-      "name": "Guadeloupe"
+      "name": "Guadeloupe",
+      "center": [-61.46, 16.14],
+      "bounds": [[-61.81, 15.83], [-61, 16.52]]
     }
   ]
 }
 ```
 
-### Pattern 2: Equal-Members (N Equal Territories)
-**Pattern ID**: `equal-members`
-**Examples**: EU, World, ASEAN, Benelux
-**Structure**: Multiple equal territories (no hierarchy)
+### Required Territory Fields
+- `code` - Unique territory identifier (e.g., 'FR-MET', 'PT-20')
+- `name` - Display name (string or i18n object)
+- `center` - Geographic center [longitude, latitude]
+- `bounds` - Bounding box [[minLon, minLat], [maxLon, maxLat]]
 
-```json
-{
-  "pattern": "equal-members",
-  "territories": [
-    {
-      "role": "member",
-      "code": "BE",
-      "name": "Belgium"
-    },
-    {
-      "role": "member",
-      "code": "NL",
-      "name": "Netherlands"
-    }
-  ]
-}
-```
-
-### Pattern 3: Hierarchical (Future)
-**Pattern ID**: `hierarchical`
-**Status**: Reserved for future use
-**Structure**: Complex multi-level territory relationships
-
-## Territory Roles
-
-- `primary` - Primary territory (for single-focus atlases)
-- `secondary` - Distant/remote territory (for single-focus atlases)
-- `member` - Equal member territory (for equal-members atlases like EU, world)
-- `embedded` - Enclave/exclave within another territory
+### Optional Territory Fields
+- `shortName` - Abbreviated name for UI
+- `iso` - ISO 3166-1 alpha-3 code
+- `region` - Geographic sub-region grouping
+- `extraction` - Data extraction configuration
 
 ## View Modes
 
@@ -180,13 +156,6 @@ View modes are determined dynamically from registry presets:
 
 **Default View Mode**: Determined by the preset marked with `isDefault: true` in the registry entry for the atlas.
 
-**Pattern Recommendations**: `AtlasPatternService` provides recommended view modes based on atlas pattern:
-- `single-focus`: Recommends composite-custom, split, built-in-composite, unified
-- `equal-members`: Recommends unified, composite-custom
-- `hierarchical`: Recommends composite-custom, unified
-
-The registry defines what view modes are AVAILABLE (via presets), while the pattern service suggests what view modes are RECOMMENDED (based on territory structure).
-
 ## Adding a New Atlas
 
 **Two-step process**: Create atlas config + register in atlas registry
@@ -200,11 +169,9 @@ Create `configs/new-atlas.json`:
   "id": "new-atlas",
   "name": "New Atlas Name",
   "category": "country",
-  "pattern": "single-focus",
   "territories": [
     {
       "id": "250",
-      "role": "primary",
       "code": "NA-MET",
       "name": "Territory Name",
       "center": [2.5, 46.5],
@@ -335,9 +302,8 @@ The resolution utility (`src/core/atlases/i18n-utils.ts`) provides:
 | `$schema` | ✅ | Reference to atlas.schema.json |
 | `id` | ✅ | Unique atlas identifier (kebab-case) |
 | `name` | ✅ | Display name (string or i18n object) |
-| `category` | ⏩ | Atlas category: `country`, `region`, or `world` (default: country) |
-| `pattern` | ⏩ | Atlas pattern: `single-focus`, `equal-members`, or `hierarchical` (auto-detected if omitted) |
-| `description` | ⏩ | Brief description (string or i18n object) |
+| `category` | - | Atlas category: `country`, `region`, or `world` (default: country) |
+| `description` | - | Brief description (string or i18n object) |
 | `referenceScale` | ⏩ | Base scale for composite projections (default: 2700) |
 | `territories` | ✅ | Territory definitions (array) or "*" for all territories |
 | `projection` | ⚠️ | Highly recommended projection parameters |
@@ -434,15 +400,14 @@ Presets are defined inline within atlas entries in the registry (`configs/atlas-
       "presets": [
         {
           "id": "france-default",
-          "name": {"en": "France - Default", "fr": "France - Par défaut"},
+          "name": {"en": "France - Default", "fr": "France - Par defaut"},
           "type": "composite-custom",
           "configPath": "./presets/france/france-default.json",
-          "isDefault": true,
-          "pattern": "single-focus",
+          "isDefault": true
         },
         {
           "id": "france-unified",
-          "name": {"en": "France - Unified", "fr": "France - Vue unifiée"},
+          "name": {"en": "France - Unified", "fr": "France - Vue unifiee"},
           "type": "unified",
           "configPath": "./presets/france/france-unified.json"
         }

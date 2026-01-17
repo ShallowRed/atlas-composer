@@ -17,7 +17,6 @@
   "territories": [
     {
       "id": "250",
-      "role": "primary",
       "code": "FR-MET",
       "name": "France Métropolitaine",
       "shortName": "Métropole",
@@ -45,7 +44,6 @@
     },
     {
       "id": "250-GP",
-      "role": "secondary",
       "code": "FR-GP",
       "name": "Guadeloupe",
       "iso": "GLP",
@@ -75,7 +73,6 @@
     },
     {
       "id": "250-MQ",
-      "role": "secondary",
       "code": "FR-MQ",
       "name": "Martinique",
       "iso": "MTQ",
@@ -103,7 +100,6 @@
     },
     {
       "id": "250-GF",
-      "role": "secondary",
       "code": "FR-GF",
       "name": "Guyane",
       "shortName": "Guyane Française",
@@ -132,7 +128,6 @@
     },
     {
       "id": "250-RE",
-      "role": "secondary",
       "code": "FR-RE",
       "name": "La Réunion",
       "iso": "REU",
@@ -160,7 +155,6 @@
     },
     {
       "id": "250-YT",
-      "role": "secondary",
       "code": "FR-YT",
       "name": "Mayotte",
       "iso": "MYT",
@@ -188,7 +182,6 @@
     },
     {
       "id": "652",
-      "role": "secondary",
       "code": "FR-BL",
       "name": "Saint-Barthélemy",
       "iso": "BLM",
@@ -211,7 +204,6 @@
     },
     {
       "id": "663",
-      "role": "secondary",
       "code": "FR-MF",
       "name": "Saint-Martin",
       "iso": "MAF",
@@ -234,7 +226,6 @@
     },
     {
       "id": "666",
-      "role": "secondary",
       "code": "FR-PM",
       "name": "Saint-Pierre-et-Miquelon",
       "iso": "SPM",
@@ -257,7 +248,6 @@
     },
     {
       "id": "876",
-      "role": "secondary",
       "code": "FR-WF",
       "name": "Wallis-et-Futuna",
       "iso": "WLF",
@@ -280,7 +270,6 @@
     },
     {
       "id": "258",
-      "role": "secondary",
       "code": "FR-PF",
       "name": "Polynésie française",
       "shortName": "Îles de la Société",
@@ -304,7 +293,6 @@
     },
     {
       "id": "258-2",
-      "role": "secondary",
       "code": "FR-PF-2",
       "name": "Polynésie française (îles éloignées)",
       "shortName": "Marquises, Tuamotu",
@@ -330,7 +318,6 @@
     },
     {
       "id": "540",
-      "role": "secondary",
       "code": "FR-NC",
       "name": "Nouvelle-Calédonie",
       "iso": "NCL",
@@ -353,7 +340,6 @@
     },
     {
       "id": "260",
-      "role": "secondary",
       "code": "FR-TF",
       "name": "Terres australes et antarctiques françaises",
       "shortName": "TAAF",

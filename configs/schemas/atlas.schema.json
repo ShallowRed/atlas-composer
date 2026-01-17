@@ -66,11 +66,7 @@
       },
       "required": ["territories", "metadata"]
     },
-    "pattern": {
-      "type": "string",
-      "enum": ["single-focus", "equal-members", "hierarchical"],
-      "description": "Atlas pattern type: 'single-focus' for traditional atlases with one primary territory (mainland) and secondary territories (overseas), 'equal-members' for atlases where all territories are equal (EU, world), 'hierarchical' for complex multi-level structures (future)"
-    },
+
     "viewModes": {
       "type": "array",
       "description": "Supported view modes for this atlas. Defaults to all modes if not specified.",
@@ -116,7 +112,7 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["id", "code", "name", "role"],
+            "required": ["id", "code", "name"],
             "properties": {
               "id": {
                 "type": "string",
@@ -157,11 +153,7 @@
                 ],
                 "description": "Short territory name (string or i18n object with language codes as keys)"
               },
-              "role": {
-                "type": "string",
-                "enum": ["primary", "secondary", "member", "embedded"],
-                "description": "Territory role in the atlas. Use 'primary' for single-focus primary territory (mainland), 'member' for equal-members territories (EU member states, all world countries), 'secondary' for remote territories (overseas, islands), 'embedded' for enclaves/exclaves"
-              },
+
               "iso": {
                 "type": "string",
                 "pattern": "^[A-Z]{3}$",

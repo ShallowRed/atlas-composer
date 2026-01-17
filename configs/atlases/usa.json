@@ -14,7 +14,6 @@
       "code": "US-CONT",
       "name": "Contiguous United States",
       "shortName": "Mainland",
-      "role": "primary",
       "iso": "USA",
       "center": [
         -98.5,
@@ -39,7 +38,6 @@
       "code": "US-AK",
       "name": "Alaska",
       "shortName": "Alaska",
-      "role": "secondary",
       "iso": "USA",
       "region": "Pacific North",
       "center": [
@@ -99,7 +97,6 @@
       "code": "US-ALEU",
       "name": "Aleutian Islands",
       "shortName": "Aleutians",
-      "role": "secondary",
       "iso": "USA",
       "region": "Pacific North",
       "center": [
@@ -162,7 +159,6 @@
       "id": "840-HI",
       "code": "US-HI",
       "name": "Hawaii",
-      "role": "secondary",
       "iso": "USA",
       "region": "Pacific Central",
       "center": [
@@ -196,7 +192,6 @@
       "id": "630",
       "code": "US-PR",
       "name": "Puerto Rico",
-      "role": "secondary",
       "iso": "PRI",
       "region": "Caribbean",
       "center": [
@@ -226,7 +221,6 @@
       "code": "US-VI",
       "name": "U.S. Virgin Islands",
       "shortName": "Virgin Is.",
-      "role": "secondary",
       "iso": "VIR",
       "region": "Caribbean",
       "center": [
@@ -255,7 +249,6 @@
       "id": "316",
       "code": "US-GU",
       "name": "Guam",
-      "role": "secondary",
       "iso": "GUM",
       "region": "Pacific West",
       "center": [
@@ -282,7 +275,6 @@
       "id": "016",
       "code": "US-AS",
       "name": "American Samoa",
-      "role": "secondary",
       "iso": "ASM",
       "region": "Pacific South",
       "center": [
@@ -310,7 +302,6 @@
       "code": "US-MP",
       "name": "Northern Mariana Islands",
       "shortName": "N. Mariana Is.",
-      "role": "secondary",
       "iso": "MNP",
       "region": "Pacific West",
       "center": [
