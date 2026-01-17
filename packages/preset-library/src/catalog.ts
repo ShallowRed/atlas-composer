@@ -13,9 +13,6 @@ export const catalog: PresetCatalog = {
   version: '1.0.0',
   lastUpdated: '2026-01-17',
   presets: {
-    // ==========================================================================
-    // France Presets
-    // ==========================================================================
     'france-standard': {
       id: 'france-standard',
       name: 'France Standard',
@@ -70,10 +67,6 @@ export const catalog: PresetCatalog = {
       region: 'france',
       tags: ['world-view'],
     },
-
-    // ==========================================================================
-    // Portugal Presets
-    // ==========================================================================
     'portugal-standard': {
       id: 'portugal-standard',
       name: 'Portugal Standard',
@@ -110,10 +103,6 @@ export const catalog: PresetCatalog = {
       region: 'portugal',
       tags: ['world-view'],
     },
-
-    // ==========================================================================
-    // USA Presets
-    // ==========================================================================
     'usa-albers': {
       id: 'usa-albers',
       name: 'USA Albers',
@@ -168,10 +157,6 @@ export const catalog: PresetCatalog = {
       region: 'usa',
       tags: ['world-view'],
     },
-
-    // ==========================================================================
-    // Europe Presets
-    // ==========================================================================
     'europe-builtin': {
       id: 'europe-builtin',
       name: 'Europe Built-in',
@@ -199,10 +184,6 @@ export const catalog: PresetCatalog = {
       region: 'europe',
       tags: ['world-view'],
     },
-
-    // ==========================================================================
-    // World Presets
-    // ==========================================================================
     'world-unified': {
       id: 'world-unified',
       name: 'World Unified',
@@ -215,16 +196,10 @@ export const catalog: PresetCatalog = {
   },
 }
 
-/**
- * Get all preset metadata as an array.
- */
 export function getAllPresets(): PresetMetadata[] {
   return Object.values(catalog.presets)
 }
 
-/**
- * Get preset metadata by ID.
- */
 export function getPresetMetadata(id: string): PresetMetadata | undefined {
   return catalog.presets[id]
 }

@@ -24,9 +24,7 @@ import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
-// ============================================================================
 // TYPES
-// ============================================================================
 
 interface PolygonMetadata {
   index: number
@@ -52,9 +50,7 @@ interface GeoJSONFeatureCollection {
   features: GeoJSONFeature[]
 }
 
-// ============================================================================
 // HELPER FUNCTIONS
-// ============================================================================
 
 /**
  * Calculate the area of a polygon using the Shoelace formula

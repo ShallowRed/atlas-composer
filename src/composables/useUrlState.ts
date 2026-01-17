@@ -167,9 +167,6 @@ export function useUrlState() {
     }
   }
 
-  /**
-   * Update URL with current state
-   */
   async function updateUrl() {
     const state = serializeState()
     await router.replace({

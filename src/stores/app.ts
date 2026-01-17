@@ -53,10 +53,6 @@ export type TransitionType
     | 'fade' // Standard fade
 
 export const useAppStore = defineStore('app', () => {
-  // ============================================
-  // State
-  // ============================================
-
   /**
    * Current application state
    */
@@ -87,9 +83,7 @@ export const useAppStore = defineStore('app', () => {
    */
   const loadingStartTime = ref<number>(0)
 
-  // ============================================
   // Computed - State Checks
-  // ============================================
 
   /**
    * Whether app is in any loading state
@@ -145,9 +139,7 @@ export const useAppStore = defineStore('app', () => {
     return !isTransitioningWithSplit.value
   })
 
-  // ============================================
   // Actions - State Transitions
-  // ============================================
 
   /**
    * Transition to loading-atlas state
@@ -278,7 +270,6 @@ export const useAppStore = defineStore('app', () => {
   }
 
   return {
-    // State
     state,
     error,
     isFirstLoad,
@@ -294,7 +285,6 @@ export const useAppStore = defineStore('app', () => {
     showSkeleton,
     showSkeletonForViewSwitch,
 
-    // Actions
     startLoadingAtlas,
     startLoadingGeoData,
     startLoadingPreset,

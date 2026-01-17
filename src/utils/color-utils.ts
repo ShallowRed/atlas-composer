@@ -6,7 +6,6 @@
  */
 
 /**
- * Get fill color for a territory
  * All territories use the same color for visual equality
  */
 export function getTerritoryFillColor(): string {
@@ -14,7 +13,6 @@ export function getTerritoryFillColor(): string {
 }
 
 /**
- * Get stroke color for a territory
  * All territories use the same color for visual equality
  */
 export function getTerritoryStrokeColor(): string {

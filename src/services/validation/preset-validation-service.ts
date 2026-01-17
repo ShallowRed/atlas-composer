@@ -46,9 +46,6 @@ export class PresetValidationService {
     return { isValid: false, errors, warnings }
   }
 
-  /**
-   * Validate composite-custom preset
-   */
   private static validateCompositePreset(preset: Preset, _atlasConfig: AtlasConfig): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
@@ -90,9 +87,6 @@ export class PresetValidationService {
     return { isValid: true, errors, warnings, metadata }
   }
 
-  /**
-   * Validate view mode preset (unified, split, built-in-composite)
-   */
   private static validateViewPreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
@@ -120,9 +114,6 @@ export class PresetValidationService {
     return { isValid: true, errors, warnings }
   }
 
-  /**
-   * Validate view mode compatibility
-   */
   static validateViewModeCompatibility(preset: Preset, viewMode: string): ValidationResult {
     const errors: string[] = []
     const warnings: string[] = []

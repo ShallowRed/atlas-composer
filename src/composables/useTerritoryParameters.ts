@@ -68,7 +68,6 @@ export function useTerritoryParameters(territoryCode: TerritoryCode) {
   }
 
   return {
-    // State
     territoryParameters,
     effectiveParameters,
     hasOverrides,

@@ -127,9 +127,6 @@ export function formatErrorForLog(error: AppError): string {
   }
 }
 
-/**
- * Get technical details from GeoData error
- */
 export function getGeoDataErrorDetails(error: GeoDataError): { path?: string, status?: number } {
   switch (error.type) {
     case 'GEODATA_NOT_FOUND':
@@ -143,9 +140,6 @@ export function getGeoDataErrorDetails(error: GeoDataError): { path?: string, st
   }
 }
 
-/**
- * Check if error is recoverable (user can retry)
- */
 export function isRecoverableError(error: AppError): boolean {
   switch (error.type) {
     case 'GEODATA_NETWORK_ERROR':

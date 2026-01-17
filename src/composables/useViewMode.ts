@@ -11,9 +11,6 @@ export function useViewMode() {
   const { t } = useI18n()
   const atlasStore = useAtlasStore()
 
-  /**
-   * Get available view modes for current atlas
-   */
   const viewModeOptions = computed(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig)

@@ -10,9 +10,7 @@ import type { ViewMode } from '@/types/composite'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-// ============================================================================
 // Generic Load Result Type
-// ============================================================================
 
 /**
  * Generic result type for preset loading operations
@@ -25,9 +23,7 @@ export interface LoadResult<T> {
   warnings: string[]
 }
 
-// ============================================================================
 // Common Domain Types
-// ============================================================================
 
 /**
  * Territory defaults result containing all initialization data
@@ -60,9 +56,7 @@ export interface AtlasProjectionMetadata {
   }
 }
 
-// ============================================================================
 // Base Preset Types
-// ============================================================================
 
 /**
  * Base metadata shared by all presets
@@ -78,9 +72,7 @@ export interface BasePresetMetadata {
   atlasId: AtlasId
 }
 
-// ============================================================================
 // View Mode Preset Types
-// ============================================================================
 
 /**
  * View modes that support view presets
@@ -143,9 +135,7 @@ export interface CompositeCustomConfig extends ExportedCompositeConfig {
   atlasMetadata?: AtlasProjectionMetadata
 }
 
-// ============================================================================
 // Unified Preset Types (Discriminated Union)
-// ============================================================================
 
 /**
  * Composite-custom preset (rich, exportable)

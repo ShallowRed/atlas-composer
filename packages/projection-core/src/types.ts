@@ -44,7 +44,6 @@ export interface ProjectionLike {
   /** Inverse project screen coordinates [x, y] to geographic coordinates [longitude, latitude] */
   invert?: (coordinates: [number, number]) => [number, number] | null
 
-  /** Create a stream that transforms geographic geometry through this projection */
   stream: (stream: StreamLike) => StreamLike
 
   /** Scale getter/setter */
@@ -154,7 +153,6 @@ export interface CompositeProjectionConfig {
 export interface PointCaptureResult {
   /** The stream that captures projected points */
   pointStream: StreamLike
-  /** Get the last captured point (or null if none) */
   getCapturedPoint: () => [number, number] | null
   /** Reset the captured point to null */
   resetCapture: () => void

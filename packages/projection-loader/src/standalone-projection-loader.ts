@@ -1,29 +1,3 @@
-/**
- * Standalone Composite Projection Loader (Zero Dependencies)
- *
- * A pure JavaScript/TypeScript module that consumes exported composite projection
- * configurations and creates D3-compatible projections using a plugin architecture.
- *
- * This package uses @atlas-composer/projection-core for the shared composite
- * projection building logic. Users must register projection factories before
- * loading configurations.
- *
- * @example
- * ```typescript
- * // Register projections first
- * import * as d3 from 'd3-geo'
- * import { registerProjection, loadCompositeProjection } from './standalone-projection-loader'
- *
- * registerProjection('mercator', () => d3.geoMercator())
- * registerProjection('albers', () => d3.geoAlbers())
- *
- * // Then load your configuration
- * const projection = loadCompositeProjection(config, { width: 800, height: 600 })
- * ```
- *
- * @packageDocumentation
- */
-
 import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type {
   CompositeProjectionConfig,
@@ -39,13 +13,6 @@ import {
   calculateClipExtentFromPixelOffset,
 } from '@atlas-composer/projection-core'
 
-/**
- * Generic projection-like interface that matches D3 projections
- * without requiring d3-geo as a dependency
- *
- * Note: D3 projections use getter/setter pattern where calling without
- * arguments returns the current value, and with arguments sets and returns this.
- */
 export interface ProjectionLike {
   (coordinates: [number, number]): [number, number] | null
   center?: {
@@ -327,9 +294,6 @@ export function loadCompositeProjection(
   return composite as ProjectionLike
 }
 
-/**
- * Create a sub-projection for a single territory
- */
 function createSubProjection(
   territory: Territory,
   width: number,

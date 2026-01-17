@@ -145,16 +145,10 @@ export class TerritoryResetService {
     }
   }
 
-  /**
-   * Get default translation value
-   */
   static getDefaultTranslation() {
     return { x: 0, y: 0 }
   }
 
-  /**
-   * Get default scale value
-   */
   static getDefaultScale() {
     return 1.0
   }

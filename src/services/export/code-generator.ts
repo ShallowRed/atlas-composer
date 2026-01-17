@@ -4,9 +4,6 @@ import type {
 } from '@/types/export-config'
 
 /**
- * Generates executable code from exported composite projection configuration
- * Supports D3.js (JavaScript/TypeScript) and Observable Plot code generation
- *
  * Code Generation Strategy (Zero-Dependency Architecture):
  * - Generated code imports from @atlas-composer/projection-loader (zero dependencies)
  * - Includes projection registration calls (registerProjection) for required projections
@@ -17,9 +14,6 @@ import type {
  * @since 2025-10-11 Updated to use zero-dependency projection loader architecture
  */
 export class CodeGenerator {
-  /**
-   * Generate code based on options
-   */
   generate(config: ExportedCompositeConfig, options: CodeGenerationOptions): string {
     if (options.format === 'd3') {
       if (options.language === 'typescript') {
@@ -34,20 +28,15 @@ export class CodeGenerator {
     throw new Error(`Unsupported format: ${options.format}`)
   }
 
-  /**
-   * Generate D3.js JavaScript code
-   */
   private generateD3JavaScript(
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
   ): string {
     const lines: string[] = []
 
-    // Add header comment
     lines.push(this.generateHeader(config, 'JavaScript'))
     lines.push('')
 
-    // Add imports
     lines.push(this.generateD3Imports(config, false))
     lines.push('')
 

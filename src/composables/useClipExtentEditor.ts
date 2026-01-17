@@ -39,9 +39,6 @@ export function useClipExtentEditor() {
     return viewStore.viewMode === 'composite-custom'
   })
 
-  /**
-   * Get the scale factor between screen pixels and SVG canvas pixels
-   */
   function getSVGScale(svg: SVGSVGElement): number {
     const ctm = svg.getScreenCTM()
     if (ctm) {
@@ -298,12 +295,10 @@ export function useClipExtentEditor() {
   }
 
   return {
-    // State
     isEditingEnabled,
     isDraggingCorner,
     selectedTerritoryCode,
 
-    // Methods
     renderClipExtentHandles,
     selectTerritory,
     deselectTerritory,

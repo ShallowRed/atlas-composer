@@ -91,37 +91,22 @@ export class ParameterRegistry {
     this.definitions.set(def.key as string, def)
   }
 
-  /**
-   * Get a parameter definition by key
-   */
   get(key: string): ParameterDefinition | undefined {
     return this.definitions.get(key)
   }
 
-  /**
-   * Get all parameter definitions
-   */
   getAll(): ParameterDefinition[] {
     return Array.from(this.definitions.values())
   }
 
-  /**
-   * Get parameters that should be included in export
-   */
   getExportable(): ParameterDefinition[] {
     return this.getAll().filter(def => def.exportable)
   }
 
-  /**
-   * Get parameters that must be present in presets
-   */
   getRequired(): ParameterDefinition[] {
     return this.getAll().filter(def => def.requiresPreset)
   }
 
-  /**
-   * Get parameters relevant for a specific projection family
-   */
   getRelevant(family: ProjectionFamilyType): ParameterDefinition[] {
     return this.getAll().filter((def) => {
       const familyConstraint = def.familyConstraints?.[family]
@@ -129,9 +114,6 @@ export class ParameterRegistry {
     })
   }
 
-  /**
-   * Get constraints for a specific parameter and projection family
-   */
   getConstraintsForFamily(key: string, family: ProjectionFamilyType): ParameterConstraint {
     const def = this.get(key)
     if (!def) {
@@ -152,9 +134,6 @@ export class ParameterRegistry {
     return { relevant: false, required: false }
   }
 
-  /**
-   * Validate a single parameter value
-   */
   validate(key: string, value: any, family: ProjectionFamilyType): ValidationResult {
     const def = this.get(key)
     if (!def) {
@@ -183,9 +162,6 @@ export class ParameterRegistry {
     return typeValidation
   }
 
-  /**
-   * Validate multiple parameters
-   */
   validateParameters(params: Partial<ProjectionParameters>, family: ProjectionFamilyType): ValidationResult[] {
     const results: ValidationResult[] = []
 
@@ -208,9 +184,6 @@ export class ParameterRegistry {
     return results
   }
 
-  /**
-   * Get default parameters for a territory and projection family
-   */
   getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
     const defaults: ProjectionParameters = {}
 
@@ -238,9 +211,6 @@ export class ParameterRegistry {
     return defaults
   }
 
-  /**
-   * Check if registry contains all required parameters from ProjectionParameters interface
-   */
   validateCompleteness(): ValidationResult[] {
     const errors: ValidationResult[] = []
 

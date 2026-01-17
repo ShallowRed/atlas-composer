@@ -91,9 +91,7 @@ export function extractTerritoryParameters(
         }
       }
 
-      // =======================================================================
       // CANONICAL CONVERSION: Convert legacy center/rotate to canonical format
-      // =======================================================================
       // If the preset has center or rotate but no focusLongitude/focusLatitude,
       // convert them to canonical format. This ensures the store always uses
       // the projection-agnostic format.

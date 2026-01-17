@@ -31,44 +31,26 @@ export class AtlasService {
     this.specificConfig = getAtlasSpecificConfig(atlasId)
   }
 
-  /**
-   * Get atlas ID
-   */
   getAtlasId(): AtlasId {
     return this.atlasId
   }
 
-  /**
-   * Get atlas name
-   */
   getAtlasName(): string {
     return this.atlasConfig.name
   }
 
-  /**
-   * Get full region configuration
-   */
   getAtlasConfig(): AtlasConfig {
     return this.atlasConfig
   }
 
-  /**
-   * Get first territory (convenience accessor)
-   */
   getFirstTerritory(): TerritoryConfig {
     return getFirstTerritory(this.atlasId)
   }
 
-  /**
-   * Get all territories
-   */
   getAllTerritories(): TerritoryConfig[] {
     return getAtlasAllTerritories(this.atlasId)
   }
 
-  /**
-   * Get territories for a specific mode
-   */
   getTerritoriesForMode(mode: string): TerritoryConfig[] {
     const allTerritories = this.getAllTerritories()
     return getTerritoriesForMode(
@@ -78,15 +60,11 @@ export class AtlasService {
     )
   }
 
-  /**
-   * Get territory mode configurations
-   */
   getTerritoryModes(): Record<string, TerritoryCollection> {
     return this.specificConfig.territoryModes
   }
 
   /**
-   * Get territory collections (unified approach)
    * Returns the new territoryCollections if available, undefined otherwise
    */
   getTerritoryCollections(): TerritoryCollections | undefined {
@@ -94,46 +72,30 @@ export class AtlasService {
   }
 
   /**
-   * Get registry behavior configuration for this atlas
    * Returns behavior config (presets, UI settings) from registry
    */
   getRegistryBehavior(): AtlasRegistryBehavior | undefined {
     return getAtlasBehavior(this.atlasId)
   }
 
-  /**
-   * Get projection parameters
-   */
   getProjectionParams(): ProjectionParameters {
     return this.specificConfig.projectionParams
   }
 
-  /**
-   * Get composite projection configuration
-   */
   getCompositeConfig(): CompositeProjectionConfig | undefined {
     return this.atlasConfig.compositeProjectionConfig
   }
 
-  /**
-   * Get territory by code
-   */
   getTerritoryByCode(code: TerritoryCode): TerritoryConfig | undefined {
     const all = this.getAllTerritories()
     return getTerritoryByCode(all, code)
   }
 
-  /**
-   * Get territory name
-   */
   getTerritoryName(code: TerritoryCode): string {
     const all = this.getAllTerritories()
     return getTerritoryNameFromArray(all, code)
   }
 
-  /**
-   * Check if atlas has territory selector
-   */
   hasTerritorySelector(): boolean {
     return this.atlasConfig.hasTerritorySelector || false
   }

@@ -1,10 +1,3 @@
-/**
- * Positioning Applicator
- *
- * Applies canonical positioning to D3 projections based on projection family.
- * This is the single point where positioning format conversion happens.
- */
-
 import type { GeoProjection } from 'd3-geo'
 
 import type {
@@ -15,79 +8,30 @@ import type {
 
 import { canonicalToCenter, canonicalToRotate } from './converters'
 
-/**
- * Determine the positioning application for a projection family
- *
- * @param canonical - Canonical positioning (geographic focus point)
- * @param family - Projection family
- * @returns Object with center and/or rotate values to apply
- *
- * @example
- * ```typescript
- * const app = getPositioningApplication(
- *   { focusLongitude: 2.5, focusLatitude: 46.5 },
- *   'CYLINDRICAL'
- * )
- * // { center: [2.5, 46.5] }
- *
- * const app2 = getPositioningApplication(
- *   { focusLongitude: 2.5, focusLatitude: 46.5 },
- *   'CONIC'
- * )
- * // { rotate: [-2.5, -46.5, 0] }
- * ```
- */
 export function getPositioningApplication(
   canonical: CanonicalPositioning,
   family: PositioningFamily,
 ): PositioningApplication {
   switch (family) {
     case 'CYLINDRICAL':
-      // Cylindrical projections use center() for positioning
-      // center() places the geographic point at the translate position
       return {
         center: canonicalToCenter(canonical),
       }
 
     case 'CONIC':
     case 'AZIMUTHAL':
-      // Conic and Azimuthal projections use rotate() for positioning
-      // rotate() rotates the globe so the negated point is centered
       return {
         rotate: canonicalToRotate(canonical),
       }
 
     case 'OTHER':
     default:
-      // For other/unknown families, use rotate as the safer default
-      // Most D3 projections support rotate()
       return {
         rotate: canonicalToRotate(canonical),
       }
   }
 }
 
-/**
- * Apply canonical positioning to a D3 projection
- *
- * This is the main function that converts canonical positioning to
- * projection-specific D3 method calls.
- *
- * @param projection - D3 projection to configure
- * @param canonical - Canonical positioning (geographic focus point)
- * @param family - Projection family determining which D3 method to use
- *
- * @example
- * ```typescript
- * const projection = d3.geoMercator()
- * applyCanonicalPositioning(
- *   projection,
- *   { focusLongitude: 2.5, focusLatitude: 46.5 },
- *   'CYLINDRICAL'
- * )
- * // Internally calls: projection.center([2.5, 46.5])
- * ```
- */
 export function applyCanonicalPositioning(
   projection: GeoProjection,
   canonical: CanonicalPositioning,
@@ -96,7 +40,6 @@ export function applyCanonicalPositioning(
   const application = getPositioningApplication(canonical, family)
 
   if (family === 'CYLINDRICAL') {
-    // CYLINDRICAL: Use center(), reset rotate
     if (application.center && projection.center) {
       projection.center(application.center)
     }
@@ -105,7 +48,6 @@ export function applyCanonicalPositioning(
     }
   }
   else {
-    // CONIC/AZIMUTHAL/OTHER: Use rotate(), reset center
     if (application.rotate && projection.rotate) {
       projection.rotate(application.rotate)
     }

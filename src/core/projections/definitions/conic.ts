@@ -1,19 +1,6 @@
-/**
- * Conic Projection Definitions
- *
- * Conic projections are ideal for mid-latitude regions. They project the sphere
- * onto a cone, which is then unrolled into a flat surface. They are commonly used
- * for individual territories in custom composite mode.
- */
-
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Conic Conformal (Lambert Conformal Conic)
- * Preserves angles and shapes, ideal for mid-latitude regions
- * Used as individual projection for territories in custom composite mode
- */
 export const CONIC_CONFORMAL: ProjectionDefinition = {
   id: 'conic-conformal',
   name: 'projections.conicConformal.name',
@@ -25,7 +12,7 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
-    supportsComposite: true, // Can be used in custom composite mode
+    supportsComposite: true,
     supportsSplit: true,
     supportsUnified: true,
     recommendedMaxScale: 5000000,
@@ -46,11 +33,6 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
   },
 }
 
-/**
- * Albers Equal Area Conic (Conic Equal Area)
- * Preserves area, good for thematic maps
- * Alternative to Conic Conformal for territories in custom composite mode
- */
 export const ALBERS: ProjectionDefinition = {
   id: 'conic-equal-area',
   name: 'projections.conicEqualArea.name',

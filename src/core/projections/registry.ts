@@ -134,9 +134,6 @@ class ProjectionRegistry {
     return undefined
   }
 
-  /**
-   * Get all projection definitions (deduplicated)
-   */
   public getAll(): ProjectionDefinition[] {
     const seen = new Set<string>()
     const projections: ProjectionDefinition[] = []
@@ -151,16 +148,10 @@ class ProjectionRegistry {
     return projections
   }
 
-  /**
-   * Get projections by category
-   */
   public getByCategory(category: ProjectionCategoryType): ProjectionDefinition[] {
     return this.getAll().filter(def => def.category === category)
   }
 
-  /**
-   * Get projections by strategy
-   */
   public getByStrategy(strategy: ProjectionStrategyType): ProjectionDefinition[] {
     return this.getAll().filter(def => def.strategy === strategy)
   }
@@ -304,16 +295,10 @@ class ProjectionRegistry {
     return recommendations
   }
 
-  /**
-   * Check if a projection ID is valid (case-insensitive)
-   */
   public isValid(id: string): boolean {
     return this.get(id) !== undefined
   }
 
-  /**
-   * Get all available categories
-   */
   public getCategories(): ProjectionCategoryType[] {
     const categories = new Set<ProjectionCategoryType>()
     this.getAll().forEach((def) => {

@@ -22,7 +22,6 @@ export class TerritoryVisibilityService {
   }
 
   /**
-   * Check if a territory list contains a specific territory
    *
    * @param territoryCodes - List of active territory codes
    * @param targetCode - The territory code to check

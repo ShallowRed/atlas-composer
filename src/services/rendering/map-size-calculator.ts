@@ -153,7 +153,6 @@ export class MapSizeCalculator {
   }
 
   /**
-   * Get default configuration
    *
    * @returns Default map size configuration
    */

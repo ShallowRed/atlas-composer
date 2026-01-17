@@ -8,9 +8,6 @@ const LANGUAGE_FLAGS: Record<string, string> = {
   fr: '🇫🇷',
 }
 
-/**
- * Get flag emoji for a language locale
- */
 export function getLanguageFlag(locale: string): string | undefined {
   return LANGUAGE_FLAGS[locale]
 }

@@ -47,9 +47,6 @@ export class TerritoryDataService {
     this.parameterStore = parameterStore
   }
 
-  /**
-   * Get all territory data aggregated from stores
-   */
   getTerritoryData(): TerritoryDataAggregates {
     const territories = this.getTerritories()
 
@@ -61,9 +58,6 @@ export class TerritoryDataService {
     }
   }
 
-  /**
-   * Get list of territories
-   */
   private getTerritories(): TerritoryData[] {
     return this.geoDataStore.filteredTerritories.map((t): TerritoryData => ({
       code: t.code as TerritoryCode,
@@ -71,9 +65,6 @@ export class TerritoryDataService {
     }))
   }
 
-  /**
-   * Get translations for all territories
-   */
   private getTranslations(territories: TerritoryData[]): Record<string, Translation> {
     const translationsMap: Record<string, Translation> = {}
     territories.forEach((t) => {
@@ -82,9 +73,6 @@ export class TerritoryDataService {
     return translationsMap
   }
 
-  /**
-   * Get scales for all territories
-   */
   private getScales(territories: TerritoryData[]): Record<string, number> {
     const scalesMap: Record<string, number> = {}
     territories.forEach((t) => {
@@ -94,9 +82,6 @@ export class TerritoryDataService {
     return scalesMap
   }
 
-  /**
-   * Get projections for all territories
-   */
   private getProjections(territories: TerritoryData[]): Record<string, ProjectionId> {
     // Trigger reactivity
     void this.parameterStore.territoryParametersVersion

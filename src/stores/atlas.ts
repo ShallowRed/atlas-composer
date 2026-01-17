@@ -30,10 +30,6 @@ import { logger } from '@/utils/logger'
 const debug = logger.store.config // Reuse existing logger namespace
 
 export const useAtlasStore = defineStore('atlas', () => {
-  // ============================================
-  // State
-  // ============================================
-
   /**
    * Currently selected atlas ID
    * This is the source of truth for which atlas is active
@@ -50,9 +46,7 @@ export const useAtlasStore = defineStore('atlas', () => {
    */
   const error = ref<string | null>(null)
 
-  // ============================================
   // Derived State (from useAtlasLoader)
-  // ============================================
 
   /**
    * Use async atlas loader for loading atlas configs on demand
@@ -60,9 +54,7 @@ export const useAtlasStore = defineStore('atlas', () => {
    */
   const { atlasConfig: currentAtlasConfig, isLoading: isAtlasLoading } = useAtlasLoader(selectedAtlasId)
 
-  // ============================================
   // Computed Properties (Domain Logic)
-  // ============================================
 
   /**
    * Atlas service for accessing atlas-specific data
@@ -102,9 +94,6 @@ export const useAtlasStore = defineStore('atlas', () => {
     return currentAtlasConfig.value?.territoryModeOptions ?? []
   })
 
-  /**
-   * Get the default territory mode for the current atlas
-   */
   const defaultTerritoryMode = computed(() => {
     if (territoryModeOptions.value.length > 0) {
       return territoryModeOptions.value[0]!.value
@@ -112,9 +101,7 @@ export const useAtlasStore = defineStore('atlas', () => {
     return 'all'
   })
 
-  // ============================================
   // Actions (Use Cases)
-  // ============================================
 
   /**
    * Select a new atlas
@@ -152,7 +139,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   }
 
   /**
-   * Get a territory by its code
    *
    * @param code - Territory code to look up
    * @returns Territory configuration or undefined if not found
@@ -163,7 +149,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   }
 
   /**
-   * Get territory name by code
    *
    * @param code - Territory code to look up
    * @returns Territory name or the code if not found
@@ -173,7 +158,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   }
 
   /**
-   * Get territories for a specific mode
    *
    * @param mode - Territory mode to filter by
    * @returns Filtered territories
@@ -183,7 +167,6 @@ export const useAtlasStore = defineStore('atlas', () => {
   }
 
   /**
-   * Get the initial territory mode for the current atlas
    * Used during initialization
    */
   function getInitialTerritoryMode(): string {
@@ -195,12 +178,9 @@ export const useAtlasStore = defineStore('atlas', () => {
     throw new Error('No territory mode options available for the atlas')
   }
 
-  // ============================================
   // Return Public API
-  // ============================================
 
   return {
-    // State
     selectedAtlasId,
     isLoading,
     error,
@@ -216,7 +196,6 @@ export const useAtlasStore = defineStore('atlas', () => {
     territoryModeOptions,
     defaultTerritoryMode,
 
-    // Actions
     selectAtlas,
     getTerritoryByCode,
     getTerritoryName,

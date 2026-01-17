@@ -16,7 +16,6 @@ export const PROJECTION_CATEGORY_ICONS: Record<ProjectionCategoryType, string> =
 }
 
 /**
- * Get icon class name for a projection category
  * @param category - Projection category
  * @returns Remix Icon class name
  */
@@ -36,7 +35,6 @@ export const PROJECTION_PROPERTY_ICONS = {
 } as const
 
 /**
- * Get icon class name for a projection property
  * @param property - Projection property name
  * @returns Remix Icon class name
  */

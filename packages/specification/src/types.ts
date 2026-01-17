@@ -7,9 +7,7 @@
  * @packageDocumentation
  */
 
-// =============================================================================
 // Core Types
-// =============================================================================
 
 /**
  * Internationalized string - either a plain string or an object with language codes.
@@ -44,9 +42,7 @@ export type ProjectionFamily
     | 'POLYCONIC'
     | 'MISCELLANEOUS'
 
-// =============================================================================
 // Projection Parameters
-// =============================================================================
 
 /**
  * Projection parameters controlling how geographic coordinates are transformed.
@@ -139,9 +135,7 @@ export interface ProjectionParameters {
    */
   precision?: number
 
-  // ==========================================================================
   // Legacy parameters (for backward compatibility with older configurations)
-  // ==========================================================================
 
   /**
    * @deprecated Use `center[0]` or `rotate[0]` instead.
@@ -156,9 +150,7 @@ export interface ProjectionParameters {
   focusLatitude?: number
 }
 
-// =============================================================================
 // Layout Configuration
-// =============================================================================
 
 /**
  * Layout configuration for positioning a territory on the canvas.
@@ -187,9 +179,7 @@ export interface LayoutConfig {
   pixelClipExtent: [number, number, number, number]
 }
 
-// =============================================================================
 // Territory Configuration
-// =============================================================================
 
 /**
  * Configuration for a single territory within the composite projection.
@@ -260,9 +250,7 @@ export interface TerritoryConfig {
   bounds: GeoBounds
 }
 
-// =============================================================================
 // Metadata
-// =============================================================================
 
 /**
  * Configuration metadata for provenance and compatibility tracking.
@@ -322,9 +310,7 @@ export interface CanvasDimensions {
   height: number
 }
 
-// =============================================================================
 // Atlas Metadata (Optional)
-// =============================================================================
 
 /**
  * Optional atlas-level projection metadata.
@@ -368,9 +354,7 @@ export interface AtlasMetadata {
   }
 }
 
-// =============================================================================
 // Main Configuration Type
-// =============================================================================
 
 /**
  * Complete composite projection configuration.
@@ -445,9 +429,7 @@ export interface CompositeProjectionConfig {
   atlasMetadata?: AtlasMetadata
 }
 
-// =============================================================================
 // Utility Types
-// =============================================================================
 
 /**
  * Type guard to check if a value is a valid CompositeProjectionConfig.
@@ -482,9 +464,7 @@ export function findTerritory(
   return config.territories.find(t => t.code === code)
 }
 
-// =============================================================================
 // Version Constants
-// =============================================================================
 
 /**
  * Current specification version.

@@ -11,9 +11,7 @@ import { parameterRegistry } from '@/core/parameters/parameter-registry'
  * Register all projection parameters with the parameter registry
  */
 export function registerAllParameters(): void {
-  // ==========================================================================
   // CANONICAL POSITIONING PARAMETERS (New unified format)
-  // ==========================================================================
   // These are the PRIMARY positioning parameters. They represent the geographic
   // focus point in a projection-agnostic way. At render time, they are converted
   // to the appropriate D3 method (center or rotate) based on projection family.
@@ -72,9 +70,7 @@ export function registerAllParameters(): void {
     },
   })
 
-  // ==========================================================================
   // LEGACY POSITIONING PARAMETERS (Deprecated - for backward compatibility)
-  // ==========================================================================
   // These parameters are kept for backward compatibility with existing presets.
   // New code should use focusLongitude/focusLatitude instead.
   // During preset loading, center/rotate are converted to canonical format.

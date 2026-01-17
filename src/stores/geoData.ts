@@ -26,7 +26,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   // Services
   const cartographer = ref<Cartographer | null>(null)
 
-  // State
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isInitialized = ref(false)
@@ -81,9 +80,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     })
   })
 
-  /**
-   * Get all active territories (alias for filtered territories)
-   */
   const allActiveTerritories = computed(() => filteredTerritories.value) // Actions
   const initialize = async (atlasConfigOverride?: any) => {
     if (isInitialized.value)
@@ -233,7 +229,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   }
 
   /**
-   * Load all data types for current atlas in parallel
    * Phase 4: Preload strategy - loads territory + unified data upfront
    * Makes view mode switching synchronous (no async delays)
    */
@@ -350,9 +345,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     renderKey.value++
   }
 
-  /**
-   * Set reinitializing flag (for external use by InitializationService)
-   */
   const setReinitializing = (value: boolean) => {
     isReinitializing.value = value
   }
@@ -361,7 +353,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     // Services
     cartographer,
 
-    // State
     isLoading,
     error,
     isInitialized,
@@ -370,12 +361,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
     rawUnifiedData,
     renderKey, // Expose render key for components to watch
 
-    // Computed
     firstTerritory,
     filteredTerritories,
     allActiveTerritories,
 
-    // Actions
     initialize,
     reinitialize,
     setReinitializing,

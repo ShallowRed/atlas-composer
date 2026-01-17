@@ -66,7 +66,6 @@ export class MapOverlayService {
   }
 
   /**
-   * Create path data for composite projection borders
    * Uses d3-composite-projections API (getCompositionBorders or drawCompositionBorders)
    */
   static createCompositeBorderPath(

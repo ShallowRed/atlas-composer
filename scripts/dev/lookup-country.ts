@@ -12,9 +12,7 @@ import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
-// ============================================================================
 // TYPES
-// ============================================================================
 
 interface Bounds {
   minLon: number
@@ -56,9 +54,7 @@ interface GeoJSONFeatureCollection {
   features: GeoJSONFeature[]
 }
 
-// ============================================================================
 // HELPER FUNCTIONS
-// ============================================================================
 
 /**
  * Calculate bounding box for a polygon ring

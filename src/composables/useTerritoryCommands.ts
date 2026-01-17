@@ -15,23 +15,14 @@ import { useParameterStore } from '@/stores/parameters'
 export function useTerritoryCommands() {
   const parameterStore = useParameterStore()
 
-  /**
-   * Set translation for a territory
-   */
   function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
     parameterStore.setTerritoryTranslation(territoryCode, axis, value)
   }
 
-  /**
-   * Set scale multiplier for a territory
-   */
   function setTerritoryScale(territoryCode: TerritoryCode, value: number) {
     parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', value)
   }
 
-  /**
-   * Set projection for a territory
-   */
   function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
     parameterStore.setTerritoryProjection(territoryCode, projectionId)
   }

@@ -44,9 +44,6 @@ export class ProjectionService {
     this.autoFitDomainEnabled = enabled
   }
 
-  /**
-   * Get projection parameters (or use default France params as fallback)
-   */
   private getParams(): ProjectionParameters {
     const result = this.projectionParams || {
       center: [2.5, 46.5],
@@ -375,9 +372,6 @@ export class ProjectionService {
     return projection
   }
 
-  /**
-   * Check if a projection ID is valid
-   */
   isValidProjection(id: string): boolean {
     return projectionRegistry.isValid(id)
   }
@@ -448,7 +442,6 @@ export class ProjectionService {
     const domain = fitToSphere ? { type: 'Sphere' as const } : data
     projection.fitExtent(
       [[inset, inset], [width - inset, height - inset]],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       domain as any,
     )
 

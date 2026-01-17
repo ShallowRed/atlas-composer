@@ -7,50 +7,18 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
-/**
- * Options for territory rendering
- */
 export interface TerritoryRenderOptions {
-  /** Whether to enable tooltips on hover */
   enableTooltips?: boolean
-  /** Callback when territory is hovered */
   onHover?: (feature: GeoJSON.Feature | null, event: MouseEvent) => void
-  /** Callback when territory is clicked */
   onClick?: (feature: GeoJSON.Feature, event: MouseEvent) => void
 }
 
-/**
- * Options for sphere rendering
- */
 export interface SphereRenderOptions {
-  /** Stroke color */
   stroke?: string
-  /** Stroke width */
   strokeWidth?: number
-  /** Fill color (usually transparent) */
   fill?: string
 }
-
-/**
- * D3MapRenderer - Pure D3 map rendering service
- *
- * Provides direct D3 rendering of geographic data, replacing Observable Plot.
- * Key benefit: Uses the same projection instance for map and overlays,
- * eliminating projection synchronization issues.
- *
- * Design: Stateless static methods, projection passed in from caller.
- */
 export class D3MapRenderer {
-  /**
-   * Create a standalone SVG element with proper dimensions and viewBox
-   *
-   * Use this when you don't have a container yet (e.g., Cartographer service)
-   * and will append the SVG to the DOM later.
-   *
-   * @param width - SVG width
-   * @param height - SVG height
-   * @returns The created SVG element
-   */
   static createSvgElement(
     width: number,
     height: number,
@@ -66,20 +34,11 @@ export class D3MapRenderer {
     return svg
   }
 
-  /**
-   * Create an SVG element with proper dimensions and viewBox, appended to a container
-   *
-   * @param container - HTML element to append SVG to
-   * @param width - SVG width
-   * @param height - SVG height
-   * @returns The created SVG element
-   */
   static createSvg(
     container: HTMLElement,
     width: number,
     height: number,
   ): SVGSVGElement {
-    // Clear existing content
     container.innerHTML = ''
 
     const svg = select(container)
@@ -99,15 +58,6 @@ export class D3MapRenderer {
     return svg
   }
 
-  /**
-   * Render the sphere outline (earth boundary)
-   *
-   * Should be called before rendering territories to appear behind them.
-   *
-   * @param svg - SVG element to render into
-   * @param projection - D3 geo projection
-   * @param options - Sphere styling options
-   */
   static renderSphere(
     svg: SVGSVGElement,
     projection: GeoProjection,
@@ -134,15 +84,6 @@ export class D3MapRenderer {
     debug('Rendered sphere outline')
   }
 
-  /**
-   * Render geographic territories (countries, regions, etc.)
-   *
-   * @param svg - SVG element to render into
-   * @param geoData - GeoJSON FeatureCollection to render
-   * @param projection - D3 geo projection
-   * @param options - Territory rendering options
-   * @returns The path generator used (for overlay consistency)
-   */
   static renderTerritories(
     svg: SVGSVGElement,
     geoData: GeoJSON.FeatureCollection,
@@ -158,13 +99,10 @@ export class D3MapRenderer {
     const path = geoPath(projection)
     const svgSelection = select(svg)
 
-    // Create a group for territories
     const territoriesGroup = svgSelection
       .append('g')
       .attr('class', 'territories')
 
-    // Render each feature as a path
-    // All territories use the same color - no hierarchy distinction
     const paths = territoriesGroup
       .selectAll<SVGPathElement, GeoJSON.Feature>('path')
       .data(geoData.features)
@@ -175,13 +113,11 @@ export class D3MapRenderer {
       .attr('stroke-width', 1)
       .attr('data-territory', d => d.properties?.code || d.properties?.INSEE_DEP || '')
 
-    // Add tooltips using title elements (native SVG tooltip)
     if (enableTooltips) {
       paths.append('title')
         .text(d => d.properties?.name || d.properties?.code || '')
     }
 
-    // Add hover effects
     paths
       .on('mouseenter', (event: MouseEvent, d: GeoJSON.Feature) => {
         select(event.currentTarget as SVGPathElement).attr('opacity', 0.8)
@@ -196,7 +132,6 @@ export class D3MapRenderer {
         }
       })
 
-    // Add click handler
     if (onClick) {
       paths.on('click', (event: MouseEvent, d: GeoJSON.Feature) => {
         onClick(d, event)
@@ -207,37 +142,15 @@ export class D3MapRenderer {
     return path
   }
 
-  /**
-   * Render territories with a custom composite projection
-   *
-   * For composite-custom mode where each territory has its own sub-projection.
-   * The composite projection handles routing coordinates to the correct sub-projection.
-   *
-   * @param svg - SVG element to render into
-   * @param geoData - GeoJSON FeatureCollection to render
-   * @param compositeProjection - Composite projection (implements stream interface)
-   * @param options - Territory rendering options
-   * @returns The path generator used
-   */
   static renderTerritoriesWithComposite(
     svg: SVGSVGElement,
     geoData: GeoJSON.FeatureCollection,
     compositeProjection: GeoProjection,
     options: TerritoryRenderOptions = {},
   ): GeoPath {
-    // Same implementation as renderTerritories - the composite projection
-    // handles the complexity internally via its stream interface
     return this.renderTerritories(svg, geoData, compositeProjection, options)
   }
 
-  /**
-   * Add data-territory attributes to existing SVG paths
-   *
-   * Useful when working with SVG that was rendered elsewhere.
-   *
-   * @param svg - SVG element containing paths
-   * @param geoData - GeoJSON data for territory code lookup
-   */
   static addTerritoryAttributes(
     svg: SVGSVGElement,
     geoData: GeoJSON.FeatureCollection,
@@ -248,7 +161,6 @@ export class D3MapRenderer {
     pathSelection.each(function (_d, i) {
       const pathElement = this as SVGPathElement
 
-      // Check if D3 has bound data to this element
       const boundData = (pathElement as any).__data__ as GeoJSON.Feature | undefined
 
       if (boundData?.properties) {
@@ -259,7 +171,6 @@ export class D3MapRenderer {
         }
       }
 
-      // Fallback: try to match by index
       if (i < geoData.features.length) {
         const feature = geoData.features[i]
         const territoryCode = feature?.properties?.code || feature?.properties?.INSEE_DEP
@@ -270,12 +181,6 @@ export class D3MapRenderer {
     })
   }
 
-  /**
-   * Get the territories group from an SVG
-   *
-   * @param svg - SVG element
-   * @returns D3 selection of the territories group, or null if not found
-   */
   static getTerritoriesGroup(
     svg: SVGSVGElement,
   ): Selection<SVGGElement, unknown, null, undefined> | null {
@@ -283,13 +188,6 @@ export class D3MapRenderer {
     return group.empty() ? null : group
   }
 
-  /**
-   * Update territory styling (e.g., for highlighting)
-   *
-   * @param svg - SVG element
-   * @param territoryCode - Territory code to update
-   * @param styles - CSS styles to apply
-   */
   static updateTerritoryStyle(
     svg: SVGSVGElement,
     territoryCode: string,
@@ -308,11 +206,6 @@ export class D3MapRenderer {
     }
   }
 
-  /**
-   * Clear all content from SVG
-   *
-   * @param svg - SVG element to clear
-   */
   static clearSvg(svg: SVGSVGElement): void {
     select(svg).selectAll('*').remove()
   }

@@ -42,9 +42,6 @@ export const useParameterStore = defineStore('parameters', () => {
   const globalParametersVersion = ref(0)
   const territoryParametersVersion = ref(0)
 
-  /**
-   * Initialize the parameter store with atlas parameters
-   */
   function initialize(atlasParams?: ProjectionParameters) {
     if (atlasParams) {
       parameterManager.setAtlasParameters(atlasParams)
@@ -86,7 +83,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Set atlas-level parameters (from presets)
    * These become the baseline defaults for this atlas/preset
    */
   function setAtlasParameters(parameters: ProjectionParameters) {
@@ -127,24 +123,15 @@ export const useParameterStore = defineStore('parameters', () => {
 
   // Territory-specific helper methods (migration from territory store)
 
-  /**
-   * Set projection ID for a territory
-   */
   function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
     setTerritoryParameter(territoryCode, 'projectionId', projectionId)
   }
 
-  /**
-   * Get projection ID for a territory
-   */
   function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {
     const effective = getEffectiveParameters(territoryCode)
     return effective.projectionId as ProjectionId | undefined
   }
 
-  /**
-   * Set translation for a territory (single axis)
-   */
   function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
     const effective = getEffectiveParameters(territoryCode)
     const currentOffset = effective.translateOffset ?? [0, 0]
@@ -155,7 +142,6 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   /**
-   * Get translation for a territory
    * Returns {x, y} object
    */
   function getTerritoryTranslation(territoryCode: TerritoryCode): { x: number, y: number } {
@@ -346,9 +332,6 @@ export const useParameterStore = defineStore('parameters', () => {
     }
   }
 
-  /**
-   * Initialize from preset with validation using parameter registry
-   */
   function initializeFromPreset(
     atlasParams: ProjectionParameters,
     territoryParams: Record<string, ProjectionParameters>,
@@ -374,9 +357,6 @@ export const useParameterStore = defineStore('parameters', () => {
     return errors
   }
 
-  /**
-   * Get complete parameters for export using parameter registry
-   */
   function getExportableParameters(territoryCode: string): ProjectionParameters {
     // Convert: public API accepts string
     const params = getEffectiveParameters(territoryCode as TerritoryCode)
@@ -393,20 +373,17 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   return {
-    // State
     isInitialized,
     lastChangeEvent,
     validationErrors,
     territoryParametersVersion, // Reactive version for watching parameter changes
 
-    // Computed
     globalParameters,
     globalEffectiveParameters,
     hasGlobalParameters,
     hasValidationErrors,
     allValidationErrors,
 
-    // Actions
     initialize,
     reset,
 

@@ -203,9 +203,6 @@ export class CompositeProjection {
     this.initializeTerritories()
   }
 
-  /**
-   * Initialize all territories equally - no hierarchy distinction
-   */
   private initializeTerritories() {
     const { territories } = this.config
 
@@ -261,9 +258,6 @@ export class CompositeProjection {
     })
   }
 
-  /**
-   * Create a projection instance by type name
-   */
   private createProjectionByType(projectionType: string): GeoProjection {
     const projection = ProjectionFactory.createById(projectionType)
     if (projection) {
@@ -275,9 +269,6 @@ export class CompositeProjection {
     return ProjectionFactory.createById('mercator')!
   }
 
-  /**
-   * Add or update a sub-projection configuration
-   */
   addSubProjection(config: SubProjectionConfig) {
     const existingIndex = this.subProjections.findIndex((sp) => {
       return sp.territoryCode === config.territoryCode
@@ -422,9 +413,6 @@ export class CompositeProjection {
     this.compositeProjection = null // Force rebuild
   }
 
-  /**
-   * Update translation offset for a territory
-   */
   updateTranslationOffset(territoryCode: TerritoryCode, offset: [number, number]) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {
@@ -433,9 +421,6 @@ export class CompositeProjection {
     }
   }
 
-  /**
-   * Get canvas dimensions (if set)
-   */
   getCanvasDimensions(): { width: number, height: number } | undefined {
     return this.canvasDimensions
   }
@@ -466,9 +451,6 @@ export class CompositeProjection {
     this.compositeProjection = null
   }
 
-  /**
-   * Update scale for a territory
-   */
   updateScale(territoryCode: TerritoryCode, scaleMultiplier: number) {
     const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
     if (subProj) {

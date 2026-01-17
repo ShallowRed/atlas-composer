@@ -1,21 +1,6 @@
-/**
- * CompositeConfiguration Aggregate
- *
- * Aggregate root for composite projection configuration.
- * Manages the collection of territory projections and enforces domain invariants.
- *
- * DDD Pattern: Aggregate
- * - Aggregate root with controlled access to child entities (TerritoryProjectionConfig)
- * - Enforces invariants across the entire composite configuration
- * - Provides transactional consistency boundary
- */
-
 import type { ProjectionFamilyType } from './types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-/**
- * Domain error for composite configuration violations
- */
 export class CompositeConfigurationError extends Error {
   constructor(message: string) {
     super(message)
@@ -23,37 +8,21 @@ export class CompositeConfigurationError extends Error {
   }
 }
 
-/**
- * Canvas dimensions for composite projection
- */
 export interface CompositeCanvasDimensions {
   width: number
   height: number
 }
 
-/**
- * Territory projection configuration within the composite
- */
 export interface TerritoryProjectionConfig {
-  /** Territory code (e.g., 'FR-MET', 'FR-GP') */
   code: string
-  /** Territory display name */
   name: string
-  /** Projection ID (e.g., 'conic-conformal', 'mercator') */
   projectionId: string
-  /** Projection family */
   family: ProjectionFamilyType
-  /** Projection parameters */
   parameters: ProjectionParameters
-  /** Layout: translation offset [x, y] in pixels */
   translateOffset: [number, number]
-  /** Layout: pixel clip extent [x1, y1, x2, y2] or null */
   pixelClipExtent: [number, number, number, number] | null
 }
 
-/**
- * Serializable composite configuration for export/import
- */
 export interface SerializedCompositeConfig {
   atlasId: string
   atlasName: string
@@ -62,19 +31,6 @@ export interface SerializedCompositeConfig {
   territories: TerritoryProjectionConfig[]
 }
 
-/**
- * CompositeConfiguration Aggregate Root
- *
- * Manages a complete composite projection configuration including:
- * - Atlas identity
- * - Global projection settings (referenceScale, canvasDimensions)
- * - Territory-specific projection configurations
- *
- * Enforces domain invariants:
- * - At least one territory must exist
- * - All scale multipliers must be positive
- * - Territory codes must be unique
- */
 export class CompositeConfiguration {
   private territories: Map<string, TerritoryProjectionConfig> = new Map()
 
@@ -83,9 +39,6 @@ export class CompositeConfiguration {
   private _referenceScale: number
   private _canvasDimensions: CompositeCanvasDimensions
 
-  /**
-   * Create a new CompositeConfiguration
-   */
   constructor(
     atlasId: string,
     atlasName: string,
@@ -108,16 +61,10 @@ export class CompositeConfiguration {
     this._canvasDimensions = { ...canvasDimensions }
   }
 
-  /**
-   * Get the reference scale
-   */
   get referenceScale(): number {
     return this._referenceScale
   }
 
-  /**
-   * Update the reference scale
-   */
   setReferenceScale(scale: number): void {
     if (scale <= 0) {
       throw new CompositeConfigurationError('Reference scale must be positive')
@@ -125,16 +72,10 @@ export class CompositeConfiguration {
     this._referenceScale = scale
   }
 
-  /**
-   * Get the canvas dimensions
-   */
   get canvasDimensions(): CompositeCanvasDimensions {
     return { ...this._canvasDimensions }
   }
 
-  /**
-   * Update the canvas dimensions
-   */
   setCanvasDimensions(dimensions: CompositeCanvasDimensions): void {
     if (dimensions.width <= 0 || dimensions.height <= 0) {
       throw new CompositeConfigurationError('Canvas dimensions must be positive')
@@ -185,38 +126,23 @@ export class CompositeConfiguration {
     return this.territories.delete(code)
   }
 
-  /**
-   * Get a territory configuration by code
-   */
   getTerritory(code: string): TerritoryProjectionConfig | undefined {
     const config = this.territories.get(code)
     return config ? { ...config } : undefined
   }
 
-  /**
-   * Get all territory codes
-   */
   getTerritoryCodes(): string[] {
     return Array.from(this.territories.keys())
   }
 
-  /**
-   * Get all territories as an array
-   */
   getAllTerritories(): TerritoryProjectionConfig[] {
     return Array.from(this.territories.values()).map(t => ({ ...t }))
   }
 
-  /**
-   * Get the number of territories
-   */
   get territoryCount(): number {
     return this.territories.size
   }
 
-  /**
-   * Check if a territory exists
-   */
   hasTerritory(code: string): boolean {
     return this.territories.has(code)
   }
@@ -236,9 +162,6 @@ export class CompositeConfiguration {
     }
   }
 
-  /**
-   * Create a CompositeConfiguration from serialized data
-   */
   static fromJSON(data: SerializedCompositeConfig): CompositeConfiguration {
     const composite = new CompositeConfiguration(
       data.atlasId,
@@ -254,9 +177,6 @@ export class CompositeConfiguration {
     return composite
   }
 
-  /**
-   * Validate a territory configuration
-   */
   private validateTerritory(config: TerritoryProjectionConfig): void {
     if (!config.code || config.code.trim() === '') {
       throw new CompositeConfigurationError('Territory code is required')

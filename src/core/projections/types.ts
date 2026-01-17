@@ -1,86 +1,40 @@
-/**
- * Projection System Type Definitions
- *
- * Domain: Projection metadata and capabilities
- * Scope: Projection registry, D3 projection functions
- *
- * This module defines the metadata structure for map projections,
- * including their properties and capabilities.
- *
- * Note: For atlas layout and territory composition types,
- * see src/types/composite.d.ts
- */
-
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-/**
- * Projection capabilities - what the projection preserves or distorts
- */
 export interface ProjectionCapabilities {
-  /** Properties this projection preserves exactly */
   preserves: Array<'area' | 'angle' | 'distance' | 'direction'>
-  /** Properties this projection distorts */
   distorts?: Array<'area' | 'angle' | 'distance' | 'direction'>
-  /** Whether this projection supports composite/multi-projection mode */
   supportsComposite: boolean
-  /** Whether this projection can be used in split view */
   supportsSplit: boolean
-  /** Whether this projection can be used in unified view */
   supportsUnified: boolean
-  /** Maximum recommended scale (larger values = more suitable for larger areas) */
   recommendedMaxScale?: number
-  /** Whether the projection is interrupted/discontinuous */
   isInterrupted?: boolean
 }
 
-/**
- * Re-export unified parameter types for convenience
- * These are the recommended types to use going forward
- */
 export type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-/**
- * Projection strategy - how the projection is created
- */
 export const ProjectionStrategy = {
-  /** Built-in D3 projection (d3-geo) */
   D3_BUILTIN: 'D3_BUILTIN',
-  /** Extended D3 projection (d3-geo-projection) */
   D3_EXTENDED: 'D3_EXTENDED',
-  /** Composite projection (d3-composite-projections) */
   D3_COMPOSITE: 'D3_COMPOSITE',
 } as const
 
 export type ProjectionStrategyType = typeof ProjectionStrategy[keyof typeof ProjectionStrategy]
 
-/**
- * Projection category for UI grouping
- */
 export const ProjectionCategory = {
-  /** Composite projections (main feature) */
   COMPOSITE: 'COMPOSITE',
-  /** Conic projections */
   CONIC: 'CONIC',
-  /** Azimuthal projections */
   AZIMUTHAL: 'AZIMUTHAL',
-  /** Cylindrical projections */
   CYLINDRICAL: 'CYLINDRICAL',
-  /** World projections */
   WORLD: 'WORLD',
-  /** Compromise projections */
   COMPROMISE: 'COMPROMISE',
-  /** Artistic/historical projections */
   ARTISTIC: 'ARTISTIC',
 } as const
 
 export type ProjectionCategoryType = typeof ProjectionCategory[keyof typeof ProjectionCategory]
 
-/**
- * Projection family (mathematical type)
- */
 export const ProjectionFamily = {
   CONIC: 'CONIC',
   AZIMUTHAL: 'AZIMUTHAL',
@@ -93,11 +47,7 @@ export const ProjectionFamily = {
 
 export type ProjectionFamilyType = typeof ProjectionFamily[keyof typeof ProjectionFamily]
 
-/**
- * Complete projection definition with all metadata
- */
 export interface ProjectionDefinition {
-  /** Unique identifier (kebab-case) */
   id: string
 
   /** Display name (i18n key) */

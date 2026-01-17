@@ -5,9 +5,7 @@
  * Replaces try/catch patterns with compile-time enforced error handling.
  */
 
-// ============================================================================
 // Core Types
-// ============================================================================
 
 /**
  * Result type - either success with value or failure with error
@@ -16,45 +14,27 @@ export type Result<T, E = Error>
   = | { ok: true, value: T }
     | { ok: false, error: E }
 
-// ============================================================================
 // Constructors
-// ============================================================================
 
-/**
- * Create a success result
- */
 export function ok<T>(value: T): Result<T, never> {
   return { ok: true, value }
 }
 
-/**
- * Create a failure result
- */
 export function err<E>(error: E): Result<never, E> {
   return { ok: false, error }
 }
 
-// ============================================================================
 // Type Guards
-// ============================================================================
 
-/**
- * Check if result is success
- */
 export function isOk<T, E>(result: Result<T, E>): result is { ok: true, value: T } {
   return result.ok
 }
 
-/**
- * Check if result is failure
- */
 export function isErr<T, E>(result: Result<T, E>): result is { ok: false, error: E } {
   return !result.ok
 }
 
-// ============================================================================
 // Utilities
-// ============================================================================
 
 /**
  * Extract value from result, throws if error
@@ -139,9 +119,7 @@ export function all<T, E>(results: Result<T, E>[]): Result<T[], E> {
   return ok(values)
 }
 
-// ============================================================================
 // Conversion Utilities
-// ============================================================================
 
 /**
  * LoadResult-style type (for compatibility with existing preset/init code)

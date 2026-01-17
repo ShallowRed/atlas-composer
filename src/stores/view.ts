@@ -46,10 +46,6 @@ export const useViewStore = defineStore('view', () => {
   const getUIStore = () => useUIStore()
   const presetDefaults = getSharedPresetDefaults()
 
-  // ============================================
-  // State
-  // ============================================
-
   // Territory mode - initialize with the default from the atlas store
   const territoryMode = ref<string>(getAtlasStore().getInitialTerritoryMode())
 
@@ -65,9 +61,7 @@ export const useViewStore = defineStore('view', () => {
   const currentViewPreset = ref<PresetId | null>(null)
   const availableViewPresets = ref<ResolvedPresetDefinition[]>([])
 
-  // ============================================
   // Computed - Domain Model Integration
-  // ============================================
 
   /**
    * ViewModeSelection value object
@@ -84,9 +78,7 @@ export const useViewStore = defineStore('view', () => {
    */
   const viewModeSelection = computed(() => new ViewModeSelection(viewMode.value))
 
-  // ============================================
   // Computed - UI Visibility
-  // ============================================
 
   // Check if view mode selector should be disabled
   const isViewModeLocked = computed(() => {
@@ -130,9 +122,7 @@ export const useViewStore = defineStore('view', () => {
     ProjectionUIService.getProjectionRecommendations(getAtlasStore().selectedAtlasId, viewMode.value),
   )
 
-  // ============================================
   // Actions - Basic State Mutations
-  // ============================================
 
   function setTerritoryMode(mode: string) {
     territoryMode.value = mode
@@ -162,13 +152,8 @@ export const useViewStore = defineStore('view', () => {
     activeTerritoryCodes.value = new Set(territoryCodes)
   }
 
-  // ============================================
   // Actions - View Preset Management
-  // ============================================
 
-  /**
-   * Load available view presets for current atlas and view mode
-   */
   async function loadAvailableViewPresets() {
     // Only load presets for view modes that support them
     if (!['unified', 'split', 'built-in-composite'].includes(viewMode.value)) {
@@ -229,9 +214,6 @@ export const useViewStore = defineStore('view', () => {
     }
   }
 
-  /**
-   * Load and apply a view preset
-   */
   async function loadViewPreset(presetId: PresetId) {
     try {
       const result = await PresetLoader.loadPreset(presetId)
@@ -293,9 +275,7 @@ export const useViewStore = defineStore('view', () => {
     currentViewPreset.value = null
   }
 
-  // ============================================
   // Watchers
-  // ============================================
 
   // Sync watcher to set transition flag BEFORE Vue re-renders
   watch(viewMode, (newMode, oldMode) => {
@@ -400,7 +380,6 @@ export const useViewStore = defineStore('view', () => {
   })
 
   return {
-    // State
     territoryMode,
     viewMode,
     activeTerritoryCodes,
@@ -420,7 +399,6 @@ export const useViewStore = defineStore('view', () => {
     projectionGroups,
     projectionRecommendations,
 
-    // Actions
     setTerritoryMode,
     setViewMode,
     addTerritoryToComposite,

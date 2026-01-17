@@ -25,9 +25,7 @@ import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
-// ============================================================================
 // TYPES
-// ============================================================================
 
 interface GeoJSONFeature {
   type: 'Feature'
@@ -65,9 +63,7 @@ interface Metadata {
   count: number
 }
 
-// ============================================================================
 // CONFIGURATION
-// ============================================================================
 
 const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
 
@@ -80,9 +76,7 @@ const OUTPUT_FILENAMES = {
   metadata: (configName: string, resolution: string) => `${configName}-metadata-${resolution}.json`,
 }
 
-// ============================================================================
 // DATA PROCESSING FUNCTIONS
-// ============================================================================
 
 /**
  * Save data to a file in the output directory
@@ -450,9 +444,7 @@ function createMetadata(config: BackendConfig, resolution: string, dataSourceUrl
   }
 }
 
-// ============================================================================
 // MAIN EXECUTION
-// ============================================================================
 
 async function main(): Promise<void> {
   try {

@@ -28,9 +28,7 @@ declare const brand: unique symbol
  */
 type Brand<T, B> = T & { readonly [brand]: B }
 
-// ============================================
 // Domain Identifiers
-// ============================================
 
 /**
  * Atlas identifier (e.g., 'france', 'usa', 'europe')
@@ -52,74 +50,44 @@ export type PresetId = Brand<string, 'PresetId'>
  */
 export type TerritoryCode = Brand<string, 'TerritoryCode'>
 
-// ============================================
 // Constructor Functions
-// ============================================
 // Runtime no-op, compile-time type branding
 
-/**
- * Create an AtlasId from a string
- */
 export function createAtlasId(id: string): AtlasId {
   return id as AtlasId
 }
 
-/**
- * Create a ProjectionId from a string
- */
 export function createProjectionId(id: string): ProjectionId {
   return id as ProjectionId
 }
 
-/**
- * Create a PresetId from a string
- */
 export function createPresetId(id: string): PresetId {
   return id as PresetId
 }
 
-/**
- * Create a TerritoryCode from a string
- */
 export function createTerritoryCode(code: string): TerritoryCode {
   return code as TerritoryCode
 }
 
-// ============================================
 // Type Guards
-// ============================================
 
-/**
- * Check if a value is a valid AtlasId
- */
 export function isAtlasId(value: unknown): value is AtlasId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- * Check if a value is a valid ProjectionId
- */
 export function isProjectionId(value: unknown): value is ProjectionId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- * Check if a value is a valid PresetId
- */
 export function isPresetId(value: unknown): value is PresetId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- * Check if a value is a valid TerritoryCode
- */
 export function isTerritoryCode(value: unknown): value is TerritoryCode {
   return typeof value === 'string' && value.length > 0
 }
 
-// ============================================
 // Utility Functions
-// ============================================
 
 /**
  * Extract raw string from any branded type

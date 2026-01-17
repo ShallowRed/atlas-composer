@@ -125,9 +125,6 @@ export class ProjectionFactory {
     return this.create({ projection: id, parameters })
   }
 
-  /**
-   * Create a D3 built-in projection (from d3-geo)
-   */
   private static createD3Builtin(
     id: string,
     params: ProjectionParameters,
@@ -194,9 +191,6 @@ export class ProjectionFactory {
     return this.applyParameters(projection, params)
   }
 
-  /**
-   * Create an extended D3 projection (from d3-geo-projection)
-   */
   private static createD3Extended(
     id: string,
     params: ProjectionParameters,
@@ -288,9 +282,6 @@ export class ProjectionFactory {
     return this.applyParameters(projection, params)
   }
 
-  /**
-   * Create a composite projection (from d3-composite-projections)
-   */
   private static createD3Composite(
     id: string,
     params: ProjectionParameters,
