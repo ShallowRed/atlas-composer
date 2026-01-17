@@ -1,5 +1,11 @@
 # @atlas-composer/projection-loader
 
+## 1.1.1
+
+### Patch Changes
+
+- Bundle projection-core inline for browser/Observable compatibility. Fixes import errors when using the package via CDN.
+
 ## 1.1.0
 
 ### Minor Changes

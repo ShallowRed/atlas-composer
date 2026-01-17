@@ -171,14 +171,13 @@ importers:
         version: 5.9.3
 
   packages/projection-loader:
-    dependencies:
+    devDependencies:
       '@atlas-composer/projection-core':
         specifier: workspace:*
         version: link:../projection-core
       '@atlas-composer/specification':
         specifier: workspace:*
         version: link:../specification
-    devDependencies:
       '@size-limit/preset-small-lib':
         specifier: ^11.2.0
         version: 11.2.0(size-limit@11.2.0)
