@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/projection-loader",
   "type": "module",
-  "version": "1.1.0-rc.15",
+  "version": "1.1.0",
   "description": "Zero-dependency standalone loader for composite map projections with plugin architecture. Supports Atlas composer 2.0+ presets with backward compatibility.",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",

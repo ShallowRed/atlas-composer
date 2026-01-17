@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/preset-library",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Curated collection of composite map projection presets for Atlas Composer",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",

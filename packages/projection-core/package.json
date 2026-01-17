@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/projection-core",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Core utilities for composite map projections. Zero-dependency pure functions for stream handling, bounds checking, and projection composition.",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",

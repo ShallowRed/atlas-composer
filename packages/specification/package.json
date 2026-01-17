@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/specification",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JSON Schema specification and TypeScript types for Atlas Composer composite map projections",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",
