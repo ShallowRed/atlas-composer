@@ -170,10 +170,7 @@ export class ViewOrchestrationService {
     return !state.hasTerritories
   }
 
-  /**
-   * Get appropriate empty state message
-   */
-  static getEmptyStateMessage(_state: ViewState): string {
+    static getEmptyStateMessage(_state: ViewState): string {
     return 'territory.noTerritories'
   }
 
@@ -208,10 +205,7 @@ export class ViewOrchestrationService {
 
   // Layout Variants
 
-  /**
-   * Get the appropriate map renderer mode based on view mode
-   */
-  static getMapRendererMode(state: ViewState): 'composite' | 'split' | 'unified' {
+    static getMapRendererMode(state: ViewState): 'composite' | 'split' | 'unified' {
     switch (state.viewMode) {
       case 'composite-custom':
       case 'built-in-composite':

@@ -44,10 +44,7 @@ export class ProjectionService {
     this.autoFitDomainEnabled = enabled
   }
 
-  /**
-   * Get projection parameters (or use default France params as fallback)
-   */
-  private getParams(): ProjectionParameters {
+    private getParams(): ProjectionParameters {
     const result = this.projectionParams || {
       center: [2.5, 46.5],
       rotate: [-2, 0],
@@ -375,10 +372,7 @@ export class ProjectionService {
     return projection
   }
 
-  /**
-   * Check if a projection ID is valid
-   */
-  isValidProjection(id: string): boolean {
+    isValidProjection(id: string): boolean {
     return projectionRegistry.isValid(id)
   }
 

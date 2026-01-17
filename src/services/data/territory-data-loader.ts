@@ -26,10 +26,7 @@ export interface UnifiedDataLoadResult {
  * Loads all territories as equals (no hierarchy)
  */
 export class TerritoryDataLoader {
-  /**
-   * Create loader (no pattern needed - all territories are equal)
-   */
-  static create(): TerritoryDataLoader {
+    static create(): TerritoryDataLoader {
     return new TerritoryDataLoader()
   }
 

@@ -243,9 +243,6 @@ export function listTypes(): PresetType[] {
   return ['composite-custom', 'built-in-composite', 'split', 'unified']
 }
 
-/**
- * Check if a preset type is a view mode (designed for Atlas Composer web app).
- */
 export function isViewModeType(type: PresetType): boolean {
   return VIEW_MODE_TYPES.includes(type)
 }

@@ -116,17 +116,11 @@ export class ProjectionSelection {
     return this.family === ProjectionFamily.COMPOSITE
   }
 
-  /**
-   * Get a string representation for debugging
-   */
-  toString(): string {
+    toString(): string {
     return `ProjectionSelection(${this.projectionId}, ${this.family})`
   }
 
-  /**
-   * Create a ProjectionSelection from a projection ID using the registry
-   */
-  static fromRegistry(
+    static fromRegistry(
     projectionId: ProjectionId,
     registry: { get: (id: string) => { family: ProjectionFamilyType } | undefined },
   ): ProjectionSelection | null {

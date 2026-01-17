@@ -155,9 +155,7 @@ export const useViewStore = defineStore('view', () => {
 
   // Actions - View Preset Management
 
-  /**
-   */
-  async function loadAvailableViewPresets() {
+    async function loadAvailableViewPresets() {
     // Only load presets for view modes that support them
     if (!['unified', 'split', 'built-in-composite'].includes(viewMode.value)) {
       availableViewPresets.value = []
@@ -217,9 +215,7 @@ export const useViewStore = defineStore('view', () => {
     }
   }
 
-  /**
-   */
-  async function loadViewPreset(presetId: PresetId) {
+    async function loadViewPreset(presetId: PresetId) {
     try {
       const result = await PresetLoader.loadPreset(presetId)
 

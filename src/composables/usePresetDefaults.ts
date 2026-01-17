@@ -86,10 +86,7 @@ export function usePresetDefaults() {
     clearPresetDefaults()
   }
 
-  /**
-   * Get preset defaults for a specific territory
-   */
-  function getPresetDefaultsForTerritory(territoryCode: string) {
+    function getPresetDefaultsForTerritory(territoryCode: string) {
     if (!presetDefaults.value) {
       return null
     }
@@ -104,17 +101,11 @@ export function usePresetDefaults() {
     }
   }
 
-  /**
-   * Check if preset defaults are available
-   */
-  function hasPresetDefaults() {
+    function hasPresetDefaults() {
     return presetDefaults.value !== null
   }
 
-  /**
-   * Check if current values differ from preset defaults
-   */
-  function hasDivergingParameters(
+    function hasDivergingParameters(
     currentTranslations: Record<string, { x: number, y: number }>,
     currentScales: Record<string, number>,
     territoryParameters: Record<string, Record<string, unknown>>,
@@ -202,9 +193,6 @@ export function usePresetDefaults() {
 // Global instance for sharing across components
 let globalPresetDefaults: ReturnType<typeof usePresetDefaults> | null = null
 
-/**
- * Get shared preset defaults instance
- */
 export function getSharedPresetDefaults() {
   if (!globalPresetDefaults) {
     globalPresetDefaults = usePresetDefaults()

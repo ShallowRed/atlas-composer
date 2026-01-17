@@ -31,39 +31,27 @@ export class AtlasService {
     this.specificConfig = getAtlasSpecificConfig(atlasId)
   }
 
-  /**
-   */
-  getAtlasId(): AtlasId {
+    getAtlasId(): AtlasId {
     return this.atlasId
   }
 
-  /**
-   */
-  getAtlasName(): string {
+    getAtlasName(): string {
     return this.atlasConfig.name
   }
 
-  /**
-   */
-  getAtlasConfig(): AtlasConfig {
+    getAtlasConfig(): AtlasConfig {
     return this.atlasConfig
   }
 
-  /**
-   */
-  getFirstTerritory(): TerritoryConfig {
+    getFirstTerritory(): TerritoryConfig {
     return getFirstTerritory(this.atlasId)
   }
 
-  /**
-   */
-  getAllTerritories(): TerritoryConfig[] {
+    getAllTerritories(): TerritoryConfig[] {
     return getAtlasAllTerritories(this.atlasId)
   }
 
-  /**
-   */
-  getTerritoriesForMode(mode: string): TerritoryConfig[] {
+    getTerritoriesForMode(mode: string): TerritoryConfig[] {
     const allTerritories = this.getAllTerritories()
     return getTerritoriesForMode(
       allTerritories,
@@ -72,9 +60,7 @@ export class AtlasService {
     )
   }
 
-  /**
-   */
-  getTerritoryModes(): Record<string, TerritoryCollection> {
+    getTerritoryModes(): Record<string, TerritoryCollection> {
     return this.specificConfig.territoryModes
   }
 
@@ -92,35 +78,25 @@ export class AtlasService {
     return getAtlasBehavior(this.atlasId)
   }
 
-  /**
-   */
-  getProjectionParams(): ProjectionParameters {
+    getProjectionParams(): ProjectionParameters {
     return this.specificConfig.projectionParams
   }
 
-  /**
-   */
-  getCompositeConfig(): CompositeProjectionConfig | undefined {
+    getCompositeConfig(): CompositeProjectionConfig | undefined {
     return this.atlasConfig.compositeProjectionConfig
   }
 
-  /**
-   */
-  getTerritoryByCode(code: TerritoryCode): TerritoryConfig | undefined {
+    getTerritoryByCode(code: TerritoryCode): TerritoryConfig | undefined {
     const all = this.getAllTerritories()
     return getTerritoryByCode(all, code)
   }
 
-  /**
-   */
-  getTerritoryName(code: TerritoryCode): string {
+    getTerritoryName(code: TerritoryCode): string {
     const all = this.getAllTerritories()
     return getTerritoryNameFromArray(all, code)
   }
 
-  /**
-   */
-  hasTerritorySelector(): boolean {
+    hasTerritorySelector(): boolean {
     return this.atlasConfig.hasTerritorySelector || false
   }
 }

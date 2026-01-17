@@ -8,8 +8,6 @@ const LANGUAGE_FLAGS: Record<string, string> = {
   fr: '🇫🇷',
 }
 
-/**
- */
 export function getLanguageFlag(locale: string): string | undefined {
   return LANGUAGE_FLAGS[locale]
 }

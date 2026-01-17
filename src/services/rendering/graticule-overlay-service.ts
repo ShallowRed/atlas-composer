@@ -92,9 +92,7 @@ export class GraticuleOverlayService {
     }
   }
 
-  /**
-   */
-  private static createProjectionForOverlay(
+    private static createProjectionForOverlay(
     projectionId: string,
     width: number,
     height: number,

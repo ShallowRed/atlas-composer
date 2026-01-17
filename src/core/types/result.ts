@@ -16,32 +16,20 @@ export type Result<T, E = Error>
 
 // Constructors
 
-/**
- * Create a success result
- */
 export function ok<T>(value: T): Result<T, never> {
   return { ok: true, value }
 }
 
-/**
- * Create a failure result
- */
 export function err<E>(error: E): Result<never, E> {
   return { ok: false, error }
 }
 
 // Type Guards
 
-/**
- * Check if result is success
- */
 export function isOk<T, E>(result: Result<T, E>): result is { ok: true, value: T } {
   return result.ok
 }
 
-/**
- * Check if result is failure
- */
 export function isErr<T, E>(result: Result<T, E>): result is { ok: false, error: E } {
   return !result.ok
 }

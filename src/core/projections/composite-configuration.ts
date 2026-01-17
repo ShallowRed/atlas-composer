@@ -39,10 +39,7 @@ export class CompositeConfiguration {
   private _referenceScale: number
   private _canvasDimensions: CompositeCanvasDimensions
 
-  /**
-   * Create a new CompositeConfiguration
-   */
-  constructor(
+    constructor(
     atlasId: string,
     atlasName: string,
     referenceScale: number,
@@ -64,34 +61,22 @@ export class CompositeConfiguration {
     this._canvasDimensions = { ...canvasDimensions }
   }
 
-  /**
-   * Get the reference scale
-   */
-  get referenceScale(): number {
+    get referenceScale(): number {
     return this._referenceScale
   }
 
-  /**
-   * Update the reference scale
-   */
-  setReferenceScale(scale: number): void {
+    setReferenceScale(scale: number): void {
     if (scale <= 0) {
       throw new CompositeConfigurationError('Reference scale must be positive')
     }
     this._referenceScale = scale
   }
 
-  /**
-   * Get the canvas dimensions
-   */
-  get canvasDimensions(): CompositeCanvasDimensions {
+    get canvasDimensions(): CompositeCanvasDimensions {
     return { ...this._canvasDimensions }
   }
 
-  /**
-   * Update the canvas dimensions
-   */
-  setCanvasDimensions(dimensions: CompositeCanvasDimensions): void {
+    setCanvasDimensions(dimensions: CompositeCanvasDimensions): void {
     if (dimensions.width <= 0 || dimensions.height <= 0) {
       throw new CompositeConfigurationError('Canvas dimensions must be positive')
     }
@@ -141,39 +126,24 @@ export class CompositeConfiguration {
     return this.territories.delete(code)
   }
 
-  /**
-   * Get a territory configuration by code
-   */
-  getTerritory(code: string): TerritoryProjectionConfig | undefined {
+    getTerritory(code: string): TerritoryProjectionConfig | undefined {
     const config = this.territories.get(code)
     return config ? { ...config } : undefined
   }
 
-  /**
-   * Get all territory codes
-   */
-  getTerritoryCodes(): string[] {
+    getTerritoryCodes(): string[] {
     return Array.from(this.territories.keys())
   }
 
-  /**
-   * Get all territories as an array
-   */
-  getAllTerritories(): TerritoryProjectionConfig[] {
+    getAllTerritories(): TerritoryProjectionConfig[] {
     return Array.from(this.territories.values()).map(t => ({ ...t }))
   }
 
-  /**
-   * Get the number of territories
-   */
-  get territoryCount(): number {
+    get territoryCount(): number {
     return this.territories.size
   }
 
-  /**
-   * Check if a territory exists
-   */
-  hasTerritory(code: string): boolean {
+    hasTerritory(code: string): boolean {
     return this.territories.has(code)
   }
 
@@ -192,10 +162,7 @@ export class CompositeConfiguration {
     }
   }
 
-  /**
-   * Create a CompositeConfiguration from serialized data
-   */
-  static fromJSON(data: SerializedCompositeConfig): CompositeConfiguration {
+    static fromJSON(data: SerializedCompositeConfig): CompositeConfiguration {
     const composite = new CompositeConfiguration(
       data.atlasId,
       data.atlasName,
@@ -210,10 +177,7 @@ export class CompositeConfiguration {
     return composite
   }
 
-  /**
-   * Validate a territory configuration
-   */
-  private validateTerritory(config: TerritoryProjectionConfig): void {
+    private validateTerritory(config: TerritoryProjectionConfig): void {
     if (!config.code || config.code.trim() === '') {
       throw new CompositeConfigurationError('Territory code is required')
     }

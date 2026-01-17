@@ -37,17 +37,11 @@ export function useParameterProvider() {
    * Implements ProjectionParameterProvider interface
    */
   const parameterProvider: ProjectionParameterProvider = {
-    /**
-     * Get effective parameters for a territory (with inheritance)
-     */
-    getEffectiveParameters: (territoryCode: TerritoryCode) => {
+        getEffectiveParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getEffectiveParameters(territoryCode)
     },
 
-    /**
-     * Get exportable parameters for a territory (only overrides)
-     */
-    getExportableParameters: (territoryCode: TerritoryCode) => {
+        getExportableParameters: (territoryCode: TerritoryCode) => {
       return parameterStore.getExportableParameters(territoryCode)
     },
   }

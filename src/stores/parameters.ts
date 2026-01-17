@@ -42,9 +42,7 @@ export const useParameterStore = defineStore('parameters', () => {
   const globalParametersVersion = ref(0)
   const territoryParametersVersion = ref(0)
 
-  /**
-   */
-  function initialize(atlasParams?: ProjectionParameters) {
+    function initialize(atlasParams?: ProjectionParameters) {
     if (atlasParams) {
       parameterManager.setAtlasParameters(atlasParams)
     }
@@ -125,22 +123,16 @@ export const useParameterStore = defineStore('parameters', () => {
 
   // Territory-specific helper methods (migration from territory store)
 
-  /**
-   */
-  function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
+    function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
     setTerritoryParameter(territoryCode, 'projectionId', projectionId)
   }
 
-  /**
-   */
-  function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {
+    function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {
     const effective = getEffectiveParameters(territoryCode)
     return effective.projectionId as ProjectionId | undefined
   }
 
-  /**
-   */
-  function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
+    function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
     const effective = getEffectiveParameters(territoryCode)
     const currentOffset = effective.translateOffset ?? [0, 0]
     const newOffset: [number, number] = axis === 'x'
@@ -340,9 +332,7 @@ export const useParameterStore = defineStore('parameters', () => {
     }
   }
 
-  /**
-   */
-  function initializeFromPreset(
+    function initializeFromPreset(
     atlasParams: ProjectionParameters,
     territoryParams: Record<string, ProjectionParameters>,
   ): ValidationResult[] {
@@ -367,9 +357,7 @@ export const useParameterStore = defineStore('parameters', () => {
     return errors
   }
 
-  /**
-   */
-  function getExportableParameters(territoryCode: string): ProjectionParameters {
+    function getExportableParameters(territoryCode: string): ProjectionParameters {
     // Convert: public API accepts string
     const params = getEffectiveParameters(territoryCode as TerritoryCode)
     const exportable = parameterRegistry.getExportable()

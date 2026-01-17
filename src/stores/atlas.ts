@@ -95,9 +95,7 @@ export const useAtlasStore = defineStore('atlas', () => {
     return currentAtlasConfig.value?.territoryModeOptions ?? []
   })
 
-  /**
-   */
-  const defaultTerritoryMode = computed(() => {
+    const defaultTerritoryMode = computed(() => {
     if (territoryModeOptions.value.length > 0) {
       return territoryModeOptions.value[0]!.value
     }

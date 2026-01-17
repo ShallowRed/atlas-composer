@@ -41,9 +41,7 @@ export interface TerritoryTransforms {
    */
   setTerritoryScale: (territoryCode: TerritoryCode, value: number) => void
 
-  /**
-   */
-  setTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
+    setTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
 
   /**
    * Reset transforms to defaults
@@ -86,13 +84,9 @@ export interface AtlasData {
    */
   showSkeleton: Ref<boolean>
 
-  /**
-   */
-  initialize: () => Promise<void>
+    initialize: () => Promise<void>
 
-  /**
-   */
-  loadDataForViewMode: (viewMode: string) => Promise<void>
+    loadDataForViewMode: (viewMode: string) => Promise<void>
 
   reinitialize: () => Promise<void>
   reloadUnifiedData: () => Promise<void>
@@ -128,9 +122,7 @@ export interface TerritoryCursor {
   hoveredTerritoryCode: ComputedRef<string | null>
   isTerritoryDraggable: (territoryCode: string) => boolean
 
-  /**
-   */
-  getCursorStyle: (territoryCode: string | null) => string
+    getCursorStyle: (territoryCode: string | null) => string
 
   /**
    * Handle mouse down on territory element

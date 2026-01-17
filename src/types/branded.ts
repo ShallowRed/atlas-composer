@@ -53,52 +53,36 @@ export type TerritoryCode = Brand<string, 'TerritoryCode'>
 // Constructor Functions
 // Runtime no-op, compile-time type branding
 
-/**
- */
 export function createAtlasId(id: string): AtlasId {
   return id as AtlasId
 }
 
-/**
- */
 export function createProjectionId(id: string): ProjectionId {
   return id as ProjectionId
 }
 
-/**
- */
 export function createPresetId(id: string): PresetId {
   return id as PresetId
 }
 
-/**
- */
 export function createTerritoryCode(code: string): TerritoryCode {
   return code as TerritoryCode
 }
 
 // Type Guards
 
-/**
- */
 export function isAtlasId(value: unknown): value is AtlasId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- */
 export function isProjectionId(value: unknown): value is ProjectionId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- */
 export function isPresetId(value: unknown): value is PresetId {
   return typeof value === 'string' && value.length > 0
 }
 
-/**
- */
 export function isTerritoryCode(value: unknown): value is TerritoryCode {
   return typeof value === 'string' && value.length > 0
 }

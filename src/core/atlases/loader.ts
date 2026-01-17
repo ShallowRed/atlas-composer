@@ -16,9 +16,6 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
-/**
- * Get fallback projection parameters for atlas (sync version)
- */
 function getFallbackProjectionParameters(atlasId: string): ProjectionParameters {
   // Basic fallback parameters - these will be updated async in background
   const baseParams: ProjectionParameters = {
@@ -44,9 +41,6 @@ function getFallbackProjectionParameters(atlasId: string): ProjectionParameters 
   }
 }
 
-/**
- * Get fallback projection preferences for atlas (sync version)
- */
 function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
   // Basic fallback preferences - these will be updated async in background
   switch (atlasId) {
@@ -217,9 +211,6 @@ function createTerritoryCollections(
   return result
 }
 
-/**
- * Create GeoDataConfig
- */
 function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerritories): GeoDataConfig {
   const baseUrl = import.meta.env.BASE_URL
 
@@ -239,9 +230,6 @@ function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerrito
   }
 }
 
-/**
- * Create RegionConfig
- */
 /**
  * Create the main atlas configuration object
  * Resolves i18n values for atlas-level fields

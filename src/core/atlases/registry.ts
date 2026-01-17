@@ -148,9 +148,6 @@ export async function preloadDefaultAtlas(): Promise<void> {
   }
 }
 
-/**
- * Check if an atlas is loaded in cache
- */
 export function isAtlasLoaded(atlasId: string): boolean {
   return LOADED_CONFIGS.has(atlasId)
 }
@@ -179,25 +176,16 @@ export function getLoadedConfig(atlasId: string): LoadedAtlasConfig {
   }
 }
 
-/**
- * Get atlas configuration (for stores and UI)
- */
 export function getAtlasConfig(atlasId: string): AtlasConfig {
   const loaded = getLoadedConfig(atlasId)
   return loaded.atlasConfig
 }
 
-/**
- * Get atlas-specific configuration (projection params, modes, groups)
- */
 export function getAtlasSpecificConfig(atlasId: string): AtlasSpecificConfig {
   const loaded = getLoadedConfig(atlasId)
   return loaded.atlasSpecificConfig
 }
 
-/**
- * Get projection parameters for an atlas
- */
 export function getProjectionParams(atlasId: string): ProjectionParameters {
   return getAtlasSpecificConfig(atlasId).projectionParams
 }
@@ -211,24 +199,15 @@ export function getAtlasBehavior(atlasId: string): AtlasRegistryBehavior | undef
   return entry?.behavior
 }
 
-/**
- * Get territories for an atlas
- */
 export function getAtlasTerritories(atlasId: string) {
   const loaded = getLoadedConfig(atlasId)
   return loaded.territories
 }
 
-/**
- * Get first territory for an atlas (convenience accessor)
- */
 export function getFirstTerritory(atlasId: string) {
   return getAtlasTerritories(atlasId).first
 }
 
-/**
- * Get all territories for an atlas
- */
 export function getAllTerritories(atlasId: string) {
   return getAtlasTerritories(atlasId).all
 }
@@ -307,16 +286,10 @@ export function getAvailableAtlasesGrouped(): AtlasGroup[] {
     })
 }
 
-/**
- * Check if an atlas exists in the registry
- */
 export function hasAtlas(atlasId: string): boolean {
   return CONFIG_PATHS.has(atlasId)
 }
 
-/**
- * Get list of all atlas IDs
- */
 export function getAtlasIds(): string[] {
   return Array.from(CONFIG_PATHS.keys())
 }
@@ -388,9 +361,6 @@ export function getDefaultPresetForViewMode(
   return firstPreset
 }
 
-/**
- * Get a specific preset by ID for an atlas
- */
 export function getPresetById(atlasId: AtlasId, presetId: PresetId) {
   const presets = getAtlasPresets(atlasId)
   return presets.find(p => p.id === presetId)

@@ -12,10 +12,7 @@ export function useProjectionConfig() {
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
 
-  /**
-   * Get projection for a specific territory
-   */
-  function getTerritoryProjection(territoryCode: string) {
+    function getTerritoryProjection(territoryCode: string) {
     // In split or composite-custom mode, use per-territory projections
     if (viewStore.viewMode === 'split' || viewStore.viewMode === 'composite-custom') {
       // Convert: territoryCode parameter is string from various sources

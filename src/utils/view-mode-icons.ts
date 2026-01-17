@@ -12,8 +12,6 @@ const VIEW_MODE_ICONS: Record<ViewMode, string> = {
   'unified': 'ri-globe-line',
 }
 
-/**
- */
 export function getViewModeIcon(viewMode: ViewMode): string {
   return VIEW_MODE_ICONS[viewMode] || 'ri-layout-grid-line'
 }

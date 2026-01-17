@@ -294,9 +294,6 @@ export function loadCompositeProjection(
   return composite as ProjectionLike
 }
 
-/**
- * Create a sub-projection for a single territory
- */
 function createSubProjection(
   territory: Territory,
   width: number,

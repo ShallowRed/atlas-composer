@@ -215,16 +215,10 @@ export const catalog: PresetCatalog = {
   },
 }
 
-/**
- * Get all preset metadata as an array.
- */
 export function getAllPresets(): PresetMetadata[] {
   return Object.values(catalog.presets)
 }
 
-/**
- * Get preset metadata by ID.
- */
 export function getPresetMetadata(id: string): PresetMetadata | undefined {
   return catalog.presets[id]
 }

@@ -102,9 +102,6 @@ export function registerAllD3Projections(
   registerFn(d3ProjectionFactories)
 }
 
-/**
- * Get list of available D3 projection IDs
- */
 export function getAvailableD3Projections(): string[] {
   return Object.keys(d3ProjectionFactories)
 }

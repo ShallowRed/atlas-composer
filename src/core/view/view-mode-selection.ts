@@ -91,10 +91,7 @@ export class ViewModeSelection {
     return this.mode === 'built-in-composite'
   }
 
-  /**
-   * Check if this view mode is a composite mode (either type)
-   */
-  isComposite(): boolean {
+    isComposite(): boolean {
     return this.requiresCompositeProjection()
   }
 
@@ -107,10 +104,7 @@ export class ViewModeSelection {
     return this.mode === 'split'
   }
 
-  /**
-   * Check if this is split mode
-   */
-  isSplit(): boolean {
+    isSplit(): boolean {
     return this.mode === 'split'
   }
 
@@ -150,24 +144,15 @@ export class ViewModeSelection {
     return this.mode === 'unified' || this.mode === 'built-in-composite'
   }
 
-  /**
-   * Get a string representation for debugging
-   */
-  toString(): string {
+    toString(): string {
     return `ViewModeSelection(${this.mode})`
   }
 
-  /**
-   * Get all valid view modes
-   */
-  static validModes(): readonly ViewMode[] {
+    static validModes(): readonly ViewMode[] {
     return VALID_VIEW_MODES
   }
 
-  /**
-   * Create from a string with validation
-   */
-  static fromString(value: string): ViewModeSelection | null {
+    static fromString(value: string): ViewModeSelection | null {
     if (VALID_VIEW_MODES.includes(value as ViewMode)) {
       return new ViewModeSelection(value as ViewMode)
     }

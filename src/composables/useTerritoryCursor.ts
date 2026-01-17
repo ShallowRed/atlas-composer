@@ -98,10 +98,7 @@ export function useTerritoryCursor() {
     }
   }
 
-  /**
-   * Create temporary border for visual feedback when composition borders are disabled
-   */
-  function createTemporaryBorder(svg: SVGSVGElement, territoryCode: string, isDragging: boolean) {
+    function createTemporaryBorder(svg: SVGSVGElement, territoryCode: string, isDragging: boolean) {
     // Remove any existing temporary borders
     select(svg).selectAll('.temporary-composition-border').remove()
 
@@ -173,10 +170,7 @@ export function useTerritoryCursor() {
     return null
   }
 
-  /**
-   * Get cursor style for territory element based on drag state
-   */
-  function getCursorStyle(territoryCode: string | null): string {
+    function getCursorStyle(territoryCode: string | null): string {
     if (!territoryCode || !isDragEnabled.value)
       return 'default'
 

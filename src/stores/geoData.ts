@@ -80,9 +80,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     })
   })
 
-  /**
-   */
-  const allActiveTerritories = computed(() => filteredTerritories.value) // Actions
+    const allActiveTerritories = computed(() => filteredTerritories.value) // Actions
   const initialize = async (atlasConfigOverride?: any) => {
     if (isInitialized.value)
       return
@@ -347,9 +345,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     renderKey.value++
   }
 
-  /**
-   */
-  const setReinitializing = (value: boolean) => {
+    const setReinitializing = (value: boolean) => {
     isReinitializing.value = value
   }
 
