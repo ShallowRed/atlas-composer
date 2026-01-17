@@ -137,6 +137,9 @@ export interface ProjectionParameters {
   parallels?: [number, number]
   clipAngle?: number
   precision?: number
+  // Legacy export format support
+  focusLongitude?: number
+  focusLatitude?: number
 }
 
 export interface Layout {
@@ -360,12 +363,26 @@ function createSubProjection(
   // Create projection instance
   const projection = factory()
 
-  // Apply parameters
-  if (parameters.center && projection.center) {
+  // Convert legacy focusLongitude/focusLatitude to center/rotate
+  const hasFocus = parameters.focusLongitude !== undefined && parameters.focusLatitude !== undefined
+  const projFamily = territory.projection.family
+
+  // Apply parameters based on projection family
+  if (hasFocus && projFamily === 'CONIC' && projection.rotate) {
+    // Conic projections use rotate: [-focusLon, -focusLat, 0]
+    projection.rotate([-parameters.focusLongitude!, -parameters.focusLatitude!, 0])
+  }
+  else if (hasFocus && projection.center) {
+    // Other projections use center: [focusLon, focusLat]
+    projection.center([parameters.focusLongitude!, parameters.focusLatitude!])
+  }
+  else if (parameters.center && projection.center) {
+    // Standard center format
     projection.center(parameters.center)
   }
 
-  if (parameters.rotate && projection.rotate) {
+  if (parameters.rotate && projection.rotate && !hasFocus) {
+    // Only apply rotate if not already set by focusLongitude/focusLatitude
     // Ensure rotate has exactly 3 elements
     const rotate = Array.isArray(parameters.rotate)
       ? [...parameters.rotate, 0, 0].slice(0, 3) as [number, number, number]
