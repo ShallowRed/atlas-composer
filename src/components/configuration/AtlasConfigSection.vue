@@ -63,21 +63,30 @@ const { isCompositeCustomMode } = useViewState()
       :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
     />
-    <!-- Territory Selection (for unified and split modes) -->
-    <DropdownControl
-      v-if="viewOrchestration.shouldShowTerritorySelector.value"
-      v-model="viewStore.territoryMode"
-      :label="t('mode.select')"
-      icon="ri-map-pin-range-line"
-      :options="territoryModeOptions"
-    />
-    <!-- Territory Set Manager (for composite-custom mode) -->
-    <div v-if="isCompositeCustomMode">
-      <div class="text-sm font-medium text-base-content mb-3 flex items-center gap-2">
+    <!-- Territory Selection (collapsible) -->
+    <div
+      v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
+      class="collapse collapse-arrow border-y rounded-none border-base-300"
+    >
+      <input
+        type="checkbox"
+      >
+      <div class="collapse-title text-sm font-medium flex items-center gap-2">
         <i class="ri-map-pin-range-line" />
         <span>{{ t('mode.select') }}</span>
       </div>
-      <TerritorySetManager />
+      <div class="collapse-content">
+        <!-- Territory Selection (for unified and split modes) -->
+        <DropdownControl
+          v-if="viewOrchestration.shouldShowTerritorySelector.value"
+          v-model="viewStore.territoryMode"
+          :label="t('mode.select')"
+          icon="ri-map-pin-range-line"
+          :options="territoryModeOptions"
+        />
+        <!-- Territory Set Manager (for composite-custom mode) -->
+        <TerritorySetManager v-if="isCompositeCustomMode" />
+      </div>
     </div>
   </div>
 </template>

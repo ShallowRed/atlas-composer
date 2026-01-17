@@ -3,17 +3,27 @@
 ## Overview
 The export system enables users to use their custom composite projections outside Atlas composer:
 - **JSON Export** - Configuration data for import/backup/version control
-- **Code Export** - Ready-to-use code in D3.js (JS/TS) or Observable Plot
 - **NPM Package** - `@atlas-composer/projection-loader` for runtime loading
-- **Preset Creation** - Export configurations as presets for default atlas layouts
+- **External Documentation** - Links to Observable notebook and NPM package docs
+
+## User Interface
+
+### Export Dialog (CompositeExportDialog.vue)
+The export dialog provides a streamlined interface:
+1. **File Preview** - Shows filename and optional JSON preview toggle
+2. **Actions** - Copy JSON to clipboard or download as file
+3. **Documentation Links** - External links to usage resources:
+   - NPM package documentation (`@atlas-composer/projection-loader`)
+   - Observable notebook example
+
+Users export JSON configurations and use the projection-loader package to load them in their projects.
 
 ## Architecture
 
 ### Export Pipeline
 1. **Configuration Serialization** - Convert projection state to JSON
-2. **Code Generation** - Generate code that uses NPM loader package
-3. **User Delivery** - Copy to clipboard or download file
-4. **User Feedback** - Toast notifications for success/error
+2. **User Delivery** - Copy to clipboard or download file
+3. **User Feedback** - Toast notifications for success/error
 
 ### Import Pipeline
 1. **File Upload** - JSON file via modal dialog
@@ -24,15 +34,15 @@ The export system enables users to use their custom composite projections outsid
 ### Key Files
 - `src/services/export/composite-export-service.ts` - Export orchestration
 - `src/services/export/composite-import-service.ts` - Import validation & application
-- `src/services/export/code-generator.ts` - Code generation (D3/Plot)
-- `src/components/ui/CompositeExportDialog.vue` - Export UI
+- `src/services/export/code-generator.ts` - Code generation (service-only, for NPM package)
+- `src/components/ui/export/CompositeExportDialog.vue` - Export UI
 - `src/components/ui/ImportModal.vue` - Import UI
 - `packages/projection-loader/` - Standalone NPM package (loader implementation)
 
 ## Configuration Export (composite-export-service.ts)
 
 ### Registry-Based Export System
-Export system now integrates with the unified parameter registry for complete parameter coverage.
+The export system integrates with the unified parameter registry for complete parameter coverage.
 
 ### ExportedCompositeConfig Type
 Serialized projection configuration with:
@@ -58,6 +68,8 @@ Registry-integrated export with complete parameter coverage:
 
 ## Code Generation (code-generator.ts)
 
+> **Note**: Code generation is a service-only feature. The UI exports JSON configurations, which users load with the `@atlas-composer/projection-loader` package. The code generator remains available for programmatic use and for the NPM package documentation.
+
 ### Formats
 
 #### D3 JavaScript (generateD3JS)
@@ -68,11 +80,11 @@ function createCompositeProjection(width, height) {
     .center([2.5, 47])
     .rotate([-2.5, -47])
     // ... parameters
-  
-  const compositeProjection = d3.geoProjection(function(lon, lat) {
+
+  const compositeProjection = d3.geoProjection((lon, lat) => {
     // Stream multiplexing logic
   })
-  
+
   return compositeProjection
 }
 ```
@@ -170,11 +182,11 @@ Each territory has bounds `[[minLon, minLat], [maxLon, maxLat]]`.
 Point routing checks if point falls within any territory's bounds:
 ```javascript
 const epsilon = 1e-6
-const isInBounds = 
-  lon >= bounds[0][0] - epsilon && 
-  lon <= bounds[1][0] + epsilon &&
-  lat >= bounds[0][1] - epsilon && 
-  lat <= bounds[1][1] + epsilon
+const isInBounds
+  = lon >= bounds[0][0] - epsilon
+    && lon <= bounds[1][0] + epsilon
+    && lat >= bounds[0][1] - epsilon
+    && lat <= bounds[1][1] + epsilon
 ```
 
 Epsilon (1e-6) provides small tolerance for floating point comparisons.
@@ -226,6 +238,7 @@ Function: `getD3ProjectionFunction(projectionId: string): string`
 The service imports version information from `package.json` for embedded configuration metadata:
 ```typescript
 import packageJson from '../../../package.json'
+
 const version = packageJson.version || '1.0'
 ```
 
@@ -311,18 +324,18 @@ Generated code can be used in Observable notebooks, standalone HTML, or Node.js:
 Plot.plot({
   projection: createCompositeProjection,
   marks: [
-    Plot.geo(world, {stroke: "currentColor"})
+    Plot.geo(world, { stroke: 'currentColor' })
   ]
 })
 
 // In D3
-const svg = d3.select("svg")
+const svg = d3.select('svg')
 const projection = createCompositeProjection(960, 500)
 const path = d3.geoPath(projection)
-svg.selectAll("path")
+svg.selectAll('path')
   .data(features)
-  .join("path")
-  .attr("d", path)
+  .join('path')
+  .attr('d', path)
 ```
 
 ## Import System
@@ -537,16 +550,16 @@ import { createD3Projections } from '@atlas-composer/projection-loader/d3-helper
 ### Usage Pattern
 Generated code follows this pattern:
 ```typescript
-import { geoConicConformal } from 'd3-geo'
 import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+import { geoConicConformal } from 'd3-geo'
 
 export function createFranceProjection() {
   // Register projection factories
   registerProjection('conic-conformal', () => geoConicConformal())
-  
+
   // Embedded JSON configuration
   const config = { /* ExportedCompositeConfig */ }
-  
+
   // Load composite projection
   return loadCompositeProjection(config, { width: 800, height: 600 })
 }
@@ -582,18 +595,18 @@ The loader has NO dependencies on d3-geo or d3-geo-projection. Instead, users re
 #### Registration (Required First Step)
 ```typescript
 import * as d3 from 'd3-geo'
-import { 
-  registerProjection, 
-  registerProjections,
-  loadCompositeProjection 
+// Option 2: Bulk registration using helper
+import { d3ProjectionFactories } from './d3-projection-helpers'
+
+import {
+  loadCompositeProjection,
+  registerProjection,
+  registerProjections
 } from './standalone-projection-loader'
 
 // Option 1: Register projections individually
 registerProjection('mercator', () => d3.geoMercator())
 registerProjection('albers', () => d3.geoAlbers())
-
-// Option 2: Bulk registration using helper
-import { d3ProjectionFactories } from './d3-projection-helpers'
 registerProjections(d3ProjectionFactories)
 
 // Now load configuration
@@ -609,11 +622,11 @@ const projection = loadFromJSON(jsonString, { width: 800, height: 600 })
 
 // Or parse first, then load
 const config = JSON.parse(jsonString)
-validateConfig(config)  // throws if invalid
-const projection = loadCompositeProjection(config, { 
-  width: 800, 
+validateConfig(config) // throws if invalid
+const projection = loadCompositeProjection(config, {
+  width: 800,
   height: 600,
-  debug: true  // log territory selection
+  debug: true // log territory selection
 })
 
 // Use with D3
@@ -622,15 +635,15 @@ const path = d3.geoPath(projection)
 
 #### Registry Management
 ```typescript
-import { 
+import {
+  clearProjections,
   getRegisteredProjections,
   isProjectionRegistered,
-  unregisterProjection,
-  clearProjections 
+  unregisterProjection
 } from './standalone-projection-loader'
 
 // Check what's registered
-const projections = getRegisteredProjections()  // ['mercator', 'albers', ...]
+const projections = getRegisteredProjections() // ['mercator', 'albers', ...]
 
 // Check if specific projection is registered
 if (!isProjectionRegistered('mercator')) {
@@ -639,7 +652,7 @@ if (!isProjectionRegistered('mercator')) {
 
 // Cleanup
 unregisterProjection('mercator')
-clearProjections()  // remove all
+clearProjections() // remove all
 ```
 
 ### Features
@@ -663,11 +676,11 @@ Self-contained types without external dependencies:
 ### D3 Projection Helpers (Optional Companion)
 `d3-projection-helpers.ts` provides ready-to-use D3 mappings:
 ```typescript
-import { 
-  d3ProjectionFactories,    // All projections
-  mercator,                  // Individual (tree-shakeable)
+import {
   albers,
-  registerAllD3Projections 
+  d3ProjectionFactories, // All projections
+  mercator, // Individual (tree-shakeable)
+  registerAllD3Projections
 } from './d3-projection-helpers'
 
 // Use bulk registration

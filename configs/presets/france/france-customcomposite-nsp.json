@@ -22,15 +22,14 @@
         "parameters": {
           "rotate": [
             -3,
-            -46.2,
+            -46.5,
             0
           ],
           "parallels": [
-            0,
-            60
+            44,
+            49
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "conic-conformal"
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -71,8 +70,7 @@
             12,
             60
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -109,8 +107,7 @@
             -61.03,
             14.67
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -147,8 +144,7 @@
             -53.2,
             3.9
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -185,8 +181,7 @@
             55.52,
             -21.13
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
+          "scaleMultiplier": 1
         }
       },
       "layout": {
@@ -223,8 +218,7 @@
             45.16,
             -12.8
           ],
-          "scaleMultiplier": 1,
-          "projectionId": "mercator"
+          "scaleMultiplier": 1
         }
       },
       "layout": {

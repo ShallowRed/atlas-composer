@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { AtlasId } from '@/types/branded'
-import type { CodeGenerationOptions } from '@/types/export-config'
 import { computed, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
-import ButtonGroup from '@/components/ui/primitives/ButtonGroup.vue'
 import LabelWithIcon from '@/components/ui/primitives/LabelWithIcon.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useParameterProvider } from '@/composables/useParameterProvider'
@@ -37,12 +35,8 @@ const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { parameterProvider } = useParameterProvider()
 
-// Export options
-const exportFormat = ref<'json' | 'code'>('json')
-const codeFormat = ref<'d3' | 'plot'>('d3')
-const codeLanguage = ref<'javascript' | 'typescript'>('javascript')
-const includeComments = ref(true)
-const includeExamples = ref(true)
+// Show/hide preview
+const showPreview = ref(false)
 
 // Generated content
 const exportContent = computed(() => {
@@ -57,55 +51,20 @@ const exportContent = computed(() => {
     return '// No composite projection configuration available'
   }
 
-  if (exportFormat.value === 'json') {
-    // Convert: atlasConfig.id is loaded from JSON, needs to be branded AtlasId
-    const exported = CompositeExportService.exportToJSON(
-      cartographer.customComposite as any,
-      atlasConfig.id as AtlasId,
-      atlasConfig.name,
-      parameterProvider,
-      projectionStore.referenceScale,
-      projectionStore.canvasDimensions,
-    )
-    return JSON.stringify(exported, null, 2)
-  }
-  else {
-    // Convert: atlasConfig.id is loaded from JSON, needs to be branded AtlasId
-    const exported = CompositeExportService.exportToJSON(
-      cartographer.customComposite as any,
-      atlasConfig.id as AtlasId,
-      atlasConfig.name,
-      parameterProvider,
-      projectionStore.referenceScale,
-      projectionStore.canvasDimensions,
-    )
-
-    const options: CodeGenerationOptions = {
-      format: codeFormat.value,
-      language: codeLanguage.value,
-      includeComments: includeComments.value,
-      includeExamples: includeExamples.value,
-    }
-
-    return CompositeExportService.generateCode(exported, options)
-  }
-})
-
-const fileExtension = computed(() => {
-  if (exportFormat.value === 'json') {
-    return 'json'
-  }
-  else if (codeLanguage.value === 'typescript') {
-    return 'ts'
-  }
-  else {
-    return 'js'
-  }
+  const exported = CompositeExportService.exportToJSON(
+    cartographer.customComposite as any,
+    atlasConfig.id as AtlasId,
+    atlasConfig.name,
+    parameterProvider,
+    projectionStore.referenceScale,
+    projectionStore.canvasDimensions,
+  )
+  return JSON.stringify(exported, null, 2)
 })
 
 const fileName = computed(() => {
   const atlasId = atlasStore.selectedAtlasId || 'projection'
-  return `${atlasId}-projection.${fileExtension.value}`
+  return `${atlasId}-projection.json`
 })
 
 function close() {
@@ -115,7 +74,7 @@ function close() {
 function downloadFile() {
   try {
     const content = exportContent.value
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -156,132 +115,98 @@ function downloadSuccess() {
     max-width="2xl"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <!-- Export Format Selection -->
-    <div class="mb-4">
-      <LabelWithIcon
-        size="sm"
-        icon="ri-file-list-3-line"
-      >
-        {{ t('export.formatLabel') }}
-      </LabelWithIcon>
-      <ButtonGroup
-        v-model="exportFormat"
-        :options="[
-          { value: 'json', label: t('export.formatJson') },
-          { value: 'code', label: t('export.formatCode') },
-        ]"
-        full-width
-      />
-    </div>
-
-    <!-- Code Options (shown when format is 'code') -->
-    <div
-      v-if="exportFormat === 'code'"
-      class="mb-4 space-y-4"
-    >
-      <!-- Target Library -->
-      <div>
-        <LabelWithIcon
-          size="sm"
-          icon="ri-code-line"
-        >
-          {{ t('export.targetLibrary') }}
-        </LabelWithIcon>
-        <ButtonGroup
-          v-model="codeFormat"
-          :options="[
-            { value: 'd3', label: 'D3.js' },
-            { value: 'plot', label: 'Observable Plot' },
-          ]"
-          full-width
-        />
+    <!-- JSON Export Block -->
+    <div class="rounded-box border border-base-300 bg-base-200/50 p-4 mb-4">
+      <!-- File info -->
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <i class="ri-file-code-line text-lg text-primary" />
+          <span class="font-medium">{{ fileName }}</span>
+        </div>
       </div>
 
-      <!-- Language -->
-      <div>
-        <LabelWithIcon
-          size="sm"
-          icon="ri-code-line"
-        >
-          {{ t('export.language') }}
-        </LabelWithIcon>
-        <ButtonGroup
-          v-model="codeLanguage"
-          :options="[
-            { value: 'javascript', label: t('export.javascript') },
-            { value: 'typescript', label: t('export.typescript') },
-          ]"
-          full-width
-        />
-      </div>
-
-      <!-- Options -->
-      <LabelWithIcon
-        size="sm"
-        icon="ri-settings-3-line"
-      >
-        {{ t('export.options') }}
-      </LabelWithIcon>
-      <div class="flex gap-4">
-        <label class="label flex cursor-pointer items-center gap-2">
-          <input
-            v-model="includeComments"
-            type="checkbox"
-            class="toggle toggle-sm"
-          >
-          <span class="label-text text-sm">{{ t('export.includeComments') }}</span>
-        </label>
-        <label class="label flex cursor-pointer items-center gap-2">
-          <input
-            v-model="includeExamples"
-            type="checkbox"
-            class="toggle toggle-sm"
-          >
-          <span class="label-text text-sm">{{ t('export.includeExamples') }}</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Preview -->
-    <div class="mb-4 flex flex-col">
-      <div class="label">
-        <LabelWithIcon
-          size="sm"
-          icon="ri-eye-line"
-        >
-          {{ t('export.preview') }}
-        </LabelWithIcon>
-      </div>
-      <p class="badge mb-2">
-        {{ fileName }}
+      <p class="text-sm text-base-content/70">
+        {{ t('export.jsonDescription') }}
       </p>
-      <div class="mockup-code max-h-96 overflow-auto">
-        <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
+      <!-- Action buttons -->
+      <div class="flex gap-2 mt-4 justify-stretch items-stretch">
+        <button
+          class="btn btn-sm btn-outline gap-1 flex-1"
+          @click="showPreview = !showPreview"
+        >
+          <i :class="showPreview ? 'ri-eye-off-line' : 'ri-eye-line'" />
+          {{ showPreview ? t('export.hidePreview') : t('export.showPreview') }}
+        </button>
+        <button
+          class="btn btn-sm btn-outline gap-1 flex-1"
+          @click="copyToClipboard"
+        >
+          <i class="ri-file-copy-line" />
+          {{ t('export.copyToClipboard') }}
+        </button>
+        <button
+          class="btn btn-sm btn-outline btn-primary gap-1 flex-1"
+          @click="downloadFile"
+        >
+          <i class="ri-download-line" />
+          {{ t('export.downloadFile') }}
+        </button>
+      </div>
+      <!-- Preview (collapsible) -->
+      <div
+        v-if="showPreview"
+        class="mt-3"
+      >
+        <div class="mockup-code max-h-72 overflow-auto">
+          <pre class="px-6 py-4 text-xs"><code>{{ exportContent }}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage documentation section -->
+    <div>
+      <LabelWithIcon
+        size="sm"
+        icon="ri-book-open-line"
+      >
+        {{ t('export.howToUse') }}
+      </LabelWithIcon>
+      <p class="text-sm text-base-content/70 mb-3">
+        {{ t('export.usageDescription') }}
+      </p>
+
+      <!-- Documentation links -->
+      <div class="flex flex-col gap-2">
+        <a
+          href="https://www.npmjs.com/package/@atlas-composer/projection-loader"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link link-primary gap-2 justify-start"
+        >
+          <i class="ri-npmjs-line text-lg" />
+          {{ t('export.npmPackage') }}
+          <i class="ri-external-link-line ml-auto" />
+        </a>
+        <a
+          href="https://observablehq.com/@shallowred/atlas-composer"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link link-primary gap-2 justify-start"
+        >
+          <i class="ri-line-chart-line text-lg" />
+          {{ t('export.observableNotebook') }}
+          <i class="ri-external-link-line ml-auto" />
+        </a>
       </div>
     </div>
 
     <!-- Actions -->
     <template #actions>
       <button
-        class="btn btn-ghost flex gap-2"
+        class="btn btn-ghost gap-2"
         @click="close"
       >
-        {{ t('actions.cancel') }}
-        <i class="ri-close-line" />
-      </button>
-      <button
-        class="btn btn-outline flex gap-2"
-        @click="copyToClipboard"
-      >
-        {{ t('export.copyToClipboard') }}
-        <i class="ri-file-copy-line" />
-      </button>
-      <button
-        class="btn btn-primary flex gap-2"
-        @click="downloadFile"
-      >
-        {{ t('export.downloadFile') }}
-        <i class="ri-download-line" />
+        {{ t('actions.close') }}
       </button>
     </template>
   </Modal>

@@ -238,26 +238,20 @@
     }
   },
   "export": {
-    "title": "Exporter la Projection Composite",
-    "formatLabel": "Format d'Export",
-    "formatJson": "Configuration JSON",
-    "formatCode": "Code JavaScript/TypeScript",
-    "targetLibrary": "Bibliothèque Cible",
-    "language": "Langage",
-    "options": "Options",
-    "javascript": "JavaScript",
-    "typescript": "TypeScript",
-    "includeComments": "Inclure les commentaires",
-    "includeExamples": "Inclure les exemples d'utilisation",
-    "preview": "Aperçu",
-    "copyToClipboard": "Copier dans le Presse-papiers",
-    "downloadFile": "Télécharger le Fichier",
-    "copiedSuccess": "Copié dans le presse-papiers !",
-    "copyFailed": "Échec de la copie dans le presse-papiers",
-    "copySuccess": "Configuration copiée dans le presse-papiers avec succès !",
-    "copyError": "Échec de la copie dans le presse-papiers. Veuillez réessayer.",
-    "downloadSuccess": "Fichier téléchargé avec succès !",
-    "downloadError": "Échec du téléchargement du fichier. Veuillez réessayer."
+    "title": "Exporter la projection composite",
+    "jsonDescription": "Configuration JSON contenant tous les paramètres de la projection composite actuelle.",
+    "showPreview": "Afficher l'apercu",
+    "hidePreview": "Masquer l'apercu",
+    "howToUse": "Comment utiliser cette configuration",
+    "usageDescription": "Utilisez cette configuration JSON avec le package projection loader pour creer votre projection composite dans D3.js ou Observable Plot.",
+    "npmPackage": "Documentation du package NPM",
+    "observableNotebook": "Exemple Observable Notebook",
+    "copyToClipboard": "Copier le JSON",
+    "downloadFile": "Telecharger",
+    "copySuccess": "Configuration copiee dans le presse-papiers !",
+    "copyError": "Echec de la copie. Veuillez reessayer.",
+    "downloadSuccess": "Fichier telecharge avec succes !",
+    "downloadError": "Echec du telechargement. Veuillez reessayer."
   },
   "about": {
     "title": "À propos d'Atlas composer",
@@ -273,7 +267,7 @@
       "compositeCustom": "Créer des compositions personnalisées en positionnant les territoires de manière interactive",
       "split": "Voir les territoires séparément avec des projections optimisées",
       "unified": "Afficher tous les territoires dans une projection globale unique",
-      "export": "Exporter les configurations en JSON ou code prêt à l'emploi"
+      "export": "Exporter les configurations en JSON pour utilisation avec le projection loader"
     },
     "atlases": {
       "title": "Atlas disponibles (pour l'instant)",
