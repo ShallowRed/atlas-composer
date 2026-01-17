@@ -14,9 +14,8 @@ import {
   getAllTerritories as getAtlasAllTerritories,
   getAtlasBehavior,
   getAtlasConfig,
-  getOverseasTerritories as getAtlasOverseasTerritories,
   getAtlasSpecificConfig,
-  getMainlandTerritory,
+  getFirstTerritory,
 } from '@/core/atlases/registry'
 
 import { getTerritoriesForMode, getTerritoryByCode, getTerritoryNameFromArray } from '@/core/atlases/utils'
@@ -54,21 +53,14 @@ export class AtlasService {
   }
 
   /**
-   * Get mainland territory (if applicable)
+   * Get first/primary territory (for split view)
    */
-  getMainland(): TerritoryConfig | undefined {
-    return getMainlandTerritory(this.atlasId)
+  getFirstTerritory(): TerritoryConfig {
+    return getFirstTerritory(this.atlasId)
   }
 
   /**
-   * Get overseas/remote territories
-   */
-  getOverseasTerritories(): TerritoryConfig[] {
-    return getAtlasOverseasTerritories(this.atlasId)
-  }
-
-  /**
-   * Get all territories (mainland + overseas)
+   * Get all territories
    */
   getAllTerritories(): TerritoryConfig[] {
     return getAtlasAllTerritories(this.atlasId)
@@ -78,9 +70,9 @@ export class AtlasService {
    * Get territories for a specific mode
    */
   getTerritoriesForMode(mode: string): TerritoryConfig[] {
-    const overseas = this.getOverseasTerritories()
+    const allTerritories = this.getAllTerritories()
     return getTerritoriesForMode(
-      overseas,
+      allTerritories,
       mode,
       this.specificConfig.territoryModes,
     )
@@ -137,13 +129,6 @@ export class AtlasService {
   getTerritoryName(code: TerritoryCode): string {
     const all = this.getAllTerritories()
     return getTerritoryNameFromArray(all, code)
-  }
-
-  /**
-   * Check if atlas has mainland/overseas split
-   */
-  hasMainlandOverseasSplit(): boolean {
-    return !!this.getMainland()
   }
 
   /**

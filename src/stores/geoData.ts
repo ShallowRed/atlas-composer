@@ -33,18 +33,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const isReinitializing = ref(false) // Prevents renders during atlas switches
   const renderKey = ref(0) // Reactive key to trigger re-renders
 
-  // Territory data
-  const mainlandData = ref<GeoJSON.FeatureCollection | null>(null)
-  const overseasTerritoriesData = ref<Territory[]>([])
+  // Territory data - single array, first territory used as primary when needed
+  const territoriesData = ref<Territory[]>([])
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
-  // Computed
-  // Filter overseas/secondary territories based on view mode and territory mode
-  // Note: This does NOT include mainland - use mainlandData separately or allActiveTerritories for complete list
-  const overseasTerritories = computed(() => {
+  // Computed: first territory (used as primary in split view)
+  const firstTerritory = computed(() => territoriesData.value[0] ?? null)
+
+  // Computed: filter territories based on view mode and territory mode
+  const filteredTerritories = computed(() => {
     const atlasStore = useAtlasStore()
     const viewStore = useViewStore()
-    const territories = overseasTerritoriesData.value
+    const territories = territoriesData.value
 
     if (!territories || territories.length === 0) {
       return []
@@ -82,30 +82,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
   })
 
   /**
-   * Get all active territories including mainland (when applicable)
-   * Useful for operations that need to include both mainland and overseas
+   * Get all active territories (alias for filtered territories)
    */
-  const allActiveTerritories = computed(() => {
-    const atlasStore = useAtlasStore()
-    const atlasConfig = atlasStore.currentAtlasConfig
-    const mainlandCode = atlasConfig?.geoDataConfig?.mainlandCode
-
-    // Create a mainland territory object if we have mainland data
-    const mainlandTerritory: Territory | null = mainlandCode && mainlandData.value
-      ? {
-          code: mainlandCode,
-          name: atlasConfig?.splitModeConfig?.mainlandTitle || mainlandCode,
-          data: mainlandData.value,
-        } as Territory
-      : null
-
-    // Combine mainland and overseas territories
-    if (mainlandTerritory) {
-      return [mainlandTerritory, ...overseasTerritories.value]
-    }
-
-    return overseasTerritories.value
-  }) // Actions
+  const allActiveTerritories = computed(() => filteredTerritories.value) // Actions
   const initialize = async (atlasConfigOverride?: any) => {
     if (isInitialized.value)
       return
@@ -236,7 +215,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       error.value = null
 
       const service = cartographer.value.geoData
-      const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig.pattern)
+      const loader = TerritoryDataLoader.create()
       const result = await loader.loadUnifiedData(service, territoryMode, {
         atlasConfig: atlasStore.currentAtlasConfig,
         atlasService: atlasStore.atlasService,
@@ -285,11 +264,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
             throw new Error('Cartographer not initialized')
           }
           const service = cartographer.value.geoData
-          const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig!.pattern)
+          const loader = TerritoryDataLoader.create()
           const result = await loader.loadTerritories(service)
 
-          mainlandData.value = result.mainlandData
-          overseasTerritoriesData.value = result.territories
+          territoriesData.value = result.territories
           debug('Loaded %d territories', result.territories.length)
         })(),
 
@@ -298,7 +276,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
             throw new Error('Cartographer not initialized')
           }
           const service = cartographer.value.geoData
-          const loader = TerritoryDataLoader.fromPattern(atlasStore.currentAtlasConfig!.pattern)
+          const loader = TerritoryDataLoader.create()
           const result = await loader.loadUnifiedData(service, territoryMode, {
             atlasConfig: atlasStore.currentAtlasConfig!,
             atlasService: atlasStore.atlasService,
@@ -329,8 +307,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
    */
   const clearAllData = () => {
     debug('Clearing all geodata')
-    mainlandData.value = null
-    overseasTerritoriesData.value = []
+    territoriesData.value = []
     rawUnifiedData.value = null
     error.value = null
   }
@@ -350,8 +327,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     // Reset state
     isInitialized.value = false
-    mainlandData.value = null
-    overseasTerritoriesData.value = []
+    territoriesData.value = []
     rawUnifiedData.value = null
 
     const oldCartographer = cartographer.value
@@ -394,13 +370,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
     error,
     isInitialized,
     isReinitializing,
-    mainlandData,
-    overseasTerritoriesData,
+    territoriesData,
     rawUnifiedData,
     renderKey, // Expose render key for components to watch
 
     // Computed
-    overseasTerritories,
+    firstTerritory,
+    filteredTerritories,
     allActiveTerritories,
 
     // Actions

@@ -74,14 +74,14 @@ const showSphere = computed<boolean>(() => {
     viewMode: viewStore.viewMode,
     atlasConfig,
     hasPresets,
-    hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
+    hasOtherTerritories: geoDataStore.filteredTerritories.length > 0,
     isPresetLoading: false,
     showProjectionSelector: viewStore.showProjectionSelector,
     showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
-    isMainlandInTerritories: geoDataStore.allActiveTerritories.some(
-      t => t.code === atlasConfig.splitModeConfig?.mainlandCode || t.code === 'MAINLAND',
+    isPrimaryTerritoryInActive: geoDataStore.allActiveTerritories.some(
+      t => t.code === atlasConfig.splitModeConfig?.primaryTerritoryCode,
     ),
-    showMainland: atlasConfig.pattern === 'single-focus',
+    showPrimaryTerritory: geoDataStore.firstTerritory !== null,
   }
 
   return ViewOrchestrationService.shouldShowSphere(viewState)
@@ -367,7 +367,7 @@ async function renderMap() {
           try {
             // Get the data that was used for rendering by calling the same method the cartographer uses
             const territoryMode = viewStore.territoryMode
-            const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
+            const territoryCodes = geoDataStore.filteredTerritories?.map(t => t.code)
             geoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes)
           }
           catch (err) {
@@ -416,7 +416,7 @@ async function renderMap() {
         // For composite mode, try to get the unified data
         if (cartographer.value?.geoData) {
           const territoryMode = viewStore.territoryMode
-          const territoryCodes = geoDataStore.overseasTerritories?.map(t => t.code)
+          const territoryCodes = geoDataStore.filteredTerritories?.map(t => t.code)
           graticuleGeoData = await cartographer.value.geoData.getRawUnifiedData(territoryMode, territoryCodes) ?? undefined
         }
       }
@@ -498,7 +498,7 @@ async function renderComposite(): Promise<SVGSVGElement> {
     throw new Error('Cartographer not initialized')
   }
 
-  debug('renderComposite() starting - territories: %o', geoDataStore.overseasTerritories.map(t => t.code))
+  debug('renderComposite() starting - territories: %o', geoDataStore.filteredTerritories.map(t => t.code))
 
   const { width, height } = computedSize.value
 
@@ -545,7 +545,7 @@ async function renderComposite(): Promise<SVGSVGElement> {
     territoryProjections,
     territoryTranslations,
     // territoryScales removed - scale multipliers come from parameter store
-    overseasTerritories: geoDataStore.overseasTerritories,
+    territories: geoDataStore.filteredTerritories,
   })
 }
 

@@ -27,12 +27,12 @@ interface TerritoryGroup {
 
 // Get all territories that were loaded from the preset
 const loadedTerritories = computed(() => {
-  return geoDataStore.overseasTerritoriesData
+  return geoDataStore.territoriesData
 })
 
 // Get territories that are currently active (included in composite)
 const activeTerritories = computed(() => {
-  return geoDataStore.overseasTerritories
+  return geoDataStore.filteredTerritories
 })
 
 // Get the active territory codes as a Set for quick lookup

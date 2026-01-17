@@ -13,18 +13,18 @@ export interface ViewState {
   atlasConfig: AtlasConfig
   /** Whether the current atlas has presets available */
   hasPresets: boolean
-  /** Whether the current atlas has overseas territories */
-  hasOverseasTerritories: boolean
+  /** Whether the current atlas has other territories (beyond primary) */
+  hasOtherTerritories: boolean
   /** Whether a preset is currently loading */
   isPresetLoading: boolean
   /** Whether projection selector should be shown (from ProjectionUIService) */
   showProjectionSelector: boolean
   /** Whether individual projection selectors should be shown (from ProjectionUIService) */
   showIndividualProjectionSelectors: boolean
-  /** Whether mainland is in filtered territories */
-  isMainlandInTerritories: boolean
-  /** Whether to show mainland section (for single-focus patterns) */
-  showMainland: boolean
+  /** Whether primary territory is in filtered territories */
+  isPrimaryTerritoryInActive: boolean
+  /** Whether to show primary territory section (for split view) */
+  showPrimaryTerritory: boolean
 }
 
 /**
@@ -160,20 +160,20 @@ export class ViewOrchestrationService {
   }
 
   /**
-   * Determine if mainland accordion section should be shown
+   * Determine if primary territory accordion section should be shown
    *
-   * Mainland section is shown when:
-   * - Atlas has mainland configuration (showMainland = true), OR
-   * - Mainland is present in filtered territories list
+   * Primary territory section is shown when:
+   * - Atlas has primary territory configuration (showPrimaryTerritory = true), OR
+   * - Primary territory is present in filtered territories list
    *
    * Always uses individual projections in split/composite-custom modes
    */
-  static shouldShowMainlandAccordion(state: ViewState): boolean {
-    return state.showMainland || state.isMainlandInTerritories
+  static shouldShowPrimaryTerritoryAccordion(state: ViewState): boolean {
+    return state.showPrimaryTerritory || state.isPrimaryTerritoryInActive
   }
 
   /**
-   * Determine if projection dropdown should be shown in mainland/territory accordions
+   * Determine if projection dropdown should be shown in territory accordions
    *
    * Projection dropdown is shown when NOT in composite-custom mode
    * (In composite-custom, we show parameter controls instead)
@@ -190,23 +190,23 @@ export class ViewOrchestrationService {
    * Determine if empty state should be shown in territory controls
    *
    * Empty state is shown when:
-   * - No overseas territories AND
-   * - No mainland available to show
+   * - No other territories AND
+   * - No primary territory available to show
    *
    * This indicates there's nothing to configure
    */
   static shouldShowEmptyState(state: ViewState): boolean {
-    const noOverseas = !state.hasOverseasTerritories
-    const hasMainlandToShow = state.showMainland || state.isMainlandInTerritories
-    return noOverseas && !hasMainlandToShow
+    const noOtherTerritories = !state.hasOtherTerritories
+    const hasPrimaryToShow = state.showPrimaryTerritory || state.isPrimaryTerritoryInActive
+    return noOtherTerritories && !hasPrimaryToShow
   }
 
   /**
    * Get appropriate empty state message
    */
   static getEmptyStateMessage(state: ViewState): string {
-    if (!state.hasOverseasTerritories) {
-      return 'territory.noOverseas'
+    if (!state.hasOtherTerritories) {
+      return 'territory.noTerritories'
     }
     return 'territory.noTerritories'
   }

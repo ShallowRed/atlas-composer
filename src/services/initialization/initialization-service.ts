@@ -900,7 +900,7 @@ export class InitializationService {
     const geoDataStore = useGeoDataStore()
 
     // Check if data is already loaded
-    const hasTerritoryData = geoDataStore.overseasTerritoriesData.length > 0
+    const hasTerritoryData = geoDataStore.territoriesData.length > 0
     const hasUnifiedData = geoDataStore.rawUnifiedData !== null
 
     if (hasTerritoryData && hasUnifiedData) {

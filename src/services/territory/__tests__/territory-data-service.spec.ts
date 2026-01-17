@@ -9,7 +9,7 @@ type ParameterStore = ReturnType<typeof useParameterStore>
 describe('territoryDataService', () => {
   // Mock stores
   const createMockGeoDataStore = (): Partial<GeoDataStore> => ({
-    overseasTerritories: [
+    filteredTerritories: [
       { code: 'FR-GP', name: 'Guadeloupe', area: 1000, region: 'Caribbean', data: { type: 'FeatureCollection', features: [] } },
       { code: 'FR-MQ', name: 'Martinique', area: 1000, region: 'Caribbean', data: { type: 'FeatureCollection', features: [] } },
     ] as any,
@@ -101,7 +101,7 @@ describe('territoryDataService', () => {
 
     it('should handle empty territories', () => {
       const geoDataStore = {
-        overseasTerritories: [],
+        filteredTerritories: [],
       } as unknown as GeoDataStore
       const parameterStore = createMockParameterStore() as ParameterStore
 

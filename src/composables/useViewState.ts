@@ -2,7 +2,6 @@ import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAtlasPresets } from '@/core/atlases/registry'
-import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -72,22 +71,19 @@ export function useViewState() {
   )
 
   // Helper computed properties for ViewState
-  const showMainland = computed(() => {
+  const showPrimaryTerritory = computed(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
-    if (!atlasConfig)
-      return false
-    const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
-    return patternService.isSingleFocus()
+    return !!atlasConfig?.splitModeConfig?.primaryTerritoryCode
   })
 
-  const mainlandCode = computed(() => {
+  const primaryTerritoryCode = computed(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
-    return atlasConfig?.splitModeConfig?.mainlandCode || 'MAINLAND'
+    return atlasConfig?.splitModeConfig?.primaryTerritoryCode || 'PRIMARY'
   })
 
-  const isMainlandInTerritories = computed(() => {
-    // Check if mainland is in the all active territories list
-    return geoDataStore.allActiveTerritories.some(t => t.code === mainlandCode.value)
+  const isPrimaryTerritoryInActive = computed(() => {
+    // Check if primary territory is in the all active territories list
+    return geoDataStore.allActiveTerritories.some(t => t.code === primaryTerritoryCode.value)
   })
 
   /**
@@ -107,12 +103,12 @@ export function useViewState() {
       viewMode: viewStore.viewMode,
       atlasConfig,
       hasPresets,
-      hasOverseasTerritories: geoDataStore.overseasTerritories.length > 0,
+      hasOtherTerritories: geoDataStore.otherTerritories.length > 0,
       isPresetLoading: false,
       showProjectionSelector: viewStore.showProjectionSelector,
       showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
-      isMainlandInTerritories: isMainlandInTerritories.value,
-      showMainland: showMainland.value,
+      isPrimaryTerritoryInActive: isPrimaryTerritoryInActive.value,
+      showPrimaryTerritory: showPrimaryTerritory.value,
     }
   })
 

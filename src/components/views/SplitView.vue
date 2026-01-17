@@ -8,7 +8,6 @@ import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
-import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useProjectionStore } from '@/stores/projection'
@@ -19,28 +18,23 @@ const atlasStore = useAtlasStore()
 const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
 
-const { getMainlandProjection, getTerritoryProjection } = useProjectionConfig()
+const { getPrimaryTerritoryProjection, getTerritoryProjection } = useProjectionConfig()
 
 /**
- * Pattern detection - kept local to this component
- * This computed property determines if the atlas uses a single-focus pattern
- * (one primary + N secondary territories) to render appropriate layout.
- * Not extracted to composable as it's only used here.
+ * Check if atlas has a primary territory for split view
+ * This determines if we show the two-panel layout (primary + others)
  */
-const isSingleFocusPattern = computed(() => {
+const hasPrimaryTerritory = computed(() => {
   const atlasConfig = atlasStore.currentAtlasConfig
-  if (!atlasConfig)
-    return false
-  const patternService = AtlasPatternService.fromPattern(atlasConfig.pattern)
-  return patternService.isSingleFocus()
+  return !!atlasConfig?.splitModeConfig?.primaryTerritoryCode
 })
 
 // Safe accessors for atlas config with fallbacks
-const mainlandTitle = computed(() =>
-  atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandTitle ?? 'territory.mainland',
+const primaryTitle = computed(() =>
+  atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTitle ?? 'territory.primary',
 )
-const territoriesTitle = computed(() =>
-  atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
+const otherTerritoriesTitle = computed(() =>
+  atlasStore.currentAtlasConfig?.splitModeConfig?.otherTerritoriesTitle ?? 'territory.territories',
 )
 
 /**
@@ -106,7 +100,7 @@ const groupingOptions = computed(() => {
  */
 const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const collections = atlasCollections.value
-  const territories = geoDataStore.overseasTerritories
+  const territories = geoDataStore.filteredTerritories
 
   // Guard: Ensure we're looking at the right atlas's data
   // If atlas is loading, territories might be stale from previous atlas
@@ -123,8 +117,8 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   if (!collectionSetKey) {
     // No collection set defined - show all territories without grouping
     // Create a single anonymous group with all territories
-    const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
-    const allTerritories = territories.filter(t => t.code !== mainlandCode)
+    const primaryCode = atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode
+    const allTerritories = territories.filter(t => t.code !== primaryCode)
 
     if (allTerritories.length === 0) {
       return new Map()
@@ -139,7 +133,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     return new Map()
   }
 
-  const mainlandCode = atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode
+  const primaryCode = atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode
   const territoriesByCode = new Map(territories.map(t => [t.code, t]))
 
   // Convert territory collections to Map<label, Territory[]>
@@ -148,7 +142,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   for (const collection of collectionSet.collections) {
     const groupTerritories = collection.codes
-      .filter(code => code !== mainlandCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
+      .filter(code => code !== primaryCode && code !== '*' && territoriesByCode.has(code as TerritoryCode))
       .map(code => territoriesByCode.get(code as TerritoryCode)!)
       .filter(t => t !== undefined)
 
@@ -162,9 +156,9 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 </script>
 
 <template>
-  <!-- Single-focus pattern: Primary + Secondary split layout (France, Portugal, USA) -->
+  <!-- Primary territory + other territories split layout -->
   <div
-    v-if="isSingleFocusPattern"
+    v-if="hasPrimaryTerritory"
     class="flex flex-row flex-wrap gap-4"
   >
     <!-- Grouping dropdown -->
@@ -180,13 +174,13 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     <div :class="{ 'flex-1': !projectionStore.scalePreservation }">
       <h3 class="text-base font-semibold mb-4">
         <i class="ri-map-pin-range-line" />
-        {{ t(mainlandTitle) }}
+        {{ t(primaryTitle) }}
       </h3>
       <MapRenderer
-        :geo-data="geoDataStore.mainlandData"
-        is-mainland
-        :projection="getMainlandProjection()"
-        :territory-code="atlasStore.currentAtlasConfig?.splitModeConfig?.mainlandCode ? createTerritoryCode(atlasStore.currentAtlasConfig.splitModeConfig.mainlandCode) : undefined"
+        :geo-data="geoDataStore.primaryTerritoryData"
+        is-primary
+        :projection="getPrimaryTerritoryProjection()"
+        :territory-code="atlasStore.currentAtlasConfig?.splitModeConfig?.primaryTerritoryCode ? createTerritoryCode(atlasStore.currentAtlasConfig.splitModeConfig.primaryTerritoryCode) : undefined"
         :full-height="false"
         :width="500"
         :height="400"
@@ -197,7 +191,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-semibold">
           <i class="ri-map-pin-add-line" />
-          {{ t(territoriesTitle) }}
+          {{ t(otherTerritoriesTitle) }}
         </h3>
       </div>
 
@@ -241,7 +235,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
         <!-- Empty State -->
         <div
-          v-if="geoDataStore.overseasTerritories.length === 0"
+          v-if="geoDataStore.filteredTerritories.length === 0"
           class="text-gray-500"
         >
           <p>{{ t('territory.noTerritories') }}</p>
@@ -260,7 +254,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
     <!-- Territories Grid (flat, no region grouping) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div
-        v-for="territory in geoDataStore.overseasTerritories"
+        v-for="territory in geoDataStore.filteredTerritories"
         :key="territory.code"
         class="flex flex-col"
       >
@@ -283,7 +277,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
     <!-- Empty State -->
     <div
-      v-if="geoDataStore.overseasTerritories.length === 0"
+      v-if="geoDataStore.filteredTerritories.length === 0"
       class="text-gray-500"
     >
       <p>{{ t('territory.noTerritories') }}</p>

@@ -2,10 +2,6 @@ import type { Territory } from '@/stores/geoData'
 import type { TerritoryConfig } from '@/types'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'
-import { AtlasPatternService } from '@/services/atlas/atlas-pattern-service'
-import { logger } from '@/utils/logger'
-
-const debug = logger.data.loader
 
 // Using any for GeoDataService to avoid circular dependency and complex type issues
 type GeoDataService = any
@@ -14,7 +10,7 @@ type GeoDataService = any
  * Result of territory data loading operation
  */
 export interface TerritoryLoadResult {
-  mainlandData: GeoJSON.FeatureCollection | null
+  /** All territories */
   territories: Territory[]
 }
 
@@ -26,44 +22,30 @@ export interface UnifiedDataLoadResult {
 }
 
 /**
- * Strategy interface for loading territory data
- * Different atlas patterns require different loading strategies
+ * Territory data loader
+ * Loads all territories as equals (no hierarchy)
  */
-export interface TerritoryLoadStrategy {
+export class TerritoryDataLoader {
   /**
-   * Load territory data according to the pattern's requirements
+   * Create loader (no pattern needed - all territories are equal)
    */
-  loadTerritories: (service: GeoDataService) => Promise<TerritoryLoadResult>
-}
-
-/**
- * Loading strategy for single-focus atlases (France, Portugal, USA)
- * Loads primary territory separately from secondary territories
- */
-export class SingleFocusLoadStrategy implements TerritoryLoadStrategy {
-  async loadTerritories(service: GeoDataService): Promise<TerritoryLoadResult> {
-    const [mainland, overseas] = await Promise.all([
-      service.getMainLandData(),
-      service.getOverseasData(),
-    ])
-
-    return {
-      mainlandData: mainland,
-      territories: overseas || [],
-    }
+  static create(): TerritoryDataLoader {
+    return new TerritoryDataLoader()
   }
-}
 
-/**
- * Loading strategy for equal-members atlases (EU, World)
- * Loads all territories as equal individual territories
- */
-export class EqualMembersLoadStrategy implements TerritoryLoadStrategy {
+  /**
+   * Load territory data
+   * All territories loaded equally; first territory used as "primary" for split view
+   */
   async loadTerritories(service: GeoDataService): Promise<TerritoryLoadResult> {
     const allTerritoriesData = await service.getAllTerritories()
 
-    // Transform to the format expected by the UI
-    const territories = allTerritoriesData.map((territoryData: any) => ({
+    if (allTerritoriesData.length === 0) {
+      return { territories: [] }
+    }
+
+    // All territories as Territory objects
+    const territories: Territory[] = allTerritoriesData.map((territoryData: any) => ({
       name: territoryData.territory.name,
       code: territoryData.territory.code,
       area: territoryData.territory.area,
@@ -74,37 +56,7 @@ export class EqualMembersLoadStrategy implements TerritoryLoadStrategy {
       },
     }))
 
-    return {
-      mainlandData: null,
-      territories,
-    }
-  }
-}
-
-/**
- * Territory data loader with strategy pattern
- * Delegates loading logic to pattern-specific strategies
- */
-export class TerritoryDataLoader {
-  private strategy: TerritoryLoadStrategy
-
-  constructor(pattern: string) {
-    const patternService = AtlasPatternService.fromPattern(pattern as any)
-    this.strategy = this.selectStrategy(patternService)
-  }
-
-  /**
-   * Create loader from atlas pattern
-   */
-  static fromPattern(pattern: string): TerritoryDataLoader {
-    return new TerritoryDataLoader(pattern)
-  }
-
-  /**
-   * Load territory data using the appropriate strategy
-   */
-  async loadTerritories(service: GeoDataService): Promise<TerritoryLoadResult> {
-    return this.strategy.loadTerritories(service)
+    return { territories }
   }
 
   /**
@@ -166,22 +118,5 @@ export class TerritoryDataLoader {
       throw new Error('Failed to load unified data')
     }
     return { data }
-  }
-
-  /**
-   * Select the appropriate loading strategy based on atlas pattern
-   */
-  private selectStrategy(patternService: AtlasPatternService): TerritoryLoadStrategy {
-    if (patternService.isSingleFocus()) {
-      return new SingleFocusLoadStrategy()
-    }
-    else if (patternService.isEqualMembers()) {
-      return new EqualMembersLoadStrategy()
-    }
-    else {
-      // Default to equal members for unknown patterns
-      debug('Unknown pattern, defaulting to equal-members strategy')
-      return new EqualMembersLoadStrategy()
-    }
   }
 }

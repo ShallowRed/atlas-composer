@@ -65,7 +65,7 @@ export class TerritoryDataService {
    * Get list of territories
    */
   private getTerritories(): TerritoryData[] {
-    return this.geoDataStore.overseasTerritories.map((t): TerritoryData => ({
+    return this.geoDataStore.filteredTerritories.map((t): TerritoryData => ({
       code: t.code as TerritoryCode,
       name: t.name,
     }))

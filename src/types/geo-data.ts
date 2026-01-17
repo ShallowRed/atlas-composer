@@ -26,24 +26,8 @@ export interface GeoDataConfig {
   /** Name of the TopoJSON object containing territories (typically 'territories') */
   topologyObjectName: string
 
-  /**
-   * Optional code for the main/mainland territory
-   * Used for regions with mainland/overseas split (e.g., 'FR-MET', 'PT-CONT')
-   * Undefined for multi-mainland atlases where all territories are equal
-   */
-  mainlandCode?: string
-
-  /**
-   * Optional geographic bounds for mainland filtering
-   * Used to separate mainland from overseas territories
-   */
-  mainlandBounds?: BoundingBox
-
-  /**
-   * List of overseas/remote territories
-   * Empty array for regions without overseas territories
-   */
-  overseasTerritories: TerritoryConfig[]
+  /** All territories configured for this atlas */
+  territories: TerritoryConfig[]
 
   /**
    * Flag indicating wildcard territory loading (all territories from data file)

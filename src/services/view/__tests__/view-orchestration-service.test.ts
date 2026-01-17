@@ -18,14 +18,12 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
   const defaultAtlasConfig: AtlasConfig = {
     id: 'test',
     name: 'Test Atlas',
-    pattern: 'single-focus',
     hasTerritorySelector: true,
     geoDataConfig: {
       dataPath: '/data/test.json',
       metadataPath: '/data/test-metadata.json',
       topologyObjectName: 'territories',
-      mainlandCode: 'TEST-MAIN',
-      overseasTerritories: [],
+      territories: [{ code: 'TEST-MAIN', name: 'Test Main' }],
     },
   }
 
@@ -33,12 +31,12 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     viewMode: 'composite-custom',
     atlasConfig: defaultAtlasConfig,
     hasPresets: true,
-    hasOverseasTerritories: true,
+    hasOtherTerritories: true,
     isPresetLoading: false,
     showProjectionSelector: false,
     showIndividualProjectionSelectors: true,
-    isMainlandInTerritories: false,
-    showMainland: true,
+    isPrimaryTerritoryInActive: false,
+    showPrimaryTerritory: true,
     ...overrides,
   }
 }
@@ -223,28 +221,28 @@ describe('viewOrchestrationService', () => {
     })
   })
 
-  describe('shouldShowMainlandAccordion', () => {
-    it('should show mainland accordion with showMainland true', () => {
+  describe('shouldShowPrimaryTerritoryAccordion', () => {
+    it('should show primary territory accordion with showPrimaryTerritory true', () => {
       const state = createViewState({
-        showMainland: true,
+        showPrimaryTerritory: true,
       })
-      expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(true)
+      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(true)
     })
 
-    it('should show mainland accordion with mainland in territories', () => {
+    it('should show primary territory accordion with primary territory in active', () => {
       const state = createViewState({
-        showMainland: false,
-        isMainlandInTerritories: true,
+        showPrimaryTerritory: false,
+        isPrimaryTerritoryInActive: true,
       })
-      expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(true)
+      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(true)
     })
 
-    it('should NOT show mainland accordion when no mainland available', () => {
+    it('should NOT show primary territory accordion when no primary territory available', () => {
       const state = createViewState({
-        showMainland: false,
-        isMainlandInTerritories: false,
+        showPrimaryTerritory: false,
+        isPrimaryTerritoryInActive: false,
       })
-      expect(ViewOrchestrationService.shouldShowMainlandAccordion(state)).toBe(false)
+      expect(ViewOrchestrationService.shouldShowPrimaryTerritoryAccordion(state)).toBe(false)
     })
   })
 
@@ -266,26 +264,26 @@ describe('viewOrchestrationService', () => {
   })
 
   describe('shouldShowEmptyState', () => {
-    it('should show empty state when no overseas territories and no mainland', () => {
+    it('should show empty state when no territories and no primary territory', () => {
       const state = createViewState({
-        hasOverseasTerritories: false,
-        showMainland: false,
-        isMainlandInTerritories: false,
+        hasOtherTerritories: false,
+        showPrimaryTerritory: false,
+        isPrimaryTerritoryInActive: false,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(true)
     })
 
-    it('should NOT show empty state when mainland is available', () => {
+    it('should NOT show empty state when primary territory is available', () => {
       const state = createViewState({
-        hasOverseasTerritories: false,
-        showMainland: true,
+        hasOtherTerritories: false,
+        showPrimaryTerritory: true,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
     })
 
-    it('should NOT show empty state when overseas territories exist', () => {
+    it('should NOT show empty state when other territories exist', () => {
       const state = createViewState({
-        hasOverseasTerritories: true,
+        hasOtherTerritories: true,
       })
       expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
     })

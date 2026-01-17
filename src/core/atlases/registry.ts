@@ -220,21 +220,14 @@ export function getAtlasTerritories(atlasId: string) {
 }
 
 /**
- * Get mainland territory for an atlas
+ * Get first/primary territory for an atlas (for split view)
  */
-export function getMainlandTerritory(atlasId: string) {
-  return getAtlasTerritories(atlasId).mainland
+export function getFirstTerritory(atlasId: string) {
+  return getAtlasTerritories(atlasId).first
 }
 
 /**
- * Get overseas territories for an atlas
- */
-export function getOverseasTerritories(atlasId: string) {
-  return getAtlasTerritories(atlasId).overseas
-}
-
-/**
- * Get all territories (mainland + overseas) for an atlas
+ * Get all territories for an atlas
  */
 export function getAllTerritories(atlasId: string) {
   return getAtlasTerritories(atlasId).all

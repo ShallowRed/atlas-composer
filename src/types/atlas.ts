@@ -16,17 +16,17 @@ import type { GeoDataConfig } from '@/types/geo-data'
  * Split mode configuration
  *
  * Defines labels and codes for split view mode where
- * mainland and overseas territories are shown separately.
+ * the primary territory and other territories are shown separately.
  */
 export interface SplitModeConfig {
-  /** Title for mainland section (e.g., 'France Métropolitaine', 'Continental Portugal') */
-  mainlandTitle?: string
+  /** Title for primary territory section (e.g., 'France Métropolitaine', 'Continental Portugal') */
+  primaryTitle?: string
 
-  /** Code for mainland in territory controls (e.g., 'FR-MET', 'PT-CONT') */
-  mainlandCode?: string
+  /** Code for primary territory (e.g., 'FR-MET', 'PT-CONT') */
+  primaryTerritoryCode?: string
 
-  /** Title for territories section (e.g., 'Territoires ultramarins', 'Regiões autónomas') */
-  territoriesTitle: string
+  /** Title for other territories section (e.g., 'Territoires ultramarins', 'Regiões autónomas') */
+  otherTerritoriesTitle: string
 }
 
 /**
@@ -83,14 +83,6 @@ export interface AtlasConfig {
 
   /** Whether to show the territory selector in the UI */
   hasTerritorySelector?: boolean
-
-  /**
-   * Atlas pattern type - defines structural relationship between territories
-   * - 'single-focus': Single primary territory + N secondary territories (France, Portugal, USA)
-   * - 'equal-members': N equal member territories + optional secondary (EU, World, ASEAN)
-   * - 'hierarchical': Hierarchical parent-child structure (future: USA states, China provinces)
-   */
-  pattern: 'single-focus' | 'equal-members' | 'hierarchical'
 
   /**
    * Whether territories are loaded dynamically from data file (wildcard atlas)

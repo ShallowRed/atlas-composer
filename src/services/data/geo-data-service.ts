@@ -10,7 +10,7 @@ import { logger } from '@/utils/logger'
 const debug = logger.data.loader
 
 /**
- * Represents a territory (mainland or overseas)
+ * Represents a territory
  */
 export interface Territory {
   id: string // External data source ID
@@ -254,26 +254,21 @@ export class GeoDataService {
   }
 
   /**
-   * Returns the mainland territory geographic data
-   * @returns FeatureCollection containing mainland territory, or null if no mainland configured
+   * Returns the first/primary territory geographic data (for split view)
+   * @returns FeatureCollection containing first territory, or null if none
    */
-  async getMainLandData(): Promise<GeoJSON.FeatureCollection | null> {
+  async getPrimaryTerritoryData(): Promise<GeoJSON.FeatureCollection | null> {
     await this.ensureLoaded()
 
-    // Return null if this region doesn't have a mainland concept
-    if (!this.config.mainlandCode) {
+    const territories = Array.from(this.territoryData.values())
+    if (territories.length === 0) {
       return null
     }
 
-    const mainland = this.territoryData.get(this.config.mainlandCode)
-
-    if (!mainland)
-      return null
-
-    // Mainland is already pre-processed (DOM territories extracted at build time)
+    const primary = territories[0]
     return {
       type: 'FeatureCollection',
-      features: [mainland.feature],
+      features: [primary.feature],
     }
   }
 
@@ -299,38 +294,31 @@ export class GeoDataService {
   }
 
   /**
-   * Returns all overseas/remote territories geographic data
-   * All territories (including DOM and duplicates like FR-PF-2) are pre-processed at build time
-   * @returns Array of overseas territory objects with geographic and metadata
+   * Returns all territories geographic data as array
+   * All territories are treated equally
+   * @returns Array of territory objects with geographic and metadata
    */
-  async getOverseasData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
+  async getAllTerritoriesData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
     await this.ensureLoaded()
-    const overseasData = []
+    const territoriesData = []
 
-    // Add all overseas territories (pre-processed, already separated in source data)
-    // This includes:
-    // - Original overseas territories (FR-PM, FR-WF, FR-NC, FR-PF, FR-TF, FR-MF)
-    // - Extracted DOM territories (FR-GP, FR-MQ, FR-GF, FR-RE, FR-YT)
-    // - Duplicate projections (FR-PF-2)
     for (const [code, territoryData] of this.territoryData) {
-      if (code !== this.config.mainlandCode) {
-        // Find territory config to get region
-        const territoryConfig = this.config.overseasTerritories.find((t: TerritoryConfig) => t.code === code)
-        overseasData.push({
-          name: territoryData.territory.name,
-          code: territoryData.territory.code,
-          area: territoryData.territory.area,
-          region: territoryConfig?.region || 'Other',
-          data: {
-            type: 'FeatureCollection' as const,
-            features: [territoryData.feature],
-          },
-        })
-      }
+      // Find territory config to get region
+      const territoryConfig = this.config.territories.find((t: TerritoryConfig) => t.code === code)
+      territoriesData.push({
+        name: territoryData.territory.name,
+        code: territoryData.territory.code,
+        area: territoryData.territory.area,
+        region: territoryConfig?.region || 'Other',
+        data: {
+          type: 'FeatureCollection' as const,
+          features: [territoryData.feature],
+        },
+      })
     }
 
     // Sort by region then by area (largest first)
-    return overseasData.sort((a, b) => {
+    return territoriesData.sort((a, b) => {
       if (a.region !== b.region) {
         return a.region.localeCompare(b.region)
       }
@@ -341,69 +329,26 @@ export class GeoDataService {
   /**
    * Returns raw geographic data with original coordinates for composite projections
    * @param _mode - Display mode determining which territories to include (unused, kept for API compatibility)
-   * @param territoryCodes - Array of territory codes to include
-   * @returns Combined mainland and overseas data with ORIGINAL coordinates (no repositioning)
+   * @param territoryCodes - Array of territory codes to include (undefined = all)
+   * @returns Combined territory data with ORIGINAL coordinates (no repositioning)
    */
   async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.ensureLoaded()
 
-    // Handle regions without mainland concept (like EU, World)
-    if (!this.config.mainlandCode) {
-      if (!territoryCodes) {
-        return await this.getCompleteData()
-      }
-      // Filter features by territory codes
-      const allFeatures: GeoJSON.Feature[] = []
-      for (const code of territoryCodes) {
-        const territory = this.territoryData.get(code)
-        if (territory) {
-          allFeatures.push(territory.feature)
-        }
-      }
-      return { type: 'FeatureCollection', features: allFeatures }
+    // If no filter specified, return all territories
+    if (!territoryCodes) {
+      return await this.getCompleteData()
     }
 
-    // For regions with mainland
-    const unifiedFeatures: GeoJSON.Feature[] = []
-
-    // Always include mainland for composite projections
-    // The mainland code is typically not in territoryCodes (which only contains overseas territories)
-    const mainland = this.territoryData.get(this.config.mainlandCode)
-    if (mainland) {
-      // Always extract only the mainland region (not the complete MultiPolygon)
-      const mainlandData = await this.getMainLandData()
-      if (mainlandData) {
-        unifiedFeatures.push(...mainlandData.features)
+    // Filter features by territory codes
+    const allFeatures: GeoJSON.Feature[] = []
+    for (const code of territoryCodes) {
+      const territory = this.territoryData.get(code)
+      if (territory) {
+        allFeatures.push(territory.feature)
       }
     }
-
-    // Add overseas territories
-    const allOverseasData = await this.getOverseasData()
-
-    if (territoryCodes) {
-      // Filter territories based on provided codes
-      // If territoryCodes is empty array [], don't include any overseas territories
-      if (territoryCodes.length > 0) {
-        const filteredOverseas = allOverseasData.filter(territory =>
-          territoryCodes.includes(territory.code),
-        )
-        filteredOverseas.forEach((territory) => {
-          unifiedFeatures.push(...territory.data.features)
-        })
-      }
-      // else: empty array means no overseas territories (metropole-only mode)
-    }
-    else {
-      // territoryCodes is undefined: include all overseas territories
-      allOverseasData.forEach((territory) => {
-        unifiedFeatures.push(...territory.data.features)
-      })
-    }
-
-    return {
-      type: 'FeatureCollection',
-      features: unifiedFeatures,
-    }
+    return { type: 'FeatureCollection', features: allFeatures }
   }
 
   getTerritoryInfo(): Territory[] {

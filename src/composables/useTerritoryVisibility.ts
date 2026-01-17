@@ -56,8 +56,7 @@ export function useTerritoryVisibility() {
       return true // Show empty state if no atlas loaded
 
     return TerritoryVisibilityService.shouldShowEmptyState({
-      territoryCount: geoDataStore.overseasTerritories.length,
-      atlasPattern: atlasConfig.pattern,
+      territoryCount: geoDataStore.filteredTerritories.length,
       hasMainlandInActiveTerritories: isMainlandInTerritories.value,
     })
   })

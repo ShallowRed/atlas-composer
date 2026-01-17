@@ -87,11 +87,12 @@ export interface AtlasSpecificConfig {
 }
 
 export interface LoadedTerritories {
-  mainland: TerritoryConfig
-  mainlands: TerritoryConfig[]
-  overseas: TerritoryConfig[]
+  /** First territory (used as primary for split view) */
+  first: TerritoryConfig
+  /** All territories (equal, no hierarchy) */
   all: TerritoryConfig[]
-  isWildcard?: boolean // True if territories should be loaded dynamically from data file
+  /** True if territories should be loaded dynamically from data file */
+  isWildcard?: boolean
 }
 
 export interface LoadedAtlasConfig {
@@ -135,9 +136,7 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     }
 
     return {
-      mainland: placeholderTerritory,
-      mainlands: [placeholderTerritory],
-      overseas: [],
+      first: placeholderTerritory,
       all: [placeholderTerritory],
       isWildcard: true, // Flag for geo-data service
     }
@@ -150,13 +149,11 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     throw new Error(`No territories found in ${config.id}`)
   }
 
-  // Use first territory as representative (for backward compatibility with APIs expecting 'mainland')
+  // Use first territory as representative (for split view primary territory)
   const firstTerritory = allTerritories[0]!
 
   return {
-    mainland: firstTerritory, // First territory used as representative
-    mainlands: allTerritories, // All territories are equal
-    overseas: [], // No longer used for categorization
+    first: firstTerritory,
     all: allTerritories,
   }
 }
@@ -221,9 +218,6 @@ function createTerritoryCollections(
 }
 
 /**
- * Create composite projection defaults
- */
-/**
  * Create GeoDataConfig
  */
 function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerritories): GeoDataConfig {
@@ -238,11 +232,8 @@ function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerrito
     metadataPath,
     // World atlas uses 'countries' as object name, others use 'territories'
     topologyObjectName: territories.isWildcard ? 'countries' : 'territories',
-    // No mainland distinction - all territories are equal
-    mainlandCode: undefined,
-    mainlandBounds: territories.mainland.bounds,
     // All territories treated equally
-    overseasTerritories: territories.all,
+    territories: territories.all,
     // Pass wildcard flag from territories configuration
     isWildcard: territories.isWildcard === true,
   }
@@ -274,9 +265,9 @@ function createAtlasConfig(
           territories: territories.all,
         },
     splitModeConfig: {
-      mainlandTitle: `atlas.territories.${config.id}.territories`,
-      mainlandCode: territories.mainland?.code,
-      territoriesTitle: `atlas.territories.${config.id}.territories`,
+      primaryTitle: `atlas.territories.${config.id}.territories`,
+      primaryTerritoryCode: territories.first?.code,
+      otherTerritoriesTitle: `atlas.territories.${config.id}.territories`,
     },
     hasTerritorySelector: (config.territoryCollections && Object.keys(config.territoryCollections).length > 0 && Object.keys(territoryModes).length > 0),
     isWildcard: territories.isWildcard === true,
