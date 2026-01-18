@@ -306,38 +306,3 @@ export function validateConfig(config: unknown): asserts config is CompositeProj
     }
   }
 }
-
-// Legacy function exports for backward compatibility
-const defaultLoader = new ProjectionLoader()
-
-export function registerProjection(id: string, factory: ProjectionFactory): void {
-  defaultLoader.register(id, factory)
-}
-
-export function registerProjections(factories: Record<string, ProjectionFactory>): void {
-  defaultLoader.registerAll(factories)
-}
-
-export function unregisterProjection(id: string): boolean {
-  return defaultLoader.unregister(id)
-}
-
-export function clearProjections(): void {
-  defaultLoader.clear()
-}
-
-export function getRegisteredProjections(): string[] {
-  return defaultLoader.getRegistered()
-}
-
-export function isProjectionRegistered(id: string): boolean {
-  return defaultLoader.isRegistered(id)
-}
-
-export function loadCompositeProjection(config: CompositeProjectionConfig, options: LoaderOptions): ProjectionLike {
-  return defaultLoader.load(config, options)
-}
-
-export function loadFromJSON(jsonString: string, options: LoaderOptions): ProjectionLike {
-  return defaultLoader.loadFromJSON(jsonString, options)
-}

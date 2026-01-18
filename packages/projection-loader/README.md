@@ -10,33 +10,33 @@ This package allows you to render composite projections exported from **Atlas Co
 - **plugin architecture**: Only import the projection definitions you need.
 - **Type-Safe**: Written in TypeScript with full type definitions.
 
-## Usage
-
-### 1. Install
+## Installation
 
 ```bash
 npm install @atlas-composer/projection-loader d3-geo
 ```
 
-### 2. Implementation
+## Usage
 
 ```typescript
-import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import * as d3 from 'd3-geo'
 import config from './my-exported-config.json'
 
-// 1. Register the projections required by your composite projection
-registerProjection('mercator', () => d3.geoMercator())
-registerProjection('conic-conformal', () => d3.geoConicConformal())
+// Create a loader instance
+const loader = new ProjectionLoader()
 
-// 2. Load the composite projection
-// The resulting object is a standard D3 stream-compatible projection
-const projection = loadCompositeProjection(config, {
+// Register the projections required by your composite projection
+loader.register('mercator', () => d3.geoMercator())
+loader.register('conic-conformal', () => d3.geoConicConformal())
+
+// Load the composite projection
+const projection = loader.load(config, {
   width: 800,
   height: 600
 })
 
-// 3. Render using D3
+// Use with D3
 const path = d3.geoPath(projection)
 
 d3.select('svg')
@@ -45,3 +45,17 @@ d3.select('svg')
   .join('path')
   .attr('d', path)
 ```
+
+## API
+
+### ProjectionLoader
+
+- `new ProjectionLoader()` - Create a loader instance
+- `loader.register(id, factory)` - Register a projection factory
+- `loader.registerAll(factories)` - Register multiple projections from an object
+- `loader.load(config, options)` - Load a composite projection from configuration
+- `loader.loadFromJSON(jsonString, options)` - Load from a JSON string
+- `loader.isRegistered(id)` - Check if a projection is registered
+- `loader.getRegistered()` - Get all registered projection IDs
+- `loader.unregister(id)` - Remove a registered projection
+- `loader.clear()` - Clear all registered projections
