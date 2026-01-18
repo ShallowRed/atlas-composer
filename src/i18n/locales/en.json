@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Atlas composer",
-    "subtitle": "Interactive cartographic visualizations for scattered territories"
+    "subtitle": "JSON-based composite projections"
   },
   "nav": {
     "map": "App",
@@ -248,10 +248,10 @@
   "about": {
     "title": "About Atlas composer",
     "pageTitle": "About",
-    "intro": "An interactive tool for creating custom cartographic visualizations of countries with geographically-scattered territories using composite projections.",
+    "intro": "An interactive tool for creating and exporting JSON-based composite map projections for countries with geographically-scattered territories.",
     "why": {
       "title": "Why this tool?",
-      "description": "Displaying a country and its distant territories on the same map is a cartographic challenge. How do you show regions separated by thousands of kilometers while maintaining visual coherence? This tool explores different solutions using composite projections, similar to how the Albers USA projection displays Alaska and Hawaii alongside the continental United States."
+      "description": "Displaying overseas territories alongside a mainland is a common cartographic challenge. While the US has the standardized Albers USA projection, mapping other fragmented countries often requires manually positioning insets or writing complex custom code. This tool standardizes the process using portable JSON definitions that describe territories, their projections, and layout. A generic loader renders the map, decoupling design from implementation and making custom projections shareable and reusable."
     },
     "features": {
       "title": "Key Features",
@@ -276,7 +276,7 @@
     "cta": "Start exploring",
     "footer": {
       "title": "Atlas composer",
-      "description": "Interactive cartographic visualizations for scattered territories",
+      "description": "JSON-based composite projections",
       "builtWith": "Built with Vue 3, D3.js, Observable Plot, and daisyUI",
       "license": "Open source under",
       "madeWith": "Made with",

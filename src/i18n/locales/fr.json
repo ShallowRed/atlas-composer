@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Atlas composer",
-    "subtitle": "Visualisations cartographiques interactives pour territoires dispersés"
+    "subtitle": "Projections composites basées sur JSON"
   },
   "nav": {
     "map": "App",
@@ -256,10 +256,10 @@
   "about": {
     "title": "À propos d'Atlas composer",
     "pageTitle": "À propos",
-    "intro": "Un outil interactif pour créer des visualisations cartographiques personnalisées de pays avec des territoires géographiquement dispersés en utilisant des projections composites.",
+    "intro": "Un outil interactif pour créer et exporter des projections cartographiques composites basées sur JSON pour les pays avec des territoires géographiquement dispersés.",
     "why": {
       "title": "Pourquoi cet outil ?",
-      "description": "Afficher un pays et ses territoires distants sur une même carte est un défi cartographique. Comment représenter des régions séparées par des milliers de kilomètres tout en conservant une cohérence visuelle ? Cet outil explore différentes solutions en utilisant des projections composites, à l'image de la projection Albers USA qui affiche l'Alaska et Hawaï aux côtés des États-Unis continentaux."
+      "description": "Afficher des territoires d'outre-mer aux côtés d'un continent est un défi cartographique courant. Si les États-Unis disposent de la projection Albers USA standardisée, cartographier d'autres pays fragmentés nécessite souvent de positionner manuellement des encarts ou d'écrire du code complexe. Cet outil standardise le processus avec des définitions JSON portables décrivant les territoires, leurs projections et leur disposition. Un loader générique génère la carte, découplant le design de l'implémentation et rendant les projections personnalisées partageables et réutilisables."
     },
     "features": {
       "title": "Fonctionnalités clés",
@@ -284,7 +284,7 @@
     "cta": "Explorer",
     "footer": {
       "title": "Atlas composer",
-      "description": "Visualisations cartographiques interactives pour territoires dispersés",
+      "description": "Projections composites basées sur JSON",
       "builtWith": "Construit avec Vue 3, D3.js, Observable Plot et daisyUI",
       "license": "Code source ouvert sous licence",
       "madeWith": "Réalisé avec",

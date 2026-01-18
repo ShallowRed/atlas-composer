@@ -31,6 +31,16 @@ const { t } = useI18n()
           <p>
             {{ t('about.why.description') }}
           </p>
+          <a
+            href="https://observablehq.com/@shallowred/atlas-composer"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="link link-primary gap-2 justify-start block mt-2"
+          >
+            <i class="ri-line-chart-line text-lg" />
+            {{ t('export.observableNotebook') }}
+            <i class="ri-external-link-line ml-auto" />
+          </a>
         </div>
       </CardContainer>
 
@@ -42,9 +52,9 @@ const { t } = useI18n()
           <ul class="list-disc text-base pl-6 space-y-2">
             <li>{{ t('about.features.compositeExisting') }}</li>
             <li>{{ t('about.features.compositeCustom') }}</li>
+            <li><strong>{{ t('about.features.export') }}</strong></li>
             <li>{{ t('about.features.split') }}</li>
             <li>{{ t('about.features.unified') }}</li>
-            <li>{{ t('about.features.export') }}</li>
           </ul>
         </div>
       </CardContainer>
@@ -57,7 +67,6 @@ const { t } = useI18n()
           <ul class="list-disc pl-6 space-y-2 text-base">
             <li>{{ t('about.atlases.france') }}</li>
             <li>{{ t('about.atlases.portugal') }}</li>
-            <li>{{ t('about.atlases.spain') }}</li>
             <li>{{ t('about.atlases.europe') }}</li>
             <li>{{ t('about.atlases.usa') }}</li>
           </ul>
