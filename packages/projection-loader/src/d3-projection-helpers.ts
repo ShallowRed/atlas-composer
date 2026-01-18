@@ -1,4 +1,4 @@
-import type { ProjectionFactory } from './standalone-projection-loader'
+import type { ProjectionFactory } from './projection-loader'
 import * as d3Geo from 'd3-geo'
 import * as d3GeoProjection from 'd3-geo-projection'
 

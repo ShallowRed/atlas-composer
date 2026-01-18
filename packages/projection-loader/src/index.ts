@@ -4,11 +4,12 @@ export {
   isProjectionRegistered,
   loadCompositeProjection,
   loadFromJSON,
+  ProjectionLoader,
   registerProjection,
   registerProjections,
   unregisterProjection,
   validateConfig,
-} from './standalone-projection-loader'
+} from './projection-loader'
 
 export type {
   ExportedConfig,
@@ -19,4 +20,4 @@ export type {
   ProjectionParameters,
   StreamLike,
   Territory,
-} from './standalone-projection-loader'
+} from './projection-loader'

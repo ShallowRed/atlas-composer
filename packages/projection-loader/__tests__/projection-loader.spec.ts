@@ -1,4 +1,4 @@
-import type { ExportedConfig } from '../src/standalone-projection-loader'
+import type { ExportedConfig } from '../src/projection-loader'
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
@@ -8,9 +8,9 @@ import {
   loadFromJSON,
   registerProjections,
   validateConfig,
-} from '../src/standalone-projection-loader'
+} from '../src/projection-loader'
 
-describe('standalone-projection-loader', () => {
+describe('projection-loader', () => {
   beforeAll(() => {
     registerProjections(d3ProjectionFactories)
   })
