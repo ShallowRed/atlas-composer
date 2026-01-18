@@ -2,7 +2,6 @@ import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@
 import type {
   CompositeProjectionConfig,
   GeoBounds,
-  I18nString,
   LayoutConfig,
   ProjectionParameters as SpecProjectionParameters,
   TerritoryConfig,
@@ -65,7 +64,7 @@ export interface StreamLike {
 
 export type ProjectionFactory = () => ProjectionLike
 
-export type { CompositeProjectionConfig, GeoBounds, I18nString, LayoutConfig, TerritoryConfig }
+export type { CompositeProjectionConfig, GeoBounds, LayoutConfig, TerritoryConfig }
 
 /** @deprecated Use CompositeProjectionConfig from @atlas-composer/specification */
 export type ProjectionParameters = SpecProjectionParameters
@@ -84,13 +83,6 @@ export interface LoaderOptions {
   height: number
   enableClipping?: boolean
   debug?: boolean
-}
-
-function resolveI18nString(value: I18nString): string {
-  if (typeof value === 'string') {
-    return value
-  }
-  return value.en || Object.values(value).find(v => typeof v === 'string') || ''
 }
 
 export class ProjectionLoader {
@@ -138,7 +130,6 @@ export class ProjectionLoader {
 
       return {
         id: territory.code,
-        name: resolveI18nString(territory.name),
         projection: proj as CoreProjectionLike,
         bounds: {
           minLon: territory.bounds[0][0],
@@ -151,7 +142,7 @@ export class ProjectionLoader {
 
     if (debug) {
       console.log('[CompositeProjection] Created sub-projections:', {
-        territories: config.territories.map(t => ({ code: t.code, name: resolveI18nString(t.name) })),
+        territories: config.territories.map(t => t.code),
         count: entries.length,
       })
     }

@@ -74,7 +74,6 @@ export type GeoBoundsArray = [[number, number], [number, number]]
 
 export interface SubProjectionEntry {
   id: string
-  name: string
   projection: ProjectionLike
   bounds?: GeoBounds
 }

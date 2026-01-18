@@ -1,16 +1,16 @@
 # @atlas-composer/projection-loader
 
-> The runtime engine for Atlas Composer maps.
+> A simple runtime engine for composite projections.
 
 This package allows you to render composite projections exported from **Atlas Composer** in your own applications. It is lightweight, and works seamlessly with D3.js.
 
-## ✨ Features
+## Features
 
-- **Zero Runtime Dependencies** (excluding your choice of projection library).
-- **Plugin Architecture**: Only import the projection definitions you need.
+- **Zero runtime dependencies** (excluding your choice of projection library).
+- **plugin architecture**: Only import the projection definitions you need.
 - **Type-Safe**: Written in TypeScript with full type definitions.
 
-## 🚀 Usage
+## Usage
 
 ### 1. Install
 
@@ -23,9 +23,9 @@ npm install @atlas-composer/projection-loader d3-geo
 ```typescript
 import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
 import * as d3 from 'd3-geo'
-import config from './my-exported-map.json'
+import config from './my-exported-config.json'
 
-// 1. Register the projections required by your map
+// 1. Register the projections required by your composite projection
 registerProjection('mercator', () => d3.geoMercator())
 registerProjection('conic-conformal', () => d3.geoConicConformal())
 
@@ -45,7 +45,3 @@ d3.select('svg')
   .join('path')
   .attr('d', path)
 ```
-
-## 📖 Documentation
-
-For more context on the ecosystem, see the [root architecture documentation](../../docs/architecture.md).
