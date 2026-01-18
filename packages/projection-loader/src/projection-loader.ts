@@ -3,7 +3,6 @@ import type {
   CompositeProjectionConfig,
   GeoBounds,
   LayoutConfig,
-  ProjectionParameters as SpecProjectionParameters,
   TerritoryConfig,
 } from '@atlas-composer/specification'
 
@@ -66,18 +65,6 @@ export type ProjectionFactory = () => ProjectionLike
 
 export type { CompositeProjectionConfig, GeoBounds, LayoutConfig, TerritoryConfig }
 
-/** @deprecated Use CompositeProjectionConfig from @atlas-composer/specification */
-export type ProjectionParameters = SpecProjectionParameters
-
-/** @deprecated Use CompositeProjectionConfig from @atlas-composer/specification */
-export type ExportedConfig = CompositeProjectionConfig
-
-/** @deprecated Use TerritoryConfig from @atlas-composer/specification */
-export type Territory = TerritoryConfig
-
-/** @deprecated Use LayoutConfig from @atlas-composer/specification */
-export type Layout = LayoutConfig
-
 export interface LoaderOptions {
   width: number
   height: number
@@ -114,7 +101,7 @@ export class ProjectionLoader {
     return this.factories.has(id)
   }
 
-  load(config: ExportedConfig, options: LoaderOptions): ProjectionLike {
+  load(config: CompositeProjectionConfig, options: LoaderOptions): ProjectionLike {
     const { width, height, debug = false } = options
 
     if (config.version !== '1.0') {
@@ -165,7 +152,7 @@ export class ProjectionLoader {
   }
 
   private createSubProjection(
-    territory: Territory,
+    territory: TerritoryConfig,
     width: number,
     height: number,
     referenceScale?: number,
@@ -281,7 +268,7 @@ export class ProjectionLoader {
   }
 }
 
-export function validateConfig(config: unknown): asserts config is ExportedConfig {
+export function validateConfig(config: unknown): asserts config is CompositeProjectionConfig {
   if (!config || typeof config !== 'object') {
     throw new Error('Configuration must be an object')
   }
@@ -347,7 +334,7 @@ export function isProjectionRegistered(id: string): boolean {
   return defaultLoader.isRegistered(id)
 }
 
-export function loadCompositeProjection(config: ExportedConfig, options: LoaderOptions): ProjectionLike {
+export function loadCompositeProjection(config: CompositeProjectionConfig, options: LoaderOptions): ProjectionLike {
   return defaultLoader.load(config, options)
 }
 

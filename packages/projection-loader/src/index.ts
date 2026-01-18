@@ -12,12 +12,8 @@ export {
 } from './projection-loader'
 
 export type {
-  ExportedConfig,
-  Layout,
   LoaderOptions,
   ProjectionFactory,
   ProjectionLike,
-  ProjectionParameters,
   StreamLike,
-  Territory,
 } from './projection-loader'
