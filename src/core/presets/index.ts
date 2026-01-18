@@ -1,4 +1,4 @@
-export { convertToAtlasComposerSpec, convertToDefaults, extractTerritoryParameters } from './converter'
+export { convertToDefaults, extractTerritoryParameters } from './converter'
 
 export type {
   AtlasProjectionMetadata,

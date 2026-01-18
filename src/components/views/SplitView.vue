@@ -94,10 +94,11 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const groups = new Map<string, Territory[]>()
 
   for (const collection of collectionSet.collections) {
-    const groupTerritories = collection.codes
-      .filter(code => code !== '*' && territoriesByCode.has(code as TerritoryCode))
-      .map(code => territoriesByCode.get(code as TerritoryCode)!)
-      .filter(t => t !== undefined)
+    if (collection.codes === '*') continue
+    const groupTerritories = (collection.codes as string[])
+      .filter((code: string) => territoriesByCode.has(code as TerritoryCode))
+      .map((code: string) => territoriesByCode.get(code as TerritoryCode)!)
+      .filter((t: Territory) => t !== undefined)
 
     if (groupTerritories.length > 0) {
       groups.set(collection.label, groupTerritories)

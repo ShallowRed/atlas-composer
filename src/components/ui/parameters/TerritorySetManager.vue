@@ -119,12 +119,13 @@ const territoryGroups = computed((): TerritoryGroup[] => {
   const territoriesByCode = new Map(loadedTerritories.value.map(t => [t.code, t]))
 
   return collectionSet.collections
+    .filter(collection => collection.codes !== '*')
     .map(collection => ({
       id: collection.id,
       label: collection.label,
-      territories: collection.codes
-        .filter(code => code !== '*' && territoriesByCode.has(code as TerritoryCode))
-        .map((code) => {
+      territories: (collection.codes as string[])
+        .filter((code: string) => territoriesByCode.has(code as TerritoryCode))
+        .map((code: string) => {
           const territory = territoriesByCode.get(code as TerritoryCode)!
           return {
             code,
