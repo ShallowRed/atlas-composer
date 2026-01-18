@@ -12,7 +12,6 @@ The export system enables using custom composite projections outside Atlas Compo
 |-----------|------|---------|
 | **Export Service** | composite-export-service.ts | Export orchestration, serialization |
 | **Import Service** | composite-import-service.ts | Validation, application to stores |
-| **Code Generator** | code-generator.ts | D3 JS/TS, Observable Plot generation |
 | **Export Dialog** | CompositeExportDialog.vue | Copy/download UI |
 | **Import Modal** | ImportModal.vue | Upload, validate, apply |
 
@@ -34,21 +33,6 @@ The export system enables using custom composite projections outside Atlas Compo
 }
 ```
 
-## Code Generation
-
-| Format | Function | Output |
-|--------|----------|--------|
-| D3 JavaScript | generateD3JS | Standalone function with stream multiplexing |
-| D3 TypeScript | generateD3TS | Same with type annotations |
-| Observable Plot | generateObservablePlot | Plot-compatible projection function |
-
-### Stream Multiplexing
-
-Routes geometry to sub-projections based on geographic bounds:
-- `point(lon, lat)` - Find matching territory by bounds, route to stream
-- `polygonStart/End()` - Reset `activeStream = null` for feature independence
-- `lineStart/End()` - Manage ring state within polygons
-
 ## Import System
 
 **Process**: Parse JSON → Check version → Validate structure → Check atlas compatibility → Apply to stores
@@ -65,34 +49,35 @@ Routes geometry to sub-projections based on geographic bounds:
 
 ### Features
 - **Zero runtime dependencies** - users register projection factories
-- **Plugin architecture** - `registerProjection(id, factory)`
+- **Plugin architecture** - `loader.register(id, factory)`
 - **ESM-only** with TypeScript definitions
 - **Tree-shakeable** - import only needed projections
 
 ### Usage
 ```typescript
-import { loadCompositeProjection, registerProjection } from '@atlas-composer/projection-loader'
+import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { geoConicConformal } from 'd3-geo'
 
-registerProjection('conic-conformal', () => geoConicConformal())
-const projection = loadCompositeProjection(config, { width: 800, height: 600 })
+const loader = new ProjectionLoader()
+loader.register('conic-conformal', () => geoConicConformal())
+const projection = loader.load(config, { width: 800, height: 600 })
 ```
 
 ### API
 
-| Function | Purpose |
+| Method | Purpose |
 |----------|---------|
-| `registerProjection(id, factory)` | Register projection factory |
-| `registerProjections(map)` | Bulk registration |
-| `loadCompositeProjection(config, options)` | Load composite projection |
-| `loadFromJSON(jsonString, options)` | Parse and load |
+| `new ProjectionLoader()` | Create loader instance |
+| `loader.register(id, factory)` | Register projection factory |
+| `loader.registerAll(map)` | Bulk registration |
+| `loader.load(config, options)` | Load composite projection |
+| `loader.loadFromJSON(jsonString, options)` | Parse and load |
 | `validateConfig(config)` | Validate configuration |
-| `clearProjections()` | Clear registry |
+| `loader.clear()` | Clear registry |
 
 ### Package Structure
 - Location: `packages/projection-loader/`
 - Bundle: ~8KB ESM (vs 100KB with bundled deps)
-- Tests: 19 tests
 
 ## Preset Creation
 
@@ -105,8 +90,6 @@ const projection = loadCompositeProjection(config, { width: 800, height: 600 })
 
 | Component | Tests |
 |-----------|-------|
-| CompositeExportService | 15 |
+| CompositeExportService | 10 |
 | CompositeImportService | 13 |
-| CodeGenerator | 28 |
-| Standalone Loader | 19 |
-| **Total** | **75** |
+| **Total** | **23** |

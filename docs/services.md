@@ -135,10 +135,9 @@ Instance-based service for parameter state management with unified `ProjectionPa
 
 | Service | Purpose |
 |---------|---------|
-| **CompositeExportService** | Serialize projection to JSON, generate code |
+| **CompositeExportService** | Serialize projection to JSON for export |
 | **CompositeImportService** | Parse, validate, migrate, apply configurations |
 | **ConfigMigrator** | Automatic version migration (v1.0 chain) |
-| **CodeGenerator** | Generate D3 JS/TS and Observable Plot code |
 
 **Export Format**: `{ version, metadata, territories[] }` where each territory has `projection.{id, family, parameters}` and `layout.{translateOffset, pixelClipExtent}`.
 

@@ -1,7 +1,6 @@
 import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
 import type {
-  CodeGenerationOptions,
   ExportedCompositeConfig,
   ExportedProjectionParameters,
   ExportedTerritory,
@@ -10,8 +9,6 @@ import type {
 } from '@/types/export-config'
 import packageJson from '#package'
 import { projectionRegistry } from '@/core/projections/registry'
-
-import { CodeGenerator } from './code-generator'
 
 const APP_VERSION = `Atlas composer v${packageJson.version === '0.0.0' ? '1.0' : packageJson.version}`
 
@@ -240,14 +237,6 @@ export class CompositeExportService {
       errors,
       warnings,
     }
-  }
-
-  static generateCode(
-    config: ExportedCompositeConfig,
-    options: CodeGenerationOptions,
-  ): string {
-    const generator = new CodeGenerator()
-    return generator.generate(config, options)
   }
 
   private static resolveProjectionId(projectionType: string): string {
