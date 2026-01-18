@@ -22,12 +22,12 @@
         "parameters": {
           "rotate": [
             -3,
-            -46.5,
+            -46.2,
             0
           ],
           "parallels": [
-            44,
-            49
+            0,
+            60
           ],
           "scaleMultiplier": 1
         }
