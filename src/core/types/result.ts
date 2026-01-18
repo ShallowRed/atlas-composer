@@ -1,20 +1,6 @@
-/**
- * Result Type
- *
- * Discriminated union for explicit success/failure handling.
- * Replaces try/catch patterns with compile-time enforced error handling.
- */
-
-// Core Types
-
-/**
- * Result type - either success with value or failure with error
- */
 export type Result<T, E = Error>
   = | { ok: true, value: T }
     | { ok: false, error: E }
-
-// Constructors
 
 export function ok<T>(value: T): Result<T, never> {
   return { ok: true, value }
@@ -34,12 +20,6 @@ export function isErr<T, E>(result: Result<T, E>): result is { ok: false, error:
   return !result.ok
 }
 
-// Utilities
-
-/**
- * Extract value from result, throws if error
- * Use only when you're certain the result is Ok
- */
 export function unwrap<T, E>(result: Result<T, E>): T {
   if (result.ok) {
     return result.value
@@ -47,37 +27,22 @@ export function unwrap<T, E>(result: Result<T, E>): T {
   throw result.error instanceof Error ? result.error : new Error(String(result.error))
 }
 
-/**
- * Extract value from result, returns fallback if error
- */
 export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {
   return result.ok ? result.value : fallback
 }
 
-/**
- * Extract error from result, returns undefined if success
- */
 export function unwrapErr<T, E>(result: Result<T, E>): E | undefined {
   return result.ok ? undefined : result.error
 }
 
-/**
- * Transform the success value
- */
 export function map<T, U, E>(result: Result<T, E>, fn: (value: T) => U): Result<U, E> {
   return result.ok ? ok(fn(result.value)) : result
 }
 
-/**
- * Transform the error value
- */
 export function mapErr<T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> {
   return result.ok ? result : err(fn(result.error))
 }
 
-/**
- * Chain results - flatMap for Result
- */
 export function andThen<T, U, E>(
   result: Result<T, E>,
   fn: (value: T) => Result<U, E>,
@@ -85,9 +50,6 @@ export function andThen<T, U, E>(
   return result.ok ? fn(result.value) : result
 }
 
-/**
- * Convert a Promise that might throw into a Promise<Result>
- */
 export async function fromPromise<T, E = Error>(
   promise: Promise<T>,
   mapError?: (error: unknown) => E,

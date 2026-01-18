@@ -1,18 +1,6 @@
-/**
- * Artistic Projection Definitions
- *
- * Unique and artistic projections for special purposes, educational materials,
- * or aesthetic visualizations. These projections often have interesting
- * visual characteristics.
- */
-
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Armadillo Projection
- * Artistic polyhedral projection with unique visual appearance
- */
 export const ARMADILLO: ProjectionDefinition = {
   id: 'armadillo',
   name: 'projections.armadillo.name',
@@ -34,10 +22,6 @@ export const ARMADILLO: ProjectionDefinition = {
   },
 }
 
-/**
- * Polyhedral Butterfly Projection
- * Unfolded globe in butterfly shape
- */
 export const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
   id: 'polyhedral-butterfly',
   name: 'projections.polyhedralButterfly.name',
@@ -62,10 +46,6 @@ export const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
   },
 }
 
-/**
- * Loximuthal Projection
- * Rhumb lines (loxodromes) from center are straight
- */
 export const LOXIMUTHAL: ProjectionDefinition = {
   id: 'loximuthal',
   name: 'projections.loximuthal.name',
@@ -91,10 +71,6 @@ export const LOXIMUTHAL: ProjectionDefinition = {
   },
 }
 
-/**
- * Waterman Butterfly Projection
- * Polyhedral projection with minimal area distortion
- */
 export const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
   id: 'polyhedral-waterman',
   name: 'projections.polyhedralWaterman.name',
@@ -123,9 +99,6 @@ export const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
   },
 }
 
-/**
- * Array of all artistic projection definitions
- */
 export const ARTISTIC_PROJECTIONS: ProjectionDefinition[] = [
   ARMADILLO,
   POLYHEDRAL_BUTTERFLY,

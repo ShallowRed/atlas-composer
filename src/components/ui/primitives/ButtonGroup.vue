@@ -1,14 +1,4 @@
 <script setup lang="ts">
-/**
- * ButtonGroup - Toggle button group for exclusive selection
- *
- * Features:
- * - Multiple options with labels and optional icons
- * - Active state highlighting
- * - Full-width or auto-width layout
- * - Keyboard accessible
- */
-
 interface Option {
   value: string
   label: string

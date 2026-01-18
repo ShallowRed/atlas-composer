@@ -17,13 +17,11 @@ const showExportDialog = ref(false)
 const showImportDialog = ref(false)
 
 function handleImported(_config: ExportedCompositeConfig) {
-  // Configuration has been applied to stores by ImportModal
   showImportDialog.value = false
 }
 </script>
 
 <template>
-  <!-- Import/Export Buttons (for composite-custom mode) -->
   <div
     v-if="viewStore.viewMode === 'composite-custom'"
     class="join w-full"

@@ -3,9 +3,6 @@ import { useMutationObserver, useResizeObserver, useScroll } from '@vueuse/core'
 import { computed, nextTick, ref, watch } from 'vue'
 
 interface Props {
-  /**
-   * Show gradient overlay when content overflows
-   */
   showGradient?: boolean
   gradientColor?: string
 }
@@ -17,15 +14,12 @@ withDefaults(defineProps<Props>(), {
 
 const scrollContainerRef = ref<HTMLElement>()
 
-// Track if content actually overflows the container
 const hasScrollableContent = ref(false)
 
-// Use VueUse's useScroll to track scroll state and get measure function
 const { arrivedState, measure } = useScroll(scrollContainerRef, {
-  offset: { bottom: 1 }, // Small offset to detect if we're really at the bottom
+  offset: { bottom: 1 },
 })
 
-// Check if content overflows and update state
 function checkOverflow() {
   if (!scrollContainerRef.value) {
     hasScrollableContent.value = false
@@ -36,12 +30,10 @@ function checkOverflow() {
   measure()
 }
 
-// Watch for size changes to remeasure
 useResizeObserver(scrollContainerRef, () => {
   checkOverflow()
 })
 
-// Watch for content changes (children added/removed) to remeasure
 useMutationObserver(
   scrollContainerRef,
   () => {
@@ -50,18 +42,15 @@ useMutationObserver(
   { childList: true, subtree: true },
 )
 
-// Also measure after the component is mounted and on any re-renders
 watch(scrollContainerRef, () => {
   nextTick(() => checkOverflow())
 }, { immediate: true })
 
 const hasOverflowBottom = computed(() => {
-  // Must have scrollable content AND not be at the bottom
   return hasScrollableContent.value && !arrivedState.bottom
 })
 
 const hasOverflowTop = computed(() => {
-  // Must have scrollable content AND not be at the top
   return hasScrollableContent.value && !arrivedState.top
 })
 </script>

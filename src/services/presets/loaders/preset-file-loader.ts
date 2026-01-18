@@ -1,59 +1,19 @@
-/**
- * Preset File Loader
- *
- * Shared utility for loading preset files from the filesystem.
- * Provides common patterns for file loading, JSON parsing, and error handling
- * used by both composite and view preset loaders.
- *
- * Key responsibilities:
- * - Fetch JSON files from configs directory
- * - Parse JSON with error handling
- * - Validate file size and format
- * - Provide consistent error messages
- */
-
-/**
- * Result of loading a JSON file
- */
 export interface FileLoadResult<T = unknown> {
-  /** Whether the file was loaded successfully */
   success: boolean
-
-  /** Parsed JSON data (only if success is true) */
   data?: T
-
-  /** Array of error messages */
   errors: string[]
-
-  /** Array of warning messages */
   warnings: string[]
 }
 
-/**
- * Options for loading a JSON file
- */
 export interface LoadOptions {
-  /** Maximum file size in bytes (default: 10MB) */
   maxFileSize?: number
-
-  /** Whether to include detailed error messages */
   verbose?: boolean
 }
 
-/**
- * Shared preset file loader utility
- */
 export class PresetFileLoader {
   private static readonly DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
   private static readonly BASE_URL = import.meta.env.BASE_URL
 
-  /**
-   * Load and parse a JSON file from the configs directory
-   *
-   * @param relativePath - Path relative to BASE_URL (e.g., 'configs/presets/france-default.json')
-   * @param options - Loading options
-   * @returns Load result with parsed data or error messages
-   */
   static async loadJSON<T = unknown>(
     relativePath: string,
     options: LoadOptions = {},
@@ -62,10 +22,8 @@ export class PresetFileLoader {
     const warnings: string[] = []
 
     try {
-      // Construct full path
       const fullPath = `${this.BASE_URL}${relativePath}`
 
-      // Fetch file
       const response = await fetch(fullPath)
 
       if (!response.ok) {
@@ -80,7 +38,6 @@ export class PresetFileLoader {
         }
       }
 
-      // Check content length if available
       const contentLength = response.headers.get('content-length')
       if (contentLength) {
         const size = Number.parseInt(contentLength, 10)
@@ -93,10 +50,8 @@ export class PresetFileLoader {
         }
       }
 
-      // Parse JSON
       const text = await response.text()
 
-      // Check text size
       if (text.length > maxFileSize) {
         return {
           success: false,
@@ -141,12 +96,6 @@ export class PresetFileLoader {
     }
   }
 
-  /**
-   * Load a preset registry file
-   *
-   * @param registryPath - Path to registry file relative to BASE_URL
-   * @returns Load result with registry data
-   */
   static async loadRegistry<T = unknown>(
     registryPath: string,
   ): Promise<FileLoadResult<T>> {
@@ -156,13 +105,6 @@ export class PresetFileLoader {
     })
   }
 
-  /**
-   * Load a JSON file from a File object (browser File API)
-   *
-   * @param file - File object to read
-   * @param options - Loading options
-   * @returns Promise with load result
-   */
   static async loadFromFile<T = unknown>(
     file: File,
     options: LoadOptions = {},
@@ -170,7 +112,6 @@ export class PresetFileLoader {
     const { maxFileSize = this.DEFAULT_MAX_FILE_SIZE, verbose = true } = options
     const warnings: string[] = []
 
-    // Validate file type
     if (!file.name.endsWith('.json')) {
       return {
         success: false,
@@ -179,7 +120,6 @@ export class PresetFileLoader {
       }
     }
 
-    // Validate file size
     if (file.size > maxFileSize) {
       return {
         success: false,
@@ -188,11 +128,9 @@ export class PresetFileLoader {
       }
     }
 
-    // Read file content
     try {
       const text = await file.text()
 
-      // Parse JSON
       let data: T
       try {
         data = JSON.parse(text) as T

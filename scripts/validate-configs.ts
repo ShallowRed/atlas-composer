@@ -43,9 +43,6 @@ interface TopoJSONData {
 
 type GeneratedData = GeoJSONFeatureCollection | TopoJSONData
 
-/**
- * Load backend config for an atlas
- */
 async function loadBackendConfig(atlas: string): Promise<BackendConfig | null> {
   try {
     const { backend } = await loadConfig(atlas)
@@ -56,9 +53,6 @@ async function loadBackendConfig(atlas: string): Promise<BackendConfig | null> {
   }
 }
 
-/**
- * Load generated geodata for an atlas at a specific resolution
- */
 async function loadGeneratedData(atlas: string, resolution: string): Promise<GeneratedData | null> {
   try {
     const dataPath = resolve(process.cwd(), `src/public/data/${atlas}-territories-${resolution}.json`)
@@ -69,10 +63,6 @@ async function loadGeneratedData(atlas: string, resolution: string): Promise<Gen
     return null
   }
 }
-
-/**
- * Find all available resolutions for an atlas
- */
 async function findAvailableResolutions(atlas: string): Promise<string[]> {
   const resolutions = ['10m', '50m', '110m']
   const available: string[] = []
@@ -87,16 +77,10 @@ async function findAvailableResolutions(atlas: string): Promise<string[]> {
   return available
 }
 
-/**
- * Extract territory codes from backend config
- */
 function extractBackendCodes(config: BackendConfig): string[] {
   return Object.values(config.territories).map(t => t.code)
 }
 
-/**
- * Extract territory codes from generated data
- */
 function extractDataCodes(data: GeneratedData): string[] {
   if ('features' in data && data.type === 'FeatureCollection') {
     return data.features
@@ -109,9 +93,6 @@ function extractDataCodes(data: GeneratedData): string[] {
   return []
 }
 
-/**
- * Validate an atlas configuration
- */
 async function validateAtlas(atlas: string): Promise<ValidationSummary> {
   logger.section(`Validating: ${atlas}`)
 
@@ -121,7 +102,6 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
     info: [],
   }
 
-  // Check backend config
   const backendConfig = await loadBackendConfig(atlas)
   if (!backendConfig) {
     results.errors.push(`Atlas config not found in registry`)
@@ -137,7 +117,6 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
     }
   }
 
-  // Check generated data for all available resolutions
   const availableResolutions = await findAvailableResolutions(atlas)
   if (availableResolutions.length === 0) {
     results.warnings.push(`No generated data found for any resolution (run: pnpm geodata:prepare ${atlas})`)
@@ -145,7 +124,6 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
   else {
     results.info.push(`Available resolutions: ${availableResolutions.join(', ')}`)
 
-    // Validate each resolution
     for (const resolution of availableResolutions) {
       const generatedData = await loadGeneratedData(atlas, resolution)
       if (generatedData) {
@@ -159,18 +137,15 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
         }
         results.info.push(`  ${resolution}: ${dataFormat} with ${featureCount} features`)
 
-        // Cross-validation (only for non-wildcard atlases)
         if (backendConfig && Object.keys(backendConfig.territories).length > 0) {
           const backendCodes = extractBackendCodes(backendConfig)
           const dataCodes = extractDataCodes(generatedData)
 
-          // Check if all backend codes are in data
           const missingInData = backendCodes.filter(code => !dataCodes.includes(code))
           if (missingInData.length > 0) {
             results.errors.push(`  ${resolution}: Territories in atlas config but not in data: ${missingInData.join(', ')}`)
           }
 
-          // Check if all data codes are in backend
           const orphanedInData = dataCodes.filter(code => !backendCodes.includes(code))
           if (orphanedInData.length > 0) {
             results.warnings.push(`  ${resolution}: Territories in data but not in atlas config: ${orphanedInData.join(', ')}`)
@@ -181,7 +156,6 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
           }
         }
         else if (backendConfig) {
-          // Wildcard atlas - just report feature count
           const dataCodes = extractDataCodes(generatedData)
           results.info.push(`  ${resolution}: ✓ Wildcard atlas with ${dataCodes.length} territories loaded`)
         }
@@ -189,7 +163,6 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
     }
   }
 
-  // Print results
   results.info.forEach((msg) => {
     logger.success(msg)
   })
@@ -212,16 +185,10 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
   }
 }
 
-/**
- * List all available atlases from registry
- */
 async function listAvailableAtlases(): Promise<string[]> {
   return await listConfigs()
 }
 
-/**
- * Main
- */
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
 
@@ -245,7 +212,6 @@ async function main(): Promise<void> {
       results.push(result)
     }
 
-    // Summary
     logger.section('Summary')
     const successful = results.filter(r => r.success)
     const failed = results.filter(r => !r.success)

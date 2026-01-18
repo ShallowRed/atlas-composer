@@ -1,10 +1,3 @@
-/**
- * Roundtrip Test for Export/Import JSON Fidelity
- *
- * Verifies that exported configurations can be imported back without data loss.
- * Tests JSON structure preservation, not store integration (see integration tests for full flow).
- */
-
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { describe, expect, it } from 'vitest'
 import { CompositeExportService } from '@/services/export/composite-export-service'
@@ -12,9 +5,6 @@ import { CompositeImportService } from '@/services/export/composite-import-servi
 import { createTerritoryCode } from '@/types/branded'
 
 describe('export/import JSON roundtrip', () => {
-  /**
-   * Complete valid configuration with all supported parameters
-   */
   const fullConfig: ExportedCompositeConfig = {
     version: '1.0',
     metadata: {

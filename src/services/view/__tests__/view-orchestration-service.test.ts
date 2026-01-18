@@ -4,17 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { createTerritoryCode } from '@/types/branded'
 import { ViewOrchestrationService } from '../view-orchestration-service'
 
-// Mock the registry
 vi.mock('@/core/atlases/registry', () => ({
   getAvailableViewModes: vi.fn((_atlasId: string) => {
-    // Default mock returns all modes
     return ['composite-custom', 'built-in-composite', 'split', 'unified']
   }),
 }))
 
-/**
- * Helper to create a default ViewState for testing
- */
 function createViewState(overrides: Partial<ViewState> = {}): ViewState {
   const defaultAtlasConfig: AtlasConfig = {
     id: 'test',

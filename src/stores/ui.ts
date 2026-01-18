@@ -1,13 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-/**
- * UI Store - Manages user interface state and preferences
- * Separated from domain logic (config store) for better organization
- *
- * Note: Globe outline (showSphere) is determined by view mode via ViewOrchestrationService,
- * not stored as user preference
- */
 export interface ToastMessage {
   id: string
   message: string
@@ -16,27 +9,22 @@ export interface ToastMessage {
 }
 
 export const useUIStore = defineStore('ui', () => {
-  // Theme
   const theme = ref('light')
 
-  // Display toggles
   const showGraticule = ref(false)
-  const showCompositionBorders = ref(true) // Default to true for better UX with clip extent editing
-  const showMapLimits = ref(true) // Default to true for better visualization
+  const showCompositionBorders = ref(true)
+  const showMapLimits = ref(true)
 
-  // Toast notifications
   const toasts = ref<ToastMessage[]>([])
   let toastIdCounter = 0
 
   function initializeTheme() {
-    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme) {
       theme.value = savedTheme
       applyTheme(savedTheme)
     }
     else {
-      // Default to system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       theme.value = prefersDark ? 'dark' : 'light'
       applyTheme(theme.value)
@@ -59,8 +47,8 @@ export const useUIStore = defineStore('ui', () => {
     showMapLimits?: boolean
   }) {
     showGraticule.value = defaults.showGraticule ?? false
-    showCompositionBorders.value = defaults.showCompositionBorders ?? true // Default to true
-    showMapLimits.value = defaults.showMapLimits ?? true // Default to true
+    showCompositionBorders.value = defaults.showCompositionBorders ?? true
+    showMapLimits.value = defaults.showMapLimits ?? true
   }
 
   function showToast(
@@ -72,7 +60,6 @@ export const useUIStore = defineStore('ui', () => {
     const toast: ToastMessage = { id, message, type, duration }
     toasts.value.push(toast)
 
-    // Auto-dismiss after duration
     if (duration > 0) {
       setTimeout(() => {
         dismissToast(id)

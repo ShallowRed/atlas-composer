@@ -1,19 +1,6 @@
-/**
- * Cylindrical Projection Definitions
- *
- * Cylindrical projections map the sphere onto a cylinder. They are commonly
- * used for navigation and web maps. Mercator is particularly useful for
- * overseas territories in tropical regions.
- */
-
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Mercator Projection
- * Preserves angles and shapes, commonly used for navigation
- * Ideal for overseas territories near the equator
- */
 export const MERCATOR: ProjectionDefinition = {
   id: 'mercator',
   name: 'projections.mercator.name',
@@ -71,9 +58,6 @@ export const EQUIRECTANGULAR: ProjectionDefinition = {
   },
 }
 
-/**
- * Array of all cylindrical projection definitions
- */
 export const CYLINDRICAL_PROJECTIONS: ProjectionDefinition[] = [
   MERCATOR,
   EQUIRECTANGULAR,

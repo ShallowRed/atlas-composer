@@ -20,7 +20,6 @@ import { useParameterStore } from '@/stores/parameters'
 
 const { t } = useI18n()
 
-// Use composable for all territory transform logic
 const {
   territories,
   translations,
@@ -31,36 +30,26 @@ const {
   resetTransforms,
 } = useTerritoryTransforms()
 
-// View state and orchestration
 const { isCompositeCustomMode, viewOrchestration } = useViewState()
 
-// Parameter store for checking overrides
 const parameterStore = useParameterStore()
 
-// Atlas store for accessing all territories
 const atlasStore = useAtlasStore()
 
-// GeoData store for accessing cartographer
 const geoDataStore = useGeoDataStore()
 
-// Preset defaults for checking divergence
 const presetDefaults = getSharedPresetDefaults()
 
-// Check if there are any parameters that differ from preset defaults
 const hasDivergingFromPreset = computed(() => {
   if (!presetDefaults.hasPresetDefaults()) {
-    return false // No preset loaded, consider no divergence
+    return false
   }
 
-  // Force reactivity on parameter changes
   void parameterStore.territoryParametersVersion
 
-  // Get all territory parameter overrides
-  // Need to check ALL territories, not just filtered territories
-  const allTerritoriesToCheck = atlasStore.atlasService.getAllTerritories() // Use ALL territories, not filteredTerritories
+  const allTerritoriesToCheck = atlasStore.atlasService.getAllTerritories()
 
   const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
-  // Convert: getAllTerritories() returns territory objects with string codes from JSON
   for (const territory of allTerritoriesToCheck) {
     const territoryParams = parameterStore.getTerritoryParameters(territory.code as TerritoryCode)
     if (Object.keys(territoryParams).length > 0) {
@@ -78,29 +67,24 @@ const hasDivergingFromPreset = computed(() => {
   return result
 })
 
-// Alias for better naming in template
 const resetToDefaults = resetTransforms
 
-// Helper function to get projection family for a territory
 function getProjectionFamily(territoryCode: TerritoryCode) {
   const projectionId = territoryProjections.value[territoryCode] || selectedProjection.value
   if (!projectionId) {
-    return ProjectionFamily.AZIMUTHAL // Fallback
+    return ProjectionFamily.AZIMUTHAL
   }
   const definition = projectionRegistry.get(projectionId)
-  return definition?.family || ProjectionFamily.AZIMUTHAL // Fallback to azimuthal
+  return definition?.family || ProjectionFamily.AZIMUTHAL
 }
 
-// Parameter control event handlers
 function handleParameterChange(territoryCode: TerritoryCode, _key: keyof ProjectionParameters, _value: unknown) {
-  // Notify cartographer to update projection parameters for this territory
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }
 }
 
 function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof ProjectionParameters) {
-  // Notify cartographer to update projection parameters for this territory
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
   }

@@ -1,17 +1,10 @@
 /**
  * World Projection Definitions
- *
- * Compromise projections optimized for displaying the entire world.
- * These projections balance various distortions for general-purpose world mapping.
  */
 
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Natural Earth Projection
- * Visually appealing compromise projection designed by Tom Patterson
- */
 export const NATURAL_EARTH: ProjectionDefinition = {
   id: 'natural-earth',
   name: 'projections.naturalEarth.name',
@@ -39,10 +32,6 @@ export const NATURAL_EARTH: ProjectionDefinition = {
   },
 }
 
-/**
- * Robinson Projection
- * Classic world map projection, used by National Geographic
- */
 export const ROBINSON: ProjectionDefinition = {
   id: 'robinson',
   name: 'projections.robinson.name',
@@ -68,10 +57,6 @@ export const ROBINSON: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert IV Projection
- * Equal-area pseudocylindrical projection
- */
 export const ECKERT4: ProjectionDefinition = {
   id: 'eckert4',
   name: 'projections.eckert4.name',
@@ -97,10 +82,6 @@ export const ECKERT4: ProjectionDefinition = {
   },
 }
 
-/**
- * Winkel Tripel Projection
- * Modified azimuthal projection, used by National Geographic since 1998
- */
 export const WINKEL_TRIPEL: ProjectionDefinition = {
   id: 'winkel-tripel',
   name: 'projections.winkelTripel.name',
@@ -128,10 +109,6 @@ export const WINKEL_TRIPEL: ProjectionDefinition = {
   },
 }
 
-/**
- * Mollweide Projection
- * Equal-area pseudocylindrical projection, widely used
- */
 export const MOLLWEIDE: ProjectionDefinition = {
   id: 'mollweide',
   name: 'projections.mollweide.name',
@@ -159,10 +136,6 @@ export const MOLLWEIDE: ProjectionDefinition = {
   },
 }
 
-/**
- * Miller Cylindrical Projection
- * Modified Mercator with less distortion at poles
- */
 export const MILLER: ProjectionDefinition = {
   id: 'miller',
   name: 'projections.miller.name',
@@ -188,10 +161,6 @@ export const MILLER: ProjectionDefinition = {
   },
 }
 
-/**
- * Sinusoidal Projection
- * Equal-area pseudocylindrical projection
- */
 export const SINUSOIDAL: ProjectionDefinition = {
   id: 'sinusoidal',
   name: 'projections.sinusoidal.name',
@@ -219,10 +188,6 @@ export const SINUSOIDAL: ProjectionDefinition = {
   },
 }
 
-/**
- * Wagner VI Projection
- * Popular pseudocylindrical compromise projection
- */
 export const WAGNER6: ProjectionDefinition = {
   id: 'wagner6',
   name: 'projections.wagner6.name',
@@ -250,10 +215,6 @@ export const WAGNER6: ProjectionDefinition = {
   },
 }
 
-/**
- * Hammer Projection
- * Equal-area azimuthal variant
- */
 export const HAMMER: ProjectionDefinition = {
   id: 'hammer',
   name: 'projections.hammer.name',
@@ -281,10 +242,6 @@ export const HAMMER: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert I Projection
- * Pseudocylindrical projection with straight parallels
- */
 export const ECKERT1: ProjectionDefinition = {
   id: 'eckert1',
   name: 'projections.eckert1.name',
@@ -310,10 +267,6 @@ export const ECKERT1: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert II Projection
- * Equal-area pseudocylindrical projection with straight parallels
- */
 export const ECKERT2: ProjectionDefinition = {
   id: 'eckert2',
   name: 'projections.eckert2.name',
@@ -339,10 +292,6 @@ export const ECKERT2: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert III Projection
- * Pseudocylindrical projection with elliptical parallels
- */
 export const ECKERT3: ProjectionDefinition = {
   id: 'eckert3',
   name: 'projections.eckert3.name',
@@ -368,10 +317,6 @@ export const ECKERT3: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert V Projection
- * Equal-area pseudocylindrical projection with elliptical parallels
- */
 export const ECKERT5: ProjectionDefinition = {
   id: 'eckert5',
   name: 'projections.eckert5.name',
@@ -397,10 +342,6 @@ export const ECKERT5: ProjectionDefinition = {
   },
 }
 
-/**
- * Eckert VI Projection
- * Equal-area pseudocylindrical projection with sinusoidal parallels
- */
 export const ECKERT6: ProjectionDefinition = {
   id: 'eckert6',
   name: 'projections.eckert6.name',
@@ -426,9 +367,6 @@ export const ECKERT6: ProjectionDefinition = {
   },
 }
 
-/**
- * Array of all world projection definitions
- */
 export const WORLD_PROJECTIONS: ProjectionDefinition[] = [
   NATURAL_EARTH,
   ROBINSON,

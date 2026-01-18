@@ -1,13 +1,3 @@
-/**
- * @atlas-composer/specification
- *
- * JSON Schema specification and TypeScript types for Atlas Composer
- * composite map projection configurations.
- *
- * @packageDocumentation
- */
-
-// Core types
 export type {
   AtlasMetadata,
   CanvasDimensions,
@@ -21,7 +11,6 @@ export type {
   TerritoryConfig,
 } from './types.js'
 
-// Type guards and utilities
 export {
   findTerritory,
   getTerritoryCodes,
@@ -30,7 +19,6 @@ export {
   SPECIFICATION_VERSION,
 } from './types.js'
 
-// Validation utilities
 export {
   validateConfig,
   validateVersion,

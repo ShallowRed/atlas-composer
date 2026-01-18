@@ -1,14 +1,5 @@
-/**
- * Preset Core Module
- *
- * Core domain logic for the preset system.
- * Exports types, validators, and converters for all preset types.
- */
+export { convertToAtlasComposerSpec, convertToDefaults, extractTerritoryParameters } from './converter'
 
-// Converters
-export { convertToDefaults, extractTerritoryParameters } from './converter'
-
-// Types (Unified)
 export type {
   AtlasProjectionMetadata,
   BasePresetMetadata,

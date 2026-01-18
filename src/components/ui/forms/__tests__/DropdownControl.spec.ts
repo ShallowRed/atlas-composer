@@ -6,7 +6,6 @@ import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import DropdownControl from '../DropdownControl.vue'
 
-// Create i18n instance for tests
 const i18n = createI18n({
   legacy: false,
   locale: 'en',

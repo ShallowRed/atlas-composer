@@ -10,7 +10,6 @@ import { getLanguageFlag } from '@/utils/language-icons'
 
 const { locale } = useI18n()
 
-// Convert SUPPORTED_LOCALES to DropdownOption format
 const languageOptions = computed<DropdownOption[]>(() => {
   return Object.entries(SUPPORTED_LOCALES).map(([code, label]) => ({
     value: code,

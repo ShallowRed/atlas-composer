@@ -5,7 +5,6 @@ interface Props {
 
 defineProps<Props>()
 
-// Check if icon is emoji/text (not a CSS class)
 function isEmojiIcon(icon?: string): boolean {
   return !!icon && !icon.startsWith('ri-')
 }

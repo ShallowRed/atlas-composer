@@ -9,7 +9,6 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const { t } = useI18n()
 
-// Use composable for all territory transform logic
 const {
   shouldShowEmptyState,
 } = useTerritoryTransforms()
@@ -17,7 +16,6 @@ const {
 
 <template>
   <div>
-    <!-- Message when no territories are available -->
     <Alert
       v-if="shouldShowEmptyState"
       type="info"
@@ -25,13 +23,11 @@ const {
       {{ t('territory.noOverseas') }}
     </Alert>
 
-    <!-- Preset Selector & Import Controls -->
     <div class="flex flex-col gap-3 mb-8">
       <PresetSelector />
       <ImportControls />
     </div>
 
-    <!-- Global Projection Controls -->
     <div class="collapse collapse-arrow border-t rounded-none border-base-300">
       <input type="checkbox">
       <h3 class="collapse-title text-sm font-semibold pl-0">
@@ -43,7 +39,6 @@ const {
       </div>
     </div>
 
-    <!-- Territory Settings -->
     <div class="collapse collapse-arrow border-y rounded-none border-base-300">
       <input type="checkbox">
       <h3 class="collapse-title text-sm font-semibold pl-0">

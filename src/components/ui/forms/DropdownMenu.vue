@@ -33,14 +33,11 @@ const { t } = useI18n()
 
 const menuPosition = ref({ top: 0, left: 0, width: 0 })
 
-// Translate category to label
 function getCategoryLabel(group: DropdownOptionGroup): string {
-  // If label is provided, use it directly
   if (group.label) {
     return group.label
   }
 
-  // If category is provided, translate it
   if (group.category) {
     const translationKey = `projections.categories.${group.category}`
     return t(translationKey)
@@ -49,9 +46,7 @@ function getCategoryLabel(group: DropdownOptionGroup): string {
   return ''
 }
 
-// Get icon class for category
 function getCategoryIconClass(group: DropdownOptionGroup): string | undefined {
-  // Only add icon if category is provided (projection categories)
   if (group.category) {
     return getCategoryIcon(group.category as ProjectionCategoryType)
   }
@@ -74,14 +69,12 @@ function updateMenuPosition() {
   }
 }
 
-// Watch for open state changes to update position
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     updateMenuPosition()
   }
 })
 
-// Update position on scroll or resize
 onMounted(() => {
   if (!props.inline) {
     window.addEventListener('scroll', updateMenuPosition, true)
@@ -100,13 +93,12 @@ const menuStyle = computed(() => ({
   top: `${menuPosition.value.top}px`,
   left: `${menuPosition.value.left}px`,
   minWidth: `${menuPosition.value.width}px`,
-  maxWidth: '400px', // Prevent menu from getting too wide
-  maxHeight: '24rem', // 96 * 0.25rem = 24rem (same as max-h-96)
+  maxWidth: '400px',
+  maxHeight: '24rem',
   overflowY: 'auto' as const,
   overflowX: 'hidden' as const,
 }))
 
-// Prevent menu clicks from bubbling (so it doesn't trigger outside click handlers)
 function handleMenuClick(event: MouseEvent) {
   event.stopPropagation()
 }

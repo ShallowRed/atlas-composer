@@ -1,14 +1,5 @@
-/**
- * Preset Catalog
- *
- * Registry of all available presets with metadata.
- */
-
 import type { PresetCatalog, PresetMetadata } from './types.js'
 
-/**
- * Complete preset catalog.
- */
 export const catalog: PresetCatalog = {
   version: '1.0.0',
   lastUpdated: '2026-01-17',

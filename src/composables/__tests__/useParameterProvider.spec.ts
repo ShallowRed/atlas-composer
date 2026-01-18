@@ -6,7 +6,6 @@ import { createTerritoryCode } from '@/types/branded'
 
 import { useParameterProvider } from '../useParameterProvider'
 
-// Test constants - convert once at top
 const TEST_CODE = createTerritoryCode('TEST')
 const NON_EXISTENT_CODE = createTerritoryCode('NON_EXISTENT')
 
@@ -27,10 +26,8 @@ describe('useParameterProvider', () => {
     const parameterStore = useParameterStore()
     const { parameterProvider } = useParameterProvider()
 
-    // Set a test parameter
     parameterStore.setTerritoryParameter(TEST_CODE, 'scale', 1000)
 
-    // Get through provider
     const params = parameterProvider.getEffectiveParameters(TEST_CODE)
 
     expect(params).toBeDefined()
@@ -41,10 +38,8 @@ describe('useParameterProvider', () => {
     const parameterStore = useParameterStore()
     const { parameterProvider } = useParameterProvider()
 
-    // Set a test parameter override
     parameterStore.setTerritoryParameter(TEST_CODE, 'rotate', [5, 10])
 
-    // Get through provider
     const params = parameterProvider.getExportableParameters(TEST_CODE)
 
     expect(params).toBeDefined()
@@ -55,7 +50,6 @@ describe('useParameterProvider', () => {
     const { parameterProvider: provider1 } = useParameterProvider()
     const { parameterProvider: provider2 } = useParameterProvider()
 
-    // Should be functionally equivalent (accessing same store)
     const parameterStore = useParameterStore()
     parameterStore.setTerritoryParameter(TEST_CODE, 'scale', 2000)
 
@@ -66,10 +60,8 @@ describe('useParameterProvider', () => {
   it('should handle empty territory parameters', () => {
     const { parameterProvider } = useParameterProvider()
 
-    // Get parameters for non-existent territory
     const params = parameterProvider.getEffectiveParameters(NON_EXISTENT_CODE)
 
-    // Should return empty or default parameters
     expect(params).toBeDefined()
   })
 })

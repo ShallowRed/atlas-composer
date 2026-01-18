@@ -7,7 +7,6 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const { t } = useI18n()
 
-// Use composable for territory logic
 const {
   shouldShowEmptyState,
 } = useTerritoryTransforms()

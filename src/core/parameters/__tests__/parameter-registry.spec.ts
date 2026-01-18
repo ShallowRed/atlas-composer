@@ -12,9 +12,7 @@ import { parameterRegistry } from '../parameter-registry'
 
 describe('parameterRegistry', () => {
   beforeEach(() => {
-    // Clear the singleton registry and repopulate it
     ;(parameterRegistry as any).definitions.clear()
-    // Re-register all parameters
     registerAllParameters()
   })
 

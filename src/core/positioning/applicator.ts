@@ -57,16 +57,6 @@ export function applyCanonicalPositioning(
   }
 }
 
-/**
- * Extract canonical positioning from current projection state
- *
- * Reads the current center/rotate from a projection and converts
- * to canonical format. Useful for capturing user's current view.
- *
- * @param projection - D3 projection to read from
- * @param family - Projection family to determine which value to read
- * @returns Canonical positioning representing current view
- */
 export function extractCanonicalFromProjection(
   projection: GeoProjection,
   family: PositioningFamily,
@@ -89,9 +79,6 @@ export function extractCanonicalFromProjection(
   }
 }
 
-/**
- * Map projection family string to PositioningFamily type
- */
 export function toPositioningFamily(family: string | undefined): PositioningFamily {
   if (!family)
     return 'OTHER'

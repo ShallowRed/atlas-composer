@@ -3,16 +3,6 @@ import type {
   ExportedCompositeConfig,
 } from '@/types/export-config'
 
-/**
- * Code Generation Strategy (Zero-Dependency Architecture):
- * - Generated code imports from @atlas-composer/projection-loader (zero dependencies)
- * - Includes projection registration calls (registerProjection) for required projections
- * - Uses loadCompositeProjection() to build the composite from configuration
- * - Much simpler than manually constructing projections (reduced from 500+ to ~50 lines)
- * - Self-documenting: teaches users the plugin registration pattern
- *
- * @since 2025-10-11 Updated to use zero-dependency projection loader architecture
- */
 export class CodeGenerator {
   generate(config: ExportedCompositeConfig, options: CodeGenerationOptions): string {
     if (options.format === 'd3') {
@@ -40,11 +30,9 @@ export class CodeGenerator {
     lines.push(this.generateD3Imports(config, false))
     lines.push('')
 
-    // Generate projection function
-    lines.push(this.generateD3ProjectionFunction(config, options, false))
+    lines.push(this.generateD3ProjectionFunction(config, false))
     lines.push('')
 
-    // Add usage example if requested
     if (options.includeExamples) {
       lines.push(this.generateD3UsageExample(config))
     }
@@ -52,28 +40,21 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate D3.js TypeScript code
-   */
   private generateD3TypeScript(
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
   ): string {
     const lines: string[] = []
 
-    // Add header comment
     lines.push(this.generateHeader(config, 'TypeScript'))
     lines.push('')
 
-    // Add imports
     lines.push(this.generateD3Imports(config, true))
     lines.push('')
 
-    // Generate projection function
-    lines.push(this.generateD3ProjectionFunction(config, options, true))
+    lines.push(this.generateD3ProjectionFunction(config, true))
     lines.push('')
 
-    // Add usage example if requested
     if (options.includeExamples) {
       lines.push(this.generateD3UsageExample(config))
     }
@@ -81,30 +62,23 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate Observable Plot code
-   */
   private generatePlotCode(
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
   ): string {
     const lines: string[] = []
 
-    // Add header comment
     lines.push(this.generateHeader(config, 'Observable Plot'))
     lines.push('')
 
-    // Add imports
     lines.push('import * as Plot from "@observablehq/plot";')
     lines.push('import * as d3 from "d3";')
     lines.push('import { loadCompositeProjection, registerProjection } from "@atlas-composer/projection-loader";')
     lines.push('')
 
-    // Generate projection function
-    lines.push(this.generatePlotProjectionFunction(config, options))
+    lines.push(this.generatePlotProjectionFunction(config))
     lines.push('')
 
-    // Add usage example if requested
     if (options.includeExamples) {
       lines.push(this.generatePlotUsageExample(config))
     }
@@ -112,9 +86,6 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate header comment
-   */
   private generateHeader(config: ExportedCompositeConfig, language: string): string {
     const lines = [
       '/**',
@@ -135,21 +106,16 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate D3 imports
-   */
   private generateD3Imports(config: ExportedCompositeConfig, typescript: boolean): string {
     const lines: string[] = []
     const projections = new Set<string>()
 
-    // Collect unique projections
     config.territories.forEach((territory) => {
       projections.add(this.getD3ProjectionFunction(territory.projection.id))
     })
 
     const imports = Array.from(projections).sort()
 
-    // Add D3 imports
     if (typescript) {
       lines.push(`import { ${imports.join(', ')} } from 'd3-geo';`)
     }
@@ -157,7 +123,6 @@ export class CodeGenerator {
       lines.push(`import { ${imports.join(', ')} } from 'd3-geo';`)
     }
 
-    // Add standalone projection loader imports
     const loaderImports = typescript
       ? 'loadCompositeProjection, registerProjection, type ProjectionLike'
       : 'loadCompositeProjection, registerProjection'
@@ -167,59 +132,37 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate D3 projection function
-   */
   private generateD3ProjectionFunction(
     config: ExportedCompositeConfig,
-    options: CodeGenerationOptions,
     typescript: boolean,
   ): string {
     const lines: string[] = []
     const returnType = typescript ? ': ProjectionLike' : ''
 
-    // Function signature
     lines.push(`export function create${this.toPascalCase(config.metadata.atlasId)}Projection()${returnType} {`)
 
-    // Add registration code
-    lines.push(...this.generateProjectionRegistration(config, options))
+    lines.push(...this.generateProjectionRegistration(config))
 
-    // Add composite projection loading
-    lines.push(...this.generateCompositeLoading(config, options))
+    lines.push(...this.generateCompositeLoading(config))
 
     lines.push('}')
 
     return lines.join('\n')
   }
 
-  /**
-   * Generate projection registration code
-   */
   private generateProjectionRegistration(
     config: ExportedCompositeConfig,
-    options: CodeGenerationOptions,
   ): string[] {
     const lines: string[] = []
     const projections = new Set<string>()
     const projectionIdToD3: Map<string, string> = new Map()
 
-    // Collect unique projections and their mappings
     config.territories.forEach((territory) => {
       const d3FuncName = this.getD3ProjectionFunction(territory.projection.id)
       projections.add(territory.projection.id)
       projectionIdToD3.set(territory.projection.id, d3FuncName)
     })
 
-    if (options.includeComments) {
-      lines.push('  // Step 1: Register projections used in this configuration')
-      lines.push('  // The standalone projection loader requires projections to be registered')
-      lines.push('  // before loading a composite configuration.')
-    }
-    else {
-      lines.push('  // Register projections')
-    }
-
-    // Generate registration calls
     Array.from(projections).sort().forEach((projectionId) => {
       const d3FuncName = projectionIdToD3.get(projectionId)
       lines.push(`  registerProjection('${projectionId}', () => ${d3FuncName}());`)
@@ -230,35 +173,13 @@ export class CodeGenerator {
     return lines
   }
 
-  /**
-   * Generate composite projection loading code
-   */
   private generateCompositeLoading(
     config: ExportedCompositeConfig,
-    options: CodeGenerationOptions,
   ): string[] {
     const lines: string[] = []
 
-    if (options.includeComments) {
-      lines.push('  // Step 2: Define the composite projection configuration')
-      lines.push('  // This configuration was exported from Atlas composer')
-    }
-    else {
-      lines.push('  // Composite projection configuration')
-    }
-
     lines.push(`  const config = ${JSON.stringify(config, null, 2).split('\n').join('\n  ')};`)
     lines.push('')
-
-    if (options.includeComments) {
-      lines.push('  // Step 3: Load the composite projection')
-      lines.push('  // Specify the target dimensions for the projection')
-      lines.push('  // Adjust width and height as needed for your use case')
-    }
-    else {
-      lines.push('  // Load composite projection')
-    }
-
     lines.push('  const projection = loadCompositeProjection(config, {')
     lines.push('    width: 800,')
     lines.push('    height: 600')
@@ -269,9 +190,6 @@ export class CodeGenerator {
     return lines
   }
 
-  /**
-   * Generate D3 usage example
-   */
   private generateD3UsageExample(config: ExportedCompositeConfig): string {
     const lines: string[] = []
     const funcName = `create${this.toPascalCase(config.metadata.atlasId)}Projection`
@@ -283,13 +201,10 @@ export class CodeGenerator {
     lines.push(' * Simply call the function and use the returned projection with D3.')
     lines.push(' */')
     lines.push('/*')
-    lines.push(`// Create the composite projection`)
     lines.push(`const projection = ${funcName}();`)
     lines.push('')
-    lines.push('// Use with D3 geoPath')
     lines.push('const path = d3.geoPath(projection);')
     lines.push('')
-    lines.push('// Render features')
     lines.push('svg.selectAll("path")')
     lines.push('  .data(features)')
     lines.push('  .join("path")')
@@ -301,39 +216,18 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate Plot projection function
-   */
   private generatePlotProjectionFunction(
     config: ExportedCompositeConfig,
-    options: CodeGenerationOptions,
   ): string {
     const lines: string[] = []
     const funcName = `create${this.toPascalCase(config.metadata.atlasId)}Projection`
 
     lines.push(`export function ${funcName}() {`)
 
-    // Add registration code (same as D3)
-    lines.push(...this.generateProjectionRegistration(config, options))
-
-    if (options.includeComments) {
-      lines.push('  // Step 2: Define the composite projection configuration')
-    }
-    else {
-      lines.push('  // Composite projection configuration')
-    }
+    lines.push(...this.generateProjectionRegistration(config))
 
     lines.push(`  const config = ${JSON.stringify(config, null, 2).split('\n').join('\n  ')};`)
     lines.push('')
-
-    if (options.includeComments) {
-      lines.push('  // Step 3: Return a function compatible with Observable Plot')
-      lines.push('  // Plot calls this function with { width, height } to build the projection')
-    }
-    else {
-      lines.push('  // Return Plot-compatible projection function')
-    }
-
     lines.push('  return ({ width = 800, height = 600 }) => {')
     lines.push('    return loadCompositeProjection(config, { width, height });')
     lines.push('  };')
@@ -342,9 +236,6 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Generate Plot usage example
-   */
   private generatePlotUsageExample(config: ExportedCompositeConfig): string {
     const lines: string[] = []
     const funcName = `create${this.toPascalCase(config.metadata.atlasId)}Projection`
@@ -356,14 +247,12 @@ export class CodeGenerator {
     lines.push(' * Observable Plot will call it with { width, height } to build the projection.')
     lines.push(' */')
     lines.push('/*')
-    lines.push(`// Create the projection factory`)
     lines.push(`const projectionFn = ${funcName}();`)
     lines.push('')
-    lines.push('// Use with Observable Plot')
     lines.push('Plot.plot({')
     lines.push('  width: 975,')
     lines.push('  height: 610,')
-    lines.push('  projection: projectionFn,  // Plot calls this with {width, height}')
+    lines.push('  projection: projectionFn,')
     lines.push('  marks: [')
     lines.push('    Plot.geo(countries, {')
     lines.push('      fill: "lightgray",')
@@ -378,9 +267,6 @@ export class CodeGenerator {
     return lines.join('\n')
   }
 
-  /**
-   * Map projection ID to D3 function name
-   */
   private getD3ProjectionFunction(projectionId: string): string {
     const mapping: Record<string, string> = {
       'conic-conformal': 'geoConicConformal',
@@ -400,9 +286,6 @@ export class CodeGenerator {
     return mapping[projectionId] || 'geoMercator'
   }
 
-  /**
-   * Convert string to PascalCase
-   */
   private toPascalCase(str: string): string {
     return str
       .split(/[-_\s]/)
@@ -411,9 +294,6 @@ export class CodeGenerator {
   }
 }
 
-/**
- * Convenience function to generate code
- */
 export function generateCode(
   config: ExportedCompositeConfig,
   options: CodeGenerationOptions,

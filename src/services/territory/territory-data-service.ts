@@ -6,9 +6,6 @@ import type { ProjectionId, TerritoryCode } from '@/types/branded'
 type GeoDataStore = ReturnType<typeof useGeoDataStore>
 type ParameterStore = ReturnType<typeof useParameterStore>
 
-/**
- * Territory data aggregated from stores
- */
 export interface TerritoryData {
   code: TerritoryCode
   name: string
@@ -21,23 +18,6 @@ export interface TerritoryDataAggregates {
   projections: Record<string, ProjectionId>
 }
 
-/**
- * Territory Data Service
- *
- * Application service (facade) for aggregating territory data from multiple stores.
- * Simplifies data access and provides a clean API for composables.
- *
- * Responsibilities:
- * - Aggregate territory data from geoDataStore
- * - Aggregate parameter data (translations, scales, projections) from parameterStore
- * - Provide single unified interface for territory data access
- *
- * Benefits:
- * - Single source of truth for territory data aggregation logic
- * - Easy to mock in tests
- * - Can add caching/optimization later
- * - Decouples composables from store implementation details
- */
 export class TerritoryDataService {
   private readonly geoDataStore: GeoDataStore
   private readonly parameterStore: ParameterStore
@@ -83,7 +63,6 @@ export class TerritoryDataService {
   }
 
   private getProjections(territories: TerritoryData[]): Record<string, ProjectionId> {
-    // Trigger reactivity
     void this.parameterStore.territoryParametersVersion
 
     const projectionsMap: Record<string, ProjectionId> = {}

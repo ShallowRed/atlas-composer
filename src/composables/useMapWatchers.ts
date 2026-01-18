@@ -23,15 +23,6 @@ interface MapWatcherCallbacks {
   onDependenciesChange: () => Promise<void>
 }
 
-/**
- * Composable that manages all watchers for MapRenderer component.
- *
- * Consolidates watch statements into a single composable:
- * - effectiveProjectionParams: Updates cartographer projection parameters
- * - canvasDimensions: Updates cartographer canvas dimensions
- * - referenceScale: Updates cartographer reference scale
- * - mode-dependent dependencies: Composite or simple mode dependencies
- */
 export function useMapWatchers(
   props: MapWatcherProps,
   callbacks: MapWatcherCallbacks,
@@ -42,10 +33,6 @@ export function useMapWatchers(
   const uiStore = useUIStore()
   const viewStore = useViewStore()
 
-  /**
-   * Watch for projection parameter changes and update cartographer
-   * immediate: true ensures params are applied on component mount, not just on changes
-   */
   const stopWatchingProjectionParams = watch(
     () => parameterStore.globalEffectiveParameters,
     async (newParams) => {
@@ -58,9 +45,6 @@ export function useMapWatchers(
     { deep: true, immediate: true },
   )
 
-  /**
-   * Watch for canvas dimensions changes
-   */
   const stopWatchingCanvasDimensions = watch(
     () => projectionStore.canvasDimensions,
     async (newDimensions) => {
@@ -73,9 +57,6 @@ export function useMapWatchers(
     { deep: true },
   )
 
-  /**
-   * Watch for reference scale changes
-   */
   const stopWatchingReferenceScale = watch(
     () => projectionStore.referenceScale,
     async (newScale) => {
@@ -87,10 +68,6 @@ export function useMapWatchers(
     },
   )
 
-  /**
-   * Watch for auto fit domain changes
-   * This toggles between domain fitting (auto-zoom) and manual scale control
-   */
   const stopWatchingAutoFitDomain = watch(
     () => projectionStore.autoFitDomain,
     async (enabled) => {
@@ -102,21 +79,14 @@ export function useMapWatchers(
     },
   )
 
-  /**
-   * Watch for explicit render triggers (from preset switching, etc.)
-   */
   const stopWatchingRenderKey = watch(
     () => geoDataStore.renderKey,
     async (newKey, oldKey) => {
       debug('renderKey changed: %s → %s, triggering re-render', oldKey, newKey)
-      // Force re-render when renderKey changes
       await callbacks.onDependenciesChange()
     },
   )
 
-  /**
-   * Watch mode-dependent dependencies (composite or simple mode)
-   */
   const stopWatchingDependencies = watch(
     () => {
       if (props.mode === 'composite') {
@@ -133,7 +103,6 @@ export function useMapWatchers(
           allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
         }
       }
-      // For simple mode, watch these dependencies
       return {
         projection: props.projection,
         selectedProjection: projectionStore.selectedProjection,
@@ -150,9 +119,6 @@ export function useMapWatchers(
     { deep: true, flush: 'post' },
   )
 
-  /**
-   * Cleanup function to stop all watchers
-   */
   const cleanup = () => {
     stopWatchingProjectionParams()
     stopWatchingCanvasDimensions()

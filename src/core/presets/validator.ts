@@ -1,10 +1,3 @@
-/**
- * Preset Validator
- *
- * Core validation logic for preset configurations.
- * Unified validation for all preset types (composite-custom, unified, split, built-in-composite).
- */
-
 import type {
   CompositeCustomConfig,
   CompositeExistingViewConfig,
@@ -26,24 +19,12 @@ import {
   validateProjectionParameters,
 } from './validation-utils'
 
-/**
- * Validation result for view presets
- */
 export interface ViewPresetValidationResult {
   isValid: boolean
   errors: string[]
   warnings: string[]
 }
 
-/**
- * Unified preset validation function (strategy pattern)
- * Routes to appropriate validator based on preset type
- *
- * @param preset - Any preset configuration object
- * @param presetType - The type of preset to validate
- * @param jsonText - Original JSON text (required for composite-custom validation)
- * @returns Validation result
- */
 export function validatePreset(
   preset: any,
   presetType: PresetType,
@@ -68,7 +49,6 @@ export function validatePreset(
     case 'unified':
     case 'split':
     case 'built-in-composite': {
-      // Inline validation for view mode presets
       const viewPreset = {
         id: preset.id || 'unknown',
         name: preset.name || 'Unknown',
@@ -89,19 +69,10 @@ export function validatePreset(
   }
 }
 
-/**
- * Validate a composite preset configuration
- * Checks structure using CompositeImportService and validates parameters
- *
- * @param jsonText - JSON string to validate
- * @param rawPreset - Parsed preset object (for metadata)
- * @returns Validation result with validated preset or errors
- */
 export function validateCompositePreset(
   jsonText: string,
   rawPreset: CompositeCustomConfig,
 ): LoadResult<CompositeCustomConfig> {
-  // Validate structure using CompositeImportService
   const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
 
   if (!importResult.success) {
@@ -112,39 +83,30 @@ export function validateCompositePreset(
     }
   }
 
-  // Additional validation using parameter registry
   const paramErrors: string[] = []
   const paramWarnings: string[] = []
 
   for (const territory of rawPreset.territories) {
     const family = territory.projection.family as ProjectionFamilyType
 
-    // Check required parameters - these are hard errors
-    // Only check parameters that are relevant for this projection family
     const required = parameterRegistry.getRequired()
     for (const def of required) {
-      // Check if parameter is relevant for this projection family
       const constraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
       const isRelevant = constraints.relevant
 
       if (def.requiresPreset && isRelevant) {
-        // Check if parameter exists in the appropriate location
         let hasParameter = false
 
         if (def.key === 'projectionId') {
-          // projectionId is stored at projection.id (not in parameters)
           hasParameter = territory.projection?.id !== undefined
         }
         else if (def.key === 'translateOffset') {
-          // translateOffset is stored in layout section
           hasParameter = territory.layout?.translateOffset !== undefined
         }
         else if (def.key === 'pixelClipExtent') {
-          // pixelClipExtent is stored in layout section (optional)
           hasParameter = territory.layout?.pixelClipExtent !== undefined
         }
         else {
-          // Other parameters are stored in projection.parameters section
           hasParameter = def.key in territory.projection.parameters
         }
 
@@ -154,7 +116,6 @@ export function validateCompositePreset(
       }
     }
 
-    // Validate parameter values - these are warnings, not hard errors
     const validationResults = parameterRegistry.validateParameters(
       territory.projection.parameters,
       family,
@@ -166,7 +127,6 @@ export function validateCompositePreset(
     }
   }
 
-  // Only fail on structural/required parameter errors, not validation warnings
   if (paramErrors.length > 0) {
     return {
       success: false,
@@ -175,13 +135,11 @@ export function validateCompositePreset(
     }
   }
 
-  // Combine validated preset with atlas metadata
   const extendedPreset: CompositeCustomConfig = {
     ...importResult.config!,
     atlasMetadata: rawPreset.atlasMetadata,
   }
 
-  // Return validated preset with parameter validation warnings
   return {
     success: true,
     data: extendedPreset,
@@ -190,13 +148,6 @@ export function validateCompositePreset(
   }
 }
 
-/**
- * Validate a view mode preset
- * Checks structure, required fields, and view mode-specific configuration
- *
- * @param preset - View preset to validate
- * @returns Validation result with errors and warnings
- */
 export function validateViewPreset(preset: {
   id: string
   name: string
@@ -208,7 +159,6 @@ export function validateViewPreset(preset: {
   const errors: string[] = []
   const warnings: string[] = []
 
-  // Validate required fields
   if (!preset.id) {
     errors.push('Missing required field: id')
   }
@@ -219,7 +169,6 @@ export function validateViewPreset(preset: {
     errors.push('Missing required field: config')
   }
 
-  // Validate atlasId using shared utility
   if (preset.atlasId) {
     const atlasValidation = validateAtlasId(preset.atlasId, { allowUnknown: true })
     errors.push(...atlasValidation.errors)
@@ -229,7 +178,6 @@ export function validateViewPreset(preset: {
     errors.push('Missing required field: atlasId')
   }
 
-  // Validate view mode
   const validViewModes: ViewPresetMode[] = ['unified', 'split', 'built-in-composite']
   if (preset.viewMode && !validViewModes.includes(preset.viewMode)) {
     errors.push(`Invalid view mode: ${preset.viewMode}. Must be one of: ${validViewModes.join(', ')}`)
@@ -238,7 +186,6 @@ export function validateViewPreset(preset: {
     errors.push('Missing required field: viewMode')
   }
 
-  // Validate view mode-specific configuration
   if (preset.viewMode === 'unified') {
     validateUnifiedConfig(preset.config as UnifiedViewConfig, errors, warnings)
   }
@@ -256,10 +203,6 @@ export function validateViewPreset(preset: {
   }
 }
 
-/**
- * Validate unified view configuration
- * Checks projection exists and validates parameters
- */
 function validateUnifiedConfig(
   config: UnifiedViewConfig,
   errors: string[],
@@ -270,20 +213,17 @@ function validateUnifiedConfig(
     return
   }
 
-  // Validate projection ID using shared utility
   const projIdValidation = validateProjectionId(config.projection.id)
   errors.push(...projIdValidation.errors)
   warnings.push(...projIdValidation.warnings)
 
   if (projIdValidation.isValid) {
-    // Validate projection exists in registry
     const projection = projectionRegistry.get(config.projection.id)
     if (!projection) {
       errors.push(`Unknown projection: ${config.projection.id}`)
       return
     }
 
-    // Validate parameters using shared utility
     if (config.projection.parameters) {
       const paramValidation = validateProjectionParameters(
         config.projection.parameters,
@@ -296,23 +236,17 @@ function validateUnifiedConfig(
   }
 }
 
-/**
- * Validate split view configuration
- * Checks territory projections
- */
 function validateSplitConfig(
   config: SplitViewConfig,
   errors: string[],
   warnings: string[],
 ): void {
-  // Validate territory projections
   if (!config.territories) {
     errors.push('Split config missing territories')
     return
   }
 
   for (const [code, territoryConfig] of Object.entries(config.territories)) {
-    // Validate projection ID using shared utility
     const projIdValidation = validateProjectionId(territoryConfig.projection?.id)
     if (!projIdValidation.isValid) {
       errors.push(`Territory ${code}: ${projIdValidation.errors.join(', ')}`)
@@ -337,10 +271,6 @@ function validateSplitConfig(
   }
 }
 
-/**
- * Validate built-in-composite view configuration
- * Checks d3-composite-projections projection ID and globalScale
- */
 function validateCompositeExistingConfig(
   config: CompositeExistingViewConfig,
   errors: string[],
@@ -351,7 +281,6 @@ function validateCompositeExistingConfig(
     return
   }
 
-  // Validate projection exists in d3-composite-projections
   const validProjections = [
     'conic-conformal-france',
     'conic-conformal-europe',
@@ -368,7 +297,6 @@ function validateCompositeExistingConfig(
     )
   }
 
-  // Validate globalScale if present
   if (config.globalScale !== undefined) {
     if (typeof config.globalScale !== 'number') {
       errors.push('globalScale must be a number')

@@ -20,14 +20,10 @@ const geoDataStore = useGeoDataStore()
 
 const { getTerritoryProjection } = useProjectionConfig()
 
-// Safe accessor for territories title with fallback
 const territoriesTitle = computed(() =>
   atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
 )
 
-/**
- * Get atlas territory collections configuration
- */
 const atlasCollections = computed(() => {
   const atlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(atlasId)) {
@@ -38,38 +34,23 @@ const atlasCollections = computed(() => {
   return atlasSpecificConfig.territoryCollections
 })
 
-/**
- * Get the default grouping from registry behavior
- * Uses territoryGroups config for split/unified views visual grouping
- */
 const defaultGrouping = useCollectionSet('territoryGroups', 'mutually-exclusive')
 
-/**
- * Local state for selected grouping strategy
- * Initialized with default from registry, can be changed by user
- */
 const selectedGrouping = ref<string | undefined>(defaultGrouping.value)
 
-// Watch for atlas changes to reset grouping to default
 watch(() => atlasStore.selectedAtlasId, () => {
   selectedGrouping.value = defaultGrouping.value
 }, { immediate: true })
 
-// Watch default grouping changes (e.g., when atlas loads)
 watch(defaultGrouping, (newDefault) => {
   selectedGrouping.value = newDefault
 }, { immediate: true })
 
-/**
- * Grouping options for dropdown
- * Only show mutually-exclusive collection sets (filter out incremental ones)
- */
 const groupingOptions = computed(() => {
   if (!atlasCollections.value) {
     return []
   }
 
-  // Filter to only show mutually-exclusive collection sets
   const allowedKeys = filterCollectionSetsByType(atlasCollections.value, 'mutually-exclusive')
 
   return Object.entries(atlasCollections.value)
@@ -77,21 +58,14 @@ const groupingOptions = computed(() => {
     .map(([key, collectionSet]) => ({
       value: key,
       label: collectionSet.label,
-      translated: false, // Will be translated by i18n
+      translated: false,
     }))
 })
 
-/**
- * Group territories by collection
- * Uses atlas territoryCollections configuration for grouping
- * Since we only use mutually-exclusive collection sets, territories won't appear in multiple groups
- */
 const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const collections = atlasCollections.value
   const territories = geoDataStore.filteredTerritories
 
-  // Guard: Ensure we're looking at the right atlas's data
-  // If atlas is loading, territories might be stale from previous atlas
   const currentAtlasId = atlasStore.selectedAtlasId
   if (!isAtlasLoaded(currentAtlasId)) {
     return new Map()
@@ -103,12 +77,10 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   const collectionSetKey = selectedGrouping.value
   if (!collectionSetKey) {
-    // No collection set defined - show all territories without grouping
     if (territories.length === 0) {
       return new Map()
     }
 
-    // Use empty string as key so no group title is rendered
     return new Map([['', territories]])
   }
 
@@ -119,7 +91,6 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
 
   const territoriesByCode = new Map(territories.map(t => [t.code, t]))
 
-  // Convert territory collections to Map<label, Territory[]>
   const groups = new Map<string, Territory[]>()
 
   for (const collection of collectionSet.collections) {
@@ -136,9 +107,6 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
   return groups
 })
 
-/**
- * Check if we should use grouped display (has groups defined)
- */
 const hasGroups = computed(() => territoryGroups.value.size > 0)
 </script>
 
@@ -244,7 +212,6 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
 </template>
 
 <style scoped>
-/* Stabilize title heights to prevent layout shift during transitions */
 h3 {
   min-height: 1.5rem;
   line-height: 1.5rem;

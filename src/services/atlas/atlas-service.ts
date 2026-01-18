@@ -1,11 +1,3 @@
-/**
- * Atlas Service
- * Atlas-aware facade for accessing territory data and configuration
- *
- * This service provides a clean API for working with a specific atlas's
- * territories, modes, groups, and projection parameters.
- */
-
 import type { AtlasSpecificConfig } from '@/core/atlases/loader'
 import type { AtlasConfig, AtlasId, CompositeProjectionConfig, TerritoryCode, TerritoryCollection, TerritoryCollections, TerritoryConfig } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -64,16 +56,10 @@ export class AtlasService {
     return this.specificConfig.territoryModes
   }
 
-  /**
-   * Returns the new territoryCollections if available, undefined otherwise
-   */
   getTerritoryCollections(): TerritoryCollections | undefined {
     return this.specificConfig.territoryCollections
   }
 
-  /**
-   * Returns behavior config (presets, UI settings) from registry
-   */
   getRegistryBehavior(): AtlasRegistryBehavior | undefined {
     return getAtlasBehavior(this.atlasId)
   }

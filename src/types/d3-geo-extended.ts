@@ -8,11 +8,6 @@ export interface GeoConicProjection extends GeoProjection {
   parallels: (() => [number, number]) & ((parallels: [number, number]) => this)
 }
 
-/**
- * Type guard to check if a projection is a conic projection with parallels support.
- * @param projection - The projection to check
- * @returns true if the projection has a parallels method
- */
 export function isConicProjection(
   projection: GeoProjection,
 ): projection is GeoConicProjection {

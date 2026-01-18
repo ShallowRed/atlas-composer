@@ -21,22 +21,18 @@ const { t } = useI18n()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 
-// Get territory mode options with reactive translation
 const { options: territoryModeOptions } = useTerritoryModeOptions()
 
-// Get grouped atlases with translated labels and flags
 const atlasGroupsWithIcons = computed(() => {
   return getAvailableAtlasesGrouped().map(group => ({
     label: group.label, // Already translated by registry
     options: group.options.map(atlas => ({
       ...atlas,
-      // Convert: string from registry needs to be cast for icon lookup
       icon: getAtlasFlag(atlas.value as AtlasId),
     })),
   }))
 })
 
-// Add icons to view mode options
 const viewModeOptionsWithIcons = computed(() => {
   return viewModeOptions.value.map(mode => ({
     ...mode,

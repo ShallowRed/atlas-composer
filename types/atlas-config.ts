@@ -2,20 +2,10 @@
  * JSON Configuration Types
  * Represents the structure of configs/*.json files
  * Used by both backend (scripts/) and frontend (src/)
- *
- * These types define the on-disk JSON format for atlas configurations.
- * Frontend may derive additional runtime types from these in src/types/
  */
 
-/**
- * i18n value type - supports both simple strings and localized objects
- */
 export type I18nValue = string | Record<string, string>
 
-/**
- * Territory configuration in unified JSON format
- * Represents a single territory as stored in configs/*.json
- */
 export interface JSONTerritoryConfig {
   id: string
   code: string
@@ -33,10 +23,6 @@ export interface JSONTerritoryConfig {
   }
 }
 
-/**
- * Territory collection in unified JSON format
- * A collection groups territories based on a specific strategy
- */
 export interface JSONTerritoryCollection {
   id: string
   label: I18nValue
@@ -44,10 +30,6 @@ export interface JSONTerritoryCollection {
   exclude?: string[]
 }
 
-/**
- * Territory collection set in unified JSON format
- * A set contains multiple collections representing a grouping strategy
- */
 export interface JSONTerritoryCollectionSet {
   label: I18nValue
   selectionType: 'incremental' | 'mutually-exclusive'
@@ -55,16 +37,8 @@ export interface JSONTerritoryCollectionSet {
   collections: JSONTerritoryCollection[]
 }
 
-/**
- * Territory collections organized by strategy (e.g., 'geographic', 'administrative')
- * Keys are user-defined collection set identifiers
- */
 export type JSONTerritoryCollections = Record<string, JSONTerritoryCollectionSet>
 
-/**
- * Atlas configuration in unified JSON format
- * Represents a complete atlas as stored in configs/*.json
- */
 export interface JSONAtlasConfig {
   id: string
   name: I18nValue

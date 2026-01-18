@@ -3,37 +3,21 @@ import type { TerritoryConfig } from '@/types'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'
 
-// Using any for GeoDataService to avoid circular dependency and complex type issues
 type GeoDataService = any
 
-/**
- * Result of territory data loading operation
- */
 export interface TerritoryLoadResult {
-  /** All territories */
   territories: Territory[]
 }
 
-/**
- * Result of unified data loading operation
- */
 export interface UnifiedDataLoadResult {
   data: GeoJSON.FeatureCollection
 }
 
-/**
- * Territory data loader
- * Loads all territories as equals (no hierarchy)
- */
 export class TerritoryDataLoader {
   static create(): TerritoryDataLoader {
     return new TerritoryDataLoader()
   }
 
-  /**
-   * Load territory data
-   * All territories are loaded and treated equally
-   */
   async loadTerritories(service: GeoDataService): Promise<TerritoryLoadResult> {
     const allTerritoriesData = await service.getAllTerritories()
 
@@ -41,7 +25,6 @@ export class TerritoryDataLoader {
       return { territories: [] }
     }
 
-    // All territories as Territory objects
     const territories: Territory[] = allTerritoriesData.map((territoryData: any) => ({
       name: territoryData.territory.name,
       code: territoryData.territory.code,
@@ -56,10 +39,6 @@ export class TerritoryDataLoader {
     return { territories }
   }
 
-  /**
-   * Load unified data for composite views
-   * Handles territory filtering based on mode
-   */
   async loadUnifiedData(
     service: GeoDataService,
     mode: string,
@@ -72,20 +51,15 @@ export class TerritoryDataLoader {
   ): Promise<UnifiedDataLoadResult> {
     let territoryCodes: readonly string[] | undefined
 
-    // Check if atlas has territory modes for filtering
     if (!options.hasTerritorySelector) {
-      // No territory modes defined: include all territories
       territoryCodes = undefined
     }
     else {
-      // Get territory codes based on atlas type
       let allTerritories: TerritoryConfig[]
 
       if (options.isWildcard) {
-        // For wildcard atlases, get territories from GeoDataService (loaded from data file)
         const geoTerritories = await service.getAllTerritories()
 
-        // Convert Territory to TerritoryConfig format
         allTerritories = geoTerritories.map((gt: any) => ({
           code: gt.territory.code,
           name: gt.territory.name,
@@ -97,7 +71,6 @@ export class TerritoryDataLoader {
         }))
       }
       else {
-        // For regular atlases, get territories from registry (static config)
         allTerritories = options.atlasService.getAllTerritories()
       }
 

@@ -59,12 +59,10 @@ describe('cartographer service integration', () => {
 
   describe('projection parameter passing', () => {
     it('should accept standard projection IDs without errors', () => {
-      // Verify cartographer is set up to work with standard projections
       expect(cartographer).toHaveProperty('projectionService')
     })
 
     it('should work with composite projection IDs', () => {
-      // Verify cartographer can handle composite projections
       expect(cartographer).toHaveProperty('projectionService')
     })
   })

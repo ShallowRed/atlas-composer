@@ -52,7 +52,6 @@ describe('registry + factory integration', () => {
       })
       expect(projection).toBeDefined()
 
-      // Should be able to project French coordinates
       const result = projection!([2, 46])
       expect(result).toBeDefined()
     })
@@ -72,7 +71,6 @@ describe('registry + factory integration', () => {
       })
       expect(projection).toBeDefined()
 
-      // Should be able to project Portuguese coordinates
       const result = projection!([-8, 39])
       expect(result).toBeDefined()
     })
@@ -92,7 +90,6 @@ describe('registry + factory integration', () => {
       })
       expect(projection).toBeDefined()
 
-      // Should be able to project European coordinates
       const result = projection!([10, 50])
       expect(result).toBeDefined()
     })
@@ -195,7 +192,6 @@ describe('registry + factory integration', () => {
 
       expect(projection).toBeDefined()
 
-      // Should have projection methods available
       if (definition!.defaultParameters?.center && typeof projection!.center === 'function') {
         expect(projection!.center()).toBeDefined()
       }
@@ -204,18 +200,15 @@ describe('registry + factory integration', () => {
 
   describe('createById with registry lookup', () => {
     it('should create projection from registry by ID', () => {
-      // Verify the projection exists in registry
       const definition = projectionRegistry.get('mercator')
       expect(definition).toBeDefined()
 
-      // Create using convenience method
       const projection = ProjectionFactory.createById('mercator')
       expect(projection).toBeDefined()
       expect(typeof projection).toBe('function')
     })
 
     it('should create projection from registry by alias', () => {
-      // Verify the projection exists in registry
       const definition = projectionRegistry.get('conicConformal')
       expect(definition).toBeDefined()
 
@@ -226,11 +219,9 @@ describe('registry + factory integration', () => {
     })
 
     it('should return null for unknown projection', () => {
-      // Verify the projection does not exist in registry
       const definition = projectionRegistry.get('unknown-projection')
       expect(definition).toBeUndefined()
 
-      // Create using convenience method should return null
       const projection = ProjectionFactory.createById('unknown-projection')
       expect(projection).toBeNull()
     })
@@ -238,7 +229,6 @@ describe('registry + factory integration', () => {
 
   describe('real-world scenarios', () => {
     it('should support complete france atlas workflow', () => {
-      // 1. Get recommendations for France
       const recommendations = projectionRegistry.recommend({
         atlasId: 'france',
         viewMode: 'split',

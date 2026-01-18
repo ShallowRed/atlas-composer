@@ -1,18 +1,6 @@
-/**
- * Azimuthal Projection Definitions
- *
- * Azimuthal projections project the sphere onto a plane from a specific point.
- * They preserve direction from the center point and are excellent for polar
- * regions and hemispheric views.
- */
-
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Lambert Azimuthal Equal-Area Projection
- * Preserves area and is excellent for polar and hemispheric maps
- */
 export const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
   id: 'azimuthal-equal-area',
   name: 'projections.azimuthalEqualArea.name',
@@ -34,10 +22,6 @@ export const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
   year: 1772,
 }
 
-/**
- * Azimuthal Equidistant Projection
- * Preserves distance from the center point
- */
 export const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
   id: 'azimuthal-equidistant',
   name: 'projections.azimuthalEquidistant.name',
@@ -57,10 +41,6 @@ export const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
 
 }
 
-/**
- * Stereographic Projection
- * Conformal azimuthal projection, excellent for polar regions
- */
 export const STEREOGRAPHIC: ProjectionDefinition = {
   id: 'stereographic',
   name: 'projections.stereographic.name',
@@ -79,10 +59,6 @@ export const STEREOGRAPHIC: ProjectionDefinition = {
 
 }
 
-/**
- * Orthographic Projection
- * Simulates a 3D globe view from space
- */
 export const ORTHOGRAPHIC: ProjectionDefinition = {
   id: 'orthographic',
   name: 'projections.orthographic.name',
@@ -101,10 +77,6 @@ export const ORTHOGRAPHIC: ProjectionDefinition = {
 
 }
 
-/**
- * Gnomonic Projection
- * All great circles appear as straight lines
- */
 export const GNOMONIC: ProjectionDefinition = {
   id: 'gnomonic',
   name: 'projections.gnomonic.name',
@@ -123,9 +95,6 @@ export const GNOMONIC: ProjectionDefinition = {
 
 }
 
-/**
- * Array of all azimuthal projection definitions
- */
 export const AZIMUTHAL_PROJECTIONS: ProjectionDefinition[] = [
   AZIMUTHAL_EQUAL_AREA,
   AZIMUTHAL_EQUIDISTANT,

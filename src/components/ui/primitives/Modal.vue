@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 
-/**
- * Modal - Standardized dialog wrapper component
- *
- * Features:
- * - Consistent modal structure and styling
- * - Optional close button
- * - Customizable max width
- * - Named slots for title, content, and actions
- * - Click outside to close
- * - Accessible with proper ARIA attributes
- * - Auto-focus on open
- */
-
 interface Props {
   modelValue: boolean
   icon?: string
@@ -39,14 +26,11 @@ function close() {
   emit('update:modelValue', false)
 }
 
-// Focus the modal when it opens
 watch(() => props.modelValue, async (isOpen) => {
   if (isOpen) {
-    // Use multiple nextTick calls to ensure Teleport has completed
     await nextTick()
     await nextTick()
 
-    // Additional fallback with setTimeout for Teleport
     setTimeout(() => {
       modalBoxRef.value?.focus()
     }, 0)

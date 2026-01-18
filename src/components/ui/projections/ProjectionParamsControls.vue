@@ -1,11 +1,4 @@
 <script setup lang="ts">
-/**
- * Projection Parameter Controls
- *
- * Controls for editing projection parameters in unified/split modes.
- * Uses canonical parameter format (focusLongitude/focusLatitude) via parameterStore,
- * matching the pattern used by TerritoryParameterControls in composite-custom mode.
- */
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
@@ -26,7 +19,6 @@ const viewStore = useViewStore()
 const parameterStore = useParameterStore()
 const presetDefaults = getSharedPresetDefaults()
 
-// Get current projection definition
 const currentProjection = computed(() => {
   if (!projectionStore.selectedProjection) {
     return undefined
@@ -34,24 +26,19 @@ const currentProjection = computed(() => {
   return projectionRegistry.get(projectionStore.selectedProjection)
 })
 
-// Get projection family for parameter constraints
 const projectionFamily = computed<ProjectionFamilyType>(() => {
   return currentProjection.value?.family ?? 'OTHER'
 })
 
-// Get effective parameters from parameter store (atlas params + global overrides)
 const effectiveParams = computed(() => parameterStore.globalEffectiveParameters)
 
-// Get parameter constraints for this projection family
 const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(projectionFamily.value)
 })
 
-// Get parameter range from registry
 function getParameterRange(paramKey: keyof ProjectionParameters) {
   const constraints = parameterConstraints.value.constraints[paramKey]
   if (!constraints) {
-    // Fallback ranges if constraint not found
     const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
       focusLongitude: { min: -180, max: 180, step: 1 },
       focusLatitude: { min: -90, max: 90, step: 1 },
@@ -70,14 +57,12 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   }
 }
 
-// Get list of relevant parameters for this projection family
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
     .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
 
-// Parameter range computed properties
 const focusLongitudeRange = computed(() => getParameterRange('focusLongitude'))
 const focusLatitudeRange = computed(() => getParameterRange('focusLatitude'))
 const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
@@ -85,7 +70,6 @@ const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
 const scaleMultiplierRange = computed(() => getParameterRange('scaleMultiplier'))
 
-// Check which parameters are relevant
 const hasFocusLongitudeParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'focusLongitude')
 })
@@ -102,7 +86,6 @@ const hasParallelsParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'parallels')
 })
 
-// Check if projection supports latitude rotation (regardless of lock state)
 const supportsLatitudeRotation = computed(() => {
   const projection = currentProjection.value
   if (!projection)
@@ -111,31 +94,24 @@ const supportsLatitudeRotation = computed(() => {
   return baseParams.rotateLatitude
 })
 
-// Check if there are any parameters to show
 const hasAnyRelevantParams = computed(() => {
   return relevantParameters.value.length > 0 || true // Always show scale
 })
 
-// Check if parameters differ from preset defaults
 const hasCustomParams = computed(() => {
-  // Check if user has set any global parameter overrides that differ from preset
   const globalParams = parameterStore.globalParameters
   const globalDefaults = presetDefaults.presetGlobalParameters.value
 
-  // If no global params set, nothing to reset
   if (Object.keys(globalParams).length === 0) {
     return false
   }
 
-  // If no preset defaults, any params are custom
   if (!globalDefaults) {
     return true
   }
 
-  // Check if any param differs from preset default
   for (const [key, value] of Object.entries(globalParams)) {
     const defaultValue = globalDefaults[key as keyof ProjectionParameters]
-    // Simple comparison - arrays would need deep comparison
     if (Array.isArray(value) && Array.isArray(defaultValue)) {
       if (value.length !== defaultValue.length || value.some((v, i) => v !== defaultValue[i])) {
         return true
@@ -149,18 +125,13 @@ const hasCustomParams = computed(() => {
   return false
 })
 
-// Handle parameter value changes
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
   parameterStore.setGlobalParameter(key, value)
 }
 
-// Reset all parameters to preset defaults
 function reset() {
-  // Clear all global parameter overrides
-  // Atlas parameters (set by preset) will take effect automatically
   const currentParams = { ...parameterStore.globalParameters }
   for (const key of Object.keys(currentParams)) {
-    // Reset by setting to undefined (which will fall back to atlas/preset defaults)
     parameterStore.setGlobalParameter(key as keyof ProjectionParameters, undefined)
   }
 }
@@ -168,7 +139,6 @@ function reset() {
 
 <template>
   <div>
-    <!-- Projection Selector -->
     <ProjectionDropdown
       v-model="projectionStore.selectedProjection"
       :label="t('projection.cartographic')"
@@ -180,7 +150,6 @@ function reset() {
       v-if="hasAnyRelevantParams"
       class="flex flex-col gap-4 pt-6"
     >
-      <!-- Reset Button -->
       <button
         class="btn btn-sm btn-soft w-full gap-1 mb-2"
         :disabled="!hasCustomParams"
@@ -190,7 +159,6 @@ function reset() {
         {{ t('projectionParams.reset') }}
       </button>
 
-      <!-- Position Parameters (Focus Longitude/Latitude - Canonical Format) -->
       <template v-if="hasFocusLongitudeParameter || hasFocusLatitudeParameter || hasRotateGammaParameter">
         <div class="space-y-2">
           <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
@@ -198,7 +166,6 @@ function reset() {
             {{ t('territory.parameters.projectionSpecific') }}
           </h4>
 
-          <!-- Focus Longitude -->
           <RangeSlider
             v-if="hasFocusLongitudeParameter"
             :model-value="effectiveParams.focusLongitude ?? 0"
@@ -212,7 +179,6 @@ function reset() {
             @update:model-value="(value: number) => handleParameterChange('focusLongitude', value)"
           />
 
-          <!-- Latitude Lock Toggle (only show for projections that support latitude rotation) -->
           <div
             v-if="supportsLatitudeRotation"
             class="flex flex-col gap-1"
@@ -224,7 +190,6 @@ function reset() {
               @update:model-value="(value: boolean) => projectionStore.setRotateLatitudeLocked(!value)"
             />
 
-            <!-- Focus Latitude -->
             <RangeSlider
               v-if="hasFocusLatitudeParameter && !projectionStore.rotateLatitudeLocked"
               :model-value="effectiveParams.focusLatitude ?? 0"
@@ -239,7 +204,6 @@ function reset() {
             />
           </div>
 
-          <!-- Rotate Gamma (roll/tilt) -->
           <RangeSlider
             v-if="hasRotateGammaParameter"
             :model-value="effectiveParams.rotateGamma ?? 0"
@@ -255,7 +219,6 @@ function reset() {
         </div>
       </template>
 
-      <!-- Parallels (for conic projections) -->
       <template v-if="hasParallelsParameter">
         <div class="space-y-2">
           <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
@@ -263,7 +226,6 @@ function reset() {
             {{ t('projectionParams.parallels') }}
           </h4>
 
-          <!-- Parallel 1 -->
           <RangeSlider
             :model-value="effectiveParams.parallels?.[0] ?? 30"
             :label="t('projectionParams.parallel1')"
@@ -280,7 +242,6 @@ function reset() {
             }"
           />
 
-          <!-- Parallel 2 -->
           <RangeSlider
             :model-value="effectiveParams.parallels?.[1] ?? 60"
             :label="t('projectionParams.parallel2')"
@@ -299,14 +260,12 @@ function reset() {
         </div>
       </template>
 
-      <!-- Scale Control Mode -->
       <div class="space-y-2">
         <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
           <i class="ri-zoom-in-line" />
           {{ t('territory.parameters.layout') }}
         </h4>
 
-        <!-- Auto-fit Toggle -->
         <ToggleControl
           :model-value="!projectionStore.autoFitDomain"
           :label="t(projectionStore.autoFitDomain ? 'projectionParams.enableCustomScale' : 'projectionParams.disableCustomScale')"
@@ -314,7 +273,6 @@ function reset() {
           @update:model-value="(value: boolean) => projectionStore.setAutoFitDomain(!value)"
         />
 
-        <!-- Scale Multiplier (only show when auto-fit is disabled) -->
         <RangeSlider
           v-if="!projectionStore.autoFitDomain"
           :model-value="effectiveParams.scaleMultiplier ?? 1.0"

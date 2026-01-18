@@ -7,7 +7,6 @@ type GeoDataStore = ReturnType<typeof useGeoDataStore>
 type ParameterStore = ReturnType<typeof useParameterStore>
 
 describe('territoryDataService', () => {
-  // Mock stores
   const createMockGeoDataStore = (): Partial<GeoDataStore> => ({
     filteredTerritories: [
       { code: 'FR-GP', name: 'Guadeloupe', area: 1000, region: 'Caribbean', data: { type: 'FeatureCollection', features: [] } },
@@ -48,7 +47,6 @@ describe('territoryDataService', () => {
 
       const result = service.getTerritoryData()
 
-      // Check territories
       expect(result.territories).toHaveLength(2)
       expect(result.territories[0]).toEqual({
         code: 'FR-GP',
@@ -59,15 +57,12 @@ describe('territoryDataService', () => {
         name: 'Martinique',
       })
 
-      // Check translations
       expect(result.translations['FR-GP']).toEqual({ x: 100, y: 50 })
       expect(result.translations['FR-MQ']).toEqual({ x: 200, y: 100 })
 
-      // Check scales
       expect(result.scales['FR-GP']).toBe(1.5)
       expect(result.scales['FR-MQ']).toBe(2.0)
 
-      // Check projections
       expect(result.projections['FR-GP']).toBe('mercator')
       expect(result.projections['FR-MQ']).toBe('azimuthal-equal-area')
     })
@@ -121,7 +116,6 @@ describe('territoryDataService', () => {
       const service = new TerritoryDataService(geoDataStore, parameterStore)
       service.getTerritoryData()
 
-      // Verify store methods were called for each territory
       expect(parameterStore.getTerritoryTranslation).toHaveBeenCalledWith('FR-GP')
       expect(parameterStore.getTerritoryTranslation).toHaveBeenCalledWith('FR-MQ')
       expect(parameterStore.getTerritoryParameters).toHaveBeenCalledWith('FR-GP')

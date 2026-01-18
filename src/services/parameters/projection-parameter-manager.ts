@@ -1,10 +1,3 @@
-/**
- * Projection Parameter Manager
- *
- * Unified service for managing both global and territory-specific projection parameters
- * with inheritance, validation, and override capabilities.
- */
-
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryCode } from '@/types/branded'
 import type {
@@ -24,27 +17,14 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.parameters.manager
 
-/**
- * Parameter manager configuration
- */
 interface ParameterManagerConfig {
-  /** Enable parameter validation */
   enableValidation?: boolean
-  /** Enable change event emission */
   enableEvents?: boolean
-  /** Default parameter source priority order */
   sourcePriority?: ParameterSource[]
 }
 
-/**
- * Parameter change listener function
- */
 type ParameterChangeListener = (event: ParameterChangeEvent) => void
 
-/**
- * Unified projection parameter manager
- * Handles global and territory-specific parameters with inheritance and validation
- */
 export class ProjectionParameterManager {
   private globalParameters: ProjectionParameters = {}
   private territoryParameters: Map<string, ProjectionParameters> = new Map()
@@ -61,24 +41,14 @@ export class ProjectionParameterManager {
     }
   }
 
-  /**
-   * Set atlas-specific parameters
-   * Automatically normalizes legacy center/rotate to canonical focusLongitude/focusLatitude
-   */
   setAtlasParameters(atlasParams: ProjectionParameters): void {
     this.atlasParameters = this.normalizeParameters(atlasParams)
     this.emitChangeEvent('center', this.atlasParameters.center, undefined, undefined, 'atlas')
   }
 
-  /**
-   * Normalize parameters by converting legacy format to canonical
-   * Legacy: center: [lon, lat], rotate: [-lon, -lat, gamma]
-   * Canonical: focusLongitude, focusLatitude, rotateGamma
-   */
   private normalizeParameters(params: ProjectionParameters): ProjectionParameters {
     const result = { ...params }
 
-    // Check if we need to convert legacy to canonical
     const hasLegacyPositioning = result.center || result.rotate
     const hasCanonicalPositioning = result.focusLongitude !== undefined
       || result.focusLatitude !== undefined
@@ -89,14 +59,12 @@ export class ProjectionParameterManager {
         rotate: result.rotate as [number, number, number] | undefined,
       })
 
-      // Set canonical parameters
       result.focusLongitude = canonical.focusLongitude
       result.focusLatitude = canonical.focusLatitude
       if (canonical.rotateGamma !== 0) {
         result.rotateGamma = canonical.rotateGamma
       }
 
-      // Clear legacy parameters - canonical is now the source of truth
       delete result.center
       delete result.rotate
 
@@ -114,7 +82,6 @@ export class ProjectionParameterManager {
     const previousValue = this.globalParameters[key]
 
     if (value === undefined) {
-      // Remove the parameter when set to undefined (reset to atlas/default)
       const { [key]: removed, ...rest } = this.globalParameters
       this.globalParameters = rest
     }
@@ -129,7 +96,6 @@ export class ProjectionParameterManager {
     const previousParams = { ...this.globalParameters }
     this.globalParameters = mergeParameters(this.globalParameters, parameters)
 
-    // Emit change events for each modified parameter
     Object.entries(parameters).forEach(([key, value]) => {
       const paramKey = key as keyof ProjectionParameters
       this.emitChangeEvent(paramKey, value, previousParams[key], undefined, 'global')
@@ -150,17 +116,12 @@ export class ProjectionParameterManager {
     this.emitChangeEvent(key, value, previousValue, territoryCode, 'territory')
   }
 
-  /**
-   * Set multiple territory-specific parameters
-   * Automatically normalizes legacy center/rotate to canonical focusLongitude/focusLatitude
-   */
   setTerritoryParameters(territoryCode: TerritoryCode, parameters: ParameterUpdate): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     const normalizedParams = this.normalizeParameters(parameters as ProjectionParameters)
     const updatedParams = mergeParameters(currentParams, normalizedParams)
     this.territoryParameters.set(territoryCode, updatedParams)
 
-    // Emit change events for each modified parameter
     Object.entries(normalizedParams).forEach(([key, value]) => {
       const paramKey = key as keyof ProjectionParameters
       this.emitChangeEvent(paramKey, value, currentParams[paramKey], territoryCode, 'territory')
@@ -212,9 +173,6 @@ export class ProjectionParameterManager {
     return this.getParameterInheritance(territoryCode, key).source
   }
 
-  /**
-   * Clear territory parameter override
-   */
   clearTerritoryOverride(territoryCode: TerritoryCode, key: keyof ProjectionParameters): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     if (currentParams[key as string] === undefined)
@@ -235,14 +193,10 @@ export class ProjectionParameterManager {
     this.emitChangeEvent(key, newValue, previousValue, territoryCode, 'global')
   }
 
-  /**
-   * Clear all territory parameter overrides
-   */
   clearAllTerritoryOverrides(territoryCode: TerritoryCode): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     this.territoryParameters.delete(territoryCode)
 
-    // Emit change events for each cleared parameter
     Object.keys(currentParams).forEach((key) => {
       const paramKey = key as keyof ProjectionParameters
       const previousValue = currentParams[key]
@@ -251,18 +205,9 @@ export class ProjectionParameterManager {
     })
   }
 
-  /**
-   * Clear all parameters (global, atlas, and all territories)
-   * Phase 4: Used by InitializationService for atlas changes
-   */
   clearAll(): void {
-    // Clear global parameters
     this.globalParameters = {}
-
-    // Clear atlas parameters
     this.atlasParameters = null
-
-    // Clear all territory parameters
     this.territoryParameters.clear()
 
     debug('All parameters cleared')
@@ -280,7 +225,6 @@ export class ProjectionParameterManager {
     const relevantParams = getRelevantParameters(family)
     const parameterConfig = relevantParams[key as keyof typeof relevantParams]
 
-    // Check if parameter is relevant for this family
     if (!parameterConfig) {
       return {
         isValid: false,
@@ -288,12 +232,10 @@ export class ProjectionParameterManager {
       }
     }
 
-    // Basic type validation
     if (value === null || value === undefined) {
-      return { isValid: true } // Allow clearing parameters
+      return { isValid: true }
     }
 
-    // Validate specific parameter types
     switch (key) {
       case 'center':
       case 'parallels':
@@ -343,7 +285,6 @@ export class ProjectionParameterManager {
     const relevantParams = getRelevantParameters(family)
     const constraints: Partial<Record<keyof ProjectionParameters, ParameterConstraints>> = {}
 
-    // Define constraints for each parameter
     const parameterKeys: Array<keyof ProjectionParameters> = [
       'center',
       'rotate',
@@ -365,7 +306,6 @@ export class ProjectionParameterManager {
         defaultValue: this.getDefaultValue(key),
       }
 
-      // Add specific constraints
       switch (key) {
         case 'scale':
           constraints[key] = {
@@ -416,9 +356,6 @@ export class ProjectionParameterManager {
     this.listeners.delete(listener)
   }
 
-  /**
-   * Export parameters with scale metadata for configuration export
-   */
   exportParameters(territoryCode?: string): ProjectionParameters {
     const params = this.getEffectiveParameters(territoryCode)
 
@@ -430,18 +367,12 @@ export class ProjectionParameterManager {
     }
   }
 
-  /**
-   * Reset all parameters
-   */
   reset(): void {
     this.globalParameters = {}
     this.territoryParameters.clear()
     this.atlasParameters = null
   }
 
-  /**
-   * Private method to emit parameter change events
-   */
   private emitChangeEvent(
     key: keyof ProjectionParameters,
     value: any,
@@ -463,9 +394,6 @@ export class ProjectionParameterManager {
     this.listeners.forEach(listener => listener(event))
   }
 
-  /**
-   * Private method to get default value for a parameter
-   */
   private getDefaultValue(key: keyof ProjectionParameters): any {
     switch (key) {
       case 'center':

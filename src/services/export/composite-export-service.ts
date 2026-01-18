@@ -1,13 +1,3 @@
-/**
- * Composite Export Service
- *
- * Handles exporting composite projection configurations to JSON format.
- * Provides functionality to:
- * - Export current composite projection state
- * - Validate exported configurations
- * - Prepare configurations for code generation
- */
-
 import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
 import type {
@@ -23,30 +13,14 @@ import { projectionRegistry } from '@/core/projections/registry'
 
 import { CodeGenerator } from './code-generator'
 
-/**
- * Application version for metadata
- * Note: Version "0.0.0" in package.json indicates development version
- */
 const APP_VERSION = `Atlas composer v${packageJson.version === '0.0.0' ? '1.0' : packageJson.version}`
 
-/**
- * Round a number to specified decimal places, removing floating-point artifacts
- * @param n - Number to round
- * @param decimals - Number of decimal places (default: 6)
- * @returns Rounded number
- */
 function roundNumber(n: number | undefined, decimals = 6): number {
   if (n === undefined)
     return 0
   return Math.round(n * 10 ** decimals) / 10 ** decimals
 }
 
-/**
- * Round a 2-element tuple (center, translate, parallels)
- * @param arr - 2-element array
- * @param decimals - Number of decimal places (default: 6)
- * @returns Rounded 2-element tuple
- */
 function roundTuple2(
   arr: [number, number] | number[] | undefined,
   decimals = 6,
@@ -56,12 +30,6 @@ function roundTuple2(
   return [roundNumber(arr[0], decimals), roundNumber(arr[1], decimals)]
 }
 
-/**
- * Round a 3-element tuple (rotate)
- * @param arr - 3-element array
- * @param decimals - Number of decimal places (default: 6)
- * @returns Rounded 3-element tuple
- */
 function roundTuple3(
   arr: [number, number, number] | number[] | undefined,
   decimals = 6,
@@ -75,12 +43,6 @@ function roundTuple3(
   ]
 }
 
-/**
- * Round a 4-element tuple (pixelClipExtent)
- * @param arr - 4-element array
- * @param decimals - Number of decimal places (default: 6)
- * @returns Rounded 4-element tuple
- */
 function roundTuple4(
   arr: [number, number, number, number] | number[] | undefined,
   decimals = 6,
@@ -95,12 +57,6 @@ function roundTuple4(
   ]
 }
 
-/**
- * Round a 2D bounds array [[minLon, minLat], [maxLon, maxLat]]
- * @param bounds - 2D bounds array
- * @param decimals - Number of decimal places (default: 6)
- * @returns Rounded bounds array
- */
 function roundBounds(
   bounds: [[number, number], [number, number]] | undefined,
   decimals = 6,
@@ -113,24 +69,7 @@ function roundBounds(
   ]
 }
 
-/**
- * Export service for composite projections
- */
 export class CompositeExportService {
-  /**
-   * Export composite projection to JSON configuration
-   *
-   * @param compositeProjection - The CompositeProjection instance to export
-   * @param atlasId - Atlas identifier (e.g., 'france', 'portugal')
-   * @param atlasName - Atlas display name
-   * @param parameterProvider - Parameter provider object for accessing territory parameters
-   * @param referenceScale - Reference scale for projection
-   * @param canvasDimensions - Canvas dimensions with width and height properties
-   * @param canvasDimensions.width - Canvas width in pixels
-   * @param canvasDimensions.height - Canvas height in pixels
-   * @param notes - Optional user notes
-   * @returns Exportable configuration object
-   */
   static exportToJSON(
     compositeProjection: CompositeProjection,
     atlasId: AtlasId,
@@ -140,25 +79,19 @@ export class CompositeExportService {
     canvasDimensions?: { width: number, height: number },
     notes?: string,
   ): ExportedCompositeConfig {
-    // Get raw export from CompositeProjection
     const rawExport = compositeProjection.exportConfig()
 
-    // Transform territories to export format (all territories treated equally)
     const territories = rawExport.subProjections.map((subProj): ExportedTerritory => {
-      // Resolve projection ID from projection type/name
       const projectionId = this.resolveProjectionId(subProj.projectionType)
       const projectionDef = projectionRegistry.get(projectionId)
 
-      // Get all exportable parameters from parameter provider if available
       let projectionParameters: ExportedProjectionParameters
       let layoutTranslateOffset: [number, number]
       let layoutPixelClipExtent: [number, number, number, number] | null = null
 
       if (parameterProvider) {
-        // Get all exportable parameters
         const allParams = parameterProvider.getExportableParameters(subProj.territoryCode)
 
-        // Separate layout parameters from projection parameters
         const { translateOffset, pixelClipExtent, ...projParams } = allParams
 
         projectionParameters = projParams as ExportedProjectionParameters
@@ -170,7 +103,6 @@ export class CompositeExportService {
           : null
       }
       else {
-        // Fallback when no parameter provider
         projectionParameters = {
           center: roundTuple2(subProj.center),
           rotate: subProj.rotate && subProj.rotate.length >= 3
@@ -198,7 +130,6 @@ export class CompositeExportService {
       }
     })
 
-    // Create metadata
     const metadata: ExportMetadata = {
       atlasId,
       atlasName,
@@ -216,16 +147,10 @@ export class CompositeExportService {
     }
   }
 
-  /**
-   *
-   * @param config - Configuration to validate
-   * @returns Validation result with errors and warnings
-   */
   static validateExportedConfig(config: ExportedCompositeConfig): ExportValidationResult {
     const errors: string[] = []
     const warnings: string[] = []
 
-    // Check version
     if (!config.version) {
       errors.push('Missing version field')
     }
@@ -233,7 +158,6 @@ export class CompositeExportService {
       warnings.push(`Unknown version: ${config.version}. Expected 1.0`)
     }
 
-    // Check metadata
     if (!config.metadata) {
       errors.push('Missing metadata')
     }
@@ -249,7 +173,6 @@ export class CompositeExportService {
       }
     }
 
-    // Check territories
     if (!config.territories || !Array.isArray(config.territories)) {
       errors.push('Missing or invalid territories array')
     }
@@ -261,7 +184,6 @@ export class CompositeExportService {
       config.territories.forEach((territory, index) => {
         const prefix = `Territory ${index} (${territory.code || 'unknown'})`
 
-        // Required fields
         if (!territory.code) {
           errors.push(`${prefix}: Missing code`)
         }
@@ -272,23 +194,19 @@ export class CompositeExportService {
           errors.push(`${prefix}: Missing projection.id`)
         }
 
-        // Validate projection exists in registry
         if (territory.projection?.id && !projectionRegistry.get(territory.projection.id)) {
           warnings.push(`${prefix}: Unknown projection ID '${territory.projection.id}'`)
         }
 
-        // Check parameters
         if (!territory.projection?.parameters) {
           errors.push(`${prefix}: Missing projection.parameters`)
         }
         else {
-          // Validate scaleMultiplier as required
           if (typeof territory.projection.parameters.scaleMultiplier !== 'number') {
             errors.push(`${prefix}: Invalid or missing scaleMultiplier`)
           }
         }
 
-        // Check layout
         if (!territory.layout) {
           errors.push(`${prefix}: Missing layout`)
         }
@@ -297,7 +215,6 @@ export class CompositeExportService {
             errors.push(`${prefix}: Invalid translateOffset`)
           }
 
-          // Validate pixelClipExtent
           if (territory.layout.pixelClipExtent !== null && territory.layout.pixelClipExtent !== undefined) {
             if (!Array.isArray(territory.layout.pixelClipExtent) || territory.layout.pixelClipExtent.length !== 4) {
               errors.push(`${prefix}: Invalid pixelClipExtent format - must be [x1, y1, x2, y2]`)
@@ -312,7 +229,6 @@ export class CompositeExportService {
           }
         }
 
-        // Check bounds
         if (!territory.bounds || !Array.isArray(territory.bounds) || territory.bounds.length !== 2) {
           warnings.push(`${prefix}: Invalid or missing bounds`)
         }
@@ -326,13 +242,6 @@ export class CompositeExportService {
     }
   }
 
-  /**
-   * Generate D3-compatible JavaScript/TypeScript code
-   *
-   * @param config - Exported configuration
-   * @param options - Code generation options
-   * @returns Generated code as string
-   */
   static generateCode(
     config: ExportedCompositeConfig,
     options: CodeGenerationOptions,
@@ -341,26 +250,16 @@ export class CompositeExportService {
     return generator.generate(config, options)
   }
 
-  /**
-   * Resolve projection ID from projection type name
-   *
-   * Maps D3 constructor/function names back to projection IDs
-   * Example: 'geoConicConformal' -> 'conic-conformal'
-   */
   private static resolveProjectionId(projectionType: string): string {
-    // Try to find projection by matching constructor name pattern
     const allProjections = projectionRegistry.getAll()
 
     for (const proj of allProjections) {
-      // Match by constructor name if it contains the projection name
       const normalizedType = projectionType.toLowerCase().replace(/^geo/, '')
       if (proj.id.replace(/-/g, '') === normalizedType) {
         return proj.id
       }
     }
 
-    // Fallback: try to convert constructor name to ID format
-    // geoConicConformal -> conic-conformal
     const kebabCase = projectionType
       .replace(/^geo/, '')
       .replace(/([A-Z])/g, '-$1')
@@ -370,19 +269,13 @@ export class CompositeExportService {
     return kebabCase
   }
 
-  /**
-   * Extract parallels parameter if available
-   * Handles both function and array forms
-   */
   private static extractParallels(subProj: any): [number, number] | undefined {
-    // Check if parallels exist in raw export
     if (subProj.parallels) {
       if (Array.isArray(subProj.parallels)) {
         return subProj.parallels as [number, number]
       }
     }
 
-    // Try to get from projection object if it has a parallels() method
     if (subProj.projection?.parallels) {
       const parallels = subProj.projection.parallels()
       if (Array.isArray(parallels) && parallels.length === 2) {

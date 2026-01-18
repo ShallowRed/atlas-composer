@@ -1,8 +1,3 @@
-/**
- * View Mode Icon Utilities
- * Maps view modes to Remix icons
- */
-
 import type { ViewMode } from '@/types/composite'
 
 const VIEW_MODE_ICONS: Record<ViewMode, string> = {

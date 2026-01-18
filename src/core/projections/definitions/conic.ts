@@ -65,10 +65,6 @@ export const ALBERS: ProjectionDefinition = {
   },
 }
 
-/**
- * Conic Equidistant
- * Preserves distance along meridians, good for north-south extent
- */
 export const CONIC_EQUIDISTANT: ProjectionDefinition = {
   id: 'conic-equidistant',
   name: 'projections.conicEquidistant.name',
@@ -98,9 +94,6 @@ export const CONIC_EQUIDISTANT: ProjectionDefinition = {
   },
 }
 
-/**
- * Array of all conic projection definitions
- */
 export const CONIC_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL,
   ALBERS,

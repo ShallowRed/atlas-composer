@@ -47,25 +47,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Import recommendation helpers
 const { getBadge, getCssClass } = useProjectionRecommendations(
   toRef(props, 'recommendations'),
 )
 
-// Projection info modal state
 const showInfoModal = ref(false)
 const infoProjection = ref<ProjectionDefinition | null>(null)
 
-// Transform projection groups to include badges with styling
 const projectionGroupsWithBadges = computed(() => {
   return props.projectionGroups.map(group => ({
     ...group,
     options: group.options?.map((option) => {
-      // Convert: option.value is string from registry, cast to ProjectionId for recommendation lookup
       const badge = props.showRecommendations ? getBadge(option.value as ProjectionId) : undefined
       const cssClass = badge ? getCssClass(option.value as ProjectionId) : undefined
 
-      // Combine badge icon with CSS class if both exist
       const badgeWithClass = badge && cssClass ? `${badge} ${cssClass}` : badge
 
       return {
@@ -76,7 +71,6 @@ const projectionGroupsWithBadges = computed(() => {
   }))
 })
 
-// Show projection info modal
 function showProjectionInfo() {
   if (props.modelValue) {
     const projection = projectionRegistry.get(props.modelValue)
@@ -87,12 +81,10 @@ function showProjectionInfo() {
   }
 }
 
-// Close projection info modal
 function closeInfoModal() {
   showInfoModal.value = false
 }
 
-// Convert: v-model from dropdown gives string, convert to ProjectionId at boundary
 function handleUpdate(value: string) {
   emit('update:modelValue', value as ProjectionId)
   emit('change', value as ProjectionId)

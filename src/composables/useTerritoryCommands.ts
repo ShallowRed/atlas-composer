@@ -1,17 +1,6 @@
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import { useParameterStore } from '@/stores/parameters'
 
-/**
- * Territory Commands Composable
- *
- * Single responsibility: Provide write operations for territory parameters.
- * Thin wrapper around parameterStore for territory mutations.
- *
- * Returns:
- * - setTerritoryTranslation: Update territory translation
- * - setTerritoryScale: Update territory scale multiplier
- * - setTerritoryProjection: Update territory projection
- */
 export function useTerritoryCommands() {
   const parameterStore = useParameterStore()
 

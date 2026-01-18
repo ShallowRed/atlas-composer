@@ -1,11 +1,3 @@
-/**
- * Projection Factory
- *
- * Creates D3 projection instances based on projection definitions.
- * Implements the Strategy pattern to handle different projection sources
- * (D3 built-in, d3-geo-projection, d3-composite-projections).
- */
-
 import type { GeoProjection } from 'd3-geo'
 import type {
   CreateProjectionOptions,
@@ -49,23 +41,8 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.projection.factory
 
-/**
- * Projection Factory Class
- *
- * Creates D3 projection instances using the Strategy pattern to handle different
- * projection sources (D3 built-in, d3-geo-projection, d3-composite-projections).
- */
 export class ProjectionFactory {
-  /**
-   * Create a projection instance from a definition or ID
-   *
-   * @param options - Projection creation options
-   * @param options.projection - Projection definition object or ID string
-   * @param options.parameters - Optional projection parameters (center, rotate, scale, etc.)
-   * @returns Configured D3 projection instance, or null if creation fails
-   */
   public static create(options: CreateProjectionOptions): GeoProjection | null {
-    // Validate options
     if (!options || !options.projection) {
       debug('Invalid options: projection is required')
       return null
@@ -73,7 +50,6 @@ export class ProjectionFactory {
 
     const { projection, parameters = {} } = options
 
-    // Get projection definition
     let definition: ProjectionDefinition | undefined
     if (typeof projection === 'string') {
       definition = projectionRegistry.get(projection)
@@ -86,13 +62,11 @@ export class ProjectionFactory {
       definition = projection
     }
 
-    // Merge default parameters with overrides
     const finalParams: ProjectionParameters = {
       ...definition.defaultParameters,
       ...parameters,
     }
 
-    // Create projection based on strategy
     switch (definition.strategy) {
       case ProjectionStrategy.D3_BUILTIN:
         return this.createD3Builtin(definition.id, finalParams)
@@ -109,15 +83,6 @@ export class ProjectionFactory {
     }
   }
 
-  /**
-   * Create projection by ID (convenience method)
-   *
-   * A simpler alternative to `create()` when you only have a projection ID.
-   *
-   * @param id - Projection ID (e.g., 'mercator', 'conic-conformal')
-   * @param parameters - Optional projection parameters
-   * @returns Configured D3 projection instance, or null if ID is invalid
-   */
   public static createById(
     id: string,
     parameters?: ProjectionParameters,
@@ -131,9 +96,7 @@ export class ProjectionFactory {
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
-    // Map projection IDs to D3 functions
     switch (id) {
-      // Conic
       case 'conic-conformal':
         projectionFn = d3Geo.geoConicConformal
         break
@@ -145,7 +108,6 @@ export class ProjectionFactory {
         projectionFn = d3Geo.geoConicEquidistant
         break
 
-      // Azimuthal
       case 'azimuthal-equal-area':
         projectionFn = d3Geo.geoAzimuthalEqualArea
         break
@@ -162,7 +124,6 @@ export class ProjectionFactory {
         projectionFn = d3Geo.geoGnomonic
         break
 
-      // Cylindrical
       case 'mercator':
         projectionFn = d3Geo.geoMercator
         break
@@ -173,7 +134,6 @@ export class ProjectionFactory {
         projectionFn = d3Geo.geoEquirectangular
         break
 
-      // World
       case 'equal-earth':
         projectionFn = d3Geo.geoEqualEarth
         break
@@ -197,19 +157,15 @@ export class ProjectionFactory {
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
-    // Map projection IDs to d3-geo-projection functions
     switch (id) {
-      // Conic
       case 'bonne':
         projectionFn = () => d3GeoProjection.geoBonne()
         break
 
-      // Cylindrical
       case 'miller':
         projectionFn = () => d3GeoProjection.geoMiller()
         break
 
-      // World/Pseudocylindrical
       case 'mollweide':
         projectionFn = () => d3GeoProjection.geoMollweide()
         break
@@ -239,7 +195,6 @@ export class ProjectionFactory {
         projectionFn = () => d3GeoProjection.geoWagner6()
         break
 
-      // Compromise
       case 'robinson':
         projectionFn = () => d3GeoProjection.geoRobinson()
         break
@@ -248,7 +203,6 @@ export class ProjectionFactory {
         projectionFn = () => d3GeoProjection.geoWinkel3()
         break
 
-      // Artistic
       case 'aitoff':
         projectionFn = () => d3GeoProjection.geoAitoff()
         break
@@ -265,7 +219,6 @@ export class ProjectionFactory {
         projectionFn = () => d3GeoProjection.geoLoximuthal()
         break
 
-      // Polyhedral
       case 'polyhedral-waterman':
         projectionFn = () => d3GeoProjection.geoPolyhedralWaterman()
         break
@@ -288,7 +241,6 @@ export class ProjectionFactory {
   ): GeoProjection | null {
     let projectionFn: D3ProjectionFunction | null = null
 
-    // Map projection IDs to d3-composite-projections factory functions
     switch (id) {
       case 'conic-conformal-france':
       case 'france-composite':
@@ -315,19 +267,16 @@ export class ProjectionFactory {
         break
 
       case 'albers-usa':
-        // Use D3's built-in geoAlbersUsa (native)
         projectionFn = d3Geo.geoAlbersUsa
         break
 
       case 'albers-usa-composite':
       case 'usa-composite':
-        // Use d3-composite-projections albersUsa
         projectionFn = d3CompositeProjAlbersUsa.default
         break
 
       case 'albers-usa-territories':
       case 'usa-territories':
-        // Use d3-composite-projections albersUsaTerritories
         projectionFn = d3CompositeProjAlbersUsaTerritories.default
         break
 
@@ -391,54 +340,41 @@ export class ProjectionFactory {
     }
 
     const projection = projectionFn()
-    // Note: Composite projections handle their own internal parameters
-    // We only apply top-level parameters like scale and translate
     return this.applyParameters(projection, params, true)
   }
 
-  /**
-   * Apply parameters to a projection instance
-   */
   private static applyParameters(
     projection: GeoProjection,
     params: ProjectionParameters,
     compositeMode = false,
   ): GeoProjection {
-    // Apply center
     if (params.center && !compositeMode) {
       projection.center(params.center)
     }
 
-    // Apply rotation
     if (params.rotate && !compositeMode) {
-      // Ensure rotate is either [number, number] or [number, number, number]
       const rotate = params.rotate.length === 3 && params.rotate[2] !== undefined
         ? params.rotate as [number, number, number]
         : [params.rotate[0], params.rotate[1]] as [number, number]
       projection.rotate(rotate)
     }
 
-    // Apply parallels (for conic projections)
     if (params.parallels && 'parallels' in projection && !compositeMode) {
       ;(projection as any).parallels(params.parallels)
     }
 
-    // Apply scale
     if (params.scale) {
       projection.scale(params.scale)
     }
 
-    // Apply translate (pixel offset for projection center)
     if (params.translate) {
       projection.translate(params.translate)
     }
 
-    // Apply clip angle (for azimuthal projections)
     if (params.clipAngle && 'clipAngle' in projection) {
       ;(projection as any).clipAngle(params.clipAngle)
     }
 
-    // Apply precision
     if (params.precision !== undefined) {
       projection.precision(params.precision)
     }

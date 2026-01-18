@@ -1,7 +1,3 @@
-/**
- * Tests for CompositeImportService
- */
-
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { describe, expect, it } from 'vitest'
 import { createAtlasId } from '@/types/branded'
@@ -69,7 +65,6 @@ describe('compositeImportService', () => {
 
       expect(result.success).toBe(false)
       expect(result.errors.length).toBeGreaterThan(0)
-      // The error might be from migration check or validation
       const hasVersionError = result.errors.some(e =>
         e.includes('version') || e.includes('migrate'),
       )

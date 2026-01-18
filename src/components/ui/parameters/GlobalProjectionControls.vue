@@ -1,14 +1,4 @@
 <script setup lang="ts">
-/**
- * Global Projection Controls
- *
- * Component for editing global projection settings that apply across all territories:
- * - Canvas Dimensions: Reference canvas size for projection scaling
- * - Reference Scale: Base scale value used across all territories
- *
- * These settings are stored in presets and can be exported/imported.
- */
-
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
@@ -18,32 +8,25 @@ import { useProjectionStore } from '@/stores/projection'
 const { t } = useI18n()
 const projectionStore = useProjectionStore()
 
-// Default values (d3-composite-projections standard)
 const DEFAULT_CANVAS_WIDTH = 960
 const DEFAULT_CANVAS_HEIGHT = 500
-const DEFAULT_REFERENCE_SCALE = 2700 // For single-focus pattern
+const DEFAULT_REFERENCE_SCALE = 2700
 
-// Ranges for controls
 const CANVAS_WIDTH_RANGE = { min: 500, max: 2000, step: 10 }
 const CANVAS_HEIGHT_RANGE = { min: 300, max: 1200, step: 10 }
 const REFERENCE_SCALE_RANGE = { min: 100, max: 10000, step: 50 }
 
-// Local state for canvas dimensions
 const canvasWidth = ref(projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_WIDTH)
 const canvasHeight = ref(projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_HEIGHT)
 const aspectRatioLocked = ref(true)
 
-// Local state for reference scale
 const referenceScale = ref(projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE)
-
-// Track original aspect ratio
 const originalAspectRatio = computed(() => {
   const width = projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_WIDTH
   const height = projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_HEIGHT
   return width / height
 })
 
-// Watch for external changes to projection store
 watch(() => projectionStore.canvasDimensions, (newDimensions) => {
   if (newDimensions) {
     canvasWidth.value = newDimensions.width
@@ -57,12 +40,10 @@ watch(() => projectionStore.referenceScale, (newScale) => {
   }
 }, { immediate: true })
 
-// Update functions with aspect ratio lock support
 function updateCanvasWidth(value: number) {
   canvasWidth.value = value
 
   if (aspectRatioLocked.value) {
-    // Maintain aspect ratio by adjusting height
     canvasHeight.value = Math.round(value / originalAspectRatio.value)
   }
 
@@ -73,7 +54,6 @@ function updateCanvasHeight(value: number) {
   canvasHeight.value = value
 
   if (aspectRatioLocked.value) {
-    // Maintain aspect ratio by adjusting width
     canvasWidth.value = Math.round(value * originalAspectRatio.value)
   }
 
@@ -85,26 +65,17 @@ function updateReferenceScale(value: number) {
   applyReferenceScale()
 }
 
-// Apply changes to projection store
 function applyCanvasDimensions() {
-  // Always create a new object to ensure reactivity is triggered
   projectionStore.canvasDimensions = {
     width: canvasWidth.value,
     height: canvasHeight.value,
   }
-
-  // Note: Canvas dimensions control the SVG viewport size
-  // and are used by MapSizeCalculator to determine display dimensions
 }
 
 function applyReferenceScale() {
   projectionStore.referenceScale = referenceScale.value
-
-  // Note: Reference scale changes are picked up by the composite projection
-  // through reactive watchers - no full reinitialization needed
 }
 
-// Reset to defaults
 function resetToDefaults() {
   canvasWidth.value = DEFAULT_CANVAS_WIDTH
   canvasHeight.value = DEFAULT_CANVAS_HEIGHT
@@ -115,7 +86,6 @@ function resetToDefaults() {
   applyReferenceScale()
 }
 
-// Compute aspect ratio display
 const aspectRatio = computed(() => {
   const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b)
   const divisor = gcd(canvasWidth.value, canvasHeight.value)
@@ -124,7 +94,6 @@ const aspectRatio = computed(() => {
   return `${ratioWidth}:${ratioHeight}`
 })
 
-// Check if values differ from defaults
 const hasCustomValues = computed(() => {
   return canvasWidth.value !== DEFAULT_CANVAS_WIDTH
     || canvasHeight.value !== DEFAULT_CANVAS_HEIGHT

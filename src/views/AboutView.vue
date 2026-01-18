@@ -9,7 +9,6 @@ const { t } = useI18n()
 
 <template>
   <div class="flex flex-col gap-6">
-    <!-- Introduction -->
     <div class="hero">
       <div class="hero-content text-center">
         <div class="max-w-2xl">
@@ -24,7 +23,6 @@ const { t } = useI18n()
     </div>
 
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <!-- Why this tool -->
       <CardContainer
         :title="t('about.why.title')"
         icon="ri-lightbulb-line"
@@ -36,7 +34,6 @@ const { t } = useI18n()
         </div>
       </CardContainer>
 
-      <!-- Features -->
       <CardContainer
         :title="t('about.features.title')"
         icon="ri-list-check"
@@ -52,7 +49,6 @@ const { t } = useI18n()
         </div>
       </CardContainer>
 
-      <!-- Atlases -->
       <CardContainer
         :title="t('about.atlases.title')"
         icon="ri-global-line"
@@ -69,7 +65,6 @@ const { t } = useI18n()
       </CardContainer>
     </div>
 
-    <!-- CTA -->
     <div class="join py-6 mx-auto">
       <RouterLink
         to="/"

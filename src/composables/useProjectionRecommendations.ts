@@ -5,10 +5,6 @@ import type { ProjectionId } from '@/types/branded'
 import { computed, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-/**
- * Composable for managing projection recommendations
- * Provides helpers for getting recommendation badges, CSS classes, and tooltips
- */
 export function useProjectionRecommendations(
   recommendations: Ref<ProjectionRecommendation[] | undefined> | ProjectionRecommendation[] | undefined,
 ) {

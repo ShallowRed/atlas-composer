@@ -10,10 +10,6 @@ interface TerritoryModeOption {
   translated: boolean
 }
 
-/**
- * Composable to provide reactive territory mode options
- * Labels update automatically when locale changes
- */
 export function useTerritoryModeOptions() {
   const atlasStore = useAtlasStore()
   const { locale } = useI18n()
@@ -21,8 +17,6 @@ export function useTerritoryModeOptions() {
   const options = computed<TerritoryModeOption[]>(() => {
     const atlasId = atlasStore.selectedAtlasId
 
-    // Wait for atlas to load before accessing config
-    // Check both currentAtlasConfig (from useAtlasLoader) and cache state
     if (!atlasStore.currentAtlasConfig || !isAtlasLoaded(atlasId)) {
       return []
     }

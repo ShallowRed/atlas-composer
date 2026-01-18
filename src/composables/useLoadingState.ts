@@ -1,16 +1,8 @@
 import { ref } from 'vue'
 
-/**
- * Manages loading state with minimum duration to prevent flashing skeletons
- */
 export function useLoadingState(minLoadingTime = 200) {
   const showSkeleton = ref(false)
 
-  /**
-   * Wraps an async function to ensure loading state is visible for minimum duration
-   * @param fn - Async function to execute
-   * @returns Result of the async function
-   */
   async function withMinLoadingTime<T>(fn: () => Promise<T>): Promise<T> {
     showSkeleton.value = true
     const start = Date.now()

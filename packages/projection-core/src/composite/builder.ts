@@ -26,7 +26,6 @@ export function buildCompositeProjection(
     throw new Error('Cannot build composite projection with no entries')
   }
 
-  // Create point capture mechanism
   const { pointStream, getCapturedPoint, resetCapture } = createPointCaptureStream()
 
   const entryStreams = entries.map(entry => ({

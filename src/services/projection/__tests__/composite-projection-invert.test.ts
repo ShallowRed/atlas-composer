@@ -10,7 +10,6 @@ describe('compositeProjection - invert/forward chain', () => {
   let builtProjection: any
 
   beforeEach(() => {
-    // Create a simple composite projection config with France metropolitan and other territories
     const config: CompositeProjectionConfig = {
       territories: [
         {
@@ -28,7 +27,6 @@ describe('compositeProjection - invert/forward chain', () => {
       ],
     }
 
-    // Mock parameter provider to supply projectionId and pixelClipExtent
     const mockParameterProvider: ProjectionParameterProvider = {
       getEffectiveParameters: (territoryCode) => {
         const params: ProjectionParameters = {
@@ -43,7 +41,6 @@ describe('compositeProjection - invert/forward chain', () => {
           params.projectionId = createProjectionId('mercator')
           params.focusLongitude = -53
           params.focusLatitude = 4
-          // Clip to bottom-left corner of canvas for proper territory isolation [minX, minY, maxX, maxY]
           params.pixelClipExtent = [0, 450, 150, 600]
         }
         return params
@@ -62,8 +59,7 @@ describe('compositeProjection - invert/forward chain', () => {
     })
 
     it('should invert center points correctly', () => {
-      // Test metropolitan France center
-      const franceCenter = builtProjection([2, 46]) // France center
+      const franceCenter = builtProjection([2, 46])
       expect(franceCenter).toBeDefined()
 
       if (franceCenter) {
@@ -71,22 +67,17 @@ describe('compositeProjection - invert/forward chain', () => {
         expect(inverted).toBeDefined()
 
         if (inverted) {
-          // Should be close to original coordinates (within projection precision)
-          expect(inverted[0]).toBeCloseTo(2, 1) // longitude
+          expect(inverted[0]).toBeCloseTo(2, 1)
           expect(inverted[1]).toBeCloseTo(46, 1) // latitude
         }
       }
     })
 
     it('should project secondary territory points', () => {
-      // Test French Guiana center - projection should produce valid screen coordinates
-      // Note: Inversion for secondary territories requires proper clip extent configuration
-      // to determine which sub-projection the screen point belongs to
-      const guianaCenter = builtProjection([-53, 4]) // French Guiana center
+      const guianaCenter = builtProjection([-53, 4])
       expect(guianaCenter).toBeDefined()
 
       if (guianaCenter) {
-        // Should produce valid screen coordinates
         expect(typeof guianaCenter[0]).toBe('number')
         expect(typeof guianaCenter[1]).toBe('number')
         expect(Number.isFinite(guianaCenter[0])).toBe(true)
@@ -96,8 +87,6 @@ describe('compositeProjection - invert/forward chain', () => {
   })
 
   describe('round-trip Conversion', () => {
-    // Only test metropolitan France points which always round-trip correctly
-    // Secondary territory round-trip depends on proper clip extent configuration
     const testPoints = [
       [2, 46], // France metropolitan center
       [0, 47], // Near France
@@ -106,17 +95,14 @@ describe('compositeProjection - invert/forward chain', () => {
 
     testPoints.forEach(([lon, lat]) => {
       it(`should round-trip convert point [${lon}, ${lat}]`, () => {
-        // Forward: geo -> screen
         const screenPoint = builtProjection([lon, lat])
         expect(screenPoint).toBeDefined()
 
         if (screenPoint) {
-          // Inverse: screen -> geo
           const backToGeo = builtProjection.invert(screenPoint)
           expect(backToGeo).toBeDefined()
 
           if (backToGeo && Array.isArray(backToGeo) && backToGeo.length === 2) {
-            // Should be very close to original
             expect(backToGeo[0] as number).toBeCloseTo(lon as number, 2)
             expect(backToGeo[1] as number).toBeCloseTo(lat as number, 2)
           }
@@ -127,11 +113,9 @@ describe('compositeProjection - invert/forward chain', () => {
 
   describe('territory Movement Simulation', () => {
     it('should correctly handle territory translation through invert/forward chain', () => {
-      // Simulate mouse movement: start at screen coordinates [100, 100], move to [150, 120]
       const startScreen = [100, 100] as [number, number]
       const endScreen = [150, 120] as [number, number]
 
-      // Convert to geographic coordinates
       const startGeo = builtProjection.invert(startScreen)
       const endGeo = builtProjection.invert(endScreen)
 
@@ -139,7 +123,6 @@ describe('compositeProjection - invert/forward chain', () => {
       expect(endGeo).toBeDefined()
 
       if (startGeo && endGeo) {
-        // Convert back to screen coordinates
         const startScreenBack = builtProjection(startGeo) as [number, number]
         const endScreenBack = builtProjection(endGeo) as [number, number]
 
@@ -147,27 +130,22 @@ describe('compositeProjection - invert/forward chain', () => {
         expect(endScreenBack).toBeDefined()
 
         if (startScreenBack && endScreenBack) {
-          // Calculate screen movement
           const screenDx = endScreenBack[0] - startScreenBack[0]
           const screenDy = endScreenBack[1] - startScreenBack[1]
 
-          // Expected movement
-          const expectedDx = endScreen[0] - startScreen[0] // 50
-          const expectedDy = endScreen[1] - startScreen[1] // 20
+          const expectedDx = endScreen[0] - startScreen[0]
+          const expectedDy = endScreen[1] - startScreen[1]
 
-          // The movement should be close to 1:1 (allowing for some projection distortion)
-          expect(Math.abs(screenDx - expectedDx)).toBeLessThan(5) // within 5 pixels
+          expect(Math.abs(screenDx - expectedDx)).toBeLessThan(5)
           expect(Math.abs(screenDy - expectedDy)).toBeLessThan(5) // within 5 pixels
         }
       }
     })
 
     it('should handle points outside territory bounds gracefully', () => {
-      // Test point far outside any territory
-      const outsidePoint = [100, 100] // Random screen coordinates
+      const outsidePoint = [100, 100]
       const inverted = builtProjection.invert(outsidePoint)
 
-      // Should either return null or a valid geographic coordinate
       if (inverted) {
         expect(Array.isArray(inverted)).toBe(true)
         expect(inverted).toHaveLength(2)
@@ -179,14 +157,11 @@ describe('compositeProjection - invert/forward chain', () => {
 
   describe('translation Offset Effects', () => {
     it('should maintain invert accuracy after translation offset changes', () => {
-      // Apply a translation offset to France metropolitan
       compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [50, -30])
 
-      // Rebuild projection with new offset
       const newBuiltProjection = compositeProjection.build(800, 600, true)
 
-      // Test that invert still works correctly for the moved territory
-      const franceGeo = [2, 46] // France metropolitan center
+      const franceGeo = [2, 46]
       const screenPoint = newBuiltProjection(franceGeo as [number, number])
 
       expect(screenPoint).toBeDefined()
@@ -203,16 +178,12 @@ describe('compositeProjection - invert/forward chain', () => {
     })
 
     it('should show expected screen coordinate changes after translation', () => {
-      // Test the correct behavior: Compare the same geographic point
-      // with different territory translation offsets
-      const franceGeo = [2, 46] as [number, number] // France metropolitan center
+      const franceGeo = [2, 46] as [number, number]
 
-      // First: Set offset to [0, 0] and get screen position
       compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [0, 0])
       const projection1 = compositeProjection.build(800, 600, true)
       const screen1 = projection1(franceGeo)
 
-      // Second: Set offset to [100, -50] and get screen position
       const offsetX = 100
       const offsetY = -50
       compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [offsetX, offsetY])
@@ -226,7 +197,6 @@ describe('compositeProjection - invert/forward chain', () => {
         const actualDx = screen2[0] - screen1[0]
         const actualDy = screen2[1] - screen1[1]
 
-        // The actual movement should match the offset exactly (1:1)
         expect(actualDx).toBeCloseTo(offsetX, 1)
         expect(actualDy).toBeCloseTo(offsetY, 1)
       }

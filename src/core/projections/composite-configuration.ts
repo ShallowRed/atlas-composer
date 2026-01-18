@@ -83,21 +83,11 @@ export class CompositeConfiguration {
     this._canvasDimensions = { ...dimensions }
   }
 
-  /**
-   * Add a territory projection configuration
-   *
-   * @throws CompositeConfigurationError if validation fails
-   */
   addTerritory(config: TerritoryProjectionConfig): void {
     this.validateTerritory(config)
     this.territories.set(config.code, { ...config })
   }
 
-  /**
-   * Update an existing territory configuration
-   *
-   * @throws CompositeConfigurationError if territory not found or validation fails
-   */
   updateTerritory(code: string, updates: Partial<TerritoryProjectionConfig>): void {
     const existing = this.territories.get(code)
     if (!existing) {
@@ -107,18 +97,13 @@ export class CompositeConfiguration {
     const updated: TerritoryProjectionConfig = {
       ...existing,
       ...updates,
-      code, // Prevent code change
+      code,
     }
 
     this.validateTerritory(updated)
     this.territories.set(code, updated)
   }
 
-  /**
-   * Remove a territory from the configuration
-   *
-   * @throws CompositeConfigurationError if trying to remove the last territory
-   */
   removeTerritory(code: string): boolean {
     if (this.territories.size <= 1 && this.territories.has(code)) {
       throw new CompositeConfigurationError('Cannot remove the last territory')
@@ -147,11 +132,6 @@ export class CompositeConfiguration {
     return this.territories.has(code)
   }
 
-  /**
-   * Serialize the configuration
-   *
-   * The aggregate knows how to serialize itself.
-   */
   toJSON(): SerializedCompositeConfig {
     return {
       atlasId: this.atlasId,

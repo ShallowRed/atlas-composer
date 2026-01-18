@@ -12,12 +12,10 @@ const props = withDefaults(defineProps<Props>(), {
   showBadge: true,
 })
 
-// Check if badge is a Remix icon class (starts with 'ri-')
 const isBadgeIcon = computed(() => {
   return props.selectedOption?.badge?.startsWith('ri-')
 })
 
-// Extract all classes from badge string (may contain icon class + color classes)
 const badgeClasses = computed(() => {
   if (!props.selectedOption?.badge)
     return ''

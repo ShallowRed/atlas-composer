@@ -2,19 +2,6 @@
 import { computed } from 'vue'
 import { useSliderState } from '@/composables/useSliderState'
 
-/**
- * RangeSlider - Reusable range input component with label, icon, and value display
- *
- * Features:
- * - Customizable range, step, and units
- * - Icon support
- * - Color variants (primary, secondary, accent)
- * - Size variants (xs, sm, md)
- * - Optional midpoint display
- * - Real-time value display
- * - Global slider state tracking for optimized rendering
- */
-
 interface Props {
   label: string
   icon?: string
@@ -43,7 +30,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: number]
 }>()
 
-// Track slider active state globally
 const { setSliderActive, setSliderInactive } = useSliderState()
 
 function handleInput(event: Event) {
@@ -67,15 +53,12 @@ function handleTouchEnd() {
   setSliderInactive()
 }
 
-// Format value with proper decimal places
 function formatValue(value: number): string {
   return props.decimals > 0 ? value.toFixed(props.decimals) : Math.round(value).toString()
 }
 
-// Calculate midpoint for display
 const midpoint = () => formatValue((props.max + props.min) / 2)
 
-// Computed classes for proper reactivity
 const rangeClasses = computed(() => [
   'range',
   `range-${props.color}`,

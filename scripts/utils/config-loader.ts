@@ -1,8 +1,3 @@
-/**
- * Unified Config Loader
- * Loads unified JSON configs and applies backend adapter transformation
- */
-
 import type { BackendConfig, JSONAtlasConfig } from '#types'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
@@ -11,45 +6,27 @@ import { createBackendConfig } from '#scripts/config/adapter'
 import { logger } from '#scripts/utils/logger'
 import { validateConfigSchema } from '#scripts/utils/schema-validator'
 
-/**
- * Loaded config with both formats
- */
 export interface LoadedConfig {
   unified: JSONAtlasConfig
   backend: BackendConfig
 }
 
-/**
- * Get project root directory
- */
 function getProjectRoot(): string {
   return process.cwd()
 }
 
-/**
- * Get configs directory path
- */
 function getConfigsDir(): string {
   return path.join(getProjectRoot(), 'configs')
 }
 
-/**
- * Load unified JSON config and transform to backend format
- *
- * @param atlasName - Name of the atlas (e.g., 'portugal', 'france', 'europe')
- * @returns Both unified and backend formats
- */
 export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
   try {
-    // Load unified JSON config
     const configPath = path.join(getConfigsDir(), `${atlasName}.json`)
     const configContent = await fs.readFile(configPath, 'utf-8')
     const unified = JSON.parse(configContent)
 
-    // Validate against JSON schema
     await validateConfigSchema(unified, atlasName)
 
-    // Transform to backend format
     const backend = createBackendConfig(unified)
 
     return { unified, backend }
@@ -67,9 +44,7 @@ export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
 
         configs.forEach(c => logger.log(`  - ${c}`))
       }
-      catch {
-        // Ignore
-      }
+      catch {}
 
       throw new Error(`Config '${atlasName}' not found`)
     }
@@ -85,11 +60,6 @@ export async function loadConfig(atlasName: string): Promise<LoadedConfig> {
   }
 }
 
-/**
- * List all available configs
- *
- * @returns Array of config names (without .json extension)
- */
 export async function listConfigs(): Promise<string[]> {
   try {
     const configsDir = getConfigsDir()
@@ -107,12 +77,6 @@ export async function listConfigs(): Promise<string[]> {
   }
 }
 
-/**
- * Check if a config exists
- *
- * @param atlasName - Name of the atlas
- * @returns True if config exists
- */
 export async function configExists(atlasName: string): Promise<boolean> {
   try {
     const configPath = path.join(getConfigsDir(), `${atlasName}.json`)

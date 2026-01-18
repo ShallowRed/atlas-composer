@@ -18,9 +18,6 @@ export interface InitializationResult {
   state: ApplicationState | null
 }
 
-/**
- * Complete application state snapshot after initialization
- */
 export interface ApplicationState {
   atlas: {
     id: AtlasId
@@ -57,41 +54,26 @@ export interface ApplicationState {
   }
 }
 
-/**
- * Options for atlas initialization
- */
 export interface AtlasInitializationOptions {
   atlasId: AtlasId
   preserveViewMode?: boolean // Try to keep current view mode if supported
 }
 
-/**
- * Options for preset loading
- */
 export interface PresetLoadOptions {
   presetId: PresetId
   skipValidation?: boolean // For testing only
 }
 
-/**
- * Options for configuration import
- */
 export interface ImportOptions {
   config: ExportedCompositeConfig
   validateAtlasCompatibility?: boolean
 }
 
-/**
- * Options for view mode change
- */
 export interface ViewModeChangeOptions {
   viewMode: string
   autoLoadPreset?: boolean // Load first available preset for new mode
 }
 
-/**
- * Validation result for presets and configurations
- */
 export interface ValidationResult {
   isValid: boolean
   errors: string[]

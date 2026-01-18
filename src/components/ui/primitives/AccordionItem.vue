@@ -1,14 +1,4 @@
 <script setup lang="ts">
-/**
- * AccordionItem - Reusable accordion/collapse item component
- *
- * Features:
- * - Collapsible content with arrow indicator
- * - Title with optional subtitle
- * - Radio button grouping for exclusive expansion
- * - Consistent styling with DaisyUI
- */
-
 interface Props {
   title: string
   subtitle?: string

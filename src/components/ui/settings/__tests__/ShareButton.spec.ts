@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import ShareButton from '../ShareButton.vue'
 
-// Mock i18n
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => {
@@ -18,7 +17,6 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-// Mock useUrlState
 vi.mock('@/composables/useUrlState', () => ({
   useUrlState: vi.fn(),
 }))
@@ -29,7 +27,6 @@ describe('shareButton', () => {
   beforeEach(async () => {
     setActivePinia(createPinia())
 
-    // Setup mocks
     mockCopyShareableUrl = vi.fn()
 
     const useUrlStateModule = await import('@/composables/useUrlState')
@@ -43,7 +40,6 @@ describe('shareButton', () => {
       enableAutoSync: vi.fn(),
     })
 
-    // Mock setTimeout
     vi.useFakeTimers()
   })
 
@@ -89,7 +85,6 @@ describe('shareButton', () => {
 
     expect(wrapper.find('.btn-success').exists()).toBe(true)
 
-    // Fast-forward 2 seconds
     vi.advanceTimersByTime(2000)
     await nextTick()
 
@@ -119,7 +114,6 @@ describe('shareButton', () => {
 
     expect(wrapper.find('.btn-error').exists()).toBe(true)
 
-    // Fast-forward 3 seconds
     vi.advanceTimersByTime(3000)
     await nextTick()
 
@@ -132,26 +126,20 @@ describe('shareButton', () => {
     mockCopyShareableUrl.mockResolvedValue(true)
     const wrapper = mount(ShareButton)
 
-    // First click
     await wrapper.find('button').trigger('click')
     await nextTick()
     expect(wrapper.find('.btn-success').exists()).toBe(true)
 
-    // Advance time by 1 second
     vi.advanceTimersByTime(1000)
 
-    // Second click before timeout
     await wrapper.find('button').trigger('click')
     await nextTick()
 
-    // Should still show success
     expect(wrapper.find('.btn-success').exists()).toBe(true)
 
-    // Advance time by 2 more seconds (total 3 seconds from second click)
     vi.advanceTimersByTime(2000)
     await nextTick()
 
-    // Should reset now (based on second click timing)
     expect(wrapper.find('.btn-success').exists()).toBe(false)
   })
 
@@ -159,16 +147,13 @@ describe('shareButton', () => {
     mockCopyShareableUrl.mockResolvedValue(true)
     const wrapper = mount(ShareButton)
 
-    // Multiple rapid clicks
     await wrapper.find('button').trigger('click')
     await wrapper.find('button').trigger('click')
     await wrapper.find('button').trigger('click')
     await nextTick()
 
-    // Should have called copyShareableUrl 3 times
     expect(mockCopyShareableUrl).toHaveBeenCalledTimes(3)
 
-    // Should still be in success state
     expect(wrapper.find('.btn-success').exists()).toBe(true)
   })
 })

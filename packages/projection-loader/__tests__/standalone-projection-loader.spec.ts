@@ -1,7 +1,3 @@
-/**
- * Tests for standalone projection loader (zero-dependency version with plugin architecture)
- */
-
 import type { ExportedConfig } from '../src/standalone-projection-loader'
 
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -15,12 +11,10 @@ import {
 } from '../src/standalone-projection-loader'
 
 describe('standalone-projection-loader', () => {
-  // Register all D3 projections before running tests
   beforeAll(() => {
     registerProjections(d3ProjectionFactories)
   })
 
-  // Mock configuration (current format only - Atlas composer 2.0+)
   const mockConfig: ExportedConfig = {
     version: '1.0',
     metadata: {
@@ -157,7 +151,6 @@ describe('standalone-projection-loader', () => {
     })
 
     it('should handle debug mode', () => {
-      // Should not throw
       const projection = loadCompositeProjection(mockConfig, {
         width: 800,
         height: 600,
@@ -216,7 +209,7 @@ describe('standalone-projection-loader', () => {
       })
 
       // Project a point in France (Paris)
-      const result = projection([2.35, 48.85]) // [longitude, latitude]
+      const result = projection([2.35, 48.85])
 
       expect(result).toBeDefined()
       expect(Array.isArray(result)).toBe(true)
@@ -231,7 +224,6 @@ describe('standalone-projection-loader', () => {
         height: 600,
       })
 
-      // Verify scale and translate methods exist
       expect(projection.scale).toBeDefined()
       expect(typeof projection.scale).toBe('function')
       expect(projection.translate).toBeDefined()
@@ -247,7 +239,6 @@ describe('standalone-projection-loader', () => {
       expect(projection.stream).toBeDefined()
       expect(typeof projection.stream).toBe('function')
 
-      // Create a mock stream
       const mockStream = {
         point: () => {},
         lineStart: () => {},
@@ -257,7 +248,6 @@ describe('standalone-projection-loader', () => {
         sphere: () => {},
       }
 
-      // Should not throw
       if (projection.stream) {
         const stream = projection.stream(mockStream)
         expect(stream).toBeDefined()

@@ -37,10 +37,9 @@ describe('territoryResetService', () => {
         presetParameters: mockPresetParameters,
       })
 
-      expect(result.operations).toHaveLength(2) // Only territories in preset
+      expect(result.operations).toHaveLength(2)
       expect(result.activeTerritories).toEqual(['FR-GP', 'FR-MQ'])
 
-      // Check first operation
       const gpOperation = result.operations.find(op => op.territoryCode === 'FR-GP')
       expect(gpOperation).toEqual({
         territoryCode: 'FR-GP',
@@ -57,10 +56,9 @@ describe('territoryResetService', () => {
         territories: mockTerritories,
       })
 
-      expect(result.operations).toHaveLength(3) // All territories
-      expect(result.activeTerritories).toBeUndefined() // Don't change active territories
+      expect(result.operations).toHaveLength(3)
+      expect(result.activeTerritories).toBeUndefined()
 
-      // Check operations use fallback defaults
       result.operations.forEach((op) => {
         expect(op.translation).toEqual({ x: 0, y: 0 })
         expect(op.scale).toBe(1.0)
@@ -91,7 +89,6 @@ describe('territoryResetService', () => {
           'FR-GP': 'mercator' as any,
         },
         translations: {
-          // FR-GP translation missing
         },
         scales: {
           'FR-GP': 1.5,
@@ -104,7 +101,7 @@ describe('territoryResetService', () => {
       })
 
       const gpOperation = result.operations.find(op => op.territoryCode === 'FR-GP')
-      expect(gpOperation?.translation).toEqual({ x: 0, y: 0 }) // Default when missing
+      expect(gpOperation?.translation).toEqual({ x: 0, y: 0 })
     })
 
     it('should handle missing scale with default value', () => {
@@ -116,7 +113,6 @@ describe('territoryResetService', () => {
           'FR-GP': { x: 100, y: 50 },
         },
         scales: {
-          // FR-GP scale missing
         },
       }
 
@@ -126,7 +122,7 @@ describe('territoryResetService', () => {
       })
 
       const gpOperation = result.operations.find(op => op.territoryCode === 'FR-GP')
-      expect(gpOperation?.scale).toBe(1.0) // Default when missing
+      expect(gpOperation?.scale).toBe(1.0)
     })
   })
 
@@ -219,7 +215,6 @@ describe('territoryResetService', () => {
       const result = TerritoryResetService.calculateTerritoryReset({
         territoryCode: 'FR-GP',
         presetDefaults: mockPresetDefaults,
-        // No preset parameters
       })
 
       expect(result.parameters).toBeUndefined()

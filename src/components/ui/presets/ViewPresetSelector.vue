@@ -13,9 +13,6 @@ const debug = logger.vue.component
 const { t } = useI18n()
 const viewStore = useViewStore()
 
-/**
- * Computed dropdown options from available view presets
- */
 const presetOptions = computed<DropdownOption[]>(() => {
   return viewStore.availableViewPresets.map(preset => ({
     value: preset.id,
@@ -25,9 +22,6 @@ const presetOptions = computed<DropdownOption[]>(() => {
   }))
 })
 
-/**
- * Get icon for preset based on view mode
- */
 function getPresetIcon(viewMode: string): string {
   switch (viewMode) {
     case 'unified':
@@ -41,18 +35,11 @@ function getPresetIcon(viewMode: string): string {
   }
 }
 
-/**
- * Should show preset selector?
- * Only for unified, split, and built-in-composite modes
- */
 const shouldShow = computed(() => {
   const supportedModes = ['unified', 'split', 'built-in-composite']
   return supportedModes.includes(viewStore.viewMode)
 })
 
-/**
- * Handle preset selection
- */
 async function handlePresetChange(presetId: PresetId | '') {
   if (!presetId) {
     viewStore.clearViewPreset()
@@ -64,13 +51,9 @@ async function handlePresetChange(presetId: PresetId | '') {
   }
   catch (error) {
     debug('Failed to load preset: %o', error)
-    // Could show error toast here
   }
 }
 
-/**
- * Computed model value for the dropdown
- */
 const selectedPreset = computed({
   get: () => viewStore.currentViewPreset || '',
   set: (value: PresetId | '') => {
@@ -78,9 +61,6 @@ const selectedPreset = computed({
   },
 })
 
-/**
- * Label based on current view mode
- */
 const label = computed(() => {
   switch (viewStore.viewMode) {
     case 'unified':

@@ -64,19 +64,16 @@ export class GraticuleOverlayService {
       return
     }
 
-    // Update config with resolved projection
     const resolvedConfig: InternalGraticuleConfig = {
       ...config,
       projection,
     }
 
-    // Create overlay group for graticule
     const overlayGroup = select(svg)
       .append('g')
       .classed('graticule-overlays', true)
       .attr('pointer-events', 'none')
 
-    // Determine rendering mode
     if (config.viewMode === 'composite-custom' && config.customComposite) {
       debug('>>> Using COMPOSITE graticule rendering')
       this.renderCompositeGraticule(overlayGroup, resolvedConfig)
@@ -86,7 +83,6 @@ export class GraticuleOverlayService {
       this.renderSimpleGraticule(overlayGroup, resolvedConfig)
     }
 
-    // Remove overlay group if empty
     if (overlayGroup.node()?.childNodes.length === 0) {
       overlayGroup.remove()
     }
@@ -106,7 +102,6 @@ export class GraticuleOverlayService {
       return undefined
     }
 
-    // For simple mode, use standard conic conformal instead of D3_COMPOSITE
     if (forceSimpleProjection && definition.strategy === ProjectionStrategy.D3_COMPOSITE) {
       const projection = geoConicConformal()
       const focusLongitude = params?.focusLongitude ?? 0
@@ -135,13 +130,11 @@ export class GraticuleOverlayService {
       return projection
     }
 
-    // Create projection instance
     const projection = ProjectionFactory.createById(projectionId)
     if (!projection) {
       return undefined
     }
 
-    // Handle D3_COMPOSITE projections
     if (definition.strategy === ProjectionStrategy.D3_COMPOSITE) {
       if (definition.metadata?.requiresCustomFit && definition.metadata.customFit) {
         const customFit = definition.metadata.customFit
@@ -166,26 +159,22 @@ export class GraticuleOverlayService {
       return projection
     }
 
-    // Standard projection setup
     const focusLongitude = params?.focusLongitude ?? 0
     const focusLatitude = params?.focusLatitude ?? 0
     const rotateGamma = params?.rotateGamma ?? 0
     const parallels = params?.parallels
     const scaleMultiplier = params?.scaleMultiplier ?? 1.0
 
-    // Apply parallels for conic projections
     if (definition.family === ProjectionFamily.CONIC && parallels) {
       if (typeof (projection as any).parallels === 'function') {
         (projection as any).parallels(parallels)
       }
     }
 
-    // Apply rotation
     if (typeof projection.rotate === 'function') {
       projection.rotate([-focusLongitude, -focusLatitude, rotateGamma])
     }
 
-    // Fit to domain
     const domain = showSphere ? { type: 'Sphere' as const } : geoData
     if (domain && typeof projection.fitExtent === 'function') {
       projection.fitExtent([[0, 0], [width, height]], domain as any)
@@ -200,9 +189,6 @@ export class GraticuleOverlayService {
     return projection
   }
 
-  /**
-   * Render graticule for simple (non-composite) mode
-   */
   private static renderSimpleGraticule(
     group: Selection<SVGGElement, unknown, null, undefined>,
     config: InternalGraticuleConfig,
@@ -213,27 +199,18 @@ export class GraticuleOverlayService {
       return
     }
 
-    // Get effective scale
     let effectiveScale = config.effectiveScale
     if (!effectiveScale && typeof projection.scale === 'function') {
       effectiveScale = projection.scale()
     }
     effectiveScale = effectiveScale ?? 1000
 
-    // Calculate level and generate geometry
     const level = GraticuleService.calculateLevel(effectiveScale)
     const geometry = GraticuleService.generateGeometry(level)
 
-    // Render the graticule
     this.renderGraticuleGeometry(group, geometry, level, projection, width, height, config.opacity)
   }
 
-  /**
-   * Render graticule for composite projection mode
-   *
-   * Each territory gets graticule at its own density level,
-   * clipped to its bounds.
-   */
   private static renderCompositeGraticule(
     group: Selection<SVGGElement, unknown, null, undefined>,
     config: InternalGraticuleConfig,
@@ -245,10 +222,8 @@ export class GraticuleOverlayService {
       return
     }
 
-    // Get all sub-projection data
     let subProjections = customComposite.getAllSubProjectionData()
 
-    // Filter to only include active territories
     if (filteredTerritoryCodes) {
       subProjections = subProjections.filter(sp => filteredTerritoryCodes.has(sp.territoryCode))
     }
@@ -258,31 +233,25 @@ export class GraticuleOverlayService {
       return
     }
 
-    // Get territory bounds for clipping
     const territoryBorders = customComposite.getCompositionBorders(width, height)
     const screenBoundsMap = new Map<string, [[number, number], [number, number]]>()
     for (const border of territoryBorders) {
       screenBoundsMap.set(border.territoryCode, border.bounds)
     }
 
-    // Cache geometry by level
     const geometryCache = new Map<number, { geometry: GeoJSON.MultiLineString, level: GraticuleLevel }>()
 
-    // Create defs for clip paths
     const defs = group.append('defs')
     let clipIdCounter = 0
 
-    // Render graticule for each territory
     for (const subProj of subProjections) {
       const screenBounds = screenBoundsMap.get(subProj.territoryCode)
       if (!screenBounds) {
         continue
       }
 
-      // Calculate level for this territory's scale
       const level = GraticuleService.calculateLevel(subProj.scale)
 
-      // Get or create geometry for this level
       let cached = geometryCache.get(level.level)
       if (!cached) {
         const geometry = GraticuleService.generateGeometry(level)
@@ -290,14 +259,12 @@ export class GraticuleOverlayService {
         geometryCache.set(level.level, cached)
       }
 
-      // Create path using the territory's individual projection
       const pathGenerator = geoPath(subProj.projection)
       const pathData = pathGenerator(cached.geometry)
       if (!pathData) {
         continue
       }
 
-      // Create clip path for this territory
       const clipId = `graticule-clip-${clipIdCounter++}`
       const [[x0, y0], [x1, y1]] = screenBounds
 
@@ -309,12 +276,10 @@ export class GraticuleOverlayService {
         .attr('width', Math.abs(x1 - x0))
         .attr('height', Math.abs(y1 - y0))
 
-      // Create group for this territory's graticule with clipping
       const territoryGroup = group.append('g')
         .attr('class', `graticule-territory graticule-territory-${subProj.territoryCode} ${cached.level.className}`)
         .attr('clip-path', `url(#${clipId})`)
 
-      // Render graticule lines with dash pattern
       const path = territoryGroup.append('path')
         .attr('d', pathData)
         .attr('fill', 'none')
@@ -324,16 +289,12 @@ export class GraticuleOverlayService {
         .attr('stroke-linecap', 'round')
         .attr('class', 'graticule-lines')
 
-      // Apply dash pattern if defined for this level
       if (cached.level.dashArray) {
         path.attr('stroke-dasharray', cached.level.dashArray.join(' '))
       }
     }
   }
 
-  /**
-   * Render graticule geometry to SVG
-   */
   private static renderGraticuleGeometry(
     group: Selection<SVGGElement, unknown, null, undefined>,
     geometry: GeoJSON.MultiLineString,
@@ -350,13 +311,11 @@ export class GraticuleOverlayService {
       return
     }
 
-    // Create graticule group
     const graticuleGroup = group
       .append('g')
       .classed('graticule', true)
       .classed(level.className, true)
 
-    // Add clip path to constrain to viewport
     const clipId = `graticule-clip-${Math.random().toString(36).substr(2, 9)}`
     graticuleGroup
       .append('defs')
@@ -368,7 +327,6 @@ export class GraticuleOverlayService {
       .attr('width', width)
       .attr('height', height)
 
-    // Render graticule path with dash pattern
     const path = graticuleGroup
       .append('path')
       .attr('d', pathData)
@@ -379,7 +337,6 @@ export class GraticuleOverlayService {
       .attr('stroke-opacity', opacityOverride ?? level.opacity)
       .attr('stroke-linecap', 'round')
 
-    // Apply dash pattern if defined for this level
     if (level.dashArray) {
       path.attr('stroke-dasharray', level.dashArray.join(' '))
     }

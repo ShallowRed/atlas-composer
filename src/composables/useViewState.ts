@@ -8,22 +8,12 @@ import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
-/**
- * Provides view state flags, card UI helpers, and service-based visibility logic
- * Integrates ViewOrchestrationService for centralized conditional rendering decisions
- *
- * Returns:
- * - Simple view mode flags (isCompositeMode, isSplitMode, etc.)
- * - Card UI helpers (cardTitle, cardIcon)
- * - viewOrchestration object with reactive visibility properties from service
- */
 export function useViewState() {
   const { t } = useI18n()
   const atlasStore = useAtlasStore()
   const geoDataStore = useGeoDataStore()
   const viewStore = useViewStore()
 
-  // View Mode Flags - Simple boolean wrappers for readability
   const isCompositeMode = computed(() =>
     viewStore.viewMode === 'composite-custom' || viewStore.viewMode === 'built-in-composite',
   )
@@ -44,7 +34,6 @@ export function useViewState() {
     viewStore.viewMode === 'unified',
   )
 
-  // Card UI Helpers
   const cardTitle = computed(() => {
     switch (viewStore.viewMode) {
       case 'split':
@@ -64,10 +53,6 @@ export function useViewState() {
     getViewModeIcon(viewStore.viewMode),
   )
 
-  /**
-   * Build ViewState snapshot for service calls
-   * Aggregates all state needed for orchestration decisions
-   */
   const viewState = computed<ViewState | null>(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig)
@@ -88,13 +73,7 @@ export function useViewState() {
     }
   })
 
-  /**
-   * View Orchestration - Service-based visibility logic
-   * All methods are wrapped in computed refs for reactivity
-   * Returns safe defaults when atlas config is still loading
-   */
   const viewOrchestration = {
-    // Main layout visibility
     shouldShowRightSidebar: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowRightSidebar(viewState.value) : false,
     ),
@@ -102,7 +81,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.shouldShowBottomBar(viewState.value) : false,
     ),
 
-    // Sidebar content visibility
     shouldShowProjectionParams: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowProjectionParams(viewState.value) : false,
     ),
@@ -110,7 +88,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.shouldShowTerritoryControls(viewState.value) : false,
     ),
 
-    // Territory controls sub-components
     shouldShowPresetSelector: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowPresetSelector(viewState.value) : false,
     ),
@@ -127,7 +104,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.shouldShowProjectionDropdown(viewState.value) : false,
     ),
 
-    // Empty states
     shouldShowEmptyState: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowEmptyState(viewState.value) : true,
     ),
@@ -135,7 +111,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.getEmptyStateMessage(viewState.value) : 'Loading atlas...',
     ),
 
-    // Control states
     shouldShowTerritorySelector: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowTerritorySelector(viewState.value) : false,
     ),
@@ -143,7 +118,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.isViewModeDisabled(viewState.value) : true,
     ),
 
-    // Layout variants
     shouldShowCompositeRenderer: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowCompositeRenderer(viewState.value) : false,
     ),
@@ -154,7 +128,6 @@ export function useViewState() {
       viewState.value ? ViewOrchestrationService.shouldShowUnifiedView(viewState.value) : false,
     ),
 
-    // Display options visibility
     shouldShowCompositionBordersToggle: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowCompositionBordersToggle(viewState.value) : false,
     ),
@@ -164,18 +137,15 @@ export function useViewState() {
   }
 
   return {
-    // View mode flags
     isCompositeMode,
     isCompositeCustomMode,
     isCompositeExistingMode,
     isSplitMode,
     isUnifiedMode,
 
-    // Card UI helpers
     cardTitle,
     cardIcon,
 
-    // Service-based orchestration (replaces compound conditions)
     viewOrchestration,
   }
 }

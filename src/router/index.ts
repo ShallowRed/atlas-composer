@@ -24,7 +24,6 @@ const router = createRouter({
   ],
 })
 
-// Update page title on navigation
 router.beforeEach((to, _from, next) => {
   document.title = (to.meta.title as string) || 'Atlas composer'
   next()

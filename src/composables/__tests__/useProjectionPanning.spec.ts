@@ -200,7 +200,6 @@ describe('useProjectionPanning', () => {
       const projectionStore = useProjectionStore()
       const parameterStore = useParameterStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
-      // Set initial focusLongitude to 170
       parameterStore.setGlobalParameter('focusLongitude', 170)
       const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
@@ -209,11 +208,9 @@ describe('useProjectionPanning', () => {
       const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
       handleMouseDown(downEvent)
 
-      // Move 50 pixels left (should subtract 25 degrees: 170 - 25 wraps correctly)
       const moveEvent = new MouseEvent('mousemove', { clientX: 50, clientY: 100 })
       window.dispatchEvent(moveEvent)
 
-      // Find the focusLongitude call
       const lonCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLongitude')
       expect(lonCall).toBeDefined()
       const longitude = lonCall![1] as number
@@ -228,7 +225,6 @@ describe('useProjectionPanning', () => {
       const parameterStore = useParameterStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
       projectionStore.rotateLatitudeLocked = false
-      // Set initial focusLatitude to 80
       parameterStore.setGlobalParameter('focusLatitude', 80)
       const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
 
@@ -237,11 +233,9 @@ describe('useProjectionPanning', () => {
       const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
       handleMouseDown(downEvent)
 
-      // Move 50 pixels up (should add 25 degrees: 80 + 25 = 105, clamps to 90)
       const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 50 })
       window.dispatchEvent(moveEvent)
 
-      // Find the focusLatitude call
       const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
       expect(latCall).toBeDefined()
       const latitude = latCall![1] as number
@@ -264,11 +258,9 @@ describe('useProjectionPanning', () => {
       const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
       handleMouseDown(downEvent)
 
-      // Move vertically - should not change latitude
       const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 150 })
       window.dispatchEvent(moveEvent)
 
-      // Check that focusLatitude was NOT called
       const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
       expect(latCall).toBeUndefined()
 

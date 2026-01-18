@@ -1,8 +1,3 @@
-/**
- * Composable for loading atlas configurations asynchronously
- * Uses VueUse's useAsyncState for reactive loading state management
- */
-
 import type { MaybeRefOrGetter } from 'vue'
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasId } from '@/types'
@@ -14,42 +9,11 @@ import { logger } from '@/utils/logger'
 const debug = logger.atlas.loader
 
 export interface UseAtlasLoaderOptions {
-  /**
-   * Load the atlas immediately on mount
-   * @default true
-   */
   immediate?: boolean
-
-  /**
-   * Callback when atlas loads successfully
-   */
   onSuccess?: (config: LoadedAtlasConfig) => void
-
-  /**
-   * Callback when atlas loading fails
-   */
   onError?: (error: Error) => void
 }
 
-/**
- * Composable for loading atlas configurations with reactive state
- *
- * @param atlasId - The ID of the atlas to load (can be a ref)
- * @param options - Loading options
- * @returns Reactive loading state and controls
- *
- * @example
- * ```ts
- * const { config, isLoading, error, execute } = useAtlasLoader('france')
- *
- * // Or with a ref
- * const atlasId = ref('france')
- * const { config, isLoading } = useAtlasLoader(atlasId)
- *
- * // Change atlas
- * atlasId.value = 'portugal' // Automatically loads new atlas
- * ```
- */
 export function useAtlasLoader(
   atlasId: MaybeRefOrGetter<string>,
   options: UseAtlasLoaderOptions = {},
@@ -60,7 +24,6 @@ export function useAtlasLoader(
     onError,
   } = options
 
-  // Create async state for atlas loading
   const {
     state: config,
     isReady,
@@ -70,13 +33,12 @@ export function useAtlasLoader(
   } = useAsyncState(
     async () => {
       const id = toValue(atlasId)
-      // Convert: id from ref/getter might be string, loadAtlasAsync expects AtlasId
       return await loadAtlasAsync(id as AtlasId)
     },
     null,
     {
       immediate,
-      resetOnExecute: false, // Keep previous config while loading new one
+      resetOnExecute: false,
       onSuccess: (loadedConfig) => {
         if (loadedConfig) {
           onSuccess?.(loadedConfig)
@@ -89,7 +51,6 @@ export function useAtlasLoader(
     },
   )
 
-  // Watch atlas ID changes and reload
   watch(
     () => toValue(atlasId),
     async (newId, oldId) => {
@@ -100,26 +61,21 @@ export function useAtlasLoader(
     },
   )
 
-  // Computed properties for convenience
   const atlasConfig = computed(() => config.value?.atlasConfig)
   const atlasSpecificConfig = computed(() => config.value?.atlasSpecificConfig)
   const territories = computed(() => config.value?.territories)
 
   return {
-    // Full loaded config
     config,
 
-    // Extracted properties for convenience
     atlasConfig,
     atlasSpecificConfig,
     territories,
 
-    // Loading state
     isReady,
     isLoading,
     error,
 
-    // Manual control
     execute,
     reload: execute,
   }

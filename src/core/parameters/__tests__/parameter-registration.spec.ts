@@ -11,7 +11,6 @@ import { parameterRegistry } from '../index'
 
 describe('parameter registration system', () => {
   it('should have all required parameters registered', () => {
-    // Test completeness
     const completenessResults = parameterRegistry.validateCompleteness()
     const errors = completenessResults.filter(r => !r.isValid)
 
@@ -30,14 +29,11 @@ describe('parameter registration system', () => {
 
   it('should have all scale parameters', () => {
     expect(parameterRegistry.get('scaleMultiplier')).toBeDefined()
-    // scale and baseScale are deprecated and removed
     expect(parameterRegistry.get('scale')).toBeUndefined()
     expect(parameterRegistry.get('baseScale')).toBeUndefined()
   })
 
   it('should have all translation parameters', () => {
-    // Note: 'translate' is a D3 internal parameter, not registered in our registry
-    // Only translateOffset is registered for preset-based layout positioning
     expect(parameterRegistry.get('translateOffset')).toBeDefined()
   })
 
@@ -47,15 +43,13 @@ describe('parameter registration system', () => {
   })
 
   it('should have proper relevance mapping for projection families', () => {
-    // CONIC projections should use rotate and parallels, not center
     const conicRelevant = parameterRegistry.getRelevant('CONIC')
     const conicKeys = conicRelevant.map(p => p.key)
 
     expect(conicKeys).toContain('rotate')
     expect(conicKeys).toContain('parallels')
-    expect(conicKeys).not.toContain('center') // center is not relevant for conic
+    expect(conicKeys).not.toContain('center')
 
-    // AZIMUTHAL projections should use center, not parallels
     const azimuthalRelevant = parameterRegistry.getRelevant('AZIMUTHAL')
     const azimuthalKeys = azimuthalRelevant.map(p => p.key)
 
@@ -79,7 +73,6 @@ describe('parameter registration system', () => {
     // Only scaleMultiplier should be exportable for scale adjustments
     expect(exportableKeys).toContain('scaleMultiplier')
     expect(exportableKeys).toContain('translateOffset')
-    // Note: 'translate' is D3 internal, not in our registry
     expect(exportableKeys).toContain('clipAngle')
     expect(exportableKeys).toContain('precision')
 

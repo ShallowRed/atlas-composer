@@ -4,18 +4,11 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { logger } from '#scripts/utils/logger'
-/**
- * JSON Schema Validator
- * Runtime validation of config files against atlas.schema.json
- */
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
 let schemaValidator: ValidateFunction | null = null
 
-/**
- * Load and compile the JSON schema
- */
 async function getSchemaValidator(): Promise<ValidateFunction> {
   if (schemaValidator) {
     return schemaValidator
@@ -48,13 +41,6 @@ async function getSchemaValidator(): Promise<ValidateFunction> {
   }
 }
 
-/**
- * Validate config against JSON schema
- *
- * @param config - The config object to validate
- * @param atlasName - Name of the atlas (for error messages)
- * @throws Error if validation fails
- */
 export async function validateConfigSchema(config: unknown, atlasName: string): Promise<void> {
   const validate = await getSchemaValidator()
 
@@ -68,7 +54,6 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
         const path = error.instancePath || '(root)'
         const message = error.message || 'unknown error'
 
-        // Format error with more context
         let errorMsg = `  ${index + 1}. ${path}: ${message}`
 
         if (error.params && Object.keys(error.params).length > 0) {
@@ -85,16 +70,8 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
 
     throw new Error(`Config validation failed: ${atlasName}.json does not match schema`)
   }
-
-  // Schema validation passed (silent - only log errors)
 }
 
-/**
- * Check if a config matches the schema (returns boolean instead of throwing)
- *
- * @param config - The config object to validate
- * @returns true if valid, false otherwise
- */
 export async function isValidConfig(config: unknown): Promise<boolean> {
   try {
     const validate = await getSchemaValidator()

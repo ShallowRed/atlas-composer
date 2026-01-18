@@ -24,8 +24,6 @@ import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
-// TYPES
-
 interface PolygonMetadata {
   index: number
   bounds: [[number, number], [number, number]]
@@ -50,13 +48,6 @@ interface GeoJSONFeatureCollection {
   features: GeoJSONFeature[]
 }
 
-// HELPER FUNCTIONS
-
-/**
- * Calculate the area of a polygon using the Shoelace formula
- * @param ring - Array of [lon, lat] coordinates
- * @returns Area in square degrees (approximate)
- */
 function calculatePolygonArea(ring: number[][]): number {
   let area = 0
   const n = ring.length
@@ -73,11 +64,6 @@ function calculatePolygonArea(ring: number[][]): number {
   return Math.abs(area / 2)
 }
 
-/**
- * Calculate the center point (centroid) of a polygon
- * @param ring - Array of [lon, lat] coordinates
- * @returns [lon, lat] of center
- */
 function calculatePolygonCenter(ring: number[][]): [number, number] {
   const lons = ring.map(coord => coord[0]).filter((n): n is number => n !== undefined)
   const lats = ring.map(coord => coord[1]).filter((n): n is number => n !== undefined)
@@ -87,12 +73,6 @@ function calculatePolygonCenter(ring: number[][]): [number, number] {
   ]
 }
 
-/**
- * Analyze a polygon and return its metadata
- * @param polygon - MultiPolygon polygon (array of rings)
- * @param index - Polygon index in the MultiPolygon
- * @returns Polygon metadata
- */
 function analyzePolygon(polygon: any[], index: number): PolygonMetadata {
   const firstRing = polygon[0]
   const lons = firstRing.map((coord: number[]) => coord[0]).filter((n: number | undefined): n is number => n !== undefined)
@@ -106,7 +86,6 @@ function analyzePolygon(polygon: any[], index: number): PolygonMetadata {
   const area = calculatePolygonArea(firstRing)
   const center = calculatePolygonCenter(firstRing)
 
-  // Geographic region classification (rough)
   let region = 'Unknown'
   if (minLat > 45)
     region = 'Northern'
@@ -119,7 +98,6 @@ function analyzePolygon(polygon: any[], index: number): PolygonMetadata {
   else
     region = 'Southern'
 
-  // Ocean classification (rough)
   if (minLon < -120 || maxLon > 120)
     region += ' Pacific'
   else if (minLon < -30)
@@ -137,12 +115,6 @@ function analyzePolygon(polygon: any[], index: number): PolygonMetadata {
   }
 }
 
-/**
- * Group polygons by geographic proximity
- * @param polygons - Array of polygon metadata
- * @param threshold - Distance threshold for grouping (in degrees)
- * @returns Array of polygon groups
- */
 function groupPolygonsByProximity(polygons: PolygonMetadata[], threshold = 5): PolygonMetadata[][] {
   const groups: PolygonMetadata[][] = []
   const used = new Set<number>()
@@ -154,7 +126,6 @@ function groupPolygonsByProximity(polygons: PolygonMetadata[], threshold = 5): P
     const group = [polygon]
     used.add(polygon.index)
 
-    // Find nearby polygons
     for (const other of polygons) {
       if (used.has(other.index))
         continue
@@ -176,14 +147,10 @@ function groupPolygonsByProximity(polygons: PolygonMetadata[], threshold = 5): P
   return groups
 }
 
-/**
- * Main analysis function
- */
 async function analyzeCountry(countryId: string, resolution: string): Promise<void> {
   logger.section(`Analyzing Natural Earth Country: ${countryId}`)
   logger.newline()
 
-  // Load world data
   let worldData
   try {
     worldData = await fetchWorldData(resolution as any)
@@ -194,14 +161,12 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
     process.exit(1)
   }
 
-  // Convert TopoJSON to GeoJSON
   const countriesObject = worldData.objects.countries
   if (!countriesObject) {
     throw new Error('No countries object found in world data')
   }
   const featureCollection = topojson.feature(worldData, countriesObject) as any as GeoJSONFeatureCollection
 
-  // Find the country
   const country = featureCollection.features.find(
     f => String(f.id) === String(countryId),
   )
@@ -229,15 +194,12 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
   logger.success(`Geometry: MultiPolygon with ${polygonCount} polygon(s)`)
   logger.newline()
 
-  // Analyze each polygon
   const polygons = country.geometry.coordinates.map((polygon: any, i: number) =>
     analyzePolygon(polygon, i),
   )
 
-  // Sort by area (largest first) for display
   const sortedPolygons = [...polygons].sort((a, b) => b.area - a.area)
 
-  // Print analysis
   logger.section('Polygon Analysis')
   logger.newline()
 
@@ -254,7 +216,6 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
     logger.newline()
   })
 
-  // Group all polygons by proximity
   const groups = groupPolygonsByProximity(polygons)
 
   if (groups.length > 0) {

@@ -1,8 +1,3 @@
-/**
- * Atlas Icon Utilities
- * Maps atlas IDs to visual indicators (flags/icons)
- */
-
 import type { AtlasId } from '@/types/branded'
 
 export interface AtlasIconConfig {

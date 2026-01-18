@@ -1,15 +1,4 @@
 <script setup lang="ts">
-/**
- * Alert - Status and notification message component
- *
- * Features:
- * - Multiple alert types (info, success, warning, error)
- * - Customizable icons
- * - Size variants
- * - Optional dismiss button
- * - Slot-based content for flexibility
- */
-
 interface Props {
   type?: 'info' | 'success' | 'warning' | 'error'
   soft?: boolean
@@ -30,7 +19,6 @@ const emit = defineEmits<{
   dismiss: []
 }>()
 
-// Default icons for each alert type
 const defaultIcons = {
   info: 'ri-information-line',
   success: 'ri-checkbox-circle-line',
@@ -38,7 +26,6 @@ const defaultIcons = {
   error: 'ri-error-warning-line',
 }
 
-// Get the icon to display (custom or default)
 const displayIcon = props.icon || defaultIcons[props.type]
 </script>
 

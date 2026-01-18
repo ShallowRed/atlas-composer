@@ -1,69 +1,27 @@
-/**
- * Validation utilities for composite projection configurations.
- */
-
 import { isCompositeProjectionConfig, MIN_SUPPORTED_VERSION } from './types.js'
 
-/**
- * Validation error with path and message.
- */
 export interface ValidationError {
-  /** JSON path to the error location */
   path: string
-  /** Human-readable error message */
   message: string
-  /** Error code for programmatic handling */
   code: 'INVALID_TYPE' | 'MISSING_FIELD' | 'INVALID_VALUE' | 'VERSION_UNSUPPORTED'
 }
 
-/**
- * Result of configuration validation.
- */
 export interface ValidationResult {
-  /** Whether the configuration is valid */
   valid: boolean
-  /** List of validation errors (empty if valid) */
   errors: ValidationError[]
-  /** List of warnings (non-fatal issues) */
   warnings: string[]
 }
 
-/**
- * Validate the specification version.
- *
- * @param version - Version string to validate
- * @returns true if version is supported
- */
 export function validateVersion(version: string): boolean {
   const [major] = version.split('.').map(Number)
   const [minMajor] = MIN_SUPPORTED_VERSION.split('.').map(Number)
   return major >= minMajor
 }
 
-/**
- * Validate a composite projection configuration.
- *
- * Performs structural validation without JSON Schema.
- * For full schema validation, use the JSON Schema files directly.
- *
- * @param config - Configuration to validate
- * @returns Validation result with errors and warnings
- *
- * @example
- * ```typescript
- * import { validateConfig } from '@atlas-composer/specification'
- *
- * const result = validateConfig(config)
- * if (!result.valid) {
- *   console.error('Validation errors:', result.errors)
- * }
- * ```
- */
 export function validateConfig(config: unknown): ValidationResult {
   const errors: ValidationError[] = []
   const warnings: string[] = []
 
-  // Basic type check
   if (!isCompositeProjectionConfig(config)) {
     errors.push({
       path: '',
@@ -73,7 +31,6 @@ export function validateConfig(config: unknown): ValidationResult {
     return { valid: false, errors, warnings }
   }
 
-  // Version check
   if (!validateVersion(config.version)) {
     errors.push({
       path: 'version',
@@ -82,7 +39,6 @@ export function validateConfig(config: unknown): ValidationResult {
     })
   }
 
-  // Metadata validation
   if (!config.metadata.atlasId) {
     errors.push({
       path: 'metadata.atlasId',
@@ -91,7 +47,6 @@ export function validateConfig(config: unknown): ValidationResult {
     })
   }
 
-  // Reference scale validation
   if (config.referenceScale <= 0) {
     errors.push({
       path: 'referenceScale',
@@ -100,7 +55,6 @@ export function validateConfig(config: unknown): ValidationResult {
     })
   }
 
-  // Canvas dimensions validation
   if (config.canvasDimensions.width <= 0 || config.canvasDimensions.height <= 0) {
     errors.push({
       path: 'canvasDimensions',
@@ -109,7 +63,6 @@ export function validateConfig(config: unknown): ValidationResult {
     })
   }
 
-  // Territories validation
   if (config.territories.length === 0) {
     errors.push({
       path: 'territories',
@@ -118,12 +71,10 @@ export function validateConfig(config: unknown): ValidationResult {
     })
   }
 
-  // Validate each territory
   const codes = new Set<string>()
   config.territories.forEach((territory, index) => {
     const path = `territories[${index}]`
 
-    // Check for duplicate codes
     if (codes.has(territory.code)) {
       errors.push({
         path: `${path}.code`,
@@ -133,7 +84,6 @@ export function validateConfig(config: unknown): ValidationResult {
     }
     codes.add(territory.code)
 
-    // Validate projection
     if (!territory.projection.id) {
       errors.push({
         path: `${path}.projection.id`,
@@ -142,7 +92,6 @@ export function validateConfig(config: unknown): ValidationResult {
       })
     }
 
-    // Validate bounds
     if (territory.bounds) {
       const [[minLon, minLat], [maxLon, maxLat]] = territory.bounds
       if (minLon >= maxLon || minLat >= maxLat) {
@@ -156,7 +105,6 @@ export function validateConfig(config: unknown): ValidationResult {
       }
     }
 
-    // Validate layout
     if (!territory.layout.translateOffset) {
       errors.push({
         path: `${path}.layout.translateOffset`,

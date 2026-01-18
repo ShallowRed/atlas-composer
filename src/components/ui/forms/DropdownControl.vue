@@ -3,13 +3,11 @@ import { computed, nextTick, ref, watch } from 'vue'
 import DropdownButton from './DropdownButton.vue'
 import DropdownMenu from './DropdownMenu.vue'
 
-// Export interfaces for use in other components
 export interface DropdownOption {
   value: string
   label: string
   icon?: string
   badge?: string
-  /** If true, label is already translated and should not be passed through $t(). Defaults to false (label is a translation key) */
   translated?: boolean
 }
 
@@ -20,7 +18,6 @@ export interface DropdownOptionGroup {
   options?: DropdownOption[]
 }
 
-// Local aliases for convenience
 type Option = DropdownOption
 type OptionGroup = DropdownOptionGroup
 
@@ -60,9 +57,8 @@ const isOpen = ref(false)
 const buttonComponentRef = ref<InstanceType<typeof DropdownButton> | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
-const isNavigating = ref(false) // Track if we're actively navigating with arrows
+const isNavigating = ref(false)
 
-// Computed to get the actual button element from the component ref
 const buttonRef = computed(() => buttonComponentRef.value?.buttonRef || null)
 
 const localValue = computed({
@@ -75,7 +71,6 @@ const localValue = computed({
   },
 })
 
-// Get the selected option label and icon for display
 const selectedOption = computed(() => {
   if (!localValue.value)
     return null
@@ -95,7 +90,6 @@ const selectedOption = computed(() => {
   return null
 })
 
-// Get flat list of all options for keyboard navigation
 const allOptions = computed<Option[]>(() => {
   if (props.options) {
     return props.options
@@ -116,15 +110,13 @@ function selectOption(value: string, keepOpen = false) {
 }
 
 function handleBlur(event: FocusEvent) {
-  // Don't close if we're actively navigating with arrow keys
   if (isNavigating.value) {
     return
   }
 
-  // Check if the new focus target is within the dropdown
   const relatedTarget = event.relatedTarget as Node | null
   if (dropdownRef.value && relatedTarget && dropdownRef.value.contains(relatedTarget)) {
-    return // Keep dropdown open if focus moved to an option
+    return
   }
 
   setTimeout(() => {
@@ -141,7 +133,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
   switch (event.key) {
     case 'Enter':
-    case ' ': // Space
+    case ' ':
       event.preventDefault()
       if (!isOpen.value) {
         openDropdown()
@@ -163,9 +155,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
     case 'ArrowDown':
       event.preventDefault()
-      // Only navigate when dropdown is open
       if (isOpen.value) {
-        // Navigate and immediately select the next option (keep dropdown open)
         isNavigating.value = true
         const nextIndex = Math.min(focusedIndex.value + 1, allOptions.value.length - 1)
         focusedIndex.value = nextIndex
@@ -181,9 +171,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
     case 'ArrowUp':
       event.preventDefault()
-      // Only navigate when dropdown is open
       if (isOpen.value) {
-        // Navigate and immediately select the previous option (keep dropdown open)
         isNavigating.value = true
         const prevIndex = Math.max(focusedIndex.value - 1, 0)
         focusedIndex.value = prevIndex
@@ -198,11 +186,9 @@ function handleKeyDown(event: KeyboardEvent) {
       break
 
     case 'ArrowRight':
-      // Right arrow changes selection without opening (with looping)
       event.preventDefault()
       if (!isOpen.value) {
         const currentIndex = allOptions.value.findIndex(opt => opt.value === localValue.value)
-        // Loop to start if at the end
         const nextIndex = currentIndex >= allOptions.value.length - 1 ? 0 : currentIndex + 1
         const nextOption = allOptions.value[nextIndex]
         if (nextOption) {
@@ -215,11 +201,9 @@ function handleKeyDown(event: KeyboardEvent) {
       break
 
     case 'ArrowLeft':
-      // Left arrow changes selection without opening (with looping)
       event.preventDefault()
       if (!isOpen.value) {
         const currentIndex = allOptions.value.findIndex(opt => opt.value === localValue.value)
-        // Loop to end if at the start
         const prevIndex = currentIndex <= 0 ? allOptions.value.length - 1 : currentIndex - 1
         const prevOption = allOptions.value[prevIndex]
         if (prevOption) {
@@ -255,7 +239,6 @@ function handleKeyDown(event: KeyboardEvent) {
 
 function openDropdown() {
   isOpen.value = true
-  // Set initial focus to selected option or first option
   const selectedIndex = allOptions.value.findIndex(opt => opt.value === localValue.value)
   focusedIndex.value = selectedIndex >= 0 ? selectedIndex : 0
 }
@@ -263,7 +246,6 @@ function openDropdown() {
 function closeDropdown() {
   isOpen.value = false
   focusedIndex.value = -1
-  // Focus the button so we can immediately use arrow keys to navigate
   nextTick(() => {
     buttonComponentRef.value?.buttonRef?.focus()
   })
@@ -279,19 +261,15 @@ function handleOptionKeyDown(event: KeyboardEvent, value: string) {
   }
 }
 
-// Get option ID for aria-activedescendant
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
 }
 
-// Watch focusedIndex to scroll the option into view
 watch(focusedIndex, (newIndex) => {
   if (newIndex >= 0 && isOpen.value) {
-    // Use nextTick to ensure the DOM has been updated with new focus state
     nextTick(() => {
       const optionElement = document.getElementById(getOptionId(newIndex))
       if (optionElement) {
-        // Scroll the option into view smoothly
         optionElement.scrollIntoView({
           // behavior: 'smooth',
           block: 'nearest',
@@ -396,32 +374,23 @@ watch(focusedIndex, (newIndex) => {
 </template>
 
 <style scoped>
-/* Override DaisyUI CSS focus behavior - we control open/close with JS */
 .dropdown:not(.dropdown-open) .dropdown-content {
   display: none !important;
 }
 
 .dropdown.dropdown-open .dropdown-content {
-  /* position: static; */
   display: block !important;
 }
 
-/* Visible focus state for button - Thick outline for visibility */
 .btn:focus, .btn:focus-visible {
   outline: 2px solid var(--color-neutral);
   outline-offset: 2px;
 }
 
-/* Remove dropdown wrapper hover effect for inline dropdowns - button handles its own hover */
 .dropdown:where(.dropdown-end) {
   background: none !important;
   padding: 0 !important;
 }
-
-/* Ensure dropdown animations are smooth */
-/* .dropdown-content {
-  animation: dropdown-appear 0.2s ease-out;
-} */
 
 @keyframes dropdown-appear {
   from {

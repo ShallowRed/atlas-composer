@@ -1,16 +1,3 @@
-/**
- * GraticuleService
- *
- * Core service for graticule geometry calculation.
- * Generates scale-adaptive graticule geometries using d3-geo.
- *
- * Design principles:
- * - Pure functions for geometry calculation
- * - Scale-based level determination
- * - Configurable step sizes and extents
- * - Support for both simple and composite projections
- */
-
 import type {
   GraticuleConfig,
   GraticuleGeometry,
@@ -26,21 +13,7 @@ import {
   GRATICULE_STROKE_WIDTH,
 } from '@/types/graticule'
 
-/**
- * GraticuleService
- *
- * Static service providing graticule geometry calculation.
- * Uses d3-geo's geoGraticule for geometry generation.
- */
 export class GraticuleService {
-  /**
-   * Calculate graticule level from effective scale
-   *
-   * Higher scale = higher level = finer grid
-   *
-   * @param scale - Effective projection scale (baseScale * scaleMultiplier)
-   * @returns GraticuleLevel with step size and styling info
-   */
   static calculateLevel(scale: number): GraticuleLevel {
     let level = 0
 
@@ -54,7 +27,6 @@ export class GraticuleService {
       }
     }
 
-    // Clamp to valid range
     level = Math.min(level, GRATICULE_LEVEL_STEPS.length - 1)
 
     const step = GRATICULE_LEVEL_STEPS[level] ?? [10, 10]
@@ -73,13 +45,6 @@ export class GraticuleService {
     }
   }
 
-  /**
-   * Generate graticule geometry for a given level
-   *
-   * @param level - Graticule level configuration
-   * @param config - Optional configuration for extent and precision
-   * @returns GeoJSON MultiLineString geometry
-   */
   static generateGeometry(
     level: GraticuleLevel,
     config?: GraticuleConfig,
@@ -97,14 +62,6 @@ export class GraticuleService {
     return graticule() as GeoJSON.MultiLineString
   }
 
-  /**
-   * Generate graticule with full metadata
-   *
-   * @param scale - Effective projection scale
-   * @param config - Optional configuration
-   * @param territoryCode - Optional territory code for composite projections
-   * @returns GraticuleGeometry with geometry and level info
-   */
   static generateGraticuleGeometry(
     scale: number,
     config?: GraticuleConfig,
@@ -120,16 +77,6 @@ export class GraticuleService {
     }
   }
 
-  /**
-   * Generate multiple graticule levels for composite projections
-   *
-   * Groups territories by their graticule level and generates
-   * one geometry per unique level.
-   *
-   * @param territoryScales - Map of territory code to effective scale
-   * @param config - Optional configuration
-   * @returns Array of GraticuleGeometry, one per unique level
-   */
   static generateMultiLevelGeometries(
     territoryScales: Map<string, number>,
     config?: GraticuleConfig,
@@ -154,10 +101,6 @@ export class GraticuleService {
     return geometries
   }
 
-  /**
-   *
-   * @returns Array of all GraticuleLevel configurations
-   */
   static getAllLevels(): GraticuleLevel[] {
     return GRATICULE_LEVEL_STEPS.map((step, index) => {
       const opacity = GRATICULE_OPACITIES[index] ?? 0.3
@@ -175,11 +118,6 @@ export class GraticuleService {
     })
   }
 
-  /**
-   *
-   * @param levelNum - Level number (0-5)
-   * @returns GraticuleLevel configuration
-   */
   static getLevelConfig(levelNum: number): GraticuleLevel {
     const clampedLevel = Math.max(0, Math.min(levelNum, GRATICULE_LEVEL_STEPS.length - 1))
     const step = GRATICULE_LEVEL_STEPS[clampedLevel] ?? [10, 10]

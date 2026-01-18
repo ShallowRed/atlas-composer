@@ -1,18 +1,6 @@
-/**
- * Composite Projection Definitions
- *
- * These are the main composite projections that combine multiple projections
- * to create optimal representations of countries with geographically-scattered territories.
- * This is the core feature of Atlas composer.
- */
-
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-/**
- * Conic Conformal France - Composite projection for France
- * Optimized for France's metropolitan territory and overseas departments/territories
- */
 export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   id: 'conic-conformal-france',
   name: 'projections.conicConformalFrance.name',
@@ -24,15 +12,14 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   capabilities: {
     preserves: ['angle'],
     distorts: ['area'],
-    supportsComposite: false, // Already composite
-    supportsSplit: true, // Can be used in split view mode
+    supportsComposite: false,
+    supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
   },
 
   defaultParameters: {
-    // Parameters are handled by d3-composite-projections
-    center: [2.5, 46.5], // Approximate center of France
+    center: [2.5, 46.5],
   },
 
   aliases: ['france-composite', 'composite-france'],
@@ -43,15 +30,11 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     requiresCustomFit: true,
     customFit: {
       defaultScale: 2700,
-      referenceWidth: 960, // Configured for 960×500
+      referenceWidth: 960,
     },
   },
 }
 
-/**
- * Conic Conformal Portugal - Composite projection for Portugal
- * Optimized for Portugal's mainland and Atlantic archipelagos (Azores, Madeira)
- */
 export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   id: 'conic-conformal-portugal',
   name: 'projections.conicConformalPortugal.name',
@@ -70,7 +53,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    center: [-8, 39.5], // Approximate center of Portugal
+    center: [-8, 39.5],
   },
 
   aliases: ['portugal-composite', 'composite-portugal'],
@@ -80,16 +63,12 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 4200, // Adjusted for better fill (was 3500)
-      referenceWidth: 960, // Configured for 960×500
+      defaultScale: 4200,
+      referenceWidth: 960,
     },
   },
 }
 
-/**
- * Conic Conformal Spain - Composite projection for Spain
- * Optimized for Spain's mainland, Balearic Islands, and Canary Islands
- */
 export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   id: 'conic-conformal-spain',
   name: 'projections.conicConformalSpain.name',
@@ -108,7 +87,7 @@ export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    center: [-3, 40], // Approximate center of Spain
+    center: [-3, 40],
   },
 
   aliases: ['spain-composite', 'composite-spain'],
@@ -118,16 +97,12 @@ export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 3500, // Adjusted for Spain's extent
-      referenceWidth: 960, // Configured for 960×500
+      defaultScale: 3500,
+      referenceWidth: 960,
     },
   },
 }
 
-/**
- * Conic Conformal Europe - Composite projection for European Union
- * Optimized for European Union member states including overseas territories
- */
 export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   id: 'conic-conformal-europe',
   name: 'projections.conicConformalEurope.name',
@@ -146,7 +121,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    center: [10, 50], // Approximate center of Europe
+    center: [10, 50],
   },
 
   aliases: ['europe-composite', 'composite-europe', 'europe-composite', 'composite-europe'],
@@ -156,17 +131,12 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 750, // d3-composite-projections default for Europe
-      referenceWidth: 960, // Configured for 960×500
+      defaultScale: 750,
+      referenceWidth: 960,
     },
   },
 }
 
-/**
- * Albers USA - Composite projection for United States
- * Optimized for the contiguous United States, Alaska, and Hawaii
- * This is the classic D3 composite projection for the USA
- */
 export const ALBERS_USA: ProjectionDefinition = {
   id: 'albers-usa',
   name: 'projections.albersUsa.name',
@@ -178,35 +148,27 @@ export const ALBERS_USA: ProjectionDefinition = {
   capabilities: {
     preserves: ['area'],
     distorts: ['angle', 'distance'],
-    supportsComposite: false, // Already composite
-    supportsSplit: true, // Can be used in split view mode
+    supportsComposite: false,
+    supportsSplit: true,
     supportsUnified: true,
     isInterrupted: false,
   },
 
   defaultParameters: {
-    // Parameters are handled by d3-geo albersUsa
-    center: [-98.5, 39.8], // Approximate center of contiguous USA
+    center: [-98.5, 39.8],
   },
 
   metadata: {
     infoUrl: 'https://d3js.org/d3-geo/conic#geoAlbersUsa',
     experimental: false,
-    // Note: D3's native geoAlbersUsa doesn't support fitExtent properly with external data.
-    // We must use customFit to manually scale it. Use albers-usa-composite if you need
-    // proper fitting behavior with territories beyond Alaska/Hawaii.
     requiresCustomFit: true,
     customFit: {
-      defaultScale: 1070, // D3's default scale for geoAlbersUsa
+      defaultScale: 1070,
       referenceWidth: 960,
     },
   },
 }
 
-/**
- * Albers USA Composite - From d3-composite-projections
- * Alternative implementation with additional features
- */
 export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   id: 'albers-usa-composite',
   name: 'projections.albersUsaComposite.name',
@@ -241,10 +203,6 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   },
 }
 
-/**
- * Albers USA Territories - Extended version with US territories
- * Includes Puerto Rico, US Virgin Islands, Guam, American Samoa, Northern Mariana Islands
- */
 export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   id: 'albers-usa-territories',
   name: 'projections.albersUsaTerritories.name',
@@ -279,10 +237,6 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   },
 }
 
-/**
- * Conic Conformal Netherlands - Composite projection for Netherlands
- * Optimized for Netherlands mainland and Caribbean territories
- */
 export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   id: 'conic-conformal-netherlands',
   name: 'projections.conicConformalNetherlands.name',
@@ -317,10 +271,6 @@ export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   },
 }
 
-/**
- * Conic Equidistant Japan - Composite projection for Japan
- * Optimized for Japan's main islands including Hokkaido and Okinawa
- */
 export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   id: 'conic-equidistant-japan',
   name: 'projections.conicEquidistantJapan.name',
@@ -355,10 +305,6 @@ export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   },
 }
 
-/**
- * Mercator Ecuador - Composite projection for Ecuador
- * Optimized for Ecuador mainland and Galápagos Islands
- */
 export const MERCATOR_ECUADOR: ProjectionDefinition = {
   id: 'mercator-ecuador',
   name: 'projections.mercatorEcuador.name',
@@ -393,10 +339,6 @@ export const MERCATOR_ECUADOR: ProjectionDefinition = {
   },
 }
 
-/**
- * Transverse Mercator Chile - Composite projection for Chile
- * Optimized for Chile's long mainland, Easter Island, and Juan Fernández
- */
 export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   id: 'transverse-mercator-chile',
   name: 'projections.transverseMercatorChile.name',
@@ -431,10 +373,6 @@ export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   },
 }
 
-/**
- * Mercator Malaysia - Composite projection for Malaysia
- * Optimized for Peninsular Malaysia and East Malaysia (Borneo)
- */
 export const MERCATOR_MALAYSIA: ProjectionDefinition = {
   id: 'mercator-malaysia',
   name: 'projections.mercatorMalaysia.name',
@@ -469,10 +407,6 @@ export const MERCATOR_MALAYSIA: ProjectionDefinition = {
   },
 }
 
-/**
- * Mercator Equatorial Guinea - Composite projection for Equatorial Guinea
- * Optimized for mainland Río Muni and Bioko island
- */
 export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   id: 'mercator-equatorial-guinea',
   name: 'projections.mercatorEquatorialGuinea.name',
@@ -507,10 +441,6 @@ export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   },
 }
 
-/**
- * Albers UK - Composite projection for United Kingdom
- * Optimized for Great Britain and Shetland Islands
- */
 export const ALBERS_UK: ProjectionDefinition = {
   id: 'albers-uk',
   name: 'projections.albersUk.name',
@@ -545,10 +475,6 @@ export const ALBERS_UK: ProjectionDefinition = {
   },
 }
 
-/**
- * Transverse Mercator Denmark - Composite projection for Denmark
- * Optimized for Jutland, Zealand, and Bornholm
- */
 export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
   id: 'transverse-mercator-denmark',
   name: 'projections.transverseMercatorDenmark.name',
@@ -583,9 +509,6 @@ export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
   },
 }
 
-/**
- * Array of all composite projection definitions
- */
 export const COMPOSITE_PROJECTIONS: ProjectionDefinition[] = [
   CONIC_CONFORMAL_FRANCE,
   CONIC_CONFORMAL_PORTUGAL,

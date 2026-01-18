@@ -1,17 +1,5 @@
-/**
- * Domain Error Types
- *
- * Discriminated unions for explicit, type-safe error handling.
- * Each error type includes contextual information for debugging and user feedback.
- */
-
 import type { AtlasId, PresetId, ProjectionId } from '@/types/branded'
 
-// Error Type Unions
-
-/**
- * All application errors
- */
 export type AppError
   = | AtlasError
     | GeoDataError
@@ -19,17 +7,11 @@ export type AppError
     | ProjectionError
     | NetworkError
 
-/**
- * Atlas-related errors
- */
 export type AtlasError
   = | { type: 'ATLAS_NOT_FOUND', atlasId: AtlasId }
     | { type: 'ATLAS_LOAD_FAILED', atlasId: AtlasId, reason: string }
     | { type: 'ATLAS_CONFIG_INVALID', atlasId: AtlasId, reason: string }
 
-/**
- * Geographic data errors
- */
 export type GeoDataError
   = | { type: 'GEODATA_NOT_FOUND', path: string }
     | { type: 'GEODATA_INVALID_JSON', path: string, parseError?: string }
@@ -37,9 +19,6 @@ export type GeoDataError
     | { type: 'GEODATA_MISSING_OBJECT', objectName: string }
     | { type: 'GEODATA_INVALID_STRUCTURE', path: string, reason: string }
 
-/**
- * Preset-related errors
- */
 export type PresetError
   = | { type: 'PRESET_NOT_FOUND', presetId: PresetId }
     | { type: 'PRESET_INVALID_JSON', presetId: PresetId, parseError?: string }
@@ -47,28 +26,16 @@ export type PresetError
     | { type: 'PRESET_TYPE_MISMATCH', presetId: PresetId, expected: string, actual: string }
     | { type: 'PRESET_LOAD_FAILED', presetId: PresetId, reason: string }
 
-/**
- * Projection-related errors
- */
 export type ProjectionError
   = | { type: 'PROJECTION_NOT_FOUND', projectionId: ProjectionId }
     | { type: 'PROJECTION_CREATE_FAILED', projectionId: ProjectionId, reason?: string }
     | { type: 'PROJECTION_INVALID_PARAMS', projectionId: ProjectionId, reason: string }
 
-/**
- * Network errors
- */
 export type NetworkError
   = | { type: 'NETWORK_FETCH_FAILED', url: string, reason?: string }
     | { type: 'NETWORK_TIMEOUT', url: string }
 
-// Error Constructors
-
-/**
- * Error factory functions for convenience and consistency
- */
 export const Errors = {
-  // Atlas errors
   atlasNotFound: (atlasId: AtlasId): AtlasError => ({
     type: 'ATLAS_NOT_FOUND',
     atlasId,
@@ -86,7 +53,6 @@ export const Errors = {
     reason,
   }),
 
-  // GeoData errors
   geoDataNotFound: (path: string): GeoDataError => ({
     type: 'GEODATA_NOT_FOUND',
     path,
@@ -115,7 +81,6 @@ export const Errors = {
     reason,
   }),
 
-  // Preset errors
   presetNotFound: (presetId: PresetId): PresetError => ({
     type: 'PRESET_NOT_FOUND',
     presetId,
@@ -146,7 +111,6 @@ export const Errors = {
     reason,
   }),
 
-  // Projection errors
   projectionNotFound: (projectionId: ProjectionId): ProjectionError => ({
     type: 'PROJECTION_NOT_FOUND',
     projectionId,
@@ -164,7 +128,6 @@ export const Errors = {
     reason,
   }),
 
-  // Network errors
   networkFetchFailed: (url: string, reason?: string): NetworkError => ({
     type: 'NETWORK_FETCH_FAILED',
     url,
@@ -176,8 +139,6 @@ export const Errors = {
     url,
   }),
 } as const
-
-// Type Guards
 
 export function isAtlasError(error: AppError): error is AtlasError {
   return error.type.startsWith('ATLAS_')

@@ -1,21 +1,6 @@
-/**
- * Parameter Definitions
- *
- * Central definitions for all projection parameters with complete metadata.
- * This file registers all parameters with the parameter registry.
- */
-
 import { parameterRegistry } from '@/core/parameters/parameter-registry'
 
-/**
- * Register all projection parameters with the parameter registry
- */
 export function registerAllParameters(): void {
-  // CANONICAL POSITIONING PARAMETERS (New unified format)
-  // These are the PRIMARY positioning parameters. They represent the geographic
-  // focus point in a projection-agnostic way. At render time, they are converted
-  // to the appropriate D3 method (center or rotate) based on projection family.
-
   parameterRegistry.register({
     key: 'focusLongitude',
     displayName: 'Focus Longitude',
@@ -25,7 +10,7 @@ export function registerAllParameters(): void {
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: false, // Derived from legacy center/rotate during loading
+    requiresPreset: false,
     familyConstraints: {
       CYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
       PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
@@ -43,7 +28,7 @@ export function registerAllParameters(): void {
     source: 'preset',
     mutable: true,
     exportable: true,
-    requiresPreset: false, // Derived from legacy center/rotate during loading
+    requiresPreset: false,
     familyConstraints: {
       CYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
       PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
@@ -69,11 +54,6 @@ export function registerAllParameters(): void {
       AZIMUTHAL: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
     },
   })
-
-  // LEGACY POSITIONING PARAMETERS (Deprecated - for backward compatibility)
-  // These parameters are kept for backward compatibility with existing presets.
-  // New code should use focusLongitude/focusLatitude instead.
-  // During preset loading, center/rotate are converted to canonical format.
 
   parameterRegistry.register({
     key: 'center',
@@ -213,8 +193,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  // Scale parameters
-
   parameterRegistry.register({
     key: 'scaleMultiplier',
     displayName: 'Scale Multiplier',
@@ -260,8 +238,6 @@ export function registerAllParameters(): void {
       },
     },
   })
-
-  // Zoom parameters (unified mode only)
 
   parameterRegistry.register({
     key: 'zoomLevel',
@@ -309,8 +285,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  // Translation parameters
-
   parameterRegistry.register({
     key: 'translateOffset',
     displayName: 'Layout Position',
@@ -354,8 +328,6 @@ export function registerAllParameters(): void {
       },
     },
   })
-
-  // Advanced parameters
 
   parameterRegistry.register({
     key: 'clipAngle',
@@ -439,7 +411,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  // Pixel-based clip extent parameter
   parameterRegistry.register({
     key: 'pixelClipExtent',
     displayName: 'Pixel Clip Extent',
@@ -486,10 +457,6 @@ export function registerAllParameters(): void {
     },
   })
 
-  // pixelClipExtent is the only clipping format - 4-element array [x1, y1, x2, y2]
-  // Coordinates are pixels relative to territory center (translateOffset)
-
-  // Metadata parameters
   parameterRegistry.register({
     key: 'projectionId',
     displayName: 'Projection ID',

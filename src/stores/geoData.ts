@@ -23,23 +23,19 @@ export interface Territory {
 }
 
 export const useGeoDataStore = defineStore('geoData', () => {
-  // Services
   const cartographer = ref<Cartographer | null>(null)
 
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isInitialized = ref(false)
-  const isReinitializing = ref(false) // Prevents renders during atlas switches
-  const renderKey = ref(0) // Reactive key to trigger re-renders
+  const isReinitializing = ref(false)
+  const renderKey = ref(0)
 
-  // Territory data - all territories treated equally
   const territoriesData = ref<Territory[]>([])
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
-  // Computed: first territory (convenience accessor)
   const firstTerritory = computed(() => territoriesData.value[0] ?? null)
 
-  // Computed: filter territories based on view mode and territory mode
   const filteredTerritories = computed(() => {
     const atlasStore = useAtlasStore()
     const viewStore = useViewStore()
@@ -49,21 +45,15 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return []
     }
 
-    // For custom composite mode, filter by active territory codes
-    // User can add/remove territories from the active set
     if (viewStore.viewMode === 'composite-custom') {
       const activeCodes = viewStore.activeTerritoryCodes
-      // Convert: Territory.code from GeoJSON
       return territories.filter(t => activeCodes.has(t.code as TerritoryCode))
     }
 
-    // For built-in composite mode, return all territories from preset (no filtering)
-    // Preset is the source of truth for what to render
     if (viewStore.viewMode === 'built-in-composite') {
       return territories
     }
 
-    // For split/unified modes, filter by territory mode if atlas has territory selector
     const atlasConfig = atlasStore.currentAtlasConfig
     if (!atlasConfig || !atlasConfig.hasTerritorySelector) {
       return territories
@@ -71,7 +61,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     const atlasService = atlasStore.atlasService
 
-    // Use TerritoryFilterService to filter territories based on selected mode
     return TerritoryFilterService.filterTerritories(territories, {
       hasTerritorySelector: atlasConfig.hasTerritorySelector,
       territoryMode: viewStore.territoryMode,
@@ -80,7 +69,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     })
   })
 
-  const allActiveTerritories = computed(() => filteredTerritories.value) // Actions
+  const allActiveTerritories = computed(() => filteredTerritories.value)
+
   const initialize = async (atlasConfigOverride?: any) => {
     if (isInitialized.value)
       return
@@ -94,10 +84,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       debug('Initializing for atlas: %s', atlasStore.selectedAtlasId)
 
-      // Use provided atlas config or fall back to store
       const atlasConfig = atlasConfigOverride || atlasStore.currentAtlasConfig
 
-      // Wait for atlas config to be loaded before initializing
       if (!atlasConfig) {
         debug('Atlas config not loaded yet, deferring initialization')
         isLoading.value = false
@@ -111,37 +99,24 @@ export const useGeoDataStore = defineStore('geoData', () => {
         debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)
       }
 
-      // Use the geo data config from the selected region
       const geoDataConfig = atlasConfig.geoDataConfig
       const compositeConfig = atlasConfig.compositeProjectionConfig
 
-      // Create parameter provider adapter to connect parameter store to rendering
       const parameterStore = useParameterStore()
       const projectionParams = parameterStore.globalEffectiveParameters
 
       const parameterProvider = {
         getEffectiveParameters: (territoryCode: string) => {
-          // Convert: Parameter provider adapter boundary
           return parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
         },
         getExportableParameters: (territoryCode: string) => {
-          // Convert: Parameter provider adapter boundary
           return parameterStore.getExportableParameters(territoryCode as TerritoryCode)
         },
         setTerritoryParameters: (territoryCode: string, parameters: Partial<any>) => {
-          // Convert: Parameter provider adapter boundary
           parameterStore.setTerritoryParameters(territoryCode as TerritoryCode, parameters)
         },
       }
 
-      // Reactivity System Refactor: Removed territory filtering logic
-      // Previously filtered territories by projectionId presence in parameter store,
-      // but this caused race conditions during atlas switching.
-      //
-      // New approach: Trust that compositeConfig from preset only contains intended territories.
-      // InitializationService validates parameters before creating Cartographer.
-      // If preset is invalid, initialization fails explicitly (fail fast) rather than
-      // silently filtering territories.
       debug('Using composite config directly from preset (no filtering)')
       if (compositeConfig) {
         const territoryCount = compositeConfig.territories?.length ?? 0
@@ -158,17 +133,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
       )
       await cartographer.value.init()
 
-      // CRITICAL: Re-read effective parameters after init to catch any
-      // atlas parameters that were set during initialization but after
-      // projectionParams was captured above. This ensures the cartographer
-      // has the latest parameters before first render.
       const latestParams = parameterStore.globalEffectiveParameters
       if (latestParams && Object.keys(latestParams).length > 0) {
         cartographer.value.updateProjectionParams(latestParams)
         debug('Updated cartographer with latest params after init: %O', latestParams)
       }
 
-      // Store a timestamp ID to track cartographer instances
       const cartographerId = Date.now()
       ;(cartographer.value as any).__id = cartographerId
       ;(cartographer.value as any).__atlasId = atlasConfig.id
@@ -187,11 +157,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  /**
-   * Reload unified data for a specific territory mode
-   * Used when territory mode changes in unified view
-   * Assumes cartographer is already initialized
-   */
   const reloadUnifiedData = async (territoryMode: string) => {
     const atlasStore = useAtlasStore()
 
@@ -228,10 +193,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  /**
-   * Phase 4: Preload strategy - loads territory + unified data upfront
-   * Makes view mode switching synchronous (no async delays)
-   */
   const loadAllAtlasData = async (territoryMode: string) => {
     if (!cartographer.value) {
       await initialize()
@@ -248,7 +209,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       debug('Preloading all data types for atlas: %s', atlasStore.currentAtlasConfig.id)
 
-      // Load both territory and unified data in parallel
       await Promise.all([
         (async () => {
           if (!cartographer.value) {
@@ -292,19 +252,12 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
   }
 
-  /**
-   * Clear all geodata (used when switching atlases)
-   * Phase 4: Clear reset strategy
-   */
   const clearAllData = () => {
     debug('Clearing all geodata')
     territoriesData.value = []
     rawUnifiedData.value = null
     error.value = null
   }
-
-  // Removed rendering methods - rendering now handled by Cartographer directly
-  // See RENDERING_REFACTOR_PROPOSAL.md for details
 
   const clearError = () => {
     error.value = null
@@ -313,10 +266,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const reinitialize = async (atlasConfigOverride?: any) => {
     debug('Reinitializing - resetting state and reloading data (override: %s)', !!atlasConfigOverride)
 
-    // Set reinitializing flag to prevent renders during atlas switch
     isReinitializing.value = true
 
-    // Reset state
     isInitialized.value = false
     territoriesData.value = []
     rawUnifiedData.value = null
@@ -327,19 +278,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
       debug('Cleared existing cartographer instance')
     }
 
-    // Reinitialize with optional filtered config
     await initialize(atlasConfigOverride)
 
-    // Clear reinitializing flag - renders can now proceed
     isReinitializing.value = false
 
     debug('Reinitialization complete (cartographer: %s, initialized: %s)', !!cartographer.value, isInitialized.value)
   }
 
-  /**
-   * Force a re-render of the map
-   * Increments renderKey to trigger Vue reactivity
-   */
   const triggerRender = () => {
     debug('triggerRender() - renderKey: %d → %d', renderKey.value, renderKey.value + 1)
     renderKey.value++
@@ -350,7 +295,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   }
 
   return {
-    // Services
     cartographer,
 
     isLoading,

@@ -1,19 +1,3 @@
-#!/usr/bin/env node
-
-/**
- * Geographic Data Preparation Script
- * Downloads Natural Earth world data and filters specific territories
- * Creates optimized TopoJSON files for cartographic visualization
- *
- * Usage:
- *   npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]
- *
- * Examples:
- *   npm run geodata:prepare portugal
- *   npm run geodata:prepare france --resolution=10m
- *   npm run geodata:prepare europe
- */
-
 import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
 import type { Topology } from 'topojson-specification'
 import * as fs from 'node:fs/promises'
@@ -24,8 +8,6 @@ import { getResolution, parseArgs, showHelp, validateRequired } from '#scripts/u
 import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
-
-// TYPES
 
 interface GeoJSONFeature {
   type: 'Feature'
@@ -63,24 +45,14 @@ interface Metadata {
   count: number
 }
 
-// CONFIGURATION
-
 const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
 
-/**
- * Output filenames for each data file
- */
 const OUTPUT_FILENAMES = {
   world: (resolution: string) => `world-countries-${resolution}.json`,
   territories: (configName: string, resolution: string) => `${configName}-territories-${resolution}.json`,
   metadata: (configName: string, resolution: string) => `${configName}-metadata-${resolution}.json`,
 }
 
-// DATA PROCESSING FUNCTIONS
-
-/**
- * Save data to a file in the output directory
- */
 async function saveData(filename: string, data: any): Promise<void> {
   const outputPath = path.join(OUTPUT_DIR, filename)
   await fs.mkdir(OUTPUT_DIR, { recursive: true })
@@ -88,12 +60,6 @@ async function saveData(filename: string, data: any): Promise<void> {
   logger.success(`Saved ${filename}`)
 }
 
-/**
- * Extracts sub-territories from a MultiPolygon GeoJSON feature based on bounds matching
- * @param sourceFeature - GeoJSON feature with MultiPolygon geometry
- * @param config - Territory configuration with extraction rules
- * @returns Object with remaining feature and extracted territory features
- */
 function extractEmbeddedTerritories(
   sourceFeature: GeoJSONFeature,
   config: Record<string, BackendTerritory>,
@@ -108,7 +74,6 @@ function extractEmbeddedTerritories(
   const extracted: GeoJSONFeature[] = []
   const remainingPolygons: any[] = []
 
-  // Find territories to extract (those with extractFrom property)
   const extractionRules = Object.entries(config)
     .filter(([_, terr]) => terr.extractFrom && String(terr.extractFrom) === String(sourceFeature.id || sourceFeature.properties?.id))
     .map(([id, terr]) => ({ id, ...terr }))
@@ -120,20 +85,16 @@ function extractEmbeddedTerritories(
     }
   }
 
-  // Group extracted polygons by territory
   const extractedGroups = new Map<string, ExtractedTerritory>()
 
-  // Separate extraction rules by method
   const indicesBasedRules = extractionRules.filter(rule => rule.polygonIndices && rule.polygonIndices.length > 0)
   const boundsBasedRules = extractionRules.filter(rule => rule.bounds && !rule.polygonIndices)
 
-  // Process polygonIndices-based extraction first (more precise)
   const extractedIndices = new Set<number>()
   for (const rule of indicesBasedRules) {
     if (!rule.polygonIndices)
       continue
 
-    // Initialize group for this territory
     if (!extractedGroups.has(rule.id)) {
       extractedGroups.set(rule.id, {
         id: rule.id,
@@ -144,7 +105,6 @@ function extractEmbeddedTerritories(
       })
     }
 
-    // Extract polygons by index
     for (const index of rule.polygonIndices) {
       if (index >= 0 && index < sourceFeature.geometry.coordinates.length) {
         extractedGroups.get(rule.id)!.polygons.push(sourceFeature.geometry.coordinates[index])
@@ -156,9 +116,7 @@ function extractEmbeddedTerritories(
     }
   }
 
-  // Process bounds-based extraction for remaining polygons
   sourceFeature.geometry.coordinates.forEach((polygon: any, index: number) => {
-    // Skip if already extracted by index
     if (extractedIndices.has(index)) {
       return
     }
@@ -167,7 +125,6 @@ function extractEmbeddedTerritories(
     if (!firstRing || firstRing.length === 0)
       return
 
-    // Calculate polygon bounds
     const lons = firstRing.map((coord: number[]) => coord[0])
     const lats = firstRing.map((coord: number[]) => coord[1])
     const minLon = Math.min(...lons)
@@ -175,7 +132,6 @@ function extractEmbeddedTerritories(
     const minLat = Math.min(...lats)
     const maxLat = Math.max(...lats)
 
-    // Try to match against bounds-based extraction rules
     let matched = false
     const tolerance = 0.1
 
@@ -191,8 +147,6 @@ function extractEmbeddedTerritories(
         && minLat >= (configMinLat - tolerance)
         && maxLat <= (configMaxLat + tolerance)
       ) {
-        // This polygon belongs to an embedded territory
-        // Add to the group for this territory
         if (!extractedGroups.has(rule.id)) {
           extractedGroups.set(rule.id, {
             id: rule.id,
@@ -208,13 +162,11 @@ function extractEmbeddedTerritories(
       }
     }
 
-    // If not matched, keep in remaining polygons
     if (!matched) {
       remainingPolygons.push(polygon)
     }
   })
 
-  // Convert grouped polygons to features
   for (const group of extractedGroups.values()) {
     extracted.push({
       type: 'Feature',
@@ -244,27 +196,17 @@ function extractEmbeddedTerritories(
   }
 }
 
-/**
- * Duplicates territory features for multiple projections
- * Used to create FR-PF-2 from FR-PF with same geometry but different code
- * NOTE: This works with GeoJSON features
- * @param features - Array of GeoJSON features
- * @param config - Territory configuration with duplication rules
- * @returns Array with original and duplicate features
- */
 function duplicateTerritories(
   features: GeoJSONFeature[],
   config: Record<string, BackendTerritory>,
 ): GeoJSONFeature[] {
   const result = [...features]
 
-  // Find duplication rules (territories with duplicateFrom property)
   const duplicationRules = Object.entries(config)
     .filter(([_, terr]) => terr.duplicateFrom)
     .map(([id, terr]) => ({ id, ...terr }))
 
   for (const rule of duplicationRules) {
-    // Find source feature by ID or code
     const sourceFeature = features.find(f =>
       String(f.id) === String(rule.duplicateFrom)
       || String(f.properties?.id) === String(rule.duplicateFrom)
@@ -272,7 +214,6 @@ function duplicateTerritories(
     )
 
     if (sourceFeature) {
-      // Create duplicate with new ID and properties
       result.push({
         ...sourceFeature,
         type: 'Feature',
@@ -294,31 +235,19 @@ function duplicateTerritories(
   return result
 }
 
-/**
- * Filter TopoJSON data to include only specified territories
- * Enriches geometries with territory metadata (name, code, iso)
- * Extracts embedded territories (like DOM from France)
- * Duplicates territories for multiple projections (like FR-PF-2)
- * @param worldData - The full world TopoJSON data
- * @param territoriesConfig - Territory ID mapping (empty object for wildcard atlases)
- * @returns Filtered GeoJSON FeatureCollection containing only specified territories
- */
 function filterTerritories(
   worldData: Topology,
   territoriesConfig: Record<string, BackendTerritory>,
 ): GeoJSONFeatureCollection {
-  // STEP 1: Convert TopoJSON to GeoJSON for easier manipulation
   const countriesObject = worldData.objects.countries
   if (!countriesObject) {
     throw new Error('No countries object found in world data')
   }
   const featureCollection = topojson.feature(worldData, countriesObject) as any as GeoJSONFeatureCollection
 
-  // Handle wildcard atlases (empty territoriesConfig means include all)
   const isWildcardAtlas = Object.keys(territoriesConfig).length === 0
 
   if (isWildcardAtlas) {
-    // For wildcard atlases, keep all territories with their original Natural Earth properties
     const processedFeatures = featureCollection.features.map((feature): GeoJSONFeature => {
       const featureId = String(feature.id).padStart(3, '0')
 
@@ -335,18 +264,14 @@ function filterTerritories(
       }
     })
 
-    // STEP 4: Return as GeoJSON FeatureCollection
     return {
       type: 'FeatureCollection',
       features: processedFeatures,
     }
   }
 
-  // Territory IDs as strings (world-atlas uses string IDs with zero-padding)
-  // Normalize config IDs to match world-atlas format (e.g., 40 -> '040', 250 -> '250')
   const territoryIds = Object.keys(territoriesConfig)
 
-  // Create a lookup map with both padded and unpadded versions
   const idLookup = new Map<string, string>()
   for (const id of territoryIds) {
     const paddedId = id.padStart(3, '0')
@@ -354,7 +279,6 @@ function filterTerritories(
     idLookup.set(id, id)
   }
 
-  // Filter features by ID and enrich with metadata
   let processedFeatures = featureCollection.features
     .filter(feature => idLookup.has(String(feature.id)))
     .map((feature): GeoJSONFeature => {
@@ -366,7 +290,6 @@ function filterTerritories(
         throw new Error(`Territory config not found for ID: ${configId}`)
       }
 
-      // Enrich feature with territory metadata
       return {
         ...feature,
         id: configId,
@@ -380,7 +303,6 @@ function filterTerritories(
       }
     })
 
-  // STEP 2: Extract embedded territories (like DOM from France mainland)
   const extractionResults: GeoJSONFeature[] = []
   processedFeatures = processedFeatures.flatMap((feature) => {
     const territoryId = feature.properties!.id
@@ -390,7 +312,6 @@ function filterTerritories(
       throw new Error(`Territory config not found for ID: ${territoryId}`)
     }
 
-    // Check if any territories should be extracted from this one
     const hasExtractions = Object.values(territoriesConfig).some(
       t => String(t.extractFrom) === String(territoryId),
     )
@@ -398,39 +319,30 @@ function filterTerritories(
     if (hasExtractions) {
       const { remaining, extracted } = extractEmbeddedTerritories(feature, territoriesConfig)
 
-      // Log extraction
       if (extracted.length > 0) {
         const codes = extracted.map(e => e.properties!.code).join(', ')
         logger.info(`  Extracted from ${territory.code}: ${codes}`)
         extractionResults.push(...extracted)
       }
 
-      // Return remaining feature with filtered polygons
       return remaining
     }
 
     return feature
   })
 
-  // Add extracted territories to processed features
   processedFeatures.push(...extractionResults)
 
-  // STEP 3: Duplicate territories for multiple projections (like FR-PF-2)
   const finalFeatures = duplicateTerritories(processedFeatures, territoriesConfig)
 
   logger.success(`  Total territories: ${finalFeatures.length}`)
 
-  // STEP 4: Return as GeoJSON FeatureCollection
-  // We use GeoJSON format directly since we've already extracted and processed features
   return {
     type: 'FeatureCollection',
     features: finalFeatures,
   }
 }
 
-/**
- * Create metadata file for the filtered territories
- */
 function createMetadata(config: BackendConfig, resolution: string, dataSourceUrl: string): Metadata {
   return {
     name: config.name,
@@ -444,14 +356,10 @@ function createMetadata(config: BackendConfig, resolution: string, dataSourceUrl
   }
 }
 
-// MAIN EXECUTION
-
 async function main(): Promise<void> {
   try {
-    // Parse arguments
     const args = parseArgs()
 
-    // Show help if requested
     if (args.help) {
       showHelp(
         'prepare-geodata',
@@ -466,7 +374,6 @@ async function main(): Promise<void> {
       return
     }
 
-    // Validate required arguments
     if (!validateRequired(args, ['atlas'])) {
       logger.error('Usage: npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]')
       process.exit(1)
@@ -475,7 +382,6 @@ async function main(): Promise<void> {
     const atlasName = args.atlas!
     const resolution = getResolution(args)
 
-    // Load configuration
     logger.section(`Preparing geodata: ${atlasName}`)
     const { backend: CONFIG } = await loadConfig(atlasName)
 
@@ -487,19 +393,16 @@ async function main(): Promise<void> {
     logger.data('Territories', territoryCount)
     logger.newline()
 
-    // Step 1: Download and save world data
     logger.subsection('Step 1: Download world data')
     const worldData = await fetchWorldData(resolution as any)
     const worldFilename = OUTPUT_FILENAMES.world(resolution)
     await saveData(worldFilename, worldData)
 
-    // Step 2: Filter and save territory data
     logger.subsection('Step 2: Filter territories')
     const territoryData = filterTerritories(worldData, CONFIG.territories)
     const territoriesFilename = OUTPUT_FILENAMES.territories(CONFIG.outputName || atlasName, resolution)
     await saveData(territoriesFilename, territoryData)
 
-    // Step 3: Create and save metadata
     logger.subsection('Step 3: Create metadata')
     const dataSourceUrl = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${resolution}.json`
     const metadata = createMetadata(CONFIG, resolution, dataSourceUrl)

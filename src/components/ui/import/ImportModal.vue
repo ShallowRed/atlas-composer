@@ -21,14 +21,12 @@ const emit = defineEmits<{
 
 const debug = logger.vue.component
 
-// State
 const isDragging = ref(false)
 const isProcessing = ref(false)
 const selectedFile = ref<File | null>(null)
 const importResult = ref<{ success: boolean, errors: string[], warnings: string[] } | null>(null)
 const importedConfig = ref<ExportedCompositeConfig | null>(null)
 
-// Computed
 const hasErrors = computed(() => importResult.value && importResult.value.errors.length > 0)
 const hasWarnings = computed(() => importResult.value && importResult.value.warnings.length > 0)
 const canApply = computed(() =>
@@ -38,7 +36,6 @@ const canApply = computed(() =>
   && props.compositeProjection !== undefined,
 )
 
-// Methods
 function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files.length > 0) {
@@ -75,14 +72,12 @@ async function processFile(file: File) {
   importedConfig.value = null
 
   try {
-    // Import and validate
     const result = await CompositeImportService.importFromFile(file)
     importResult.value = result
 
     if (result.success && result.config) {
       importedConfig.value = result.config
 
-      // Check atlas compatibility
       const compatibility = CompositeImportService.checkAtlasCompatibility(
         result.config,
         props.atlasId,
@@ -110,7 +105,6 @@ async function applyImport() {
     return
   }
 
-  // Check if composite projection exists
   if (!props.compositeProjection) {
     debug('Cannot apply import: composite projection is not available')
     importResult.value = {
@@ -122,7 +116,6 @@ async function applyImport() {
   }
 
   try {
-    // Use InitializationService for consistent import handling
     const result = await InitializationService.importConfiguration({
       config: importedConfig.value,
       validateAtlasCompatibility: true,
@@ -137,23 +130,19 @@ async function applyImport() {
       return
     }
 
-    // Update cartographer if needed
     const { useGeoDataStore } = await import('@/stores/geoData')
     const geoDataStore = useGeoDataStore()
 
     if (geoDataStore.cartographer && result.state) {
       const territoryParameters = result.state.parameters.territories
-      // Convert: Object.keys returns string[], need TerritoryCode for store methods
       Object.keys(territoryParameters).forEach((territoryCode) => {
         geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
       })
       debug('Updated cartographer for %d territories', Object.keys(territoryParameters).length)
 
-      // Trigger render
       geoDataStore.triggerRender()
     }
 
-    // Emit success and close
     emit('imported', importedConfig.value)
     handleClose()
   }
@@ -168,7 +157,6 @@ async function applyImport() {
 }
 
 function handleClose() {
-  // Reset state
   selectedFile.value = null
   importResult.value = null
   importedConfig.value = null

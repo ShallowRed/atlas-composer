@@ -12,8 +12,6 @@ import { logger } from '#scripts/utils/logger'
 import { fetchWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
-// TYPES
-
 interface Bounds {
   minLon: number
   maxLon: number
@@ -54,13 +52,6 @@ interface GeoJSONFeatureCollection {
   features: GeoJSONFeature[]
 }
 
-// HELPER FUNCTIONS
-
-/**
- * Calculate bounding box for a polygon ring
- * @param ring - Array of [lon, lat] coordinates
- * @returns Bounds
- */
 function calculateBounds(ring: number[][]): Bounds {
   if (!ring || ring.length === 0) {
     return {
@@ -82,21 +73,10 @@ function calculateBounds(ring: number[][]): Bounds {
   }
 }
 
-/**
- * Format bounds for friendly display
- * @param bounds - Bounds object
- * @returns Formatted bounds
- */
 function formatBounds(bounds: Bounds): string {
   return `lon [${bounds.minLon.toFixed(2)}, ${bounds.maxLon.toFixed(2)}], lat [${bounds.minLat.toFixed(2)}, ${bounds.maxLat.toFixed(2)}]`
 }
 
-/**
- * Calculate polygon statistics used in analysis
- * @param polygon - MultiPolygon polygon (array of rings)
- * @param index - Polygon index
- * @returns Polygon stats
- */
 function getPolygonStats(polygon: any[], index: number): PolygonStats {
   const firstRing = polygon[0] || []
   const bounds = calculateBounds(firstRing)
@@ -117,13 +97,6 @@ function getPolygonStats(polygon: any[], index: number): PolygonStats {
   }
 }
 
-/**
- * Pretty-print a country feature with geometry insights
- * @param country - GeoJSON feature
- * @param resolution - Resolution string
- * @param index - Match index
- * @param total - Total matches
- */
 function describeCountry(country: GeoJSONFeature, resolution: string, index: number, total: number): void {
   const name = country.properties?.name || 'Unknown'
   const heading = total > 1
@@ -207,11 +180,6 @@ function describeCountry(country: GeoJSONFeature, resolution: string, index: num
   }
 }
 
-/**
- * Look up country information from Natural Earth data
- * @param searchTerm - Country name or ID
- * @param resolution - Natural Earth resolution
- */
 async function lookupCountry(searchTerm: string, resolution: string): Promise<void> {
   logger.section(`Looking up "${searchTerm}"`)
 

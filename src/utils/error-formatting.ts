@@ -1,22 +1,11 @@
-/**
- * Error Formatting Utilities
- *
- * Converts domain errors to user-friendly messages using i18n.
- */
-
 import type { AppError, GeoDataError } from '@/core/types/errors'
 import { useI18n } from 'vue-i18n'
 
-/**
- * Format an AppError to a user-friendly message
- * Must be called within a Vue component setup context
- */
 export function useErrorFormatter() {
   const { t } = useI18n()
 
   function formatError(error: AppError): string {
     switch (error.type) {
-      // Atlas errors
       case 'ATLAS_NOT_FOUND':
         return t('errors.atlas.notFound', { id: error.atlasId })
       case 'ATLAS_LOAD_FAILED':
@@ -24,7 +13,6 @@ export function useErrorFormatter() {
       case 'ATLAS_CONFIG_INVALID':
         return t('errors.atlas.configInvalid', { id: error.atlasId })
 
-      // GeoData errors
       case 'GEODATA_NOT_FOUND':
         return t('errors.geoData.notFound')
       case 'GEODATA_INVALID_JSON':
@@ -36,7 +24,6 @@ export function useErrorFormatter() {
       case 'GEODATA_INVALID_STRUCTURE':
         return t('errors.geoData.invalidStructure')
 
-      // Preset errors
       case 'PRESET_NOT_FOUND':
         return t('errors.preset.notFound', { id: error.presetId })
       case 'PRESET_INVALID_JSON':
@@ -52,7 +39,6 @@ export function useErrorFormatter() {
       case 'PRESET_LOAD_FAILED':
         return t('errors.preset.loadFailed', { id: error.presetId })
 
-      // Projection errors
       case 'PROJECTION_NOT_FOUND':
         return t('errors.projection.notFound', { id: error.projectionId })
       case 'PROJECTION_CREATE_FAILED':
@@ -60,14 +46,12 @@ export function useErrorFormatter() {
       case 'PROJECTION_INVALID_PARAMS':
         return t('errors.projection.invalidParams', { id: error.projectionId })
 
-      // Network errors
       case 'NETWORK_FETCH_FAILED':
         return t('errors.network.fetchFailed')
       case 'NETWORK_TIMEOUT':
         return t('errors.network.timeout')
 
       default:
-        // Exhaustive check - TypeScript will error if we miss a case
         return t('errors.unknown')
     }
   }
@@ -75,10 +59,6 @@ export function useErrorFormatter() {
   return { formatError }
 }
 
-/**
- * Format error for logging (includes technical details)
- * Can be used outside Vue component context
- */
 export function formatErrorForLog(error: AppError): string {
   switch (error.type) {
     case 'ATLAS_NOT_FOUND':

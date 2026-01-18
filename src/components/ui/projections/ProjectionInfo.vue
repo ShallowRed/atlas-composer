@@ -18,7 +18,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { t } = useI18n()
 
-// Format capabilities for display
 const preserves = computed(() => {
   return props.projection.capabilities.preserves
     .map(prop => t(`projections.properties.${prop}`))
@@ -33,43 +32,10 @@ const distorts = computed(() => {
     .join(', ')
 })
 
-// Get category translation
 const categoryLabel = computed(() => {
   return t(`projections.categories.${props.projection.category}`)
 })
 
-// // Get projection properties badges
-// const propertyBadges = computed(() => {
-//   const badges: Array<{ label: string, icon: string, class: string }> = []
-
-//   if (props.projection.capabilities.preserves.includes('area')) {
-//     badges.push({
-//       label: t('projections.properties.area'),
-//       icon: getPropertyIcon('area'),
-//       class: 'badge-success',
-//     })
-//   }
-
-//   if (props.projection.capabilities.preserves.includes('angle')) {
-//     badges.push({
-//       label: t('projections.properties.angle'),
-//       icon: getPropertyIcon('angle'),
-//       class: 'badge-info',
-//     })
-//   }
-
-//   if (props.projection.capabilities.isInterrupted) {
-//     badges.push({
-//       label: t('projections.properties.interrupted'),
-//       icon: getPropertyIcon('interrupted'),
-//       class: 'badge-warning',
-//     })
-//   }
-
-//   return badges
-// })
-
-// Get category icon
 const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
 </script>
 

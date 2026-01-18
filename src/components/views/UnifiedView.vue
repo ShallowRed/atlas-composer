@@ -9,7 +9,6 @@ const projectionStore = useProjectionStore()
 const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
-// Watch territory mode changes and reload unified data
 watch(() => viewStore.territoryMode, async (newMode) => {
   await geoDataStore.reloadUnifiedData(newMode)
 }, { immediate: true })

@@ -60,7 +60,6 @@ function serveConfigsPlugin(): Plugin {
             copyRecursive(srcPath, destPath)
           }
           else if (file.endsWith('.json')) {
-            // Copy JSON file
             fs.copyFileSync(srcPath, destPath)
           }
         }

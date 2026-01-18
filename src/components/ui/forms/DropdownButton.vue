@@ -43,7 +43,6 @@ const emit = defineEmits<{
 
 const buttonRef = ref<HTMLElement | null>(null)
 
-// Map size to button and icon classes for inline buttons
 const sizeClasses = {
   'xs': { button: 'btn-xs', text: 'text-xs', icon: 'text-xs' },
   'sm': { button: 'btn-sm', text: 'text-sm', icon: 'text-base' },
@@ -55,7 +54,6 @@ const sizeClasses = {
 
 const currentSizeClasses = sizeClasses[props.size]
 
-// Expose the ref so parent can access it
 defineExpose({
   buttonRef,
 })

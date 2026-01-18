@@ -1,18 +1,3 @@
-<!--
-  Territory Parameter Controls
-
-  Component for editing projection parameters specific to a territory.
-  Used in both split mode and composite-custom mode.
-
-  Architectural Pattern:
-  - Parent component (SplitControls/CompositeCustomControls) handles projection selection
-  - This component focuses solely on parameter editing for the selected projection
-  - Provides parameter controls with inheritance indicators and validation feedback
-
-  Separation of Concerns:
-  - Projection selection: Parent's responsibility
-  - Parameter editing: This component's responsibility
--->
 <script setup lang="ts">
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryCode } from '@/types/branded'
@@ -32,17 +17,11 @@ import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 
 interface Props {
-  /** Territory code for parameter management */
   territoryCode: TerritoryCode
-  /** Territory display name */
   territoryName: string
-  /** Projection family for parameter validation and constraints */
   projectionFamily: ProjectionFamilyType
-  /** Whether to show parameter inheritance indicators */
   showInheritanceIndicators?: boolean
-  /** Whether to allow parameter overrides at territory level */
   allowParameterOverrides?: boolean
-  /** Whether to show validation feedback */
   showValidationFeedback?: boolean
 }
 
@@ -65,21 +44,17 @@ const parameterStore = useParameterStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
 const presetDefaults = getSharedPresetDefaults()
 
-// Check if we're in composite mode - composite-specific parameters only apply there
 const isCompositeMode = computed(() => {
   return viewStore.viewMode === 'composite-custom'
 })
 
-// Get parameter constraints for this projection family
 const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(props.projectionFamily)
 })
 
-// Get parameter constraints from parameter registry
 function getParameterRange(paramKey: keyof ProjectionParameters) {
   const constraints = parameterConstraints.value.constraints[paramKey]
   if (!constraints) {
-    // Fallback ranges if constraint not found
     const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
       centerLongitude: { min: -180, max: 180, step: 1 },
       centerLatitude: { min: -90, max: 90, step: 1 },
@@ -102,49 +77,39 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   }
 }
 
-// Get current effective parameters for this territory
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
 })
 
-// Get territory-specific parameter overrides
 const territoryParameters = computed(() => {
   return parameterStore.getTerritoryParameters(props.territoryCode)
 })
 
-// Get validation results for current parameters
 const validationResults = computed(() => {
   return parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 
-// Check if territory has parameter overrides that differ from preset defaults
 const hasOverrides = computed(() => {
-  // If no preset defaults loaded, show the reset button if there are any overrides
   if (!presetDefaults.hasPresetDefaults()) {
     return Object.keys(territoryParameters.value).length > 0
   }
 
-  // Get preset defaults for this specific territory
   const territoryDefaults = presetDefaults.getPresetDefaultsForTerritory(props.territoryCode)
 
-  // If no preset defaults for this territory, show the reset button if there are any overrides
   if (!territoryDefaults) {
     return Object.keys(territoryParameters.value).length > 0
   }
 
-  // Check if projection differs from preset
   const currentProjection = parameterStore.getTerritoryProjection(props.territoryCode)
   if (currentProjection && territoryDefaults.projection && currentProjection !== territoryDefaults.projection) {
     return true
   }
 
-  // Check if any current parameter differs from preset defaults
   const presetParams = territoryDefaults.parameters
   if (presetParams) {
     for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
       const presetValue = presetParams[paramKey as keyof typeof presetParams]
 
-      // Use the same deep comparison logic as the global reset button
       const isEqual = areValuesEqual(currentValue, presetValue)
 
       if (!isEqual) {
@@ -156,26 +121,21 @@ const hasOverrides = computed(() => {
   return false
 })
 
-// Helper function for deep value comparison (same as in usePresetDefaults)
 function areValuesEqual(value1: unknown, value2: unknown): boolean {
-  // Unwrap Vue proxies to get raw values
   const raw1 = toRaw(value1)
   const raw2 = toRaw(value2)
 
-  // Handle null/undefined
   if (raw1 === raw2)
     return true
   if (raw1 == null || raw2 == null)
     return false
 
-  // Handle arrays
   if (Array.isArray(raw1) && Array.isArray(raw2)) {
     if (raw1.length !== raw2.length)
       return false
     return raw1.every((val, index) => areValuesEqual(val, raw2[index]))
   }
 
-  // Handle objects
   if (typeof raw1 === 'object' && typeof raw2 === 'object') {
     const keys1 = Object.keys(raw1 as Record<string, unknown>)
     const keys2 = Object.keys(raw2 as Record<string, unknown>)
@@ -189,18 +149,15 @@ function areValuesEqual(value1: unknown, value2: unknown): boolean {
     )
   }
 
-  // Primitives
   return raw1 === raw2
 }
 
-// Get list of relevant parameters for this projection family
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
     .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
 
-// Get validation errors for display
 const validationErrors = computed(() => {
   return validationResults.value.filter(result => !result.isValid)
 })
@@ -208,8 +165,6 @@ const validationErrors = computed(() => {
 const validationWarnings = computed(() => {
   return validationResults.value.filter(result => result.isValid && result.warning)
 })
-
-// Parameter ranges from registry
 const focusLongitudeRange = computed(() => getParameterRange('focusLongitude'))
 const focusLatitudeRange = computed(() => getParameterRange('focusLatitude'))
 const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
@@ -218,15 +173,12 @@ const parallel2Range = computed(() => getParameterRange('parallel2'))
 const clipAngleRange = computed(() => getParameterRange('clipAngle'))
 const precisionRange = computed(() => getParameterRange('precision'))
 
-// Pixel-based clip extent handling
 const pixelClipExtentArray = computed(() => {
   const pixelClipExtent = effectiveParameters.value.pixelClipExtent
   if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-    // Already in [x1, y1, x2, y2] format
     return pixelClipExtent
   }
 
-  // Default values if no clip extent is set
   return [-100, -100, 100, 100]
 })
 
@@ -234,7 +186,6 @@ function updatePixelClipExtent(index: number, value: number) {
   const current = [...pixelClipExtentArray.value]
   current[index] = value
 
-  // Keep as [x1, y1, x2, y2] format
   const pixelClipExtent: [number, number, number, number] = [
     current[0] ?? 0,
     current[1] ?? 0,
@@ -245,36 +196,24 @@ function updatePixelClipExtent(index: number, value: number) {
   handleParameterChange('pixelClipExtent', pixelClipExtent)
 }
 
-// Handle parameter value changes
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
-  // Validate the parameter before setting
   const validationResult = parameterStore.validateParameter(props.projectionFamily, key, value)
 
   if (validationResult.isValid || props.allowParameterOverrides) {
-    // Set the parameter value
     parameterStore.setTerritoryParameter(props.territoryCode, key, value)
-
-    // Emit change event
     emit('parameterChanged', props.territoryCode, key, value)
   }
 }
 
-// Clear all parameter overrides for this territory and reset transforms to preset defaults
 function clearAllOverrides() {
-  // Get current parameters before clearing for emit
   const oldParams = { ...territoryParameters.value }
 
-  // Reset all territory-specific settings (transforms + parameters) to preset defaults
-  // This also triggers cartographer update internally
   resetTerritoryToDefaults(props.territoryCode)
-
-  // Emit cleared events for all overridden parameters
   Object.keys(oldParams).forEach((key) => {
     emit('overrideCleared', props.territoryCode, key as keyof ProjectionParameters)
   })
 }
 
-// Helper computed properties for parameter groups
 const hasPositionParameters = computed(() => {
   return relevantParameters.value.some(p =>
     String(p) === 'focusLongitude'
@@ -300,7 +239,6 @@ const hasRotateGammaParameter = computed(() => {
 })
 
 const hasScaleParameter = computed(() => {
-  // Scale is always user-controllable regardless of projection family
   return true
 })
 
@@ -313,13 +251,10 @@ const hasPrecisionParameter = computed(() => {
 })
 
 const hasTranslateParameter = computed(() => {
-  // Translate is always user-controllable regardless of projection family
   return true
 })
 
-// Lifecycle hooks for validation
 onMounted(() => {
-  // Trigger initial validation
   parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 </script>
@@ -336,7 +271,6 @@ onMounted(() => {
       {{ t('territory.parameters.reset') }}
     </button>
 
-    <!-- Validation feedback -->
     <div
       v-if="showValidationFeedback && (validationErrors.length > 0 || validationWarnings.length > 0)"
       class="mb-4"
@@ -348,12 +282,10 @@ onMounted(() => {
       />
     </div>
 
-    <!-- Parameter controls grouped by type -->
     <div
       v-if="relevantParameters.length > 0"
       class="join join-vertical border border-base-200 rounded-md"
     >
-      <!-- Main Projection Controls (Center/Rotation/Parallels) -->
       <template v-if="hasPositionParameters || hasProjectionSpecificParameters">
         <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
@@ -362,9 +294,7 @@ onMounted(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <!-- Position Parameters (Focus Longitude/Latitude - Canonical Format) -->
             <template v-if="hasPositionParameters">
-              <!-- Focus Longitude -->
               <template v-if="hasFocusLongitudeParameter">
                 <RangeSlider
                   :model-value="effectiveParameters.focusLongitude ?? 0"
@@ -379,7 +309,6 @@ onMounted(() => {
                 />
               </template>
 
-              <!-- Focus Latitude -->
               <template v-if="hasFocusLatitudeParameter">
                 <RangeSlider
                   :model-value="effectiveParameters.focusLatitude ?? 0"
@@ -394,7 +323,6 @@ onMounted(() => {
                 />
               </template>
 
-              <!-- Rotate Gamma (roll/tilt - only for projections that use it) -->
               <template v-if="hasRotateGammaParameter">
                 <RangeSlider
                   :model-value="effectiveParameters.rotateGamma ?? 0"
@@ -410,9 +338,7 @@ onMounted(() => {
               </template>
             </template>
 
-            <!-- Parallels (for conic projections) -->
             <template v-if="hasProjectionSpecificParameters">
-              <!-- Parallel 1 (Standard parallel) -->
               <RangeSlider
                 :model-value="effectiveParameters.parallels?.[0] ?? 30"
                 :label="t('projectionParams.parallel1')"
@@ -428,7 +354,6 @@ onMounted(() => {
                 }"
               />
 
-              <!-- Parallel 2 (Standard parallel) -->
               <RangeSlider
                 :model-value="effectiveParameters.parallels?.[1] ?? 60"
                 :label="t('projectionParams.parallel2')"
@@ -448,7 +373,6 @@ onMounted(() => {
         </details>
       </template>
 
-      <!-- Layout Controls (Scale/Translate) -->
       <template v-if="hasScaleParameter || hasTranslateParameter">
         <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
@@ -457,7 +381,6 @@ onMounted(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <!-- Scale Control -->
             <template v-if="hasScaleParameter">
               <RangeSlider
                 :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
@@ -472,9 +395,7 @@ onMounted(() => {
               />
             </template>
 
-            <!-- Translate Offset Control (composite mode only) -->
             <template v-if="hasTranslateParameter && isCompositeMode">
-              <!-- Translate Offset X -->
               <RangeSlider
                 :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
                 label="Translate X"
@@ -490,7 +411,6 @@ onMounted(() => {
                 }"
               />
 
-              <!-- Translate Offset Y -->
               <RangeSlider
                 :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
                 label="Translate Y"
@@ -505,7 +425,7 @@ onMounted(() => {
                   handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
                 }"
               />
-              <!-- Pixel-based ClipExtent Controls (composite mode only) -->
+
               <RangeSlider
                 :model-value="pixelClipExtentArray[0] ?? -100"
                 :label="t('clipExtent.left')"
@@ -554,7 +474,6 @@ onMounted(() => {
         </details>
       </template>
 
-      <!-- Advanced Controls (Clip Angle/Precision) -->
       <template v-if="hasClipAngleParameter || hasPrecisionParameter || true">
         <details class="collapse collapse-plus join-item">
           <summary class="collapse-title text-sm font-medium">
@@ -563,7 +482,6 @@ onMounted(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <!-- Clip Angle (for azimuthal projections) -->
             <template v-if="hasClipAngleParameter">
               <RangeSlider
                 :model-value="effectiveParameters.clipAngle ?? 90"
@@ -578,7 +496,6 @@ onMounted(() => {
               />
             </template>
 
-            <!-- Precision Control -->
             <template v-if="hasPrecisionParameter">
               <RangeSlider
                 :model-value="effectiveParameters.precision ?? 0.1"
@@ -596,7 +513,6 @@ onMounted(() => {
       </template>
     </div>
 
-    <!-- No relevant parameters message -->
     <Alert
       v-if="relevantParameters.length === 0"
       type="info"

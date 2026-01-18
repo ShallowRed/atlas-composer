@@ -24,7 +24,6 @@ const isLoading = ref(false)
 const loadError = ref<string | null>(null)
 const selectedPreset = ref<PresetId | ''>('')
 
-// Current preset selection
 const currentPreset = computed({
   get: () => {
     const atlasId = atlasStore.selectedAtlasId
@@ -32,7 +31,6 @@ const currentPreset = computed({
     if (!atlasId || !viewMode)
       return ''
 
-    // Get default preset for current view mode
     const presets = getAtlasPresets(atlasId)
     const viewModePresets = presets.filter(p => p.type === viewMode)
     const defaultPreset = viewModePresets.find(p => p.isDefault) || viewModePresets[0]
@@ -49,7 +47,6 @@ const currentPreset = computed({
     try {
       debug('Loading preset: %s', presetId)
 
-      // Use InitializationService for consistent preset loading
       const result = await InitializationService.loadPreset({
         presetId,
         skipValidation: false,
@@ -61,23 +58,17 @@ const currentPreset = computed({
         return
       }
 
-      // Display warnings if any
       if (result.warnings.length > 0) {
         debug('Preset loaded with warnings: %o', result.warnings)
       }
 
-      // Update selected preset
       selectedPreset.value = presetId
 
-      // Trigger cartographer update if needed
       if (geoDataStore.cartographer && result.state) {
         const territoryParameters = result.state.parameters.territories
 
-        // Check if we need to rebuild the composite projection
-        // This happens when the new preset has a different set of territories
         const currentAtlasConfig = atlasStore.currentAtlasConfig
         if (currentAtlasConfig?.compositeProjectionConfig) {
-          // Rebuild composite projection to include all territories from the preset
           const parameterStore = useParameterStore()
           const parameterProvider = {
             getEffectiveParameters: (territoryCode: TerritoryCode) => {
@@ -97,15 +88,12 @@ const currentPreset = computed({
           debug('Rebuilt composite projection with %d territories', Object.keys(territoryParameters).length)
         }
         else {
-          // Fallback to updating parameters if no composite config (shouldn't happen in composite-custom mode)
-          // Convert: Object.keys returns string[]
           Object.keys(territoryParameters).forEach((territoryCode) => {
             geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
           })
           debug('Updated cartographer parameters for %d territories', Object.keys(territoryParameters).length)
         }
 
-        // Trigger render
         geoDataStore.triggerRender()
       }
 
@@ -121,8 +109,6 @@ const currentPreset = computed({
   },
 })
 
-// Preset options for dropdown - gets metadata directly from atlas registry
-// Filtered by current view mode
 const presetOptions = computed(() => {
   const atlasId = atlasStore.selectedAtlasId
   const viewMode = viewStore.viewMode
@@ -131,42 +117,32 @@ const presetOptions = computed(() => {
 
   const presets = getAtlasPresets(atlasId)
 
-  // Filter presets by current view mode
   const filteredPresets = presets.filter(preset => preset.type === viewMode)
 
   return filteredPresets.map((preset) => {
     return {
       value: preset.id,
-      // Convert: preset.id is PresetId, formatPresetLabel expects PresetId
       label: formatPresetLabel(preset.id as PresetId, preset.name),
-      translated: true, // formatPresetLabel returns already-translated text, not translation keys
+      translated: true,
     }
   })
 })
 
-// Reset selected preset when atlas or view mode changes
 watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
   selectedPreset.value = '' as const
 }, { immediate: true })
 
-// Format preset ID into readable label using name from schema if available
 function formatPresetLabel(presetId: PresetId, presetName?: string | Record<string, string>): string {
-  // If preset has a name property, use i18n resolution
   if (presetName) {
     if (typeof presetName === 'string') {
       return presetName
     }
     else {
-      // Use i18n resolution for localized names
       const currentLocale = getCurrentLocale()
       return resolveI18nValue(presetName, currentLocale)
     }
   }
 
-  // Fallback to filename-based approach
-  // Remove atlas prefix and convert to title case
-  // e.g., "france-default" -> "Default"
-  // e.g., "france-compact" -> "Compact"
   const parts = presetId.split('-')
   if (parts.length > 1) {
     const label = parts.slice(1).join(' ')

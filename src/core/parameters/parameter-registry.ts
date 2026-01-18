@@ -1,27 +1,13 @@
-/**
- * Parameter Registry
- *
- * Central registry for all projection parameters with complete metadata.
- * Provides type-safe parameter definitions, validation constraints, and
- * single source of truth for parameter behavior across the application.
- */
-
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { TerritoryConfig } from '@/types/territory'
 
-/**
- * Validation result for parameter values
- */
 export interface ValidationResult {
   isValid: boolean
   error?: string
   warning?: string
 }
 
-/**
- * Parameter constraint definition
- */
 export interface ParameterConstraint {
   min?: number | number[]
   max?: number | number[]
@@ -31,9 +17,6 @@ export interface ParameterConstraint {
   required?: boolean
 }
 
-/**
- * Family-specific constraint definition
- */
 export interface FamilyConstraint {
   relevant: boolean
   required: boolean
@@ -44,49 +27,32 @@ export interface FamilyConstraint {
   validate?: (value: any) => ValidationResult
 }
 
-/**
- * Family-specific constraints mapping
- */
 export interface FamilyConstraints {
   [family: string]: FamilyConstraint
 }
 
-/**
- * Parameter definition with full metadata
- */
 export interface ParameterDefinition {
-  // Identity
   key: keyof ProjectionParameters
   displayName: string
   description: string
 
-  // Type information
   type: 'number' | 'tuple2' | 'tuple3' | 'boolean' | 'custom'
   unit?: string // 'degrees', 'pixels', 'scale', 'multiplier', etc.
 
-  // Data flow
-  source: 'preset' | 'computed' // Where it comes from
-  mutable: boolean // Can user change it?
-  exportable: boolean // Include in export?
-  requiresPreset: boolean // Must be in preset?
+  source: 'preset' | 'computed'
+  mutable: boolean
+  exportable: boolean
+  requiresPreset: boolean
 
-  // Family-specific constraints
   familyConstraints?: FamilyConstraints
 
-  // Defaults
   defaultValue?: any
   computeDefault?: (territory: TerritoryConfig) => any
 }
 
-/**
- * Central parameter registry
- */
 export class ParameterRegistry {
   private definitions = new Map<string, ParameterDefinition>()
 
-  /**
-   * Register a parameter definition
-   */
   register(def: ParameterDefinition): void {
     this.definitions.set(def.key as string, def)
   }
@@ -140,18 +106,14 @@ export class ParameterRegistry {
       return { isValid: false, error: `Unknown parameter: ${key}` }
     }
 
-    // Get constraints for this family
     const constraints = this.getConstraintsForFamily(key, family)
 
-    // Use family-specific validation if available
     if (def.familyConstraints?.[family]?.validate) {
       return def.familyConstraints[family].validate!(value)
     }
 
-    // Validate based on type
     const typeValidation = this.validateByType(def, value, constraints)
 
-    // Add relevance warning if not relevant but validation otherwise passes
     if (!constraints.relevant && typeValidation.isValid) {
       return {
         isValid: true,
@@ -166,11 +128,8 @@ export class ParameterRegistry {
     const results: ValidationResult[] = []
 
     for (const [key, value] of Object.entries(params)) {
-      // Check if parameter is relevant for this projection family
       const constraints = this.getConstraintsForFamily(key, family)
 
-      // Skip validation for irrelevant parameters
-      // They shouldn't produce errors or warnings
       if (!constraints.relevant) {
         continue
       }
@@ -187,22 +146,17 @@ export class ParameterRegistry {
   getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
     const defaults: ProjectionParameters = {}
 
-    // Include both relevant and computed parameters (like scale)
     for (const def of this.getAll()) {
-      // Skip if this parameter has family constraints but is not defined for this family
       if (def.familyConstraints && !def.familyConstraints[family]) {
         continue
       }
 
-      // Use computed defaults if available
       if (def.computeDefault) {
         defaults[def.key] = def.computeDefault(territory)
       }
-      // Use family-specific default if available
       else if (def.familyConstraints?.[family]?.defaultValue !== undefined) {
         defaults[def.key] = def.familyConstraints[family].defaultValue
       }
-      // Fall back to global default
       else if (def.defaultValue !== undefined) {
         defaults[def.key] = def.defaultValue
       }
@@ -214,7 +168,6 @@ export class ParameterRegistry {
   validateCompleteness(): ValidationResult[] {
     const errors: ValidationResult[] = []
 
-    // Current parameter keys from ProjectionParameters interface
     const requiredKeys = [
       'center',
       'rotate',
@@ -355,5 +308,4 @@ export class ParameterRegistry {
   }
 }
 
-// Singleton instance
 export const parameterRegistry = new ParameterRegistry()

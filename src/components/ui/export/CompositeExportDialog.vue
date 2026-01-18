@@ -35,10 +35,8 @@ const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { parameterProvider } = useParameterProvider()
 
-// Show/hide preview
 const showPreview = ref(false)
 
-// Generated content
 const exportContent = computed(() => {
   const cartographer = geoDataStore.cartographer
   if (!cartographer?.customComposite) {

@@ -17,7 +17,6 @@ async function handleCopy() {
     copied.value = true
     error.value = false
 
-    // Reset after 2 seconds
     if (timeoutId)
       clearTimeout(timeoutId)
     timeoutId = window.setTimeout(() => {
@@ -28,7 +27,6 @@ async function handleCopy() {
     error.value = true
     copied.value = false
 
-    // Reset error after 3 seconds
     if (timeoutId)
       clearTimeout(timeoutId)
     timeoutId = window.setTimeout(() => {

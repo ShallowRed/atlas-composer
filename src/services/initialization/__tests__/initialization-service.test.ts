@@ -1,14 +1,9 @@
-/**
- * Tests for InitializationService
- */
-
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAtlasId, createPresetId } from '@/types/branded'
 
 import { InitializationService } from '../initialization-service'
 
-// Mock dependencies
 vi.mock('@/core/atlases/registry', () => ({
   getAtlasConfig: vi.fn(() => ({
     id: 'france',
@@ -138,11 +133,6 @@ describe('initializationService', () => {
     vi.clearAllMocks()
   })
 
-  // TODO: These tests need to be rewritten to properly mock all store and service dependencies.
-  // The InitializationService has complex interactions with multiple Pinia stores and services
-  // that are difficult to fully mock. The current mocks don't capture all the internal state
-  // and validation logic that has evolved in the service.
-
   describe.skip('initializeAtlas', () => {
     it('should successfully initialize an atlas', async () => {
       const result = await InitializationService.initializeAtlas({
@@ -249,13 +239,11 @@ describe('initializationService', () => {
     })
 
     it('should reject unsupported view mode', async () => {
-      // built-in-composite is not in the mocked availableViewModes
       const result = await InitializationService.changeViewMode({
         viewMode: 'built-in-composite',
         autoLoadPreset: false,
       })
 
-      // Should fail because built-in-composite is not in available view modes
       expect(result.success).toBe(false)
     })
   })

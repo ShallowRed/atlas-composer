@@ -523,19 +523,6 @@ describe('codeGenerator', () => {
   })
 
   describe('comments and documentation', () => {
-    it('should include comments when option is enabled', () => {
-      const code = generator.generate(singleFocusConfig, {
-        format: 'd3',
-        language: 'javascript',
-        includeComments: true,
-        includeExamples: false,
-      })
-
-      expect(code).toContain('// Step 1: Register projections')
-      expect(code).toContain('// Step 2: Define the composite projection configuration')
-      expect(code).toContain('// Step 3: Load the composite projection')
-    })
-
     it('should include notes from metadata if present', () => {
       const config: ExportedCompositeConfig = {
         ...singleFocusConfig,
@@ -565,11 +552,9 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      // Check that generated code imports functions that are actually exported
       expect(code).toContain('import { loadCompositeProjection, registerProjection }')
       expect(code).toContain('@atlas-composer/projection-loader')
 
-      // Ensure we're not importing non-existent functions
       expect(code).not.toContain('import { createProjection }')
       expect(code).not.toContain('import { buildComposite }')
     })
@@ -582,7 +567,6 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      // TypeScript should import ProjectionLike type
       expect(code).toContain('type ProjectionLike')
       expect(code).toContain('@atlas-composer/projection-loader')
     })
@@ -595,10 +579,8 @@ describe('codeGenerator', () => {
         includeExamples: false,
       })
 
-      // Check that D3 functions are imported from correct package
       expect(code).toContain('from \'d3-geo\'')
 
-      // Should include the projections used in config
       expect(code).toContain('geoConicConformal')
       expect(code).toContain('geoMercator')
     })

@@ -1,10 +1,3 @@
-/**
- * Tests for CompositeExportService
- *
- * Tests validation logic and static methods without requiring full CompositeProjection instantiation.
- * Export-with-CompositeProjection tests require integration testing context.
- */
-
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { describe, expect, it } from 'vitest'
 import { CompositeExportService } from '../composite-export-service'
@@ -233,11 +226,9 @@ describe('compositeExportService', () => {
     })
 
     it('should validate multi-territory configurations', () => {
-      // Two territories should both be validated
       const result = CompositeExportService.validateExportedConfig(validConfig)
       expect(result.valid).toBe(true)
 
-      // Break second territory
       const invalidConfig = {
         ...validConfig,
         territories: [
@@ -331,7 +322,6 @@ describe('compositeExportService', () => {
         includeComments: false,
       })
 
-      // Code with comments should be longer or contain comment syntax
       expect(codeWithComments.length).toBeGreaterThanOrEqual(codeWithoutComments.length)
     })
   })

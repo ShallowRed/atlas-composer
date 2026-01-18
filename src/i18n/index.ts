@@ -11,14 +11,12 @@ export const SUPPORTED_LOCALES = {
 
 export type SupportedLocale = keyof typeof SUPPORTED_LOCALES
 
-// Detect browser language or use saved preference
 function getDefaultLocale(): SupportedLocale {
   const saved = localStorage.getItem('locale')
   if (saved && saved in SUPPORTED_LOCALES) {
     return saved as SupportedLocale
   }
 
-  // Detect from browser
   const browserLang = navigator.language?.split('-')[0]
   if (browserLang && browserLang in SUPPORTED_LOCALES) {
     return browserLang as SupportedLocale
@@ -28,19 +26,18 @@ function getDefaultLocale(): SupportedLocale {
 }
 
 const i18n = createI18n<[MessageSchema], SupportedLocale>({
-  legacy: false, // Use Composition API mode
+  legacy: false,
   locale: getDefaultLocale(),
   fallbackLocale: 'en',
   messages: {
     en,
     fr,
   },
-  globalInjection: true, // Enable $t in templates
+  globalInjection: true,
 })
 
 export default i18n
 
-// Helper to change locale and persist
 export function setLocale(locale: SupportedLocale) {
   const global = i18n.global as any
   global.locale.value = locale
