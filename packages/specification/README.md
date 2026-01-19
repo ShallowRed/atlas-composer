@@ -4,13 +4,13 @@
 
 This package contains the **JSON Schemas** and **TypeScript interfaces** that define valid `CompositeProjectionConfig` objects. It is the single source of truth for the data format used by the editor, the loader, and the presets.
 
-## 📦 Contents
+## Contents
 
 - **TypeScript Definitions**: `CompositeProjectionConfig`, `TerritoryConfig`, etc.
 - **JSON Schemas**: Valid Draft-07 schemas for validation.
 - **Type Guards**: Runtime checks for data structures.
 
-## 🚀 Usage
+## Usage
 
 ```typescript
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'

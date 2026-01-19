@@ -4,7 +4,7 @@
 
 This package provides ready-to-use configurations for common composite maps (like France with its territories, the USA, etc.). It is designed to work with `@atlas-composer/projection-loader`.
 
-## 🚀 Usage
+## Usage
 
 ```bash
 npm install @atlas-composer/preset-library @atlas-composer/projection-loader
@@ -27,7 +27,7 @@ if (config) {
 }
 ```
 
-## 📦 Available Presets
+## Available presets
 
 - **France**: `france-standard` (Composite), `france-unify` (Unified)
 - **USA**: `usa-albers` (Composite)

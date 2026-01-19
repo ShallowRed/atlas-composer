@@ -60,10 +60,10 @@ d3.select('svg')
 - `loader.unregister(id)` - Remove a registered projection
 - `loader.clear()` - Clear all registered projections
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 This package uses composite projection techniques derived from [d3-geo](https://github.com/d3/d3-geo) by [Mike Bostock](https://github.com/mbostock) (ISC License), with inspiration from [d3-composite-projections](https://github.com/rveciana/d3-composite-projections) by [Roger Veciana](https://github.com/rveciana). See [NOTICES.md](./NOTICES.md) for details.
 
-## 📄 License
+## License
 
 MIT © [ShallowRed](https://github.com/ShallowRed)
