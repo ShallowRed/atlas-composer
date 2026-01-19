@@ -54,6 +54,15 @@ For detailed technical documentation, please refer to the `./docs` directory:
 - [**Projections**](./docs/projections.md) - Details on the projection system.
 - [**Vue Architecture**](./docs/vue-architecture.md) - Frontend application structure.
 
+## � Acknowledgments
+
+This project builds upon the pioneering work of others in the D3.js ecosystem:
+
+- **[D3.js / d3-geo](https://github.com/d3/d3-geo)** by [Mike Bostock](https://github.com/mbostock) — The stream multiplexing approach and composite projection architecture are derived from the `geoAlbersUsa` implementation.
+- **[d3-composite-projections](https://github.com/rveciana/d3-composite-projections)** by [Roger Veciana](https://github.com/rveciana) — Inspiration for extending the composite projection pattern to multiple countries.
+
+See [THIRD-PARTY-LICENSES.md](./THIRD-PARTY-LICENSES.md) for full license details.
+
 ## 📄 License
 
 MIT © [ShallowRed](https://github.com/ShallowRed)

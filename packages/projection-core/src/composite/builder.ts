@@ -1,3 +1,13 @@
+/**
+ * Composite Projection Builder
+ *
+ * Builds composite projections that combine multiple sub-projections
+ * with geographic bounds checking, inspired by D3's geoAlbersUsa pattern.
+ *
+ * Architecture derived from d3-geo by Mike Bostock (ISC License).
+ * @see https://github.com/d3/d3-geo/blob/main/src/projection/albersUsa.js
+ */
+
 import type {
   CompositeProjectionConfig,
   GeoBounds,

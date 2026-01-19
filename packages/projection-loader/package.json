@@ -46,6 +46,7 @@
   "types": "./dist/index.d.ts",
   "files": [
     "LICENSE",
+    "NOTICES.md",
     "README.md",
     "dist"
   ],

@@ -11,3 +11,11 @@ This package contains the mathematical core and stream manipulation logic used b
 - **Coordinate Transformation**: Helpers for managing complex projection pipelines.
 
 > **Note:** Most users should use `@atlas-composer/projection-loader` instead of this package directly.
+
+## 🙏 Acknowledgments
+
+This package is derived from [d3-geo](https://github.com/d3/d3-geo) by [Mike Bostock](https://github.com/mbostock) (ISC License), with inspiration from [d3-composite-projections](https://github.com/rveciana/d3-composite-projections) by [Roger Veciana](https://github.com/rveciana). See [NOTICES.md](./NOTICES.md) for details.
+
+## 📄 License
+
+MIT © [ShallowRed](https://github.com/ShallowRed)
