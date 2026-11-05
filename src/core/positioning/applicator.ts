@@ -1,4 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
+import type { PositioningParameters, PositioningView } from './types'
 
 import type {
   CanonicalPositioning,
@@ -6,7 +7,30 @@ import type {
   PositioningFamily,
 } from '@/types/positioning'
 
+import { isConicProjection } from '@/types/d3-geo-extended'
+
 import { canonicalToCenter, canonicalToRotate } from './converters'
+import { getDerivedParallels } from './rules'
+
+export function applyPositioning(
+  projection: GeoProjection,
+  positioning: PositioningParameters,
+  view: PositioningView,
+): void {
+  const center = positioning.center ?? (view === 'composite' ? [0, 0] : undefined)
+  const rotate = positioning.rotate ?? (view === 'composite' ? [0, 0, 0] : undefined)
+
+  if (center)
+    projection.center(center)
+  if (rotate)
+    projection.rotate(rotate)
+
+  if (isConicProjection(projection)) {
+    const parallels = positioning.parallels ?? getDerivedParallels(positioning, view)
+    if (parallels)
+      projection.parallels(parallels)
+  }
+}
 
 export function getPositioningApplication(
   canonical: CanonicalPositioning,

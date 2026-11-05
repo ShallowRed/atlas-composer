@@ -1,17 +1,13 @@
-import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryCode } from '@/types/branded'
 import type {
   ParameterChangeEvent,
-  ParameterConstraints,
   ParameterInheritance,
   ParameterSource,
   ParameterUpdate,
-  ParameterValidationResult,
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
 import { inferCanonicalFromLegacy } from '@/core/positioning'
-import { getRelevantParameters } from '@/core/projections/parameters'
 import { mergeParameters } from '@/types/projection-parameters'
 import { logger } from '@/utils/logger'
 
@@ -213,141 +209,6 @@ export class ProjectionParameterManager {
     debug('All parameters cleared')
   }
 
-  validateParameter(
-    family: ProjectionFamilyType,
-    key: keyof ProjectionParameters,
-    value: any,
-  ): ParameterValidationResult {
-    if (!this.config.enableValidation) {
-      return { isValid: true }
-    }
-
-    const relevantParams = getRelevantParameters(family)
-    const parameterConfig = relevantParams[key as keyof typeof relevantParams]
-
-    if (!parameterConfig) {
-      return {
-        isValid: false,
-        error: `Parameter ${String(key)} is not relevant for ${family} projections`,
-      }
-    }
-
-    if (value === null || value === undefined) {
-      return { isValid: true }
-    }
-
-    switch (key) {
-      case 'center':
-      case 'parallels':
-      case 'translate':
-        if (!Array.isArray(value) || value.length !== 2 || !value.every(v => typeof v === 'number')) {
-          return {
-            isValid: false,
-            error: `${key} must be an array of two numbers`,
-          }
-        }
-        break
-
-      case 'rotate':
-        if (!Array.isArray(value) || (value.length < 2 || value.length > 3) || !value.every(v => typeof v === 'number')) {
-          return {
-            isValid: false,
-            error: 'rotate must be an array of 2 or 3 numbers',
-          }
-        }
-        break
-
-      case 'scale':
-      case 'clipAngle':
-      case 'precision':
-        if (typeof value !== 'number' || value <= 0) {
-          return {
-            isValid: false,
-            error: `${key} must be a positive number`,
-          }
-        }
-        break
-
-      case 'pixelClipExtent':
-        if (!Array.isArray(value) || value.length !== 4 || !value.every(v => typeof v === 'number')) {
-          return {
-            isValid: false,
-            error: 'pixelClipExtent must be an array of four numbers [x1, y1, x2, y2]',
-          }
-        }
-        break
-    }
-
-    return { isValid: true }
-  }
-
-  getParameterConstraints(family: ProjectionFamilyType): Record<keyof ProjectionParameters, ParameterConstraints> {
-    const relevantParams = getRelevantParameters(family)
-    const constraints: Partial<Record<keyof ProjectionParameters, ParameterConstraints>> = {}
-
-    const parameterKeys: Array<keyof ProjectionParameters> = [
-      'center',
-      'rotate',
-      'parallels',
-      'scale',
-      'translate',
-      'clipAngle',
-      'precision',
-      'pixelClipExtent',
-    ]
-
-    parameterKeys.forEach((key) => {
-      const relevant = relevantParams[key as keyof typeof relevantParams] || false
-
-      constraints[key] = {
-        parameter: key as keyof ProjectionParameters,
-        relevant,
-        required: false,
-        defaultValue: this.getDefaultValue(key),
-      }
-
-      switch (key) {
-        case 'scale':
-          constraints[key] = {
-            ...constraints[key]!,
-            min: 1,
-            max: 100000,
-            step: 1,
-          }
-          break
-
-        case 'clipAngle':
-          constraints[key] = {
-            ...constraints[key]!,
-            min: 0,
-            max: 180,
-            step: 1,
-          }
-          break
-
-        case 'precision':
-          constraints[key] = {
-            ...constraints[key]!,
-            min: 0.001,
-            max: 10,
-            step: 0.001,
-          }
-          break
-
-        case 'pixelClipExtent':
-          constraints[key] = {
-            ...constraints[key]!,
-            min: -500,
-            max: 500,
-            step: 1,
-          }
-          break
-      }
-    })
-
-    return constraints as Record<keyof ProjectionParameters, ParameterConstraints>
-  }
-
   addChangeListener(listener: ParameterChangeListener): void {
     this.listeners.add(listener)
   }
@@ -392,28 +253,5 @@ export class ProjectionParameterManager {
     }
 
     this.listeners.forEach(listener => listener(event))
-  }
-
-  private getDefaultValue(key: keyof ProjectionParameters): any {
-    switch (key) {
-      case 'center':
-        return [0, 0]
-      case 'rotate':
-        return [0, 0, 0]
-      case 'parallels':
-        return [30, 60]
-      case 'scale':
-        return 1000
-      case 'translate':
-        return [0, 0]
-      case 'clipAngle':
-        return 90
-      case 'precision':
-        return 0.1
-      case 'pixelClipExtent':
-        return [-100, -100, 100, 100]
-      default:
-        return undefined
-    }
   }
 }

@@ -7,7 +7,7 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { getRelevantParameters } from '@/core/projections/parameters'
+import { supportsPanning } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -90,8 +90,7 @@ const supportsLatitudeRotation = computed(() => {
   const projection = currentProjection.value
   if (!projection)
     return false
-  const baseParams = getRelevantParameters(projection.family)
-  return baseParams.rotateLatitude
+  return supportsPanning(projection.family)
 })
 
 const hasAnyRelevantParams = computed(() => {

@@ -19,6 +19,8 @@
  * - To focus on (lon, lat) with rotate(): rotate([-lon, -lat, gamma])
  */
 
+import type { DeprecatedPositioning, Positioning } from './types'
+import type { ProjectionFamilyType } from '@/core/projections/types'
 import type {
   CanonicalPositioning,
   D3Center,
@@ -30,6 +32,37 @@ import {
   isD3Center,
   isD3Rotate,
 } from '@/types/positioning'
+
+import { getPositionParameter, getTargetCoordinates } from './rules'
+
+function positionTarget(
+  longitude: number,
+  latitude: number,
+  gamma: number,
+  family: ProjectionFamilyType,
+): Positioning {
+  if (getPositionParameter(family, 'composite') === 'center')
+    return { center: [longitude, latitude], rotate: undefined }
+  return { center: undefined, rotate: [-longitude, -latitude, gamma] }
+}
+
+export function convertDeprecatedPositioning(
+  deprecated: DeprecatedPositioning,
+  family: ProjectionFamilyType,
+): Positioning | undefined {
+  const { focusLongitude, focusLatitude, rotateGamma } = deprecated
+  if (focusLongitude === undefined && focusLatitude === undefined)
+    return undefined
+  return positionTarget(focusLongitude ?? 0, focusLatitude ?? 0, rotateGamma ?? 0, family)
+}
+
+export function convertPositioning(
+  positioning: Positioning,
+  family: ProjectionFamilyType,
+): Positioning {
+  const [longitude, latitude] = getTargetCoordinates(positioning)
+  return positionTarget(longitude, latitude, positioning.rotate?.[2] ?? 0, family)
+}
 
 export function centerToCanonical(center: D3Center): CanonicalPositioning {
   if (!isD3Center(center)) {
