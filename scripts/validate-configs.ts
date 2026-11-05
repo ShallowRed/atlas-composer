@@ -2,7 +2,7 @@ import type { BackendConfig } from '#types'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { listConfigs, loadConfig } from '#scripts/config/loader'
+import { findMissingPresetFiles, listConfigs, loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
 
 interface ValidationResults {
@@ -117,6 +117,11 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
     }
   }
 
+  const missingPresets = await findMissingPresetFiles(atlas)
+  for (const preset of missingPresets) {
+    results.errors.push(`Preset file not found: ${preset}`)
+  }
+
   const availableResolutions = await findAvailableResolutions(atlas)
   if (availableResolutions.length === 0) {
     results.warnings.push(`No generated data found for any resolution (run: pnpm geodata:prepare ${atlas})`)
@@ -226,12 +231,13 @@ async function main(): Promise<void> {
       failed.forEach((r) => {
         logger.log(`  - ${r.atlas}`)
       })
+      process.exitCode = 1
     }
   }
   else {
     const atlas = args[0]
-    if (atlas) {
-      await validateAtlas(atlas)
+    if (atlas && !(await validateAtlas(atlas)).success) {
+      process.exitCode = 1
     }
   }
 }

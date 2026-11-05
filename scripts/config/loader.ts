@@ -14,6 +14,7 @@ export interface LoadedConfig {
 interface AtlasRegistryEntry {
   id: string
   configPath: string
+  presets?: Array<{ id: string, configPath: string }>
 }
 
 interface AtlasRegistryConfig {
@@ -39,6 +40,24 @@ async function loadRegistry(): Promise<AtlasRegistryConfig> {
   const registryContent = await fs.readFile(registryPath, 'utf-8')
   registryCache = JSON.parse(registryContent)
   return registryCache!
+}
+
+export async function findMissingPresetFiles(atlasName: string): Promise<string[]> {
+  const registry = await loadRegistry()
+  const entry = registry.atlases.find(a => a.id === atlasName)
+  const missing: string[] = []
+
+  for (const preset of entry?.presets ?? []) {
+    const presetPath = path.join(getConfigsDir(), preset.configPath)
+    try {
+      await fs.access(presetPath)
+    }
+    catch {
+      missing.push(`${preset.id}: ${preset.configPath}`)
+    }
+  }
+
+  return missing
 }
 
 async function getAtlasConfigPath(atlasName: string): Promise<string> {
