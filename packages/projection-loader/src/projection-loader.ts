@@ -140,7 +140,7 @@ export class ProjectionLoader {
   load(config: CompositeProjectionConfig, options: LoaderOptions): CompositeProjectionLike {
     const { width, height, debug = false } = options
 
-    if (config.version !== '1.0') {
+    if (!/^1\.\d+$/.test(config.version)) {
       throw new Error(`Unsupported configuration version: ${config.version}`)
     }
 
@@ -152,7 +152,7 @@ export class ProjectionLoader {
     const canvasDimensions = config.canvasDimensions || { width, height }
 
     const layouts: TerritoryLayout[] = config.territories.map((territory) => {
-      const factory = this.getFactory(territory.projection.id, territory.code)
+      const factory = this.getFactory(territory.projection.id)
       const [offsetX, offsetY] = territory.layout.translateOffset || [0, 0]
       const clip = territory.layout.pixelClipExtent
 
@@ -261,7 +261,7 @@ export class ProjectionLoader {
     return composite
   }
 
-  private getFactory(projectionId: string, territoryCode: string): ProjectionFactory {
+  private getFactory(projectionId: string): ProjectionFactory {
     const factory = this.factories.get(projectionId)
     if (!factory) {
       const registered = this.getRegistered()

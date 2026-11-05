@@ -6,11 +6,11 @@ export default defineConfig({
     'd3-projection-helpers': 'src/d3-projection-helpers.ts',
   },
   format: ['esm'],
-  dts: true,
+  dts: { resolve: ['@atlas-composer/specification'] },
   splitting: false,
   sourcemap: true,
   clean: true,
   treeshake: true,
   minify: false,
-  external: ['d3-geo', 'd3-geo-projection'],
+  external: ['d3-geo'],
 })

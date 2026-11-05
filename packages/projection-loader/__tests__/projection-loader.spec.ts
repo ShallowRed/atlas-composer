@@ -121,6 +121,10 @@ describe('projection-loader', () => {
       expect(projection.translate).toBeDefined()
     })
 
+    it('should accept any version of major 1', () => {
+      expect(() => loader.load({ ...mockConfig, version: '1.1' }, { width: 800, height: 600 })).not.toThrow()
+    })
+
     it('should reject unsupported version', () => {
       const invalid = { ...mockConfig, version: '2.0' }
       expect(() =>

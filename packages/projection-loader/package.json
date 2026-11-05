@@ -74,15 +74,11 @@
     }
   ],
   "peerDependencies": {
-    "d3-geo": ">=3.0.0",
-    "d3-geo-projection": ">=4.0.0"
+    "d3-geo": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "d3-geo": {
       "optional": false
-    },
-    "d3-geo-projection": {
-      "optional": true
     }
   },
   "devDependencies": {
@@ -91,7 +87,6 @@
     "@size-limit/preset-small-lib": "^11.2.0",
     "@types/d3-geo": "^3.1.0",
     "d3-geo": "^3.1.1",
-    "d3-geo-projection": "^4.0.0",
     "tsup": "^8.0.0",
     "typescript": "~5.9.3",
     "vitest": "^3.2.4"
