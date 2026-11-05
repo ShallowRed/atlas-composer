@@ -52,6 +52,27 @@ export interface ProjectionLike {
   fitHeight?: (height: number, object: any) => ProjectionLike
 }
 
+export interface CompositeProjectionLike extends ProjectionLike {
+  invert: (coordinates: [number, number]) => [number, number] | null
+  scale: {
+    (): number
+    (scale: number): CompositeProjectionLike
+  }
+  translate: {
+    (): [number, number]
+    (translate: [number, number]): CompositeProjectionLike
+  }
+  fitSize: (size: [number, number], object: any) => CompositeProjectionLike
+  fitExtent: (extent: [[number, number], [number, number]], object: any) => CompositeProjectionLike
+}
+
+interface TerritoryLayout {
+  territory: TerritoryConfig
+  factory: ProjectionFactory
+  translateCoefficient: [number, number]
+  clipCoefficients: [number, number, number, number] | null
+}
+
 export interface StreamLike {
   point: (x: number, y: number) => void
   lineStart: () => void
@@ -70,6 +91,21 @@ export interface LoaderOptions {
   height: number
   enableClipping?: boolean
   debug?: boolean
+}
+
+function computeScaleFactor(
+  canvasDimensions: { width: number, height: number } | undefined,
+  targetWidth: number,
+  targetHeight: number,
+): number {
+  if (!canvasDimensions)
+    return 1
+
+  // Scale to fit: use the smaller ratio to ensure content fits within target
+  const widthRatio = targetWidth / canvasDimensions.width
+  const heightRatio = targetHeight / canvasDimensions.height
+
+  return Math.min(widthRatio, heightRatio)
 }
 
 export class ProjectionLoader {
@@ -101,7 +137,7 @@ export class ProjectionLoader {
     return this.factories.has(id)
   }
 
-  load(config: CompositeProjectionConfig, options: LoaderOptions): ProjectionLike {
+  load(config: CompositeProjectionConfig, options: LoaderOptions): CompositeProjectionLike {
     const { width, height, debug = false } = options
 
     if (config.version !== '1.0') {
@@ -112,60 +148,120 @@ export class ProjectionLoader {
       throw new Error('Configuration must contain at least one territory')
     }
 
-    const entries: SubProjectionEntry[] = config.territories.map((territory) => {
-      const proj = this.createSubProjection(territory, width, height, config.referenceScale, debug)
+    const referenceScale = config.referenceScale || 2700
+    const canvasDimensions = config.canvasDimensions || { width, height }
+
+    const layouts: TerritoryLayout[] = config.territories.map((territory) => {
+      const factory = this.getFactory(territory.projection.id, territory.code)
+      const [offsetX, offsetY] = territory.layout.translateOffset || [0, 0]
+      const clip = territory.layout.pixelClipExtent
 
       return {
-        id: territory.code,
-        projection: proj as CoreProjectionLike,
-        bounds: {
-          minLon: territory.bounds[0][0],
-          minLat: territory.bounds[0][1],
-          maxLon: territory.bounds[1][0],
-          maxLat: territory.bounds[1][1],
-        },
+        territory,
+        factory,
+        translateCoefficient: [
+          offsetX / referenceScale,
+          offsetY / referenceScale,
+        ] as [number, number],
+        clipCoefficients: clip
+          ? [
+              clip[0] / referenceScale,
+              clip[1] / referenceScale,
+              clip[2] / referenceScale,
+              clip[3] / referenceScale,
+            ] as [number, number, number, number]
+          : null,
       }
     })
 
-    if (debug) {
-      console.log('[CompositeProjection] Created sub-projections:', {
-        territories: config.territories.map(t => t.code),
-        count: entries.length,
+    const scaleFactor = computeScaleFactor(canvasDimensions, width, height)
+    let currentScale = referenceScale * scaleFactor
+    let currentTranslate: [number, number] = [width / 2, height / 2]
+
+    const rebuildEntries = (): SubProjectionEntry[] => {
+      return layouts.map((layout) => {
+        const proj = this.createSubProjectionFromLayout(
+          layout,
+          currentScale,
+          currentTranslate,
+          debug,
+        )
+        return {
+          id: layout.territory.code,
+          projection: proj as CoreProjectionLike,
+          bounds: {
+            minLon: layout.territory.bounds[0][0],
+            minLat: layout.territory.bounds[0][1],
+            maxLon: layout.territory.bounds[1][0],
+            maxLat: layout.territory.bounds[1][1],
+          },
+        }
       })
     }
 
-    return buildCompositeProjection({ entries, debug }) as ProjectionLike
+    let entries = rebuildEntries()
+    let baseProjection = buildCompositeProjection({ entries, debug })
+
+    const composite = ((coords: [number, number]) => baseProjection(coords)) as CompositeProjectionLike
+
+    const rebuild = () => {
+      entries = rebuildEntries()
+      baseProjection = buildCompositeProjection({ entries, debug })
+    }
+
+    composite.stream = stream => baseProjection.stream(stream)
+    composite.invert = coords => baseProjection.invert?.(coords) ?? null
+
+    composite.scale = function (s?: number): any {
+      if (arguments.length === 0)
+        return currentScale
+      currentScale = s!
+      rebuild()
+      return composite
+    } as CompositeProjectionLike['scale']
+
+    composite.translate = function (t?: [number, number]): any {
+      if (arguments.length === 0)
+        return currentTranslate
+      currentTranslate = t!
+      rebuild()
+      return composite
+    } as CompositeProjectionLike['translate']
+
+    composite.fitSize = function (size: [number, number], _object: any): CompositeProjectionLike {
+      const [w, h] = size
+      const newScaleFactor = computeScaleFactor(canvasDimensions, w, h)
+      currentScale = referenceScale * newScaleFactor
+      currentTranslate = [w / 2, h / 2]
+      rebuild()
+      return composite
+    }
+
+    composite.fitExtent = function (
+      extent: [[number, number], [number, number]],
+      object: any,
+    ): CompositeProjectionLike {
+      const x0 = extent[0][0]
+      const y0 = extent[0][1]
+      const x1 = extent[1][0]
+      const y1 = extent[1][1]
+      return composite.fitSize([x1 - x0, y1 - y0], object)
+        .translate([(x0 + x1) / 2, (y0 + y1) / 2])
+    }
+
+    if (debug) {
+      console.log('[CompositeProjection] Created with relative scaling:', {
+        territories: config.territories.map(t => t.code),
+        referenceScale,
+        currentScale,
+        scaleFactor,
+      })
+    }
+
+    return composite
   }
 
-  loadFromJSON(jsonString: string, options: LoaderOptions): ProjectionLike {
-    let config: unknown
-
-    try {
-      config = JSON.parse(jsonString)
-    }
-    catch (error) {
-      throw new Error(`Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-
-    validateConfig(config)
-    return this.load(config, options)
-  }
-
-  private createSubProjection(
-    territory: TerritoryConfig,
-    width: number,
-    height: number,
-    referenceScale?: number,
-    debug?: boolean,
-  ): ProjectionLike {
-    const { layout } = territory
-    const projectionId = territory.projection.id
-    const parameters = territory.projection.parameters
-
-    if (!projectionId || !parameters) {
-      throw new Error(`Territory ${territory.code} missing projection configuration`)
-    }
-
+  private getFactory(projectionId: string, territoryCode: string): ProjectionFactory {
     const factory = this.factories.get(projectionId)
     if (!factory) {
       const registered = this.getRegistered()
@@ -176,7 +272,17 @@ export class ProjectionLoader {
         + `Use loader.register('${projectionId}', factory) to register it.`,
       )
     }
+    return factory
+  }
 
+  private createSubProjectionFromLayout(
+    layout: TerritoryLayout,
+    scale: number,
+    translate: [number, number],
+    debug?: boolean,
+  ): ProjectionLike {
+    const { territory, factory, translateCoefficient, clipCoefficients } = layout
+    const parameters = territory.projection.parameters
     const projection = factory()
 
     const hasFocus = parameters.focusLongitude !== undefined && parameters.focusLatitude !== undefined
@@ -206,10 +312,10 @@ export class ProjectionLoader {
       projection.parallels(parallels)
     }
 
-    if (projection.scale && parameters.scaleMultiplier) {
-      const effectiveReferenceScale = referenceScale || 2700
-      const calculatedScale = effectiveReferenceScale * parameters.scaleMultiplier
-      projection.scale(calculatedScale)
+    const scaleMultiplier = parameters.scaleMultiplier ?? 1
+    const territoryScale = scale * scaleMultiplier
+    if (projection.scale) {
+      projection.scale(territoryScale)
     }
 
     if (parameters.clipAngle && projection.clipAngle) {
@@ -221,50 +327,45 @@ export class ProjectionLoader {
     }
 
     if (projection.translate) {
-      const [offsetX, offsetY] = layout.translateOffset || [0, 0]
       projection.translate([
-        width / 2 + offsetX,
-        height / 2 + offsetY,
+        translate[0] + translateCoefficient[0] * scale,
+        translate[1] + translateCoefficient[1] * scale,
       ])
     }
 
-    if (layout.pixelClipExtent && projection.clipExtent) {
-      const territoryCenter = projection.translate?.() || [width / 2, height / 2]
-
+    if (clipCoefficients && projection.clipExtent) {
+      const territoryCenter = projection.translate?.() || translate
       const clipExtent = calculateClipExtentFromPixelOffset(
         territoryCenter,
-        layout.pixelClipExtent,
+        [
+          clipCoefficients[0] * scale,
+          clipCoefficients[1] * scale,
+          clipCoefficients[2] * scale,
+          clipCoefficients[3] * scale,
+        ],
       )
-
       projection.clipExtent(clipExtent)
+
       if (debug) {
-        console.log(
-          `[Clipping] Applied pixelClipExtent for ${territory.code}:`,
-          `original: ${JSON.stringify(layout.pixelClipExtent)} -> transformed: ${JSON.stringify(clipExtent)}`,
-        )
-      }
-    }
-    else if (projection.clipExtent) {
-      const bounds = territory.bounds
-      if (bounds && bounds.length === 2 && bounds[0].length === 2 && bounds[1].length === 2) {
-        const scale = projection.scale?.() || 1
-        const translate = projection.translate?.() || [0, 0]
-
-        const padding = scale * 0.1
-        const clipExtent: [[number, number], [number, number]] = [
-          [translate[0] - padding, translate[1] - padding],
-          [translate[0] + padding, translate[1] + padding],
-        ]
-
-        projection.clipExtent(clipExtent)
-
-        if (debug) {
-          console.log(`[Clipping] Applied default clip extent for ${territory.code}:`, clipExtent)
-        }
+        console.log(`[Clipping] Applied clip for ${territory.code}:`, clipExtent)
       }
     }
 
     return projection
+  }
+
+  loadFromJSON(jsonString: string, options: LoaderOptions): CompositeProjectionLike {
+    let config: unknown
+
+    try {
+      config = JSON.parse(jsonString)
+    }
+    catch (error) {
+      throw new Error(`Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+
+    validateConfig(config)
+    return this.load(config, options)
   }
 }
 

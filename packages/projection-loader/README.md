@@ -60,6 +60,33 @@ d3.select('svg')
 - `loader.unregister(id)` - Remove a registered projection
 - `loader.clear()` - Clear all registered projections
 
+### CompositeProjectionLike
+
+The projection returned by `loader.load()` supports dynamic scaling:
+
+```typescript
+const projection = loader.load(config, { width: 960, height: 500 })
+
+// Get/set scale dynamically (recalculates all sub-projections)
+projection.scale() // Get current scale
+projection.scale(5000) // Set new scale
+
+// Get/set translate dynamically
+projection.translate() // Get current translate [x, y]
+projection.translate([480, 250]) // Set new translate
+
+// Fit to new dimensions (compatible with Observable Plot)
+projection.fitSize([800, 600], {})
+
+// Fit to extent with margins
+projection.fitExtent([[20, 20], [780, 580]], {})
+
+// Inversion works with dynamic scaling
+projection.invert([400, 300]) // Returns [lon, lat] or null
+```
+
+This makes the projection fully compatible with Observable Plot's auto-sizing behavior.
+
 ## Acknowledgments
 
 This package uses composite projection techniques derived from [d3-geo](https://github.com/d3/d3-geo) by [Mike Bostock](https://github.com/mbostock) (ISC License), with inspiration from [d3-composite-projections](https://github.com/rveciana/d3-composite-projections) by [Roger Veciana](https://github.com/rveciana). See [NOTICES.md](./NOTICES.md) for details.
