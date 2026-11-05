@@ -111,7 +111,7 @@
             "fr": "Composite d3 standard"
           },
           "type": "built-in-composite",
-          "configPath": "./presets/france/france-composite-d3cp.json",
+          "configPath": "./presets/france/france-builtincomposite-d3cp.json",
           "description": {
             "en": "Predefined composite projection from d3-composite-projections",
             "fr": "Projection composite prédéfinie de d3-composite-projections"
@@ -331,7 +331,7 @@
             "fr": "Composite existant"
           },
           "type": "built-in-composite",
-          "configPath": "./presets/europe-built-in-composite.json",
+          "configPath": "./presets/europe/europe-builtincomposite-d3cp.json",
           "description": {
             "en": "Predefined composite projection for Europe",
             "fr": "Projection composite prédéfinie pour l'Europe"
