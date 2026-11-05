@@ -23,13 +23,23 @@ describe('useProjectionPanning', () => {
   })
 
   describe('panning capability detection', () => {
-    it('returns supportsPanning true for projections with rotateLongitude', () => {
+    it('returns supportsPanning true for a family with panning', () => {
       const projectionStore = useProjectionStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
 
       const { supportsPanning } = withSetup(() => useProjectionPanning())
 
       expect(supportsPanning.value).toBe(true)
+    })
+
+    it('returns supportsPanning false for a conic projection', () => {
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('conic-conformal')
+
+      const { supportsPanning, supportsLatitudePanning } = withSetup(() => useProjectionPanning())
+
+      expect(supportsPanning.value).toBe(false)
+      expect(supportsLatitudePanning.value).toBe(false)
     })
 
     it('returns supportsPanning false when no projection selected', () => {
@@ -59,7 +69,7 @@ describe('useProjectionPanning', () => {
       expect(supportsPanning.value).toBe(true)
     })
 
-    it('returns supportsLatitudePanning true when projection has rotateLatitude and not locked', () => {
+    it('returns supportsLatitudePanning true for a family with panning when not locked', () => {
       const projectionStore = useProjectionStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
       projectionStore.rotateLatitudeLocked = false

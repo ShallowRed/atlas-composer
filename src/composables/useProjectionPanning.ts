@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { getRelevantParameters } from '@/core/projections/parameters'
+import { supportsPanning as familySupportsPanning } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -23,8 +23,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     if (!projection)
       return false
 
-    const relevantParams = getRelevantParameters(projection.family)
-    return relevantParams.rotateLongitude
+    return familySupportsPanning(projection.family)
   })
 
   const supportsLatitudePanning = computed(() => {
@@ -36,8 +35,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     if (!projection)
       return false
 
-    const relevantParams = getRelevantParameters(projection.family)
-    return relevantParams.rotateLatitude && !projectionStore.rotateLatitudeLocked
+    return familySupportsPanning(projection.family) && !projectionStore.rotateLatitudeLocked
   })
 
   const cursorStyle = computed(() => {
