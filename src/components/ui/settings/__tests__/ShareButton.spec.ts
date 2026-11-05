@@ -37,6 +37,7 @@ describe('shareButton', () => {
       deserializeState: vi.fn(),
       updateUrl: vi.fn(),
       restoreFromUrl: vi.fn(),
+      restoreProjectionParametersFromUrl: vi.fn(),
       enableAutoSync: vi.fn(),
     })
 
