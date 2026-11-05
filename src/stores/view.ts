@@ -5,7 +5,7 @@ import type { ResolvedPresetDefinition } from '@/types/registry'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { getAtlasPresets, getAvailableViewModes, getDefaultViewMode, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasPresets, getAvailableViewModes, getDefaultViewMode } from '@/core/atlases/registry'
 import { ViewModeSelection } from '@/core/view'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
@@ -238,49 +238,49 @@ export const useViewStore = defineStore('view', () => {
 
   let isReverting = false
 
+  async function switchAtlas(atlasId: AtlasId, reason: string) {
+    const result = await InitializationService.initializeAtlas({
+      atlasId,
+      preserveViewMode: true,
+    })
+
+    if (result.success) {
+      await loadAvailableViewPresets()
+      await autoLoadFirstPreset(reason)
+    }
+
+    return result
+  }
+
   watch(() => getAtlasStore().selectedAtlasId, async (newAtlasId, oldAtlasId) => {
     if (isReverting) {
       isReverting = false
       return
     }
 
-    await loadAtlasAsync(newAtlasId)
+    const result = await switchAtlas(newAtlasId, `atlas changed from ${oldAtlasId} to ${newAtlasId}`)
 
-    const result = await InitializationService.initializeAtlas({
-      atlasId: newAtlasId,
-      preserveViewMode: true,
-    })
-
-    if (!result.success) {
-      debug('Atlas change failed: %O', result.errors)
-
-      isReverting = true
-      getAtlasStore().selectedAtlasId = oldAtlasId
-
-      const uiStore = getUIStore()
-      const errorMessage = result.errors && result.errors.length > 0
-        ? result.errors[0]
-        : 'Failed to switch atlas'
-
-      uiStore.showToast(
-        `Cannot switch to ${newAtlasId}: ${errorMessage}`,
-        'error',
-        5000,
-      )
-
+    if (result.success) {
+      debug('Atlas changed: %s -> %s', oldAtlasId, newAtlasId)
       return
     }
 
-    if (!result.state) {
-      debug('Atlas change returned no state')
-      return
+    debug('Atlas change failed: %O', result.errors)
+
+    isReverting = true
+    getAtlasStore().selectedAtlasId = oldAtlasId
+
+    getUIStore().showToast(
+      `Cannot switch to ${newAtlasId}: ${result.errors[0] ?? 'Failed to switch atlas'}`,
+      'error',
+      5000,
+    )
+
+    // The failed initialization cleared the data of the previous atlas
+    const restored = await switchAtlas(oldAtlasId, `atlas restored after failing to load ${newAtlasId}`)
+    if (!restored.success) {
+      debug('Atlas restore failed: %O', restored.errors)
     }
-
-    debug('Atlas changed successfully: %s -> %s (viewMode: %s, territories: %d)', oldAtlasId, newAtlasId, result.state.viewMode, Object.keys(result.state.parameters.territories).length)
-
-    await loadAvailableViewPresets()
-
-    await autoLoadFirstPreset(`atlas changed from ${oldAtlasId} to ${newAtlasId}`)
   })
 
   return {

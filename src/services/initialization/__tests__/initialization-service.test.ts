@@ -1,10 +1,14 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { useAppStore } from '@/stores/app'
+import { useGeoDataStore } from '@/stores/geoData'
 import { createAtlasId, createPresetId } from '@/types/branded'
 
 import { InitializationService } from '../initialization-service'
 
-vi.mock('@/core/atlases/registry', () => ({
+vi.mock('@/core/atlases/registry', async importOriginal => ({
+  ...await importOriginal<typeof import('@/core/atlases/registry')>(),
   getAtlasConfig: vi.fn(() => ({
     id: 'france',
     pattern: 'single-focus',
@@ -128,13 +132,18 @@ vi.mock('@/services/validation/preset-validation-service', () => ({
 }))
 
 describe('initializationService', () => {
+  beforeAll(async () => {
+    await loadAtlasFromConfigs(createAtlasId('france'))
+  })
+
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
   })
 
-  describe.skip('initializeAtlas', () => {
-    it('should successfully initialize an atlas', async () => {
+  describe('initializeAtlas', () => {
+    // The success path needs the geographic data of src/public/data, which .gitignore excludes
+    it.skip('should successfully initialize an atlas', async () => {
       const result = await InitializationService.initializeAtlas({
         atlasId: createAtlasId('france'),
       })
@@ -145,7 +154,7 @@ describe('initializationService', () => {
       expect(result.state?.atlas.id).toBe('france')
     })
 
-    it('should use default view mode if current is not supported', async () => {
+    it.skip('should use default view mode if current is not supported', async () => {
       const result = await InitializationService.initializeAtlas({
         atlasId: createAtlasId('france'),
         preserveViewMode: true,
@@ -169,7 +178,9 @@ describe('initializationService', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('Failed to load default preset'))
+      expect(result.errors).toContainEqual(expect.stringContaining('Failed to load default preset'))
+      expect(useGeoDataStore().isReinitializing).toBe(false)
+      expect(useAppStore().state).toBe('error')
     })
 
     it('should handle preset validation failure', async () => {
@@ -186,6 +197,8 @@ describe('initializationService', () => {
 
       expect(result.success).toBe(false)
       expect(result.errors).toContain('Invalid preset structure')
+      expect(useGeoDataStore().isReinitializing).toBe(false)
+      expect(useAppStore().state).toBe('error')
     })
   })
 

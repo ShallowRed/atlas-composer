@@ -38,7 +38,6 @@ export function useAtlasData() {
       debug('InitializationService completed successfully')
     }
     catch (err) {
-      appStore.setError(err instanceof Error ? err.message : 'Erreur lors de l\'initialisation')
       geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
       debug('Initialization error: %O', err)
     }

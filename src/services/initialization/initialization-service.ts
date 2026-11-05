@@ -34,6 +34,13 @@ export class InitializationService {
   ): Promise<InitializationResult> {
     const { atlasId, preserveViewMode = false } = options
 
+    // Every failure resets the loading state and records the error
+    const fail = (errors: string[], warnings: string[] = []): InitializationResult => {
+      useGeoDataStore().setReinitializing(false)
+      useAppStore().setError(errors.join(', '))
+      return { success: false, errors, warnings, state: null }
+    }
+
     try {
       if (!isAtlasLoaded(atlasId)) {
         await loadAtlasAsync(atlasId)
@@ -71,35 +78,20 @@ export class InitializationService {
 
       if (viewMode === 'composite-custom') {
         if (!defaultPresetId) {
-          return {
-            success: false,
-            errors: [`No default preset defined for atlas '${atlasId}' in composite-custom mode`],
-            warnings: [],
-            state: null,
-          }
+          return fail([`No default preset defined for atlas '${atlasId}' in composite-custom mode`])
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.success || !presetResult.data) {
-          return {
-            success: false,
-            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
-            warnings: presetResult.warnings || [],
-            state: null,
-          }
+          return fail([`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`], presetResult.warnings || [])
         }
 
         preset = presetResult.data
 
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
         if (!validation.isValid) {
-          return {
-            success: false,
-            errors: validation.errors,
-            warnings: validation.warnings,
-            state: null,
-          }
+          return fail(validation.errors, validation.warnings)
         }
 
         if (preset.type === 'composite-custom') {
@@ -111,44 +103,24 @@ export class InitializationService {
       }
       else if (['unified', 'split', 'built-in-composite'].includes(viewMode)) {
         if (!defaultPresetId) {
-          return {
-            success: false,
-            errors: [`No default preset defined for atlas '${atlasId}' in ${viewMode} mode`],
-            warnings: [],
-            state: null,
-          }
+          return fail([`No default preset defined for atlas '${atlasId}' in ${viewMode} mode`])
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.success || !presetResult.data) {
-          return {
-            success: false,
-            errors: [`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`],
-            warnings: presetResult.warnings || [],
-            state: null,
-          }
+          return fail([`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`], presetResult.warnings || [])
         }
 
         preset = presetResult.data
 
         if (preset.type !== viewMode) {
-          return {
-            success: false,
-            errors: [`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`],
-            warnings: [],
-            state: null,
-          }
+          return fail([`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`])
         }
 
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
         if (!validation.isValid) {
-          return {
-            success: false,
-            errors: validation.errors,
-            warnings: validation.warnings,
-            state: null,
-          }
+          return fail(validation.errors, validation.warnings)
         }
       }
 
@@ -218,22 +190,12 @@ export class InitializationService {
         state.viewMode,
       )
       if (validationErrors.length > 0) {
-        return {
-          success: false,
-          errors: validationErrors,
-          warnings: [],
-          state: null,
-        }
+        return fail(validationErrors)
       }
 
       const projectionValidationErrors = this.validateProjectionParameters(state.parameters.territories)
       if (projectionValidationErrors.length > 0) {
-        return {
-          success: false,
-          errors: projectionValidationErrors,
-          warnings: [],
-          state: null,
-        }
+        return fail(projectionValidationErrors)
       }
 
       appStore.startLoadingGeoData()
@@ -252,17 +214,7 @@ export class InitializationService {
       }
     }
     catch (error) {
-      const geoDataStore = useGeoDataStore()
-      const appStore = useAppStore()
-      geoDataStore.setReinitializing(false)
-      appStore.setError(error instanceof Error ? error.message : 'Unknown error')
-
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error during atlas initialization'],
-        warnings: [],
-        state: null,
-      }
+      return fail([error instanceof Error ? error.message : 'Unknown error during atlas initialization'])
     }
   }
 
