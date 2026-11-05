@@ -90,26 +90,6 @@ export function setupTestPinia() {
   return pinia
 }
 
-export function mockAtlasRegistry(atlasConfig: LoadedAtlasConfig = createMockAtlasConfig()) {
-  const atlasRegistry = require('@/core/atlases/registry')
-
-  const originalLoadAtlasAsync = atlasRegistry.loadAtlasAsync
-  const originalGetLoadedConfig = atlasRegistry.getLoadedConfig
-
-  atlasRegistry.loadAtlasAsync = async (_atlasId: AtlasId) => {
-    return atlasConfig
-  }
-
-  atlasRegistry.getLoadedConfig = (_atlasId: AtlasId) => {
-    return atlasConfig
-  }
-
-  return () => {
-    atlasRegistry.loadAtlasAsync = originalLoadAtlasAsync
-    atlasRegistry.getLoadedConfig = originalGetLoadedConfig
-  }
-}
-
 export function createTestApp() {
   const app = createApp({})
   const pinia = createPinia()

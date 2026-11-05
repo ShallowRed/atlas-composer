@@ -50,5 +50,5 @@
   ],
 
   // Tailwind CSS - Disable unknown at-rule warnings
-  "css.customData": [".vscode/css-custom-data.json"],
+  "css.customData": [".vscode/css-custom-data.json"]
 }
