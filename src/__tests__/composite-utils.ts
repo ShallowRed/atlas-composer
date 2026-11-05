@@ -22,7 +22,7 @@ interface ApplicationComposite {
   exportToJSON: () => ExportedCompositeConfig
 }
 
-async function startApplication(atlasId: AtlasId) {
+export async function startApplication(atlasId: AtlasId) {
   setActivePinia(createPinia())
   await loadAtlasFromConfigs(atlasId)
   const atlasStore = useAtlasStore()
@@ -34,10 +34,12 @@ async function startApplication(atlasId: AtlasId) {
   // Created after the atlas selection, so that its watcher does not initialize the atlas again
   useViewStore()
   // The geographic data of src/public/data is not versioned
-  vi.spyOn(useGeoDataStore(), 'loadAllAtlasData').mockResolvedValue()
+  const geoDataStore = useGeoDataStore()
+  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue()
+  vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue()
 }
 
-function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {
+export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {
   const projectionStore = useProjectionStore()
   const { parameterProvider } = useParameterProvider()
   const atlasConfig = getAtlasConfig(atlasId)

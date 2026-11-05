@@ -1,4 +1,5 @@
-import type { D3Center, D3Rotate } from '@/types/positioning'
+export type D3Center = [number, number]
+export type D3Rotate = [number, number, number]
 
 export type PositioningView = 'composite' | 'global'
 

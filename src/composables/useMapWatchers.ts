@@ -47,10 +47,9 @@ export function useMapWatchers(
 
   const stopWatchingCanvasDimensions = watch(
     () => projectionStore.canvasDimensions,
-    async (newDimensions) => {
+    async () => {
       debug('Canvas dimensions changed, calling onCanvasDimensionsChange')
       if (geoDataStore.cartographer) {
-        geoDataStore.cartographer.updateCanvasDimensions(newDimensions ?? null)
         await callbacks.onCanvasDimensionsChange()
       }
     },

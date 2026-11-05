@@ -17,6 +17,7 @@ import { ProjectionFamily } from '@/core/projections/types'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 
@@ -37,6 +38,8 @@ const parameterStore = useParameterStore()
 const atlasStore = useAtlasStore()
 
 const geoDataStore = useGeoDataStore()
+
+const viewStore = useViewStore()
 
 const presetDefaults = getSharedPresetDefaults()
 
@@ -173,6 +176,7 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
                 :territory-code="territory.code"
                 :territory-name="territory.name"
                 :projection-family="getProjectionFamily(territory.code)"
+                :view="viewStore.positioningView"
                 :show-inheritance-indicators="true"
                 :allow-parameter-overrides="true"
                 @parameter-changed="handleParameterChange"

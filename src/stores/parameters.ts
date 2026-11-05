@@ -1,4 +1,5 @@
 import type { ValidationResult } from '@/core/parameters/parameter-registry'
+import type { PositioningView, PositionParameter } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
@@ -14,14 +15,25 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
+import { convertPositioning } from '@/core/positioning'
+import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionParameterManager } from '@/services/parameters/projection-parameter-manager'
 import { logger } from '@/utils/logger'
 
 const debug = logger.store.parameters
 
+interface AxisRange {
+  min: number
+  max: number
+  step?: number
+}
+
+type TupleRanges<K extends PositionParameter> = K extends 'rotate'
+  ? [AxisRange, AxisRange, AxisRange]
+  : [AxisRange, AxisRange]
+
 export const useParameterStore = defineStore('parameters', () => {
   const parameterManager = new ProjectionParameterManager({
-    enableValidation: true,
     enableEvents: true,
   })
 
@@ -100,6 +112,22 @@ export const useParameterStore = defineStore('parameters', () => {
 
   function setTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId) {
     setTerritoryParameter(territoryCode, 'projectionId', projectionId)
+  }
+
+  function changeTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId, view: PositioningView) {
+    const effective = getEffectiveParameters(territoryCode)
+    const previousFamily = projectionRegistry.get(effective.projectionId ?? '')?.family
+    const family = projectionRegistry.get(projectionId)?.family ?? 'OTHER'
+    const hasPositioning = effective.center !== undefined || effective.rotate !== undefined
+
+    if (view === 'composite' && hasPositioning && family !== previousFamily) {
+      setTerritoryParameters(territoryCode, {
+        projectionId,
+        ...convertPositioning(effective, family),
+      })
+      return
+    }
+    setTerritoryProjection(territoryCode, projectionId)
   }
 
   function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {
@@ -214,6 +242,14 @@ export const useParameterStore = defineStore('parameters', () => {
         return acc
       }, {} as any),
     }
+  }
+
+  // Bounds of each axis, whether or not the parameter is relevant for the family
+  function getTupleRanges<K extends PositionParameter>(family: ProjectionFamilyType, key: K): TupleRanges<K> | undefined {
+    const { min, max, step } = parameterRegistry.getConstraintsForFamily(key, family)
+    if (!Array.isArray(min) || !Array.isArray(max))
+      return undefined
+    return min.map((axisMin, axis) => ({ min: axisMin, max: max[axis] as number, step })) as TupleRanges<K>
   }
 
   function isParameterRelevant(family: ProjectionFamilyType, key: keyof ProjectionParameters): boolean {
@@ -336,6 +372,7 @@ export const useParameterStore = defineStore('parameters', () => {
     setTerritoryParameters,
 
     setTerritoryProjection,
+    changeTerritoryProjection,
     getTerritoryProjection,
     setTerritoryTranslation,
     getTerritoryTranslation,
@@ -353,6 +390,7 @@ export const useParameterStore = defineStore('parameters', () => {
     validateTerritoryParameters,
 
     getParameterConstraints,
+    getTupleRanges,
     isParameterRelevant,
 
     createTerritoryParametersComputed,

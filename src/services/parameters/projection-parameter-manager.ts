@@ -1,3 +1,4 @@
+import type { Positioning } from '@/core/positioning'
 import type { TerritoryCode } from '@/types/branded'
 import type {
   ParameterChangeEvent,
@@ -7,19 +8,43 @@ import type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-import { inferCanonicalFromLegacy } from '@/core/positioning'
 import { mergeParameters } from '@/types/projection-parameters'
 import { logger } from '@/utils/logger'
 
 const debug = logger.parameters.manager
 
 interface ParameterManagerConfig {
-  enableValidation?: boolean
   enableEvents?: boolean
   sourcePriority?: ParameterSource[]
 }
 
 type ParameterChangeListener = (event: ParameterChangeEvent) => void
+
+function isPositioningKey(key: keyof ProjectionParameters): boolean {
+  return key === 'center' || key === 'rotate'
+}
+
+function definesPositioning(params: ProjectionParameters): boolean {
+  return params.center !== undefined || params.rotate !== undefined
+}
+
+function copyPositioning(params: ProjectionParameters): Positioning {
+  return {
+    center: params.center ? [...params.center] as [number, number] : undefined,
+    rotate: params.rotate ? [...params.rotate] as [number, number] | [number, number, number] : undefined,
+  }
+}
+
+// A positioning update replaces both parameters of the level; mergeParameters
+// would keep the current value of a parameter the update leaves undefined.
+function updateParameters(current: ProjectionParameters, update: ParameterUpdate): ProjectionParameters {
+  const { center, rotate, ...rest } = update
+  const merged = mergeParameters(current, rest)
+  const updated = 'center' in update || 'rotate' in update
+    ? { ...merged, ...copyPositioning({ center, rotate }) }
+    : merged
+  return Object.fromEntries(Object.entries(updated).filter(([, value]) => value !== undefined))
+}
 
 export class ProjectionParameterManager {
   private globalParameters: ProjectionParameters = {}
@@ -30,7 +55,6 @@ export class ProjectionParameterManager {
 
   constructor(config: ParameterManagerConfig = {}) {
     this.config = {
-      enableValidation: true,
       enableEvents: true,
       sourcePriority: ['territory', 'global', 'atlas', 'projection', 'default'],
       ...config,
@@ -38,36 +62,8 @@ export class ProjectionParameterManager {
   }
 
   setAtlasParameters(atlasParams: ProjectionParameters): void {
-    this.atlasParameters = this.normalizeParameters(atlasParams)
+    this.atlasParameters = { ...atlasParams }
     this.emitChangeEvent('center', this.atlasParameters.center, undefined, undefined, 'atlas')
-  }
-
-  private normalizeParameters(params: ProjectionParameters): ProjectionParameters {
-    const result = { ...params }
-
-    const hasLegacyPositioning = result.center || result.rotate
-    const hasCanonicalPositioning = result.focusLongitude !== undefined
-      || result.focusLatitude !== undefined
-
-    if (hasLegacyPositioning && !hasCanonicalPositioning) {
-      const canonical = inferCanonicalFromLegacy({
-        center: result.center as [number, number] | undefined,
-        rotate: result.rotate as [number, number, number] | undefined,
-      })
-
-      result.focusLongitude = canonical.focusLongitude
-      result.focusLatitude = canonical.focusLatitude
-      if (canonical.rotateGamma !== 0) {
-        result.rotateGamma = canonical.rotateGamma
-      }
-
-      delete result.center
-      delete result.rotate
-
-      debug('Normalized legacy params to canonical: %O', result)
-    }
-
-    return result
   }
 
   getGlobalParameters(): ProjectionParameters {
@@ -75,6 +71,7 @@ export class ProjectionParameterManager {
   }
 
   setGlobalParameter(key: keyof ProjectionParameters, value: any): void {
+    this.refusePositioningKey(key)
     const previousValue = this.globalParameters[key]
 
     if (value === undefined) {
@@ -90,7 +87,7 @@ export class ProjectionParameterManager {
 
   setGlobalParameters(parameters: ParameterUpdate): void {
     const previousParams = { ...this.globalParameters }
-    this.globalParameters = mergeParameters(this.globalParameters, parameters)
+    this.globalParameters = updateParameters(this.globalParameters, parameters)
 
     Object.entries(parameters).forEach(([key, value]) => {
       const paramKey = key as keyof ProjectionParameters
@@ -103,6 +100,7 @@ export class ProjectionParameterManager {
   }
 
   setTerritoryParameter(territoryCode: TerritoryCode, key: keyof ProjectionParameters, value: any): void {
+    this.refusePositioningKey(key)
     const currentParams = this.territoryParameters.get(territoryCode) || {}
     const previousValue = currentParams[key]
 
@@ -114,11 +112,10 @@ export class ProjectionParameterManager {
 
   setTerritoryParameters(territoryCode: TerritoryCode, parameters: ParameterUpdate): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
-    const normalizedParams = this.normalizeParameters(parameters as ProjectionParameters)
-    const updatedParams = mergeParameters(currentParams, normalizedParams)
+    const updatedParams = updateParameters(currentParams, parameters)
     this.territoryParameters.set(territoryCode, updatedParams)
 
-    Object.entries(normalizedParams).forEach(([key, value]) => {
+    Object.entries(parameters).forEach(([key, value]) => {
       const paramKey = key as keyof ProjectionParameters
       this.emitChangeEvent(paramKey, value, currentParams[paramKey], territoryCode, 'territory')
     })
@@ -128,30 +125,36 @@ export class ProjectionParameterManager {
     const atlasParams = this.atlasParameters || {}
     const territoryParams = territoryCode ? this.territoryParameters.get(territoryCode) || {} : {}
 
-    return mergeParameters(
+    const merged = mergeParameters(
       {}, // Default empty parameters
       atlasParams, // Atlas defaults
       this.globalParameters, // Global overrides
       territoryParams, // Territory-specific overrides
     )
+    const positioningLevel = [territoryParams, this.globalParameters, atlasParams].find(definesPositioning)
+
+    return { ...merged, ...copyPositioning(positioningLevel ?? {}) }
   }
 
   getParameterInheritance(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterInheritance {
     const territoryParams = this.territoryParameters.get(territoryCode) || {}
     const atlasParams = this.atlasParameters || {}
     const effectiveValue = this.getEffectiveParameters(territoryCode)[key as string]
+    const defines = isPositioningKey(key)
+      ? definesPositioning
+      : (params: ProjectionParameters) => params[key as string] !== undefined
 
     let source: ParameterSource = 'default'
     let isOverridden = false
 
-    if (territoryParams[key as string] !== undefined) {
+    if (defines(territoryParams)) {
       source = 'territory'
       isOverridden = true
     }
-    else if (this.globalParameters[key as string] !== undefined) {
+    else if (defines(this.globalParameters)) {
       source = 'global'
     }
-    else if (atlasParams[key as string] !== undefined) {
+    else if (defines(atlasParams)) {
       source = 'atlas'
     }
 
@@ -171,12 +174,14 @@ export class ProjectionParameterManager {
 
   clearTerritoryOverride(territoryCode: TerritoryCode, key: keyof ProjectionParameters): void {
     const currentParams = this.territoryParameters.get(territoryCode) || {}
-    if (currentParams[key as string] === undefined)
+    const keys = isPositioningKey(key) ? ['center', 'rotate'] : [key as string]
+    if (keys.every(k => currentParams[k] === undefined))
       return
 
     const previousValue = currentParams[key as string]
-    const keyStr = key as string
-    const { [keyStr]: removed, ...remainingParams } = currentParams
+    const remainingParams = Object.fromEntries(
+      Object.entries(currentParams).filter(([k]) => !keys.includes(k)),
+    ) as ProjectionParameters
 
     if (Object.keys(remainingParams).length === 0) {
       this.territoryParameters.delete(territoryCode)
@@ -232,6 +237,11 @@ export class ProjectionParameterManager {
     this.globalParameters = {}
     this.territoryParameters.clear()
     this.atlasParameters = null
+  }
+
+  private refusePositioningKey(key: keyof ProjectionParameters): void {
+    if (isPositioningKey(key))
+      throw new Error(`[ProjectionParameterManager] ${String(key)} is part of the positioning: write rotate and center together with setGlobalParameters or setTerritoryParameters.`)
   }
 
   private emitChangeEvent(

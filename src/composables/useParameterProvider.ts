@@ -1,5 +1,5 @@
-import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { TerritoryCode } from '@/types'
+import type { ProjectionParameterProvider } from '@/types/projection-parameters'
 import { useParameterStore } from '@/stores/parameters'
 
 export function useParameterProvider() {

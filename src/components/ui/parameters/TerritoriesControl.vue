@@ -26,7 +26,7 @@ const {
   projectionGroups,
   selectedProjection,
   resetTransforms,
-  setTerritoryProjection,
+  changeTerritoryProjection,
 } = useTerritoryTransforms()
 
 const geoDataStore = useGeoDataStore()
@@ -99,7 +99,7 @@ function getProjectionFamily(territoryCode: TerritoryCode) {
 }
 
 function handleProjectionChange(territoryCode: TerritoryCode, newProjectionId: string) {
-  setTerritoryProjection(territoryCode, newProjectionId as ProjectionId)
+  changeTerritoryProjection(territoryCode, newProjectionId as ProjectionId)
 
   if (geoDataStore.cartographer) {
     geoDataStore.cartographer.updateTerritoryProjection(territoryCode, newProjectionId as ProjectionId)
@@ -158,6 +158,7 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
           :territory-code="territory.code"
           :territory-name="territory.name"
           :projection-family="getProjectionFamily(territory.code)"
+          :view="viewStore.positioningView"
           :show-inheritance-indicators="true"
           :allow-parameter-overrides="true"
           @parameter-changed="handleParameterChange"

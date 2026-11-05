@@ -1,6 +1,5 @@
-import type { ProjectionParameterProvider } from '../composite-projection'
 import type { CompositeProjectionConfig } from '@/types'
-import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
@@ -34,13 +33,11 @@ describe('compositeProjection - invert/forward chain', () => {
         }
         if (territoryCode === 'FR') {
           params.projectionId = createProjectionId('conic-conformal')
-          params.focusLongitude = 2
-          params.focusLatitude = 46
+          params.rotate = [-2, -46, 0]
         }
         else if (territoryCode === 'FR-GF') {
           params.projectionId = createProjectionId('mercator')
-          params.focusLongitude = -53
-          params.focusLatitude = 4
+          params.center = [-53, 4]
           params.pixelClipExtent = [0, 450, 150, 600]
         }
         return params

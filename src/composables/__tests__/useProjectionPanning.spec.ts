@@ -187,94 +187,67 @@ describe('useProjectionPanning', () => {
   })
 
   describe('rotation calculations', () => {
-    it('updates rotation via parameterStore.setGlobalParameter on mousemove', () => {
-      const projectionStore = useProjectionStore()
+    function pan(from: [number, number], to: [number, number]) {
       const parameterStore = useParameterStore()
-      projectionStore.selectedProjection = createProjectionId('orthographic')
-      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
+      const setGlobalParametersSpy = vi.spyOn(parameterStore, 'setGlobalParameters')
 
       const { handleMouseDown } = withSetup(() => useProjectionPanning())
+      handleMouseDown(new MouseEvent('mousedown', { clientX: from[0], clientY: from[1] }))
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: to[0], clientY: to[1] }))
+      window.dispatchEvent(new MouseEvent('mouseup'))
 
-      const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
-      handleMouseDown(downEvent)
+      const rotate = setGlobalParametersSpy.mock.calls.at(-1)?.[0].rotate
+      setGlobalParametersSpy.mockRestore()
+      return rotate
+    }
 
-      const moveEvent = new MouseEvent('mousemove', { clientX: 150, clientY: 120 })
-      window.dispatchEvent(moveEvent)
+    it('writes the d3 rotation at the global level on mousemove', () => {
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = false
+      useParameterStore().setGlobalParameters({ rotate: [10, 20, 5] })
 
-      expect(setGlobalParameterSpy).toHaveBeenCalledWith('focusLongitude', expect.any(Number))
+      expect(pan([100, 100], [150, 120])).toEqual([35, 10, 5])
+    })
 
-      setGlobalParameterSpy.mockRestore()
+    it('starts from the rotation to the center of the global level', () => {
+      const projectionStore = useProjectionStore()
+      projectionStore.selectedProjection = createProjectionId('orthographic')
+      projectionStore.rotateLatitudeLocked = false
+      const parameterStore = useParameterStore()
+      parameterStore.setGlobalParameters({ center: [-62.83, 17.9] })
+
+      const rotate = pan([100, 100], [110, 100])!
+      expect(rotate[0]).toBeCloseTo(67.83, 9)
+      expect(rotate[1]).toBeCloseTo(-17.9, 9)
+      expect(rotate[2]).toBeCloseTo(0, 9)
+      expect(parameterStore.globalEffectiveParameters.center).toBeUndefined()
     })
 
     it('wraps longitude to -180/180 range', () => {
       const projectionStore = useProjectionStore()
-      const parameterStore = useParameterStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
-      parameterStore.setGlobalParameter('focusLongitude', 170)
-      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
+      useParameterStore().setGlobalParameters({ rotate: [170, 0, 0] })
 
-      const { handleMouseDown } = withSetup(() => useProjectionPanning())
-
-      const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
-      handleMouseDown(downEvent)
-
-      const moveEvent = new MouseEvent('mousemove', { clientX: 50, clientY: 100 })
-      window.dispatchEvent(moveEvent)
-
-      const lonCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLongitude')
-      expect(lonCall).toBeDefined()
-      const longitude = lonCall![1] as number
-      expect(longitude).toBeGreaterThanOrEqual(-180)
-      expect(longitude).toBeLessThanOrEqual(180)
-
-      setGlobalParameterSpy.mockRestore()
+      expect(pan([100, 100], [150, 100])![0]).toBe(-165)
     })
 
     it('clamps latitude to -90/90 range', () => {
       const projectionStore = useProjectionStore()
-      const parameterStore = useParameterStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
       projectionStore.rotateLatitudeLocked = false
-      parameterStore.setGlobalParameter('focusLatitude', 80)
-      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
+      useParameterStore().setGlobalParameters({ rotate: [0, -80, 0] })
 
-      const { handleMouseDown } = withSetup(() => useProjectionPanning())
-
-      const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
-      handleMouseDown(downEvent)
-
-      const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 50 })
-      window.dispatchEvent(moveEvent)
-
-      const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
-      expect(latCall).toBeDefined()
-      const latitude = latCall![1] as number
-      expect(latitude).toBeGreaterThanOrEqual(-90)
-      expect(latitude).toBeLessThanOrEqual(90)
-
-      setGlobalParameterSpy.mockRestore()
+      expect(pan([100, 100], [100, 150])![1]).toBe(-90)
     })
 
-    it('does not update latitude when rotateLatitudeLocked is true', () => {
+    it('keeps the latitude when rotateLatitudeLocked is true', () => {
       const projectionStore = useProjectionStore()
-      const parameterStore = useParameterStore()
       projectionStore.selectedProjection = createProjectionId('orthographic')
       projectionStore.rotateLatitudeLocked = true
-      parameterStore.setGlobalParameter('focusLatitude', 10)
-      const setGlobalParameterSpy = vi.spyOn(parameterStore, 'setGlobalParameter')
+      useParameterStore().setGlobalParameters({ rotate: [0, -10, 0] })
 
-      const { handleMouseDown } = withSetup(() => useProjectionPanning())
-
-      const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 })
-      handleMouseDown(downEvent)
-
-      const moveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 150 })
-      window.dispatchEvent(moveEvent)
-
-      const latCall = setGlobalParameterSpy.mock.calls.find(call => call[0] === 'focusLatitude')
-      expect(latCall).toBeUndefined()
-
-      setGlobalParameterSpy.mockRestore()
+      expect(pan([100, 100], [100, 150])![1]).toBe(-10)
     })
   })
 

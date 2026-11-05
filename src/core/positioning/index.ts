@@ -1,32 +1,23 @@
-export {
-  applyCanonicalPositioning,
-  applyPositioning,
-  extractCanonicalFromProjection,
-  getPositioningApplication,
-  toPositioningFamily,
-} from './applicator'
+export { applyPositioning } from './applicator'
 
 export {
-  canonicalToCenter,
-  canonicalToRotate,
-  centerToCanonical,
-  clampLatitude,
-  convertDeprecatedPositioning,
   convertPositioning,
-  inferCanonicalFromLegacy,
-  normalizeCanonical,
-  normalizeLongitude,
-  rotateToCanonical,
+  replaceDeprecatedPositioning,
 } from './converters'
+
+export { getDisplayedCenter, getDisplayedRotate, updatePositioningAxis } from './editing'
 
 export {
   getDerivedParallels,
   getPositionParameter,
   getTargetCoordinates,
   supportsPanning,
+  usesPositionParameter,
 } from './rules'
 
 export type {
+  D3Center,
+  D3Rotate,
   DeprecatedPositioning,
   Positioning,
   PositioningParameters,

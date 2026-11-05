@@ -17,18 +17,6 @@ const presets = readPresetFiles()
   .filter(preset => preset.type === 'composite-custom')
   .map(preset => ({ ...preset, config: JSON.parse(preset.json) as ExportedCompositeConfig }))
 
-// Territories whose projections differ on the current code: the application
-// applies either center or rotate and creates albers with the center of
-// geoConicEqualArea, while the loader applies both and geoAlbers keeps its center.
-const DIVERGENT_TERRITORIES = new Set([
-  'usa-customcompsite-pseudod3cp/US-CONT',
-  'usa-customcompsite-pseudod3cp/US-AK',
-  'usa-customcompsite-pseudod3cp/US-HI',
-  'usa-customcompsite-pseudod3cp/US-PR',
-  'usa-customcompsite-pseudod3cp/US-GU',
-  'usa-customcompsite-pseudod3cp/US-AS',
-])
-
 describe.each(presets)('$id', ({ id, atlasId, config, inRegistry }) => {
   const deviations = new Map<string, number>()
 
@@ -64,12 +52,6 @@ describe.each(presets)('$id', ({ id, atlasId, config, inRegistry }) => {
   })
 
   it.each(config.territories.map(({ code }) => code))('%s', (code) => {
-    if (DIVERGENT_TERRITORIES.has(`${id}/${code}`)) {
-      expect(Number.isFinite(deviations.get(code))).toBe(true)
-      expect(deviations.get(code)).toBeGreaterThan(TOLERANCE)
-    }
-    else {
-      expect(deviations.get(code)).toBeLessThanOrEqual(TOLERANCE)
-    }
+    expect(deviations.get(code)).toBeLessThanOrEqual(TOLERANCE)
   })
 })

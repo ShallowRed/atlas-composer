@@ -1,147 +1,56 @@
+import type { FamilyConstraint, FamilyConstraints } from '@/core/parameters/parameter-registry'
+import type { PositionParameter } from '@/core/positioning'
 import { parameterRegistry } from '@/core/parameters/parameter-registry'
+import { usesPositionParameter } from '@/core/positioning'
+
+const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
+
+function positionConstraints(
+  parameter: PositionParameter,
+  constraint: Omit<FamilyConstraint, 'relevant' | 'required'>,
+): FamilyConstraints {
+  return Object.fromEntries(POSITIONED_FAMILIES.map(family => [family, {
+    ...constraint,
+    relevant: usesPositionParameter(family, parameter),
+    required: false,
+  }]))
+}
 
 export function registerAllParameters(): void {
   parameterRegistry.register({
-    key: 'focusLongitude',
-    displayName: 'Focus Longitude',
-    description: 'Longitude of the geographic focus point. Converted to center() or rotate() based on projection family.',
-    type: 'number',
-    unit: 'degrees',
-    source: 'preset',
-    mutable: true,
-    exportable: true,
-    requiresPreset: false,
-    familyConstraints: {
-      CYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
-      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
-      CONIC: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
-      AZIMUTHAL: { relevant: true, required: false, min: -180, max: 180, step: 0.5, defaultValue: 0 },
-    },
-  })
-
-  parameterRegistry.register({
-    key: 'focusLatitude',
-    displayName: 'Focus Latitude',
-    description: 'Latitude of the geographic focus point. Converted to center() or rotate() based on projection family.',
-    type: 'number',
-    unit: 'degrees',
-    source: 'preset',
-    mutable: true,
-    exportable: true,
-    requiresPreset: false,
-    familyConstraints: {
-      CYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
-      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
-      CONIC: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
-      AZIMUTHAL: { relevant: true, required: false, min: -90, max: 90, step: 0.5, defaultValue: 0 },
-    },
-  })
-
-  parameterRegistry.register({
-    key: 'rotateGamma',
-    displayName: 'Rotation Gamma',
-    description: 'Third rotation axis (roll/tilt). Only used by projections that support 3-axis rotation.',
-    type: 'number',
-    unit: 'degrees',
-    source: 'preset',
-    mutable: true,
-    exportable: true,
-    requiresPreset: false,
-    familyConstraints: {
-      CYLINDRICAL: { relevant: false, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
-      PSEUDOCYLINDRICAL: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
-      CONIC: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
-      AZIMUTHAL: { relevant: true, required: false, min: -180, max: 180, step: 1, defaultValue: 0 },
-    },
-  })
-
-  parameterRegistry.register({
     key: 'center',
-    displayName: 'Center (Legacy)',
-    description: '[DEPRECATED] Geographic center point [longitude, latitude]. Use focusLongitude/focusLatitude instead.',
+    displayName: 'Center',
+    description: 'd3 center [longitude, latitude]: the point placed at the translate point of the projection.',
     type: 'tuple2',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
     requiresPreset: true,
-    familyConstraints: {
-      CYLINDRICAL: {
-        relevant: true,
-        required: false,
-        min: [-180, -90],
-        max: [180, 90],
-        defaultValue: [0, 0],
-      },
-      PSEUDOCYLINDRICAL: {
-        relevant: false,
-        required: false,
-        defaultValue: [0, 0],
-      },
-      CONIC: {
-        relevant: false,
-        required: false,
-        defaultValue: [0, 0],
-      },
-      AZIMUTHAL: {
-        relevant: true,
-        required: false,
-        min: [-180, -90],
-        max: [180, 90],
-        defaultValue: [0, 0],
-      },
-    },
+    familyConstraints: positionConstraints('center', {
+      min: [-180, -90],
+      max: [180, 90],
+      step: 0.5,
+      defaultValue: [0, 0],
+    }),
   })
 
   parameterRegistry.register({
     key: 'rotate',
-    displayName: 'Rotation (Legacy)',
-    description: '[DEPRECATED] Three-axis rotation [lambda, phi, gamma]. Use focusLongitude/focusLatitude instead.',
+    displayName: 'Rotation',
+    description: 'd3 rotation [lambda, phi, gamma] of the sphere before projection.',
     type: 'tuple3',
     unit: 'degrees',
     source: 'preset',
     mutable: true,
     exportable: true,
     requiresPreset: true,
-    familyConstraints: {
-      CYLINDRICAL: {
-        relevant: false,
-        required: false,
-        defaultValue: [0, 0, 0],
-        validate: (value) => {
-          if (!Array.isArray(value) || value.length < 2 || value.length > 3) {
-            return { isValid: false, error: 'Rotation must be [longitude, latitude] or [longitude, latitude, gamma]' }
-          }
-          const [lon, lat] = value
-          if (lon < -180 || lon > 180) {
-            return { isValid: false, error: 'Longitude must be between -180 and 180' }
-          }
-          if (lat < -90 || lat > 90) {
-            return { isValid: false, error: 'Latitude must be between -90 and 90' }
-          }
-          return { isValid: true }
-        },
-      },
-      PSEUDOCYLINDRICAL: {
-        relevant: true,
-        required: false,
-        min: [-180, -90, -180],
-        max: [180, 90, 180],
-        defaultValue: [0, 0, 0],
-      },
-      CONIC: {
-        relevant: true,
-        required: false,
-        min: [-180, -90, -180],
-        max: [180, 90, 180],
-        defaultValue: [0, 0, 0],
-      },
-      AZIMUTHAL: {
-        relevant: false,
-        required: false,
-        defaultValue: [0, 0, 0],
-      },
-    },
+    familyConstraints: positionConstraints('rotate', {
+      min: [-180, -90, -180],
+      max: [180, 90, 180],
+      step: 0.5,
+      defaultValue: [0, 0, 0],
+    }),
   })
 
   parameterRegistry.register({

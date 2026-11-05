@@ -1,3 +1,4 @@
+import type { PositioningView } from '@/core/positioning'
 import type { Preset } from '@/core/presets'
 import type { AtlasId, PresetId, TerritoryCode, ViewMode } from '@/types'
 import type { ResolvedPresetDefinition } from '@/types/registry'
@@ -32,6 +33,10 @@ export const useViewStore = defineStore('view', () => {
   const availableViewPresets = ref<ResolvedPresetDefinition[]>([])
 
   const viewModeSelection = computed(() => new ViewModeSelection(viewMode.value))
+
+  const positioningView = computed<PositioningView>(() =>
+    viewMode.value === 'composite-custom' ? 'composite' : 'global',
+  )
 
   const isViewModeLocked = computed(() => {
     const config = getAtlasStore().currentAtlasConfig
@@ -209,8 +214,7 @@ export const useViewStore = defineStore('view', () => {
     clearViewPreset()
 
     const parameterStore = getParameterStore()
-    parameterStore.setGlobalParameter('rotate', undefined)
-    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
     parameterStore.setGlobalParameter('parallels', undefined)
     parameterStore.setGlobalParameter('scale', undefined)
     presetDefaults.storeGlobalParameters(null)
@@ -291,6 +295,7 @@ export const useViewStore = defineStore('view', () => {
     availableViewPresets,
 
     viewModeSelection,
+    positioningView,
 
     isViewModeLocked,
     showProjectionSelector,

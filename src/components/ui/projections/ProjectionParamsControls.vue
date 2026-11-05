@@ -7,7 +7,7 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { supportsPanning } from '@/core/positioning'
+import { getDisplayedRotate, supportsPanning, updatePositioningAxis } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -40,9 +40,6 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   const constraints = parameterConstraints.value.constraints[paramKey]
   if (!constraints) {
     const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
-      focusLongitude: { min: -180, max: 180, step: 1 },
-      focusLatitude: { min: -90, max: 90, step: 1 },
-      rotateGamma: { min: -180, max: 180, step: 1 },
       parallel1: { min: -90, max: 90, step: 1 },
       parallel2: { min: -90, max: 90, step: 1 },
       scaleMultiplier: { min: 0.1, max: 10, step: 0.1 },
@@ -57,34 +54,27 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   }
 }
 
+const rotateRanges = computed(() => parameterStore.getTupleRanges(projectionFamily.value, 'rotate'))
+
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
     .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
 
-const focusLongitudeRange = computed(() => getParameterRange('focusLongitude'))
-const focusLatitudeRange = computed(() => getParameterRange('focusLatitude'))
-const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
 const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
 const scaleMultiplierRange = computed(() => getParameterRange('scaleMultiplier'))
 
-const hasFocusLongitudeParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'focusLongitude')
-})
-
-const hasFocusLatitudeParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'focusLatitude')
-})
-
-const hasRotateGammaParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'rotateGamma')
+const hasRotateParameter = computed(() => {
+  return relevantParameters.value.some(p => String(p) === 'rotate')
 })
 
 const hasParallelsParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'parallels')
 })
+
+const rotate = computed(() => getDisplayedRotate(effectiveParams.value, 'global'))
 
 const supportsLatitudeRotation = computed(() => {
   const projection = currentProjection.value
@@ -128,10 +118,16 @@ function handleParameterChange(key: keyof ProjectionParameters, value: unknown) 
   parameterStore.setGlobalParameter(key, value)
 }
 
+function handleRotateChange(axis: number, value: number) {
+  parameterStore.setGlobalParameters(updatePositioningAxis(effectiveParams.value, 'global', 'rotate', axis, value))
+}
+
 function reset() {
   const currentParams = { ...parameterStore.globalParameters }
+  parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
   for (const key of Object.keys(currentParams)) {
-    parameterStore.setGlobalParameter(key as keyof ProjectionParameters, undefined)
+    if (key !== 'rotate' && key !== 'center')
+      parameterStore.setGlobalParameter(key as keyof ProjectionParameters, undefined)
   }
 }
 </script>
@@ -158,7 +154,7 @@ function reset() {
         {{ t('projectionParams.reset') }}
       </button>
 
-      <template v-if="hasFocusLongitudeParameter || hasFocusLatitudeParameter || hasRotateGammaParameter">
+      <template v-if="hasRotateParameter && rotateRanges">
         <div class="space-y-2">
           <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
             <i class="ri-compass-3-line" />
@@ -166,16 +162,15 @@ function reset() {
           </h4>
 
           <RangeSlider
-            v-if="hasFocusLongitudeParameter"
-            :model-value="effectiveParams.focusLongitude ?? 0"
-            :label="t('projectionParams.focusLongitude')"
+            :model-value="rotate[0]"
+            :label="t('projectionParams.rotateLongitude')"
             icon="ri-map-pin-line"
             size="xs"
-            :min="focusLongitudeRange.min"
-            :max="focusLongitudeRange.max"
-            :step="focusLongitudeRange.step"
+            :min="rotateRanges[0].min"
+            :max="rotateRanges[0].max"
+            :step="rotateRanges[0].step"
             unit="°"
-            @update:model-value="(value: number) => handleParameterChange('focusLongitude', value)"
+            @update:model-value="(value: number) => handleRotateChange(0, value)"
           />
 
           <div
@@ -190,30 +185,29 @@ function reset() {
             />
 
             <RangeSlider
-              v-if="hasFocusLatitudeParameter && !projectionStore.rotateLatitudeLocked"
-              :model-value="effectiveParams.focusLatitude ?? 0"
-              :label="t('projectionParams.focusLatitude')"
+              v-if="!projectionStore.rotateLatitudeLocked"
+              :model-value="rotate[1]"
+              :label="t('projectionParams.rotateLatitude')"
               icon="ri-map-pin-2-line"
               size="xs"
-              :min="focusLatitudeRange.min"
-              :max="focusLatitudeRange.max"
-              :step="focusLatitudeRange.step"
+              :min="rotateRanges[1].min"
+              :max="rotateRanges[1].max"
+              :step="rotateRanges[1].step"
               unit="°"
-              @update:model-value="(value: number) => handleParameterChange('focusLatitude', value)"
+              @update:model-value="(value: number) => handleRotateChange(1, value)"
             />
           </div>
 
           <RangeSlider
-            v-if="hasRotateGammaParameter"
-            :model-value="effectiveParams.rotateGamma ?? 0"
-            :label="t('projectionParams.rotateGamma')"
+            :model-value="rotate[2]"
+            :label="t('projectionParams.rotation')"
             icon="ri-rotate-lock-line"
             size="xs"
-            :min="rotateGammaRange.min"
-            :max="rotateGammaRange.max"
-            :step="rotateGammaRange.step"
+            :min="rotateRanges[2].min"
+            :max="rotateRanges[2].max"
+            :step="rotateRanges[2].step"
             unit="°"
-            @update:model-value="(value: number) => handleParameterChange('rotateGamma', value)"
+            @update:model-value="(value: number) => handleRotateChange(2, value)"
           />
         </div>
       </template>

@@ -1,6 +1,5 @@
-import type { Positioning, PositioningView, PositionParameter } from './types'
+import type { D3Center, D3Rotate, Positioning, PositioningView, PositionParameter } from './types'
 import type { ProjectionFamilyType } from '@/core/projections/types'
-import type { D3Center } from '@/types/positioning'
 
 import { geoRotation } from 'd3-geo'
 
@@ -13,6 +12,8 @@ const PANNING_FAMILIES: ReadonlySet<ProjectionFamilyType> = new Set<ProjectionFa
 
 const GLOBAL_VIEW_PARALLELS: [number, number] = [44, 49]
 
+const VIEWS: PositioningView[] = ['composite', 'global']
+
 export function getPositionParameter(
   family: ProjectionFamilyType,
   view: PositioningView,
@@ -20,6 +21,13 @@ export function getPositionParameter(
   if (view === 'composite' && family === 'CYLINDRICAL')
     return 'center'
   return 'rotate'
+}
+
+export function usesPositionParameter(
+  family: ProjectionFamilyType,
+  parameter: PositionParameter,
+): boolean {
+  return VIEWS.some(view => getPositionParameter(family, view) === parameter)
 }
 
 export function supportsPanning(family: ProjectionFamilyType): boolean {
@@ -31,6 +39,11 @@ export function getTargetCoordinates(positioning: Positioning): D3Center {
   const center = positioning.center ?? [0, 0]
   const [longitude, latitude] = geoRotation(rotate).invert(center)
   return [longitude, latitude]
+}
+
+export function getTargetRotate(positioning: Positioning): D3Rotate {
+  const [longitude, latitude] = getTargetCoordinates(positioning)
+  return [-longitude, -latitude, positioning.rotate?.[2] ?? 0]
 }
 
 export function getDerivedParallels(

@@ -53,9 +53,15 @@ describe('parameter registration system', () => {
     const azimuthalRelevant = parameterRegistry.getRelevant('AZIMUTHAL')
     const azimuthalKeys = azimuthalRelevant.map(p => p.key)
 
-    expect(azimuthalKeys).toContain('center')
+    expect(azimuthalKeys).toContain('rotate')
+    expect(azimuthalKeys).not.toContain('center')
     expect(azimuthalKeys).toContain('clipAngle') // specific to azimuthal
     expect(azimuthalKeys).not.toContain('parallels') // parallels not relevant for azimuthal
+
+    const cylindricalKeys = parameterRegistry.getRelevant('CYLINDRICAL').map(p => p.key)
+
+    expect(cylindricalKeys).toContain('center')
+    expect(cylindricalKeys).toContain('rotate')
   })
 
   it('should have proper export/require configuration', () => {

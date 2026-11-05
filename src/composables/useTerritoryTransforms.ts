@@ -31,7 +31,7 @@ export function useTerritoryTransforms() {
 
     setTerritoryTranslation: territoryCommands.setTerritoryTranslation,
     setTerritoryScale: territoryCommands.setTerritoryScale,
-    setTerritoryProjection: territoryCommands.setTerritoryProjection,
+    changeTerritoryProjection: territoryCommands.changeTerritoryProjection,
 
     resetTransforms: territoryReset.resetTransforms,
     resetTerritoryToDefaults: territoryReset.resetTerritoryToDefaults,

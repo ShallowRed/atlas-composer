@@ -1,8 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
-import type { ProjectionParameterProvider } from '@/services/projection/composite-projection'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
-import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
@@ -70,10 +69,6 @@ export class Cartographer {
       this.projectionService.setProjectionParams(projectionParams)
     }
 
-    if (canvasDimensions) {
-      this.projectionService.setCanvasDimensions(canvasDimensions)
-    }
-
     if (compositeConfig) {
       this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale, canvasDimensions)
     }
@@ -98,10 +93,6 @@ export class Cartographer {
 
   updateProjectionParams(params: ProjectionParameters): void {
     this.projectionService.setProjectionParams(params)
-  }
-
-  updateCanvasDimensions(dimensions: { width: number, height: number } | null): void {
-    this.projectionService.setCanvasDimensions(dimensions)
   }
 
   updateAutoFitDomain(enabled: boolean): void {
