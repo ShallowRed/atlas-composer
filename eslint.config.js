@@ -79,6 +79,35 @@ const BOUNDARY_EXCEPTIONS = [
   'src/components/ui/presets/PresetSelector.vue',
 ]
 
+// Options of @antfu/eslint-config for these rules
+const ANTFU_RESTRICTED_SYNTAX = ['TSEnumDeclaration[const=true]', 'TSExportAssignment']
+const ANTFU_VUE_RESTRICTED_SYNTAX = ['DebuggerStatement', 'LabeledStatement', 'WithStatement']
+
+const DEPRECATED_POSITIONING_KEYS = /focusLongitude|focusLatitude|rotateGamma/.source
+const DEPRECATED_POSITIONING_MESSAGE = 'Positioning is stored as d3 parameters (rotate, center); deprecated forms are converted in src/core/positioning/.'
+const DEPRECATED_POSITIONING = [
+  `Identifier[name=/${DEPRECATED_POSITIONING_KEYS}/]`,
+  `Literal[value=/${DEPRECATED_POSITIONING_KEYS}/]`,
+  `TemplateElement[value.raw=/${DEPRECATED_POSITIONING_KEYS}/]`,
+].map(selector => ({ selector, message: DEPRECATED_POSITIONING_MESSAGE }))
+
+// Files that name a deprecated positioning key on the current code. Remove a
+// file from this list when it complies.
+const DEPRECATED_POSITIONING_EXCEPTIONS = [
+  'src/components/ui/parameters/TerritoryParameterControls.vue',
+  'src/components/ui/projections/ProjectionParamsControls.vue',
+  'src/composables/useProjectionPanning.ts',
+  'src/core/parameters/parameter-definitions.ts',
+  'src/core/presets/converter.ts',
+  'src/services/parameters/projection-parameter-manager.ts',
+  'src/services/projection/composite-projection.ts',
+  'src/services/projection/projection-service.ts',
+  'src/services/rendering/graticule-overlay-service.ts',
+  'src/stores/projection.ts',
+  'src/types/positioning.ts',
+  'src/types/projection-parameters.ts',
+]
+
 export default antfu({
   ignores: [
     'src/public/data',
@@ -148,5 +177,18 @@ export default antfu({
   rules: {
     'no-restricted-imports': 'off',
     'no-restricted-globals': ['error', ...ANTFU_GLOBALS],
+  },
+}, {
+  files: ['src/**/*.ts', 'src/**/*.vue'],
+  ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
+  },
+}, {
+  files: DEPRECATED_POSITIONING_EXCEPTIONS,
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX],
   },
 })
