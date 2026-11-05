@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      # npm trusted publishing authenticates the publish with the GitHub OIDC token
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +28,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -47,4 +48,3 @@ jobs:
           commit: 'chore: release packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
