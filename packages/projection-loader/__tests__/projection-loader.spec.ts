@@ -1,21 +1,17 @@
-import type { ExportedConfig } from '../src/projection-loader'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
-import {
-  getRegisteredProjections,
-  loadCompositeProjection,
-  loadFromJSON,
-  registerProjections,
-  validateConfig,
-} from '../src/projection-loader'
+import { ProjectionLoader, validateConfig } from '../src/projection-loader'
 
 describe('projection-loader', () => {
+  const loader = new ProjectionLoader()
+
   beforeAll(() => {
-    registerProjections(d3ProjectionFactories)
+    loader.registerAll(d3ProjectionFactories)
   })
 
-  const mockConfig: ExportedConfig = {
+  const mockConfig: CompositeProjectionConfig = {
     version: '1.0',
     metadata: {
       atlasId: 'france',
@@ -43,7 +39,7 @@ describe('projection-loader', () => {
         },
         layout: {
           translateOffset: [0, 0],
-          pixelClipExtent: null,
+          pixelClipExtent: [-280, -250, 270, 250],
         },
         bounds: [
           [-6.5, 41],
@@ -112,9 +108,9 @@ describe('projection-loader', () => {
     })
   })
 
-  describe('loadCompositeProjection', () => {
+  describe('load', () => {
     it('should create a projection from valid configuration', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -128,7 +124,7 @@ describe('projection-loader', () => {
     it('should reject unsupported version', () => {
       const invalid = { ...mockConfig, version: '2.0' }
       expect(() =>
-        loadCompositeProjection(invalid, { width: 800, height: 600 }),
+        loader.load(invalid, { width: 800, height: 600 }),
       ).toThrow('Unsupported configuration version')
     })
 
@@ -146,12 +142,12 @@ describe('projection-loader', () => {
         ],
       }
       expect(() =>
-        loadCompositeProjection(invalid as any, { width: 800, height: 600 }),
+        loader.load(invalid, { width: 800, height: 600 }),
       ).toThrow('is not registered')
     })
 
     it('should handle debug mode', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
         debug: true,
@@ -164,7 +160,7 @@ describe('projection-loader', () => {
   describe('loadFromJSON', () => {
     it('should load projection from JSON string', () => {
       const jsonString = JSON.stringify(mockConfig)
-      const projection = loadFromJSON(jsonString, {
+      const projection = loader.loadFromJSON(jsonString, {
         width: 800,
         height: 600,
       })
@@ -174,26 +170,26 @@ describe('projection-loader', () => {
 
     it('should reject invalid JSON', () => {
       expect(() =>
-        loadFromJSON('not valid json', { width: 800, height: 600 }),
+        loader.loadFromJSON('not valid json', { width: 800, height: 600 }),
       ).toThrow('Invalid JSON')
     })
 
     it('should reject malformed configuration in JSON', () => {
       const invalid = JSON.stringify({ version: '1.0' })
-      expect(() => loadFromJSON(invalid, { width: 800, height: 600 })).toThrow()
+      expect(() => loader.loadFromJSON(invalid, { width: 800, height: 600 })).toThrow()
     })
   })
 
-  describe('getRegisteredProjections', () => {
+  describe('getRegistered', () => {
     it('should return array of registered projection IDs', () => {
-      const projections = getRegisteredProjections()
+      const projections = loader.getRegistered()
 
       expect(Array.isArray(projections)).toBe(true)
       expect(projections.length).toBeGreaterThan(0)
     })
 
     it('should include common projections', () => {
-      const projections = getRegisteredProjections()
+      const projections = loader.getRegistered()
 
       expect(projections).toContain('mercator')
       expect(projections).toContain('conic-conformal')
@@ -203,7 +199,7 @@ describe('projection-loader', () => {
 
   describe('projection functionality', () => {
     it('should project points correctly', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -219,7 +215,7 @@ describe('projection-loader', () => {
     })
 
     it('should have scale and translate methods', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -231,7 +227,7 @@ describe('projection-loader', () => {
     })
 
     it('should have stream method for geometry', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -257,13 +253,14 @@ describe('projection-loader', () => {
 
   describe('pixelClipExtent support', () => {
     it('should handle pixelClipExtent format', () => {
-      const configWithPixelClipExtent = {
+      const configWithPixelClipExtent: CompositeProjectionConfig = {
         version: '1.0',
         metadata: {
           atlasId: 'test',
           atlasName: 'Test',
         },
         referenceScale: 2700,
+        canvasDimensions: { width: 800, height: 600 },
         territories: [
           {
             code: 'TEST',
@@ -288,7 +285,7 @@ describe('projection-loader', () => {
         ],
       }
 
-      const projection = loadCompositeProjection(configWithPixelClipExtent, {
+      const projection = loader.load(configWithPixelClipExtent, {
         width: 800,
         height: 600,
       })
@@ -305,6 +302,7 @@ describe('projection-loader', () => {
           atlasName: 'Test',
         },
         referenceScale: 2700,
+        canvasDimensions: { width: 800, height: 600 },
         territories: [
           {
             code: 'TEST',
@@ -329,7 +327,7 @@ describe('projection-loader', () => {
         ],
       }
 
-      const projection = loadCompositeProjection(configWithNullClipExtent, {
+      const projection = loader.load(configWithNullClipExtent, {
         width: 800,
         height: 600,
       })
@@ -340,7 +338,7 @@ describe('projection-loader', () => {
 
   describe('inversion with bounds validation', () => {
     it('should validate inverted coordinates against territory bounds', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -360,7 +358,7 @@ describe('projection-loader', () => {
     })
 
     it('should return null for coordinates that cannot be inverted', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
       })
@@ -373,7 +371,7 @@ describe('projection-loader', () => {
     })
 
     it('should handle inversion with debug mode', () => {
-      const projection = loadCompositeProjection(mockConfig, {
+      const projection = loader.load(mockConfig, {
         width: 800,
         height: 600,
         debug: true,
