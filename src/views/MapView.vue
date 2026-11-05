@@ -27,7 +27,7 @@ const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 
 const { initialize } = useAtlasData()
-const { restoreFromUrl } = useUrlState()
+const { restoreFromUrl, restoreProjectionParametersFromUrl } = useUrlState()
 const {
   isCompositeCustomMode,
   isCompositeExistingMode,
@@ -45,6 +45,8 @@ onMounted(async () => {
   restoreFromUrl()
 
   await initialize()
+
+  restoreProjectionParametersFromUrl()
 })
 </script>
 

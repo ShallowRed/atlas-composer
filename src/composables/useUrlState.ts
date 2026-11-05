@@ -32,14 +32,12 @@ export function useUrlState() {
       territory: viewStore.territoryMode,
     }
 
-    if (projectionStore.customRotateLongitude !== null)
-      state.rlon = String(projectionStore.customRotateLongitude)
-    if (projectionStore.customRotateLatitude !== null)
-      state.rlat = String(projectionStore.customRotateLatitude)
-    if (projectionStore.customCenterLongitude !== null)
-      state.clon = String(projectionStore.customCenterLongitude)
-    if (projectionStore.customCenterLatitude !== null)
-      state.clat = String(projectionStore.customCenterLatitude)
+    if (projectionStore.customRotate) {
+      const [longitude, latitude, gamma] = projectionStore.customRotate
+      state.rlon = String(longitude)
+      state.rlat = String(latitude)
+      state.rgam = String(gamma)
+    }
     if (projectionStore.customParallel1 !== null)
       state.p1 = String(projectionStore.customParallel1)
     if (projectionStore.customParallel2 !== null)
@@ -98,19 +96,6 @@ export function useUrlState() {
     if (params.territory)
       viewStore.setTerritoryMode(params.territory)
 
-    if (params.rlon !== undefined)
-      projectionStore.setCustomRotateLongitude(Number(params.rlon))
-    if (params.rlat !== undefined)
-      projectionStore.setCustomRotateLatitude(Number(params.rlat))
-    if (params.clon !== undefined)
-      projectionStore.setCustomCenterLongitude(Number(params.clon))
-    if (params.clat !== undefined)
-      projectionStore.setCustomCenterLatitude(Number(params.clat))
-    if (params.p1 !== undefined)
-      projectionStore.setCustomParallel1(Number(params.p1))
-    if (params.p2 !== undefined)
-      projectionStore.setCustomParallel2(Number(params.p2))
-
     if (params.composite)
       projectionStore.setCompositeProjection(params.composite)
     if (params.t) {
@@ -137,6 +122,21 @@ export function useUrlState() {
     }
   }
 
+  // The initialization and the view mode watcher clear the global projection parameters, so they are read afterwards
+  function deserializeProjectionParameters(params: Record<string, any>) {
+    if (params.rlon !== undefined || params.rlat !== undefined || params.rgam !== undefined) {
+      projectionStore.setCustomRotate({
+        longitude: params.rlon !== undefined ? Number(params.rlon) : undefined,
+        latitude: params.rlat !== undefined ? Number(params.rlat) : undefined,
+        gamma: params.rgam !== undefined ? Number(params.rgam) : undefined,
+      })
+    }
+    if (params.p1 !== undefined)
+      projectionStore.setCustomParallel1(Number(params.p1))
+    if (params.p2 !== undefined)
+      projectionStore.setCustomParallel2(Number(params.p2))
+  }
+
   async function updateUrl() {
     const state = serializeState()
     await router.replace({
@@ -150,6 +150,10 @@ export function useUrlState() {
       return true
     }
     return false
+  }
+
+  function restoreProjectionParametersFromUrl() {
+    deserializeProjectionParameters(route.query)
   }
 
   const shareableUrl = computed(() => {
@@ -190,6 +194,7 @@ export function useUrlState() {
     deserializeState,
     updateUrl,
     restoreFromUrl,
+    restoreProjectionParametersFromUrl,
     shareableUrl,
     copyShareableUrl,
     enableAutoSync,
