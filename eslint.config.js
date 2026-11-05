@@ -3,6 +3,10 @@ import antfu from '@antfu/eslint-config'
 export default antfu({
   ignores: [
     'src/public/data',
+    // Code blocks in docs/ are excerpts, not compiled sources
+    'docs/**/*.md',
+    // Copy of configs/presets, linted at its source
+    'packages/preset-library/presets',
   ],
 
   rules: {
