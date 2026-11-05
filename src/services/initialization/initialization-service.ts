@@ -12,6 +12,8 @@ import type {
 
 import { nextTick } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { convertPositioning, replaceDeprecatedPositioning } from '@/core/positioning'
+import { projectionRegistry } from '@/core/projections/registry'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -375,8 +377,17 @@ export class InitializationService {
         }
         scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
 
+        const family = projectionRegistry.get(territory.projection.id)?.family ?? 'OTHER'
+        const atlasCenter = atlasConfig.compositeProjectionConfig?.territories.find(t => t.code === code)?.center
+        const atlasPositioning = atlasCenter ? { center: atlasCenter } : {}
+        const parameters = replaceDeprecatedPositioning(territory.projection.parameters || {}, family, atlasPositioning)
+        const positioning = parameters.rotate === undefined && parameters.center === undefined && atlasCenter
+          ? convertPositioning(atlasPositioning, family)
+          : {}
+
         const params: Record<string, unknown> = {
-          ...(territory.projection.parameters || {}),
+          ...parameters,
+          ...positioning,
           translateOffset: territory.layout.translateOffset,
         }
 
@@ -471,8 +482,7 @@ export class InitializationService {
       }
 
       const parameterStore = useParameterStore()
-      parameterStore.setGlobalParameter('rotate', undefined)
-      parameterStore.setGlobalParameter('center', undefined)
+      parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
       parameterStore.setGlobalParameter('parallels', undefined)
       parameterStore.setGlobalParameter('scale', undefined)
 

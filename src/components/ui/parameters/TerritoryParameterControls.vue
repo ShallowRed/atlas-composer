@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PositioningView, PositionParameter } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryCode } from '@/types/branded'
 import type {
@@ -13,6 +14,7 @@ import ParameterValidationFeedback from '@/components/ui/parameters/ParameterVal
 import Alert from '@/components/ui/primitives/Alert.vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { getDisplayedCenter, getDisplayedRotate, getPositionParameter, updatePositioningAxis } from '@/core/positioning'
 import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 
@@ -20,6 +22,7 @@ interface Props {
   territoryCode: TerritoryCode
   territoryName: string
   projectionFamily: ProjectionFamilyType
+  view: PositioningView
   showInheritanceIndicators?: boolean
   allowParameterOverrides?: boolean
   showValidationFeedback?: boolean
@@ -56,11 +59,6 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   const constraints = parameterConstraints.value.constraints[paramKey]
   if (!constraints) {
     const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
-      centerLongitude: { min: -180, max: 180, step: 1 },
-      centerLatitude: { min: -90, max: 90, step: 1 },
-      rotateLongitude: { min: -180, max: 180, step: 1 },
-      rotateLatitude: { min: -90, max: 90, step: 1 },
-      rotateGamma: { min: -180, max: 180, step: 1 },
       parallel1: { min: -90, max: 90, step: 1 },
       parallel2: { min: -90, max: 90, step: 1 },
       scale: { min: 100, max: 10000, step: 50 },
@@ -77,9 +75,16 @@ function getParameterRange(paramKey: keyof ProjectionParameters) {
   }
 }
 
+const rotateRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'rotate'))
+const centerRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'center'))
+
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
 })
+
+const rotate = computed(() => getDisplayedRotate(effectiveParameters.value, props.view))
+
+const center = computed(() => getDisplayedCenter(effectiveParameters.value))
 
 const territoryParameters = computed(() => {
   return parameterStore.getTerritoryParameters(props.territoryCode)
@@ -165,9 +170,6 @@ const validationErrors = computed(() => {
 const validationWarnings = computed(() => {
   return validationResults.value.filter(result => result.isValid && result.warning)
 })
-const focusLongitudeRange = computed(() => getParameterRange('focusLongitude'))
-const focusLatitudeRange = computed(() => getParameterRange('focusLatitude'))
-const rotateGammaRange = computed(() => getParameterRange('rotateGamma'))
 const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
 const clipAngleRange = computed(() => getParameterRange('clipAngle'))
@@ -205,6 +207,17 @@ function handleParameterChange(key: keyof ProjectionParameters, value: unknown) 
   }
 }
 
+function handlePositioningChange(key: PositionParameter, axis: number, value: number) {
+  const positioning = updatePositioningAxis(effectiveParameters.value, props.view, key, axis, value)
+  const updated = positioning[key]
+  const validationResult = parameterStore.validateParameter(props.projectionFamily, key, updated)
+
+  if (validationResult.isValid || props.allowParameterOverrides) {
+    parameterStore.setTerritoryParameters(props.territoryCode, positioning)
+    emit('parameterChanged', props.territoryCode, key, updated)
+  }
+}
+
 function clearAllOverrides() {
   const oldParams = { ...territoryParameters.value }
 
@@ -215,27 +228,27 @@ function clearAllOverrides() {
 }
 
 const hasPositionParameters = computed(() => {
-  return relevantParameters.value.some(p =>
-    String(p) === 'focusLongitude'
-    || String(p) === 'focusLatitude'
-    || String(p) === 'rotateGamma',
-  )
+  return relevantParameters.value.some(p => String(p) === 'rotate' || String(p) === 'center')
 })
 
 const hasProjectionSpecificParameters = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'parallels')
 })
 
-const hasFocusLongitudeParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'focusLongitude')
+function isNonNull(values?: number[]) {
+  return values?.some(value => value !== 0) ?? false
+}
+
+const positionParameter = computed(() => getPositionParameter(props.projectionFamily, props.view))
+
+const showRotate = computed(() => {
+  return positionParameter.value === 'rotate'
+    || (props.view === 'composite' && isNonNull(effectiveParameters.value.rotate))
 })
 
-const hasFocusLatitudeParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'focusLatitude')
-})
-
-const hasRotateGammaParameter = computed(() => {
-  return relevantParameters.value.some(p => String(p) === 'rotateGamma')
+const showCenter = computed(() => {
+  return props.view === 'composite'
+    && (positionParameter.value === 'center' || isNonNull(effectiveParameters.value.center))
 })
 
 const hasScaleParameter = computed(() => {
@@ -295,45 +308,67 @@ onMounted(() => {
 
           <div class="collapse-content space-y-2">
             <template v-if="hasPositionParameters">
-              <template v-if="hasFocusLongitudeParameter">
+              <template v-if="showRotate && rotateRanges">
                 <RangeSlider
-                  :model-value="effectiveParameters.focusLongitude ?? 0"
-                  :label="t('projectionParams.focusLongitude')"
+                  :model-value="rotate[0]"
+                  :label="t('projectionParams.rotateLongitude')"
                   icon="ri-map-pin-line"
                   size="xs"
-                  :min="focusLongitudeRange.min"
-                  :max="focusLongitudeRange.max"
-                  :step="focusLongitudeRange.step"
+                  :min="rotateRanges[0].min"
+                  :max="rotateRanges[0].max"
+                  :step="rotateRanges[0].step"
                   unit="°"
-                  @update:model-value="(value: number) => handleParameterChange('focusLongitude', value)"
+                  @update:model-value="(value: number) => handlePositioningChange('rotate', 0, value)"
                 />
-              </template>
 
-              <template v-if="hasFocusLatitudeParameter">
                 <RangeSlider
-                  :model-value="effectiveParameters.focusLatitude ?? 0"
-                  :label="t('projectionParams.focusLatitude')"
+                  :model-value="rotate[1]"
+                  :label="t('projectionParams.rotateLatitude')"
                   icon="ri-map-pin-2-line"
                   size="xs"
-                  :min="focusLatitudeRange.min"
-                  :max="focusLatitudeRange.max"
-                  :step="focusLatitudeRange.step"
+                  :min="rotateRanges[1].min"
+                  :max="rotateRanges[1].max"
+                  :step="rotateRanges[1].step"
                   unit="°"
-                  @update:model-value="(value: number) => handleParameterChange('focusLatitude', value)"
+                  @update:model-value="(value: number) => handlePositioningChange('rotate', 1, value)"
+                />
+
+                <RangeSlider
+                  :model-value="rotate[2]"
+                  :label="t('projectionParams.rotation')"
+                  icon="ri-compass-3-line"
+                  size="xs"
+                  :min="rotateRanges[2].min"
+                  :max="rotateRanges[2].max"
+                  :step="rotateRanges[2].step"
+                  unit="°"
+                  @update:model-value="(value: number) => handlePositioningChange('rotate', 2, value)"
                 />
               </template>
 
-              <template v-if="hasRotateGammaParameter">
+              <template v-if="showCenter && centerRanges">
                 <RangeSlider
-                  :model-value="effectiveParameters.rotateGamma ?? 0"
-                  :label="t('projectionParams.rotateGamma')"
-                  icon="ri-compass-3-line"
+                  :model-value="center[0]"
+                  :label="t('projectionParams.centerLongitude')"
+                  icon="ri-map-pin-line"
                   size="xs"
-                  :min="rotateGammaRange.min"
-                  :max="rotateGammaRange.max"
-                  :step="rotateGammaRange.step"
+                  :min="centerRanges[0].min"
+                  :max="centerRanges[0].max"
+                  :step="centerRanges[0].step"
                   unit="°"
-                  @update:model-value="(value: number) => handleParameterChange('rotateGamma', value)"
+                  @update:model-value="(value: number) => handlePositioningChange('center', 0, value)"
+                />
+
+                <RangeSlider
+                  :model-value="center[1]"
+                  :label="t('projectionParams.centerLatitude')"
+                  icon="ri-map-pin-2-line"
+                  size="xs"
+                  :min="centerRanges[1].min"
+                  :max="centerRanges[1].max"
+                  :step="centerRanges[1].step"
+                  unit="°"
+                  @update:model-value="(value: number) => handlePositioningChange('center', 1, value)"
                 />
               </template>
             </template>

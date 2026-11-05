@@ -356,7 +356,7 @@ async function renderMap() {
 
       const graticuleParams = props.territoryCode
         ? parameterStore.getEffectiveParameters(props.territoryCode)
-        : parameterStore.globalParameters
+        : parameterStore.globalEffectiveParameters
 
       const isCompositeMode = props.mode === 'composite'
       const effectiveViewMode = isCompositeMode

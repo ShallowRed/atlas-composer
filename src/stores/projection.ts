@@ -67,14 +67,14 @@ export const useProjectionStore = defineStore('projection', () => {
     const rotateValue = longitude !== null || latitude !== null
       ? [longitude ?? 0, latitude ?? 0] as [number, number]
       : undefined
-    parameterStore.setGlobalParameter('rotate', rotateValue)
+    parameterStore.setGlobalParameters({ rotate: rotateValue, center: parameterStore.globalParameters.center })
   }
 
   function setCustomCenter(longitude: number | null, latitude: number | null): void {
     const centerValue = longitude !== null || latitude !== null
       ? [longitude ?? 0, latitude ?? 0] as [number, number]
       : undefined
-    parameterStore.setGlobalParameter('center', centerValue)
+    parameterStore.setGlobalParameters({ rotate: parameterStore.globalParameters.rotate, center: centerValue })
   }
 
   function setCustomParallels(parallel1: number | null, parallel2: number | null): void {
@@ -119,14 +119,9 @@ export const useProjectionStore = defineStore('projection', () => {
   }
 
   function resetProjectionParams(_currentViewPreset: string | null): void {
-    parameterStore.setGlobalParameter('rotate', undefined)
-    parameterStore.setGlobalParameter('center', undefined)
+    parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
     parameterStore.setGlobalParameter('parallels', undefined)
     parameterStore.setGlobalParameter('scale', undefined)
-
-    parameterStore.setGlobalParameter('focusLongitude', undefined)
-    parameterStore.setGlobalParameter('focusLatitude', undefined)
-    parameterStore.setGlobalParameter('rotateGamma', undefined)
     parameterStore.setGlobalParameter('scaleMultiplier', undefined)
 
     rotateLatitudeLocked.value = true

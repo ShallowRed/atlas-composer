@@ -91,6 +91,9 @@ export function validateCompositePreset(
 
     const required = parameterRegistry.getRequired()
     for (const def of required) {
+      if (def.key === 'rotate' || def.key === 'center')
+        continue
+
       const constraints = parameterRegistry.getConstraintsForFamily(def.key as string, family)
       const isRelevant = constraints.relevant
 
@@ -114,6 +117,11 @@ export function validateCompositePreset(
           paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
         }
       }
+    }
+
+    const { rotate, center } = territory.projection.parameters
+    if (rotate === undefined && center === undefined) {
+      paramErrors.push(`Territory ${territory.code}: missing required parameter rotate or center`)
     }
 
     const validationResults = parameterRegistry.validateParameters(

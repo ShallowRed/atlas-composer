@@ -8,9 +8,10 @@ import type {
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { geoPath, select } from 'd3'
 import { geoConicConformal } from 'd3-geo'
+import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
-import { ProjectionFamily, ProjectionStrategy } from '@/core/projections/types'
+import { ProjectionStrategy } from '@/core/projections/types'
 import { GraticuleService } from '@/services/rendering/graticule-service'
 import { logger } from '@/utils/logger'
 
@@ -104,16 +105,7 @@ export class GraticuleOverlayService {
 
     if (forceSimpleProjection && definition.strategy === ProjectionStrategy.D3_COMPOSITE) {
       const projection = geoConicConformal()
-      const focusLongitude = params?.focusLongitude ?? 0
-      const focusLatitude = params?.focusLatitude ?? 0
-      const rotateGamma = params?.rotateGamma ?? 0
-      const parallels = params?.parallels
-
-      if (parallels && typeof (projection as any).parallels === 'function') {
-        (projection as any).parallels(parallels)
-      }
-
-      projection.rotate([-focusLongitude, -focusLatitude, rotateGamma])
+      applyPositioning(projection, params ?? {}, 'global')
 
       const domain = showSphere ? { type: 'Sphere' as const } : geoData
       if (domain && typeof projection.fitExtent === 'function') {
@@ -159,21 +151,9 @@ export class GraticuleOverlayService {
       return projection
     }
 
-    const focusLongitude = params?.focusLongitude ?? 0
-    const focusLatitude = params?.focusLatitude ?? 0
-    const rotateGamma = params?.rotateGamma ?? 0
-    const parallels = params?.parallels
     const scaleMultiplier = params?.scaleMultiplier ?? 1.0
 
-    if (definition.family === ProjectionFamily.CONIC && parallels) {
-      if (typeof (projection as any).parallels === 'function') {
-        (projection as any).parallels(parallels)
-      }
-    }
-
-    if (typeof projection.rotate === 'function') {
-      projection.rotate([-focusLongitude, -focusLatitude, rotateGamma])
-    }
+    applyPositioning(projection, params ?? {}, 'global')
 
     const domain = showSphere ? { type: 'Sphere' as const } : geoData
     if (domain && typeof projection.fitExtent === 'function') {

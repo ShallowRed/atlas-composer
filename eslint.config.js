@@ -53,8 +53,6 @@ const CORE_GLOBALS = [
 // Files that break a boundary on the current code, grouped by the change that
 // brings them into line. Remove a file from this list when it complies.
 const BOUNDARY_EXCEPTIONS = [
-  // Application state in d3 parameters
-  'src/composables/useParameterProvider.ts',
   // Validation by @atlas-composer/specification
   'src/core/presets/validator.ts',
   // Use cases in store actions
@@ -90,23 +88,6 @@ const DEPRECATED_POSITIONING = [
   `Literal[value=/${DEPRECATED_POSITIONING_KEYS}/]`,
   `TemplateElement[value.raw=/${DEPRECATED_POSITIONING_KEYS}/]`,
 ].map(selector => ({ selector, message: DEPRECATED_POSITIONING_MESSAGE }))
-
-// Files that name a deprecated positioning key on the current code. Remove a
-// file from this list when it complies.
-const DEPRECATED_POSITIONING_EXCEPTIONS = [
-  'src/components/ui/parameters/TerritoryParameterControls.vue',
-  'src/components/ui/projections/ProjectionParamsControls.vue',
-  'src/composables/useProjectionPanning.ts',
-  'src/core/parameters/parameter-definitions.ts',
-  'src/core/presets/converter.ts',
-  'src/services/parameters/projection-parameter-manager.ts',
-  'src/services/projection/composite-projection.ts',
-  'src/services/projection/projection-service.ts',
-  'src/services/rendering/graticule-overlay-service.ts',
-  'src/stores/projection.ts',
-  'src/types/positioning.ts',
-  'src/types/projection-parameters.ts',
-]
 
 export default antfu({
   ignores: [
@@ -184,11 +165,5 @@ export default antfu({
   rules: {
     'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
-  },
-}, {
-  files: DEPRECATED_POSITIONING_EXCEPTIONS,
-  rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX],
   },
 })

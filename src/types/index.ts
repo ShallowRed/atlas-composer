@@ -57,21 +57,6 @@ export type {
 } from '@/types/geo-data'
 
 export type {
-  CanonicalPositioning,
-  D3Center,
-  D3Rotate,
-  PositioningApplication,
-  PositioningFamily,
-} from '@/types/positioning'
-
-export {
-  DEFAULT_CANONICAL_POSITIONING,
-  isCanonicalPositioning,
-  isD3Center,
-  isD3Rotate,
-} from '@/types/positioning'
-
-export type {
   BoundingBox,
   ConicParallels,
   Coordinates,

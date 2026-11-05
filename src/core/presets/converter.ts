@@ -4,7 +4,6 @@ import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { parameterRegistry } from '@/core/parameters'
-import { inferCanonicalFromLegacy } from '@/core/positioning'
 
 export function convertToDefaults(preset: ExportedCompositeConfig): TerritoryDefaults {
   const projections: Record<TerritoryCode, ProjectionId> = {} as Record<TerritoryCode, ProjectionId>
@@ -52,26 +51,6 @@ export function extractTerritoryParameters(
         if (exportableKeys.has(key as keyof ProjectionParameters) && value !== undefined) {
           territoryParams[key as keyof ProjectionParameters] = value as any
         }
-      }
-
-      const hasLegacyPositioning = territoryParams.center || territoryParams.rotate
-      const hasCanonicalPositioning = territoryParams.focusLongitude !== undefined
-        || territoryParams.focusLatitude !== undefined
-
-      if (hasLegacyPositioning && !hasCanonicalPositioning) {
-        const canonical = inferCanonicalFromLegacy({
-          center: territoryParams.center as [number, number] | undefined,
-          rotate: territoryParams.rotate as [number, number, number] | undefined,
-        })
-
-        territoryParams.focusLongitude = canonical.focusLongitude
-        territoryParams.focusLatitude = canonical.focusLatitude
-        if (canonical.rotateGamma !== 0) {
-          territoryParams.rotateGamma = canonical.rotateGamma
-        }
-
-        delete territoryParams.center
-        delete territoryParams.rotate
       }
     }
 

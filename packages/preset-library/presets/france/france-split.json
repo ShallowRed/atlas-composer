@@ -20,7 +20,7 @@
         "projection": {
           "id": "mercator",
           "parameters": {
-            "center": [-61.5, 16.25]
+            "rotate": [61.5, -16.25, 0]
           }
         }
       },
@@ -28,7 +28,7 @@
         "projection": {
           "id": "mercator",
           "parameters": {
-            "center": [-61.03, 14.67]
+            "rotate": [61.03, -14.67, 0]
           }
         }
       },
@@ -36,7 +36,7 @@
         "projection": {
           "id": "mercator",
           "parameters": {
-            "center": [-53, 4]
+            "rotate": [53, -4, 0]
           }
         }
       },
@@ -44,7 +44,7 @@
         "projection": {
           "id": "mercator",
           "parameters": {
-            "center": [55.5, -21]
+            "rotate": [-55.5, 21, 0]
           }
         }
       },
@@ -52,7 +52,7 @@
         "projection": {
           "id": "mercator",
           "parameters": {
-            "center": [45.16, -12.83]
+            "rotate": [-45.16, 12.83, 0]
           }
         }
       }

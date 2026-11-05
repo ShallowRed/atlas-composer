@@ -38,7 +38,7 @@ describe('useParameterProvider', () => {
     const parameterStore = useParameterStore()
     const { parameterProvider } = useParameterProvider()
 
-    parameterStore.setTerritoryParameter(TEST_CODE, 'rotate', [5, 10])
+    parameterStore.setTerritoryParameters(TEST_CODE, { rotate: [5, 10] })
 
     const params = parameterProvider.getExportableParameters(TEST_CODE)
 

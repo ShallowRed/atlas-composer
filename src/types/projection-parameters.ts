@@ -1,14 +1,9 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { TerritoryCode } from '@/types/branded'
 
 export interface ProjectionParameters {
-  focusLongitude?: number
-  focusLatitude?: number
-  rotateGamma?: number
-
-  /** @deprecated Use focusLongitude/focusLatitude instead */
   center?: [number, number]
-  /** @deprecated Use focusLongitude/focusLatitude instead */
-  rotate?: [number, number, number?]
+  rotate?: [number, number] | [number, number, number]
 
   parallels?: [number, number]
   clipAngle?: number
@@ -20,6 +15,12 @@ export interface ProjectionParameters {
   projectionId?: string
 
   [key: string]: any
+}
+
+export interface ProjectionParameterProvider {
+  getEffectiveParameters: (territoryCode: TerritoryCode) => ProjectionParameters
+  getExportableParameters: (territoryCode: TerritoryCode) => ProjectionParameters
+  setTerritoryParameters?: (territoryCode: TerritoryCode, parameters: Partial<ProjectionParameters>) => void
 }
 
 export type ParameterSource = 'default' | 'projection' | 'atlas' | 'global' | 'territory'
@@ -89,7 +90,7 @@ export function mergeParameters(
         ...merged,
         ...params,
         center: params.center ? [...params.center] as [number, number] : merged.center,
-        rotate: params.rotate ? [...params.rotate] as [number, number, number?] : merged.rotate,
+        rotate: params.rotate ? [...params.rotate] as [number, number] | [number, number, number] : merged.rotate,
         parallels: params.parallels ? [...params.parallels] as [number, number] : merged.parallels,
         translateOffset: params.translateOffset ? [...params.translateOffset] as [number, number] : merged.translateOffset,
         pixelClipExtent: params.pixelClipExtent ? [...params.pixelClipExtent] as [number, number, number, number] : merged.pixelClipExtent,

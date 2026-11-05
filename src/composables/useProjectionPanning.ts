@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { supportsPanning as familySupportsPanning } from '@/core/positioning'
+import { supportsPanning as familySupportsPanning, getDisplayedRotate } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -11,8 +11,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
   const isPanning = ref(false)
   const panStartX = ref(0)
   const panStartY = ref(0)
-  const panStartRotationLon = ref(0)
-  const panStartRotationLat = ref(0)
+  const panStartRotate = ref<[number, number, number]>([0, 0, 0])
 
   const supportsPanning = computed(() => {
     const projectionId = projectionOverride ?? projectionStore.selectedProjection
@@ -51,24 +50,19 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     const dx = event.clientX - panStartX.value
     const dy = event.clientY - panStartY.value
 
-    const lonDelta = -dx * 0.5
-    const latDelta = supportsLatitudePanning.value ? dy * 0.5 : 0
+    const [startLambda, startPhi, gamma] = panStartRotate.value
+    const lambda = startLambda + dx * 0.5
+    const phi = supportsLatitudePanning.value ? startPhi - dy * 0.5 : startPhi
 
-    const newRotationLon = panStartRotationLon.value + lonDelta
-    const newRotationLat = panStartRotationLat.value + latDelta
+    let wrappedLambda = lambda % 360
+    if (wrappedLambda > 180)
+      wrappedLambda -= 360
+    if (wrappedLambda < -180)
+      wrappedLambda += 360
 
-    let wrappedLon = newRotationLon % 360
-    if (wrappedLon > 180)
-      wrappedLon -= 360
-    if (wrappedLon < -180)
-      wrappedLon += 360
+    const clampedPhi = Math.max(-90, Math.min(90, phi))
 
-    const clampedLat = Math.max(-90, Math.min(90, newRotationLat))
-
-    parameterStore.setGlobalParameter('focusLongitude', wrappedLon)
-    if (supportsLatitudePanning.value) {
-      parameterStore.setGlobalParameter('focusLatitude', clampedLat)
-    }
+    parameterStore.setGlobalParameters({ rotate: [wrappedLambda, clampedPhi, gamma] })
   }
 
   function handleMouseUp() {
@@ -87,12 +81,7 @@ export function useProjectionPanning(projectionOverride?: string | null) {
     panStartX.value = event.clientX
     panStartY.value = event.clientY
 
-    const effectiveParams = parameterStore.globalEffectiveParameters
-    const currentRotationLon = effectiveParams?.focusLongitude ?? 0
-    const currentRotationLat = effectiveParams?.focusLatitude ?? 0
-
-    panStartRotationLon.value = currentRotationLon
-    panStartRotationLat.value = currentRotationLat
+    panStartRotate.value = getDisplayedRotate(parameterStore.globalEffectiveParameters, 'global')
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)

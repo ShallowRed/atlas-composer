@@ -1,4 +1,4 @@
-import type { CompositeProjection, ProjectionParameterProvider } from '@/services/projection/composite-projection'
+import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
 import type {
   ExportedCompositeConfig,
@@ -7,6 +7,7 @@ import type {
   ExportMetadata,
   ExportValidationResult,
 } from '@/types/export-config'
+import type { ProjectionParameterProvider } from '@/types/projection-parameters'
 import packageJson from '#package'
 import { projectionRegistry } from '@/core/projections/registry'
 
@@ -25,19 +26,6 @@ function roundTuple2(
   if (!arr || arr.length < 2)
     return [0, 0]
   return [roundNumber(arr[0], decimals), roundNumber(arr[1], decimals)]
-}
-
-function roundTuple3(
-  arr: [number, number, number] | number[] | undefined,
-  decimals = 6,
-): [number, number, number] {
-  if (!arr || arr.length < 3)
-    return [0, 0, 0]
-  return [
-    roundNumber(arr[0], decimals),
-    roundNumber(arr[1], decimals),
-    roundNumber(arr[2], decimals),
-  ]
 }
 
 function roundTuple4(
@@ -71,7 +59,7 @@ export class CompositeExportService {
     compositeProjection: CompositeProjection,
     atlasId: AtlasId,
     atlasName: string,
-    parameterProvider?: ProjectionParameterProvider,
+    parameterProvider: ProjectionParameterProvider,
     referenceScale?: number,
     canvasDimensions?: { width: number, height: number },
     notes?: string,
@@ -82,34 +70,22 @@ export class CompositeExportService {
       const projectionId = this.resolveProjectionId(subProj.projectionType)
       const projectionDef = projectionRegistry.get(projectionId)
 
-      let projectionParameters: ExportedProjectionParameters
-      let layoutTranslateOffset: [number, number]
-      let layoutPixelClipExtent: [number, number, number, number] | null = null
+      const allParams = parameterProvider.getExportableParameters(subProj.territoryCode)
+      const { translateOffset, pixelClipExtent, rotate: _rotate, center: _center, parallels: _parallels, ...projParams } = allParams
+      const { rotate, center, parallels } = subProj
 
-      if (parameterProvider) {
-        const allParams = parameterProvider.getExportableParameters(subProj.territoryCode)
-
-        const { translateOffset, pixelClipExtent, ...projParams } = allParams
-
-        projectionParameters = projParams as ExportedProjectionParameters
-        layoutTranslateOffset = translateOffset
-          ? roundTuple2(translateOffset)
-          : roundTuple2(subProj.translateOffset)
-        layoutPixelClipExtent = pixelClipExtent
-          ? roundTuple4(pixelClipExtent)
-          : null
+      const projectionParameters: ExportedProjectionParameters = {
+        ...projParams,
+        rotate,
+        center,
+        ...(parallels && { parallels }),
       }
-      else {
-        projectionParameters = {
-          center: roundTuple2(subProj.center),
-          rotate: subProj.rotate && subProj.rotate.length >= 3
-            ? roundTuple3(subProj.rotate as [number, number, number])
-            : undefined,
-          scaleMultiplier: roundNumber(subProj.scaleMultiplier),
-          parallels: roundTuple2(this.extractParallels(subProj)),
-        }
-        layoutTranslateOffset = roundTuple2(subProj.translateOffset)
-      }
+      const layoutTranslateOffset = translateOffset
+        ? roundTuple2(translateOffset)
+        : roundTuple2(subProj.translateOffset)
+      const layoutPixelClipExtent = pixelClipExtent
+        ? roundTuple4(pixelClipExtent)
+        : null
 
       return {
         code: subProj.territoryCode,
@@ -256,22 +232,5 @@ export class CompositeExportService {
       .replace(/^-/, '')
 
     return kebabCase
-  }
-
-  private static extractParallels(subProj: any): [number, number] | undefined {
-    if (subProj.parallels) {
-      if (Array.isArray(subProj.parallels)) {
-        return subProj.parallels as [number, number]
-      }
-    }
-
-    if (subProj.projection?.parallels) {
-      const parallels = subProj.projection.parallels()
-      if (Array.isArray(parallels) && parallels.length === 2) {
-        return parallels as [number, number]
-      }
-    }
-
-    return undefined
   }
 }

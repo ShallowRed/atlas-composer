@@ -38,7 +38,7 @@ export interface TerritoryTransforms {
   scales: ComputedRef<Record<string, number>>
   setTerritoryTranslation: (territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) => void
   setTerritoryScale: (territoryCode: TerritoryCode, value: number) => void
-  setTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
+  changeTerritoryProjection: (territoryCode: TerritoryCode, projectionId: ProjectionId) => void
   resetTransforms: () => void
   projectionRecommendations: ComputedRef<string[]>
   projectionGroups: ComputedRef<string[]>

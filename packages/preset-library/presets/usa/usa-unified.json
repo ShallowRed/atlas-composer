@@ -9,7 +9,7 @@
     "projection": {
       "id": "natural-earth",
       "parameters": {
-        "center": [-98, 38],
+        "rotate": [98, -38, 0],
         "scale": 1.0
       }
     }
