@@ -1,5 +1,13 @@
 # @atlas-composer/projection-loader
 
+## 2.1.0
+
+### Minor Changes
+
+- `loader.load()` returns a `CompositeProjectionLike`: `scale()` and `translate()` set after loading recompute every territory projection, and `fitSize()` and `fitExtent()`, which Observable Plot calls, fit the projection to a new size.
+- A territory without `pixelClipExtent` has no clip extent; 2.0 clipped a territory with bounds to a square that extends 10% of the scale on each side of its translate.
+- A territory without `scaleMultiplier` takes the reference scale; 2.0 kept the default scale of its d3 projection.
+
 ## 2.0.1
 
 ### Patch Changes

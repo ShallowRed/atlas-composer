@@ -4,6 +4,7 @@ export {
 } from './projection-loader'
 
 export type {
+  CompositeProjectionLike,
   LoaderOptions,
   ProjectionFactory,
   ProjectionLike,

@@ -251,6 +251,65 @@ describe('projection-loader', () => {
     })
   })
 
+  describe('dynamic scale and translate', () => {
+    const paris: [number, number] = [2.35, 48.85]
+
+    it('should scale the canvas dimensions to fit the requested size', () => {
+      const projection = loader.load(mockConfig, { width: 800, height: 600 })
+
+      expect(projection.scale()).toBeCloseTo(2700 * 800 / 960)
+      expect(projection.translate()).toEqual([400, 300])
+    })
+
+    it('should scale every territory around the translate', () => {
+      const projection = loader.load(mockConfig, { width: 800, height: 600 })
+      const [x, y] = projection(paris)!
+
+      projection.scale(projection.scale() * 2)
+      const [x2, y2] = projection(paris)!
+
+      expect(x2 - 400).toBeCloseTo((x - 400) * 2)
+      expect(y2 - 300).toBeCloseTo((y - 300) * 2)
+    })
+
+    it('should move every territory with the translate', () => {
+      const projection = loader.load(mockConfig, { width: 800, height: 600 })
+      const [x, y] = projection(paris)!
+
+      projection.translate([450, 320])
+      const [x2, y2] = projection(paris)!
+
+      expect(x2).toBeCloseTo(x + 50)
+      expect(y2).toBeCloseTo(y + 20)
+    })
+
+    it('should invert a point after a scale change', () => {
+      const projection = loader.load(mockConfig, { width: 800, height: 600 })
+      projection.scale(5000)
+
+      const [lon, lat] = projection.invert(projection(paris)!)!
+
+      expect(lon).toBeCloseTo(paris[0])
+      expect(lat).toBeCloseTo(paris[1])
+    })
+
+    it('should fit a size as a load with that size', () => {
+      const fitted = loader.load(mockConfig, { width: 800, height: 600 }).fitSize([1200, 400], {})
+      const loaded = loader.load(mockConfig, { width: 1200, height: 400 })
+
+      expect(fitted.scale()).toBeCloseTo(loaded.scale())
+      expect(fitted(paris)).toEqual(loaded(paris))
+    })
+
+    it('should fit an extent by centering the fitted size in it', () => {
+      const projection = loader.load(mockConfig, { width: 800, height: 600 })
+        .fitExtent([[20, 20], [780, 580]], {})
+
+      expect(projection.scale()).toBeCloseTo(2700 * 760 / 960)
+      expect(projection.translate()).toEqual([400, 300])
+    })
+  })
+
   describe('pixelClipExtent support', () => {
     it('should handle pixelClipExtent format', () => {
       const configWithPixelClipExtent: CompositeProjectionConfig = {
