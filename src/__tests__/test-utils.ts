@@ -1,7 +1,9 @@
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { CompositeProjectionConfig } from '@/types'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
+import { readFile } from 'node:fs/promises'
 import { createPinia, setActivePinia } from 'pinia'
+import { vi } from 'vitest'
 import { createApp } from 'vue'
 
 export function createMockAtlasConfig(atlasId: AtlasId = 'france' as AtlasId): LoadedAtlasConfig {
@@ -82,6 +84,12 @@ export function createMockCompositeConfig(): CompositeProjectionConfig {
       },
     ],
   }
+}
+
+export async function loadAtlasFromConfigs(atlasId: AtlasId) {
+  vi.stubGlobal('fetch', async (url: string) => new Response(await readFile(`.${url}`, 'utf8')))
+  const registry = await vi.importActual<typeof import('@/core/atlases/registry')>('@/core/atlases/registry')
+  await registry.loadAtlasAsync(atlasId)
 }
 
 export function setupTestPinia() {
