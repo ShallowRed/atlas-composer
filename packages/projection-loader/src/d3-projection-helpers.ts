@@ -1,6 +1,5 @@
 import type { ProjectionFactory } from './projection-loader'
 import * as d3Geo from 'd3-geo'
-import * as d3GeoProjection from 'd3-geo-projection'
 
 export const azimuthalEqualArea: ProjectionFactory = () => d3Geo.geoAzimuthalEqualArea()
 export const azimuthalEquidistant: ProjectionFactory = () => d3Geo.geoAzimuthalEquidistant()
@@ -14,7 +13,7 @@ export const albers: ProjectionFactory = () => d3Geo.geoAlbers()
 export const mercator: ProjectionFactory = () => d3Geo.geoMercator()
 export const transverseMercator: ProjectionFactory = () => d3Geo.geoTransverseMercator()
 export const equirectangular: ProjectionFactory = () => d3Geo.geoEquirectangular()
-export const naturalEarth1: ProjectionFactory = () => (d3GeoProjection as any).geoNaturalEarth1()
+export const naturalEarth1: ProjectionFactory = () => d3Geo.geoNaturalEarth1()
 export const equalEarth: ProjectionFactory = () => d3Geo.geoEqualEarth()
 
 export const d3ProjectionFactories: Record<string, ProjectionFactory> = {
