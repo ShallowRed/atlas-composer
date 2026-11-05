@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "france",
+    "atlasName": "France",
+    "exportDate": "2026-11-05T12:00:00.000Z",
+    "createdWith": "Atlas composer v1.0.0"
+  },
+  "referenceScale": 2700,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "FR-MET",
+      "name": "France Métropolitaine",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "focusLongitude": 2.5,
+          "focusLatitude": 46.5,
+          "rotate": [
+            -3,
+            -46.2,
+            0
+          ],
+          "parallels": [
+            44,
+            49
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "conic-conformal"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -260,
+          -250,
+          260,
+          250
+        ]
+      },
+      "bounds": [
+        [
+          -6.5,
+          41
+        ],
+        [
+          10,
+          51
+        ]
+      ]
+    },
+    {
+      "code": "FR-GP",
+      "name": "Guadeloupe",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "focusLongitude": -61.46,
+          "focusLatitude": 16.14,
+          "scaleMultiplier": 1.4,
+          "projectionId": "mercator"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -320,
+          -40
+        ],
+        "pixelClipExtent": [
+          -60,
+          -50,
+          60,
+          40
+        ]
+      },
+      "bounds": [
+        [
+          -61.81,
+          15.83
+        ],
+        [
+          -61,
+          16.52
+        ]
+      ]
+    }
+  ]
+}
