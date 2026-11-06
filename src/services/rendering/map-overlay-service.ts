@@ -1,9 +1,7 @@
 import type { Selection } from 'd3'
+import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
-import { path, select } from 'd3'
-import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
-import { ProjectionFactory } from '@/core/projections/factory'
-import { projectionRegistry } from '@/core/projections/registry'
+import { select } from 'd3'
 import { logger } from '@/utils/logger'
 
 const debug = logger.render.overlay
@@ -19,10 +17,10 @@ export interface OverlayConfig {
   showBorders: boolean
   showLimits: boolean
   viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
-  projectionId?: string
   width: number
   height: number
   customComposite?: CompositeProjection | null
+  renderedProjection?: GeoProjection | null
   filteredTerritoryCodes?: Set<string>
 }
 
@@ -43,74 +41,6 @@ export class MapOverlayService {
       y: 0,
       width,
       height,
-    }
-  }
-
-  static createCompositeBorderPath(
-    projectionId: string | undefined,
-    width: number,
-    height: number,
-    canvasDimensions?: { width: number, height: number },
-  ): string | null {
-    if (!projectionId) {
-      return null
-    }
-
-    const definition = projectionRegistry.get(projectionId)
-    if (!definition) {
-      return null
-    }
-
-    const projection = ProjectionFactory.createById(projectionId)
-    if (!projection) {
-      return null
-    }
-
-    const customFit = definition.metadata?.customFit
-    if (customFit) {
-      const referenceWidth = canvasDimensions?.width ?? customFit.referenceWidth
-      const scaleFactor = width / referenceWidth
-      projection.scale(customFit.defaultScale * scaleFactor)
-      projection.translate([width / 2, height / 2])
-    }
-    else {
-      const defaultScale = 1000
-      const referenceWidth = canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
-      if (typeof projection.scale === 'function') {
-        const scaleFactor = width / referenceWidth
-        projection.scale(defaultScale * scaleFactor)
-      }
-      if (typeof projection.translate === 'function') {
-        projection.translate([width / 2, height / 2])
-      }
-    }
-
-    const getBorders = (projection as any)?.getCompositionBorders
-    if (typeof getBorders === 'function') {
-      try {
-        const pathString = getBorders.call(projection)
-        return pathString.length > 0 ? pathString : null
-      }
-      catch (err) {
-        debug('Error getting composition borders: %O', err)
-      }
-    }
-
-    const drawBorders = (projection as any)?.drawCompositionBorders
-    if (typeof drawBorders !== 'function') {
-      return null
-    }
-
-    const pathBuilder = path()
-
-    try {
-      drawBorders.call(projection, pathBuilder)
-      const pathString = pathBuilder.toString()
-      return pathString.length > 0 ? pathString : null
-    }
-    catch (err) {
-      debug('Error drawing composition borders: %O', err)
-      return null
     }
   }
 
@@ -193,18 +123,22 @@ export class MapOverlayService {
     overlayGroup: Selection<any, any, any, any>,
     config: OverlayConfig,
   ): void {
-    const overlayProjectionId = config.projectionId
-    if (!overlayProjectionId) {
+    const projection = config.renderedProjection as (GeoProjection & { getCompositionBorders?: () => string }) | null | undefined
+    const getBorders = projection?.getCompositionBorders
+    if (typeof getBorders !== 'function') {
       return
     }
 
-    const pathData = this.createCompositeBorderPath(
-      overlayProjectionId,
-      config.width,
-      config.height,
-    )
+    let pathData: string
+    try {
+      pathData = getBorders.call(projection)
+    }
+    catch (err) {
+      debug('Error getting composition borders: %O', err)
+      return
+    }
 
-    if (!pathData) {
+    if (pathData.length === 0) {
       return
     }
 

@@ -364,21 +364,21 @@ async function renderMap() {
         : 'simple'
 
       if (overlayProjectionId) {
+        const renderProjection = cartographer.value?.lastProjection ?? undefined
         MapRenderCoordinator.applyOverlays(
           svg,
           isCompositeMode ? viewStore.viewMode as 'composite-custom' | 'built-in-composite' : 'individual',
           {
             showBorders: uiStore.showCompositionBorders,
             showLimits: uiStore.showMapLimits,
-            projectionId: overlayProjectionId,
             width,
             height,
             customComposite: isCompositeMode ? cartographer.value?.customComposite : undefined,
+            renderedProjection: renderProjection,
             filteredTerritoryCodes: new Set(geoDataStore.allActiveTerritories.map(t => t.code)),
           },
         )
 
-        const renderProjection = cartographer.value?.lastProjection ?? undefined
         MapRenderCoordinator.applyGraticuleOverlay(svg, {
           showGraticule: uiStore.showGraticule,
           width,

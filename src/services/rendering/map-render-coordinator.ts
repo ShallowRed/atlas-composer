@@ -120,10 +120,10 @@ export class MapRenderCoordinator {
     config: {
       showBorders: boolean
       showLimits: boolean
-      projectionId: string
       width: number
       height: number
       customComposite?: any
+      renderedProjection?: GeoProjection | null
       filteredTerritoryCodes?: Set<string>
     },
   ): void {
@@ -131,10 +131,10 @@ export class MapRenderCoordinator {
       showBorders: config.showBorders,
       showLimits: config.showLimits,
       viewMode,
-      projectionId: config.projectionId,
       width: config.width,
       height: config.height,
       customComposite: config.customComposite,
+      renderedProjection: config.renderedProjection,
       filteredTerritoryCodes: config.filteredTerritoryCodes,
     })
   }
