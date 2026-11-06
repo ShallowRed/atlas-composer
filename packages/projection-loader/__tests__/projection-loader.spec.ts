@@ -1,6 +1,8 @@
-import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { CompositeProjectionConfig, ProjectionParameters } from '@atlas-composer/specification'
+import type { GeoConicProjection } from 'd3-geo'
 
-import { beforeAll, describe, expect, it } from 'vitest'
+import { geoConicConformal } from 'd3-geo'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
 import { ProjectionLoader, validateConfig } from '../src/projection-loader'
 
@@ -311,6 +313,54 @@ describe('projection-loader', () => {
 
       expect(projection.scale()).toBeCloseTo(2700 * 760 / 960)
       expect(projection.translate()).toEqual([400, 300])
+    })
+  })
+
+  describe('d3 parameters', () => {
+    function loadTerritory(parameters: ProjectionParameters): GeoConicProjection {
+      const created: GeoConicProjection[] = []
+      const spyLoader = new ProjectionLoader()
+      spyLoader.register('conic-conformal', () => {
+        const projection = geoConicConformal()
+        vi.spyOn(projection, 'clipAngle')
+        created.push(projection)
+        return projection
+      })
+      const territory = mockConfig.territories[0]!
+      spyLoader.load(
+        { ...mockConfig, territories: [{ ...territory, projection: { ...territory.projection, parameters } }] },
+        { width: 960, height: 500 },
+      )
+      return created.at(-1)!
+    }
+
+    it('should apply the parameters of the configuration as given', () => {
+      const projection = loadTerritory({ center: [1, 2], rotate: [-3, -46.2], parallels: [44, 49] })
+
+      expect(projection.center()).toEqual([1, 2])
+      expect(projection.rotate()).toEqual([expect.closeTo(-3), expect.closeTo(-46.2), 0])
+      expect(projection.parallels()).toEqual([44, 49])
+    })
+
+    it('should apply a zero clip angle', () => {
+      const projection = loadTerritory({ clipAngle: 0 })
+
+      expect(projection.clipAngle).toHaveBeenCalledWith(0)
+    })
+
+    it('should apply the precision of the configuration', () => {
+      const projection = loadTerritory({ precision: 0.1 })
+
+      expect(projection.precision()).toBe(0.1)
+    })
+
+    it('should keep the factory values of the parameters the configuration omits', () => {
+      const projection = loadTerritory({})
+      const factory = geoConicConformal()
+
+      expect(projection.center()).toEqual(factory.center())
+      expect(projection.rotate()).toEqual(factory.rotate())
+      expect(projection.parallels()).toEqual(factory.parallels())
     })
   })
 
