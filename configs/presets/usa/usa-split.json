@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset.schema.json",
-  "id": "usa-split-uniform",
+  "id": "usa-split",
   "name": "USA - Vue séparée uniforme",
   "description": "Projection conique conforme pour tous les territoires américains",
   "atlasId": "usa",

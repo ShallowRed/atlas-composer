@@ -8,11 +8,11 @@ import { useParameterStore } from '@/stores/parameters'
 
 const TOLERANCE = 1e-6
 
-// Canvas of portugal-default.json, from which missing-scale-and-canvas.json is written
+// Canvas of portugal-standard.json, from which missing-scale-and-canvas.json is written
 const CANVAS_DIMENSIONS = { width: 960, height: 500 }
 
 // Files exported by the application at commit b36ab99, and files written by hand
-// from portugal-default.json with one deprecated form each, with the coordinates
+// from portugal-standard.json with one deprecated form each, with the coordinates
 // their import gives at commit 0c8ac56.
 const coordinates: Record<string, Record<string, Array<[Point, Point]>>> = JSON.parse(readFileSync('src/__tests__/fixtures/exports-coordinates.json', 'utf8'))
 
@@ -37,7 +37,7 @@ describe('import of a territory without positioning', () => {
     { projectionId: 'mercator', family: 'cylindrical', parameter: 'center', other: 'rotate' },
     { projectionId: 'conic-conformal', family: 'conic', parameter: 'rotate', other: 'center' },
   ] as const)('gives the center of the atlas to a $family projection', async ({ projectionId, parameter, other }) => {
-    const config = JSON.parse(readFileSync('src/__tests__/fixtures/exports/france-customcomposite-nsp.json', 'utf8'))
+    const config = JSON.parse(readFileSync('src/__tests__/fixtures/exports/france-standard.json', 'utf8'))
     const territory = config.territories.find((t: { code: string }) => t.code === code)
     const { focusLongitude, focusLatitude, rotate, center, ...parameters } = territory.projection.parameters
     territory.projection = { ...territory.projection, id: projectionId, parameters: { ...parameters, projectionId } }

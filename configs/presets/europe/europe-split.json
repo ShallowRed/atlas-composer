@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset-split.schema.json",
-  "id": "europe-split-uniform",
+  "id": "europe-split",
   "name": "EU - Vue séparée uniforme",
   "description": "Projection conique conforme pour tous les territoires européens",
   "atlasId": "europe",

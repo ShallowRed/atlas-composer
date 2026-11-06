@@ -463,7 +463,7 @@
       ]
     ]
   },
-  "france-customcomposite-nsp": {
+  "france-standard": {
     "FR-MET": [
       [
         [
@@ -1017,7 +1017,7 @@
       ]
     ]
   },
-  "france-customcomposite-proportionnald3cp": {
+  "france-proportional": {
     "FR-MET": [
       [
         [
@@ -2307,7 +2307,7 @@
       ]
     ]
   },
-  "france-customcomposite-pseudod3cp": {
+  "france-pseudo-d3cp": {
     "FR-MET": [
       [
         [
@@ -5075,7 +5075,7 @@
       ]
     ]
   },
-  "portugal-default": {
+  "portugal-standard": {
     "PT-CONT": [
       [
         [

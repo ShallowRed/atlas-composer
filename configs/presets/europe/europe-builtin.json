@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset-built-in-composite.schema.json",
-  "id": "europe-built-in-composite",
+  "id": "europe-builtin",
   "name": "Europe - Composite conique conforme",
   "description": "Vue composite de l'Europe en projection conique conforme",
   "atlasId": "europe",

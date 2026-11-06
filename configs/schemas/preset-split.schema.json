@@ -13,7 +13,7 @@
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "Unique preset identifier (kebab-case, e.g., 'france-split-optimized')"
+      "description": "Unique preset identifier (kebab-case, e.g., 'france-split')"
     },
     "name": {
       "$ref": "preset-definitions.schema.json#/definitions/i18nString",
