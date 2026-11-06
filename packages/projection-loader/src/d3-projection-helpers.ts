@@ -25,11 +25,10 @@ export const d3ProjectionFactories: Record<string, ProjectionFactory> = {
   'conic-conformal': conicConformal,
   'conic-equal-area': conicEqualArea,
   'conic-equidistant': conicEquidistant,
-  'albers': albers,
   'mercator': mercator,
   'transverse-mercator': transverseMercator,
   'equirectangular': equirectangular,
-  'natural-earth-1': naturalEarth1,
+  'natural-earth': naturalEarth1,
   'equal-earth': equalEarth,
 }
 

@@ -1,10 +1,17 @@
 import type { CompositeProjectionConfig, ProjectionParameters } from '@atlas-composer/specification'
 import type { GeoConicProjection } from 'd3-geo'
 
-import { geoConicConformal } from 'd3-geo'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { DEFAULT_SCALE_MULTIPLIER } from '@atlas-composer/specification'
+import { geoConicConformal, geoConicEqualArea } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { ConfigValidationError, ProjectionLoader, validateConfig } from '../src'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
-import { ProjectionLoader, validateConfig } from '../src/projection-loader'
+
+function readFormatFixture(name: string): CompositeProjectionConfig {
+  return JSON.parse(readFileSync(resolve(import.meta.dirname, `../../specification/__tests__/fixtures/valid/${name}.json`), 'utf8'))
+}
 
 describe('projection-loader', () => {
   const loader = new ProjectionLoader()
@@ -72,41 +79,22 @@ describe('projection-loader', () => {
   }
 
   describe('validateConfig', () => {
-    it('should validate a correct configuration', () => {
-      expect(() => validateConfig(mockConfig)).not.toThrow()
+    it('should accept a correct configuration', () => {
+      expect(validateConfig(mockConfig)).toEqual({ valid: true, errors: [], warnings: [] })
     })
 
-    it('should reject null/undefined', () => {
-      expect(() => validateConfig(null)).toThrow('Configuration must be an object')
-      expect(() => validateConfig(undefined)).toThrow('Configuration must be an object')
+    it('should report a missing field', () => {
+      const { valid, errors } = validateConfig({ ...mockConfig, metadata: undefined })
+
+      expect(valid).toBe(false)
+      expect(errors).toEqual([expect.objectContaining({ path: 'metadata', code: 'MISSING_FIELD' })])
     })
 
-    it('should reject configuration without version', () => {
-      const invalid = { ...mockConfig, version: undefined }
-      expect(() => validateConfig(invalid)).toThrow('must have a version')
-    })
+    it('should report a value outside the format', () => {
+      const { valid, errors } = validateConfig({ ...mockConfig, territories: [] })
 
-    it('should reject configuration without metadata', () => {
-      const invalid = { ...mockConfig, metadata: undefined }
-      expect(() => validateConfig(invalid)).toThrow('must have metadata')
-    })
-
-    it('should reject configuration without territories', () => {
-      const invalid = { ...mockConfig, territories: undefined }
-      expect(() => validateConfig(invalid)).toThrow('must have territories array')
-    })
-
-    it('should reject configuration with empty territories', () => {
-      const invalid = { ...mockConfig, territories: [] }
-      expect(() => validateConfig(invalid)).toThrow('at least one territory')
-    })
-
-    it('should reject territories without required fields', () => {
-      const invalid = {
-        ...mockConfig,
-        territories: [{ name: 'Test' }],
-      }
-      expect(() => validateConfig(invalid)).toThrow('missing required field')
+      expect(valid).toBe(false)
+      expect(errors).toEqual([expect.objectContaining({ path: 'territories', code: 'INVALID_VALUE' })])
     })
   })
 
@@ -127,11 +115,34 @@ describe('projection-loader', () => {
       expect(() => loader.load({ ...mockConfig, version: '1.1' }, { width: 800, height: 600 })).not.toThrow()
     })
 
-    it('should reject unsupported version', () => {
+    it('should throw a ConfigValidationError for a configuration the format refuses', () => {
       const invalid = { ...mockConfig, version: '2.0' }
-      expect(() =>
-        loader.load(invalid, { width: 800, height: 600 }),
-      ).toThrow('Unsupported configuration version')
+
+      expect(() => loader.load(invalid, { width: 800, height: 600 })).toThrow(ConfigValidationError)
+      expect(() => loader.load(invalid, { width: 800, height: 600 })).toThrow('version: must match pattern')
+    })
+
+    it('should load a territory without bounds, whose points the composite does not project', () => {
+      const projection = loader.load(readFormatFixture('without-bounds'), { width: 960, height: 500 })
+
+      expect(projection([-61.46, 16.14])).toBeNull()
+    })
+
+    it('should prefer the factory registered under an alias', () => {
+      const aliasLoader = new ProjectionLoader()
+      const identifierFactory = vi.fn(() => geoConicEqualArea())
+      const aliasFactory = vi.fn(() => geoConicEqualArea())
+      aliasLoader.register('conic-equal-area', identifierFactory)
+      aliasLoader.register('albers', aliasFactory)
+      const territory = mockConfig.territories[0]
+
+      aliasLoader.load(
+        { ...mockConfig, territories: [{ ...territory, projection: { ...territory.projection, id: 'albers' } }] },
+        { width: 960, height: 500 },
+      )
+
+      expect(aliasFactory).toHaveBeenCalled()
+      expect(identifierFactory).not.toHaveBeenCalled()
     })
 
     it('should reject unregistered projection IDs', () => {
@@ -180,9 +191,19 @@ describe('projection-loader', () => {
       ).toThrow('Invalid JSON')
     })
 
-    it('should reject malformed configuration in JSON', () => {
+    it('should throw a ConfigValidationError for a configuration the format refuses', () => {
       const invalid = JSON.stringify({ version: '1.0' })
-      expect(() => loader.loadFromJSON(invalid, { width: 800, height: 600 })).toThrow()
+      expect(() => loader.loadFromJSON(invalid, { width: 800, height: 600 })).toThrow(ConfigValidationError)
+    })
+
+    it('should list the errors of the format in the ConfigValidationError', () => {
+      const invalid = JSON.stringify({ ...mockConfig, referenceScale: undefined })
+
+      expect(() => loader.loadFromJSON(invalid, { width: 800, height: 600 })).toThrow(expect.objectContaining({
+        name: 'ConfigValidationError',
+        message: expect.stringContaining('- referenceScale: must have required property \'referenceScale\''),
+        errors: [expect.objectContaining({ path: 'referenceScale', code: 'MISSING_FIELD' })],
+      }))
     })
   })
 
@@ -354,6 +375,12 @@ describe('projection-loader', () => {
       expect(projection.precision()).toBe(0.1)
     })
 
+    it('should give a territory without scaleMultiplier the reference scale', () => {
+      const projection = loadTerritory({})
+
+      expect(projection.scale()).toBe(mockConfig.referenceScale * DEFAULT_SCALE_MULTIPLIER)
+    })
+
     it('should keep the factory values of the parameters the configuration omits', () => {
       const projection = loadTerritory({})
       const factory = geoConicConformal()
@@ -376,7 +403,7 @@ describe('projection-loader', () => {
         canvasDimensions: { width: 800, height: 600 },
         territories: [
           {
-            code: 'TEST',
+            code: 'XX',
             name: 'Test Territory',
             projection: {
               id: 'mercator',
@@ -407,8 +434,8 @@ describe('projection-loader', () => {
       expect(typeof projection).toBe('function')
     })
 
-    it('should handle null pixelClipExtent (fallback to default bounds)', () => {
-      const configWithNullClipExtent = {
+    it('should load a territory without pixelClipExtent', () => {
+      const configWithoutClipExtent: CompositeProjectionConfig = {
         version: '1.0',
         metadata: {
           atlasId: 'test',
@@ -418,7 +445,7 @@ describe('projection-loader', () => {
         canvasDimensions: { width: 800, height: 600 },
         territories: [
           {
-            code: 'TEST',
+            code: 'XX',
             name: 'Test Territory',
             projection: {
               id: 'mercator',
@@ -430,7 +457,6 @@ describe('projection-loader', () => {
             },
             layout: {
               translateOffset: [0, 0] as [number, number],
-              pixelClipExtent: null,
             },
             bounds: [
               [-10, -10],
@@ -440,7 +466,7 @@ describe('projection-loader', () => {
         ],
       }
 
-      const projection = loader.load(configWithNullClipExtent, {
+      const projection = loader.load(configWithoutClipExtent, {
         width: 800,
         height: 600,
       })

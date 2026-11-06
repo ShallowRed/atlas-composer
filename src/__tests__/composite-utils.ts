@@ -113,7 +113,7 @@ export function loadWithLoader(config: CompositeProjectionConfig, territoryCode:
   // Clipping hides the points outside the pixel extent; the comparison bears on the projected coordinates
   const territories = config.territories
     .filter(t => t.code === territoryCode)
-    .map(t => ({ ...t, layout: { ...t.layout, pixelClipExtent: null } }))
+    .map(({ layout: { translateOffset }, ...territory }) => ({ ...territory, layout: { translateOffset } }))
   return loader.loadFromJSON(JSON.stringify({ ...config, territories }), { width, height })
 }
 
