@@ -1,7 +1,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const MERCATOR: ProjectionDefinition = {
+const MERCATOR: ProjectionDefinition = {
   id: 'mercator',
   name: 'projections.mercator.name',
   description: 'projections.mercator.description',
@@ -34,7 +34,7 @@ export const MERCATOR: ProjectionDefinition = {
  * Equirectangular Projection (Plate Carrée)
  * Simple rectangular projection where meridians and parallels are evenly spaced
  */
-export const EQUIRECTANGULAR: ProjectionDefinition = {
+const EQUIRECTANGULAR: ProjectionDefinition = {
   id: 'equirectangular',
   name: 'projections.equirectangular.name',
   description: 'projections.equirectangular.description',

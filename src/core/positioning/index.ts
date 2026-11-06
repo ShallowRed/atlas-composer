@@ -16,11 +16,9 @@ export {
 } from './rules'
 
 export type {
-  D3Center,
   D3Rotate,
   DeprecatedPositioning,
   Positioning,
-  PositioningParameters,
   PositioningView,
   PositionParameter,
 } from './types'

@@ -6,7 +6,7 @@ import { CompositeSettingsBuilder } from '@/services/rendering/composite-setting
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
-export interface Territory {
+interface Territory {
   name: string
   code: string
   area: number

@@ -7,26 +7,6 @@ export interface ValidationResult {
   warnings: string[]
 }
 
-export const SUPPORTED_VERSIONS = ['1.0'] as const
-export type SupportedVersion = typeof SUPPORTED_VERSIONS[number]
-
-export function validateVersion(version: unknown): ValidationResult {
-  const errors: string[] = []
-  const warnings: string[] = []
-
-  if (typeof version !== 'string') {
-    errors.push('Version must be a string')
-    return { isValid: false, errors, warnings }
-  }
-
-  if (!SUPPORTED_VERSIONS.includes(version as any)) {
-    errors.push(`Unsupported version '${version}'. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`)
-    return { isValid: false, errors, warnings }
-  }
-
-  return { isValid: true, errors, warnings }
-}
-
 export function validateAtlasId(
   atlasId: unknown,
   options: { allowUnknown?: boolean } = {},
@@ -137,56 +117,4 @@ export function validateProjectionParameters(
   }
 
   return { isValid: errors.length === 0, errors, warnings }
-}
-
-export function validateMetadata(
-  metadata: unknown,
-  requiredFields: string[] = [],
-): ValidationResult {
-  const errors: string[] = []
-  const warnings: string[] = []
-
-  if (!metadata || typeof metadata !== 'object') {
-    errors.push('Metadata must be an object')
-    return { isValid: false, errors, warnings }
-  }
-
-  const meta = metadata as Record<string, unknown>
-
-  for (const field of requiredFields) {
-    if (!(field in meta) || meta[field] === undefined || meta[field] === null || meta[field] === '') {
-      errors.push(`Required metadata field '${field}' is missing or empty`)
-    }
-  }
-
-  if ('exportDate' in meta && meta.exportDate !== undefined) {
-    if (typeof meta.exportDate !== 'string') {
-      errors.push('Metadata field \'exportDate\' must be a string')
-    }
-    else {
-      // Try to parse as ISO date
-      const date = new Date(meta.exportDate)
-      if (Number.isNaN(date.getTime())) {
-        warnings.push('Metadata field \'exportDate\' is not a valid ISO 8601 date')
-      }
-    }
-  }
-
-  return { isValid: errors.length === 0, errors, warnings }
-}
-
-export function combineValidationResults(...results: ValidationResult[]): ValidationResult {
-  const allErrors: string[] = []
-  const allWarnings: string[] = []
-
-  for (const result of results) {
-    allErrors.push(...result.errors)
-    allWarnings.push(...result.warnings)
-  }
-
-  return {
-    isValid: allErrors.length === 0,
-    errors: allErrors,
-    warnings: allWarnings,
-  }
 }

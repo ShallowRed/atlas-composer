@@ -1,4 +1,1 @@
-export {
-  InvalidViewModeError,
-  ViewModeSelection,
-} from './view-mode-selection'
+export { ViewModeSelection } from './view-mode-selection'

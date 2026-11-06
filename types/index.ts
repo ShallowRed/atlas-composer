@@ -12,9 +12,6 @@
 export type {
   I18nValue,
   JSONAtlasConfig,
-  JSONTerritoryCollection,
-  JSONTerritoryCollections,
-  JSONTerritoryCollectionSet,
   JSONTerritoryConfig,
 } from './atlas-config.js'
 
@@ -23,11 +20,3 @@ export type {
   BackendConfig,
   BackendTerritory,
 } from './backend-config.js'
-
-// GeoJSON Types
-export type {
-  GeoJSONFeature,
-  GeoJSONFeatureCollection,
-  GeoJSONGeometry,
-  GeoJSONProperties,
-} from './geojson.js'

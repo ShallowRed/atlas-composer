@@ -7,7 +7,7 @@ export interface ValidationResult {
   warning?: string
 }
 
-export interface ParameterConstraint {
+interface ParameterConstraint {
   min?: number | number[]
   max?: number | number[]
   step?: number
@@ -48,7 +48,7 @@ export interface ParameterDefinition {
   defaultValue?: any
 }
 
-export class ParameterRegistry {
+class ParameterRegistry {
   private definitions = new Map<string, ParameterDefinition>()
 
   register(def: ParameterDefinition): void {

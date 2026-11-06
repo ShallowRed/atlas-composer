@@ -28,7 +28,7 @@ function areValuesEqual(a: any, b: any): boolean {
   return false
 }
 
-export function usePresetDefaults() {
+function usePresetDefaults() {
   const presetDefaults = ref<TerritoryDefaults | null>(null)
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
   const presetGlobalParameters = ref<ProjectionParameters | null>(null)

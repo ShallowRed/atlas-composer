@@ -122,13 +122,3 @@ export async function listConfigs(): Promise<string[]> {
     return []
   }
 }
-
-export async function configExists(atlasName: string): Promise<boolean> {
-  try {
-    await getAtlasConfigPath(atlasName)
-    return true
-  }
-  catch {
-    return false
-  }
-}

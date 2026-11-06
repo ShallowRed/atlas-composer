@@ -13,8 +13,3 @@ export function isConicProjection(
 ): projection is GeoConicProjection {
   return typeof (projection as any).parallels === 'function'
 }
-
-/**
- * Factory function return type for conic projections.
- */
-export type ConicProjectionFactory = () => GeoConicProjection

@@ -1,7 +1,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
+const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   id: 'conic-conformal-france',
   name: 'projections.conicConformalFrance.name',
   description: 'projections.conicConformalFrance.description',
@@ -36,7 +36,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   },
 }
 
-export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
+const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   id: 'conic-conformal-portugal',
   name: 'projections.conicConformalPortugal.name',
   description: 'projections.conicConformalPortugal.description',
@@ -70,7 +70,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   },
 }
 
-export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
+const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   id: 'conic-conformal-spain',
   name: 'projections.conicConformalSpain.name',
   description: 'projections.conicConformalSpain.description',
@@ -104,7 +104,7 @@ export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   },
 }
 
-export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
+const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   id: 'conic-conformal-europe',
   name: 'projections.conicConformalEurope.name',
   description: 'projections.conicConformalEurope.description',
@@ -138,7 +138,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   },
 }
 
-export const ALBERS_USA: ProjectionDefinition = {
+const ALBERS_USA: ProjectionDefinition = {
   id: 'albers-usa',
   name: 'projections.albersUsa.name',
   description: 'projections.albersUsa.description',
@@ -170,7 +170,7 @@ export const ALBERS_USA: ProjectionDefinition = {
   },
 }
 
-export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
+const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   id: 'albers-usa-composite',
   name: 'projections.albersUsaComposite.name',
   description: 'projections.albersUsaComposite.description',
@@ -204,7 +204,7 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   },
 }
 
-export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
+const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   id: 'albers-usa-territories',
   name: 'projections.albersUsaTerritories.name',
   description: 'projections.albersUsaTerritories.description',
@@ -238,7 +238,7 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   },
 }
 
-export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
+const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   id: 'conic-conformal-netherlands',
   name: 'projections.conicConformalNetherlands.name',
   description: 'projections.conicConformalNetherlands.description',
@@ -272,7 +272,7 @@ export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   },
 }
 
-export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
+const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   id: 'conic-equidistant-japan',
   name: 'projections.conicEquidistantJapan.name',
   description: 'projections.conicEquidistantJapan.description',
@@ -306,7 +306,7 @@ export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   },
 }
 
-export const MERCATOR_ECUADOR: ProjectionDefinition = {
+const MERCATOR_ECUADOR: ProjectionDefinition = {
   id: 'mercator-ecuador',
   name: 'projections.mercatorEcuador.name',
   description: 'projections.mercatorEcuador.description',
@@ -340,7 +340,7 @@ export const MERCATOR_ECUADOR: ProjectionDefinition = {
   },
 }
 
-export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
+const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   id: 'transverse-mercator-chile',
   name: 'projections.transverseMercatorChile.name',
   description: 'projections.transverseMercatorChile.description',
@@ -374,7 +374,7 @@ export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   },
 }
 
-export const MERCATOR_MALAYSIA: ProjectionDefinition = {
+const MERCATOR_MALAYSIA: ProjectionDefinition = {
   id: 'mercator-malaysia',
   name: 'projections.mercatorMalaysia.name',
   description: 'projections.mercatorMalaysia.description',
@@ -408,7 +408,7 @@ export const MERCATOR_MALAYSIA: ProjectionDefinition = {
   },
 }
 
-export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
+const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   id: 'mercator-equatorial-guinea',
   name: 'projections.mercatorEquatorialGuinea.name',
   description: 'projections.mercatorEquatorialGuinea.description',
@@ -442,7 +442,7 @@ export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   },
 }
 
-export const ALBERS_UK: ProjectionDefinition = {
+const ALBERS_UK: ProjectionDefinition = {
   id: 'albers-uk',
   name: 'projections.albersUk.name',
   description: 'projections.albersUk.description',
@@ -476,7 +476,7 @@ export const ALBERS_UK: ProjectionDefinition = {
   },
 }
 
-export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
+const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
   id: 'transverse-mercator-denmark',
   name: 'projections.transverseMercatorDenmark.name',
   description: 'projections.transverseMercatorDenmark.description',

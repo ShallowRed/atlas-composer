@@ -2,8 +2,6 @@ import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@
 import type {
   CanvasDimensions,
   CompositeProjectionConfig,
-  GeoBounds,
-  LayoutConfig,
   TerritoryConfig,
   ValidationError,
 } from '@atlas-composer/specification'
@@ -90,8 +88,6 @@ export interface StreamLike {
 }
 
 export type ProjectionFactory = () => ProjectionLike
-
-export type { CompositeProjectionConfig, GeoBounds, LayoutConfig, TerritoryConfig }
 
 export interface LoaderOptions {
   width: number

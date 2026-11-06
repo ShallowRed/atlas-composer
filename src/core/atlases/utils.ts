@@ -1,35 +1,5 @@
 import type { TerritoryConfig } from '@/types'
 
-export function createTerritoryMap(territories: TerritoryConfig[]): Map<string, TerritoryConfig> {
-  return new Map(territories.map(t => [t.code, t]))
-}
-
-export function getTerritoryConfig(
-  territories: Map<string, TerritoryConfig>,
-  code: string,
-): TerritoryConfig | undefined {
-  return territories.get(code)
-}
-
-export function getTerritoryName(
-  territories: Map<string, TerritoryConfig>,
-  code: string,
-): string {
-  return territories.get(code)?.name || code
-}
-
-export function getTerritoryShortName(
-  territories: Map<string, TerritoryConfig>,
-  code: string,
-): string {
-  const config = territories.get(code)
-  return config?.shortName || config?.name || code
-}
-
-export function extractTerritoryCodes(territories: TerritoryConfig[]): string[] {
-  return territories.map(t => t.code)
-}
-
 export function getTerritoriesForMode(
   territories: TerritoryConfig[],
   mode: string,

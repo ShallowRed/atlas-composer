@@ -1,5 +1,4 @@
 import type { I18nValue } from '#types'
-import { useI18n } from 'vue-i18n'
 
 export function resolveI18nValue(value: I18nValue, locale?: string): string {
   if (typeof value === 'string') {
@@ -18,11 +17,6 @@ export function resolveI18nValue(value: I18nValue, locale?: string): string {
 
   const firstKey = Object.keys(localeObj)[0]
   return firstKey ? (localeObj[firstKey] || '') : ''
-}
-
-export function useResolveI18nValue(value: I18nValue): string {
-  const { locale } = useI18n()
-  return resolveI18nValue(value, locale.value)
 }
 
 export function getCurrentLocale(): string {

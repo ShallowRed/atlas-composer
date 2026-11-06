@@ -1,7 +1,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
+const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
   id: 'azimuthal-equal-area',
   name: 'projections.azimuthalEqualArea.name',
   description: 'projections.azimuthalEqualArea.description',
@@ -22,7 +22,7 @@ export const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
   year: 1772,
 }
 
-export const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
+const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
   id: 'azimuthal-equidistant',
   name: 'projections.azimuthalEquidistant.name',
   description: 'projections.azimuthalEquidistant.description',
@@ -41,7 +41,7 @@ export const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
 
 }
 
-export const STEREOGRAPHIC: ProjectionDefinition = {
+const STEREOGRAPHIC: ProjectionDefinition = {
   id: 'stereographic',
   name: 'projections.stereographic.name',
   description: 'projections.stereographic.description',
@@ -59,7 +59,7 @@ export const STEREOGRAPHIC: ProjectionDefinition = {
 
 }
 
-export const ORTHOGRAPHIC: ProjectionDefinition = {
+const ORTHOGRAPHIC: ProjectionDefinition = {
   id: 'orthographic',
   name: 'projections.orthographic.name',
   description: 'projections.orthographic.description',
@@ -77,7 +77,7 @@ export const ORTHOGRAPHIC: ProjectionDefinition = {
 
 }
 
-export const GNOMONIC: ProjectionDefinition = {
+const GNOMONIC: ProjectionDefinition = {
   id: 'gnomonic',
   name: 'projections.gnomonic.name',
   description: 'projections.gnomonic.description',

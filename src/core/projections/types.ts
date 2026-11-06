@@ -2,7 +2,7 @@ import type { ProjectionFamily as SpecificationProjectionFamily } from '@atlas-c
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-export interface ProjectionCapabilities {
+interface ProjectionCapabilities {
   preserves: Array<'area' | 'angle' | 'distance' | 'direction'>
   distorts?: Array<'area' | 'angle' | 'distance' | 'direction'>
   supportsComposite: boolean

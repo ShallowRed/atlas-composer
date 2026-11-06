@@ -1,7 +1,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const CONIC_CONFORMAL: ProjectionDefinition = {
+const CONIC_CONFORMAL: ProjectionDefinition = {
   id: 'conic-conformal',
   name: 'projections.conicConformal.name',
   description: 'projections.conicConformal.description',
@@ -33,7 +33,7 @@ export const CONIC_CONFORMAL: ProjectionDefinition = {
   },
 }
 
-export const ALBERS: ProjectionDefinition = {
+const ALBERS: ProjectionDefinition = {
   id: 'conic-equal-area',
   name: 'projections.conicEqualArea.name',
   description: 'projections.conicEqualArea.description',
@@ -65,7 +65,7 @@ export const ALBERS: ProjectionDefinition = {
   },
 }
 
-export const CONIC_EQUIDISTANT: ProjectionDefinition = {
+const CONIC_EQUIDISTANT: ProjectionDefinition = {
   id: 'conic-equidistant',
   name: 'projections.conicEquidistant.name',
   description: 'projections.conicEquidistant.description',

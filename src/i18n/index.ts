@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import en from '@/i18n/locales/en.json'
 import fr from '@/i18n/locales/fr.json'
 
-export type MessageSchema = typeof en
+type MessageSchema = typeof en
 
 export const SUPPORTED_LOCALES = {
   en: 'English',

@@ -7,32 +7,8 @@ import type {
   TerritoryConfig,
 } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
-import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistryBehavior } from '@/types/registry'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
-
-function getFallbackProjectionParameters(atlasId: string): ProjectionParameters {
-  const baseParams: ProjectionParameters = {
-    center: [0, 0],
-    rotate: [0, 0],
-    parallels: [30, 60],
-  }
-
-  switch (atlasId) {
-    case 'world':
-      return { ...baseParams, center: [0, 20] }
-    case 'france':
-      return { ...baseParams, center: [2, 46] }
-    case 'spain':
-      return { ...baseParams, center: [-3, 40] }
-    case 'portugal':
-      return { ...baseParams, center: [-8, 39] }
-    case 'usa':
-      return { ...baseParams, center: [-96, 40] }
-    default:
-      return baseParams
-  }
-}
 
 function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
   switch (atlasId) {
@@ -61,7 +37,6 @@ export interface ProjectionPreferences {
 }
 
 export interface AtlasSpecificConfig {
-  projectionParams: ProjectionParameters
   territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
   projectionPreferences?: ProjectionPreferences
@@ -70,7 +45,7 @@ export interface AtlasSpecificConfig {
   rawCollectionLabels?: Record<string, Record<string, I18nValue>>
 }
 
-export interface LoadedTerritories {
+interface LoadedTerritories {
   all: TerritoryConfig[]
   isWildcard?: boolean
 }
@@ -80,8 +55,6 @@ export interface LoadedAtlasConfig {
   atlasSpecificConfig: AtlasSpecificConfig
   territories: LoadedTerritories
 }
-
-export type { CompositeProjectionDefaults } from '@/types'
 
 function transformTerritory(territory: JSONTerritoryConfig, locale: string): TerritoryConfig {
   return {
@@ -221,8 +194,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
 
   const territories = extractTerritories(jsonConfig, locale)
 
-  const projectionParams = getFallbackProjectionParameters(jsonConfig.id)
-
   const allTerritoryCodes = territories.isWildcard
     ? undefined
     : territories.all.map(t => t.code)
@@ -327,7 +298,6 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
   const rawGroupLabels: Record<string, I18nValue> = {}
 
   const atlasSpecificConfig: AtlasSpecificConfig = {
-    projectionParams,
     territoryModes,
     territoryCollections,
     projectionPreferences,
