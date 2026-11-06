@@ -1,3 +1,4 @@
+import type { ProjectionFamily as SpecificationProjectionFamily } from '@atlas-composer/specification'
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -35,17 +36,17 @@ export const ProjectionCategory = {
 
 export type ProjectionCategoryType = typeof ProjectionCategory[keyof typeof ProjectionCategory]
 
+export type ProjectionFamilyType = SpecificationProjectionFamily
+
 export const ProjectionFamily = {
   CONIC: 'CONIC',
   AZIMUTHAL: 'AZIMUTHAL',
   CYLINDRICAL: 'CYLINDRICAL',
   PSEUDOCYLINDRICAL: 'PSEUDOCYLINDRICAL',
+  POLYCONIC: 'POLYCONIC',
   POLYHEDRAL: 'POLYHEDRAL',
-  COMPOSITE: 'COMPOSITE',
-  OTHER: 'OTHER',
-} as const
-
-export type ProjectionFamilyType = typeof ProjectionFamily[keyof typeof ProjectionFamily]
+  MISCELLANEOUS: 'MISCELLANEOUS',
+} as const satisfies { [F in ProjectionFamilyType]: F }
 
 export interface ProjectionDefinition {
   id: string

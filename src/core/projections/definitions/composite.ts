@@ -6,7 +6,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   name: 'projections.conicConformalFrance.name',
   description: 'projections.conicConformalFrance.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -40,7 +40,7 @@ export const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   name: 'projections.conicConformalPortugal.name',
   description: 'projections.conicConformalPortugal.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -74,7 +74,7 @@ export const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   name: 'projections.conicConformalSpain.name',
   description: 'projections.conicConformalSpain.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -108,7 +108,7 @@ export const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   name: 'projections.conicConformalEurope.name',
   description: 'projections.conicConformalEurope.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -142,7 +142,7 @@ export const ALBERS_USA: ProjectionDefinition = {
   name: 'projections.albersUsa.name',
   description: 'projections.albersUsa.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -174,7 +174,7 @@ export const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   name: 'projections.albersUsaComposite.name',
   description: 'projections.albersUsaComposite.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -208,7 +208,7 @@ export const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   name: 'projections.albersUsaTerritories.name',
   description: 'projections.albersUsaTerritories.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -242,7 +242,7 @@ export const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   name: 'projections.conicConformalNetherlands.name',
   description: 'projections.conicConformalNetherlands.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -276,7 +276,7 @@ export const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   name: 'projections.conicEquidistantJapan.name',
   description: 'projections.conicEquidistantJapan.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -310,7 +310,7 @@ export const MERCATOR_ECUADOR: ProjectionDefinition = {
   name: 'projections.mercatorEcuador.name',
   description: 'projections.mercatorEcuador.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -344,7 +344,7 @@ export const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   name: 'projections.transverseMercatorChile.name',
   description: 'projections.transverseMercatorChile.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -378,7 +378,7 @@ export const MERCATOR_MALAYSIA: ProjectionDefinition = {
   name: 'projections.mercatorMalaysia.name',
   description: 'projections.mercatorMalaysia.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -412,7 +412,7 @@ export const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   name: 'projections.mercatorEquatorialGuinea.name',
   description: 'projections.mercatorEquatorialGuinea.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -446,7 +446,7 @@ export const ALBERS_UK: ProjectionDefinition = {
   name: 'projections.albersUk.name',
   description: 'projections.albersUk.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {
@@ -480,7 +480,7 @@ export const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
   name: 'projections.transverseMercatorDenmark.name',
   description: 'projections.transverseMercatorDenmark.description',
   category: ProjectionCategory.COMPOSITE,
-  family: ProjectionFamily.COMPOSITE,
+  family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
 
   capabilities: {

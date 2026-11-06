@@ -131,8 +131,8 @@ export class CompositeProjection {
 
     const oldDef = projectionRegistry.get(subProj.projectionType)
     const newDef = projectionRegistry.get(projectionType)
-    const oldFamily = oldDef?.family || 'OTHER'
-    const newFamily = newDef?.family || 'OTHER'
+    const oldFamily = oldDef?.family || 'MISCELLANEOUS'
+    const newFamily = newDef?.family || 'MISCELLANEOUS'
     const familyChanged = oldFamily !== newFamily
 
     const storeParams = this.getParametersForTerritory(territoryCode)

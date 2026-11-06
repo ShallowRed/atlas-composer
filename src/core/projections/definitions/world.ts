@@ -21,7 +21,7 @@ export const NATURAL_EARTH: ProjectionDefinition = {
     supportsUnified: true,
   },
 
-  aliases: ['naturalEarth1'],
+  aliases: ['naturalEarth1', 'natural-earth-1'],
 
   creator: 'Tom Patterson',
   year: 2007,
