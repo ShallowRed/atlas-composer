@@ -1,3 +1,4 @@
+import type { CanvasDimensions } from '@atlas-composer/specification'
 import type { AtlasId, PresetId } from '@/types/branded'
 import type { ExportedCompositeConfig } from '@/types/export-config'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
@@ -67,9 +68,12 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
   }
 }
 
-export async function importIntoApplication(config: ExportedCompositeConfig): Promise<ApplicationComposite> {
+export async function importIntoApplication(config: ExportedCompositeConfig, canvasDimensions?: CanvasDimensions): Promise<ApplicationComposite> {
   const atlasId = config.metadata.atlasId as AtlasId
   await startApplication(atlasId)
+  if (canvasDimensions) {
+    useProjectionStore().canvasDimensions = canvasDimensions
+  }
 
   const result = await InitializationService.importConfiguration({ config })
   if (!result.success) {

@@ -7,6 +7,11 @@ function folders(...names) {
   return names.flatMap(name => [`**/${name}`, `**/${name}/*`])
 }
 
+const AJV = {
+  group: ['ajv', 'ajv/*', 'ajv-formats'],
+  message: 'Composite configurations are validated by validateConfig of @atlas-composer/specification.',
+}
+
 const UI = {
   group: folders('components', 'views', 'composables'),
   message: 'Components, views and composables are the interface: pass the value they need as an argument, or move the logic to src/core/ or a store action.',
@@ -18,6 +23,7 @@ const STORES_FROM_IO = {
 }
 
 const CORE_RESTRICTIONS = [
+  AJV,
   UI,
   {
     group: [...folders('stores', 'i18n'), 'pinia', 'vue', 'vue-i18n'],
@@ -120,6 +126,12 @@ export default antfu({
     ],
   },
 }, {
+  files: ['src/**', 'packages/*/src/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-imports': ['error', { patterns: [AJV] }],
+  },
+}, {
   files: ['src/core/**'],
   ignores: ['**/__tests__/**'],
   rules: {
@@ -130,19 +142,20 @@ export default antfu({
   files: ['src/services/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [UI, STORES_FROM_IO] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO] }],
   },
 }, {
   files: ['src/stores/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [UI] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI] }],
   },
 }, {
   files: ['src/composables/**'],
   ignores: ['**/__tests__/**'],
   rules: {
     'no-restricted-imports': ['error', { patterns: [
+      AJV,
       { group: folders('components', 'views'), message: UI.message },
       SERVICES_FROM_COMPOSABLES,
     ] }],
@@ -151,12 +164,12 @@ export default antfu({
   files: ['src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [SERVICES_FROM_UI] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, SERVICES_FROM_UI] }],
   },
 }, {
   files: BOUNDARY_EXCEPTIONS,
   rules: {
-    'no-restricted-imports': 'off',
+    'no-restricted-imports': ['error', { patterns: [AJV] }],
     'no-restricted-globals': ['error', ...ANTFU_GLOBALS],
   },
 }, {

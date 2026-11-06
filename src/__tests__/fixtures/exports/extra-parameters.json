@@ -1,0 +1,138 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "portugal",
+    "atlasName": "Portugal",
+    "exportDate": "2026-11-05T17:58:47.383Z",
+    "createdWith": "Atlas composer v1.0.0"
+  },
+  "referenceScale": 4200,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "PT-CONT",
+      "name": "Portugal Continental",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "focusLongitude": -10,
+          "focusLatitude": 39.3,
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "conic-conformal",
+          "zoomLevel": 1.5,
+          "precision": 0.5
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -48.3,
+          -478,
+          884.1,
+          282.7
+        ]
+      },
+      "bounds": [
+        [
+          -9.5,
+          37
+        ],
+        [
+          -6.2,
+          42.2
+        ]
+      ]
+    },
+    {
+      "code": "PT-20",
+      "name": "Madeira",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "focusLongitude": -17,
+          "focusLatitude": 32.7,
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 1,
+          "projectionId": "conic-conformal"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -111.3,
+          105
+        ],
+        "pixelClipExtent": [
+          -51.66,
+          -65.94,
+          62.58,
+          49.56
+        ]
+      },
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ]
+    },
+    {
+      "code": "PT-30",
+      "name": "Azores",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "focusLongitude": -27.8,
+          "focusLatitude": 38.6,
+          "parallels": [
+            0,
+            60
+          ],
+          "scaleMultiplier": 0.6,
+          "projectionId": "conic-conformal"
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -189,
+          -84
+        ],
+        "pixelClipExtent": [
+          -137.76,
+          -89.46,
+          139.86,
+          122.22
+        ]
+      },
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ]
+    }
+  ]
+}
