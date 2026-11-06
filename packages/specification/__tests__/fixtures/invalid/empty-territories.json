@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "france"
+  },
+  "referenceScale": 2700,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": []
+}

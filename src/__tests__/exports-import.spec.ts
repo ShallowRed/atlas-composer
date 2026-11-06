@@ -9,15 +9,19 @@ import { useParameterStore } from '@/stores/parameters'
 
 const TOLERANCE = 1e-6
 
-// Files exported by the application at commit b36ab99, and one written by hand
-// in the same format, with the coordinates their import gives on that commit.
+// Canvas of portugal-default.json, from which missing-scale-and-canvas.json is written
+const CANVAS_DIMENSIONS = { width: 960, height: 500 }
+
+// Files exported by the application at commit b36ab99, and files written by hand
+// from portugal-default.json with one deprecated form each, with the coordinates
+// their import gives at commit 0c8ac56.
 const coordinates: Record<string, Record<string, Array<[Point, Point]>>> = JSON.parse(readFileSync('src/__tests__/fixtures/exports-coordinates.json', 'utf8'))
 
 describe.each(Object.entries(coordinates))('import of %s', (name, territories) => {
   it('gives the coordinates of the application that wrote it', async () => {
     const config = JSON.parse(readFileSync(`src/__tests__/fixtures/exports/${name}.json`, 'utf8')) as ExportedCompositeConfig
 
-    const application = await importIntoApplication(config)
+    const application = await importIntoApplication(config, CANVAS_DIMENSIONS)
 
     for (const [code, points] of Object.entries(territories)) {
       for (const [point, expected] of points) {

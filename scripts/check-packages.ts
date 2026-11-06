@@ -10,7 +10,7 @@ interface PackedPackage {
 }
 
 // Installs each packed package alone in an empty project, as a user does from npm,
-// and type-checks an import of each typed entry with skipLibCheck off
+// type-checks an import of each typed entry with skipLibCheck off, and imports it in Node
 const root = resolve(import.meta.dirname, '..')
 const workspace = await mkdtemp(join(tmpdir(), 'atlas-composer-packages-'))
 
@@ -32,6 +32,7 @@ try {
   for (const [index, { name, filename }] of packed.entries()) {
     const { exports } = JSON.parse(execFileSync('tar', ['-xOzf', filename, 'package/package.json'], { encoding: 'utf8' }))
     const typedEntries = Object.keys(exports).filter(entry => exports[entry].types)
+    const specifiers = typedEntries.map(entry => `${name}${entry.slice(1)}`)
 
     const project = join(workspace, `project-${index}`)
     await mkdir(project)
@@ -43,8 +44,8 @@ try {
       dependencies: { [name]: `file:${filename}` },
     }))
     await writeFile(join(project, 'pnpm-workspace.yaml'), `overrides:\n${overrides}`)
-    await writeFile(join(project, 'index.ts'), typedEntries
-      .map((entry, entryIndex) => `export * as entry${entryIndex} from '${name}${entry.slice(1)}'\n`)
+    await writeFile(join(project, 'index.ts'), specifiers
+      .map((specifier, entryIndex) => `export * as entry${entryIndex} from '${specifier}'\n`)
       .join(''))
     await writeFile(join(project, 'tsconfig.json'), JSON.stringify({
       compilerOptions: { target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', strict: true, skipLibCheck: false, noEmit: true },
@@ -53,7 +54,8 @@ try {
 
     execFileSync('pnpm', ['install', '--silent'], { cwd: project, stdio: 'inherit' })
     execFileSync(join(root, 'node_modules/.bin/tsc'), ['-p', project], { stdio: 'inherit' })
-    logger.success(`${name} (${typedEntries.join(', ')}): types check when installed alone`)
+    execFileSync('node', ['--input-type=module', '--eval', specifiers.map(specifier => `import '${specifier}'`).join('\n')], { cwd: project, stdio: 'inherit' })
+    logger.success(`${name} (${typedEntries.join(', ')}): types check and entries import when installed alone`)
   }
 }
 finally {

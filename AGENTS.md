@@ -4,7 +4,7 @@ Instructions for coding agents working in this repository.
 
 ## Toolchain
 
-Node is pinned in `.node-version`, which mise and the CI read, and pnpm in the `packageManager` field of `package.json`, through corepack. `pnpm check` runs what the CI runs (`.github/workflows/check.yml`): it builds the packages and type-checks each packed package installed alone (`pnpm check:packages`), then runs the lint, the type check, the tests and `pnpm geodata:validate --all`. The deploy and release workflows run this check first.
+Node is pinned in `.node-version`, which mise and the CI read, and pnpm in the `packageManager` field of `package.json`, through corepack. `pnpm check` runs what the CI runs (`.github/workflows/check.yml`): it builds the packages, measures the loader bundle against its size limit (`pnpm check:size`) and type-checks each packed package installed alone (`pnpm check:packages`), then runs the lint, the type check, the tests and `pnpm geodata:validate --all`. The deploy and release workflows run this check first.
 
 ## Boundaries
 
