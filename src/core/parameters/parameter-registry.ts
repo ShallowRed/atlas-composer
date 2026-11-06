@@ -1,6 +1,5 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import type { TerritoryConfig } from '@/types/territory'
 
 export interface ValidationResult {
   isValid: boolean
@@ -47,7 +46,6 @@ export interface ParameterDefinition {
   familyConstraints?: FamilyConstraints
 
   defaultValue?: any
-  computeDefault?: (territory: TerritoryConfig) => any
 }
 
 export class ParameterRegistry {
@@ -141,54 +139,6 @@ export class ParameterRegistry {
     }
 
     return results
-  }
-
-  getDefaults(territory: TerritoryConfig, family: ProjectionFamilyType): ProjectionParameters {
-    const defaults: ProjectionParameters = {}
-
-    for (const def of this.getAll()) {
-      if (def.familyConstraints && !def.familyConstraints[family]) {
-        continue
-      }
-
-      if (def.computeDefault) {
-        defaults[def.key] = def.computeDefault(territory)
-      }
-      else if (def.familyConstraints?.[family]?.defaultValue !== undefined) {
-        defaults[def.key] = def.familyConstraints[family].defaultValue
-      }
-      else if (def.defaultValue !== undefined) {
-        defaults[def.key] = def.defaultValue
-      }
-    }
-
-    return defaults
-  }
-
-  validateCompleteness(): ValidationResult[] {
-    const errors: ValidationResult[] = []
-
-    const requiredKeys = [
-      'center',
-      'rotate',
-      'parallels',
-      'translateOffset',
-      'clipAngle',
-      'precision',
-      'scaleMultiplier',
-      'projectionId',
-    ]
-
-    for (const key of requiredKeys) {
-      if (!this.get(key)) {
-        errors.push({
-          isValid: false,
-          error: `Missing parameter definition for: ${key}`,
-        })
-      }
-    }
-
-    return errors
   }
 
   private validateByType(def: ParameterDefinition, value: any, constraints: ParameterConstraint): ValidationResult {

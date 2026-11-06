@@ -15,38 +15,4 @@ describe('territoryVisibilityService', () => {
       expect(result).toBe(true)
     })
   })
-
-  describe('hasTerritoryInList', () => {
-    it('should return true when territory is in the list', () => {
-      const result = TerritoryVisibilityService.hasTerritoryInList(
-        ['FR-MET', 'FR-GP', 'FR-MQ'],
-        'FR-MET',
-      )
-      expect(result).toBe(true)
-    })
-
-    it('should return false when territory is not in the list', () => {
-      const result = TerritoryVisibilityService.hasTerritoryInList(
-        ['FR-GP', 'FR-MQ'],
-        'FR-MET',
-      )
-      expect(result).toBe(false)
-    })
-
-    it('should return false for empty list', () => {
-      const result = TerritoryVisibilityService.hasTerritoryInList(
-        [],
-        'FR-MET',
-      )
-      expect(result).toBe(false)
-    })
-
-    it('should handle case-sensitive matching', () => {
-      const result = TerritoryVisibilityService.hasTerritoryInList(
-        ['fr-met'],
-        'FR-MET',
-      )
-      expect(result).toBe(false)
-    })
-  })
 })

@@ -25,12 +25,6 @@ export interface GraticuleOverlayConfig {
   opacity?: number
 }
 
-export interface GraticuleGeometry {
-  geometry: GeoJSON.MultiLineString
-  level: GraticuleLevel
-  territoryCode?: string
-}
-
 export const GRATICULE_SCALE_THRESHOLDS = [400, 1200, 3000, 6000, 12000] as const
 
 export const GRATICULE_LEVEL_STEPS: readonly [number, number][] = [

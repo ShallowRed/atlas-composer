@@ -71,7 +71,6 @@ export interface AtlasSpecificConfig {
 }
 
 export interface LoadedTerritories {
-  first: TerritoryConfig
   all: TerritoryConfig[]
   isWildcard?: boolean
 }
@@ -105,7 +104,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     }
 
     return {
-      first: placeholderTerritory,
       all: [placeholderTerritory],
       isWildcard: true,
     }
@@ -117,10 +115,7 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     throw new Error(`No territories found in ${config.id}`)
   }
 
-  const firstTerritory = allTerritories[0]!
-
   return {
-    first: firstTerritory,
     all: allTerritories,
   }
 }

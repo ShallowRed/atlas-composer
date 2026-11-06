@@ -1,22 +1,15 @@
 import type { ViewState } from '@/services/view/view-orchestration-service'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getAtlasPresets } from '@/core/atlases/registry'
 import { ViewOrchestrationService } from '@/services/view/view-orchestration-service'
 import { useAtlasStore } from '@/stores/atlas'
-import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 export function useViewState() {
   const { t } = useI18n()
   const atlasStore = useAtlasStore()
-  const geoDataStore = useGeoDataStore()
   const viewStore = useViewStore()
-
-  const isCompositeMode = computed(() =>
-    viewStore.viewMode === 'composite-custom' || viewStore.viewMode === 'built-in-composite',
-  )
 
   const isCompositeCustomMode = computed(() =>
     viewStore.viewMode === 'composite-custom',
@@ -58,16 +51,9 @@ export function useViewState() {
     if (!atlasConfig)
       return null
 
-    const atlasId = atlasStore.selectedAtlasId
-    const presets = getAtlasPresets(atlasId)
-    const hasPresets = presets.length > 0
-
     return {
       viewMode: viewStore.viewMode,
       atlasConfig,
-      hasPresets,
-      hasTerritories: geoDataStore.allActiveTerritories.length > 0,
-      isPresetLoading: false,
       showProjectionSelector: viewStore.showProjectionSelector,
       showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
     }
@@ -77,40 +63,6 @@ export function useViewState() {
     shouldShowRightSidebar: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowRightSidebar(viewState.value) : false,
     ),
-    shouldShowBottomBar: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowBottomBar(viewState.value) : false,
-    ),
-
-    shouldShowProjectionParams: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowProjectionParams(viewState.value) : false,
-    ),
-    shouldShowTerritoryControls: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowTerritoryControls(viewState.value) : false,
-    ),
-
-    shouldShowPresetSelector: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowPresetSelector(viewState.value) : false,
-    ),
-    shouldShowImportControls: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowImportControls(viewState.value) : false,
-    ),
-    shouldShowGlobalProjectionControls: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowGlobalProjectionControls(viewState.value) : false,
-    ),
-    shouldShowTerritoryParameterControls: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowTerritoryParameterControls(viewState.value) : false,
-    ),
-    shouldShowProjectionDropdown: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowProjectionDropdown(viewState.value) : false,
-    ),
-
-    shouldShowEmptyState: computed(() =>
-      viewState.value ? ViewOrchestrationService.shouldShowEmptyState(viewState.value) : true,
-    ),
-    getEmptyStateMessage: computed(() =>
-      viewState.value ? ViewOrchestrationService.getEmptyStateMessage(viewState.value) : 'Loading atlas...',
-    ),
-
     shouldShowTerritorySelector: computed(() =>
       viewState.value ? ViewOrchestrationService.shouldShowTerritorySelector(viewState.value) : false,
     ),
@@ -137,7 +89,6 @@ export function useViewState() {
   }
 
   return {
-    isCompositeMode,
     isCompositeCustomMode,
     isCompositeExistingMode,
     isSplitMode,

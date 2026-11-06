@@ -101,12 +101,4 @@ export class TerritoryResetService {
       operations,
     }
   }
-
-  static getDefaultTranslation() {
-    return { x: 0, y: 0 }
-  }
-
-  static getDefaultScale() {
-    return 1.0
-  }
 }

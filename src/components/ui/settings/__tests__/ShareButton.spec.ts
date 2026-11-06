@@ -31,14 +31,10 @@ describe('shareButton', () => {
 
     const useUrlStateModule = await import('@/composables/useUrlState')
     vi.mocked(useUrlStateModule.useUrlState).mockReturnValue({
-      shareableUrl: { value: 'https://example.com?atlas=france&view=split' } as any,
       copyShareableUrl: mockCopyShareableUrl,
       serializeState: vi.fn(),
-      deserializeState: vi.fn(),
-      updateUrl: vi.fn(),
       restoreFromUrl: vi.fn(),
       restoreProjectionParametersFromUrl: vi.fn(),
-      enableAutoSync: vi.fn(),
     })
 
     vi.useFakeTimers()

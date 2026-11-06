@@ -84,7 +84,6 @@ export interface ProjectionRecommendation {
   projection: ProjectionDefinition
   score: number
   level: 'excellent' | 'good' | 'usable' | 'not-recommended'
-  reason: string
   suggestedParameters?: ProjectionParameters
 }
 

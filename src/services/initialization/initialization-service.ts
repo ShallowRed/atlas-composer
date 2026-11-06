@@ -7,7 +7,6 @@ import type {
   ImportOptions,
   InitializationResult,
   PresetLoadOptions,
-  ViewModeChangeOptions,
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
@@ -429,78 +428,6 @@ export class InitializationService {
       return {
         success: false,
         errors: [error instanceof Error ? error.message : 'Unknown error during import'],
-        warnings: [],
-        state: null,
-      }
-    }
-  }
-
-  static async changeViewMode(options: ViewModeChangeOptions): Promise<InitializationResult> {
-    const { viewMode, autoLoadPreset = true } = options
-    const appStore = useAppStore()
-
-    try {
-      appStore.startTransitioning()
-
-      const atlasStore = useAtlasStore()
-      const viewStore = useViewStore()
-      const atlasConfig = atlasStore.currentAtlasConfig
-
-      if (!atlasConfig) {
-        return {
-          success: false,
-          errors: ['Atlas configuration not loaded'],
-          warnings: [],
-          state: null,
-        }
-      }
-
-      const availableViewModes = getAvailableViewModes(atlasConfig.id as AtlasId)
-      if (!availableViewModes.includes(viewMode as ViewMode)) {
-        return {
-          success: false,
-          errors: [`View mode '${viewMode}' is not supported by atlas '${atlasConfig.id}'`],
-          warnings: [],
-          state: null,
-        }
-      }
-
-      const parameterStore = useParameterStore()
-      parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
-      parameterStore.setGlobalParameter('parallels', undefined)
-      parameterStore.setGlobalParameter('scale', undefined)
-
-      if (viewMode !== 'composite-custom' && viewMode !== 'split') {
-        const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
-        const presetDefaults = getSharedPresetDefaults()
-        presetDefaults.clearAll()
-      }
-
-      viewStore.viewMode = viewMode as ViewMode
-
-      if (autoLoadPreset) {
-        await viewStore.loadAvailableViewPresets()
-        if (viewStore.availableViewPresets.length > 0) {
-          const firstPreset = viewStore.availableViewPresets[0]
-          if (firstPreset) {
-            await viewStore.loadViewPreset(firstPreset.id as PresetId)
-          }
-        }
-      }
-
-      return {
-        success: true,
-        errors: [],
-        warnings: [],
-        state: null, // State managed by store for view mode changes
-      }
-    }
-    catch (error) {
-      const appStore = useAppStore()
-      appStore.setError(error instanceof Error ? error.message : 'Unknown error')
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error during view mode change'],
         warnings: [],
         state: null,
       }

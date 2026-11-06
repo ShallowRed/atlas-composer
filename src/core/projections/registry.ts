@@ -180,17 +180,14 @@ class ProjectionRegistry {
     projections.forEach((projection) => {
       let score = 50
       let level: ProjectionRecommendation['level'] = 'usable'
-      let reason = 'projections.recommendations.general'
 
       if (atlasPreferences?.recommended?.includes(projection.id)) {
         score += 40
         level = 'excellent'
-        reason = 'projections.recommendations.atlasRecommended'
       }
       if (atlasPreferences?.prohibited?.includes(projection.id)) {
         score = -50
         level = 'not-recommended'
-        reason = 'projections.recommendations.atlasProhibited'
       }
 
       if (context.viewMode === 'built-in-composite') {
@@ -216,25 +213,12 @@ class ProjectionRegistry {
         projection,
         score,
         level,
-        reason,
       })
     })
 
     recommendations.sort((a, b) => b.score - a.score)
 
     return recommendations
-  }
-
-  public isValid(id: string): boolean {
-    return this.get(id) !== undefined
-  }
-
-  public getCategories(): ProjectionCategoryType[] {
-    const categories = new Set<ProjectionCategoryType>()
-    this.getAll().forEach((def) => {
-      categories.add(def.category)
-    })
-    return Array.from(categories)
   }
 }
 

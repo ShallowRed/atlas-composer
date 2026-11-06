@@ -30,21 +30,6 @@ export function extractTerritoryCodes(territories: TerritoryConfig[]): string[] 
   return territories.map(t => t.code)
 }
 
-export function getTerritoryByCode(
-  territories: TerritoryConfig[],
-  code: string,
-): TerritoryConfig | undefined {
-  return territories.find(t => t.code === code)
-}
-
-export function getTerritoryNameFromArray(
-  territories: TerritoryConfig[],
-  code: string,
-): string {
-  const territory = territories.find(t => t.code === code)
-  return territory?.name || code
-}
-
 export function getTerritoriesForMode(
   territories: TerritoryConfig[],
   mode: string,

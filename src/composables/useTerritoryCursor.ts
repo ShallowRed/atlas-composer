@@ -390,18 +390,13 @@ export function useTerritoryCursor() {
   return {
     isDragEnabled,
     isDragging,
-    dragTerritoryCode,
     hoveredTerritoryCode,
 
-    isTerritoryDraggable,
-    getTerritoryCodeFromElement,
     getCursorStyle,
     handleTerritoryMouseDown,
     handleTerritoryMouseEnter,
     handleTerritoryMouseLeave,
     createBorderZoneOverlays,
-    updateTerritoryVisualFeedback,
-    disableTooltipPointerEvents,
     cleanup,
   }
 }

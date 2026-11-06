@@ -228,13 +228,9 @@ export function useClipExtentEditor() {
   }
 
   return {
-    isEditingEnabled,
     isDraggingCorner,
-    selectedTerritoryCode,
 
     renderClipExtentHandles,
-    selectTerritory,
-    deselectTerritory,
     toggleTerritorySelection,
     cleanup,
   }

@@ -141,10 +141,6 @@ export function getAtlasTerritories(atlasId: string) {
   return loaded.territories
 }
 
-export function getFirstTerritory(atlasId: string) {
-  return getAtlasTerritories(atlasId).first
-}
-
 export function getAllTerritories(atlasId: string) {
   return getAtlasTerritories(atlasId).all
 }

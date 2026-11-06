@@ -1,5 +1,5 @@
 import type { ViewState } from '../view-orchestration-service'
-import type { AtlasConfig, ViewMode } from '@/types'
+import type { AtlasConfig } from '@/types'
 import { describe, expect, it, vi } from 'vitest'
 import { createTerritoryCode } from '@/types/branded'
 import { ViewOrchestrationService } from '../view-orchestration-service'
@@ -31,9 +31,6 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
   return {
     viewMode: 'composite-custom',
     atlasConfig: defaultAtlasConfig,
-    hasPresets: true,
-    hasTerritories: true,
-    isPresetLoading: false,
     showProjectionSelector: false,
     showIndividualProjectionSelectors: true,
     ...overrides,
@@ -84,175 +81,6 @@ describe('viewOrchestrationService', () => {
     })
   })
 
-  describe('shouldShowProjectionParams', () => {
-    it('should show projection params in unified mode', () => {
-      const state = createViewState({ viewMode: 'unified' })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
-    })
-
-    it('should NOT show projection params in built-in-composite mode (projections are fixed)', () => {
-      const state = createViewState({ viewMode: 'built-in-composite' })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(false)
-    })
-
-    it('should show projection params in split mode when NOT showing individual selectors', () => {
-      const state = createViewState({
-        viewMode: 'split',
-        showIndividualProjectionSelectors: false,
-      })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(true)
-    })
-
-    it('should NOT show projection params in split mode with individual selectors', () => {
-      const state = createViewState({
-        viewMode: 'split',
-        showIndividualProjectionSelectors: true,
-        showProjectionSelector: false,
-      })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(false)
-    })
-
-    it('should NOT show projection params in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowProjectionParams(state)).toBe(false)
-    })
-  })
-
-  describe('shouldShowTerritoryControls', () => {
-    it('should show territory controls in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(true)
-    })
-
-    it('should show territory controls when individual projection selectors are enabled', () => {
-      const state = createViewState({
-        viewMode: 'split',
-        showIndividualProjectionSelectors: true,
-      })
-      expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(true)
-    })
-
-    it('should NOT show territory controls in unified mode', () => {
-      const state = createViewState({
-        viewMode: 'unified',
-        showIndividualProjectionSelectors: false,
-      })
-      expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(false)
-    })
-
-    it('should NOT show territory controls in built-in-composite mode', () => {
-      const state = createViewState({
-        viewMode: 'built-in-composite',
-        showIndividualProjectionSelectors: false,
-      })
-      expect(ViewOrchestrationService.shouldShowTerritoryControls(state)).toBe(false)
-    })
-  })
-
-  describe('shouldShowPresetSelector', () => {
-    it('should show preset selector in composite-custom mode with presets', () => {
-      const state = createViewState({
-        viewMode: 'composite-custom',
-        hasPresets: true,
-      })
-      expect(ViewOrchestrationService.shouldShowPresetSelector(state)).toBe(true)
-    })
-
-    it('should NOT show preset selector in composite-custom mode without presets', () => {
-      const state = createViewState({
-        viewMode: 'composite-custom',
-        hasPresets: false,
-      })
-      expect(ViewOrchestrationService.shouldShowPresetSelector(state)).toBe(false)
-    })
-
-    it('should NOT show preset selector in other modes even with presets', () => {
-      const state = createViewState({
-        viewMode: 'unified',
-        hasPresets: true,
-      })
-      expect(ViewOrchestrationService.shouldShowPresetSelector(state)).toBe(false)
-    })
-  })
-
-  describe('shouldShowImportControls', () => {
-    it('should show import controls in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowImportControls(state)).toBe(true)
-    })
-
-    it('should NOT show import controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
-      modes.forEach((mode) => {
-        const state = createViewState({ viewMode: mode })
-        expect(ViewOrchestrationService.shouldShowImportControls(state)).toBe(false)
-      })
-    })
-  })
-
-  describe('shouldShowGlobalProjectionControls', () => {
-    it('should show global projection controls in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowGlobalProjectionControls(state)).toBe(true)
-    })
-
-    it('should NOT show global projection controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
-      modes.forEach((mode) => {
-        const state = createViewState({ viewMode: mode })
-        expect(ViewOrchestrationService.shouldShowGlobalProjectionControls(state)).toBe(false)
-      })
-    })
-  })
-
-  describe('shouldShowTerritoryParameterControls', () => {
-    it('should show territory parameter controls in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowTerritoryParameterControls(state)).toBe(true)
-    })
-
-    it('should NOT show territory parameter controls in other modes', () => {
-      const modes: ViewMode[] = ['unified', 'split', 'built-in-composite']
-      modes.forEach((mode) => {
-        const state = createViewState({ viewMode: mode })
-        expect(ViewOrchestrationService.shouldShowTerritoryParameterControls(state)).toBe(false)
-      })
-    })
-  })
-
-  describe('shouldShowProjectionDropdown', () => {
-    it('should show projection dropdown in split mode', () => {
-      const state = createViewState({ viewMode: 'split' })
-      expect(ViewOrchestrationService.shouldShowProjectionDropdown(state)).toBe(true)
-    })
-
-    it('should show projection dropdown in unified mode', () => {
-      const state = createViewState({ viewMode: 'unified' })
-      expect(ViewOrchestrationService.shouldShowProjectionDropdown(state)).toBe(true)
-    })
-
-    it('should NOT show projection dropdown in composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.shouldShowProjectionDropdown(state)).toBe(false)
-    })
-  })
-
-  describe('shouldShowEmptyState', () => {
-    it('should show empty state when no territories', () => {
-      const state = createViewState({
-        hasTerritories: false,
-      })
-      expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(true)
-    })
-
-    it('should NOT show empty state when territories exist', () => {
-      const state = createViewState({
-        hasTerritories: true,
-      })
-      expect(ViewOrchestrationService.shouldShowEmptyState(state)).toBe(false)
-    })
-  })
-
   describe('isViewModeDisabled', () => {
     it('should disable view mode when only one view mode is supported', async () => {
       const { getAvailableViewModes } = await import('@/core/atlases/registry')
@@ -278,28 +106,6 @@ describe('viewOrchestrationService', () => {
         },
       })
       expect(ViewOrchestrationService.isViewModeDisabled(state)).toBe(false)
-    })
-  })
-
-  describe('getMapRendererMode', () => {
-    it('should return composite for composite-custom mode', () => {
-      const state = createViewState({ viewMode: 'composite-custom' })
-      expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('composite')
-    })
-
-    it('should return composite for built-in-composite mode', () => {
-      const state = createViewState({ viewMode: 'built-in-composite' })
-      expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('composite')
-    })
-
-    it('should return split for split mode', () => {
-      const state = createViewState({ viewMode: 'split' })
-      expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('split')
-    })
-
-    it('should return unified for unified mode', () => {
-      const state = createViewState({ viewMode: 'unified' })
-      expect(ViewOrchestrationService.getMapRendererMode(state)).toBe('unified')
     })
   })
 

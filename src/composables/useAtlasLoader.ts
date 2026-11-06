@@ -26,9 +26,6 @@ export function useAtlasLoader(
 
   const {
     state: config,
-    isReady,
-    isLoading,
-    error,
     execute,
   } = useAsyncState(
     async () => {
@@ -62,21 +59,8 @@ export function useAtlasLoader(
   )
 
   const atlasConfig = computed(() => config.value?.atlasConfig)
-  const atlasSpecificConfig = computed(() => config.value?.atlasSpecificConfig)
-  const territories = computed(() => config.value?.territories)
 
   return {
-    config,
-
     atlasConfig,
-    atlasSpecificConfig,
-    territories,
-
-    isReady,
-    isLoading,
-    error,
-
-    execute,
-    reload: execute,
   }
 }

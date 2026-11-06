@@ -23,18 +23,6 @@ export interface ProjectionParameterProvider {
   setTerritoryParameters?: (territoryCode: TerritoryCode, parameters: Partial<ProjectionParameters>) => void
 }
 
-export type ParameterSource = 'default' | 'projection' | 'atlas' | 'global' | 'territory'
-
-export interface ParameterInheritance {
-  key: keyof ProjectionParameters
-  value: any
-  source: ParameterSource
-  isOverridden: boolean
-  defaultValue?: any
-  atlasValue?: any
-  globalValue?: any
-}
-
 export interface ParameterValidationResult {
   isValid: boolean
   error?: string
@@ -56,14 +44,6 @@ export interface ParameterConstraints {
 export interface ProjectionFamilyConstraints {
   family: ProjectionFamilyType
   constraints: Record<keyof ProjectionParameters, ParameterConstraints>
-}
-
-export interface ParameterChangeEvent {
-  key: keyof ProjectionParameters
-  value: any
-  previousValue?: any
-  territoryCode?: string
-  source: ParameterSource
 }
 
 export type ParameterUpdate = Partial<ProjectionParameters>

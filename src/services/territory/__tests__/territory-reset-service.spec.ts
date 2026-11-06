@@ -220,18 +220,4 @@ describe('territoryResetService', () => {
       expect(result.parameters).toBeUndefined()
     })
   })
-
-  describe('getDefaultTranslation', () => {
-    it('should return default translation', () => {
-      const result = TerritoryResetService.getDefaultTranslation()
-      expect(result).toEqual({ x: 0, y: 0 })
-    })
-  })
-
-  describe('getDefaultScale', () => {
-    it('should return default scale', () => {
-      const result = TerritoryResetService.getDefaultScale()
-      expect(result).toBe(1.0)
-    })
-  })
 })

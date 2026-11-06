@@ -37,13 +37,11 @@ export class CompositeProjection {
   private config: CompositeProjectionConfig
   private parameterProvider?: ProjectionParameterProvider
   private referenceScale?: number
-  private canvasDimensions?: { width: number, height: number }
 
-  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number, canvasDimensions?: { width: number, height: number }) {
+  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number) {
     this.config = config
     this.parameterProvider = parameterProvider
     this.referenceScale = referenceScale
-    this.canvasDimensions = canvasDimensions
     this.initialize()
   }
 
@@ -180,10 +178,6 @@ export class CompositeProjection {
     }
   }
 
-  getCanvasDimensions(): { width: number, height: number } | undefined {
-    return this.canvasDimensions
-  }
-
   updateReferenceScale(newReferenceScale: number): void {
     this.referenceScale = newReferenceScale
 
@@ -199,25 +193,6 @@ export class CompositeProjection {
     })
 
     this.compositeProjection = null
-  }
-
-  updateScale(territoryCode: TerritoryCode, scaleMultiplier: number) {
-    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
-    if (subProj) {
-      if (this.parameterProvider) {
-        const params = this.parameterProvider.getEffectiveParameters(territoryCode)
-        const expectedScale = subProj.baseScale * subProj.scaleMultiplier
-
-        if (params.scale !== undefined && Math.abs(params.scale - expectedScale) > 0.1) {
-          return
-        }
-      }
-
-      subProj.scaleMultiplier = scaleMultiplier
-      const newScale = subProj.baseScale * scaleMultiplier
-      subProj.projection.scale(newScale)
-      this.compositeProjection = null
-    }
   }
 
   updateTerritoryParameters(territoryCode: TerritoryCode) {
@@ -412,29 +387,6 @@ export class CompositeProjection {
       center: roundApplied(projection.center()),
       parallels: isConicProjection(projection) ? roundApplied(projection.parallels()) : undefined,
     }
-  }
-
-  getEffectiveScales(): Map<string, number> {
-    const scales = new Map<string, number>()
-
-    for (const subProj of this.subProjections) {
-      const projectionScale = subProj.projection.scale?.() ?? 1000
-      const calculatedScale = subProj.baseScale * subProj.scaleMultiplier
-      const effectiveScale = projectionScale || calculatedScale
-
-      scales.set(subProj.territoryCode, effectiveScale)
-    }
-
-    return scales
-  }
-
-  getEffectiveScale(territoryCode: TerritoryCode): number | undefined {
-    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
-    if (!subProj) {
-      return undefined
-    }
-
-    return subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier)
   }
 
   getSubProjectionData(territoryCode: string): {

@@ -19,24 +19,8 @@ export type TransitionType
 export const useAppStore = defineStore('app', () => {
   const state = ref<AppState>('idle')
   const error = ref<string | null>(null)
-  const isFirstLoad = ref(true)
-  const previousState = ref<AppState>('idle')
   const isTransitioningWithSplit = ref(false)
   const loadingStartTime = ref<number>(0)
-
-  const isLoading = computed(() =>
-    state.value === 'loading-atlas'
-    || state.value === 'loading-geodata'
-    || state.value === 'loading-preset',
-  )
-
-  const isReady = computed(() => state.value === 'ready')
-  const isTransitioning = computed(() => state.value === 'transitioning')
-  const hasError = computed(() => state.value === 'error')
-
-  const showContent = computed(() =>
-    state.value === 'ready' || state.value === 'transitioning',
-  )
 
   const showSkeleton = computed(() => {
     return state.value === 'idle'
@@ -53,19 +37,16 @@ export const useAppStore = defineStore('app', () => {
   })
 
   function startLoadingAtlas() {
-    previousState.value = state.value
     state.value = 'loading-atlas'
     loadingStartTime.value = Date.now()
     error.value = null
   }
 
   function startLoadingGeoData() {
-    previousState.value = state.value
     state.value = 'loading-geodata'
   }
 
   function startLoadingPreset() {
-    previousState.value = state.value
     state.value = 'loading-preset'
   }
 
@@ -76,29 +57,14 @@ export const useAppStore = defineStore('app', () => {
 
     if (remaining > 0 && loadingStartTime.value > 0) {
       setTimeout(() => {
-        previousState.value = state.value
         state.value = 'ready'
-        isFirstLoad.value = false
         loadingStartTime.value = 0
       }, remaining)
     }
     else {
-      previousState.value = state.value
       state.value = 'ready'
-      isFirstLoad.value = false
       loadingStartTime.value = 0
     }
-  }
-
-  function startTransitioning(durationMs = 150) {
-    previousState.value = state.value
-    state.value = 'transitioning'
-
-    setTimeout(() => {
-      if (state.value === 'transitioning') {
-        state.value = 'ready'
-      }
-    }, durationMs)
   }
 
   function startSwitchingView(involvesSplitMode = false) {
@@ -106,7 +72,6 @@ export const useAppStore = defineStore('app', () => {
       return
     }
 
-    previousState.value = state.value
     state.value = 'switching-view'
     isTransitioningWithSplit.value = involvesSplitMode
 
@@ -123,36 +88,15 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function setError(message: string) {
-    previousState.value = state.value
     state.value = 'error'
     error.value = message
-  }
-
-  function reset() {
-    previousState.value = state.value
-    state.value = 'idle'
-    error.value = null
-  }
-
-  function clearError() {
-    if (state.value === 'error') {
-      state.value = previousState.value === 'error' ? 'idle' : previousState.value
-      error.value = null
-    }
   }
 
   return {
     state,
     error,
-    isFirstLoad,
-    previousState,
     isTransitioningWithSplit,
 
-    isLoading,
-    isReady,
-    isTransitioning,
-    hasError,
-    showContent,
     showSkeleton,
     showSkeletonForViewSwitch,
 
@@ -160,10 +104,7 @@ export const useAppStore = defineStore('app', () => {
     startLoadingGeoData,
     startLoadingPreset,
     setReady,
-    startTransitioning,
     startSwitchingView,
     setError,
-    reset,
-    clearError,
   }
 })

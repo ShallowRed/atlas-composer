@@ -471,15 +471,6 @@
       "name": "Papillon de Waterman",
       "description": "Projection polyédrique avec distorsion minimale des surfaces"
     },
-    "recommendations": {
-      "general": "Projection appropriée",
-      "atlasOptimized": "Optimisée pour cet atlas",
-      "atlasRecommended": "Recommandée par la configuration de l'atlas",
-      "atlasProhibited": "Non adaptée pour cet atlas",
-      "territoryExcellent": "Excellente pour ce type de territoire",
-      "territoryGood": "Bonne pour ce type de territoire",
-      "notSuitable": "Non recommandée pour ce contexte"
-    },
     "properties": {
       "area": "Superficie",
       "angle": "Angles",

@@ -85,12 +85,4 @@ export class MapSizeCalculator {
       height: Math.round(height),
     }
   }
-
-  static calculateScaleFactor(area: number, referenceArea: number): number {
-    return Math.sqrt(area / referenceArea)
-  }
-
-  static getDefaultConfig(): MapSizeConfig {
-    return { ...this.DEFAULT_CONFIG }
-  }
 }
