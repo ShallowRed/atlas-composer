@@ -1,9 +1,10 @@
 import type { BackendConfig } from '#types'
 import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import process from 'node:process'
-import { findMissingPresetFiles, listConfigs, loadConfig } from '#scripts/config/loader'
+import { listConfigs, listPresetFiles, loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
+import { validateConfig } from '@atlas-composer/specification'
 
 interface ValidationResults {
   errors: string[]
@@ -93,6 +94,41 @@ function extractDataCodes(data: GeneratedData): string[] {
   return []
 }
 
+async function validatePresetFiles(atlas: string): Promise<string[]> {
+  const errors: string[] = []
+
+  for (const preset of await listPresetFiles(atlas)) {
+    const file = relative(process.cwd(), preset.path)
+    let content: string
+    try {
+      content = await readFile(preset.path, 'utf-8')
+    }
+    catch {
+      errors.push(`Preset file not found: ${preset.id}: ${file}`)
+      continue
+    }
+    if (preset.type !== 'composite-custom') {
+      continue
+    }
+
+    let json: unknown
+    try {
+      json = JSON.parse(content)
+    }
+    catch (error) {
+      errors.push(`Preset ${file} is not valid JSON: ${(error as Error).message}`)
+      continue
+    }
+    const result = validateConfig(json)
+    if (!result.valid) {
+      const details = result.errors.map(error => `${error.path}: ${error.message}`).join('; ')
+      errors.push(`Preset ${file} does not follow the specification: ${details}`)
+    }
+  }
+
+  return errors
+}
+
 async function validateAtlas(atlas: string): Promise<ValidationSummary> {
   logger.section(`Validating: ${atlas}`)
 
@@ -117,10 +153,7 @@ async function validateAtlas(atlas: string): Promise<ValidationSummary> {
     }
   }
 
-  const missingPresets = await findMissingPresetFiles(atlas)
-  for (const preset of missingPresets) {
-    results.errors.push(`Preset file not found: ${preset}`)
-  }
+  results.errors.push(...await validatePresetFiles(atlas))
 
   const availableResolutions = await findAvailableResolutions(atlas)
   if (availableResolutions.length === 0) {
