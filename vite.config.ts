@@ -83,7 +83,6 @@ export default defineConfig(env => ({
           // Split vendor chunks for better caching
           'd3': ['d3', 'd3-geo', 'd3-geo-projection', 'd3-composite-projections'],
           'vue-core': ['vue', 'vue-router', 'pinia'],
-          'plot': ['@observablehq/plot'],
           'geo-data': ['topojson-client'],
         },
       },

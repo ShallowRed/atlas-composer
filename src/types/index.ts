@@ -24,19 +24,6 @@ export {
 } from '@/types/branded'
 
 export type {
-  AtlasData,
-  LoadingState,
-  ProjectionConfig,
-  ProjectionRecommendations,
-  RecommendationBadge,
-  ScaleRange,
-  TerritoryInfo,
-  TerritoryTransforms,
-  TranslationRange,
-  ViewModeConfig,
-} from '@/types/composables'
-
-export type {
   CompositeProjectionConfig,
   CompositeProjectionDefaults,
   ViewMode,
@@ -57,13 +44,3 @@ export type {
   TerritoryCollectionSet,
   TerritoryConfig,
 } from '@/types/territory'
-
-export type {
-  DisplayOptionsSectionProps,
-  mapRendererDefaults,
-  MapRendererProps,
-  ProjectionSelectorEmits,
-  ProjectionSelectorProps,
-  TerritoryControlsProps,
-  ViewComponentProps,
-} from '@/types/vue-props'
