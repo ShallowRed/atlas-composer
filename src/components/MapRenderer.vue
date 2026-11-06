@@ -397,7 +397,7 @@ async function renderMap() {
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
-    debug('Error rendering map: %O', err)
+    console.error('Error rendering map', err)
   }
   finally {
     isLoading.value = false
