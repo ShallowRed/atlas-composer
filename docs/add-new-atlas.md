@@ -91,7 +91,7 @@ Presets provide pre-configured projection settings for different view modes.
 #### Preset Types
 
 1. **composite-custom** - Full custom composite configuration with per-territory layout
-   - Schema: [configs/schemas/preset-composite-custom.schema.json](../configs/schemas/preset-composite-custom.schema.json)
+   - Schema: [configs/schemas/preset.schema.json](../configs/schemas/preset.schema.json)
    - Example: `configs/presets/france-default.json`
 
 2. **unified** - Single projection for entire atlas
@@ -218,7 +218,6 @@ All configuration schemas are located in `configs/schemas/`:
 
 - **atlas.schema.json** - Atlas configuration schema
 - **atlas-registry.schema.json** - Atlas registry schema
-- **preset-composite-custom.schema.json** - Composite-custom preset schema
 - **preset-unified.schema.json** - Unified view preset schema
 - **preset-split.schema.json** - Split view preset schema
 - **preset-built-in-composite.schema.json** - Built-in composite preset schema

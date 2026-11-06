@@ -6,25 +6,7 @@
   "oneOf": [
     {
       "description": "Composite-custom preset with full territory configuration",
-      "allOf": [
-        {
-          "type": "object",
-          "required": ["version", "metadata", "referenceScale", "canvasDimensions", "territories"],
-          "properties": {
-            "version": { "type": "string" },
-            "metadata": {
-              "type": "object",
-              "required": ["atlasId"],
-              "properties": {
-                "atlasId": { "type": "string" }
-              }
-            }
-          }
-        },
-        {
-          "$ref": "preset-composite-custom.schema.json"
-        }
-      ]
+      "$ref": "../../packages/specification/schemas/composite-projection.schema.json"
     },
     {
       "description": "Unified view preset",
