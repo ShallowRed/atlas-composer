@@ -50,16 +50,4 @@ export class PresetValidationService {
 
     return { isValid: true, errors, warnings }
   }
-
-  static validateViewModeCompatibility(preset: Preset, viewMode: string): ValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    if (preset.type !== viewMode) {
-      errors.push(`Preset type '${preset.type}' does not match view mode '${viewMode}'`)
-      return { isValid: false, errors, warnings }
-    }
-
-    return { isValid: true, errors, warnings }
-  }
 }

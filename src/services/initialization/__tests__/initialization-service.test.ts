@@ -258,26 +258,6 @@ describe('initializationService', () => {
     })
   })
 
-  describe.skip('changeViewMode', () => {
-    it('should successfully change view mode', async () => {
-      const result = await InitializationService.changeViewMode({
-        viewMode: 'unified',
-        autoLoadPreset: false,
-      })
-
-      expect(result.success).toBe(true)
-    })
-
-    it('should reject unsupported view mode', async () => {
-      const result = await InitializationService.changeViewMode({
-        viewMode: 'built-in-composite',
-        autoLoadPreset: false,
-      })
-
-      expect(result.success).toBe(false)
-    })
-  })
-
   describe.skip('importConfiguration', () => {
     it('should successfully import a configuration', async () => {
       const mockConfig: CompositeProjectionConfig = {

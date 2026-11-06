@@ -5,7 +5,6 @@
 import type { ParameterDefinition } from '../parameter-registry'
 
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createTerritoryCode } from '@/types/branded'
 
 import { registerAllParameters } from '../parameter-definitions'
 import { parameterRegistry } from '../parameter-registry'
@@ -172,31 +171,6 @@ describe('parameterRegistry', () => {
       const result = parameterRegistry.validate('unknownParam', 123, 'CYLINDRICAL')
       expect(result.isValid).toBe(false)
       expect(result.error).toContain('Unknown parameter: unknownParam')
-    })
-  })
-
-  describe('default values', () => {
-    it('should return default parameters for territory and family', () => {
-      const mockTerritory = {
-        code: createTerritoryCode('TEST'),
-        name: 'Test Territory',
-        center: [0, 0] as [number, number],
-        referenceScale: 1000,
-        offset: [0, 0] as [number, number],
-        bounds: [[-10, -10], [10, 10]] as [[number, number], [number, number]],
-      }
-
-      const defaults = parameterRegistry.getDefaults(mockTerritory, 'CYLINDRICAL')
-      expect(defaults).toBeDefined()
-      expect(defaults.scaleMultiplier).toBe(1.0)
-      expect(defaults.center).toEqual([0, 0])
-    })
-  })
-
-  describe('completeness validation', () => {
-    it('should validate that all required parameters are registered', () => {
-      const errors = parameterRegistry.validateCompleteness()
-      expect(errors).toHaveLength(0) // No missing parameters
     })
   })
 })

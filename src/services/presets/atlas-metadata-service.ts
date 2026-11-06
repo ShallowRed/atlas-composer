@@ -72,11 +72,6 @@ export class AtlasMetadataService {
     return result.metadata?.projectionPreferences
   }
 
-  static async getProjectionParameters(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionParameters']> {
-    const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return result.metadata?.projectionParameters
-  }
-
   private static getFallbackMetadata(atlasId: AtlasId): AtlasProjectionMetadata {
     return {
       compositeProjections: getDefaultCompositeProjections(atlasId),
@@ -84,9 +79,5 @@ export class AtlasMetadataService {
         recommended: ['natural-earth', 'robinson', 'mercator'],
       },
     }
-  }
-
-  static clearCache(): void {
-    metadataCache.clear()
   }
 }

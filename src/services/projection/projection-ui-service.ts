@@ -75,19 +75,4 @@ export class ProjectionUIService {
     const selection = new ViewModeSelection(viewMode)
     return selection.isSplit() || selection.isCustomComposite()
   }
-
-  static shouldShowTerritorySelector(viewMode: ViewMode): boolean {
-    const selection = new ViewModeSelection(viewMode)
-    return !selection.isBuiltInComposite()
-  }
-
-  static shouldShowScalePreservation(viewMode: ViewMode): boolean {
-    const selection = new ViewModeSelection(viewMode)
-    return selection.isSplit()
-  }
-
-  static shouldShowTerritoryControls(viewMode: ViewMode): boolean {
-    const selection = new ViewModeSelection(viewMode)
-    return selection.showsTerritoryControls()
-  }
 }

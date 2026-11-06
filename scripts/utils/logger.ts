@@ -58,10 +58,6 @@ export const logger = {
     console.log(colorize(message, COLORS.gray))
   },
 
-  highlight(message: string): void {
-    console.log(`${COLORS.bold}${COLORS.yellow}${message}${COLORS.reset}`)
-  },
-
   data(key: string, value: string | number): void {
     console.log(`  ${COLORS.cyan}${key}:${COLORS.reset} ${value}`)
   },

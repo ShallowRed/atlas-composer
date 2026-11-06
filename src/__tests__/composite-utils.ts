@@ -73,7 +73,6 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
     atlasConfig.compositeProjectionConfig!,
     parameterProvider,
     projectionStore.referenceScale,
-    projectionStore.canvasDimensions,
   )
 
   return {

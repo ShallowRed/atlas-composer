@@ -3,13 +3,10 @@ import type { ProjectionRecommendation } from '@/core/projections/types'
 import type { ProjectionId } from '@/types/branded'
 
 import { computed, toValue } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 export function useProjectionRecommendations(
   recommendations: Ref<ProjectionRecommendation[] | undefined> | ProjectionRecommendation[] | undefined,
 ) {
-  const { t } = useI18n()
-
   const recommendationMap = computed(() => {
     const recs = toValue(recommendations)
     if (!recs)
@@ -58,18 +55,8 @@ export function useProjectionRecommendations(
     }
   }
 
-  function getTooltip(projectionId: ProjectionId): string {
-    const rec = getRecommendation(projectionId)
-    if (!rec)
-      return ''
-    return t(rec.reason)
-  }
-
   return {
-    recommendationMap,
-    getRecommendation,
     getBadge,
     getCssClass,
-    getTooltip,
   }
 }

@@ -1,6 +1,6 @@
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { GeoDataConfig, TerritoryConfig } from '@/types'
+import type { GeoDataConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 import { Errors } from '@/core/types/errors'
@@ -28,7 +28,6 @@ export interface TerritoryGeoData {
 
 export class GeoDataService {
   private territoryData: Map<string, TerritoryGeoData> = new Map()
-  private metadata: any = null
   private topologyData: any = null
   private isLoaded = false
   public readonly config: GeoDataConfig
@@ -80,7 +79,7 @@ export class GeoDataService {
       }
 
       try {
-        this.metadata = await metaResponse.json()
+        await metaResponse.json()
       }
       catch (parseError) {
         debug('Metadata parse error: %O', parseError)
@@ -200,32 +199,6 @@ export class GeoDataService {
     }
   }
 
-  async getAllTerritoriesData(): Promise<Array<{ name: string, code: string, data: GeoJSON.FeatureCollection, area: number, region: string }>> {
-    await this.ensureLoaded()
-    const territoriesData = []
-
-    for (const [code, territoryData] of this.territoryData) {
-      const territoryConfig = this.config.territories.find((t: TerritoryConfig) => t.code === code)
-      territoriesData.push({
-        name: territoryData.territory.name,
-        code: territoryData.territory.code,
-        area: territoryData.territory.area,
-        region: territoryConfig?.region || 'Other',
-        data: {
-          type: 'FeatureCollection' as const,
-          features: [territoryData.feature],
-        },
-      })
-    }
-
-    return territoriesData.sort((a, b) => {
-      if (a.region !== b.region) {
-        return a.region.localeCompare(b.region)
-      }
-      return b.area - a.area
-    })
-  }
-
   async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
     await this.ensureLoaded()
 
@@ -248,17 +221,8 @@ export class GeoDataService {
     return territories.sort((a, b) => b.area - a.area) // Tri par superficie
   }
 
-  async getTerritory(code: string): Promise<TerritoryGeoData | null> {
-    await this.ensureLoaded()
-    return this.territoryData.get(code) || null
-  }
-
   async getAllTerritories(): Promise<TerritoryGeoData[]> {
     await this.ensureLoaded()
     return Array.from(this.territoryData.values())
-  }
-
-  getMetadata() {
-    return this.metadata
   }
 }

@@ -1,5 +1,4 @@
 import type { GeoProjection } from 'd3-geo'
-import type { ProjectionFilterContext } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
@@ -7,12 +6,6 @@ import { projectionRegistry } from '@/core/projections/registry'
 import { logger } from '@/utils/logger'
 
 const debug = logger.projection.service
-
-export interface ProjectionOption {
-  value: string
-  label: string
-  category: string
-}
 
 export class ProjectionService {
   private projectionParams: ProjectionParameters | null = null
@@ -28,20 +21,6 @@ export class ProjectionService {
 
   private getParams(): ProjectionParameters {
     return this.projectionParams ?? {}
-  }
-
-  getAvailableProjections(context: ProjectionFilterContext = {}): ProjectionOption[] {
-    const projections = projectionRegistry.filter(context)
-
-    return projections.map(def => ({
-      value: def.id,
-      label: def.name, // This should be translated by the UI layer
-      category: def.category,
-    }))
-  }
-
-  isValidProjection(id: string): boolean {
-    return projectionRegistry.isValid(id)
   }
 
   getD3Projection(

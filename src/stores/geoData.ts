@@ -34,8 +34,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const territoriesData = ref<Territory[]>([])
   const rawUnifiedData = ref<GeoJSON.FeatureCollection | null>(null)
 
-  const firstTerritory = computed(() => territoriesData.value[0] ?? null)
-
   const filteredTerritories = computed(() => {
     const atlasStore = useAtlasStore()
     const viewStore = useViewStore()
@@ -129,7 +127,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
         projectionParams,
         parameterProvider,
         projectionStore.referenceScale,
-        projectionStore.canvasDimensions,
       )
       await cartographer.value.init()
 
@@ -305,11 +302,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
     rawUnifiedData,
     renderKey, // Expose render key for components to watch
 
-    firstTerritory,
     filteredTerritories,
     allActiveTerritories,
 
-    initialize,
     reinitialize,
     setReinitializing,
     reloadUnifiedData,

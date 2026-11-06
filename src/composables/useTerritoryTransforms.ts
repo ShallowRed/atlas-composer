@@ -1,5 +1,4 @@
 import { computed } from 'vue'
-import { useAtlasData } from '@/composables/useAtlasData'
 import { useTerritoryCommands } from '@/composables/useTerritoryCommands'
 import { useTerritoryData } from '@/composables/useTerritoryData'
 import { useTerritoryReset } from '@/composables/useTerritoryReset'
@@ -15,7 +14,6 @@ export function useTerritoryTransforms() {
 
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
-  const { currentAtlasConfig } = useAtlasData()
 
   const projectionRecommendations = computed(() => viewStore.projectionRecommendations)
   const projectionGroups = computed(() => viewStore.projectionGroups)
@@ -29,8 +27,6 @@ export function useTerritoryTransforms() {
 
     shouldShowEmptyState: territoryVisibility.shouldShowEmptyState,
 
-    setTerritoryTranslation: territoryCommands.setTerritoryTranslation,
-    setTerritoryScale: territoryCommands.setTerritoryScale,
     changeTerritoryProjection: territoryCommands.changeTerritoryProjection,
 
     resetTransforms: territoryReset.resetTransforms,
@@ -38,7 +34,6 @@ export function useTerritoryTransforms() {
 
     projectionRecommendations,
     projectionGroups,
-    currentAtlasConfig,
     selectedProjection,
   }
 }

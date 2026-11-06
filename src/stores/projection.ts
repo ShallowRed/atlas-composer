@@ -4,8 +4,6 @@ import type { ProjectionId } from '@/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { getDisplayedRotate } from '@/core/positioning'
-import { ProjectionSelection } from '@/core/projections/projection-selection'
-import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { logger } from '@/utils/logger'
 
@@ -28,13 +26,6 @@ export const useProjectionStore = defineStore('projection', () => {
 
   const autoFitDomain = ref(true)
 
-  const projectionSelection = computed(() => {
-    if (!selectedProjection.value) {
-      return null
-    }
-    return ProjectionSelection.fromRegistry(selectedProjection.value, projectionRegistry)
-  })
-
   function setSelectedProjection(projection: ProjectionId): void {
     selectedProjection.value = projection
     debug('Projection selected: %s', projection)
@@ -45,24 +36,12 @@ export const useProjectionStore = defineStore('projection', () => {
     debug('Composite projection set: %s', projection)
   }
 
-  function setScalePreservation(value: boolean): void {
-    scalePreservation.value = value
-  }
-
   function setRotateLatitudeLocked(locked: boolean): void {
     rotateLatitudeLocked.value = locked
   }
 
   function setAutoFitDomain(value: boolean): void {
     autoFitDomain.value = value
-  }
-
-  function setReferenceScale(scale: number | undefined): void {
-    referenceScale.value = scale
-  }
-
-  function setCanvasDimensions(dimensions: { width: number, height: number } | undefined): void {
-    canvasDimensions.value = dimensions
   }
 
   function setCustomRotate(rotate: Partial<Record<'longitude' | 'latitude' | 'gamma', number>>): void {
@@ -80,10 +59,6 @@ export const useProjectionStore = defineStore('projection', () => {
     parameterStore.setGlobalParameter('parallels', parallelsValue)
   }
 
-  function setCustomScale(scale: number | null): void {
-    parameterStore.setGlobalParameter('scale', scale ?? undefined)
-  }
-
   function setCustomParallel1(value: number | null): void {
     const currentParallel2 = parameterStore.globalParameters.parallels?.[1] ?? null
     setCustomParallels(value, currentParallel2)
@@ -92,15 +67,6 @@ export const useProjectionStore = defineStore('projection', () => {
   function setCustomParallel2(value: number | null): void {
     const currentParallel1 = parameterStore.globalParameters.parallels?.[0] ?? null
     setCustomParallels(currentParallel1, value)
-  }
-
-  function resetProjectionParams(_currentViewPreset: string | null): void {
-    parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
-    parameterStore.setGlobalParameter('parallels', undefined)
-    parameterStore.setGlobalParameter('scale', undefined)
-    parameterStore.setGlobalParameter('scaleMultiplier', undefined)
-
-    rotateLatitudeLocked.value = true
   }
 
   const customRotate = computed<D3Rotate | null>(() => {
@@ -116,10 +82,6 @@ export const useProjectionStore = defineStore('projection', () => {
     parameterStore.globalParameters.parallels?.[1] ?? null,
   )
 
-  const customScale = computed(() =>
-    parameterStore.globalParameters.scale ?? null,
-  )
-
   return {
     selectedProjection,
     compositeProjection,
@@ -129,26 +91,17 @@ export const useProjectionStore = defineStore('projection', () => {
     rotateLatitudeLocked,
     autoFitDomain,
 
-    projectionSelection,
-
     customRotate,
     customParallel1,
     customParallel2,
-    customScale,
 
     setSelectedProjection,
     setCompositeProjection,
-    setScalePreservation,
     setRotateLatitudeLocked,
     setAutoFitDomain,
-    setReferenceScale,
-    setCanvasDimensions,
 
     setCustomRotate,
-    setCustomParallels,
-    setCustomScale,
     setCustomParallel1,
     setCustomParallel2,
-    resetProjectionParams,
   }
 })

@@ -69,11 +69,6 @@ export interface ImportOptions {
   validateAtlasCompatibility?: boolean
 }
 
-export interface ViewModeChangeOptions {
-  viewMode: string
-  autoLoadPreset?: boolean // Load first available preset for new mode
-}
-
 export interface ValidationResult {
   isValid: boolean
   errors: string[]

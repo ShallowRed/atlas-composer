@@ -39,14 +39,6 @@ describe('projectionParameterManager', () => {
       manager.setTerritoryParameters(CODE, { parallels: [30, 40] })
       expect(manager.getEffectiveParameters(CODE).parallels).toEqual([30, 40])
     })
-
-    it('reports the level of the positioning for both parameters', () => {
-      manager.setGlobalParameters({ center: [3, 4] })
-      manager.setTerritoryParameters(CODE, { rotate: [-55.5, 21, 0] })
-
-      expect(manager.getParameterInheritance(CODE, 'center').source).toBe('territory')
-      expect(manager.getParameterInheritance(CODE, 'rotate').source).toBe('territory')
-    })
   })
 
   describe('positioning writes', () => {
@@ -81,15 +73,6 @@ describe('projectionParameterManager', () => {
 
       expect(manager.getGlobalParameters()).toEqual({ parallels: [40, 50] })
       expect(manager.getEffectiveParameters().rotate).toEqual([10, -45, 0])
-    })
-
-    it('clears the positioning override of a territory as one value', () => {
-      manager.setGlobalParameters({ rotate: [20, -30, 0] })
-      manager.setTerritoryParameters(CODE, { rotate: [1, 2, 0], center: [3, 4], projectionId: 'mercator' })
-      manager.clearTerritoryOverride(CODE, 'center')
-
-      expect(manager.getTerritoryParameters(CODE)).toEqual({ projectionId: 'mercator' })
-      expect(manager.getEffectiveParameters(CODE).rotate).toEqual([20, -30, 0])
     })
 
     it('refuses rotate and center from the key setters', () => {

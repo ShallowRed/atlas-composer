@@ -41,16 +41,6 @@ export const useUIStore = defineStore('ui', () => {
     document.documentElement.setAttribute('data-theme', themeName)
   }
 
-  function initializeDisplayOptions(defaults: {
-    showGraticule?: boolean
-    showCompositionBorders?: boolean
-    showMapLimits?: boolean
-  }) {
-    showGraticule.value = defaults.showGraticule ?? false
-    showCompositionBorders.value = defaults.showCompositionBorders ?? true
-    showMapLimits.value = defaults.showMapLimits ?? true
-  }
-
   function showToast(
     message: string,
     type: ToastMessage['type'] = 'info',
@@ -76,10 +66,6 @@ export const useUIStore = defineStore('ui', () => {
     }
   }
 
-  function clearAllToasts() {
-    toasts.value = []
-  }
-
   return {
     theme,
     showGraticule,
@@ -89,9 +75,7 @@ export const useUIStore = defineStore('ui', () => {
 
     initializeTheme,
     setTheme,
-    initializeDisplayOptions,
     showToast,
     dismissToast,
-    clearAllToasts,
   }
 })

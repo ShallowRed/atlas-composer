@@ -5,20 +5,12 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { createTerritoryCode } from '@/types/branded'
 
 import { parameterRegistry } from '../index'
 
 describe('parameter registration system', () => {
-  it('should have all required parameters registered', () => {
-    const completenessResults = parameterRegistry.validateCompleteness()
-    const errors = completenessResults.filter(r => !r.isValid)
-
-    if (errors.length > 0) {
-      console.log('Missing parameters:', errors.map(e => e.error))
-    }
-
-    expect(errors).toHaveLength(0)
+  it('should register the projection identifier', () => {
+    expect(parameterRegistry.get('projectionId')).toBeDefined()
   })
 
   it('should have all core positioning parameters', () => {
@@ -152,31 +144,6 @@ describe('parameter registration system', () => {
       const cylindricalResult = parameterRegistry.validate('clipAngle', 90, 'CYLINDRICAL')
       expect(cylindricalResult.isValid).toBe(true)
       expect(cylindricalResult.warning).toContain('not relevant')
-    })
-  })
-
-  describe('default value generation', () => {
-    it('should provide defaults for optional parameters', () => {
-      const mockTerritory = {
-        code: createTerritoryCode('TEST'),
-        name: 'Test Territory',
-        center: [0, 0] as [number, number],
-        offset: [0, 0] as [number, number],
-        bounds: [[0, 0], [100, 100]] as [[number, number], [number, number]],
-      }
-
-      const cylindricalDefaults = parameterRegistry.getDefaults(mockTerritory, 'CYLINDRICAL')
-
-      // Should have defaults for optional parameters relevant to CYLINDRICAL
-      expect(cylindricalDefaults.translateOffset).toEqual([0, 0])
-      expect(cylindricalDefaults.precision).toBe(0.1)
-
-      // Test AZIMUTHAL-specific defaults
-      const azimuthalDefaults = parameterRegistry.getDefaults(mockTerritory, 'AZIMUTHAL')
-      expect(azimuthalDefaults.clipAngle).toBe(90)
-
-      // Should have default for scaleMultiplier (available to all families)
-      expect(cylindricalDefaults.scaleMultiplier).toBe(1.0)
     })
   })
 

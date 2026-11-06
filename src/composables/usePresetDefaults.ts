@@ -148,7 +148,6 @@ export function usePresetDefaults() {
     presetGlobalParameters,
     storePresetDefaults,
     storeGlobalParameters,
-    clearPresetDefaults,
     clearAll,
     getPresetDefaultsForTerritory,
     hasPresetDefaults,

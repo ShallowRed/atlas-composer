@@ -6,14 +6,6 @@ export interface CustomCompositeSettings {
 }
 
 export class CompositeSettingsBuilder {
-  static extractTerritoryCodes(compositeConfig: CompositeProjectionConfig | undefined): string[] {
-    if (!compositeConfig) {
-      return []
-    }
-
-    return compositeConfig.territories.map(t => t.code)
-  }
-
   static buildTerritoryProjections(
     territoryProjections: Record<string, string>,
   ): Record<string, string> {

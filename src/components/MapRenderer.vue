@@ -8,7 +8,6 @@ import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { useSliderState } from '@/composables/useSliderState'
 import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { TRANSITION_DURATION } from '@/config/transitions'
-import { getAtlasPresets } from '@/core/atlases/registry'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
@@ -61,16 +60,9 @@ const showSphere = computed<boolean>(() => {
   if (!atlasConfig)
     return false
 
-  const atlasId = atlasStore.selectedAtlasId
-  const presets = getAtlasPresets(atlasId)
-  const hasPresets = presets.length > 0
-
   const viewState: ViewState = {
     viewMode: viewStore.viewMode,
     atlasConfig,
-    hasPresets,
-    hasTerritories: geoDataStore.allActiveTerritories.length > 0,
-    isPresetLoading: false,
     showProjectionSelector: viewStore.showProjectionSelector,
     showIndividualProjectionSelectors: viewStore.showIndividualProjectionSelectors,
   }
@@ -107,9 +99,7 @@ const {
 const {
   isDragEnabled,
   isDragging: _isDragging,
-  dragTerritoryCode: _dragTerritoryCode,
   hoveredTerritoryCode,
-  isTerritoryDraggable: _isTerritoryDraggable,
   getCursorStyle: getTerritoryyCursorStyle,
   handleTerritoryMouseDown,
   handleTerritoryMouseEnter,

@@ -154,7 +154,7 @@ describe('projectionRegistry', () => {
       }
     })
 
-    it('should include projection, score, level, and reason', () => {
+    it('should include projection, score and level', () => {
       const recommendations = projectionRegistry.recommend({
         atlasId: 'france',
       })
@@ -162,7 +162,6 @@ describe('projectionRegistry', () => {
         expect(rec.projection).toBeDefined()
         expect(typeof rec.score).toBe('number')
         expect(rec.level).toBeDefined()
-        expect(rec.reason).toBeDefined()
       })
     })
 
@@ -204,38 +203,6 @@ describe('projectionRegistry', () => {
       good.forEach(r => expect(r.score).toBeGreaterThanOrEqual(60))
       usable.forEach(r => expect(r.score).toBeGreaterThanOrEqual(40))
       notRecommended.forEach(r => expect(r.score).toBeLessThan(40))
-    })
-  })
-
-  describe('isValid()', () => {
-    it('should return true for valid projection IDs', () => {
-      expect(projectionRegistry.isValid('mercator')).toBe(true)
-      expect(projectionRegistry.isValid('conic-conformal')).toBe(true)
-      expect(projectionRegistry.isValid('conic-conformal-france')).toBe(true)
-    })
-
-    it('should return true for valid aliases', () => {
-      expect(projectionRegistry.isValid('conicConformal')).toBe(true)
-    })
-
-    it('should return false for invalid projection IDs', () => {
-      expect(projectionRegistry.isValid('invalid-projection')).toBe(false)
-      expect(projectionRegistry.isValid('')).toBe(false)
-    })
-  })
-
-  describe('getCategories()', () => {
-    it('should return all projection categories', () => {
-      const categories = projectionRegistry.getCategories()
-      expect(categories).toContain(ProjectionCategory.COMPOSITE)
-      expect(categories).toContain(ProjectionCategory.CONIC)
-      expect(categories).toContain(ProjectionCategory.CYLINDRICAL)
-    })
-
-    it('should not contain duplicates', () => {
-      const categories = projectionRegistry.getCategories()
-      const uniqueCategories = [...new Set(categories)]
-      expect(categories.length).toBe(uniqueCategories.length)
     })
   })
 

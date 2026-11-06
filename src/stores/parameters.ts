@@ -3,9 +3,6 @@ import type { PositioningView, PositionParameter } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
-  ParameterChangeEvent,
-  ParameterInheritance,
-  ParameterSource,
   ParameterUpdate,
   ParameterValidationResult,
   ProjectionParameters,
@@ -33,34 +30,18 @@ type TupleRanges<K extends PositionParameter> = K extends 'rotate'
   : [AxisRange, AxisRange]
 
 export const useParameterStore = defineStore('parameters', () => {
-  const parameterManager = new ProjectionParameterManager({
-    enableEvents: true,
-  })
+  const parameterManager = new ProjectionParameterManager()
 
-  const isInitialized = ref(false)
-  const lastChangeEvent = ref<ParameterChangeEvent | null>(null)
   const validationErrors = ref<Map<string, ParameterValidationResult[]>>(new Map())
 
   const globalParametersVersion = ref(0)
   const territoryParametersVersion = ref(0)
-
-  function initialize(atlasParams?: ProjectionParameters) {
-    if (atlasParams) {
-      parameterManager.setAtlasParameters(atlasParams)
-    }
-
-    parameterManager.addChangeListener(handleParameterChange)
-
-    isInitialized.value = true
-  }
 
   function reset() {
     parameterManager.reset()
     validationErrors.value.clear()
     globalParametersVersion.value = 0
     territoryParametersVersion.value = 0
-    lastChangeEvent.value = null
-    isInitialized.value = false
   }
 
   const globalParameters = computed(() => {
@@ -156,21 +137,6 @@ export const useParameterStore = defineStore('parameters', () => {
     return parameterManager.getEffectiveParameters(territoryCode)
   }
 
-  function getParameterInheritance(territoryCode: string, key: keyof ProjectionParameters): ParameterInheritance {
-    void globalParametersVersion.value
-    void territoryParametersVersion.value
-    return parameterManager.getParameterInheritance(territoryCode as TerritoryCode, key)
-  }
-
-  function getParameterSource(territoryCode: TerritoryCode, key: keyof ProjectionParameters): ParameterSource {
-    return parameterManager.getParameterSource(territoryCode, key)
-  }
-
-  function clearTerritoryOverride(territoryCode: TerritoryCode, key: keyof ProjectionParameters) {
-    parameterManager.clearTerritoryOverride(territoryCode, key)
-    territoryParametersVersion.value++
-  }
-
   function clearAllTerritoryOverrides(territoryCode: TerritoryCode) {
     parameterManager.clearAllTerritoryOverrides(territoryCode)
     territoryParametersVersion.value++
@@ -252,67 +218,11 @@ export const useParameterStore = defineStore('parameters', () => {
     return min.map((axisMin, axis) => ({ min: axisMin, max: max[axis] as number, step })) as TupleRanges<K>
   }
 
-  function isParameterRelevant(family: ProjectionFamilyType, key: keyof ProjectionParameters): boolean {
-    const constraints = parameterRegistry.getConstraintsForFamily(key as string, family)
-    return constraints.relevant || false
-  }
-
-  const hasGlobalParameters = computed(() => {
-    const params = globalParameters.value
-    return Object.keys(params).length > 0
-  })
-
-  const hasValidationErrors = computed(() => {
-    return validationErrors.value.size > 0
-  })
-
-  const allValidationErrors = computed(() => {
-    const allErrors: ParameterValidationResult[] = []
-    validationErrors.value.forEach((errors) => {
-      allErrors.push(...errors)
-    })
-    return allErrors
-  })
-
   const globalEffectiveParameters = computed(() => {
     void globalParametersVersion.value
     void territoryParametersVersion.value
     return parameterManager.getEffectiveParameters()
   })
-
-  function createTerritoryParametersComputed(territoryCode: TerritoryCode) {
-    return computed(() => getTerritoryParameters(territoryCode))
-  }
-
-  function createEffectiveParametersComputed(territoryCode?: TerritoryCode) {
-    return computed(() => getEffectiveParameters(territoryCode))
-  }
-
-  function createParameterInheritanceComputed(territoryCode: TerritoryCode, key: keyof ProjectionParameters) {
-    return computed(() => getParameterInheritance(territoryCode, key))
-  }
-
-  function exportParameters(territoryCode?: string) {
-    return parameterManager.exportParameters(territoryCode)
-  }
-
-  function handleParameterChange(event: ParameterChangeEvent) {
-    lastChangeEvent.value = event
-    if (event.territoryCode) {
-      const errors = validationErrors.value.get(event.territoryCode)
-      if (errors) {
-        const filteredErrors = errors.filter(error =>
-          !error.error?.includes(String(event.key)),
-        )
-        if (filteredErrors.length === 0) {
-          validationErrors.value.delete(event.territoryCode)
-        }
-        else {
-          validationErrors.value.set(event.territoryCode, filteredErrors)
-        }
-      }
-    }
-  }
 
   function initializeFromPreset(
     atlasParams: ProjectionParameters,
@@ -327,8 +237,6 @@ export const useParameterStore = defineStore('parameters', () => {
     for (const [code, params] of Object.entries(territoryParams)) {
       setTerritoryParameters(code as TerritoryCode, params)
     }
-
-    isInitialized.value = true
 
     return errors
   }
@@ -348,18 +256,12 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   return {
-    isInitialized,
-    lastChangeEvent,
     validationErrors,
     territoryParametersVersion, // Reactive version for watching parameter changes
 
     globalParameters,
     globalEffectiveParameters,
-    hasGlobalParameters,
-    hasValidationErrors,
-    allValidationErrors,
 
-    initialize,
     reset,
 
     setGlobalParameter,
@@ -378,26 +280,15 @@ export const useParameterStore = defineStore('parameters', () => {
     getTerritoryTranslation,
 
     getEffectiveParameters,
-    getParameterInheritance,
-    getParameterSource,
 
-    clearTerritoryOverride,
     clearAllTerritoryOverrides,
     clearAll,
 
     validateParameter,
-    validateParameterSet,
     validateTerritoryParameters,
 
     getParameterConstraints,
     getTupleRanges,
-    isParameterRelevant,
-
-    createTerritoryParametersComputed,
-    createEffectiveParametersComputed,
-    createParameterInheritanceComputed,
-
-    exportParameters,
 
     initializeFromPreset,
     getExportableParameters,

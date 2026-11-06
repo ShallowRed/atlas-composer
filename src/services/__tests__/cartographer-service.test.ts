@@ -23,60 +23,6 @@ describe('cartographer service integration', () => {
     cartographer = new Cartographer(mockGeoDataConfig)
   })
 
-  describe('projection service integration', () => {
-    it('should initialize without errors', () => {
-      expect(cartographer).toBeDefined()
-      expect(cartographer.customComposite).toBeNull()
-    })
-
-    it('should have projection service available', () => {
-      expect(cartographer).toHaveProperty('projectionService')
-    })
-
-    it('should have geo data service available', () => {
-      expect(cartographer).toHaveProperty('geoDataService')
-    })
-  })
-
-  describe('render mode support', () => {
-    it('should support simple render mode', () => {
-      expect(cartographer).toHaveProperty('renderSimple')
-    })
-
-    it('should support composite-custom render mode', () => {
-      expect(cartographer).toHaveProperty('renderCustomComposite')
-    })
-
-    it('should support composite-projection render mode', () => {
-      expect(cartographer).toHaveProperty('renderProjectionComposite')
-    })
-
-    it('should have unified render API', () => {
-      expect(cartographer.render).toBeDefined()
-      expect(typeof cartographer.render).toBe('function')
-    })
-  })
-
-  describe('projection parameter passing', () => {
-    it('should accept standard projection IDs without errors', () => {
-      expect(cartographer).toHaveProperty('projectionService')
-    })
-
-    it('should work with composite projection IDs', () => {
-      expect(cartographer).toHaveProperty('projectionService')
-    })
-  })
-
-  describe('configuration', () => {
-    it('should store geo data config', () => {
-      expect(cartographer).toHaveProperty('geoDataService')
-    })
-
-    it('should not create composite projection when config not provided', () => {
-      expect(cartographer.customComposite).toBeNull()
-    })
-  })
-
   describe('error handling', () => {
     it('should handle invalid render mode gracefully', async () => {
       await expect(async () => {

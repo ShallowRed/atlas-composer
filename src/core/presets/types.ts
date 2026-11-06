@@ -23,14 +23,6 @@ export interface AtlasProjectionMetadata {
     recommended?: string[]
     prohibited?: string[]
   }
-  projectionParameters?: {
-    center?: { longitude: number, latitude: number }
-    rotate?: {
-      conic?: [number, number]
-      azimuthal?: [number, number]
-    }
-    parallels?: { conic?: [number, number] }
-  }
 }
 
 export interface BasePresetMetadata {

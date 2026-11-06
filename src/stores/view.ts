@@ -6,8 +6,7 @@ import type { ResolvedPresetDefinition } from '@/types/registry'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { getAtlasPresets, getAvailableViewModes, getDefaultViewMode } from '@/core/atlases/registry'
-import { ViewModeSelection } from '@/core/view'
+import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetApplicationService } from '@/services/presets/preset-application-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -32,19 +31,9 @@ export const useViewStore = defineStore('view', () => {
   const currentViewPreset = ref<PresetId | null>(null)
   const availableViewPresets = ref<ResolvedPresetDefinition[]>([])
 
-  const viewModeSelection = computed(() => new ViewModeSelection(viewMode.value))
-
   const positioningView = computed<PositioningView>(() =>
     viewMode.value === 'composite-custom' ? 'composite' : 'global',
   )
-
-  const isViewModeLocked = computed(() => {
-    const config = getAtlasStore().currentAtlasConfig
-    if (!config)
-      return false
-    const availableViewModes = getAvailableViewModes(config.id as AtlasId)
-    return availableViewModes.length === 1
-  })
 
   const showProjectionSelector = computed(() =>
     ProjectionUIService.shouldShowProjectionSelector(
@@ -55,18 +44,6 @@ export const useViewStore = defineStore('view', () => {
 
   const showIndividualProjectionSelectors = computed(() =>
     ProjectionUIService.shouldShowIndividualProjectionSelectors(viewMode.value),
-  )
-
-  const showTerritorySelector = computed(() =>
-    ProjectionUIService.shouldShowTerritorySelector(viewMode.value),
-  )
-
-  const showScalePreservation = computed(() =>
-    ProjectionUIService.shouldShowScalePreservation(viewMode.value),
-  )
-
-  const showTerritoryControls = computed(() =>
-    ProjectionUIService.shouldShowTerritoryControls(viewMode.value),
   )
 
   const projectionGroups = computed(() =>
@@ -294,15 +271,10 @@ export const useViewStore = defineStore('view', () => {
     currentViewPreset,
     availableViewPresets,
 
-    viewModeSelection,
     positioningView,
 
-    isViewModeLocked,
     showProjectionSelector,
     showIndividualProjectionSelectors,
-    showTerritorySelector,
-    showScalePreservation,
-    showTerritoryControls,
     projectionGroups,
     projectionRecommendations,
 

@@ -83,7 +83,6 @@ const currentPreset = computed({
             currentAtlasConfig.compositeProjectionConfig,
             parameterProvider,
             result.state.canvas.referenceScale,
-            result.state.canvas.dimensions,
           )
           debug('Rebuilt composite projection with %d territories', Object.keys(territoryParameters).length)
         }

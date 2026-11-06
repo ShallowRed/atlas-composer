@@ -1,7 +1,7 @@
 import type { TerritoryCode } from '@/types'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -15,7 +15,6 @@ const debug = logger.vue.composable
 
 export function useUrlState() {
   const route = useRoute()
-  const router = useRouter()
   const atlasStore = useAtlasStore()
   const parameterStore = useParameterStore()
   const projectionStore = useProjectionStore()
@@ -137,13 +136,6 @@ export function useUrlState() {
       projectionStore.setCustomParallel2(Number(params.p2))
   }
 
-  async function updateUrl() {
-    const state = serializeState()
-    await router.replace({
-      query: state,
-    })
-  }
-
   function restoreFromUrl() {
     if (route.query && Object.keys(route.query).length > 0) {
       deserializeState(route.query)
@@ -174,29 +166,10 @@ export function useUrlState() {
     }
   }
 
-  function enableAutoSync() {
-    watch(
-      () => ({
-        atlas: atlasStore.selectedAtlasId,
-        view: viewStore.viewMode,
-        projection: projectionStore.selectedProjection,
-        territory: viewStore.territoryMode,
-      }),
-      () => {
-        updateUrl()
-      },
-      { deep: true },
-    )
-  }
-
   return {
     serializeState,
-    deserializeState,
-    updateUrl,
     restoreFromUrl,
     restoreProjectionParametersFromUrl,
-    shareableUrl,
     copyShareableUrl,
-    enableAutoSync,
   }
 }
