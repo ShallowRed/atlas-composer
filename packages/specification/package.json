@@ -51,13 +51,14 @@
     "schemas"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "generate": "node scripts/generate.mjs && json2ts -i schemas/composite-projection.schema.json -o src/generated/types.ts",
+    "build": "pnpm run generate && tsup",
+    "dev": "pnpm run generate && tsup --watch",
+    "typecheck": "pnpm run generate && tsc --noEmit"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
+    "json-schema-to-typescript": "^16.0.0",
     "tsup": "^8.0.0",
     "typescript": "~5.9.3"
   }

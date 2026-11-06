@@ -1,0 +1,44 @@
+{
+  "version": "1.1",
+  "metadata": {
+    "atlasId": "france"
+  },
+  "referenceScale": 2700,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "FR-GP",
+      "name": "Guadeloupe",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            -61.46,
+            16.14
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ]
+      },
+      "bounds": [
+        [
+          -61.81,
+          15.83
+        ],
+        [
+          -61,
+          16.52
+        ]
+      ]
+    }
+  ]
+}

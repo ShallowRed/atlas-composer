@@ -186,15 +186,18 @@ export class ProjectionLoader {
           currentTranslate,
           debug,
         )
+        const { bounds } = layout.territory
         return {
           id: layout.territory.code,
           projection: proj as CoreProjectionLike,
-          bounds: {
-            minLon: layout.territory.bounds[0][0],
-            minLat: layout.territory.bounds[0][1],
-            maxLon: layout.territory.bounds[1][0],
-            maxLat: layout.territory.bounds[1][1],
-          },
+          ...(bounds && {
+            bounds: {
+              minLon: bounds[0][0],
+              minLat: bounds[0][1],
+              maxLon: bounds[1][0],
+              maxLat: bounds[1][1],
+            },
+          }),
         }
       })
     }

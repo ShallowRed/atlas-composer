@@ -1,3 +1,11 @@
+export { PROJECTION_CATALOG, resolveProjectionAlias } from './catalog.js'
+
+export {
+  DEFAULT_SCALE_MULTIPLIER,
+  PROJECTION_FAMILIES,
+  PROJECTION_PARAMETER_KEYS,
+} from './generated/constants.js'
+
 export type {
   AtlasMetadata,
   CanvasDimensions,
@@ -12,14 +20,14 @@ export type {
 } from './types.js'
 
 export {
+  DEFAULT_REFERENCE_SCALE,
   findTerritory,
   getTerritoryCodes,
-  isCompositeProjectionConfig,
-  MIN_SUPPORTED_VERSION,
   SPECIFICATION_VERSION,
 } from './types.js'
 
 export {
+  isCompositeProjectionConfig,
   validateConfig,
   validateVersion,
   type ValidationError,

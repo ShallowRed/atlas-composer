@@ -1,4 +1,7 @@
-import { isCompositeProjectionConfig, MIN_SUPPORTED_VERSION } from './types.js'
+import type { SchemaError } from './generated/validate.js'
+import type { CompositeProjectionConfig } from './types.js'
+import { VERSION_PATTERN } from './generated/constants.js'
+import validateSchema from './generated/validate.js'
 
 export interface ValidationError {
   path: string
@@ -13,117 +16,58 @@ export interface ValidationResult {
 }
 
 export function validateVersion(version: string): boolean {
-  const [major] = version.split('.').map(Number)
-  const [minMajor] = MIN_SUPPORTED_VERSION.split('.').map(Number)
-  return major >= minMajor
+  return VERSION_PATTERN.test(version)
+}
+
+// `/territories/0/code` becomes `territories[0].code`
+function toPath(instancePath: string, property: unknown): string {
+  const segments = instancePath.split('/').slice(1)
+  if (typeof property === 'string')
+    segments.push(property)
+  return segments.reduce((path, segment) => {
+    if (/^\d+$/.test(segment))
+      return `${path}[${segment}]`
+    return path ? `${path}.${segment}` : segment
+  }, '')
+}
+
+function errorCode({ keyword, instancePath }: SchemaError): ValidationError['code'] {
+  if (keyword === 'required')
+    return 'MISSING_FIELD'
+  if (keyword === 'type')
+    return 'INVALID_TYPE'
+  if (keyword === 'pattern' && instancePath === '/version')
+    return 'VERSION_UNSUPPORTED'
+  return 'INVALID_VALUE'
+}
+
+function toValidationError(error: SchemaError): ValidationError {
+  return {
+    path: toPath(error.instancePath, error.params.missingProperty ?? error.params.additionalProperty),
+    message: error.message ?? error.keyword,
+    code: errorCode(error),
+  }
+}
+
+// JSON Schema compares whole items for uniqueness, so the rule on territory codes is checked here
+function findDuplicateCodes(config: CompositeProjectionConfig): ValidationError[] {
+  const codes = new Set<string>()
+  return config.territories.flatMap(({ code }, index) => {
+    if (!codes.has(code)) {
+      codes.add(code)
+      return []
+    }
+    return [{ path: `territories[${index}].code`, message: `Duplicate territory code: ${code}`, code: 'INVALID_VALUE' as const }]
+  })
 }
 
 export function validateConfig(config: unknown): ValidationResult {
-  const errors: ValidationError[] = []
-  const warnings: string[] = []
+  const errors = validateSchema(config)
+    ? findDuplicateCodes(config as CompositeProjectionConfig)
+    : (validateSchema.errors ?? []).map(toValidationError)
+  return { valid: errors.length === 0, errors, warnings: [] }
+}
 
-  if (!isCompositeProjectionConfig(config)) {
-    errors.push({
-      path: '',
-      message: 'Invalid configuration structure',
-      code: 'INVALID_TYPE',
-    })
-    return { valid: false, errors, warnings }
-  }
-
-  if (!validateVersion(config.version)) {
-    errors.push({
-      path: 'version',
-      message: `Unsupported version "${config.version}". Minimum: ${MIN_SUPPORTED_VERSION}`,
-      code: 'VERSION_UNSUPPORTED',
-    })
-  }
-
-  if (!config.metadata.atlasId) {
-    errors.push({
-      path: 'metadata.atlasId',
-      message: 'atlasId is required',
-      code: 'MISSING_FIELD',
-    })
-  }
-
-  if (config.referenceScale <= 0) {
-    errors.push({
-      path: 'referenceScale',
-      message: 'referenceScale must be positive',
-      code: 'INVALID_VALUE',
-    })
-  }
-
-  if (config.canvasDimensions.width <= 0 || config.canvasDimensions.height <= 0) {
-    errors.push({
-      path: 'canvasDimensions',
-      message: 'Canvas dimensions must be positive',
-      code: 'INVALID_VALUE',
-    })
-  }
-
-  if (config.territories.length === 0) {
-    errors.push({
-      path: 'territories',
-      message: 'At least one territory is required',
-      code: 'INVALID_VALUE',
-    })
-  }
-
-  const codes = new Set<string>()
-  config.territories.forEach((territory, index) => {
-    const path = `territories[${index}]`
-
-    if (codes.has(territory.code)) {
-      errors.push({
-        path: `${path}.code`,
-        message: `Duplicate territory code: ${territory.code}`,
-        code: 'INVALID_VALUE',
-      })
-    }
-    codes.add(territory.code)
-
-    if (!territory.projection.id) {
-      errors.push({
-        path: `${path}.projection.id`,
-        message: 'Projection ID is required',
-        code: 'MISSING_FIELD',
-      })
-    }
-
-    if (territory.bounds) {
-      const [[minLon, minLat], [maxLon, maxLat]] = territory.bounds
-      if (minLon >= maxLon || minLat >= maxLat) {
-        warnings.push(`${path}.bounds: Invalid bounds order (min >= max)`)
-      }
-      if (minLon < -180 || maxLon > 180) {
-        warnings.push(`${path}.bounds: Longitude out of range [-180, 180]`)
-      }
-      if (minLat < -90 || maxLat > 90) {
-        warnings.push(`${path}.bounds: Latitude out of range [-90, 90]`)
-      }
-    }
-
-    if (!territory.layout.translateOffset) {
-      errors.push({
-        path: `${path}.layout.translateOffset`,
-        message: 'translateOffset is required',
-        code: 'MISSING_FIELD',
-      })
-    }
-    if (!territory.layout.pixelClipExtent) {
-      errors.push({
-        path: `${path}.layout.pixelClipExtent`,
-        message: 'pixelClipExtent is required',
-        code: 'MISSING_FIELD',
-      })
-    }
-  })
-
-  return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
-  }
+export function isCompositeProjectionConfig(value: unknown): value is CompositeProjectionConfig {
+  return validateConfig(value).valid
 }

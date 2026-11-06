@@ -64,10 +64,8 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@atlas-composer/specification": "workspace:*"
-  },
   "devDependencies": {
+    "@atlas-composer/specification": "workspace:*",
     "tsup": "^8.0.0",
     "typescript": "~5.9.3"
   }

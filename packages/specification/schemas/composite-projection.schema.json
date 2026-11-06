@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://atlas-composer.github.io/specification/v1/composite-projection.schema.json",
-  "title": "Atlas Composer Composite Projection Configuration",
-  "description": "Schema for composite map projection configurations exported from Atlas Composer (v1.0)",
+  "title": "CompositeProjectionConfig",
+  "description": "Schema for composite map projection configurations exported from Atlas Composer (v1.1)",
   "type": "object",
   "required": ["version", "metadata", "referenceScale", "canvasDimensions", "territories"],
   "properties": {
@@ -12,9 +12,9 @@
     },
     "version": {
       "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+$",
-      "description": "Specification version (e.g., '1.0')",
-      "examples": ["1.0"]
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Specification version (e.g., '1.1')",
+      "examples": ["1.1"]
     },
     "metadata": {
       "$ref": "definitions.schema.json#/definitions/configMetadata"
@@ -42,7 +42,7 @@
   "additionalProperties": false,
   "examples": [
     {
-      "version": "1.0",
+      "version": "1.1",
       "metadata": {
         "atlasId": "france",
         "atlasName": "France",
