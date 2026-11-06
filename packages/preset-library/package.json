@@ -34,21 +34,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./france/*": {
-      "import": "./presets/france/*.json"
-    },
-    "./portugal/*": {
-      "import": "./presets/portugal/*.json"
-    },
-    "./usa/*": {
-      "import": "./presets/usa/*.json"
-    },
-    "./europe/*": {
-      "import": "./presets/europe/*.json"
-    },
-    "./world/*": {
-      "import": "./presets/world/*.json"
-    }
+    "./*": "./dist/*.json"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -56,8 +42,7 @@
   "files": [
     "LICENSE",
     "README.md",
-    "dist",
-    "presets"
+    "dist"
   ],
   "scripts": {
     "build": "tsup",
