@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset-split.schema.json",
-  "id": "france-split-individual",
+  "id": "france-split",
   "name": "France - Vue séparée optimisée",
   "description": "Projection adaptée à chaque territoire",
   "atlasId": "france",

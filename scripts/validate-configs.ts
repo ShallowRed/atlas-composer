@@ -105,15 +105,20 @@ async function validatePresetFiles(atlas: string): Promise<string[]> {
 
   for (const preset of presets) {
     const file = relative(process.cwd(), preset.path)
+    if (!preset.id.startsWith(`${atlas}-`)) {
+      errors.push(`Preset ${preset.id} does not start with ${atlas}-`)
+    }
+    const expectedPath = `./presets/${atlas}/${preset.id}.json`
+    if (preset.configPath !== expectedPath) {
+      errors.push(`Preset ${preset.id} has configPath ${preset.configPath}, expected ${expectedPath}`)
+    }
+
     let content: string
     try {
       content = await readFile(preset.path, 'utf-8')
     }
     catch {
       errors.push(`Preset file not found: ${preset.id}: ${file}`)
-      continue
-    }
-    if (preset.type !== 'composite-custom') {
       continue
     }
 
@@ -125,6 +130,14 @@ async function validatePresetFiles(atlas: string): Promise<string[]> {
       errors.push(`Preset ${file} is not valid JSON: ${(error as Error).message}`)
       continue
     }
+    if (preset.type !== 'composite-custom') {
+      const fileId = (json as { id?: unknown }).id
+      if (fileId !== preset.id) {
+        errors.push(`Preset ${preset.id} has id ${JSON.stringify(fileId)} in ${file}`)
+      }
+      continue
+    }
+
     const result = validateConfig(json)
     if (!result.valid) {
       const details = result.errors.map(error => `${error.path}: ${error.message}`).join('; ')

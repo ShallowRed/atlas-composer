@@ -21,6 +21,7 @@ export interface PresetFile {
   id: string
   type: string
   isDefault: boolean
+  configPath: string
   path: string
 }
 
@@ -56,6 +57,7 @@ export async function listPresetFiles(atlasName: string): Promise<PresetFile[]> 
     id,
     type,
     isDefault: isDefault === true,
+    configPath,
     path: path.join(getConfigsDir(), configPath),
   }))
 }

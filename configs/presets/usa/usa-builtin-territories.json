@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset.schema.json",
-  "id": "usa-built-in-composite",
+  "id": "usa-builtin-territories",
   "name": "USA - Composite Albers",
   "description": "Projection composite Albers USA prédéfinie",
   "atlasId": "usa",

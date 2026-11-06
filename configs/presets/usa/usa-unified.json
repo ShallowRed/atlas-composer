@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/preset.schema.json",
-  "id": "usa-unified-default",
+  "id": "usa-unified",
   "name": "USA - Vue unifiée standard",
   "description": "Projection Natural Earth centrée sur les États-Unis",
   "atlasId": "usa",
