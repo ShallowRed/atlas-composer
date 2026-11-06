@@ -102,18 +102,6 @@ describe('projectionSelection', () => {
     })
   })
 
-  describe('isComposite', () => {
-    it('should return true for composite projections', () => {
-      const selection = new ProjectionSelection(createProjectionId('france-composite'), ProjectionFamily.COMPOSITE)
-      expect(selection.isComposite()).toBe(true)
-    })
-
-    it('should return false for non-composite projections', () => {
-      const selection = new ProjectionSelection(createProjectionId('mercator'), ProjectionFamily.CYLINDRICAL)
-      expect(selection.isComposite()).toBe(false)
-    })
-  })
-
   describe('toString', () => {
     it('should return a readable string representation', () => {
       const selection = new ProjectionSelection(createProjectionId('mercator'), ProjectionFamily.CYLINDRICAL)

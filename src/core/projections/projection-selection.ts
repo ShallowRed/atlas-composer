@@ -45,10 +45,6 @@ export class ProjectionSelection {
     return this.family === ProjectionFamily.CONIC
   }
 
-  isComposite(): boolean {
-    return this.family === ProjectionFamily.COMPOSITE
-  }
-
   toString(): string {
     return `ProjectionSelection(${this.projectionId}, ${this.family})`
   }

@@ -1,4 +1,3 @@
-import type { ProjectionFamilyType } from '@/core/projections/types'
 import { geoConicConformal, geoConicEqualArea, geoMercator, geoOrthographic } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 
@@ -14,16 +13,9 @@ import {
   updatePositioningAxis,
   usesPositionParameter,
 } from '@/core/positioning'
+import { ProjectionFamily } from '@/core/projections/types'
 
-const FAMILIES: ProjectionFamilyType[] = [
-  'CYLINDRICAL',
-  'PSEUDOCYLINDRICAL',
-  'CONIC',
-  'AZIMUTHAL',
-  'POLYHEDRAL',
-  'COMPOSITE',
-  'OTHER',
-]
+const FAMILIES = Object.values(ProjectionFamily)
 
 const US_AK = { center: [-2, 58.5] as [number, number], rotate: [154, 0, 0] as [number, number, number] }
 

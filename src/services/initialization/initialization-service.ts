@@ -377,7 +377,7 @@ export class InitializationService {
         }
         scales[code] = territory.projection.parameters.scaleMultiplier ?? 1
 
-        const family = projectionRegistry.get(territory.projection.id)?.family ?? 'OTHER'
+        const family = projectionRegistry.get(territory.projection.id)?.family ?? 'MISCELLANEOUS'
         const atlasCenter = atlasConfig.compositeProjectionConfig?.territories.find(t => t.code === code)?.center
         const atlasPositioning = atlasCenter ? { center: atlasCenter } : {}
         const parameters = replaceDeprecatedPositioning(territory.projection.parameters || {}, family, atlasPositioning)

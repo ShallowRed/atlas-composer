@@ -117,7 +117,7 @@ export const useParameterStore = defineStore('parameters', () => {
   function changeTerritoryProjection(territoryCode: TerritoryCode, projectionId: ProjectionId, view: PositioningView) {
     const effective = getEffectiveParameters(territoryCode)
     const previousFamily = projectionRegistry.get(effective.projectionId ?? '')?.family
-    const family = projectionRegistry.get(projectionId)?.family ?? 'OTHER'
+    const family = projectionRegistry.get(projectionId)?.family ?? 'MISCELLANEOUS'
     const hasPositioning = effective.center !== undefined || effective.rotate !== undefined
 
     if (view === 'composite' && hasPositioning && family !== previousFamily) {

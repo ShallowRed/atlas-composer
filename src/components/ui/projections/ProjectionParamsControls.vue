@@ -27,7 +27,7 @@ const currentProjection = computed(() => {
 })
 
 const projectionFamily = computed<ProjectionFamilyType>(() => {
-  return currentProjection.value?.family ?? 'OTHER'
+  return currentProjection.value?.family ?? 'MISCELLANEOUS'
 })
 
 const effectiveParams = computed(() => parameterStore.globalEffectiveParameters)
