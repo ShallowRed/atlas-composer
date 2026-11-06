@@ -1,15 +1,22 @@
 import type { ProjectionLike as CoreProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type {
+  CanvasDimensions,
   CompositeProjectionConfig,
   GeoBounds,
   LayoutConfig,
   TerritoryConfig,
+  ValidationError,
 } from '@atlas-composer/specification'
 
 import {
   buildCompositeProjection,
   calculateClipExtentFromPixelOffset,
 } from '@atlas-composer/projection-core'
+import {
+  DEFAULT_SCALE_MULTIPLIER,
+  resolveProjectionAlias,
+  validateConfig,
+} from '@atlas-composer/specification'
 
 export interface ProjectionLike {
   (coordinates: [number, number]): [number, number] | null
@@ -93,14 +100,21 @@ export interface LoaderOptions {
   debug?: boolean
 }
 
+export class ConfigValidationError extends Error {
+  readonly errors: ValidationError[]
+
+  constructor(errors: ValidationError[]) {
+    super(`Invalid composite projection configuration:\n${errors.map(({ path, message }) => `- ${path}: ${message}`).join('\n')}`)
+    this.name = 'ConfigValidationError'
+    this.errors = errors
+  }
+}
+
 function computeScaleFactor(
-  canvasDimensions: { width: number, height: number } | undefined,
+  canvasDimensions: CanvasDimensions,
   targetWidth: number,
   targetHeight: number,
 ): number {
-  if (!canvasDimensions)
-    return 1
-
   // Scale to fit: use the smaller ratio to ensure content fits within target
   const widthRatio = targetWidth / canvasDimensions.width
   const heightRatio = targetHeight / canvasDimensions.height
@@ -140,20 +154,16 @@ export class ProjectionLoader {
   load(config: CompositeProjectionConfig, options: LoaderOptions): CompositeProjectionLike {
     const { width, height, debug = false } = options
 
-    if (!/^1\.\d+$/.test(config.version)) {
-      throw new Error(`Unsupported configuration version: ${config.version}`)
+    const { valid, errors } = validateConfig(config)
+    if (!valid) {
+      throw new ConfigValidationError(errors)
     }
 
-    if (!config.territories || config.territories.length === 0) {
-      throw new Error('Configuration must contain at least one territory')
-    }
-
-    const referenceScale = config.referenceScale || 2700
-    const canvasDimensions = config.canvasDimensions || { width, height }
+    const { referenceScale, canvasDimensions } = config
 
     const layouts: TerritoryLayout[] = config.territories.map((territory) => {
       const factory = this.getFactory(territory.projection.id)
-      const [offsetX, offsetY] = territory.layout.translateOffset || [0, 0]
+      const [offsetX, offsetY] = territory.layout.translateOffset
       const clip = territory.layout.pixelClipExtent
 
       return {
@@ -265,7 +275,7 @@ export class ProjectionLoader {
   }
 
   private getFactory(projectionId: string): ProjectionFactory {
-    const factory = this.factories.get(projectionId)
+    const factory = this.factories.get(projectionId) ?? this.factories.get(resolveProjectionAlias(projectionId))
     if (!factory) {
       const registered = this.getRegistered()
       const availableList = registered.length > 0 ? registered.join(', ') : 'none'
@@ -301,7 +311,7 @@ export class ProjectionLoader {
       projection.parallels(parameters.parallels)
     }
 
-    const scaleMultiplier = parameters.scaleMultiplier ?? 1
+    const scaleMultiplier = parameters.scaleMultiplier ?? DEFAULT_SCALE_MULTIPLIER
     const territoryScale = scale * scaleMultiplier
     if (projection.scale) {
       projection.scale(territoryScale)
@@ -353,46 +363,7 @@ export class ProjectionLoader {
       throw new Error(`Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
 
-    validateConfig(config)
-    return this.load(config, options)
-  }
-}
-
-export function validateConfig(config: unknown): asserts config is CompositeProjectionConfig {
-  if (!config || typeof config !== 'object') {
-    throw new Error('Configuration must be an object')
-  }
-
-  const cfg = config as Record<string, unknown>
-
-  if (!cfg.version) {
-    throw new Error('Configuration must have a version field')
-  }
-
-  if (!cfg.metadata || typeof cfg.metadata !== 'object' || !(cfg.metadata as Record<string, unknown>).atlasId) {
-    throw new Error('Configuration must have metadata with atlasId')
-  }
-
-  if (!cfg.territories || !Array.isArray(cfg.territories)) {
-    throw new Error('Configuration must have territories array')
-  }
-
-  if (cfg.territories.length === 0) {
-    throw new Error('Configuration must have at least one territory')
-  }
-
-  for (const territory of cfg.territories as Record<string, unknown>[]) {
-    if (!territory.code) {
-      throw new Error(`Territory missing required field 'code': ${JSON.stringify(territory)}`)
-    }
-
-    const proj = territory.projection as Record<string, unknown> | undefined
-    if (!proj || !proj.id || !proj.parameters) {
-      throw new Error(`Territory ${territory.code} missing projection configuration. Required: projection.id and projection.parameters`)
-    }
-
-    if (!territory.bounds) {
-      throw new Error(`Territory ${territory.code} missing bounds`)
-    }
+    // load validates the parsed value
+    return this.load(config as CompositeProjectionConfig, options)
   }
 }

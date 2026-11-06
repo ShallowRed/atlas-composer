@@ -1,6 +1,6 @@
 export {
+  ConfigValidationError,
   ProjectionLoader,
-  validateConfig,
 } from './projection-loader'
 
 export type {
@@ -10,3 +10,7 @@ export type {
   ProjectionLike,
   StreamLike,
 } from './projection-loader'
+
+export { validateConfig } from '@atlas-composer/specification'
+
+export type { ValidationError, ValidationResult } from '@atlas-composer/specification'

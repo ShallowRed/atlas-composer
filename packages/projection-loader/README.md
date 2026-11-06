@@ -46,6 +46,40 @@ d3.select('svg')
   .attr('d', path)
 ```
 
+`@atlas-composer/projection-loader/helpers` exports `d3ProjectionFactories`, the factories of `d3-geo` under the projection identifiers of `@atlas-composer/specification`, to register them all with `loader.registerAll(d3ProjectionFactories)`. An alias of the catalog, such as `albers` for `conic-equal-area` or `natural-earth-1` for `natural-earth`, takes the factory registered under it, else the factory of its identifier. To build `albers` with `geoAlbers`, register it under the alias:
+
+```typescript
+import { albers } from '@atlas-composer/projection-loader/helpers'
+
+loader.register('albers', albers)
+```
+
+## Validation
+
+`load` and `loadFromJSON` validate the configuration with `validateConfig` of `@atlas-composer/specification`, and throw a `ConfigValidationError` for a configuration that the format refuses. Its `errors` list the path and the message of each error:
+
+```typescript
+import { ConfigValidationError } from '@atlas-composer/projection-loader'
+
+try {
+  loader.loadFromJSON(json, { width: 800, height: 600 })
+}
+catch (error) {
+  if (error instanceof ConfigValidationError) {
+    for (const { path, message } of error.errors)
+      console.error(`${path}: ${message}`)
+  }
+}
+```
+
+The package also exports `validateConfig`, which returns `{ valid, errors, warnings }` without throwing.
+
+## Projection parameters
+
+The loader applies `center`, `rotate`, `parallels`, `clipAngle` and `precision` when the configuration gives them, and keeps the value of the d3 factory otherwise. The scale of a territory is `referenceScale` × `scaleMultiplier`, and `scaleMultiplier` defaults to `DEFAULT_SCALE_MULTIPLIER` of the specification, 1. The loader ignores `scale`, `distance` and `tilt`, which the format accepts.
+
+A territory without `pixelClipExtent` is not clipped. A territory without `bounds` is drawn, and the composite projection returns `null` for its points.
+
 ## API
 
 ### ProjectionLoader

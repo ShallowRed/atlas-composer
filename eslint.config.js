@@ -184,4 +184,9 @@ export default antfu({
     'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
   },
+}, {
+  files: ['packages/projection-loader/src/**'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, DEFAULT_REFERENCE_SCALE],
+  },
 })
