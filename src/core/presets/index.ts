@@ -1,3 +1,6 @@
+export type { CompositeConfigContext } from './composite-config'
+export { readCompositeConfig } from './composite-config'
+
 export { convertToDefaults, extractTerritoryParameters } from './converter'
 
 export type {

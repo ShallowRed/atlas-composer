@@ -1,11 +1,11 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { TerritoryDefaults } from './types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { parameterRegistry } from '@/core/parameters'
 
-export function convertToDefaults(preset: ExportedCompositeConfig): TerritoryDefaults {
+export function convertToDefaults(preset: CompositeProjectionConfig): TerritoryDefaults {
   const projections: Record<TerritoryCode, ProjectionId> = {} as Record<TerritoryCode, ProjectionId>
   const translations: Record<TerritoryCode, { x: number, y: number }> = {} as Record<TerritoryCode, { x: number, y: number }>
   const scales: Record<TerritoryCode, number> = {} as Record<TerritoryCode, number>
@@ -31,7 +31,7 @@ export function convertToDefaults(preset: ExportedCompositeConfig): TerritoryDef
 }
 
 export function extractTerritoryParameters(
-  preset: ExportedCompositeConfig,
+  preset: CompositeProjectionConfig,
 ): Record<string, ProjectionParameters> {
   const result: Record<string, ProjectionParameters> = {}
 

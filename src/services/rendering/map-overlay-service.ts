@@ -1,6 +1,7 @@
 import type { Selection } from 'd3'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import { path, select } from 'd3'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
 import { logger } from '@/utils/logger'
@@ -74,7 +75,7 @@ export class MapOverlayService {
     }
     else {
       const defaultScale = 1000
-      const referenceWidth = canvasDimensions?.width ?? 960
+      const referenceWidth = canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
       if (typeof projection.scale === 'function') {
         const scaleFactor = width / referenceWidth
         projection.scale(defaultScale * scaleFactor)

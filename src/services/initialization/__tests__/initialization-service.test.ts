@@ -1,3 +1,4 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
@@ -184,7 +185,23 @@ describe('initializationService', () => {
     })
 
     it('should handle preset validation failure', async () => {
+      const { getDefaultViewMode } = await import('@/core/atlases/registry')
+      const { PresetLoader } = await import('@/services/presets/preset-loader')
       const { PresetValidationService } = await import('@/services/validation/preset-validation-service')
+      // Read by the view store, then by initializeAtlas
+      vi.mocked(getDefaultViewMode).mockReturnValueOnce('split').mockReturnValueOnce('split')
+      vi.mocked(PresetLoader.loadPreset).mockResolvedValueOnce({
+        success: true,
+        data: {
+          id: 'france-split',
+          name: 'France Split Preset',
+          atlasId: createAtlasId('france'),
+          type: 'split',
+          config: { territories: {} },
+        },
+        errors: [],
+        warnings: [],
+      })
       vi.mocked(PresetValidationService.validatePreset).mockReturnValueOnce({
         isValid: false,
         errors: ['Invalid preset structure'],
@@ -263,8 +280,8 @@ describe('initializationService', () => {
 
   describe.skip('importConfiguration', () => {
     it('should successfully import a configuration', async () => {
-      const mockConfig = {
-        version: '1.0' as const,
+      const mockConfig: CompositeProjectionConfig = {
+        version: '1.0',
         metadata: {
           atlasId: createAtlasId('france'),
           atlasName: 'France',
@@ -272,6 +289,7 @@ describe('initializationService', () => {
           createdWith: '1.0.0',
         },
         referenceScale: 2700,
+        canvasDimensions: { width: 960, height: 500 },
         territories: [
           {
             code: 'FR-MET',
@@ -279,7 +297,7 @@ describe('initializationService', () => {
             projection: {
               id: 'conic-conformal',
               family: 'CONIC',
-              parameters: { projectionId: 'conic-conformal' },
+              parameters: {},
             },
             layout: {
               translateOffset: [0, 0] as [number, number],
@@ -298,16 +316,17 @@ describe('initializationService', () => {
     })
 
     it('should reject import with no territories', async () => {
-      const mockConfig = {
-        version: '1.0' as const,
+      const mockConfig: CompositeProjectionConfig = {
+        version: '1.0',
         metadata: {
           atlasId: createAtlasId('france'),
           atlasName: 'France',
           exportDate: '2024-01-01',
           createdWith: '1.0.0',
         },
-        pattern: 'single-focus' as const,
-        territories: [],
+        referenceScale: 2700,
+        canvasDimensions: { width: 960, height: 500 },
+        territories: [] as unknown as CompositeProjectionConfig['territories'],
       }
 
       const result = await InitializationService.importConfiguration({
@@ -319,14 +338,16 @@ describe('initializationService', () => {
     })
 
     it('should reject import for wrong atlas', async () => {
-      const mockConfig = {
-        version: '1.0' as const,
+      const mockConfig: CompositeProjectionConfig = {
+        version: '1.0',
         metadata: {
           atlasId: createAtlasId('portugal'),
           atlasName: 'Portugal',
           exportDate: '2024-01-01',
           createdWith: '1.0.0',
         },
+        referenceScale: 2700,
+        canvasDimensions: { width: 960, height: 500 },
         territories: [
           {
             code: 'PT-MET',
@@ -334,7 +355,7 @@ describe('initializationService', () => {
             projection: {
               id: 'conic-conformal',
               family: 'CONIC',
-              parameters: { projectionId: 'conic-conformal' },
+              parameters: {},
             },
             layout: {
               translateOffset: [0, 0] as [number, number],

@@ -1,9 +1,12 @@
 /**
- * Centralized fallback projection preferences for atlases.
- * Used when preset metadata is not available.
+ * Fallback values: canvas dimensions when the store has none, and projection
+ * preferences for atlases when preset metadata is not available.
  */
 
+import type { CanvasDimensions } from '@atlas-composer/specification'
 import type { ProjectionPreferences } from '@/core/atlases/loader'
+
+export const DEFAULT_CANVAS_DIMENSIONS: CanvasDimensions = { width: 960, height: 500 }
 
 export const ATLAS_PROJECTION_DEFAULTS: Record<string, ProjectionPreferences> = {
   world: {

@@ -59,8 +59,6 @@ const CORE_GLOBALS = [
 // Files that break a boundary on the current code, grouped by the change that
 // brings them into line. Remove a file from this list when it complies.
 const BOUNDARY_EXCEPTIONS = [
-  // Validation by @atlas-composer/specification
-  'src/core/presets/validator.ts',
   // Use cases in store actions
   'src/core/atlases/i18n-utils.ts',
   'src/core/atlases/registry.ts',
@@ -94,6 +92,11 @@ const DEPRECATED_POSITIONING = [
   `Literal[value=/${DEPRECATED_POSITIONING_KEYS}/]`,
   `TemplateElement[value.raw=/${DEPRECATED_POSITIONING_KEYS}/]`,
 ].map(selector => ({ selector, message: DEPRECATED_POSITIONING_MESSAGE }))
+
+const DEFAULT_REFERENCE_SCALE = {
+  selector: 'Literal[value=2700]',
+  message: 'The default reference scale is DEFAULT_REFERENCE_SCALE of @atlas-composer/specification.',
+}
 
 export default antfu({
   ignores: [
@@ -178,7 +181,7 @@ export default antfu({
   files: ['src/**/*.ts', 'src/**/*.vue'],
   ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
   },
 })

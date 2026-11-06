@@ -1,6 +1,6 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 export interface LoadResult<T> {
@@ -65,7 +65,7 @@ export interface CompositeExistingViewConfig {
   globalScale?: number
 }
 
-export interface CompositeCustomConfig extends ExportedCompositeConfig {
+export interface CompositeCustomConfig extends CompositeProjectionConfig {
   atlasMetadata?: AtlasProjectionMetadata
 }
 

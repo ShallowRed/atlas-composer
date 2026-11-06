@@ -9,6 +9,7 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { geoPath, select } from 'd3'
 import { geoConicConformal } from 'd3-geo'
 import { applyPositioning } from '@/core/positioning'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionStrategy } from '@/core/projections/types'
@@ -140,7 +141,7 @@ export class GraticuleOverlayService {
       }
       else {
         const defaultScale = 900
-        const scaleFactor = width / 960
+        const scaleFactor = width / DEFAULT_CANVAS_DIMENSIONS.width
         if (typeof projection.scale === 'function') {
           projection.scale(defaultScale * scaleFactor)
         }

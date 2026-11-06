@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import { computed, ref } from 'vue'
 
 import Modal from '@/components/ui/primitives/Modal.vue'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
+import { useAtlasStore } from '@/stores/atlas'
+import { useProjectionStore } from '@/stores/projection'
 import { logger } from '@/utils/logger'
 
 const props = defineProps<{
@@ -16,16 +19,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'imported': [config: ExportedCompositeConfig]
+  'imported': [config: CompositeProjectionConfig]
 }>()
 
 const debug = logger.vue.component
+
+const atlasStore = useAtlasStore()
+const projectionStore = useProjectionStore()
 
 const isDragging = ref(false)
 const isProcessing = ref(false)
 const selectedFile = ref<File | null>(null)
 const importResult = ref<{ success: boolean, errors: string[], warnings: string[] } | null>(null)
-const importedConfig = ref<ExportedCompositeConfig | null>(null)
+const importedConfig = ref<CompositeProjectionConfig | null>(null)
 
 const hasErrors = computed(() => importResult.value && importResult.value.errors.length > 0)
 const hasWarnings = computed(() => importResult.value && importResult.value.warnings.length > 0)
@@ -72,20 +78,26 @@ async function processFile(file: File) {
   importedConfig.value = null
 
   try {
-    const result = await CompositeImportService.importFromFile(file)
-    importResult.value = result
+    const atlasConfig = atlasStore.currentAtlasConfig
+    if (!atlasConfig) {
+      importResult.value = { success: false, errors: ['Atlas configuration not loaded'], warnings: [] }
+      return
+    }
 
-    if (result.success && result.config) {
-      importedConfig.value = result.config
+    const result = await CompositeImportService.importFromFile(file, {
+      atlasConfig,
+      canvasDimensions: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+    })
+    if (!result.ok) {
+      importResult.value = { success: false, errors: result.error, warnings: [] }
+      return
+    }
 
-      const compatibility = CompositeImportService.checkAtlasCompatibility(
-        result.config,
-        props.atlasId,
-      )
-
-      if (compatibility.warnings.length > 0) {
-        importResult.value.warnings.push(...compatibility.warnings)
-      }
+    importedConfig.value = result.value
+    importResult.value = {
+      success: true,
+      errors: [],
+      warnings: CompositeImportService.checkAtlasCompatibility(result.value, props.atlasId),
     }
   }
   catch (error) {
@@ -321,12 +333,14 @@ function clearFile() {
           <dd class="font-medium">
             {{ importedConfig.territories.length }}
           </dd>
-          <dt class="text-base-content/70">
-            Export Date:
-          </dt>
-          <dd class="font-medium">
-            {{ new Date(importedConfig.metadata.exportDate).toLocaleString() }}
-          </dd>
+          <template v-if="importedConfig.metadata.exportDate">
+            <dt class="text-base-content/70">
+              Export Date:
+            </dt>
+            <dd class="font-medium">
+              {{ new Date(importedConfig.metadata.exportDate).toLocaleString() }}
+            </dd>
+          </template>
         </dl>
       </div>
     </div>

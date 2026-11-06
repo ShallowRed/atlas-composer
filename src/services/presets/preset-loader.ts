@@ -55,8 +55,7 @@ export class PresetLoader {
     }
 
     if (presetDef.type === 'composite-custom') {
-      const jsonText = JSON.stringify(fileResult.data)
-      const validation = validateCompositePreset(jsonText, fileResult.data)
+      const validation = validateCompositePreset(fileResult.data)
 
       if (!validation.success) {
         return {

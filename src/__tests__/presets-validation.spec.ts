@@ -4,7 +4,7 @@ import { validatePreset } from '@/core/presets/validator'
 
 describe('presets of configs/presets', () => {
   it.each(readPresetFiles())('$path is valid', ({ type, json }) => {
-    const result = validatePreset(JSON.parse(json), type, json)
+    const result = validatePreset(JSON.parse(json), type)
 
     expect(result.errors).toEqual([])
     expect(result.isValid).toBe(true)
@@ -16,9 +16,8 @@ describe('presets of configs/presets', () => {
     const [territory] = preset.territories
     delete territory.projection.parameters.rotate
     delete territory.projection.parameters.center
-    const text = JSON.stringify(preset)
 
-    const result = validatePreset(preset, 'composite-custom', text)
+    const result = validatePreset(preset, 'composite-custom')
 
     expect(result.isValid).toBe(false)
     expect(result.errors).toContain(`Territory ${territory.code}: missing required parameter rotate or center`)

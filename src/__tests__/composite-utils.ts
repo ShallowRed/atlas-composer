@@ -1,14 +1,16 @@
-import type { CanvasDimensions } from '@atlas-composer/specification'
+import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, PresetId } from '@/types/branded'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
 import { useParameterProvider } from '@/composables/useParameterProvider'
 import { getAtlasConfig } from '@/core/atlases/registry'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { CompositeExportService } from '@/services/export/composite-export-service'
+import { CompositeImportService } from '@/services/export/composite-import-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { useAtlasStore } from '@/stores/atlas'
@@ -20,7 +22,7 @@ export type Point = [number, number]
 
 interface ApplicationComposite {
   project: (territoryCode: string, point: Point) => Point | null
-  exportToJSON: () => ExportedCompositeConfig
+  exportToJSON: () => CompositeProjectionConfig
 }
 
 export async function startApplication(atlasId: AtlasId) {
@@ -62,20 +64,30 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
       atlasId,
       atlasConfig.name,
       parameterProvider,
-      projectionStore.referenceScale,
-      projectionStore.canvasDimensions ?? undefined,
+      projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
+      projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
     ),
   }
 }
 
-export async function importIntoApplication(config: ExportedCompositeConfig, canvasDimensions?: CanvasDimensions): Promise<ApplicationComposite> {
-  const atlasId = config.metadata.atlasId as AtlasId
+// Path of the import modal: the file is read by CompositeImportService, then applied
+export async function importIntoApplication(json: string, canvasDimensions?: CanvasDimensions): Promise<ApplicationComposite> {
+  const atlasId = JSON.parse(json).metadata.atlasId as AtlasId
   await startApplication(atlasId)
+  const projectionStore = useProjectionStore()
   if (canvasDimensions) {
-    useProjectionStore().canvasDimensions = canvasDimensions
+    projectionStore.canvasDimensions = canvasDimensions
   }
 
-  const result = await InitializationService.importConfiguration({ config })
+  const read = CompositeImportService.importFromJSON(json, {
+    atlasConfig: getAtlasConfig(atlasId),
+    canvasDimensions: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+  })
+  if (!read.ok) {
+    throw new Error(read.error.join(', '))
+  }
+
+  const result = await InitializationService.importConfiguration({ config: read.value })
   if (!result.success) {
     throw new Error(result.errors.join(', '))
   }
@@ -94,10 +106,10 @@ export async function loadPresetIntoApplication(atlasId: AtlasId, presetId: Pres
   return buildApplicationComposite(atlasId)
 }
 
-export function loadWithLoader(config: ExportedCompositeConfig, territoryCode: string) {
+export function loadWithLoader(config: CompositeProjectionConfig, territoryCode: string) {
   const loader = new ProjectionLoader()
   loader.registerAll(d3ProjectionFactories)
-  const { width, height } = config.canvasDimensions!
+  const { width, height } = config.canvasDimensions
   // Clipping hides the points outside the pixel extent; the comparison bears on the projected coordinates
   const territories = config.territories
     .filter(t => t.code === territoryCode)

@@ -1,14 +1,9 @@
+import type { CanvasDimensions, CompositeProjectionConfig, ConfigMetadata, ProjectionParameters, TerritoryConfig } from '@atlas-composer/specification'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
-import type {
-  ExportedCompositeConfig,
-  ExportedProjectionParameters,
-  ExportedTerritory,
-  ExportMetadata,
-  ExportValidationResult,
-} from '@/types/export-config'
 import type { ProjectionParameterProvider } from '@/types/projection-parameters'
 import packageJson from '#package'
+import { PROJECTION_PARAMETER_KEYS, SPECIFICATION_VERSION } from '@atlas-composer/specification'
 import { projectionRegistry } from '@/core/projections/registry'
 
 const APP_VERSION = `Atlas composer v${packageJson.version === '0.0.0' ? '1.0' : packageJson.version}`
@@ -43,11 +38,9 @@ function roundTuple4(
 }
 
 function roundBounds(
-  bounds: [[number, number], [number, number]] | undefined,
+  bounds: [[number, number], [number, number]],
   decimals = 6,
 ): [[number, number], [number, number]] {
-  if (!bounds)
-    return [[0, 0], [0, 0]]
   return [
     [roundNumber(bounds[0][0], decimals), roundNumber(bounds[0][1], decimals)],
     [roundNumber(bounds[1][0], decimals), roundNumber(bounds[1][1], decimals)],
@@ -60,177 +53,56 @@ export class CompositeExportService {
     atlasId: AtlasId,
     atlasName: string,
     parameterProvider: ProjectionParameterProvider,
-    referenceScale?: number,
-    canvasDimensions?: { width: number, height: number },
+    referenceScale: number,
+    canvasDimensions: CanvasDimensions,
     notes?: string,
-  ): ExportedCompositeConfig {
+  ): CompositeProjectionConfig {
     const rawExport = compositeProjection.exportConfig()
 
-    const territories = rawExport.subProjections.map((subProj): ExportedTerritory => {
-      const projectionId = this.resolveProjectionId(subProj.projectionType)
-      const projectionDef = projectionRegistry.get(projectionId)
+    const territories = rawExport.subProjections.map((subProj): TerritoryConfig => {
+      const definition = projectionRegistry.get(subProj.projectionType)
+      if (!definition) {
+        throw new Error(`Territory ${subProj.territoryCode}: unknown projection '${subProj.projectionType}'`)
+      }
 
       const allParams = parameterProvider.getExportableParameters(subProj.territoryCode)
-      const { translateOffset, pixelClipExtent, rotate: _rotate, center: _center, parallels: _parallels, ...projParams } = allParams
+      const { translateOffset, pixelClipExtent } = allParams
       const { rotate, center, parallels } = subProj
-
-      const projectionParameters: ExportedProjectionParameters = {
-        ...projParams,
-        rotate,
-        center,
-        ...(parallels && { parallels }),
-      }
-      const layoutTranslateOffset = translateOffset
-        ? roundTuple2(translateOffset)
-        : roundTuple2(subProj.translateOffset)
-      const layoutPixelClipExtent = pixelClipExtent
-        ? roundTuple4(pixelClipExtent)
-        : null
+      const parameters: Record<string, unknown> = { ...allParams, rotate, center, parallels }
+      const projectionParameters = Object.fromEntries(PROJECTION_PARAMETER_KEYS
+        .filter(key => parameters[key] !== undefined)
+        .map(key => [key, parameters[key]])) as ProjectionParameters
 
       return {
         code: subProj.territoryCode,
         name: subProj.territoryName,
         projection: {
-          id: projectionId,
-          family: projectionDef?.family || 'unknown',
+          id: definition.id,
+          family: definition.family,
           parameters: projectionParameters,
         },
         layout: {
-          translateOffset: layoutTranslateOffset,
-          pixelClipExtent: layoutPixelClipExtent,
+          translateOffset: roundTuple2(translateOffset ?? subProj.translateOffset),
+          ...(pixelClipExtent && { pixelClipExtent: roundTuple4(pixelClipExtent) }),
         },
-        bounds: roundBounds(subProj.bounds),
+        ...(subProj.bounds && { bounds: roundBounds(subProj.bounds) }),
       }
     })
 
-    const metadata: ExportMetadata = {
+    const metadata: ConfigMetadata = {
       atlasId,
       atlasName,
       exportDate: new Date().toISOString(),
       createdWith: APP_VERSION,
-      notes,
+      ...(notes && { notes }),
     }
 
     return {
-      version: '1.0',
+      version: SPECIFICATION_VERSION,
       metadata,
       referenceScale,
       canvasDimensions,
-      territories,
+      territories: territories as CompositeProjectionConfig['territories'],
     }
-  }
-
-  static validateExportedConfig(config: ExportedCompositeConfig): ExportValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    if (!config.version) {
-      errors.push('Missing version field')
-    }
-    else if (config.version !== '1.0') {
-      warnings.push(`Unknown version: ${config.version}. Expected 1.0`)
-    }
-
-    if (!config.metadata) {
-      errors.push('Missing metadata')
-    }
-    else {
-      if (!config.metadata.atlasId) {
-        errors.push('Missing metadata.atlasId')
-      }
-      if (!config.metadata.atlasName) {
-        errors.push('Missing metadata.atlasName')
-      }
-      if (!config.metadata.exportDate) {
-        errors.push('Missing metadata.exportDate')
-      }
-    }
-
-    if (!config.territories || !Array.isArray(config.territories)) {
-      errors.push('Missing or invalid territories array')
-    }
-    else {
-      if (config.territories.length === 0) {
-        errors.push('No territories in configuration')
-      }
-
-      config.territories.forEach((territory, index) => {
-        const prefix = `Territory ${index} (${territory.code || 'unknown'})`
-
-        if (!territory.code) {
-          errors.push(`${prefix}: Missing code`)
-        }
-        if (!territory.name) {
-          errors.push(`${prefix}: Missing name`)
-        }
-        if (!territory.projection?.id) {
-          errors.push(`${prefix}: Missing projection.id`)
-        }
-
-        if (territory.projection?.id && !projectionRegistry.get(territory.projection.id)) {
-          warnings.push(`${prefix}: Unknown projection ID '${territory.projection.id}'`)
-        }
-
-        if (!territory.projection?.parameters) {
-          errors.push(`${prefix}: Missing projection.parameters`)
-        }
-        else {
-          if (typeof territory.projection.parameters.scaleMultiplier !== 'number') {
-            errors.push(`${prefix}: Invalid or missing scaleMultiplier`)
-          }
-        }
-
-        if (!territory.layout) {
-          errors.push(`${prefix}: Missing layout`)
-        }
-        else {
-          if (!Array.isArray(territory.layout.translateOffset) || territory.layout.translateOffset.length !== 2) {
-            errors.push(`${prefix}: Invalid translateOffset`)
-          }
-
-          if (territory.layout.pixelClipExtent !== null && territory.layout.pixelClipExtent !== undefined) {
-            if (!Array.isArray(territory.layout.pixelClipExtent) || territory.layout.pixelClipExtent.length !== 4) {
-              errors.push(`${prefix}: Invalid pixelClipExtent format - must be [x1, y1, x2, y2]`)
-            }
-            else {
-              for (let i = 0; i < 4; i++) {
-                if (typeof territory.layout.pixelClipExtent[i] !== 'number') {
-                  errors.push(`${prefix}: Invalid pixelClipExtent coordinate ${i} - must be a number`)
-                }
-              }
-            }
-          }
-        }
-
-        if (!territory.bounds || !Array.isArray(territory.bounds) || territory.bounds.length !== 2) {
-          warnings.push(`${prefix}: Invalid or missing bounds`)
-        }
-      })
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors,
-      warnings,
-    }
-  }
-
-  private static resolveProjectionId(projectionType: string): string {
-    const allProjections = projectionRegistry.getAll()
-
-    for (const proj of allProjections) {
-      const normalizedType = projectionType.toLowerCase().replace(/^geo/, '')
-      if (proj.id.replace(/-/g, '') === normalizedType) {
-        return proj.id
-      }
-    }
-
-    const kebabCase = projectionType
-      .replace(/^geo/, '')
-      .replace(/([A-Z])/g, '-$1')
-      .toLowerCase()
-      .replace(/^-/, '')
-
-    return kebabCase
   }
 }
