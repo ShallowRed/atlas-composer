@@ -1,7 +1,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const ARMADILLO: ProjectionDefinition = {
+const ARMADILLO: ProjectionDefinition = {
   id: 'armadillo',
   name: 'projections.armadillo.name',
   description: 'projections.armadillo.description',
@@ -22,7 +22,7 @@ export const ARMADILLO: ProjectionDefinition = {
   },
 }
 
-export const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
+const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
   id: 'polyhedral-butterfly',
   name: 'projections.polyhedralButterfly.name',
   description: 'projections.polyhedralButterfly.description',
@@ -46,7 +46,7 @@ export const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
   },
 }
 
-export const LOXIMUTHAL: ProjectionDefinition = {
+const LOXIMUTHAL: ProjectionDefinition = {
   id: 'loximuthal',
   name: 'projections.loximuthal.name',
   description: 'projections.loximuthal.description',
@@ -71,7 +71,7 @@ export const LOXIMUTHAL: ProjectionDefinition = {
   },
 }
 
-export const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
+const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
   id: 'polyhedral-waterman',
   name: 'projections.polyhedralWaterman.name',
   description: 'projections.polyhedralWaterman.description',

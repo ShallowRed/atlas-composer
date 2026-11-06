@@ -1,4 +1,3 @@
-import type { Debugger } from 'debug'
 import debug from 'debug'
 
 export const logger = {
@@ -61,20 +60,3 @@ export const logger = {
     router: debug('ac:vue:router'),
   },
 } as const
-
-export function createLogger(namespace: string): Debugger {
-  return debug(namespace)
-}
-
-export function enableDebug(namespaces: string): void {
-  debug.enable(namespaces)
-}
-
-export function disableDebug(): void {
-  debug.disable()
-}
-
-export function isDebugEnabled(namespace: string): boolean {
-  const debugInstance = debug(namespace)
-  return debugInstance.enabled
-}

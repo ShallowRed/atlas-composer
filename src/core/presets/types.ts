@@ -25,7 +25,7 @@ export interface AtlasProjectionMetadata {
   }
 }
 
-export interface BasePresetMetadata {
+interface BasePresetMetadata {
   id: string
   name: string
   description?: string
@@ -61,22 +61,22 @@ export interface CompositeCustomConfig extends CompositeProjectionConfig {
   atlasMetadata?: AtlasProjectionMetadata
 }
 
-export interface CompositePreset extends BasePresetMetadata {
+interface CompositePreset extends BasePresetMetadata {
   type: 'composite-custom'
   config: CompositeCustomConfig
 }
 
-export interface UnifiedPreset extends BasePresetMetadata {
+interface UnifiedPreset extends BasePresetMetadata {
   type: 'unified'
   config: UnifiedViewConfig
 }
 
-export interface SplitPreset extends BasePresetMetadata {
+interface SplitPreset extends BasePresetMetadata {
   type: 'split'
   config: SplitViewConfig
 }
 
-export interface CompositeExistingPreset extends BasePresetMetadata {
+interface CompositeExistingPreset extends BasePresetMetadata {
   type: 'built-in-composite'
   config: CompositeExistingViewConfig
 }

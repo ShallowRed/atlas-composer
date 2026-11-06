@@ -1,16 +1,16 @@
 import type { CompositeProjectionConfig } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
 
-export interface SplitModeConfig {
+interface SplitModeConfig {
   territoriesTitle: string
 }
 
-export interface TerritoryModeOption {
+interface TerritoryModeOption {
   value: string
   label: string
 }
 
-export type AtlasCategory = 'country' | 'region' | 'world'
+type AtlasCategory = 'country' | 'region' | 'world'
 
 export interface AtlasConfig {
   id: string

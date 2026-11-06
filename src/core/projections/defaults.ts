@@ -8,7 +8,7 @@ import type { ProjectionPreferences } from '@/core/atlases/loader'
 
 export const DEFAULT_CANVAS_DIMENSIONS: CanvasDimensions = { width: 960, height: 500 }
 
-export const ATLAS_PROJECTION_DEFAULTS: Record<string, ProjectionPreferences> = {
+const ATLAS_PROJECTION_DEFAULTS: Record<string, ProjectionPreferences> = {
   world: {
     recommended: ['natural-earth', 'robinson'],
     prohibited: [],

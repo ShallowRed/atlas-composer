@@ -12,10 +12,6 @@ export type AppState
     | 'transitioning'
     | 'error'
 
-export type TransitionType
-  = | 'none'
-    | 'fade'
-
 export const useAppStore = defineStore('app', () => {
   const state = ref<AppState>('idle')
   const error = ref<string | null>(null)

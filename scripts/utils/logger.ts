@@ -67,5 +67,4 @@ export const logger = {
   },
 }
 
-export { COLORS }
 export type { Color }

@@ -1,8 +1,8 @@
 import type { I18nValue } from '../../types/atlas-config'
 
-export type PresetType = 'composite-custom' | 'unified' | 'split' | 'built-in-composite'
+type PresetType = 'composite-custom' | 'unified' | 'split' | 'built-in-composite'
 
-export interface PresetDefinition {
+interface PresetDefinition {
   id: string
   name: I18nValue
   type: PresetType
@@ -20,7 +20,7 @@ export interface AtlasRegistryBehavior {
   collectionSets?: Record<string, string>
 }
 
-export interface AtlasRegistryGroup {
+interface AtlasRegistryGroup {
   id: string
   label: I18nValue
   sortOrder: number

@@ -9,7 +9,7 @@ const debug = logger.vue.component
 
 export type SelectionTypeRequirement = 'incremental' | 'mutually-exclusive' | 'any'
 
-export function getValidatedCollectionSetKey(
+function getValidatedCollectionSetKey(
   uiLocation: string,
   requiredSelectionType: SelectionTypeRequirement,
   atlasId: string,

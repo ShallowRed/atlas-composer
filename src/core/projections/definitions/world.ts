@@ -5,7 +5,7 @@
 import type { ProjectionDefinition } from '../types'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
-export const NATURAL_EARTH: ProjectionDefinition = {
+const NATURAL_EARTH: ProjectionDefinition = {
   id: 'natural-earth',
   name: 'projections.naturalEarth.name',
   description: 'projections.naturalEarth.description',
@@ -32,7 +32,7 @@ export const NATURAL_EARTH: ProjectionDefinition = {
   },
 }
 
-export const ROBINSON: ProjectionDefinition = {
+const ROBINSON: ProjectionDefinition = {
   id: 'robinson',
   name: 'projections.robinson.name',
   description: 'projections.robinson.description',
@@ -57,7 +57,7 @@ export const ROBINSON: ProjectionDefinition = {
   },
 }
 
-export const ECKERT4: ProjectionDefinition = {
+const ECKERT4: ProjectionDefinition = {
   id: 'eckert4',
   name: 'projections.eckert4.name',
   description: 'projections.eckert4.description',
@@ -82,7 +82,7 @@ export const ECKERT4: ProjectionDefinition = {
   },
 }
 
-export const WINKEL_TRIPEL: ProjectionDefinition = {
+const WINKEL_TRIPEL: ProjectionDefinition = {
   id: 'winkel-tripel',
   name: 'projections.winkelTripel.name',
   description: 'projections.winkelTripel.description',
@@ -109,7 +109,7 @@ export const WINKEL_TRIPEL: ProjectionDefinition = {
   },
 }
 
-export const MOLLWEIDE: ProjectionDefinition = {
+const MOLLWEIDE: ProjectionDefinition = {
   id: 'mollweide',
   name: 'projections.mollweide.name',
   description: 'projections.mollweide.description',
@@ -136,7 +136,7 @@ export const MOLLWEIDE: ProjectionDefinition = {
   },
 }
 
-export const MILLER: ProjectionDefinition = {
+const MILLER: ProjectionDefinition = {
   id: 'miller',
   name: 'projections.miller.name',
   description: 'projections.miller.description',
@@ -161,7 +161,7 @@ export const MILLER: ProjectionDefinition = {
   },
 }
 
-export const SINUSOIDAL: ProjectionDefinition = {
+const SINUSOIDAL: ProjectionDefinition = {
   id: 'sinusoidal',
   name: 'projections.sinusoidal.name',
   description: 'projections.sinusoidal.description',
@@ -188,7 +188,7 @@ export const SINUSOIDAL: ProjectionDefinition = {
   },
 }
 
-export const WAGNER6: ProjectionDefinition = {
+const WAGNER6: ProjectionDefinition = {
   id: 'wagner6',
   name: 'projections.wagner6.name',
   description: 'projections.wagner6.description',
@@ -215,7 +215,7 @@ export const WAGNER6: ProjectionDefinition = {
   },
 }
 
-export const HAMMER: ProjectionDefinition = {
+const HAMMER: ProjectionDefinition = {
   id: 'hammer',
   name: 'projections.hammer.name',
   description: 'projections.hammer.description',
@@ -242,7 +242,7 @@ export const HAMMER: ProjectionDefinition = {
   },
 }
 
-export const ECKERT1: ProjectionDefinition = {
+const ECKERT1: ProjectionDefinition = {
   id: 'eckert1',
   name: 'projections.eckert1.name',
   description: 'projections.eckert1.description',
@@ -267,7 +267,7 @@ export const ECKERT1: ProjectionDefinition = {
   },
 }
 
-export const ECKERT2: ProjectionDefinition = {
+const ECKERT2: ProjectionDefinition = {
   id: 'eckert2',
   name: 'projections.eckert2.name',
   description: 'projections.eckert2.description',
@@ -292,7 +292,7 @@ export const ECKERT2: ProjectionDefinition = {
   },
 }
 
-export const ECKERT3: ProjectionDefinition = {
+const ECKERT3: ProjectionDefinition = {
   id: 'eckert3',
   name: 'projections.eckert3.name',
   description: 'projections.eckert3.description',
@@ -317,7 +317,7 @@ export const ECKERT3: ProjectionDefinition = {
   },
 }
 
-export const ECKERT5: ProjectionDefinition = {
+const ECKERT5: ProjectionDefinition = {
   id: 'eckert5',
   name: 'projections.eckert5.name',
   description: 'projections.eckert5.description',
@@ -342,7 +342,7 @@ export const ECKERT5: ProjectionDefinition = {
   },
 }
 
-export const ECKERT6: ProjectionDefinition = {
+const ECKERT6: ProjectionDefinition = {
   id: 'eckert6',
   name: 'projections.eckert6.name',
   description: 'projections.eckert6.description',

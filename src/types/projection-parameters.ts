@@ -30,35 +30,7 @@ export interface ParameterValidationResult {
   suggestion?: any
 }
 
-export interface ParameterConstraints {
-  parameter: keyof ProjectionParameters
-  min?: number
-  max?: number
-  step?: number
-  required?: boolean
-  relevant: boolean
-  defaultValue?: any
-  validate?: (value: any, family: ProjectionFamilyType) => ParameterValidationResult
-}
-
-export interface ProjectionFamilyConstraints {
-  family: ProjectionFamilyType
-  constraints: Record<keyof ProjectionParameters, ParameterConstraints>
-}
-
 export type ParameterUpdate = Partial<ProjectionParameters>
-
-export function hasScaleMetadata(
-  params: ProjectionParameters,
-): params is ProjectionParameters & { baseScale: number, scaleMultiplier: number, scale: number } {
-  return 'baseScale' in params && 'scaleMultiplier' in params && typeof params.scale === 'number'
-}
-
-export function hasParameterMetadata(
-  params: ProjectionParameters,
-): params is ProjectionParameters & { family: ProjectionFamilyType, projectionId: string } {
-  return 'family' in params || 'projectionId' in params
-}
 
 export function mergeParameters(
   ...parameterSets: (ProjectionParameters | undefined)[]

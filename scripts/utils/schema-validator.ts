@@ -71,13 +71,3 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
     throw new Error(`Config validation failed: ${atlasName}.json does not match schema`)
   }
 }
-
-export async function isValidConfig(config: unknown): Promise<boolean> {
-  try {
-    const validate = await getSchemaValidator()
-    return validate(config) === true
-  }
-  catch {
-    return false
-  }
-}

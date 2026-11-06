@@ -1,8 +1,7 @@
 import type { Topology } from 'topojson-specification'
-import process from 'node:process'
 import { logger } from '#scripts/utils/logger'
 
-export const RESOLUTIONS = {
+const RESOLUTIONS = {
   HIGH: '10m',
   MEDIUM: '50m',
   LOW: '110m',
@@ -12,7 +11,7 @@ export type Resolution = typeof RESOLUTIONS[keyof typeof RESOLUTIONS]
 
 export const DEFAULT_RESOLUTION: Resolution = RESOLUTIONS.MEDIUM
 
-export function getDataSourceUrl(resolution: Resolution = DEFAULT_RESOLUTION): string {
+function getDataSourceUrl(resolution: Resolution = DEFAULT_RESOLUTION): string {
   if (!Object.values(RESOLUTIONS).includes(resolution)) {
     logger.warning(`Invalid resolution '${resolution}', using '${DEFAULT_RESOLUTION}'`)
     resolution = DEFAULT_RESOLUTION
@@ -48,18 +47,4 @@ export async function fetchWorldData(resolution: Resolution = DEFAULT_RESOLUTION
 
 export function isValidResolution(resolution: string): resolution is Resolution {
   return Object.values(RESOLUTIONS).includes(resolution as Resolution)
-}
-
-export function getResolutionFromEnv(): Resolution {
-  const envResolution = process.env.NE_RESOLUTION
-
-  if (envResolution && isValidResolution(envResolution)) {
-    return envResolution
-  }
-
-  if (envResolution) {
-    logger.warning(`Invalid NE_RESOLUTION='${envResolution}', using '${DEFAULT_RESOLUTION}'`)
-  }
-
-  return DEFAULT_RESOLUTION
 }

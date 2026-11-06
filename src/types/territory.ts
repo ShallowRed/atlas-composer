@@ -7,15 +7,9 @@
 
 import type { TerritoryCode } from './branded'
 
-export type Coordinates = [number, number]
+type Coordinates = [number, number]
 
-export type BoundingBox = [Coordinates, Coordinates]
-
-export type PixelOffset = [number, number]
-
-export type ProjectionRotation = [number, number, number?]
-
-export type ConicParallels = [number, number]
+type BoundingBox = [Coordinates, Coordinates]
 
 export interface TerritoryConfig {
   code: TerritoryCode
@@ -33,7 +27,7 @@ export interface TerritoryCollection {
   exclude?: string[]
 }
 
-export interface TerritoryCollectionSet {
+interface TerritoryCollectionSet {
   label: string
   selectionType: 'incremental' | 'mutually-exclusive'
   description?: string

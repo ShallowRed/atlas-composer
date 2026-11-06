@@ -2,7 +2,6 @@ import type { JSONAtlasConfig } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { AtlasId, PresetId } from '@/types/branded'
-import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '@/types/registry'
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
@@ -11,7 +10,7 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
 
-export const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
+const REGISTRY_METADATA: AtlasRegistry = atlasRegistryData as AtlasRegistry
 
 const LOADED_CONFIGS: Map<string, LoadedAtlasConfig> = new Map()
 
@@ -75,7 +74,7 @@ function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
   )
 }
 
-export function getDefaultAtlas(): AtlasRegistryEntry {
+function getDefaultAtlas(): AtlasRegistryEntry {
   const defaultEntry = REGISTRY_METADATA.atlases.find(e => e.isDefault)
   if (defaultEntry) {
     return defaultEntry
@@ -127,37 +126,18 @@ export function getAtlasSpecificConfig(atlasId: string): AtlasSpecificConfig {
   return loaded.atlasSpecificConfig
 }
 
-export function getProjectionParams(atlasId: string): ProjectionParameters {
-  return getAtlasSpecificConfig(atlasId).projectionParams
-}
-
 export function getAtlasBehavior(atlasId: string): AtlasRegistryBehavior | undefined {
   const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
   return entry?.behavior
 }
 
-export function getAtlasTerritories(atlasId: string) {
+function getAtlasTerritories(atlasId: string) {
   const loaded = getLoadedConfig(atlasId)
   return loaded.territories
 }
 
 export function getAllTerritories(atlasId: string) {
   return getAtlasTerritories(atlasId).all
-}
-
-export function getAllAtlases(): Record<string, AtlasConfig> {
-  const result: Record<string, AtlasConfig> = {}
-  for (const atlasId of CONFIG_PATHS.keys()) {
-    result[atlasId] = getAtlasConfig(atlasId)
-  }
-  return result
-}
-
-export function getAvailableAtlases() {
-  return REGISTRY_METADATA.atlases.map(entry => ({
-    value: entry.id,
-    label: typeof entry.name === 'string' ? entry.name : resolveI18nValue(entry.name),
-  }))
 }
 
 export interface AtlasGroup {
@@ -200,20 +180,12 @@ export function getAvailableAtlasesGrouped(): AtlasGroup[] {
     })
 }
 
-export function hasAtlas(atlasId: string): boolean {
-  return CONFIG_PATHS.has(atlasId)
-}
-
-export function getAtlasIds(): string[] {
-  return Array.from(CONFIG_PATHS.keys())
-}
-
 export function getAtlasPresets(atlasId: string) {
   const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
   return entry?.presets ?? []
 }
 
-export function getDefaultPreset(atlasId: string) {
+function getDefaultPreset(atlasId: string) {
   const entry = REGISTRY_METADATA.atlases.find(e => e.id === atlasId)
   if (!entry) {
     debug('No atlas entry found for %s', atlasId)

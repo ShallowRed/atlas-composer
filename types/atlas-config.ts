@@ -23,21 +23,21 @@ export interface JSONTerritoryConfig {
   }
 }
 
-export interface JSONTerritoryCollection {
+interface JSONTerritoryCollection {
   id: string
   label: I18nValue
   territories: '*' | string[]
   exclude?: string[]
 }
 
-export interface JSONTerritoryCollectionSet {
+interface JSONTerritoryCollectionSet {
   label: I18nValue
   selectionType: 'incremental' | 'mutually-exclusive'
   description?: I18nValue
   collections: JSONTerritoryCollection[]
 }
 
-export type JSONTerritoryCollections = Record<string, JSONTerritoryCollectionSet>
+type JSONTerritoryCollections = Record<string, JSONTerritoryCollectionSet>
 
 export interface JSONAtlasConfig {
   id: string

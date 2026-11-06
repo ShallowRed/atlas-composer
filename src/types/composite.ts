@@ -14,11 +14,4 @@ export interface CompositeProjectionConfig {
   territories: TerritoryConfig[]
 }
 
-export interface CompositeProjectionDefaults {
-  territoryProjections: Record<string, string>
-  territoryTranslations: Record<string, { x: number, y: number }>
-
-  // territoryScales removed - scale multipliers now stored in parameter store
-}
-
 export type ViewMode = 'split' | 'built-in-composite' | 'composite-custom' | 'unified'

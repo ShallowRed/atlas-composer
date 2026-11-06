@@ -10,7 +10,7 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
-export interface RenderOptions {
+interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
 }
 

@@ -3,7 +3,7 @@ import type { AtlasId, ViewMode } from '@/types'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ViewModeSelection } from '@/core/view'
 
-export interface ProjectionGroupOptions {
+interface ProjectionGroupOptions {
   value: string
   label: string
   category?: string
