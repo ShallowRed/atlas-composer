@@ -1,28 +1,33 @@
-import type { ExportedCompositeConfig } from '@/types/export-config'
-import { describe, expect, it } from 'vitest'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { CompositeConfigContext } from '@/core/presets'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { getAtlasConfig } from '@/core/atlases/registry'
 import { createAtlasId } from '@/types/branded'
 import { CompositeImportService } from '../composite-import-service'
 
 describe('compositeImportService', () => {
-  const validConfig: ExportedCompositeConfig = {
-    version: '1.0',
+  const validConfig: CompositeProjectionConfig = {
+    version: '1.1',
     metadata: {
       atlasId: 'france',
       atlasName: 'France',
       exportDate: '2025-10-10T12:00:00.000Z',
       createdWith: 'Atlas composer v1.0',
     },
+    referenceScale: 2700,
+    canvasDimensions: { width: 960, height: 500 },
     territories: [
       {
-        code: 'FRA',
+        code: 'FR-MET',
         name: 'Metropolitan France',
         projection: {
           id: 'azimuthal-equal-area',
-          family: 'azimuthal',
+          family: 'AZIMUTHAL',
           parameters: {
             center: [2.5, 47],
             rotate: [-2.5, -47, 0],
-            scaleMultiplier: 1.0, // Use only current parameter system
+            scaleMultiplier: 1.0,
           },
         },
         layout: {
@@ -36,133 +41,101 @@ describe('compositeImportService', () => {
     ],
   }
 
+  let context: CompositeConfigContext
+
+  beforeAll(async () => {
+    await loadAtlasFromConfigs(createAtlasId('france'))
+    context = { atlasConfig: getAtlasConfig(createAtlasId('france')), canvasDimensions: { width: 800, height: 600 } }
+  })
+
+  function importConfig(config: unknown) {
+    return CompositeImportService.importFromJSON(JSON.stringify(config), context)
+  }
+
   describe('importFromJSON', () => {
     it('should successfully parse valid JSON config', () => {
-      const jsonString = JSON.stringify(validConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(true)
-      expect(result.config).toEqual(validConfig)
-      expect(result.errors).toHaveLength(0)
+      expect(importConfig(validConfig)).toEqual({ ok: true, value: validConfig })
     })
 
     it('should reject invalid JSON', () => {
-      const invalidJSON = '{ invalid json }'
-      const result = CompositeImportService.importFromJSON(invalidJSON)
+      const result = CompositeImportService.importFromJSON('{ invalid json }', context)
 
-      expect(result.success).toBe(false)
-      expect(result.config).toBeUndefined()
-      expect(result.errors.length).toBeGreaterThan(0)
-      expect(result.errors[0]).toContain('Invalid JSON')
+      expect(result.ok).toBe(false)
+      expect(!result.ok && result.error[0]).toContain('Invalid JSON')
     })
 
     it('should reject config missing version', () => {
-      const invalidConfig = { ...validConfig }
-      delete (invalidConfig as any).version
-      const jsonString = JSON.stringify(invalidConfig)
+      const { version: _version, ...config } = validConfig
 
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(false)
-      expect(result.errors.length).toBeGreaterThan(0)
-      const hasVersionError = result.errors.some(e =>
-        e.includes('version') || e.includes('migrate'),
-      )
-      expect(hasVersionError).toBe(true)
+      expect(importConfig(config)).toEqual({ ok: false, error: ['version: must have required property \'version\''] })
     })
 
     it('should reject config missing metadata', () => {
-      const invalidConfig = { ...validConfig }
-      delete (invalidConfig as any).metadata
-      const jsonString = JSON.stringify(invalidConfig)
+      const { metadata: _metadata, ...config } = validConfig
 
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContain('Missing metadata')
+      expect(importConfig(config)).toEqual({ ok: false, error: ['metadata: must have required property \'metadata\''] })
     })
 
     it('should reject config with no territories', () => {
-      const invalidConfig = { ...validConfig, territories: [] }
-      const jsonString = JSON.stringify(invalidConfig)
-
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContain('No territories in configuration')
+      expect(importConfig({ ...validConfig, territories: [] })).toEqual({ ok: false, error: ['territories: must NOT have fewer than 1 items'] })
     })
 
-    it('should warn about future version but still accept it', () => {
-      const configWithUnknownVersion = { ...validConfig, version: '2.0' }
-      const jsonString = JSON.stringify(configWithUnknownVersion)
+    it('should reject a version of another major', () => {
+      const result = importConfig({ ...validConfig, version: '2.0' })
 
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(true) // Accepts unknown versions with warning
-      expect(result.warnings.some(w => w.includes('Unknown version'))).toBe(true)
+      expect(result.ok).toBe(false)
+      expect(!result.ok && result.error[0]).toMatch(/^version: /)
     })
 
     it('should reject territory missing required fields', () => {
-      const invalidConfig = {
-        ...validConfig,
-        territories: [
-          {
-            ...validConfig.territories[0],
-            code: undefined,
-          },
-        ],
-      }
-      const jsonString = JSON.stringify(invalidConfig)
+      const { code: _code, ...territory } = validConfig.territories[0]
 
-      const result = CompositeImportService.importFromJSON(jsonString)
+      expect(importConfig({ ...validConfig, territories: [territory] })).toEqual({ ok: false, error: ['territories[0].code: must have required property \'code\''] })
+    })
 
-      expect(result.success).toBe(false)
-      expect(result.errors.some(e => e.includes('Missing code'))).toBe(true)
+    it('should reject a projection unknown to the application', () => {
+      const [territory] = validConfig.territories
+      const config = { ...validConfig, territories: [{ ...territory, projection: { ...territory.projection, id: 'equal-earth' } }] }
+
+      expect(importConfig(config)).toEqual({ ok: false, error: ['Territory FR-MET: unknown projection \'equal-earth\''] })
     })
   })
 
   describe('importFromFile', () => {
     it('should reject non-JSON files', async () => {
       const file = new File(['{}'], 'config.txt', { type: 'text/plain' })
-      const result = await CompositeImportService.importFromFile(file)
+      const result = await CompositeImportService.importFromFile(file, context)
 
-      expect(result.success).toBe(false)
-      expect(result.errors.some(e => e.includes('JSON file'))).toBe(true)
+      expect(result.ok).toBe(false)
+      expect(!result.ok && result.error[0]).toContain('JSON file')
     })
 
     it('should reject files that are too large', async () => {
       const largeContent = 'x'.repeat(11 * 1024 * 1024) // 11MB
       const file = new File([largeContent], 'config.json', { type: 'application/json' })
-      const result = await CompositeImportService.importFromFile(file)
+      const result = await CompositeImportService.importFromFile(file, context)
 
-      expect(result.success).toBe(false)
-      expect(result.errors.some(e => e.includes('too large'))).toBe(true)
+      expect(result.ok).toBe(false)
+      expect(!result.ok && result.error[0]).toContain('too large')
     })
 
     it('should successfully import valid JSON file', async () => {
-      const jsonString = JSON.stringify(validConfig)
-      const file = new File([jsonString], 'config.json', { type: 'application/json' })
-      const result = await CompositeImportService.importFromFile(file)
+      const file = new File([JSON.stringify(validConfig)], 'config.json', { type: 'application/json' })
 
-      expect(result.success).toBe(true)
-      expect(result.config).toEqual(validConfig)
+      expect(await CompositeImportService.importFromFile(file, context)).toEqual({ ok: true, value: validConfig })
     })
   })
 
   describe('checkAtlasCompatibility', () => {
     it('should pass when atlas IDs match', () => {
-      const result = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('france'))
-
-      expect(result.valid).toBe(true)
-      expect(result.warnings).toHaveLength(0)
+      expect(CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('france'))).toEqual([])
     })
 
     it('should warn when atlas IDs do not match', () => {
-      const result = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('portugal'))
+      const warnings = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('portugal'))
 
-      expect(result.valid).toBe(true) // Still valid, just a warning
-      expect(result.warnings.length).toBeGreaterThan(0)
-      expect(result.warnings[0]).toContain('exported for atlas')
+      expect(warnings).toHaveLength(1)
+      expect(warnings[0]).toContain('exported for atlas')
     })
   })
 })

@@ -1,12 +1,14 @@
-import type { ExportedCompositeConfig } from '@/types/export-config'
-import { describe, expect, it } from 'vitest'
-import { CompositeExportService } from '@/services/export/composite-export-service'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { CompositeConfigContext } from '@/core/presets'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { getAtlasConfig } from '@/core/atlases/registry'
 import { CompositeImportService } from '@/services/export/composite-import-service'
-import { createTerritoryCode } from '@/types/branded'
+import { createAtlasId } from '@/types/branded'
 
 describe('export/import JSON roundtrip', () => {
-  const fullConfig: ExportedCompositeConfig = {
-    version: '1.0',
+  const fullConfig: CompositeProjectionConfig = {
+    version: '1.1',
     metadata: {
       atlasId: 'france',
       atlasName: 'France',
@@ -22,7 +24,7 @@ describe('export/import JSON roundtrip', () => {
         name: 'France Metropolitaine',
         projection: {
           id: 'conic-conformal',
-          family: 'conic',
+          family: 'CONIC',
           parameters: {
             center: [2.5, 46.5],
             rotate: [-3, -46.2, 0],
@@ -34,7 +36,6 @@ describe('export/import JSON roundtrip', () => {
         },
         layout: {
           translateOffset: [0, 0],
-          pixelClipExtent: null,
         },
         bounds: [[-5, 41], [10, 51]],
       },
@@ -43,7 +44,7 @@ describe('export/import JSON roundtrip', () => {
         name: 'Guadeloupe',
         projection: {
           id: 'mercator',
-          family: 'cylindrical',
+          family: 'CYLINDRICAL',
           parameters: {
             center: [-61.46, 16.14],
             scaleMultiplier: 1.4,
@@ -58,10 +59,25 @@ describe('export/import JSON roundtrip', () => {
     ],
   }
 
+  let context: CompositeConfigContext
+
+  beforeAll(async () => {
+    await loadAtlasFromConfigs(createAtlasId('france'))
+    context = { atlasConfig: getAtlasConfig(createAtlasId('france')), canvasDimensions: { width: 800, height: 600 } }
+  })
+
+  function importConfig(config: CompositeProjectionConfig) {
+    const result = CompositeImportService.importFromJSON(JSON.stringify(config), context)
+    if (!result.ok) {
+      throw new Error(result.error.join(', '))
+    }
+    return result.value
+  }
+
   describe('json serialization roundtrip', () => {
     it('should preserve all fields through JSON stringify/parse cycle', () => {
       const jsonString = JSON.stringify(fullConfig)
-      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
+      const parsed = JSON.parse(jsonString) as CompositeProjectionConfig
 
       expect(parsed.version).toBe(fullConfig.version)
       expect(parsed.metadata).toEqual(fullConfig.metadata)
@@ -72,7 +88,7 @@ describe('export/import JSON roundtrip', () => {
 
     it('should preserve all territory parameters', () => {
       const jsonString = JSON.stringify(fullConfig)
-      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
+      const parsed = JSON.parse(jsonString) as CompositeProjectionConfig
 
       for (let i = 0; i < fullConfig.territories.length; i++) {
         const original = fullConfig.territories[i]
@@ -90,48 +106,28 @@ describe('export/import JSON roundtrip', () => {
 
     it('should preserve pixelClipExtent values exactly', () => {
       const jsonString = JSON.stringify(fullConfig)
-      const parsed = JSON.parse(jsonString) as ExportedCompositeConfig
+      const parsed = JSON.parse(jsonString) as CompositeProjectionConfig
 
       const guadeloupe = parsed.territories.find(t => t.code === 'FR-GP')
       expect(guadeloupe?.layout.pixelClipExtent).toEqual([-54, -48, 55, 38])
 
       const franceMet = parsed.territories.find(t => t.code === 'FR-MET')
-      expect(franceMet?.layout.pixelClipExtent).toBeNull()
+      expect(franceMet?.layout).not.toHaveProperty('pixelClipExtent')
     })
   })
 
   describe('import validation after export', () => {
     it('should successfully import a valid exported configuration', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.success).toBe(true)
-      expect(result.errors).toHaveLength(0)
-      expect(result.config).toBeDefined()
-    })
-
-    it('should validate exported configuration passes validation', () => {
-      const validationResult = CompositeExportService.validateExportedConfig(fullConfig)
-
-      expect(validationResult.valid).toBe(true)
-      expect(validationResult.errors).toHaveLength(0)
-    })
-
-    it('should have matching territory count after import', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      expect(result.config?.territories.length).toBe(fullConfig.territories.length)
+      expect(importConfig(fullConfig)).toEqual(fullConfig)
     })
   })
 
   describe('parameter preservation', () => {
     it('should preserve center coordinates', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = imported.territories.find(t => t.code === 'FR-MET')
 
       expect(franceMetImported?.projection.parameters.center).toEqual(
         franceMetOriginal?.projection.parameters.center,
@@ -139,11 +135,10 @@ describe('export/import JSON roundtrip', () => {
     })
 
     it('should preserve rotate triplet', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = imported.territories.find(t => t.code === 'FR-MET')
 
       expect(franceMetImported?.projection.parameters.rotate).toEqual(
         franceMetOriginal?.projection.parameters.rotate,
@@ -151,11 +146,10 @@ describe('export/import JSON roundtrip', () => {
     })
 
     it('should preserve parallels tuple', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = imported.territories.find(t => t.code === 'FR-MET')
 
       expect(franceMetImported?.projection.parameters.parallels).toEqual(
         franceMetOriginal?.projection.parameters.parallels,
@@ -163,33 +157,30 @@ describe('export/import JSON roundtrip', () => {
     })
 
     it('should preserve scaleMultiplier', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       for (const original of fullConfig.territories) {
-        const imported = result.config?.territories.find(t => t.code === original.code)
-        expect(imported?.projection.parameters.scaleMultiplier).toBe(
+        const restored = imported.territories.find(t => t.code === original.code)
+        expect(restored?.projection.parameters.scaleMultiplier).toBe(
           original.projection.parameters.scaleMultiplier,
         )
       }
     })
 
     it('should preserve translateOffset', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       for (const original of fullConfig.territories) {
-        const imported = result.config?.territories.find(t => t.code === original.code)
-        expect(imported?.layout.translateOffset).toEqual(original.layout.translateOffset)
+        const restored = imported.territories.find(t => t.code === original.code)
+        expect(restored?.layout.translateOffset).toEqual(original.layout.translateOffset)
       }
     })
 
     it('should preserve optional parameters when present', () => {
-      const jsonString = JSON.stringify(fullConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const imported = importConfig(fullConfig)
 
       const franceMetOriginal = fullConfig.territories.find(t => t.code === 'FR-MET')
-      const franceMetImported = result.config?.territories.find(t => t.code === 'FR-MET')
+      const franceMetImported = imported.territories.find(t => t.code === 'FR-MET')
 
       expect(franceMetImported?.projection.parameters.clipAngle).toBe(
         franceMetOriginal?.projection.parameters.clipAngle,
@@ -201,48 +192,54 @@ describe('export/import JSON roundtrip', () => {
   })
 
   describe('edge cases', () => {
-    it('should handle configuration without optional fields', () => {
-      const minimalConfig: ExportedCompositeConfig = {
+    it('should read the deprecated forms of a configuration', () => {
+      const minimalConfig = {
         version: '1.0',
         metadata: {
-          atlasId: 'test',
-          atlasName: 'Test',
-          exportDate: new Date().toISOString(),
-          createdWith: 'Test',
+          atlasId: 'france',
         },
         territories: [
           {
-            code: createTerritoryCode('TEST'),
-            name: 'Test Territory',
+            code: 'FR-GP',
+            name: 'Guadeloupe',
             projection: {
               id: 'mercator',
               family: 'cylindrical',
               parameters: {
+                center: [-61.46, 16.14],
                 scaleMultiplier: 1.0,
               },
             },
-            layout: { translateOffset: [0, 0] },
-            bounds: [[0, 0], [1, 1]],
+            layout: { translateOffset: [0, 0], pixelClipExtent: null },
           },
         ],
       }
 
-      const jsonString = JSON.stringify(minimalConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
+      const result = CompositeImportService.importFromJSON(JSON.stringify(minimalConfig), context)
 
-      expect(result.success).toBe(true)
-      expect(result.config?.referenceScale).toBeUndefined()
-      expect(result.config?.canvasDimensions).toBeUndefined()
+      expect(result).toEqual({
+        ok: true,
+        value: {
+          ...minimalConfig,
+          referenceScale: 2700,
+          canvasDimensions: { width: 800, height: 600 },
+          territories: [{
+            ...minimalConfig.territories[0],
+            projection: { ...minimalConfig.territories[0]!.projection, family: 'CYLINDRICAL' },
+            layout: { translateOffset: [0, 0] },
+          }],
+        },
+      })
     })
 
     it('should preserve floating point precision', () => {
-      const preciseConfig: ExportedCompositeConfig = {
+      const preciseConfig: CompositeProjectionConfig = {
         ...fullConfig,
         territories: [
           {
-            ...fullConfig.territories[0]!,
+            ...fullConfig.territories[0],
             projection: {
-              ...fullConfig.territories[0]!.projection,
+              ...fullConfig.territories[0].projection,
               parameters: {
                 center: [2.123456, 46.654321],
                 scaleMultiplier: 1.234567,
@@ -252,12 +249,9 @@ describe('export/import JSON roundtrip', () => {
         ],
       }
 
-      const jsonString = JSON.stringify(preciseConfig)
-      const result = CompositeImportService.importFromJSON(jsonString)
-
-      const imported = result.config?.territories[0]
-      expect(imported?.projection.parameters.center).toEqual([2.123456, 46.654321])
-      expect(imported?.projection.parameters.scaleMultiplier).toBe(1.234567)
+      const [imported] = importConfig(preciseConfig).territories
+      expect(imported.projection.parameters.center).toEqual([2.123456, 46.654321])
+      expect(imported.projection.parameters.scaleMultiplier).toBe(1.234567)
     })
   })
 })

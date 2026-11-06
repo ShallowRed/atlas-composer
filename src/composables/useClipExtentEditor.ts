@@ -1,6 +1,7 @@
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -69,7 +70,7 @@ export function useClipExtentEditor() {
       if (pixelClipExtent && pixelClipExtent.length === 4) {
         const [x1, y1, x2, y2] = pixelClipExtent
 
-        const canvasDims = projectionStore.canvasDimensions || { width: 960, height: 500 }
+        const canvasDims = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
         const centerX = canvasDims.width / 2
         const centerY = canvasDims.height / 2
         const territoryX = centerX + translateOffset[0]

@@ -29,6 +29,7 @@ export const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
     experimental: false,
     requiresCustomFit: true,
     customFit: {
+      // eslint-disable-next-line no-restricted-syntax -- default scale of conicConformalFrance in d3-composite-projections
       defaultScale: 2700,
       referenceWidth: 960,
     },

@@ -1,29 +1,27 @@
 <script setup lang="ts">
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useProjectionStore } from '@/stores/projection'
 
 const { t } = useI18n()
 const projectionStore = useProjectionStore()
 
-const DEFAULT_CANVAS_WIDTH = 960
-const DEFAULT_CANVAS_HEIGHT = 500
-const DEFAULT_REFERENCE_SCALE = 2700
-
 const CANVAS_WIDTH_RANGE = { min: 500, max: 2000, step: 10 }
 const CANVAS_HEIGHT_RANGE = { min: 300, max: 1200, step: 10 }
 const REFERENCE_SCALE_RANGE = { min: 100, max: 10000, step: 50 }
 
-const canvasWidth = ref(projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_WIDTH)
-const canvasHeight = ref(projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_HEIGHT)
+const canvasWidth = ref(projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width)
+const canvasHeight = ref(projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height)
 const aspectRatioLocked = ref(true)
 
 const referenceScale = ref(projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE)
 const originalAspectRatio = computed(() => {
-  const width = projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_WIDTH
-  const height = projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_HEIGHT
+  const width = projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
+  const height = projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
   return width / height
 })
 
@@ -77,8 +75,8 @@ function applyReferenceScale() {
 }
 
 function resetToDefaults() {
-  canvasWidth.value = DEFAULT_CANVAS_WIDTH
-  canvasHeight.value = DEFAULT_CANVAS_HEIGHT
+  canvasWidth.value = DEFAULT_CANVAS_DIMENSIONS.width
+  canvasHeight.value = DEFAULT_CANVAS_DIMENSIONS.height
   referenceScale.value = DEFAULT_REFERENCE_SCALE
   aspectRatioLocked.value = true
 
@@ -95,8 +93,8 @@ const aspectRatio = computed(() => {
 })
 
 const hasCustomValues = computed(() => {
-  return canvasWidth.value !== DEFAULT_CANVAS_WIDTH
-    || canvasHeight.value !== DEFAULT_CANVAS_HEIGHT
+  return canvasWidth.value !== DEFAULT_CANVAS_DIMENSIONS.width
+    || canvasHeight.value !== DEFAULT_CANVAS_DIMENSIONS.height
     || referenceScale.value !== DEFAULT_REFERENCE_SCALE
 })
 </script>

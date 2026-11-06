@@ -7,12 +7,11 @@ import type {
   UnifiedViewConfig,
   ViewPresetMode,
 } from './types'
-import type { ProjectionFamilyType } from '@/core/projections/types'
-import type { ImportResult } from '@/services/export/composite-import-service'
 
+import { validateConfig } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
-import { CompositeImportService } from '@/services/export/composite-import-service'
+import { formatValidationError } from './composite-config'
 import {
   validateAtlasId,
   validateProjectionId,
@@ -28,18 +27,10 @@ export interface ViewPresetValidationResult {
 export function validatePreset(
   preset: any,
   presetType: PresetType,
-  jsonText?: string,
 ): ViewPresetValidationResult {
   switch (presetType) {
     case 'composite-custom': {
-      if (!jsonText) {
-        return {
-          isValid: false,
-          errors: ['jsonText is required for composite-custom preset validation'],
-          warnings: [],
-        }
-      }
-      const result = validateCompositePreset(jsonText, preset as CompositeCustomConfig)
+      const result = validateCompositePreset(preset as CompositeCustomConfig)
       return {
         isValid: result.success,
         errors: result.errors,
@@ -70,16 +61,15 @@ export function validatePreset(
 }
 
 export function validateCompositePreset(
-  jsonText: string,
   rawPreset: CompositeCustomConfig,
 ): LoadResult<CompositeCustomConfig> {
-  const importResult: ImportResult = CompositeImportService.importFromJSON(jsonText)
+  const validation = validateConfig(rawPreset)
 
-  if (!importResult.success) {
+  if (!validation.valid) {
     return {
       success: false,
-      errors: importResult.errors,
-      warnings: importResult.warnings,
+      errors: validation.errors.map(formatValidationError),
+      warnings: [],
     }
   }
 
@@ -87,7 +77,7 @@ export function validateCompositePreset(
   const paramWarnings: string[] = []
 
   for (const territory of rawPreset.territories) {
-    const family = territory.projection.family as ProjectionFamilyType
+    const family = territory.projection.family
 
     const required = parameterRegistry.getRequired()
     for (const def of required) {
@@ -138,21 +128,16 @@ export function validateCompositePreset(
   if (paramErrors.length > 0) {
     return {
       success: false,
-      errors: [...importResult.errors, ...paramErrors],
-      warnings: [...importResult.warnings, ...paramWarnings],
+      errors: paramErrors,
+      warnings: paramWarnings,
     }
-  }
-
-  const extendedPreset: CompositeCustomConfig = {
-    ...importResult.config!,
-    atlasMetadata: rawPreset.atlasMetadata,
   }
 
   return {
     success: true,
-    data: extendedPreset,
+    data: rawPreset,
     errors: [],
-    warnings: [...importResult.warnings, ...paramWarnings],
+    warnings: paramWarnings,
   }
 }
 

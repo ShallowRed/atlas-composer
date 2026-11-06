@@ -43,16 +43,6 @@ export type {
 } from '@/types/composite'
 
 export type {
-  CodeGenerationOptions,
-  ExportedCompositeConfig,
-  ExportedProjectionParameters,
-  ExportedTerritory,
-  ExportedTerritoryLayout,
-  ExportMetadata,
-  ExportValidationResult,
-} from '@/types/export-config'
-
-export type {
   GeoDataConfig,
 } from '@/types/geo-data'
 

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { AtlasId } from '@/types/branded'
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { computed, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 import LabelWithIcon from '@/components/ui/primitives/LabelWithIcon.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useParameterProvider } from '@/composables/useParameterProvider'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -49,15 +51,20 @@ const exportContent = computed(() => {
     return '// No composite projection configuration available'
   }
 
-  const exported = CompositeExportService.exportToJSON(
-    cartographer.customComposite as any,
-    atlasConfig.id as AtlasId,
-    atlasConfig.name,
-    parameterProvider,
-    projectionStore.referenceScale,
-    projectionStore.canvasDimensions,
-  )
-  return JSON.stringify(exported, null, 2)
+  try {
+    const exported = CompositeExportService.exportToJSON(
+      cartographer.customComposite as any,
+      atlasConfig.id as AtlasId,
+      atlasConfig.name,
+      parameterProvider,
+      projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
+      projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+    )
+    return JSON.stringify(exported, null, 2)
+  }
+  catch (error) {
+    return `// ${error instanceof Error ? error.message : String(error)}`
+  }
 })
 
 const fileName = computed(() => {

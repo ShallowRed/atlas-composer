@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExportedCompositeConfig } from '@/types/export-config'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CompositeExportDialog from '@/components/ui/export/CompositeExportDialog.vue'
@@ -16,7 +16,7 @@ const geoDataStore = useGeoDataStore()
 const showExportDialog = ref(false)
 const showImportDialog = ref(false)
 
-function handleImported(_config: ExportedCompositeConfig) {
+function handleImported(_config: CompositeProjectionConfig) {
   showImportDialog.value = false
 }
 </script>

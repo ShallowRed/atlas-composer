@@ -2,10 +2,10 @@
  * Types for application initialization and state management
  */
 
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset } from '@/core/presets'
 import type { AtlasConfig } from '@/types'
 import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 /**
@@ -65,7 +65,7 @@ export interface PresetLoadOptions {
 }
 
 export interface ImportOptions {
-  config: ExportedCompositeConfig
+  config: CompositeProjectionConfig
   validateAtlasCompatibility?: boolean
 }
 

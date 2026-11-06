@@ -1,6 +1,5 @@
 import type { Point } from '@/__tests__/composite-utils'
 import type { TerritoryCode } from '@/types/branded'
-import type { ExportedCompositeConfig } from '@/types/export-config'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { distance, importIntoApplication } from '@/__tests__/composite-utils'
@@ -19,9 +18,9 @@ const coordinates: Record<string, Record<string, Array<[Point, Point]>>> = JSON.
 
 describe.each(Object.entries(coordinates))('import of %s', (name, territories) => {
   it('gives the coordinates of the application that wrote it', async () => {
-    const config = JSON.parse(readFileSync(`src/__tests__/fixtures/exports/${name}.json`, 'utf8')) as ExportedCompositeConfig
+    const json = readFileSync(`src/__tests__/fixtures/exports/${name}.json`, 'utf8')
 
-    const application = await importIntoApplication(config, CANVAS_DIMENSIONS)
+    const application = await importIntoApplication(json, CANVAS_DIMENSIONS)
 
     for (const [code, points] of Object.entries(territories)) {
       for (const [point, expected] of points) {
@@ -38,12 +37,12 @@ describe('import of a territory without positioning', () => {
     { projectionId: 'mercator', family: 'cylindrical', parameter: 'center', other: 'rotate' },
     { projectionId: 'conic-conformal', family: 'conic', parameter: 'rotate', other: 'center' },
   ] as const)('gives the center of the atlas to a $family projection', async ({ projectionId, parameter, other }) => {
-    const config = JSON.parse(readFileSync('src/__tests__/fixtures/exports/france-customcomposite-nsp.json', 'utf8')) as ExportedCompositeConfig
-    const territory = config.territories.find(t => t.code === code)!
+    const config = JSON.parse(readFileSync('src/__tests__/fixtures/exports/france-customcomposite-nsp.json', 'utf8'))
+    const territory = config.territories.find((t: { code: string }) => t.code === code)
     const { focusLongitude, focusLatitude, rotate, center, ...parameters } = territory.projection.parameters
     territory.projection = { ...territory.projection, id: projectionId, parameters: { ...parameters, projectionId } }
 
-    await importIntoApplication(config)
+    await importIntoApplication(JSON.stringify(config))
 
     const [longitude, latitude] = getAtlasConfig('france').compositeProjectionConfig!.territories.find(t => t.code === code)!.center!
     const expected = parameter === 'center' ? [longitude, latitude] : [-longitude, -latitude, 0]

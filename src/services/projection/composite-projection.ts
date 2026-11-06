@@ -6,6 +6,7 @@ import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 
 import { buildCompositeProjection, calculateClipExtentFromPixelOffset } from '@atlas-composer/projection-core'
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -57,7 +58,7 @@ export class CompositeProjection {
   private initializeTerritories() {
     const { territories } = this.config
 
-    const REFERENCE_SCALE = this.referenceScale ?? 2700
+    const REFERENCE_SCALE = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
 
     territories.forEach((territory) => {
       const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode)
@@ -187,7 +188,7 @@ export class CompositeProjection {
     this.referenceScale = newReferenceScale
 
     this.subProjections.forEach((subProj) => {
-      const referenceScale = this.referenceScale ?? 2700
+      const referenceScale = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
       const newScale = referenceScale * subProj.scaleMultiplier
 
       if (typeof subProj.projection.scale === 'function') {

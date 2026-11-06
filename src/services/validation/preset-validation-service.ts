@@ -14,8 +14,9 @@ export class PresetValidationService {
       return { isValid: false, errors, warnings }
     }
 
+    // PresetLoader.loadPreset validates a composite-custom preset by validateCompositePreset
     if (preset.type === 'composite-custom') {
-      return this.validateCompositePreset(preset, atlasConfig)
+      return { isValid: true, errors, warnings }
     }
 
     if (['unified', 'split', 'built-in-composite'].includes(preset.type)) {
@@ -24,43 +25,6 @@ export class PresetValidationService {
 
     errors.push(`Unknown preset type: ${preset.type}`)
     return { isValid: false, errors, warnings }
-  }
-
-  private static validateCompositePreset(preset: Preset, _atlasConfig: AtlasConfig): ValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    if (preset.type !== 'composite-custom') {
-      errors.push('Expected composite-custom preset')
-      return { isValid: false, errors, warnings }
-    }
-
-    const config = preset.config as any
-
-    if (!config.territories || Object.keys(config.territories).length === 0) {
-      errors.push('Preset has no territories defined')
-      return { isValid: false, errors, warnings }
-    }
-
-    const presetTerritories = Object.keys(config.territories)
-    const metadata = {
-      territoriesInPreset: presetTerritories,
-      territoriesInAtlas: [],
-      missingTerritories: [],
-      extraTerritories: [],
-    }
-
-    for (const [code, territory] of Object.entries(config.territories) as any) {
-      if (!territory.projection?.id) {
-        errors.push(`Territory ${code} is missing projection.id`)
-      }
-    }
-
-    if (errors.length > 0) {
-      return { isValid: false, errors, warnings, metadata }
-    }
-
-    return { isValid: true, errors, warnings, metadata }
   }
 
   private static validateViewPreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
