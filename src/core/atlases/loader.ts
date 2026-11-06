@@ -41,8 +41,6 @@ export interface AtlasSpecificConfig {
   territoryCollections?: TerritoryCollections
   projectionPreferences?: ProjectionPreferences
   rawModeLabels: Record<string, I18nValue>
-  rawGroupLabels?: Record<string, I18nValue>
-  rawCollectionLabels?: Record<string, Record<string, I18nValue>>
 }
 
 interface LoadedTerritories {
@@ -270,17 +268,9 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
   }
 
   let territoryCollections: TerritoryCollections | undefined
-  let rawCollectionLabels: Record<string, Record<string, I18nValue>> | undefined
 
   if (jsonConfig.territoryCollections) {
     territoryCollections = createTerritoryCollections(jsonConfig, locale, allTerritoryCodes)
-
-    rawCollectionLabels = {}
-    for (const [setKey, setConfig] of Object.entries(jsonConfig.territoryCollections)) {
-      rawCollectionLabels[setKey] = Object.fromEntries(
-        setConfig.collections.map(c => [c.id, c.label]),
-      )
-    }
   }
 
   const geoDataConfig = createGeoDataConfig(jsonConfig, territories)
@@ -295,15 +285,11 @@ export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: 
 
   const projectionPreferences = getFallbackProjectionPreferences(jsonConfig.id)
 
-  const rawGroupLabels: Record<string, I18nValue> = {}
-
   const atlasSpecificConfig: AtlasSpecificConfig = {
     territoryModes,
     territoryCollections,
     projectionPreferences,
     rawModeLabels,
-    rawGroupLabels: Object.keys(rawGroupLabels).length > 0 ? rawGroupLabels : undefined,
-    rawCollectionLabels,
   }
 
   return {
