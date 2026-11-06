@@ -103,8 +103,6 @@ export default antfu({
     'src/public/data',
     // Code blocks in docs/ are excerpts, not compiled sources
     'docs/**/*.md',
-    // Copy of configs/presets, linted at its source
-    'packages/preset-library/presets',
     // Generated from the schema by the build of the specification
     'packages/specification/src/generated',
   ],

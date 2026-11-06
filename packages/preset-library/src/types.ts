@@ -1,8 +1,10 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 
-export type PresetType = 'composite-custom' | 'built-in-composite' | 'split' | 'unified'
+export const PRESET_TYPES = ['composite-custom', 'built-in-composite', 'split', 'unified'] as const
 
-export type PresetRegion = 'france' | 'portugal' | 'usa' | 'europe' | 'world'
+export type PresetType = typeof PRESET_TYPES[number]
+
+export type PresetRegion = string
 
 export interface PresetMetadata {
   id: string
@@ -21,7 +23,6 @@ export interface PresetEntry extends PresetMetadata {
 
 export interface PresetCatalog {
   version: string
-  lastUpdated: string
   presets: Record<string, PresetMetadata>
 }
 

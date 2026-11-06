@@ -1,11 +1,56 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 
-import type { PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
-import { catalog, getAllPresets, getPresetMetadata } from './catalog.js'
+import type { PresetCatalog, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
+import registry from '../../../configs/atlas-registry.json'
+import { version } from '../package.json'
+import { PRESET_TYPES } from './types.js'
 
 export type { PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 
-export { catalog, getAllPresets, getPresetMetadata }
+type Label = string | { en: string }
+
+interface RegistryPreset {
+  id: string
+  type: string
+  isDefault?: boolean
+  name: Label
+  description?: Label
+}
+
+const atlases: Array<{ id: string, presets?: RegistryPreset[] }> = registry.atlases
+
+function english(label: Label): string {
+  return typeof label === 'string' ? label : label.en
+}
+
+function toPresetType(type: string): PresetType {
+  const presetType = PRESET_TYPES.find(known => known === type)
+  if (!presetType) {
+    throw new Error(`Unknown preset type "${type}"`)
+  }
+  return presetType
+}
+
+export const catalog: PresetCatalog = {
+  version,
+  presets: Object.fromEntries(atlases.flatMap(atlas => (atlas.presets ?? []).map((preset): [string, PresetMetadata] => [preset.id, {
+    id: preset.id,
+    name: english(preset.name),
+    description: preset.description && english(preset.description),
+    atlasId: atlas.id,
+    type: toPresetType(preset.type),
+    region: atlas.id,
+    tags: preset.isDefault ? ['default'] : [],
+  }]))),
+}
+
+export function getAllPresets(): PresetMetadata[] {
+  return Object.values(catalog.presets)
+}
+
+export function getPresetMetadata(id: string): PresetMetadata | undefined {
+  return catalog.presets[id]
+}
 
 const VIEW_MODE_TYPES: PresetType[] = ['unified', 'split', 'built-in-composite']
 
@@ -46,33 +91,6 @@ export function getDefaultPreset(atlasId: string): PresetMetadata | undefined {
   return presets.find(p => p.tags?.includes('default')) || presets[0]
 }
 
-const presetPaths: Record<string, string> = {
-  'france-standard': 'france/france-customcomposite-nsp.json',
-  'france-proportional': 'france/france-customcomposite-proportionnald3cp.json',
-  'france-pseudo-d3cp': 'france/france-customcomposite-pseudod3cp.json',
-  'france-builtin-d3cp': 'france/france-builtincomposite-d3cp.json',
-  'france-split': 'france/france-split.json',
-  'france-unified': 'france/france-unified.json',
-
-  'portugal-standard': 'portugal/portugal-default.json',
-  'portugal-builtin': 'portugal/portugal-built-in-composite.json',
-  'portugal-split': 'portugal/portugal-split.json',
-  'portugal-unified': 'portugal/portugal-unified.json',
-
-  'usa-albers': 'usa/usa-builtincomposite-albersusa.json',
-  'usa-pseudo-d3cp': 'usa/usa-customcompsite-pseudod3cp.json',
-  'usa-builtin-d3cp': 'usa/usa-builtincomposite-d3cp.json',
-  'usa-builtin-territories': 'usa/usa-builtincomposite-d3cpterritories.json',
-  'usa-split': 'usa/usa-split.json',
-  'usa-unified': 'usa/usa-unified.json',
-
-  'europe-builtin': 'europe/europe-builtincomposite-d3cp.json',
-  'europe-split': 'europe/europe-split.json',
-  'europe-unified': 'europe/europe-unified.json',
-
-  'world-unified': 'world/world-unified.json',
-}
-
 export async function getPreset(id: string): Promise<CompositeProjectionConfig | undefined> {
   const metadata = getPresetMetadata(id)
   if (!metadata) {
@@ -84,23 +102,19 @@ export async function getPreset(id: string): Promise<CompositeProjectionConfig |
     return undefined
   }
 
-  const path = presetPaths[id]
-  if (!path) {
-    return undefined
-  }
-
   try {
-    const module = await import(`../presets/${path}`)
+    const module = await import(`../../../configs/presets/${metadata.atlasId}/${id}.json`)
     return module.default as CompositeProjectionConfig
   }
   catch {
-    console.error(`Failed to load preset "${id}" from ${path}`)
+    console.error(`Failed to load preset "${id}" from ${getPresetPath(id)}`)
     return undefined
   }
 }
 
 export function getPresetPath(id: string): string | undefined {
-  return presetPaths[id]
+  const metadata = getPresetMetadata(id)
+  return metadata && `${metadata.atlasId}/${id}.json`
 }
 
 export function listAtlases(): string[] {
@@ -112,11 +126,11 @@ export function listAtlases(): string[] {
 }
 
 export function listRegions(): PresetRegion[] {
-  return ['france', 'portugal', 'usa', 'europe', 'world']
+  return atlases.map(atlas => atlas.id)
 }
 
 export function listTypes(): PresetType[] {
-  return ['composite-custom', 'built-in-composite', 'split', 'unified']
+  return [...PRESET_TYPES]
 }
 
 export function isViewModeType(type: PresetType): boolean {

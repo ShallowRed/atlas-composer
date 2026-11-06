@@ -5,6 +5,7 @@ export default defineConfig({
   format: ['esm'],
   dts: { resolve: ['@atlas-composer/specification'] },
   clean: true,
+  publicDir: '../../configs/presets',
   minify: false,
   sourcemap: true,
   treeshake: true,

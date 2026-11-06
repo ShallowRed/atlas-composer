@@ -9,13 +9,29 @@ interface PackedPackage {
   filename: string
 }
 
+type ExportTarget = string | { import?: string, types?: string }
+
 // Installs each packed package alone in an empty project, as a user does from npm,
-// type-checks an import of each typed entry with skipLibCheck off, and imports it in Node
+// type-checks an import of each typed entry with skipLibCheck off, and imports in Node each typed entry,
+// and as JSON each file of the tarball that an untyped entry serves
 const root = resolve(import.meta.dirname, '..')
 const workspace = await mkdtemp(join(tmpdir(), 'atlas-composer-packages-'))
 
 async function readJson(path: string) {
   return JSON.parse(await readFile(path, 'utf8'))
+}
+
+// Public specifiers of the tarball files that an export entry serves, expanding the `*` of a subpath pattern
+function servedSpecifiers(name: string, entry: string, target: ExportTarget, files: string[]) {
+  const path = typeof target === 'string' ? target : target.import
+  if (!path)
+    return []
+  const [prefix, suffix] = path.slice(2).split('*')
+  if (suffix === undefined)
+    return files.includes(prefix) ? [`${name}${entry.slice(1)}`] : []
+  return files
+    .filter(file => file.startsWith(prefix) && file.endsWith(suffix) && file.length > prefix.length + suffix.length)
+    .map(file => `${name}${entry.slice(1).replace('*', file.slice(prefix.length, file.length - suffix.length))}`)
 }
 
 try {
@@ -33,6 +49,13 @@ try {
     const { exports } = JSON.parse(execFileSync('tar', ['-xOzf', filename, 'package/package.json'], { encoding: 'utf8' }))
     const typedEntries = Object.keys(exports).filter(entry => exports[entry].types)
     const specifiers = typedEntries.map(entry => `${name}${entry.slice(1)}`)
+    const files = execFileSync('tar', ['-tzf', filename], { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean)
+      .map(file => file.replace(/^package\//, ''))
+    const jsonSpecifiers = Object.keys(exports)
+      .filter(entry => !exports[entry].types)
+      .flatMap(entry => servedSpecifiers(name, entry, exports[entry], files))
 
     const project = join(workspace, `project-${index}`)
     await mkdir(project)
@@ -54,8 +77,14 @@ try {
 
     execFileSync('pnpm', ['install', '--silent'], { cwd: project, stdio: 'inherit' })
     execFileSync(join(root, 'node_modules/.bin/tsc'), ['-p', project], { stdio: 'inherit' })
-    execFileSync('node', ['--input-type=module', '--eval', specifiers.map(specifier => `import '${specifier}'`).join('\n')], { cwd: project, stdio: 'inherit' })
+    const imports = [
+      ...specifiers.map(specifier => `import '${specifier}'`),
+      ...jsonSpecifiers.map(specifier => `import '${specifier}' with { type: 'json' }`),
+    ]
+    execFileSync('node', ['--input-type=module', '--eval', imports.join('\n')], { cwd: project, stdio: 'inherit' })
     logger.success(`${name} (${typedEntries.join(', ')}): types check and entries import when installed alone`)
+    if (jsonSpecifiers.length > 0)
+      logger.success(`${name}: ${jsonSpecifiers.length} JSON files import by their public path`)
   }
 }
 finally {
