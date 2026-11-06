@@ -285,31 +285,17 @@ export class ProjectionLoader {
     const parameters = territory.projection.parameters
     const projection = factory()
 
-    const hasFocus = parameters.focusLongitude !== undefined && parameters.focusLatitude !== undefined
-    const projFamily = territory.projection.family
-
-    if (hasFocus && projFamily === 'CONIC' && projection.rotate) {
-      projection.rotate([-parameters.focusLongitude!, -parameters.focusLatitude!, 0])
-    }
-    else if (hasFocus && projection.center) {
-      projection.center([parameters.focusLongitude!, parameters.focusLatitude!])
-    }
-    else if (parameters.center && projection.center) {
+    if (parameters.center !== undefined && projection.center) {
       projection.center(parameters.center)
     }
 
-    if (parameters.rotate && projection.rotate && !hasFocus) {
-      const rotate = Array.isArray(parameters.rotate)
-        ? [...parameters.rotate, 0, 0].slice(0, 3) as [number, number, number]
-        : [0, 0, 0] as [number, number, number]
-      projection.rotate(rotate)
+    if (parameters.rotate !== undefined && projection.rotate) {
+      const [lambda, phi, gamma = 0] = parameters.rotate
+      projection.rotate([lambda, phi, gamma])
     }
 
-    if (parameters.parallels && projection.parallels) {
-      const parallels = Array.isArray(parameters.parallels)
-        ? [...parameters.parallels, 0].slice(0, 2) as [number, number]
-        : [0, 60] as [number, number]
-      projection.parallels(parallels)
+    if (parameters.parallels !== undefined && projection.parallels) {
+      projection.parallels(parameters.parallels)
     }
 
     const scaleMultiplier = parameters.scaleMultiplier ?? 1
@@ -318,11 +304,11 @@ export class ProjectionLoader {
       projection.scale(territoryScale)
     }
 
-    if (parameters.clipAngle && projection.clipAngle) {
+    if (parameters.clipAngle !== undefined && projection.clipAngle) {
       projection.clipAngle(parameters.clipAngle)
     }
 
-    if (parameters.precision && projection.precision) {
+    if (parameters.precision !== undefined && projection.precision) {
       projection.precision(parameters.precision)
     }
 
