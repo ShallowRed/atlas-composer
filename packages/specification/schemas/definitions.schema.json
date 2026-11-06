@@ -2,9 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://atlas-composer.github.io/specification/v1/definitions.schema.json",
   "title": "Atlas Composer Specification Definitions",
-  "description": "Shared type definitions for Atlas Composer composite projection schemas (v1.0)",
+  "description": "Shared type definitions for Atlas Composer composite projection schemas (v1.1)",
   "definitions": {
     "i18nString": {
+      "title": "I18nString",
       "description": "Internationalized string (plain string or object with language codes)",
       "oneOf": [
         {
@@ -22,6 +23,7 @@
       ]
     },
     "geoBounds": {
+      "title": "GeoBounds",
       "type": "array",
       "description": "Geographic bounding box [[minLon, minLat], [maxLon, maxLat]]",
       "items": {
@@ -34,11 +36,13 @@
       "maxItems": 2
     },
     "projectionFamily": {
+      "title": "ProjectionFamily",
       "type": "string",
-      "enum": ["CYLINDRICAL", "CONIC", "AZIMUTHAL", "PSEUDOCYLINDRICAL", "POLYCONIC", "MISCELLANEOUS"],
+      "enum": ["CYLINDRICAL", "CONIC", "AZIMUTHAL", "PSEUDOCYLINDRICAL", "POLYCONIC", "POLYHEDRAL", "MISCELLANEOUS"],
       "description": "Projection family category determining applicable parameters"
     },
     "projectionParameters": {
+      "title": "ProjectionParameters",
       "type": "object",
       "description": "Projection parameters for geographic transformation",
       "properties": {
@@ -88,14 +92,20 @@
         "tilt": {
           "type": "number",
           "description": "Tilt angle in degrees (satellite projection)"
+        },
+        "precision": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Threshold of adaptive resampling in pixels"
         }
       },
       "additionalProperties": false
     },
     "layoutConfig": {
+      "title": "LayoutConfig",
       "type": "object",
       "description": "Layout configuration for territory positioning",
-      "required": ["translateOffset", "pixelClipExtent"],
+      "required": ["translateOffset"],
       "properties": {
         "translateOffset": {
           "type": "array",
@@ -109,12 +119,13 @@
           "items": { "type": "number" },
           "minItems": 4,
           "maxItems": 4,
-          "description": "Clip extent [x1, y1, x2, y2] in pixels relative to territory center"
+          "description": "Clip extent [x1, y1, x2, y2] in pixels relative to territory center; a territory without it is not clipped"
         }
       },
       "additionalProperties": false
     },
     "territoryConfig": {
+      "title": "TerritoryConfig",
       "type": "object",
       "description": "Configuration for a single territory",
       "required": ["code", "name", "projection", "layout"],
@@ -125,8 +136,7 @@
           "description": "Territory code (ISO 3166-2 pattern, e.g., 'FR-MET', 'US-AK')"
         },
         "name": {
-          "$ref": "#/definitions/i18nString",
-          "description": "Human-readable territory name"
+          "$ref": "#/definitions/i18nString"
         },
         "projection": {
           "type": "object",
@@ -155,6 +165,7 @@
       "additionalProperties": false
     },
     "configMetadata": {
+      "title": "ConfigMetadata",
       "type": "object",
       "description": "Configuration metadata for provenance tracking",
       "required": ["atlasId"],
@@ -165,12 +176,11 @@
           "description": "Target atlas identifier"
         },
         "atlasName": {
-          "$ref": "#/definitions/i18nString",
-          "description": "Human-readable atlas name"
+          "$ref": "#/definitions/i18nString"
         },
         "exportDate": {
           "type": "string",
-          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
           "description": "Export timestamp in ISO 8601 format"
         },
         "createdWith": {
@@ -185,6 +195,7 @@
       "additionalProperties": true
     },
     "canvasDimensions": {
+      "title": "CanvasDimensions",
       "type": "object",
       "description": "Canvas dimensions in pixels",
       "required": ["width", "height"],
@@ -203,6 +214,7 @@
       "additionalProperties": false
     },
     "atlasMetadata": {
+      "title": "AtlasMetadata",
       "type": "object",
       "description": "Optional atlas-level projection metadata",
       "properties": {

@@ -102,6 +102,8 @@ export default antfu({
     'docs/**/*.md',
     // Copy of configs/presets, linted at its source
     'packages/preset-library/presets',
+    // Generated from the schema by the build of the specification
+    'packages/specification/src/generated',
   ],
 
   rules: {
