@@ -1,1 +1,0 @@
-export { buildCompositeProjection } from './builder'
