@@ -1,6 +1,6 @@
 import type { BackendConfig } from '#types'
-import { readFile } from 'node:fs/promises'
-import { relative, resolve } from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
+import { join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { listConfigs, listPresetFiles, loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
@@ -96,8 +96,14 @@ function extractDataCodes(data: GeneratedData): string[] {
 
 async function validatePresetFiles(atlas: string): Promise<string[]> {
   const errors: string[] = []
+  const presets = await listPresetFiles(atlas)
 
-  for (const preset of await listPresetFiles(atlas)) {
+  const defaults = presets.filter(preset => preset.isDefault).map(preset => preset.id)
+  if (defaults.length !== 1) {
+    errors.push(`Atlas has ${defaults.length} default presets, expected 1${defaults.length > 0 ? `: ${defaults.join(', ')}` : ''}`)
+  }
+
+  for (const preset of presets) {
     const file = relative(process.cwd(), preset.path)
     let content: string
     try {
@@ -126,6 +132,33 @@ async function validatePresetFiles(atlas: string): Promise<string[]> {
     }
   }
 
+  return errors
+}
+
+async function validatePresetDeclarations(atlases: string[]): Promise<string[]> {
+  const declarations = new Map<string, string[]>()
+  for (const atlas of atlases) {
+    for (const preset of await listPresetFiles(atlas)) {
+      const file = relative(process.cwd(), preset.path)
+      declarations.set(file, [...declarations.get(file) ?? [], preset.id])
+    }
+  }
+
+  const errors: string[] = []
+  const presetsDir = resolve(process.cwd(), 'configs/presets')
+  for (const entry of await readdir(presetsDir, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.json')) {
+      continue
+    }
+    const file = relative(process.cwd(), join(entry.parentPath, entry.name))
+    const ids = declarations.get(file) ?? []
+    if (ids.length === 0) {
+      errors.push(`Preset file not declared in configs/atlas-registry.json: ${file}`)
+    }
+    else if (ids.length > 1) {
+      errors.push(`Preset file declared by several presets: ${file}: ${ids.join(', ')}`)
+    }
+  }
   return errors
 }
 
@@ -250,6 +283,16 @@ async function main(): Promise<void> {
       results.push(result)
     }
 
+    logger.section('Validating: configs/presets')
+    const declarationErrors = await validatePresetDeclarations(atlases)
+    declarationErrors.forEach((msg) => {
+      logger.error(msg)
+    })
+    if (declarationErrors.length === 0) {
+      logger.success('Each preset file is declared once in the registry')
+    }
+    logger.newline()
+
     logger.section('Summary')
     const successful = results.filter(r => r.success)
     const failed = results.filter(r => !r.success)
@@ -264,6 +307,10 @@ async function main(): Promise<void> {
       failed.forEach((r) => {
         logger.log(`  - ${r.atlas}`)
       })
+      process.exitCode = 1
+    }
+    if (declarationErrors.length > 0) {
+      logger.error(`configs/presets with ${declarationErrors.length} errors`)
       process.exitCode = 1
     }
   }

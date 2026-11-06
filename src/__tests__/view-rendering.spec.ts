@@ -1,13 +1,14 @@
-// Reference produced on commit afe1525; regenerate it only on that commit.
+// Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit
+// "fix(registry): declare every preset of configs/presets once"; regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId, PresetId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import atlasRegistry from '#configs/atlas-registry.json'
-import { afterAll, expect, it, vi } from 'vitest'
-import { buildApplicationComposite, distance, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
-import { getAtlasConfig, getDefaultPresetForViewMode } from '@/core/atlases/registry'
+import { afterAll, expect, it } from 'vitest'
+import { buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
+import { getAtlasConfig } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { useParameterStore } from '@/stores/parameters'
@@ -51,8 +52,8 @@ function unionOfBounds(bounds: Bounds[]): Bounds {
   ]
 }
 
-// Path of an atlas change (view store, switchAtlas), then of a view change (view store, viewMode watcher)
-async function openView(atlasId: AtlasId, view: View) {
+// Path of an atlas change (view store, switchAtlas)
+async function openAtlas(atlasId: AtlasId) {
   await startApplication(atlasId)
   const viewStore = useViewStore()
 
@@ -64,12 +65,6 @@ async function openView(atlasId: AtlasId, view: View) {
   const defaultViewPreset = viewStore.availableViewPresets.find(preset => preset.isDefault) ?? viewStore.availableViewPresets[0]
   if (defaultViewPreset) {
     await viewStore.loadViewPreset(defaultViewPreset.id as PresetId)
-  }
-
-  if (viewStore.viewMode !== view) {
-    viewStore.setViewMode(view)
-    const viewPresetId = getDefaultPresetForViewMode(atlasId, view)?.id
-    await vi.waitFor(() => expect(viewStore.currentViewPreset).toBe(viewPresetId))
   }
 }
 
@@ -121,6 +116,7 @@ afterAll(() => {
 })
 
 it.each(cases)('$atlasId $view view keeps its rendering', async ({ atlasId, view }) => {
+  await openAtlas(atlasId)
   await openView(atlasId, view)
   const rendering = renderView(atlasId, view)
 
