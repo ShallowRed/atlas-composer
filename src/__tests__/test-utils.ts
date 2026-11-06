@@ -101,10 +101,9 @@ interface PresetFile {
   type: PresetType
   path: string
   json: string
-  inRegistry: boolean
 }
 
-// Every file of configs/presets; a composite-custom preset has no type field
+// Every file of configs/presets, which scripts/validate-configs.ts keeps declared once in the registry
 export function readPresetFiles(): PresetFile[] {
   const registryIds = new Map<string, string>(atlasRegistry.atlases.flatMap(atlas => (atlas.presets ?? [])
     .map(({ id, configPath }) => [`configs/${configPath.replace(/^\.\//, '')}`, id] as const)))
@@ -113,12 +112,12 @@ export function readPresetFiles(): PresetFile[] {
     const path = `configs/presets/${atlasId}/${file}`
     const json = readFileSync(path, 'utf8')
     return {
-      id: registryIds.get(path) ?? file.replace(/\.json$/, ''),
+      id: registryIds.get(path)!,
       atlasId: atlasId as AtlasId,
+      // A composite-custom preset has no type field
       type: (JSON.parse(json).type ?? 'composite-custom') as PresetType,
       path,
       json,
-      inRegistry: registryIds.has(path),
     }
   }))
 }

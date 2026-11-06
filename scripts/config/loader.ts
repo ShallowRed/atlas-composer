@@ -14,12 +14,13 @@ export interface LoadedConfig {
 interface AtlasRegistryEntry {
   id: string
   configPath: string
-  presets?: Array<{ id: string, type: string, configPath: string }>
+  presets?: Array<{ id: string, type: string, isDefault?: boolean, configPath: string }>
 }
 
 export interface PresetFile {
   id: string
   type: string
+  isDefault: boolean
   path: string
 }
 
@@ -51,9 +52,10 @@ async function loadRegistry(): Promise<AtlasRegistryConfig> {
 export async function listPresetFiles(atlasName: string): Promise<PresetFile[]> {
   const registry = await loadRegistry()
   const entry = registry.atlases.find(a => a.id === atlasName)
-  return (entry?.presets ?? []).map(({ id, type, configPath }) => ({
+  return (entry?.presets ?? []).map(({ id, type, isDefault, configPath }) => ({
     id,
     type,
+    isDefault: isDefault === true,
     path: path.join(getConfigsDir(), configPath),
   }))
 }
