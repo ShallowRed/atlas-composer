@@ -1,16 +1,17 @@
 import type {
   BulkResetOperation,
-  PresetDefaults,
   PresetParameters,
   ResetStrategy,
-  TerritoryConfig,
   TerritoryResetOperation,
 } from './types'
+import type { TerritoryDefaults } from '@/core/presets'
+import type { TerritoryConfig } from '@/types'
+import type { TerritoryCode } from '@/types/branded'
 
 export class TerritoryResetService {
   static calculateBulkReset(params: {
-    territories: TerritoryConfig[]
-    presetDefaults?: PresetDefaults
+    territories: Pick<TerritoryConfig, 'code'>[]
+    presetDefaults?: TerritoryDefaults
     presetParameters?: PresetParameters
   }): BulkResetOperation {
     const { territories, presetDefaults, presetParameters } = params
@@ -25,8 +26,8 @@ export class TerritoryResetService {
   }
 
   static calculateTerritoryReset(params: {
-    territoryCode: string
-    presetDefaults?: PresetDefaults
+    territoryCode: TerritoryCode
+    presetDefaults?: TerritoryDefaults
     presetParameters?: PresetParameters
   }): TerritoryResetOperation {
     const { territoryCode, presetDefaults, presetParameters } = params
@@ -53,7 +54,7 @@ export class TerritoryResetService {
   }
 
   private static determineResetStrategy(
-    presetDefaults?: PresetDefaults,
+    presetDefaults?: TerritoryDefaults,
   ): ResetStrategy {
     if (!presetDefaults || Object.keys(presetDefaults.projections).length === 0) {
       return 'fallback'
@@ -62,11 +63,11 @@ export class TerritoryResetService {
   }
 
   private static calculatePresetReset(
-    _territories: TerritoryConfig[],
-    presetDefaults: PresetDefaults,
+    _territories: Pick<TerritoryConfig, 'code'>[],
+    presetDefaults: TerritoryDefaults,
     presetParameters?: PresetParameters,
   ): BulkResetOperation {
-    const presetTerritoryCodes = Object.keys(presetDefaults.projections)
+    const presetTerritoryCodes = Object.keys(presetDefaults.projections) as TerritoryCode[]
 
     const operations: TerritoryResetOperation[] = presetTerritoryCodes.map((code) => {
       return {
@@ -86,7 +87,7 @@ export class TerritoryResetService {
   }
 
   private static calculateFallbackReset(
-    territories: TerritoryConfig[],
+    territories: Pick<TerritoryConfig, 'code'>[],
   ): BulkResetOperation {
     const operations: TerritoryResetOperation[] = territories.map((territory) => {
       return {

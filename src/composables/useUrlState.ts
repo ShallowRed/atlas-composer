@@ -2,7 +2,7 @@ import type { TerritoryCode } from '@/types'
 import { computed } from 'vue'
 
 import { useRoute } from 'vue-router'
-import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
+import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'

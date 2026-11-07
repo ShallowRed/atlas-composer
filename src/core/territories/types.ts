@@ -1,29 +1,17 @@
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-interface Translation {
+export interface Translation {
   x: number
   y: number
-}
-
-export interface PresetDefaults {
-  projections: Record<string, ProjectionId>
-  translations: Record<string, Translation>
-  scales: Record<string, number>
 }
 
 export interface PresetParameters {
   [territoryCode: string]: Partial<ProjectionParameters>
 }
 
-export interface TerritoryConfig {
-  code: TerritoryCode
-  name: string
-  [key: string]: any
-}
-
 export interface TerritoryResetOperation {
-  territoryCode: string
+  territoryCode: TerritoryCode
   projection?: ProjectionId
   translation: Translation
   scale: number
@@ -33,7 +21,7 @@ export interface TerritoryResetOperation {
 
 export interface BulkResetOperation {
   operations: TerritoryResetOperation[]
-  activeTerritories?: string[]
+  activeTerritories?: TerritoryCode[]
 }
 
 export type ResetStrategy = 'preset' | 'fallback'
