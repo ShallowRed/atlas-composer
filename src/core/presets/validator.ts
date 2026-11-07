@@ -1,8 +1,8 @@
+import type { PresetType } from '#types'
 import type {
   CompositeCustomConfig,
   CompositeExistingViewConfig,
   LoadResult,
-  PresetType,
   SplitViewConfig,
   UnifiedViewConfig,
   ViewPresetMode,

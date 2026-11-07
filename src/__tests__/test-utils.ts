@@ -1,4 +1,4 @@
-import type { PresetType } from '@/core/presets/types'
+import type { PresetType } from '#types'
 import type { AtlasId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'

@@ -1,4 +1,4 @@
-import type { BackendConfig, JSONAtlasConfig } from '#types'
+import type { AtlasRegistry, BackendConfig, JSONAtlasConfig } from '#types'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
@@ -11,12 +11,6 @@ export interface LoadedConfig {
   backend: BackendConfig
 }
 
-interface AtlasRegistryEntry {
-  id: string
-  configPath: string
-  presets?: Array<{ id: string, type: string, isDefault?: boolean, configPath: string }>
-}
-
 export interface PresetFile {
   id: string
   type: string
@@ -25,11 +19,7 @@ export interface PresetFile {
   path: string
 }
 
-interface AtlasRegistryConfig {
-  atlases: AtlasRegistryEntry[]
-}
-
-let registryCache: AtlasRegistryConfig | null = null
+let registryCache: AtlasRegistry | null = null
 
 function getProjectRoot(): string {
   return process.cwd()
@@ -39,7 +29,7 @@ function getConfigsDir(): string {
   return path.join(getProjectRoot(), 'configs')
 }
 
-async function loadRegistry(): Promise<AtlasRegistryConfig> {
+async function loadRegistry(): Promise<AtlasRegistry> {
   if (registryCache) {
     return registryCache
   }

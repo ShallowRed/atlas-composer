@@ -1,6 +1,6 @@
+import type { PresetType } from '#types'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
-import type { ViewMode } from '@/types/composite'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 export interface LoadResult<T> {
@@ -32,9 +32,7 @@ interface BasePresetMetadata {
   atlasId: AtlasId
 }
 
-export type ViewPresetMode = Extract<ViewMode, 'unified' | 'split' | 'built-in-composite'>
-
-export type PresetType = 'composite-custom' | ViewPresetMode
+export type ViewPresetMode = Exclude<PresetType, 'composite-custom'>
 
 export interface UnifiedViewConfig {
   projection: {

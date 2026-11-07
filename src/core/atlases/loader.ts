@@ -1,4 +1,4 @@
-import type { I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
+import type { AtlasRegistryBehavior, I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
   GeoDataConfig,
@@ -7,7 +7,6 @@ import type {
   TerritoryConfig,
 } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
-import type { AtlasRegistryBehavior } from '@/types/registry'
 import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {

@@ -45,6 +45,7 @@
       "type": "array",
       "description": "List of available atlases",
       "items": {
+        "title": "AtlasRegistryEntry",
         "type": "object",
         "required": ["id", "name", "group", "sortOrder", "configPath"],
         "properties": {
@@ -92,6 +93,7 @@
             "type": "array",
             "description": "Available presets for this atlas",
             "items": {
+              "title": "PresetDefinition",
               "type": "object",
               "required": ["id", "name", "type", "configPath"],
               "properties": {
@@ -119,6 +121,7 @@
                 "type": {
                   "type": "string",
                   "description": "Preset type discriminator",
+                  "title": "PresetType",
                   "enum": ["composite-custom", "unified", "split", "built-in-composite"]
                 },
                 "configPath": {
@@ -150,6 +153,7 @@
             }
           },
           "behavior": {
+            "title": "AtlasRegistryBehavior",
             "type": "object",
             "description": "Application behavior configuration for this atlas. VALIDATION RULES: (1) territoryManager and territoryGroups keys MUST reference collection sets with selectionType='mutually-exclusive'. (2) territoryScope key MUST reference a collection set with selectionType='incremental'. These rules are enforced at runtime.",
             "properties": {
