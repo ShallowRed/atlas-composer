@@ -14,7 +14,8 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
 
-export async function loadAtlasConfiguration(atlasId: AtlasId): Promise<LoadedAtlasConfig> {
+// Names are resolved in the locale of the first load: the cache is keyed by atlas id
+export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): Promise<LoadedAtlasConfig> {
   if (isAtlasLoaded(atlasId)) {
     debug('Atlas %s already loaded from cache', atlasId)
     return getLoadedConfig(atlasId)
@@ -35,7 +36,7 @@ export async function loadAtlasConfiguration(atlasId: AtlasId): Promise<LoadedAt
     throw new Error(`Failed to load atlas '${atlasId}': missing required fields (id, territories)`)
   }
 
-  const loadedConfig = loadAtlasConfig(jsonConfig, getAtlasBehavior(atlasId))
+  const loadedConfig = loadAtlasConfig(jsonConfig, getAtlasBehavior(atlasId), locale)
   setLoadedConfig(atlasId, loadedConfig)
 
   debug('Successfully loaded atlas %s from network', atlasId)

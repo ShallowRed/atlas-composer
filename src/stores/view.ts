@@ -6,7 +6,9 @@ import type { ResolvedPresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
+import i18n from '@/i18n'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
@@ -89,8 +91,7 @@ export const useViewStore = defineStore('view', () => {
     try {
       const allPresets = getAtlasPresets(getAtlasStore().selectedAtlasId)
 
-      const { resolveI18nValue, getCurrentLocale } = await import('@/core/atlases/i18n-utils')
-      const locale = getCurrentLocale()
+      const locale = i18n.global.locale.value
 
       const presets = allPresets
         .filter(p => p.type === viewMode.value)
