@@ -1,18 +1,11 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
+import type { Territory } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
-
-interface Territory {
-  name: string
-  code: string
-  area: number
-  region: string
-  data: GeoJSON.FeatureCollection
-}
 
 export interface CartographerLike {
   render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<SVGSVGElement>

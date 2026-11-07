@@ -35,3 +35,11 @@ interface TerritoryCollectionSet {
 }
 
 export type TerritoryCollections = Record<string, TerritoryCollectionSet>
+
+export interface Territory {
+  name: string
+  code: TerritoryCode
+  area: number
+  region: string
+  data: GeoJSON.FeatureCollection
+}

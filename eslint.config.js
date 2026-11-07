@@ -65,8 +65,6 @@ const BOUNDARY_EXCEPTIONS = [
   'src/services/initialization/initialization-service.ts',
   'src/services/presets/preset-application-service.ts',
   'src/services/territory/territory-data-service.ts',
-  'src/services/data/territory-filter-service.ts',
-  'src/services/data/territory-data-loader.ts',
   'src/stores/atlas.ts',
   'src/stores/view.ts',
   'src/composables/useAtlasData.ts',

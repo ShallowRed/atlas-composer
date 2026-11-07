@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Territory } from '@/stores/geoData'
+import type { Territory } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
