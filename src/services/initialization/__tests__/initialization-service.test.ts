@@ -44,7 +44,7 @@ vi.mock('@/services/atlas/atlas-service', () => ({
   })),
 }))
 
-vi.mock('@/services/atlas/territory-defaults-service', () => ({
+vi.mock('@/core/territories/territory-defaults-service', () => ({
   TerritoryDefaultsService: {
     initializeAll: vi.fn(() => ({
       projections: {

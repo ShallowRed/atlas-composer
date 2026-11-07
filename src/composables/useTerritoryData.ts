@@ -1,3 +1,4 @@
+import type { Translation } from '@/core/territories/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -11,7 +12,7 @@ export function useTerritoryData() {
 
   const translations = computed(() => Object.fromEntries(
     territories.value.map(t => [t.code, parameterStore.getTerritoryTranslation(t.code)]),
-  ) as Record<TerritoryCode, { x: number, y: number }>)
+  ) as Record<TerritoryCode, Translation>)
 
   const scales = computed(() => Object.fromEntries(
     territories.value.map(t => [t.code, parameterStore.getTerritoryParameters(t.code).scaleMultiplier ?? 1.0]),

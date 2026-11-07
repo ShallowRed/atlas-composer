@@ -13,9 +13,9 @@ import type {
 
 import { nextTick } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { ok } from '@/core/types/result'
 import { AtlasService } from '@/services/atlas/atlas-service'
-import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'

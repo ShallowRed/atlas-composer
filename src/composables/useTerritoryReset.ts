@@ -1,7 +1,7 @@
-import type { BulkResetOperation, TerritoryResetOperation } from '@/services/territory/types'
+import type { BulkResetOperation, TerritoryResetOperation } from '@/core/territories/types'
 import type { TerritoryCode } from '@/types'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
-import { TerritoryResetService } from '@/services/territory/territory-reset-service'
+import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -23,24 +23,21 @@ export function useTerritoryReset() {
     })
 
     if (operation.activeTerritories) {
-      viewStore.setActiveTerritories(operation.activeTerritories as TerritoryCode[])
+      viewStore.setActiveTerritories(operation.activeTerritories)
     }
 
     if (geoDataStore.cartographer) {
       operation.operations.forEach((op) => {
-        const code = op.territoryCode as TerritoryCode
         if (op.projection) {
-          geoDataStore.cartographer?.updateTerritoryProjection(code, op.projection)
+          geoDataStore.cartographer?.updateTerritoryProjection(op.territoryCode, op.projection)
         }
-        geoDataStore.cartographer?.updateTerritoryParameters(code)
+        geoDataStore.cartographer?.updateTerritoryParameters(op.territoryCode)
       })
     }
   }
 
   function executeTerritoryOperation(operation: TerritoryResetOperation) {
-    const { territoryCode, projection, translation, scale, parameters, shouldClearOverrides } = operation
-
-    const code = territoryCode as TerritoryCode
+    const { territoryCode: code, projection, translation, scale, parameters, shouldClearOverrides } = operation
 
     if (shouldClearOverrides) {
       parameterStore.clearAllTerritoryOverrides(code)
@@ -90,7 +87,7 @@ export function useTerritoryReset() {
     debug(`Reset all territories using ${strategy} strategy`)
   }
 
-  function resetTerritoryToDefaults(territoryCode: string) {
+  function resetTerritoryToDefaults(territoryCode: TerritoryCode) {
     const operation = TerritoryResetService.calculateTerritoryReset({
       territoryCode,
       presetDefaults: presetDefaults.presetDefaults.value ?? undefined,
