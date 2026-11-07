@@ -272,6 +272,9 @@ importers:
       happy-dom:
         specifier: ^19.0.2
         version: 19.0.2
+      json-schema-to-typescript:
+        specifier: ^16.0.0
+        version: 16.0.0
       knip:
         specifier: ^6.44.1
         version: 6.44.1

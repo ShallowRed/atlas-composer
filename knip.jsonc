@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "treatConfigHintsAsErrors": true,
+  // System binary of check:registry-type
+  "ignoreBinaries": ["diff"],
   "workspaces": {
     // The app is private: the exports of its entry files (types/index.ts) need a reader too
     ".": { "includeEntryExports": true }

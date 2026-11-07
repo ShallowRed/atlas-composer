@@ -15,6 +15,15 @@ export type {
   JSONTerritoryConfig,
 } from './atlas-config.js'
 
+// Atlas registry, generated from configs/schemas/atlas-registry.schema.json
+export type {
+  AtlasRegistry,
+  AtlasRegistryBehavior,
+  AtlasRegistryEntry,
+  PresetDefinition,
+  PresetType,
+} from './atlas-registry.js'
+
 // Backend Processing Types
 export type {
   BackendConfig,

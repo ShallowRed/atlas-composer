@@ -1,5 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 
+import type { AtlasRegistry, PresetDefinition } from '../../../types/atlas-registry'
 import type { PresetCatalog, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 import registry from '../../../configs/atlas-registry.json'
 import { version } from '../package.json'
@@ -7,19 +8,9 @@ import { PRESET_TYPES } from './types.js'
 
 export type { PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 
-type Label = string | { en: string }
+const { atlases } = registry as AtlasRegistry
 
-interface RegistryPreset {
-  id: string
-  type: string
-  isDefault?: boolean
-  name: Label
-  description?: Label
-}
-
-const atlases: Array<{ id: string, presets?: RegistryPreset[] }> = registry.atlases
-
-function english(label: Label): string {
+function english(label: PresetDefinition['name']): string {
   return typeof label === 'string' ? label : label.en
 }
 
