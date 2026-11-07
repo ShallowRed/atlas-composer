@@ -8,7 +8,7 @@ import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 
 export async function loadAtlasFromConfigs(atlasId: AtlasId) {
   vi.stubGlobal('fetch', async (url: string) => new Response(await readFile(`.${url}`, 'utf8')))
-  await loadAtlasConfiguration(atlasId)
+  await loadAtlasConfiguration(atlasId, 'en')
 }
 
 interface PresetFile {

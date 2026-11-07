@@ -7,7 +7,7 @@ import type {
   TerritoryConfig,
 } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
-import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
   switch (atlasId) {
@@ -186,9 +186,11 @@ function createAtlasConfig(
   }
 }
 
-export function loadAtlasConfig(jsonConfig: JSONAtlasConfig, registryBehavior?: AtlasRegistryBehavior): LoadedAtlasConfig {
-  const locale = getCurrentLocale()
-
+export function loadAtlasConfig(
+  jsonConfig: JSONAtlasConfig,
+  registryBehavior: AtlasRegistryBehavior | undefined,
+  locale: string,
+): LoadedAtlasConfig {
   const territories = extractTerritories(jsonConfig, locale)
 
   const allTerritoryCodes = territories.isWildcard

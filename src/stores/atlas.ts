@@ -10,6 +10,7 @@ import {
   isAtlasLoaded,
 } from '@/core/atlases/registry'
 import { getInitialTerritoryMode as initialTerritoryModeOf } from '@/core/atlases/utils'
+import i18n from '@/i18n'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { logger } from '@/utils/logger'
@@ -42,7 +43,7 @@ export const useAtlasStore = defineStore('atlas', () => {
   })
 
   async function loadAtlas(atlasId: AtlasId): Promise<LoadedAtlasConfig> {
-    const loadedConfig = await loadAtlasConfiguration(atlasId)
+    const loadedConfig = await loadAtlasConfiguration(atlasId, i18n.global.locale.value)
     if (atlasId === selectedAtlasId.value) {
       currentAtlasConfig.value = loadedConfig.atlasConfig
     }

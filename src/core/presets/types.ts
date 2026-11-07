@@ -28,8 +28,6 @@ export interface AtlasProjectionMetadata {
 
 interface BasePresetMetadata {
   id: string
-  name: string
-  description?: string
   atlasId: AtlasId
 }
 

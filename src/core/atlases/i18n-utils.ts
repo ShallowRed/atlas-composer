@@ -18,17 +18,3 @@ export function resolveI18nValue(value: I18nValue, locale?: string): string {
   const firstKey = Object.keys(localeObj)[0]
   return firstKey ? (localeObj[firstKey] || '') : ''
 }
-
-export function getCurrentLocale(): string {
-  const saved = localStorage.getItem('locale')
-  if (saved) {
-    return saved
-  }
-
-  const browserLang = navigator.language?.split('-')[0]
-  if (browserLang) {
-    return browserLang
-  }
-
-  return 'en'
-}

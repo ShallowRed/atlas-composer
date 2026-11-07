@@ -5,7 +5,6 @@ import type {
 } from '@/core/presets'
 import type { AtlasId, PresetId } from '@/types'
 
-import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getPresetById } from '@/core/atlases/registry'
 import {
   convertToDefaults,
@@ -65,14 +64,8 @@ export class PresetLoader {
         }
       }
 
-      const locale = getCurrentLocale()
-      const name = resolveI18nValue(presetDef.name, locale)
-      const description = presetDef.description ? resolveI18nValue(presetDef.description, locale) : undefined
-
       const preset: Preset = {
         id: presetId,
-        name,
-        description,
         atlasId,
         type: 'composite-custom',
         config: fileResult.data as CompositeCustomConfig,
@@ -101,14 +94,8 @@ export class PresetLoader {
         }
       }
 
-      const locale = getCurrentLocale()
-      const name = resolveI18nValue(presetDef.name, locale)
-      const description = presetDef.description ? resolveI18nValue(presetDef.description, locale) : undefined
-
       const preset: Preset = {
         id: presetId,
-        name,
-        description,
         atlasId,
         type: presetDef.type,
         config: fileResult.data.config,

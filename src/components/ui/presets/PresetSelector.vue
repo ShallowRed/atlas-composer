@@ -5,7 +5,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import { getCurrentLocale, resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { useAtlasStore } from '@/stores/atlas'
@@ -15,7 +15,7 @@ import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
@@ -137,8 +137,7 @@ function formatPresetLabel(presetId: PresetId, presetName?: string | Record<stri
       return presetName
     }
     else {
-      const currentLocale = getCurrentLocale()
-      return resolveI18nValue(presetName, currentLocale)
+      return resolveI18nValue(presetName, locale.value)
     }
   }
 

@@ -17,6 +17,11 @@ const UI = {
   message: 'Components, views and composables are the interface: pass the value they need as an argument, or move the logic to src/core/ or a store action.',
 }
 
+const LOCALE_FROM_IO = {
+  group: [...folders('i18n'), 'vue-i18n'],
+  message: 'Services receive the locale as an argument from a store action.',
+}
+
 const STORES_FROM_IO = {
   group: [...folders('stores'), 'pinia'],
   message: 'Services hold no application state: the use case that reads or writes a store is an action of src/stores/, which passes the values to the service. Shared types go to src/types/.',
@@ -60,7 +65,6 @@ const CORE_GLOBALS = [
 // brings them into line. Remove a file from this list when it complies.
 const BOUNDARY_EXCEPTIONS = [
   // Use cases in store actions
-  'src/core/atlases/i18n-utils.ts',
   'src/services/initialization/initialization-service.ts',
   'src/composables/useAtlasData.ts',
   'src/components/MapRenderer.vue',
@@ -133,7 +137,7 @@ export default antfu({
   files: ['src/services/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO, LOCALE_FROM_IO] }],
   },
 }, {
   files: ['src/stores/**'],

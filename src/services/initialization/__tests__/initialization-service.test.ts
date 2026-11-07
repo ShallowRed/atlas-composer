@@ -62,7 +62,6 @@ vi.mock('@/services/presets/preset-loader', () => ({
       success: true,
       data: {
         id: 'france-test',
-        name: 'France Test Preset',
         atlasId: createAtlasId('france'),
         type: 'composite-custom',
         config: {
@@ -180,7 +179,6 @@ describe('initializationService', () => {
         success: true,
         data: {
           id: 'france-split',
-          name: 'France Split Preset',
           atlasId: createAtlasId('france'),
           type: 'split',
           config: { territories: {} },
