@@ -8,7 +8,7 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.data.loader
 
-interface Territory {
+interface TerritoryRecord {
   id: string
   iso: string
   name: string
@@ -20,7 +20,7 @@ interface Territory {
 }
 
 export interface TerritoryGeoData {
-  territory: Territory
+  territory: TerritoryRecord
   feature: GeoJSON.Feature
   bounds: [number, number, number, number]
 }
@@ -134,7 +134,7 @@ export class GeoDataService {
         continue
       }
 
-      const territory: Territory = {
+      const territory: TerritoryRecord = {
         id: String(featureId),
         iso: feature.properties.iso || '', // May be empty for world data
         name: feature.properties.name,

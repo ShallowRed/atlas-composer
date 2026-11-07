@@ -17,6 +17,7 @@ export type {
 } from '@/types/geo-data'
 
 export type {
+  Territory,
   TerritoryCollection,
   TerritoryCollections,
   TerritoryConfig,

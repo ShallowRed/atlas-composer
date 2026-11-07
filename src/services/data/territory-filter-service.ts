@@ -1,5 +1,4 @@
-import type { Territory } from '@/stores/geoData'
-import type { TerritoryConfig } from '@/types'
+import type { Territory, TerritoryConfig } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
 
 import { getTerritoriesForMode } from '@/core/atlases/utils'

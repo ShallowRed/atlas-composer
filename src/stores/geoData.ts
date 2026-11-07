@@ -1,6 +1,6 @@
 import type { AppError, GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { TerritoryCode } from '@/types'
+import type { Territory, TerritoryCode } from '@/types'
 
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -16,14 +16,6 @@ import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.store.geoData
-
-export interface Territory {
-  name: string
-  code: TerritoryCode
-  area: number
-  region: string
-  data: GeoJSON.FeatureCollection
-}
 
 export const useGeoDataStore = defineStore('geoData', () => {
   const cartographer = ref<Cartographer | null>(null)
