@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
+import type { CompositeProjectionConfig, GeoDataConfig, Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
@@ -46,7 +46,7 @@ export interface CompositeRenderOptions extends RenderOptions {
 
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
-  territoryTranslations: Record<string, { x: number, y: number }>
+  territoryTranslations: Record<string, Translation>
 }
 
 export class Cartographer {

@@ -4,7 +4,7 @@
 
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset } from '@/core/presets'
-import type { AtlasConfig } from '@/types'
+import type { AtlasConfig, Translation } from '@/types'
 import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -40,7 +40,7 @@ export interface ApplicationState {
   }
   territories: {
     projections: Record<TerritoryCode, ProjectionId>
-    translations: Record<TerritoryCode, { x: number, y: number }>
+    translations: Record<TerritoryCode, Translation>
     scales: Record<TerritoryCode, number>
   }
   canvas: {

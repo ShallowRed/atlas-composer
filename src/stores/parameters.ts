@@ -1,6 +1,7 @@
 import type { ValidationResult } from '@/core/parameters/parameter-registry'
 import type { PositioningView, PositionParameter } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
   ParameterUpdate,
@@ -125,7 +126,7 @@ export const useParameterStore = defineStore('parameters', () => {
     setTerritoryParameter(territoryCode, 'translateOffset', newOffset)
   }
 
-  function getTerritoryTranslation(territoryCode: TerritoryCode): { x: number, y: number } {
+  function getTerritoryTranslation(territoryCode: TerritoryCode): Translation {
     const effective = getEffectiveParameters(territoryCode)
     const offset = effective.translateOffset ?? [0, 0]
     return { x: offset[0], y: offset[1] }

@@ -21,4 +21,5 @@ export type {
   TerritoryCollection,
   TerritoryCollections,
   TerritoryConfig,
+  Translation,
 } from '@/types/territory'

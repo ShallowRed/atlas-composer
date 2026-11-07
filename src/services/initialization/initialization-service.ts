@@ -1,7 +1,7 @@
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { ViewMode } from '@/types'
+import type { Translation, ViewMode } from '@/types'
 import type { PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
   ApplicationState,
@@ -376,7 +376,7 @@ export class InitializationService {
       }
 
       const projections: Record<TerritoryCode, ProjectionId> = {} as Record<TerritoryCode, ProjectionId>
-      const translations: Record<TerritoryCode, { x: number, y: number }> = {} as Record<TerritoryCode, { x: number, y: number }>
+      const translations: Record<TerritoryCode, Translation> = {} as Record<TerritoryCode, Translation>
       const scales: Record<TerritoryCode, number> = {} as Record<TerritoryCode, number>
       const territoryParameters: Record<string, Record<string, unknown>> = {}
 
