@@ -13,7 +13,7 @@ import {
   validateCompositePreset,
   validateViewPreset,
 } from '@/core/presets'
-import { PresetFileLoader } from '@/services/presets/loaders/preset-file-loader'
+import { JsonFileLoader } from '@/services/data/json-file-loader'
 
 export class PresetLoader {
   static async loadPreset(presetId: PresetId): Promise<LoadResult<Preset>> {
@@ -44,7 +44,7 @@ export class PresetLoader {
     }
 
     const relativePath = presetDef.configPath.replace(/^\.\//, 'configs/')
-    const fileResult = await PresetFileLoader.loadJSON<any>(relativePath)
+    const fileResult = await JsonFileLoader.loadJSON<any>(relativePath)
 
     if (!fileResult.success || !fileResult.data) {
       return {

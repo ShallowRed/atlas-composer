@@ -10,7 +10,7 @@ export interface LoadOptions {
   verbose?: boolean
 }
 
-export class PresetFileLoader {
+export class JsonFileLoader {
   private static readonly DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
   private static readonly BASE_URL = import.meta.env.BASE_URL
 
