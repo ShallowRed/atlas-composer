@@ -4,7 +4,7 @@ Instructions for coding agents working in this repository.
 
 ## Toolchain
 
-Node is pinned in `.node-version`, which mise and the CI read, and pnpm in the `packageManager` field of `package.json`, through corepack. `pnpm check` runs what the CI runs (`.github/workflows/check.yml`): it builds the packages, measures the loader bundle against its size limit (`pnpm check:size`) and type-checks each packed package installed alone (`pnpm check:packages`), then runs the lint, the type check, the search for unused files, exports and dependencies (`pnpm check:dead-code`, knip, configured in `knip.jsonc`), the tests and `pnpm geodata:validate --all`. The deploy and release workflows run this check first.
+Node is pinned in `.node-version`, which mise and the CI read, and pnpm in the `packageManager` field of `package.json`, through corepack. `pnpm check` runs what the CI runs (`.github/workflows/check.yml`): it builds the packages, measures the loader bundle against its size limit (`pnpm check:size`) and type-checks each packed package installed alone (`pnpm check:packages`), compares `types/atlas-registry.ts` with the type generated from the registry schema (`pnpm check:registry-type`), then runs the lint, the type check, the search for unused files, exports and dependencies (`pnpm check:dead-code`, knip, configured in `knip.jsonc`), the tests and `pnpm geodata:validate --all`. The deploy and release workflows run this check first.
 
 ## Boundaries
 
@@ -22,4 +22,4 @@ The files of `BOUNDARY_EXCEPTIONS` in `eslint.config.js` break a boundary on the
 
 ## Configurations
 
-`configs/` holds the atlases, the registry and the presets. `pnpm geodata:validate --all` checks that each preset path of `configs/atlas-registry.json` exists.
+`configs/` holds the atlases, the registry and the presets. `pnpm geodata:validate --all` validates `configs/atlas-registry.json` against `configs/schemas/atlas-registry.schema.json` and checks that each of its preset paths exists. `types/atlas-registry.ts` is generated from this schema: after a change to the schema, run `pnpm generate:types`.
