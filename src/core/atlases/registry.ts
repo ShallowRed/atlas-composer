@@ -16,6 +16,10 @@ const CONFIG_PATHS: Map<string, string> = new Map(
   REGISTRY_METADATA.atlases.map(entry => [entry.id, entry.configPath]),
 )
 
+export function resolveConfigPath(configPath: string): string {
+  return configPath.replace(/^\.\//, 'configs/')
+}
+
 export function getAtlasConfigPath(atlasId: AtlasId): string | undefined {
   return CONFIG_PATHS.get(atlasId)
 }

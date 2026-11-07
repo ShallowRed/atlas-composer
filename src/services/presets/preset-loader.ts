@@ -5,7 +5,7 @@ import type {
 } from '@/core/presets'
 import type { AtlasId, PresetId } from '@/types'
 
-import { getPresetById } from '@/core/atlases/registry'
+import { getPresetById, resolveConfigPath } from '@/core/atlases/registry'
 import {
   convertToDefaults,
   extractTerritoryParameters,
@@ -42,7 +42,7 @@ export class PresetLoader {
       }
     }
 
-    const relativePath = presetDef.configPath.replace(/^\.\//, 'configs/')
+    const relativePath = resolveConfigPath(presetDef.configPath)
     const fileResult = await JsonFileLoader.loadJSON<any>(relativePath)
 
     if (!fileResult.success || !fileResult.data) {
