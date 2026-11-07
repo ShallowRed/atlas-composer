@@ -72,7 +72,6 @@ const BOUNDARY_EXCEPTIONS = [
   'src/composables/useTerritoryReset.ts',
   'src/composables/useTerritoryVisibility.ts',
   'src/composables/useUrlState.ts',
-  'src/composables/useViewState.ts',
   'src/components/MapRenderer.vue',
   'src/components/ui/export/CompositeExportDialog.vue',
   'src/components/ui/import/ImportModal.vue',
