@@ -1,7 +1,7 @@
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-export interface Translation {
+interface Translation {
   x: number
   y: number
 }

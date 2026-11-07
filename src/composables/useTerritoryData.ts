@@ -1,5 +1,5 @@
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
-import { TerritoryDataService } from '@/services/territory/territory-data-service'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 
@@ -7,14 +7,22 @@ export function useTerritoryData() {
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
 
-  const service = new TerritoryDataService(geoDataStore, parameterStore)
+  const territories = computed(() => geoDataStore.filteredTerritories.map(t => ({ code: t.code, name: t.name })))
 
-  const territoryData = computed(() => service.getTerritoryData())
+  const translations = computed(() => Object.fromEntries(
+    territories.value.map(t => [t.code, parameterStore.getTerritoryTranslation(t.code)]),
+  ) as Record<TerritoryCode, { x: number, y: number }>)
 
-  return {
-    territories: computed(() => territoryData.value.territories),
-    translations: computed(() => territoryData.value.translations),
-    scales: computed(() => territoryData.value.scales),
-    projections: computed(() => territoryData.value.projections),
-  }
+  const scales = computed(() => Object.fromEntries(
+    territories.value.map(t => [t.code, parameterStore.getTerritoryParameters(t.code).scaleMultiplier ?? 1.0]),
+  ) as Record<TerritoryCode, number>)
+
+  const projections = computed(() => Object.fromEntries(
+    territories.value.flatMap((t) => {
+      const projectionId = parameterStore.getTerritoryProjection(t.code)
+      return projectionId ? [[t.code, projectionId]] : []
+    }),
+  ) as Record<TerritoryCode, ProjectionId>)
+
+  return { territories, translations, scales, projections }
 }
