@@ -7,15 +7,16 @@ import { logger } from '#scripts/utils/logger'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
-let schemaValidator: ValidateFunction | null = null
+const schemaValidators = new Map<string, ValidateFunction>()
 
-async function getSchemaValidator(): Promise<ValidateFunction> {
-  if (schemaValidator) {
-    return schemaValidator
+async function getSchemaValidator(schemaFile: string): Promise<ValidateFunction> {
+  const cached = schemaValidators.get(schemaFile)
+  if (cached) {
+    return cached
   }
 
   try {
-    const schemaPath = resolve(process.cwd(), 'configs/schemas/atlas.schema.json')
+    const schemaPath = resolve(process.cwd(), 'configs/schemas', schemaFile)
     const schemaContent = await readFile(schemaPath, 'utf-8')
     const schema = JSON.parse(schemaContent)
 
@@ -32,17 +33,17 @@ async function getSchemaValidator(): Promise<ValidateFunction> {
     addFormats.default(ajv)
 
     const validator = ajv.compile(schema) as ValidateFunction
-    schemaValidator = validator
+    schemaValidators.set(schemaFile, validator)
     return validator
   }
   catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    throw new Error(`Failed to load atlas.schema.json: ${message}`)
+    throw new Error(`Failed to load ${schemaFile}: ${message}`)
   }
 }
 
 export async function validateConfigSchema(config: unknown, atlasName: string): Promise<void> {
-  const validate = await getSchemaValidator()
+  const validate = await getSchemaValidator('atlas.schema.json')
 
   if (!validate(config)) {
     logger.error(`Schema validation failed for: ${atlasName}.json`)
@@ -70,4 +71,16 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
 
     throw new Error(`Config validation failed: ${atlasName}.json does not match schema`)
   }
+}
+
+export async function validateRegistrySchema(registry: unknown): Promise<string[]> {
+  const validate = await getSchemaValidator('atlas-registry.schema.json')
+  if (validate(registry)) {
+    return []
+  }
+  return (validate.errors ?? []).map((error) => {
+    const allowedValues = error.params.allowedValues as unknown[] | undefined
+    const allowed = allowedValues ? ` (${allowedValues.join(', ')})` : ''
+    return `${error.instancePath || '(root)'}: ${error.message ?? 'unknown error'}${allowed}`
+  })
 }

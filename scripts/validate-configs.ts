@@ -2,8 +2,9 @@ import type { BackendConfig } from '#types'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import process from 'node:process'
-import { listConfigs, listPresetFiles, loadConfig } from '#scripts/config/loader'
+import { listConfigs, listPresetFiles, loadConfig, loadRegistry } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
+import { validateRegistrySchema } from '#scripts/utils/schema-validator'
 import { validateConfig } from '@atlas-composer/specification'
 
 interface ValidationResults {
@@ -296,6 +297,16 @@ async function main(): Promise<void> {
       results.push(result)
     }
 
+    logger.section('Validating: configs/atlas-registry.json')
+    const registryErrors = await validateRegistrySchema(await loadRegistry())
+    registryErrors.forEach((msg) => {
+      logger.error(msg)
+    })
+    if (registryErrors.length === 0) {
+      logger.success('The registry matches configs/schemas/atlas-registry.schema.json')
+    }
+    logger.newline()
+
     logger.section('Validating: configs/presets')
     const declarationErrors = await validatePresetDeclarations(atlases)
     declarationErrors.forEach((msg) => {
@@ -320,6 +331,10 @@ async function main(): Promise<void> {
       failed.forEach((r) => {
         logger.log(`  - ${r.atlas}`)
       })
+      process.exitCode = 1
+    }
+    if (registryErrors.length > 0) {
+      logger.error(`configs/atlas-registry.json with ${registryErrors.length} errors`)
       process.exitCode = 1
     }
     if (declarationErrors.length > 0) {
