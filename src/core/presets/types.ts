@@ -1,5 +1,6 @@
 import type { PresetType } from '#types'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { Translation } from '@/types'
 import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -12,7 +13,7 @@ export interface LoadResult<T> {
 
 export interface TerritoryDefaults {
   projections: Record<TerritoryCode, ProjectionId>
-  translations: Record<TerritoryCode, { x: number, y: number }>
+  translations: Record<TerritoryCode, Translation>
   scales: Record<TerritoryCode, number>
 }
 

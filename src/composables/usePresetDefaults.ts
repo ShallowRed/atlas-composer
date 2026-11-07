@@ -1,5 +1,5 @@
 import type { TerritoryDefaults } from '@/core/presets'
-import type { TerritoryCode } from '@/types'
+import type { TerritoryCode, Translation } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { ref, toRaw } from 'vue'
@@ -78,7 +78,7 @@ function usePresetDefaults() {
   }
 
   function hasDivergingParameters(
-    currentTranslations: Record<string, { x: number, y: number }>,
+    currentTranslations: Record<string, Translation>,
     currentScales: Record<string, number>,
     territoryParameters: Record<string, Record<string, unknown>>,
     currentProjections?: Record<string, string>,

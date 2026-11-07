@@ -1,10 +1,6 @@
+import type { Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-
-export interface Translation {
-  x: number
-  y: number
-}
 
 export interface PresetParameters {
   [territoryCode: string]: Partial<ProjectionParameters>

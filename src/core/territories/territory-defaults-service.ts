@@ -1,5 +1,5 @@
 import type { TerritoryDefaults } from '@/core/presets'
-import type { TerritoryConfig } from '@/types'
+import type { TerritoryConfig, Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 
 export class TerritoryDefaultsService {
@@ -25,10 +25,10 @@ export class TerritoryDefaultsService {
 
   static initializeTranslations(
     territories: TerritoryConfig[],
-  ): Record<TerritoryCode, { x: number, y: number }> {
+  ): Record<TerritoryCode, Translation> {
     return Object.fromEntries(
       territories.map(t => [t.code, { x: 0, y: 0 }]),
-    ) as Record<TerritoryCode, { x: number, y: number }>
+    ) as Record<TerritoryCode, Translation>
   }
 
   static initializeScales(

@@ -1,5 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { TerritoryDefaults } from './types'
+import type { Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -7,7 +8,7 @@ import { parameterRegistry } from '@/core/parameters'
 
 export function convertToDefaults(preset: CompositeProjectionConfig): TerritoryDefaults {
   const projections: Record<TerritoryCode, ProjectionId> = {} as Record<TerritoryCode, ProjectionId>
-  const translations: Record<TerritoryCode, { x: number, y: number }> = {} as Record<TerritoryCode, { x: number, y: number }>
+  const translations: Record<TerritoryCode, Translation> = {} as Record<TerritoryCode, Translation>
   const scales: Record<TerritoryCode, number> = {} as Record<TerritoryCode, number>
 
   preset.territories.forEach((territory) => {

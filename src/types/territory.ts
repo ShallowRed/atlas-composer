@@ -11,6 +11,12 @@ type Coordinates = [number, number]
 
 type BoundingBox = [Coordinates, Coordinates]
 
+// Offset of a territory in the composition, in pixels
+export interface Translation {
+  x: number
+  y: number
+}
+
 export interface TerritoryConfig {
   code: TerritoryCode
   name: string

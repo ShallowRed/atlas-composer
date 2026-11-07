@@ -1,8 +1,8 @@
-import type { CompositeProjectionConfig } from '@/types'
+import type { CompositeProjectionConfig, Translation } from '@/types'
 
 export interface CustomCompositeSettings {
   territoryProjections: Record<string, string>
-  territoryTranslations: Record<string, { x: number, y: number }>
+  territoryTranslations: Record<string, Translation>
 }
 
 export class CompositeSettingsBuilder {
@@ -15,7 +15,7 @@ export class CompositeSettingsBuilder {
   static buildSettings(
     _compositeConfig: CompositeProjectionConfig | undefined,
     territoryProjections: Record<string, string>,
-    territoryTranslations: Record<string, { x: number, y: number }>,
+    territoryTranslations: Record<string, Translation>,
   ): CustomCompositeSettings {
     const projections = this.buildTerritoryProjections(territoryProjections)
 

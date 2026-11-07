@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
-import type { Territory } from '@/types'
+import type { Territory, Translation } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
@@ -39,7 +39,7 @@ export interface CompositeMapConfig {
   showMapLimits: boolean
   currentAtlasConfig?: any
   territoryProjections?: Record<string, string>
-  territoryTranslations?: Record<string, { x: number, y: number }>
+  territoryTranslations?: Record<string, Translation>
   territories?: Territory[]
 }
 

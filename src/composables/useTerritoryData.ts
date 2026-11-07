@@ -1,4 +1,4 @@
-import type { Translation } from '@/core/territories/types'
+import type { Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
 import { useGeoDataStore } from '@/stores/geoData'

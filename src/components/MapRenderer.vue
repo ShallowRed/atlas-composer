@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewState } from '@/core/view'
+import type { Translation } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
@@ -413,7 +414,7 @@ async function renderComposite(): Promise<SVGSVGElement> {
   const { width, height } = computedSize.value
 
   const territoryProjections: Record<string, string> = {}
-  const territoryTranslations: Record<string, { x: number, y: number }> = {}
+  const territoryTranslations: Record<string, Translation> = {}
 
   const territoryCodes = cartographer.value.customComposite
     ? Object.keys(cartographer.value.customComposite)
