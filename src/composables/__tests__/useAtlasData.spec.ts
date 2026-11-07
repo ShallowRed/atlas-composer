@@ -28,13 +28,16 @@ describe('useAtlasData.initialize', () => {
   it('writes the error of the geographic data in the geoData store', async () => {
     const geoDataStore = await initializeWithMissingFile('/data/')
 
-    expect(geoDataStore.error).toContain('GEODATA_NOT_FOUND')
+    expect(geoDataStore.error).toEqual({ code: 'GEODATA_NOT_FOUND', path: '/data/france-territories-50m.json' })
     expect(geoDataStore.isReinitializing).toBe(false)
   })
 
   it('writes the failure of the default preset in the geoData store', async () => {
     const geoDataStore = await initializeWithMissingFile('/presets/')
 
-    expect(geoDataStore.error).toContain('Failed to load default preset')
+    expect(geoDataStore.error).toEqual({
+      code: 'INITIALIZATION_FAILED',
+      reason: expect.stringContaining('Failed to load default preset'),
+    })
   })
 })

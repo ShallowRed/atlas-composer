@@ -10,6 +10,7 @@ import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
 import { useParameterProvider } from '@/composables/useParameterProvider'
 import { getAtlasConfig, getDefaultPresetForViewMode } from '@/core/atlases/registry'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { ok } from '@/core/types/result'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { InitializationService } from '@/services/initialization/initialization-service'
@@ -39,8 +40,8 @@ export async function startApplication(atlasId: AtlasId) {
   useViewStore()
   // The geographic data of src/public/data is not versioned
   const geoDataStore = useGeoDataStore()
-  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue()
-  vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue()
+  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue(ok(undefined))
+  vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
 }
 
 // Path of a view change (view store, viewMode watcher)

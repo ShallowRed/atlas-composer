@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import en from '@/i18n/locales/en.json'
 import fr from '@/i18n/locales/fr.json'
 
-type MessageSchema = typeof en
+export type MessageSchema = typeof en
 
 export const SUPPORTED_LOCALES = {
   en: 'English',
@@ -25,7 +25,7 @@ function getDefaultLocale(): SupportedLocale {
   return 'en'
 }
 
-const i18n = createI18n<[MessageSchema], SupportedLocale>({
+const i18n = createI18n<[MessageSchema], SupportedLocale, false>({
   legacy: false,
   locale: getDefaultLocale(),
   fallbackLocale: 'en',
@@ -39,8 +39,7 @@ const i18n = createI18n<[MessageSchema], SupportedLocale>({
 export default i18n
 
 export function setLocale(locale: SupportedLocale) {
-  const global = i18n.global as any
-  global.locale.value = locale
+  i18n.global.locale.value = locale
   localStorage.setItem('locale', locale)
   document.documentElement.setAttribute('lang', locale)
 }

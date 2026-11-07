@@ -4,12 +4,5 @@
   "workspaces": {
     // The app is private: the exports of its entry files (types/index.ts) need a reader too
     ".": { "includeEntryExports": true }
-  },
-  // Error model: unify on Result, then remove what the model does not use
-  "ignoreFiles": ["src/utils/error-formatting.ts"],
-  "ignoreIssues": {
-    // Error model: unify on Result, then remove what the model does not use
-    "src/core/types/result.ts": ["exports", "types"],
-    "src/core/types/errors.ts": ["exports", "types"]
   }
 }

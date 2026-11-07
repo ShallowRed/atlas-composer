@@ -479,34 +479,14 @@
     }
   },
   "errors": {
-    "unknown": "An unexpected error occurred",
-    "atlas": {
-      "notFound": "Atlas \"{id}\" not found",
-      "loadFailed": "Failed to load atlas \"{id}\"",
-      "configInvalid": "Invalid configuration for atlas \"{id}\""
-    },
+    "initializationFailed": "The atlas could not be loaded: {reason}",
     "geoData": {
-      "notFound": "Geographic data file not found",
-      "invalidJson": "Invalid geographic data format",
-      "networkError": "Failed to load geographic data (HTTP {status})",
-      "missingObject": "Missing geographic object \"{name}\"",
-      "invalidStructure": "Invalid geographic data structure"
-    },
-    "preset": {
-      "notFound": "Preset \"{id}\" not found",
-      "invalidJson": "Invalid preset format for \"{id}\"",
-      "validationFailed": "Preset \"{id}\" validation failed",
-      "typeMismatch": "Preset \"{id}\" type mismatch: expected {expected}, got {actual}",
-      "loadFailed": "Failed to load preset \"{id}\""
-    },
-    "projection": {
-      "notFound": "Projection \"{id}\" not found",
-      "createFailed": "Failed to create projection \"{id}\"",
-      "invalidParams": "Invalid parameters for projection \"{id}\""
-    },
-    "network": {
-      "fetchFailed": "Network request failed",
-      "timeout": "Network request timed out"
+      "notFound": "Geographic data file not found: {path}",
+      "invalidJson": "The geographic data file {path} is not valid JSON",
+      "unreachable": "The server could not be reached to load {path}",
+      "networkError": "Loading {path} failed with HTTP status {status}",
+      "missingObject": "The geographic data has no object named \"{objectName}\"",
+      "invalidStructure": "The geographic data file {path} has an invalid structure"
     }
   }
 }

@@ -495,34 +495,14 @@
     }
   },
   "errors": {
-    "unknown": "Une erreur inattendue s'est produite",
-    "atlas": {
-      "notFound": "Atlas \"{id}\" introuvable",
-      "loadFailed": "Echec du chargement de l'atlas \"{id}\"",
-      "configInvalid": "Configuration invalide pour l'atlas \"{id}\""
-    },
+    "initializationFailed": "Impossible de charger l'atlas : {reason}",
     "geoData": {
-      "notFound": "Fichier de donnees geographiques introuvable",
-      "invalidJson": "Format de donnees geographiques invalide",
-      "networkError": "Echec du chargement des donnees geographiques (HTTP {status})",
-      "missingObject": "Objet geographique \"{name}\" manquant",
-      "invalidStructure": "Structure de donnees geographiques invalide"
-    },
-    "preset": {
-      "notFound": "Preset \"{id}\" introuvable",
-      "invalidJson": "Format de preset invalide pour \"{id}\"",
-      "validationFailed": "Validation du preset \"{id}\" echouee",
-      "typeMismatch": "Type de preset \"{id}\" incorrect : attendu {expected}, obtenu {actual}",
-      "loadFailed": "Echec du chargement du preset \"{id}\""
-    },
-    "projection": {
-      "notFound": "Projection \"{id}\" introuvable",
-      "createFailed": "Echec de creation de la projection \"{id}\"",
-      "invalidParams": "Parametres invalides pour la projection \"{id}\""
-    },
-    "network": {
-      "fetchFailed": "Echec de la requete reseau",
-      "timeout": "Delai de la requete reseau depasse"
+      "notFound": "Fichier de données géographiques introuvable : {path}",
+      "invalidJson": "Le fichier de données géographiques {path} n'est pas un JSON valide",
+      "unreachable": "Le serveur est injoignable : impossible de charger {path}",
+      "networkError": "Le chargement de {path} a échoué (statut HTTP {status})",
+      "missingObject": "Les données géographiques ne contiennent aucun objet « {objectName} »",
+      "invalidStructure": "La structure du fichier de données géographiques {path} est invalide"
     }
   }
 }

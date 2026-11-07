@@ -1,4 +1,6 @@
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
+import type { GeoDataError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { ViewMode } from '@/types'
 import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
@@ -11,6 +13,7 @@ import type {
 
 import { nextTick } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { ok } from '@/core/types/result'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { TerritoryDefaultsService } from '@/services/atlas/territory-defaults-service'
 import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
@@ -26,6 +29,10 @@ import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.service
+
+function geoDataFailure(error: GeoDataError): string {
+  return `Failed to load geographic data: ${error.code}`
+}
 
 export class InitializationService {
   static async initializeAtlas(
@@ -193,9 +200,15 @@ export class InitializationService {
       }
 
       appStore.startLoadingGeoData()
-      await geoDataStore.reinitialize(filteredAtlasConfig)
+      const geoDataResult = await geoDataStore.reinitialize(filteredAtlasConfig)
+      if (!geoDataResult.ok) {
+        return fail([geoDataFailure(geoDataResult.error)])
+      }
 
-      await this.preloadAtlasData(territoryMode)
+      const preloadResult = await this.preloadAtlasData(territoryMode)
+      if (!preloadResult.ok) {
+        return fail([geoDataFailure(preloadResult.error)])
+      }
       geoDataStore.setReinitializing(false)
       appStore.setReady()
       geoDataStore.triggerRender()
@@ -304,7 +317,17 @@ export class InitializationService {
 
       if (state) {
         await this.applyStateToStores(state)
-        await this.ensureAtlasDataLoaded(viewStore.territoryMode)
+        const geoDataResult = await this.ensureAtlasDataLoaded(viewStore.territoryMode)
+        if (!geoDataResult.ok) {
+          const message = geoDataFailure(geoDataResult.error)
+          appStore.setError(message)
+          return {
+            success: false,
+            errors: [message],
+            warnings: [],
+            state: null,
+          }
+        }
       }
       appStore.setReady()
 
@@ -415,7 +438,15 @@ export class InitializationService {
 
       await this.applyStateToStores(state)
 
-      await this.ensureAtlasDataLoaded(viewStore.territoryMode)
+      const geoDataResult = await this.ensureAtlasDataLoaded(viewStore.territoryMode)
+      if (!geoDataResult.ok) {
+        return {
+          success: false,
+          errors: [geoDataFailure(geoDataResult.error)],
+          warnings: [],
+          state: null,
+        }
+      }
 
       return {
         success: true,
@@ -565,21 +596,12 @@ export class InitializationService {
     debug('All application data cleared')
   }
 
-  private static async preloadAtlasData(territoryMode: string): Promise<void> {
-    const geoDataStore = useGeoDataStore()
-
+  private static async preloadAtlasData(territoryMode: string): Promise<Result<void, GeoDataError>> {
     debug('Preloading all atlas data types')
-
-    try {
-      await geoDataStore.loadAllAtlasData(territoryMode)
-    }
-    catch (error) {
-      debug('Failed to preload atlas data: %o', error)
-      throw error
-    }
+    return useGeoDataStore().loadAllAtlasData(territoryMode)
   }
 
-  private static async ensureAtlasDataLoaded(territoryMode: string): Promise<void> {
+  private static async ensureAtlasDataLoaded(territoryMode: string): Promise<Result<void, GeoDataError>> {
     const geoDataStore = useGeoDataStore()
 
     const hasTerritoryData = geoDataStore.territoriesData.length > 0
@@ -587,11 +609,11 @@ export class InitializationService {
 
     if (hasTerritoryData && hasUnifiedData) {
       debug('Atlas data already loaded, skipping preload')
-      return
+      return ok(undefined)
     }
 
     debug('Atlas data not fully loaded, preloading...')
-    await this.preloadAtlasData(territoryMode)
+    return this.preloadAtlasData(territoryMode)
   }
 
   private static filterAtlasConfigByPreset(

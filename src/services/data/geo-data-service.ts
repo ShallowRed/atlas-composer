@@ -3,13 +3,12 @@ import type { Result } from '@/core/types/result'
 import type { GeoDataConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
-import { Errors } from '@/core/types/errors'
 import { err, ok } from '@/core/types/result'
 import { logger } from '@/utils/logger'
 
 const debug = logger.data.loader
 
-export interface Territory {
+interface Territory {
   id: string
   iso: string
   name: string
@@ -42,48 +41,15 @@ export class GeoDataService {
     }
 
     try {
-      const response = await fetch(this.config.dataPath)
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return err(Errors.geoDataNotFound(this.config.dataPath))
-        }
-        return err(Errors.geoDataNetworkError(this.config.dataPath, response.status))
+      const topology = await this.fetchJson(this.config.dataPath)
+      if (!topology.ok) {
+        return topology
       }
+      this.topologyData = topology.value
 
-      const contentType = response.headers.get('content-type')
-      if (!contentType || !contentType.includes('application/json')) {
-        return err(Errors.geoDataNotFound(this.config.dataPath))
-      }
-
-      try {
-        this.topologyData = await response.json()
-      }
-      catch (parseError) {
-        debug('TopoJSON parse error: %O', parseError)
-        return err(Errors.geoDataInvalidJson(this.config.dataPath, String(parseError)))
-      }
-
-      const metaResponse = await fetch(this.config.metadataPath)
-
-      if (!metaResponse.ok) {
-        if (metaResponse.status === 404) {
-          return err(Errors.geoDataNotFound(this.config.metadataPath))
-        }
-        return err(Errors.geoDataNetworkError(this.config.metadataPath, metaResponse.status))
-      }
-
-      const metaContentType = metaResponse.headers.get('content-type')
-      if (!metaContentType || !metaContentType.includes('application/json')) {
-        return err(Errors.geoDataNotFound(this.config.metadataPath))
-      }
-
-      try {
-        await metaResponse.json()
-      }
-      catch (parseError) {
-        debug('Metadata parse error: %O', parseError)
-        return err(Errors.geoDataInvalidJson(this.config.metadataPath, String(parseError)))
+      const metadata = await this.fetchJson(this.config.metadataPath)
+      if (!metadata.ok) {
+        return metadata
       }
 
       const processResult = await this.processTerritoriesData()
@@ -95,8 +61,39 @@ export class GeoDataService {
       return ok(undefined)
     }
     catch (error) {
-      debug('Data loading error: %O', error)
-      return err(Errors.geoDataInvalidStructure(this.config.dataPath, String(error)))
+      debug('Data processing error: %O', error)
+      return err({ code: 'GEODATA_INVALID_STRUCTURE', path: this.config.dataPath })
+    }
+  }
+
+  private async fetchJson(path: string): Promise<Result<unknown, GeoDataError>> {
+    let response: Response
+    try {
+      response = await fetch(path)
+    }
+    catch (error) {
+      debug('Fetch error for %s: %O', path, error)
+      return err({ code: 'GEODATA_UNREACHABLE', path })
+    }
+
+    if (!response.ok) {
+      return response.status === 404
+        ? err({ code: 'GEODATA_NOT_FOUND', path })
+        : err({ code: 'GEODATA_NETWORK_ERROR', path, status: response.status })
+    }
+
+    // The Vite server answers a missing file of src/public/ with index.html
+    const contentType = response.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      return err({ code: 'GEODATA_NOT_FOUND', path })
+    }
+
+    try {
+      return ok(await response.json())
+    }
+    catch (error) {
+      debug('JSON parse error for %s: %O', path, error)
+      return err({ code: 'GEODATA_INVALID_JSON', path })
     }
   }
 
@@ -109,7 +106,7 @@ export class GeoDataService {
     else {
       const objectName = this.config.topologyObjectName
       if (!this.topologyData?.objects?.[objectName]) {
-        return err(Errors.geoDataMissingObject(objectName))
+        return err({ code: 'GEODATA_MISSING_OBJECT', objectName })
       }
 
       featureCollection = topojson.feature(
@@ -177,15 +174,14 @@ export class GeoDataService {
     return [(minX + maxX) / 2, (minY + maxY) / 2]
   }
 
-  private async ensureLoaded(): Promise<void> {
-    const result = await this.loadData()
-    if (!result.ok) {
-      throw new Error(`GeoData load failed: ${result.error.type}`)
+  private ensureLoaded(): void {
+    if (!this.isLoaded) {
+      throw new Error('GeoDataService read before a successful loadData')
     }
   }
 
   async getCompleteData(): Promise<GeoJSON.FeatureCollection> {
-    await this.ensureLoaded()
+    this.ensureLoaded()
 
     const allFeatures: GeoJSON.Feature[] = []
 
@@ -200,7 +196,7 @@ export class GeoDataService {
   }
 
   async getRawUnifiedData(_mode: string, territoryCodes?: readonly string[]): Promise<GeoJSON.FeatureCollection | null> {
-    await this.ensureLoaded()
+    this.ensureLoaded()
 
     if (!territoryCodes) {
       return await this.getCompleteData()
@@ -216,13 +212,8 @@ export class GeoDataService {
     return { type: 'FeatureCollection', features: allFeatures }
   }
 
-  getTerritoryInfo(): Territory[] {
-    const territories = Array.from(this.territoryData.values()).map(data => data.territory)
-    return territories.sort((a, b) => b.area - a.area) // Tri par superficie
-  }
-
   async getAllTerritories(): Promise<TerritoryGeoData[]> {
-    await this.ensureLoaded()
+    this.ensureLoaded()
     return Array.from(this.territoryData.values())
   }
 }

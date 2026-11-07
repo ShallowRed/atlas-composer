@@ -15,23 +15,20 @@ export function useAtlasData() {
   const currentAtlasConfig = computed(() => atlasStore.currentAtlasConfig)
 
   async function initialize() {
-    try {
-      uiStore.initializeTheme()
+    geoDataStore.clearError()
+    uiStore.initializeTheme()
 
-      const result = await InitializationService.initializeAtlas({
-        atlasId: atlasStore.selectedAtlasId,
-      })
+    const result = await InitializationService.initializeAtlas({
+      atlasId: atlasStore.selectedAtlasId,
+    })
 
-      if (!result.success) {
-        throw new Error(result.errors?.join(', ') || 'Atlas initialization failed')
-      }
-
-      debug('InitializationService completed successfully')
+    if (!result.success) {
+      geoDataStore.failInitialization(result.errors.join(', '))
+      debug('Initialization error: %O', result.errors)
+      return
     }
-    catch (err) {
-      geoDataStore.error = err instanceof Error ? err.message : 'Erreur lors de l\'initialisation'
-      debug('Initialization error: %O', err)
-    }
+
+    debug('InitializationService completed successfully')
   }
 
   return {
