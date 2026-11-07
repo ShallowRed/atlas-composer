@@ -63,7 +63,6 @@ const BOUNDARY_EXCEPTIONS = [
   'src/core/atlases/i18n-utils.ts',
   'src/core/atlases/registry.ts',
   'src/services/initialization/initialization-service.ts',
-  'src/services/presets/preset-application-service.ts',
   'src/stores/atlas.ts',
   'src/stores/view.ts',
   'src/composables/useAtlasData.ts',

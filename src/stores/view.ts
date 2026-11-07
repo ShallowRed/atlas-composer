@@ -1,6 +1,7 @@
 import type { PositioningView } from '@/core/positioning'
 import type { Preset } from '@/core/presets'
-import type { AtlasId, PresetId, TerritoryCode, ViewMode } from '@/types'
+import type { AtlasId, PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { ResolvedPresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
@@ -8,12 +9,12 @@ import { computed, ref, watch } from 'vue'
 import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
-import { PresetApplicationService } from '@/services/presets/preset-application-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 import { logger } from '@/utils/logger'
 
@@ -165,15 +166,37 @@ export const useViewStore = defineStore('view', () => {
   }
 
   function applyViewPresetConfig(preset: Preset) {
-    const result = PresetApplicationService.applyPreset(preset)
+    const parameterStore = getParameterStore()
+    const projectionStore = useProjectionStore()
 
-    if (!result.success) {
-      debug('Failed to apply preset: %O', result.errors)
-      throw new Error(result.errors.join(', '))
-    }
-
-    if (result.warnings.length > 0) {
-      debug('Preset applied with warnings: %O', result.warnings)
+    switch (preset.type) {
+      case 'unified': {
+        projectionStore.selectedProjection = preset.config.projection.id as ProjectionId
+        const parameters = preset.config.projection.parameters
+          ? { ...preset.config.projection.parameters } as ProjectionParameters
+          : null
+        parameterStore.setAtlasParameters(parameters ?? {})
+        presetDefaults.storeGlobalParameters(parameters)
+        break
+      }
+      case 'split':
+        for (const [code, territoryConfig] of Object.entries(preset.config.territories ?? {})) {
+          parameterStore.setTerritoryProjection(code as TerritoryCode, territoryConfig.projection.id as ProjectionId)
+          if (territoryConfig.projection.parameters) {
+            parameterStore.setTerritoryParameters(code as TerritoryCode, territoryConfig.projection.parameters)
+          }
+        }
+        break
+      case 'built-in-composite':
+        projectionStore.compositeProjection = preset.config.projectionId as ProjectionId
+        if (preset.config.globalScale !== undefined) {
+          debug('Global scale from preset (not applied): %d', preset.config.globalScale)
+        }
+        break
+      case 'composite-custom':
+        throw new Error('Composite-custom presets should be loaded through atlas initialization, not view preset API')
+      default:
+        throw new Error(`Unknown preset type: ${(preset as { type: string }).type}`)
     }
   }
 
