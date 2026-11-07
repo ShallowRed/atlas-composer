@@ -61,9 +61,7 @@ const CORE_GLOBALS = [
 const BOUNDARY_EXCEPTIONS = [
   // Use cases in store actions
   'src/core/atlases/i18n-utils.ts',
-  'src/core/atlases/registry.ts',
   'src/services/initialization/initialization-service.ts',
-  'src/stores/atlas.ts',
   'src/composables/useAtlasData.ts',
   'src/components/MapRenderer.vue',
   'src/components/ui/export/CompositeExportDialog.vue',
