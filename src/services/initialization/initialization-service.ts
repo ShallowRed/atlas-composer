@@ -12,7 +12,7 @@ import type {
 } from '@/types/initialization'
 
 import { nextTick } from 'vue'
-import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
 import { findPositioningErrors, findTerritoriesWithoutProjection } from '@/core/presets/validator'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
@@ -51,9 +51,7 @@ export class InitializationService {
     }
 
     try {
-      if (!isAtlasLoaded(atlasId)) {
-        await loadAtlasAsync(atlasId)
-      }
+      await useAtlasStore().loadAtlas(atlasId)
 
       const atlasConfig = getAtlasConfig(atlasId)
       const atlasService = new AtlasService(atlasId)

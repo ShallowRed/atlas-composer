@@ -1,9 +1,10 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from '@/App.vue'
-import { preloadDefaultAtlas } from '@/core/atlases/registry'
+import { DEFAULT_ATLAS } from '@/core/atlases/registry'
 import i18n from '@/i18n'
 import router from '@/router'
+import { useAtlasStore } from '@/stores/atlas'
 import { logger } from '@/utils/logger'
 import '@/styles.css'
 
@@ -27,12 +28,10 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
-preloadDefaultAtlas()
-  .then(() => {
-    debug('Default atlas preloaded, mounting app...')
-    app.mount('#app')
-  })
-  .catch((error) => {
-    debug('Failed to preload default atlas: %O', error)
-    app.mount('#app')
-  })
+useAtlasStore(pinia).loadAtlas(DEFAULT_ATLAS).then(() => {
+  debug('Default atlas preloaded, mounting app...')
+  app.mount('#app')
+}).catch((error) => {
+  debug('Failed to preload default atlas: %O', error)
+  app.mount('#app')
+})

@@ -26,13 +26,6 @@ vi.mock('@/core/atlases/registry', async importOriginal => ({
   getAvailableViewModes: vi.fn(() => ['composite-custom', 'unified', 'split']),
   getDefaultViewMode: vi.fn(() => 'composite-custom'),
   getDefaultPresetForViewMode: vi.fn(() => ({ id: 'france-default', type: 'composite-custom' })),
-  isAtlasLoaded: vi.fn(() => true),
-  loadAtlasAsync: vi.fn(async () => ({
-    atlasConfig: {
-      id: 'france',
-      pattern: 'single-focus',
-    },
-  })),
 }))
 
 vi.mock('@/services/atlas/atlas-service', () => ({

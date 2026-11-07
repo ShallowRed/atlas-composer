@@ -1,10 +1,9 @@
-import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry, JSONAtlasConfig } from '#types'
+import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { AtlasId, PresetId } from '@/types/branded'
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { loadAtlasConfig } from '@/core/atlases/loader'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
@@ -17,50 +16,12 @@ const CONFIG_PATHS: Map<string, string> = new Map(
   REGISTRY_METADATA.atlases.map(entry => [entry.id, entry.configPath]),
 )
 
-function getConfigBaseUrl(): string {
-  const base = import.meta.env.BASE_URL || '/'
-  return `${base}configs/`
+export function getAtlasConfigPath(atlasId: AtlasId): string | undefined {
+  return CONFIG_PATHS.get(atlasId)
 }
 
-export async function loadAtlasAsync(atlasId: AtlasId): Promise<LoadedAtlasConfig> {
-  if (LOADED_CONFIGS.has(atlasId)) {
-    debug('Atlas %s already loaded from cache', atlasId)
-    return LOADED_CONFIGS.get(atlasId)!
-  }
-
-  const configPath = CONFIG_PATHS.get(atlasId)
-  if (!configPath) {
-    throw new Error(`[Registry] Atlas '${atlasId}' not found in registry`)
-  }
-
-  try {
-    const relativePath = configPath.replace(/^\.\//, '')
-    const url = `${getConfigBaseUrl()}${relativePath}`
-    debug('Fetching atlas %s from %s', atlasId, url)
-
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const jsonConfig: JSONAtlasConfig = await response.json()
-
-    if (!jsonConfig.id || !jsonConfig.territories) {
-      throw new Error(`Invalid atlas config: missing required fields (id, territories)`)
-    }
-
-    const behavior = getAtlasBehavior(atlasId)
-
-    const loadedConfig = loadAtlasConfig(jsonConfig, behavior)
-    LOADED_CONFIGS.set(atlasId, loadedConfig)
-
-    debug('Successfully loaded atlas %s from network', atlasId)
-    return loadedConfig
-  }
-  catch (error) {
-    throw new Error(`[Registry] Failed to load atlas '${atlasId}': ${error}`)
-  }
+export function setLoadedConfig(atlasId: AtlasId, config: LoadedAtlasConfig): void {
+  LOADED_CONFIGS.set(atlasId, config)
 }
 
 function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
@@ -69,7 +30,7 @@ function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
   }
 
   throw new Error(
-    `[Registry] Atlas '${atlasId}' not loaded yet. Use await loadAtlasAsync('${atlasId}') or switch to a cached atlas.`,
+    `[Registry] Atlas '${atlasId}' not loaded yet`,
   )
 }
 
@@ -88,12 +49,6 @@ function getDefaultAtlas(): AtlasRegistryEntry {
 
 export const DEFAULT_ATLAS = getDefaultAtlas().id as AtlasId
 
-export async function preloadDefaultAtlas(): Promise<void> {
-  if (!LOADED_CONFIGS.has(DEFAULT_ATLAS)) {
-    await loadAtlasAsync(DEFAULT_ATLAS)
-  }
-}
-
 export function isAtlasLoaded(atlasId: string): boolean {
   return LOADED_CONFIGS.has(atlasId)
 }
@@ -109,7 +64,7 @@ export function getLoadedConfig(atlasId: string): LoadedAtlasConfig {
     }
     catch {
       throw new Error(
-        `[Registry] Neither '${atlasId}' nor default atlas '${DEFAULT_ATLAS}' are cached. Use await loadAtlasAsync() to load atlases.`,
+        `[Registry] Neither '${atlasId}' nor default atlas '${DEFAULT_ATLAS}' are loaded yet`,
       )
     }
   }
