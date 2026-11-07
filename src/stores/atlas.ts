@@ -8,6 +8,7 @@ import {
   getLoadedConfig,
   isAtlasLoaded,
 } from '@/core/atlases/registry'
+import { getInitialTerritoryMode as initialTerritoryModeOf } from '@/core/atlases/utils'
 import { AtlasService } from '@/services/atlas/atlas-service'
 
 export const useAtlasStore = defineStore('atlas', () => {
@@ -34,11 +35,7 @@ export const useAtlasStore = defineStore('atlas', () => {
   })
 
   function getInitialTerritoryMode(): string {
-    const { atlasConfig } = getLoadedConfig(selectedAtlasId.value)
-    if (atlasConfig.hasTerritorySelector && atlasConfig.territoryModeOptions && atlasConfig.territoryModeOptions.length > 0) {
-      return atlasConfig.territoryModeOptions[0]!.value
-    }
-    throw new Error('No territory mode options available for the atlas')
+    return initialTerritoryModeOf(getLoadedConfig(selectedAtlasId.value).atlasConfig)
   }
 
   return {

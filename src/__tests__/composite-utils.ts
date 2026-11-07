@@ -32,10 +32,6 @@ export async function startApplication(atlasId: AtlasId) {
   await loadAtlasFromConfigs(atlasId)
   const atlasStore = useAtlasStore()
   atlasStore.selectedAtlasId = atlasId
-  if (!getAtlasConfig(atlasId).hasTerritorySelector) {
-    // Mode that InitializationService.initializeAtlas gives to an atlas without territory selector
-    vi.spyOn(atlasStore, 'getInitialTerritoryMode').mockReturnValue('all-territories')
-  }
   // Created after the atlas selection, so that its watcher does not initialize the atlas again
   useViewStore()
   // The geographic data of src/public/data is not versioned

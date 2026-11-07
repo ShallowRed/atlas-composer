@@ -17,7 +17,7 @@ export interface AtlasMetadataResult {
 const metadataCache = new Map<string, AtlasProjectionMetadata>()
 
 export class AtlasMetadataService {
-  static async getAtlasMetadata(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasMetadataResult> {
+  private static async getAtlasMetadata(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasMetadataResult> {
     const cacheKey = `${atlasId}-${defaultPreset || 'default'}`
     const cached = metadataCache.get(cacheKey)
     if (cached) {
@@ -62,14 +62,24 @@ export class AtlasMetadataService {
     }
   }
 
-  static async getCompositeProjections(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId[]> {
+  private static async getCompositeProjections(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId[]> {
     const result = await this.getAtlasMetadata(atlasId, defaultPreset)
     return (result.metadata?.compositeProjections || getDefaultCompositeProjections(atlasId)) as ProjectionId[]
   }
 
-  static async getProjectionPreferences(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionPreferences']> {
+  private static async getProjectionPreferences(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionPreferences']> {
     const result = await this.getAtlasMetadata(atlasId, defaultPreset)
     return result.metadata?.projectionPreferences
+  }
+
+  static async getDefaultCompositeProjection(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId | undefined> {
+    const availableComposites = await this.getCompositeProjections(atlasId, defaultPreset)
+    return availableComposites[0]
+  }
+
+  static async getRecommendedProjection(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId> {
+    const projectionPrefs = await this.getProjectionPreferences(atlasId, defaultPreset)
+    return (projectionPrefs?.recommended?.[0] ?? 'natural-earth') as ProjectionId
   }
 
   private static getFallbackMetadata(atlasId: AtlasId): AtlasProjectionMetadata {
