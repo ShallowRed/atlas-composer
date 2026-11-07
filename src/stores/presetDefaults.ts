@@ -2,7 +2,8 @@ import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryCode, Translation } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-import { ref, toRaw } from 'vue'
+import { defineStore } from 'pinia'
+import { computed, ref, toRaw } from 'vue'
 
 function areValuesEqual(a: any, b: any): boolean {
   const rawA = toRaw(a)
@@ -28,8 +29,8 @@ function areValuesEqual(a: any, b: any): boolean {
   return false
 }
 
-function usePresetDefaults() {
-  const presetDefaults = ref<TerritoryDefaults | null>(null)
+export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
+  const territoryDefaults = ref<TerritoryDefaults | null>(null)
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
   const presetGlobalParameters = ref<ProjectionParameters | null>(null)
 
@@ -37,7 +38,7 @@ function usePresetDefaults() {
     defaults: TerritoryDefaults,
     parameters: Record<string, ProjectionParameters>,
   ) {
-    presetDefaults.value = {
+    territoryDefaults.value = {
       projections: { ...defaults.projections },
       translations: { ...defaults.translations },
       scales: { ...defaults.scales },
@@ -49,33 +50,27 @@ function usePresetDefaults() {
     presetGlobalParameters.value = parameters ? { ...parameters } : null
   }
 
-  function clearPresetDefaults() {
-    presetDefaults.value = null
+  function clearAll() {
+    territoryDefaults.value = null
     presetParameters.value = {}
     presetGlobalParameters.value = null
   }
 
-  function clearAll() {
-    clearPresetDefaults()
-  }
-
   function getPresetDefaultsForTerritory(territoryCode: string) {
-    if (!presetDefaults.value) {
+    if (!territoryDefaults.value) {
       return null
     }
 
     const code = territoryCode as TerritoryCode
     return {
-      projection: presetDefaults.value.projections[code],
-      translation: presetDefaults.value.translations[code],
-      scale: presetDefaults.value.scales[code],
+      projection: territoryDefaults.value.projections[code],
+      translation: territoryDefaults.value.translations[code],
+      scale: territoryDefaults.value.scales[code],
       parameters: presetParameters.value[code],
     }
   }
 
-  function hasPresetDefaults() {
-    return presetDefaults.value !== null
-  }
+  const hasPresetDefaults = computed(() => territoryDefaults.value !== null)
 
   function hasDivergingParameters(
     currentTranslations: Record<string, Translation>,
@@ -83,13 +78,13 @@ function usePresetDefaults() {
     territoryParameters: Record<string, Record<string, unknown>>,
     currentProjections?: Record<string, string>,
   ): boolean {
-    if (!presetDefaults.value) {
+    if (!territoryDefaults.value) {
       return false
     }
 
     if (currentProjections) {
       for (const [territoryCode, currentProjection] of Object.entries(currentProjections)) {
-        const presetProjection = presetDefaults.value.projections[territoryCode as TerritoryCode]
+        const presetProjection = territoryDefaults.value.projections[territoryCode as TerritoryCode]
         if (presetProjection && currentProjection !== presetProjection) {
           return true
         }
@@ -97,7 +92,7 @@ function usePresetDefaults() {
     }
 
     for (const [territoryCode, currentTranslation] of Object.entries(currentTranslations)) {
-      const presetTranslation = presetDefaults.value.translations[territoryCode as TerritoryCode]
+      const presetTranslation = territoryDefaults.value.translations[territoryCode as TerritoryCode]
       if (presetTranslation) {
         if (
           currentTranslation.x !== presetTranslation.x
@@ -109,7 +104,7 @@ function usePresetDefaults() {
     }
 
     for (const [territoryCode, currentScale] of Object.entries(currentScales)) {
-      const presetScale = presetDefaults.value.scales[territoryCode as TerritoryCode]
+      const presetScale = territoryDefaults.value.scales[territoryCode as TerritoryCode]
       if (presetScale && currentScale !== presetScale) {
         return true
       }
@@ -143,7 +138,7 @@ function usePresetDefaults() {
   }
 
   return {
-    presetDefaults,
+    territoryDefaults,
     presetParameters,
     presetGlobalParameters,
     storePresetDefaults,
@@ -153,13 +148,4 @@ function usePresetDefaults() {
     hasPresetDefaults,
     hasDivergingParameters,
   }
-}
-
-let globalPresetDefaults: ReturnType<typeof usePresetDefaults> | null = null
-
-export function getSharedPresetDefaults() {
-  if (!globalPresetDefaults) {
-    globalPresetDefaults = usePresetDefaults()
-  }
-  return globalPresetDefaults
-}
+})

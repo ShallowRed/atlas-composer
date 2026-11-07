@@ -6,7 +6,6 @@ import type { ResolvedPresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -14,6 +13,7 @@ import { ProjectionUIService } from '@/services/projection/projection-ui-service
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 import { logger } from '@/utils/logger'
@@ -24,7 +24,7 @@ export const useViewStore = defineStore('view', () => {
   const getAtlasStore = () => useAtlasStore()
   const getParameterStore = () => useParameterStore()
   const getUIStore = () => useUIStore()
-  const presetDefaults = getSharedPresetDefaults()
+  const presetDefaults = usePresetDefaultsStore()
 
   const territoryMode = ref<string>(getAtlasStore().getInitialTerritoryMode())
   const viewMode = ref<ViewMode>(getDefaultViewMode(getAtlasStore().selectedAtlasId))

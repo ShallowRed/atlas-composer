@@ -12,10 +12,10 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { getDisplayedCenter, getDisplayedRotate, getPositionParameter, updatePositioningAxis } from '@/core/positioning'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 
 interface Props {
@@ -45,7 +45,7 @@ const { t } = useI18n()
 const viewStore = useViewStore()
 const parameterStore = useParameterStore()
 const { resetTerritoryToDefaults } = useTerritoryTransforms()
-const presetDefaults = getSharedPresetDefaults()
+const presetDefaults = usePresetDefaultsStore()
 
 const isCompositeMode = computed(() => {
   return viewStore.viewMode === 'composite-custom'
@@ -95,7 +95,7 @@ const validationResults = computed(() => {
 })
 
 const hasOverrides = computed(() => {
-  if (!presetDefaults.hasPresetDefaults()) {
+  if (!presetDefaults.hasPresetDefaults) {
     return Object.keys(territoryParameters.value).length > 0
   }
 

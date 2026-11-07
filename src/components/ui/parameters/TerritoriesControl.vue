@@ -6,13 +6,13 @@ import { useI18n } from 'vue-i18n'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
@@ -37,17 +37,17 @@ const atlasStore = useAtlasStore()
 
 const viewStore = useViewStore()
 
-const presetDefaults = getSharedPresetDefaults()
+const presetDefaults = usePresetDefaultsStore()
 
 const hasDivergingFromPreset = computed(() => {
-  if (!presetDefaults.hasPresetDefaults()) {
+  if (!presetDefaults.hasPresetDefaults) {
     return false
   }
 
   void parameterStore.territoryParametersVersion
 
   if (viewStore.viewMode === 'composite-custom') {
-    const presetDefaults_ = presetDefaults.presetDefaults.value
+    const presetDefaults_ = presetDefaults.territoryDefaults
     if (presetDefaults_) {
       const presetTerritoryCodes = new Set(Object.keys(presetDefaults_.projections))
       const activeTerritoryCodes = viewStore.activeTerritoryCodes

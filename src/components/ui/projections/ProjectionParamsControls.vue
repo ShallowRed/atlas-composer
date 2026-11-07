@@ -6,10 +6,10 @@ import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { getDisplayedRotate, supportsPanning, updatePositioningAxis } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 
@@ -17,7 +17,7 @@ const { t } = useI18n()
 const projectionStore = useProjectionStore()
 const viewStore = useViewStore()
 const parameterStore = useParameterStore()
-const presetDefaults = getSharedPresetDefaults()
+const presetDefaults = usePresetDefaultsStore()
 
 const currentProjection = computed(() => {
   if (!projectionStore.selectedProjection) {
@@ -89,7 +89,7 @@ const hasAnyRelevantParams = computed(() => {
 
 const hasCustomParams = computed(() => {
   const globalParams = parameterStore.globalParameters
-  const globalDefaults = presetDefaults.presetGlobalParameters.value
+  const globalDefaults = presetDefaults.presetGlobalParameters
 
   if (Object.keys(globalParams).length === 0) {
     return false

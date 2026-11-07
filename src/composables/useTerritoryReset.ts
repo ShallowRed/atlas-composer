@@ -1,10 +1,10 @@
 import type { BulkResetOperation, TerritoryResetOperation } from '@/core/territories/types'
 import type { TerritoryCode } from '@/types'
-import { getSharedPresetDefaults } from '@/composables/usePresetDefaults'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
@@ -15,7 +15,7 @@ export function useTerritoryReset() {
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
   const viewStore = useViewStore()
-  const presetDefaults = getSharedPresetDefaults()
+  const presetDefaults = usePresetDefaultsStore()
 
   function executeBulkReset(operation: BulkResetOperation) {
     operation.operations.forEach((territoryOp) => {
@@ -77,8 +77,8 @@ export function useTerritoryReset() {
 
     const operation = TerritoryResetService.calculateBulkReset({
       territories: atlasService.getAllTerritories(),
-      presetDefaults: presetDefaults.presetDefaults.value ?? undefined,
-      presetParameters: presetDefaults.presetParameters.value ?? undefined,
+      presetDefaults: presetDefaults.territoryDefaults ?? undefined,
+      presetParameters: presetDefaults.presetParameters,
     })
 
     executeBulkReset(operation)
@@ -90,8 +90,8 @@ export function useTerritoryReset() {
   function resetTerritoryToDefaults(territoryCode: TerritoryCode) {
     const operation = TerritoryResetService.calculateTerritoryReset({
       territoryCode,
-      presetDefaults: presetDefaults.presetDefaults.value ?? undefined,
-      presetParameters: presetDefaults.presetParameters.value ?? undefined,
+      presetDefaults: presetDefaults.territoryDefaults ?? undefined,
+      presetParameters: presetDefaults.presetParameters,
     })
 
     executeTerritoryOperation(operation)
