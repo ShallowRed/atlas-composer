@@ -70,32 +70,31 @@ describe('geoDataService.loadData', () => {
     it('returns GEODATA_NOT_FOUND for a 404', async () => {
       const result = await loadData({ ...otherResponses, [path]: { status: 404 } })
 
-      expect(result).toEqual({ ok: false, error: { type: 'GEODATA_NOT_FOUND', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NOT_FOUND', path } })
     })
 
     it('returns GEODATA_NETWORK_ERROR for another failed status', async () => {
       const result = await loadData({ ...otherResponses, [path]: { status: 500 } })
 
-      expect(result).toEqual({ ok: false, error: { type: 'GEODATA_NETWORK_ERROR', path, status: 500 } })
+      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NETWORK_ERROR', path, status: 500 } })
     })
 
-    // The Vite server answers a missing file of src/public/ with index.html
     it('returns GEODATA_NOT_FOUND for an HTML page', async () => {
       const result = await loadData({ ...otherResponses, [path]: { contentType: 'text/html', body: '<html></html>' } })
 
-      expect(result).toEqual({ ok: false, error: { type: 'GEODATA_NOT_FOUND', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NOT_FOUND', path } })
     })
 
     it('returns GEODATA_INVALID_JSON for a body that is not JSON', async () => {
       const result = await loadData({ ...otherResponses, [path]: json('{') })
 
-      expect(result).toMatchObject({ ok: false, error: { type: 'GEODATA_INVALID_JSON', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_INVALID_JSON', path } })
     })
 
-    it('returns GEODATA_INVALID_STRUCTURE when fetch rejects', async () => {
+    it('returns GEODATA_UNREACHABLE when fetch rejects', async () => {
       const result = await loadData({ ...otherResponses, [path]: 'reject' })
 
-      expect(result).toMatchObject({ ok: false, error: { type: 'GEODATA_INVALID_STRUCTURE', path: DATA_PATH } })
+      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_UNREACHABLE', path } })
     })
   })
 
@@ -105,12 +104,12 @@ describe('geoDataService.loadData', () => {
       [METADATA_PATH]: json('{}'),
     })
 
-    expect(result).toEqual({ ok: false, error: { type: 'GEODATA_MISSING_OBJECT', objectName: 'territories' } })
+    expect(result).toEqual({ ok: false, error: { code: 'GEODATA_MISSING_OBJECT', objectName: 'territories' } })
   })
 
   it('returns GEODATA_INVALID_STRUCTURE for a null body', async () => {
     const result = await loadData({ [DATA_PATH]: json('null'), [METADATA_PATH]: json('{}') })
 
-    expect(result).toMatchObject({ ok: false, error: { type: 'GEODATA_INVALID_STRUCTURE', path: DATA_PATH } })
+    expect(result).toEqual({ ok: false, error: { code: 'GEODATA_INVALID_STRUCTURE', path: DATA_PATH } })
   })
 })

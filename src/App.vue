@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 import ToastNotification from '@/components/ui/export/ToastNotification.vue'
 import AppFooter from '@/components/ui/layout/AppFooter.vue'
 import AppHeader from '@/components/ui/layout/AppHeader.vue'
+import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useUIStore } from '@/stores/ui'
 
 const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
+const { errorMessage } = useErrorMessage()
+
+const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(geoDataStore.error))
 </script>
 
 <template>
@@ -20,7 +25,7 @@ const uiStore = useUIStore()
 
     <!-- Global error state from geoDataStore -->
     <ToastNotification
-      :message="geoDataStore.error"
+      :message="geoDataErrorMessage"
       type="error"
       @close="geoDataStore.clearError()"
     />

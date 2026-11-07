@@ -1,4 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
+import type { GeoDataError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
@@ -81,13 +83,8 @@ export class Cartographer {
     return this.geoDataService
   }
 
-  async init(): Promise<void> {
-    const result = await this.geoDataService.loadData()
-    if (!result.ok) {
-      debug('Cartographer initialization error: %O', result.error)
-      throw new Error(`Failed to load geographic data: ${result.error.type}`)
-    }
-    this.geoDataService.getTerritoryInfo()
+  async init(): Promise<Result<void, GeoDataError>> {
+    return this.geoDataService.loadData()
   }
 
   updateProjectionParams(params: ProjectionParameters): void {
