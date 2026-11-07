@@ -110,15 +110,8 @@ vi.mock('@/services/presets/preset-loader', () => ({
 
 vi.mock('@/services/presets/atlas-metadata-service', () => ({
   AtlasMetadataService: {
-    getAtlasMetadata: vi.fn(async () => ({
-      metadata: {
-        defaultCompositeProjection: 'conic-conformal-france',
-      },
-    })),
-    getCompositeProjections: vi.fn(async () => ['conic-conformal-france']),
-    getProjectionPreferences: vi.fn(async () => ({
-      recommended: ['natural-earth'],
-    })),
+    getDefaultCompositeProjection: vi.fn(async () => 'conic-conformal-france'),
+    getRecommendedProjection: vi.fn(async () => 'natural-earth'),
   },
 }))
 

@@ -1,4 +1,7 @@
-import type { TerritoryConfig } from '@/types'
+import type { AtlasConfig, TerritoryConfig } from '@/types'
+import { logger } from '@/utils/logger'
+
+const debug = logger.atlas.loader
 
 export function getTerritoriesForMode(
   territories: TerritoryConfig[],
@@ -25,4 +28,43 @@ export function getTerritoriesForMode(
 
   const codesSet = new Set(codes)
   return territories.filter(t => codesSet.has(t.code))
+}
+
+export function getInitialTerritoryMode(atlasConfig: Pick<AtlasConfig, 'hasTerritorySelector' | 'isWildcard' | 'territoryModeOptions'>): string {
+  const options = atlasConfig.territoryModeOptions ?? []
+  if (atlasConfig.hasTerritorySelector && options.length > 0) {
+    return options[0]!.value
+  }
+
+  if (!atlasConfig.hasTerritorySelector || atlasConfig.isWildcard) {
+    return 'all-territories'
+  }
+
+  throw new Error('No territory mode options available for atlas')
+}
+
+export function filterAtlasConfigByPreset(
+  atlasConfig: any,
+  territoryParameters: Record<string, Record<string, unknown>>,
+): any {
+  const compositeConfig = atlasConfig.compositeProjectionConfig
+
+  if (!compositeConfig) {
+    return atlasConfig
+  }
+
+  const territoriesInPreset = new Set(Object.keys(territoryParameters))
+
+  const filteredTerritories = compositeConfig.territories.filter((t: any) =>
+    territoriesInPreset.has(t.code),
+  )
+
+  debug('Filtered territories: %d in preset, %d filtered', territoriesInPreset.size, filteredTerritories.length)
+
+  return {
+    ...atlasConfig,
+    compositeProjectionConfig: {
+      territories: filteredTerritories,
+    },
+  }
 }

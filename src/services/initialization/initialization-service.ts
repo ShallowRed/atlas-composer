@@ -2,7 +2,7 @@ import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ViewMode } from '@/types'
-import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
+import type { PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
   ApplicationState,
   AtlasInitializationOptions,
@@ -13,6 +13,8 @@ import type {
 
 import { nextTick } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode, isAtlasLoaded, loadAtlasAsync } from '@/core/atlases/registry'
+import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
+import { findPositioningErrors, findTerritoriesWithoutProjection } from '@/core/presets/validator'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { ok } from '@/core/types/result'
 import { AtlasService } from '@/services/atlas/atlas-service'
@@ -62,7 +64,7 @@ export class InitializationService {
         ? currentViewMode
         : getDefaultViewMode(atlasId)
 
-      const territoryMode = this.getTerritoryMode(atlasConfig)
+      const territoryMode = getInitialTerritoryMode(atlasConfig)
 
       const geoDataStore = useGeoDataStore()
       const appStore = useAppStore()
@@ -133,13 +135,8 @@ export class InitializationService {
         }
       }
 
-      const atlasMetadata = await AtlasMetadataService.getAtlasMetadata(
-        atlasId,
-        defaultPresetId,
-      )
-
-      const compositeProjection = await this.getCompositeProjection(atlasId, defaultPresetId, atlasMetadata)
-      const selectedProjection = await this.getSelectedProjection(atlasId, defaultPresetId, atlasMetadata)
+      const compositeProjection = await AtlasMetadataService.getDefaultCompositeProjection(atlasId, defaultPresetId)
+      const selectedProjection = await AtlasMetadataService.getRecommendedProjection(atlasId, defaultPresetId)
       const state: ApplicationState = {
         atlas: {
           id: atlasId,
@@ -178,14 +175,14 @@ export class InitializationService {
         },
       }
 
-      const filteredAtlasConfig = this.filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
+      const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
       debug('Filtered atlas config for %s: %d preset territories', atlasId, Object.keys(state.parameters.territories).length)
 
       await this.applyStateToStores(state)
 
       await nextTick()
 
-      const validationErrors = this.validateTerritoryParameters(
+      const validationErrors = findTerritoriesWithoutProjection(
         filteredAtlasConfig,
         state.parameters.territories,
         state.viewMode,
@@ -194,7 +191,7 @@ export class InitializationService {
         return fail(validationErrors)
       }
 
-      const projectionValidationErrors = this.validateProjectionParameters(state.parameters.territories)
+      const projectionValidationErrors = findPositioningErrors(state.parameters.territories)
       if (projectionValidationErrors.length > 0) {
         return fail(projectionValidationErrors)
       }
@@ -535,50 +532,6 @@ export class InitializationService {
     }
   }
 
-  private static getTerritoryMode(config: any): string {
-    if (config.hasTerritorySelector && config.territoryModeOptions?.length > 0) {
-      return config.territoryModeOptions[0]!.value
-    }
-
-    if (!config.hasTerritorySelector || config.isWildcard) {
-      return 'all-territories'
-    }
-
-    throw new Error('No territory mode options available for atlas')
-  }
-
-  private static async getCompositeProjection(
-    atlasId: AtlasId,
-    defaultPreset: PresetId | undefined,
-    _atlasMetadata: any,
-  ): Promise<ProjectionId | undefined> {
-    const availableComposites = await AtlasMetadataService.getCompositeProjections(
-      atlasId,
-      defaultPreset,
-    )
-    if (availableComposites.length > 0) {
-      return availableComposites[0]
-    }
-
-    return undefined
-  }
-
-  private static async getSelectedProjection(
-    atlasId: AtlasId,
-    defaultPreset: PresetId | undefined,
-    _atlasMetadata: any,
-  ): Promise<ProjectionId> {
-    const projectionPrefs = await AtlasMetadataService.getProjectionPreferences(
-      atlasId,
-      defaultPreset,
-    )
-    if (projectionPrefs?.recommended && projectionPrefs.recommended.length > 0) {
-      return projectionPrefs.recommended[0] as ProjectionId
-    }
-
-    return 'natural-earth' as ProjectionId
-  }
-
   private static async clearAllApplicationData(): Promise<void> {
     debug('Clearing all application data')
 
@@ -614,115 +567,5 @@ export class InitializationService {
 
     debug('Atlas data not fully loaded, preloading...')
     return this.preloadAtlasData(territoryMode)
-  }
-
-  private static filterAtlasConfigByPreset(
-    atlasConfig: any,
-    territoryParameters: Record<string, Record<string, unknown>>,
-  ): any {
-    const compositeConfig = atlasConfig.compositeProjectionConfig
-
-    if (!compositeConfig) {
-      return atlasConfig
-    }
-
-    const territoriesInPreset = new Set(Object.keys(territoryParameters))
-
-    const filteredTerritories = compositeConfig.territories.filter((t: any) =>
-      territoriesInPreset.has(t.code),
-    )
-
-    debug('Filtered territories: %d in preset, %d filtered', territoriesInPreset.size, filteredTerritories.length)
-
-    return {
-      ...atlasConfig,
-      compositeProjectionConfig: {
-        territories: filteredTerritories,
-      },
-    }
-  }
-
-  private static validateTerritoryParameters(
-    atlasConfig: any,
-    territoryParameters: Record<string, Record<string, unknown>>,
-    viewMode: string,
-  ): string[] {
-    const errors: string[] = []
-
-    if (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite') {
-      return errors
-    }
-
-    const compositeConfig = atlasConfig.compositeProjectionConfig
-
-    if (!compositeConfig) {
-      return errors
-    }
-
-    const territoriesToValidate: string[] = compositeConfig.territories?.map((t: any) => t.code) ?? []
-
-    for (const territoryCode of territoriesToValidate) {
-      const params = territoryParameters[territoryCode]
-      if (!params || !params.projectionId) {
-        errors.push(`Territory '${territoryCode}' missing required parameter 'projectionId'`)
-      }
-    }
-
-    if (errors.length > 0) {
-      debug('Territory parameter validation failed: %O', errors)
-    }
-
-    return errors
-  }
-
-  private static validateProjectionParameters(
-    territoryParameters: Record<string, Record<string, unknown>>,
-  ): string[] {
-    const errors: string[] = []
-
-    for (const [territoryCode, params] of Object.entries(territoryParameters)) {
-      const projectionFamily = params.projectionFamily as string | undefined
-
-      if (!projectionFamily) {
-        continue
-      }
-
-      if (projectionFamily === 'CONIC') {
-        if (params.center !== undefined) {
-          errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but has 'center' parameter. `
-            + `CONIC projections should use 'rotate' instead. `
-            + `Expected: rotate: [lon, -lat, 0], got center: ${JSON.stringify(params.center)}`,
-          )
-        }
-        if (!params.rotate) {
-          errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but missing 'rotate' parameter. `
-            + `CONIC projections require 'rotate': [longitude, -latitude, 0]`,
-          )
-        }
-        if (!params.parallels || (Array.isArray(params.parallels) && params.parallels.every((p: any) => p === 0))) {
-          errors.push(
-            `Territory '${territoryCode}' uses CONIC projection but has invalid 'parallels' parameter. `
-            + `Expected non-zero parallels like [37, 42], got: ${JSON.stringify(params.parallels)}`,
-          )
-        }
-      }
-
-      if (projectionFamily === 'CYLINDRICAL' || projectionFamily === 'AZIMUTHAL') {
-        if (!params.center) {
-          errors.push(
-            `Territory '${territoryCode}' uses ${projectionFamily} projection but missing 'center' parameter. `
-            + `${projectionFamily} projections require 'center': [longitude, latitude]`,
-          )
-        }
-      }
-    }
-
-    if (errors.length > 0) {
-      debug('Projection parameter validation failed: %O', errors)
-    }
-
-    return errors
   }
 }
