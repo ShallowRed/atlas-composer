@@ -7,6 +7,7 @@ import type {
   UnifiedViewConfig,
   ViewPresetMode,
 } from './types'
+import type { AtlasConfig } from '@/types'
 
 import { validateConfig } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
@@ -307,7 +308,7 @@ function validateCompositeExistingConfig(
 }
 
 export function findTerritoriesWithoutProjection(
-  atlasConfig: any,
+  atlasConfig: Pick<AtlasConfig, 'compositeProjectionConfig'>,
   territoryParameters: Record<string, Record<string, unknown>>,
   viewMode: string,
 ): string[] {
@@ -323,7 +324,7 @@ export function findTerritoriesWithoutProjection(
     return errors
   }
 
-  const territoriesToValidate: string[] = compositeConfig.territories?.map((t: any) => t.code) ?? []
+  const territoriesToValidate: string[] = compositeConfig.territories.map(t => t.code)
 
   for (const territoryCode of territoriesToValidate) {
     const params = territoryParameters[territoryCode]

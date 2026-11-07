@@ -44,9 +44,9 @@ export function getInitialTerritoryMode(atlasConfig: Pick<AtlasConfig, 'hasTerri
 }
 
 export function filterAtlasConfigByPreset(
-  atlasConfig: any,
+  atlasConfig: AtlasConfig,
   territoryParameters: Record<string, Record<string, unknown>>,
-): any {
+): AtlasConfig {
   const compositeConfig = atlasConfig.compositeProjectionConfig
 
   if (!compositeConfig) {
@@ -55,7 +55,7 @@ export function filterAtlasConfigByPreset(
 
   const territoriesInPreset = new Set(Object.keys(territoryParameters))
 
-  const filteredTerritories = compositeConfig.territories.filter((t: any) =>
+  const filteredTerritories = compositeConfig.territories.filter(t =>
     territoriesInPreset.has(t.code),
   )
 
