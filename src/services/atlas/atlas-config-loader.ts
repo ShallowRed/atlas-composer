@@ -7,6 +7,7 @@ import {
   getAtlasConfigPath,
   getLoadedConfig,
   isAtlasLoaded,
+  resolveConfigPath,
   setLoadedConfig,
 } from '@/core/atlases/registry'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
@@ -26,7 +27,7 @@ export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): 
     throw new Error(`Atlas '${atlasId}' not found in registry`)
   }
 
-  const file = await JsonFileLoader.loadJSON<JSONAtlasConfig>(configPath.replace(/^\.\//, 'configs/'))
+  const file = await JsonFileLoader.loadJSON<JSONAtlasConfig>(resolveConfigPath(configPath))
   if (!file.success || !file.data) {
     throw new Error(`Failed to load atlas '${atlasId}': ${file.errors.join(', ')}`)
   }
