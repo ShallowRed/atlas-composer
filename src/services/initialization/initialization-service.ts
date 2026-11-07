@@ -25,6 +25,7 @@ import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 import { useViewStore } from '@/stores/view'
@@ -308,7 +309,7 @@ export class InitializationService {
           success: true,
           errors: [],
           warnings: [],
-          state: null, // State will be applied by PresetApplicationService
+          state: null,
         }
       }
 
@@ -491,8 +492,7 @@ export class InitializationService {
     if (state.parameters.global && Object.keys(state.parameters.global).length > 0) {
       parameterStore.setAtlasParameters(state.parameters.global as any)
 
-      const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
-      const presetDefaults = getSharedPresetDefaults()
+      const presetDefaults = usePresetDefaultsStore()
       presetDefaults.storeGlobalParameters(state.parameters.global as any)
     }
 
@@ -523,8 +523,7 @@ export class InitializationService {
     uiStore.showMapLimits = state.display.showMapLimits
 
     if (state.viewMode === 'composite-custom' || state.viewMode === 'split') {
-      const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
-      const presetDefaults = getSharedPresetDefaults()
+      const presetDefaults = usePresetDefaultsStore()
       presetDefaults.storePresetDefaults(
         state.territories,
         state.parameters.territories as any,
@@ -542,8 +541,7 @@ export class InitializationService {
 
     geoDataStore.clearAllData()
 
-    const { getSharedPresetDefaults } = await import('@/composables/usePresetDefaults')
-    const presetDefaults = getSharedPresetDefaults()
+    const presetDefaults = usePresetDefaultsStore()
     presetDefaults.clearAll()
 
     debug('All application data cleared')
