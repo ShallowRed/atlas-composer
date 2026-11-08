@@ -1,12 +1,18 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AppError, GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
+import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { Territory, TerritoryCode } from '@/types'
+import type { AtlasId } from '@/types/branded'
 
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
+import { CompositeExportService } from '@/services/export/composite-export-service'
 
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
@@ -276,6 +282,29 @@ export const useGeoDataStore = defineStore('geoData', () => {
     isReinitializing.value = value
   }
 
+  function exportConfiguration(): CompositeProjectionConfig {
+    const customComposite = cartographer.value?.customComposite
+    if (!customComposite) {
+      throw new Error('No custom composite projection available')
+    }
+
+    const atlasConfig = useAtlasStore().currentAtlasConfig
+    if (!atlasConfig?.compositeProjectionConfig) {
+      throw new Error('No composite projection configuration available')
+    }
+
+    const projectionStore = useProjectionStore()
+    return CompositeExportService.exportToJSON(
+      // The ref unwraps the private fields of the class out of its type
+      customComposite as CompositeProjection,
+      atlasConfig.id as AtlasId,
+      atlasConfig.name,
+      useParameterStore().parameterProvider,
+      projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
+      projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+    )
+  }
+
   return {
     cartographer,
 
@@ -297,6 +326,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     clearAllData,
     clearError,
     failInitialization,
+    exportConfiguration,
     triggerRender, // Expose method to force re-render
   }
 })

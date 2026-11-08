@@ -66,7 +66,6 @@ const CORE_GLOBALS = [
 const BOUNDARY_EXCEPTIONS = [
   // Components that import services
   'src/components/MapRenderer.vue',
-  'src/components/ui/export/CompositeExportDialog.vue',
 ]
 
 // Options of @antfu/eslint-config for these rules
