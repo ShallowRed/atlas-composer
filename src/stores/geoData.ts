@@ -287,7 +287,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
       return null
     }
     const territoryCodes = filteredTerritories.value.map(territory => territory.code)
-    return cartographer.value.geoData.getRawUnifiedData(useViewStore().territoryMode, territoryCodes)
+    const viewStore = useViewStore()
+    return cartographer.value.geoData.getRawUnifiedData(viewStore.territoryMode, territoryCodes)
   }
 
   function exportConfiguration(): CompositeProjectionConfig {
