@@ -65,6 +65,16 @@ const CORE_GLOBALS = [
 const ANTFU_RESTRICTED_SYNTAX = ['TSEnumDeclaration[const=true]', 'TSExportAssignment']
 const ANTFU_VUE_RESTRICTED_SYNTAX = ['DebuggerStatement', 'LabeledStatement', 'WithStatement']
 
+const RESULT_FIELDS_MESSAGE = 'A failure is a Result of src/core/types/result.ts: read ok, value and error.'
+const RESULT_FIELDS = [
+  'MemberExpression[property.name=/^(success|isValid)$/]',
+  'TSPropertySignature[key.name=/^(success|isValid)$/]',
+  'PropertyDefinition[key.name=/^(success|isValid)$/]',
+  'Property[key.name=\'isValid\']',
+  'Property[key.value=/^(success|isValid)$/]',
+  'Property[key.name=\'success\']:not([value.value=type(string)])',
+].map(selector => ({ selector, message: RESULT_FIELDS_MESSAGE }))
+
 const DEPRECATED_POSITIONING_KEYS = /focusLongitude|focusLatitude|rotateGamma/.source
 const DEPRECATED_POSITIONING_MESSAGE = 'Positioning is stored as d3 parameters (rotate, center); deprecated forms are converted in src/core/positioning/.'
 const DEPRECATED_POSITIONING = [
@@ -164,15 +174,21 @@ export default antfu({
   files: ['src/**/*.ts', 'src/**/*.vue'],
   ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
+  },
+}, {
+  files: ['src/core/positioning/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...RESULT_FIELDS],
   },
 }, {
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...RESULT_FIELDS],
   },
 }, {
   files: ['packages/projection-loader/src/**'],
