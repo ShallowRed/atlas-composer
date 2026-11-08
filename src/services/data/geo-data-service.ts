@@ -4,6 +4,7 @@ import type { GeoDataConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 import { err, ok } from '@/core/types/result'
+import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { logger } from '@/utils/logger'
 
 const debug = logger.data.loader
@@ -41,13 +42,13 @@ export class GeoDataService {
     }
 
     try {
-      const topology = await this.fetchJson(this.config.dataPath)
+      const topology = await JsonFileLoader.loadUrl(this.config.dataPath)
       if (!topology.ok) {
         return topology
       }
       this.topologyData = topology.value
 
-      const metadata = await this.fetchJson(this.config.metadataPath)
+      const metadata = await JsonFileLoader.loadUrl(this.config.metadataPath)
       if (!metadata.ok) {
         return metadata
       }
@@ -63,37 +64,6 @@ export class GeoDataService {
     catch (error) {
       debug('Data processing error: %O', error)
       return err({ code: 'GEODATA_INVALID_STRUCTURE', path: this.config.dataPath })
-    }
-  }
-
-  private async fetchJson(path: string): Promise<Result<unknown, GeoDataError>> {
-    let response: Response
-    try {
-      response = await fetch(path)
-    }
-    catch (error) {
-      debug('Fetch error for %s: %O', path, error)
-      return err({ code: 'GEODATA_UNREACHABLE', path })
-    }
-
-    if (!response.ok) {
-      return response.status === 404
-        ? err({ code: 'GEODATA_NOT_FOUND', path })
-        : err({ code: 'GEODATA_NETWORK_ERROR', path, status: response.status })
-    }
-
-    // The Vite server answers a missing file of src/public/ with index.html
-    const contentType = response.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) {
-      return err({ code: 'GEODATA_NOT_FOUND', path })
-    }
-
-    try {
-      return ok(await response.json())
-    }
-    catch (error) {
-      debug('JSON parse error for %s: %O', path, error)
-      return err({ code: 'GEODATA_INVALID_JSON', path })
     }
   }
 

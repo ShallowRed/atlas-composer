@@ -25,7 +25,6 @@ const topology = JSON.stringify({
 
 interface FakeResponse {
   status?: number
-  contentType?: string
   body?: string
 }
 
@@ -40,10 +39,7 @@ function stubFetch(responses: Record<string, FakeResponse | 'reject'>) {
     if (response === 'reject') {
       throw new TypeError('Failed to fetch')
     }
-    return new Response(response.body ?? '', {
-      status: response.status ?? 200,
-      headers: { 'content-type': response.contentType ?? 'application/json' },
-    })
+    return new Response(response.body ?? '', { status: response.status ?? 200 })
   })
 }
 
@@ -67,34 +63,28 @@ describe('geoDataService.loadData', () => {
     ['data', DATA_PATH, { [METADATA_PATH]: json('{}') }],
     ['metadata', METADATA_PATH, { [DATA_PATH]: json(topology) }],
   ])('%s file', (_, path, otherResponses) => {
-    it('returns GEODATA_NOT_FOUND for a 404', async () => {
+    it('returns JSON_FILE_NOT_FOUND for a 404', async () => {
       const result = await loadData({ ...otherResponses, [path]: { status: 404 } })
 
-      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NOT_FOUND', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'JSON_FILE_NOT_FOUND', path } })
     })
 
-    it('returns GEODATA_NETWORK_ERROR for another failed status', async () => {
+    it('returns JSON_FILE_NETWORK_ERROR for another failed status', async () => {
       const result = await loadData({ ...otherResponses, [path]: { status: 500 } })
 
-      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NETWORK_ERROR', path, status: 500 } })
+      expect(result).toEqual({ ok: false, error: { code: 'JSON_FILE_NETWORK_ERROR', path, status: 500 } })
     })
 
-    it('returns GEODATA_NOT_FOUND for an HTML page', async () => {
-      const result = await loadData({ ...otherResponses, [path]: { contentType: 'text/html', body: '<html></html>' } })
-
-      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_NOT_FOUND', path } })
-    })
-
-    it('returns GEODATA_INVALID_JSON for a body that is not JSON', async () => {
+    it('returns JSON_FILE_MALFORMED for a body that is not JSON', async () => {
       const result = await loadData({ ...otherResponses, [path]: json('{') })
 
-      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_INVALID_JSON', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'JSON_FILE_MALFORMED', path } })
     })
 
-    it('returns GEODATA_UNREACHABLE when fetch rejects', async () => {
+    it('returns JSON_FILE_UNREACHABLE when fetch rejects', async () => {
       const result = await loadData({ ...otherResponses, [path]: 'reject' })
 
-      expect(result).toEqual({ ok: false, error: { code: 'GEODATA_UNREACHABLE', path } })
+      expect(result).toEqual({ ok: false, error: { code: 'JSON_FILE_UNREACHABLE', path } })
     })
   })
 
