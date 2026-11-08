@@ -1,4 +1,3 @@
-import type { PresetType } from '#types'
 import type {
   CompositeCustomConfig,
   CompositeExistingViewConfig,
@@ -26,31 +25,6 @@ const debug = logger.presets.validator
 function logWarnings(warnings: string[]): void {
   if (warnings.length > 0) {
     debug('Preset warnings: %O', warnings)
-  }
-}
-
-export function validatePreset(
-  preset: any,
-  presetType: PresetType,
-): Result<void, PresetIssue[]> {
-  switch (presetType) {
-    case 'composite-custom': {
-      const result = validateCompositePreset(preset as CompositeCustomConfig)
-      return result.ok ? ok(undefined) : result
-    }
-    case 'unified':
-    case 'split':
-    case 'built-in-composite': {
-      const viewPreset = {
-        id: preset.id || 'unknown',
-        name: preset.name || 'Unknown',
-        description: preset.description,
-        atlasId: preset.atlasId || 'unknown',
-        viewMode: presetType as ViewPresetMode,
-        config: preset.config || preset,
-      }
-      return validateViewPreset(viewPreset)
-    }
   }
 }
 
