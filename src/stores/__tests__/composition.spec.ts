@@ -176,7 +176,6 @@ describe('composition store', () => {
 
     it('reads a file of the current atlas', async () => {
       await startApplication(FRANCE)
-      await useCompositionStore().initializeAtlas()
 
       const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
 
@@ -185,11 +184,11 @@ describe('composition store', () => {
 
     it('fails while the atlas configuration is not loaded', async () => {
       await startApplication(FRANCE)
-      useAtlasStore().currentAtlasConfig = null
+      useAtlasStore().currentAtlasConfig = undefined
 
       const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
 
-      expect(result.ok).toBe(false)
+      expect(result).toEqual({ ok: false, error: ['Atlas configuration not loaded'] })
     })
   })
 
