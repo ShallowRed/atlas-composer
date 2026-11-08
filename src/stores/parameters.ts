@@ -6,11 +6,12 @@ import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
   ParameterUpdate,
   ParameterValidationResult,
+  ProjectionParameterProvider,
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, markRaw, ref } from 'vue'
 
 import { parameterRegistry } from '@/core/parameters'
 import { convertPositioning } from '@/core/positioning'
@@ -256,6 +257,12 @@ export const useParameterStore = defineStore('parameters', () => {
     return result
   }
 
+  // Read by the composite projections, which call it at each render
+  const parameterProvider: ProjectionParameterProvider = markRaw({
+    getEffectiveParameters,
+    getExportableParameters,
+  })
+
   return {
     validationErrors,
     territoryParametersVersion, // Reactive version for watching parameter changes
@@ -293,5 +300,6 @@ export const useParameterStore = defineStore('parameters', () => {
 
     initializeFromPreset,
     getExportableParameters,
+    parameterProvider,
   }
 })

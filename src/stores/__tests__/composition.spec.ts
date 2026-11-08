@@ -9,6 +9,7 @@ import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
+import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
 
@@ -109,7 +110,38 @@ describe('composition store', () => {
       useAtlasStore().selectedAtlasId = 'portugal' as AtlasId
       await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
 
+      expect(useAtlasStore().currentAtlasConfig?.id).toBe('portugal')
       expect(loadJSON.mock.calls.filter(([path]) => path === 'configs/atlases/portugal.json')).toHaveLength(1)
+    })
+  })
+
+  describe('loadPreset', () => {
+    it('fails when the preset does not load', async () => {
+      await startApplication(FRANCE)
+      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce({
+        success: false,
+        data: undefined,
+        errors: ['Preset not found'],
+        warnings: [],
+      })
+
+      const result = await useCompositionStore().loadPreset({ presetId: createPresetId('nonexistent') })
+
+      expect(result.success).toBe(false)
+      expect(result.errors).toContainEqual(expect.stringContaining('Failed to load preset'))
+    })
+
+    it('skips the validation when requested', async () => {
+      await startApplication(FRANCE)
+      const validatePreset = vi.spyOn(PresetValidationService, 'validatePreset')
+
+      const result = await useCompositionStore().loadPreset({
+        presetId: createPresetId('france-standard'),
+        skipValidation: true,
+      })
+
+      expect(result.success).toBe(true)
+      expect(validatePreset).not.toHaveBeenCalled()
     })
   })
 

@@ -2,7 +2,7 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
-import { createAtlasId, createPresetId } from '@/types/branded'
+import { createAtlasId } from '@/types/branded'
 
 import { InitializationService } from '../initialization-service'
 
@@ -123,45 +123,6 @@ describe('initializationService', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
-  })
-
-  describe.skip('loadPreset', () => {
-    it('should successfully load a composite-custom preset', async () => {
-      const result = await InitializationService.loadPreset({
-        presetId: createPresetId('france-test'),
-      })
-
-      expect(result.success).toBe(true)
-      expect(result.state?.preset?.id).toBe('france-test')
-    })
-
-    it('should handle preset load failure', async () => {
-      const { PresetLoader } = await import('@/services/presets/preset-loader')
-      vi.mocked(PresetLoader.loadPreset).mockResolvedValueOnce({
-        success: false,
-        data: undefined,
-        errors: ['Preset not found'],
-        warnings: [],
-      })
-
-      const result = await InitializationService.loadPreset({
-        presetId: createPresetId('nonexistent'),
-      })
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('Failed to load preset'))
-    })
-
-    it('should skip validation when requested', async () => {
-      const { PresetValidationService } = await import('@/services/validation/preset-validation-service')
-
-      await InitializationService.loadPreset({
-        presetId: createPresetId('france-test'),
-        skipValidation: true,
-      })
-
-      expect(PresetValidationService.validatePreset).not.toHaveBeenCalled()
-    })
   })
 
   describe.skip('importConfiguration', () => {

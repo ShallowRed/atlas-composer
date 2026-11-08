@@ -98,18 +98,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
       const parameterStore = useParameterStore()
       const projectionParams = parameterStore.globalEffectiveParameters
 
-      const parameterProvider = {
-        getEffectiveParameters: (territoryCode: string) => {
-          return parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-        },
-        getExportableParameters: (territoryCode: string) => {
-          return parameterStore.getExportableParameters(territoryCode as TerritoryCode)
-        },
-        setTerritoryParameters: (territoryCode: string, parameters: Partial<any>) => {
-          parameterStore.setTerritoryParameters(territoryCode as TerritoryCode, parameters)
-        },
-      }
-
       debug('Using composite config directly from preset (no filtering)')
       if (compositeConfig) {
         const territoryCount = compositeConfig.territories?.length ?? 0
@@ -120,7 +108,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         geoDataConfig,
         compositeConfig,
         projectionParams,
-        parameterProvider,
+        parameterStore.parameterProvider,
         projectionStore.referenceScale,
       )
       const result = await newCartographer.init()

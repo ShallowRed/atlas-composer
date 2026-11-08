@@ -1,21 +1,7 @@
-import type { TerritoryCode } from '@/types'
-import type { ProjectionParameterProvider } from '@/types/projection-parameters'
 import { useParameterStore } from '@/stores/parameters'
 
 export function useParameterProvider() {
-  const parameterStore = useParameterStore()
-
-  const parameterProvider: ProjectionParameterProvider = {
-    getEffectiveParameters: (territoryCode: TerritoryCode) => {
-      return parameterStore.getEffectiveParameters(territoryCode)
-    },
-
-    getExportableParameters: (territoryCode: TerritoryCode) => {
-      return parameterStore.getExportableParameters(territoryCode)
-    },
-  }
-
   return {
-    parameterProvider,
+    parameterProvider: useParameterStore().parameterProvider,
   }
 }
