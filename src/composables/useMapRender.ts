@@ -160,12 +160,7 @@ export function useMapRender(props: MapRenderProps) {
     let geoData: GeoJSON.FeatureCollection | null = null
 
     if (props.mode === 'composite' && geoDataStore.cartographer) {
-      try {
-        geoData = await geoDataStore.getFilteredRawData()
-      }
-      catch (err) {
-        debug('Failed to fetch raw unified data: %O', err)
-      }
+      geoData = await geoDataStore.getFilteredRawData()
     }
     else if (props.geoData || geoDataStore.rawUnifiedData) {
       geoData = props.geoData || geoDataStore.rawUnifiedData

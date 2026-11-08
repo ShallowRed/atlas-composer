@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { InvalidViewModeError, isViewMode, ViewModeSelection } from '../view-mode-selection'
+import { isViewMode, ViewModeSelection } from '../view-mode-selection'
 
 describe('viewModeSelection', () => {
   describe('constructor', () => {
@@ -23,7 +23,7 @@ describe('viewModeSelection', () => {
 
     it('should throw error for invalid mode', () => {
       expect(() => new ViewModeSelection('invalid' as any))
-        .toThrow(InvalidViewModeError)
+        .toThrow('Invalid view mode: invalid')
     })
   })
 

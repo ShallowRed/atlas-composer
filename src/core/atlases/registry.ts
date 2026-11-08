@@ -28,16 +28,6 @@ export function setLoadedConfig(atlasId: AtlasId, config: LoadedAtlasConfig): vo
   LOADED_CONFIGS.set(atlasId, config)
 }
 
-function loadAtlasSync(atlasId: string): LoadedAtlasConfig {
-  if (LOADED_CONFIGS.has(atlasId)) {
-    return LOADED_CONFIGS.get(atlasId)!
-  }
-
-  throw new Error(
-    `[Registry] Atlas '${atlasId}' not loaded yet`,
-  )
-}
-
 function getDefaultAtlas(): AtlasRegistryEntry {
   const defaultEntry = REGISTRY_METADATA.atlases.find(e => e.isDefault)
   if (defaultEntry) {
@@ -58,20 +48,19 @@ export function isAtlasLoaded(atlasId: string): boolean {
 }
 
 export function getLoadedConfig(atlasId: string): LoadedAtlasConfig {
-  try {
-    return loadAtlasSync(atlasId)
+  const loaded = LOADED_CONFIGS.get(atlasId)
+  if (loaded) {
+    return loaded
   }
-  catch (error) {
-    debug('Atlas %s not cached, falling back to %s: %o', atlasId, DEFAULT_ATLAS, error)
-    try {
-      return loadAtlasSync(DEFAULT_ATLAS)
-    }
-    catch {
-      throw new Error(
-        `[Registry] Neither '${atlasId}' nor default atlas '${DEFAULT_ATLAS}' are loaded yet`,
-      )
-    }
+
+  debug('Atlas %s not cached, falling back to %s', atlasId, DEFAULT_ATLAS)
+  const fallback = LOADED_CONFIGS.get(DEFAULT_ATLAS)
+  if (!fallback) {
+    throw new Error(
+      `[Registry] Neither '${atlasId}' nor default atlas '${DEFAULT_ATLAS}' are loaded yet`,
+    )
   }
+  return fallback
 }
 
 export function getAtlasConfig(atlasId: string): AtlasConfig {
