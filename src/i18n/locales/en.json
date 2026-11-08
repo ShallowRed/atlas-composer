@@ -537,6 +537,24 @@
       "parameterWrongLength": "The parameter {parameter} must have {expected} values",
       "parameterTooSmall": "The parameter {parameter} must be at least {min}",
       "parameterTooLarge": "The parameter {parameter} must be at most {max}"
+    },
+    "parameterIssue": {
+      "required": "The parameter {parameter} is required",
+      "notNumber": "The parameter {parameter} must be a number",
+      "notPair": "The parameter {parameter} must have 2 numbers",
+      "notPairOrTriple": "The parameter {parameter} must have 2 or 3 numbers",
+      "itemsNotNumbers": "The parameter {parameter} must contain numbers only",
+      "tooSmall": "The parameter {parameter} must be at least {min}",
+      "tooLarge": "The parameter {parameter} must be at most {max}",
+      "itemTooSmall": "Value {index} of the parameter {parameter} must be at least {min}",
+      "itemTooLarge": "Value {index} of the parameter {parameter} must be at most {max}",
+      "outOfRange": "The parameter {parameter} must be between {min} and {max}",
+      "parallelsOrder": "The south value of {parameter} must be below the north value"
+    }
+  },
+  "validation": {
+    "errors": {
+      "title": "Validation error"
     }
   }
 }

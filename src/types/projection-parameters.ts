@@ -22,13 +22,6 @@ export interface ProjectionParameterProvider {
   getExportableParameters: (territoryCode: TerritoryCode) => ProjectionParameters
 }
 
-export interface ParameterValidationResult {
-  isValid: boolean
-  error?: string
-  warning?: string
-  suggestion?: any
-}
-
 export type ParameterUpdate = Partial<ProjectionParameters>
 
 export function mergeParameters(

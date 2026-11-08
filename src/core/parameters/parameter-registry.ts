@@ -1,17 +1,13 @@
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { ParameterIssue } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-
-export interface ValidationResult {
-  isValid: boolean
-  error?: string
-  warning?: string
-}
+import { err, ok } from '@/core/types/result'
 
 interface ParameterConstraint {
   min?: number | number[]
   max?: number | number[]
   step?: number
-  allowedValues?: any[]
   relevant?: boolean
   required?: boolean
 }
@@ -23,7 +19,7 @@ export interface FamilyConstraint {
   max?: number | number[]
   step?: number
   defaultValue?: any
-  validate?: (value: any) => ValidationResult
+  validate?: (value: any) => Result<void, ParameterIssue>
 }
 
 export interface FamilyConstraints {
@@ -35,7 +31,7 @@ export interface ParameterDefinition {
   displayName: string
   description: string
 
-  type: 'number' | 'tuple2' | 'tuple3' | 'boolean' | 'custom'
+  type: 'number' | 'tuple2' | 'tuple3' | 'custom'
   unit?: string // 'degrees', 'pixels', 'scale', 'multiplier', etc.
 
   source: 'preset' | 'computed'
@@ -98,163 +94,89 @@ class ParameterRegistry {
     return { relevant: false, required: false }
   }
 
-  validate(key: string, value: any, family: ProjectionFamilyType): ValidationResult {
+  validate(key: string, value: any, family: ProjectionFamilyType): Result<void, ParameterIssue> {
     const def = this.get(key)
     if (!def) {
-      return { isValid: false, error: `Unknown parameter: ${key}` }
+      throw new Error(`Unknown parameter: ${key}`)
     }
 
-    const constraints = this.getConstraintsForFamily(key, family)
-
-    if (def.familyConstraints?.[family]?.validate) {
-      return def.familyConstraints[family].validate!(value)
-    }
-
-    const typeValidation = this.validateByType(def, value, constraints)
-
-    if (!constraints.relevant && typeValidation.isValid) {
-      return {
-        isValid: true,
-        warning: `Parameter ${key} is not relevant for ${family} projections`,
-      }
-    }
-
-    return typeValidation
+    const validateForFamily = def.familyConstraints?.[family]?.validate
+    return validateForFamily
+      ? validateForFamily(value)
+      : this.validateByType(def, value, this.getConstraintsForFamily(key, family))
   }
 
-  validateParameters(params: Partial<ProjectionParameters>, family: ProjectionFamilyType): ValidationResult[] {
-    const results: ValidationResult[] = []
-
-    for (const [key, value] of Object.entries(params)) {
-      const constraints = this.getConstraintsForFamily(key, family)
-
-      if (!constraints.relevant) {
-        continue
+  validateParameters(params: Partial<ProjectionParameters>, family: ProjectionFamilyType): ParameterIssue[] {
+    return Object.entries(params).flatMap(([key, value]) => {
+      if (!this.getConstraintsForFamily(key, family).relevant) {
+        return []
       }
 
       const result = this.validate(key, value, family)
-      if (!result.isValid || result.warning) {
-        results.push(result)
-      }
-    }
-
-    return results
+      return result.ok ? [] : [result.error]
+    })
   }
 
-  private validateByType(def: ParameterDefinition, value: any, constraints: ParameterConstraint): ValidationResult {
+  private validateByType(def: ParameterDefinition, value: any, constraints: ParameterConstraint): Result<void, ParameterIssue> {
+    const parameter = def.key as string
     if (value === null || value === undefined) {
-      if (constraints.required) {
-        return { isValid: false, error: `Parameter ${def.key} is required` }
-      }
-      return { isValid: true }
+      return constraints.required ? err({ code: 'PARAMETER_REQUIRED', parameter }) : ok(undefined)
     }
 
     switch (def.type) {
       case 'number':
-        return this.validateNumber(def, value, constraints)
+        return this.validateNumber(parameter, value, constraints)
       case 'tuple2':
-        return this.validateTuple2(def, value, constraints)
+        return Array.isArray(value) && value.length === 2
+          ? this.validateItems(parameter, value, constraints)
+          : err({ code: 'PARAMETER_NOT_PAIR', parameter })
       case 'tuple3':
-        return this.validateTuple3(def, value, constraints)
-      case 'boolean':
-        return this.validateBoolean(def, value, constraints)
+        return Array.isArray(value) && (value.length === 3 || value.length === 2)
+          ? this.validateItems(parameter, value, constraints)
+          : err({ code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter })
       case 'custom':
-        return { isValid: true } // Custom validation would be handled elsewhere
-      default:
-        return { isValid: false, error: `Unknown parameter type: ${def.type}` }
+        return ok(undefined)
     }
   }
 
-  private validateNumber(def: ParameterDefinition, value: any, constraints: ParameterConstraint): ValidationResult {
+  private validateNumber(parameter: string, value: any, constraints: ParameterConstraint): Result<void, ParameterIssue> {
     if (typeof value !== 'number' || Number.isNaN(value)) {
-      return { isValid: false, error: `Parameter ${def.key} must be a valid number` }
+      return err({ code: 'PARAMETER_NOT_NUMBER', parameter })
     }
 
     if (constraints.min !== undefined && value < (constraints.min as number)) {
-      return { isValid: false, error: `Parameter ${def.key} must be >= ${constraints.min}` }
+      return err({ code: 'PARAMETER_TOO_SMALL', parameter, min: constraints.min as number })
     }
 
     if (constraints.max !== undefined && value > (constraints.max as number)) {
-      return { isValid: false, error: `Parameter ${def.key} must be <= ${constraints.max}` }
+      return err({ code: 'PARAMETER_TOO_LARGE', parameter, max: constraints.max as number })
     }
 
-    if (constraints.allowedValues && !constraints.allowedValues.includes(value)) {
-      return { isValid: false, error: `Parameter ${def.key} must be one of: ${constraints.allowedValues.join(', ')}` }
-    }
-
-    return { isValid: true }
+    return ok(undefined)
   }
 
-  private validateTuple2(def: ParameterDefinition, value: any, constraints: ParameterConstraint): ValidationResult {
-    if (!Array.isArray(value) || value.length !== 2) {
-      return { isValid: false, error: `Parameter ${def.key} must be an array of 2 numbers` }
+  private validateItems(parameter: string, value: unknown[], constraints: ParameterConstraint): Result<void, ParameterIssue> {
+    if (!value.every(item => typeof item === 'number' && !Number.isNaN(item))) {
+      return err({ code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter })
     }
 
-    if (!value.every(v => typeof v === 'number' && !Number.isNaN(v))) {
-      return { isValid: false, error: `Parameter ${def.key} must contain valid numbers` }
-    }
+    const items = value as number[]
+    const minItems = Array.isArray(constraints.min) ? constraints.min : []
+    const maxItems = Array.isArray(constraints.max) ? constraints.max : []
 
-    if (constraints.min && Array.isArray(constraints.min)) {
-      const minArray = constraints.min as number[]
-      for (let i = 0; i < 2; i++) {
-        const minValue = minArray[i]
-        if (minValue !== undefined && value[i] < minValue) {
-          return { isValid: false, error: `Parameter ${def.key}[${i}] must be >= ${minValue}` }
-        }
+    for (const [index, item] of items.entries()) {
+      const min = minItems[index]
+      if (min !== undefined && item < min) {
+        return err({ code: 'PARAMETER_ITEM_TOO_SMALL', parameter, index, min })
+      }
+
+      const max = maxItems[index]
+      if (max !== undefined && item > max) {
+        return err({ code: 'PARAMETER_ITEM_TOO_LARGE', parameter, index, max })
       }
     }
 
-    if (constraints.max && Array.isArray(constraints.max)) {
-      const maxArray = constraints.max as number[]
-      for (let i = 0; i < 2; i++) {
-        const maxValue = maxArray[i]
-        if (maxValue !== undefined && value[i] > maxValue) {
-          return { isValid: false, error: `Parameter ${def.key}[${i}] must be <= ${maxValue}` }
-        }
-      }
-    }
-
-    return { isValid: true }
-  }
-
-  private validateTuple3(def: ParameterDefinition, value: any, constraints: ParameterConstraint): ValidationResult {
-    if (!Array.isArray(value) || (value.length !== 3 && value.length !== 2)) {
-      return { isValid: false, error: `Parameter ${def.key} must be an array of 2 or 3 numbers` }
-    }
-
-    if (!value.every(v => typeof v === 'number' && !Number.isNaN(v))) {
-      return { isValid: false, error: `Parameter ${def.key} must contain valid numbers` }
-    }
-
-    if (constraints.min && Array.isArray(constraints.min)) {
-      const minArray = constraints.min as number[]
-      for (let i = 0; i < Math.min(value.length, minArray.length); i++) {
-        const minValue = minArray[i]
-        if (minValue !== undefined && value[i] < minValue) {
-          return { isValid: false, error: `Parameter ${def.key}[${i}] must be >= ${minValue}` }
-        }
-      }
-    }
-
-    if (constraints.max && Array.isArray(constraints.max)) {
-      const maxArray = constraints.max as number[]
-      for (let i = 0; i < Math.min(value.length, maxArray.length); i++) {
-        const maxValue = maxArray[i]
-        if (maxValue !== undefined && value[i] > maxValue) {
-          return { isValid: false, error: `Parameter ${def.key}[${i}] must be <= ${maxValue}` }
-        }
-      }
-    }
-
-    return { isValid: true }
-  }
-
-  private validateBoolean(def: ParameterDefinition, value: any, _constraints: ParameterConstraint): ValidationResult {
-    if (typeof value !== 'boolean') {
-      return { isValid: false, error: `Parameter ${def.key} must be a boolean` }
-    }
-
-    return { isValid: true }
+    return ok(undefined)
   }
 }
 

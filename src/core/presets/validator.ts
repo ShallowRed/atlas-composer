@@ -83,14 +83,8 @@ export function validateCompositePreset(
       issues.push({ code: 'PRESET_POSITIONING_REQUIRED', territory: territory.code })
     }
 
-    const validationResults = parameterRegistry.validateParameters(
-      territory.projection.parameters,
-      family,
-    )
-    for (const result of validationResults) {
-      if (!result.isValid) {
-        warnings.push(`Territory ${territory.code}: ${result.error}`)
-      }
+    for (const issue of parameterRegistry.validateParameters(territory.projection.parameters, family)) {
+      warnings.push(`Territory ${territory.code}: ${JSON.stringify(issue)}`)
     }
   }
 

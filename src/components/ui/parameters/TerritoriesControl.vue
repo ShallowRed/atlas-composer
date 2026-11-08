@@ -160,7 +160,6 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
           :projection-family="getProjectionFamily(territory.code)"
           :view="viewStore.positioningView"
           :show-inheritance-indicators="true"
-          :allow-parameter-overrides="true"
           @parameter-changed="handleParameterChange"
           @override-cleared="handleOverrideCleared"
         />

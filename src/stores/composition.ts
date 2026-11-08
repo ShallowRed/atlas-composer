@@ -514,14 +514,10 @@ export const useCompositionStore = defineStore('composition', () => {
     }
 
     if (state.parameters.territories && Object.keys(state.parameters.territories).length > 0) {
-      const validationErrors = parameterStore.initializeFromPreset(
+      parameterStore.initializeFromPreset(
         {} as any, // Atlas params already set above
         state.parameters.territories as any,
       )
-
-      if (validationErrors.length > 0) {
-        debug('Parameter validation warnings: %O', validationErrors)
-      }
     }
 
     for (const [code, projection] of Object.entries(state.territories.projections)) {

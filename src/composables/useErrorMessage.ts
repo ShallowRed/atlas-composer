@@ -1,5 +1,5 @@
 import type { PickupKeys } from 'vue-i18n'
-import type { AppError, PresetIssue } from '@/core/types/errors'
+import type { AppError, ParameterIssue, PresetIssue } from '@/core/types/errors'
 import type { MessageSchema } from '@/i18n'
 import { useI18n } from 'vue-i18n'
 
@@ -57,6 +57,20 @@ export const ISSUE_MESSAGE_KEYS = {
   PRESET_PARAMETER_TOO_LARGE: 'errors.presetIssue.parameterTooLarge',
 } as const satisfies Record<PresetIssue['code'], MessageKey>
 
+export const PARAMETER_ISSUE_MESSAGE_KEYS = {
+  PARAMETER_REQUIRED: 'errors.parameterIssue.required',
+  PARAMETER_NOT_NUMBER: 'errors.parameterIssue.notNumber',
+  PARAMETER_NOT_PAIR: 'errors.parameterIssue.notPair',
+  PARAMETER_NOT_PAIR_OR_TRIPLE: 'errors.parameterIssue.notPairOrTriple',
+  PARAMETER_ITEMS_NOT_NUMBERS: 'errors.parameterIssue.itemsNotNumbers',
+  PARAMETER_TOO_SMALL: 'errors.parameterIssue.tooSmall',
+  PARAMETER_TOO_LARGE: 'errors.parameterIssue.tooLarge',
+  PARAMETER_ITEM_TOO_SMALL: 'errors.parameterIssue.itemTooSmall',
+  PARAMETER_ITEM_TOO_LARGE: 'errors.parameterIssue.itemTooLarge',
+  PARAMETER_OUT_OF_RANGE: 'errors.parameterIssue.outOfRange',
+  PARAMETER_PARALLELS_ORDER: 'errors.parameterIssue.parallelsOrder',
+} as const satisfies Record<ParameterIssue['code'], MessageKey>
+
 export function useErrorMessage() {
   const { t } = useI18n()
 
@@ -82,5 +96,9 @@ export function useErrorMessage() {
     return 'issues' in error ? error.issues.map(issueMessage) : [errorMessage(error)]
   }
 
-  return { errorMessage, errorMessages }
+  function parameterIssueMessage({ code, ...fields }: ParameterIssue): string {
+    return t(PARAMETER_ISSUE_MESSAGE_KEYS[code], fields)
+  }
+
+  return { errorMessage, errorMessages, parameterIssueMessage }
 }

@@ -1,11 +1,10 @@
-import type { ValidationResult } from '@/core/parameters/parameter-registry'
 import type { PositioningView, PositionParameter } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { ParameterIssue } from '@/core/types/errors'
 import type { Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type {
   ParameterUpdate,
-  ParameterValidationResult,
   ProjectionParameterProvider,
   ProjectionParameters,
 } from '@/types/projection-parameters'
@@ -34,14 +33,11 @@ type TupleRanges<K extends PositionParameter> = K extends 'rotate'
 export const useParameterStore = defineStore('parameters', () => {
   const parameterManager = new ProjectionParameterManager()
 
-  const validationErrors = ref<Map<string, ParameterValidationResult[]>>(new Map())
-
   const globalParametersVersion = ref(0)
   const territoryParametersVersion = ref(0)
 
   function reset() {
     parameterManager.reset()
-    validationErrors.value.clear()
     globalParametersVersion.value = 0
     territoryParametersVersion.value = 0
   }
@@ -151,44 +147,14 @@ export const useParameterStore = defineStore('parameters', () => {
       delete globalParameters.value[key as keyof ProjectionParameters]
     })
 
-    validationErrors.value.clear()
-
     globalParametersVersion.value++
     territoryParametersVersion.value++
 
     debug('All parameters cleared')
   }
 
-  function validateParameter(family: ProjectionFamilyType, key: keyof ProjectionParameters, value: any): ParameterValidationResult {
-    const result = parameterRegistry.validate(key as string, value, family)
-    return {
-      isValid: result.isValid,
-      error: result.error,
-      warning: result.warning,
-    }
-  }
-
-  function validateParameterSet(family: ProjectionFamilyType, parameters: Partial<ProjectionParameters>): ParameterValidationResult[] {
-    const results = parameterRegistry.validateParameters(parameters, family)
-    return results.map(result => ({
-      isValid: result.isValid,
-      error: result.error,
-      warning: result.warning,
-    }))
-  }
-
-  function validateTerritoryParameters(territoryCode: TerritoryCode, family: ProjectionFamilyType) {
-    const parameters = getEffectiveParameters(territoryCode)
-    const results = validateParameterSet(family, parameters)
-
-    if (results.length > 0) {
-      validationErrors.value.set(territoryCode, results)
-    }
-    else {
-      validationErrors.value.delete(territoryCode)
-    }
-
-    return results
+  function validateTerritoryParameters(territoryCode: TerritoryCode, family: ProjectionFamilyType): ParameterIssue[] {
+    return parameterRegistry.validateParameters(getEffectiveParameters(territoryCode), family)
   }
 
   function getParameterConstraints(family: ProjectionFamilyType) {
@@ -229,9 +195,7 @@ export const useParameterStore = defineStore('parameters', () => {
   function initializeFromPreset(
     atlasParams: ProjectionParameters,
     territoryParams: Record<string, ProjectionParameters>,
-  ): ValidationResult[] {
-    const errors: ValidationResult[] = []
-
+  ): void {
     if (atlasParams) {
       parameterManager.setAtlasParameters(atlasParams)
     }
@@ -239,8 +203,6 @@ export const useParameterStore = defineStore('parameters', () => {
     for (const [code, params] of Object.entries(territoryParams)) {
       setTerritoryParameters(code as TerritoryCode, params)
     }
-
-    return errors
   }
 
   function getExportableParameters(territoryCode: string): ProjectionParameters {
@@ -264,7 +226,6 @@ export const useParameterStore = defineStore('parameters', () => {
   })
 
   return {
-    validationErrors,
     territoryParametersVersion, // Reactive version for watching parameter changes
 
     globalParameters,
@@ -292,7 +253,6 @@ export const useParameterStore = defineStore('parameters', () => {
     clearAllTerritoryOverrides,
     clearAll,
 
-    validateParameter,
     validateTerritoryParameters,
 
     getParameterConstraints,
