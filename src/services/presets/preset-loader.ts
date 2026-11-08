@@ -43,16 +43,18 @@ export class PresetLoader {
     const relativePath = resolveConfigPath(presetDef.configPath)
     const fileResult = await JsonFileLoader.loadJSON<any>(relativePath)
 
-    if (!fileResult.success || !fileResult.data) {
+    if (!fileResult.ok) {
       return {
         success: false,
-        errors: fileResult.errors,
-        warnings: fileResult.warnings,
+        errors: [`${fileResult.error.code}: ${fileResult.error.path}`],
+        warnings: [],
       }
     }
 
+    const file = fileResult.value
+
     if (presetDef.type === 'composite-custom') {
-      const validation = validateCompositePreset(fileResult.data)
+      const validation = validateCompositePreset(file)
 
       if (!validation.success) {
         return {
@@ -66,7 +68,7 @@ export class PresetLoader {
         id: presetId,
         atlasId,
         type: 'composite-custom',
-        config: fileResult.data as CompositeCustomConfig,
+        config: file as CompositeCustomConfig,
       }
 
       return {
@@ -78,7 +80,7 @@ export class PresetLoader {
     }
     else {
       const validationData = {
-        ...fileResult.data,
+        ...file,
         viewMode: presetDef.type as 'unified' | 'split' | 'built-in-composite',
       }
 
@@ -96,7 +98,7 @@ export class PresetLoader {
         id: presetId,
         atlasId,
         type: presetDef.type,
-        config: fileResult.data.config,
+        config: file.config,
       } as Preset
 
       return {

@@ -24,21 +24,20 @@ describe('loadJSON', () => {
 
     const result = await JsonFileLoader.loadJSON(PATH)
 
-    expect(result).toMatchObject({ success: true, data: { name: 'example' } })
+    expect(result).toEqual({ ok: true, value: { name: 'example' } })
   })
 
   it.each([
-    ['a missing file', async () => new Response('', { status: 404 })],
-    ['a server failure', async () => new Response('', { status: 500 })],
-    ['an unreachable server', async () => Promise.reject(new TypeError('Failed to fetch'))],
-    ['a body that is not JSON', async () => new Response('<!doctype html>')],
-    ['an unreadable body', async () => unreadableBody],
-  ])('fails on %s and names the file', async (_name, respond) => {
+    ['a missing file', async () => new Response('', { status: 404 }), { code: 'JSON_FILE_NOT_FOUND', path: PATH }],
+    ['a server failure', async () => new Response('', { status: 500 }), { code: 'JSON_FILE_NETWORK_ERROR', path: PATH, status: 500 }],
+    ['an unreachable server', async () => Promise.reject(new TypeError('Failed to fetch')), { code: 'JSON_FILE_UNREACHABLE', path: PATH }],
+    ['a body that is not JSON', async () => new Response('<!doctype html>'), { code: 'JSON_FILE_MALFORMED', path: PATH }],
+    ['an unreadable body', async () => unreadableBody, { code: 'JSON_FILE_MALFORMED', path: PATH }],
+  ])('fails on %s', async (_name, respond, error) => {
     stubFetch(respond)
 
     const result = await JsonFileLoader.loadJSON(PATH)
 
-    expect(result.success).toBe(false)
-    expect(result.errors.join()).toContain(PATH)
+    expect(result).toEqual({ ok: false, error })
   })
 })

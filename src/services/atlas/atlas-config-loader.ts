@@ -28,12 +28,12 @@ export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): 
   }
 
   const file = await JsonFileLoader.loadJSON<JSONAtlasConfig>(resolveConfigPath(configPath))
-  if (!file.success || !file.data) {
-    throw new Error(`Failed to load atlas '${atlasId}': ${file.errors.join(', ')}`)
+  if (!file.ok) {
+    throw new Error(`Failed to load atlas '${atlasId}': ${file.error.code} ${file.error.path}`)
   }
 
-  const jsonConfig = file.data
-  if (!jsonConfig.id || !jsonConfig.territories) {
+  const jsonConfig = file.value
+  if (!jsonConfig?.id || !jsonConfig.territories) {
     throw new Error(`Failed to load atlas '${atlasId}': missing required fields (id, territories)`)
   }
 
