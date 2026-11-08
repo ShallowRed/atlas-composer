@@ -2,7 +2,7 @@ import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig, AtlasId, TerritoryConfig } from '@/types'
 
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import {
   DEFAULT_ATLAS,
   getAtlasConfig,
@@ -13,9 +13,6 @@ import { getInitialTerritoryMode as initialTerritoryModeOf } from '@/core/atlase
 import i18n from '@/i18n'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { AtlasService } from '@/services/atlas/atlas-service'
-import { logger } from '@/utils/logger'
-
-const debug = logger.atlas.loader
 
 export const useAtlasStore = defineStore('atlas', () => {
   const selectedAtlasId = ref<AtlasId>(DEFAULT_ATLAS as AtlasId)
@@ -49,10 +46,6 @@ export const useAtlasStore = defineStore('atlas', () => {
     }
     return loadedConfig
   }
-
-  watch(selectedAtlasId, (atlasId) => {
-    loadAtlas(atlasId).catch(error => debug('Failed to load atlas: %o', error))
-  })
 
   function getInitialTerritoryMode(): string {
     return initialTerritoryModeOf(getLoadedConfig(selectedAtlasId.value).atlasConfig)

@@ -2,6 +2,7 @@ import type { AtlasId } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
 import { useAppStore } from '@/stores/app'
@@ -98,6 +99,17 @@ describe('composition store', () => {
       expect(atlasStore.selectedAtlasId).toBe('france')
       expect(atlasStore.currentAtlasConfig?.id).toBe('france')
       expect(loadAtlas.mock.calls.map(([atlasId]) => atlasId)).toEqual(['usa', 'france'])
+    })
+
+    it('reads the configuration of the new atlas once', async () => {
+      await startApplication(FRANCE)
+      useCompositionStore()
+      const loadJSON = vi.spyOn(JsonFileLoader, 'loadJSON')
+
+      useAtlasStore().selectedAtlasId = 'portugal' as AtlasId
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+
+      expect(loadJSON.mock.calls.filter(([path]) => path === 'configs/atlases/portugal.json')).toHaveLength(1)
     })
   })
 
