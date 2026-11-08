@@ -49,7 +49,7 @@ describe('view store', () => {
       await startApplication(FRANCE)
       await openView(FRANCE, 'unified')
       const viewStore = useViewStore()
-      const currentPreset = viewStore.currentViewPreset
+      viewStore.clearViewPreset()
       vi.stubGlobal('fetch', async () => new Response('', { status: 404 }))
 
       expect(await viewStore.loadViewPreset(createPresetId('france-unified'))).toMatchObject({
@@ -57,7 +57,7 @@ describe('view store', () => {
         error: { code: 'JSON_FILE_NOT_FOUND' },
       })
 
-      expect(viewStore.currentViewPreset).toBe(currentPreset)
+      expect(viewStore.currentViewPreset).toBeNull()
     })
   })
 })
