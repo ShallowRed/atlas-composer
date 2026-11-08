@@ -550,6 +550,9 @@
       "itemTooLarge": "Value {index} of the parameter {parameter} must be at most {max}",
       "outOfRange": "The parameter {parameter} must be between {min} and {max}",
       "parallelsOrder": "The south value of {parameter} must be below the north value"
+    },
+    "export": {
+      "notAvailable": "There is no composite projection to export"
     }
   },
   "validation": {

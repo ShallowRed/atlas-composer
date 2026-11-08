@@ -54,6 +54,8 @@ export type ParameterIssue
     | { code: 'PARAMETER_OUT_OF_RANGE', parameter: string, min: number, max: number }
     | { code: 'PARAMETER_PARALLELS_ORDER', parameter: string }
 
+export interface ExportError { code: 'EXPORT_NOT_AVAILABLE' }
+
 export type AtlasConfigError
   = | JsonFileError
     | { code: 'ATLAS_UNKNOWN', atlasId: string }
@@ -86,4 +88,5 @@ export type AppError
   = | InitializationError
     | PresetApplicationError
     | ImportError
+    | ExportError
     | { code: 'ATLAS_SWITCH_FAILED', atlasId: string, cause: InitializationError }
