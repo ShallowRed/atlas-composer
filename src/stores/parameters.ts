@@ -257,7 +257,7 @@ export const useParameterStore = defineStore('parameters', () => {
     return result
   }
 
-  // Read by the composite projections, which call it at each render
+  // markRaw: the composite projections call it at each render, without a reactive proxy
   const parameterProvider: ProjectionParameterProvider = markRaw({
     getEffectiveParameters,
     getExportableParameters,

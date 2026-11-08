@@ -44,7 +44,8 @@ function geoDataFailure(error: GeoDataError): string {
   return `Failed to load geographic data: ${error.code}`
 }
 
-// Use cases that write several stores. No store imports this one.
+// Use cases that write several stores. It imports the other stores: a store that
+// imports it forms a cycle, which knip --cycles refuses.
 export const useCompositionStore = defineStore('composition', () => {
   const appStore = useAppStore()
   const atlasStore = useAtlasStore()
