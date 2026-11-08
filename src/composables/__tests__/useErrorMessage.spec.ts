@@ -72,8 +72,8 @@ const parameterIssues = {
   PARAMETER_ITEMS_NOT_NUMBERS: { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: 'parameter-x' },
   PARAMETER_TOO_SMALL: { code: 'PARAMETER_TOO_SMALL', parameter: 'parameter-x', min: 11 },
   PARAMETER_TOO_LARGE: { code: 'PARAMETER_TOO_LARGE', parameter: 'parameter-x', max: 22 },
-  PARAMETER_ITEM_TOO_SMALL: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'parameter-x', index: 3, min: 11 },
-  PARAMETER_ITEM_TOO_LARGE: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'parameter-x', index: 3, max: 22 },
+  PARAMETER_ITEM_TOO_SMALL: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'parameter-x', position: 3, min: 11 },
+  PARAMETER_ITEM_TOO_LARGE: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'parameter-x', position: 3, max: 22 },
   PARAMETER_OUT_OF_RANGE: { code: 'PARAMETER_OUT_OF_RANGE', parameter: 'parameter-x', min: 11, max: 22 },
   PARAMETER_PARALLELS_ORDER: { code: 'PARAMETER_PARALLELS_ORDER', parameter: 'parameter-x' },
 } satisfies { [C in ParameterIssue['code']]: Extract<ParameterIssue, { code: C }> }

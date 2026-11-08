@@ -149,11 +149,11 @@ describe('parameterRegistry', () => {
       },
       PARAMETER_ITEM_TOO_SMALL: {
         issue: () => issueOf('center', [-200, 0], 'CYLINDRICAL'),
-        expected: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'center', index: 0, min: -180 },
+        expected: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'center', position: 1, min: -180 },
       },
       PARAMETER_ITEM_TOO_LARGE: {
         issue: () => issueOf('center', [200, 0], 'CYLINDRICAL'),
-        expected: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'center', index: 0, max: 180 },
+        expected: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'center', position: 1, max: 180 },
       },
       PARAMETER_OUT_OF_RANGE: {
         issue: () => issueOf('parallels', [-100, 100], 'CONIC'),

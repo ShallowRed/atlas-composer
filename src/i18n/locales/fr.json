@@ -559,8 +559,8 @@
       "itemsNotNumbers": "Le paramètre {parameter} ne doit contenir que des nombres",
       "tooSmall": "Le paramètre {parameter} doit valoir au moins {min}",
       "tooLarge": "Le paramètre {parameter} doit valoir au plus {max}",
-      "itemTooSmall": "La valeur {index} du paramètre {parameter} doit valoir au moins {min}",
-      "itemTooLarge": "La valeur {index} du paramètre {parameter} doit valoir au plus {max}",
+      "itemTooSmall": "La valeur {position} du paramètre {parameter} doit valoir au moins {min}",
+      "itemTooLarge": "La valeur {position} du paramètre {parameter} doit valoir au plus {max}",
       "outOfRange": "Le paramètre {parameter} doit être compris entre {min} et {max}",
       "parallelsOrder": "La valeur sud de {parameter} doit être inférieure à la valeur nord"
     },

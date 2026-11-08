@@ -49,8 +49,8 @@ export type ParameterIssue
     | { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: string }
     | { code: 'PARAMETER_TOO_SMALL', parameter: string, min: number }
     | { code: 'PARAMETER_TOO_LARGE', parameter: string, max: number }
-    | { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: string, index: number, min: number }
-    | { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: string, index: number, max: number }
+    | { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: string, position: number, min: number }
+    | { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: string, position: number, max: number }
     | { code: 'PARAMETER_OUT_OF_RANGE', parameter: string, min: number, max: number }
     | { code: 'PARAMETER_PARALLELS_ORDER', parameter: string }
 

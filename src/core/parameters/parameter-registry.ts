@@ -167,12 +167,12 @@ class ParameterRegistry {
     for (const [index, item] of items.entries()) {
       const min = minItems[index]
       if (min !== undefined && item < min) {
-        return err({ code: 'PARAMETER_ITEM_TOO_SMALL', parameter, index, min })
+        return err({ code: 'PARAMETER_ITEM_TOO_SMALL', parameter, position: index + 1, min })
       }
 
       const max = maxItems[index]
       if (max !== undefined && item > max) {
-        return err({ code: 'PARAMETER_ITEM_TOO_LARGE', parameter, index, max })
+        return err({ code: 'PARAMETER_ITEM_TOO_LARGE', parameter, position: index + 1, max })
       }
     }
 
