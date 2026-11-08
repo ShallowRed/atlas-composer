@@ -3,6 +3,7 @@ import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { readPresetFiles } from '@/__tests__/test-utils'
 import { err } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -13,6 +14,7 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
+import { useUIStore } from '@/stores/ui'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
@@ -101,6 +103,20 @@ describe('composition store', () => {
       expect(loadAtlas.mock.calls.map(([atlasId]) => atlasId)).toEqual(['usa', 'france'])
     })
 
+    it('shows a toast when the new atlas fails to open', async () => {
+      await startApplication(FRANCE)
+      useCompositionStore()
+      stubFetchFailingOn('usa')
+
+      useAtlasStore().selectedAtlasId = 'usa' as AtlasId
+      await vi.waitFor(() => expect(useUIStore().toasts).toHaveLength(1))
+
+      expect(useUIStore().toasts[0]).toMatchObject({
+        type: 'error',
+        message: expect.stringMatching(/^Cannot switch to usa/),
+      })
+    })
+
     it('reads the configuration of the new atlas once', async () => {
       await startApplication(FRANCE)
       useCompositionStore()
@@ -149,6 +165,31 @@ describe('composition store', () => {
 
       expect(result.success).toBe(true)
       expect(validatePreset).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('readConfigurationFile', () => {
+    function frenchPresetFile(): File {
+      const { json } = readPresetFiles().find(({ id }) => id === 'france-standard')!
+      return new File([json], 'france-standard.json')
+    }
+
+    it('reads a file of the current atlas', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+
+      const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
+
+      expect(result.ok).toBe(true)
+    })
+
+    it('fails while the atlas configuration is not loaded', async () => {
+      await startApplication(FRANCE)
+      useAtlasStore().currentAtlasConfig = null
+
+      const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
+
+      expect(result.ok).toBe(false)
     })
   })
 
