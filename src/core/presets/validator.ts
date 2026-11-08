@@ -2,44 +2,41 @@ import type { PresetType } from '#types'
 import type {
   CompositeCustomConfig,
   CompositeExistingViewConfig,
-  LoadResult,
   SplitViewConfig,
   UnifiedViewConfig,
   ViewPresetMode,
 } from './types'
+import type { PresetIssue } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { AtlasConfig } from '@/types'
 
 import { validateConfig } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
+import { err, ok } from '@/core/types/result'
 import { logger } from '@/utils/logger'
-import { formatValidationError } from './composite-config'
 import {
-  validateAtlasId,
-  validateProjectionId,
-  validateProjectionParameters,
+  atlasIdIssue,
+  checkProjectionParameters,
+  projectionIdIssue,
 } from './validation-utils'
 
 const debug = logger.presets.validator
 
-export interface ViewPresetValidationResult {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
+function logWarnings(warnings: string[]): void {
+  if (warnings.length > 0) {
+    debug('Preset warnings: %O', warnings)
+  }
 }
 
 export function validatePreset(
   preset: any,
   presetType: PresetType,
-): ViewPresetValidationResult {
+): Result<void, PresetIssue[]> {
   switch (presetType) {
     case 'composite-custom': {
       const result = validateCompositePreset(preset as CompositeCustomConfig)
-      return {
-        isValid: result.success,
-        errors: result.errors,
-        warnings: result.warnings,
-      }
+      return result.ok ? ok(undefined) : result
     }
     case 'unified':
     case 'split':
@@ -54,31 +51,21 @@ export function validatePreset(
       }
       return validateViewPreset(viewPreset)
     }
-    default: {
-      return {
-        isValid: false,
-        errors: [`Unknown preset type: ${presetType}`],
-        warnings: [],
-      }
-    }
   }
 }
 
 export function validateCompositePreset(
   rawPreset: CompositeCustomConfig,
-): LoadResult<CompositeCustomConfig> {
+): Result<CompositeCustomConfig, PresetIssue[]> {
   const validation = validateConfig(rawPreset)
 
   if (!validation.valid) {
-    return {
-      success: false,
-      errors: validation.errors.map(formatValidationError),
-      warnings: [],
-    }
+    debug('Preset refused by the schema: %O', validation.errors)
+    return err(validation.errors.map(({ code, path }) => ({ code: `PRESET_SCHEMA_${code}` as const, path })))
   }
 
-  const paramErrors: string[] = []
-  const paramWarnings: string[] = []
+  const issues: PresetIssue[] = []
+  const warnings: string[] = []
 
   for (const territory of rawPreset.territories) {
     const family = territory.projection.family
@@ -108,14 +95,14 @@ export function validateCompositePreset(
         }
 
         if (!hasParameter) {
-          paramErrors.push(`Territory ${territory.code}: missing required parameter ${def.key}`)
+          issues.push({ code: 'PRESET_PARAMETER_REQUIRED', territory: territory.code, parameter: def.key as string })
         }
       }
     }
 
     const { rotate, center } = territory.projection.parameters
     if (rotate === undefined && center === undefined) {
-      paramErrors.push(`Territory ${territory.code}: missing required parameter rotate or center`)
+      issues.push({ code: 'PRESET_POSITIONING_REQUIRED', territory: territory.code })
     }
 
     const validationResults = parameterRegistry.validateParameters(
@@ -124,25 +111,14 @@ export function validateCompositePreset(
     )
     for (const result of validationResults) {
       if (!result.isValid) {
-        paramWarnings.push(`Territory ${territory.code}: ${result.error}`)
+        warnings.push(`Territory ${territory.code}: ${result.error}`)
       }
     }
   }
 
-  if (paramErrors.length > 0) {
-    return {
-      success: false,
-      errors: paramErrors,
-      warnings: paramWarnings,
-    }
-  }
+  logWarnings(warnings)
 
-  return {
-    success: true,
-    data: rawPreset,
-    errors: [],
-    warnings: paramWarnings,
-  }
+  return issues.length === 0 ? ok(rawPreset) : err(issues)
 }
 
 export function validateViewPreset(preset: {
@@ -152,129 +128,118 @@ export function validateViewPreset(preset: {
   atlasId: string
   viewMode: ViewPresetMode
   config: UnifiedViewConfig | SplitViewConfig | CompositeExistingViewConfig
-}): ViewPresetValidationResult {
-  const errors: string[] = []
+}): Result<void, PresetIssue[]> {
+  const issues: PresetIssue[] = []
   const warnings: string[] = []
 
   if (!preset.id) {
-    errors.push('Missing required field: id')
+    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'id' })
   }
   if (!preset.name) {
-    errors.push('Missing required field: name')
+    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'name' })
   }
   if (!preset.config) {
-    errors.push('Missing required field: config')
+    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'config' })
   }
 
   if (preset.atlasId) {
-    const atlasValidation = validateAtlasId(preset.atlasId, { allowUnknown: true })
-    errors.push(...atlasValidation.errors)
-    warnings.push(...atlasValidation.warnings)
+    const issue = atlasIdIssue(preset.atlasId)
+    if (issue) {
+      issues.push(issue)
+    }
   }
   else {
-    errors.push('Missing required field: atlasId')
+    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'atlasId' })
   }
 
   const validViewModes: ViewPresetMode[] = ['unified', 'split', 'built-in-composite']
   if (preset.viewMode && !validViewModes.includes(preset.viewMode)) {
-    errors.push(`Invalid view mode: ${preset.viewMode}. Must be one of: ${validViewModes.join(', ')}`)
+    issues.push({ code: 'PRESET_VIEW_MODE_INVALID', viewMode: preset.viewMode })
   }
   else if (!preset.viewMode) {
-    errors.push('Missing required field: viewMode')
+    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'viewMode' })
   }
 
-  if (preset.viewMode === 'unified') {
-    validateUnifiedConfig(preset.config as UnifiedViewConfig, errors, warnings)
-  }
-  else if (preset.viewMode === 'split') {
-    validateSplitConfig(preset.config as SplitViewConfig, errors, warnings)
-  }
-  else if (preset.viewMode === 'built-in-composite') {
-    validateCompositeExistingConfig(preset.config as CompositeExistingViewConfig, errors, warnings)
+  if (preset.config) {
+    if (preset.viewMode === 'unified') {
+      validateUnifiedConfig(preset.config as UnifiedViewConfig, issues, warnings)
+    }
+    else if (preset.viewMode === 'split') {
+      validateSplitConfig(preset.config as SplitViewConfig, issues, warnings)
+    }
+    else if (preset.viewMode === 'built-in-composite') {
+      validateCompositeExistingConfig(preset.config as CompositeExistingViewConfig, issues, warnings)
+    }
   }
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-    warnings,
-  }
+  logWarnings(warnings)
+
+  return issues.length === 0 ? ok(undefined) : err(issues)
 }
 
 function validateUnifiedConfig(
   config: UnifiedViewConfig,
-  errors: string[],
+  issues: PresetIssue[],
   warnings: string[],
 ): void {
   if (!config.projection) {
-    errors.push('Unified config missing projection')
+    issues.push({ code: 'PRESET_PROJECTION_MISSING' })
     return
   }
 
-  const projIdValidation = validateProjectionId(config.projection.id)
-  errors.push(...projIdValidation.errors)
-  warnings.push(...projIdValidation.warnings)
+  const idIssue = projectionIdIssue(config.projection.id, null)
+  if (idIssue) {
+    issues.push(idIssue)
+    return
+  }
 
-  if (projIdValidation.isValid) {
-    const projection = projectionRegistry.get(config.projection.id)
-    if (!projection) {
-      errors.push(`Unknown projection: ${config.projection.id}`)
-      return
-    }
+  const projection = projectionRegistry.get(config.projection.id)
+  if (!projection) {
+    issues.push({ code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: config.projection.id })
+    return
+  }
 
-    if (config.projection.parameters) {
-      const paramValidation = validateProjectionParameters(
-        config.projection.parameters,
-        projection.family,
-        { context: 'unified projection' },
-      )
-      errors.push(...paramValidation.errors)
-      warnings.push(...paramValidation.warnings)
-    }
+  if (config.projection.parameters) {
+    checkProjectionParameters(config.projection.parameters, projection.family, null, issues, warnings)
   }
 }
 
 function validateSplitConfig(
   config: SplitViewConfig,
-  errors: string[],
+  issues: PresetIssue[],
   warnings: string[],
 ): void {
   if (!config.territories) {
-    errors.push('Split config missing territories')
+    issues.push({ code: 'PRESET_TERRITORIES_MISSING' })
     return
   }
 
   for (const [code, territoryConfig] of Object.entries(config.territories)) {
-    const projIdValidation = validateProjectionId(territoryConfig.projection?.id)
-    if (!projIdValidation.isValid) {
-      errors.push(`Territory ${code}: ${projIdValidation.errors.join(', ')}`)
+    const idIssue = projectionIdIssue(territoryConfig?.projection?.id, code)
+    if (idIssue) {
+      issues.push(idIssue)
       continue
     }
 
     const projection = projectionRegistry.get(territoryConfig.projection.id)
     if (!projection) {
-      errors.push(`Territory ${code}: unknown projection ${territoryConfig.projection.id}`)
+      issues.push({ code: 'PRESET_PROJECTION_UNKNOWN', territory: code, projectionId: territoryConfig.projection.id })
       continue
     }
 
     if (territoryConfig.projection.parameters) {
-      const paramValidation = validateProjectionParameters(
-        territoryConfig.projection.parameters,
-        projection.family,
-        { context: `territory ${code} projection` },
-      )
-      errors.push(...paramValidation.errors)
-      warnings.push(...paramValidation.warnings)
+      checkProjectionParameters(territoryConfig.projection.parameters, projection.family, code, issues, warnings)
     }
   }
 }
 
 function validateCompositeExistingConfig(
   config: CompositeExistingViewConfig,
-  errors: string[],
+  issues: PresetIssue[],
   warnings: string[],
 ): void {
   if (!config.projectionId) {
-    errors.push('Composite-existing config missing projectionId')
+    issues.push({ code: 'PRESET_COMPOSITE_PROJECTION_MISSING' })
     return
   }
 
@@ -296,10 +261,10 @@ function validateCompositeExistingConfig(
 
   if (config.globalScale !== undefined) {
     if (typeof config.globalScale !== 'number') {
-      errors.push('globalScale must be a number')
+      issues.push({ code: 'PRESET_GLOBAL_SCALE_NOT_NUMBER' })
     }
     else if (config.globalScale <= 0) {
-      errors.push('globalScale must be greater than 0')
+      issues.push({ code: 'PRESET_GLOBAL_SCALE_NOT_POSITIVE' })
     }
     else if (config.globalScale < 0.1 || config.globalScale > 10) {
       warnings.push('globalScale is outside recommended range (0.1 to 10)')

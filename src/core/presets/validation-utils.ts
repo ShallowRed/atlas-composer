@@ -1,120 +1,74 @@
-import { getAtlasConfig, isAtlasLoaded } from '@/core/atlases/registry'
+import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { PresetIssue } from '@/core/types/errors'
 import { parameterRegistry } from '@/core/parameters'
 
-export interface ValidationResult {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
+function isNonEmptyString(value: unknown): boolean {
+  return typeof value === 'string' && value.trim() !== ''
 }
 
-export function validateAtlasId(
-  atlasId: unknown,
-  options: { allowUnknown?: boolean } = {},
-): ValidationResult {
-  const { allowUnknown = false } = options
-  const errors: string[] = []
-  const warnings: string[] = []
-
-  if (typeof atlasId !== 'string') {
-    errors.push('Atlas ID must be a string')
-    return { isValid: false, errors, warnings }
-  }
-
-  if (!atlasId || atlasId.trim() === '') {
-    errors.push('Atlas ID cannot be empty')
-    return { isValid: false, errors, warnings }
-  }
-
-  if (!allowUnknown && !isAtlasLoaded(atlasId)) {
-    try {
-      getAtlasConfig(atlasId)
-    }
-    catch {
-      warnings.push(`Atlas '${atlasId}' is not registered. Configuration may not load correctly.`)
-    }
-  }
-
-  return { isValid: true, errors, warnings }
+export function atlasIdIssue(atlasId: unknown): PresetIssue | null {
+  return isNonEmptyString(atlasId) ? null : { code: 'PRESET_ATLAS_ID_INVALID' }
 }
 
-export function validateProjectionId(projectionId: unknown): ValidationResult {
-  const errors: string[] = []
-  const warnings: string[] = []
-
-  if (typeof projectionId !== 'string') {
-    errors.push('Projection ID must be a string')
-    return { isValid: false, errors, warnings }
-  }
-
-  if (!projectionId || projectionId.trim() === '') {
-    errors.push('Projection ID cannot be empty')
-    return { isValid: false, errors, warnings }
-  }
-
-  return { isValid: true, errors, warnings }
+export function projectionIdIssue(projectionId: unknown, territory: string | null): PresetIssue | null {
+  return isNonEmptyString(projectionId) ? null : { code: 'PRESET_PROJECTION_ID_INVALID', territory }
 }
 
-export function validateProjectionParameters(
+export function checkProjectionParameters(
   parameters: unknown,
-  projectionFamily?: string,
-  options: { context?: string } = {},
-): ValidationResult {
-  const { context = 'parameters' } = options
-  const errors: string[] = []
-  const warnings: string[] = []
-
+  projectionFamily: ProjectionFamilyType,
+  territory: string | null,
+  issues: PresetIssue[],
+  warnings: string[],
+): void {
   if (!parameters || typeof parameters !== 'object') {
-    errors.push(`${context} must be an object`)
-    return { isValid: false, errors, warnings }
+    issues.push({ code: 'PRESET_PARAMETERS_NOT_OBJECT', territory })
+    return
   }
 
-  const params = parameters as Record<string, unknown>
+  const context = territory ? `territory ${territory} projection` : 'unified projection'
 
-  for (const [key, value] of Object.entries(params)) {
+  for (const [parameter, value] of Object.entries(parameters)) {
     if (value === undefined) {
       continue
     }
 
-    const paramDef = parameterRegistry.get(key)
+    const paramDef = parameterRegistry.get(parameter)
     if (!paramDef) {
-      warnings.push(`Unknown parameter '${key}' in ${context} - will be ignored`)
+      warnings.push(`Unknown parameter '${parameter}' in ${context} - will be ignored`)
       continue
     }
 
-    if (projectionFamily) {
-      const constraints = parameterRegistry.getConstraintsForFamily(key, projectionFamily as any)
-      if (!constraints.relevant) {
-        warnings.push(`Parameter '${key}' is not relevant for ${projectionFamily} projections`)
-      }
+    const constraints = parameterRegistry.getConstraintsForFamily(parameter, projectionFamily)
+    if (!constraints.relevant) {
+      warnings.push(`Parameter '${parameter}' is not relevant for ${projectionFamily} projections`)
     }
 
     const expectedType = paramDef.type
     const actualType = Array.isArray(value) ? 'array' : typeof value
+    const isTuple = expectedType === 'tuple2' || expectedType === 'tuple3'
 
     if (expectedType === 'number' && actualType !== 'number') {
-      errors.push(`Parameter '${key}' must be a number, got ${actualType}`)
+      issues.push({ code: 'PRESET_PARAMETER_NOT_NUMBER', territory, parameter, actualType })
     }
-    else if ((expectedType === 'tuple2' || expectedType === 'tuple3') && actualType !== 'array') {
-      errors.push(`Parameter '${key}' must be an array, got ${actualType}`)
+    else if (isTuple && actualType !== 'array') {
+      issues.push({ code: 'PRESET_PARAMETER_NOT_ARRAY', territory, parameter, actualType })
     }
 
-    if ((expectedType === 'tuple2' || expectedType === 'tuple3') && Array.isArray(value)) {
-      const expectedLength = expectedType === 'tuple2' ? 2 : 3
-      if (value.length !== expectedLength) {
-        errors.push(`Parameter '${key}' must have exactly ${expectedLength} elements`)
+    if (isTuple && Array.isArray(value)) {
+      const expected = expectedType === 'tuple2' ? 2 : 3
+      if (value.length !== expected) {
+        issues.push({ code: 'PRESET_PARAMETER_WRONG_LENGTH', territory, parameter, expected })
       }
     }
 
-    if (expectedType === 'number' && typeof value === 'number' && projectionFamily) {
-      const constraints = parameterRegistry.getConstraintsForFamily(key, projectionFamily as any)
+    if (expectedType === 'number' && typeof value === 'number') {
       if (typeof constraints.min === 'number' && value < constraints.min) {
-        errors.push(`Parameter '${key}' must be at least ${constraints.min}`)
+        issues.push({ code: 'PRESET_PARAMETER_TOO_SMALL', territory, parameter, min: constraints.min })
       }
       if (typeof constraints.max === 'number' && value > constraints.max) {
-        errors.push(`Parameter '${key}' must be at most ${constraints.max}`)
+        issues.push({ code: 'PRESET_PARAMETER_TOO_LARGE', territory, parameter, max: constraints.max })
       }
     }
   }
-
-  return { isValid: errors.length === 0, errors, warnings }
 }

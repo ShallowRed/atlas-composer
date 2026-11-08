@@ -56,11 +56,11 @@ export class PresetLoader {
     if (presetDef.type === 'composite-custom') {
       const validation = validateCompositePreset(file)
 
-      if (!validation.success) {
+      if (!validation.ok) {
         return {
           success: false,
-          errors: validation.errors,
-          warnings: validation.warnings,
+          errors: validation.error.map(issue => issue.code),
+          warnings: [],
         }
       }
 
@@ -75,7 +75,7 @@ export class PresetLoader {
         success: true,
         data: preset,
         errors: [],
-        warnings: validation.warnings,
+        warnings: [],
       }
     }
     else {
@@ -86,11 +86,11 @@ export class PresetLoader {
 
       const validation = validateViewPreset(validationData)
 
-      if (!validation.isValid) {
+      if (!validation.ok) {
         return {
           success: false,
-          errors: validation.errors,
-          warnings: validation.warnings,
+          errors: validation.error.map(issue => issue.code),
+          warnings: [],
         }
       }
 
@@ -105,7 +105,7 @@ export class PresetLoader {
         success: true,
         data: preset,
         errors: [],
-        warnings: validation.warnings,
+        warnings: [],
       }
     }
   }
