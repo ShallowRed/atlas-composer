@@ -20,7 +20,6 @@ export interface ProjectionParameters {
 export interface ProjectionParameterProvider {
   getEffectiveParameters: (territoryCode: TerritoryCode) => ProjectionParameters
   getExportableParameters: (territoryCode: TerritoryCode) => ProjectionParameters
-  setTerritoryParameters?: (territoryCode: TerritoryCode, parameters: Partial<ProjectionParameters>) => void
 }
 
 export interface ParameterValidationResult {
