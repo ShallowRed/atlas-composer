@@ -489,6 +489,54 @@
     "geoData": {
       "missingObject": "The geographic data has no object named \"{objectName}\"",
       "invalidStructure": "The geographic data file {path} has an invalid structure"
+    },
+    "atlas": {
+      "unknown": "Atlas {atlasId} is not in the registry",
+      "configInvalid": "The configuration of atlas {atlasId} is invalid",
+      "noDefaultPreset": "Atlas {atlasId} has no default preset for the view {viewMode}",
+      "switchFailed": "Cannot switch to {atlasId}: {cause}"
+    },
+    "preset": {
+      "unknown": "Unknown preset: {presetId}",
+      "invalid": "Preset {presetId} is invalid: {issues}",
+      "notApplicable": "Preset {presetId} has type {presetType} and does not apply to the view {viewMode}",
+      "applicationFailed": "Preset {presetId} could not be applied: {reason}"
+    },
+    "import": {
+      "notJsonFile": "{fileName} is not a .json file",
+      "fileTooLarge": "{fileName} is larger than {maxSizeInMb} MB",
+      "fileUnreadable": "{fileName} could not be read",
+      "malformedJson": "The file is not valid JSON",
+      "invalid": "The configuration is invalid: {issues}",
+      "atlasNotLoaded": "The atlas configuration is not loaded",
+      "atlasMismatch": "This configuration is for atlas {importedAtlasId} and the current atlas is {currentAtlasId}",
+      "applicationFailed": "The configuration could not be applied: {reason}"
+    },
+    "presetIssue": {
+      "inTerritory": "Territory {territory}: {message}",
+      "schemaInvalidType": "{path} has the wrong type",
+      "schemaMissingField": "{path} is missing",
+      "schemaInvalidValue": "{path} has an invalid value",
+      "schemaVersionUnsupported": "The version at {path} is not supported",
+      "fieldMissing": "The field {field} is missing",
+      "atlasIdInvalid": "The atlas identifier is invalid",
+      "viewModeInvalid": "The view mode {viewMode} is invalid",
+      "typeNotSupported": "Atlas {atlasId} has no preset of type {presetType}",
+      "parameterRequired": "The parameter {parameter} is required",
+      "positioningRequired": "The parameter rotate or center is required",
+      "projectionMissing": "The projection is missing",
+      "territoriesMissing": "The territories are missing",
+      "compositeProjectionMissing": "The composite projection is missing",
+      "globalScaleNotNumber": "The global scale must be a number",
+      "globalScaleNotPositive": "The global scale must be positive",
+      "projectionIdInvalid": "The projection identifier is invalid",
+      "projectionUnknown": "Unknown projection: {projectionId}",
+      "parametersNotObject": "The projection parameters must be an object",
+      "parameterNotNumber": "The parameter {parameter} must be a number and has type {actualType}",
+      "parameterNotArray": "The parameter {parameter} must be an array and has type {actualType}",
+      "parameterWrongLength": "The parameter {parameter} must have {expected} values",
+      "parameterTooSmall": "The parameter {parameter} must be at least {min}",
+      "parameterTooLarge": "The parameter {parameter} must be at most {max}"
     }
   }
 }
