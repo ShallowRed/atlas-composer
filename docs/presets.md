@@ -20,7 +20,7 @@ The preset system manages saved projection configurations using a unified archit
 | File | Purpose |
 |------|---------|
 | **types.ts** | Discriminated union types: `Preset`, `PresetType`, `LoadResult<T>` |
-| **validator.ts** | Strategy pattern validation: `validatePreset()`, `validateCompositePreset()`, `validateViewPreset()` |
+| **validator.ts** | Validation: `validateCompositePreset()`, `validateViewPreset()` |
 | **converter.ts** | Pure functions: `convertToDefaults()`, `extractTerritoryParameters()` |
 
 ### Service Layer (src/services/presets/)
