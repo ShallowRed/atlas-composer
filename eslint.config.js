@@ -69,7 +69,6 @@ const BOUNDARY_EXCEPTIONS = [
   'src/components/MapRenderer.vue',
   'src/components/ui/export/CompositeExportDialog.vue',
   'src/components/ui/import/ImportModal.vue',
-  'src/components/ui/presets/PresetSelector.vue',
 ]
 
 // Options of @antfu/eslint-config for these rules

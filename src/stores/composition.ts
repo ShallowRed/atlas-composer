@@ -7,6 +7,7 @@ import type {
   ApplicationState,
   AtlasInitializationOptions,
   InitializationResult,
+  PresetLoadOptions,
 } from '@/types/initialization'
 
 import { defineStore } from 'pinia'
@@ -240,6 +241,158 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
+  async function loadPreset(options: PresetLoadOptions): Promise<InitializationResult> {
+    const { presetId, skipValidation = false } = options
+
+    try {
+      appStore.startLoadingPreset()
+
+      const currentAtlasId = atlasStore.selectedAtlasId
+      const atlasConfig = getAtlasConfig(currentAtlasId)
+      const presetResult = await PresetLoader.loadPreset(presetId)
+      if (!presetResult.success || !presetResult.data) {
+        appStore.setReady()
+        return {
+          success: false,
+          errors: [`Failed to load preset '${presetId}': ${presetResult.errors.join(', ')}`],
+          warnings: presetResult.warnings || [],
+          state: null,
+        }
+      }
+
+      const preset = presetResult.data
+
+      if (!skipValidation) {
+        const validation = PresetValidationService.validatePreset(preset, atlasConfig)
+        if (!validation.isValid) {
+          appStore.setReady()
+          return {
+            success: false,
+            errors: validation.errors,
+            warnings: validation.warnings,
+            state: null,
+          }
+        }
+      }
+
+      if (preset.type !== 'composite-custom') {
+        appStore.setReady()
+        return {
+          success: true,
+          errors: [],
+          warnings: [],
+          state: null,
+        }
+      }
+
+      const territoryDefaults = PresetLoader.convertToDefaults(preset.config)
+      const territoryParameters = PresetLoader.extractTerritoryParameters(preset.config)
+
+      const state: ApplicationState = {
+        atlas: {
+          id: currentAtlasId,
+          config: atlasConfig,
+        },
+        viewMode: 'composite-custom',
+        territoryMode: viewStore.territoryMode,
+        preset: {
+          id: presetId,
+          type: preset.type,
+          data: preset,
+        },
+        projections: {
+          selected: projectionStore.selectedProjection,
+          composite: projectionStore.compositeProjection,
+        },
+        parameters: {
+          global: {},
+          territories: territoryParameters as any,
+        },
+        territories: {
+          projections: territoryDefaults.projections,
+          translations: territoryDefaults.translations,
+          scales: territoryDefaults.scales,
+        },
+        canvas: {
+          referenceScale: preset.config.referenceScale,
+          dimensions: preset.config.canvasDimensions,
+        },
+        display: {
+          showGraticule: false,
+          showCompositionBorders: true,
+          showMapLimits: true,
+        },
+      }
+
+      await applyStateToStores(state)
+      const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
+      if (!geoDataResult.ok) {
+        const message = geoDataFailure(geoDataResult.error)
+        appStore.setError(message)
+        return {
+          success: false,
+          errors: [message],
+          warnings: [],
+          state: null,
+        }
+      }
+      appStore.setReady()
+
+      // The stores hold the preset: a rendering failure leaves the application ready
+      try {
+        updateCartographer(state)
+      }
+      catch (error) {
+        return {
+          success: false,
+          errors: [error instanceof Error ? error.message : 'Unknown error'],
+          warnings: [],
+          state: null,
+        }
+      }
+
+      return {
+        success: true,
+        errors: [],
+        warnings: presetResult.warnings || [],
+        state,
+      }
+    }
+    catch (error) {
+      appStore.setError(error instanceof Error ? error.message : 'Unknown error')
+      return {
+        success: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error during preset loading'],
+        warnings: [],
+        state: null,
+      }
+    }
+  }
+
+  function updateCartographer(state: ApplicationState): void {
+    const cartographer = geoDataStore.cartographer
+    if (!cartographer) {
+      return
+    }
+
+    const territoryCodes = Object.keys(state.parameters.territories) as TerritoryCode[]
+    const compositeProjectionConfig = atlasStore.currentAtlasConfig?.compositeProjectionConfig
+    if (compositeProjectionConfig) {
+      cartographer.rebuildCompositeProjection(
+        compositeProjectionConfig,
+        parameterStore.parameterProvider,
+        state.canvas.referenceScale,
+      )
+      debug('Rebuilt composite projection with %d territories', territoryCodes.length)
+    }
+    else {
+      territoryCodes.forEach(code => cartographer.updateTerritoryParameters(code))
+      debug('Updated cartographer parameters for %d territories', territoryCodes.length)
+    }
+
+    geoDataStore.triggerRender()
+  }
+
   async function applyStateToStores(state: ApplicationState): Promise<void> {
     atlasStore.selectedAtlasId = state.atlas.id
 
@@ -399,6 +552,7 @@ export const useCompositionStore = defineStore('composition', () => {
   return {
     startMapView,
     initializeAtlas,
+    loadPreset,
     applyStateToStores,
     ensureAtlasDataLoaded,
   }

@@ -4,144 +4,15 @@ import type {
   ApplicationState,
   ImportOptions,
   InitializationResult,
-  PresetLoadOptions,
 } from '@/types/initialization'
 
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { PresetLoader } from '@/services/presets/preset-loader'
-import { PresetValidationService } from '@/services/validation/preset-validation-service'
-import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { geoDataFailure, useCompositionStore } from '@/stores/composition'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 
 export class InitializationService {
-  static async loadPreset(options: PresetLoadOptions): Promise<InitializationResult> {
-    const { presetId, skipValidation = false } = options
-    const appStore = useAppStore()
-
-    try {
-      appStore.startLoadingPreset()
-
-      const atlasStore = useAtlasStore()
-      const projectionStore = useProjectionStore()
-      const viewStore = useViewStore()
-      const currentAtlasId = atlasStore.selectedAtlasId
-      const atlasConfig = getAtlasConfig(currentAtlasId)
-      const presetResult = await PresetLoader.loadPreset(presetId)
-      if (!presetResult.success || !presetResult.data) {
-        appStore.setReady()
-        return {
-          success: false,
-          errors: [`Failed to load preset '${presetId}': ${presetResult.errors.join(', ')}`],
-          warnings: presetResult.warnings || [],
-          state: null,
-        }
-      }
-
-      const preset = presetResult.data
-
-      if (!skipValidation) {
-        const validation = PresetValidationService.validatePreset(preset, atlasConfig)
-        if (!validation.isValid) {
-          appStore.setReady()
-          return {
-            success: false,
-            errors: validation.errors,
-            warnings: validation.warnings,
-            state: null,
-          }
-        }
-      }
-
-      let state: ApplicationState | null = null
-
-      if (preset.type === 'composite-custom') {
-        const territoryDefaults = PresetLoader.convertToDefaults(preset.config)
-        const territoryParameters = PresetLoader.extractTerritoryParameters(preset.config)
-
-        state = {
-          atlas: {
-            id: currentAtlasId,
-            config: atlasConfig,
-          },
-          viewMode: 'composite-custom',
-          territoryMode: viewStore.territoryMode,
-          preset: {
-            id: presetId,
-            type: preset.type,
-            data: preset,
-          },
-          projections: {
-            selected: projectionStore.selectedProjection,
-            composite: projectionStore.compositeProjection,
-          },
-          parameters: {
-            global: {},
-            territories: territoryParameters as any,
-          },
-          territories: {
-            projections: territoryDefaults.projections,
-            translations: territoryDefaults.translations,
-            scales: territoryDefaults.scales,
-          },
-          canvas: {
-            referenceScale: preset.config.referenceScale,
-            dimensions: preset.config.canvasDimensions,
-          },
-          display: {
-            showGraticule: false,
-            showCompositionBorders: true,
-            showMapLimits: true,
-          },
-        }
-      }
-      else {
-        appStore.setReady()
-        return {
-          success: true,
-          errors: [],
-          warnings: [],
-          state: null,
-        }
-      }
-
-      if (state) {
-        await useCompositionStore().applyStateToStores(state)
-        const geoDataResult = await useCompositionStore().ensureAtlasDataLoaded(viewStore.territoryMode)
-        if (!geoDataResult.ok) {
-          const message = geoDataFailure(geoDataResult.error)
-          appStore.setError(message)
-          return {
-            success: false,
-            errors: [message],
-            warnings: [],
-            state: null,
-          }
-        }
-      }
-      appStore.setReady()
-
-      return {
-        success: true,
-        errors: [],
-        warnings: presetResult.warnings || [],
-        state,
-      }
-    }
-    catch (error) {
-      const appStore = useAppStore()
-      appStore.setError(error instanceof Error ? error.message : 'Unknown error')
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error during preset loading'],
-        warnings: [],
-        state: null,
-      }
-    }
-  }
-
   static async importConfiguration(options: ImportOptions): Promise<InitializationResult> {
     const { config, validateAtlasCompatibility = true } = options
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PresetId, TerritoryCode } from '@/types/branded'
+import type { PresetId } from '@/types/branded'
 
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -7,10 +7,8 @@ import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets } from '@/core/atlases/registry'
-import { InitializationService } from '@/services/initialization/initialization-service'
 import { useAtlasStore } from '@/stores/atlas'
-import { useGeoDataStore } from '@/stores/geoData'
-import { useParameterStore } from '@/stores/parameters'
+import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
@@ -18,7 +16,7 @@ const debug = logger.vue.component
 const { t, locale } = useI18n()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
-const geoDataStore = useGeoDataStore()
+const compositionStore = useCompositionStore()
 
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
@@ -47,7 +45,7 @@ const currentPreset = computed({
     try {
       debug('Loading preset: %s', presetId)
 
-      const result = await InitializationService.loadPreset({
+      const result = await compositionStore.loadPreset({
         presetId,
         skipValidation: false,
       })
@@ -63,38 +61,6 @@ const currentPreset = computed({
       }
 
       selectedPreset.value = presetId
-
-      if (geoDataStore.cartographer && result.state) {
-        const territoryParameters = result.state.parameters.territories
-
-        const currentAtlasConfig = atlasStore.currentAtlasConfig
-        if (currentAtlasConfig?.compositeProjectionConfig) {
-          const parameterStore = useParameterStore()
-          const parameterProvider = {
-            getEffectiveParameters: (territoryCode: TerritoryCode) => {
-              return parameterStore.getEffectiveParameters(territoryCode)
-            },
-            getExportableParameters: (territoryCode: TerritoryCode) => {
-              return parameterStore.getExportableParameters(territoryCode)
-            },
-          }
-
-          geoDataStore.cartographer.rebuildCompositeProjection(
-            currentAtlasConfig.compositeProjectionConfig,
-            parameterProvider,
-            result.state.canvas.referenceScale,
-          )
-          debug('Rebuilt composite projection with %d territories', Object.keys(territoryParameters).length)
-        }
-        else {
-          Object.keys(territoryParameters).forEach((territoryCode) => {
-            geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
-          })
-          debug('Updated cartographer parameters for %d territories', Object.keys(territoryParameters).length)
-        }
-
-        geoDataStore.triggerRender()
-      }
 
       debug('Successfully loaded preset: %s', presetId)
     }
