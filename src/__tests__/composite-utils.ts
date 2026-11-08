@@ -32,7 +32,7 @@ export async function startApplication(atlasId: AtlasId) {
   await loadAtlasFromConfigs(atlasId)
   const atlasStore = useAtlasStore()
   atlasStore.selectedAtlasId = atlasId
-  // Created after the atlas selection, so that its watcher does not initialize the atlas again
+  // Created after the atlas selection, so that its atlas watcher does not initialize the atlas again
   useCompositionStore()
   // The geographic data of src/public/data is not versioned
   const geoDataStore = useGeoDataStore()
