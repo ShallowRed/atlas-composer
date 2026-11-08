@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { InvalidViewModeError, ViewModeSelection } from '../view-mode-selection'
+import { InvalidViewModeError, isViewMode, ViewModeSelection } from '../view-mode-selection'
 
 describe('viewModeSelection', () => {
   describe('constructor', () => {
@@ -24,6 +24,16 @@ describe('viewModeSelection', () => {
     it('should throw error for invalid mode', () => {
       expect(() => new ViewModeSelection('invalid' as any))
         .toThrow(InvalidViewModeError)
+    })
+  })
+
+  describe('isViewMode', () => {
+    it('accepts each view mode', () => {
+      expect(['composite-custom', 'built-in-composite', 'split', 'unified'].every(isViewMode)).toBe(true)
+    })
+
+    it.each(['nowhere', 'toString', 1, undefined])('refuses %s', (value) => {
+      expect(isViewMode(value)).toBe(false)
     })
   })
 

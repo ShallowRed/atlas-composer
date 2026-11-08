@@ -6,6 +6,7 @@ import { ProjectionService } from '@/services/projection/projection-service'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 import { useUrlState } from '../useUrlState'
 
 const route = vi.hoisted(() => ({ query: {} as Record<string, string> }))
@@ -49,6 +50,16 @@ describe('useUrlState', () => {
     expect(latitude).toBeCloseTo(-25, 9)
     expect(gamma).toBeCloseTo(10, 9)
     expect(useParameterStore().globalParameters.parallels).toEqual([20, 50])
+  })
+
+  it('ignores a view mode that does not exist', async () => {
+    route.query = { atlas: ATLAS_ID, view: 'nowhere' }
+    await startApplication(ATLAS_ID)
+    const viewMode = useViewStore().viewMode
+
+    useUrlState().restoreFromUrl()
+
+    expect(useViewStore().viewMode).toBe(viewMode)
   })
 
   it('writes the rotation of the mouse panning in the URL', async () => {
