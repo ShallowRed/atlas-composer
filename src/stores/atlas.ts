@@ -1,4 +1,6 @@
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
+import type { AtlasConfigError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { AtlasConfig, AtlasId, TerritoryConfig } from '@/types'
 
 import { defineStore } from 'pinia'
@@ -39,12 +41,12 @@ export const useAtlasStore = defineStore('atlas', () => {
     return currentAtlasConfig.value?.territoryModeOptions ?? []
   })
 
-  async function loadAtlas(atlasId: AtlasId): Promise<LoadedAtlasConfig> {
-    const loadedConfig = await loadAtlasConfiguration(atlasId, i18n.global.locale.value)
-    if (atlasId === selectedAtlasId.value) {
-      currentAtlasConfig.value = loadedConfig.atlasConfig
+  async function loadAtlas(atlasId: AtlasId): Promise<Result<LoadedAtlasConfig, AtlasConfigError>> {
+    const result = await loadAtlasConfiguration(atlasId, i18n.global.locale.value)
+    if (result.ok && atlasId === selectedAtlasId.value) {
+      currentAtlasConfig.value = result.value.atlasConfig
     }
-    return loadedConfig
+    return result
   }
 
   function getInitialTerritoryMode(): string {

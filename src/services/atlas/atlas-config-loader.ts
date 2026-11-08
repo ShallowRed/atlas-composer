@@ -1,5 +1,7 @@
 import type { JSONAtlasConfig } from '#types'
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
+import type { AtlasConfigError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { AtlasId } from '@/types'
 import { loadAtlasConfig } from '@/core/atlases/loader'
 import {
@@ -10,36 +12,37 @@ import {
   resolveConfigPath,
   setLoadedConfig,
 } from '@/core/atlases/registry'
+import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
 
 // Names are resolved in the locale of the first load: the cache is keyed by atlas id
-export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): Promise<LoadedAtlasConfig> {
+export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): Promise<Result<LoadedAtlasConfig, AtlasConfigError>> {
   if (isAtlasLoaded(atlasId)) {
     debug('Atlas %s already loaded from cache', atlasId)
-    return getLoadedConfig(atlasId)
+    return ok(getLoadedConfig(atlasId))
   }
 
   const configPath = getAtlasConfigPath(atlasId)
   if (!configPath) {
-    throw new Error(`Atlas '${atlasId}' not found in registry`)
+    return err({ code: 'ATLAS_UNKNOWN', atlasId })
   }
 
   const file = await JsonFileLoader.loadJSON<JSONAtlasConfig>(resolveConfigPath(configPath))
   if (!file.ok) {
-    throw new Error(`Failed to load atlas '${atlasId}': ${file.error.code} ${file.error.path}`)
+    return file
   }
 
   const jsonConfig = file.value
   if (!jsonConfig?.id || !jsonConfig.territories) {
-    throw new Error(`Failed to load atlas '${atlasId}': missing required fields (id, territories)`)
+    return err({ code: 'ATLAS_CONFIG_INVALID', atlasId })
   }
 
   const loadedConfig = loadAtlasConfig(jsonConfig, getAtlasBehavior(atlasId), locale)
   setLoadedConfig(atlasId, loadedConfig)
 
   debug('Successfully loaded atlas %s from network', atlasId)
-  return loadedConfig
+  return ok(loadedConfig)
 }

@@ -41,7 +41,7 @@ export type PresetError
     | { code: 'PRESET_INVALID', presetId: string, issues: PresetIssue[] }
     | { code: 'PRESET_NOT_APPLICABLE', presetId: string, presetType: string, viewMode: string }
 
-type AtlasConfigError
+export type AtlasConfigError
   = | JsonFileError
     | { code: 'ATLAS_UNKNOWN', atlasId: string }
     | { code: 'ATLAS_CONFIG_INVALID', atlasId: string }
