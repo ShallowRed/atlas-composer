@@ -11,7 +11,7 @@ Node is pinned in `.node-version`, which mise and the CI read, and pnpm in the `
 The code keeps these boundaries, and `eslint.config.js` checks them with messages that name the place a change belongs. When a rule fires, move the code there; keep the rule.
 
 - `src/core/` is the domain, without framework or I/O: registries of atlases, projections and parameters, projection definitions, positioning, conversion of presets. It imports neither Vue, vue-i18n, Pinia, the stores, the services nor the interface code, and calls neither `fetch` nor `localStorage`.
-- `src/services/` does the I/O: loading the configurations and the geographic data, d3 rendering, files. `JsonFileLoader` is the only reader of the JSON files of the site. It imports neither Pinia, the stores, `src/i18n/`, vue-i18n nor the interface code: a store action passes the locale as an argument.
+- `src/services/` does the I/O: loading the configurations and the geographic data, d3 rendering, files. It imports neither Pinia, the stores, `src/i18n/`, vue-i18n nor the interface code: a store action passes the locale as an argument. `JsonFileLoader` is the only reader of the JSON files of the site.
 - `src/stores/` holds the state and the use cases, as store actions. It imports no interface code, and reads the locale from `src/i18n/`. A use case that writes several stores is an action of `src/stores/composition.ts`, which imports the other stores: a store that imports it forms a cycle, which `pnpm check:dead-code` refuses.
 - `src/composables/` holds the interface logic and calls `src/services/rendering/` only.
 - `src/components/` and `src/views/` render the DOM and import no service.
