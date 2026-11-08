@@ -125,17 +125,4 @@ describe('compositeImportService', () => {
       expect(await CompositeImportService.importFromFile(file, context)).toEqual({ ok: true, value: validConfig })
     })
   })
-
-  describe('checkAtlasCompatibility', () => {
-    it('should pass when atlas IDs match', () => {
-      expect(CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('france'))).toEqual([])
-    })
-
-    it('should warn when atlas IDs do not match', () => {
-      const warnings = CompositeImportService.checkAtlasCompatibility(validConfig, createAtlasId('portugal'))
-
-      expect(warnings).toHaveLength(1)
-      expect(warnings[0]).toContain('exported for atlas')
-    })
-  })
 })

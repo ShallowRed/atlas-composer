@@ -1,7 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { CompositeConfigContext } from '@/core/presets'
 import type { Result } from '@/core/types/result'
-import type { AtlasId } from '@/types/branded'
 import { readCompositeConfig } from '@/core/presets'
 import { err } from '@/core/types/result'
 
@@ -37,17 +36,5 @@ export class CompositeImportService {
     catch (error) {
       return err([`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`])
     }
-  }
-
-  static checkAtlasCompatibility(
-    config: CompositeProjectionConfig,
-    currentAtlasId: AtlasId,
-  ): string[] {
-    if (config.metadata.atlasId !== currentAtlasId) {
-      return [
-        `Configuration was exported for atlas '${config.metadata.atlasId}' but current atlas is '${currentAtlasId}'. Territory codes may not match.`,
-      ]
-    }
-    return []
   }
 }

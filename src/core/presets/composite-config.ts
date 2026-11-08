@@ -3,6 +3,7 @@ import type { DeprecatedPositioning, Positioning } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { Result } from '@/core/types/result'
 import type { AtlasConfig } from '@/types/atlas'
+import type { AtlasId } from '@/types/branded'
 import { DEFAULT_REFERENCE_SCALE, PROJECTION_FAMILIES, validateConfig } from '@atlas-composer/specification'
 import { convertPositioning, replaceDeprecatedPositioning } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -103,4 +104,16 @@ export function readCompositeConfig(raw: unknown, context: CompositeConfigContex
     canvasDimensions: raw.canvasDimensions ?? context.canvasDimensions,
     territories: raw.territories.map(territory => readTerritory(territory, context)),
   })
+}
+
+export function checkAtlasCompatibility(
+  config: CompositeProjectionConfig,
+  currentAtlasId: AtlasId,
+): string[] {
+  if (config.metadata.atlasId !== currentAtlasId) {
+    return [
+      `Configuration was exported for atlas '${config.metadata.atlasId}' but current atlas is '${currentAtlasId}'. Territory codes may not match.`,
+    ]
+  }
+  return []
 }

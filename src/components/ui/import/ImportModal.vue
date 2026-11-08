@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { AtlasId, TerritoryCode } from '@/types/branded'
+import type { AtlasId } from '@/types/branded'
 import { computed, ref } from 'vue'
 
 import Modal from '@/components/ui/primitives/Modal.vue'
-import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
-import { CompositeImportService } from '@/services/export/composite-import-service'
-import { InitializationService } from '@/services/initialization/initialization-service'
-import { useAtlasStore } from '@/stores/atlas'
-import { useProjectionStore } from '@/stores/projection'
+import { checkAtlasCompatibility } from '@/core/presets'
+import { useCompositionStore } from '@/stores/composition'
 import { logger } from '@/utils/logger'
 
 const props = defineProps<{
@@ -24,8 +21,7 @@ const emit = defineEmits<{
 
 const debug = logger.vue.component
 
-const atlasStore = useAtlasStore()
-const projectionStore = useProjectionStore()
+const compositionStore = useCompositionStore()
 
 const isDragging = ref(false)
 const isProcessing = ref(false)
@@ -78,16 +74,7 @@ async function processFile(file: File) {
   importedConfig.value = null
 
   try {
-    const atlasConfig = atlasStore.currentAtlasConfig
-    if (!atlasConfig) {
-      importResult.value = { success: false, errors: ['Atlas configuration not loaded'], warnings: [] }
-      return
-    }
-
-    const result = await CompositeImportService.importFromFile(file, {
-      atlasConfig,
-      canvasDimensions: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
-    })
+    const result = await compositionStore.readConfigurationFile(file)
     if (!result.ok) {
       importResult.value = { success: false, errors: result.error, warnings: [] }
       return
@@ -97,7 +84,7 @@ async function processFile(file: File) {
     importResult.value = {
       success: true,
       errors: [],
-      warnings: CompositeImportService.checkAtlasCompatibility(result.value, props.atlasId),
+      warnings: checkAtlasCompatibility(result.value, props.atlasId),
     }
   }
   catch (error) {
@@ -127,45 +114,22 @@ async function applyImport() {
     return
   }
 
-  try {
-    const result = await InitializationService.importConfiguration({
-      config: importedConfig.value,
-      validateAtlasCompatibility: true,
-    })
+  const result = await compositionStore.importConfiguration({
+    config: importedConfig.value,
+    validateAtlasCompatibility: true,
+  })
 
-    if (!result.success) {
-      importResult.value = {
-        success: false,
-        errors: result.errors,
-        warnings: result.warnings,
-      }
-      return
-    }
-
-    const { useGeoDataStore } = await import('@/stores/geoData')
-    const geoDataStore = useGeoDataStore()
-
-    if (geoDataStore.cartographer && result.state) {
-      const territoryParameters = result.state.parameters.territories
-      Object.keys(territoryParameters).forEach((territoryCode) => {
-        geoDataStore.cartographer!.updateTerritoryParameters(territoryCode as TerritoryCode)
-      })
-      debug('Updated cartographer for %d territories', Object.keys(territoryParameters).length)
-
-      geoDataStore.triggerRender()
-    }
-
-    emit('imported', importedConfig.value)
-    handleClose()
-  }
-  catch (error) {
-    debug('Error applying import: %o', error)
+  if (!result.success) {
     importResult.value = {
       success: false,
-      errors: [`Failed to apply import: ${error instanceof Error ? error.message : 'Unknown error'}`],
-      warnings: importResult.value?.warnings || [],
+      errors: result.errors,
+      warnings: result.warnings,
     }
+    return
   }
+
+  emit('imported', importedConfig.value)
+  handleClose()
 }
 
 function handleClose() {
