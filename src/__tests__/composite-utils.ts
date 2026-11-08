@@ -7,7 +7,6 @@ import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { expect, vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
-import { useParameterProvider } from '@/composables/useParameterProvider'
 import { getAtlasConfig, getDefaultPresetForViewMode } from '@/core/atlases/registry'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
@@ -17,6 +16,7 @@ import { CompositeProjection } from '@/services/projection/composite-projection'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 
@@ -64,7 +64,7 @@ export async function openView(atlasId: AtlasId, view: ViewMode) {
 
 export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {
   const projectionStore = useProjectionStore()
-  const { parameterProvider } = useParameterProvider()
+  const { parameterProvider } = useParameterStore()
   const atlasConfig = getAtlasConfig(atlasId)
   const composite = new CompositeProjection(
     atlasConfig.compositeProjectionConfig!,
