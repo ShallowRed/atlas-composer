@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { readPresetFiles } from '@/__tests__/test-utils'
 import { validatePreset } from '@/core/presets/validator'
+import { err, ok } from '@/core/types/result'
 
 describe('presets of configs/presets', () => {
   it.each(readPresetFiles())('$path is valid', ({ type, json }) => {
-    const result = validatePreset(JSON.parse(json), type)
-
-    expect(result.errors).toEqual([])
-    expect(result.isValid).toBe(true)
+    expect(validatePreset(JSON.parse(json), type)).toEqual(ok(undefined))
   })
 
   it('refuses a composite preset with a territory without rotate nor center', () => {
@@ -17,9 +15,7 @@ describe('presets of configs/presets', () => {
     delete territory.projection.parameters.rotate
     delete territory.projection.parameters.center
 
-    const result = validatePreset(preset, 'composite-custom')
-
-    expect(result.isValid).toBe(false)
-    expect(result.errors).toContain(`Territory ${territory.code}: missing required parameter rotate or center`)
+    expect(validatePreset(preset, 'composite-custom'))
+      .toEqual(err([{ code: 'PRESET_POSITIONING_REQUIRED', territory: territory.code }]))
   })
 })

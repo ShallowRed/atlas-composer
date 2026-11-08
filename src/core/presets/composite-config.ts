@@ -31,7 +31,7 @@ function projectionIdOf(territory: RawObject): string | undefined {
   return typeof id === 'string' ? id : undefined
 }
 
-export function formatValidationError({ path, message }: ValidationError): string {
+function formatValidationError({ path, message }: ValidationError): string {
   return path ? `${path}: ${message}` : message
 }
 
