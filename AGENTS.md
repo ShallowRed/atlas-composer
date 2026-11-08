@@ -18,6 +18,10 @@ The code keeps these boundaries, and `eslint.config.js` checks them with message
 
 The tests in `__tests__/` folders combine these layers and stay outside the rules.
 
+## Errors
+
+An expected failure, which a file, the network or an imported value can produce, goes through `Result<T, E>` of `src/core/types/result.ts` with a typed error of `src/core/types/errors.ts`, and `useErrorMessage` translates it where the interface shows it. A programming error, a state that the code excludes by construction, throws an `Error`. A `catch` converts an exception of a browser or library API, ignores an unreadable value of the URL, or bounds a use case. `eslint.config.js` refuses the `success` and `isValid` fields.
+
 ## Configurations
 
 `configs/` holds the atlases, the registry and the presets. `pnpm geodata:validate --all` validates `configs/atlas-registry.json` against `configs/schemas/atlas-registry.schema.json` and checks that each of its preset paths exists. `types/atlas-registry.ts` is generated from this schema: after a change to the schema, run `pnpm generate:types`.
