@@ -28,8 +28,8 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
-useAtlasStore(pinia).loadAtlas(DEFAULT_ATLAS).then(() => {
-  debug('Default atlas preloaded, mounting app...')
+useAtlasStore(pinia).loadAtlas(DEFAULT_ATLAS).then((result) => {
+  debug('Default atlas preload: %O', result.ok ? 'done' : result.error)
   app.mount('#app')
 }).catch((error) => {
   debug('Failed to preload default atlas: %O', error)

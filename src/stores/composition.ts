@@ -89,7 +89,10 @@ export const useCompositionStore = defineStore('composition', () => {
     }
 
     try {
-      await atlasStore.loadAtlas(atlasId)
+      const loadedAtlas = await atlasStore.loadAtlas(atlasId)
+      if (!loadedAtlas.ok) {
+        return fail([loadedAtlas.error.code])
+      }
 
       const atlasConfig = getAtlasConfig(atlasId)
       const atlasService = new AtlasService(atlasId)
