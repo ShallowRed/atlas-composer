@@ -7,69 +7,40 @@ import { PresetLoader } from './preset-loader'
 
 const debug = logger.presets.metadata
 
-export interface AtlasMetadataResult {
-  success: boolean
-  metadata?: AtlasProjectionMetadata
-  errors: string[]
-  source: 'preset' | 'fallback'
-}
-
 const metadataCache = new Map<string, AtlasProjectionMetadata>()
 
 export class AtlasMetadataService {
-  private static async getAtlasMetadata(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasMetadataResult> {
+  private static async getAtlasMetadata(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata> {
     const cacheKey = `${atlasId}-${defaultPreset || 'default'}`
     const cached = metadataCache.get(cacheKey)
     if (cached) {
-      return {
-        success: true,
-        metadata: cached,
-        errors: [],
-        source: 'preset',
-      }
+      return cached
     }
 
     if (defaultPreset) {
-      try {
-        const presetResult = await PresetLoader.loadPreset(defaultPreset)
+      const presetResult = await PresetLoader.loadPreset(defaultPreset)
 
-        if (presetResult.ok && presetResult.value.type === 'composite-custom') {
-          const metadata = presetResult.value.config.atlasMetadata
-
-          if (metadata) {
-            metadataCache.set(cacheKey, metadata)
-
-            return {
-              success: true,
-              metadata,
-              errors: [],
-              source: 'preset',
-            }
-          }
-        }
+      if (!presetResult.ok) {
+        debug('Failed to load preset metadata for %s: %o', atlasId, presetResult.error)
       }
-      catch (error) {
-        debug('Failed to load preset metadata for %s: %o', atlasId, error)
+      else if (presetResult.value.type === 'composite-custom' && presetResult.value.config.atlasMetadata) {
+        const metadata = presetResult.value.config.atlasMetadata
+        metadataCache.set(cacheKey, metadata)
+        return metadata
       }
     }
 
-    const fallbackMetadata = this.getFallbackMetadata(atlasId)
-    return {
-      success: true,
-      metadata: fallbackMetadata,
-      errors: [],
-      source: 'fallback',
-    }
+    return this.getFallbackMetadata(atlasId)
   }
 
   private static async getCompositeProjections(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId[]> {
-    const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return (result.metadata?.compositeProjections || getDefaultCompositeProjections(atlasId)) as ProjectionId[]
+    const metadata = await this.getAtlasMetadata(atlasId, defaultPreset)
+    return (metadata.compositeProjections || getDefaultCompositeProjections(atlasId)) as ProjectionId[]
   }
 
   private static async getProjectionPreferences(atlasId: AtlasId, defaultPreset?: PresetId): Promise<AtlasProjectionMetadata['projectionPreferences']> {
-    const result = await this.getAtlasMetadata(atlasId, defaultPreset)
-    return result.metadata?.projectionPreferences
+    const metadata = await this.getAtlasMetadata(atlasId, defaultPreset)
+    return metadata.projectionPreferences
   }
 
   static async getDefaultCompositeProjection(atlasId: AtlasId, defaultPreset?: PresetId): Promise<ProjectionId | undefined> {
