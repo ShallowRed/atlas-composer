@@ -1,5 +1,5 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { AtlasId } from '@/types/branded'
+import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
@@ -10,6 +10,8 @@ import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
+import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
@@ -189,6 +191,23 @@ describe('composition store', () => {
 
       expect(result.success).toBe(false)
       expect(result.errors).toContainEqual(expect.stringContaining('but current atlas is'))
+    })
+  })
+
+  describe('resetTransforms', () => {
+    it('gives each territory the translation of the preset again', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      const parameterStore = useParameterStore()
+      const presetTranslations = usePresetDefaultsStore().territoryDefaults!.translations
+      const territoryCodes = Object.keys(presetTranslations) as TerritoryCode[]
+      territoryCodes.forEach(code => parameterStore.setTerritoryTranslation(code, 'x', 999))
+
+      compositionStore.resetTransforms()
+
+      expect(Object.fromEntries(territoryCodes.map(code => [code, parameterStore.getTerritoryTranslation(code)])))
+        .toEqual(presetTranslations)
     })
   })
 

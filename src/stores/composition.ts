@@ -1,5 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
+import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ProjectionId, TerritoryCode, ViewMode } from '@/types'
@@ -20,6 +21,7 @@ import { convertToDefaults, extractTerritoryParameters } from '@/core/presets'
 import { findPositioningErrors, findTerritoriesWithoutProjection } from '@/core/presets/validator'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
+import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
@@ -513,6 +515,64 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
+  function resetTransforms(): void {
+    const operation = TerritoryResetService.calculateBulkReset({
+      territories: atlasStore.atlasService.getAllTerritories(),
+      presetDefaults: presetDefaults.territoryDefaults ?? undefined,
+      presetParameters: presetDefaults.presetParameters,
+    })
+
+    operation.operations.forEach(resetTerritory)
+
+    if (operation.activeTerritories) {
+      viewStore.setActiveTerritories(operation.activeTerritories)
+    }
+
+    const strategy = operation.activeTerritories ? 'preset' : 'fallback'
+    debug(`Reset all territories using ${strategy} strategy`)
+  }
+
+  function resetTerritoryToDefaults(territoryCode: TerritoryCode): void {
+    const operation = TerritoryResetService.calculateTerritoryReset({
+      territoryCode,
+      presetDefaults: presetDefaults.territoryDefaults ?? undefined,
+      presetParameters: presetDefaults.presetParameters,
+    })
+
+    resetTerritory(operation)
+
+    const strategy = operation.projection ? 'preset' : 'fallback'
+    debug(`Reset territory ${territoryCode} using ${strategy} strategy`)
+  }
+
+  function resetTerritory(operation: TerritoryResetOperation): void {
+    const { territoryCode: code, projection, translation, scale, parameters, shouldClearOverrides } = operation
+
+    if (shouldClearOverrides) {
+      parameterStore.clearAllTerritoryOverrides(code)
+    }
+
+    if (projection) {
+      parameterStore.setTerritoryProjection(code, projection)
+    }
+
+    parameterStore.setTerritoryTranslation(code, 'x', translation.x)
+    parameterStore.setTerritoryTranslation(code, 'y', translation.y)
+
+    parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
+
+    if (parameters) {
+      parameterStore.setTerritoryParameters(code, parameters as any)
+    }
+
+    if (geoDataStore.cartographer) {
+      if (projection) {
+        geoDataStore.cartographer.updateTerritoryProjection(code, projection)
+      }
+      geoDataStore.cartographer.updateTerritoryParameters(code)
+    }
+  }
+
   async function applyStateToStores(state: ApplicationState): Promise<void> {
     atlasStore.selectedAtlasId = state.atlas.id
 
@@ -675,5 +735,7 @@ export const useCompositionStore = defineStore('composition', () => {
     loadPreset,
     readConfigurationFile,
     importConfiguration,
+    resetTransforms,
+    resetTerritoryToDefaults,
   }
 })
