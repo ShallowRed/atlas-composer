@@ -260,7 +260,7 @@ describe('composition store', () => {
     it('writes the error of the geographic data in the geoData store', async () => {
       const geoDataStore = await startMapViewWithMissingFile('/data/')
 
-      expect(geoDataStore.error).toEqual({ code: 'GEODATA_NOT_FOUND', path: '/data/france-territories-50m.json' })
+      expect(geoDataStore.error).toEqual({ code: 'JSON_FILE_NOT_FOUND', path: '/data/france-territories-50m.json' })
       expect(geoDataStore.isReinitializing).toBe(false)
     })
 

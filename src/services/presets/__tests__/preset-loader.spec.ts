@@ -51,7 +51,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(COMPOSITE_PRESET)
 
-    expect(result).toEqual(err({ code: 'JSON_FILE_NOT_FOUND', path }))
+    expect(result).toEqual(err({ code: 'JSON_FILE_NOT_FOUND', path: `/${path}` }))
   })
 
   it('refuses a composite preset with a territory without rotate nor center', async () => {

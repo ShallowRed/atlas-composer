@@ -480,11 +480,13 @@
   },
   "errors": {
     "initializationFailed": "The atlas could not be loaded: {reason}",
-    "geoData": {
-      "notFound": "Geographic data file not found: {path}",
-      "invalidJson": "The geographic data file {path} is not valid JSON",
+    "jsonFile": {
+      "notFound": "File not found: {path}",
+      "malformed": "The file {path} is not valid JSON",
       "unreachable": "The server could not be reached to load {path}",
-      "networkError": "Loading {path} failed with HTTP status {status}",
+      "networkError": "Loading {path} failed with HTTP status {status}"
+    },
+    "geoData": {
       "missingObject": "The geographic data has no object named \"{objectName}\"",
       "invalidStructure": "The geographic data file {path} has an invalid structure"
     }

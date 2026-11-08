@@ -496,11 +496,13 @@
   },
   "errors": {
     "initializationFailed": "Impossible de charger l'atlas : {reason}",
-    "geoData": {
-      "notFound": "Fichier de données géographiques introuvable : {path}",
-      "invalidJson": "Le fichier de données géographiques {path} n'est pas un JSON valide",
+    "jsonFile": {
+      "notFound": "Fichier introuvable : {path}",
+      "malformed": "Le fichier {path} n'est pas un JSON valide",
       "unreachable": "Le serveur est injoignable : impossible de charger {path}",
-      "networkError": "Le chargement de {path} a échoué (statut HTTP {status})",
+      "networkError": "Le chargement de {path} a échoué (statut HTTP {status})"
+    },
+    "geoData": {
       "missingObject": "Les données géographiques ne contiennent aucun objet « {objectName} »",
       "invalidStructure": "La structure du fichier de données géographiques {path} est invalide"
     }

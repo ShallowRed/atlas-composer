@@ -7,10 +7,10 @@ import { ERROR_MESSAGE_KEYS, useErrorMessage } from '@/composables/useErrorMessa
 import i18n, { SUPPORTED_LOCALES } from '@/i18n'
 
 const errors = {
-  GEODATA_NOT_FOUND: { code: 'GEODATA_NOT_FOUND', path: '/data/x.json' },
-  GEODATA_INVALID_JSON: { code: 'GEODATA_INVALID_JSON', path: '/data/x.json' },
-  GEODATA_UNREACHABLE: { code: 'GEODATA_UNREACHABLE', path: '/data/x.json' },
-  GEODATA_NETWORK_ERROR: { code: 'GEODATA_NETWORK_ERROR', path: '/data/x.json', status: 503 },
+  JSON_FILE_NOT_FOUND: { code: 'JSON_FILE_NOT_FOUND', path: '/data/x.json' },
+  JSON_FILE_MALFORMED: { code: 'JSON_FILE_MALFORMED', path: '/data/x.json' },
+  JSON_FILE_UNREACHABLE: { code: 'JSON_FILE_UNREACHABLE', path: '/data/x.json' },
+  JSON_FILE_NETWORK_ERROR: { code: 'JSON_FILE_NETWORK_ERROR', path: '/data/x.json', status: 503 },
   GEODATA_MISSING_OBJECT: { code: 'GEODATA_MISSING_OBJECT', objectName: 'territories-x' },
   GEODATA_INVALID_STRUCTURE: { code: 'GEODATA_INVALID_STRUCTURE', path: '/data/x.json' },
   INITIALIZATION_FAILED: { code: 'INITIALIZATION_FAILED', reason: 'reason-x' },

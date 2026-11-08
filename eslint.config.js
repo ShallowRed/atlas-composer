@@ -120,6 +120,12 @@ export default antfu({
     'no-restricted-imports': ['error', { patterns: [AJV] }],
   },
 }, {
+  files: ['src/**'],
+  ignores: ['**/__tests__/**', 'src/services/data/json-file-loader.ts'],
+  rules: {
+    'no-restricted-globals': ['error', ...ANTFU_GLOBALS, { name: 'fetch', message: 'src/services/data/json-file-loader.ts reads the JSON files of the site.' }],
+  },
+}, {
   files: ['src/core/**'],
   ignores: ['**/__tests__/**'],
   rules: {
