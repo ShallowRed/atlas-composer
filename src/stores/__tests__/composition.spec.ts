@@ -1,3 +1,4 @@
+import type { PresetError } from '@/core/types/errors'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -246,12 +247,12 @@ describe('composition store', () => {
 
     it('keeps the rules that an invalid default preset breaks', async () => {
       await startApplication(FRANCE)
-      const failure = {
+      const failure: PresetError = {
         code: 'PRESET_INVALID',
         presetId: 'france-standard',
         issues: [{ code: 'PRESET_PROJECTION_MISSING' }],
-      } as const
-      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce({ ok: false, error: { ...failure, issues: [...failure.issues] } })
+      }
+      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err(failure))
 
       await useCompositionStore().startMapView()
 

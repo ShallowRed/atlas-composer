@@ -57,13 +57,14 @@ describe('atlas store', () => {
 
   it('leaves the current configuration when the file is missing', async () => {
     const atlasStore = useAtlasStore()
+    atlasStore.selectedAtlasId = FRANCE
+    await atlasStore.loadAtlas(FRANCE)
     atlasStore.selectedAtlasId = USA
-    atlasStore.currentAtlasConfig = undefined
     vi.stubGlobal('fetch', async () => new Response('', { status: 404 }))
 
     const result = await atlasStore.loadAtlas(USA)
 
     expect(result).toEqual(err({ code: 'JSON_FILE_NOT_FOUND', path: '/configs/atlases/usa.json' }))
-    expect(atlasStore.currentAtlasConfig).toBeUndefined()
+    expect(atlasStore.currentAtlasConfig?.id).toBe(FRANCE)
   })
 })
