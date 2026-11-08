@@ -4,13 +4,11 @@ import { JsonFileLoader } from '@/services/data/json-file-loader'
 const PATH = 'configs/example.json'
 
 function stubFetch(respond: () => Promise<Response>) {
-  vi.stubGlobal('fetch', vi.fn(respond))
+  vi.stubGlobal('fetch', respond)
 }
 
 const unreadableBody = {
   ok: true,
-  headers: new Headers(),
-  text: () => Promise.reject(new Error('body stream failed')),
   json: () => Promise.reject(new Error('body stream failed')),
 } as unknown as Response
 

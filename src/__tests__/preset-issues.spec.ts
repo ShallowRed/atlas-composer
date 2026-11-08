@@ -138,4 +138,21 @@ describe('preset issues', () => {
   it.each(Object.values(CASES))('$expected.code is produced by its rule', ({ run, expected }) => {
     expect(run()).toContainEqual(expected)
   })
+
+  it('names no territory for a unified preset', () => {
+    expect(viewIssues('unified', { projection: { id: '' } }))
+      .toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', ...NO_TERRITORY }])
+  })
+
+  it('names the territory of a split preset', () => {
+    const territories = {
+      'FR-MET': { projection: { id: 'flat-earth' } },
+      'FR-GP': { projection: { id: 'mercator', parameters: { scaleMultiplier: 0 } } },
+    }
+
+    expect(viewIssues('split', { territories })).toEqual([
+      { code: 'PRESET_PROJECTION_UNKNOWN', territory: 'FR-MET', projectionId: 'flat-earth' },
+      { code: 'PRESET_PARAMETER_TOO_SMALL', territory: 'FR-GP', parameter: 'scaleMultiplier', min: 0.01 },
+    ])
+  })
 })

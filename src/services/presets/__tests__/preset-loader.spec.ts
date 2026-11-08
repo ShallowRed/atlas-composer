@@ -95,12 +95,15 @@ describe('loadPreset', () => {
     expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' }])
   })
 
-  it('refuses a file that contains null', async () => {
+  it.each([
+    [UNIFIED_PRESET, { code: 'PRESET_FIELD_MISSING', field: 'config' }],
+    [COMPOSITE_PRESET, { code: 'PRESET_SCHEMA_INVALID_TYPE', path: '' }],
+  ])('refuses a file of %s that contains null', async (presetId, issue) => {
     await startApplication(FRANCE)
     stubPresetFile(() => null)
 
-    const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
+    const result = await PresetLoader.loadPreset(presetId)
 
-    expect(issuesOf(result)).toContainEqual({ code: 'PRESET_FIELD_MISSING', field: 'config' })
+    expect(issuesOf(result)).toContainEqual(issue)
   })
 })
