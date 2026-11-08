@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LabelWithIcon from '@/components/ui/primitives/LabelWithIcon.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
+import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useUIStore } from '@/stores/ui'
@@ -24,6 +25,7 @@ interface Emits {
 }
 
 const { t } = useI18n()
+const { errorMessage } = useErrorMessage()
 
 const atlasStore = useAtlasStore()
 const geoDataStore = useGeoDataStore()
@@ -31,14 +33,11 @@ const uiStore = useUIStore()
 
 const showPreview = ref(false)
 
-const exportContent = computed(() => {
-  try {
-    return JSON.stringify(geoDataStore.exportConfiguration(), null, 2)
-  }
-  catch (error) {
-    return `// ${error instanceof Error ? error.message : String(error)}`
-  }
-})
+const exported = computed(() => geoDataStore.exportConfiguration())
+
+const exportContent = computed(() => exported.value.ok
+  ? JSON.stringify(exported.value.value, null, 2)
+  : `// ${errorMessage(exported.value.error)}`)
 
 const fileName = computed(() => {
   const atlasId = atlasStore.selectedAtlasId || 'projection'
@@ -50,6 +49,11 @@ function close() {
 }
 
 function downloadFile() {
+  if (!exported.value.ok) {
+    uiStore.showErrorToast(exported.value.error, 5000)
+    return
+  }
+
   try {
     const content = exportContent.value
     const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
@@ -70,6 +74,11 @@ function downloadFile() {
 }
 
 async function copyToClipboard() {
+  if (!exported.value.ok) {
+    uiStore.showErrorToast(exported.value.error, 5000)
+    return
+  }
+
   try {
     await navigator.clipboard.writeText(exportContent.value)
     uiStore.showToast(t('export.copySuccess'), 'success')

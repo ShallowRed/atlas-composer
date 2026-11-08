@@ -36,7 +36,11 @@ describe('geoData store', () => {
     it('exports a valid configuration of the open atlas', async () => {
       const { atlasConfig, geoDataStore } = await openFranceWithCartographer({ withComposite: true })
 
-      const exported = geoDataStore.exportConfiguration()
+      const result = geoDataStore.exportConfiguration()
+      if (!result.ok) {
+        throw new Error(result.error.code)
+      }
+      const exported = result.value
 
       expect(validateConfig(JSON.parse(JSON.stringify(exported)))).toMatchObject({ valid: true, errors: [] })
       expect(exported.metadata).toMatchObject({ atlasId: atlasConfig.id, atlasName: atlasConfig.name })
@@ -47,7 +51,7 @@ describe('geoData store', () => {
     it('fails without a composite projection', async () => {
       const { geoDataStore } = await openFranceWithCartographer({ withComposite: false })
 
-      expect(() => geoDataStore.exportConfiguration()).toThrow('No custom composite projection available')
+      expect(geoDataStore.exportConfiguration()).toEqual({ ok: false, error: { code: 'EXPORT_NOT_AVAILABLE' } })
     })
   })
 })

@@ -21,6 +21,7 @@ export const ERROR_MESSAGE_KEYS = {
   PRESET_INVALID: 'errors.preset.invalid',
   PRESET_NOT_APPLICABLE: 'errors.preset.notApplicable',
   PRESET_APPLICATION_FAILED: 'errors.preset.applicationFailed',
+  EXPORT_NOT_AVAILABLE: 'errors.export.notAvailable',
   IMPORT_NOT_JSON_FILE: 'errors.import.notJsonFile',
   IMPORT_FILE_TOO_LARGE: 'errors.import.fileTooLarge',
   IMPORT_FILE_UNREADABLE: 'errors.import.fileUnreadable',
