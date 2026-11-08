@@ -131,14 +131,9 @@ describe('parameter registration system', () => {
       expect(() => parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')).toThrow('Unknown parameter')
     })
 
-    it('should validate clipAngle relevance correctly', () => {
-      // Relevant for azimuthal projections
-      const azimuthalResult = parameterRegistry.validate('clipAngle', 90, 'AZIMUTHAL')
-      expect(azimuthalResult.ok).toBe(true)
-
-      // Not relevant for cylindrical projections
-      const cylindricalResult = parameterRegistry.validate('clipAngle', 90, 'CYLINDRICAL')
-      expect(cylindricalResult.ok).toBe(true)
+    it('should declare clipAngle for azimuthal projections only', () => {
+      expect(parameterRegistry.getConstraintsForFamily('clipAngle', 'AZIMUTHAL').relevant).toBe(true)
+      expect(parameterRegistry.getConstraintsForFamily('clipAngle', 'CYLINDRICAL').relevant).toBe(false)
     })
   })
 
