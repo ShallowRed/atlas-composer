@@ -1,6 +1,6 @@
 import type { PositioningView } from '@/core/positioning'
 import type { Preset } from '@/core/presets'
-import type { AtlasId, PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
+import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { ResolvedPresetDefinition } from '@/types/registry'
 
@@ -9,7 +9,6 @@ import { computed, ref, watch } from 'vue'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import i18n from '@/i18n'
-import { InitializationService } from '@/services/initialization/initialization-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useAppStore } from '@/stores/app'
@@ -17,7 +16,6 @@ import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
-import { useUIStore } from '@/stores/ui'
 import { logger } from '@/utils/logger'
 
 const debug = logger.store.config
@@ -25,7 +23,6 @@ const debug = logger.store.config
 export const useViewStore = defineStore('view', () => {
   const getAtlasStore = () => useAtlasStore()
   const getParameterStore = () => useParameterStore()
-  const getUIStore = () => useUIStore()
   const presetDefaults = usePresetDefaultsStore()
 
   const territoryMode = ref<string>(getAtlasStore().getInitialTerritoryMode())
@@ -211,83 +208,6 @@ export const useViewStore = defineStore('view', () => {
     appStore.startSwitchingView(involvesSplitMode)
   }, { flush: 'sync' })
 
-  watch(viewMode, async (newMode, oldMode) => {
-    clearViewPreset()
-
-    const parameterStore = getParameterStore()
-    parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
-    parameterStore.setGlobalParameter('parallels', undefined)
-    parameterStore.setGlobalParameter('scale', undefined)
-    presetDefaults.storeGlobalParameters(null)
-
-    if (newMode !== 'composite-custom' && newMode !== 'split') {
-      presetDefaults.clearAll()
-    }
-
-    await loadAvailableViewPresets()
-
-    if (newMode === 'composite-custom' && availableViewPresets.value.length === 0) {
-      const atlasId = getAtlasStore().selectedAtlasId
-      if (atlasId) {
-        debug('Reloading default composite preset for composite-custom mode')
-        await InitializationService.initializeAtlas({
-          atlasId,
-          preserveViewMode: true, // Keep composite-custom mode
-        })
-      }
-    }
-    else {
-      await autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
-    }
-  })
-
-  let isReverting = false
-
-  async function switchAtlas(atlasId: AtlasId, reason: string) {
-    const result = await InitializationService.initializeAtlas({
-      atlasId,
-      preserveViewMode: true,
-    })
-
-    if (result.success) {
-      await loadAvailableViewPresets()
-      await autoLoadFirstPreset(reason)
-    }
-
-    return result
-  }
-
-  watch(() => getAtlasStore().selectedAtlasId, async (newAtlasId, oldAtlasId) => {
-    if (isReverting) {
-      isReverting = false
-      return
-    }
-
-    const result = await switchAtlas(newAtlasId, `atlas changed from ${oldAtlasId} to ${newAtlasId}`)
-
-    if (result.success) {
-      debug('Atlas changed: %s -> %s', oldAtlasId, newAtlasId)
-      return
-    }
-
-    debug('Atlas change failed: %O', result.errors)
-
-    isReverting = true
-    getAtlasStore().selectedAtlasId = oldAtlasId
-
-    getUIStore().showToast(
-      `Cannot switch to ${newAtlasId}: ${result.errors[0] ?? 'Failed to switch atlas'}`,
-      'error',
-      5000,
-    )
-
-    // The failed initialization cleared the data of the previous atlas
-    const restored = await switchAtlas(oldAtlasId, `atlas restored after failing to load ${newAtlasId}`)
-    if (!restored.success) {
-      debug('Atlas restore failed: %O', restored.errors)
-    }
-  })
-
   return {
     territoryMode,
     viewMode,
@@ -308,6 +228,7 @@ export const useViewStore = defineStore('view', () => {
     removeTerritoryFromComposite,
     setActiveTerritories,
     loadAvailableViewPresets,
+    autoLoadFirstPreset,
     loadViewPreset,
     clearViewPreset,
   }

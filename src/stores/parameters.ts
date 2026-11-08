@@ -74,7 +74,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
   function setTerritoryParameter(territoryCode: TerritoryCode, key: keyof ProjectionParameters, value: any) {
     if (value === null || value === undefined) {
-      throw new Error(`[ParameterStore] Invalid null/undefined value for ${key} on territory ${territoryCode}. InitializationService should validate before calling.`)
+      throw new Error(`[ParameterStore] Invalid null/undefined value for ${key} on territory ${territoryCode}. The initializeAtlas action of the composition store should validate before calling.`)
     }
 
     try {

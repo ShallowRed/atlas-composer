@@ -13,11 +13,11 @@ import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
-import { useAtlasData } from '@/composables/useAtlasData'
 import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
@@ -25,8 +25,9 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
+// Created before restoreFromUrl, so that the URL triggers its watchers
+const compositionStore = useCompositionStore()
 
-const { initialize } = useAtlasData()
 const { restoreFromUrl, restoreProjectionParametersFromUrl } = useUrlState()
 const {
   isCompositeCustomMode,
@@ -44,7 +45,7 @@ const contentKey = computed(() => `${atlasStore.selectedAtlasId}-${viewStore.vie
 onMounted(async () => {
   restoreFromUrl()
 
-  await initialize()
+  await compositionStore.startMapView()
 
   restoreProjectionParametersFromUrl()
 })

@@ -2,8 +2,6 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
-import { useAppStore } from '@/stores/app'
-import { useGeoDataStore } from '@/stores/geoData'
 import { createAtlasId, createPresetId } from '@/types/branded'
 
 import { InitializationService } from '../initialization-service'
@@ -125,82 +123,6 @@ describe('initializationService', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
-  })
-
-  describe('initializeAtlas', () => {
-    // The success path needs the geographic data of src/public/data, which .gitignore excludes
-    it.skip('should successfully initialize an atlas', async () => {
-      const result = await InitializationService.initializeAtlas({
-        atlasId: createAtlasId('france'),
-      })
-
-      expect(result.success).toBe(true)
-      expect(result.errors).toHaveLength(0)
-      expect(result.state).toBeDefined()
-      expect(result.state?.atlas.id).toBe('france')
-    })
-
-    it.skip('should use default view mode if current is not supported', async () => {
-      const result = await InitializationService.initializeAtlas({
-        atlasId: createAtlasId('france'),
-        preserveViewMode: true,
-      })
-
-      expect(result.success).toBe(true)
-      expect(result.state?.viewMode).toBe('composite-custom')
-    })
-
-    it('should handle preset loading failure', async () => {
-      const { PresetLoader } = await import('@/services/presets/preset-loader')
-      vi.mocked(PresetLoader.loadPreset).mockResolvedValueOnce({
-        success: false,
-        data: undefined,
-        errors: ['Preset not found'],
-        warnings: [],
-      })
-
-      const result = await InitializationService.initializeAtlas({
-        atlasId: createAtlasId('france'),
-      })
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContainEqual(expect.stringContaining('Failed to load default preset'))
-      expect(useGeoDataStore().isReinitializing).toBe(false)
-      expect(useAppStore().state).toBe('error')
-    })
-
-    it('should handle preset validation failure', async () => {
-      const { getDefaultViewMode } = await import('@/core/atlases/registry')
-      const { PresetLoader } = await import('@/services/presets/preset-loader')
-      const { PresetValidationService } = await import('@/services/validation/preset-validation-service')
-      // Read by the view store, then by initializeAtlas
-      vi.mocked(getDefaultViewMode).mockReturnValueOnce('split').mockReturnValueOnce('split')
-      vi.mocked(PresetLoader.loadPreset).mockResolvedValueOnce({
-        success: true,
-        data: {
-          id: 'france-split',
-          atlasId: createAtlasId('france'),
-          type: 'split',
-          config: { territories: {} },
-        },
-        errors: [],
-        warnings: [],
-      })
-      vi.mocked(PresetValidationService.validatePreset).mockReturnValueOnce({
-        isValid: false,
-        errors: ['Invalid preset structure'],
-        warnings: [],
-      })
-
-      const result = await InitializationService.initializeAtlas({
-        atlasId: createAtlasId('france'),
-      })
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContain('Invalid preset structure')
-      expect(useGeoDataStore().isReinitializing).toBe(false)
-      expect(useAppStore().state).toBe('error')
-    })
   })
 
   describe.skip('loadPreset', () => {

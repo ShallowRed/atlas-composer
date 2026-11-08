@@ -9,8 +9,8 @@ import atlasRegistry from '#configs/atlas-registry.json'
 import { afterAll, expect, it } from 'vitest'
 import { buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { InitializationService } from '@/services/initialization/initialization-service'
 import { ProjectionService } from '@/services/projection/projection-service'
+import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
@@ -52,12 +52,12 @@ function unionOfBounds(bounds: Bounds[]): Bounds {
   ]
 }
 
-// Path of an atlas change (view store, switchAtlas)
+// Path of an atlas change (composition store, switchAtlas)
 async function openAtlas(atlasId: AtlasId) {
   await startApplication(atlasId)
   const viewStore = useViewStore()
 
-  const result = await InitializationService.initializeAtlas({ atlasId, preserveViewMode: true })
+  const result = await useCompositionStore().initializeAtlas({ preserveViewMode: true })
   if (!result.success) {
     throw new Error(result.errors.join(', '))
   }
