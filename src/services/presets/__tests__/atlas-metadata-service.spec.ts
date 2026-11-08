@@ -43,6 +43,15 @@ describe('atlasMetadataService', () => {
     expect(await AtlasMetadataService.getRecommendedProjection(FRANCE, presetId)).toBe('natural-earth')
   })
 
+  it.each([
+    ['a view preset', 'france-view', { id: 'preset-x', atlasId: FRANCE, type: 'unified', config: {} }],
+    ['a composite preset without metadata', 'france-bare', { id: 'preset-x', atlasId: FRANCE, type: 'composite-custom', config: {} }],
+  ])('gives the fallback metadata for %s', async (_name, presetId, preset) => {
+    vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValue(ok(preset as unknown as Preset))
+
+    expect(await AtlasMetadataService.getRecommendedProjection(FRANCE, presetId as PresetId)).toBe('natural-earth')
+  })
+
   it('gives the fallback metadata without a preset', async () => {
     const loadPreset = vi.spyOn(PresetLoader, 'loadPreset')
 
