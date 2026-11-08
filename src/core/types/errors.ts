@@ -41,6 +41,36 @@ export type PresetError
     | { code: 'PRESET_INVALID', presetId: string, issues: PresetIssue[] }
     | { code: 'PRESET_NOT_APPLICABLE', presetId: string, presetType: string, viewMode: string }
 
-export type AppError
-  = | GeoDataError
+type AtlasConfigError
+  = | JsonFileError
+    | { code: 'ATLAS_UNKNOWN', atlasId: string }
+    | { code: 'ATLAS_CONFIG_INVALID', atlasId: string }
+
+type InitializationError
+  = | AtlasConfigError
+    | GeoDataError
+    | PresetError
+    | { code: 'ATLAS_NO_DEFAULT_PRESET', atlasId: string, viewMode: string }
     | { code: 'INITIALIZATION_FAILED', reason: string }
+
+type PresetApplicationError
+  = | GeoDataError
+    | PresetError
+    | { code: 'PRESET_APPLICATION_FAILED', presetId: string, reason: string }
+
+type ImportError
+  = | GeoDataError
+    | { code: 'IMPORT_NOT_JSON_FILE', fileName: string }
+    | { code: 'IMPORT_FILE_TOO_LARGE', fileName: string, maxSizeInMb: number }
+    | { code: 'IMPORT_FILE_UNREADABLE', fileName: string }
+    | { code: 'IMPORT_MALFORMED_JSON' }
+    | { code: 'IMPORT_INVALID', issues: PresetIssue[] }
+    | { code: 'IMPORT_ATLAS_NOT_LOADED' }
+    | { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: string, currentAtlasId: string }
+    | { code: 'IMPORT_APPLICATION_FAILED', reason: string }
+
+export type AppError
+  = | InitializationError
+    | PresetApplicationError
+    | ImportError
+    | { code: 'ATLAS_SWITCH_FAILED', atlasId: string, cause: InitializationError }

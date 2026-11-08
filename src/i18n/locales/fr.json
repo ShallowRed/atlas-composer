@@ -505,6 +505,54 @@
     "geoData": {
       "missingObject": "Les données géographiques ne contiennent aucun objet « {objectName} »",
       "invalidStructure": "La structure du fichier de données géographiques {path} est invalide"
+    },
+    "atlas": {
+      "unknown": "L'atlas {atlasId} est absent du registre",
+      "configInvalid": "La configuration de l'atlas {atlasId} est invalide",
+      "noDefaultPreset": "L'atlas {atlasId} n'a pas de mise en page par défaut pour la vue {viewMode}",
+      "switchFailed": "Impossible de passer à l'atlas {atlasId} : {cause}"
+    },
+    "preset": {
+      "unknown": "Mise en page inconnue : {presetId}",
+      "invalid": "La mise en page {presetId} est invalide : {issues}",
+      "notApplicable": "La mise en page {presetId} est de type {presetType} et ne s'applique pas à la vue {viewMode}",
+      "applicationFailed": "Impossible d'appliquer la mise en page {presetId} : {reason}"
+    },
+    "import": {
+      "notJsonFile": "{fileName} n'est pas un fichier .json",
+      "fileTooLarge": "{fileName} dépasse {maxSizeInMb} Mo",
+      "fileUnreadable": "Impossible de lire {fileName}",
+      "malformedJson": "Le fichier n'est pas un JSON valide",
+      "invalid": "La configuration est invalide : {issues}",
+      "atlasNotLoaded": "La configuration de l'atlas n'est pas chargée",
+      "atlasMismatch": "Cette configuration concerne l'atlas {importedAtlasId} et l'atlas courant est {currentAtlasId}",
+      "applicationFailed": "Impossible d'appliquer la configuration : {reason}"
+    },
+    "presetIssue": {
+      "inTerritory": "Territoire {territory} : {message}",
+      "schemaInvalidType": "{path} a un type incorrect",
+      "schemaMissingField": "{path} est absent",
+      "schemaInvalidValue": "{path} a une valeur invalide",
+      "schemaVersionUnsupported": "La version indiquée dans {path} n'est pas prise en charge",
+      "fieldMissing": "Le champ {field} est absent",
+      "atlasIdInvalid": "L'identifiant de l'atlas est invalide",
+      "viewModeInvalid": "Le mode de vue {viewMode} est invalide",
+      "typeNotSupported": "L'atlas {atlasId} n'a pas de mise en page de type {presetType}",
+      "parameterRequired": "Le paramètre {parameter} est requis",
+      "positioningRequired": "Le paramètre rotate ou center est requis",
+      "projectionMissing": "La projection est absente",
+      "territoriesMissing": "Les territoires sont absents",
+      "compositeProjectionMissing": "La projection composite est absente",
+      "globalScaleNotNumber": "L'échelle globale doit être un nombre",
+      "globalScaleNotPositive": "L'échelle globale doit être positive",
+      "projectionIdInvalid": "L'identifiant de la projection est invalide",
+      "projectionUnknown": "Projection inconnue : {projectionId}",
+      "parametersNotObject": "Les paramètres de projection doivent former un objet",
+      "parameterNotNumber": "Le paramètre {parameter} doit être un nombre et il est de type {actualType}",
+      "parameterNotArray": "Le paramètre {parameter} doit être un tableau et il est de type {actualType}",
+      "parameterWrongLength": "Le paramètre {parameter} doit avoir {expected} valeurs",
+      "parameterTooSmall": "Le paramètre {parameter} doit valoir au moins {min}",
+      "parameterTooLarge": "Le paramètre {parameter} doit valoir au plus {max}"
     }
   }
 }
