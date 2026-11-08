@@ -76,7 +76,7 @@ export function useMapRender(props: MapRenderProps) {
     }
 
     if (props.mode === 'composite') {
-      return renderComposite()
+      return renderComposite(cartographer)
     }
 
     if (!props.geoData) {
@@ -110,12 +110,7 @@ export function useMapRender(props: MapRenderProps) {
     })
   }
 
-  async function renderComposite(): Promise<SVGSVGElement> {
-    const cartographer = geoDataStore.cartographer
-    if (!cartographer) {
-      throw new Error('Cartographer not initialized')
-    }
-
+  async function renderComposite(cartographer: NonNullable<typeof geoDataStore.cartographer>): Promise<SVGSVGElement> {
     debug('renderComposite() starting - territories: %o', geoDataStore.filteredTerritories.map(t => t.code))
 
     const { width, height } = size.value
