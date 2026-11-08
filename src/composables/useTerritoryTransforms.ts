@@ -1,17 +1,17 @@
 import { computed } from 'vue'
 import { useTerritoryCommands } from '@/composables/useTerritoryCommands'
 import { useTerritoryData } from '@/composables/useTerritoryData'
-import { useTerritoryReset } from '@/composables/useTerritoryReset'
 import { useTerritoryVisibility } from '@/composables/useTerritoryVisibility'
+import { useCompositionStore } from '@/stores/composition'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 
 export function useTerritoryTransforms() {
   const territoryData = useTerritoryData()
   const territoryCommands = useTerritoryCommands()
-  const territoryReset = useTerritoryReset()
   const territoryVisibility = useTerritoryVisibility()
 
+  const compositionStore = useCompositionStore()
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
 
@@ -29,8 +29,8 @@ export function useTerritoryTransforms() {
 
     changeTerritoryProjection: territoryCommands.changeTerritoryProjection,
 
-    resetTransforms: territoryReset.resetTransforms,
-    resetTerritoryToDefaults: territoryReset.resetTerritoryToDefaults,
+    resetTransforms: compositionStore.resetTransforms,
+    resetTerritoryToDefaults: compositionStore.resetTerritoryToDefaults,
 
     projectionRecommendations,
     projectionGroups,
