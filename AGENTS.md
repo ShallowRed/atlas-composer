@@ -18,8 +18,6 @@ The code keeps these boundaries, and `eslint.config.js` checks them with message
 
 The tests in `__tests__/` folders combine these layers and stay outside the rules.
 
-The files of `BOUNDARY_EXCEPTIONS` in `eslint.config.js` break a boundary on the current code. Remove a file from this list when it complies; add none.
-
 ## Configurations
 
 `configs/` holds the atlases, the registry and the presets. `pnpm geodata:validate --all` validates `configs/atlas-registry.json` against `configs/schemas/atlas-registry.schema.json` and checks that each of its preset paths exists. `types/atlas-registry.ts` is generated from this schema: after a change to the schema, run `pnpm generate:types`.
