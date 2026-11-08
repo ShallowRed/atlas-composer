@@ -61,13 +61,6 @@ const CORE_GLOBALS = [
   { name: 'localStorage', message: 'src/core/ has no I/O: read the stored value in a store and pass it as an argument.' },
 ]
 
-// Files that break a boundary on the current code, grouped by the change that
-// brings them into line. Remove a file from this list when it complies.
-const BOUNDARY_EXCEPTIONS = [
-  // Components that import services
-  'src/components/MapRenderer.vue',
-]
-
 // Options of @antfu/eslint-config for these rules
 const ANTFU_RESTRICTED_SYNTAX = ['TSEnumDeclaration[const=true]', 'TSExportAssignment']
 const ANTFU_VUE_RESTRICTED_SYNTAX = ['DebuggerStatement', 'LabeledStatement', 'WithStatement']
@@ -83,6 +76,11 @@ const DEPRECATED_POSITIONING = [
 const DEFAULT_REFERENCE_SCALE = {
   selector: 'Literal[value=2700]',
   message: 'The default reference scale is DEFAULT_REFERENCE_SCALE of @atlas-composer/specification.',
+}
+
+const CARTOGRAPHER_DATA = {
+  selector: 'MemberExpression[property.name=\'geoData\']:not([object.name=\'props\'])',
+  message: 'The geographic data of the cartographer is read by an action of the geoData store.',
 }
 
 export default antfu({
@@ -157,17 +155,17 @@ export default antfu({
     'no-restricted-imports': ['error', { patterns: [AJV, SERVICES_FROM_UI] }],
   },
 }, {
-  files: BOUNDARY_EXCEPTIONS,
-  rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV] }],
-    'no-restricted-globals': ['error', ...ANTFU_GLOBALS],
-  },
-}, {
   files: ['src/**/*.ts', 'src/**/*.vue'],
   ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
   rules: {
     'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE],
+  },
+}, {
+  files: ['src/composables/**', 'src/components/**', 'src/views/**'],
+  ignores: ['**/__tests__/**', '**/*.d.ts'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA],
   },
 }, {
   files: ['packages/projection-loader/src/**'],

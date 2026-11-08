@@ -282,6 +282,14 @@ export const useGeoDataStore = defineStore('geoData', () => {
     isReinitializing.value = value
   }
 
+  async function getFilteredRawData(): Promise<GeoJSON.FeatureCollection | null> {
+    if (!cartographer.value) {
+      return null
+    }
+    const territoryCodes = filteredTerritories.value.map(territory => territory.code)
+    return cartographer.value.geoData.getRawUnifiedData(useViewStore().territoryMode, territoryCodes)
+  }
+
   function exportConfiguration(): CompositeProjectionConfig {
     const customComposite = cartographer.value?.customComposite
     if (!customComposite) {
@@ -326,6 +334,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     clearAllData,
     clearError,
     failInitialization,
+    getFilteredRawData,
     exportConfiguration,
     triggerRender, // Expose method to force re-render
   }
