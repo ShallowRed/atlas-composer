@@ -2,6 +2,7 @@ import type { FamilyConstraint, FamilyConstraints } from '@/core/parameters/para
 import type { PositionParameter } from '@/core/positioning'
 import { parameterRegistry } from '@/core/parameters/parameter-registry'
 import { usesPositionParameter } from '@/core/positioning'
+import { err, ok } from '@/core/types/result'
 
 const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
 
@@ -82,16 +83,16 @@ export function registerAllParameters(): void {
         defaultValue: [30, 60],
         validate: (value) => {
           if (!Array.isArray(value) || value.length !== 2) {
-            return { isValid: false, error: 'Parallels must be [south, north]' }
+            return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'parallels' })
           }
           const [south, north] = value
           if (south >= north) {
-            return { isValid: false, error: 'South parallel must be less than north parallel' }
+            return err({ code: 'PARAMETER_PARALLELS_ORDER', parameter: 'parallels' })
           }
           if (south < -90 || south > 90 || north < -90 || north > 90) {
-            return { isValid: false, error: 'Parallels must be between -90 and 90 degrees' }
+            return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'parallels', min: -90, max: 90 })
           }
-          return { isValid: true }
+          return ok(undefined)
         },
       },
       AZIMUTHAL: {
@@ -211,13 +212,13 @@ export function registerAllParameters(): void {
         defaultValue: [0, 0],
         validate: (value) => {
           if (!Array.isArray(value) || value.length !== 2) {
-            return { isValid: false, error: 'Translate offset must be [x, y]' }
+            return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'translateOffset' })
           }
           const [x, y] = value
           if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
-            return { isValid: false, error: 'Translate offset values must be between -2000 and 2000' }
+            return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'translateOffset', min: -2000, max: 2000 })
           }
-          return { isValid: true }
+          return ok(undefined)
         },
       },
       PSEUDOCYLINDRICAL: {

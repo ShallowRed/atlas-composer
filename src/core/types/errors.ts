@@ -41,6 +41,19 @@ export type PresetError
     | { code: 'PRESET_INVALID', presetId: string, issues: PresetIssue[] }
     | { code: 'PRESET_NOT_APPLICABLE', presetId: string, presetType: string, viewMode: string }
 
+export type ParameterIssue
+  = | { code: 'PARAMETER_REQUIRED', parameter: string }
+    | { code: 'PARAMETER_NOT_NUMBER', parameter: string }
+    | { code: 'PARAMETER_NOT_PAIR', parameter: string }
+    | { code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter: string }
+    | { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: string }
+    | { code: 'PARAMETER_TOO_SMALL', parameter: string, min: number }
+    | { code: 'PARAMETER_TOO_LARGE', parameter: string, max: number }
+    | { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: string, index: number, min: number }
+    | { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: string, index: number, max: number }
+    | { code: 'PARAMETER_OUT_OF_RANGE', parameter: string, min: number, max: number }
+    | { code: 'PARAMETER_PARALLELS_ORDER', parameter: string }
+
 export type AtlasConfigError
   = | JsonFileError
     | { code: 'ATLAS_UNKNOWN', atlasId: string }

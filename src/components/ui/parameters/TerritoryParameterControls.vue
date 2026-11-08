@@ -6,7 +6,7 @@ import type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-import { computed, onMounted, toRaw } from 'vue'
+import { computed, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 
@@ -24,8 +24,6 @@ interface Props {
   projectionFamily: ProjectionFamilyType
   view: PositioningView
   showInheritanceIndicators?: boolean
-  allowParameterOverrides?: boolean
-  showValidationFeedback?: boolean
 }
 
 interface Emits {
@@ -35,8 +33,6 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   showInheritanceIndicators: true,
-  allowParameterOverrides: true,
-  showValidationFeedback: true,
   hideProjectionDropdown: false,
 })
 
@@ -90,7 +86,7 @@ const territoryParameters = computed(() => {
   return parameterStore.getTerritoryParameters(props.territoryCode)
 })
 
-const validationResults = computed(() => {
+const validationIssues = computed(() => {
   return parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 
@@ -163,13 +159,6 @@ const relevantParameters = computed(() => {
     .map(([key]) => key as keyof ProjectionParameters)
 })
 
-const validationErrors = computed(() => {
-  return validationResults.value.filter(result => !result.isValid)
-})
-
-const validationWarnings = computed(() => {
-  return validationResults.value.filter(result => result.isValid && result.warning)
-})
 const parallel1Range = computed(() => getParameterRange('parallel1'))
 const parallel2Range = computed(() => getParameterRange('parallel2'))
 const clipAngleRange = computed(() => getParameterRange('clipAngle'))
@@ -199,23 +188,15 @@ function updatePixelClipExtent(index: number, value: number) {
 }
 
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
-  const validationResult = parameterStore.validateParameter(props.projectionFamily, key, value)
-
-  if (validationResult.isValid || props.allowParameterOverrides) {
-    parameterStore.setTerritoryParameter(props.territoryCode, key, value)
-    emit('parameterChanged', props.territoryCode, key, value)
-  }
+  parameterStore.setTerritoryParameter(props.territoryCode, key, value)
+  emit('parameterChanged', props.territoryCode, key, value)
 }
 
 function handlePositioningChange(key: PositionParameter, axis: number, value: number) {
   const positioning = updatePositioningAxis(effectiveParameters.value, props.view, key, axis, value)
   const updated = positioning[key]
-  const validationResult = parameterStore.validateParameter(props.projectionFamily, key, updated)
-
-  if (validationResult.isValid || props.allowParameterOverrides) {
-    parameterStore.setTerritoryParameters(props.territoryCode, positioning)
-    emit('parameterChanged', props.territoryCode, key, updated)
-  }
+  parameterStore.setTerritoryParameters(props.territoryCode, positioning)
+  emit('parameterChanged', props.territoryCode, key, updated)
 }
 
 function clearAllOverrides() {
@@ -266,10 +247,6 @@ const hasPrecisionParameter = computed(() => {
 const hasTranslateParameter = computed(() => {
   return true
 })
-
-onMounted(() => {
-  parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
-})
 </script>
 
 <template>
@@ -285,14 +262,10 @@ onMounted(() => {
     </button>
 
     <div
-      v-if="showValidationFeedback && (validationErrors.length > 0 || validationWarnings.length > 0)"
+      v-if="validationIssues.length > 0"
       class="mb-4"
     >
-      <ParameterValidationFeedback
-        :errors="validationErrors"
-        :warnings="validationWarnings"
-        :territory-code="territoryCode"
-      />
+      <ParameterValidationFeedback :issues="validationIssues" />
     </div>
 
     <div

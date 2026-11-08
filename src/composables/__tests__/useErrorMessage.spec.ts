@@ -1,9 +1,9 @@
-import type { AppError, PresetIssue } from '@/core/types/errors'
+import type { AppError, ParameterIssue, PresetIssue } from '@/core/types/errors'
 import type { SupportedLocale } from '@/i18n'
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import { defineComponent } from 'vue'
-import { ERROR_MESSAGE_KEYS, ISSUE_MESSAGE_KEYS, useErrorMessage } from '@/composables/useErrorMessage'
+import { ERROR_MESSAGE_KEYS, ISSUE_MESSAGE_KEYS, PARAMETER_ISSUE_MESSAGE_KEYS, useErrorMessage } from '@/composables/useErrorMessage'
 import i18n, { SUPPORTED_LOCALES } from '@/i18n'
 
 const PATH = '/data/x.json'
@@ -63,6 +63,20 @@ const issues = {
   PRESET_PARAMETER_TOO_LARGE: { code: 'PRESET_PARAMETER_TOO_LARGE', territory: null, parameter: 'parameter-x', max: 9 },
 } satisfies { [C in PresetIssue['code']]: PresetIssue & { code: C } }
 
+const parameterIssues = {
+  PARAMETER_REQUIRED: { code: 'PARAMETER_REQUIRED', parameter: 'parameter-x' },
+  PARAMETER_NOT_NUMBER: { code: 'PARAMETER_NOT_NUMBER', parameter: 'parameter-x' },
+  PARAMETER_NOT_PAIR: { code: 'PARAMETER_NOT_PAIR', parameter: 'parameter-x' },
+  PARAMETER_NOT_PAIR_OR_TRIPLE: { code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter: 'parameter-x' },
+  PARAMETER_ITEMS_NOT_NUMBERS: { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: 'parameter-x' },
+  PARAMETER_TOO_SMALL: { code: 'PARAMETER_TOO_SMALL', parameter: 'parameter-x', min: 11 },
+  PARAMETER_TOO_LARGE: { code: 'PARAMETER_TOO_LARGE', parameter: 'parameter-x', max: 22 },
+  PARAMETER_ITEM_TOO_SMALL: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'parameter-x', index: 3, min: 11 },
+  PARAMETER_ITEM_TOO_LARGE: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'parameter-x', index: 3, max: 22 },
+  PARAMETER_OUT_OF_RANGE: { code: 'PARAMETER_OUT_OF_RANGE', parameter: 'parameter-x', min: 11, max: 22 },
+  PARAMETER_PARALLELS_ORDER: { code: 'PARAMETER_PARALLELS_ORDER', parameter: 'parameter-x' },
+} satisfies { [C in ParameterIssue['code']]: Extract<ParameterIssue, { code: C }> }
+
 const initialLocale = i18n.global.locale.value
 
 function withErrorMessage<T>(read: (messages: ReturnType<typeof useErrorMessage>) => T): T {
@@ -119,6 +133,17 @@ describe('useErrorMessage', () => {
       i18n.global.locale.value = locale
       const [message] = withErrorMessage(({ errorMessages }) => errorMessages({ code: 'IMPORT_INVALID', issues: [issue] }))
       for (const value of Object.values(parameters)) {
+        expect(message).toContain(String(value))
+      }
+    })
+
+    it.each(Object.values(parameterIssues) as ParameterIssue[])('translates $code with each field of the parameter issue', (issue) => {
+      const { code, ...fields } = issue
+      expect(parametersOf(rawMessage(locale, PARAMETER_ISSUE_MESSAGE_KEYS[code])).sort()).toEqual(Object.keys(fields).sort())
+
+      i18n.global.locale.value = locale
+      const message = withErrorMessage(({ parameterIssueMessage }) => parameterIssueMessage(issue))
+      for (const value of Object.values(fields)) {
         expect(message).toContain(String(value))
       }
     })

@@ -3,6 +3,8 @@
  */
 
 import type { ParameterDefinition } from '../parameter-registry'
+import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { ParameterIssue } from '@/core/types/errors'
 
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -111,66 +113,78 @@ describe('parameterRegistry', () => {
   })
 
   describe('parameter validation', () => {
-    it('should validate valid number parameters', () => {
-      const result = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
-      expect(result.isValid).toBe(true)
+    const issueOf = (key: string, value: unknown, family: ProjectionFamilyType): ParameterIssue | undefined => {
+      const result = parameterRegistry.validate(key, value, family)
+      return result.ok ? undefined : result.error
+    }
+
+    const cases = {
+      PARAMETER_REQUIRED: {
+        issue: () => issueOf('projectionId', null, 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_REQUIRED', parameter: 'projectionId' },
+      },
+      PARAMETER_NOT_NUMBER: {
+        issue: () => issueOf('scaleMultiplier', 'invalid', 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_NOT_NUMBER', parameter: 'scaleMultiplier' },
+      },
+      PARAMETER_NOT_PAIR: {
+        issue: () => issueOf('center', [180], 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_NOT_PAIR', parameter: 'center' },
+      },
+      PARAMETER_NOT_PAIR_OR_TRIPLE: {
+        issue: () => issueOf('rotate', [180], 'CONIC'),
+        expected: { code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter: 'rotate' },
+      },
+      PARAMETER_ITEMS_NOT_NUMBERS: {
+        issue: () => issueOf('center', ['a', 'b'], 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: 'center' },
+      },
+      PARAMETER_TOO_SMALL: {
+        issue: () => issueOf('scaleMultiplier', 0.005, 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_TOO_SMALL', parameter: 'scaleMultiplier', min: 0.01 },
+      },
+      PARAMETER_TOO_LARGE: {
+        issue: () => issueOf('scaleMultiplier', 15, 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_TOO_LARGE', parameter: 'scaleMultiplier', max: 10 },
+      },
+      PARAMETER_ITEM_TOO_SMALL: {
+        issue: () => issueOf('center', [-200, 0], 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'center', index: 0, min: -180 },
+      },
+      PARAMETER_ITEM_TOO_LARGE: {
+        issue: () => issueOf('center', [200, 0], 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'center', index: 0, max: 180 },
+      },
+      PARAMETER_OUT_OF_RANGE: {
+        issue: () => issueOf('parallels', [-100, 100], 'CONIC'),
+        expected: { code: 'PARAMETER_OUT_OF_RANGE', parameter: 'parallels', min: -90, max: 90 },
+      },
+      PARAMETER_PARALLELS_ORDER: {
+        issue: () => issueOf('parallels', [60, 30], 'CONIC'),
+        expected: { code: 'PARAMETER_PARALLELS_ORDER', parameter: 'parallels' },
+      },
+    } satisfies { [C in ParameterIssue['code']]: { issue: () => ParameterIssue | undefined, expected: Extract<ParameterIssue, { code: C }> } }
+
+    it.each(Object.entries(cases))('gives %s for the value that breaks its rule', (_code, { issue, expected }) => {
+      expect(issue()).toEqual(expected)
     })
 
-    it('should reject invalid number parameters', () => {
-      const tooLow = parameterRegistry.validate('scaleMultiplier', 0.005, 'CYLINDRICAL')
-      expect(tooLow.isValid).toBe(false)
-      expect(tooLow.error).toContain('must be >= 0.01')
-
-      const tooHigh = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
-      expect(tooHigh.isValid).toBe(false)
-      expect(tooHigh.error).toContain('must be <= 10')
+    it('accepts a valid number', () => {
+      expect(parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL').ok).toBe(true)
     })
 
-    it('should reject non-numeric values for number parameters', () => {
-      const result = parameterRegistry.validate('scaleMultiplier', 'invalid', 'CYLINDRICAL')
-      expect(result.isValid).toBe(false)
-      expect(result.error).toContain('must be a valid number')
+    it('lists the issues of the relevant parameters', () => {
+      const issues = parameterRegistry.validateParameters({
+        scaleMultiplier: 0.005,
+        center: [-200, 100] as [number, number],
+        clipAngle: 'not relevant for this family' as unknown as number,
+      }, 'CYLINDRICAL')
+
+      expect(issues.map(issue => issue.parameter)).toEqual(['scaleMultiplier', 'center'])
     })
 
-    it('should reject invalid tuple2 parameters', () => {
-      const invalidFormat = parameterRegistry.validate('center', [180], 'CYLINDRICAL')
-      expect(invalidFormat.isValid).toBe(false)
-      expect(invalidFormat.error).toContain('must be an array of 2 numbers')
-
-      const outOfRange = parameterRegistry.validate('center', [-200, 100], 'CYLINDRICAL')
-      expect(outOfRange.isValid).toBe(false)
-      expect(outOfRange.error).toContain('must be >= -180')
-    })
-
-    it('should reject invalid tuple3 parameters', () => {
-      const invalidFormat = parameterRegistry.validate('rotate', [180], 'CONIC')
-      expect(invalidFormat.isValid).toBe(false)
-      expect(invalidFormat.error).toContain('must be an array of 2 or 3 numbers')
-
-      const outOfRange = parameterRegistry.validate('rotate', [-200, 100, 0], 'CONIC')
-      expect(outOfRange.isValid).toBe(false)
-      expect(outOfRange.error).toContain('must be >= -180')
-    })
-
-    it('should return validation errors for multiple invalid parameters', () => {
-      const params = {
-        scaleMultiplier: 0.005, // Too low (below 0.01)
-        center: [-200, 100] as [number, number], // Out of range
-      }
-
-      const results = parameterRegistry.validateParameters(params, 'CYLINDRICAL')
-      const errors = results.filter(r => !r.isValid)
-      expect(errors.length).toBeGreaterThan(0)
-
-      // Should have error for scaleMultiplier
-      const scaleError = errors.find(e => e.error?.includes('scaleMultiplier'))
-      expect(scaleError).toBeDefined()
-    })
-
-    it('should handle unknown parameters', () => {
-      const result = parameterRegistry.validate('unknownParam', 123, 'CYLINDRICAL')
-      expect(result.isValid).toBe(false)
-      expect(result.error).toContain('Unknown parameter: unknownParam')
+    it('throws for a parameter without definition', () => {
+      expect(() => parameterRegistry.validate('unknownParam', 123, 'CYLINDRICAL')).toThrow('Unknown parameter: unknownParam')
     })
   })
 })

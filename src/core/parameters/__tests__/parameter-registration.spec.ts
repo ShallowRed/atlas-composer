@@ -95,11 +95,11 @@ describe('parameter registration system', () => {
 
       // Valid center
       const validResult = parameterRegistry.validate('center', [2.0, 46.5], 'AZIMUTHAL')
-      expect(validResult.isValid).toBe(true)
+      expect(validResult.ok).toBe(true)
 
       // Invalid longitude
       const invalidLon = parameterRegistry.validate('center', [-200, 46.5], 'AZIMUTHAL')
-      expect(invalidLon.isValid).toBe(false)
+      expect(invalidLon.ok).toBe(false)
     })
 
     it('should validate rotate parameter correctly', () => {
@@ -109,41 +109,36 @@ describe('parameter registration system', () => {
 
       // Valid rotation (3 elements)
       const valid3 = parameterRegistry.validate('rotate', [-3, -46.2, 0], 'CONIC')
-      expect(valid3.isValid).toBe(true)
+      expect(valid3.ok).toBe(true)
 
       // Valid rotation (2 elements, gamma optional)
       const valid2 = parameterRegistry.validate('rotate', [-3, -46.2], 'CONIC')
-      expect(valid2.isValid).toBe(true)
+      expect(valid2.ok).toBe(true)
 
       // Invalid rotation (1 element)
       const invalid = parameterRegistry.validate('rotate', [-3], 'CONIC')
-      expect(invalid.isValid).toBe(false)
+      expect(invalid.ok).toBe(false)
     })
 
     it('should validate scale parameters correctly', () => {
       // Scale multiplier (only remaining scale parameter)
       const validMult = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
-      expect(validMult.isValid).toBe(true)
+      expect(validMult.ok).toBe(true)
 
       const invalidMult = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
-      expect(invalidMult.isValid).toBe(false)
+      expect(invalidMult.ok).toBe(false)
 
-      // Deprecated parameters should return unknown parameter error
-      const baseScaleResult = parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')
-      expect(baseScaleResult.isValid).toBe(false)
-      expect(baseScaleResult.error).toContain('Unknown parameter')
+      expect(() => parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')).toThrow('Unknown parameter')
     })
 
     it('should validate clipAngle relevance correctly', () => {
       // Relevant for azimuthal projections
       const azimuthalResult = parameterRegistry.validate('clipAngle', 90, 'AZIMUTHAL')
-      expect(azimuthalResult.isValid).toBe(true)
-      expect(azimuthalResult.warning).toBeUndefined()
+      expect(azimuthalResult.ok).toBe(true)
 
       // Not relevant for cylindrical projections
       const cylindricalResult = parameterRegistry.validate('clipAngle', 90, 'CYLINDRICAL')
-      expect(cylindricalResult.isValid).toBe(true)
-      expect(cylindricalResult.warning).toContain('not relevant')
+      expect(cylindricalResult.ok).toBe(true)
     })
   })
 
