@@ -1,10 +1,13 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { CompositeConfigContext } from '@/core/presets'
+import type { ImportError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import { readCompositeConfig } from '@/core/presets'
 import { err } from '@/core/types/result'
 
-type ImportResult = Result<CompositeProjectionConfig, string[]>
+type ImportResult = Result<CompositeProjectionConfig, ImportError>
+
+const MAX_FILE_SIZE_IN_MB = 10
 
 export class CompositeImportService {
   static importFromJSON(jsonString: string, context: CompositeConfigContext): ImportResult {
@@ -12,29 +15,32 @@ export class CompositeImportService {
     try {
       raw = JSON.parse(jsonString)
     }
-    catch (error) {
-      return err([`Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`])
+    catch {
+      return err({ code: 'IMPORT_MALFORMED_JSON' })
     }
 
-    return readCompositeConfig(raw, context)
+    const read = readCompositeConfig(raw, context)
+    return read.ok ? read : err({ code: 'IMPORT_INVALID', issues: read.error })
   }
 
   static async importFromFile(file: File, context: CompositeConfigContext): Promise<ImportResult> {
-    if (!file.name.endsWith('.json')) {
-      return err(['File must be a JSON file (.json extension)'])
+    const fileName = file.name
+    if (!fileName.endsWith('.json')) {
+      return err({ code: 'IMPORT_NOT_JSON_FILE', fileName })
     }
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024
-    if (file.size > MAX_FILE_SIZE) {
-      return err([`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max 10MB)`])
+    if (file.size > MAX_FILE_SIZE_IN_MB * 1024 * 1024) {
+      return err({ code: 'IMPORT_FILE_TOO_LARGE', fileName, maxSizeInMb: MAX_FILE_SIZE_IN_MB })
     }
 
+    let text: string
     try {
-      const text = await file.text()
-      return this.importFromJSON(text, context)
+      text = await file.text()
     }
-    catch (error) {
-      return err([`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`])
+    catch {
+      return err({ code: 'IMPORT_FILE_UNREADABLE', fileName })
     }
+
+    return this.importFromJSON(text, context)
   }
 }

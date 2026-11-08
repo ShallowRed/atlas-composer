@@ -1,14 +1,13 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { TerritoryResetOperation } from '@/core/territories/types'
-import type { GeoDataError, PresetError } from '@/core/types/errors'
+import type { GeoDataError, ImportError, PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type {
   ApplicationState,
   AtlasInitializationOptions,
-  ImportOptions,
   InitializationResult,
   PresetLoadOptions,
 } from '@/types/initialization'
@@ -17,7 +16,7 @@ import { defineStore } from 'pinia'
 import { nextTick, watch } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
-import { convertToDefaults, extractTerritoryParameters } from '@/core/presets'
+import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
 import { findPositioningErrors, findTerritoriesWithoutProjection } from '@/core/presets/validator'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
@@ -42,6 +41,10 @@ const debug = logger.store.config
 
 function geoDataFailure(error: GeoDataError): string {
   return `Failed to load geographic data: ${error.code}`
+}
+
+function failureReason(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 function presetFailure(error: PresetError): string {
@@ -412,40 +415,28 @@ export const useCompositionStore = defineStore('composition', () => {
     geoDataStore.triggerRender()
   }
 
-  async function readConfigurationFile(file: File): Promise<Result<CompositeProjectionConfig, string[]>> {
+  async function readConfigurationFile(file: File): Promise<Result<CompositeProjectionConfig, ImportError>> {
     const atlasConfig = atlasStore.currentAtlasConfig
-    if (!atlasConfig) {
-      return err(['Atlas configuration not loaded'])
+    if (!atlasConfig || atlasConfig.id !== atlasStore.selectedAtlasId) {
+      return err({ code: 'IMPORT_ATLAS_NOT_LOADED' })
     }
 
-    return CompositeImportService.importFromFile(file, {
+    const read = await CompositeImportService.importFromFile(file, {
       atlasConfig,
       canvasDimensions: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
     })
+    if (!read.ok) {
+      return read
+    }
+
+    const compatibility = checkAtlasCompatibility(read.value, atlasConfig.id)
+    return compatibility.ok ? read : compatibility
   }
 
-  async function importConfiguration(options: ImportOptions): Promise<InitializationResult> {
-    const { config, validateAtlasCompatibility = true } = options
-
+  async function importConfiguration(config: CompositeProjectionConfig): Promise<Result<void, ImportError>> {
     try {
       const currentAtlasId = atlasStore.selectedAtlasId
       const atlasConfig = getAtlasConfig(currentAtlasId)
-
-      if (!config.territories || Object.keys(config.territories).length === 0) {
-        return {
-          success: false,
-          errors: ['Import configuration has no territories'],
-          warnings: [],
-        }
-      }
-
-      if (validateAtlasCompatibility && config.metadata.atlasId !== currentAtlasId) {
-        return {
-          success: false,
-          errors: [`Import is for atlas '${config.metadata.atlasId}' but current atlas is '${currentAtlasId}'`],
-          warnings: [],
-        }
-      }
 
       const territoryParameters: Record<string, Record<string, unknown>> = {}
       for (const territory of config.territories) {
@@ -493,36 +484,14 @@ export const useCompositionStore = defineStore('composition', () => {
 
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
       if (!geoDataResult.ok) {
-        return {
-          success: false,
-          errors: [geoDataFailure(geoDataResult.error)],
-          warnings: [],
-        }
+        return geoDataResult
       }
-    }
-    catch (error) {
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error during import'],
-        warnings: [],
-      }
-    }
 
-    try {
       updateCartographerTerritories(config.territories.map(territory => territory.code as TerritoryCode))
+      return ok(undefined)
     }
     catch (error) {
-      return {
-        success: false,
-        errors: [`Failed to apply import: ${error instanceof Error ? error.message : 'Unknown error'}`],
-        warnings: [],
-      }
-    }
-
-    return {
-      success: true,
-      errors: [],
-      warnings: [],
+      return err({ code: 'IMPORT_APPLICATION_FAILED', reason: failureReason(error) })
     }
   }
 

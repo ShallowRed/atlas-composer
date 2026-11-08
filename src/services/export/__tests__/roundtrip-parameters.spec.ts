@@ -69,7 +69,7 @@ describe('export/import JSON roundtrip', () => {
   function importConfig(config: CompositeProjectionConfig) {
     const result = CompositeImportService.importFromJSON(JSON.stringify(config), context)
     if (!result.ok) {
-      throw new Error(result.error.join(', '))
+      throw new Error(JSON.stringify(result.error))
     }
     return result.value
   }

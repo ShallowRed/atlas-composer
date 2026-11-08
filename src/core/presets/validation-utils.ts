@@ -1,9 +1,18 @@
+import type { ValidationError } from '@atlas-composer/specification'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { PresetIssue } from '@/core/types/errors'
 import { parameterRegistry } from '@/core/parameters'
+import { logger } from '@/utils/logger'
+
+const debug = logger.presets.validator
 
 function isNonEmptyString(value: unknown): boolean {
   return typeof value === 'string' && value.trim() !== ''
+}
+
+export function schemaIssues(errors: ValidationError[]): PresetIssue[] {
+  debug('Refused by the schema: %O', errors)
+  return errors.map(({ code, path }) => ({ code: `PRESET_SCHEMA_${code}` as const, path: path || '/' }))
 }
 
 export function atlasIdIssue(atlasId: unknown): PresetIssue | null {

@@ -18,6 +18,7 @@ import {
   atlasIdIssue,
   checkProjectionParameters,
   projectionIdIssue,
+  schemaIssues,
 } from './validation-utils'
 
 const debug = logger.presets.validator
@@ -34,8 +35,7 @@ export function validateCompositePreset(
   const validation = validateConfig(rawPreset)
 
   if (!validation.valid) {
-    debug('Preset refused by the schema: %O', validation.errors)
-    return err(validation.errors.map(({ code, path }) => ({ code: `PRESET_SCHEMA_${code}` as const, path })))
+    return err(schemaIssues(validation.errors))
   }
 
   const issues: PresetIssue[] = []

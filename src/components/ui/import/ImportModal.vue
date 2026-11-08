@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { AtlasId } from '@/types/branded'
+import type { ImportError } from '@/core/types/errors'
 import { computed, ref } from 'vue'
 
 import Modal from '@/components/ui/primitives/Modal.vue'
-import { checkAtlasCompatibility } from '@/core/presets'
+import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useCompositionStore } from '@/stores/composition'
-import { logger } from '@/utils/logger'
 
 const props = defineProps<{
   modelValue: boolean
-  atlasId: AtlasId
   compositeProjection: any
 }>()
 
@@ -19,21 +17,18 @@ const emit = defineEmits<{
   'imported': [config: CompositeProjectionConfig]
 }>()
 
-const debug = logger.vue.component
-
 const compositionStore = useCompositionStore()
+const { errorMessages } = useErrorMessage()
 
 const isDragging = ref(false)
 const isProcessing = ref(false)
 const selectedFile = ref<File | null>(null)
-const importResult = ref<{ success: boolean, errors: string[], warnings: string[] } | null>(null)
+const importError = ref<ImportError | null>(null)
 const importedConfig = ref<CompositeProjectionConfig | null>(null)
 
-const hasErrors = computed(() => importResult.value && importResult.value.errors.length > 0)
-const hasWarnings = computed(() => importResult.value && importResult.value.warnings.length > 0)
 const canApply = computed(() =>
   importedConfig.value
-  && !hasErrors.value
+  && !importError.value
   && props.compositeProjection !== null
   && props.compositeProjection !== undefined,
 )
@@ -70,28 +65,16 @@ function handleDragLeave() {
 async function processFile(file: File) {
   isProcessing.value = true
   selectedFile.value = file
-  importResult.value = null
+  importError.value = null
   importedConfig.value = null
 
   try {
     const result = await compositionStore.readConfigurationFile(file)
-    if (!result.ok) {
-      importResult.value = { success: false, errors: result.error, warnings: [] }
-      return
+    if (result.ok) {
+      importedConfig.value = result.value
     }
-
-    importedConfig.value = result.value
-    importResult.value = {
-      success: true,
-      errors: [],
-      warnings: checkAtlasCompatibility(result.value, props.atlasId),
-    }
-  }
-  catch (error) {
-    importResult.value = {
-      success: false,
-      errors: [`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`],
-      warnings: [],
+    else {
+      importError.value = result.error
     }
   }
   finally {
@@ -104,27 +87,10 @@ async function applyImport() {
     return
   }
 
-  if (!props.compositeProjection) {
-    debug('Cannot apply import: composite projection is not available')
-    importResult.value = {
-      success: false,
-      errors: ['Cannot apply import: composite projection not initialized. Switch to composite-custom mode first.'],
-      warnings: importResult.value?.warnings || [],
-    }
-    return
-  }
+  const result = await compositionStore.importConfiguration(importedConfig.value)
 
-  const result = await compositionStore.importConfiguration({
-    config: importedConfig.value,
-    validateAtlasCompatibility: true,
-  })
-
-  if (!result.success) {
-    importResult.value = {
-      success: false,
-      errors: result.errors,
-      warnings: result.warnings,
-    }
+  if (!result.ok) {
+    importError.value = result.error
     return
   }
 
@@ -133,9 +99,7 @@ async function applyImport() {
 }
 
 function handleClose() {
-  selectedFile.value = null
-  importResult.value = null
-  importedConfig.value = null
+  clearFile()
   isDragging.value = false
   isProcessing.value = false
 
@@ -144,7 +108,7 @@ function handleClose() {
 
 function clearFile() {
   selectedFile.value = null
-  importResult.value = null
+  importError.value = null
   importedConfig.value = null
 }
 </script>
@@ -222,10 +186,10 @@ function clearFile() {
     </div>
 
     <!-- Validation Results -->
-    <div v-if="importResult && !isProcessing">
+    <div v-if="(importError || importedConfig) && !isProcessing">
       <!-- Success -->
       <div
-        v-if="importResult.success"
+        v-if="!importError"
         class="alert alert-success alert-soft my-4"
       >
         <i class="ri-check-line text-xl" />
@@ -234,7 +198,7 @@ function clearFile() {
 
       <!-- Errors -->
       <div
-        v-if="hasErrors"
+        v-if="importError"
         class="alert alert-error alert-soft mb-4"
       >
         <div class="flex-1">
@@ -244,35 +208,12 @@ function clearFile() {
           </h3>
           <ul class="list-disc list-inside text-sm mt-2">
             <li
-              v-for="(error, index) in importResult.errors"
+              v-for="(message, index) in errorMessages(importError)"
               :key="index"
             >
-              {{ error }}
+              {{ message }}
             </li>
           </ul>
-        </div>
-      </div>
-
-      <!-- Warnings -->
-      <div
-        v-if="hasWarnings"
-        class="alert alert-warning mb-4"
-      >
-        <div class="flex-1">
-          <i class="ri-alert-line text-xl flex-shrink-0" />
-          <div>
-            <h3 class="font-bold">
-              Warnings
-            </h3>
-            <ul class="list-disc list-inside text-sm mt-2">
-              <li
-                v-for="(warning, index) in importResult.warnings"
-                :key="index"
-              >
-                {{ warning }}
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
 
