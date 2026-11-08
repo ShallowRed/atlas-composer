@@ -120,8 +120,8 @@ export async function loadPresetIntoApplication(atlasId: AtlasId, presetId: Pres
   await openView(atlasId, 'composite-custom')
 
   const result = await useCompositionStore().loadPreset({ presetId })
-  if (!result.success) {
-    throw new Error(result.errors.join(', '))
+  if (!result.ok) {
+    throw new Error(JSON.stringify(result.error))
   }
 
   return buildApplicationComposite(atlasId)

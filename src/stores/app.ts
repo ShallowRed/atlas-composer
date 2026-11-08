@@ -14,7 +14,6 @@ export type AppState
 
 export const useAppStore = defineStore('app', () => {
   const state = ref<AppState>('idle')
-  const error = ref<string | null>(null)
   const isTransitioningWithSplit = ref(false)
   const loadingStartTime = ref<number>(0)
 
@@ -35,7 +34,6 @@ export const useAppStore = defineStore('app', () => {
   function startLoadingAtlas() {
     state.value = 'loading-atlas'
     loadingStartTime.value = Date.now()
-    error.value = null
   }
 
   function startLoadingGeoData() {
@@ -83,14 +81,12 @@ export const useAppStore = defineStore('app', () => {
     }, durationMs)
   }
 
-  function setError(message: string) {
+  function setFailed() {
     state.value = 'error'
-    error.value = message
   }
 
   return {
     state,
-    error,
     isTransitioningWithSplit,
 
     showSkeleton,
@@ -101,6 +97,6 @@ export const useAppStore = defineStore('app', () => {
     startLoadingPreset,
     setReady,
     startSwitchingView,
-    setError,
+    setFailed,
   }
 })

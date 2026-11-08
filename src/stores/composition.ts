@@ -1,14 +1,13 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { TerritoryResetOperation } from '@/core/territories/types'
-import type { GeoDataError, ImportError, PresetError } from '@/core/types/errors'
+import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type {
   ApplicationState,
   AtlasInitializationOptions,
-  InitializationResult,
   PresetLoadOptions,
 } from '@/types/initialization'
 
@@ -17,7 +16,6 @@ import { nextTick, watch } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
 import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
-import { findPositioningErrors, findTerritoriesWithoutProjection } from '@/core/presets/validator'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
@@ -39,19 +37,8 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.store.config
 
-function geoDataFailure(error: GeoDataError): string {
-  return `Failed to load geographic data: ${error.code}`
-}
-
 function failureReason(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
-}
-
-function presetFailure(error: PresetError): string {
-  if (error.code === 'PRESET_INVALID') {
-    return error.issues.map(({ code, ...fields }) => `${code} ${JSON.stringify(fields)}`).join(', ')
-  }
-  return `${error.code}: ${'path' in error ? error.path : error.presetId}`
 }
 
 // Use cases that write several stores. It imports the other stores: a store that
@@ -72,29 +59,29 @@ export const useCompositionStore = defineStore('composition', () => {
 
     const result = await initializeAtlas()
 
-    if (!result.success) {
-      geoDataStore.failInitialization(result.errors.join(', '))
-      debug('Initialization error: %O', result.errors)
+    if (!result.ok) {
+      geoDataStore.failInitialization(result.error)
+      debug('Initialization error: %O', result.error)
     }
   }
 
   async function initializeAtlas(
     options: AtlasInitializationOptions = {},
-  ): Promise<InitializationResult> {
+  ): Promise<Result<void, InitializationError>> {
     const { preserveViewMode = false } = options
     const atlasId = atlasStore.selectedAtlasId
 
     // Every failure resets the loading state and records the error
-    const fail = (errors: string[]): InitializationResult => {
+    const fail = (error: InitializationError): Result<void, InitializationError> => {
       geoDataStore.setReinitializing(false)
-      appStore.setError(errors.join(', '))
-      return { success: false, errors, warnings: [] }
+      appStore.setFailed()
+      return err(error)
     }
 
     try {
       const loadedAtlas = await atlasStore.loadAtlas(atlasId)
       if (!loadedAtlas.ok) {
-        return fail([loadedAtlas.error.code])
+        return fail(loadedAtlas.error)
       }
 
       const atlasConfig = getAtlasConfig(atlasId)
@@ -126,13 +113,13 @@ export const useCompositionStore = defineStore('composition', () => {
 
       if (viewMode === 'composite-custom') {
         if (!defaultPresetId) {
-          return fail([`No default preset defined for atlas '${atlasId}' in composite-custom mode`])
+          return fail({ code: 'ATLAS_NO_DEFAULT_PRESET', atlasId, viewMode })
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.ok) {
-          return fail([`Failed to load default preset '${defaultPresetId}': ${presetFailure(presetResult.error)}`])
+          return fail(presetResult.error)
         }
 
         preset = presetResult.value
@@ -146,24 +133,20 @@ export const useCompositionStore = defineStore('composition', () => {
       }
       else if (['unified', 'split', 'built-in-composite'].includes(viewMode)) {
         if (!defaultPresetId) {
-          return fail([`No default preset defined for atlas '${atlasId}' in ${viewMode} mode`])
+          return fail({ code: 'ATLAS_NO_DEFAULT_PRESET', atlasId, viewMode })
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
         if (!presetResult.ok) {
-          return fail([`Failed to load default preset '${defaultPresetId}': ${presetFailure(presetResult.error)}`])
+          return fail(presetResult.error)
         }
 
         preset = presetResult.value
 
-        if (preset.type !== viewMode) {
-          return fail([`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`])
-        }
-
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
         if (!validation.ok) {
-          return fail([presetFailure(validation.error)])
+          return fail(validation.error)
         }
       }
 
@@ -222,46 +205,28 @@ export const useCompositionStore = defineStore('composition', () => {
 
       await nextTick()
 
-      const validationErrors = findTerritoriesWithoutProjection(
-        filteredAtlasConfig,
-        state.parameters.territories,
-        state.viewMode,
-      )
-      if (validationErrors.length > 0) {
-        return fail(validationErrors)
-      }
-
-      const projectionValidationErrors = findPositioningErrors(state.parameters.territories)
-      if (projectionValidationErrors.length > 0) {
-        return fail(projectionValidationErrors)
-      }
-
       appStore.startLoadingGeoData()
       const geoDataResult = await geoDataStore.reinitialize(filteredAtlasConfig)
       if (!geoDataResult.ok) {
-        return fail([geoDataFailure(geoDataResult.error)])
+        return fail(geoDataResult.error)
       }
 
       const preloadResult = await preloadAtlasData(territoryMode)
       if (!preloadResult.ok) {
-        return fail([geoDataFailure(preloadResult.error)])
+        return fail(preloadResult.error)
       }
       geoDataStore.setReinitializing(false)
       appStore.setReady()
       geoDataStore.triggerRender()
 
-      return {
-        success: true,
-        errors: [],
-        warnings: [],
-      }
+      return ok(undefined)
     }
     catch (error) {
-      return fail([error instanceof Error ? error.message : 'Unknown error during atlas initialization'])
+      return fail({ code: 'INITIALIZATION_FAILED', reason: failureReason(error) })
     }
   }
 
-  async function loadPreset(options: PresetLoadOptions): Promise<InitializationResult> {
+  async function loadPreset(options: PresetLoadOptions): Promise<Result<void, PresetApplicationError>> {
     const { presetId, skipValidation = false } = options
 
     try {
@@ -272,11 +237,7 @@ export const useCompositionStore = defineStore('composition', () => {
       const presetResult = await PresetLoader.loadPreset(presetId)
       if (!presetResult.ok) {
         appStore.setReady()
-        return {
-          success: false,
-          errors: [`Failed to load preset '${presetId}': ${presetFailure(presetResult.error)}`],
-          warnings: [],
-        }
+        return presetResult
       }
 
       const preset = presetResult.value
@@ -285,21 +246,13 @@ export const useCompositionStore = defineStore('composition', () => {
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
         if (!validation.ok) {
           appStore.setReady()
-          return {
-            success: false,
-            errors: [presetFailure(validation.error)],
-            warnings: [],
-          }
+          return validation
         }
       }
 
       if (preset.type !== 'composite-custom') {
         appStore.setReady()
-        return {
-          success: true,
-          errors: [],
-          warnings: [],
-        }
+        return ok(undefined)
       }
 
       const territoryDefaults = convertToDefaults(preset.config)
@@ -344,13 +297,8 @@ export const useCompositionStore = defineStore('composition', () => {
       await applyStateToStores(state)
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
       if (!geoDataResult.ok) {
-        const message = geoDataFailure(geoDataResult.error)
-        appStore.setError(message)
-        return {
-          success: false,
-          errors: [message],
-          warnings: [],
-        }
+        appStore.setFailed()
+        return geoDataResult
       }
       appStore.setReady()
 
@@ -359,26 +307,14 @@ export const useCompositionStore = defineStore('composition', () => {
         updateCartographer(state)
       }
       catch (error) {
-        return {
-          success: false,
-          errors: [error instanceof Error ? error.message : 'Unknown error'],
-          warnings: [],
-        }
+        return err({ code: 'PRESET_APPLICATION_FAILED', presetId, reason: failureReason(error) })
       }
 
-      return {
-        success: true,
-        errors: [],
-        warnings: [],
-      }
+      return ok(undefined)
     }
     catch (error) {
-      appStore.setError(error instanceof Error ? error.message : 'Unknown error')
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error during preset loading'],
-        warnings: [],
-      }
+      appStore.setFailed()
+      return err({ code: 'PRESET_APPLICATION_FAILED', presetId, reason: failureReason(error) })
     }
   }
 
@@ -670,7 +606,7 @@ export const useCompositionStore = defineStore('composition', () => {
       preserveViewMode: true,
     })
 
-    if (result.success) {
+    if (result.ok) {
       await viewStore.loadAvailableViewPresets()
       await viewStore.autoLoadFirstPreset(reason)
     }
@@ -686,26 +622,22 @@ export const useCompositionStore = defineStore('composition', () => {
 
     const result = await switchAtlas(`atlas changed from ${oldAtlasId} to ${newAtlasId}`)
 
-    if (result.success) {
+    if (result.ok) {
       debug('Atlas changed: %s -> %s', oldAtlasId, newAtlasId)
       return
     }
 
-    debug('Atlas change failed: %O', result.errors)
+    debug('Atlas change failed: %O', result.error)
 
     isReverting = true
     atlasStore.selectedAtlasId = oldAtlasId
 
-    uiStore.showToast(
-      `Cannot switch to ${newAtlasId}: ${result.errors[0] ?? 'Failed to switch atlas'}`,
-      'error',
-      5000,
-    )
+    uiStore.showErrorToast({ code: 'ATLAS_SWITCH_FAILED', atlasId: newAtlasId, cause: result.error }, 5000)
 
     // The failed initialization cleared the data of the previous atlas
     const restored = await switchAtlas(`atlas restored after failing to load ${newAtlasId}`)
-    if (!restored.success) {
-      debug('Atlas restore failed: %O', restored.errors)
+    if (!restored.ok) {
+      debug('Atlas restore failed: %O', restored.error)
     }
   })
 

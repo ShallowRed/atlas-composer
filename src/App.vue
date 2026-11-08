@@ -34,7 +34,7 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
     <ToastNotification
       v-for="toast in uiStore.toasts"
       :key="toast.id"
-      :message="toast.message"
+      :message="'error' in toast ? errorMessage(toast.error) : toast.message"
       :type="toast.type"
       @close="uiStore.dismissToast(toast.id)"
     />
