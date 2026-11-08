@@ -86,7 +86,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       }
 
       if (atlasConfigOverride) {
-        debug('Using filtered atlas config from InitializationService (territories: %d)', Object.keys(atlasConfigOverride.compositeProjectionConfig || {}).length)
+        debug('Using filtered atlas config from the initializeAtlas action of the composition store (territories: %d)', Object.keys(atlasConfigOverride.compositeProjectionConfig || {}).length)
       }
       else {
         debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)

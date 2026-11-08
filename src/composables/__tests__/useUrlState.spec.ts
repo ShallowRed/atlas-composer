@@ -1,9 +1,9 @@
 import type { AtlasId } from '@/types/branded'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
-import { useAtlasData } from '@/composables/useAtlasData'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
 import { ProjectionService } from '@/services/projection/projection-service'
+import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useUrlState } from '../useUrlState'
@@ -23,7 +23,7 @@ async function openPage(query: Record<string, string>) {
   await startApplication(ATLAS_ID)
   const urlState = useUrlState()
   urlState.restoreFromUrl()
-  await useAtlasData().initialize()
+  await useCompositionStore().startMapView()
   urlState.restoreProjectionParametersFromUrl()
   return urlState
 }

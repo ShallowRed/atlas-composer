@@ -25,7 +25,7 @@
     "generate:types": "json2ts -i configs/schemas/atlas-registry.schema.json -o types/atlas-registry.ts --no-additionalProperties",
     "preview": "vite preview",
     "check": "pnpm build:packages && pnpm check:size && pnpm check:packages && pnpm check:registry-type && pnpm lint && pnpm typecheck && pnpm check:dead-code && pnpm test && pnpm geodata:validate --all",
-    "check:dead-code": "knip",
+    "check:dead-code": "knip && knip --cycles",
     "check:packages": "tsx scripts/check-packages.ts",
     "check:size": "pnpm --filter @atlas-composer/projection-loader size",
     "check:registry-type": "json2ts -i configs/schemas/atlas-registry.schema.json --no-additionalProperties | diff - types/atlas-registry.ts",

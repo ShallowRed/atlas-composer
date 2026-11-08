@@ -3,6 +3,8 @@
   "treatConfigHintsAsErrors": true,
   // System binary of check:registry-type
   "ignoreBinaries": ["diff"],
+  // Cycles are warnings by default, and knip --cycles exits with 0 on a warning
+  "rules": { "cycles": "error" },
   "workspaces": {
     // The app is private: the exports of its entry files (types/index.ts) need a reader too
     ".": { "includeEntryExports": true }

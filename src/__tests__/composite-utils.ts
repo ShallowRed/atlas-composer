@@ -16,6 +16,7 @@ import { CompositeImportService } from '@/services/export/composite-import-servi
 import { InitializationService } from '@/services/initialization/initialization-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
@@ -33,14 +34,14 @@ export async function startApplication(atlasId: AtlasId) {
   const atlasStore = useAtlasStore()
   atlasStore.selectedAtlasId = atlasId
   // Created after the atlas selection, so that its watcher does not initialize the atlas again
-  useViewStore()
+  useCompositionStore()
   // The geographic data of src/public/data is not versioned
   const geoDataStore = useGeoDataStore()
   vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue(ok(undefined))
   vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
 }
 
-// Path of a view change (view store, viewMode watcher)
+// Path of a view change (composition store, viewMode watcher)
 export async function openView(atlasId: AtlasId, view: ViewMode) {
   const viewStore = useViewStore()
   if (viewStore.viewMode === view) {
@@ -49,7 +50,7 @@ export async function openView(atlasId: AtlasId, view: ViewMode) {
 
   if (view === 'composite-custom') {
     // The watcher leaves currentViewPreset at null and initializes the atlas again
-    const initializeAtlas = vi.spyOn(InitializationService, 'initializeAtlas')
+    const initializeAtlas = vi.spyOn(useCompositionStore(), 'initializeAtlas')
     viewStore.setViewMode(view)
     await vi.waitFor(() => expect(initializeAtlas).toHaveBeenCalled())
     await initializeAtlas.mock.results[0]!.value

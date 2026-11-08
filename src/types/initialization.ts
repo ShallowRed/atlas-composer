@@ -55,7 +55,6 @@ export interface ApplicationState {
 }
 
 export interface AtlasInitializationOptions {
-  atlasId: AtlasId
   preserveViewMode?: boolean // Try to keep current view mode if supported
 }
 
