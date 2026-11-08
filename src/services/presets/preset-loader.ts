@@ -7,8 +7,6 @@ import type { AtlasId, PresetId } from '@/types'
 
 import { getPresetById, resolveConfigPath } from '@/core/atlases/registry'
 import {
-  convertToDefaults,
-  extractTerritoryParameters,
   validateCompositePreset,
   validateViewPreset,
 } from '@/core/presets'
@@ -109,7 +107,4 @@ export class PresetLoader {
       }
     }
   }
-
-  static convertToDefaults = convertToDefaults
-  static extractTerritoryParameters = extractTerritoryParameters
 }

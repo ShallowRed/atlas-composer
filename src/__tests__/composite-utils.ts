@@ -13,7 +13,6 @@ import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
-import { InitializationService } from '@/services/initialization/initialization-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
@@ -108,7 +107,7 @@ export async function importIntoApplication(json: string, canvasDimensions?: Can
     throw new Error(read.error.join(', '))
   }
 
-  const result = await InitializationService.importConfiguration({ config: read.value })
+  const result = await useCompositionStore().importConfiguration({ config: read.value })
   if (!result.success) {
     throw new Error(result.errors.join(', '))
   }

@@ -15,7 +15,6 @@ export interface InitializationResult {
   success: boolean
   errors: string[]
   warnings: string[]
-  state: ApplicationState | null
 }
 
 export interface ApplicationState {

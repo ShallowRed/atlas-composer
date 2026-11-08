@@ -64,11 +64,9 @@ const CORE_GLOBALS = [
 // Files that break a boundary on the current code, grouped by the change that
 // brings them into line. Remove a file from this list when it complies.
 const BOUNDARY_EXCEPTIONS = [
-  // Use cases in store actions
-  'src/services/initialization/initialization-service.ts',
+  // Components that import services
   'src/components/MapRenderer.vue',
   'src/components/ui/export/CompositeExportDialog.vue',
-  'src/components/ui/import/ImportModal.vue',
 ]
 
 // Options of @antfu/eslint-config for these rules
