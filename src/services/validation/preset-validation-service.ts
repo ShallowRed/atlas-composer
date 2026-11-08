@@ -1,53 +1,22 @@
 import type { Preset } from '@/core/presets'
+import type { PresetError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { AtlasConfig, AtlasId } from '@/types'
 
-import type { ValidationResult } from '@/types/initialization'
 import { getAvailableViewModes } from '@/core/atlases/registry'
+import { err, ok } from '@/core/types/result'
 
 export class PresetValidationService {
-  static validatePreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    if (!preset.type) {
-      errors.push('Preset is missing type field')
-      return { isValid: false, errors, warnings }
-    }
-
+  static validatePreset(preset: Preset, atlasConfig: AtlasConfig): Result<void, PresetError> {
     // PresetLoader.loadPreset validates a composite-custom preset by validateCompositePreset
-    if (preset.type === 'composite-custom') {
-      return { isValid: true, errors, warnings }
+    if (preset.type === 'composite-custom' || getAvailableViewModes(atlasConfig.id as AtlasId).includes(preset.type)) {
+      return ok(undefined)
     }
 
-    if (['unified', 'split', 'built-in-composite'].includes(preset.type)) {
-      return this.validateViewPreset(preset, atlasConfig)
-    }
-
-    errors.push(`Unknown preset type: ${preset.type}`)
-    return { isValid: false, errors, warnings }
-  }
-
-  private static validateViewPreset(preset: Preset, atlasConfig: AtlasConfig): ValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    const availableViewModes = getAvailableViewModes(atlasConfig.id as AtlasId)
-    if (!availableViewModes.includes(preset.type as any)) {
-      errors.push(`Preset type '${preset.type}' is not supported by atlas '${atlasConfig.id}'`)
-      return { isValid: false, errors, warnings }
-    }
-
-    if (preset.type === 'unified') {
-      const config = preset.config as any
-      if (!config.projection?.id) {
-        errors.push('Unified preset is missing projection.id')
-      }
-    }
-
-    if (errors.length > 0) {
-      return { isValid: false, errors, warnings }
-    }
-
-    return { isValid: true, errors, warnings }
+    return err({
+      code: 'PRESET_INVALID',
+      presetId: preset.id,
+      issues: [{ code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: preset.type, atlasId: atlasConfig.id }],
+    })
   }
 }

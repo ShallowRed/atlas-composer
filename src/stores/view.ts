@@ -1,5 +1,7 @@
 import type { PositioningView } from '@/core/positioning'
 import type { Preset } from '@/core/presets'
+import type { PresetError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import type { ResolvedPresetDefinition } from '@/types/registry'
@@ -8,6 +10,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
+import { err, ok } from '@/core/types/result'
 import i18n from '@/i18n'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
@@ -121,49 +124,36 @@ export const useViewStore = defineStore('view', () => {
       return
     }
 
-    try {
-      await loadViewPreset(presetToLoad.id as PresetId)
+    const result = await loadViewPreset(presetToLoad.id as PresetId)
+    if (result.ok) {
       debug('Auto-loaded view preset "%s"%s (%s)', presetToLoad.name, defaultPreset ? ' (default)' : '', context)
     }
-    catch (err) {
-      debug('Failed to auto-load preset (%s): %O', context, err)
+    else {
+      debug('Failed to auto-load preset (%s): %O', context, result.error)
     }
   }
 
-  async function loadViewPreset(presetId: PresetId) {
-    try {
-      const result = await PresetLoader.loadPreset(presetId)
-
-      if (!result.success || !result.data) {
-        debug('Failed to load view preset: %O', result.errors)
-        throw new Error(result.errors.join(', '))
-      }
-
-      const preset = result.data
-
-      if (preset.type !== viewMode.value) {
-        throw new Error(
-          `Preset is for ${preset.type} mode, but current mode is ${viewMode.value}`,
-        )
-      }
-
-      applyViewPresetConfig(preset)
-
-      currentViewPreset.value = presetId as PresetId
-
-      if (result.warnings.length > 0) {
-        debug('View preset warnings: %O', result.warnings)
-      }
-
-      debug('View preset loaded successfully: %s', presetId)
+  async function loadViewPreset(presetId: PresetId): Promise<Result<void, PresetError>> {
+    const result = await PresetLoader.loadPreset(presetId)
+    if (!result.ok) {
+      return result
     }
-    catch (err) {
-      debug('Error loading view preset: %O', err)
-      throw err
+
+    const preset = result.value
+
+    if (preset.type !== viewMode.value || preset.type === 'composite-custom') {
+      return err({ code: 'PRESET_NOT_APPLICABLE', presetId, presetType: preset.type, viewMode: viewMode.value })
     }
+
+    applyViewPresetConfig(preset)
+
+    currentViewPreset.value = presetId as PresetId
+
+    debug('View preset loaded successfully: %s', presetId)
+    return ok(undefined)
   }
 
-  function applyViewPresetConfig(preset: Preset) {
+  function applyViewPresetConfig(preset: Exclude<Preset, { type: 'composite-custom' }>) {
     const parameterStore = getParameterStore()
     const projectionStore = useProjectionStore()
 
@@ -191,8 +181,6 @@ export const useViewStore = defineStore('view', () => {
           debug('Global scale from preset (not applied): %d', preset.config.globalScale)
         }
         break
-      case 'composite-custom':
-        throw new Error('Composite-custom presets should be loaded through atlas initialization, not view preset API')
       default:
         throw new Error(`Unknown preset type: ${(preset as { type: string }).type}`)
     }

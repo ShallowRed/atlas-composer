@@ -21,6 +21,7 @@ export type PresetIssue
     | { code: 'PRESET_FIELD_MISSING', field: 'id' | 'name' | 'config' | 'atlasId' | 'viewMode' }
     | { code: 'PRESET_ATLAS_ID_INVALID' }
     | { code: 'PRESET_VIEW_MODE_INVALID', viewMode: string }
+    | { code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: string, atlasId: string }
     | { code: 'PRESET_PARAMETER_REQUIRED', territory: string, parameter: string }
     | { code: 'PRESET_POSITIONING_REQUIRED', territory: string }
     | { code: 'PRESET_PROJECTION_MISSING' }
@@ -36,6 +37,12 @@ export type PresetIssue
     | TerritoryScope & { code: 'PRESET_PARAMETER_WRONG_LENGTH', parameter: string, expected: number }
     | TerritoryScope & { code: 'PRESET_PARAMETER_TOO_SMALL', parameter: string, min: number }
     | TerritoryScope & { code: 'PRESET_PARAMETER_TOO_LARGE', parameter: string, max: number }
+
+export type PresetError
+  = | JsonFileError
+    | { code: 'PRESET_UNKNOWN', presetId: string }
+    | { code: 'PRESET_INVALID', presetId: string, issues: PresetIssue[] }
+    | { code: 'PRESET_NOT_APPLICABLE', presetId: string, presetType: string, viewMode: string }
 
 export type AppError
   = | GeoDataError

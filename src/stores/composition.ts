@@ -1,7 +1,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { TerritoryResetOperation } from '@/core/territories/types'
-import type { GeoDataError } from '@/core/types/errors'
+import type { GeoDataError, PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
@@ -42,6 +42,13 @@ const debug = logger.store.config
 
 function geoDataFailure(error: GeoDataError): string {
   return `Failed to load geographic data: ${error.code}`
+}
+
+function presetFailure(error: PresetError): string {
+  if (error.code === 'PRESET_INVALID') {
+    return error.issues.map(({ code, ...fields }) => `${code} ${JSON.stringify(fields)}`).join(', ')
+  }
+  return `${error.code}: ${'path' in error ? error.path : error.presetId}`
 }
 
 // Use cases that write several stores. It imports the other stores: a store that
@@ -118,11 +125,11 @@ export const useCompositionStore = defineStore('composition', () => {
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
-        if (!presetResult.success || !presetResult.data) {
-          return fail([`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`], presetResult.warnings || [])
+        if (!presetResult.ok) {
+          return fail([`Failed to load default preset '${defaultPresetId}': ${presetFailure(presetResult.error)}`])
         }
 
-        preset = presetResult.data
+        preset = presetResult.value
 
         if (preset.type === 'composite-custom') {
           territoryDefaults = convertToDefaults(preset.config)
@@ -138,19 +145,19 @@ export const useCompositionStore = defineStore('composition', () => {
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
 
-        if (!presetResult.success || !presetResult.data) {
-          return fail([`Failed to load default preset '${defaultPresetId}': ${presetResult.errors.join(', ')}`], presetResult.warnings || [])
+        if (!presetResult.ok) {
+          return fail([`Failed to load default preset '${defaultPresetId}': ${presetFailure(presetResult.error)}`])
         }
 
-        preset = presetResult.data
+        preset = presetResult.value
 
         if (preset.type !== viewMode) {
           return fail([`Default preset '${defaultPresetId}' has type '${preset.type}' but expected '${viewMode}'`])
         }
 
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
-        if (!validation.isValid) {
-          return fail(validation.errors, validation.warnings)
+        if (!validation.ok) {
+          return fail([presetFailure(validation.error)])
         }
       }
 
@@ -257,25 +264,25 @@ export const useCompositionStore = defineStore('composition', () => {
       const currentAtlasId = atlasStore.selectedAtlasId
       const atlasConfig = getAtlasConfig(currentAtlasId)
       const presetResult = await PresetLoader.loadPreset(presetId)
-      if (!presetResult.success || !presetResult.data) {
+      if (!presetResult.ok) {
         appStore.setReady()
         return {
           success: false,
-          errors: [`Failed to load preset '${presetId}': ${presetResult.errors.join(', ')}`],
-          warnings: presetResult.warnings || [],
+          errors: [`Failed to load preset '${presetId}': ${presetFailure(presetResult.error)}`],
+          warnings: [],
         }
       }
 
-      const preset = presetResult.data
+      const preset = presetResult.value
 
       if (!skipValidation) {
         const validation = PresetValidationService.validatePreset(preset, atlasConfig)
-        if (!validation.isValid) {
+        if (!validation.ok) {
           appStore.setReady()
           return {
             success: false,
-            errors: validation.errors,
-            warnings: validation.warnings,
+            errors: [presetFailure(validation.error)],
+            warnings: [],
           }
         }
       }
@@ -356,7 +363,7 @@ export const useCompositionStore = defineStore('composition', () => {
       return {
         success: true,
         errors: [],
-        warnings: presetResult.warnings || [],
+        warnings: [],
       }
     }
     catch (error) {

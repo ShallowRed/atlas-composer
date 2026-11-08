@@ -3,6 +3,7 @@ import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { err } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
@@ -42,12 +43,7 @@ describe('composition store', () => {
   describe('initializeAtlas', () => {
     it('fails when the default preset does not load', async () => {
       await startApplication(FRANCE)
-      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce({
-        success: false,
-        data: undefined,
-        errors: ['Preset not found'],
-        warnings: [],
-      })
+      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err({ code: 'PRESET_UNKNOWN', presetId: 'nonexistent' }))
 
       const result = await useCompositionStore().initializeAtlas()
 
@@ -60,16 +56,16 @@ describe('composition store', () => {
     it('fails when the default preset is invalid', async () => {
       await startApplication(FRANCE)
       await openView(FRANCE, 'split')
-      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce({
-        isValid: false,
-        errors: ['Invalid preset structure'],
-        warnings: [],
-      })
+      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err({
+        code: 'PRESET_INVALID',
+        presetId: 'france-unified',
+        issues: [{ code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'unified', atlasId: 'france' }],
+      }))
 
       const result = await useCompositionStore().initializeAtlas({ preserveViewMode: true })
 
       expect(result.success).toBe(false)
-      expect(result.errors).toContainEqual('Invalid preset structure')
+      expect(result.errors).toContainEqual('PRESET_TYPE_NOT_SUPPORTED {"presetType":"unified","atlasId":"france"}')
       expect(useGeoDataStore().isReinitializing).toBe(false)
       expect(useAppStore().state).toBe('error')
     })
@@ -121,17 +117,25 @@ describe('composition store', () => {
   describe('loadPreset', () => {
     it('fails when the preset does not load', async () => {
       await startApplication(FRANCE)
-      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce({
-        success: false,
-        data: undefined,
-        errors: ['Preset not found'],
-        warnings: [],
-      })
+      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err({ code: 'PRESET_UNKNOWN', presetId: 'nonexistent' }))
 
       const result = await useCompositionStore().loadPreset({ presetId: createPresetId('nonexistent') })
 
       expect(result.success).toBe(false)
       expect(result.errors).toContainEqual(expect.stringContaining('Failed to load preset'))
+    })
+
+    it('names every rule that the preset breaks', async () => {
+      await startApplication(FRANCE)
+      vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err({
+        code: 'PRESET_INVALID',
+        presetId: 'france-unified',
+        issues: [{ code: 'PRESET_PROJECTION_MISSING' }, { code: 'PRESET_ATLAS_ID_INVALID' }],
+      }))
+
+      const result = await useCompositionStore().loadPreset({ presetId: createPresetId('france-unified') })
+
+      expect(result.errors).toEqual(['Failed to load preset \'france-unified\': PRESET_PROJECTION_MISSING {}, PRESET_ATLAS_ID_INVALID {}'])
     })
 
     it('skips the validation when requested', async () => {
