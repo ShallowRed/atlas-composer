@@ -4,13 +4,6 @@ import type { Translation } from '@/types'
 import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-export interface LoadResult<T> {
-  success: boolean
-  data?: T
-  errors: string[]
-  warnings: string[]
-}
-
 export interface TerritoryDefaults {
   projections: Record<TerritoryCode, ProjectionId>
   translations: Record<TerritoryCode, Translation>

@@ -1,4 +1,4 @@
-import type { AtlasProjectionMetadata, LoadResult, Preset } from '@/core/presets'
+import type { AtlasProjectionMetadata } from '@/core/presets'
 import type { AtlasId, PresetId, ProjectionId } from '@/types/branded'
 
 import { getDefaultCompositeProjections } from '@/core/projections/defaults'
@@ -31,10 +31,10 @@ export class AtlasMetadataService {
 
     if (defaultPreset) {
       try {
-        const presetResult: LoadResult<Preset> = await PresetLoader.loadPreset(defaultPreset)
+        const presetResult = await PresetLoader.loadPreset(defaultPreset)
 
-        if (presetResult.success && presetResult.data && presetResult.data.type === 'composite-custom') {
-          const metadata = presetResult.data.config.atlasMetadata
+        if (presetResult.ok && presetResult.value.type === 'composite-custom') {
+          const metadata = presetResult.value.config.atlasMetadata
 
           if (metadata) {
             metadataCache.set(cacheKey, metadata)

@@ -9,6 +9,7 @@ import atlasRegistry from '#configs/atlas-registry.json'
 import { afterAll, expect, it } from 'vitest'
 import { buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
+import { ok } from '@/core/types/result'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
@@ -64,7 +65,7 @@ async function openAtlas(atlasId: AtlasId) {
   await viewStore.loadAvailableViewPresets()
   const defaultViewPreset = viewStore.availableViewPresets.find(preset => preset.isDefault) ?? viewStore.availableViewPresets[0]
   if (defaultViewPreset) {
-    await viewStore.loadViewPreset(defaultViewPreset.id as PresetId)
+    expect(await viewStore.loadViewPreset(defaultViewPreset.id as PresetId)).toEqual(ok(undefined))
   }
 }
 

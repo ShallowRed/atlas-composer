@@ -1,8 +1,11 @@
+import type { Preset } from '@/core/presets'
 import type { PresetIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
+import type { AtlasConfig } from '@/types'
 import { describe, expect, it } from 'vitest'
 import { readPresetFiles } from '@/__tests__/test-utils'
 import { validateCompositePreset, validateViewPreset } from '@/core/presets/validator'
+import { PresetValidationService } from '@/services/validation/preset-validation-service'
 
 interface IssueCase<C extends PresetIssue['code']> {
   run: () => PresetIssue[]
@@ -57,6 +60,14 @@ const CASES = {
   PRESET_VIEW_MODE_INVALID: {
     run: () => viewIssues('globe', {}),
     expected: { code: 'PRESET_VIEW_MODE_INVALID', viewMode: 'globe' },
+  },
+  PRESET_TYPE_NOT_SUPPORTED: {
+    run: () => {
+      const preset = { id: 'preset', type: 'split', config: {} } as Preset
+      const result = PresetValidationService.validatePreset(preset, { id: 'world' } as AtlasConfig)
+      return !result.ok && result.error.code === 'PRESET_INVALID' ? result.error.issues : []
+    },
+    expected: { code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'split', atlasId: 'world' },
   },
   PRESET_PARAMETER_REQUIRED: {
     run: () => compositeIssues((preset) => { delete preset.territories[0].projection.parameters.parallels }),

@@ -66,15 +66,3 @@ export interface ImportOptions {
   config: CompositeProjectionConfig
   validateAtlasCompatibility?: boolean
 }
-
-export interface ValidationResult {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
-  metadata?: {
-    territoriesInPreset: string[]
-    territoriesInAtlas: string[]
-    missingTerritories: string[]
-    extraTerritories: string[]
-  }
-}

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
 import { readPresetFiles } from '@/__tests__/test-utils'
+import { err } from '@/core/types/result'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { createPresetId } from '@/types/branded'
 
@@ -14,6 +15,10 @@ const SPLIT_PRESET = createPresetId('france-split')
 function stubPresetFile(rewrite: (preset: any) => unknown) {
   vi.stubGlobal('fetch', async (url: string) =>
     new Response(JSON.stringify(rewrite(JSON.parse(await readFile(`.${url}`, 'utf8'))))))
+}
+
+function issuesOf(result: Awaited<ReturnType<typeof PresetLoader.loadPreset>>) {
+  return !result.ok && result.error.code === 'PRESET_INVALID' ? result.error.issues : []
 }
 
 describe('loadPreset', () => {
@@ -28,7 +33,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(presetId)
 
-    expect(result).toMatchObject({ success: true, data: { id: presetId, atlasId: FRANCE } })
+    expect(result).toMatchObject({ ok: true, value: { id: presetId, atlasId: FRANCE } })
   })
 
   it('refuses a preset that the registry does not declare', async () => {
@@ -36,8 +41,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(createPresetId('france-nothing'))
 
-    expect(result.success).toBe(false)
-    expect(result.errors.join()).toContain('france-nothing')
+    expect(result).toEqual(err({ code: 'PRESET_UNKNOWN', presetId: 'france-nothing' }))
   })
 
   it('reports the file that does not load', async () => {
@@ -47,8 +51,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(COMPOSITE_PRESET)
 
-    expect(result.success).toBe(false)
-    expect(result.errors.join()).toContain(path)
+    expect(result).toEqual(err({ code: 'JSON_FILE_NOT_FOUND', path }))
   })
 
   it('refuses a composite preset with a territory without rotate nor center', async () => {
@@ -62,8 +65,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(COMPOSITE_PRESET)
 
-    expect(result.success).toBe(false)
-    expect(result.errors).toEqual(['PRESET_POSITIONING_REQUIRED'])
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_POSITIONING_REQUIRED', territory: 'FR-MET' }])
   })
 
   it('refuses a view preset without projection', async () => {
@@ -72,8 +74,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
 
-    expect(result.success).toBe(false)
-    expect(result.errors).toEqual(['PRESET_PROJECTION_MISSING'])
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_MISSING' }])
   })
 
   it('refuses a view preset without config', async () => {
@@ -82,7 +83,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
 
-    expect(result.errors).toEqual(['PRESET_FIELD_MISSING'])
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_FIELD_MISSING', field: 'config' }])
   })
 
   it('refuses a split preset with an empty territory', async () => {
@@ -91,7 +92,7 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(SPLIT_PRESET)
 
-    expect(result.errors).toEqual(['PRESET_PROJECTION_ID_INVALID'])
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' }])
   })
 
   it('refuses a file that contains null', async () => {
@@ -100,6 +101,6 @@ describe('loadPreset', () => {
 
     const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
 
-    expect(result.success).toBe(false)
+    expect(issuesOf(result)).toContainEqual({ code: 'PRESET_FIELD_MISSING', field: 'config' })
   })
 })

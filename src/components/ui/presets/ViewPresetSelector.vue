@@ -46,11 +46,9 @@ async function handlePresetChange(presetId: PresetId | '') {
     return
   }
 
-  try {
-    await viewStore.loadViewPreset(presetId)
-  }
-  catch (error) {
-    debug('Failed to load preset: %o', error)
+  const result = await viewStore.loadViewPreset(presetId)
+  if (!result.ok) {
+    debug('Failed to load preset: %o', result.error)
   }
 }
 

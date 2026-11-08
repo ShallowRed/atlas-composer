@@ -1,6 +1,7 @@
 import type { AtlasId } from '@/types/branded'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { err } from '@/core/types/result'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
@@ -19,7 +20,12 @@ describe('view store', () => {
       const viewStore = useViewStore()
       const currentPreset = viewStore.currentViewPreset
 
-      await expect(viewStore.loadViewPreset(createPresetId('france-split'))).rejects.toThrow()
+      expect(await viewStore.loadViewPreset(createPresetId('france-split'))).toEqual(err({
+        code: 'PRESET_NOT_APPLICABLE',
+        presetId: 'france-split',
+        presetType: 'split',
+        viewMode: 'unified',
+      }))
 
       expect(viewStore.currentViewPreset).toBe(currentPreset)
     })
@@ -29,7 +35,12 @@ describe('view store', () => {
       const viewStore = useViewStore()
       const currentPreset = viewStore.currentViewPreset
 
-      await expect(viewStore.loadViewPreset(createPresetId('france-standard'))).rejects.toThrow()
+      expect(await viewStore.loadViewPreset(createPresetId('france-standard'))).toEqual(err({
+        code: 'PRESET_NOT_APPLICABLE',
+        presetId: 'france-standard',
+        presetType: 'composite-custom',
+        viewMode: 'composite-custom',
+      }))
 
       expect(viewStore.currentViewPreset).toBe(currentPreset)
     })
@@ -41,7 +52,10 @@ describe('view store', () => {
       const currentPreset = viewStore.currentViewPreset
       vi.stubGlobal('fetch', async () => new Response('', { status: 404 }))
 
-      await expect(viewStore.loadViewPreset(createPresetId('france-unified'))).rejects.toThrow()
+      expect(await viewStore.loadViewPreset(createPresetId('france-unified'))).toMatchObject({
+        ok: false,
+        error: { code: 'JSON_FILE_NOT_FOUND' },
+      })
 
       expect(viewStore.currentViewPreset).toBe(currentPreset)
     })
