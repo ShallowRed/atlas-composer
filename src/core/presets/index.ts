@@ -5,7 +5,6 @@ export { convertToDefaults, extractTerritoryParameters } from './converter'
 
 export type {
   AtlasProjectionMetadata,
-  CompositeCustomConfig,
   Preset,
   TerritoryDefaults,
   UnifiedViewConfig,

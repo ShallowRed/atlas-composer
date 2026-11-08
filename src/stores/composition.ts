@@ -82,10 +82,10 @@ export const useCompositionStore = defineStore('composition', () => {
     const atlasId = atlasStore.selectedAtlasId
 
     // Every failure resets the loading state and records the error
-    const fail = (errors: string[], warnings: string[] = []): InitializationResult => {
+    const fail = (errors: string[]): InitializationResult => {
       geoDataStore.setReinitializing(false)
       appStore.setError(errors.join(', '))
-      return { success: false, errors, warnings }
+      return { success: false, errors, warnings: [] }
     }
 
     try {

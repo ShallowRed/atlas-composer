@@ -1,7 +1,4 @@
-import type {
-  CompositeCustomConfig,
-  Preset,
-} from '@/core/presets'
+import type { Preset } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { AtlasId, PresetId } from '@/types'
@@ -39,7 +36,7 @@ export class PresetLoader {
         id: presetId,
         atlasId,
         type: 'composite-custom',
-        config: file as CompositeCustomConfig,
+        config: validation.value,
       })
     }
 
