@@ -13,7 +13,7 @@ const { parameterIssueMessage } = useErrorMessage()
 </script>
 
 <template>
-  <div class="parameter-validation-feedback">
+  <div class="parameter-validation-feedback mb-3">
     <div class="alert alert-error alert-soft">
       <i class="ri-error-warning-line text-2xl" />
       <div>
