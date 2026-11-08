@@ -207,31 +207,26 @@ export class CompositeProjection {
       return
     }
 
-    try {
-      const params = this.parameterProvider.getEffectiveParameters(territoryCode)
-      const projection = subProj.projection
+    const params = this.parameterProvider.getEffectiveParameters(territoryCode)
+    const projection = subProj.projection
 
-      if (!projection) {
-        return
-      }
-
-      applyPositioning(projection, params, 'composite')
-
-      if (params.scaleMultiplier !== undefined && typeof params.scaleMultiplier === 'number' && !Number.isNaN(params.scaleMultiplier)) {
-        subProj.scaleMultiplier = params.scaleMultiplier
-      }
-
-      const correctScale = subProj.baseScale * subProj.scaleMultiplier
-      projection.scale(correctScale)
-
-      if (projection.precision && params.precision !== undefined && typeof params.precision === 'number') {
-        projection.precision(params.precision)
-      }
-      this.compositeProjection = null
+    if (!projection) {
+      return
     }
-    catch (error) {
-      debug('Error updating parameters for territory %s: %o', territoryCode, error)
+
+    applyPositioning(projection, params, 'composite')
+
+    if (params.scaleMultiplier !== undefined && typeof params.scaleMultiplier === 'number' && !Number.isNaN(params.scaleMultiplier)) {
+      subProj.scaleMultiplier = params.scaleMultiplier
     }
+
+    const correctScale = subProj.baseScale * subProj.scaleMultiplier
+    projection.scale(correctScale)
+
+    if (projection.precision && params.precision !== undefined && typeof params.precision === 'number') {
+      projection.precision(params.precision)
+    }
+    this.compositeProjection = null
   }
 
   build(width = 800, height = 600, forceRebuild = false): GeoProjection {

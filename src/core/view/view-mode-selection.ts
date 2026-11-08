@@ -1,12 +1,5 @@
 import type { ViewMode } from '@/types/composite'
 
-export class InvalidViewModeError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'InvalidViewModeError'
-  }
-}
-
 const VIEW_MODES = {
   'composite-custom': true,
   'built-in-composite': true,
@@ -23,7 +16,7 @@ export class ViewModeSelection {
 
   constructor(mode: ViewMode) {
     if (!isViewMode(mode)) {
-      throw new InvalidViewModeError(`Invalid view mode: ${mode}. Valid modes are: ${Object.keys(VIEW_MODES).join(', ')}`)
+      throw new Error(`Invalid view mode: ${mode}. Valid modes are: ${Object.keys(VIEW_MODES).join(', ')}`)
     }
     this.mode = mode
   }

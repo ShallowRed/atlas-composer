@@ -88,27 +88,21 @@ export const useViewStore = defineStore('view', () => {
       return
     }
 
-    try {
-      const allPresets = getAtlasPresets(getAtlasStore().selectedAtlasId)
+    const allPresets = getAtlasPresets(getAtlasStore().selectedAtlasId)
 
-      const locale = i18n.global.locale.value
+    const locale = i18n.global.locale.value
 
-      const presets = allPresets
-        .filter(p => p.type === viewMode.value)
-        .map(p => ({
-          ...p,
-          name: resolveI18nValue(p.name, locale),
-          description: p.description ? resolveI18nValue(p.description, locale) : undefined,
-        }))
+    const presets = allPresets
+      .filter(p => p.type === viewMode.value)
+      .map(p => ({
+        ...p,
+        name: resolveI18nValue(p.name, locale),
+        description: p.description ? resolveI18nValue(p.description, locale) : undefined,
+      }))
 
-      availableViewPresets.value = presets
+    availableViewPresets.value = presets
 
-      debug('Loaded %d view presets for %s %s', presets.length, getAtlasStore().selectedAtlasId, viewMode.value)
-    }
-    catch (err) {
-      debug('Failed to load available view presets: %O', err)
-      availableViewPresets.value = []
-    }
+    debug('Loaded %d view presets for %s %s', presets.length, getAtlasStore().selectedAtlasId, viewMode.value)
   }
 
   async function autoLoadFirstPreset(context: string) {
