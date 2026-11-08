@@ -7,19 +7,23 @@ export class InvalidViewModeError extends Error {
   }
 }
 
-const VALID_VIEW_MODES: readonly ViewMode[] = [
-  'composite-custom',
-  'built-in-composite',
-  'split',
-  'unified',
-] as const
+const VIEW_MODES = {
+  'composite-custom': true,
+  'built-in-composite': true,
+  'split': true,
+  'unified': true,
+} as const satisfies Record<ViewMode, true>
+
+export function isViewMode(value: unknown): value is ViewMode {
+  return typeof value === 'string' && Object.hasOwn(VIEW_MODES, value)
+}
 
 export class ViewModeSelection {
   readonly mode: ViewMode
 
   constructor(mode: ViewMode) {
-    if (!VALID_VIEW_MODES.includes(mode)) {
-      throw new InvalidViewModeError(`Invalid view mode: ${mode}. Valid modes are: ${VALID_VIEW_MODES.join(', ')}`)
+    if (!isViewMode(mode)) {
+      throw new InvalidViewModeError(`Invalid view mode: ${mode}. Valid modes are: ${Object.keys(VIEW_MODES).join(', ')}`)
     }
     this.mode = mode
   }

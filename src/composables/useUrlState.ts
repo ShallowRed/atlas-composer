@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import { useRoute } from 'vue-router'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
+import { isViewMode } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -88,7 +89,7 @@ export function useUrlState() {
   function deserializeState(params: Record<string, any>) {
     if (params.atlas)
       atlasStore.selectedAtlasId = params.atlas
-    if (params.view)
+    if (isViewMode(params.view))
       viewStore.setViewMode(params.view)
     if (params.projection)
       projectionStore.setSelectedProjection(params.projection)
