@@ -166,6 +166,7 @@ export default antfu({
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
     'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA],
   },
 }, {
   files: ['packages/projection-loader/src/**'],
