@@ -71,7 +71,6 @@ export const useCompositionStore = defineStore('composition', () => {
     const { preserveViewMode = false } = options
     const atlasId = atlasStore.selectedAtlasId
 
-    // Every failure resets the loading state and marks the application as failed
     const fail = (error: InitializationError): Result<void, InitializationError> => {
       geoDataStore.setReinitializing(false)
       appStore.setFailed()
