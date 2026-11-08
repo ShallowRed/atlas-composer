@@ -58,7 +58,7 @@ type PresetApplicationError
     | PresetError
     | { code: 'PRESET_APPLICATION_FAILED', presetId: string, reason: string }
 
-type ImportError
+export type ImportError
   = | GeoDataError
     | { code: 'IMPORT_NOT_JSON_FILE', fileName: string }
     | { code: 'IMPORT_FILE_TOO_LARGE', fileName: string, maxSizeInMb: number }

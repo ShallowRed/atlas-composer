@@ -97,7 +97,7 @@ describe('loadPreset', () => {
 
   it.each([
     [UNIFIED_PRESET, { code: 'PRESET_FIELD_MISSING', field: 'config' }],
-    [COMPOSITE_PRESET, { code: 'PRESET_SCHEMA_INVALID_TYPE', path: '' }],
+    [COMPOSITE_PRESET, { code: 'PRESET_SCHEMA_INVALID_TYPE', path: '/' }],
   ])('refuses a file of %s that contains null', async (presetId, issue) => {
     await startApplication(FRANCE)
     stubPresetFile(() => null)

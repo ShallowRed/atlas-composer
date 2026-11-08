@@ -104,12 +104,12 @@ export async function importIntoApplication(json: string, canvasDimensions?: Can
     canvasDimensions: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
   })
   if (!read.ok) {
-    throw new Error(read.error.join(', '))
+    throw new Error(JSON.stringify(read.error))
   }
 
-  const result = await useCompositionStore().importConfiguration({ config: read.value })
-  if (!result.success) {
-    throw new Error(result.errors.join(', '))
+  const result = await useCompositionStore().importConfiguration(read.value)
+  if (!result.ok) {
+    throw new Error(JSON.stringify(result.error))
   }
 
   return buildApplicationComposite(atlasId)

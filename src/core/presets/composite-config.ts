@@ -1,13 +1,14 @@
-import type { CanvasDimensions, CompositeProjectionConfig, ValidationError } from '@atlas-composer/specification'
+import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { DeprecatedPositioning, Positioning } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { ImportError, PresetIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { AtlasConfig } from '@/types/atlas'
-import type { AtlasId } from '@/types/branded'
 import { DEFAULT_REFERENCE_SCALE, PROJECTION_FAMILIES, validateConfig } from '@atlas-composer/specification'
 import { convertPositioning, replaceDeprecatedPositioning } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { err, ok } from '@/core/types/result'
+import { schemaIssues } from './validation-utils'
 
 export interface CompositeConfigContext {
   atlasConfig: AtlasConfig
@@ -29,10 +30,6 @@ function hasTerritoryObjects(raw: unknown): raw is RawObject & { territories: Ra
 function projectionIdOf(territory: RawObject): string | undefined {
   const id = isObject(territory.projection) ? territory.projection.id : undefined
   return typeof id === 'string' ? id : undefined
-}
-
-function formatValidationError({ path, message }: ValidationError): string {
-  return path ? `${path}: ${message}` : message
 }
 
 function withoutUndefined(object: RawObject): RawObject {
@@ -74,24 +71,24 @@ function readTerritory(territory: RawObject, { atlasConfig }: CompositeConfigCon
   }
 }
 
-function validate(config: unknown): Result<CompositeProjectionConfig, string[]> {
+function validate(config: unknown): Result<CompositeProjectionConfig, PresetIssue[]> {
   const { valid, errors } = validateConfig(config)
-  return valid ? ok(config as CompositeProjectionConfig) : err(errors.map(formatValidationError))
+  return valid ? ok(config as CompositeProjectionConfig) : err(schemaIssues(errors))
 }
 
 /**
  * Reads a composite configuration of the specification, and the deprecated forms
  * of the files that earlier versions of the application exported.
  */
-export function readCompositeConfig(raw: unknown, context: CompositeConfigContext): Result<CompositeProjectionConfig, string[]> {
+export function readCompositeConfig(raw: unknown, context: CompositeConfigContext): Result<CompositeProjectionConfig, PresetIssue[]> {
   if (!hasTerritoryObjects(raw)) {
     return validate(raw)
   }
 
-  const unknownProjections = raw.territories.flatMap((territory) => {
-    const id = projectionIdOf(territory)
-    return id !== undefined && !projectionRegistry.get(id)
-      ? [`Territory ${String(territory.code)}: unknown projection '${id}'`]
+  const unknownProjections = raw.territories.flatMap((territory): PresetIssue[] => {
+    const projectionId = projectionIdOf(territory)
+    return projectionId !== undefined && !projectionRegistry.get(projectionId)
+      ? [{ code: 'PRESET_PROJECTION_UNKNOWN', territory: typeof territory.code === 'string' ? territory.code : null, projectionId }]
       : []
   })
   if (unknownProjections.length > 0) {
@@ -108,12 +105,10 @@ export function readCompositeConfig(raw: unknown, context: CompositeConfigContex
 
 export function checkAtlasCompatibility(
   config: CompositeProjectionConfig,
-  currentAtlasId: AtlasId,
-): string[] {
-  if (config.metadata.atlasId !== currentAtlasId) {
-    return [
-      `Configuration was exported for atlas '${config.metadata.atlasId}' but current atlas is '${currentAtlasId}'. Territory codes may not match.`,
-    ]
-  }
-  return []
+  currentAtlasId: string,
+): Result<void, ImportError> {
+  const importedAtlasId = config.metadata.atlasId
+  return importedAtlasId === currentAtlasId
+    ? ok(undefined)
+    : err({ code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId, currentAtlasId })
 }

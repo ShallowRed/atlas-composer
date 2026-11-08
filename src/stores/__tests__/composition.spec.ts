@@ -1,4 +1,3 @@
-import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -188,53 +187,26 @@ describe('composition store', () => {
 
       const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
 
-      expect(result).toEqual({ ok: false, error: ['Atlas configuration not loaded'] })
-    })
-  })
-
-  describe('importConfiguration', () => {
-    function compositeConfig(atlasId: string, territories: CompositeProjectionConfig['territories']): CompositeProjectionConfig {
-      return {
-        version: '1.0',
-        metadata: {
-          atlasId,
-          atlasName: atlasId,
-          exportDate: '2024-01-01',
-          createdWith: '1.0.0',
-        },
-        referenceScale: 2700,
-        canvasDimensions: { width: 960, height: 500 },
-        territories,
-      }
-    }
-
-    it('rejects a configuration without territories', async () => {
-      await startApplication(FRANCE)
-
-      const result = await useCompositionStore().importConfiguration({
-        config: compositeConfig('france', [] as unknown as CompositeProjectionConfig['territories']),
-      })
-
-      expect(result.success).toBe(false)
-      expect(result.errors).toContainEqual('Import configuration has no territories')
+      expect(result).toEqual(err({ code: 'IMPORT_ATLAS_NOT_LOADED' }))
     })
 
-    it('rejects a configuration of another atlas', async () => {
+    it('fails while another atlas is loading', async () => {
       await startApplication(FRANCE)
+      const atlasStore = useAtlasStore()
+      atlasStore.currentAtlasConfig = { ...atlasStore.currentAtlasConfig!, id: 'portugal' }
 
-      const result = await useCompositionStore().importConfiguration({
-        config: compositeConfig('portugal', [{
-          code: 'PT-MET',
-          name: 'Metropolitan Portugal',
-          projection: { id: 'conic-conformal', family: 'CONIC', parameters: {} },
-          layout: { translateOffset: [0, 0] },
-          bounds: [[0, 0], [10, 10]],
-        }]),
-        validateAtlasCompatibility: true,
-      })
+      const result = await useCompositionStore().readConfigurationFile(frenchPresetFile())
 
-      expect(result.success).toBe(false)
-      expect(result.errors).toContainEqual(expect.stringContaining('but current atlas is'))
+      expect(result).toEqual(err({ code: 'IMPORT_ATLAS_NOT_LOADED' }))
+    })
+
+    it('refuses a file of another atlas', async () => {
+      await startApplication(FRANCE)
+      const { json } = readPresetFiles().find(({ atlasId, type }) => atlasId === 'portugal' && type === 'composite-custom')!
+
+      const result = await useCompositionStore().readConfigurationFile(new File([json], 'portugal.json'))
+
+      expect(result).toEqual(err({ code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 'portugal', currentAtlasId: 'france' }))
     })
   })
 
