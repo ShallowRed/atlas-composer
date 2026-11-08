@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { PresetApplicationError } from '@/core/types/errors'
 import type { PresetId } from '@/types/branded'
 
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import { useErrorMessage } from '@/composables/useErrorMessage'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
@@ -14,12 +16,13 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
 const { t, locale } = useI18n()
+const { errorMessage } = useErrorMessage()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const compositionStore = useCompositionStore()
 
 const isLoading = ref(false)
-const loadError = ref<string | null>(null)
+const loadError = ref<PresetApplicationError | null>(null)
 const selectedPreset = ref<PresetId | ''>('')
 
 const currentPreset = computed({
@@ -50,23 +53,15 @@ const currentPreset = computed({
         skipValidation: false,
       })
 
-      if (!result.success) {
-        loadError.value = result.errors.join(', ')
-        debug('Failed to load preset: %o', result.errors)
+      if (!result.ok) {
+        loadError.value = result.error
+        debug('Failed to load preset: %o', result.error)
         return
-      }
-
-      if (result.warnings.length > 0) {
-        debug('Preset loaded with warnings: %o', result.warnings)
       }
 
       selectedPreset.value = presetId
 
       debug('Successfully loaded preset: %s', presetId)
-    }
-    catch (error) {
-      loadError.value = error instanceof Error ? error.message : 'Unknown error'
-      debug('Error loading preset: %o', error)
     }
     finally {
       isLoading.value = false
@@ -139,7 +134,7 @@ function formatPresetLabel(presetId: PresetId, presetName?: string | Record<stri
       class="alert alert-error text-xs p-2"
     >
       <i class="ri-error-warning-line" />
-      <span>{{ loadError }}</span>
+      <span>{{ errorMessage(loadError) }}</span>
     </div>
   </div>
 </template>

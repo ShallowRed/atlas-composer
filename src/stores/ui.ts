@@ -1,9 +1,11 @@
+import type { AppError } from '@/core/types/errors'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export interface ToastMessage {
+type ToastContent = { message: string } | { error: AppError }
+
+type ToastMessage = ToastContent & {
   id: string
-  message: string
   type: 'error' | 'success' | 'warning' | 'info'
   duration?: number
 }
@@ -46,8 +48,16 @@ export const useUIStore = defineStore('ui', () => {
     type: ToastMessage['type'] = 'info',
     duration = 3000,
   ) {
+    return addToast({ message }, type, duration)
+  }
+
+  function showErrorToast(error: AppError, duration: number) {
+    return addToast({ error }, 'error', duration)
+  }
+
+  function addToast(content: ToastContent, type: ToastMessage['type'], duration: number) {
     const id = `toast-${toastIdCounter++}`
-    const toast: ToastMessage = { id, message, type, duration }
+    const toast: ToastMessage = { ...content, id, type, duration }
     toasts.value.push(toast)
 
     if (duration > 0) {
@@ -76,6 +86,7 @@ export const useUIStore = defineStore('ui', () => {
     initializeTheme,
     setTheme,
     showToast,
+    showErrorToast,
     dismissToast,
   }
 })

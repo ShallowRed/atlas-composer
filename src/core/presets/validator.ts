@@ -7,7 +7,6 @@ import type {
 } from './types'
 import type { PresetIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { AtlasConfig } from '@/types'
 
 import { validateConfig } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
@@ -43,6 +42,11 @@ export function validateCompositePreset(
 
   for (const territory of rawPreset.territories) {
     const family = territory.projection.family
+
+    const idIssue = projectionIdIssue(territory.projection.id, territory.code)
+    if (idIssue) {
+      issues.push(idIssue)
+    }
 
     const required = parameterRegistry.getRequired()
     for (const def of required) {
@@ -244,88 +248,4 @@ function validateCompositeExistingConfig(
       warnings.push('globalScale is outside recommended range (0.1 to 10)')
     }
   }
-}
-
-export function findTerritoriesWithoutProjection(
-  atlasConfig: Pick<AtlasConfig, 'compositeProjectionConfig'>,
-  territoryParameters: Record<string, Record<string, unknown>>,
-  viewMode: string,
-): string[] {
-  const errors: string[] = []
-
-  if (viewMode === 'unified' || viewMode === 'split' || viewMode === 'built-in-composite') {
-    return errors
-  }
-
-  const compositeConfig = atlasConfig.compositeProjectionConfig
-
-  if (!compositeConfig) {
-    return errors
-  }
-
-  const territoriesToValidate: string[] = compositeConfig.territories.map(t => t.code)
-
-  for (const territoryCode of territoriesToValidate) {
-    const params = territoryParameters[territoryCode]
-    if (!params || !params.projectionId) {
-      errors.push(`Territory '${territoryCode}' missing required parameter 'projectionId'`)
-    }
-  }
-
-  if (errors.length > 0) {
-    debug('Territory parameter validation failed: %O', errors)
-  }
-
-  return errors
-}
-
-export function findPositioningErrors(
-  territoryParameters: Record<string, Record<string, unknown>>,
-): string[] {
-  const errors: string[] = []
-
-  for (const [territoryCode, params] of Object.entries(territoryParameters)) {
-    const projectionFamily = params.projectionFamily as string | undefined
-
-    if (!projectionFamily) {
-      continue
-    }
-
-    if (projectionFamily === 'CONIC') {
-      if (params.center !== undefined) {
-        errors.push(
-          `Territory '${territoryCode}' uses CONIC projection but has 'center' parameter. `
-          + `CONIC projections should use 'rotate' instead. `
-          + `Expected: rotate: [lon, -lat, 0], got center: ${JSON.stringify(params.center)}`,
-        )
-      }
-      if (!params.rotate) {
-        errors.push(
-          `Territory '${territoryCode}' uses CONIC projection but missing 'rotate' parameter. `
-          + `CONIC projections require 'rotate': [longitude, -latitude, 0]`,
-        )
-      }
-      if (!params.parallels || (Array.isArray(params.parallels) && params.parallels.every((p: any) => p === 0))) {
-        errors.push(
-          `Territory '${territoryCode}' uses CONIC projection but has invalid 'parallels' parameter. `
-          + `Expected non-zero parallels like [37, 42], got: ${JSON.stringify(params.parallels)}`,
-        )
-      }
-    }
-
-    if (projectionFamily === 'CYLINDRICAL' || projectionFamily === 'AZIMUTHAL') {
-      if (!params.center) {
-        errors.push(
-          `Territory '${territoryCode}' uses ${projectionFamily} projection but missing 'center' parameter. `
-          + `${projectionFamily} projections require 'center': [longitude, latitude]`,
-        )
-      }
-    }
-  }
-
-  if (errors.length > 0) {
-    debug('Projection parameter validation failed: %O', errors)
-  }
-
-  return errors
 }

@@ -1,5 +1,5 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { AppError, GeoDataError } from '@/core/types/errors'
+import type { AppError, GeoDataError, InitializationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { Territory, TerritoryCode } from '@/types'
@@ -245,8 +245,8 @@ export const useGeoDataStore = defineStore('geoData', () => {
     error.value = null
   }
 
-  const failInitialization = (reason: string) => {
-    error.value ??= { code: 'INITIALIZATION_FAILED', reason }
+  const failInitialization = (failure: InitializationError) => {
+    error.value ??= failure
   }
 
   const reinitialize = async (atlasConfigOverride?: any): Promise<Result<void, GeoDataError>> => {

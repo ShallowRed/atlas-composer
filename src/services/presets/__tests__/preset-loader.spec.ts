@@ -68,6 +68,18 @@ describe('loadPreset', () => {
     expect(issuesOf(result)).toEqual([{ code: 'PRESET_POSITIONING_REQUIRED', territory: 'FR-MET' }])
   })
 
+  it('refuses a composite preset with an empty projection identifier', async () => {
+    await startApplication(FRANCE)
+    stubPresetFile((preset) => {
+      preset.territories[0].projection.id = ''
+      return preset
+    })
+
+    const result = await PresetLoader.loadPreset(COMPOSITE_PRESET)
+
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' }])
+  })
+
   it('refuses a view preset without projection', async () => {
     await startApplication(FRANCE)
     stubPresetFile(preset => ({ ...preset, config: {} }))

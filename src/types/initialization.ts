@@ -7,15 +7,6 @@ import type { AtlasConfig, Translation } from '@/types'
 import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
-/**
- * Result of an initialization operation
- */
-export interface InitializationResult {
-  success: boolean
-  errors: string[]
-  warnings: string[]
-}
-
 export interface ApplicationState {
   atlas: {
     id: AtlasId

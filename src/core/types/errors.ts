@@ -46,14 +46,14 @@ export type AtlasConfigError
     | { code: 'ATLAS_UNKNOWN', atlasId: string }
     | { code: 'ATLAS_CONFIG_INVALID', atlasId: string }
 
-type InitializationError
+export type InitializationError
   = | AtlasConfigError
     | GeoDataError
     | PresetError
     | { code: 'ATLAS_NO_DEFAULT_PRESET', atlasId: string, viewMode: string }
     | { code: 'INITIALIZATION_FAILED', reason: string }
 
-type PresetApplicationError
+export type PresetApplicationError
   = | GeoDataError
     | PresetError
     | { code: 'PRESET_APPLICATION_FAILED', presetId: string, reason: string }

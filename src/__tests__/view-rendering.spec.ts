@@ -59,8 +59,8 @@ async function openAtlas(atlasId: AtlasId) {
   const viewStore = useViewStore()
 
   const result = await useCompositionStore().initializeAtlas({ preserveViewMode: true })
-  if (!result.success) {
-    throw new Error(result.errors.join(', '))
+  if (!result.ok) {
+    throw new Error(JSON.stringify(result.error))
   }
   await viewStore.loadAvailableViewPresets()
   const defaultViewPreset = viewStore.availableViewPresets.find(preset => preset.isDefault) ?? viewStore.availableViewPresets[0]
