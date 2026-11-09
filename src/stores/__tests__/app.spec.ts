@@ -29,6 +29,16 @@ describe('app store', () => {
     expect(appStore.state).toBe('ready')
   })
 
+  it('keeps one scheduled ready', () => {
+    const appStore = scheduleReady()
+
+    appStore.setReady()
+    appStore.startLoadingPreset()
+    vi.advanceTimersByTime(TRANSITION_DURATION.minLoadingDisplay)
+
+    expect(appStore.state).toBe('loading-preset')
+  })
+
   it.each([
     ['startLoadingAtlas', 'loading-atlas'],
     ['startLoadingGeoData', 'loading-geodata'],

@@ -114,6 +114,10 @@ describe('composition store', () => {
       const geoDataStore = useGeoDataStore()
       vi.mocked(geoDataStore.reinitialize).mockRestore()
       vi.spyOn(Cartographer.prototype, 'init').mockResolvedValue(ok(undefined))
+      let flagDuringPresets: boolean | undefined
+      vi.spyOn(useViewStore(), 'autoLoadFirstPreset').mockImplementation(async () => {
+        flagDuringPresets = geoDataStore.isReinitializing
+      })
       let flagDuringPreload: boolean | undefined
       vi.mocked(geoDataStore.loadAllAtlasData).mockImplementation(async () => {
         flagDuringPreload = geoDataStore.isReinitializing
@@ -122,7 +126,32 @@ describe('composition store', () => {
 
       await useCompositionStore().initializeAtlas()
 
+      expect(flagDuringPresets).toBe(true)
       expect(flagDuringPreload).toBe(true)
+      expect(geoDataStore.isReinitializing).toBe(false)
+    })
+
+    it('leaves the flag of the latest initialization to it when a superseded one ends', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      const geoDataStore = useGeoDataStore()
+      const releases: Array<() => void> = []
+      vi.mocked(geoDataStore.loadAllAtlasData).mockImplementation(() => new Promise((resolve) => {
+        releases.push(() => resolve(ok(undefined)))
+      }))
+
+      const superseded = compositionStore.initializeAtlas()
+      await vi.waitFor(() => expect(releases).toHaveLength(1))
+      const latest = compositionStore.initializeAtlas()
+      await vi.waitFor(() => expect(releases).toHaveLength(2))
+      releases[0]!()
+      await superseded
+
+      expect(geoDataStore.isReinitializing).toBe(true)
+
+      releases[1]!()
+      await latest
+
       expect(geoDataStore.isReinitializing).toBe(false)
     })
   })
