@@ -1,10 +1,10 @@
 # Development
 
-This document describes the tests that protect the format and the rendering, the publication of the packages, the deployment of the site and the debug logs. [AGENTS.md](../AGENTS.md) describes the toolchain, `pnpm check` and the boundaries of the code.
+This document describes the tests of the format and the rendering, the publication of the packages, the deployment of the site and the debug logs. [AGENTS.md](../AGENTS.md) describes the toolchain, `pnpm check` and the boundaries of the code.
 
 ## Tests of the format and the rendering
 
-A unit test sits in a `__tests__` folder beside the module it tests. The specs of `src/__tests__/` combine the application and the packages. `src/__tests__/composite-utils.ts` replaces the loading of the geographic data, so these specs run without `pnpm geodata:prepare`.
+A unit test is in a `__tests__` folder beside the module it tests. The specs of `src/__tests__/` combine the application and the packages. `src/__tests__/composite-utils.ts` replaces the loading of the geographic data, so these specs run without `pnpm geodata:prepare`.
 
 To run one spec:
 
@@ -20,20 +20,15 @@ pnpm exec vitest run src/__tests__/format-verdicts.spec.ts
 
 `src/__tests__/projection-catalog.spec.ts` compares `PROJECTION_CATALOG` with two tables. Each definition of `projectionRegistry` with `supportsComposite` appears in the catalog with the same family, and each alias resolves to the same definition. The keys of `d3ProjectionFactories` are the identifiers of the catalog, and the loader gives the same coordinates for an alias and for its identifier.
 
-`src/__tests__/view-rendering.spec.ts` protects the rendering of the views. For each atlas of `configs/atlas-registry.json` and each view among `unified`, `split` and `composite-custom` for which the atlas declares a preset, it follows the path of an atlas change and of a view change in the stores, then projects nine points per territory. It compares them with `src/__tests__/fixtures/view-rendering.json`, under a key such as `france/split`, with a tolerance of 1e-6 pixel. The comment at the top of the spec names the commit that produced the references.
+`src/__tests__/view-rendering.spec.ts` compares the rendering of the views with references. For each atlas of `configs/atlas-registry.json` and each view among `unified`, `split` and `composite-custom` for which the atlas declares a preset, it follows the path of an atlas change and of a view change in the stores, then projects nine points in the bounds of each territory, or in the union of these bounds for the `unified` view. It compares them with `src/__tests__/fixtures/view-rendering.json`, under a key such as `france/split`, with a tolerance of 1e-6 pixel. The comment at the top of the spec names the commit that produced the references.
 
-The variable `UPDATE_VIEW_RENDERING=1` writes this file from the current rendering. The run starts from an empty reference, so a run filtered to some cases writes these cases alone. [docs/atlases.md](atlases.md) describes its use when adding an atlas.
+The variable `UPDATE_VIEW_RENDERING=1` writes this file from the current rendering. The run starts from an empty reference, so the file then holds the cases of this run alone. After adding an atlas, keep the keys of this atlas and restore the others.
 
 ```bash
 UPDATE_VIEW_RENDERING=1 pnpm exec vitest run src/__tests__/view-rendering.spec.ts
 ```
 
-`src/__tests__/documentation.spec.ts` compares the documents named in its `DOCUMENTS` constant with the repository, outside the fenced code blocks for the first three checks:
-
-- a relative link leads to a file or folder tracked by git;
-- a path in inline code designates a tracked file, where `<atlas>` stands for `france` and `<id>` or `*` for one path segment;
-- an identifier in camel case or Pascal case in inline code appears in the source;
-- a `pnpm` command in inline code or in a `bash` block is a script of `package.json`, or `install`, `exec` or `run`.
+`src/__tests__/documentation.spec.ts` compares the documents named in its `DOCUMENTS` constant with the repository: relative links, paths, identifiers and `pnpm` commands.
 
 ## Publication of the packages
 
@@ -57,7 +52,7 @@ const debug = logger.parameters.manager
 debug('Skipping territory %s', territoryCode)
 ```
 
-`pnpm dev:debug` starts Vite with `VITE_DEBUG` set to `ac:*`, and the scripts of `package.json` that start with `dev:debug:` select one domain. `src/main.ts` copies this value into `localStorage.debug`. The library reads `localStorage.debug` when it is imported, before `src/main.ts` writes it, so the logs appear after a reload of the page.
+`pnpm dev:debug` starts Vite with `VITE_DEBUG` set to `ac:*`, and the scripts of `package.json` that start with `dev:debug:` select a part of the namespaces. `src/main.ts` copies this value into `localStorage.debug`. The library reads `localStorage.debug` when it is imported, before `src/main.ts` writes it, so the logs appear after a reload of the page.
 
 The library writes with `console.debug`, which Chrome shows at the Verbose level of the console. The value stays in the browser for later runs of `pnpm dev`. To change the selection or to stop the logs, enter one of these lines in the console and reload the page:
 
