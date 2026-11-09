@@ -64,13 +64,6 @@ export const useViewStore = defineStore('view', () => {
     territoryMode.value = mode
   }
 
-  function setViewMode(mode: ViewMode) {
-    if (mode === viewMode.value)
-      return
-
-    viewMode.value = mode
-  }
-
   function addTerritoryToComposite(territoryCode: TerritoryCode) {
     activeTerritoryCodes.value.add(territoryCode)
     activeTerritoryCodes.value = new Set(activeTerritoryCodes.value)
@@ -208,7 +201,6 @@ export const useViewStore = defineStore('view', () => {
     projectionRecommendations,
 
     setTerritoryMode,
-    setViewMode,
     addTerritoryToComposite,
     removeTerritoryFromComposite,
     setActiveTerritories,

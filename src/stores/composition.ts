@@ -3,7 +3,7 @@ import type { Preset, UnifiedViewConfig } from '@/core/presets'
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { ProjectionId, TerritoryCode, ViewMode } from '@/types'
+import type { AtlasId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type {
   ApplicationState,
@@ -12,7 +12,6 @@ import type {
 } from '@/types/initialization'
 
 import { defineStore } from 'pinia'
-import { nextTick, watch } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
 import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
@@ -158,10 +157,6 @@ export const useCompositionStore = defineStore('composition', () => {
       }
 
       const state: ApplicationState = {
-        atlas: {
-          id: atlasId,
-          config: atlasConfig,
-        },
         viewMode,
         territoryMode,
         preset: preset
@@ -200,7 +195,9 @@ export const useCompositionStore = defineStore('composition', () => {
 
       await applyStateToStores(state)
 
-      await nextTick()
+      viewStore.clearViewPreset()
+      await viewStore.loadAvailableViewPresets()
+      await viewStore.autoLoadFirstPreset(`initialization of ${atlasId}`)
 
       appStore.startLoadingGeoData()
       const geoDataResult = await geoDataStore.reinitialize(filteredAtlasConfig)
@@ -256,10 +253,6 @@ export const useCompositionStore = defineStore('composition', () => {
       const territoryParameters = extractTerritoryParameters(preset.config)
 
       const state: ApplicationState = {
-        atlas: {
-          id: currentAtlasId,
-          config: atlasConfig,
-        },
         viewMode: 'composite-custom',
         territoryMode: viewStore.territoryMode,
         preset: {
@@ -368,9 +361,6 @@ export const useCompositionStore = defineStore('composition', () => {
 
   async function importConfiguration(config: CompositeProjectionConfig): Promise<Result<void, ImportError>> {
     try {
-      const currentAtlasId = atlasStore.selectedAtlasId
-      const atlasConfig = getAtlasConfig(currentAtlasId)
-
       const territoryParameters: Record<string, Record<string, unknown>> = {}
       for (const territory of config.territories) {
         const params: Record<string, unknown> = {
@@ -386,10 +376,6 @@ export const useCompositionStore = defineStore('composition', () => {
       }
 
       const state: ApplicationState = {
-        atlas: {
-          id: currentAtlasId,
-          config: atlasConfig,
-        },
         viewMode: 'composite-custom',
         territoryMode: viewStore.territoryMode,
         preset: null, // Imported config is not a saved preset
@@ -487,8 +473,6 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   async function applyStateToStores(state: ApplicationState): Promise<void> {
-    atlasStore.selectedAtlasId = state.atlas.id
-
     viewStore.viewMode = state.viewMode as ViewMode
     viewStore.territoryMode = state.territoryMode
 
@@ -564,7 +548,12 @@ export const useCompositionStore = defineStore('composition', () => {
     return preloadAtlasData(territoryMode)
   }
 
-  watch(() => viewStore.viewMode, async (newMode, oldMode) => {
+  async function selectViewMode(viewMode: ViewMode): Promise<void> {
+    if (viewMode === viewStore.viewMode) {
+      return
+    }
+
+    viewStore.viewMode = viewMode
     viewStore.clearViewPreset()
 
     parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
@@ -572,65 +561,45 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.setGlobalParameter('scale', undefined)
     presetDefaults.storeGlobalParameters(null)
 
-    if (newMode !== 'composite-custom' && newMode !== 'split') {
+    if (viewMode !== 'composite-custom' && viewMode !== 'split') {
       presetDefaults.clearAll()
     }
 
     await viewStore.loadAvailableViewPresets()
 
-    if (newMode === 'composite-custom' && viewStore.availableViewPresets.length === 0) {
-      debug('Reloading default composite preset for composite-custom mode')
-      // Called through the store, so that a spy on the store sees the call
-      await useCompositionStore().initializeAtlas({
-        preserveViewMode: true, // Keep composite-custom mode
-      })
+    if (viewMode === 'composite-custom') {
+      await initializeAtlas({ preserveViewMode: true })
     }
     else {
-      await viewStore.autoLoadFirstPreset(`view mode changed from ${oldMode} to ${newMode}`)
+      await viewStore.autoLoadFirstPreset(`view mode changed to ${viewMode}`)
     }
-  })
-
-  let isReverting = false
-
-  async function switchAtlas(reason: string) {
-    const result = await useCompositionStore().initializeAtlas({
-      preserveViewMode: true,
-    })
-
-    if (result.ok) {
-      await viewStore.loadAvailableViewPresets()
-      await viewStore.autoLoadFirstPreset(reason)
-    }
-
-    return result
   }
 
-  watch(() => atlasStore.selectedAtlasId, async (newAtlasId, oldAtlasId) => {
-    if (isReverting) {
-      isReverting = false
+  async function selectAtlas(atlasId: AtlasId): Promise<void> {
+    const previousAtlasId = atlasStore.selectedAtlasId
+    if (atlasId === previousAtlasId) {
       return
     }
 
-    const result = await switchAtlas(`atlas changed from ${oldAtlasId} to ${newAtlasId}`)
+    atlasStore.selectedAtlasId = atlasId
+    const result = await initializeAtlas({ preserveViewMode: true })
 
     if (result.ok) {
-      debug('Atlas changed: %s -> %s', oldAtlasId, newAtlasId)
+      debug('Atlas changed: %s -> %s', previousAtlasId, atlasId)
       return
     }
 
     debug('Atlas change failed: %O', result.error)
 
-    isReverting = true
-    atlasStore.selectedAtlasId = oldAtlasId
-
-    uiStore.showErrorToast({ code: 'ATLAS_SWITCH_FAILED', atlasId: newAtlasId, cause: result.error }, 5000)
+    atlasStore.selectedAtlasId = previousAtlasId
+    uiStore.showErrorToast({ code: 'ATLAS_SWITCH_FAILED', atlasId, cause: result.error }, 5000)
 
     // The failed initialization cleared the data of the previous atlas
-    const restored = await switchAtlas(`atlas restored after failing to load ${newAtlasId}`)
+    const restored = await initializeAtlas({ preserveViewMode: true })
     if (!restored.ok) {
       debug('Atlas restore failed: %O', restored.error)
     }
-  })
+  }
 
   return {
     startMapView,
@@ -640,5 +609,7 @@ export const useCompositionStore = defineStore('composition', () => {
     importConfiguration,
     resetTransforms,
     resetTerritoryToDefaults,
+    selectAtlas,
+    selectViewMode,
   }
 })

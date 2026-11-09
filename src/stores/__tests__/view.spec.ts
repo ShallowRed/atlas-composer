@@ -32,7 +32,7 @@ describe('view store', () => {
   describe('loadViewPreset', () => {
     it('refuses a preset of another view mode', async () => {
       await startApplication(FRANCE)
-      await openView(FRANCE, 'unified')
+      await openView('unified')
       const viewStore = useViewStore()
       const currentPreset = viewStore.currentViewPreset
 
@@ -63,7 +63,7 @@ describe('view store', () => {
 
     it('fails when the file of the preset does not load', async () => {
       await startApplication(FRANCE)
-      await openView(FRANCE, 'unified')
+      await openView('unified')
       const viewStore = useViewStore()
       viewStore.clearViewPreset()
       vi.stubGlobal('fetch', async () => new Response('', { status: 404 }))

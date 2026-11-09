@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ViewMode } from '@/types'
 import type { AtlasId } from '@/types/branded'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,6 +11,7 @@ import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
 import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
@@ -19,6 +21,7 @@ const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
 const atlasStore = useAtlasStore()
+const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
 
 const { options: territoryModeOptions } = useTerritoryModeOptions()
@@ -46,18 +49,20 @@ const { isCompositeCustomMode } = useViewState()
   <div class="flex flex-col gap-6">
     <!-- Region Selector -->
     <DropdownControl
-      v-model="atlasStore.selectedAtlasId"
+      :model-value="atlasStore.selectedAtlasId"
       :label="t('settings.region')"
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
+      @update:model-value="compositionStore.selectAtlas($event as AtlasId)"
     />
     <!-- Main View Mode Selector -->
     <DropdownControl
-      v-model="viewStore.viewMode"
+      :model-value="viewStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
       :disabled="viewOrchestration.isViewModeDisabled.value"
       :options="viewModeOptionsWithIcons"
+      @update:model-value="compositionStore.selectViewMode($event as ViewMode)"
     />
     <!-- Territory Selection (collapsible) -->
     <div

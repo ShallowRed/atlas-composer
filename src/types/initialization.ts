@@ -3,15 +3,11 @@
  */
 
 import type { Preset } from '@/core/presets'
-import type { AtlasConfig, Translation } from '@/types'
-import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
+import type { Translation } from '@/types'
+import type { PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 export interface ApplicationState {
-  atlas: {
-    id: AtlasId
-    config: AtlasConfig
-  }
   viewMode: string
   territoryMode: string
   preset: {
