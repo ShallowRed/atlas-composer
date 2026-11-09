@@ -14,11 +14,11 @@ A store holds the state of one concept: `atlas` holds the selected atlas and its
 
 A change to one concept touches one store. `src/stores/composition.ts` imports the other stores, and `pnpm check:dead-code` refuses an import cycle.
 
-## Domain identifiers have branded types
+## Domain ids have branded types
 
 `AtlasId`, `ProjectionId`, `PresetId` and `TerritoryCode`, in `src/types/branded.ts`, are strings with a type-level brand.
 
-The compiler refuses a `PresetId` where a function expects an `AtlasId`, and a signature names the kind of identifier it takes. The brand exists in the types and TypeScript erases it, so the value is a plain string at runtime. A string read from a file becomes an identifier through a constructor of `src/types/branded.ts` or a cast.
+The compiler refuses a `PresetId` where a function expects an `AtlasId`, and a signature names the kind of id it takes. The brand exists in the types and TypeScript erases it, so the value is a plain string at runtime. A string read from a file becomes an id through a constructor of `src/types/branded.ts` or a cast.
 
 ## Use cases are store actions, and a service imports no store
 
@@ -30,7 +30,7 @@ The dependencies go in one direction, and `eslint.config.js` checks it. Pinia [l
 
 `projectionPreferences`, in `configs/atlases/<atlas>.json`, gives the recommended projections of an atlas and its default composite projection. `configs/schemas/atlas.schema.json` defines this field, and [atlases.md](atlases.md) describes it.
 
-The configuration of an atlas is the one source of what is specific to this atlas, and a new atlas declares its projections in its own file. `eslint.config.js` refuses an import of `src/core/atlases/` from `src/core/projections/`: a caller passes the recommended projections through `ProjectionFilterContext`.
+The configuration of an atlas is the one source of what is specific to this atlas, and the author of an atlas declares its projections in its file. `eslint.config.js` refuses an import of `src/core/atlases/` from `src/core/projections/`: a caller passes the recommended projections through `ProjectionFilterContext`.
 
 ## An expected failure goes through Result with a typed error
 
@@ -52,6 +52,6 @@ The project has one list of ids, and a user of the package reads the same name a
 
 ## The loader validates with the schema alone
 
-`ProjectionLoader` calls `validateConfig` of `@atlas-composer/specification` and throws a `ConfigValidationError` for a file that the schema refuses. It neither tolerates nor converts a deprecated form.
+`ProjectionLoader` calls `validateConfig` of `@atlas-composer/specification` and throws a `ConfigValidationError` for a file that the schema refuses.
 
-A file is valid when the schema accepts it, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [export.md](export.md) describes, and the loader refuses them.
+A file is valid when the schema accepts it, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The application reads the files of its earlier versions with `readCompositeConfig`, as [export.md](export.md) describes, and the loader refuses them.

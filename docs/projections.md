@@ -67,6 +67,6 @@ The relevance of `center` and `rotate` comes from `usesPositionParameter`, so `c
 
 1. Add a `ProjectionDefinition` to a file of `src/core/projections/definitions/` whose array is part of `ALL_PROJECTIONS`.
 2. Add the keys of `name` and `description` to `src/i18n/locales/en.json` and `src/i18n/locales/fr.json`.
-3. When the definition has `supportsComposite`, a composite preset can use it and the export writes it. Add its identifier and its family to `PROJECTION_CATALOG` in `packages/specification/src/catalog.ts`, and its factory under the same identifier to `d3ProjectionFactories` in `packages/projection-loader/src/d3-projection-helpers.ts`. `src/__tests__/projection-catalog.spec.ts` compares the definitions, the catalog and the factories. Add a changeset for `@atlas-composer/specification` and `@atlas-composer/projection-loader`, as [development.md](development.md) describes.
-4. To recommend the projection for an atlas, add its identifier to `projectionPreferences.recommended` in the configuration of the atlas.
+3. When the definition has `supportsComposite`, a composite preset can use it and the export writes it. Add its id and its family to `PROJECTION_CATALOG` in `packages/specification/src/catalog.ts`, and its factory under the same id to `d3ProjectionFactories` in `packages/projection-loader/src/d3-projection-helpers.ts`. `src/__tests__/projection-catalog.spec.ts` compares the definitions, the catalog and the factories. Add a changeset for `@atlas-composer/specification` and `@atlas-composer/projection-loader`, as [development.md](development.md) describes.
+4. To recommend the projection for an atlas, add its id to `projectionPreferences.recommended` in the configuration of the atlas.
 5. Run `pnpm check`.
