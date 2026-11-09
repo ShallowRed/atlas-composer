@@ -10,15 +10,6 @@ export interface TerritoryDefaults {
   scales: Record<TerritoryCode, number>
 }
 
-export interface AtlasProjectionMetadata {
-  compositeProjections?: string[]
-  defaultCompositeProjection?: string
-  projectionPreferences?: {
-    recommended?: string[]
-    prohibited?: string[]
-  }
-}
-
 interface BasePresetMetadata {
   id: string
   atlasId: AtlasId
@@ -47,13 +38,9 @@ export interface CompositeExistingViewConfig {
   globalScale?: number
 }
 
-export interface CompositeCustomConfig extends CompositeProjectionConfig {
-  atlasMetadata?: AtlasProjectionMetadata
-}
-
 interface CompositePreset extends BasePresetMetadata {
   type: 'composite-custom'
-  config: CompositeCustomConfig
+  config: CompositeProjectionConfig
 }
 
 interface UnifiedPreset extends BasePresetMetadata {

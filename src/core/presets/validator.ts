@@ -1,5 +1,5 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type {
-  CompositeCustomConfig,
   CompositeExistingViewConfig,
   SplitViewConfig,
   UnifiedViewConfig,
@@ -29,8 +29,8 @@ function logWarnings(warnings: string[]): void {
 }
 
 export function validateCompositePreset(
-  rawPreset: CompositeCustomConfig,
-): Result<CompositeCustomConfig, PresetIssue[]> {
+  rawPreset: CompositeProjectionConfig,
+): Result<CompositeProjectionConfig, PresetIssue[]> {
   const validation = validateConfig(rawPreset)
 
   if (!validation.valid) {

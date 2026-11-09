@@ -1,3 +1,4 @@
+import type { ProjectionId } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
 
 const VIEW_MODES = {
@@ -6,6 +7,13 @@ const VIEW_MODES = {
   'split': true,
   'unified': true,
 } as const satisfies Record<ViewMode, true>
+
+export const DEFAULT_SELECTED_PROJECTION = {
+  'composite-custom': 'conic-conformal' as ProjectionId,
+  'built-in-composite': 'natural-earth' as ProjectionId,
+  'split': 'natural-earth' as ProjectionId,
+  'unified': 'natural-earth' as ProjectionId,
+} satisfies Record<ViewMode, ProjectionId>
 
 export function isViewMode(value: unknown): value is ViewMode {
   return typeof value === 'string' && Object.hasOwn(VIEW_MODES, value)

@@ -4,7 +4,6 @@ export { checkAtlasCompatibility, readCompositeConfig } from './composite-config
 export { convertToDefaults, extractTerritoryParameters } from './converter'
 
 export type {
-  AtlasProjectionMetadata,
   Preset,
   TerritoryDefaults,
   UnifiedViewConfig,
