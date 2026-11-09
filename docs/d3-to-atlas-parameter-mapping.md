@@ -4,7 +4,7 @@
 
 `packages/specification/schemas/` defines the format of a composite preset, and `packages/specification/__tests__/fixtures/valid/minimal.json` is a complete file in this format. `configs/presets/usa/usa-pseudo-d3cp.json` applies the conversions below to `albersUsa`, and takes `US-PR`, `US-GU` and `US-AS` from `albersUsaTerritories`. `configs/presets/france/france-pseudo-d3cp.json` copies the projections, `rotate`, `center`, `parallels` and multipliers of `conicConformalFrance`, with offsets adjusted by hand: the territories of the right column share an x offset of 320.
 
-[docs/architecture.md](architecture.md) gives the order in which the values of a preset combine with the other levels of parameters.
+[architecture.md](architecture.md) gives the order in which the values of a preset combine with the other levels of parameters.
 
 ## Parameters
 

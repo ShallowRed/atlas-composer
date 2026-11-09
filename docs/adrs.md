@@ -28,7 +28,7 @@ The dependencies go in one direction, and `eslint.config.js` checks it. Pinia [l
 
 ## Projection preferences are in the atlas configuration
 
-`projectionPreferences`, in `configs/atlases/<atlas>.json`, gives the recommended projections of an atlas and its default composite projection. `configs/schemas/atlas.schema.json` defines this field, and [docs/atlases.md](atlases.md) describes it.
+`projectionPreferences`, in `configs/atlases/<atlas>.json`, gives the recommended projections of an atlas and its default composite projection. `configs/schemas/atlas.schema.json` defines this field, and [atlases.md](atlases.md) describes it.
 
 The configuration of an atlas is the one source of what is specific to this atlas, and a new atlas declares its projections in its own file. `eslint.config.js` refuses an import of `src/core/atlases/` from `src/core/projections/`: a caller passes the recommended projections through `ProjectionFilterContext`.
 
@@ -42,7 +42,7 @@ The signature of a function shows that it can fail and how. The caller handles t
 
 The presets, the state of the application, the exported file and the loader all give the position of a territory with the d3 parameters `rotate`, `center` and `parallels`.
 
-The application has one model, so the import of a file in the current format and the export carry the same values. A file written for d3 keeps its meaning: `configs/presets/usa/usa-pseudo-d3cp.json` gives a territory both `center` and `rotate`, as d3 does for Alaska in `geoAlbersUsa`. The loader applies the values of the file as they are, so a reader of the format needs no rule per projection family. The rules per family are in `src/core/positioning/`, which the import of deprecated forms, the panning of the map and the parameter registry use, and `eslint.config.js` refuses the deprecated fields elsewhere. [docs/projections.md](projections.md) describes the positioning.
+The application has one model, so the import of a file in the current format and the export carry the same values. A file written for d3 keeps its meaning: `configs/presets/usa/usa-pseudo-d3cp.json` gives a territory both `center` and `rotate`, as d3 does for Alaska in `geoAlbersUsa`. The loader applies the values of the file as they are, so a reader of the format needs no rule per projection family. The rules per family are in `src/core/positioning/`, which the import of deprecated forms, the panning of the map and the parameter registry use, and `eslint.config.js` refuses the deprecated fields elsewhere. [projections.md](projections.md) describes the positioning.
 
 ## The preset ids of the registry are the public ids
 
@@ -54,4 +54,4 @@ The project has one list of ids, and a user of the package reads the same name a
 
 `ProjectionLoader` calls `validateConfig` of `@atlas-composer/specification` and throws a `ConfigValidationError` for a file that the schema refuses. It neither tolerates nor converts a deprecated form.
 
-The schema alone decides what a valid file is, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [docs/export.md](export.md) describes, and the loader refuses them.
+The schema alone decides what a valid file is, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [export.md](export.md) describes, and the loader refuses them.

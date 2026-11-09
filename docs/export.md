@@ -15,7 +15,7 @@ The application writes a custom composite to a JSON file and reads this file bac
 
 `referenceScale` and `canvasDimensions` are the values of the projection store, or `DEFAULT_REFERENCE_SCALE` and `DEFAULT_CANVAS_DIMENSIONS` when the store has none. `version` is `SPECIFICATION_VERSION`. The downloaded file is named after the atlas, such as `france-projection.json`.
 
-[docs/presets.md](presets.md) describes how to turn an exported file into a preset, and [docs/development.md](development.md) describes the tests of the exported files.
+[presets.md](presets.md) describes how to turn an exported file into a preset, and [development.md](development.md) describes the tests of the exported files.
 
 ## Import
 
