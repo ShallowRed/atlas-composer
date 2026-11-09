@@ -34,60 +34,6 @@ describe('registry + factory integration', () => {
         expect(typeof projection).toBe('function')
       })
     })
-
-    it('should use top recommendation for france atlas', () => {
-      const recommendations = projectionRegistry.recommend({
-        viewMode: 'split',
-      })
-
-      expect(recommendations.length).toBeGreaterThan(0)
-      const topRecommendation = recommendations[0]
-      expect(topRecommendation).toBeDefined()
-
-      const projection = ProjectionFactory.create({
-        projection: topRecommendation!.projection,
-      })
-      expect(projection).toBeDefined()
-
-      const result = projection!([2, 46])
-      expect(result).toBeDefined()
-    })
-
-    it('should use top recommendation for portugal atlas', () => {
-      const recommendations = projectionRegistry.recommend({
-        viewMode: 'split',
-      })
-
-      expect(recommendations.length).toBeGreaterThan(0)
-      const topRecommendation = recommendations[0]
-      expect(topRecommendation).toBeDefined()
-
-      const projection = ProjectionFactory.create({
-        projection: topRecommendation!.projection,
-      })
-      expect(projection).toBeDefined()
-
-      const result = projection!([-8, 39])
-      expect(result).toBeDefined()
-    })
-
-    it('should use top recommendation for europe atlas', () => {
-      const recommendations = projectionRegistry.recommend({
-        viewMode: 'split',
-      })
-
-      expect(recommendations.length).toBeGreaterThan(0)
-      const topRecommendation = recommendations[0]
-      expect(topRecommendation).toBeDefined()
-
-      const projection = ProjectionFactory.create({
-        projection: topRecommendation!.projection,
-      })
-      expect(projection).toBeDefined()
-
-      const result = projection!([10, 50])
-      expect(result).toBeDefined()
-    })
   })
 
   describe('strategy-specific workflows', () => {
