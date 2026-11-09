@@ -50,11 +50,14 @@ export const useViewStore = defineStore('view', () => {
   )
 
   const projectionGroups = computed(() =>
-    ProjectionUIService.getProjectionGroups(getAtlasStore().selectedAtlasId, viewMode.value),
+    ProjectionUIService.getProjectionGroups(viewMode.value),
   )
 
   const projectionRecommendations = computed(() =>
-    ProjectionUIService.getProjectionRecommendations(getAtlasStore().selectedAtlasId, viewMode.value),
+    ProjectionUIService.getProjectionRecommendations(
+      getAtlasStore().currentAtlasConfig?.projectionPreferences?.recommended,
+      viewMode.value,
+    ),
   )
 
   function setTerritoryMode(mode: string) {

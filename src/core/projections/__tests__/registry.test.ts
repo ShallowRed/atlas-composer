@@ -105,16 +105,8 @@ describe('projectionRegistry', () => {
   })
 
   describe('filter()', () => {
-    it('should filter projections by atlas', () => {
-      const franceProjections = projectionRegistry.filter({
-        atlasId: 'france',
-      })
-      expect(franceProjections.length).toBeGreaterThan(0)
-    })
-
     it('should filter projections by view mode', () => {
       const compositeProjections = projectionRegistry.filter({
-        atlasId: 'france',
         viewMode: 'built-in-composite',
       })
       expect(compositeProjections.length).toBeGreaterThan(0)
@@ -125,27 +117,17 @@ describe('projectionRegistry', () => {
 
     it('should exclude categories when specified', () => {
       const projections = projectionRegistry.filter({
-        atlasId: 'france',
         excludeCategories: [ProjectionCategory.COMPOSITE],
       })
       projections.forEach((proj) => {
         expect(proj.category).not.toBe(ProjectionCategory.COMPOSITE)
       })
     })
-
-    it('should return empty array for unknown atlas', () => {
-      const projections = projectionRegistry.filter({
-        atlasId: 'unknown-atlas',
-      })
-      expect(Array.isArray(projections)).toBe(true)
-    })
   })
 
   describe('recommend()', () => {
     it('should return recommendations sorted by score', () => {
-      const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
-      })
+      const recommendations = projectionRegistry.recommend()
       expect(recommendations.length).toBeGreaterThan(0)
 
       // Check that scores are sorted in descending order
@@ -155,9 +137,7 @@ describe('projectionRegistry', () => {
     })
 
     it('should include projection, score and level', () => {
-      const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
-      })
+      const recommendations = projectionRegistry.recommend()
       recommendations.forEach((rec) => {
         expect(rec.projection).toBeDefined()
         expect(typeof rec.score).toBe('number')
@@ -165,34 +145,17 @@ describe('projectionRegistry', () => {
       })
     })
 
-    it('should prioritize atlas-recommended projections', () => {
-      const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
+    it('should rank the recommended projections first', () => {
+      const [topRecommendation] = projectionRegistry.recommend({
+        recommended: ['robinson'],
       })
-      const topRecommendation = recommendations[0]
-      expect(topRecommendation).toBeDefined()
-      expect(topRecommendation!.score).toBeGreaterThan(30)
-    })
 
-    it.skip('should penalize prohibited projections', () => {
-      // NOTE: This test is skipped because the registry currently uses fallback defaults
-      // where prohibited arrays are empty. The real prohibited projections would be loaded
-      // by AtlasMetadataService in the full application context.
-      const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
-      })
-      const prohibitedProj = recommendations.find(r =>
-        r.projection.id === 'gnomonic' || r.projection.id === 'orthographic',
-      )
-      if (prohibitedProj) {
-        expect(prohibitedProj.score).toBeLessThan(0)
-      }
+      expect(topRecommendation!.projection.id).toBe('robinson')
+      expect(topRecommendation!.level).toBe('excellent')
     })
 
     it('should assign recommendation levels correctly', () => {
-      const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
-      })
+      const recommendations = projectionRegistry.recommend()
 
       const excellent = recommendations.filter(r => r.level === 'excellent')
       const good = recommendations.filter(r => r.level === 'good')

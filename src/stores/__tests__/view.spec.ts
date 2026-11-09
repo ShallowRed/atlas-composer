@@ -1,16 +1,32 @@
 import type { AtlasId } from '@/types/branded'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { getAtlasConfig } from '@/core/atlases/registry'
 import { err } from '@/core/types/result'
+import { useAtlasStore } from '@/stores/atlas'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
+const WORLD = 'world' as AtlasId
 
 describe('view store', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+  })
+
+  describe('projectionRecommendations', () => {
+    it('marks the projections that the atlas recommends', async () => {
+      await startApplication(WORLD)
+      useAtlasStore().currentAtlasConfig = getAtlasConfig(WORLD)
+      useViewStore().viewMode = 'unified'
+
+      const levels = Object.fromEntries(useViewStore().projectionRecommendations.map(({ projection, level }) => [projection.id, level]))
+
+      expect(levels.robinson).toBe('excellent')
+      expect(levels.mercator).not.toBe('excellent')
+    })
   })
 
   describe('loadViewPreset', () => {

@@ -74,11 +74,10 @@ export interface ProjectionDefinition {
 }
 
 export interface ProjectionFilterContext {
-  atlasId?: string
+  recommended?: readonly string[]
   viewMode?: 'split' | 'composite-custom' | 'built-in-composite' | 'unified'
   requiredCapabilities?: Partial<ProjectionCapabilities>
   excludeCategories?: ProjectionCategoryType[]
-  recommendedOnly?: boolean
 }
 
 export interface ProjectionRecommendation {

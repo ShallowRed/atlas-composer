@@ -1,4 +1,4 @@
-import type { AtlasId, ViewMode } from '@/types'
+import type { ViewMode } from '@/types'
 
 import { projectionRegistry } from '@/core/projections/registry'
 import { ViewModeSelection } from '@/core/view'
@@ -15,12 +15,8 @@ export interface ProjectionGroup {
 }
 
 export class ProjectionUIService {
-  static getProjectionGroups(
-    atlasId: AtlasId,
-    viewMode: ViewMode,
-  ): ProjectionGroup[] {
+  static getProjectionGroups(viewMode: ViewMode): ProjectionGroup[] {
     const filteredProjections = projectionRegistry.filter({
-      atlasId,
       viewMode,
       excludeCategories: ['COMPOSITE'],
     })
@@ -46,11 +42,11 @@ export class ProjectionUIService {
   }
 
   static getProjectionRecommendations(
-    atlasId: AtlasId,
+    recommended: readonly string[] | undefined,
     viewMode: ViewMode,
   ) {
     return projectionRegistry.recommend({
-      atlasId,
+      recommended,
       viewMode,
       excludeCategories: ['COMPOSITE'],
     })
