@@ -14,7 +14,9 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
+import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
+import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
@@ -86,6 +88,39 @@ describe('composition store', () => {
 
       expect(result).toEqual(ok(undefined))
       expect(atlasStore.currentAtlasConfig?.id).toBe(atlasStore.selectedAtlasId)
+    })
+  })
+
+  describe('default projections', () => {
+    it('gives the custom composite view its projection, and the atlas its composite projection', async () => {
+      await startApplication(FRANCE)
+
+      await useCompositionStore().initializeAtlas()
+
+      expect(useProjectionStore().selectedProjection).toBe('conic-conformal')
+      expect(useProjectionStore().compositeProjection).toBe('conic-conformal-france')
+    })
+
+    it('selects natural-earth in the other views', async () => {
+      await startApplication(FRANCE)
+      useViewStore().viewMode = 'split'
+
+      await useCompositionStore().initializeAtlas({ preserveViewMode: true })
+
+      expect(useProjectionStore().selectedProjection).toBe('natural-earth')
+    })
+
+    it('clears the composite projection for an atlas without one', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      const initializeAtlas = vi.spyOn(compositionStore, 'initializeAtlas')
+
+      useAtlasStore().selectedAtlasId = 'world' as AtlasId
+      await vi.waitFor(() => expect(initializeAtlas).toHaveBeenCalled())
+      await initializeAtlas.mock.results[0]!.value
+
+      expect(useProjectionStore().compositeProjection).toBeNull()
     })
   })
 

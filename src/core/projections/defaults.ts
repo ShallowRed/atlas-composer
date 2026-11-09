@@ -45,8 +45,3 @@ export function getDefaultProjectionPreferences(atlasId: string): ProjectionPref
     prohibited: [],
   }
 }
-
-export function getDefaultCompositeProjections(atlasId: string): string[] {
-  const prefs = getDefaultProjectionPreferences(atlasId)
-  return prefs.recommended ?? [`conic-conformal-${atlasId}`]
-}

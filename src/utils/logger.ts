@@ -35,7 +35,6 @@ export const logger = {
     loader: debug('ac:presets:loader'),
     manager: debug('ac:presets:manager'),
     validator: debug('ac:presets:validator'),
-    metadata: debug('ac:presets:metadata'),
   },
   export: {
     config: debug('ac:export:config'),

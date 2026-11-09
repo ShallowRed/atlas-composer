@@ -20,9 +20,9 @@ import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
+import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
 import { AtlasService } from '@/services/atlas/atlas-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
-import { AtlasMetadataService } from '@/services/presets/atlas-metadata-service'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
 import { useAppStore } from '@/stores/app'
@@ -157,8 +157,6 @@ export const useCompositionStore = defineStore('composition', () => {
         }
       }
 
-      const compositeProjection = await AtlasMetadataService.getDefaultCompositeProjection(atlasId, defaultPresetId)
-      const selectedProjection = await AtlasMetadataService.getRecommendedProjection(atlasId, defaultPresetId)
       const state: ApplicationState = {
         atlas: {
           id: atlasId,
@@ -174,8 +172,8 @@ export const useCompositionStore = defineStore('composition', () => {
             }
           : null,
         projections: {
-          selected: selectedProjection,
-          composite: compositeProjection,
+          selected: DEFAULT_SELECTED_PROJECTION[viewMode],
+          composite: atlasConfig.projectionPreferences?.defaultCompositeProjection,
         },
         parameters: {
           global: atlasParameters,
@@ -495,9 +493,7 @@ export const useCompositionStore = defineStore('composition', () => {
     viewStore.territoryMode = state.territoryMode
 
     projectionStore.selectedProjection = state.projections.selected
-    if (state.projections.composite) {
-      projectionStore.compositeProjection = state.projections.composite
-    }
+    projectionStore.compositeProjection = state.projections.composite ?? null
     if (state.canvas.referenceScale !== undefined) {
       projectionStore.referenceScale = state.canvas.referenceScale
     }
