@@ -3,6 +3,7 @@
  */
 
 import type { Preset } from '@/core/presets'
+import type { SharedLink } from '@/core/view'
 import type { Translation } from '@/types'
 import type { PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -41,6 +42,7 @@ export interface ApplicationState {
 
 export interface AtlasInitializationOptions {
   preserveViewMode?: boolean // Try to keep current view mode if supported
+  sharedLink?: SharedLink
 }
 
 export interface PresetLoadOptions {

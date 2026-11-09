@@ -1,8 +1,10 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Preset, UnifiedViewConfig } from '@/core/presets'
+import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
+import type { SharedLink } from '@/core/view'
 import type { AtlasId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type {
@@ -14,8 +16,10 @@ import type {
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
+import { parameterRegistry } from '@/core/parameters'
 import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { projectionRegistry } from '@/core/projections/registry'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
@@ -54,11 +58,21 @@ export const useCompositionStore = defineStore('composition', () => {
 
   let initializationRun = 0
 
-  async function startMapView(): Promise<void> {
+  async function startMapView(sharedLink?: SharedLink): Promise<void> {
     geoDataStore.clearError()
     uiStore.initializeTheme()
 
-    const result = await initializeAtlas()
+    if (sharedLink?.atlas) {
+      atlasStore.selectedAtlasId = sharedLink.atlas
+    }
+    if (sharedLink?.view) {
+      viewStore.viewMode = sharedLink.view
+    }
+
+    const result = await initializeAtlas({
+      preserveViewMode: sharedLink?.view !== undefined,
+      sharedLink,
+    })
 
     if (!result.ok) {
       geoDataStore.failInitialization(result.error)
@@ -69,7 +83,7 @@ export const useCompositionStore = defineStore('composition', () => {
   async function initializeAtlas(
     options: AtlasInitializationOptions = {},
   ): Promise<Result<void, InitializationError>> {
-    const { preserveViewMode = false } = options
+    const { preserveViewMode = false, sharedLink } = options
     const atlasId = atlasStore.selectedAtlasId
     const run = ++initializationRun
     const isSuperseded = () => run !== initializationRun
@@ -98,7 +112,10 @@ export const useCompositionStore = defineStore('composition', () => {
         ? currentViewMode
         : getDefaultViewMode(atlasId)
 
-      const territoryMode = getInitialTerritoryMode(atlasConfig)
+      const linkTerritoryMode = sharedLink?.territoryMode
+      const territoryMode = linkTerritoryMode && atlasConfig.territoryModeOptions?.some(option => option.value === linkTerritoryMode)
+        ? linkTerritoryMode
+        : getInitialTerritoryMode(atlasConfig)
 
       appStore.startLoadingAtlas()
       geoDataStore.setReinitializing(true)
@@ -213,6 +230,10 @@ export const useCompositionStore = defineStore('composition', () => {
       await viewStore.autoLoadFirstPreset(`initialization of ${atlasId}`)
       if (isSuperseded()) {
         return ok(undefined)
+      }
+
+      if (sharedLink) {
+        applySharedLink(sharedLink)
       }
 
       appStore.startLoadingGeoData()
@@ -571,6 +592,47 @@ export const useCompositionStore = defineStore('composition', () => {
         state.territories,
         state.parameters.territories as any,
       )
+    }
+  }
+
+  function familyOf(projectionId: string | null | undefined): ProjectionFamilyType {
+    return projectionRegistry.get(projectionId ?? '')?.family ?? 'MISCELLANEOUS'
+  }
+
+  function applySharedLink(link: SharedLink): void {
+    const proposedProjections = projectionRegistry.filter({
+      viewMode: viewStore.viewMode,
+      excludeCategories: ['COMPOSITE'],
+    })
+    if (link.projection && proposedProjections.some(projection => projection.id === link.projection)) {
+      projectionStore.setSelectedProjection(link.projection)
+    }
+
+    const selectedProjection = projectionStore.selectedProjection
+    if (link.rotate && parameterRegistry.validate('rotate', link.rotate, familyOf(selectedProjection)).ok) {
+      const [longitude, latitude, gamma] = link.rotate
+      projectionStore.setCustomRotate({ longitude, latitude, gamma })
+    }
+    // Checked as conic, since the parallels apply as soon as a conic projection is selected
+    if (link.parallels && parameterRegistry.validate('parallels', link.parallels, 'CONIC').ok) {
+      parameterStore.setGlobalParameter('parallels', link.parallels)
+    }
+
+    const atlasTerritories = new Set<string>(atlasStore.atlasService.getAllTerritories().map(territory => territory.code))
+    for (const [territory, { scale, translation }] of link.territories) {
+      if (!atlasTerritories.has(territory)) {
+        continue
+      }
+
+      const code = territory as TerritoryCode
+      const family = familyOf(parameterStore.getTerritoryProjection(code) ?? selectedProjection)
+      if (scale !== undefined && parameterRegistry.validate('scaleMultiplier', scale, family).ok) {
+        parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
+      }
+      if (translation && parameterRegistry.validate('translateOffset', translation, family).ok) {
+        parameterStore.setTerritoryTranslation(code, 'x', translation[0])
+        parameterStore.setTerritoryTranslation(code, 'y', translation[1])
+      }
     }
   }
 

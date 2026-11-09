@@ -31,11 +31,6 @@ export const useProjectionStore = defineStore('projection', () => {
     debug('Projection selected: %s', projection)
   }
 
-  function setCompositeProjection(projection: ProjectionId): void {
-    compositeProjection.value = projection
-    debug('Composite projection set: %s', projection)
-  }
-
   function setRotateLatitudeLocked(locked: boolean): void {
     rotateLatitudeLocked.value = locked
   }
@@ -50,23 +45,6 @@ export const useProjectionStore = defineStore('projection', () => {
       rotate: [rotate.longitude ?? longitude, rotate.latitude ?? latitude, rotate.gamma ?? gamma],
       center: undefined,
     })
-  }
-
-  function setCustomParallels(parallel1: number | null, parallel2: number | null): void {
-    const parallelsValue = parallel1 !== null || parallel2 !== null
-      ? [parallel1 ?? 30, parallel2 ?? 60] as [number, number]
-      : undefined
-    parameterStore.setGlobalParameter('parallels', parallelsValue)
-  }
-
-  function setCustomParallel1(value: number | null): void {
-    const currentParallel2 = parameterStore.globalParameters.parallels?.[1] ?? null
-    setCustomParallels(value, currentParallel2)
-  }
-
-  function setCustomParallel2(value: number | null): void {
-    const currentParallel1 = parameterStore.globalParameters.parallels?.[0] ?? null
-    setCustomParallels(currentParallel1, value)
   }
 
   const customRotate = computed<D3Rotate | null>(() => {
@@ -96,12 +74,9 @@ export const useProjectionStore = defineStore('projection', () => {
     customParallel2,
 
     setSelectedProjection,
-    setCompositeProjection,
     setRotateLatitudeLocked,
     setAutoFitDomain,
 
     setCustomRotate,
-    setCustomParallel1,
-    setCustomParallel2,
   }
 })

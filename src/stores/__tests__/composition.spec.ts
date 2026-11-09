@@ -87,6 +87,25 @@ describe('composition store', () => {
       expect(atlasStore.selectedAtlasId).toBe('europe')
       expect(atlasStore.currentAtlasConfig?.id).toBe('europe')
     })
+
+    it('loads the default view preset of the atlas', async () => {
+      await startApplication(FRANCE)
+
+      await useCompositionStore().selectAtlas('europe' as AtlasId)
+
+      expect(useViewStore().currentViewPreset).toBe('europe-builtin')
+    })
+
+    it('clears the global parameters when the view changes', async () => {
+      await startApplication(FRANCE)
+      useParameterStore().setGlobalParameters({ rotate: [10, 20, 0] })
+      useParameterStore().setGlobalParameter('parallels', [20, 50])
+
+      await useCompositionStore().selectViewMode('unified')
+
+      expect(useParameterStore().globalParameters.rotate).toBeUndefined()
+      expect(useParameterStore().globalParameters.parallels).toBeUndefined()
+    })
   })
 
   describe('loading states', () => {

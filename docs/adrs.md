@@ -22,7 +22,7 @@ The compiler refuses a `PresetId` where a function expects an `AtlasId`, and a s
 
 ## Use cases are store actions, and a service imports no store
 
-A use case that reads or writes the state of the application is an action of a store, and `useUrlState` reads and writes the stores for a link, from the interface layer. An action passes values to the services as arguments. A service can keep its own state: the parameters store owns a `ProjectionParameterManager`, which holds the levels of parameters. A service imports no store.
+A use case that reads or writes the state of the application is an action of a store, and `useUrlState` reads the stores to write a link, from the interface layer. An action passes values to the services as arguments. A service can keep its own state: the parameters store owns a `ProjectionParameterManager`, which holds the levels of parameters. A service imports no store.
 
 The dependencies go in one direction, and `eslint.config.js` checks it. Pinia [lets an action call another store](https://pinia.vuejs.org/cookbook/composing-stores.html), and a store action runs outside the `setup` of a component. A service runs in a test with plain arguments.
 

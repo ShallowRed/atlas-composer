@@ -33,8 +33,7 @@ describe('shareButton', () => {
     vi.mocked(useUrlStateModule.useUrlState).mockReturnValue({
       copyShareableUrl: mockCopyShareableUrl,
       serializeState: vi.fn(),
-      restoreFromUrl: vi.fn(),
-      restoreProjectionParametersFromUrl: vi.fn(),
+      readSharedLink: vi.fn(),
     })
 
     vi.useFakeTimers()
