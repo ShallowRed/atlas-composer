@@ -5,11 +5,10 @@ import type { CompositeProjectionConfig } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 
-import { buildCompositeProjection, calculateClipExtentFromPixelOffset } from '@atlas-composer/projection-core'
+import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
-import { projectionRegistry } from '@/core/projections/registry'
 import { isConicProjection } from '@/types/d3-geo-extended'
 import { logger } from '@/utils/logger'
 
@@ -25,70 +24,47 @@ interface SubProjectionConfig {
   territoryName: string
   projection: GeoProjection
   projectionType: ProjectionId
-  baseScale: number
-  scaleMultiplier: number
   translateOffset: [number, number]
   bounds?: [[number, number], [number, number]]
 }
 
 export class CompositeProjection {
-  private subProjections: SubProjectionConfig[] = []
-  private compositeProjection: GeoProjection | null = null
+  private subProjections: SubProjectionConfig[]
   private config: CompositeProjectionConfig
-  private parameterProvider?: ProjectionParameterProvider
+  private parameterProvider: ProjectionParameterProvider
   private referenceScale?: number
 
-  constructor(config: CompositeProjectionConfig, parameterProvider?: ProjectionParameterProvider, referenceScale?: number) {
+  constructor(config: CompositeProjectionConfig, parameterProvider: ProjectionParameterProvider, referenceScale?: number) {
     this.config = config
     this.parameterProvider = parameterProvider
     this.referenceScale = referenceScale
-    this.initialize()
+    this.subProjections = this.readSubProjections()
   }
 
-  private getParametersForTerritory(territoryCode: TerritoryCode): ProjectionParameters {
-    return this.parameterProvider?.getEffectiveParameters(territoryCode) ?? {}
-  }
+  private readSubProjections(): SubProjectionConfig[] {
+    const referenceScale = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
 
-  private initialize() {
-    this.initializeTerritories()
-  }
+    return this.config.territories.flatMap((territory) => {
+      const territoryCode = territory.code as TerritoryCode
+      const parameters = this.parameterProvider.getEffectiveParameters(territoryCode)
 
-  private initializeTerritories() {
-    const { territories } = this.config
-
-    const REFERENCE_SCALE = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
-
-    territories.forEach((territory) => {
-      const territoryParams = this.getParametersForTerritory(territory.code as TerritoryCode)
-
-      if (!territoryParams.projectionId) {
+      if (!parameters.projectionId) {
         debug('Skipping territory %s - not defined in preset (projectionId missing)', territory.code)
-        return
+        return []
       }
 
-      const projectionType = territoryParams.projectionId
-      const projection = this.createProjectionByType(projectionType)
-        .translate([0, 0])
+      const projection = this.createProjectionByType(parameters.projectionId).translate([0, 0])
+      applyPositioning(projection, parameters, 'composite')
+      projection.scale(referenceScale * (parameters.scaleMultiplier ?? 1))
 
-      applyPositioning(projection, territoryParams, 'composite')
-
-      const territoryBaseScale = REFERENCE_SCALE
-      const territoryScaleMultiplier = territoryParams.scaleMultiplier ?? 1.0
-
-      projection.scale(territoryBaseScale * territoryScaleMultiplier)
-
-      const territoryTranslateOffset = (territoryParams.translateOffset as [number, number] | undefined) ?? [0, 0]
-
-      this.addSubProjection({
-        territoryCode: territory.code as TerritoryCode,
+      return [{
+        territoryCode,
         territoryName: territory.name,
         projection,
-        projectionType: projectionType as ProjectionId,
-        baseScale: territoryBaseScale,
-        scaleMultiplier: territoryScaleMultiplier,
-        translateOffset: territoryTranslateOffset,
+        projectionType: parameters.projectionId as ProjectionId,
+        translateOffset: parameters.translateOffset ?? [0, 0],
         bounds: territory.bounds,
-      })
+      }]
     })
   }
 
@@ -102,208 +78,39 @@ export class CompositeProjection {
     return ProjectionFactory.createById('mercator')!
   }
 
-  addSubProjection(config: SubProjectionConfig) {
-    const existingIndex = this.subProjections.findIndex((sp) => {
-      return sp.territoryCode === config.territoryCode
-    })
-
-    if (existingIndex >= 0) {
-      this.subProjections[existingIndex] = config
-    }
-    else {
-      this.subProjections.push(config)
-    }
-
-    this.compositeProjection = null
-  }
-
-  updateTerritoryProjection(
-    territoryCode: TerritoryCode,
-    projectionType: ProjectionId,
-  ) {
-    const subProj = this.subProjections.find((sp) => {
-      return sp.territoryCode === territoryCode
-    })
-    if (!subProj) {
-      return
-    }
-
-    const oldDef = projectionRegistry.get(subProj.projectionType)
-    const newDef = projectionRegistry.get(projectionType)
-    const oldFamily = oldDef?.family || 'MISCELLANEOUS'
-    const newFamily = newDef?.family || 'MISCELLANEOUS'
-    const familyChanged = oldFamily !== newFamily
-
-    const storeParams = this.getParametersForTerritory(territoryCode)
-    const storeScaleMultiplier = storeParams.scaleMultiplier ?? subProj.scaleMultiplier
-
-    const currentScale = subProj.projection.scale()
-    const currentTranslate = subProj.projection.translate()
-    const oldScaleMultiplier = subProj.scaleMultiplier
-
-    const factoryProjection = ProjectionFactory.createById(projectionType)
-    if (!factoryProjection) {
-      debug('Failed to create projection: %s', projectionType)
-      return
-    }
-
-    const newProjection = factoryProjection
-
-    newProjection.translate(currentTranslate)
-
-    subProj.scaleMultiplier = storeScaleMultiplier
-
-    const scaleMultiplierChanged = Math.abs(storeScaleMultiplier - oldScaleMultiplier) > 0.01
-    if (familyChanged || scaleMultiplierChanged) {
-      const newScale = subProj.baseScale * subProj.scaleMultiplier
-      newProjection.scale(newScale)
-    }
-    else {
-      newProjection.scale(currentScale)
-    }
-
-    applyPositioning(newProjection, storeParams, 'composite')
-
-    subProj.projection = newProjection
-    subProj.projectionType = projectionType
-
-    this.compositeProjection = null
-  }
-
-  updateTranslationOffset(territoryCode: TerritoryCode, offset: [number, number]) {
-    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
-    if (subProj) {
-      subProj.translateOffset = offset
-      this.compositeProjection = null
-    }
-  }
-
   updateReferenceScale(newReferenceScale: number): void {
     this.referenceScale = newReferenceScale
-
-    this.subProjections.forEach((subProj) => {
-      const referenceScale = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
-      const newScale = referenceScale * subProj.scaleMultiplier
-
-      if (typeof subProj.projection.scale === 'function') {
-        subProj.projection.scale(newScale)
-      }
-
-      subProj.baseScale = referenceScale
-    })
-
-    this.compositeProjection = null
   }
 
-  updateTerritoryParameters(territoryCode: TerritoryCode) {
-    if (!this.parameterProvider) {
-      debug('No parameter provider available for territory %s', territoryCode)
-      return
+  build(width = 800, height = 600): GeoProjection {
+    const subProjections = this.readSubProjections()
+
+    // The parameters are empty during a load, and the composite of an empty list throws
+    if (subProjections.length > 0) {
+      this.subProjections = subProjections
+      subProjections.forEach(subProjection => this.placeSubProjection(subProjection, width, height))
     }
-
-    const subProj = this.subProjections.find(sp => sp.territoryCode === territoryCode)
-    if (!subProj) {
-      debug('Territory %s not found in subprojections', territoryCode)
-      return
-    }
-
-    const params = this.parameterProvider.getEffectiveParameters(territoryCode)
-    const projection = subProj.projection
-
-    if (!projection) {
-      return
-    }
-
-    applyPositioning(projection, params, 'composite')
-
-    if (params.scaleMultiplier !== undefined && typeof params.scaleMultiplier === 'number' && !Number.isNaN(params.scaleMultiplier)) {
-      subProj.scaleMultiplier = params.scaleMultiplier
-    }
-
-    const correctScale = subProj.baseScale * subProj.scaleMultiplier
-    projection.scale(correctScale)
-
-    if (projection.precision && params.precision !== undefined && typeof params.precision === 'number') {
-      projection.precision(params.precision)
-    }
-    this.compositeProjection = null
-  }
-
-  build(width = 800, height = 600, forceRebuild = false): GeoProjection {
-    if (this.compositeProjection && !forceRebuild) {
-      return this.compositeProjection
-    }
-
-    const centerX = width / 2
-    const centerY = height / 2
-
-    const epsilon = 1e-6
-
-    this.subProjections.forEach((subProj) => {
-      const parameterProvider = this.parameterProvider
-      let translateOffset: [number, number] = subProj.translateOffset
-      if (parameterProvider) {
-        const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
-        if (params.translateOffset) {
-          translateOffset = params.translateOffset as [number, number]
-        }
-      }
-
-      const newTranslate: [number, number] = [
-        centerX + translateOffset[0],
-        centerY + translateOffset[1],
-      ]
-      subProj.projection.translate(newTranslate)
-
-      if (parameterProvider) {
-        const params = parameterProvider.getEffectiveParameters(subProj.territoryCode)
-        if (params.pixelClipExtent && Array.isArray(params.pixelClipExtent) && params.pixelClipExtent.length === 4) {
-          const territoryCenter = newTranslate
-
-          const clipExtentScreen = calculateClipExtentFromPixelOffset(
-            territoryCenter,
-            params.pixelClipExtent as [number, number, number, number],
-          )
-
-          subProj.projection.clipExtent(clipExtentScreen)
-        }
-      }
-      if (!parameterProvider || !parameterProvider.getEffectiveParameters(subProj.territoryCode).pixelClipExtent) {
-        if (subProj.bounds) {
-          const [[minLon, minLat], [maxLon, maxLat]] = subProj.bounds
-
-          const topLeft = subProj.projection([minLon + epsilon, maxLat - epsilon])
-          const bottomRight = subProj.projection([maxLon - epsilon, minLat + epsilon])
-
-          if (topLeft && bottomRight) {
-            const clipExtent: [[number, number], [number, number]] = [
-              [topLeft[0], topLeft[1]],
-              [bottomRight[0], bottomRight[1]],
-            ]
-            subProj.projection.clipExtent(clipExtent)
-          }
-        }
-      }
-    })
 
     const entries: SubProjectionEntry[] = this.subProjections.map(subProj => ({
       id: subProj.territoryCode,
       name: subProj.territoryName,
       projection: subProj.projection as unknown as ProjectionLike,
-      bounds: subProj.bounds
-        ? {
-            minLon: subProj.bounds[0][0],
-            minLat: subProj.bounds[0][1],
-            maxLon: subProj.bounds[1][0],
-            maxLat: subProj.bounds[1][1],
-          }
-        : undefined,
+      bounds: subProj.bounds && boundsFromArray(subProj.bounds),
     }))
 
-    const compositeProjection = buildCompositeProjection({ entries })
+    return buildCompositeProjection({ entries }) as any
+  }
 
-    this.compositeProjection = compositeProjection as any
-    return compositeProjection as any
+  private placeSubProjection({ territoryCode, projection, translateOffset, bounds }: SubProjectionConfig, width: number, height: number) {
+    const translate: [number, number] = [width / 2 + translateOffset[0], height / 2 + translateOffset[1]]
+    projection.translate(translate)
+
+    const { clipAngle, precision, pixelClipExtent } = this.parameterProvider.getEffectiveParameters(territoryCode)
+    applyRenderingParameters(
+      projection as unknown as ProjectionLike,
+      { clipAngle, precision, pixelClipExtent, bounds: bounds && boundsFromArray(bounds) },
+      translate,
+    )
   }
 
   getCompositionBorders(_width = 800, _height = 600): Array<{
@@ -354,25 +161,16 @@ export class CompositeProjection {
   }
 
   exportConfig() {
-    if (!this.parameterProvider) {
-      debug('exportConfig requires a parameter provider')
-      return { subProjections: [] }
-    }
-
     return {
-      subProjections: this.subProjections.map((sp) => {
-        const parameters = this.parameterProvider!.getExportableParameters(sp.territoryCode)
-
-        return {
-          territoryCode: sp.territoryCode,
-          territoryName: sp.territoryName,
-          projectionType: sp.projectionType,
-          ...parameters,
-          ...this.getAppliedPositioning(sp.projection),
-          translateOffset: sp.translateOffset,
-          bounds: sp.bounds,
-        }
-      }),
+      subProjections: this.readSubProjections().map(sp => ({
+        territoryCode: sp.territoryCode,
+        territoryName: sp.territoryName,
+        projectionType: sp.projectionType,
+        ...this.parameterProvider.getExportableParameters(sp.territoryCode),
+        ...this.getAppliedPositioning(sp.projection),
+        translateOffset: sp.translateOffset,
+        bounds: sp.bounds,
+      })),
     }
   }
 
@@ -397,7 +195,7 @@ export class CompositeProjection {
     return {
       projection: subProj.projection,
       bounds: subProj.bounds,
-      scale: subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier),
+      scale: subProj.projection.scale(),
     }
   }
 
@@ -411,7 +209,7 @@ export class CompositeProjection {
       territoryCode: subProj.territoryCode,
       projection: subProj.projection,
       bounds: subProj.bounds,
-      scale: subProj.projection.scale?.() ?? (subProj.baseScale * subProj.scaleMultiplier),
+      scale: subProj.projection.scale(),
     }))
   }
 }

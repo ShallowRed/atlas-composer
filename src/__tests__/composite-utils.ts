@@ -77,17 +77,15 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
     projectionStore.referenceScale,
   )
 
+  const buildSubProjection = (territoryCode: string) => {
+    const { width, height } = projectionStore.canvasDimensions!
+    composite.build(width, height)
+    return composite.getSubProjectionData(territoryCode)?.projection
+  }
+
   return {
-    project: (territoryCode, point) => {
-      const { width, height } = projectionStore.canvasDimensions!
-      composite.build(width, height, true)
-      return composite.getSubProjectionData(territoryCode)?.projection(point) ?? null
-    },
-    subProjection: (territoryCode) => {
-      const { width, height } = projectionStore.canvasDimensions!
-      composite.build(width, height, true)
-      return composite.getSubProjectionData(territoryCode)!.projection
-    },
+    project: (territoryCode, point) => buildSubProjection(territoryCode)?.(point) ?? null,
+    subProjection: territoryCode => buildSubProjection(territoryCode)!,
     exportToJSON: () => CompositeExportService.exportToJSON(
       composite,
       atlasId,

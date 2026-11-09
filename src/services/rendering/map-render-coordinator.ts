@@ -1,9 +1,8 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
-import type { Territory, Translation } from '@/types'
+import type { Territory } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import { CompositeSettingsBuilder } from '@/services/rendering/composite-settings-builder'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
@@ -37,9 +36,6 @@ export interface CompositeMapConfig {
   showSphere: boolean
   showCompositionBorders: boolean
   showMapLimits: boolean
-  currentAtlasConfig?: any
-  territoryProjections?: Record<string, string>
-  territoryTranslations?: Record<string, Translation>
   territories?: Territory[]
 }
 
@@ -69,17 +65,6 @@ export class MapRenderCoordinator {
     cartographer: CartographerLike,
     config: CompositeMapConfig,
   ): Promise<SVGSVGElement> {
-    let customSettings
-    if (config.viewMode === 'composite-custom') {
-      const compositeConfig = config.currentAtlasConfig?.compositeProjectionConfig
-
-      customSettings = CompositeSettingsBuilder.buildSettings(
-        compositeConfig,
-        config.territoryProjections || {},
-        config.territoryTranslations || {},
-      )
-    }
-
     const mode = config.viewMode === 'composite-custom'
       ? 'composite-custom'
       : 'composite-projection'
@@ -97,7 +82,6 @@ export class MapRenderCoordinator {
       projection: projectionId,
       width: config.width,
       height: config.height,
-      settings: customSettings,
       showGraticule: config.showGraticule,
       showSphere: config.showSphere,
       showCompositionBorders: config.showCompositionBorders,

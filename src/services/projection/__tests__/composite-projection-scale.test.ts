@@ -30,9 +30,10 @@ describe('compositeProjection - reference scale', () => {
     const scale = () => composite.getSubProjectionData(TERRITORY)!.projection.scale!()
 
     composite.updateReferenceScale(3000)
+    composite.build()
     expect(scale()).toBe(6000)
 
-    composite.updateTerritoryParameters(TERRITORY)
+    composite.build()
     expect(scale()).toBe(6000)
   })
 })

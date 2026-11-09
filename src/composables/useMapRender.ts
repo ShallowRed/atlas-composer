@@ -1,5 +1,4 @@
 import type { ViewState } from '@/core/view'
-import type { Translation } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
 import { ViewOrchestrationService } from '@/core/view'
@@ -115,24 +114,6 @@ export function useMapRender(props: MapRenderProps) {
 
     const { width, height } = size.value
 
-    const territoryProjections: Record<string, string> = {}
-    const territoryTranslations: Record<string, Translation> = {}
-
-    const territoryCodes = cartographer.customComposite
-      ? Object.keys(cartographer.customComposite)
-      : []
-
-    debug('Building territory params for %d territories', territoryCodes.length)
-
-    for (const territoryCode of territoryCodes) {
-      const brandedCode = territoryCode as TerritoryCode
-      const projectionId = parameterStore.getTerritoryProjection(brandedCode)
-      if (projectionId) {
-        territoryProjections[territoryCode] = projectionId
-      }
-      territoryTranslations[territoryCode] = parameterStore.getTerritoryTranslation(brandedCode)
-    }
-
     if (!projectionStore.selectedProjection) {
       debug('Cannot render composite: selectedProjection not loaded')
       throw new Error('Cannot render composite map: projection not loaded')
@@ -149,9 +130,6 @@ export function useMapRender(props: MapRenderProps) {
       showSphere: showSphere.value,
       showCompositionBorders: uiStore.showCompositionBorders,
       showMapLimits: uiStore.showMapLimits,
-      currentAtlasConfig: atlasStore.currentAtlasConfig,
-      territoryProjections,
-      territoryTranslations,
       territories: geoDataStore.filteredTerritories,
     })
   }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
-import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
@@ -10,7 +9,6 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { useAtlasStore } from '@/stores/atlas'
-import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -28,8 +26,6 @@ const {
   resetTransforms,
   changeTerritoryProjection,
 } = useTerritoryTransforms()
-
-const geoDataStore = useGeoDataStore()
 
 const parameterStore = useParameterStore()
 
@@ -100,23 +96,6 @@ function getProjectionFamily(territoryCode: TerritoryCode) {
 
 function handleProjectionChange(territoryCode: TerritoryCode, newProjectionId: string) {
   changeTerritoryProjection(territoryCode, newProjectionId as ProjectionId)
-
-  if (geoDataStore.cartographer) {
-    geoDataStore.cartographer.updateTerritoryProjection(territoryCode, newProjectionId as ProjectionId)
-    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
-  }
-}
-
-function handleParameterChange(territoryCode: TerritoryCode, _key: keyof ProjectionParameters, _value: unknown) {
-  if (geoDataStore.cartographer) {
-    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
-  }
-}
-
-function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof ProjectionParameters) {
-  if (geoDataStore.cartographer) {
-    geoDataStore.cartographer.updateTerritoryParameters(territoryCode)
-  }
 }
 </script>
 
@@ -160,8 +139,6 @@ function handleOverrideCleared(territoryCode: TerritoryCode, _key: keyof Project
           :projection-family="getProjectionFamily(territory.code)"
           :view="viewStore.positioningView"
           :show-inheritance-indicators="true"
-          @parameter-changed="handleParameterChange"
-          @override-cleared="handleOverrideCleared"
         />
       </div>
     </AccordionItem>

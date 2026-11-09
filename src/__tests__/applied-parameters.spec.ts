@@ -65,9 +65,7 @@ async function expectSameRendering({ json, config }: Source) {
 }
 
 describe('rendering parameters of the application and of the loader', () => {
-  it.each([...presets, ...families.filter(family => family.id !== RENDERING_PARAMETERS)])('$id', expectSameRendering)
-
-  it.fails(RENDERING_PARAMETERS, () => expectSameRendering(renderingParameters))
+  it.each([...presets, ...families])('$id', expectSameRendering)
 })
 
 describe('clipping of a territory without pixelClipExtent', () => {

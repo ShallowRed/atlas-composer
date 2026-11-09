@@ -12,7 +12,7 @@ const presets = readPresetFiles()
   .filter(preset => preset.type === 'composite-custom')
   .map(preset => ({ ...preset, presetId: preset.id as PresetId, config: JSON.parse(preset.json) as CompositeProjectionConfig }))
 
-// A configuration for each family of the catalog that the presets do not cover
+// A configuration for each family of the catalog that the presets do not cover, and for the rendering parameters
 const families = readdirSync('src/__tests__/fixtures/families').map((file) => {
   const json = readFileSync(`src/__tests__/fixtures/families/${file}`, 'utf8')
   const config = JSON.parse(json) as CompositeProjectionConfig

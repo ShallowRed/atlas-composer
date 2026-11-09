@@ -276,7 +276,6 @@ export function useTerritoryCursor() {
     if (!isDragEnabled.value || !customComposite)
       return
 
-    customComposite.build(width, height, true)
     const allBorders = customComposite.getCompositionBorders(width, height)
     const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
     const borders = allBorders.filter((border: any) =>

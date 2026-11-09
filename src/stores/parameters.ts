@@ -92,15 +92,14 @@ export const useParameterStore = defineStore('parameters', () => {
     const previousFamily = projectionRegistry.get(effective.projectionId ?? '')?.family
     const family = projectionRegistry.get(projectionId)?.family ?? 'MISCELLANEOUS'
     const hasPositioning = effective.center !== undefined || effective.rotate !== undefined
+    // Every d3 projection has clipAngle: a value kept from an azimuthal projection would clip the new one
+    const clipAngle = parameterRegistry.getConstraintsForFamily('clipAngle', family).relevant ? {} : { clipAngle: undefined }
 
-    if (view === 'composite' && hasPositioning && family !== previousFamily) {
-      setTerritoryParameters(territoryCode, {
-        projectionId,
-        ...convertPositioning(effective, family),
-      })
-      return
-    }
-    setTerritoryProjection(territoryCode, projectionId)
+    setTerritoryParameters(territoryCode, {
+      projectionId,
+      ...(view === 'composite' && hasPositioning && family !== previousFamily ? convertPositioning(effective, family) : {}),
+      ...clipAngle,
+    })
   }
 
   function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId | undefined {

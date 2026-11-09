@@ -7,8 +7,10 @@ import { CompositeProjection } from '../composite-projection'
 describe('compositeProjection - invert/forward chain', () => {
   let compositeProjection: CompositeProjection
   let builtProjection: any
+  let franceOffset: [number, number]
 
   beforeEach(() => {
+    franceOffset = [0, 0]
     const config: CompositeProjectionConfig = {
       territories: [
         {
@@ -34,6 +36,7 @@ describe('compositeProjection - invert/forward chain', () => {
         if (territoryCode === 'FR') {
           params.projectionId = createProjectionId('conic-conformal')
           params.rotate = [-2, -46, 0]
+          params.translateOffset = franceOffset
         }
         else if (territoryCode === 'FR-GF') {
           params.projectionId = createProjectionId('mercator')
@@ -154,9 +157,9 @@ describe('compositeProjection - invert/forward chain', () => {
 
   describe('translation Offset Effects', () => {
     it('should maintain invert accuracy after translation offset changes', () => {
-      compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [50, -30])
+      franceOffset = [50, -30]
 
-      const newBuiltProjection = compositeProjection.build(800, 600, true)
+      const newBuiltProjection = compositeProjection.build(800, 600)
 
       const franceGeo = [2, 46]
       const screenPoint = newBuiltProjection(franceGeo as [number, number])
@@ -177,14 +180,14 @@ describe('compositeProjection - invert/forward chain', () => {
     it('should show expected screen coordinate changes after translation', () => {
       const franceGeo = [2, 46] as [number, number]
 
-      compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [0, 0])
-      const projection1 = compositeProjection.build(800, 600, true)
+      franceOffset = [0, 0]
+      const projection1 = compositeProjection.build(800, 600)
       const screen1 = projection1(franceGeo)
 
       const offsetX = 100
       const offsetY = -50
-      compositeProjection.updateTranslationOffset(createTerritoryCode('FR'), [offsetX, offsetY])
-      const projection2 = compositeProjection.build(800, 600, true)
+      franceOffset = [offsetX, offsetY]
+      const projection2 = compositeProjection.build(800, 600)
       const screen2 = projection2(franceGeo)
 
       expect(screen1).toBeDefined()
