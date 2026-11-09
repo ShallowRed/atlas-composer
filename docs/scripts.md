@@ -35,7 +35,7 @@ The script applies the indices first, and the boxes to the polygons that remain.
 
 ## Finding the ids and the polygon indices
 
-`pnpm geodata:lookup` finds a country by name or by id and prints its Natural Earth id and the shape of its geometry. `pnpm geodata:analyze` takes this id and lists the polygons by decreasing area, each with its index, bounds and center, then suggests groups of nearby polygons. Polygon indices differ between resolutions, so the analysis uses the resolution of the atlas.
+`pnpm geodata:lookup` finds a country by name or by id and prints its Natural Earth id and the shape of its geometry. `pnpm geodata:analyze` takes this id and lists the polygons by decreasing area, each with its index, bounds and center, then suggests groups of nearby polygons. Polygon indices differ between resolutions, so pass the resolution of the atlas with `--resolution=`.
 
 ## Validating the configurations
 

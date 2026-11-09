@@ -22,19 +22,19 @@ A configuration names the territories, their bounds and centers, the files of `s
 
 `projectionPreferences` holds two optional fields, each with definition ids of `src/core/projections/definitions/`.
 
-`defaultCompositeProjection` is a definition with the `D3_COMPOSITE` strategy. `initializeAtlas` in `src/stores/composition.ts` copies it to `compositeProjection` of the projection store each time an atlas is initialized, and leaves `null` when the field is absent. A view preset of type `built-in-composite` replaces this value with its `projectionId` when it loads. The composite map draws `compositeProjection`, or the selected projection when the value is `null`.
+`defaultCompositeProjection` is a definition with the `D3_COMPOSITE` strategy. `initializeAtlas` in `src/stores/composition.ts` copies it to `compositeProjection` of the projection store each time an atlas is initialized, and leaves `null` when the field is absent. A view preset of type `built-in-composite` replaces this value with its `projectionId` when it loads. The built-in composite map draws `compositeProjection`, or the selected projection when the value is `null`.
 
-`recommended` lists the projections that the projection menus mark as recommended. `projectionRecommendations` of `src/stores/view.ts` passes this list to `ProjectionRegistry.recommend`. [projections.md](projections.md) describes the definitions and the recommendations.
+`recommended` lists the projections that the projection menus mark as recommended. [projections.md](projections.md) describes the definitions and the recommendations.
 
 ## Territory collections
 
-`territoryCollections` holds named sets. A set has a `selectionType` and a list of collections, and a collection lists territory codes, or `*` with an optional `exclude`.
+`territoryCollections` holds named sets. `configs/schemas/atlas.schema.json` gives their form.
 
 `behavior.collectionSets` in the registry entry tells each part of the interface which set to use, by the name of the set:
 
-- `territoryScope` gives the options of the territory selector of the unified and split views. It expects an `incremental` set. `loadAtlasConfig` turns each collection of the set into a territory mode. The first mode is the initial one. When the set is missing, the atlas has no territory selector.
-- `territoryManager` gives the default grouping of `TerritorySetManager`, in the custom composite view. It expects a `mutually-exclusive` set.
-- `territoryGroups` gives the default grouping of the territories of `SplitView`. It expects a `mutually-exclusive` set.
+- `territoryScope` gives the options of the territory selector of the unified and split views. It names an `incremental` set. `loadAtlasConfig` turns each collection of the set into a territory mode. The first mode is the initial one. When the set is missing, the atlas has no territory selector.
+- `territoryManager` gives the default grouping of `TerritorySetManager`, in the custom composite view. It names a `mutually-exclusive` set.
+- `territoryGroups` gives the default grouping of the territories of `SplitView`. It names a `mutually-exclusive` set.
 
 The two grouping controls offer every `mutually-exclusive` set of the atlas when there are several. The application reads a set of another `selectionType` too, and logs a message (`loadAtlasConfig`, `useCollectionSet`). When the atlas has collections and the entry names no set for a grouping, the view shows its territories in one group. An atlas without `territoryCollections` has no list in `TerritorySetManager`.
 
@@ -66,7 +66,7 @@ The territory selector appears when the `territoryScope` entry names a set of th
 ## Adding an atlas
 
 1. Find the Natural Earth ids and the polygon indices of the territories with `pnpm geodata:lookup` and `pnpm geodata:analyze`, as [scripts.md](scripts.md) describes.
-2. Copy `configs/atlases/portugal.json` to `configs/atlases/<atlas>.json`, then replace its `id`, names, `dataSources`, `metadata`, `territories` and `territoryCollections`. Set `projectionPreferences` to the projections of the new atlas, and remove `defaultCompositeProjection` when no composite definition applies. [projections.md](projections.md) describes how to add one.
+2. Copy `configs/atlases/portugal.json` to `configs/atlases/<atlas>.json`, then replace its `id`, names, `dataSources`, `metadata`, `territories` and `territoryCollections`. Set `projectionPreferences` to the projections of the new atlas, and remove `projectionPreferences` when the atlas has neither a composite definition nor a recommended projection. [projections.md](projections.md) describes how to add one.
 3. Add an entry to `configs/atlas-registry.json` with the same `id`, a `group`, a `sortOrder`, the `configPath` of the new file and the `behavior.collectionSets` of the new sets.
 4. Create the presets in `configs/presets/<atlas>/<id>.json`, each with an id that starts with the atlas id, and declare them in the registry entry. The atlas needs exactly one preset with `isDefault`. [presets.md](presets.md) describes how to create a preset.
 5. Run `pnpm geodata:prepare <atlas>`, then add this command to the `Prepare geodata` step of `.github/workflows/deploy.yml`, with `--resolution` when `dataSources` names another resolution than 50m.

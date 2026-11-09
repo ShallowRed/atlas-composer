@@ -1,6 +1,6 @@
 # Projections
 
-Each projection of Atlas Composer is a definition in `src/core/projections/definitions/`. `projectionRegistry`, in `src/core/projections/registry.ts`, registers the definitions of `ALL_PROJECTIONS` when the module loads. [docs/atlases.md](atlases.md) describes the projection preferences of an atlas, and [docs/d3-to-atlas-parameter-mapping.md](d3-to-atlas-parameter-mapping.md) gives the conversion of the parameters of `d3-composite-projections`.
+Each projection of Atlas Composer is a definition in `src/core/projections/definitions/`. `projectionRegistry`, in `src/core/projections/registry.ts`, registers the definitions of `ALL_PROJECTIONS` when the module loads. [atlases.md](atlases.md) describes the projection preferences of an atlas, and [d3-to-atlas-parameter-mapping.md](d3-to-atlas-parameter-mapping.md) gives the conversion of the parameters of `d3-composite-projections`.
 
 ## Definitions
 
@@ -8,7 +8,7 @@ Each projection of Atlas Composer is a definition in `src/core/projections/defin
 
 `create` returns a new d3 projection. `ProjectionFactory.create`, in `src/core/projections/factory.ts`, calls it and applies `defaultParameters`, which the given parameters override.
 
-`strategy` gives the kind of the factory. `D3_BUILTIN` is a projection of `d3-geo`, and `D3_EXTENDED` a projection of `d3-geo-projection`. `D3_COMPOSITE` is a projection that already combines several territories, from `d3-composite-projections` or `geoAlbersUsa` of `d3-geo`. Such a projection sets its own `center`, `rotate` and `parallels`, so `ProjectionFactory` skips these three parameters for it.
+`strategy` tells which library provides `create`. `D3_BUILTIN` is a projection of `d3-geo`, and `D3_EXTENDED` a projection of `d3-geo-projection`. `D3_COMPOSITE` is a projection that already combines several territories, from `d3-composite-projections` or `geoAlbersUsa` of `d3-geo`. Such a projection sets its own `center`, `rotate` and `parallels`, so `ProjectionFactory` skips these three parameters for it.
 
 `supportsComposite`, `supportsSplit` and `supportsUnified`, in `capabilities`, give the view modes that offer the projection. `projectionRegistry.filter` applies them from `viewMode`, and keeps the definitions with the `D3_COMPOSITE` strategy for the `built-in-composite` view.
 
@@ -41,7 +41,7 @@ The presets and the stores hold the d3 values: `center` is `[longitude, latitude
 
 On a conic projection, `applyPositioning` sets `parallels`. Without a value, `getDerivedParallels` gives `[44, 49]` in the `global` view and the latitude of the target point plus and minus 2 degrees in the `composite` view. At a target latitude of 0, the projection keeps its parallels.
 
-When a territory changes family in the `composite` view, `changeTerritoryProjection` of `src/stores/parameters.ts` calls `convertPositioning`, which writes the same target point in the parameter of the new family. [docs/architecture.md](architecture.md) gives the order in which the levels of parameters combine.
+When a territory changes family in the `composite` view, `changeTerritoryProjection` of `src/stores/parameters.ts` calls `convertPositioning`, which writes the same target point in the parameter of the new family. [architecture.md](architecture.md) gives the order in which the levels of parameters combine.
 
 ## Clip extent and fit
 
@@ -49,7 +49,7 @@ The `pixelClipExtent` of a territory is `[x1, y1, x2, y2]`, in pixels relative t
 
 `useClipExtentEditor` draws the corners of the selected territory in the `composite-custom` view, and a drag moves a corner by steps of 5 pixels. `ProjectionLoader` divides the values by `referenceScale`, so the clipping follows the size requested from the loader.
 
-The territories of a custom composite are positioned by their scale and their translation, as [docs/presets.md](presets.md) describes. The other maps go through `ProjectionService.getD3Projection`, in `src/services/projection/projection-service.ts`, which calls `fitExtent` on the data, or on the sphere when the map shows it. When `autoFitDomain` of the projection store is false, the function then multiplies the fitted scale by `scaleMultiplier`.
+The territories of a custom composite are positioned by their scale and their translation, as [presets.md](presets.md) describes. The other maps go through `ProjectionService.getD3Projection`, in `src/services/projection/projection-service.ts`, which calls `fitExtent` on the data, or on the sphere when the map shows it. When `autoFitDomain` of the projection store is false, the function then multiplies the fitted scale by `scaleMultiplier`.
 
 ## Parameter registry
 
@@ -57,7 +57,7 @@ The territories of a custom composite are positioned by their scale and their tr
 
 The relevance of `center` and `rotate` comes from `usesPositionParameter`, so `center` is relevant for the `CYLINDRICAL` family, and `rotate` for the `CYLINDRICAL`, `PSEUDOCYLINDRICAL`, `CONIC` and `AZIMUTHAL` families.
 
-`validateParameters` checks the relevant parameters of a family and returns a list of `ParameterIssue`. `requiresPreset` and `exportable` apply to the presets: `validateCompositePreset` refuses a preset without a required parameter that is relevant for the family, and `extractTerritoryParameters` keeps the exportable parameters of a territory.
+`validateParameters` checks the relevant parameters of a family and returns a list of `ParameterIssue`. `requiresPreset` applies to the presets, as [presets.md](presets.md) describes, and `extractTerritoryParameters` keeps the exportable parameters of a territory.
 
 ## Panning
 
@@ -67,6 +67,6 @@ The relevance of `center` and `rotate` comes from `usesPositionParameter`, so `c
 
 1. Add a `ProjectionDefinition` to a file of `src/core/projections/definitions/` whose array is part of `ALL_PROJECTIONS`.
 2. Add the keys of `name` and `description` to `src/i18n/locales/en.json` and `src/i18n/locales/fr.json`.
-3. When the definition has `supportsComposite`, a composite preset can use it and the export writes it. Add its identifier and its family to `PROJECTION_CATALOG` in `packages/specification/src/catalog.ts`, and its factory under the same identifier to `d3ProjectionFactories` in `packages/projection-loader/src/d3-projection-helpers.ts`. `src/__tests__/projection-catalog.spec.ts` compares the definitions, the catalog and the factories. Add a changeset for `@atlas-composer/specification` and `@atlas-composer/projection-loader`, as [docs/development.md](development.md) describes.
+3. When the definition has `supportsComposite`, a composite preset can use it and the export writes it. Add its identifier and its family to `PROJECTION_CATALOG` in `packages/specification/src/catalog.ts`, and its factory under the same identifier to `d3ProjectionFactories` in `packages/projection-loader/src/d3-projection-helpers.ts`. `src/__tests__/projection-catalog.spec.ts` compares the definitions, the catalog and the factories. Add a changeset for `@atlas-composer/specification` and `@atlas-composer/projection-loader`, as [development.md](development.md) describes.
 4. To recommend the projection for an atlas, add its identifier to `projectionPreferences.recommended` in the configuration of the atlas.
 5. Run `pnpm check`.
