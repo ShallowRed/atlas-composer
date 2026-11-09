@@ -2,6 +2,8 @@ import type { AtlasId } from '@/types/branded'
 import { validateConfig } from '@atlas-composer/specification'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
+import { err, ok } from '@/core/types/result'
+import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
@@ -30,6 +32,93 @@ async function openFranceWithCartographer({ withComposite }: { withComposite: bo
 describe('geoData store', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  describe('superseded loads', () => {
+    async function holdCartographerInit() {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      const geoDataStore = useGeoDataStore()
+      vi.mocked(geoDataStore.reinitialize).mockRestore()
+      vi.mocked(geoDataStore.loadAllAtlasData).mockRestore()
+      const releases: Array<() => void> = []
+      const init = vi.spyOn(Cartographer.prototype, 'init').mockImplementation(() => new Promise((resolve) => {
+        releases.push(() => resolve(ok(undefined)))
+      }))
+      return { geoDataStore, init, releases, atlasConfig: useAtlasStore().currentAtlasConfig! }
+    }
+
+    function stubDataLoader() {
+      const releases: Array<() => void> = []
+      const held = <T>(value: T) => new Promise<T>((resolve) => {
+        releases.push(() => resolve(value))
+      })
+      vi.spyOn(TerritoryDataLoader, 'create').mockReturnValue({
+        loadTerritories: () => held({ territories: [{ code: 'FR-MET' }] }),
+        loadUnifiedData: () => held({ data: { type: 'FeatureCollection', features: [] } }),
+      } as unknown as TerritoryDataLoader)
+      return releases
+    }
+
+    it('keeps the cartographer of the latest initialization when an earlier one answers last', async () => {
+      const { geoDataStore, releases, atlasConfig } = await holdCartographerInit()
+
+      const first = geoDataStore.reinitialize(atlasConfig)
+      const second = geoDataStore.reinitialize(atlasConfig)
+      releases[1]!()
+      await second
+      const latest = geoDataStore.cartographer
+      releases[0]!()
+      await first
+
+      expect(latest).not.toBeNull()
+      expect(geoDataStore.cartographer).toBe(latest)
+    })
+
+    it('ignores the failure of an earlier initialization', async () => {
+      const { geoDataStore, init, atlasConfig } = await holdCartographerInit()
+      init.mockImplementationOnce(async () => {
+        await geoDataStore.reinitialize(atlasConfig).catch(() => undefined)
+        return err({ code: 'JSON_FILE_NOT_FOUND', path: 'first' })
+      })
+      init.mockResolvedValue(ok(undefined))
+
+      await geoDataStore.reinitialize(atlasConfig)
+
+      expect(geoDataStore.error).toBeNull()
+    })
+
+    it('builds one cartographer when a load starts during an initialization', async () => {
+      const { geoDataStore, init, releases, atlasConfig } = await holdCartographerInit()
+      const dataReleases = stubDataLoader()
+
+      const initialization = geoDataStore.reinitialize(atlasConfig)
+      const load = geoDataStore.loadAllAtlasData('all-territories')
+      releases[0]!()
+      await initialization
+      await vi.waitFor(() => expect(dataReleases).toHaveLength(2))
+      dataReleases.forEach(release => release())
+      await load
+
+      expect(init).toHaveBeenCalledTimes(1)
+      expect(geoDataStore.territoriesData).toEqual([{ code: 'FR-MET' }])
+    })
+
+    it('drops the data of a cartographer that another one replaced', async () => {
+      const { geoDataStore, atlasConfig } = await holdCartographerInit()
+      vi.mocked(Cartographer.prototype.init).mockResolvedValue(ok(undefined))
+      await geoDataStore.reinitialize(atlasConfig)
+      const dataReleases = stubDataLoader()
+
+      const load = geoDataStore.loadAllAtlasData('all-territories')
+      await geoDataStore.reinitialize(atlasConfig)
+      await vi.waitFor(() => expect(dataReleases).toHaveLength(2))
+      dataReleases.forEach(release => release())
+      await load
+
+      expect(geoDataStore.territoriesData).toEqual([])
+      expect(geoDataStore.rawUnifiedData).toBeNull()
+    })
   })
 
   describe('exportConfiguration', () => {
