@@ -193,8 +193,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
   }
 
   const loadAllAtlasData = async (territoryMode: string): Promise<Result<void, GeoDataError>> => {
+    // A later reinitialization can replace the one awaited here
+    let pending = pendingInitialization
+    while (!cartographer.value && pending) {
+      const result = await pending
+      if (!result.ok) {
+        return result
+      }
+      pending = pendingInitialization
+    }
+
     if (!cartographer.value) {
-      const result = await (pendingInitialization ?? initialize())
+      const result = await initialize()
       if (!result.ok) {
         return result
       }

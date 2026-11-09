@@ -78,7 +78,7 @@ describe('geoData store', () => {
     it('ignores the failure of an earlier initialization', async () => {
       const { geoDataStore, init, atlasConfig } = await holdCartographerInit()
       init.mockImplementationOnce(async () => {
-        await geoDataStore.reinitialize(atlasConfig).catch(() => undefined)
+        await geoDataStore.reinitialize(atlasConfig)
         return err({ code: 'JSON_FILE_NOT_FOUND', path: 'first' })
       })
       init.mockResolvedValue(ok(undefined))
@@ -102,6 +102,47 @@ describe('geoData store', () => {
 
       expect(init).toHaveBeenCalledTimes(1)
       expect(geoDataStore.territoriesData).toEqual([{ code: 'FR-MET' }])
+    })
+
+    it('waits for the latest initialization when a later one replaces the awaited one', async () => {
+      const { geoDataStore, init, releases, atlasConfig } = await holdCartographerInit()
+      const dataReleases = stubDataLoader()
+
+      void geoDataStore.reinitialize(atlasConfig)
+      const load = geoDataStore.loadAllAtlasData('all-territories')
+      const latest = geoDataStore.reinitialize(atlasConfig)
+      releases[0]!()
+      await new Promise(resolve => setTimeout(resolve))
+      releases[1]!()
+      await latest
+      await vi.waitFor(() => expect(dataReleases).toHaveLength(2))
+      dataReleases.forEach(release => release())
+      await load
+
+      expect(init).toHaveBeenCalledTimes(2)
+      expect(geoDataStore.territoriesData).toEqual([{ code: 'FR-MET' }])
+    })
+
+    it('reloads nothing without a cartographer', async () => {
+      await startApplication(FRANCE)
+
+      await expect(useGeoDataStore().reloadUnifiedData('all-territories')).resolves.toBeUndefined()
+      expect(useGeoDataStore().rawUnifiedData).toBeNull()
+    })
+
+    it('drops the reloaded data of a cartographer that another one replaced', async () => {
+      const { geoDataStore, atlasConfig } = await holdCartographerInit()
+      vi.mocked(Cartographer.prototype.init).mockResolvedValue(ok(undefined))
+      await geoDataStore.reinitialize(atlasConfig)
+      const dataReleases = stubDataLoader()
+
+      const reload = geoDataStore.reloadUnifiedData('all-territories')
+      await geoDataStore.reinitialize(atlasConfig)
+      await vi.waitFor(() => expect(dataReleases).toHaveLength(1))
+      dataReleases[0]!()
+      await reload
+
+      expect(geoDataStore.rawUnifiedData).toBeNull()
     })
 
     it('drops the data of a cartographer that another one replaced', async () => {
