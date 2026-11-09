@@ -78,7 +78,7 @@ The package also exports `validateConfig`, which returns `{ valid, errors, warni
 
 The loader applies `center`, `rotate`, `parallels`, `clipAngle` and `precision` when the configuration gives them, and keeps the value of the d3 factory otherwise. The scale of a territory is `referenceScale` × `scaleMultiplier`, and `scaleMultiplier` defaults to `DEFAULT_SCALE_MULTIPLIER` of the specification, 1. The loader ignores `scale`, `distance` and `tilt`, which the format accepts.
 
-A territory without `pixelClipExtent` is not clipped. A territory without `bounds` is drawn, and the composite projection returns `null` for its points.
+A territory without `pixelClipExtent` is clipped at its `bounds`, and a territory with neither is not clipped. A territory without `bounds` is drawn, and the composite projection returns `null` for its points.
 
 ## API
 

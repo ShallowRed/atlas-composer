@@ -7,8 +7,9 @@ import type {
 } from '@atlas-composer/specification'
 
 import {
+  applyRenderingParameters,
+  boundsFromArray,
   buildCompositeProjection,
-  calculateClipExtentFromPixelOffset,
 } from '@atlas-composer/projection-core'
 import {
   DEFAULT_SCALE_MULTIPLIER,
@@ -313,14 +314,6 @@ export class ProjectionLoader {
       projection.scale(territoryScale)
     }
 
-    if (parameters.clipAngle !== undefined && projection.clipAngle) {
-      projection.clipAngle(parameters.clipAngle)
-    }
-
-    if (parameters.precision !== undefined && projection.precision) {
-      projection.precision(parameters.precision)
-    }
-
     if (projection.translate) {
       projection.translate([
         translate[0] + translateCoefficient[0] * scale,
@@ -328,22 +321,24 @@ export class ProjectionLoader {
       ])
     }
 
-    if (clipCoefficients && projection.clipExtent) {
-      const territoryCenter = projection.translate?.() || translate
-      const clipExtent = calculateClipExtentFromPixelOffset(
-        territoryCenter,
-        [
+    applyRenderingParameters(
+      projection as CoreProjectionLike,
+      {
+        clipAngle: parameters.clipAngle,
+        precision: parameters.precision,
+        pixelClipExtent: clipCoefficients && [
           clipCoefficients[0] * scale,
           clipCoefficients[1] * scale,
           clipCoefficients[2] * scale,
           clipCoefficients[3] * scale,
         ],
-      )
-      projection.clipExtent(clipExtent)
+        bounds: territory.bounds && boundsFromArray(territory.bounds),
+      },
+      projection.translate?.() || translate,
+    )
 
-      if (debug) {
-        console.log(`[Clipping] Applied clip for ${territory.code}:`, clipExtent)
-      }
+    if (debug) {
+      console.log(`[Clipping] Applied clip for ${territory.code}:`, projection.clipExtent?.())
     }
 
     return projection

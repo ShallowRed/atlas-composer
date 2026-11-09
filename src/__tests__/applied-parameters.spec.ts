@@ -74,7 +74,7 @@ describe('clipping of a territory without pixelClipExtent', () => {
   const { config } = renderingParameters
   const unclipped = config.territories.find(territory => !territory.layout.pixelClipExtent)!
 
-  it.fails('the loader clips it at its bounds', () => {
+  it('the loader clips it at its bounds', () => {
     const projection = loadSubProjection(config, unclipped.code)
     const expected = calculateClipExtentFromBounds(projection as never, boundsFromArray(unclipped.bounds!))!
     expectSameValues(projection.clipExtent()?.flat() ?? [], expected.flat())
