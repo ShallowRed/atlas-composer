@@ -83,7 +83,7 @@ export interface ProjectionFilterContext {
 export interface ProjectionRecommendation {
   projection: ProjectionDefinition
   score: number
-  level: 'excellent' | 'good' | 'usable' | 'not-recommended'
+  level: 'excellent' | 'good' | 'usable'
   suggestedParameters?: ProjectionParameters
 }
 

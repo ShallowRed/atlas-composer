@@ -33,8 +33,6 @@ export function useProjectionRecommendations(
         return 'ri-star-line'
       case 'usable':
         return 'ri-star-half-line'
-      default:
-        return ''
     }
   }
 
@@ -50,8 +48,6 @@ export function useProjectionRecommendations(
         return 'text-info'
       case 'usable':
         return 'text-base-content opacity-60'
-      default:
-        return ''
     }
   }
 
