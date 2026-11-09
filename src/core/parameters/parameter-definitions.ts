@@ -224,38 +224,14 @@ export function registerAllParameters(): void {
     requiresPreset: true, // Core layout parameter
     defaultValue: [0, 0],
     familyConstraints: {
-      CYLINDRICAL: {
-        relevant: true, // Used for territory positioning in composite projections
-        required: false,
-        min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
-        max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
-        step: 5,
-        validate: validateTranslateOffset,
-      },
-      PSEUDOCYLINDRICAL: {
+      ...Object.fromEntries(POSITIONED_FAMILIES.map(family => [family, {
         relevant: true,
         required: false,
         min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
         max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
         step: 5,
         validate: validateTranslateOffset,
-      },
-      CONIC: {
-        relevant: true,
-        required: false,
-        min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
-        max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
-        step: 5,
-        validate: validateTranslateOffset,
-      },
-      AZIMUTHAL: {
-        relevant: true,
-        required: false,
-        min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
-        max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
-        step: 5,
-        validate: validateTranslateOffset,
-      },
+      }])),
       ...boundsOfOtherFamilies({ validate: validateTranslateOffset }),
     },
   })
