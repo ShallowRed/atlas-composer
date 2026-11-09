@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const DOCUMENTS = ['AGENTS.md', 'docs/d3-to-atlas-parameter-mapping.md']
+const DOCUMENTS = ['AGENTS.md', 'docs/d3-to-atlas-parameter-mapping.md', 'docs/development.md']
 
 const PNPM_COMMANDS = ['install', 'exec', 'run']
 const CHECKED_PATH = /^(?:src|configs|packages|scripts|types|docs|\.github)\/\S*$/
