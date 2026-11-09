@@ -27,9 +27,9 @@ describe('validateViewPreset', () => {
     expect(debug).not.toHaveBeenCalled()
   })
 
-  it('warns about a projection that is not a composite one', () => {
-    validateProjection('mercator')
+  it.each(['mercator', 'unknown'])('warns about %s, which is not a composite projection', (projectionId) => {
+    validateProjection(projectionId)
 
-    expect(debug).toHaveBeenCalledWith('Preset warnings: %O', ['Unknown d3-composite-projection: mercator'])
+    expect(debug).toHaveBeenCalledWith('Preset warnings: %O', [`Unknown d3-composite-projection: ${projectionId}`])
   })
 })
