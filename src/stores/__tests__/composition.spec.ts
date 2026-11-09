@@ -1,9 +1,9 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasConfigError, PresetError } from '@/core/types/errors'
-import type { AtlasId, TerritoryCode } from '@/types/branded'
+import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { openView, startApplication } from '@/__tests__/composite-utils'
+import { openAtlasWithCartographer, openView, startApplication } from '@/__tests__/composite-utils'
 import { readPresetFiles } from '@/__tests__/test-utils'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
@@ -355,6 +355,152 @@ describe('composition store', () => {
       expect(geoDataStore.error).toBeNull()
       expect(useAtlasStore().selectedAtlasId).toBe('usa')
       expect(vi.mocked(geoDataStore.reinitialize).mock.calls).toHaveLength(reinitializeCalls)
+    })
+  })
+
+  describe('replacement of the composite preset', () => {
+    const PROPORTIONAL = createPresetId('france-proportional')
+    const STANDARD = createPresetId('france-standard')
+
+    async function readPresetConfig(file: string) {
+      return JSON.parse(await readFile(`configs/presets/france/${file}.json`, 'utf8')) as CompositeProjectionConfig
+    }
+
+    function exportedTerritories(geoDataStore: ReturnType<typeof useGeoDataStore>) {
+      const exported = geoDataStore.exportConfiguration()
+      if (!exported.ok) {
+        throw new Error(JSON.stringify(exported.error))
+      }
+      return exported.value.territories
+    }
+
+    async function exportAfterPresets(...presetIds: PresetId[]) {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+      for (const presetId of presetIds) {
+        expect(await useCompositionStore().loadPreset({ presetId })).toEqual(ok(undefined))
+      }
+      return exportedTerritories(geoDataStore)
+    }
+
+    it('exports a preset loaded after another as if it were loaded alone', async () => {
+      const alone = await exportAfterPresets(STANDARD)
+
+      expect(await exportAfterPresets(PROPORTIONAL, STANDARD)).toEqual(alone)
+    })
+
+    it('exports each territory of an imported file that has more territories than the preset', async () => {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+      const config = await readPresetConfig('france-proportional')
+
+      expect(await useCompositionStore().importConfiguration(config)).toEqual(ok(undefined))
+
+      expect(exportedTerritories(geoDataStore).map(territory => territory.code).sort())
+        .toEqual(config.territories.map(territory => territory.code).sort())
+    })
+
+    it('keeps no territory of the previous preset after an import', async () => {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+      const config = await readPresetConfig('france-standard')
+
+      await useCompositionStore().importConfiguration(config)
+
+      expect(exportedTerritories(geoDataStore)).toHaveLength(config.territories.length)
+    })
+  })
+
+  describe('defaults of the split preset', () => {
+    const METROPOLE = 'FR-MET' as TerritoryCode
+    const OUTSIDE_PRESET = 'FR-NC' as TerritoryCode
+    const WITHOUT_PROJECTION = 'FR-TF' as TerritoryCode
+
+    function changeTerritory(code: TerritoryCode) {
+      const parameterStore = useParameterStore()
+      parameterStore.setTerritoryProjection(code, 'mercator' as ProjectionId)
+      parameterStore.setTerritoryParameters(code, { rotate: [10, 10, 0] })
+    }
+
+    function changeThenReset(code: TerritoryCode) {
+      changeTerritory(code)
+      useCompositionStore().resetTerritoryToDefaults(code)
+      return useParameterStore().getEffectiveParameters(code)
+    }
+
+    const PRESET_VALUES = { projectionId: 'conic-conformal', rotate: [-3, -46.2, 0], parallels: [0, 60] }
+
+    it('resets a territory to the split preset after a change of view', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      await useCompositionStore().selectViewMode('split')
+
+      expect(changeThenReset(METROPOLE)).toMatchObject(PRESET_VALUES)
+    })
+
+    it('resets a territory to the split preset after an initialization in this view', async () => {
+      await startApplication(FRANCE)
+      useViewStore().viewMode = 'split'
+      await useCompositionStore().initializeAtlas({ preserveViewMode: true })
+
+      expect(changeThenReset(METROPOLE)).toMatchObject(PRESET_VALUES)
+    })
+
+    it('shows no difference with the preset after the load and after a reset', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      await useCompositionStore().selectViewMode('split')
+      const parameterStore = useParameterStore()
+      const presetDefaults = usePresetDefaultsStore()
+
+      for (const code of [METROPOLE, 'FR-GP', OUTSIDE_PRESET, WITHOUT_PROJECTION] as TerritoryCode[]) {
+        expect(parameterStore.getTerritoryParameters(code)).toEqual(presetDefaults.presetParameters[code])
+
+        changeThenReset(code)
+
+        expect(parameterStore.getTerritoryParameters(code)).toEqual(presetDefaults.presetParameters[code])
+      }
+    })
+
+    it.each([OUTSIDE_PRESET, WITHOUT_PROJECTION])('restores %s with the reset of all territories', async (code) => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      await useCompositionStore().selectViewMode('split')
+      const parameterStore = useParameterStore()
+      const expected = { ...parameterStore.getTerritoryParameters(code) }
+      expect(expected.projectionId).toBeDefined()
+
+      changeTerritory(code)
+      useCompositionStore().resetTransforms()
+
+      expect(parameterStore.getTerritoryParameters(code)).toEqual(expected)
+    })
+
+    it('drops the parameters of the previous preset that the split preset does not set', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      expect(useParameterStore().getTerritoryParameters(METROPOLE).pixelClipExtent).toBeDefined()
+
+      await useCompositionStore().selectViewMode('split')
+
+      expect(useParameterStore().getTerritoryParameters(METROPOLE).pixelClipExtent).toBeUndefined()
+    })
+
+    it('forgets the defaults of the composite preset when the split view has no preset yet', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      vi.spyOn(useViewStore(), 'autoLoadFirstPreset').mockResolvedValue()
+
+      await useCompositionStore().selectViewMode('split')
+
+      expect(usePresetDefaultsStore().territoryDefaults).toBeNull()
+    })
+
+    it('stores no default before the split preset loads', async () => {
+      await startApplication(FRANCE)
+      useViewStore().viewMode = 'split'
+      vi.spyOn(useViewStore(), 'autoLoadFirstPreset').mockResolvedValue()
+
+      await useCompositionStore().initializeAtlas({ preserveViewMode: true })
+
+      expect(usePresetDefaultsStore().territoryDefaults).toBeNull()
     })
   })
 
