@@ -141,45 +141,5 @@
         ]
       ]
     }
-  ],
-  "atlasMetadata": {
-    "compositeProjections": [
-      "conic-conformal-portugal"
-    ],
-    "projectionPreferences": {
-      "recommended": [
-        "conic-conformal",
-        "albers",
-        "azimuthal-equal-area"
-      ],
-      "prohibited": [
-        "gnomonic",
-        "orthographic",
-        "conic-conformal-france",
-        "conic-conformal-europe"
-      ]
-    },
-    "projectionParameters": {
-      "center": {
-        "longitude": -8,
-        "latitude": 39.5
-      },
-      "rotate": {
-        "conic": [
-          8,
-          0
-        ],
-        "azimuthal": [
-          8,
-          -39.5
-        ]
-      },
-      "parallels": {
-        "conic": [
-          37,
-          42
-        ]
-      }
-    }
-  }
+  ]
 }

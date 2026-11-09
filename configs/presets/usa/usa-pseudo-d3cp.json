@@ -283,41 +283,5 @@
         }
       }
     }
-  ],
-  "atlasMetadata": {
-    "compositeProjections": [
-      "albers-usa",
-      "albers-usa-composite",
-      "albers-usa-territories"
-    ],
-    "defaultCompositeProjection": "albers-usa",
-    "projectionPreferences": {
-      "recommended": [
-        "conic-conformal",
-        "conic-equal-area"
-      ]
-    },
-    "projectionParameters": {
-      "center": {
-        "longitude": -98.5,
-        "latitude": 39.8
-      },
-      "rotate": {
-        "conic": [
-          98.5,
-          0
-        ],
-        "azimuthal": [
-          98.5,
-          -39.8
-        ]
-      },
-      "parallels": {
-        "conic": [
-          29.5,
-          45.5
-        ]
-      }
-    }
-  }
+  ]
 }
