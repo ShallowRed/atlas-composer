@@ -46,11 +46,7 @@ export class GraticuleOverlayService {
 
     let projection: GeoProjection | undefined = config.projection
 
-    if (config.viewMode === 'composite-custom' && config.customComposite) {
-      projection = config.customComposite.build(config.width, config.height)
-      debug('Using customComposite.build() projection for overlay')
-    }
-    else if (!projection && config.projectionId) {
+    if (!projection && config.projectionId) {
       projection = this.createProjectionForOverlay(
         config.projectionId,
         config.width,

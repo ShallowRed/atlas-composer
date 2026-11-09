@@ -36,7 +36,7 @@ function setup(initial: ProjectionParameters = BASE, compositeConfig = config) {
   }
   const composite = new CompositeProjection(compositeConfig, provider, 1000)
   const build = (): GeoProjection => {
-    composite.build(WIDTH, HEIGHT, true)
+    composite.build(WIDTH, HEIGHT)
     return composite.getSubProjectionData(TERRITORY)!.projection
   }
   return { state, composite, build }
@@ -56,8 +56,6 @@ const PROBES: Record<string, { change: ProjectionParameters, read: (projection: 
 
 const WITHOUT_EFFECT_ON_THE_SUB_PROJECTION = ['zoomLevel']
 
-const READ_AT_CONSTRUCTION_ONLY = new Set(['clipAngle', 'precision', 'scaleMultiplier', 'rotate', 'center', 'parallels', 'projectionId'])
-
 const keys = parameterRegistry.getAll().map(definition => definition.key as string)
 
 describe('parameters of a territory read at each build', () => {
@@ -67,8 +65,7 @@ describe('parameters of a territory read at each build', () => {
   })
 
   for (const key of keys.filter(key => key in PROBES)) {
-    const test = READ_AT_CONSTRUCTION_ONLY.has(key) ? it.fails : it
-    test(`takes a change of ${key} into account`, () => {
+    it(`takes a change of ${key} into account`, () => {
       const { state, build } = setup()
       const { change, read } = PROBES[key]!
       const before = read(build())
@@ -122,10 +119,13 @@ describe('provider emptied during a load', () => {
     expect(build).not.toThrow()
   })
 
-  it.fails('keeps the sub-projections of the previous build unchanged', () => {
+  it('keeps the sub-projections of the previous build unchanged', () => {
     const { state, build } = setup()
-    const before = build().clipExtent()
+    const previous = build()
+    const read = () => [previous.translate(), previous.scale(), previous.clipAngle(), previous.precision(), previous.clipExtent()]
+    const before = read()
     state.parameters = {}
-    expect(build().clipExtent()).toEqual(before)
+    expect(build()).toBe(previous)
+    expect(read()).toEqual(before)
   })
 })

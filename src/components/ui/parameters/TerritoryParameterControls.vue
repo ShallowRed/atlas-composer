@@ -26,17 +26,11 @@ interface Props {
   showInheritanceIndicators?: boolean
 }
 
-interface Emits {
-  (e: 'parameterChanged', territoryCode: TerritoryCode, key: keyof ProjectionParameters, value: unknown): void
-  (e: 'overrideCleared', territoryCode: TerritoryCode, key: keyof ProjectionParameters): void
-}
-
 const props = withDefaults(defineProps<Props>(), {
   showInheritanceIndicators: true,
   hideProjectionDropdown: false,
 })
 
-const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const viewStore = useViewStore()
 const parameterStore = useParameterStore()
@@ -189,23 +183,15 @@ function updatePixelClipExtent(index: number, value: number) {
 
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
   parameterStore.setTerritoryParameter(props.territoryCode, key, value)
-  emit('parameterChanged', props.territoryCode, key, value)
 }
 
 function handlePositioningChange(key: PositionParameter, axis: number, value: number) {
   const positioning = updatePositioningAxis(effectiveParameters.value, props.view, key, axis, value)
-  const updated = positioning[key]
   parameterStore.setTerritoryParameters(props.territoryCode, positioning)
-  emit('parameterChanged', props.territoryCode, key, updated)
 }
 
 function clearAllOverrides() {
-  const oldParams = { ...territoryParameters.value }
-
   resetTerritoryToDefaults(props.territoryCode)
-  Object.keys(oldParams).forEach((key) => {
-    emit('overrideCleared', props.territoryCode, key as keyof ProjectionParameters)
-  })
 }
 
 const hasPositionParameters = computed(() => {

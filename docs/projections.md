@@ -45,7 +45,7 @@ When a territory changes family in the `composite` view, `changeTerritoryProject
 
 ## Clip extent and fit
 
-The `pixelClipExtent` of a territory is `[x1, y1, x2, y2]`, in pixels relative to the translation of the territory. `CompositeProjection.build`, in `src/services/projection/composite-projection.ts`, turns it into the d3 `clipExtent` with `calculateClipExtentFromPixelOffset`. The rectangle depends on the translation alone: a change of `rotate`, `center` or `scaleMultiplier` moves the map inside a fixed rectangle. A territory without `pixelClipExtent` is clipped to the projected corners of its `bounds`.
+The `pixelClipExtent` of a territory is `[x1, y1, x2, y2]`, in pixels relative to the translation of the territory. `CompositeProjection.build`, in `src/services/projection/composite-projection.ts`, reads the parameters of each territory from `ProjectionParameterProvider`, and `applyRenderingParameters` of `@atlas-composer/projection-core` turns `pixelClipExtent` into the d3 `clipExtent`. The rectangle depends on the translation alone: a change of `rotate`, `center` or `scaleMultiplier` moves the map inside a fixed rectangle. A territory without `pixelClipExtent` is clipped to the projected corners of its `bounds`.
 
 `useClipExtentEditor` draws the corners of the selected territory in the `composite-custom` view, and a drag moves a corner by steps of 5 pixels. `ProjectionLoader` divides the values by `referenceScale`, so the clipping follows the size requested from the loader.
 

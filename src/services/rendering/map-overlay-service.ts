@@ -94,7 +94,6 @@ export class MapOverlayService {
       return
     }
 
-    composite.build(config.width, config.height, true)
     let borders = composite.getCompositionBorders(config.width, config.height)
 
     if (config.filteredTerritoryCodes) {

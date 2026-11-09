@@ -1,8 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { CompositeProjectionConfig, GeoDataConfig, Translation } from '@/types'
-import type { ProjectionId, TerritoryCode } from '@/types/branded'
+import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
@@ -37,16 +36,10 @@ export interface CompositeRenderOptions extends RenderOptions {
   projection: string
   width: number
   height: number
-  settings?: CustomCompositeSettings
   showGraticule?: boolean
   showSphere?: boolean
   showCompositionBorders?: boolean
   showMapLimits?: boolean
-}
-
-export interface CustomCompositeSettings {
-  territoryProjections: Record<string, string>
-  territoryTranslations: Record<string, Translation>
 }
 
 export class Cartographer {
@@ -70,7 +63,7 @@ export class Cartographer {
       this.projectionService.setProjectionParams(projectionParams)
     }
 
-    if (compositeConfig) {
+    if (compositeConfig && parameterProvider) {
       this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale)
     }
   }
@@ -101,21 +94,9 @@ export class Cartographer {
     }
   }
 
-  updateTerritoryParameters(territoryCode: TerritoryCode): void {
-    if (this.customComposite) {
-      this.customComposite.updateTerritoryParameters(territoryCode)
-    }
-  }
-
-  updateTerritoryProjection(territoryCode: TerritoryCode, projectionType: ProjectionId): void {
-    if (this.customComposite) {
-      this.customComposite.updateTerritoryProjection(territoryCode, projectionType)
-    }
-  }
-
   rebuildCompositeProjection(
     compositeConfig: CompositeProjectionConfig,
-    parameterProvider?: ProjectionParameterProvider,
+    parameterProvider: ProjectionParameterProvider,
     referenceScale?: number,
   ): void {
     this.customComposite = new CompositeProjection(
@@ -212,47 +193,19 @@ export class Cartographer {
   }
 
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
-    const { territoryMode, territoryCodes, width, height, settings, showSphere } = options
+    const { territoryMode, territoryCodes, width, height, showSphere } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
     }
 
-    if (settings) {
-      this.applyCustomCompositeSettings(settings)
-    }
-
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
-    const projectionFn = this.customComposite.build(width, height, true)
+    const projectionFn = this.customComposite.build(width, height)
 
     this._lastProjection = projectionFn as GeoProjection
 
     return this.createSvg(rawData, projectionFn as GeoProjection, width, height, showSphere)
-  }
-
-  private applyCustomCompositeSettings(settings: CustomCompositeSettings): void {
-    if (!this.customComposite) {
-      return
-    }
-
-    const composite = this.customComposite
-    const { territoryProjections, territoryTranslations } = settings
-
-    if (territoryProjections) {
-      for (const [code, proj] of Object.entries(territoryProjections)) {
-        const subProj = (composite as any).subProjections?.find((sp: any) => sp.territoryCode === code)
-        if (subProj && subProj.projectionType !== proj) {
-          composite.updateTerritoryProjection(code as TerritoryCode, proj as ProjectionId)
-        }
-      }
-    }
-
-    if (territoryTranslations) {
-      for (const [code, translation] of Object.entries(territoryTranslations)) {
-        composite.updateTranslationOffset(code as TerritoryCode, [translation.x, translation.y])
-      }
-    }
   }
 
   static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection): void {

@@ -34,6 +34,25 @@ describe('parameter store projection actions', () => {
       before.forEach((value, axis) => expect(projectTarget('composite')[axis]).toBeCloseTo(value, 9))
     })
 
+    it('removes clipAngle when the new family does not use it', () => {
+      const parameterStore = useParameterStore()
+      parameterStore.setTerritoryParameters(CODE, { projectionId: 'azimuthal-equal-area', rotate: [-55, 21, 0], clipAngle: 60 })
+
+      parameterStore.changeTerritoryProjection(CODE, createProjectionId('mercator'), 'composite')
+
+      expect(parameterStore.getEffectiveParameters(CODE).clipAngle).toBeUndefined()
+      expect(JSON.parse(JSON.stringify(parameterStore.getExportableParameters(CODE)))).not.toHaveProperty('clipAngle')
+    })
+
+    it('keeps clipAngle when the new family uses it', () => {
+      const parameterStore = useParameterStore()
+      parameterStore.setTerritoryParameters(CODE, { projectionId: 'azimuthal-equal-area', rotate: [-55, 21, 0], clipAngle: 60 })
+
+      parameterStore.changeTerritoryProjection(CODE, createProjectionId('stereographic'), 'composite')
+
+      expect(parameterStore.getEffectiveParameters(CODE).clipAngle).toBe(60)
+    })
+
     it('keeps the target in the shared view after a change of projection in the composite view', () => {
       const parameterStore = useParameterStore()
       parameterStore.setTerritoryParameters(CODE, { projectionId: 'mercator', center: TARGET })
