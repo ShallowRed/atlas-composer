@@ -250,6 +250,10 @@ describe('projectionFactory', () => {
       return point && point.map(value => Number(value.toFixed(6)))
     }
 
+    it.each(definitions)('creates a new projection for %s at each call', (_, definition) => {
+      expect(definition.create()).not.toBe(definition.create())
+    })
+
     it.each(definitions)('keeps the projection created for %s', (_, definition) => {
       const projection = ProjectionFactory.create({ projection: definition })!
       const center = definition.defaultParameters?.center
@@ -268,20 +272,6 @@ describe('projectionFactory', () => {
   describe('error handling', () => {
     it('should return null for invalid options', () => {
       const result = ProjectionFactory.create(undefined as any)
-      expect(result).toBeNull()
-    })
-
-    it('should return null for unknown strategy', () => {
-      const invalidDefinition = {
-        id: 'test',
-        name: 'Test',
-        category: 'test',
-        family: 'test',
-        strategy: 'UNKNOWN' as any,
-        capabilities: { preserves: [], distorts: [] },
-      }
-
-      const result = ProjectionFactory.create({ projection: invalidDefinition as any })
       expect(result).toBeNull()
     })
   })

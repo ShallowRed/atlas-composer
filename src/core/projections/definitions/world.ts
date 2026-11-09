@@ -3,6 +3,8 @@
  */
 
 import type { ProjectionDefinition } from '../types'
+import { geoNaturalEarth1 } from 'd3-geo'
+import { geoEckert1, geoEckert2, geoEckert3, geoEckert4, geoEckert5, geoEckert6, geoHammer, geoMiller, geoMollweide, geoRobinson, geoSinusoidal, geoWagner6, geoWinkel3 } from 'd3-geo-projection'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const NATURAL_EARTH: ProjectionDefinition = {
@@ -12,6 +14,7 @@ const NATURAL_EARTH: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoNaturalEarth1,
 
   capabilities: {
     preserves: [],
@@ -39,6 +42,7 @@ const ROBINSON: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoRobinson,
 
   capabilities: {
     preserves: [],
@@ -64,6 +68,7 @@ const ECKERT4: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert4,
 
   capabilities: {
     preserves: ['area'],
@@ -89,6 +94,7 @@ const WINKEL_TRIPEL: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoWinkel3,
 
   capabilities: {
     preserves: [],
@@ -116,6 +122,7 @@ const MOLLWEIDE: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoMollweide,
 
   capabilities: {
     preserves: ['area'],
@@ -143,6 +150,7 @@ const MILLER: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.CYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoMiller,
 
   capabilities: {
     preserves: [],
@@ -168,6 +176,7 @@ const SINUSOIDAL: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoSinusoidal,
 
   capabilities: {
     preserves: ['area'],
@@ -195,6 +204,7 @@ const WAGNER6: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoWagner6,
 
   capabilities: {
     preserves: [],
@@ -222,6 +232,7 @@ const HAMMER: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoHammer,
 
   capabilities: {
     preserves: ['area'],
@@ -249,6 +260,7 @@ const ECKERT1: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert1,
 
   capabilities: {
     preserves: [],
@@ -274,6 +286,7 @@ const ECKERT2: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert2,
 
   capabilities: {
     preserves: ['area'],
@@ -299,6 +312,7 @@ const ECKERT3: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert3,
 
   capabilities: {
     preserves: [],
@@ -324,6 +338,7 @@ const ECKERT5: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert5,
 
   capabilities: {
     preserves: ['area'],
@@ -349,6 +364,7 @@ const ECKERT6: ProjectionDefinition = {
   category: ProjectionCategory.WORLD,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoEckert6,
 
   capabilities: {
     preserves: ['area'],

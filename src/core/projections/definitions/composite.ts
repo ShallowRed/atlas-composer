@@ -1,4 +1,33 @@
 import type { ProjectionDefinition } from '../types'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjUK from 'd3-composite-projections/src/albersUk.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjAlbersUsa from 'd3-composite-projections/src/albersUsa.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjAlbersUsaTerritories from 'd3-composite-projections/src/albersUsaTerritories.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEurope from 'd3-composite-projections/src/conicConformalEurope.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjections from 'd3-composite-projections/src/conicConformalFrance.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjNetherlands from 'd3-composite-projections/src/conicConformalNetherlands.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjPortugal from 'd3-composite-projections/src/conicConformalPortugal.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjSpain from 'd3-composite-projections/src/conicConformalSpain.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjJapan from 'd3-composite-projections/src/conicEquidistantJapan.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEcuador from 'd3-composite-projections/src/mercatorEcuador.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjEquatorialGuinea from 'd3-composite-projections/src/mercatorEquatorialGuinea.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjMalaysia from 'd3-composite-projections/src/mercatorMalaysia.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjChile from 'd3-composite-projections/src/transverseMercatorChile.js'
+// @ts-expect-error - d3-composite-projections has module resolution issues in tests
+import * as d3CompositeProjDenmark from 'd3-composite-projections/src/transverseMercatorDenmark.js'
+import { geoAlbersUsa } from 'd3-geo'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
@@ -8,6 +37,7 @@ const CONIC_CONFORMAL_FRANCE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjections.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -43,6 +73,7 @@ const CONIC_CONFORMAL_PORTUGAL: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjPortugal.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -77,6 +108,7 @@ const CONIC_CONFORMAL_SPAIN: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjSpain.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -111,6 +143,7 @@ const CONIC_CONFORMAL_EUROPE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjEurope.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -145,6 +178,7 @@ const ALBERS_USA: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: geoAlbersUsa,
 
   capabilities: {
     preserves: ['area'],
@@ -177,6 +211,7 @@ const ALBERS_USA_COMPOSITE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjAlbersUsa.default(),
 
   capabilities: {
     preserves: ['area'],
@@ -211,6 +246,7 @@ const ALBERS_USA_TERRITORIES: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjAlbersUsaTerritories.default(),
 
   capabilities: {
     preserves: ['area'],
@@ -245,6 +281,7 @@ const CONIC_CONFORMAL_NETHERLANDS: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjNetherlands.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -279,6 +316,7 @@ const CONIC_EQUIDISTANT_JAPAN: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjJapan.default(),
 
   capabilities: {
     preserves: ['distance'],
@@ -313,6 +351,7 @@ const MERCATOR_ECUADOR: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjEcuador.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -347,6 +386,7 @@ const TRANSVERSE_MERCATOR_CHILE: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjChile.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -381,6 +421,7 @@ const MERCATOR_MALAYSIA: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjMalaysia.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -415,6 +456,7 @@ const MERCATOR_EQUATORIAL_GUINEA: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjEquatorialGuinea.default(),
 
   capabilities: {
     preserves: ['angle'],
@@ -449,6 +491,7 @@ const ALBERS_UK: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjUK.default(),
 
   capabilities: {
     preserves: ['area'],
@@ -483,6 +526,7 @@ const TRANSVERSE_MERCATOR_DENMARK: ProjectionDefinition = {
   category: ProjectionCategory.COMPOSITE,
   family: ProjectionFamily.MISCELLANEOUS,
   strategy: ProjectionStrategy.D3_COMPOSITE,
+  create: () => d3CompositeProjDenmark.default(),
 
   capabilities: {
     preserves: ['angle'],

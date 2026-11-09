@@ -1,4 +1,5 @@
 import type { ProjectionDefinition } from '../types'
+import { geoArmadillo, geoLoximuthal, geoPolyhedralButterfly, geoPolyhedralWaterman } from 'd3-geo-projection'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const ARMADILLO: ProjectionDefinition = {
@@ -8,6 +9,7 @@ const ARMADILLO: ProjectionDefinition = {
   category: ProjectionCategory.ARTISTIC,
   family: ProjectionFamily.POLYHEDRAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoArmadillo,
 
   capabilities: {
     preserves: [],
@@ -29,6 +31,7 @@ const POLYHEDRAL_BUTTERFLY: ProjectionDefinition = {
   category: ProjectionCategory.ARTISTIC,
   family: ProjectionFamily.POLYHEDRAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoPolyhedralButterfly,
 
   capabilities: {
     preserves: [],
@@ -53,6 +56,7 @@ const LOXIMUTHAL: ProjectionDefinition = {
   category: ProjectionCategory.ARTISTIC,
   family: ProjectionFamily.PSEUDOCYLINDRICAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoLoximuthal,
 
   capabilities: {
     preserves: [],
@@ -78,6 +82,7 @@ const POLYHEDRAL_WATERMAN: ProjectionDefinition = {
   category: ProjectionCategory.ARTISTIC,
   family: ProjectionFamily.POLYHEDRAL,
   strategy: ProjectionStrategy.D3_EXTENDED,
+  create: geoPolyhedralWaterman,
 
   capabilities: {
     preserves: [],

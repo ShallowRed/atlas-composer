@@ -40,6 +40,11 @@ const CORE_RESTRICTIONS = [
   },
 ]
 
+const PROJECTION_LIBRARIES = {
+  group: ['d3-geo-projection', 'd3-composite-projections', 'd3-composite-projections/*'],
+  message: 'Each definition of src/core/projections/definitions/ holds the function that creates its projection.',
+}
+
 const SERVICES_FROM_UI = {
   group: folders('services'),
   message: 'Components reach services through a store action, and rendering through a composable of src/composables/.',
@@ -139,20 +144,26 @@ export default antfu({
   files: ['src/core/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: CORE_RESTRICTIONS }],
+    'no-restricted-imports': ['error', { patterns: [...CORE_RESTRICTIONS, PROJECTION_LIBRARIES] }],
     'no-restricted-globals': ['error', ...CORE_GLOBALS],
+  },
+}, {
+  files: ['src/core/projections/definitions/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-imports': ['error', { patterns: CORE_RESTRICTIONS }],
   },
 }, {
   files: ['src/services/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO, LOCALE_FROM_IO] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO, LOCALE_FROM_IO, PROJECTION_LIBRARIES] }],
   },
 }, {
   files: ['src/stores/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV, UI] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI, PROJECTION_LIBRARIES] }],
   },
 }, {
   files: ['src/composables/**'],
@@ -162,13 +173,14 @@ export default antfu({
       AJV,
       { group: folders('components', 'views'), message: UI.message },
       SERVICES_FROM_COMPOSABLES,
+      PROJECTION_LIBRARIES,
     ] }],
   },
 }, {
   files: ['src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV, SERVICES_FROM_UI] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, SERVICES_FROM_UI, PROJECTION_LIBRARIES] }],
   },
 }, {
   files: ['src/**/*.ts', 'src/**/*.vue'],

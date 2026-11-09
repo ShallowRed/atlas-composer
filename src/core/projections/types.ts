@@ -55,6 +55,7 @@ export interface ProjectionDefinition {
   category: ProjectionCategoryType
   family: ProjectionFamilyType
   strategy: ProjectionStrategyType
+  create: () => GeoProjection
   capabilities: ProjectionCapabilities
   defaultParameters?: ProjectionParameters
   aliases?: string[]
@@ -86,8 +87,6 @@ export interface ProjectionRecommendation {
   level: 'excellent' | 'good' | 'usable' | 'not-recommended'
   suggestedParameters?: ProjectionParameters
 }
-
-export type D3ProjectionFunction = () => GeoProjection
 
 export interface CreateProjectionOptions {
   projection: string | ProjectionDefinition

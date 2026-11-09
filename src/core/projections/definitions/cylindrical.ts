@@ -1,4 +1,5 @@
 import type { ProjectionDefinition } from '../types'
+import { geoEquirectangular, geoMercator } from 'd3-geo'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const MERCATOR: ProjectionDefinition = {
@@ -8,6 +9,7 @@ const MERCATOR: ProjectionDefinition = {
   category: ProjectionCategory.CYLINDRICAL,
   family: ProjectionFamily.CYLINDRICAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoMercator,
 
   capabilities: {
     preserves: ['angle', 'direction'],
@@ -41,6 +43,7 @@ const EQUIRECTANGULAR: ProjectionDefinition = {
   category: ProjectionCategory.CYLINDRICAL,
   family: ProjectionFamily.CYLINDRICAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoEquirectangular,
 
   capabilities: {
     preserves: [],

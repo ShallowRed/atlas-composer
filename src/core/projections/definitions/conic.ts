@@ -1,4 +1,5 @@
 import type { ProjectionDefinition } from '../types'
+import { geoConicConformal, geoConicEqualArea, geoConicEquidistant } from 'd3-geo'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const CONIC_CONFORMAL: ProjectionDefinition = {
@@ -8,6 +9,7 @@ const CONIC_CONFORMAL: ProjectionDefinition = {
   category: ProjectionCategory.CONIC,
   family: ProjectionFamily.CONIC,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoConicConformal,
 
   capabilities: {
     preserves: ['angle'],
@@ -40,6 +42,7 @@ const ALBERS: ProjectionDefinition = {
   category: ProjectionCategory.CONIC,
   family: ProjectionFamily.CONIC,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoConicEqualArea,
 
   capabilities: {
     preserves: ['area'],
@@ -72,6 +75,7 @@ const CONIC_EQUIDISTANT: ProjectionDefinition = {
   category: ProjectionCategory.CONIC,
   family: ProjectionFamily.CONIC,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoConicEquidistant,
 
   capabilities: {
     preserves: ['distance'],

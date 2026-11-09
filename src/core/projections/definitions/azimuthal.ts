@@ -1,4 +1,5 @@
 import type { ProjectionDefinition } from '../types'
+import { geoAzimuthalEqualArea, geoAzimuthalEquidistant, geoGnomonic, geoOrthographic, geoStereographic } from 'd3-geo'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
@@ -9,6 +10,7 @@ const AZIMUTHAL_EQUAL_AREA: ProjectionDefinition = {
   category: ProjectionCategory.AZIMUTHAL,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoAzimuthalEqualArea,
 
   capabilities: {
     preserves: ['area', 'direction'],
@@ -30,6 +32,7 @@ const AZIMUTHAL_EQUIDISTANT: ProjectionDefinition = {
   category: ProjectionCategory.AZIMUTHAL,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoAzimuthalEquidistant,
 
   capabilities: {
     preserves: ['distance', 'direction'],
@@ -48,6 +51,7 @@ const STEREOGRAPHIC: ProjectionDefinition = {
   category: ProjectionCategory.AZIMUTHAL,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoStereographic,
 
   capabilities: {
     preserves: ['angle'],
@@ -66,6 +70,7 @@ const ORTHOGRAPHIC: ProjectionDefinition = {
   category: ProjectionCategory.AZIMUTHAL,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoOrthographic,
 
   capabilities: {
     preserves: [],
@@ -84,6 +89,7 @@ const GNOMONIC: ProjectionDefinition = {
   category: ProjectionCategory.AZIMUTHAL,
   family: ProjectionFamily.AZIMUTHAL,
   strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoGnomonic,
 
   capabilities: {
     preserves: [],
