@@ -70,7 +70,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
   const allActiveTerritories = computed(() => filteredTerritories.value)
 
-  const initialize = async (atlasConfigOverride?: any): Promise<Result<void, GeoDataError>> => {
+  let initializationGeneration = 0
+  let pendingInitialization: Promise<Result<void, GeoDataError>> | null = null
+
+  const initialize = async (
+    atlasConfigOverride?: any,
+    generation = initializationGeneration,
+  ): Promise<Result<void, GeoDataError>> => {
     if (isInitialized.value)
       return ok(undefined)
 
@@ -118,6 +124,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
         projectionStore.referenceScale,
       )
       const result = await newCartographer.init()
+      if (generation !== initializationGeneration) {
+        return ok(undefined)
+      }
+
       if (!result.ok) {
         error.value = result.error
         debug('Geo data store initialization error: %O', result.error)
@@ -148,8 +158,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const reloadUnifiedData = async (territoryMode: string) => {
     const atlasStore = useAtlasStore()
 
-    if (!cartographer.value) {
-      throw new Error('Cannot reload unified data: Cartographer not initialized')
+    // loadAllAtlasData loads the current mode once the initialization ends
+    const loadingCartographer = cartographer.value
+    if (!loadingCartographer) {
+      return
     }
     if (!atlasStore.currentAtlasConfig) {
       throw new Error('Cannot reload unified data: Atlas config not loaded')
@@ -159,7 +171,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       isLoading.value = true
       error.value = null
 
-      const service = cartographer.value.geoData
+      const service = loadingCartographer.geoData
       const loader = TerritoryDataLoader.create()
       const result = await loader.loadUnifiedData(service, territoryMode, {
         atlasConfig: atlasStore.currentAtlasConfig,
@@ -167,6 +179,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
         hasTerritorySelector: atlasStore.currentAtlasConfig.hasTerritorySelector ?? false,
         isWildcard: atlasStore.currentAtlasConfig.isWildcard ?? false,
       })
+
+      if (cartographer.value !== loadingCartographer) {
+        return
+      }
 
       rawUnifiedData.value = result.data
       debug('Reloaded unified data for mode: %s', territoryMode)
@@ -178,10 +194,15 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
   const loadAllAtlasData = async (territoryMode: string): Promise<Result<void, GeoDataError>> => {
     if (!cartographer.value) {
-      const result = await initialize()
+      const result = await (pendingInitialization ?? initialize())
       if (!result.ok) {
         return result
       }
+    }
+
+    const loadingCartographer = cartographer.value
+    if (!loadingCartographer) {
+      throw new Error('Cartographer not initialized')
     }
 
     const atlasStore = useAtlasStore()
@@ -197,22 +218,18 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       await Promise.all([
         (async () => {
-          if (!cartographer.value) {
-            throw new Error('Cartographer not initialized')
-          }
-          const service = cartographer.value.geoData
+          const service = loadingCartographer.geoData
           const loader = TerritoryDataLoader.create()
           const result = await loader.loadTerritories(service)
 
-          territoriesData.value = result.territories
-          debug('Loaded %d territories', result.territories.length)
+          if (cartographer.value === loadingCartographer) {
+            territoriesData.value = result.territories
+            debug('Loaded %d territories', result.territories.length)
+          }
         })(),
 
         (async () => {
-          if (!cartographer.value) {
-            throw new Error('Cartographer not initialized')
-          }
-          const service = cartographer.value.geoData
+          const service = loadingCartographer.geoData
           const loader = TerritoryDataLoader.create()
           const result = await loader.loadUnifiedData(service, territoryMode, {
             atlasConfig: atlasStore.currentAtlasConfig!,
@@ -221,8 +238,10 @@ export const useGeoDataStore = defineStore('geoData', () => {
             isWildcard: atlasStore.currentAtlasConfig!.isWildcard ?? false,
           })
 
-          rawUnifiedData.value = result.data
-          debug('Loaded unified data')
+          if (cartographer.value === loadingCartographer) {
+            rawUnifiedData.value = result.data
+            debug('Loaded unified data')
+          }
         })(),
       ])
 
@@ -264,8 +283,16 @@ export const useGeoDataStore = defineStore('geoData', () => {
       debug('Cleared existing cartographer instance')
     }
 
+    const generation = ++initializationGeneration
+    const pending = initialize(atlasConfigOverride, generation).finally(() => {
+      if (generation === initializationGeneration) {
+        pendingInitialization = null
+      }
+    })
+    pendingInitialization = pending
+
     try {
-      return await initialize(atlasConfigOverride)
+      return await pending
     }
     finally {
       isReinitializing.value = false
