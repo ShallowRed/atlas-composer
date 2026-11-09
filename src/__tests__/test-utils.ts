@@ -50,7 +50,7 @@ export interface CompositeSource {
   config: CompositeProjectionConfig
 }
 
-// Each composite-custom preset, and a configuration for each case of the catalog that the presets do not cover
+// Each composite-custom preset, and each fixture: a projection family that the presets leave out, or the rendering parameters
 export function readCompositeSources(): CompositeSource[] {
   const presets = readPresetFiles()
     .filter(preset => preset.type === 'composite-custom')
