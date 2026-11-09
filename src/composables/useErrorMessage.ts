@@ -59,13 +59,13 @@ export const ISSUE_MESSAGE_KEYS = {
 } as const satisfies Record<PresetIssue['code'], MessageKey>
 
 export const PARAMETER_ISSUE_MESSAGE_KEYS = {
-  PARAMETER_REQUIRED: 'errors.parameterIssue.required',
+  PARAMETER_REQUIRED: 'errors.presetIssue.parameterRequired',
   PARAMETER_NOT_NUMBER: 'errors.parameterIssue.notNumber',
   PARAMETER_NOT_PAIR: 'errors.parameterIssue.notPair',
   PARAMETER_NOT_PAIR_OR_TRIPLE: 'errors.parameterIssue.notPairOrTriple',
   PARAMETER_ITEMS_NOT_NUMBERS: 'errors.parameterIssue.itemsNotNumbers',
-  PARAMETER_TOO_SMALL: 'errors.parameterIssue.tooSmall',
-  PARAMETER_TOO_LARGE: 'errors.parameterIssue.tooLarge',
+  PARAMETER_TOO_SMALL: 'errors.presetIssue.parameterTooSmall',
+  PARAMETER_TOO_LARGE: 'errors.presetIssue.parameterTooLarge',
   PARAMETER_ITEM_TOO_SMALL: 'errors.parameterIssue.itemTooSmall',
   PARAMETER_ITEM_TOO_LARGE: 'errors.parameterIssue.itemTooLarge',
   PARAMETER_OUT_OF_RANGE: 'errors.parameterIssue.outOfRange',
