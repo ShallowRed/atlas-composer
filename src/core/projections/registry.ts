@@ -5,9 +5,7 @@ import type {
   ProjectionRecommendation,
   ProjectionStrategyType,
 } from './types'
-import type { ProjectionPreferences } from '@/core/atlases/loader'
 
-import { getDefaultProjectionPreferences } from '@/core/projections/defaults'
 import { ALL_PROJECTIONS } from '@/core/projections/definitions'
 import { logger } from '@/utils/logger'
 
@@ -33,10 +31,6 @@ class ProjectionRegistry {
     ALL_PROJECTIONS.forEach((definition) => {
       this.register(definition)
     })
-  }
-
-  private getProjectionPreferences(atlasId: string): ProjectionPreferences {
-    return getDefaultProjectionPreferences(atlasId)
   }
 
   public register(definition: ProjectionDefinition): void {
@@ -107,18 +101,6 @@ class ProjectionRegistry {
   public filter(context: ProjectionFilterContext = {}): ProjectionDefinition[] {
     let projections = this.getAll()
 
-    if (context.atlasId) {
-      const projectionPreferences = this.getProjectionPreferences(context.atlasId)
-      const prohibitedProjections = projectionPreferences?.prohibited || []
-
-      projections = projections.filter((def) => {
-        if (prohibitedProjections.includes(def.id)) {
-          return false
-        }
-        return true
-      })
-    }
-
     if (context.viewMode) {
       projections = projections.filter((def) => {
         switch (context.viewMode) {
@@ -155,16 +137,6 @@ class ProjectionRegistry {
       )
     }
 
-    if (context.recommendedOnly) {
-      const recommendations = this.recommend(context)
-      const recommendedIds = new Set(
-        recommendations
-          .filter(rec => rec.level === 'excellent' || rec.level === 'good')
-          .map(rec => rec.projection.id),
-      )
-      projections = projections.filter(def => recommendedIds.has(def.id))
-    }
-
     return projections
   }
 
@@ -172,22 +144,13 @@ class ProjectionRegistry {
     const projections = this.filter(context)
     const recommendations: ProjectionRecommendation[] = []
 
-    let atlasPreferences: ProjectionPreferences | undefined
-    if (context.atlasId) {
-      atlasPreferences = this.getProjectionPreferences(context.atlasId)
-    }
-
     projections.forEach((projection) => {
       let score = 50
       let level: ProjectionRecommendation['level'] = 'usable'
 
-      if (atlasPreferences?.recommended?.includes(projection.id)) {
+      if (context.recommended?.includes(projection.id)) {
         score += 40
         level = 'excellent'
-      }
-      if (atlasPreferences?.prohibited?.includes(projection.id)) {
-        score = -50
-        level = 'not-recommended'
       }
 
       if (context.viewMode === 'built-in-composite') {

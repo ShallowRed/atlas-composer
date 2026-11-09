@@ -45,6 +45,11 @@ const PROJECTION_LIBRARIES = {
   message: 'Each definition of src/core/projections/definitions/ holds the function that creates its projection.',
 }
 
+const ATLASES_FROM_PROJECTIONS = {
+  group: folders('atlases'),
+  message: 'A caller passes the projections that an atlas recommends through ProjectionFilterContext.recommended.',
+}
+
 const SERVICES_FROM_UI = {
   group: folders('services'),
   message: 'Components reach services through a store action, and rendering through a composable of src/composables/.',
@@ -148,10 +153,16 @@ export default antfu({
     'no-restricted-globals': ['error', ...CORE_GLOBALS],
   },
 }, {
+  files: ['src/core/projections/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-imports': ['error', { patterns: [...CORE_RESTRICTIONS, PROJECTION_LIBRARIES, ATLASES_FROM_PROJECTIONS] }],
+  },
+}, {
   files: ['src/core/projections/definitions/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: CORE_RESTRICTIONS }],
+    'no-restricted-imports': ['error', { patterns: [...CORE_RESTRICTIONS, ATLASES_FROM_PROJECTIONS] }],
   },
 }, {
   files: ['src/services/**'],

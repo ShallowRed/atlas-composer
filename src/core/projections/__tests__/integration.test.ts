@@ -8,7 +8,6 @@ describe('registry + factory integration', () => {
   describe('full workflow: filter → recommend → create', () => {
     it('should create projections from filtered results', () => {
       const filtered = projectionRegistry.filter({
-        atlasId: 'france',
         viewMode: 'split',
       })
 
@@ -22,7 +21,6 @@ describe('registry + factory integration', () => {
 
     it('should create projections from recommendations', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
         viewMode: 'split',
       })
 
@@ -39,7 +37,6 @@ describe('registry + factory integration', () => {
 
     it('should use top recommendation for france atlas', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
         viewMode: 'split',
       })
 
@@ -58,7 +55,6 @@ describe('registry + factory integration', () => {
 
     it('should use top recommendation for portugal atlas', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'portugal',
         viewMode: 'split',
       })
 
@@ -77,7 +73,6 @@ describe('registry + factory integration', () => {
 
     it('should use top recommendation for europe atlas', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'europe',
         viewMode: 'split',
       })
 
@@ -230,13 +225,13 @@ describe('registry + factory integration', () => {
   describe('real-world scenarios', () => {
     it('should support complete france atlas workflow', () => {
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'france',
+        recommended: ['conic-conformal-france'],
         viewMode: 'split',
       })
 
       expect(recommendations.length).toBeGreaterThan(0)
 
-      // 2. Get top recommendation (should be atlas-specific conic-conformal)
+      // 2. Get top recommendation
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
       expect(topRecommendation!.projection.id).toBe('conic-conformal-france')
@@ -261,13 +256,13 @@ describe('registry + factory integration', () => {
     it('should support complete portugal atlas workflow', () => {
       // 1. Get recommendations for Portugal
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'portugal',
+        recommended: ['conic-conformal-portugal'],
         viewMode: 'split',
       })
 
       expect(recommendations.length).toBeGreaterThan(0)
 
-      // 2. Get top recommendation (should be base conic-conformal, not the composite variant)
+      // 2. Get top recommendation
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
       expect(topRecommendation!.projection.id).toBe('conic-conformal-portugal')
@@ -292,13 +287,13 @@ describe('registry + factory integration', () => {
     it('should support complete europe atlas workflow', () => {
       // 1. Get recommendations for Europe
       const recommendations = projectionRegistry.recommend({
-        atlasId: 'europe',
+        recommended: ['conic-conformal-europe'],
         viewMode: 'split',
       })
 
       expect(recommendations.length).toBeGreaterThan(0)
 
-      // 2. Get top recommendation (should be atlas-specific conic-conformal)
+      // 2. Get top recommendation
       const topRecommendation = recommendations[0]
       expect(topRecommendation).toBeDefined()
       expect(topRecommendation!.projection.id).toBe('conic-conformal-europe')
@@ -323,7 +318,6 @@ describe('registry + factory integration', () => {
     it('should handle view mode transitions', () => {
       // Split mode recommendation
       const splitRecommendations = projectionRegistry.recommend({
-        atlasId: 'france',
         viewMode: 'split',
       })
       expect(splitRecommendations.length).toBeGreaterThan(0)
@@ -335,7 +329,6 @@ describe('registry + factory integration', () => {
 
       // Unified mode recommendation
       const unifiedRecommendations = projectionRegistry.recommend({
-        atlasId: 'france',
         viewMode: 'unified',
       })
       expect(unifiedRecommendations.length).toBeGreaterThan(0)

@@ -9,13 +9,6 @@ import type {
 import type { TerritoryCode } from '@/types/branded'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 
-export interface ProjectionPreferences {
-  exclude?: string[]
-  categoryOrder?: string[]
-  recommended?: string[]
-  prohibited?: string[]
-}
-
 export interface AtlasSpecificConfig {
   territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
