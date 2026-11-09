@@ -1,4 +1,5 @@
-import type { PresetError } from '@/core/types/errors'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { AtlasConfigError, PresetError } from '@/core/types/errors'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -155,6 +156,142 @@ describe('composition store', () => {
 
       expect(useAtlasStore().currentAtlasConfig?.id).toBe('portugal')
       expect(loadJSON.mock.calls.filter(([path]) => path === 'configs/atlases/portugal.json')).toHaveLength(1)
+    })
+  })
+
+  describe('superseded initialization', () => {
+    function delayAtlas(delays: Record<string, number>, failure?: AtlasConfigError) {
+      const atlasStore = useAtlasStore()
+      const loadAtlas = atlasStore.loadAtlas
+      return vi.spyOn(atlasStore, 'loadAtlas').mockImplementation(async (atlasId) => {
+        await new Promise(resolve => setTimeout(resolve, delays[atlasId] ?? 0))
+        return failure && atlasId === Object.keys(delays)[0] ? err(failure) : loadAtlas(atlasId)
+      })
+    }
+
+    it.each([[40, 5], [5, 40]])('opens the last atlas once for each selection, with responses of %i and %i ms', async (first, second) => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      const atlasStore = useAtlasStore()
+      const loadAtlas = delayAtlas({ usa: first, europe: second })
+
+      await Promise.all([
+        compositionStore.selectAtlas('usa' as AtlasId),
+        compositionStore.selectAtlas('europe' as AtlasId),
+      ])
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+
+      expect(loadAtlas.mock.calls.map(([atlasId]) => atlasId)).toEqual(['usa', 'europe'])
+      expect(atlasStore.selectedAtlasId).toBe('europe')
+      expect(atlasStore.currentAtlasConfig?.id).toBe('europe')
+    })
+
+    it('stops before writing the state of the superseded atlas', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      delayAtlas({ usa: 20 })
+      const loadPreset = vi.spyOn(PresetLoader, 'loadPreset')
+
+      await Promise.all([
+        compositionStore.selectAtlas('usa' as AtlasId),
+        compositionStore.selectAtlas('europe' as AtlasId),
+      ])
+
+      expect(loadPreset.mock.calls.map(([presetId]) => presetId).filter(presetId => presetId.startsWith('usa'))).toEqual([])
+    })
+
+    it('ignores the failure of a superseded initialization', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      delayAtlas({ usa: 20 }, { code: 'JSON_FILE_NOT_FOUND', path: 'usa' })
+
+      await Promise.all([
+        compositionStore.selectAtlas('usa' as AtlasId),
+        compositionStore.selectAtlas('europe' as AtlasId),
+      ])
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+
+      expect(useUIStore().toasts).toEqual([])
+      expect(useGeoDataStore().error).toBeNull()
+      expect(useAtlasStore().selectedAtlasId).toBe('europe')
+    })
+  })
+
+  describe('preset of a previous selection', () => {
+    function holdPreset() {
+      let release!: () => void
+      const held = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const load = PresetLoader.loadPreset
+      vi.spyOn(PresetLoader, 'loadPreset').mockImplementationOnce(async (presetId) => {
+        await held
+        return load(presetId)
+      })
+      return release
+    }
+
+    const PRESET = createPresetId('france-proportional')
+
+    it('drops a preset that arrives after a change of atlas', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      const release = holdPreset()
+
+      const loading = compositionStore.loadPreset({ presetId: PRESET })
+      await compositionStore.selectAtlas('portugal' as AtlasId)
+      const territories = [...useViewStore().activeTerritoryCodes]
+      release()
+
+      expect(await loading).toEqual(ok(undefined))
+      expect([...useViewStore().activeTerritoryCodes]).toEqual(territories)
+    })
+
+    it('drops a preset that arrives after a change of view', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      const release = holdPreset()
+
+      const loading = compositionStore.loadPreset({ presetId: PRESET })
+      await compositionStore.selectViewMode('unified')
+      release()
+
+      expect(await loading).toEqual(ok(undefined))
+      expect(useViewStore().viewMode).toBe('unified')
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+    })
+
+    it('keeps the application ready when a load of the previous atlas fails', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      vi.mocked(useGeoDataStore().loadAllAtlasData).mockImplementationOnce(async () => {
+        await compositionStore.selectAtlas('europe' as AtlasId)
+        throw new Error('network')
+      })
+
+      const result = await compositionStore.loadPreset({ presetId: PRESET })
+
+      expect(result).toEqual(ok(undefined))
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+    })
+
+    it('ignores the failure of an import when the atlas changed', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      vi.mocked(useGeoDataStore().loadAllAtlasData).mockImplementationOnce(async () => {
+        await compositionStore.selectAtlas('europe' as AtlasId)
+        throw new Error('network')
+      })
+
+      const result = await compositionStore.importConfiguration({
+        ...(JSON.parse(await readFile('configs/presets/france/france-proportional.json', 'utf8')) as object),
+      } as CompositeProjectionConfig)
+
+      expect(result).toEqual(ok(undefined))
     })
   })
 

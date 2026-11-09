@@ -52,6 +52,8 @@ export const useCompositionStore = defineStore('composition', () => {
   const uiStore = useUIStore()
   const viewStore = useViewStore()
 
+  let initializationRun = 0
+
   async function startMapView(): Promise<void> {
     geoDataStore.clearError()
     uiStore.initializeTheme()
@@ -69,6 +71,8 @@ export const useCompositionStore = defineStore('composition', () => {
   ): Promise<Result<void, InitializationError>> {
     const { preserveViewMode = false } = options
     const atlasId = atlasStore.selectedAtlasId
+    const run = ++initializationRun
+    const isSuperseded = () => run !== initializationRun
 
     const fail = (error: InitializationError): Result<void, InitializationError> => {
       geoDataStore.setReinitializing(false)
@@ -78,6 +82,9 @@ export const useCompositionStore = defineStore('composition', () => {
 
     try {
       const loadedAtlas = await atlasStore.loadAtlas(atlasId)
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
       if (!loadedAtlas.ok) {
         return fail(loadedAtlas.error)
       }
@@ -95,7 +102,7 @@ export const useCompositionStore = defineStore('composition', () => {
 
       appStore.startLoadingAtlas()
       geoDataStore.setReinitializing(true)
-      await clearAllApplicationData()
+      clearAllApplicationData()
 
       let preset: Preset | null = null
       let territoryDefaults = TerritoryDefaultsService.initializeAll(
@@ -115,6 +122,9 @@ export const useCompositionStore = defineStore('composition', () => {
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
+        if (isSuperseded()) {
+          return ok(undefined)
+        }
 
         if (!presetResult.ok) {
           return fail(presetResult.error)
@@ -135,6 +145,9 @@ export const useCompositionStore = defineStore('composition', () => {
         }
 
         const presetResult = await PresetLoader.loadPreset(defaultPresetId)
+        if (isSuperseded()) {
+          return ok(undefined)
+        }
 
         if (!presetResult.ok) {
           return fail(presetResult.error)
@@ -193,19 +206,28 @@ export const useCompositionStore = defineStore('composition', () => {
       const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
       debug('Filtered atlas config for %s: %d preset territories', atlasId, Object.keys(state.parameters.territories).length)
 
-      await applyStateToStores(state)
+      applyStateToStores(state)
 
       viewStore.clearViewPreset()
       await viewStore.loadAvailableViewPresets()
       await viewStore.autoLoadFirstPreset(`initialization of ${atlasId}`)
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
 
       appStore.startLoadingGeoData()
       const geoDataResult = await geoDataStore.reinitialize(filteredAtlasConfig)
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
       if (!geoDataResult.ok) {
         return fail(geoDataResult.error)
       }
 
       const preloadResult = await preloadAtlasData(territoryMode)
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
       if (!preloadResult.ok) {
         return fail(preloadResult.error)
       }
@@ -216,19 +238,31 @@ export const useCompositionStore = defineStore('composition', () => {
       return ok(undefined)
     }
     catch (error) {
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
       return fail({ code: 'INITIALIZATION_FAILED', reason: failureReason(error) })
     }
   }
 
   async function loadPreset(options: PresetLoadOptions): Promise<Result<void, PresetApplicationError>> {
     const { presetId, skipValidation = false } = options
+    const currentAtlasId = atlasStore.selectedAtlasId
+    const isAtlasChanged = () => atlasStore.selectedAtlasId !== currentAtlasId
 
     try {
       appStore.startLoadingPreset()
 
-      const currentAtlasId = atlasStore.selectedAtlasId
       const atlasConfig = getAtlasConfig(currentAtlasId)
       const presetResult = await PresetLoader.loadPreset(presetId)
+      if (isAtlasChanged()) {
+        return ok(undefined)
+      }
+      if (viewStore.viewMode !== 'composite-custom') {
+        appStore.setReady()
+        return ok(undefined)
+      }
+
       if (!presetResult.ok) {
         appStore.setReady()
         return presetResult
@@ -284,8 +318,12 @@ export const useCompositionStore = defineStore('composition', () => {
         },
       }
 
-      await applyStateToStores(state)
+      applyStateToStores(state)
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
+      if (isAtlasChanged()) {
+        return ok(undefined)
+      }
+
       if (!geoDataResult.ok) {
         appStore.setFailed()
         return geoDataResult
@@ -303,6 +341,9 @@ export const useCompositionStore = defineStore('composition', () => {
       return ok(undefined)
     }
     catch (error) {
+      if (isAtlasChanged()) {
+        return ok(undefined)
+      }
       appStore.setFailed()
       return err({ code: 'PRESET_APPLICATION_FAILED', presetId, reason: failureReason(error) })
     }
@@ -360,6 +401,9 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   async function importConfiguration(config: CompositeProjectionConfig): Promise<Result<void, ImportError>> {
+    const currentAtlasId = atlasStore.selectedAtlasId
+    const isAtlasChanged = () => atlasStore.selectedAtlasId !== currentAtlasId
+
     try {
       const territoryParameters: Record<string, Record<string, unknown>> = {}
       for (const territory of config.territories) {
@@ -399,9 +443,13 @@ export const useCompositionStore = defineStore('composition', () => {
         },
       }
 
-      await applyStateToStores(state)
+      applyStateToStores(state)
 
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
+      if (isAtlasChanged()) {
+        return ok(undefined)
+      }
+
       if (!geoDataResult.ok) {
         return geoDataResult
       }
@@ -410,6 +458,9 @@ export const useCompositionStore = defineStore('composition', () => {
       return ok(undefined)
     }
     catch (error) {
+      if (isAtlasChanged()) {
+        return ok(undefined)
+      }
       return err({ code: 'IMPORT_APPLICATION_FAILED', reason: failureReason(error) })
     }
   }
@@ -472,7 +523,7 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
-  async function applyStateToStores(state: ApplicationState): Promise<void> {
+  function applyStateToStores(state: ApplicationState): void {
     viewStore.viewMode = state.viewMode as ViewMode
     viewStore.territoryMode = state.territoryMode
 
@@ -523,7 +574,7 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
-  async function clearAllApplicationData(): Promise<void> {
+  function clearAllApplicationData(): void {
     debug('Clearing all application data')
     parameterStore.clearAll()
     geoDataStore.clearAllData()
