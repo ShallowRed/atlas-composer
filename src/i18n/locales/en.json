@@ -74,6 +74,8 @@
   "territory": {
     "controls": "Territory controls",
     "byTerritory": "By territory",
+    "groupBy": "Group by",
+    "territorySettings": "Territory settings",
     "position": "Position",
     "positionX": "Horizontal position (X)",
     "positionY": "Vertical position (Y)",
@@ -180,6 +182,12 @@
       "scaleWarning": "Changing the reference scale will affect all territories. Individual territory scale multipliers are preserved.",
       "resetToDefaults": "Reset to Defaults"
     }
+  },
+  "clipExtent": {
+    "left": "Left limit",
+    "right": "Right limit",
+    "top": "Top limit",
+    "bottom": "Bottom limit"
   },
   "actions": {
     "loading": "Loading...",
