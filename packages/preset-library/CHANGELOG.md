@@ -1,5 +1,11 @@
 # @atlas-composer/preset-library
 
+## 2.1.0
+
+### Minor Changes
+
+- ee68212: Remove the `atlasMetadata` field from the composite presets. The Atlas Composer application reads the projection preferences of an atlas from its configuration.
+
 ## 2.0.0
 
 ### Major Changes
