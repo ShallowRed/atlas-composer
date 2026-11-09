@@ -8,7 +8,7 @@ This package contains the mathematical core and stream manipulation logic used b
 
 - **Stream Multiplexing**: Splits a D3 geo stream into multiple branches (for creating composite views).
 - **Bounds Calculation**: Utilities for measuring projected geometry.
-- **Rendering Parameters**: `applyRenderingParameters` applies `clipAngle`, `precision` and the clip extent of a sub-projection.
+- `applyRenderingParameters` applies `clipAngle`, `precision` and the clip extent of a sub-projection.
 - **Coordinate Transformation**: Helpers for managing complex projection pipelines.
 
 > **Note:** Most users should use `@atlas-composer/projection-loader` instead of this package directly.
