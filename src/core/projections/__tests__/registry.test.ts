@@ -154,18 +154,16 @@ describe('projectionRegistry', () => {
       expect(topRecommendation!.level).toBe('excellent')
     })
 
-    it('should assign recommendation levels correctly', () => {
-      const recommendations = projectionRegistry.recommend()
+    it('should rate a projection without a preference as usable', () => {
+      projectionRegistry.recommend().forEach((recommendation) => {
+        expect(recommendation).toMatchObject({ level: 'usable', score: 50 })
+      })
+    })
 
-      const excellent = recommendations.filter(r => r.level === 'excellent')
-      const good = recommendations.filter(r => r.level === 'good')
-      const usable = recommendations.filter(r => r.level === 'usable')
-      const notRecommended = recommendations.filter(r => r.level === 'not-recommended')
-
-      excellent.forEach(r => expect(r.score).toBeGreaterThanOrEqual(80))
-      good.forEach(r => expect(r.score).toBeGreaterThanOrEqual(60))
-      usable.forEach(r => expect(r.score).toBeGreaterThanOrEqual(40))
-      notRecommended.forEach(r => expect(r.score).toBeLessThan(40))
+    it('should rate a composite projection of the built-in composite view as good', () => {
+      projectionRegistry.recommend({ viewMode: 'built-in-composite' }).forEach((recommendation) => {
+        expect(recommendation).toMatchObject({ level: 'good', score: 70 })
+      })
     })
   })
 

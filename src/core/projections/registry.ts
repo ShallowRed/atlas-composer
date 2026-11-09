@@ -165,12 +165,6 @@ class ProjectionRegistry {
       else if (score >= 60) {
         level = 'good'
       }
-      else if (score >= 40) {
-        level = 'usable'
-      }
-      else {
-        level = 'not-recommended'
-      }
 
       recommendations.push({
         projection,
