@@ -1,119 +1,57 @@
-# Architecture Decision Records
+# Architecture decisions
 
-## ADR-001: Keep Pinia Stores vs Pure Domain Stores
+Each section gives a decision and its reasons. [AGENTS.md](../AGENTS.md) lists the boundaries of the code that follow from these decisions.
 
-**Context**: Clean Architecture suggests infrastructure-agnostic state management.
+## The state of the application is in Pinia stores
 
-**Decision**: Keep Pinia stores.
+The state of the application is in the Pinia stores of `src/stores/`.
 
-**Rationale**:
-1. Vue reactivity is core to the application's real-time updates
-2. Pinia provides excellent DevTools integration
-3. Replacing Pinia would require rewriting all reactivity
-4. ROI is negative for a small team
+The rendering and the controls follow the state through Vue reactivity, and a store gives this reactivity to components and composables directly. Pinia [documents actions](https://pinia.vuejs.org/core-concepts/actions.html) as the place of the business logic. The Vue devtools show the state of each store and each call of an action.
 
----
+## Each store holds one concept
 
-## ADR-002: Store Boundaries = Bounded Contexts
+A store holds the state of one concept: `atlas` holds the selected atlas and its configuration, `projection` the selected projections and the canvas, `view` the view mode and the active territories. A use case that writes several stores is an action of `src/stores/composition.ts`.
 
-**Context**: How to split the god-object configStore.
+A change to one concept touches one store, and a reader finds in one file each use case that crosses several concepts. `src/stores/composition.ts` imports the other stores, and `pnpm check:dead-code` refuses an import cycle.
 
-**Decision**: Split by bounded context (Atlas, Projection, View).
+## Domain identifiers have branded types
 
-**Rationale**:
-1. Each store owns one domain concept
-2. Reduces coupling between unrelated features
-3. Enables independent testing
-4. Follows DDD aggregate boundaries
+`AtlasId`, `ProjectionId`, `PresetId` and `TerritoryCode`, in `src/types/branded.ts`, are strings with a type-level brand.
 
-**Result**: configStore (598 lines) split into:
-- atlasStore (257 lines) - Atlas selection, config, territories
-- projectionStore (341 lines) - Projection selection, composite, canvas
-- viewStore (414 lines) - View mode, territory mode, visibility rules
+The compiler refuses a `PresetId` where a function expects an `AtlasId`, and a signature names the kind of identifier it takes. The brand exists in the types and TypeScript erases it, so the value is a plain string at runtime. A string read from a file becomes an identifier through a constructor of `src/types/branded.ts` or a cast.
 
----
+## Use cases are store actions, and a service imports no store
 
-## ADR-003: Static vs Instance Services
+A use case that reads or writes the state of the application is an action of a store. The action passes values to the services as arguments. A service can keep its own state: the parameters store owns a `ProjectionParameterManager`, which holds the levels of parameters. A service imports no store.
 
-**Context**: Should services be static or instance-based?
+The dependencies go in one direction, and `eslint.config.js` checks it. Pinia [lets an action call another store](https://pinia.vuejs.org/cookbook/composing-stores.html), and a store action runs outside the `setup` of a component. A service runs in a test with plain arguments.
 
-**Decision**: Keep existing hybrid pattern.
+## Projection preferences are in the atlas configuration
 
-**Rationale**:
-1. Stateless operations (validation, loading) use static methods
-2. Stateful operations (Cartographer, CompositeProjection) use instances
-3. Pattern is working and understood
-4. No benefit to enforcing one pattern
+`projectionPreferences`, in `configs/atlases/<atlas>.json`, gives the recommended projections of an atlas and its default composite projection. `configs/schemas/atlas.schema.json` defines this field, and [docs/atlases.md](atlases.md) describes it.
 
-**Examples**:
-- Static: InitializationService, PresetLoader, PresetApplicationService
-- Instance: AtlasService, Cartographer, CompositeProjection
-- Singleton: ProjectionRegistry
+The configuration of an atlas is the one source of what is specific to this atlas, and a new atlas declares its projections in its own file. `eslint.config.js` refuses an import of `src/core/atlases/` from `src/core/projections/`: a caller passes the recommended projections through `ProjectionFilterContext`.
 
----
+## An expected failure goes through Result with a typed error
 
-## ADR-004: Centralized Projection Defaults
+A failure that a file, the network or an imported value can produce is a `Result` with a typed error. The section Errors of [AGENTS.md](../AGENTS.md) gives the rule.
 
-**Context**: Atlas-specific projection defaults were duplicated across multiple files (registry.ts, atlas-metadata-service.ts).
+The signature of a function shows that it can fail and how. The caller handles the error by its `code`, and `useErrorMessage` translates this code where the interface shows it, so `src/core/` and `src/services/` import no translation.
 
-**Decision**: Centralize defaults in `src/core/projections/defaults.ts`.
+## Positioning is in d3 parameters from end to end
 
-**Rationale**:
-1. Single source of truth for atlas projection defaults
-2. Eliminates duplicate switch statements
-3. Easier to maintain and extend
+The presets, the state of the application, the exported file and the loader all give the position of a territory with the d3 parameters `rotate`, `center` and `parallels`.
 
-**Result**: Created defaults.ts exporting:
-- `ATLAS_PROJECTION_DEFAULTS` - Default parameters per atlas
-- `getDefaultProjectionPreferences()` - Recommended projections per atlas
-- `getDefaultCompositeProjections()` - Default composite projections per atlas
+The application has one model, so the import of a file in the current format and the export carry the same values. A file written for d3 keeps its meaning: `configs/presets/usa/usa-pseudo-d3cp.json` gives a territory both `center` and `rotate`, as d3 does for Alaska in `geoAlbersUsa`. The loader applies the values of the file as they are, so a reader of the format needs no rule per projection family. The rules per family are in `src/core/positioning/`, which the import of deprecated forms, the panning of the map and the parameter registry use, and `eslint.config.js` refuses the deprecated fields elsewhere. [docs/projections.md](projections.md) describes the positioning.
 
----
+## The preset ids of the registry are the public ids
 
-## ADR-005: Result Type vs LoadResult Pattern
+The `id` of a preset in `configs/atlas-registry.json` is the id that `@atlas-composer/preset-library` publishes and the name of the file `configs/presets/<atlas>/<id>.json`.
 
-**Context**: GeoDataService uses throws for error handling. Clean Architecture prefers explicit error returns. The codebase has existing LoadResult pattern for preset operations.
+The project has one list of ids, and a user of the package reads the same name as the application. `packages/preset-library/src/index.ts` builds its catalog from the registry, and `pnpm geodata:validate --all` checks the form of each id and its path.
 
-**Decision**: Use Result<T, E> for data loading, keep LoadResult for preset operations.
+## The loader validates with the schema alone
 
-**Rationale**:
-1. Result type provides explicit success/failure handling without exceptions
-2. Domain error types enable type-safe error discrimination
-3. LoadResult already handles preset warnings array - converting would lose this
-4. Gradual migration allows both patterns to coexist via conversion utilities
+`ProjectionLoader` calls `validateConfig` of `@atlas-composer/specification` and throws a `ConfigValidationError` for a file that the schema refuses. It neither tolerates nor converts a deprecated form.
 
-**Result**: Dual pattern with interop:
-- `Result<T, E>` - Data domain (GeoDataService), new error-prone code
-- `LoadResult` - Preset domain (PresetLoader, ViewPresetLoader)
-- `toLoadResult()` / `fromLoadResult()` - Conversion utilities in result.ts
-
-**Files**:
-- `src/core/types/result.ts` - Result type, helpers, conversion utilities
-- `src/core/types/errors.ts` - Domain error types (GeoDataError, PresetError, etc.)
-- `src/utils/error-formatting.ts` - User-facing error messages, i18n integration
-
----
-
-## ADR-006: Branded Types for Domain Identifiers
-
-**Context**: All domain identifiers (atlas IDs, projection IDs, preset IDs, territory codes) are plain strings, allowing accidental swaps at call sites.
-
-**Decision**: Use TypeScript branded/nominal types for domain identifiers.
-
-**Rationale**:
-1. Compile-time prevention of identifier mix-ups
-2. Self-documenting function signatures
-3. Zero runtime overhead (brands are erased by TypeScript)
-4. Gradual adoption - can coexist with plain strings during migration
-
-**Result**: Full adoption across codebase:
-- `AtlasId` - Stores, services, registry, components
-- `ProjectionId` - Stores, services, CompositeProjection, parameter manager
-- `PresetId` - Stores, services, PresetLoader, registry
-- `TerritoryCode` - Stores, services, all territory methods, TerritoryDefaults
-
-**Files**:
-- `src/types/branded.ts` - Type definitions and constructor functions
-- Stores: atlas.ts, projection.ts, view.ts, parameters.ts
-- Services: All services with territory/projection methods
-- Core: registry.ts, converter.ts, TerritoryDefaults interface
+The schema alone decides what a valid file is, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [docs/export.md](export.md) describes, and the loader refuses them.
