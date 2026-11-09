@@ -18,7 +18,6 @@ export interface FamilyConstraint {
   min?: number | number[]
   max?: number | number[]
   step?: number
-  defaultValue?: any
   validate?: (value: any) => Result<void, ParameterIssue>
 }
 
@@ -53,6 +52,14 @@ class ParameterRegistry {
 
   get(key: string): ParameterDefinition | undefined {
     return this.definitions.get(key)
+  }
+
+  getDefaultValue<K extends keyof ProjectionParameters>(key: K): NonNullable<ProjectionParameters[K]> {
+    const defaultValue = this.get(key as string)?.defaultValue
+    if (defaultValue === undefined) {
+      throw new Error(`Parameter without default value: ${String(key)}`)
+    }
+    return defaultValue
   }
 
   getAll(): ParameterDefinition[] {

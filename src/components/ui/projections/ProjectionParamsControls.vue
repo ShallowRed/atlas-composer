@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import { parameterRegistry } from '@/core/parameters'
 import { getDisplayedRotate, supportsPanning, updatePositioningAxis } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
@@ -31,6 +32,8 @@ const projectionFamily = computed<ProjectionFamilyType>(() => {
 })
 
 const effectiveParams = computed(() => parameterStore.globalEffectiveParameters)
+
+const parallels = computed(() => effectiveParams.value.parallels ?? parameterRegistry.getDefaultValue('parallels'))
 
 const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(projectionFamily.value)
@@ -200,7 +203,7 @@ function reset() {
           </h4>
 
           <RangeSlider
-            :model-value="effectiveParams.parallels?.[0] ?? 30"
+            :model-value="parallels[0]"
             :label="t('projectionParams.parallel1')"
             icon="ri-subtract-line"
             size="xs"
@@ -210,13 +213,12 @@ function reset() {
             unit="°"
             show-midpoint
             @update:model-value="(value: number) => {
-              const currentParallels = effectiveParams.parallels ?? [30, 60]
-              handleParameterChange('parallels', [value, currentParallels[1]])
+              handleParameterChange('parallels', [value, parallels[1]])
             }"
           />
 
           <RangeSlider
-            :model-value="effectiveParams.parallels?.[1] ?? 60"
+            :model-value="parallels[1]"
             :label="t('projectionParams.parallel2')"
             icon="ri-subtract-line"
             size="xs"
@@ -226,8 +228,7 @@ function reset() {
             unit="°"
             show-midpoint
             @update:model-value="(value: number) => {
-              const currentParallels = effectiveParams.parallels ?? [30, 60]
-              handleParameterChange('parallels', [currentParallels[0], value])
+              handleParameterChange('parallels', [parallels[0], value])
             }"
           />
         </div>

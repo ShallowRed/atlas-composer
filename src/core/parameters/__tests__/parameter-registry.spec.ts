@@ -188,3 +188,40 @@ describe('parameterRegistry', () => {
     })
   })
 })
+
+describe('slider ranges and default values of the registered parameters', () => {
+  const FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL', 'POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
+  const asArray = (value: unknown) => (Array.isArray(value) ? value : [value]) as number[]
+  const isWhole = (value: number) => Math.abs(value - Math.round(value)) < 1e-9
+
+  registerAllParameters()
+  const ranges = parameterRegistry.getAll().flatMap(definition => FAMILIES.flatMap((family) => {
+    const { min, max, step } = parameterRegistry.getConstraintsForFamily(definition.key as string, family)
+    return min !== undefined && max !== undefined && step !== undefined
+      ? [{ name: `${String(definition.key)} of ${family}`, min: asArray(min), max: asArray(max), step, defaultValue: definition.defaultValue }]
+      : []
+  }))
+
+  beforeEach(registerAllParameters)
+
+  it.each(ranges)('$name reaches its maximum and its default value', ({ min, max, step, defaultValue }) => {
+    min.forEach((axisMin, axis) => {
+      expect(isWhole((max[axis]! - axisMin) / step)).toBe(true)
+      const axisDefault = defaultValue === undefined ? undefined : asArray(defaultValue)[axis]
+      if (axisDefault !== undefined && axisDefault >= axisMin && axisDefault <= max[axis]!) {
+        expect(isWhole((axisDefault - axisMin) / step)).toBe(true)
+      }
+    })
+  })
+
+  it('reads the default value of a parameter', () => {
+    expect(parameterRegistry.getDefaultValue('parallels')).toEqual([30, 60])
+    expect(parameterRegistry.getDefaultValue('clipAngle')).toBe(90)
+    expect(parameterRegistry.getDefaultValue('precision')).toBe(0.1)
+    expect(parameterRegistry.getDefaultValue('pixelClipExtent')).toEqual([-100, -100, 100, 100])
+  })
+
+  it('throws for a parameter without default value', () => {
+    expect(() => parameterRegistry.getDefaultValue('projectionId')).toThrow(Error)
+  })
+})

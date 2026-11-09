@@ -18,7 +18,7 @@ import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, get
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
 import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
-import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { DEFAULT_CANVAS_DIMENSIONS, FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
@@ -124,7 +124,7 @@ export const useCompositionStore = defineStore('composition', () => {
       let preset: Preset | null = null
       let territoryDefaults = TerritoryDefaultsService.initializeAll(
         atlasService.getAllTerritories(),
-        'mercator' as ProjectionId,
+        FALLBACK_PROJECTION_ID,
       )
       let territoryParameters: Record<string, Record<string, unknown>> = {}
       let referenceScale: number | undefined

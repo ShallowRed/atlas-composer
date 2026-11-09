@@ -53,7 +53,7 @@ The territories of a custom composite are positioned by their scale and their tr
 
 ## Parameter registry
 
-`parameterRegistry`, in `src/core/parameters/parameter-registry.ts`, holds the description of each parameter, and `src/core/parameters/parameter-definitions.ts` registers these descriptions. `familyConstraints` gives, for one family, the relevance of the parameter, its bounds, its step, its default value and an optional validation function. `getConstraintsForFamily` treats a parameter without an entry for the family as irrelevant.
+`parameterRegistry`, in `src/core/parameters/parameter-registry.ts`, holds the description of each parameter, and `src/core/parameters/parameter-definitions.ts` registers these descriptions. `familyConstraints` gives, for one family, the relevance of the parameter, its bounds, its step and an optional validation function. `getDefaultValue` reads the value that a control shows when the parameter is missing. `getConstraintsForFamily` treats a parameter without an entry for the family as irrelevant.
 
 The relevance of `center` and `rotate` comes from `usesPositionParameter`, so `center` is relevant for the `CYLINDRICAL` family, and `rotate` for the `CYLINDRICAL`, `PSEUDOCYLINDRICAL`, `CONIC` and `AZIMUTHAL` families.
 

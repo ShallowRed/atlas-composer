@@ -168,7 +168,6 @@ export const useParameterStore = defineStore('parameters', () => {
           min: familyConstraints.min,
           max: familyConstraints.max,
           step: familyConstraints.step,
-          defaultValue: def.familyConstraints?.[family]?.defaultValue ?? def.defaultValue,
         }
         return acc
       }, {} as any),

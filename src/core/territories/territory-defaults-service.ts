@@ -1,11 +1,12 @@
 import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryConfig, Translation } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 
 export class TerritoryDefaultsService {
   static initializeAll(
     territories: TerritoryConfig[],
-    defaultProjection: ProjectionId = 'mercator' as ProjectionId,
+    defaultProjection: ProjectionId = FALLBACK_PROJECTION_ID,
   ): TerritoryDefaults {
     return {
       projections: this.initializeProjections(territories, defaultProjection),
@@ -16,7 +17,7 @@ export class TerritoryDefaultsService {
 
   static initializeProjections(
     territories: TerritoryConfig[],
-    defaultProjection: ProjectionId = 'mercator' as ProjectionId,
+    defaultProjection: ProjectionId = FALLBACK_PROJECTION_ID,
   ): Record<TerritoryCode, ProjectionId> {
     return Object.fromEntries(
       territories.map(t => [t.code, defaultProjection]),

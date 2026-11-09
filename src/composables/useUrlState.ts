@@ -1,7 +1,8 @@
 import type { TerritoryCode } from '@/types'
 import { computed } from 'vue'
-
 import { useRoute } from 'vue-router'
+
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { parseSharedLink } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
@@ -9,7 +10,6 @@ import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
-import { createProjectionId } from '@/types/branded'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.composable
@@ -28,7 +28,7 @@ export function useUrlState() {
     const state: Record<string, string> = {
       atlas: atlasStore.selectedAtlasId,
       view: viewStore.viewMode,
-      projection: projectionStore.selectedProjection ?? 'mercator', // Fallback for URL only
+      projection: projectionStore.selectedProjection ?? FALLBACK_PROJECTION_ID, // Fallback for URL only
       territory: viewStore.territoryMode,
     }
 
@@ -47,7 +47,7 @@ export function useUrlState() {
     const territories = atlasService.getAllTerritories()
     const defaults = TerritoryDefaultsService.initializeAll(
       territories,
-      createProjectionId('mercator'),
+      FALLBACK_PROJECTION_ID,
     )
 
     // The preset of the composite-custom view gives values that differ from the territory defaults
