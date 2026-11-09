@@ -10,7 +10,7 @@ A service that keeps data is an instance, such as `GeoDataService` or `Composite
 
 ## From an action to the map
 
-The change of a territory parameter shows the path of an action. `TerritoryParameterControls` calls `setTerritoryParameter` of the parameters store. The store writes the value in its `ProjectionParameterManager` and increments `territoryParametersVersion`. The manager is a plain class, so these version counters give the reactivity: the getters of the store read the counter, and a `computed` or a watcher that calls a getter runs again after a write.
+The change of a territory parameter shows the steps from an action to the rendering. `TerritoryParameterControls` calls `setTerritoryParameter` of the parameters store. The store writes the value in its `ProjectionParameterManager` and increments `territoryParametersVersion`. The manager is a plain class, so these version counters give the reactivity: the getters of the store read the counter, and a `computed` or a watcher that calls a getter runs again after a write.
 
 `MapRenderer` draws each map of the application. `SplitView` and `UnifiedView` use this component for their maps. It calls `useMapWatchers`, which watches the version counter, the view mode, the projections and the display options, and asks for a new rendering. `MapRenderer` groups these requests over 50 milliseconds. During a drag, it renders at each request. A rendering empties the container of the map, asks `useMapRender` for an SVG element, inserts this element and adds the overlays.
 
@@ -24,7 +24,7 @@ The change of an atlas or of a view mode goes through watchers of `src/stores/co
 
 ## Stores and composables
 
-A store holds the state of one concept, and [adrs.md](adrs.md) gives the reasons. `src/stores/composition.ts` holds the use cases that write several stores and the watchers of the atlas and of the view mode. `MapView` creates this store first, so that its watchers exist before the first write in the stores. The geoData store holds the `Cartographer` of the current atlas, the loaded territories and `renderKey`. The app store holds the loading state, from which `MapView` decides to show the skeleton of the map.
+A store holds the state of one concept, and [adrs.md](adrs.md) gives the reasons. `src/stores/composition.ts` holds the use cases that replace the state of several stores and the watchers of the atlas and of the view mode. `MapView` creates this store before it calls `restoreFromUrl`, so that its watchers exist before this write in the stores. The geoData store holds the `Cartographer` of the current atlas, the loaded territories and `renderKey`. The app store holds the loading state, from which `MapView` decides to show the skeleton of the map.
 
 A composable holds the logic of the interface. It reads the stores and gives a component computed values, as `useViewState` does for the flags of the view mode, or it handles the mouse events on the map, as `useTerritoryCursor`, `useProjectionPanning` and `useClipExtentEditor` do. The composables that draw, such as `useMapRender`, call `src/services/rendering/`.
 
@@ -42,9 +42,9 @@ For the same reason, `setGlobalParameter` and `setTerritoryParameter` throw an `
 
 `src/composables/useUrlState.ts` converts the state to the query of a link and back. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
 
-The query holds `atlas`, `view`, `projection` and `territory`. It adds `rlon`, `rlat` and `rgam` for the global `rotate`, `p1` and `p2` for the global `parallels`, and `composite` in the `built-in-composite` view. The parameter `t` is a JSON object with the keys `s_<code>`, `tx_<code>` and `ty_<code>` for each scale or translation that differs from the values of `TerritoryDefaultsService`.
+The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations that differ from `TerritoryDefaultsService`. `serializeState` gives the keys.
 
-When `MapView` is mounted, `restoreFromUrl` writes the query in the stores, `startMapView` initializes the atlas, then `restoreProjectionParametersFromUrl` writes `rlon`, `rlat`, `rgam`, `p1` and `p2`. These five values are read last because the initialization and the watcher of the view mode clear the global parameters. The initialization also sets the view mode, the selected projection, the composite projection, the territory mode and the territory parameters from the configuration and the default preset of the atlas. After the load of a link, the map therefore shows the atlas of the query with its default preset, and the global `rotate` and `parallels` of the query.
+When `MapView` is mounted, `restoreFromUrl` writes the query in the stores, `startMapView` initializes the atlas, then `restoreProjectionParametersFromUrl` writes `rlon`, `rlat`, `rgam`, `p1` and `p2`. These five values are read last because the initialization and the watcher of the view mode clear the global parameters. The initialization also sets the view mode, the selected projection, the composite projection, the territory mode and the territory parameters from the configuration and the default preset of the atlas. After the load of a link, the view is therefore the default view of the atlas, and the map shows the atlas of the query with its default preset and the global `rotate` and `parallels` of the query.
 
 ## Application and packages
 
