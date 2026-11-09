@@ -135,18 +135,33 @@ export async function loadPresetIntoApplication(atlasId: AtlasId, presetId: Pres
   return buildApplicationComposite(atlasId)
 }
 
-export function loadWithLoader(config: CompositeProjectionConfig, territoryCode: string) {
+function load(config: CompositeProjectionConfig, territories: CompositeProjectionConfig['territories'][number][], factories = d3ProjectionFactories) {
   const loader = new ProjectionLoader()
-  loader.registerAll(d3ProjectionFactories)
+  loader.registerAll(factories)
   const { width, height } = config.canvasDimensions
+  return loader.loadFromJSON(JSON.stringify({ ...config, territories }), { width, height })
+}
+
+export function loadWithLoader(config: CompositeProjectionConfig, territoryCode: string) {
   // Clipping hides the points outside the extent; the comparison bears on the projected coordinates, so the extent holds them all
   const territories = config.territories
     .filter(t => t.code === territoryCode)
     .map(({ layout: { translateOffset }, ...territory }) => ({
       ...territory,
-      layout: { translateOffset, pixelClipExtent: [-1e6, -1e6, 1e6, 1e6] },
+      layout: { translateOffset, pixelClipExtent: [-1e6, -1e6, 1e6, 1e6] as [number, number, number, number] },
     }))
-  return loader.loadFromJSON(JSON.stringify({ ...config, territories }), { width, height })
+  return load(config, territories)
+}
+
+// The projection that the loader creates for a territory, read through a wrapped factory
+export function loadSubProjection(config: CompositeProjectionConfig, territoryCode: string): GeoProjection {
+  let created: unknown
+  const factories = Object.fromEntries(Object.entries(d3ProjectionFactories).map(([id, factory]) => [id, () => {
+    created = factory()
+    return created as ReturnType<typeof factory>
+  }]))
+  load(config, config.territories.filter(t => t.code === territoryCode), factories)
+  return created as GeoProjection
 }
 
 export function pointsInBounds([[minLon, minLat], [maxLon, maxLat]]: [Point, Point]): Point[] {

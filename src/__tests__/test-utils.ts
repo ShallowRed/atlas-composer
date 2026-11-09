@@ -1,5 +1,6 @@
 import type { PresetType } from '#types'
-import type { AtlasId } from '@/types/branded'
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { AtlasId, PresetId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import atlasRegistry from '#configs/atlas-registry.json'
@@ -39,4 +40,27 @@ export function readPresetFiles(): PresetFile[] {
       json,
     }
   }))
+}
+
+export interface CompositeSource {
+  id: string
+  atlasId: AtlasId
+  presetId?: PresetId
+  json: string
+  config: CompositeProjectionConfig
+}
+
+// Each composite-custom preset, and a configuration for each case of the catalog that the presets do not cover
+export function readCompositeSources(): CompositeSource[] {
+  const presets = readPresetFiles()
+    .filter(preset => preset.type === 'composite-custom')
+    .map(({ id, atlasId, json }) => ({ id, atlasId, presetId: id as PresetId, json, config: JSON.parse(json) as CompositeProjectionConfig }))
+
+  const families = readdirSync('src/__tests__/fixtures/families').map((file) => {
+    const json = readFileSync(`src/__tests__/fixtures/families/${file}`, 'utf8')
+    const config = JSON.parse(json) as CompositeProjectionConfig
+    return { id: file, atlasId: config.metadata.atlasId as AtlasId, json, config }
+  })
+
+  return [...presets, ...families]
 }
