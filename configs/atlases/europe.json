@@ -4,6 +4,9 @@
   "name": "Europe",
   "description": "European countries including EU members (27), non-EU states, and overseas territories",
   "category": "region",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "conic-conformal-europe"
+  },
   "dataSources": {
     "territories": "europe-territories-50m.json",
     "metadata": "europe-metadata-50m.json"

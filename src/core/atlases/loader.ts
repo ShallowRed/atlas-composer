@@ -9,25 +9,6 @@ import type {
 import type { TerritoryCode } from '@/types/branded'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 
-function getFallbackProjectionPreferences(atlasId: string): ProjectionPreferences | undefined {
-  switch (atlasId) {
-    case 'world':
-      return { recommended: ['natural-earth', 'robinson'] }
-    case 'france':
-      return { recommended: ['conic-conformal-france'] }
-    case 'spain':
-      return { recommended: ['conic-conformal-spain'] }
-    case 'portugal':
-      return { recommended: ['conic-conformal-portugal'] }
-    case 'usa':
-      return { recommended: ['albers-usa', 'albers-usa-composite'] }
-    case 'europe':
-      return { recommended: ['conic-conformal-europe'] }
-    default:
-      return { recommended: [`conic-conformal-${atlasId}`] }
-  }
-}
-
 export interface ProjectionPreferences {
   exclude?: string[]
   categoryOrder?: string[]
@@ -38,7 +19,6 @@ export interface ProjectionPreferences {
 export interface AtlasSpecificConfig {
   territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
-  projectionPreferences?: ProjectionPreferences
   rawModeLabels: Record<string, I18nValue>
 }
 
@@ -168,6 +148,7 @@ function createAtlasConfig(
     name: resolveI18nValue(config.name, locale),
     category: config.category,
     geoDataConfig,
+    projectionPreferences: config.projectionPreferences as AtlasConfig['projectionPreferences'],
     compositeProjectionConfig: territories.isWildcard
       ? undefined
       : {
@@ -284,12 +265,9 @@ export function loadAtlasConfig(
     locale,
   )
 
-  const projectionPreferences = getFallbackProjectionPreferences(jsonConfig.id)
-
   const atlasSpecificConfig: AtlasSpecificConfig = {
     territoryModes,
     territoryCollections,
-    projectionPreferences,
     rawModeLabels,
   }
 

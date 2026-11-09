@@ -4,6 +4,9 @@
   "name": "Portugal",
   "description": "Portugal, Madeira, and Azores",
   "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "conic-conformal-portugal"
+  },
   "dataSources": {
     "territories": "portugal-territories-50m.json",
     "metadata": "portugal-metadata-50m.json"

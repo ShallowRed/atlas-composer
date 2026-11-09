@@ -10,6 +10,9 @@
     "fr": "France métropolitaine et territoires d'outre-mer"
   },
   "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "conic-conformal-france"
+  },
   "dataSources": {
     "territories": "france-territories-50m.json",
     "metadata": "france-metadata-50m.json"

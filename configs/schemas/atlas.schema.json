@@ -67,6 +67,26 @@
       "required": ["territories", "metadata"]
     },
 
+    "projectionPreferences": {
+      "type": "object",
+      "description": "Projections of this atlas, by definition id",
+      "properties": {
+        "defaultCompositeProjection": {
+          "type": "string",
+          "description": "Composite projection of d3-composite-projections chosen when the atlas is initialized"
+        },
+        "recommended": {
+          "type": "array",
+          "description": "Projections that the projection menu marks as recommended",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+
     "viewModes": {
       "type": "array",
       "description": "Supported view modes for this atlas. Defaults to all modes if not specified.",
