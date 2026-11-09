@@ -1,4 +1,4 @@
-import type { PositioningView, PositionParameter } from '@/core/positioning'
+import type { PositioningView } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ParameterIssue } from '@/core/types/errors'
 import type { Translation } from '@/types'
@@ -26,9 +26,13 @@ interface AxisRange {
   step?: number
 }
 
-type TupleRanges<K extends PositionParameter> = K extends 'rotate'
+type TupleParameter = 'rotate' | 'center' | 'parallels' | 'translateOffset' | 'pixelClipExtent'
+
+type TupleRanges<K extends TupleParameter> = K extends 'rotate'
   ? [AxisRange, AxisRange, AxisRange]
-  : [AxisRange, AxisRange]
+  : K extends 'pixelClipExtent'
+    ? [AxisRange, AxisRange, AxisRange, AxisRange]
+    : [AxisRange, AxisRange]
 
 export const useParameterStore = defineStore('parameters', () => {
   const parameterManager = new ProjectionParameterManager()
@@ -172,11 +176,16 @@ export const useParameterStore = defineStore('parameters', () => {
   }
 
   // Bounds of each axis, whether or not the parameter is relevant for the family
-  function getTupleRanges<K extends PositionParameter>(family: ProjectionFamilyType, key: K): TupleRanges<K> | undefined {
+  function getTupleRanges<K extends TupleParameter>(family: ProjectionFamilyType, key: K): TupleRanges<K> | undefined {
     const { min, max, step } = parameterRegistry.getConstraintsForFamily(key, family)
     if (!Array.isArray(min) || !Array.isArray(max))
       return undefined
     return min.map((axisMin, axis) => ({ min: axisMin, max: max[axis] as number, step })) as TupleRanges<K>
+  }
+
+  function getNumberRange(family: ProjectionFamilyType, key: keyof ProjectionParameters): AxisRange | undefined {
+    const { min, max, step } = parameterRegistry.getConstraintsForFamily(key as string, family)
+    return typeof min === 'number' && typeof max === 'number' ? { min, max, step } : undefined
   }
 
   const globalEffectiveParameters = computed(() => {
@@ -250,6 +259,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
     getParameterConstraints,
     getTupleRanges,
+    getNumberRange,
 
     initializeFromPreset,
     getExportableParameters,

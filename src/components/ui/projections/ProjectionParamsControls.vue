@@ -36,35 +36,15 @@ const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(projectionFamily.value)
 })
 
-function getParameterRange(paramKey: keyof ProjectionParameters) {
-  const constraints = parameterConstraints.value.constraints[paramKey]
-  if (!constraints) {
-    const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
-      parallel1: { min: -90, max: 90, step: 1 },
-      parallel2: { min: -90, max: 90, step: 1 },
-      scaleMultiplier: { min: 0.1, max: 10, step: 0.1 },
-    }
-    return fallbackRanges[paramKey as string] || { min: 0, max: 100, step: 1 }
-  }
-
-  return {
-    min: constraints.min ?? 0,
-    max: constraints.max ?? 100,
-    step: constraints.step ?? 1,
-  }
-}
-
 const rotateRanges = computed(() => parameterStore.getTupleRanges(projectionFamily.value, 'rotate'))
+const parallelsRanges = computed(() => parameterStore.getTupleRanges(projectionFamily.value, 'parallels'))
+const scaleMultiplierRange = computed(() => parameterStore.getNumberRange(projectionFamily.value, 'scaleMultiplier'))
 
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
     .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
-
-const parallel1Range = computed(() => getParameterRange('parallel1'))
-const parallel2Range = computed(() => getParameterRange('parallel2'))
-const scaleMultiplierRange = computed(() => getParameterRange('scaleMultiplier'))
 
 const hasRotateParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'rotate')
@@ -212,7 +192,7 @@ function reset() {
         </div>
       </template>
 
-      <template v-if="hasParallelsParameter">
+      <template v-if="hasParallelsParameter && parallelsRanges">
         <div class="space-y-2">
           <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
             <i class="ri-subtract-line" />
@@ -224,9 +204,9 @@ function reset() {
             :label="t('projectionParams.parallel1')"
             icon="ri-subtract-line"
             size="xs"
-            :min="parallel1Range.min"
-            :max="parallel1Range.max"
-            :step="parallel1Range.step"
+            :min="parallelsRanges[0].min"
+            :max="parallelsRanges[0].max"
+            :step="parallelsRanges[0].step"
             unit="°"
             show-midpoint
             @update:model-value="(value: number) => {
@@ -240,9 +220,9 @@ function reset() {
             :label="t('projectionParams.parallel2')"
             icon="ri-subtract-line"
             size="xs"
-            :min="parallel2Range.min"
-            :max="parallel2Range.max"
-            :step="parallel2Range.step"
+            :min="parallelsRanges[1].min"
+            :max="parallelsRanges[1].max"
+            :step="parallelsRanges[1].step"
             unit="°"
             show-midpoint
             @update:model-value="(value: number) => {
@@ -267,7 +247,7 @@ function reset() {
         />
 
         <RangeSlider
-          v-if="!projectionStore.autoFitDomain"
+          v-if="!projectionStore.autoFitDomain && scaleMultiplierRange"
           :model-value="effectiveParams.scaleMultiplier ?? 1.0"
           :label="t('projectionParams.scaleMultiplier')"
           icon="ri-zoom-in-line"
