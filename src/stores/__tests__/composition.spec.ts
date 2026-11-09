@@ -101,9 +101,9 @@ describe('composition store', () => {
       expect(useProjectionStore().compositeProjection).toBe('conic-conformal-france')
     })
 
-    it('selects natural-earth in the other views', async () => {
+    it.each(['split', 'unified', 'built-in-composite'] as const)('selects natural-earth in the %s view', async (viewMode) => {
       await startApplication(FRANCE)
-      useViewStore().viewMode = 'split'
+      useViewStore().viewMode = viewMode
 
       await useCompositionStore().initializeAtlas({ preserveViewMode: true })
 
