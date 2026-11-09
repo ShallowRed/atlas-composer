@@ -198,7 +198,7 @@ describe('composition store', () => {
     })
   })
 
-  describe('superseded initialization', () => {
+  describe('close selections of atlases', () => {
     function delayAtlas(delays: Record<string, number>, failure?: AtlasConfigError) {
       const atlasStore = useAtlasStore()
       const loadAtlas = atlasStore.loadAtlas
@@ -253,6 +253,61 @@ describe('composition store', () => {
       expect(useUIStore().toasts).toEqual([])
       expect(useGeoDataStore().error).toBeNull()
       expect(useAtlasStore().selectedAtlasId).toBe('europe')
+    })
+  })
+
+  describe('superseded initialization', () => {
+    const FAILURE = err({ code: 'JSON_FILE_NOT_FOUND', path: 'superseded' } as const)
+
+    // Holds the first call of a step of the initialization, and answers with its outcome on release
+    function holdOnce<T extends object, K extends keyof T>(target: T, method: K, outcome: () => unknown) {
+      let release!: () => void
+      const released = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const spy = (vi.isMockFunction(target[method]) ? target[method] : vi.spyOn(target, method as any)) as any
+      spy.mockImplementationOnce(async () => {
+        await released
+        return outcome()
+      })
+      return { release, spy }
+    }
+
+    const throwNetworkError = () => {
+      throw new Error('network')
+    }
+
+    const STEPS = [
+      ['preset of the composite-custom view', 'composite-custom', () => holdOnce(PresetLoader, 'loadPreset', () => FAILURE)],
+      ['preset of another view', 'split', () => holdOnce(PresetLoader, 'loadPreset', () => FAILURE)],
+      ['view preset', 'composite-custom', () => holdOnce(useViewStore(), 'autoLoadFirstPreset', () => undefined)],
+      ['failed creation of the cartographer', 'composite-custom', () => holdOnce(useGeoDataStore(), 'reinitialize', () => FAILURE)],
+      ['failed preload', 'composite-custom', () => holdOnce(useGeoDataStore(), 'loadAllAtlasData', () => FAILURE)],
+      ['exception', 'composite-custom', () => holdOnce(useGeoDataStore(), 'reinitialize', throwNetworkError)],
+    ] as const
+
+    it.each(STEPS)('stops at the %s', async (_, view, hold) => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      await compositionStore.selectViewMode(view)
+      const { release, spy } = hold()
+      const geoDataStore = useGeoDataStore()
+      vi.mocked(geoDataStore.reinitialize).mockClear()
+      const firstCalls = spy.mock.calls.length
+
+      const superseded = compositionStore.selectAtlas('portugal' as AtlasId)
+      await vi.waitFor(() => expect(spy.mock.calls.length).toBeGreaterThan(firstCalls))
+      await compositionStore.selectAtlas('usa' as AtlasId)
+      const reinitializeCalls = vi.mocked(geoDataStore.reinitialize).mock.calls.length
+      release()
+      await superseded
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+
+      expect(useUIStore().toasts).toEqual([])
+      expect(geoDataStore.error).toBeNull()
+      expect(useAtlasStore().selectedAtlasId).toBe('usa')
+      expect(vi.mocked(geoDataStore.reinitialize).mock.calls).toHaveLength(reinitializeCalls)
     })
   })
 
@@ -315,6 +370,37 @@ describe('composition store', () => {
 
       expect(result).toEqual(ok(undefined))
       await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+    })
+
+    it('keeps the application ready when the data of the previous atlas answers with a failure', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      vi.mocked(useGeoDataStore().loadAllAtlasData).mockImplementationOnce(async () => {
+        await compositionStore.selectAtlas('europe' as AtlasId)
+        return err({ code: 'JSON_FILE_NOT_FOUND', path: 'previous' })
+      })
+
+      const result = await compositionStore.loadPreset({ presetId: PRESET })
+
+      expect(result).toEqual(ok(undefined))
+      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+    })
+
+    it('ignores the failed data of an import when the atlas changed', async () => {
+      await startApplication(FRANCE)
+      const compositionStore = useCompositionStore()
+      await compositionStore.initializeAtlas()
+      vi.mocked(useGeoDataStore().loadAllAtlasData).mockImplementationOnce(async () => {
+        await compositionStore.selectAtlas('europe' as AtlasId)
+        return err({ code: 'JSON_FILE_NOT_FOUND', path: 'previous' })
+      })
+
+      const result = await compositionStore.importConfiguration(
+        JSON.parse(await readFile('configs/presets/france/france-proportional.json', 'utf8')) as CompositeProjectionConfig,
+      )
+
+      expect(result).toEqual(ok(undefined))
     })
 
     it('ignores the failure of an import when the atlas changed', async () => {
