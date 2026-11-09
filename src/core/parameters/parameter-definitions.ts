@@ -1,10 +1,29 @@
 import type { FamilyConstraint, FamilyConstraints } from '@/core/parameters/parameter-registry'
 import type { PositionParameter } from '@/core/positioning'
+import type { ParameterIssue } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import { parameterRegistry } from '@/core/parameters/parameter-registry'
 import { usesPositionParameter } from '@/core/positioning'
 import { err, ok } from '@/core/types/result'
 
 const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
+const OTHER_FAMILIES = ['POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
+
+// Bounds of a parameter that the controls of these families do not show
+function boundsOfOtherFamilies(constraint: Omit<FamilyConstraint, 'relevant' | 'required'>): FamilyConstraints {
+  return Object.fromEntries(OTHER_FAMILIES.map(family => [family, { ...constraint, relevant: false, required: false }]))
+}
+
+function validateTranslateOffset(value: any): Result<void, ParameterIssue> {
+  if (!Array.isArray(value) || value.length !== 2) {
+    return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'translateOffset' })
+  }
+  const [x, y] = value
+  if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
+    return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'translateOffset', min: -2000, max: 2000 })
+  }
+  return ok(undefined)
+}
 
 function positionConstraints(
   parameter: PositionParameter,
@@ -46,12 +65,15 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true,
-    familyConstraints: positionConstraints('rotate', {
-      min: [-180, -90, -180],
-      max: [180, 90, 180],
-      step: 0.5,
-      defaultValue: [0, 0, 0],
-    }),
+    familyConstraints: {
+      ...positionConstraints('rotate', {
+        min: [-180, -90, -180],
+        max: [180, 90, 180],
+        step: 0.5,
+        defaultValue: [0, 0, 0],
+      }),
+      ...boundsOfOtherFamilies({ min: [-180, -90, -180], max: [180, 90, 180] }),
+    },
   })
 
   parameterRegistry.register({
@@ -146,6 +168,7 @@ export function registerAllParameters(): void {
         step: 0.1,
         defaultValue: 1.0,
       },
+      ...boundsOfOtherFamilies({ min: 0.01, max: 10 }),
     },
   })
 
@@ -210,32 +233,27 @@ export function registerAllParameters(): void {
         relevant: true, // Used for territory positioning in composite projections
         required: false,
         defaultValue: [0, 0],
-        validate: (value) => {
-          if (!Array.isArray(value) || value.length !== 2) {
-            return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'translateOffset' })
-          }
-          const [x, y] = value
-          if (x < -2000 || x > 2000 || y < -2000 || y > 2000) {
-            return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'translateOffset', min: -2000, max: 2000 })
-          }
-          return ok(undefined)
-        },
+        validate: validateTranslateOffset,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
         defaultValue: [0, 0],
+        validate: validateTranslateOffset,
       },
       CONIC: {
         relevant: true,
         required: false,
         defaultValue: [0, 0],
+        validate: validateTranslateOffset,
       },
       AZIMUTHAL: {
         relevant: true,
         required: false,
         defaultValue: [0, 0],
+        validate: validateTranslateOffset,
       },
+      ...boundsOfOtherFamilies({ validate: validateTranslateOffset }),
     },
   })
 

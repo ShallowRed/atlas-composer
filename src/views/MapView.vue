@@ -27,7 +27,7 @@ const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const compositionStore = useCompositionStore()
 
-const { restoreFromUrl, restoreProjectionParametersFromUrl } = useUrlState()
+const { readSharedLink } = useUrlState()
 const {
   isCompositeCustomMode,
   isCompositeExistingMode,
@@ -41,13 +41,7 @@ const {
 const controlPanelTransition = { name: 'fade', mode: 'out-in' } as const
 const contentKey = computed(() => `${atlasStore.selectedAtlasId}-${viewStore.viewMode}`)
 
-onMounted(async () => {
-  restoreFromUrl()
-
-  await compositionStore.startMapView()
-
-  restoreProjectionParametersFromUrl()
-})
+onMounted(() => compositionStore.startMapView(readSharedLink()))
 </script>
 
 <template>

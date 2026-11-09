@@ -1,6 +1,7 @@
 import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, PresetId } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
+import type { Territory } from '@/types/territory'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
@@ -33,7 +34,10 @@ export async function startApplication(atlasId: AtlasId) {
   atlasStore.selectedAtlasId = atlasId
   // The geographic data of src/public/data is not versioned
   const geoDataStore = useGeoDataStore()
-  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue(ok(undefined))
+  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockImplementation(async () => {
+    geoDataStore.territoriesData = atlasStore.atlasService.getAllTerritories() as unknown as Territory[]
+    return ok(undefined)
+  })
   vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
 }
 

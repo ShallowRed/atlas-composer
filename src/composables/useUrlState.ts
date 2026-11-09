@@ -3,9 +3,8 @@ import { computed } from 'vue'
 
 import { useRoute } from 'vue-router'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
-import { isViewMode } from '@/core/view'
+import { parseSharedLink } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
-import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -18,7 +17,6 @@ const debug = logger.vue.composable
 export function useUrlState() {
   const route = useRoute()
   const atlasStore = useAtlasStore()
-  const compositionStore = useCompositionStore()
   const parameterStore = useParameterStore()
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
@@ -45,16 +43,15 @@ export function useUrlState() {
     if (projectionStore.customParallel2 !== null)
       state.p2 = String(projectionStore.customParallel2)
 
-    if (viewStore.viewMode === 'built-in-composite' && projectionStore.compositeProjection) {
-      state.composite = projectionStore.compositeProjection
-    }
-
     const atlasService = atlasStore.atlasService
     const territories = atlasService.getAllTerritories()
     const defaults = TerritoryDefaultsService.initializeAll(
       territories,
       createProjectionId('mercator'),
     )
+
+    // The preset of the composite-custom view gives values that differ from the territory defaults
+    const writesEveryTerritory = viewStore.viewMode === 'composite-custom'
 
     const territorySettings: Record<string, number> = {}
     let hasSettings = false
@@ -64,7 +61,7 @@ export function useUrlState() {
       const params = parameterStore.getTerritoryParameters(code)
       const scale = params.scaleMultiplier ?? 1.0
       const defaultScale = defaults.scales[code] ?? 1
-      if (scale !== defaultScale) {
+      if (writesEveryTerritory || scale !== defaultScale) {
         territorySettings[`s_${territory.code}`] = scale
         hasSettings = true
       }
@@ -74,7 +71,7 @@ export function useUrlState() {
       const code = territory.code as TerritoryCode
       const translation = parameterStore.getTerritoryTranslation(code)
       const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
-      if (translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
+      if (writesEveryTerritory || translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
         territorySettings[`tx_${territory.code}`] = translation.x
         territorySettings[`ty_${territory.code}`] = translation.y
         hasSettings = true
@@ -88,67 +85,8 @@ export function useUrlState() {
     return state
   }
 
-  function deserializeState(params: Record<string, any>) {
-    if (params.atlas)
-      void compositionStore.selectAtlas(params.atlas)
-    if (isViewMode(params.view))
-      void compositionStore.selectViewMode(params.view)
-    if (params.projection)
-      projectionStore.setSelectedProjection(params.projection)
-    if (params.territory)
-      viewStore.setTerritoryMode(params.territory)
-
-    if (params.composite)
-      projectionStore.setCompositeProjection(params.composite)
-    if (params.t) {
-      try {
-        const settings = JSON.parse(params.t)
-        for (const [key, value] of Object.entries(settings)) {
-          if (key.startsWith('s_')) {
-            const code = key.substring(2)
-            parameterStore.setTerritoryParameter(code as TerritoryCode, 'scaleMultiplier', Number(value))
-          }
-          else if (key.startsWith('tx_')) {
-            const code = key.substring(3)
-            parameterStore.setTerritoryTranslation(code as TerritoryCode, 'x', Number(value))
-          }
-          else if (key.startsWith('ty_')) {
-            const code = key.substring(3)
-            parameterStore.setTerritoryTranslation(code as TerritoryCode, 'y', Number(value))
-          }
-        }
-      }
-      catch (error) {
-        debug('Failed to parse territory settings from URL: %o', error)
-      }
-    }
-  }
-
-  // The initialization and the view mode watcher clear the global projection parameters, so they are read afterwards
-  function deserializeProjectionParameters(params: Record<string, any>) {
-    if (params.rlon !== undefined || params.rlat !== undefined || params.rgam !== undefined) {
-      projectionStore.setCustomRotate({
-        longitude: params.rlon !== undefined ? Number(params.rlon) : undefined,
-        latitude: params.rlat !== undefined ? Number(params.rlat) : undefined,
-        gamma: params.rgam !== undefined ? Number(params.rgam) : undefined,
-      })
-    }
-    if (params.p1 !== undefined)
-      projectionStore.setCustomParallel1(Number(params.p1))
-    if (params.p2 !== undefined)
-      projectionStore.setCustomParallel2(Number(params.p2))
-  }
-
-  function restoreFromUrl() {
-    if (route.query && Object.keys(route.query).length > 0) {
-      deserializeState(route.query)
-      return true
-    }
-    return false
-  }
-
-  function restoreProjectionParametersFromUrl() {
-    deserializeProjectionParameters(route.query)
+  function readSharedLink() {
+    return parseSharedLink(route.query)
   }
 
   const shareableUrl = computed(() => {
@@ -171,8 +109,7 @@ export function useUrlState() {
 
   return {
     serializeState,
-    restoreFromUrl,
-    restoreProjectionParametersFromUrl,
+    readSharedLink,
     copyShareableUrl,
   }
 }
