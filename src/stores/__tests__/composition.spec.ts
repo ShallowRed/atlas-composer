@@ -8,6 +8,7 @@ import { readPresetFiles } from '@/__tests__/test-utils'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
+import { Cartographer } from '@/services/rendering/cartographer-service'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
@@ -85,6 +86,25 @@ describe('composition store', () => {
 
       expect(atlasStore.selectedAtlasId).toBe('europe')
       expect(atlasStore.currentAtlasConfig?.id).toBe('europe')
+    })
+  })
+
+  describe('loading states', () => {
+    it('keeps the reinitialization flag until the data is preloaded', async () => {
+      await startApplication(FRANCE)
+      const geoDataStore = useGeoDataStore()
+      vi.mocked(geoDataStore.reinitialize).mockRestore()
+      vi.spyOn(Cartographer.prototype, 'init').mockResolvedValue(ok(undefined))
+      let flagDuringPreload: boolean | undefined
+      vi.mocked(geoDataStore.loadAllAtlasData).mockImplementation(async () => {
+        flagDuringPreload = geoDataStore.isReinitializing
+        return ok(undefined)
+      })
+
+      await useCompositionStore().initializeAtlas()
+
+      expect(flagDuringPreload).toBe(true)
+      expect(geoDataStore.isReinitializing).toBe(false)
     })
   })
 

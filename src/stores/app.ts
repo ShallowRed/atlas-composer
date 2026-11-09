@@ -16,6 +16,12 @@ export const useAppStore = defineStore('app', () => {
   const state = ref<AppState>('idle')
   const isTransitioningWithSplit = ref(false)
   const loadingStartTime = ref<number>(0)
+  let readyTimer: ReturnType<typeof setTimeout> | undefined
+
+  function cancelScheduledReady() {
+    clearTimeout(readyTimer)
+    readyTimer = undefined
+  }
 
   const showSkeleton = computed(() => {
     return state.value === 'idle'
@@ -32,25 +38,29 @@ export const useAppStore = defineStore('app', () => {
   })
 
   function startLoadingAtlas() {
+    cancelScheduledReady()
     state.value = 'loading-atlas'
     loadingStartTime.value = Date.now()
   }
 
   function startLoadingGeoData() {
+    cancelScheduledReady()
     state.value = 'loading-geodata'
   }
 
   function startLoadingPreset() {
+    cancelScheduledReady()
     state.value = 'loading-preset'
   }
 
   function setReady() {
+    cancelScheduledReady()
     const elapsed = Date.now() - loadingStartTime.value
     const minDisplay = TRANSITION_DURATION.minLoadingDisplay
     const remaining = minDisplay - elapsed
 
     if (remaining > 0 && loadingStartTime.value > 0) {
-      setTimeout(() => {
+      readyTimer = setTimeout(() => {
         state.value = 'ready'
         loadingStartTime.value = 0
       }, remaining)
@@ -82,6 +92,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function setFailed() {
+    cancelScheduledReady()
     state.value = 'error'
   }
 
