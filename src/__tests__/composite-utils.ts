@@ -1,4 +1,5 @@
 import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { GeoProjection } from 'd3-geo'
 import type { AtlasId, PresetId } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
 import type { Territory } from '@/types/territory'
@@ -27,6 +28,7 @@ export type Point = [number, number]
 
 interface ApplicationComposite {
   project: (territoryCode: string, point: Point) => Point | null
+  subProjection: (territoryCode: string) => GeoProjection
   exportToJSON: () => CompositeProjectionConfig
 }
 
@@ -81,6 +83,11 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
       composite.build(width, height, true)
       return composite.getSubProjectionData(territoryCode)?.projection(point) ?? null
     },
+    subProjection: (territoryCode) => {
+      const { width, height } = projectionStore.canvasDimensions!
+      composite.build(width, height, true)
+      return composite.getSubProjectionData(territoryCode)!.projection
+    },
     exportToJSON: () => CompositeExportService.exportToJSON(
       composite,
       atlasId,
@@ -134,10 +141,13 @@ export function loadWithLoader(config: CompositeProjectionConfig, territoryCode:
   const loader = new ProjectionLoader()
   loader.registerAll(d3ProjectionFactories)
   const { width, height } = config.canvasDimensions
-  // Clipping hides the points outside the pixel extent; the comparison bears on the projected coordinates
+  // Clipping hides the points outside the extent; the comparison bears on the projected coordinates, so the extent holds them all
   const territories = config.territories
     .filter(t => t.code === territoryCode)
-    .map(({ layout: { translateOffset }, ...territory }) => ({ ...territory, layout: { translateOffset } }))
+    .map(({ layout: { translateOffset }, ...territory }) => ({
+      ...territory,
+      layout: { translateOffset, pixelClipExtent: [-1e6, -1e6, 1e6, 1e6] },
+    }))
   return loader.loadFromJSON(JSON.stringify({ ...config, territories }), { width, height })
 }
 

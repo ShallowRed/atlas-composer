@@ -1,0 +1,124 @@
+{
+  "version": "1.1",
+  "metadata": {
+    "atlasId": "portugal",
+    "atlasName": "Portugal"
+  },
+  "referenceScale": 4200,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "PT-CONT",
+      "name": "Portugal Continental",
+      "projection": {
+        "id": "azimuthal-equal-area",
+        "family": "AZIMUTHAL",
+        "parameters": {
+          "rotate": [
+            10,
+            -39.3,
+            0
+          ],
+          "scaleMultiplier": 1,
+          "clipAngle": 60,
+          "precision": 0.5
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -48.3,
+          -478.0,
+          884.1,
+          282.7
+        ]
+      },
+      "bounds": [
+        [
+          -9.5,
+          37
+        ],
+        [
+          -6.2,
+          42.2
+        ]
+      ]
+    },
+    {
+      "code": "PT-20",
+      "name": "Madeira",
+      "projection": {
+        "id": "azimuthal-equal-area",
+        "family": "AZIMUTHAL",
+        "parameters": {
+          "rotate": [
+            17,
+            -32.7,
+            0
+          ],
+          "scaleMultiplier": 1.0
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -111.3,
+          105
+        ]
+      },
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ]
+    },
+    {
+      "code": "PT-30",
+      "name": "Azores",
+      "projection": {
+        "id": "azimuthal-equal-area",
+        "family": "AZIMUTHAL",
+        "parameters": {
+          "rotate": [
+            27.8,
+            -38.6,
+            0
+          ],
+          "scaleMultiplier": 0.6
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -189,
+          -84
+        ],
+        "pixelClipExtent": [
+          -137.76,
+          -89.46,
+          139.86,
+          122.22
+        ]
+      },
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ]
+    }
+  ]
+}
