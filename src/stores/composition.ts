@@ -377,10 +377,8 @@ export const useCompositionStore = defineStore('composition', () => {
       return
     }
 
-    const territoryCodes = Object.keys(state.parameters.territories) as TerritoryCode[]
     const compositeProjectionConfig = atlasStore.currentAtlasConfig?.compositeProjectionConfig
     if (!compositeProjectionConfig) {
-      debug('Updated cartographer for %d territories', territoryCodes.length)
       geoDataStore.triggerRender()
       return
     }
@@ -390,7 +388,7 @@ export const useCompositionStore = defineStore('composition', () => {
       parameterStore.parameterProvider,
       state.canvas.referenceScale,
     )
-    debug('Rebuilt composite projection with %d territories', territoryCodes.length)
+    debug('Rebuilt composite projection')
     geoDataStore.triggerRender()
   }
 
