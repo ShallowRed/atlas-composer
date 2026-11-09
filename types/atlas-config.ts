@@ -45,6 +45,10 @@ export interface JSONAtlasConfig {
   description: I18nValue
   category?: 'country' | 'region' | 'world'
   pattern?: 'single-focus' | 'equal-members' | 'hierarchical'
+  projectionPreferences?: {
+    defaultCompositeProjection?: string
+    recommended?: string[]
+  }
   territories: '*' | JSONTerritoryConfig[]
   dataSources: {
     territories: string

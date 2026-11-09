@@ -4,6 +4,12 @@
   "name": "World",
   "description": "World atlas with wildcard territory loading (work in progress)",
   "category": "world",
+  "projectionPreferences": {
+    "recommended": [
+      "natural-earth",
+      "robinson"
+    ]
+  },
   "dataSources": {
     "territories": "world-countries-110m.json",
     "metadata": "world-metadata-110m.json"

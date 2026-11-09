@@ -195,14 +195,12 @@ Check:
 
 **Wrong projections shown:**
 - Update `projectionPreferences.recommended`
-- Add other atlas composites to `prohibited`
 
 ## Critical Rules
 
 DO:
 - Use `pnpm geodata:analyze` for polygon indices
 - Use zero-based indices (0, 1, 2, ...)
-- Add other atlas composites to `prohibited` list
 - Use `polygonIndices` (plural, array)
 - Validate after every change
 
