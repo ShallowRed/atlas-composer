@@ -19,14 +19,14 @@ In the source of a composite, `k` is the scale of the main projection and `[x, y
 - `.translate([x + a * k, y + b * k])` becomes `layout.translateOffset`, in pixels at the reference scale.
 - `.clipExtent(...)` becomes `layout.pixelClipExtent`, in pixels at the reference scale and relative to the translation of the territory.
 
-## Projection identifiers
+## Projection ids
 
-`PROJECTION_CATALOG`, in `packages/specification/src/catalog.ts`, holds the identifier, the family and the aliases of each projection of the format.
+`PROJECTION_CATALOG`, in `packages/specification/src/catalog.ts`, holds the id, the family and the aliases of each projection of the format.
 
 - `conicConformal()` is `conic-conformal`, of family `CONIC`.
 - `conicEqualArea()` is `conic-equal-area`, of family `CONIC`.
 - `conicEquidistant()` is `conic-equidistant`, of family `CONIC`.
-- `albers()` is `conic-equal-area`, of family `CONIC`, and `albers` is an alias of this identifier. d3 sets the parameters of `geoAlbers` in its constructor, so the preset writes them: `rotate` is `[96, 0]`, `center` is `[-0.6, 38.7]` and `parallels` is `[29.5, 45.5]`.
+- `albers()` is `conic-equal-area`, of family `CONIC`, and `albers` is an alias of this id. d3 sets the parameters of `geoAlbers` in its constructor, so the preset writes them: `rotate` is `[96, 0]`, `center` is `[-0.6, 38.7]` and `parallels` is `[29.5, 45.5]`.
 - `mercator()` is `mercator`, of family `CYLINDRICAL`.
 - `transverseMercator()` is `transverse-mercator`, of family `CYLINDRICAL`.
 - `equirectangular()` is `equirectangular`, of family `CYLINDRICAL`.
@@ -43,7 +43,7 @@ territoryScale = referenceScale * scaleMultiplier
 // 2700 * 0.6 = 1620
 ```
 
-`ProjectionLoader` multiplies `referenceScale` by the smaller of the two ratios between the requested size and `canvasDimensions`.
+[presets.md](presets.md#reference-scale) describes the scale of a loaded file.
 
 ## Translation
 

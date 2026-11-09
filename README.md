@@ -10,7 +10,7 @@
 
 A composite map brings distant territories together on one map, each with its own projection, scale and position. France with its overseas territories is an example. Atlas Composer is an editor of such maps and a set of npm packages that draw them.
 
-## Application
+## Editor
 
 The [Atlas Composer editor](https://shallowred.github.io/atlas-composer) runs in the browser. In the editor, a person can:
 
@@ -22,7 +22,7 @@ The [Atlas Composer editor](https://shallowred.github.io/atlas-composer) runs in
 
 ## Running the editor locally
 
-[AGENTS.md](AGENTS.md) describes the Node and pnpm versions. The application reads the built files of the packages and the geographic data of an atlas, so these two steps come before the server:
+[AGENTS.md](AGENTS.md) describes the Node and pnpm versions. The editor reads the built files of the packages and the geographic data of an atlas, so these two steps come before the server:
 
 ```bash
 pnpm install
