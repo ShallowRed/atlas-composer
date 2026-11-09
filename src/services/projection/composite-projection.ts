@@ -8,6 +8,7 @@ import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { applyPositioning } from '@/core/positioning'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { isConicProjection } from '@/types/d3-geo-extended'
 import { logger } from '@/utils/logger'
@@ -75,7 +76,7 @@ export class CompositeProjection {
     }
 
     debug('Failed to create projection: %s, falling back to Mercator', projectionType)
-    return ProjectionFactory.createById('mercator')!
+    return ProjectionFactory.createById(FALLBACK_PROJECTION_ID)!
   }
 
   updateReferenceScale(newReferenceScale: number): void {

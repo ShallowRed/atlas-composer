@@ -49,11 +49,11 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true,
+    defaultValue: [0, 0],
     familyConstraints: positionConstraints('center', {
       min: [-180, -90],
       max: [180, 90],
       step: 0.5,
-      defaultValue: [0, 0],
     }),
   })
 
@@ -67,12 +67,12 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true,
+    defaultValue: [0, 0, 0],
     familyConstraints: {
       ...positionConstraints('rotate', {
         min: [-180, -90, -180],
         max: [180, 90, 180],
         step: 0.5,
-        defaultValue: [0, 0, 0],
       }),
       ...boundsOfOtherFamilies({ min: [-180, -90, -180], max: [180, 90, 180] }),
     },
@@ -88,16 +88,15 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true, // Core parameter for conic projections
+    defaultValue: [30, 60],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: false, // Not used in cylindrical projections
         required: false,
-        defaultValue: [30, 60],
       },
       PSEUDOCYLINDRICAL: {
         relevant: false,
         required: false,
-        defaultValue: [30, 60],
       },
       CONIC: {
         relevant: true,
@@ -105,7 +104,6 @@ export function registerAllParameters(): void {
         min: [-90, -90],
         max: [90, 90],
         step: 1,
-        defaultValue: [30, 60],
         validate: (value) => {
           if (!Array.isArray(value) || value.length !== 2) {
             return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'parallels' })
@@ -123,7 +121,6 @@ export function registerAllParameters(): void {
       AZIMUTHAL: {
         relevant: false,
         required: false,
-        defaultValue: [30, 60],
       },
     },
   })
@@ -138,6 +135,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true, // Core scale parameter
+    defaultValue: 1,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
@@ -145,7 +143,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 1.0,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
@@ -153,7 +150,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 1.0,
       },
       CONIC: {
         relevant: true,
@@ -161,7 +157,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 1.0,
       },
       AZIMUTHAL: {
         relevant: true,
@@ -169,7 +164,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 1.0,
       },
       ...boundsOfOtherFamilies({ min: 0.01, max: 10, step: 0.01 }),
     },
@@ -185,6 +179,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: false, // Optional parameter
+    defaultValue: 1,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true, // Available for unified mode zoom
@@ -192,7 +187,6 @@ export function registerAllParameters(): void {
         min: 0.5,
         max: 10,
         step: 0.1,
-        defaultValue: 1.0,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
@@ -200,7 +194,6 @@ export function registerAllParameters(): void {
         min: 0.5,
         max: 10,
         step: 0.1,
-        defaultValue: 1.0,
       },
       CONIC: {
         relevant: true,
@@ -208,7 +201,6 @@ export function registerAllParameters(): void {
         min: 0.5,
         max: 10,
         step: 0.1,
-        defaultValue: 1.0,
       },
       AZIMUTHAL: {
         relevant: true,
@@ -216,7 +208,6 @@ export function registerAllParameters(): void {
         min: 0.5,
         max: 10,
         step: 0.1,
-        defaultValue: 1.0,
       },
     },
   })
@@ -231,6 +222,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true, // Core layout parameter
+    defaultValue: [0, 0],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true, // Used for territory positioning in composite projections
@@ -238,7 +230,6 @@ export function registerAllParameters(): void {
         min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
         max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
         step: 5,
-        defaultValue: [0, 0],
         validate: validateTranslateOffset,
       },
       PSEUDOCYLINDRICAL: {
@@ -247,7 +238,6 @@ export function registerAllParameters(): void {
         min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
         max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
         step: 5,
-        defaultValue: [0, 0],
         validate: validateTranslateOffset,
       },
       CONIC: {
@@ -256,7 +246,6 @@ export function registerAllParameters(): void {
         min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
         max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
         step: 5,
-        defaultValue: [0, 0],
         validate: validateTranslateOffset,
       },
       AZIMUTHAL: {
@@ -265,7 +254,6 @@ export function registerAllParameters(): void {
         min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
         max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
         step: 5,
-        defaultValue: [0, 0],
         validate: validateTranslateOffset,
       },
       ...boundsOfOtherFamilies({ validate: validateTranslateOffset }),
@@ -282,21 +270,19 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: false,
+    defaultValue: 90,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: false,
         required: false,
-        defaultValue: 90,
       },
       PSEUDOCYLINDRICAL: {
         relevant: false,
         required: false,
-        defaultValue: 90,
       },
       CONIC: {
         relevant: false,
         required: false,
-        defaultValue: 90,
       },
       AZIMUTHAL: {
         relevant: true,
@@ -304,7 +290,6 @@ export function registerAllParameters(): void {
         min: 0,
         max: 180,
         step: 1,
-        defaultValue: 90,
       },
     },
   })
@@ -318,6 +303,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: false,
+    defaultValue: 0.1,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true,
@@ -325,7 +311,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 0.1,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
@@ -333,7 +318,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 0.1,
       },
       CONIC: {
         relevant: true,
@@ -341,7 +325,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 0.1,
       },
       AZIMUTHAL: {
         relevant: true,
@@ -349,7 +332,6 @@ export function registerAllParameters(): void {
         min: 0.01,
         max: 10,
         step: 0.01,
-        defaultValue: 0.1,
       },
     },
   })
@@ -364,6 +346,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: false,
+    defaultValue: [-100, -100, 100, 100],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true,
@@ -371,7 +354,6 @@ export function registerAllParameters(): void {
         min: [-500, -500, -500, -500],
         max: [500, 500, 500, 500],
         step: 10,
-        defaultValue: [-100, -100, 100, 100],
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
@@ -379,7 +361,6 @@ export function registerAllParameters(): void {
         min: [-500, -500, -500, -500],
         max: [500, 500, 500, 500],
         step: 10,
-        defaultValue: [-100, -100, 100, 100],
       },
       CONIC: {
         relevant: true,
@@ -387,7 +368,6 @@ export function registerAllParameters(): void {
         min: [-500, -500, -500, -500],
         max: [500, 500, 500, 500],
         step: 10,
-        defaultValue: [-100, -100, 100, 100],
       },
       AZIMUTHAL: {
         relevant: true,
@@ -395,7 +375,6 @@ export function registerAllParameters(): void {
         min: [-500, -500, -500, -500],
         max: [500, 500, 500, 500],
         step: 10,
-        defaultValue: [-100, -100, 100, 100],
       },
     },
   })
@@ -413,22 +392,18 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true,
         required: true,
-        defaultValue: 'mercator',
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: true,
-        defaultValue: 'natural-earth',
       },
       CONIC: {
         relevant: true,
         required: true,
-        defaultValue: 'conic-conformal',
       },
       AZIMUTHAL: {
         relevant: true,
         required: true,
-        defaultValue: 'orthographic',
       },
     },
   })

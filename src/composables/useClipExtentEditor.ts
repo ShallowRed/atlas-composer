@@ -1,6 +1,7 @@
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
+import { parameterRegistry } from '@/core/parameters'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -127,7 +128,7 @@ export function useClipExtentEditor() {
     dragStartY.value = event.clientY
 
     const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-    const pixelClipExtent = params.pixelClipExtent || [-100, -100, 100, 100]
+    const pixelClipExtent = params.pixelClipExtent ?? parameterRegistry.getDefaultValue('pixelClipExtent')
     dragStartClipExtent.value = [...pixelClipExtent] as [number, number, number, number]
 
     document.body.style.cursor = 'grabbing'

@@ -13,6 +13,7 @@ import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { parameterRegistry } from '@/core/parameters'
 import { getDisplayedCenter, getDisplayedRotate, getPositionParameter, updatePositioningAxis } from '@/core/positioning'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -57,6 +58,8 @@ const precisionRange = computed(() => parameterStore.getNumberRange(props.projec
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
 })
+
+const parallels = computed(() => effectiveParameters.value.parallels ?? parameterRegistry.getDefaultValue('parallels'))
 
 const rotate = computed(() => getDisplayedRotate(effectiveParameters.value, props.view))
 
@@ -140,24 +143,12 @@ const relevantParameters = computed(() => {
 })
 
 const pixelClipExtentArray = computed(() => {
-  const pixelClipExtent = effectiveParameters.value.pixelClipExtent
-  if (pixelClipExtent && Array.isArray(pixelClipExtent) && pixelClipExtent.length === 4) {
-    return pixelClipExtent
-  }
-
-  return [-100, -100, 100, 100]
+  return effectiveParameters.value.pixelClipExtent ?? parameterRegistry.getDefaultValue('pixelClipExtent')
 })
 
 function updatePixelClipExtent(index: number, value: number) {
-  const current = [...pixelClipExtentArray.value]
-  current[index] = value
-
-  const pixelClipExtent: [number, number, number, number] = [
-    current[0] ?? 0,
-    current[1] ?? 0,
-    current[2] ?? 0,
-    current[3] ?? 0,
-  ]
+  const pixelClipExtent = [...pixelClipExtentArray.value] as [number, number, number, number]
+  pixelClipExtent[index] = value
 
   handleParameterChange('pixelClipExtent', pixelClipExtent)
 }
@@ -315,7 +306,7 @@ const hasTranslateParameter = computed(() => {
 
             <template v-if="hasProjectionSpecificParameters && parallelsRanges">
               <RangeSlider
-                :model-value="effectiveParameters.parallels?.[0] ?? 30"
+                :model-value="parallels[0]"
                 :label="t('projectionParams.parallel1')"
                 icon="ri-equalizer-line"
                 size="xs"
@@ -324,13 +315,12 @@ const hasTranslateParameter = computed(() => {
                 :step="parallelsRanges[0].step"
                 unit="°"
                 @update:model-value="(value: number) => {
-                  const currentParallels = effectiveParameters.parallels ?? [30, 60]
-                  handleParameterChange('parallels', [value, currentParallels[1]])
+                  handleParameterChange('parallels', [value, parallels[1]])
                 }"
               />
 
               <RangeSlider
-                :model-value="effectiveParameters.parallels?.[1] ?? 60"
+                :model-value="parallels[1]"
                 :label="t('projectionParams.parallel2')"
                 icon="ri-equalizer-line"
                 size="xs"
@@ -339,8 +329,7 @@ const hasTranslateParameter = computed(() => {
                 :step="parallelsRanges[1].step"
                 unit="°"
                 @update:model-value="(value: number) => {
-                  const currentParallels = effectiveParameters.parallels ?? [30, 60]
-                  handleParameterChange('parallels', [currentParallels[0], value])
+                  handleParameterChange('parallels', [parallels[0], value])
                 }"
               />
             </template>
@@ -402,7 +391,7 @@ const hasTranslateParameter = computed(() => {
               />
 
               <RangeSlider
-                :model-value="pixelClipExtentArray[0] ?? -100"
+                :model-value="pixelClipExtentArray[0]"
                 :label="t('clipExtent.left')"
                 icon="ri-arrow-left-line"
                 size="xs"
@@ -413,7 +402,7 @@ const hasTranslateParameter = computed(() => {
               />
 
               <RangeSlider
-                :model-value="pixelClipExtentArray[1] ?? -100"
+                :model-value="pixelClipExtentArray[1]"
                 :label="t('clipExtent.top')"
                 icon="ri-arrow-up-line"
                 size="xs"
@@ -424,7 +413,7 @@ const hasTranslateParameter = computed(() => {
               />
 
               <RangeSlider
-                :model-value="pixelClipExtentArray[2] ?? 100"
+                :model-value="pixelClipExtentArray[2]"
                 :label="t('clipExtent.right')"
                 icon="ri-arrow-right-line"
                 size="xs"
@@ -435,7 +424,7 @@ const hasTranslateParameter = computed(() => {
               />
 
               <RangeSlider
-                :model-value="pixelClipExtentArray[3] ?? 100"
+                :model-value="pixelClipExtentArray[3]"
                 :label="t('clipExtent.bottom')"
                 icon="ri-arrow-down-line"
                 size="xs"
@@ -459,7 +448,7 @@ const hasTranslateParameter = computed(() => {
           <div class="collapse-content space-y-2">
             <template v-if="hasClipAngleParameter && clipAngleRange">
               <RangeSlider
-                :model-value="effectiveParameters.clipAngle ?? 90"
+                :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
                 label="Clip Angle"
                 icon="ri-crop-line"
                 size="xs"
@@ -473,7 +462,7 @@ const hasTranslateParameter = computed(() => {
 
             <template v-if="hasPrecisionParameter && precisionRange">
               <RangeSlider
-                :model-value="effectiveParameters.precision ?? 0.1"
+                :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
                 label="Precision"
                 icon="ri-focus-3-line"
                 size="xs"

@@ -111,6 +111,16 @@ const RANGE_SLIDER_LITERALS = {
   message: 'The range of a slider comes from the parameter registry: read getNumberRange or getTupleRanges of src/stores/parameters.ts.',
 }
 
+const MERCATOR_LITERAL = {
+  selector: 'Literal[value=\'mercator\']',
+  message: 'The fallback projection is FALLBACK_PROJECTION_ID of src/core/projections/defaults.ts.',
+}
+
+const PARAMETER_DEFAULT_LITERALS = [
+  'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.property.name=/^(parallels|clipAngle|precision|pixelClipExtent)$/]',
+  'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.expression.object.property.name=\'parallels\']',
+].map(selector => ({ selector, message: 'The default value of a parameter comes from parameterRegistry.getDefaultValue of src/core/parameters/parameter-registry.ts.' }))
+
 const CARTOGRAPHER_DATA = {
   selector: 'MemberExpression[property.name=\'geoData\']:not([object.name=\'props\'])',
   message: 'The geographic data of the cartographer is read by an action of the geoData store.',
@@ -210,8 +220,8 @@ export default antfu({
   files: ['src/**/*.ts', 'src/**/*.vue'],
   ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...RESULT_FIELDS],
   },
 }, {
   files: ['src/core/positioning/**'],
@@ -223,13 +233,19 @@ export default antfu({
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, ...RESULT_FIELDS],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
   },
 }, {
   files: ['src/components/ui/parameters/TerritoryParameterControls.vue', 'src/components/ui/projections/ProjectionParamsControls.vue'],
   rules: {
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, ...RESULT_FIELDS, RANGE_SLIDER_LITERALS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, RANGE_SLIDER_LITERALS],
+  },
+}, {
+  files: ['src/core/projections/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
   },
 }, {
   files: ['packages/projection-loader/src/**'],

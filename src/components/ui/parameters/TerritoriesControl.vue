@@ -6,6 +6,7 @@ import TerritoryParameterControls from '@/components/ui/parameters/TerritoryPara
 import AccordionItem from '@/components/ui/primitives/AccordionItem.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
 import { useAtlasStore } from '@/stores/atlas'
@@ -82,7 +83,7 @@ const hasDivergingFromPreset = computed(() => {
 const resetToDefaults = resetTransforms
 
 function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId {
-  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || 'mercator' as ProjectionId
+  return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || FALLBACK_PROJECTION_ID
 }
 
 function getProjectionFamily(territoryCode: TerritoryCode) {
