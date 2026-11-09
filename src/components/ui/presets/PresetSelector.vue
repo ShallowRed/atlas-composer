@@ -25,6 +25,25 @@ const isLoading = ref(false)
 const loadError = ref<PresetApplicationError | null>(null)
 const selectedPreset = ref<PresetId | ''>('')
 
+const presetOptions = computed(() => {
+  const atlasId = atlasStore.selectedAtlasId
+  const viewMode = viewStore.viewMode
+  if (!atlasId || !viewMode)
+    return []
+
+  const presets = getAtlasPresets(atlasId)
+
+  const filteredPresets = presets.filter(preset => preset.type === viewMode)
+
+  return filteredPresets.map((preset) => {
+    return {
+      value: preset.id,
+      label: formatPresetLabel(preset.id as PresetId, preset.name),
+      translated: true,
+    }
+  })
+})
+
 const currentPreset = computed({
   get: () => {
     const atlasId = atlasStore.selectedAtlasId
@@ -59,7 +78,10 @@ const currentPreset = computed({
         return
       }
 
-      selectedPreset.value = presetId
+      // The store drops a preset that arrives after a change of atlas or of view
+      if (presetOptions.value.some(option => option.value === presetId)) {
+        selectedPreset.value = presetId
+      }
 
       debug('Successfully loaded preset: %s', presetId)
     }
@@ -67,25 +89,6 @@ const currentPreset = computed({
       isLoading.value = false
     }
   },
-})
-
-const presetOptions = computed(() => {
-  const atlasId = atlasStore.selectedAtlasId
-  const viewMode = viewStore.viewMode
-  if (!atlasId || !viewMode)
-    return []
-
-  const presets = getAtlasPresets(atlasId)
-
-  const filteredPresets = presets.filter(preset => preset.type === viewMode)
-
-  return filteredPresets.map((preset) => {
-    return {
-      value: preset.id,
-      label: formatPresetLabel(preset.id as PresetId, preset.name),
-      translated: true,
-    }
-  })
 })
 
 watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
