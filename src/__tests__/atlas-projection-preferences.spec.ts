@@ -11,7 +11,7 @@ const preferences = readdirSync(ATLASES_DIRECTORY)
   .map(atlas => ({ id: atlas.id, ...atlas.projectionPreferences }))
 
 const compositeProjections = preferences.flatMap(({ id, defaultCompositeProjection }) =>
-  defaultCompositeProjection ? [[id, defaultCompositeProjection] as const] : [])
+  defaultCompositeProjection === undefined ? [] : [[id, defaultCompositeProjection] as const])
 
 const recommendedProjections = preferences.flatMap(({ id, recommended = [] }) =>
   recommended.map(projection => [id, projection] as const))
