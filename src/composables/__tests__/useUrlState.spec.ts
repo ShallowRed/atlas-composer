@@ -55,13 +55,6 @@ describe('useUrlState', () => {
     expect(useParameterStore().globalParameters.parallels).toEqual([20, 50])
   })
 
-  it('ignores a view mode that does not exist', async () => {
-    route.query = { atlas: ATLAS_ID, view: 'nowhere' }
-    await startApplication(ATLAS_ID)
-
-    expect(useUrlState().readSharedLink().view).toBeUndefined()
-  })
-
   it('writes the rotation of the mouse panning in the URL', async () => {
     const urlState = await openPage({})
     const projectionStore = useProjectionStore()

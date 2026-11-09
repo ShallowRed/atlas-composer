@@ -600,11 +600,8 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   function applySharedLink(link: SharedLink): void {
-    const proposedProjections = projectionRegistry.filter({
-      viewMode: viewStore.viewMode,
-      excludeCategories: ['COMPOSITE'],
-    })
-    if (link.projection && proposedProjections.some(projection => projection.id === link.projection)) {
+    const isProposed = viewStore.projectionGroups.some(group => group.options?.some(option => option.value === link.projection))
+    if (link.projection && isProposed) {
       projectionStore.setSelectedProjection(link.projection)
     }
 

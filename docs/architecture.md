@@ -40,7 +40,7 @@ For the same reason, `setGlobalParameter` and `setTerritoryParameter` throw an `
 
 ## State in the URL
 
-`src/composables/useUrlState.ts` converts the state to the query of a link and back. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
+`src/composables/useUrlState.ts` builds the query of a link from the state. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
 
 The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations. In the `composite-custom` view, these two values are written for each active territory, because the preset of the view gives them. In the other views, the query holds the values that differ from `TerritoryDefaultsService`. `serializeState` gives the keys.
 
