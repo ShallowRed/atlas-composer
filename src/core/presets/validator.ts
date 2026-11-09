@@ -11,6 +11,7 @@ import type { Result } from '@/core/types/result'
 import { validateConfig } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
 import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionStrategy } from '@/core/projections/types'
 import { err, ok } from '@/core/types/result'
 import { logger } from '@/utils/logger'
 import {
@@ -215,20 +216,8 @@ function validateCompositeExistingConfig(
     return
   }
 
-  const validProjections = [
-    'conic-conformal-france',
-    'conic-conformal-europe',
-    'conic-conformal-portugal',
-    'conic-conformal-spain',
-    'conic-conformal-usa',
-    'albersusa',
-  ]
-
-  if (!validProjections.includes(config.projectionId)) {
-    warnings.push(
-      `Unknown d3-composite-projection: ${config.projectionId}. `
-      + `Valid options: ${validProjections.join(', ')}`,
-    )
+  if (projectionRegistry.get(config.projectionId)?.strategy !== ProjectionStrategy.D3_COMPOSITE) {
+    warnings.push(`Unknown d3-composite-projection: ${config.projectionId}`)
   }
 
   if (config.globalScale !== undefined) {
