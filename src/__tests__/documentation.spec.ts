@@ -9,8 +9,8 @@ const PNPM_COMMANDS = ['install', 'exec', 'run']
 const CHECKED_PATH = /^(?:src|configs|packages|scripts|types|docs|\.github)\/\S*$/
 const GENERATED_PATH = /^src\/public\/data\//
 const LINE_SUFFIX = /:\d+(?:-\d+)?$/
-const IDENTIFIER = /^([A-Z][a-z0-9]\w*|[a-z]+[A-Z]\w*)(?:[.(<].*)?$/
-const PNPM_COMMAND = /^pnpm (?:run )?([a-z][\w:-]*)/
+const IDENTIFIER = /^([A-Z][a-z0-9]\w*|[a-z][a-z0-9]*[A-Z]\w*)(?:[.(<].*)?$/
+const PNPM_COMMAND = /\bpnpm (?:run )?([a-z][\w:-]*)/g
 
 const trackedFiles = execFileSync('git', ['ls-files'], { encoding: 'utf8' }).trim().split('\n')
 const trackedPaths = new Set(trackedFiles.flatMap(ancestorsAndSelf))
@@ -86,10 +86,9 @@ describe.each(DOCUMENTS)('%s', (document) => {
   })
 
   it('runs scripts of the package', () => {
-    const commands = [...inlineCode, ...bashLines.map(line => line.trim())]
-    const unknown = commands
-      .map(command => command.match(PNPM_COMMAND)?.[1])
-      .filter(name => name !== undefined && !scripts.includes(name) && !PNPM_COMMANDS.includes(name))
+    const unknown = [...inlineCode, ...bashLines]
+      .flatMap(command => [...command.matchAll(PNPM_COMMAND)].map(match => match[1]!))
+      .filter(name => !scripts.includes(name) && !PNPM_COMMANDS.includes(name))
 
     expect(unknown).toEqual([])
   })
