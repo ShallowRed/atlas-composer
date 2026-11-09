@@ -1,72 +1,68 @@
 # Atlas Composer
 
-> Interactive web application for creating custom cartographic visualizations using composite map projections
+> Interactive editor of composite map projections, with the libraries that draw its maps in other applications.
 
 <p align="center">
   <img src="src/public/og-img.png" alt="Atlas Composer - Interactive composite map projection editor" width="800" />
 </p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vue.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) ![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vue.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white) ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3.js&logoColor=white)
 
-**Atlas Composer** consists of an interactive editor application and a set of libraries to render complex composite projections (e.g., showing France with its overseas territories in a compact view).
+A composite map brings distant territories together on one map, each with its own projection, scale and position. France with its overseas territories is an example. Atlas Composer is an editor of such maps and a set of npm packages that draw them.
 
-## App
+## Application
 
-The [Atlas Composer Editor](shallowred.github.io/atlas-composer) is a visual tool to:
-- **Visualize** multi-atlas presets (France, USA, Europe, etc).
-- **Customize** projections with real-time feedback.
-- **Edit** territory placement and view modes (Composite, Split, Unified).
-- **Export** production-ready code or JSON data.
+The [Atlas Composer editor](https://shallowred.github.io/atlas-composer) runs in the browser. In the editor, a person can:
 
-### Local development
+- choose an atlas among France, Portugal, the USA, Europe and the world;
+- display it as a custom composite, a ready-made composite projection, one map per territory or a single map;
+- change the projections and their parameters and see the map update;
+- move the territories of a custom composite on the map;
+- export a custom composite as a JSON file, which another application draws with `@atlas-composer/projection-loader`.
 
-To run the editor locally:
+## Running the editor locally
+
+[AGENTS.md](AGENTS.md) describes the Node and pnpm versions. The application reads the built files of the packages and the geographic data of an atlas, so these two steps come before the server:
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Prepare map data (Natural Earth)
-pnpm run geodata:prepare
-
-# Start the dev server
-pnpm run dev
+pnpm build:packages
+pnpm geodata:prepare france
+pnpm dev
 ```
 
-Visit `http://localhost:5173` to start editing.
+The server listens on http://localhost:5173. France is the default atlas. The command `pnpm geodata:prepare` takes one atlas of `configs/atlas-registry.json` at a time, and [docs/scripts.md](docs/scripts.md) describes its arguments.
 
-## Ecosystem
+## Packages
 
-Atlas Composer is organized as a monorepo. While the application is the visual interface, the core logic is available as standalone packages for your own projects.
+The packages of `packages/` are published on npm:
 
-| Package | Description |
-|---------|-------------|
-| [**@atlas-composer/projection-loader**](./packages/projection-loader/) | **Runtime.** The official library to load and render exported maps in your applications. Lightweight and zero-dependency. |
-| [**@atlas-composer/preset-library**](./packages/preset-library/) | **Data.** A curated collection of standard map presets (e.g. `france-standard`, `usa-albers`). |
-| [**@atlas-composer/specification**](./packages/specification/) | **Contract.** JSON Schemas and TypeScript definitions defining the map configuration format. |
-| [**@atlas-composer/projection-core**](./packages/projection-core/) | **Engine.** Low-level D3 stream utilities and projection composition logic. |
+- [`@atlas-composer/projection-loader`](packages/projection-loader/) reads an exported file and returns a d3 projection.
+- [`@atlas-composer/preset-library`](packages/preset-library/) publishes the presets of the editor, such as `france-standard`, and a catalog that describes them.
+- [`@atlas-composer/specification`](packages/specification/) defines the format of the exported file, with a JSON Schema, TypeScript types and a validation function.
+- [`@atlas-composer/projection-core`](packages/projection-core/) holds the functions that combine several d3 projections into one composite projection.
 
 ## Documentation
 
-For detailed technical documentation, please refer to the `./docs` directory:
-
-- [**Architecture Overview**](./docs/architecture.md) - System design and core concepts.
-- [**Atlases**](./docs/atlases.md) - How atlases are structured.
-- [**Projections**](./docs/projections.md) - Details on the projection system.
-- [**Vue Architecture**](./docs/vue-architecture.md) - Frontend application structure.
+- [Architecture](docs/architecture.md): the layers of the code and the path of an action to the map.
+- [Atlases](docs/atlases.md): the registry, the configuration of an atlas and the procedure to add one.
+- [Projections](docs/projections.md): the projection definitions and the positioning of a territory.
+- [Presets](docs/presets.md): the preset types and the preset library.
+- [Export and import](docs/export.md): the exported file and its import.
+- [Mapping of the d3 composite parameters](docs/d3-to-atlas-parameter-mapping.md): the parameters of `d3-composite-projections` and those of a preset.
+- [Geographic data scripts](docs/scripts.md): the preparation and the validation of the data.
+- [Development](docs/development.md): the tests of the format and the rendering, the release and the debug logs.
+- [Architecture decisions](docs/adrs.md): each decision and its reasons.
 
 ## Acknowledgments
 
-This project builds upon the pioneering work of:
+Atlas Composer builds on the work of two projects:
 
-- **[D3.js / d3-geo](https://github.com/d3/d3-geo)** by [Mike Bostock](https://github.com/mbostock) — The stream multiplexing approach and composite projection architecture are derived from the `geoAlbersUsa` implementation.
-- **[d3-composite-projections](https://github.com/rveciana/d3-composite-projections)** by [Roger Veciana](https://github.com/rveciana) — Inspiration for extending the composite projection pattern to multiple countries.
+- [d3-geo](https://github.com/d3/d3-geo), by [Mike Bostock](https://github.com/mbostock). The stream multiplexing and the composition of projections in `@atlas-composer/projection-core` derive from `geoAlbersUsa`.
+- [d3-composite-projections](https://github.com/rveciana/d3-composite-projections), by [Roger Veciana](https://github.com/rveciana), which applies the composite projection to several countries and provides ready-made composite projections to the editor.
 
-See [THIRD-PARTY-LICENSES.md](./THIRD-PARTY-LICENSES.md) for full license details.
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) gives the license of each project.
 
 ## License
 
-MIT © [ShallowRed](https://github.com/ShallowRed)
+[MIT](LICENSE) © [ShallowRed](https://github.com/ShallowRed)
