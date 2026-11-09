@@ -2,7 +2,7 @@ import type { AtlasId } from '@/types/branded'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { err } from '@/core/types/result'
+import { err, ok } from '@/core/types/result'
 import { useAtlasStore } from '@/stores/atlas'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
@@ -59,6 +59,19 @@ describe('view store', () => {
       }))
 
       expect(viewStore.currentViewPreset).toBe(currentPreset)
+    })
+
+    it('drops a preset that arrives after a change of atlas', async () => {
+      await startApplication(FRANCE)
+      await openView('unified')
+      const viewStore = useViewStore()
+      viewStore.clearViewPreset()
+
+      const loading = viewStore.loadViewPreset(createPresetId('france-unified'))
+      useAtlasStore().selectedAtlasId = WORLD
+
+      expect(await loading).toEqual(ok(undefined))
+      expect(viewStore.currentViewPreset).toBeNull()
     })
 
     it('fails when the file of the preset does not load', async () => {

@@ -124,7 +124,12 @@ export const useViewStore = defineStore('view', () => {
   }
 
   async function loadViewPreset(presetId: PresetId): Promise<Result<void, PresetError>> {
+    const atlasId = getAtlasStore().selectedAtlasId
     const result = await PresetLoader.loadPreset(presetId)
+    if (getAtlasStore().selectedAtlasId !== atlasId) {
+      return ok(undefined)
+    }
+
     if (!result.ok) {
       return result
     }
