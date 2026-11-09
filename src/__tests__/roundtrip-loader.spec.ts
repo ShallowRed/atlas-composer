@@ -1,25 +1,12 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Point } from '@/__tests__/composite-utils'
-import type { AtlasId, PresetId } from '@/types/branded'
-import { readdirSync, readFileSync } from 'node:fs'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { distance, importIntoApplication, loadPresetIntoApplication, loadWithLoader, pointsInBounds } from '@/__tests__/composite-utils'
-import { readPresetFiles } from '@/__tests__/test-utils'
+import { readCompositeSources } from '@/__tests__/test-utils'
 
 const TOLERANCE = 1e-6
 
-const presets = readPresetFiles()
-  .filter(preset => preset.type === 'composite-custom')
-  .map(preset => ({ ...preset, presetId: preset.id as PresetId, config: JSON.parse(preset.json) as CompositeProjectionConfig }))
-
-// A configuration for each family of the catalog that the presets do not cover, and for the rendering parameters
-const families = readdirSync('src/__tests__/fixtures/families').map((file) => {
-  const json = readFileSync(`src/__tests__/fixtures/families/${file}`, 'utf8')
-  const config = JSON.parse(json) as CompositeProjectionConfig
-  return { id: file, atlasId: config.metadata.atlasId as AtlasId, json, config, presetId: undefined }
-})
-
-describe.each([...presets, ...families])('$id', ({ atlasId, json, config, presetId }) => {
+describe.each(readCompositeSources())('$id', ({ atlasId, json, config, presetId }) => {
   const deviations = new Map<string, number>()
 
   beforeAll(async () => {
