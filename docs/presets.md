@@ -1,154 +1,49 @@
-# Preset Management System
+# Presets
 
-## Overview
+A preset is a file `configs/presets/<atlas>/<id>.json` declared in the `presets` list of its atlas in `configs/atlas-registry.json`. The view modes of an atlas are the types of its presets, as [docs/atlases.md](atlases.md) describes.
 
-The preset system manages saved projection configurations using a unified architecture. Presets are REQUIRED for all view modes. Available view modes are determined by preset types in the registry.
+## Preset types
 
-## Preset Types
+The application reads a file according to the `type` of its entry in the registry.
 
-| Type | View Mode | Description |
-|------|-----------|-------------|
-| **composite-custom** | composite-custom | Full per-territory configuration, exportable |
-| **unified** | unified | Single projection for entire atlas |
-| **split** | split | Individual projections per territory group |
-| **built-in-composite** | built-in-composite | Predefined d3-composite-projections |
+- `composite-custom` gives one projection and one layout per territory. The file follows the format of `@atlas-composer/specification`: `packages/specification/schemas/` defines it, and `packages/specification/__tests__/fixtures/valid/minimal.json` is a complete example. The application exports this type, and `@atlas-composer/projection-loader` reads it.
+- `unified` gives one projection and its parameters for the whole atlas.
+- `split` gives one projection and its parameters per territory.
+- `built-in-composite` names a definition with the `D3_COMPOSITE` strategy in `projectionId`. `applyViewPresetConfig` of `src/stores/view.ts` logs `globalScale` and leaves the scale of the map as it is.
 
-## Architecture
+The last three types have a `config` field, whose form is in `configs/schemas/`.
 
-### Core Layer (src/core/presets/)
+## Declaration
 
-| File | Purpose |
-|------|---------|
-| **types.ts** | Discriminated union types: `Preset`, `PresetType`, `LoadResult<T>` |
-| **validator.ts** | Validation: `validateCompositePreset()`, `validateViewPreset()` |
-| **converter.ts** | Pure functions: `convertToDefaults()`, `extractTerritoryParameters()` |
+An entry of the registry gives the `id`, the `name`, the `type` and the `configPath` of the preset. `pnpm geodata:validate --all` compares the entries with the files. It requires an `id` that starts with the atlas id and a hyphen, a `configPath` equal to `./presets/<atlas>/<id>.json`, exactly one preset with `isDefault` per atlas, and one declaration per file. It passes each `composite-custom` file to `validateConfig`, and compares the `id` of the other files with the entry.
 
-### Service Layer (src/services/presets/)
+## Loading
 
-| Service | Purpose |
-|---------|---------|
-| **PresetLoader** | Loads presets from `configs/presets/`, queries atlas registry, validates |
-| **PresetApplicationService** | Routes by preset.type to specialized handlers, coordinates store updates |
-| **AtlasMetadataService** | Clean API for atlas projection metadata, caches for performance |
+`PresetLoader.loadPreset`, in `src/services/presets/preset-loader.ts`, takes the atlas id from the text before the first hyphen of the preset id, finds the entry with `getPresetById` and reads the file with `JsonFileLoader`. It returns a `Result`, with `PRESET_UNKNOWN` for an id missing from the registry and `PRESET_INVALID` with the list of issues for a file that the validation refuses.
 
-## Loading Paths
+`validateCompositePreset`, in `src/core/presets/validator.ts`, calls `validateConfig`, then checks each territory. The projection is known to `projectionRegistry`, each required parameter that is relevant for the family is present, and `rotate` or `center` is present. A value outside the bounds of the [parameter registry](projections.md#parameter-registry) produces a warning in the `ac:presets:validator` log, and the preset loads. `validateViewPreset` checks the other types.
 
-### Composite-Custom (Converter-Based)
-```
-InitializationService.initializeAtlas() → PresetLoader.loadPreset() → convertToDefaults() + extractTerritoryParameters() → Apply to stores → CompositeProjection.initialize()
-```
+The stores apply a loaded preset. `initializeAtlas` of `src/stores/composition.ts` loads the default preset of the view mode, and `loadPreset` of the same store loads a composite preset that the user selects. Both pass a `composite-custom` file through `convertToDefaults` and `extractTerritoryParameters`, in `src/core/presets/converter.ts`. `loadViewPreset` of `src/stores/view.ts` applies a preset of the three other types. A custom composite draws the territories of its preset.
 
-### View Presets (Runtime Switching)
-```
-PresetLoader.loadPreset() → PresetApplicationService.applyPreset() → Direct parameter application
-```
+## Reference scale
 
-**Supported Types**: unified, split, built-in-composite (composite-custom uses converter path)
+`referenceScale`, at the root of a `composite-custom` file, is the default scale of the composite. `CompositeProjection` gives each territory the scale `referenceScale * scaleMultiplier`. `translateOffset` and `pixelClipExtent` are in pixels at this scale, for a canvas of size `canvasDimensions`. [docs/d3-to-atlas-parameter-mapping.md](d3-to-atlas-parameter-mapping.md) gives the formulas from a d3 composite.
 
-## Registry Format
+`GlobalProjectionControls` edits `referenceScale` in the projection store, and the export writes the current value. `ProjectionLoader` multiplies `referenceScale` by the smaller of the two ratios between the requested size and `canvasDimensions`.
 
-Presets defined in `configs/atlas-registry.json`:
+## Creating a preset from an export
 
-```json
-{
-  "presets": [
-    {
-      "id": "france-default",
-      "name": "France - Composite",
-      "atlasId": "france",
-      "type": "composite-custom",
-      "configPath": "./presets/france/france-default.json",
-      "isDefault": true
-    }
-  ]
-}
-```
+1. In the application, choose the atlas and the `composite-custom` view, then adjust the territories.
+2. Download the JSON file from `CompositeExportDialog`. [docs/export.md](export.md) describes the export.
+3. Save the file as `configs/presets/<atlas>/<id>.json`, with an id that starts with the atlas id.
+4. Add an entry with the type `composite-custom` to the `presets` list of the atlas in `configs/atlas-registry.json`.
+5. Run `pnpm geodata:validate --all`.
+6. Add a changeset for `@atlas-composer/preset-library`, as [docs/development.md](development.md) describes.
 
-## Preset File Format (Composite-Custom)
+`src/__tests__/export-validity.spec.ts` and `src/__tests__/roundtrip-loader.spec.ts` read each `composite-custom` preset of the registry. A new default preset changes the rendering of the atlas: [docs/development.md](development.md) describes the regeneration of the references of `src/__tests__/view-rendering.spec.ts`.
 
-```json
-{
-  "version": "1.0",
-  "metadata": { "atlasId": "france", "exportDate": "..." },
-  "referenceScale": 2700,
-  "territories": [{
-    "code": "FR-MET",
-    "projection": {
-      "id": "conic-conformal",
-      "family": "CONIC",
-      "parameters": { "rotate": [-3, -46.2, 0], "parallels": [0, 60], "scaleMultiplier": 1 }
-    },
-    "layout": { "translateOffset": [0, 0], "pixelClipExtent": [...] },
-    "bounds": [[-6.5, 41], [10, 51.5]]
-  }]
-}
-```
+## Preset library
 
-## Parameter Extraction
+`@atlas-composer/preset-library` publishes the presets and a catalog of them. `packages/preset-library/src/index.ts` imports `configs/atlas-registry.json` and builds `catalog` from its entries, with the English name of each preset and the tag `default` for the entry with `isDefault`.
 
-**extractTerritoryParameters()** extracts:
-- `projectionId` from `projection.id`
-- Projection params: center, rotate, parallels, scaleMultiplier, clipAngle, precision
-- Layout params: translateOffset, pixelClipExtent
-
-**convertToDefaults()** returns:
-- `projections`: Map<code, projectionId>
-- `translations`: Map<code, {x, y}>
-- `scales`: Map<code, scaleMultiplier>
-
-## Scale System
-
-| Value | Source | Purpose |
-|-------|--------|---------|
-| **baseScale** | Preset | Reference scale for territory |
-| **scaleMultiplier** | Parameter store | Adjustment factor (0.5-2.0) |
-| **scale** | Calculated | `baseScale x scaleMultiplier`, applied to D3 |
-
-**Advanced slider**: Modifies scaleMultiplier, recalculates scale
-**View slider**: Sets scale directly, blocks multiplier updates
-
-## Parameter Provider Pattern
-
-CompositeProjection receives parameters through `ProjectionParameterProvider`:
-- `getEffectiveParameters(territoryCode)` - Parameter resolution with inheritance
-- Abstracts parameter source (store, config, defaults)
-
-## Initialization Sequence
-
-1. `InitializationService.initializeAtlas()` - Orchestrates loading
-2. `PresetLoader.loadPreset()` - Load from registry
-3. `convertToDefaults()` + `extractTerritoryParameters()` - Extract data
-4. Apply to stores (parameterStore, projectionStore, viewStore)
-5. `geoDataStore.initialize()` - Load geo data
-6. `CompositeProjection.initialize()` - Apply to D3 projections
-
-**Race condition prevention**: Preset loads before CompositeProjection initializes via sequential async flow.
-
-## Reset System
-
-| Function | Scope | Action |
-|----------|-------|--------|
-| `resetTransforms()` | Global | Restore all territories to preset defaults |
-| `resetTerritoryToDefaults()` | Single | Restore one territory to preset |
-
-**Divergence detection**: `hasDivergingParameters()` compares current state against preset defaults.
-
-## Key Files
-
-| Category | Files |
-|----------|-------|
-| **Services** | preset-loader.ts, preset-application-service.ts, atlas-coordinator.ts |
-| **Stores** | parameters.ts (scale, projections, translations), config.ts |
-| **Components** | PresetSelector.vue, TerritoryControls.vue, TerritoryParameterControls.vue |
-| **Composables** | usePresetDefaults.ts, useTerritoryTransforms.ts, useAtlasData.ts |
-| **Preset Files** | configs/presets/{atlasId}-{presetName}.json |
-
-## Troubleshooting
-
-| Issue | Check |
-|-------|-------|
-| Incorrect scale on load | Preset has baseScale/scaleMultiplier, initialization order correct |
-| Scale sliders not working | Check for scale override (blocks multiplier), verify rebuild triggers |
-| Wrong projection type | Preset projection matches expected, parameter store applied correctly |
-| Parameters not loading | No race condition, updateTerritoryParameters() called after store update |
-| Territory mismatch | Territories not in preset are NOT rendered (no fallback) |
+The public directory option in `packages/preset-library/tsup.config.ts` copies `configs/presets/` into the `dist` folder of the package, and the `exports` field of `packages/preset-library/package.json` gives access to each file, such as `@atlas-composer/preset-library/france/france-standard.json`. `getPreset` returns the content of a `composite-custom` preset. [packages/preset-library/README.md](../packages/preset-library/README.md) describes the use of the package.
