@@ -3,8 +3,6 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const DOCUMENTS = ['AGENTS.md', 'docs/d3-to-atlas-parameter-mapping.md', 'docs/development.md', 'docs/scripts.md', 'docs/atlases.md', 'docs/projections.md', 'docs/presets.md', 'docs/export.md', 'docs/adrs.md', 'README.md']
-
 const PNPM_COMMANDS = ['install', 'exec', 'run']
 const CHECKED_PATH = /^(?:src|configs|packages|scripts|types|docs|\.github)\/\S*$/
 const GENERATED_PATH = /^src\/public\/data\//
@@ -14,6 +12,7 @@ const PNPM_COMMAND = /\bpnpm (?:run )?([a-z][\w:-]*)/g
 
 const trackedFiles = execFileSync('git', ['ls-files'], { encoding: 'utf8' }).trim().split('\n')
 const trackedPaths = new Set(trackedFiles.flatMap(ancestorsAndSelf))
+const DOCUMENTS = ['AGENTS.md', 'README.md', ...trackedFiles.filter(file => file.startsWith('docs/') && file.endsWith('.md'))]
 
 const sourceWords = new Set(trackedFiles
   .filter(isIdentifierSource)
