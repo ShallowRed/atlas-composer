@@ -539,13 +539,10 @@
       "parameterTooLarge": "The parameter {parameter} must be at most {max}"
     },
     "parameterIssue": {
-      "required": "The parameter {parameter} is required",
       "notNumber": "The parameter {parameter} must be a number",
       "notPair": "The parameter {parameter} must have 2 numbers",
       "notPairOrTriple": "The parameter {parameter} must have 2 or 3 numbers",
       "itemsNotNumbers": "The parameter {parameter} must contain numbers only",
-      "tooSmall": "The parameter {parameter} must be at least {min}",
-      "tooLarge": "The parameter {parameter} must be at most {max}",
       "itemTooSmall": "Value {position} of the parameter {parameter} must be at least {min}",
       "itemTooLarge": "Value {position} of the parameter {parameter} must be at most {max}",
       "outOfRange": "The parameter {parameter} must be between {min} and {max}",
