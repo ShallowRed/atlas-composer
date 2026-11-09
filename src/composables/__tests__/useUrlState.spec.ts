@@ -182,10 +182,10 @@ describe('useUrlState', () => {
       expect(useViewStore().currentViewPreset).toBe('usa-split')
     })
 
-    it('opens the default view and preset without a link', async () => {
+    it('opens the default view of the default atlas without a query', async () => {
       await startApplication(FRANCE)
 
-      await useCompositionStore().startMapView()
+      await useCompositionStore().startMapView(useUrlState().readSharedLink())
 
       expect(useViewStore().viewMode).toBe('composite-custom')
       expect(useProjectionStore().selectedProjection).toBe('conic-conformal')
