@@ -49,7 +49,7 @@
     "geodata:validate": "tsx scripts/validate-configs.ts",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm build:packages && changeset publish"
+    "release": "changeset publish"
   },
   "dependencies": {
     "@atlas-composer/projection-core": "workspace:*",
