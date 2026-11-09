@@ -85,7 +85,7 @@
     "@atlas-composer/projection-core": "workspace:*",
     "@atlas-composer/specification": "workspace:*",
     "@size-limit/preset-small-lib": "^11.2.0",
-    "@types/d3-geo": "^3.1.0",
+    "@types/d3-geo": "^3.1.1",
     "d3-geo": "^3.1.1",
     "size-limit": "^11.2.0",
     "tsup": "^8.0.0",
