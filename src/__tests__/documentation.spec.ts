@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 const PNPM_COMMANDS = ['install', 'exec', 'run']
 const CHECKED_PATH = /^(?:src|configs|packages|scripts|types|docs|\.github)\/\S*$/
 const GENERATED_PATH = /^src\/public\/data\//
-const LINE_SUFFIX = /:\d+(?:-\d+)?$/
 const IDENTIFIER = /^([A-Z][a-z0-9]\w*|[a-z][a-z0-9]*[A-Z]\w*)(?:[.(<].*)?$/
 const PNPM_COMMAND = /\bpnpm (?:run )?([a-z][\w:-]*)/g
 
@@ -69,7 +68,6 @@ describe.each(DOCUMENTS)('%s', (document) => {
 
   it('names paths of the repository', () => {
     const missing = inlineCode
-      .map(code => code.replace(LINE_SUFFIX, ''))
       .filter(code => CHECKED_PATH.test(code) && !GENERATED_PATH.test(code))
       .filter(path => !resolvesToTrackedPath(path))
 
