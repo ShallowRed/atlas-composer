@@ -1,6 +1,7 @@
 import type { PositioningView } from '@/core/positioning'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { useParameterStore } from '@/stores/parameters'
@@ -20,6 +21,39 @@ function projectTarget(view: PositioningView): [number, number] {
 describe('parameter store projection actions', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+  })
+
+  describe('slider ranges', () => {
+    const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
+    const ALL_FAMILIES = [...POSITIONED_FAMILIES, 'POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
+
+    it.each(POSITIONED_FAMILIES)('gives the translation and clip extent ranges of %s', (family) => {
+      const parameterStore = useParameterStore()
+
+      expect(parameterStore.getTupleRanges(family, 'translateOffset')).toHaveLength(2)
+      expect(parameterStore.getTupleRanges(family, 'pixelClipExtent')).toHaveLength(4)
+    })
+
+    it.each(ALL_FAMILIES)('gives the scale multiplier range of %s', (family) => {
+      expect(useParameterStore().getNumberRange(family, 'scaleMultiplier')).toEqual({ min: 0.01, max: 10, step: 0.01 })
+    })
+
+    it('gives the parallels range of a conic projection', () => {
+      const axis = { min: -90, max: 90, step: 1 }
+
+      expect(useParameterStore().getTupleRanges('CONIC', 'parallels')).toEqual([axis, axis])
+    })
+
+    it('gives no number range to a parameter without bounds for the family', () => {
+      expect(useParameterStore().getNumberRange('CYLINDRICAL', 'clipAngle')).toBeUndefined()
+    })
+
+    it('accepts the translation at the limit of its range and refuses it past the limit', () => {
+      const [{ max }] = useParameterStore().getTupleRanges('CONIC', 'translateOffset')!
+
+      expect(parameterRegistry.validate('translateOffset', [max, 0], 'CONIC').ok).toBe(true)
+      expect(parameterRegistry.validate('translateOffset', [max + 1, 0], 'CONIC').ok).toBe(false)
+    })
   })
 
   describe('changeTerritoryProjection', () => {

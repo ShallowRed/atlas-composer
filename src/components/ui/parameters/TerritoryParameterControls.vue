@@ -45,28 +45,14 @@ const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(props.projectionFamily)
 })
 
-function getParameterRange(paramKey: keyof ProjectionParameters) {
-  const constraints = parameterConstraints.value.constraints[paramKey]
-  if (!constraints) {
-    const fallbackRanges: Record<string, { min: number, max: number, step: number }> = {
-      parallel1: { min: -90, max: 90, step: 1 },
-      parallel2: { min: -90, max: 90, step: 1 },
-      scale: { min: 100, max: 10000, step: 50 },
-      clipAngle: { min: 0, max: 180, step: 1 },
-      precision: { min: 0.01, max: 10, step: 0.01 },
-    }
-    return fallbackRanges[paramKey as string] || { min: 0, max: 100, step: 1 }
-  }
-
-  return {
-    min: constraints.min ?? 0,
-    max: constraints.max ?? 100,
-    step: constraints.step ?? 1,
-  }
-}
-
 const rotateRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'rotate'))
 const centerRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'center'))
+const parallelsRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'parallels'))
+const translateOffsetRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'translateOffset'))
+const pixelClipExtentRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'pixelClipExtent'))
+const scaleMultiplierRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'scaleMultiplier'))
+const clipAngleRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'clipAngle'))
+const precisionRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'precision'))
 
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
@@ -152,11 +138,6 @@ const relevantParameters = computed(() => {
     .filter(([, constraint]: [string, any]) => constraint.relevant)
     .map(([key]) => key as keyof ProjectionParameters)
 })
-
-const parallel1Range = computed(() => getParameterRange('parallel1'))
-const parallel2Range = computed(() => getParameterRange('parallel2'))
-const clipAngleRange = computed(() => getParameterRange('clipAngle'))
-const precisionRange = computed(() => getParameterRange('precision'))
 
 const pixelClipExtentArray = computed(() => {
   const pixelClipExtent = effectiveParameters.value.pixelClipExtent
@@ -332,15 +313,15 @@ const hasTranslateParameter = computed(() => {
               </template>
             </template>
 
-            <template v-if="hasProjectionSpecificParameters">
+            <template v-if="hasProjectionSpecificParameters && parallelsRanges">
               <RangeSlider
                 :model-value="effectiveParameters.parallels?.[0] ?? 30"
                 :label="t('projectionParams.parallel1')"
                 icon="ri-equalizer-line"
                 size="xs"
-                :min="parallel1Range.min"
-                :max="parallel1Range.max"
-                :step="parallel1Range.step"
+                :min="parallelsRanges[0].min"
+                :max="parallelsRanges[0].max"
+                :step="parallelsRanges[0].step"
                 unit="°"
                 @update:model-value="(value: number) => {
                   const currentParallels = effectiveParameters.parallels ?? [30, 60]
@@ -353,9 +334,9 @@ const hasTranslateParameter = computed(() => {
                 :label="t('projectionParams.parallel2')"
                 icon="ri-equalizer-line"
                 size="xs"
-                :min="parallel2Range.min"
-                :max="parallel2Range.max"
-                :step="parallel2Range.step"
+                :min="parallelsRanges[1].min"
+                :max="parallelsRanges[1].max"
+                :step="parallelsRanges[1].step"
                 unit="°"
                 @update:model-value="(value: number) => {
                   const currentParallels = effectiveParameters.parallels ?? [30, 60]
@@ -375,29 +356,29 @@ const hasTranslateParameter = computed(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <template v-if="hasScaleParameter">
+            <template v-if="hasScaleParameter && scaleMultiplierRange">
               <RangeSlider
                 :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
                 :label="t('projectionParams.scaleMultiplier')"
                 icon="ri-zoom-in-line"
                 size="xs"
-                :min="0.1"
-                :max="10"
-                :step="0.1"
+                :min="scaleMultiplierRange.min"
+                :max="scaleMultiplierRange.max"
+                :step="scaleMultiplierRange.step"
                 unit="×"
                 @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
               />
             </template>
 
-            <template v-if="hasTranslateParameter && isCompositeMode">
+            <template v-if="hasTranslateParameter && isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
               <RangeSlider
                 :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
                 label="Translate X"
                 icon="ri-arrow-left-right-line"
                 size="xs"
-                :min="-1000"
-                :max="1000"
-                :step="5"
+                :min="translateOffsetRanges[0].min"
+                :max="translateOffsetRanges[0].max"
+                :step="translateOffsetRanges[0].step"
                 unit="px"
                 @update:model-value="(value: number) => {
                   const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
@@ -410,9 +391,9 @@ const hasTranslateParameter = computed(() => {
                 label="Translate Y"
                 icon="ri-arrow-up-down-line"
                 size="xs"
-                :min="-1000"
-                :max="1000"
-                :step="10"
+                :min="translateOffsetRanges[1].min"
+                :max="translateOffsetRanges[1].max"
+                :step="translateOffsetRanges[1].step"
                 unit="px"
                 @update:model-value="(value: number) => {
                   const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
@@ -425,9 +406,9 @@ const hasTranslateParameter = computed(() => {
                 :label="t('clipExtent.left')"
                 icon="ri-arrow-left-line"
                 size="xs"
-                :min="-500"
-                :max="500"
-                :step="10"
+                :min="pixelClipExtentRanges[0].min"
+                :max="pixelClipExtentRanges[0].max"
+                :step="pixelClipExtentRanges[0].step"
                 @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
               />
 
@@ -436,9 +417,9 @@ const hasTranslateParameter = computed(() => {
                 :label="t('clipExtent.top')"
                 icon="ri-arrow-up-line"
                 size="xs"
-                :min="-500"
-                :max="500"
-                :step="10"
+                :min="pixelClipExtentRanges[1].min"
+                :max="pixelClipExtentRanges[1].max"
+                :step="pixelClipExtentRanges[1].step"
                 @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
               />
 
@@ -447,9 +428,9 @@ const hasTranslateParameter = computed(() => {
                 :label="t('clipExtent.right')"
                 icon="ri-arrow-right-line"
                 size="xs"
-                :min="-500"
-                :max="500"
-                :step="10"
+                :min="pixelClipExtentRanges[2].min"
+                :max="pixelClipExtentRanges[2].max"
+                :step="pixelClipExtentRanges[2].step"
                 @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
               />
 
@@ -458,9 +439,9 @@ const hasTranslateParameter = computed(() => {
                 :label="t('clipExtent.bottom')"
                 icon="ri-arrow-down-line"
                 size="xs"
-                :min="-500"
-                :max="500"
-                :step="10"
+                :min="pixelClipExtentRanges[3].min"
+                :max="pixelClipExtentRanges[3].max"
+                :step="pixelClipExtentRanges[3].step"
                 @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
               />
             </template>
@@ -476,7 +457,7 @@ const hasTranslateParameter = computed(() => {
           </summary>
 
           <div class="collapse-content space-y-2">
-            <template v-if="hasClipAngleParameter">
+            <template v-if="hasClipAngleParameter && clipAngleRange">
               <RangeSlider
                 :model-value="effectiveParameters.clipAngle ?? 90"
                 label="Clip Angle"
@@ -490,7 +471,7 @@ const hasTranslateParameter = computed(() => {
               />
             </template>
 
-            <template v-if="hasPrecisionParameter">
+            <template v-if="hasPrecisionParameter && precisionRange">
               <RangeSlider
                 :model-value="effectiveParameters.precision ?? 0.1"
                 label="Precision"
