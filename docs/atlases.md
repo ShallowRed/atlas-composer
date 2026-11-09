@@ -74,12 +74,6 @@ The territory selector appears when the `territoryScope` entry names a set of th
 7. Add a list item with the key `about.atlases.<atlas>` to `src/views/AboutView.vue`, and add this key to `src/i18n/locales/en.json` and `src/i18n/locales/fr.json`.
 8. Add the key `atlas.territories.<atlas>.territories` to both locale files. `SplitView` uses it as the title of its territories.
 9. Run `pnpm geodata:validate <atlas>`.
-10. Regenerate the rendering reference of the new atlas with the command below. `src/__tests__/view-rendering.spec.ts` fails on an atlas without reference.
+10. Regenerate the rendering reference of the new atlas, as [development.md](development.md) describes. `src/__tests__/view-rendering.spec.ts` fails on an atlas without reference.
 11. Add a changeset for `@atlas-composer/preset-library`, whose catalog reads the registry, as [development.md](development.md) describes.
 12. Open each view of the new atlas with `pnpm dev`, then run `pnpm check`.
-
-```bash
-UPDATE_VIEW_RENDERING=1 pnpm test src/__tests__/view-rendering.spec.ts
-```
-
-This command rewrites all of `src/__tests__/fixtures/view-rendering.json`. Commit the keys of the new atlas and restore the other keys.
