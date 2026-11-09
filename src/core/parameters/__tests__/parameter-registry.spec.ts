@@ -152,8 +152,8 @@ describe('parameterRegistry', () => {
         expected: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'center', position: 1, min: -180 },
       },
       PARAMETER_ITEM_TOO_LARGE: {
-        issue: () => issueOf('center', [200, 0], 'CYLINDRICAL'),
-        expected: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'center', position: 1, max: 180 },
+        issue: () => issueOf('rotate', [0, 100, 0], 'CONIC'),
+        expected: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'rotate', position: 2, max: 90 },
       },
       PARAMETER_OUT_OF_RANGE: {
         issue: () => issueOf('parallels', [-100, 100], 'CONIC'),
