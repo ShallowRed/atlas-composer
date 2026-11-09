@@ -29,7 +29,7 @@ Each error has a `path` such as `territories[0].code`, the message of the schema
 
 A configuration declares a `version` of major 1, such as `"1.1"`. Beyond the schema, `validateConfig` refuses two territories with the same `code`, a rule that JSON Schema cannot express.
 
-A territory without `pixelClipExtent` is not clipped. A territory without `bounds` is drawn, and the composite projection of `@atlas-composer/projection-loader` returns `null` for its points.
+A territory without `pixelClipExtent` is clipped at its `bounds`, and a territory with neither is not clipped. A territory without `bounds` is drawn, and the composite projection of `@atlas-composer/projection-loader` returns `null` for its points.
 
 The scale of a territory is `referenceScale` × `scaleMultiplier`, and `scaleMultiplier` defaults to `DEFAULT_SCALE_MULTIPLIER`. The schema accepts the parameters `scale`, `distance` and `tilt`, which the loader ignores.
 

@@ -338,7 +338,10 @@ describe('projection-loader', () => {
   })
 
   describe('d3 parameters', () => {
-    function loadTerritory(parameters: ProjectionParameters): GeoConicProjection {
+    function loadTerritory(
+      parameters: ProjectionParameters,
+      overrides: Partial<CompositeProjectionConfig['territories'][number]> = {},
+    ): GeoConicProjection {
       const created: GeoConicProjection[] = []
       const spyLoader = new ProjectionLoader()
       spyLoader.register('conic-conformal', () => {
@@ -349,7 +352,7 @@ describe('projection-loader', () => {
       })
       const territory = mockConfig.territories[0]!
       spyLoader.load(
-        { ...mockConfig, territories: [{ ...territory, projection: { ...territory.projection, parameters } }] },
+        { ...mockConfig, territories: [{ ...territory, projection: { ...territory.projection, parameters }, ...overrides }] },
         { width: 960, height: 500 },
       )
       return created.at(-1)!
@@ -361,6 +364,36 @@ describe('projection-loader', () => {
       expect(projection.center()).toEqual([1, 2])
       expect(projection.rotate()).toEqual([expect.closeTo(-3), expect.closeTo(-46.2), 0])
       expect(projection.parallels()).toEqual([44, 49])
+    })
+
+    describe('clipping', () => {
+      const layout = { translateOffset: [0, 0] as [number, number] }
+
+      it('should clip around the translate of the territory with pixelClipExtent', () => {
+        const projection = loadTerritory({}, { layout: { ...layout, pixelClipExtent: [-100, -50, 100, 50] } })
+        const [[x0, y0], [x1, y1]] = projection.clipExtent()!
+
+        expect([x0, y0, x1, y1]).toEqual([
+          expect.closeTo(380),
+          expect.closeTo(200),
+          expect.closeTo(580),
+          expect.closeTo(300),
+        ])
+      })
+
+      it('should clip at the bounds of a territory without pixelClipExtent', () => {
+        const projection = loadTerritory({ rotate: [-3, -46.2], parallels: [44, 49] }, { layout, bounds: [[-5, 42], [8, 51]] })
+        const [topLeft, bottomRight] = projection.clipExtent()!
+
+        expect(topLeft[0]).toBeCloseTo(projection([-5, 51])![0], 3)
+        expect(bottomRight[1]).toBeCloseTo(projection([8, 42])![1], 3)
+      })
+
+      it('should leave a territory with neither pixelClipExtent nor bounds without clip extent', () => {
+        const projection = loadTerritory({}, { layout, bounds: undefined })
+
+        expect(projection.clipExtent()).toBeNull()
+      })
     })
 
     it('should apply a zero clip angle', () => {
