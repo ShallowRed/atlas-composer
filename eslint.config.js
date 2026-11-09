@@ -98,6 +98,14 @@ const DEFAULT_REFERENCE_SCALE = {
   message: 'The default reference scale is DEFAULT_REFERENCE_SCALE of @atlas-composer/specification.',
 }
 
+const SELECTION_WRITES = [
+  'AssignmentExpression[left.property.name=/^(selectedAtlasId|viewMode)$/]',
+  'VAttribute[directive=true][key.name.name=\'model\'] MemberExpression[property.name=/^(selectedAtlasId|viewMode)$/]',
+].map(selector => ({
+  selector,
+  message: 'The atlas and the view mode change through selectAtlas and selectViewMode of src/stores/composition.ts.',
+}))
+
 const CARTOGRAPHER_DATA = {
   selector: 'MemberExpression[property.name=\'geoData\']:not([object.name=\'props\'])',
   message: 'The geographic data of the cartographer is read by an action of the geoData store.',
@@ -210,8 +218,8 @@ export default antfu({
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...RESULT_FIELDS],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, ...RESULT_FIELDS],
   },
 }, {
   files: ['packages/projection-loader/src/**'],

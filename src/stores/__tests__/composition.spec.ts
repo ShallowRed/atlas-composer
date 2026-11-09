@@ -58,7 +58,7 @@ describe('composition store', () => {
 
     it('fails when the default preset is invalid', async () => {
       await startApplication(FRANCE)
-      await openView(FRANCE, 'split')
+      await openView('split')
       vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err({
         code: 'PRESET_INVALID',
         presetId: 'france-unified',
@@ -78,16 +78,12 @@ describe('composition store', () => {
 
     it('opens the selected atlas', async () => {
       await startApplication(FRANCE)
-      const compositionStore = useCompositionStore()
-      const initializeAtlas = vi.spyOn(compositionStore, 'initializeAtlas')
       const atlasStore = useAtlasStore()
 
-      atlasStore.selectedAtlasId = 'europe' as AtlasId
-      await vi.waitFor(() => expect(initializeAtlas).toHaveBeenCalled())
-      const result = await initializeAtlas.mock.results[0]!.value
+      await useCompositionStore().selectAtlas('europe' as AtlasId)
 
-      expect(result).toEqual(ok(undefined))
-      expect(atlasStore.currentAtlasConfig?.id).toBe(atlasStore.selectedAtlasId)
+      expect(atlasStore.selectedAtlasId).toBe('europe')
+      expect(atlasStore.currentAtlasConfig?.id).toBe('europe')
     })
   })
 
@@ -114,11 +110,8 @@ describe('composition store', () => {
       await startApplication(FRANCE)
       const compositionStore = useCompositionStore()
       await compositionStore.initializeAtlas()
-      const initializeAtlas = vi.spyOn(compositionStore, 'initializeAtlas')
 
-      useAtlasStore().selectedAtlasId = 'world' as AtlasId
-      await vi.waitFor(() => expect(initializeAtlas).toHaveBeenCalled())
-      await initializeAtlas.mock.results[0]!.value
+      await compositionStore.selectAtlas('world' as AtlasId)
 
       expect(useProjectionStore().compositeProjection).toBeNull()
     })
@@ -127,13 +120,11 @@ describe('composition store', () => {
   describe('atlas change', () => {
     it('opens the previous atlas again when the new atlas fails to open', async () => {
       await startApplication(FRANCE)
-      useCompositionStore()
       const atlasStore = useAtlasStore()
       const loadAtlas = vi.spyOn(atlasStore, 'loadAtlas')
       stubFetchFailingOn('usa')
 
-      atlasStore.selectedAtlasId = 'usa' as AtlasId
-      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+      await useCompositionStore().selectAtlas('usa' as AtlasId)
 
       expect(atlasStore.selectedAtlasId).toBe('france')
       expect(atlasStore.currentAtlasConfig?.id).toBe('france')
@@ -142,11 +133,9 @@ describe('composition store', () => {
 
     it('shows a toast when the new atlas fails to open', async () => {
       await startApplication(FRANCE)
-      useCompositionStore()
       stubFetchFailingOn('usa')
 
-      useAtlasStore().selectedAtlasId = 'usa' as AtlasId
-      await vi.waitFor(() => expect(useUIStore().toasts).toHaveLength(1))
+      await useCompositionStore().selectAtlas('usa' as AtlasId)
 
       expect(useUIStore().toasts[0]).toMatchObject({
         type: 'error',
@@ -160,11 +149,9 @@ describe('composition store', () => {
 
     it('reads the configuration of the new atlas once', async () => {
       await startApplication(FRANCE)
-      useCompositionStore()
       const loadJSON = vi.spyOn(JsonFileLoader, 'loadJSON')
 
-      useAtlasStore().selectedAtlasId = 'portugal' as AtlasId
-      await vi.waitFor(() => expect(useAppStore().state).toBe('ready'))
+      await useCompositionStore().selectAtlas('portugal' as AtlasId)
 
       expect(useAtlasStore().currentAtlasConfig?.id).toBe('portugal')
       expect(loadJSON.mock.calls.filter(([path]) => path === 'configs/atlases/portugal.json')).toHaveLength(1)

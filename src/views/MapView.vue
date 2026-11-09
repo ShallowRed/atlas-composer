@@ -25,7 +25,6 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
-// Created before restoreFromUrl, so that the URL triggers its watchers
 const compositionStore = useCompositionStore()
 
 const { restoreFromUrl, restoreProjectionParametersFromUrl } = useUrlState()

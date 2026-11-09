@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { isViewMode } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -17,6 +18,7 @@ const debug = logger.vue.composable
 export function useUrlState() {
   const route = useRoute()
   const atlasStore = useAtlasStore()
+  const compositionStore = useCompositionStore()
   const parameterStore = useParameterStore()
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
@@ -88,9 +90,9 @@ export function useUrlState() {
 
   function deserializeState(params: Record<string, any>) {
     if (params.atlas)
-      atlasStore.selectedAtlasId = params.atlas
+      void compositionStore.selectAtlas(params.atlas)
     if (isViewMode(params.view))
-      viewStore.setViewMode(params.view)
+      void compositionStore.selectViewMode(params.view)
     if (params.projection)
       projectionStore.setSelectedProjection(params.projection)
     if (params.territory)

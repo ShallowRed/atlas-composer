@@ -5,9 +5,9 @@ import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
-import { expect, vi } from 'vitest'
+import { vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
-import { getAtlasConfig, getDefaultPresetForViewMode } from '@/core/atlases/registry'
+import { getAtlasConfig } from '@/core/atlases/registry'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
 import { CompositeExportService } from '@/services/export/composite-export-service'
@@ -18,7 +18,6 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
-import { useViewStore } from '@/stores/view'
 
 export type Point = [number, number]
 
@@ -32,34 +31,14 @@ export async function startApplication(atlasId: AtlasId) {
   await loadAtlasFromConfigs(atlasId)
   const atlasStore = useAtlasStore()
   atlasStore.selectedAtlasId = atlasId
-  // Created after the atlas selection, so that its atlas watcher does not initialize the atlas again
-  useCompositionStore()
   // The geographic data of src/public/data is not versioned
   const geoDataStore = useGeoDataStore()
   vi.spyOn(geoDataStore, 'loadAllAtlasData').mockResolvedValue(ok(undefined))
   vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
 }
 
-// Path of a view change (composition store, viewMode watcher)
-export async function openView(atlasId: AtlasId, view: ViewMode) {
-  const viewStore = useViewStore()
-  if (viewStore.viewMode === view) {
-    return
-  }
-
-  if (view === 'composite-custom') {
-    // The watcher leaves currentViewPreset at null and initializes the atlas again
-    const initializeAtlas = vi.spyOn(useCompositionStore(), 'initializeAtlas')
-    viewStore.setViewMode(view)
-    await vi.waitFor(() => expect(initializeAtlas).toHaveBeenCalled())
-    await initializeAtlas.mock.results[0]!.value
-    initializeAtlas.mockRestore()
-    return
-  }
-
-  viewStore.setViewMode(view)
-  const viewPresetId = getDefaultPresetForViewMode(atlasId, view)?.id
-  await vi.waitFor(() => expect(viewStore.currentViewPreset).toBe(viewPresetId))
+export async function openView(view: ViewMode) {
+  await useCompositionStore().selectViewMode(view)
 }
 
 export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {
@@ -93,7 +72,7 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
 export async function importIntoApplication(json: string, canvasDimensions?: CanvasDimensions): Promise<ApplicationComposite> {
   const atlasId = JSON.parse(json).metadata.atlasId as AtlasId
   await startApplication(atlasId)
-  await openView(atlasId, 'composite-custom')
+  await openView('composite-custom')
   const projectionStore = useProjectionStore()
   if (canvasDimensions) {
     projectionStore.canvasDimensions = canvasDimensions
@@ -117,7 +96,7 @@ export async function importIntoApplication(json: string, canvasDimensions?: Can
 
 export async function loadPresetIntoApplication(atlasId: AtlasId, presetId: PresetId): Promise<ApplicationComposite> {
   await startApplication(atlasId)
-  await openView(atlasId, 'composite-custom')
+  await openView('composite-custom')
 
   const result = await useCompositionStore().loadPreset({ presetId })
   if (!result.ok) {

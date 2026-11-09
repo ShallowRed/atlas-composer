@@ -1,7 +1,7 @@
 // Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit
 // "fix(registry): declare every preset of configs/presets once"; regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
-import type { AtlasId, PresetId } from '@/types/branded'
+import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
@@ -9,12 +9,10 @@ import atlasRegistry from '#configs/atlas-registry.json'
 import { afterAll, expect, it } from 'vitest'
 import { buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { ok } from '@/core/types/result'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
-import { useViewStore } from '@/stores/view'
 
 type View = 'unified' | 'split' | 'composite-custom'
 type Bounds = [Point, Point]
@@ -53,19 +51,12 @@ function unionOfBounds(bounds: Bounds[]): Bounds {
   ]
 }
 
-// Path of an atlas change (composition store, switchAtlas)
 async function openAtlas(atlasId: AtlasId) {
   await startApplication(atlasId)
-  const viewStore = useViewStore()
 
   const result = await useCompositionStore().initializeAtlas({ preserveViewMode: true })
   if (!result.ok) {
     throw new Error(JSON.stringify(result.error))
-  }
-  await viewStore.loadAvailableViewPresets()
-  const defaultViewPreset = viewStore.availableViewPresets.find(preset => preset.isDefault) ?? viewStore.availableViewPresets[0]
-  if (defaultViewPreset) {
-    expect(await viewStore.loadViewPreset(defaultViewPreset.id as PresetId)).toEqual(ok(undefined))
   }
 }
 
@@ -118,7 +109,7 @@ afterAll(() => {
 
 it.each(cases)('$atlasId $view view keeps its rendering', async ({ atlasId, view }) => {
   await openAtlas(atlasId)
-  await openView(atlasId, view)
+  await openView(view)
   const rendering = renderView(atlasId, view)
 
   const key = `${atlasId}/${view}`
