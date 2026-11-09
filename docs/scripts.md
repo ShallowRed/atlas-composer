@@ -1,108 +1,54 @@
-# Scripts & Build Tools
+# Geographic data scripts
 
-## Overview
+`scripts/prepare-geodata.ts` builds the geographic files of an atlas from Natural Earth, and `scripts/validate-configs.ts` compares the configurations with these files. `scripts/config/` holds the code they share to read the registry and the atlas configurations. Each script prints its arguments with `--help`, and `package.json` gives the commands.
 
-TypeScript-based toolkit for geodata preparation, validation, and development.
+## Preparing the data of an atlas
 
-## Quick Start
+`pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `createBackendConfig` in `scripts/config/adapter.ts` then reduces the configuration to the territories and their rules, with each name in English.
 
-```bash
-pnpm geodata:prepare france            # Prepare geodata
-pnpm geodata:validate france           # Validate config/data
-pnpm geodata:lookup france             # Look up in Natural Earth
-pnpm geodata:analyze 250               # Analyze polygon structure
-```
+The script downloads the Natural Earth topology of the `world-atlas` package from jsDelivr at each run. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`.
 
-## Core Scripts
+The script writes three files in `src/public/data/`, a folder that git ignores. With the 50m resolution, these files are:
 
-| Script | Purpose | Command |
-|--------|---------|---------|
-| **prepare-geodata.ts** | Download NE data, filter, create TopoJSON | `pnpm geodata:prepare <atlas>` |
-| **validate-configs.ts** | Validate config/data consistency | `pnpm geodata:validate <atlas>` |
-| **lookup-country.ts** | Look up country in Natural Earth | `pnpm geodata:lookup <query>` |
-| **analyze-country.ts** | Analyze polygon structure | `pnpm geodata:analyze <id>` |
+- `src/public/data/world-countries-50m.json`, the downloaded topology.
+- `src/public/data/<atlas>-territories-50m.json`, a GeoJSON feature collection with one feature per territory.
+- `src/public/data/<atlas>-metadata-50m.json`, the description of the atlas and of its territory rules.
 
-## prepare-geodata Pipeline
+The script keeps each Natural Earth feature whose id equals the `id` of a territory, and it also accepts this `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. A territory whose `id` matches no feature and has no rule below is missing from the output, and the validation reports it.
 
-1. Load & validate config from `configs/<atlas>.json`
-2. Download Natural Earth data
-3. Filter territories by ID
-4. Extract embedded territories (separate polygons)
-5. Duplicate territories if needed
-6. Generate TopoJSON output to `src/public/data/`
+When `territories` is `*`, the script keeps every feature, pads its id to three digits and applies no rule. `configs/atlases/world.json` is this case.
 
-**Output**: `{atlas}-territories-{res}.json`, `{atlas}-metadata-{res}.json`
+## Territory extraction rules
 
-## Territory Extraction
+The `extraction` field of a territory describes how the script cuts the territory out of a Natural Earth feature. `configs/schemas/atlas.schema.json` declares `extractFrom` and `polygonIndices`. `JSONTerritoryConfig` in `types/atlas-config.ts` adds `polygonBounds` and `duplicateFrom`, which the schema accepts as additional properties. `configs/atlases/portugal.json` has examples of indices, and `configs/atlases/france.json` an example of `duplicateFrom`.
 
-Extract polygons from Natural Earth MultiPolygon features:
+`extractFrom` names the parent, a territory of the same atlas whose `id` is a Natural Earth id. The adapter parses this value as an integer, so write the `id` of a parent without leading zeros. The parent feature has a `MultiPolygon` geometry, and the script leaves any other geometry whole.
 
-```json
-{
-  "code": "FR-GP",
-  "extraction": {
-    "extractFrom": "250",
-    "polygonIndices": [1]
-  }
-}
-```
+A territory with `extractFrom` takes its polygons in one of two ways:
 
-## Territory Duplication
+- With `polygonIndices`, the territory takes the polygons at these positions of the parent, counted from zero. The script logs a warning for an index out of range.
+- Without `polygonIndices`, the territory takes each polygon that fits inside its box, which is `polygonBounds` or else `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it.
 
-Duplicate features for projection layouts:
+The script applies the indices first, and the boxes to the polygons that remain. The parent keeps every polygon that no rule takes. The script reads `polygonIndices` on a territory that has `extractFrom`, and ignores it on any other territory.
 
-```json
-{
-  "duplicates": [
-    { "sourceCode": "258", "targetCode": "FR-PF-2" }
-  ]
-}
-```
+`duplicateFrom` copies the geometry of a feature into a new territory with its own `id`, `name`, `code` and `iso`. The script runs the duplication after the extraction, so the source can be an extracted territory. The script looks for the source by feature id and by `code`, and logs a warning when it finds none.
 
-## Key API
+## Finding the ids and the polygon indices
 
-```typescript
-import { loadConfig } from '#scripts/config/loader'
-import { fetchWorldData } from '#scripts/utils/ne-data'
-import { validateSchema } from '#scripts/utils/schema-validator'
-import { logger } from '#scripts/utils/logger'
-```
+`pnpm geodata:lookup` finds a country by name or by id and prints its Natural Earth id and the shape of its geometry. `pnpm geodata:analyze` takes this id and lists the polygons by decreasing area, each with its index, bounds and center, then suggests groups of nearby polygons. Polygon indices differ between resolutions, so the analysis uses the resolution of the atlas.
 
-## Directory Structure
+## Validating the configurations
 
-```
-scripts/
-├── prepare-geodata.ts, validate-configs.ts
-├── config/ (adapter.ts, loader.ts)
-├── utils/ (cli-args.ts, logger.ts, ne-data.ts, schema-validator.ts)
-└── dev/ (lookup-country.ts, analyze-country.ts)
-```
+`pnpm geodata:validate <atlas>` checks one atlas, and `pnpm geodata:validate --all` checks every atlas of the registry. `pnpm check` runs the second command.
 
-## Best Practices
+For each atlas, the script checks the following points:
 
-- Always validate after generation
-- Use dev tools (lookup, analyze) before creating configs
-- Start with 50m resolution (balance of speed/detail)
-- Test extraction rules incrementally
-- Cache in `node_modules/.cache/natural-earth/`
+- The configuration matches `configs/schemas/atlas.schema.json`.
+- The atlas has exactly one preset with `isDefault`.
+- Each preset has an id that starts with the atlas id, and is stored at `configs/presets/<atlas>/<id>.json`.
+- A preset of type `composite-custom` passes `validateConfig` of `@atlas-composer/specification`, and the `id` of any other preset equals its id in the registry.
+- At each resolution present in `src/public/data/`, each territory `code` has a feature in the generated data. A feature without a territory in the configuration produces a warning.
 
-## Naming Conventions
+An atlas without generated data produces a warning, so the check runs on a fresh clone. The `--all` option adds two checks of the whole repository: the registry matches `configs/schemas/atlas-registry.schema.json`, and the registry declares each JSON file of `configs/presets/` once.
 
-- Metropolitan: `{ISO}-MET` (FR-MET)
-- Overseas: `{ISO}-{ABBR}` (FR-GP)
-- Duplicates: `{ISO}-{ABBR}-{N}` (FR-PF-2)
-
-## Workflow
-
-```
-pnpm geodata:lookup "country"  → Create config
-pnpm geodata:analyze <id>      → Get polygon structure
-pnpm geodata:prepare <atlas>   → Generate data
-pnpm geodata:validate <atlas>  → Validate
-pnpm dev                       → Test
-```
-
-## Related Docs
-
-- [add-new-atlas.md](add-new-atlas.md) - Step-by-step guide
-- [atlases.md](atlases.md) - Atlas system
+The registry and the presets of an atlas are described in [atlases.md](atlases.md) and [presets.md](presets.md).
