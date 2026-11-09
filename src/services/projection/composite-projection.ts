@@ -189,7 +189,7 @@ export class CompositeProjection {
         subProj.projection.scale(newScale)
       }
 
-      subProj.baseScale = newScale
+      subProj.baseScale = referenceScale
     })
 
     this.compositeProjection = null
