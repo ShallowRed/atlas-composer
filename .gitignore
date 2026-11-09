@@ -31,6 +31,7 @@ coverage
 
 .github/*
 !.github/workflows
+!.github/dependabot.yml
 
 todo.md
 
