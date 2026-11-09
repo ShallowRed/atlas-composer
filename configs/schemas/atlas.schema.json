@@ -73,7 +73,7 @@
       "properties": {
         "defaultCompositeProjection": {
           "type": "string",
-          "description": "Composite projection of d3-composite-projections chosen when the atlas is initialized"
+          "description": "Id of a definition with the D3_COMPOSITE strategy, chosen when the atlas is initialized"
         },
         "recommended": {
           "type": "array",
