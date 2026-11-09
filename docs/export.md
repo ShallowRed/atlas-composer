@@ -23,7 +23,7 @@ The application writes a custom composite to a JSON file and reads this file bac
 
 `readConfigurationFile` runs when the user selects a file. It passes the file to `importFromFile`, in `src/services/export/composite-import-service.ts`. The service requires a name that ends in `.json` and a size of at most 10 MB, parses the text and calls `readCompositeConfig`. Each failure has a code of `ImportError`, in `src/core/types/errors.ts`, and `ImportModal` shows the message that `useErrorMessage` gives for it.
 
-`importConfiguration` applies the file when the user confirms. It sets the view to `composite-custom`, sets the active territories to the territories of the file, writes `referenceScale`, `canvasDimensions` and the parameters of each territory, and resets the graticule, the composition borders and the map limits to their initial values. It then loads the geographic data of the atlas and updates the cartographer. An exception during these steps gives the error `IMPORT_APPLICATION_FAILED`.
+`importConfiguration` applies the file when the user confirms. It sets the view to `composite-custom`, sets the active territories to the territories of the file, writes `referenceScale`, `canvasDimensions` and the parameters of each territory, and resets the graticule, the composition borders and the map limits to their initial values. It then loads the geographic data that the store lacks and updates the cartographer. An exception during these steps gives the error `IMPORT_APPLICATION_FAILED`.
 
 ## Files of another atlas
 

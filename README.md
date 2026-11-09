@@ -44,7 +44,7 @@ The packages of `packages/` are published on npm:
 
 ## Documentation
 
-- [Architecture](docs/architecture.md): the layers of the code and the path of an action to the map.
+- [Architecture](docs/architecture.md): the layers of the code and the steps from an action to the rendering.
 - [Atlases](docs/atlases.md): the registry, the configuration of an atlas and the procedure to add one.
 - [Projections](docs/projections.md): the projection definitions and the positioning of a territory.
 - [Presets](docs/presets.md): the preset types and the preset library.
@@ -56,7 +56,7 @@ The packages of `packages/` are published on npm:
 
 ## Acknowledgments
 
-Atlas Composer builds on the work of two projects:
+Atlas Composer uses the work of two projects:
 
 - [d3-geo](https://github.com/d3/d3-geo), by [Mike Bostock](https://github.com/mbostock). The stream multiplexing and the composition of projections in `@atlas-composer/projection-core` derive from `geoAlbersUsa`.
 - [d3-composite-projections](https://github.com/rveciana/d3-composite-projections), by [Roger Veciana](https://github.com/rveciana), which applies the composite projection to several countries and provides ready-made composite projections to the editor.

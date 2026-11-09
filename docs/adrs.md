@@ -10,9 +10,9 @@ The rendering and the controls follow the state through Vue reactivity, and a st
 
 ## Each store holds one concept
 
-A store holds the state of one concept: `atlas` holds the selected atlas and its configuration, `projection` the selected projections and the canvas, `view` the view mode and the active territories. A use case that writes several stores is an action of `src/stores/composition.ts`.
+A store holds the state of one concept: `atlas` holds the selected atlas and its configuration, `projection` the selected projections and the canvas, `view` the view mode and the active territories. The use cases that replace the state of several stores, such as the initialization of an atlas, the import and the load of a custom preset, are actions of `src/stores/composition.ts`.
 
-A change to one concept touches one store, and a reader finds in one file each use case that crosses several concepts. `src/stores/composition.ts` imports the other stores, and `pnpm check:dead-code` refuses an import cycle.
+A change to one concept touches one store. `src/stores/composition.ts` imports the other stores, and `pnpm check:dead-code` refuses an import cycle.
 
 ## Domain identifiers have branded types
 
@@ -22,7 +22,7 @@ The compiler refuses a `PresetId` where a function expects an `AtlasId`, and a s
 
 ## Use cases are store actions, and a service imports no store
 
-A use case that reads or writes the state of the application is an action of a store. The action passes values to the services as arguments. A service can keep its own state: the parameters store owns a `ProjectionParameterManager`, which holds the levels of parameters. A service imports no store.
+A use case that reads or writes the state of the application is an action of a store, and `useUrlState` reads and writes the stores for a link, from the interface layer. An action passes values to the services as arguments. A service can keep its own state: the parameters store owns a `ProjectionParameterManager`, which holds the levels of parameters. A service imports no store.
 
 The dependencies go in one direction, and `eslint.config.js` checks it. Pinia [lets an action call another store](https://pinia.vuejs.org/cookbook/composing-stores.html), and a store action runs outside the `setup` of a component. A service runs in a test with plain arguments.
 
@@ -42,7 +42,7 @@ The signature of a function shows that it can fail and how. The caller handles t
 
 The presets, the state of the application, the exported file and the loader all give the position of a territory with the d3 parameters `rotate`, `center` and `parallels`.
 
-The application has one model, so the import of a file in the current format and the export carry the same values. A file written for d3 keeps its meaning: `configs/presets/usa/usa-pseudo-d3cp.json` gives a territory both `center` and `rotate`, as d3 does for Alaska in `geoAlbersUsa`. The loader applies the values of the file as they are, so a reader of the format needs no rule per projection family. The rules per family are in `src/core/positioning/`, which the import of deprecated forms, the panning of the map and the parameter registry use, and `eslint.config.js` refuses the deprecated fields elsewhere. [projections.md](projections.md) describes the positioning.
+The application has one model, so the import of a file in the current format and the export hold the same values. A file written for d3 keeps its meaning: `configs/presets/usa/usa-pseudo-d3cp.json` gives a territory both `center` and `rotate`, as d3 does for Alaska in `geoAlbersUsa`. The loader applies the values of the file as they are, so a reader of the format needs no rule per projection family. The rules per family are in `src/core/positioning/`, which the import of deprecated forms, the panning of the map and the parameter registry use, and `eslint.config.js` refuses the deprecated fields elsewhere. [projections.md](projections.md) describes the positioning.
 
 ## The preset ids of the registry are the public ids
 
@@ -54,4 +54,4 @@ The project has one list of ids, and a user of the package reads the same name a
 
 `ProjectionLoader` calls `validateConfig` of `@atlas-composer/specification` and throws a `ConfigValidationError` for a file that the schema refuses. It neither tolerates nor converts a deprecated form.
 
-The schema alone decides what a valid file is, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [export.md](export.md) describes, and the loader refuses them.
+A file is valid when the schema accepts it, and `src/__tests__/format-verdicts.spec.ts` requires the same verdict from the specification, the application and the loader. The loader has no list of tolerated forms to maintain. The application reads the files of its earlier versions with `readCompositeConfig`, as [export.md](export.md) describes, and the loader refuses them.
