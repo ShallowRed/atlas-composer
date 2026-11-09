@@ -96,6 +96,24 @@ describe('composition store', () => {
       expect(useViewStore().currentViewPreset).toBe('europe-builtin')
     })
 
+    it('opens nothing when the atlas is already selected', async () => {
+      await startApplication(FRANCE)
+      const loadAtlas = vi.spyOn(useAtlasStore(), 'loadAtlas')
+
+      await useCompositionStore().selectAtlas(FRANCE)
+
+      expect(loadAtlas).not.toHaveBeenCalled()
+    })
+
+    it('opens nothing when the view is already selected', async () => {
+      await startApplication(FRANCE)
+      const loadAtlas = vi.spyOn(useAtlasStore(), 'loadAtlas')
+
+      await useCompositionStore().selectViewMode(useViewStore().viewMode)
+
+      expect(loadAtlas).not.toHaveBeenCalled()
+    })
+
     it('clears the global parameters when the view changes', async () => {
       await startApplication(FRANCE)
       useParameterStore().setGlobalParameters({ rotate: [10, 20, 0] })
