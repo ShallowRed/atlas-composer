@@ -9,16 +9,19 @@ import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
+import { filterAtlasConfigByPreset } from '@/core/atlases/utils'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
 import { CompositeExportService } from '@/services/export/composite-export-service'
 import { CompositeImportService } from '@/services/export/composite-import-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
+import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 export type Point = [number, number]
 
@@ -39,6 +42,23 @@ export async function startApplication(atlasId: AtlasId) {
     return ok(undefined)
   })
   vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
+}
+
+// A real cartographer on the configuration filtered by the default preset, without geographic data
+export async function openAtlasWithCartographer(atlasId: AtlasId) {
+  await startApplication(atlasId)
+  await useCompositionStore().initializeAtlas()
+  const presetTerritories = Object.fromEntries([...useViewStore().activeTerritoryCodes].map(code => [code, {}]))
+  const atlasConfig = filterAtlasConfigByPreset(useAtlasStore().currentAtlasConfig!, presetTerritories)
+  const geoDataStore = useGeoDataStore()
+  geoDataStore.cartographer = new Cartographer(
+    atlasConfig.geoDataConfig,
+    atlasConfig.compositeProjectionConfig,
+    undefined,
+    useParameterStore().parameterProvider,
+    useProjectionStore().referenceScale,
+  )
+  return geoDataStore
 }
 
 export async function openView(view: ViewMode) {

@@ -339,6 +339,7 @@ export const useCompositionStore = defineStore('composition', () => {
         },
       }
 
+      parameterStore.clearAll()
       applyStateToStores(state)
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
       if (isAtlasChanged()) {
@@ -379,7 +380,9 @@ export const useCompositionStore = defineStore('composition', () => {
     const territoryCodes = Object.keys(state.parameters.territories) as TerritoryCode[]
     const compositeProjectionConfig = atlasStore.currentAtlasConfig?.compositeProjectionConfig
     if (!compositeProjectionConfig) {
-      updateCartographerTerritories(territoryCodes)
+      territoryCodes.forEach(code => cartographer.updateTerritoryParameters(code))
+      debug('Updated cartographer for %d territories', territoryCodes.length)
+      geoDataStore.triggerRender()
       return
     }
 
@@ -389,17 +392,6 @@ export const useCompositionStore = defineStore('composition', () => {
       state.canvas.referenceScale,
     )
     debug('Rebuilt composite projection with %d territories', territoryCodes.length)
-    geoDataStore.triggerRender()
-  }
-
-  function updateCartographerTerritories(territoryCodes: TerritoryCode[]): void {
-    const cartographer = geoDataStore.cartographer
-    if (!cartographer) {
-      return
-    }
-
-    territoryCodes.forEach(code => cartographer.updateTerritoryParameters(code))
-    debug('Updated cartographer for %d territories', territoryCodes.length)
     geoDataStore.triggerRender()
   }
 
@@ -464,6 +456,7 @@ export const useCompositionStore = defineStore('composition', () => {
         },
       }
 
+      parameterStore.clearAll()
       applyStateToStores(state)
 
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
@@ -475,7 +468,7 @@ export const useCompositionStore = defineStore('composition', () => {
         return geoDataResult
       }
 
-      updateCartographerTerritories(config.territories.map(territory => territory.code as TerritoryCode))
+      updateCartographer(state)
       return ok(undefined)
     }
     catch (error) {
@@ -587,7 +580,7 @@ export const useCompositionStore = defineStore('composition', () => {
     uiStore.showCompositionBorders = state.display.showCompositionBorders
     uiStore.showMapLimits = state.display.showMapLimits
 
-    if (state.viewMode === 'composite-custom' || state.viewMode === 'split') {
+    if (state.viewMode === 'composite-custom') {
       presetDefaults.storePresetDefaults(
         state.territories,
         state.parameters.territories as any,
@@ -671,7 +664,7 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.setGlobalParameter('scale', undefined)
     presetDefaults.storeGlobalParameters(null)
 
-    if (viewMode !== 'composite-custom' && viewMode !== 'split') {
+    if (viewMode !== 'composite-custom') {
       presetDefaults.clearAll()
     }
 

@@ -1,5 +1,5 @@
 import type { PositioningView } from '@/core/positioning'
-import type { Preset } from '@/core/presets'
+import type { Preset, TerritoryDefaults } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
@@ -158,14 +158,38 @@ export const useViewStore = defineStore('view', () => {
         presetDefaults.storeGlobalParameters(parameters)
         break
       }
-      case 'split':
+      case 'split': {
+        const projections: TerritoryDefaults['projections'] = {}
+        const parameters: Record<string, ProjectionParameters> = {}
+        const writeTerritoryBase = (territoryCode: TerritoryCode, projectionId: ProjectionId) => {
+          parameterStore.setTerritoryTranslation(territoryCode, 'x', 0)
+          parameterStore.setTerritoryTranslation(territoryCode, 'y', 0)
+          parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', 1)
+          parameterStore.setTerritoryProjection(territoryCode, projectionId)
+        }
         for (const [code, territoryConfig] of Object.entries(preset.config.territories ?? {})) {
-          parameterStore.setTerritoryProjection(code as TerritoryCode, territoryConfig.projection.id as ProjectionId)
+          const territoryCode = code as TerritoryCode
+          parameterStore.clearAllTerritoryOverrides(territoryCode)
+          writeTerritoryBase(territoryCode, territoryConfig.projection.id as ProjectionId)
           if (territoryConfig.projection.parameters) {
-            parameterStore.setTerritoryParameters(code as TerritoryCode, territoryConfig.projection.parameters)
+            parameterStore.setTerritoryParameters(territoryCode, territoryConfig.projection.parameters)
           }
         }
+        const displayedProjection = projectionStore.selectedProjection
+        for (const { code } of getAtlasStore().atlasService.getAllTerritories()) {
+          const territoryCode = code as TerritoryCode
+          if (!parameterStore.getTerritoryProjection(territoryCode) && displayedProjection) {
+            writeTerritoryBase(territoryCode, displayedProjection)
+          }
+          const projectionId = parameterStore.getTerritoryProjection(territoryCode)
+          if (projectionId) {
+            projections[territoryCode] = projectionId
+            parameters[code] = { ...parameterStore.getTerritoryParameters(territoryCode) }
+          }
+        }
+        presetDefaults.storePresetDefaults({ projections, translations: {}, scales: {} }, parameters)
         break
+      }
       case 'built-in-composite':
         projectionStore.compositeProjection = preset.config.projectionId as ProjectionId
         if (preset.config.globalScale !== undefined) {
