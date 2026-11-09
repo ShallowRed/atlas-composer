@@ -1,0 +1,1398 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`projectionFactory > created projections > keeps the projection created for albers-uk 1`] = `
+{
+  "center": [
+    -2,
+    55.4,
+  ],
+  "centerImage": [
+    546.342216,
+    209.634679,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 2800,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for albers-usa 1`] = `
+{
+  "center": [
+    -98.5,
+    39.8,
+  ],
+  "centerImage": [
+    453.124896,
+    228.821457,
+  ],
+  "hasCompositionBorders": false,
+  "points": [
+    null,
+    [
+      453.124896,
+      228.821457,
+    ],
+    null,
+    null,
+    [
+      169.753274,
+      428.760636,
+    ],
+  ],
+  "scale": 1070,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for albers-usa-composite 1`] = `
+{
+  "center": [
+    -98.5,
+    39.8,
+  ],
+  "centerImage": [
+    453.124896,
+    228.821457,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    [
+      453.124896,
+      228.821457,
+    ],
+    null,
+    null,
+    [
+      169.753274,
+      428.760636,
+    ],
+  ],
+  "scale": 1070,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for albers-usa-territories 1`] = `
+{
+  "center": [
+    -98.5,
+    39.8,
+  ],
+  "centerImage": [
+    453.124896,
+    228.821457,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    [
+      453.124896,
+      228.821457,
+    ],
+    null,
+    [
+      845.626808,
+      485.936909,
+    ],
+    [
+      169.753274,
+      428.760636,
+    ],
+  ],
+  "scale": 1070,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for armadillo 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      488.054813,
+      183.193287,
+    ],
+    [
+      187.038435,
+      160.796813,
+    ],
+    [
+      480,
+      355.602665,
+    ],
+    [
+      246.180825,
+      263.795595,
+    ],
+    [
+      176.15395,
+      49.144509,
+    ],
+  ],
+  "scale": 218.695,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for azimuthal-equal-area 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.077554,
+      151.492293,
+    ],
+    [
+      337.617851,
+      130.054165,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      349.107894,
+      203.07272,
+    ],
+    [
+      430.904033,
+      48.676701,
+    ],
+  ],
+  "scale": 124.75,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for azimuthal-equidistant 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      482.668667,
+      185.528949,
+    ],
+    [
+      377.679244,
+      163.802758,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      391.612253,
+      218.311331,
+    ],
+    [
+      443.11652,
+      98.755318,
+    ],
+  ],
+  "scale": 79.4188,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      483.175671,
+      155.341653,
+    ],
+    [
+      372.445277,
+      91.78603,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      364.971859,
+      158.753338,
+    ],
+    [
+      414.346653,
+      33.170915,
+    ],
+  ],
+  "scale": 109.5,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal-europe 1`] = `
+{
+  "center": [
+    10,
+    50,
+  ],
+  "centerImage": [
+    420,
+    289.834477,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    [
+      348.142788,
+      332.372181,
+    ],
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 750,
+  "translate": [
+    420,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal-france 1`] = `
+{
+  "center": [
+    2.5,
+    46.5,
+  ],
+  "centerImage": [
+    463.825735,
+    235.805723,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    [
+      463.825735,
+      235.805723,
+    ],
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 2700,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal-netherlands 1`] = `
+{
+  "center": [
+    5.5,
+    52.2,
+  ],
+  "centerImage": [
+    480,
+    250,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 4200,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal-portugal 1`] = `
+{
+  "center": [
+    -8,
+    39.5,
+  ],
+  "centerImage": [
+    592.888483,
+    233.304474,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 4200,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-conformal-spain 1`] = `
+{
+  "center": [
+    -3,
+    40,
+  ],
+  "centerImage": [
+    551.277868,
+    183.164357,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 2700,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-equal-area 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.508661,
+      214.120887,
+    ],
+    [
+      323.125311,
+      128.575655,
+    ],
+    [
+      480,
+      335.283273,
+    ],
+    [
+      317.402875,
+      223.107449,
+    ],
+    [
+      379.334764,
+      40.650436,
+    ],
+  ],
+  "scale": 155.424,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-equidistant 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      483.803336,
+      175.407382,
+    ],
+    [
+      349.380433,
+      101.269407,
+    ],
+    [
+      480,
+      281.907106,
+    ],
+    [
+      342.5771,
+      181.222562,
+    ],
+    [
+      398.179071,
+      29.047659,
+    ],
+  ],
+  "scale": 131.154,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for conic-equidistant-japan 1`] = `
+{
+  "center": [
+    136,
+    38,
+  ],
+  "centerImage": [
+    480,
+    170.859441,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 2200,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert1 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.939281,
+      126.129499,
+    ],
+    [
+      275.625513,
+      143.977507,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      320.763509,
+      201.517352,
+    ],
+    [
+      222.491432,
+      79.511569,
+    ],
+  ],
+  "scale": 165.664,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert2 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.496998,
+      94.285157,
+    ],
+    [
+      290.801154,
+      116.245371,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      324.982849,
+      190.096584,
+    ],
+    [
+      251.886307,
+      44.237718,
+    ],
+  ],
+  "scale": 165.664,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert3 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      486.180853,
+      126.12898,
+    ],
+    [
+      231.132208,
+      143.977063,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      304.6811,
+      201.517149,
+    ],
+    [
+      139.738367,
+      79.510854,
+    ],
+  ],
+  "scale": 180.739,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert4 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.785672,
+      88.087622,
+    ],
+    [
+      242.828886,
+      108.661712,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      306.411854,
+      182.705351,
+    ],
+    [
+      179.984133,
+      42.597782,
+    ],
+  ],
+  "scale": 180.739,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert5 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.621973,
+      126.129461,
+    ],
+    [
+      248.007892,
+      143.977474,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      307.28299,
+      201.517337,
+    ],
+    [
+      192.626113,
+      79.511516,
+    ],
+  ],
+  "scale": 173.044,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for eckert6 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.086177,
+      95.050437,
+    ],
+    [
+      264.894696,
+      116.165792,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      310.088909,
+      187.872482,
+    ],
+    [
+      234.052575,
+      45.832767,
+    ],
+  ],
+  "scale": 173.044,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for equirectangular 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      486.65974,
+      126.128834,
+    ],
+    [
+      217.60624,
+      143.976938,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      302.850914,
+      201.517092,
+    ],
+    [
+      80.415594,
+      79.510654,
+    ],
+  ],
+  "scale": 152.63,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for gnomonic 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      486.289315,
+      98.059413,
+    ],
+    [
+      1443.854365,
+      1061.971993,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      148.709981,
+      131.226302,
+    ],
+    [
+      563.166729,
+      591.034128,
+    ],
+  ],
+  "scale": 144.049,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for hammer 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.541705,
+      116.152444,
+    ],
+    [
+      252.245442,
+      124.757976,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      293.556516,
+      194.099712,
+    ],
+    [
+      287.585562,
+      45.7876,
+    ],
+  ],
+  "scale": 169.529,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for loximuthal 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.040519,
+      121.091369,
+    ],
+    [
+      270.514672,
+      139.665301,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      320.503904,
+      199.545439,
+    ],
+    [
+      232.226759,
+      72.577368,
+    ],
+  ],
+  "scale": 158.837,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for mercator 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      486.673611,
+      109.4569,
+    ],
+    [
+      217.059722,
+      134.010496,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      302.481944,
+      200.577846,
+    ],
+    [
+      79.583333,
+      25.792398,
+    ],
+  ],
+  "scale": 152.94790031131143,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for mercator-ecuador 1`] = `
+{
+  "center": [
+    -78.5,
+    -1.5,
+  ],
+  "centerImage": [
+    571.598379,
+    250.031385,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 3500,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for mercator-equatorial-guinea 1`] = `
+{
+  "center": [
+    10,
+    1.5,
+  ],
+  "centerImage": [
+    584.683869,
+    249.988043,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 12000,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for mercator-malaysia 1`] = `
+{
+  "center": [
+    112,
+    4,
+  ],
+  "centerImage": [
+    569.377905,
+    191.158401,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 4800,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for miller 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.726264,
+      155.172392,
+    ],
+    [
+      293.785185,
+      170.556482,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      354.281368,
+      215.216384,
+    ],
+    [
+      196.424139,
+      108.688042,
+    ],
+  ],
+  "scale": 108.318,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for mollweide 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.27721,
+      103.753892,
+    ],
+    [
+      257.244451,
+      123.293701,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      308.379431,
+      190.573273,
+    ],
+    [
+      242.281694,
+      57.291499,
+    ],
+  ],
+  "scale": 169.529,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for natural-earth 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.951866,
+      106.432081,
+    ],
+    [
+      237.741011,
+      126.90335,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      305.589605,
+      193.832822,
+    ],
+    [
+      162.978323,
+      55.809504,
+    ],
+  ],
+  "scale": 175.295,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for orthographic 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      487.491388,
+      69.019094,
+    ],
+    [
+      290.418774,
+      90.29263,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      262.640231,
+      172.072438,
+    ],
+    [
+      425.313199,
+      25.750885,
+    ],
+  ],
+  "scale": 249.5,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for polyhedral-butterfly 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.495696,
+      246.743154,
+    ],
+    [
+      355.310395,
+      178.519422,
+    ],
+    [
+      480,
+      374.750063,
+    ],
+    [
+      359.512802,
+      255.307235,
+    ],
+    [
+      393.602643,
+      111.884219,
+    ],
+  ],
+  "scale": 101.858,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for polyhedral-waterman 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.882644,
+      246.462834,
+    ],
+    [
+      344.578261,
+      172.367031,
+    ],
+    [
+      492.397958,
+      364.013509,
+    ],
+    [
+      349.142372,
+      255.764033,
+    ],
+    [
+      386.166353,
+      99.996483,
+    ],
+  ],
+  "scale": 110.625,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for robinson 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.913946,
+      110.077015,
+    ],
+    [
+      237.937307,
+      130.020191,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      305.457754,
+      195.113935,
+    ],
+    [
+      173.247044,
+      60.466997,
+    ],
+  ],
+  "scale": 152.63,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for sinusoidal 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.584263,
+      126.128834,
+    ],
+    [
+      278.407198,
+      143.976938,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      311.713319,
+      201.517092,
+    ],
+    [
+      304.833726,
+      79.510654,
+    ],
+  ],
+  "scale": 152.63,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for stereographic 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.447712,
+      142.549828,
+    ],
+    [
+      265.703433,
+      69.471886,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      322.039973,
+      193.368362,
+    ],
+    [
+      391.669931,
+      -112.206961,
+    ],
+  ],
+  "scale": 250,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for transverse-mercator-chile 1`] = `
+{
+  "center": [
+    -72,
+    -37,
+  ],
+  "centerImage": [
+    480,
+    250,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 700,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for transverse-mercator-denmark 1`] = `
+{
+  "center": [
+    10.5,
+    56,
+  ],
+  "centerImage": [
+    480,
+    250,
+  ],
+  "hasCompositionBorders": true,
+  "points": [
+    null,
+    null,
+    null,
+    null,
+    null,
+  ],
+  "scale": 6500,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for wagner6 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      485.955877,
+      126.128834,
+    ],
+    [
+      237.611554,
+      143.976938,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      305.588683,
+      201.517092,
+    ],
+    [
+      165.179028,
+      79.510654,
+    ],
+  ],
+  "scale": 152.63,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
+exports[`projectionFactory > created projections > keeps the projection created for winkel-tripel 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.874849,
+      121.087246,
+    ],
+    [
+      281.367193,
+      133.401405,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      332.406339,
+      198.114677,
+    ],
+    [
+      248.999242,
+      56.604154,
+    ],
+  ],
+  "scale": 158.837,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;

@@ -242,6 +242,29 @@ describe('projectionFactory', () => {
     })
   })
 
+  describe('created projections', () => {
+    const POINTS: [number, number][] = [[2.5, 46.5], [-98.5, 39.8], [0, 0], [-66.5, 18.2], [-150, 64]]
+    const definitions = projectionRegistry.getAll().map(definition => [definition.id, definition] as const)
+
+    function roundPoint(point: [number, number] | null) {
+      return point && point.map(value => Number(value.toFixed(6)))
+    }
+
+    it.each(definitions)('keeps the projection created for %s', (_, definition) => {
+      const projection = ProjectionFactory.create({ projection: definition })!
+      const center = definition.defaultParameters?.center
+
+      expect({
+        center: center ?? null,
+        scale: projection.scale(),
+        translate: roundPoint(projection.translate()),
+        points: POINTS.map(point => roundPoint(projection(point))),
+        centerImage: center ? roundPoint(projection(center)) : null,
+        hasCompositionBorders: 'getCompositionBorders' in projection,
+      }).toMatchSnapshot()
+    })
+  })
+
   describe('error handling', () => {
     it('should return null for invalid options', () => {
       const result = ProjectionFactory.create(undefined as any)
