@@ -271,8 +271,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
   const reinitialize = async (atlasConfigOverride?: any): Promise<Result<void, GeoDataError>> => {
     debug('Reinitializing - resetting state and reloading data (override: %s)', !!atlasConfigOverride)
 
-    isReinitializing.value = true
-
     isInitialized.value = false
     territoriesData.value = []
     rawUnifiedData.value = null
@@ -291,13 +289,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     })
     pendingInitialization = pending
 
-    try {
-      return await pending
-    }
-    finally {
-      isReinitializing.value = false
-      debug('Reinitialization complete (cartographer: %s, initialized: %s)', !!cartographer.value, isInitialized.value)
-    }
+    return pending
   }
 
   const triggerRender = () => {
