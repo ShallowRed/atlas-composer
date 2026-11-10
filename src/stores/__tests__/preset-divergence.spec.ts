@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
 import { useTerritoryData } from '@/composables/useTerritoryData'
 import { parameterRegistry } from '@/core/parameters'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
@@ -11,6 +12,8 @@ import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
+const METROPOLE = 'FR-MET' as TerritoryCode
+const OMITTED_BY_SPLIT_PRESET = 'FR-BL' as TerritoryCode
 
 function displayedCodes(): TerritoryCode[] {
   return useTerritoryData().territories.value.map(({ code }) => code as TerritoryCode)
@@ -139,6 +142,22 @@ describe('difference with the preset values', () => {
 
       expect(atlasCodes().map(code => parameterStore.getEffectiveParameters(code)))
         .toEqual(atlasCodes().map(code => parameterStore.getTerritoryParameters(code)))
+    })
+
+    it('writes in the split view the preset values of each territory, and the fallback projection for a territory that the preset omits', async () => {
+      await openComposite()
+      const parameterStore = useParameterStore()
+      atlasCodes().forEach(code => parameterStore.setTerritoryParameters(code, { scaleMultiplier: 3, center: [1, 2] }))
+
+      await openView('split')
+
+      const presetValues = usePresetDefaultsStore().presetParameters
+      expect(Object.fromEntries(atlasCodes().map(code => [code, parameterStore.getTerritoryParameters(code)])))
+        .toEqual(presetValues)
+      expect(presetValues[METROPOLE]).toMatchObject({ projectionId: 'conic-conformal' })
+      expect(parameterStore.getTerritoryParameters(OMITTED_BY_SPLIT_PRESET))
+        .toEqual({ projectionId: FALLBACK_PROJECTION_ID, translateOffset: [0, 0], scaleMultiplier: 1 })
+      expect(atlasCodes().filter(territoryDiffers)).toEqual([])
     })
   })
 
