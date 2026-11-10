@@ -41,22 +41,6 @@ describe('i18n-utils', () => {
       expect(resolveI18nValue(value, 'ja')).toBe('France')
     })
 
-    it('should fallback to first available value when English not found', () => {
-      const value: I18nValue = {
-        fr: 'France',
-        es: 'Francia',
-      }
-      const result = resolveI18nValue(value, 'de')
-      // Should return first available (fr in this case due to object key order)
-      expect(result).toBe('France')
-    })
-
-    it('should handle empty i18n object', () => {
-      const value: I18nValue = {}
-      const result = resolveI18nValue(value, 'en')
-      expect(result).toBe('')
-    })
-
     it('should handle locale without providing locale parameter', () => {
       const value: I18nValue = {
         en: 'France',

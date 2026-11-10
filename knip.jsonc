@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "treatConfigHintsAsErrors": true,
-  // System binary of check:registry-type
+  // System binary of check:generated-types
   "ignoreBinaries": ["diff"],
   // Cycles are warnings by default, and knip --cycles exits with 0 on a warning
   "rules": { "cycles": "error" },

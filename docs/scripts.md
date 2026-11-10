@@ -20,14 +20,14 @@ When `territories` is `*`, the script keeps every feature, pads its id to three 
 
 ## Territory extraction rules
 
-The `extraction` field of a territory describes how the script cuts the territory out of a Natural Earth feature. `configs/schemas/atlas.schema.json` declares `extractFrom` and `polygonIndices`. `JSONTerritoryConfig` in `types/atlas-config.ts` adds `polygonBounds` and `duplicateFrom`, which the schema accepts as additional properties. `configs/atlases/portugal.json` has examples of indices, and `configs/atlases/france.json` an example of `duplicateFrom`.
+The `extraction` field of a territory describes how the script cuts the territory out of a Natural Earth feature. `configs/schemas/atlas.schema.json` declares `extractFrom`, `polygonIndices` and `duplicateFrom`. `configs/atlases/portugal.json` has examples of indices, and `configs/atlases/france.json` an example of `duplicateFrom`.
 
 `extractFrom` names the parent, a territory of the same atlas whose `id` is a Natural Earth id. The adapter parses this value as an integer, so write the `id` of a parent without leading zeros. The parent feature has a `MultiPolygon` geometry, and the script leaves any other geometry whole.
 
 A territory with `extractFrom` takes its polygons in one of two ways:
 
 - With `polygonIndices`, the territory takes the polygons at these positions of the parent, counted from zero. The script logs a warning for an index out of range.
-- Without `polygonIndices`, the territory takes each polygon that fits inside its box, which is `polygonBounds` or else `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it.
+- Without `polygonIndices`, the territory takes each polygon that fits inside its `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it.
 
 The script applies the indices first, and the boxes to the polygons that remain. The parent keeps every polygon that no rule takes. The script reads `polygonIndices` on a territory that has `extractFrom`, and ignores it on any other territory.
 

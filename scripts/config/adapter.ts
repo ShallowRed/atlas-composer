@@ -36,10 +36,7 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
       backendTerritory.polygonIndices = territory.extraction.polygonIndices
     }
 
-    if (territory.extraction?.polygonBounds) {
-      backendTerritory.bounds = territory.extraction.polygonBounds
-    }
-    else if (territory.bounds) {
+    if (territory.bounds) {
       backendTerritory.bounds = territory.bounds
     }
 
