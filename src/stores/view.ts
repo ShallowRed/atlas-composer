@@ -9,7 +9,8 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
-import { parameterRegistry } from '@/core/parameters'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
+import { referenceParameters } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
@@ -150,31 +151,20 @@ export const useViewStore = defineStore('view', () => {
         break
       }
       case 'split': {
+        const presetTerritories = preset.config.territories ?? {}
         const parameters: Record<string, ProjectionParameters> = {}
-        const writeTerritoryBase = (territoryCode: TerritoryCode, projectionId: ProjectionId) => {
-          parameterStore.setTerritoryParameter(territoryCode, 'translateOffset', parameterRegistry.getDefaultValue('translateOffset'))
-          parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', parameterRegistry.getDefaultValue('scaleMultiplier'))
-          parameterStore.setTerritoryProjection(territoryCode, projectionId)
-        }
-        for (const [code, territoryConfig] of Object.entries(preset.config.territories ?? {})) {
-          const territoryCode = code as TerritoryCode
-          parameterStore.clearAllTerritoryOverrides(territoryCode)
-          writeTerritoryBase(territoryCode, territoryConfig.projection.id as ProjectionId)
-          if (territoryConfig.projection.parameters) {
-            parameterStore.setTerritoryParameters(territoryCode, territoryConfig.projection.parameters)
-          }
-        }
-        const displayedProjection = projectionStore.selectedProjection
         for (const { code } of getAtlasStore().atlasService.getAllTerritories()) {
-          const territoryCode = code as TerritoryCode
-          if (!parameterStore.getTerritoryProjection(territoryCode) && displayedProjection) {
-            writeTerritoryBase(territoryCode, displayedProjection)
-          }
-          if (parameterStore.getTerritoryProjection(territoryCode)) {
-            parameters[code] = { ...parameterStore.getTerritoryParameters(territoryCode) }
-          }
+          const projection = presetTerritories[code]?.projection
+          parameters[code] = referenceParameters({
+            projectionId: projection?.id ?? FALLBACK_PROJECTION_ID,
+            ...projection?.parameters,
+          })
         }
         presetDefaults.storePresetDefaults(parameters)
+        for (const [code, territoryParameters] of Object.entries(parameters)) {
+          parameterStore.clearAllTerritoryOverrides(code as TerritoryCode)
+          parameterStore.setTerritoryParameters(code as TerritoryCode, territoryParameters)
+        }
         break
       }
       case 'built-in-composite':

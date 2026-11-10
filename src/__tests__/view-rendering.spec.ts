@@ -1,5 +1,7 @@
 // Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit
-// "fix(registry): declare every preset of configs/presets once"; regenerate a key only on the commit that produced it.
+// "fix(registry): declare every preset of configs/presets once", and the territories of the france/split key that
+// the split preset omits, produced on the commit "fix(view): write the preset values of each territory in the split
+// view"; regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
