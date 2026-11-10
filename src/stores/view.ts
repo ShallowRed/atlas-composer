@@ -1,6 +1,6 @@
 import type { PresetDefinition } from '#types'
 import type { PositioningView } from '@/core/positioning'
-import type { Preset } from '@/core/presets'
+import type { ViewPreset } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
@@ -136,7 +136,7 @@ export const useViewStore = defineStore('view', () => {
     return ok(undefined)
   }
 
-  function applyViewPresetConfig(preset: Exclude<Preset, { type: 'composite-custom' }>) {
+  function applyViewPresetConfig(preset: ViewPreset) {
     const parameterStore = getParameterStore()
     const projectionStore = useProjectionStore()
 

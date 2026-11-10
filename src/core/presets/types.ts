@@ -17,7 +17,7 @@ export interface UnifiedViewConfig {
   }
 }
 
-export interface SplitViewConfig {
+interface SplitViewConfig {
   territories: Record<string, {
     projection: {
       id: string
@@ -26,7 +26,7 @@ export interface SplitViewConfig {
   }>
 }
 
-export interface CompositeExistingViewConfig {
+interface CompositeExistingViewConfig {
   projectionId: string
   globalScale?: number
 }
@@ -56,3 +56,5 @@ export type Preset
     | UnifiedPreset
     | SplitPreset
     | CompositeExistingPreset
+
+export type ViewPreset = Exclude<Preset, { type: 'composite-custom' }>

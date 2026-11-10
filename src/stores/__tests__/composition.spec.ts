@@ -762,7 +762,10 @@ describe('composition store', () => {
       vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err({
         code: 'PRESET_INVALID',
         presetId: 'france-unified',
-        issues: [{ code: 'PRESET_PROJECTION_MISSING' }, { code: 'PRESET_ATLAS_ID_INVALID' }],
+        issues: [
+          { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' },
+          { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'scaleMultiplier', min: 0.01 },
+        ],
       }))
 
       const result = await useCompositionStore().loadPreset({ presetId: createPresetId('france-unified') })
@@ -770,7 +773,10 @@ describe('composition store', () => {
       expect(result).toEqual(err({
         code: 'PRESET_INVALID',
         presetId: 'france-unified',
-        issues: [{ code: 'PRESET_PROJECTION_MISSING' }, { code: 'PRESET_ATLAS_ID_INVALID' }],
+        issues: [
+          { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' },
+          { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'scaleMultiplier', min: 0.01 },
+        ],
       }))
     })
 
@@ -861,7 +867,7 @@ describe('composition store', () => {
       const failure: PresetError = {
         code: 'PRESET_INVALID',
         presetId: 'france-standard',
-        issues: [{ code: 'PRESET_PROJECTION_MISSING' }],
+        issues: [{ code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' }],
       }
       vi.spyOn(PresetLoader, 'loadPreset').mockResolvedValueOnce(err(failure))
 
