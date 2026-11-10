@@ -21,9 +21,6 @@ export function useTerritoryTransforms() {
 
   return {
     territories: territoryData.territories,
-    translations: territoryData.translations,
-    scales: territoryData.scales,
-    territoryProjections: territoryData.projections,
 
     shouldShowEmptyState: territoryVisibility.shouldShowEmptyState,
 

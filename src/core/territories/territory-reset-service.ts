@@ -7,6 +7,25 @@ import type {
 import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryConfig } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
+import type { ProjectionParameters } from '@/types/projection-parameters'
+import { parameterRegistry } from '@/core/parameters'
+
+function defaultTranslation() {
+  const [x, y] = parameterRegistry.getDefaultValue('translateOffset')
+  return { x, y }
+}
+
+export const RESET_KEYS = ['translateOffset', 'scaleMultiplier'] as const satisfies readonly (keyof ProjectionParameters)[]
+
+export function referenceParameters(operation: TerritoryResetOperation): ProjectionParameters {
+  const { projection, translation, scale, parameters } = operation
+  return {
+    ...(projection ? { projectionId: projection } : {}),
+    translateOffset: [translation.x, translation.y],
+    scaleMultiplier: scale,
+    ...parameters,
+  }
+}
 
 export class TerritoryResetService {
   static calculateBulkReset(params: {
@@ -38,8 +57,8 @@ export class TerritoryResetService {
       return {
         territoryCode,
         projection: presetDefaults.projections[territoryCode],
-        translation: presetDefaults.translations[territoryCode] || { x: 0, y: 0 },
-        scale: presetDefaults.scales[territoryCode] || 1.0,
+        translation: presetDefaults.translations[territoryCode] || defaultTranslation(),
+        scale: presetDefaults.scales[territoryCode] || parameterRegistry.getDefaultValue('scaleMultiplier'),
         parameters: presetParameters?.[territoryCode],
         shouldClearOverrides: true,
       }
@@ -47,8 +66,8 @@ export class TerritoryResetService {
 
     return {
       territoryCode,
-      translation: { x: 0, y: 0 },
-      scale: 1.0,
+      translation: defaultTranslation(),
+      scale: parameterRegistry.getDefaultValue('scaleMultiplier'),
       shouldClearOverrides: true,
     }
   }
@@ -63,25 +82,26 @@ export class TerritoryResetService {
   }
 
   private static calculatePresetReset(
-    _territories: Pick<TerritoryConfig, 'code'>[],
+    territories: Pick<TerritoryConfig, 'code'>[],
     presetDefaults: TerritoryDefaults,
     presetParameters?: PresetParameters,
   ): BulkResetOperation {
     const presetTerritoryCodes = Object.keys(presetDefaults.projections) as TerritoryCode[]
 
-    const operations: TerritoryResetOperation[] = presetTerritoryCodes.map((code) => {
+    const presetOperations: TerritoryResetOperation[] = presetTerritoryCodes.map((code) => {
       return {
         territoryCode: code,
         projection: presetDefaults.projections[code],
-        translation: presetDefaults.translations[code] || { x: 0, y: 0 },
-        scale: presetDefaults.scales[code] || 1.0,
+        translation: presetDefaults.translations[code] || defaultTranslation(),
+        scale: presetDefaults.scales[code] || parameterRegistry.getDefaultValue('scaleMultiplier'),
         parameters: presetParameters?.[code],
         shouldClearOverrides: true,
       }
     })
+    const outsidePreset = territories.filter(({ code }) => !presetTerritoryCodes.includes(code))
 
     return {
-      operations,
+      operations: [...presetOperations, ...this.calculateFallbackReset(outsidePreset).operations],
       activeTerritories: presetTerritoryCodes,
     }
   }
@@ -92,8 +112,8 @@ export class TerritoryResetService {
     const operations: TerritoryResetOperation[] = territories.map((territory) => {
       return {
         territoryCode: territory.code,
-        translation: { x: 0, y: 0 },
-        scale: 1.0,
+        translation: defaultTranslation(),
+        scale: parameterRegistry.getDefaultValue('scaleMultiplier'),
         shouldClearOverrides: true,
       }
     })

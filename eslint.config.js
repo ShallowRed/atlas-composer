@@ -121,6 +121,11 @@ const PARAMETER_DEFAULT_LITERALS = [
   'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.expression.object.property.name=\'parallels\']',
 ].map(selector => ({ selector, message: 'The default value of a parameter comes from parameterRegistry.getDefaultValue of src/core/parameters/parameter-registry.ts.' }))
 
+const PRESET_COMPARISON = {
+  selector: 'Identifier[name=/^(areValuesEqual|areParametersEqual|toRaw)$/]',
+  message: 'The comparison with the preset values is a function of src/stores/presetDefaults.ts.',
+}
+
 const CARTOGRAPHER_DATA = {
   selector: 'MemberExpression[property.name=\'geoData\']:not([object.name=\'props\'])',
   message: 'The geographic data of the cartographer is read by an action of the geoData store.',
@@ -233,7 +238,7 @@ export default antfu({
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, PRESET_COMPARISON],
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
   },
 }, {

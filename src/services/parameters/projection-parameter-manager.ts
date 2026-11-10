@@ -62,6 +62,10 @@ export class ProjectionParameterManager {
     this.globalParameters = updateParameters(this.globalParameters, parameters)
   }
 
+  clearGlobalParameters(): void {
+    this.globalParameters = {}
+  }
+
   getTerritoryParameters(territoryCode: TerritoryCode): ProjectionParameters {
     return { ...(this.territoryParameters.get(territoryCode) || {}) }
   }

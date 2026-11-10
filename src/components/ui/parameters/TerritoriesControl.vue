@@ -9,7 +9,6 @@ import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionFamily } from '@/core/projections/types'
-import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -17,9 +16,6 @@ import { useViewStore } from '@/stores/view'
 const { t } = useI18n()
 
 const {
-  translations,
-  scales,
-  territoryProjections,
   territories,
   projectionRecommendations,
   projectionGroups,
@@ -30,55 +26,15 @@ const {
 
 const parameterStore = useParameterStore()
 
-const atlasStore = useAtlasStore()
-
 const viewStore = useViewStore()
 
 const presetDefaults = usePresetDefaultsStore()
 
-const hasDivergingFromPreset = computed(() => {
-  if (!presetDefaults.hasPresetDefaults) {
-    return false
-  }
-
-  void parameterStore.territoryParametersVersion
-
-  if (viewStore.viewMode === 'composite-custom') {
-    const presetDefaults_ = presetDefaults.territoryDefaults
-    if (presetDefaults_) {
-      const presetTerritoryCodes = new Set(Object.keys(presetDefaults_.projections))
-      const activeTerritoryCodes = viewStore.activeTerritoryCodes
-
-      if (presetTerritoryCodes.size !== activeTerritoryCodes.size) {
-        return true
-      }
-      for (const code of presetTerritoryCodes) {
-        if (!activeTerritoryCodes.has(code as TerritoryCode)) {
-          return true
-        }
-      }
-    }
-  }
-
-  const allTerritoriesToCheck = atlasStore.atlasService.getAllTerritories()
-
-  const allTerritoryParameters: Record<string, Record<string, unknown>> = {}
-  for (const territory of allTerritoriesToCheck) {
-    const territoryParams = parameterStore.getTerritoryParameters(territory.code as TerritoryCode)
-    if (Object.keys(territoryParams).length > 0) {
-      allTerritoryParameters[territory.code] = territoryParams
-    }
-  }
-
-  const result = presetDefaults.hasDivergingParameters(
-    translations.value,
-    scales.value,
-    allTerritoryParameters,
-    territoryProjections.value,
-  )
-
-  return result
-})
+const hasDivergingFromPreset = computed(() => presetDefaults.territoriesDifferFromPreset(
+  Object.fromEntries(territories.value.map(({ code }) => [code, parameterStore.getTerritoryParameters(code as TerritoryCode)])),
+  viewStore.activeTerritoryCodes,
+  viewStore.viewMode === 'composite-custom',
+))
 
 const resetToDefaults = resetTransforms
 

@@ -6,7 +6,7 @@ import type {
   ProjectionParameters,
 } from '@/types/projection-parameters'
 
-import { computed, toRaw } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 
@@ -73,68 +73,7 @@ const validationIssues = computed(() => {
   return parameterStore.validateTerritoryParameters(props.territoryCode, props.projectionFamily)
 })
 
-const hasOverrides = computed(() => {
-  if (!presetDefaults.hasPresetDefaults) {
-    return Object.keys(territoryParameters.value).length > 0
-  }
-
-  const territoryDefaults = presetDefaults.getPresetDefaultsForTerritory(props.territoryCode)
-
-  if (!territoryDefaults) {
-    return Object.keys(territoryParameters.value).length > 0
-  }
-
-  const currentProjection = parameterStore.getTerritoryProjection(props.territoryCode)
-  if (currentProjection && territoryDefaults.projection && currentProjection !== territoryDefaults.projection) {
-    return true
-  }
-
-  const presetParams = territoryDefaults.parameters
-  if (presetParams) {
-    for (const [paramKey, currentValue] of Object.entries(territoryParameters.value)) {
-      const presetValue = presetParams[paramKey as keyof typeof presetParams]
-
-      const isEqual = areValuesEqual(currentValue, presetValue)
-
-      if (!isEqual) {
-        return true
-      }
-    }
-  }
-
-  return false
-})
-
-function areValuesEqual(value1: unknown, value2: unknown): boolean {
-  const raw1 = toRaw(value1)
-  const raw2 = toRaw(value2)
-
-  if (raw1 === raw2)
-    return true
-  if (raw1 == null || raw2 == null)
-    return false
-
-  if (Array.isArray(raw1) && Array.isArray(raw2)) {
-    if (raw1.length !== raw2.length)
-      return false
-    return raw1.every((val, index) => areValuesEqual(val, raw2[index]))
-  }
-
-  if (typeof raw1 === 'object' && typeof raw2 === 'object') {
-    const keys1 = Object.keys(raw1 as Record<string, unknown>)
-    const keys2 = Object.keys(raw2 as Record<string, unknown>)
-    if (keys1.length !== keys2.length)
-      return false
-    return keys1.every(key =>
-      areValuesEqual(
-        (raw1 as Record<string, unknown>)[key],
-        (raw2 as Record<string, unknown>)[key],
-      ),
-    )
-  }
-
-  return raw1 === raw2
-}
+const hasOverrides = computed(() => presetDefaults.territoryDiffersFromPreset(props.territoryCode, territoryParameters.value))
 
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)

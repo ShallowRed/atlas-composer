@@ -10,6 +10,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
+import { parameterRegistry } from '@/core/parameters'
 import { err, ok } from '@/core/types/result'
 import i18n from '@/i18n'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -154,6 +155,7 @@ export const useViewStore = defineStore('view', () => {
         const parameters = preset.config.projection.parameters
           ? { ...preset.config.projection.parameters } as ProjectionParameters
           : null
+        parameterStore.clearGlobalParameters()
         parameterStore.setAtlasParameters(parameters ?? {})
         presetDefaults.storeGlobalParameters(parameters)
         break
@@ -162,9 +164,8 @@ export const useViewStore = defineStore('view', () => {
         const projections: TerritoryDefaults['projections'] = {}
         const parameters: Record<string, ProjectionParameters> = {}
         const writeTerritoryBase = (territoryCode: TerritoryCode, projectionId: ProjectionId) => {
-          parameterStore.setTerritoryTranslation(territoryCode, 'x', 0)
-          parameterStore.setTerritoryTranslation(territoryCode, 'y', 0)
-          parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', 1)
+          parameterStore.setTerritoryParameter(territoryCode, 'translateOffset', parameterRegistry.getDefaultValue('translateOffset'))
+          parameterStore.setTerritoryParameter(territoryCode, 'scaleMultiplier', parameterRegistry.getDefaultValue('scaleMultiplier'))
           parameterStore.setTerritoryProjection(territoryCode, projectionId)
         }
         for (const [code, territoryConfig] of Object.entries(preset.config.territories ?? {})) {
