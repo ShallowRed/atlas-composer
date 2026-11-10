@@ -4,7 +4,7 @@ import { join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { listConfigs, listPresetFiles, loadConfig, loadRegistry } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
-import { validateRegistrySchema } from '#scripts/utils/schema-validator'
+import { validateRegistrySchema, validateViewPresetSchema } from '#scripts/utils/schema-validator'
 import { validateConfig } from '@atlas-composer/specification'
 
 interface ValidationResults {
@@ -135,6 +135,10 @@ async function validatePresetFiles(atlas: string): Promise<string[]> {
       const fileId = (json as { id?: unknown }).id
       if (fileId !== preset.id) {
         errors.push(`Preset ${preset.id} has id ${JSON.stringify(fileId)} in ${file}`)
+      }
+      const schemaErrors = await validateViewPresetSchema(json, preset.type)
+      if (schemaErrors.length > 0) {
+        errors.push(`Preset ${file} does not follow configs/schemas/preset-${preset.type}.schema.json: ${schemaErrors.join('; ')}`)
       }
       continue
     }
