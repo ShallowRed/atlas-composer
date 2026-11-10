@@ -1,18 +1,16 @@
+import type { PresetDefinition } from '#types'
 import type { PositioningView } from '@/core/positioning'
 import type { Preset, TerritoryDefaults } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import type { ResolvedPresetDefinition } from '@/types/registry'
 
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { parameterRegistry } from '@/core/parameters'
 import { err, ok } from '@/core/types/result'
-import i18n from '@/i18n'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useAppStore } from '@/stores/app'
@@ -33,7 +31,7 @@ export const useViewStore = defineStore('view', () => {
   const viewMode = ref<ViewMode>(getDefaultViewMode(getAtlasStore().selectedAtlasId))
   const activeTerritoryCodes = ref<Set<TerritoryCode>>(new Set())
   const currentViewPreset = ref<PresetId | null>(null)
-  const availableViewPresets = ref<ResolvedPresetDefinition[]>([])
+  const availableViewPresets = ref<PresetDefinition[]>([])
 
   const positioningView = computed<PositioningView>(() =>
     viewMode.value === 'composite-custom' ? 'composite' : 'global',
@@ -81,17 +79,8 @@ export const useViewStore = defineStore('view', () => {
       return
     }
 
-    const allPresets = getAtlasPresets(getAtlasStore().selectedAtlasId)
-
-    const locale = i18n.global.locale.value
-
-    const presets = allPresets
+    const presets = getAtlasPresets(getAtlasStore().selectedAtlasId)
       .filter(p => p.type === viewMode.value)
-      .map(p => ({
-        ...p,
-        name: resolveI18nValue(p.name, locale),
-        description: p.description ? resolveI18nValue(p.description, locale) : undefined,
-      }))
 
     availableViewPresets.value = presets
 
@@ -113,7 +102,7 @@ export const useViewStore = defineStore('view', () => {
 
     const result = await loadViewPreset(presetToLoad.id as PresetId)
     if (result.ok) {
-      debug('Auto-loaded view preset "%s"%s (%s)', presetToLoad.name, defaultPreset ? ' (default)' : '', context)
+      debug('Auto-loaded view preset "%s"%s (%s)', presetToLoad.id, defaultPreset ? ' (default)' : '', context)
     }
     else {
       debug('Failed to auto-load preset (%s): %O', context, result.error)

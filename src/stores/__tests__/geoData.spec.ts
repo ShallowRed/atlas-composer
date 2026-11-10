@@ -2,6 +2,7 @@ import type { AtlasId } from '@/types/branded'
 import { validateConfig } from '@atlas-composer/specification'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { err, ok } from '@/core/types/result'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { Cartographer } from '@/services/rendering/cartographer-service'
@@ -173,7 +174,7 @@ describe('geoData store', () => {
       const exported = result.value
 
       expect(validateConfig(JSON.parse(JSON.stringify(exported)))).toMatchObject({ valid: true, errors: [] })
-      expect(exported.metadata).toMatchObject({ atlasId: atlasConfig.id, atlasName: atlasConfig.name })
+      expect(exported.metadata).toMatchObject({ atlasId: atlasConfig.id, atlasName: resolveI18nValue(atlasConfig.name, 'en') })
       expect(exported.territories.map(territory => territory.code))
         .toEqual(geoDataStore.cartographer!.customComposite!.exportConfig().subProjections.map(sub => sub.territoryCode))
     })

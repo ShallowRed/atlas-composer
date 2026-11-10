@@ -3,12 +3,14 @@ import type { TerritoryCode } from '@/types/branded'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
+const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
@@ -59,7 +61,7 @@ const availableCollectionSets = computed(() => {
     .filter(([key]) => allowedKeys.includes(key))
     .map(([key, value]) => ({
       id: key,
-      label: value.label,
+      label: localize(value.label),
     }))
 })
 
@@ -122,7 +124,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     .filter(collection => collection.codes !== '*')
     .map(collection => ({
       id: collection.id,
-      label: collection.label,
+      label: localize(collection.label),
       territories: (collection.codes as string[])
         .filter((code: string) => territoriesByCode.has(code as TerritoryCode))
         .map((code: string) => {

@@ -1,9 +1,8 @@
-import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry } from '#types'
+import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry, I18nValue } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfig } from '@/types'
 import type { AtlasId, PresetId } from '@/types/branded'
 import atlasRegistryData from '#configs/atlas-registry.json'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
@@ -89,11 +88,10 @@ export function getAllTerritories(atlasId: string) {
 
 export interface AtlasGroup {
   id: string
-  label: string
+  label: I18nValue
   options: Array<{
     value: string
-    label: string
-    icon?: string
+    label: I18nValue
   }>
 }
 
@@ -115,13 +113,12 @@ export function getAvailableAtlasesGrouped(): AtlasGroup[] {
       const groupAtlases = atlasesByGroup[group.id]!
       return {
         id: group.id,
-        label: typeof group.label === 'string' ? group.label : resolveI18nValue(group.label),
+        label: group.label,
         options: groupAtlases
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map(entry => ({
             value: entry.id,
-            label: typeof entry.name === 'string' ? entry.name : resolveI18nValue(entry.name),
-            translated: true,
+            label: entry.name,
           })),
       }
     })

@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import MapRenderer from '@/components/MapRenderer.vue'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
@@ -14,6 +15,7 @@ import { useProjectionStore } from '@/stores/projection'
 import { createTerritoryCode } from '@/types/branded'
 
 const { t } = useI18n()
+const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
@@ -57,8 +59,8 @@ const groupingOptions = computed(() => {
     .filter(([key]) => allowedKeys.includes(key))
     .map(([key, collectionSet]) => ({
       value: key,
-      label: collectionSet.label,
-      translated: false,
+      label: localize(collectionSet.label),
+      translated: true,
     }))
 })
 
@@ -102,7 +104,7 @@ const territoryGroups = computed<Map<string, Territory[]>>(() => {
       .filter((t: Territory) => t !== undefined)
 
     if (groupTerritories.length > 0) {
-      groups.set(collection.label, groupTerritories)
+      groups.set(localize(collection.label), groupTerritories)
     }
   }
 

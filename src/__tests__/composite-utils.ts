@@ -9,6 +9,7 @@ import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset } from '@/core/atlases/utils'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
@@ -89,7 +90,7 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
     exportToJSON: () => CompositeExportService.exportToJSON(
       composite,
       atlasId,
-      atlasConfig.name,
+      resolveI18nValue(atlasConfig.name, 'en'),
       parameterProvider,
       projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
       projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,

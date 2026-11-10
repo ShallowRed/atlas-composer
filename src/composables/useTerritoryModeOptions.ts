@@ -1,7 +1,5 @@
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
-import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useAtlasStore } from '@/stores/atlas'
 
 interface TerritoryModeOption {
@@ -12,29 +10,15 @@ interface TerritoryModeOption {
 
 export function useTerritoryModeOptions() {
   const atlasStore = useAtlasStore()
-  const { locale } = useI18n()
+  const { localize } = useLocalizedName()
 
-  const options = computed<TerritoryModeOption[]>(() => {
-    const atlasId = atlasStore.selectedAtlasId
-
-    if (!atlasStore.currentAtlasConfig || !isAtlasLoaded(atlasId)) {
-      return []
-    }
-
-    const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
-
-    if (!atlasSpecificConfig.rawModeLabels) {
-      return []
-    }
-
-    const rawLabels = atlasSpecificConfig.rawModeLabels
-
-    return Object.keys(atlasSpecificConfig.territoryModes).map((modeId: string) => ({
-      value: modeId,
-      label: resolveI18nValue(rawLabels[modeId]!, locale.value),
-      translated: true, // Labels are already resolved, don't translate again
-    }))
-  })
+  const options = computed<TerritoryModeOption[]>(() =>
+    atlasStore.territoryModeOptions.map(option => ({
+      value: option.value,
+      label: localize(option.label),
+      translated: true,
+    })),
+  )
 
   return {
     options,
