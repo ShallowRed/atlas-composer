@@ -1,10 +1,14 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasConfigError, PresetError } from '@/core/types/errors'
+import type { AtlasConfig } from '@/types/atlas'
 import type { AtlasId, PresetId, ProjectionId, TerritoryCode } from '@/types/branded'
+import type { ViewMode } from '@/types/composite'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { openAtlasWithCartographer, openView, startApplication } from '@/__tests__/composite-utils'
+import { openAtlasWithCartographer, startApplication } from '@/__tests__/composite-utils'
 import { readPresetFiles } from '@/__tests__/test-utils'
+import { extractTerritoryParameters } from '@/core/presets/converter'
+import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -22,6 +26,41 @@ import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
+
+const REFUSED_PRESET: PresetError = {
+  code: 'PRESET_INVALID',
+  presetId: 'france-unified',
+  issues: [{ code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'unified', atlasId: 'france' }],
+}
+
+async function readPresetConfig(file: string) {
+  return JSON.parse(await readFile(`configs/presets/france/${file}.json`, 'utf8')) as CompositeProjectionConfig
+}
+
+function territoryCodes(): TerritoryCode[] {
+  return useAtlasStore().atlasService.getAllTerritories().map(({ code }) => code as TerritoryCode)
+}
+
+function compositionLeft() {
+  const parameterStore = useParameterStore()
+  const projectionStore = useProjectionStore()
+  return {
+    territoryParameters: Object.fromEntries(territoryCodes().map(code => [code, parameterStore.getTerritoryParameters(code)])),
+    activeTerritories: [...useViewStore().activeTerritoryCodes],
+    canvas: { referenceScale: projectionStore.referenceScale, dimensions: projectionStore.canvasDimensions },
+  }
+}
+
+async function initializeInView(viewMode: ViewMode) {
+  useViewStore().viewMode = viewMode
+  vi.spyOn(useViewStore(), 'autoLoadFirstPreset').mockResolvedValue()
+  return useCompositionStore().initializeAtlas({ preserveViewMode: true })
+}
+
+function reinitializedTerritories() {
+  const [atlasConfig] = vi.mocked(useGeoDataStore().reinitialize).mock.calls.at(-1) as [AtlasConfig]
+  return atlasConfig.compositeProjectionConfig?.territories.map(({ code }) => code)
+}
 
 function stubFetchFailingOn(path: string) {
   vi.stubGlobal('fetch', async (url: string) => url.includes(path)
@@ -58,24 +97,24 @@ describe('composition store', () => {
       expect(useAppStore().state).toBe('error')
     })
 
-    it('fails when the default preset is invalid', async () => {
+    it.each(['split', 'unified', 'built-in-composite'] as const)('fails when the default preset of the %s view is invalid', async (viewMode) => {
       await startApplication(FRANCE)
-      await openView('split')
-      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err({
-        code: 'PRESET_INVALID',
-        presetId: 'france-unified',
-        issues: [{ code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'unified', atlasId: 'france' }],
-      }))
+      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err(REFUSED_PRESET))
 
-      const result = await useCompositionStore().initializeAtlas({ preserveViewMode: true })
+      const result = await initializeInView(viewMode)
 
-      expect(result).toEqual(err({
-        code: 'PRESET_INVALID',
-        presetId: 'france-unified',
-        issues: [{ code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'unified', atlasId: 'france' }],
-      }))
+      expect(result).toEqual(err(REFUSED_PRESET))
       expect(useGeoDataStore().isReinitializing).toBe(false)
       expect(useAppStore().state).toBe('error')
+    })
+
+    it.fails('fails when the default preset of the composite-custom view is invalid', async () => {
+      await startApplication(FRANCE)
+      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err(REFUSED_PRESET))
+
+      const result = await initializeInView('composite-custom')
+
+      expect(result).toEqual(err(REFUSED_PRESET))
     })
 
     it('opens the selected atlas', async () => {
@@ -123,6 +162,43 @@ describe('composition store', () => {
 
       expect(useParameterStore().globalParameters.rotate).toBeUndefined()
       expect(useParameterStore().globalParameters.parallels).toBeUndefined()
+    })
+  })
+
+  describe('state left by an initialization', () => {
+    it('leaves the parameters, the territories and the canvas of the default preset in the composite-custom view', async () => {
+      await startApplication(FRANCE)
+      const config = await readPresetConfig('france-pseudo-d3cp')
+      const presetCodes = config.territories.map(({ code }) => code)
+
+      await initializeInView('composite-custom')
+
+      expect(compositionLeft()).toEqual({
+        territoryParameters: {
+          ...Object.fromEntries(territoryCodes().map(code => [code, {}])),
+          ...extractTerritoryParameters(config),
+        },
+        activeTerritories: presetCodes,
+        canvas: { referenceScale: config.referenceScale, dimensions: config.canvasDimensions },
+      })
+      expect(reinitializedTerritories()?.sort()).toEqual(presetCodes.sort())
+    })
+
+    it.each(['split', 'unified', 'built-in-composite'] as const)('leaves each territory at its default position, without active territory nor canvas, in the %s view', async (viewMode) => {
+      await startApplication(FRANCE)
+
+      await initializeInView(viewMode)
+
+      expect(compositionLeft()).toEqual({
+        territoryParameters: Object.fromEntries(territoryCodes().map(code => [code, {
+          projectionId: FALLBACK_PROJECTION_ID,
+          translateOffset: [0, 0],
+          scaleMultiplier: 1,
+        }])),
+        activeTerritories: [],
+        canvas: { referenceScale: undefined, dimensions: undefined },
+      })
+      expect(reinitializedTerritories()).toEqual([])
     })
   })
 
@@ -362,10 +438,6 @@ describe('composition store', () => {
     const PROPORTIONAL = createPresetId('france-proportional')
     const STANDARD = createPresetId('france-standard')
 
-    async function readPresetConfig(file: string) {
-      return JSON.parse(await readFile(`configs/presets/france/${file}.json`, 'utf8')) as CompositeProjectionConfig
-    }
-
     function exportedTerritories(geoDataStore: ReturnType<typeof useGeoDataStore>) {
       const exported = geoDataStore.exportConfiguration()
       if (!exported.ok) {
@@ -405,6 +477,72 @@ describe('composition store', () => {
       await useCompositionStore().importConfiguration(config)
 
       expect(exportedTerritories(geoDataStore)).toHaveLength(config.territories.length)
+    })
+  })
+
+  describe('import and preset of the same file', () => {
+    type CompositionStore = ReturnType<typeof useCompositionStore>
+
+    async function leftBy(apply: (compositionStore: CompositionStore) => Promise<unknown>) {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      expect(await apply(useCompositionStore())).toEqual(ok(undefined))
+      return { composition: compositionLeft(), presetValues: { ...usePresetDefaultsStore().presetParameters } }
+    }
+
+    async function leftByImportAndByPreset() {
+      const config = await readPresetConfig('france-proportional')
+      return {
+        config,
+        imported: await leftBy(compositionStore => compositionStore.importConfiguration(config)),
+        preset: await leftBy(compositionStore => compositionStore.loadPreset({ presetId: createPresetId('france-proportional') })),
+      }
+    }
+
+    it('leaves the same territory parameters, active territories and canvas', async () => {
+      const { config, imported, preset } = await leftByImportAndByPreset()
+
+      expect(imported.composition).toEqual(preset.composition)
+      expect(imported.composition.activeTerritories).toEqual(config.territories.map(({ code }) => code))
+    })
+
+    it.fails('leaves the same preset values', async () => {
+      const { imported, preset } = await leftByImportAndByPreset()
+
+      expect(imported.presetValues).toEqual(preset.presetValues)
+    })
+
+    it.fails('leaves out a key of the imported file that the parameter registry does not hold', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      const config = await readPresetConfig('france-standard')
+      const [territory] = config.territories
+      Object.assign(territory!.projection.parameters, { tilt: 30 })
+
+      expect(await useCompositionStore().importConfiguration(config)).toEqual(ok(undefined))
+
+      expect(useParameterStore().getTerritoryParameters(territory!.code as TerritoryCode)).not.toHaveProperty('tilt')
+    })
+  })
+
+  describe('display options', () => {
+    type CompositionStore = ReturnType<typeof useCompositionStore>
+
+    it.fails.each<[string, (compositionStore: CompositionStore) => Promise<unknown>]>([
+      ['a composite preset', compositionStore => compositionStore.loadPreset({ presetId: createPresetId('france-standard') })],
+      ['an import', async compositionStore => compositionStore.importConfiguration(await readPresetConfig('france-standard'))],
+      ['an atlas change', compositionStore => compositionStore.selectAtlas('portugal' as AtlasId)],
+    ])('keeps the options chosen by the user after %s', async (_action, act) => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      const uiStore = useUIStore()
+      uiStore.showGraticule = true
+      uiStore.showCompositionBorders = false
+      uiStore.showMapLimits = false
+
+      await act(useCompositionStore())
+
+      expect([uiStore.showGraticule, uiStore.showCompositionBorders, uiStore.showMapLimits]).toEqual([true, false, false])
     })
   })
 
