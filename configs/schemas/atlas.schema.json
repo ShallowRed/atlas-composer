@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Geographic Atlas Configuration",
+  "title": "JSON Atlas Config",
   "description": "Unified configuration for geographic atlases including territories, projections, and UI settings",
   "type": "object",
-  "required": ["id", "name", "territories"],
+  "required": ["id", "name", "description", "territories", "dataSources"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -14,36 +14,8 @@
       "description": "Unique identifier for the atlas (e.g., 'portugal', 'france', 'europe')",
       "pattern": "^[a-z][a-z0-9-]*$"
     },
-    "name": {
-      "oneOf": [
-        { "type": "string" },
-        {
-          "type": "object",
-          "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" }
-          },
-          "required": ["en"],
-          "additionalProperties": { "type": "string" }
-        }
-      ],
-      "description": "Human-readable name (string or i18n object with language codes as keys, e.g., {en: 'France', fr: 'France'}). String is used as fallback for all languages."
-    },
-    "description": {
-      "oneOf": [
-        { "type": "string" },
-        {
-          "type": "object",
-          "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" }
-          },
-          "required": ["en"],
-          "additionalProperties": { "type": "string" }
-        }
-      ],
-      "description": "Brief description of the atlas (string or i18n object with language codes as keys). String is used as fallback for all languages."
-    },
+    "name": { "$ref": "#/definitions/i18nValue" },
+    "description": { "$ref": "#/definitions/i18nValue" },
     "category": {
       "type": "string",
       "enum": ["country", "region", "world"],
@@ -87,19 +59,6 @@
       "minProperties": 1
     },
 
-    "viewModes": {
-      "type": "array",
-      "description": "Supported view modes for this atlas. Defaults to all modes if not specified.",
-      "items": {
-        "type": "string",
-        "enum": ["split", "built-in-composite", "composite-custom", "unified"]
-      },
-      "uniqueItems": true,
-      "examples": [
-        ["built-in-composite", "unified"],
-        ["split", "built-in-composite", "composite-custom", "unified"]
-      ]
-    },
     "metadata": {
       "type": "object",
       "properties": {
@@ -130,107 +89,7 @@
           "type": "array",
           "description": "List of territories",
           "minItems": 1,
-          "items": {
-            "type": "object",
-            "required": ["id", "code", "name"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
-              },
-              "code": {
-                "type": "string",
-                "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
-                "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
-              },
-              "name": {
-                "oneOf": [
-                  { "type": "string" },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "en": { "type": "string" },
-                      "fr": { "type": "string" }
-                    },
-                    "required": ["en"],
-                    "additionalProperties": { "type": "string" }
-                  }
-                ],
-                "description": "Territory name (string or i18n object with language codes as keys)"
-              },
-              "shortName": {
-                "oneOf": [
-                  { "type": "string" },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "en": { "type": "string" },
-                      "fr": { "type": "string" }
-                    },
-                    "required": ["en"],
-                    "additionalProperties": { "type": "string" }
-                  }
-                ],
-                "description": "Short territory name (string or i18n object with language codes as keys)"
-              },
-
-              "iso": {
-                "type": "string",
-                "pattern": "^[A-Z]{3}$",
-                "description": "ISO 3166-1 alpha-3 code"
-              },
-              "region": {
-                "oneOf": [
-                  { "type": "string" },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "en": { "type": "string" },
-                      "fr": { "type": "string" }
-                    },
-                    "required": ["en"],
-                    "additionalProperties": { "type": "string" }
-                  }
-                ],
-                "description": "Geographic sub-region (string or i18n object with language codes as keys, e.g., 'Atlantic', 'Indian Ocean')"
-              },
-              "bounds": {
-                "type": "array",
-                "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
-                "items": {
-                  "type": "array",
-                  "items": { "type": "number" },
-                  "minItems": 2,
-                  "maxItems": 2
-                },
-                "minItems": 2,
-                "maxItems": 2
-              },
-              "center": {
-                "type": "array",
-                "description": "Geographic center [longitude, latitude]",
-                "items": { "type": "number" },
-                "minItems": 2,
-                "maxItems": 2
-              },
-              "extraction": {
-                "type": "object",
-                "description": "How to extract this territory from Natural Earth data",
-                "properties": {
-                  "extractFrom": {
-                    "type": "string",
-                    "description": "Parent territory ID to extract from"
-                  },
-                  "polygonIndices": {
-                    "type": "array",
-                    "description": "Indices of polygons to extract",
-                    "items": { "type": "integer", "minimum": 0 },
-                    "minItems": 1
-                  }
-                }
-              }
-            }
-          }
+          "items": { "$ref": "#/definitions/territory" }
         }
       ]
     },
@@ -242,40 +101,13 @@
           "type": "object",
           "required": ["label", "selectionType", "collections"],
           "properties": {
-            "label": {
-              "oneOf": [
-                { "type": "string" },
-                {
-                  "type": "object",
-                  "properties": {
-                    "en": { "type": "string" },
-                    "fr": { "type": "string" }
-                  },
-                  "required": ["en"],
-                  "additionalProperties": { "type": "string" }
-                }
-              ],
-              "description": "Display label for the collection set"
-            },
+            "label": { "$ref": "#/definitions/i18nValue" },
             "selectionType": {
               "type": "string",
               "enum": ["incremental", "mutually-exclusive"],
               "description": "Selection behavior: 'incremental' allows progressive territory additions (for territoryScope), 'mutually-exclusive' allows only one collection at a time (for territoryManager/territoryGroups)"
             },
-            "description": {
-              "oneOf": [
-                { "type": "string" },
-                {
-                  "type": "object",
-                  "properties": {
-                    "en": { "type": "string" },
-                    "fr": { "type": "string" }
-                  },
-                  "additionalProperties": { "type": "string" }
-                }
-              ],
-              "description": "Optional description explaining the grouping strategy"
-            },
+            "description": { "$ref": "#/definitions/i18nValue" },
             "collections": {
               "type": "array",
               "minItems": 1,
@@ -288,21 +120,7 @@
                     "pattern": "^[a-z][a-z0-9-]*$",
                     "description": "Collection identifier"
                   },
-                  "label": {
-                    "oneOf": [
-                      { "type": "string" },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "en": { "type": "string" },
-                          "fr": { "type": "string" }
-                        },
-                        "required": ["en"],
-                        "additionalProperties": { "type": "string" }
-                      }
-                    ],
-                    "description": "Display label for this collection"
-                  },
+                  "label": { "$ref": "#/definitions/i18nValue" },
                   "territories": {
                     "oneOf": [
                       {
@@ -330,6 +148,88 @@
         }
       },
       "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "i18nValue": {
+      "title": "I18nValue",
+      "description": "Text in one language, or texts by language code with English as the fallback",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "en": { "type": "string" },
+            "fr": { "type": "string" }
+          },
+          "required": ["en"],
+          "additionalProperties": { "type": "string" }
+        }
+      ]
+    },
+    "territory": {
+      "title": "JSON Territory Config",
+      "type": "object",
+      "required": ["id", "code", "name", "iso", "center", "bounds"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Natural Earth ID or compound ID (e.g., '620', '620-20')"
+        },
+        "code": {
+          "type": "string",
+          "description": "Territory code (e.g., 'PT-CONT', 'PT-20', 'FR', 'DE')",
+          "pattern": "^[A-Z]{2}(-[A-Z0-9-]+)?$"
+        },
+        "name": { "$ref": "#/definitions/i18nValue" },
+        "shortName": { "$ref": "#/definitions/i18nValue" },
+
+        "iso": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 3166-1 alpha-3 code"
+        },
+        "region": { "$ref": "#/definitions/i18nValue" },
+        "bounds": {
+          "type": "array",
+          "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "center": {
+          "type": "array",
+          "description": "Geographic center [longitude, latitude]",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "extraction": {
+          "type": "object",
+          "description": "How to extract this territory from Natural Earth data",
+          "properties": {
+            "extractFrom": {
+              "type": "string",
+              "description": "Parent territory ID to extract from"
+            },
+            "polygonIndices": {
+              "type": "array",
+              "description": "Indices of polygons to extract",
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 1
+            },
+            "duplicateFrom": {
+              "type": "string",
+              "description": "Id or code of the feature whose geometry this territory copies"
+            }
+          }
+        }
+      }
     }
   }
 }
