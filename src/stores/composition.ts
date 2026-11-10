@@ -446,6 +446,7 @@ export const useCompositionStore = defineStore('composition', () => {
     viewStore.clearViewPreset()
 
     parameterStore.clearGlobalParameters()
+    parameterStore.setAtlasParameters({})
     presetDefaults.storeGlobalParameters(null)
 
     if (viewMode !== 'composite-custom') {
