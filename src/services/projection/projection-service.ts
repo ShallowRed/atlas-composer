@@ -1,5 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -53,7 +54,7 @@ export class ProjectionService {
       domain as any,
     )
 
-    const scaleMultiplier = (params.scaleMultiplier as number | undefined) ?? 1.0
+    const scaleMultiplier = (params.scaleMultiplier as number | undefined) ?? parameterRegistry.getDefaultValue('scaleMultiplier')
     if (scaleMultiplier !== 1.0 && !this.autoFitDomainEnabled) {
       const currentScale = projection.scale()
       projection.scale(currentScale * scaleMultiplier)

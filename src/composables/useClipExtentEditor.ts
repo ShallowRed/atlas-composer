@@ -65,7 +65,7 @@ export function useClipExtentEditor() {
     const territoryCode = selectedTerritoryCode.value
     if (territoryCode && selectedTerritory) {
       const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-      const translateOffset = params.translateOffset || [0, 0]
+      const translateOffset = params.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
       const pixelClipExtent = params.pixelClipExtent
 
       if (pixelClipExtent && pixelClipExtent.length === 4) {

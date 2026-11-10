@@ -1,6 +1,7 @@
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
+import { parameterRegistry } from '@/core/parameters'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
@@ -158,7 +159,7 @@ export function useTerritoryCursor() {
     dragStartY.value = event.clientY
 
     const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-    const currentTranslateOffset = params.translateOffset || [0, 0]
+    const currentTranslateOffset = params.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
     dragStartOffsetX.value = currentTranslateOffset[0]
     dragStartOffsetY.value = currentTranslateOffset[1]
 

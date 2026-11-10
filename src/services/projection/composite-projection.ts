@@ -7,6 +7,7 @@ import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/
 
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
+import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
@@ -56,14 +57,14 @@ export class CompositeProjection {
 
       const projection = this.createProjectionByType(parameters.projectionId).translate([0, 0])
       applyPositioning(projection, parameters, 'composite')
-      projection.scale(referenceScale * (parameters.scaleMultiplier ?? 1))
+      projection.scale(referenceScale * (parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')))
 
       return [{
         territoryCode,
         territoryName: territory.name,
         projection,
         projectionType: parameters.projectionId as ProjectionId,
-        translateOffset: parameters.translateOffset ?? [0, 0],
+        translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),
         bounds: territory.bounds,
       }]
     })

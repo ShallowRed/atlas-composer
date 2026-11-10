@@ -2,6 +2,7 @@ import type { FamilyConstraint, FamilyConstraints } from '@/core/parameters/para
 import type { PositionParameter } from '@/core/positioning'
 import type { ParameterIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
+import { DEFAULT_SCALE_MULTIPLIER } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters/parameter-registry'
 import { usesPositionParameter } from '@/core/positioning'
 import { err, ok } from '@/core/types/result'
@@ -135,7 +136,7 @@ export function registerAllParameters(): void {
     mutable: true,
     exportable: true,
     requiresPreset: true, // Core scale parameter
-    defaultValue: 1,
+    defaultValue: DEFAULT_SCALE_MULTIPLIER,
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
