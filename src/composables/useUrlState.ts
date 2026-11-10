@@ -2,8 +2,8 @@ import type { TerritoryCode } from '@/types'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { parameterRegistry } from '@/core/parameters'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
-import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { parseSharedLink } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -43,14 +43,10 @@ export function useUrlState() {
     if (projectionStore.customParallel2 !== null)
       state.p2 = String(projectionStore.customParallel2)
 
-    const atlasService = atlasStore.atlasService
-    const territories = atlasService.getAllTerritories()
-    const defaults = TerritoryDefaultsService.initializeAll(
-      territories,
-      FALLBACK_PROJECTION_ID,
-    )
+    const defaultScale = parameterRegistry.getDefaultValue('scaleMultiplier')
+    const [defaultX, defaultY] = parameterRegistry.getDefaultValue('translateOffset')
 
-    // The preset of the composite-custom view gives values that differ from the territory defaults
+    // The preset of the composite-custom view gives values that differ from the default values of the registry
     const writesEveryTerritory = viewStore.viewMode === 'composite-custom'
 
     const territorySettings: Record<string, number> = {}
@@ -60,7 +56,6 @@ export function useUrlState() {
       const code = territory.code as TerritoryCode
       const params = parameterStore.getTerritoryParameters(code)
       const scale = params.scaleMultiplier ?? 1.0
-      const defaultScale = defaults.scales[code] ?? 1
       if (writesEveryTerritory || scale !== defaultScale) {
         territorySettings[`s_${territory.code}`] = scale
         hasSettings = true
@@ -70,8 +65,7 @@ export function useUrlState() {
     for (const territory of geoDataStore.allActiveTerritories) {
       const code = territory.code as TerritoryCode
       const translation = parameterStore.getTerritoryTranslation(code)
-      const defaultTranslation = defaults.translations[code] ?? { x: 0, y: 0 }
-      if (writesEveryTerritory || translation.x !== defaultTranslation.x || translation.y !== defaultTranslation.y) {
+      if (writesEveryTerritory || translation.x !== defaultX || translation.y !== defaultY) {
         territorySettings[`tx_${territory.code}`] = translation.x
         territorySettings[`ty_${territory.code}`] = translation.y
         hasSettings = true

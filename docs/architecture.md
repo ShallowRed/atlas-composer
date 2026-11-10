@@ -42,7 +42,7 @@ For the same reason, `setGlobalParameter` and `setTerritoryParameter` throw an `
 
 `src/composables/useUrlState.ts` builds the query of a link from the state. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
 
-The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations. In the `composite-custom` view, these two values are written for each active territory, because the preset of the view gives them. In the other views, the query holds the values that differ from `TerritoryDefaultsService`. `serializeState` gives the keys.
+The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations. In the `composite-custom` view, these two values are written for each active territory, because the preset of the view gives them. In the other views, the query holds the values that differ from the default values of `parameterRegistry`. `serializeState` gives the keys.
 
 When `MapView` is mounted, it gives `startMapView` the result of `readSharedLink`. `parseSharedLink`, in `src/core/view/shared-link.ts`, keeps the values of a known form and ignores the others. `startMapView` writes the atlas and the view of the link, and `initializeAtlas` runs once. It applies the default presets of the view, then `applySharedLink` writes the values of the link before the geographic data loads. It keeps a projection that the view proposes, a territory of the atlas and the numbers that `parameterRegistry` accepts.
 

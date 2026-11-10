@@ -99,7 +99,7 @@ describe('composition store', () => {
       expect(useAppStore().state).toBe('error')
     })
 
-    it.each(['split', 'unified', 'built-in-composite'] as const)('fails when the default preset of the %s view is invalid', async (viewMode) => {
+    it.each(['composite-custom', 'split', 'unified', 'built-in-composite'] as const)('fails when the default preset of the %s view is invalid', async (viewMode) => {
       await startApplication(FRANCE)
       vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err(REFUSED_PRESET))
 
@@ -108,15 +108,6 @@ describe('composition store', () => {
       expect(result).toEqual(err(REFUSED_PRESET))
       expect(useGeoDataStore().isReinitializing).toBe(false)
       expect(useAppStore().state).toBe('error')
-    })
-
-    it.fails('fails when the default preset of the composite-custom view is invalid', async () => {
-      await startApplication(FRANCE)
-      vi.spyOn(PresetValidationService, 'validatePreset').mockReturnValueOnce(err(REFUSED_PRESET))
-
-      const result = await initializeInView('composite-custom')
-
-      expect(result).toEqual(err(REFUSED_PRESET))
     })
 
     it('opens the selected atlas', async () => {
