@@ -1,4 +1,6 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
+import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
 import { useTerritoryData } from '@/composables/useTerritoryData'
@@ -8,10 +10,14 @@ import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
+import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
+const PORTUGAL = 'portugal' as AtlasId
+const PORTUGAL_STANDARD_CANVAS = { referenceScale: 4200, dimensions: { width: 960, height: 500 } }
+const FRANCE_STANDARD_CANVAS = { referenceScale: 2700, dimensions: { width: 760, height: 500 } }
 const METROPOLE = 'FR-MET' as TerritoryCode
 const OMITTED_BY_SPLIT_PRESET = 'FR-BL' as TerritoryCode
 
@@ -56,6 +62,34 @@ async function openSplit() {
 async function openUnified() {
   await openComposite()
   await openView('unified')
+}
+
+async function openPortugal() {
+  await startApplication(PORTUGAL)
+  await useCompositionStore().initializeAtlas()
+}
+
+async function openFranceStandard() {
+  await openComposite()
+  await useCompositionStore().loadPreset({ presetId: createPresetId('france-standard') })
+}
+
+async function importFranceStandard() {
+  await openComposite()
+  const json = await readFile('configs/presets/france/france-standard.json', 'utf8')
+  await useCompositionStore().importConfiguration(JSON.parse(json) as CompositeProjectionConfig)
+}
+
+function currentCanvas() {
+  const { referenceScale, canvasDimensions } = useProjectionStore()
+  if (referenceScale === undefined || canvasDimensions === undefined) {
+    throw new Error('The projection store holds no canvas')
+  }
+  return { referenceScale, dimensions: canvasDimensions }
+}
+
+function canvasDiffers(): boolean {
+  return usePresetDefaultsStore().canvasDiffersFromPreset(currentCanvas())
 }
 
 function atlasCodes(): TerritoryCode[] {
@@ -278,6 +312,53 @@ describe('difference with the preset values', () => {
       useParameterStore().setGlobalParameter('scaleMultiplier', 2)
 
       expect(globalDiffers()).toBe(true)
+    })
+  })
+
+  describe('of the canvas', () => {
+    it.each([
+      ['the default preset of Portugal', openPortugal, PORTUGAL_STANDARD_CANVAS],
+      ['the france-standard preset', openFranceStandard, FRANCE_STANDARD_CANVAS],
+      ['the import of the france-standard file', importFranceStandard, FRANCE_STANDARD_CANVAS],
+    ])('shows no difference after %s, and a difference after a change of each value', async (_name, open, canvas) => {
+      await open()
+      const projectionStore = useProjectionStore()
+
+      expect(currentCanvas()).toEqual(canvas)
+      expect(canvasDiffers()).toBe(false)
+
+      projectionStore.referenceScale = canvas.referenceScale + 50
+      expect(canvasDiffers()).toBe(true)
+
+      projectionStore.referenceScale = canvas.referenceScale
+      projectionStore.canvasDimensions = { ...canvas.dimensions, width: canvas.dimensions.width + 10 }
+      expect(canvasDiffers()).toBe(true)
+
+      projectionStore.canvasDimensions = { ...canvas.dimensions, height: canvas.dimensions.height + 10 }
+      expect(canvasDiffers()).toBe(true)
+    })
+
+    it.each([
+      ['the default preset of Portugal', openPortugal, PORTUGAL_STANDARD_CANVAS],
+      ['the france-standard preset', openFranceStandard, FRANCE_STANDARD_CANVAS],
+    ])('puts back the canvas of %s at a reset', async (_name, open, canvas) => {
+      await open()
+      const projectionStore = useProjectionStore()
+      projectionStore.referenceScale = 1000
+      projectionStore.canvasDimensions = { width: 1200, height: 800 }
+
+      useCompositionStore().resetCanvas()
+
+      expect(currentCanvas()).toEqual(canvas)
+      expect(canvasDiffers()).toBe(false)
+    })
+
+    it('holds no canvas of the preset after a change of view', async () => {
+      await openFranceStandard()
+
+      await openView('split')
+
+      expect(usePresetDefaultsStore().presetCanvas).toBeNull()
     })
   })
 
