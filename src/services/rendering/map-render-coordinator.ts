@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
-import type { Territory } from '@/types'
+import type { Territory, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
@@ -26,7 +26,7 @@ export interface SimpleMapConfig {
 }
 
 export interface CompositeMapConfig {
-  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
+  viewMode: ViewMode
   territoryMode: string
   selectedProjection: string
   compositeProjection?: string
@@ -93,7 +93,7 @@ export class MapRenderCoordinator {
 
   static applyOverlays(
     svg: SVGSVGElement,
-    viewMode: 'composite-custom' | 'built-in-composite' | 'individual',
+    viewMode: ViewMode | undefined,
     config: {
       showBorders: boolean
       showLimits: boolean
@@ -124,7 +124,7 @@ export class MapRenderCoordinator {
       height: number
       projection?: GeoProjection
       projectionId?: string
-      viewMode?: 'composite-custom' | 'built-in-composite' | 'individual' | 'simple'
+      viewMode?: ViewMode
       customComposite?: CompositeProjection | null
       effectiveScale?: number
       geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
