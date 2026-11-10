@@ -27,6 +27,8 @@ import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
 
+type CompositionStore = ReturnType<typeof useCompositionStore>
+
 const REFUSED_PRESET: PresetError = {
   code: 'PRESET_INVALID',
   presetId: 'france-unified',
@@ -481,8 +483,6 @@ describe('composition store', () => {
   })
 
   describe('import and preset of the same file', () => {
-    type CompositionStore = ReturnType<typeof useCompositionStore>
-
     async function leftBy(apply: (compositionStore: CompositionStore) => Promise<unknown>) {
       await startApplication(FRANCE)
       await useCompositionStore().initializeAtlas()
@@ -526,12 +526,17 @@ describe('composition store', () => {
   })
 
   describe('display options', () => {
-    type CompositionStore = ReturnType<typeof useCompositionStore>
-
-    it.fails.each<[string, (compositionStore: CompositionStore) => Promise<unknown>]>([
-      ['a composite preset', compositionStore => compositionStore.loadPreset({ presetId: createPresetId('france-standard') })],
-      ['an import', async compositionStore => compositionStore.importConfiguration(await readPresetConfig('france-standard'))],
-      ['an atlas change', compositionStore => compositionStore.selectAtlas('portugal' as AtlasId)],
+    it.each<[string, (compositionStore: CompositionStore) => Promise<void>]>([
+      ['a composite preset', async (compositionStore) => {
+        expect(await compositionStore.loadPreset({ presetId: createPresetId('france-standard') })).toEqual(ok(undefined))
+      }],
+      ['an import', async (compositionStore) => {
+        expect(await compositionStore.importConfiguration(await readPresetConfig('france-standard'))).toEqual(ok(undefined))
+      }],
+      ['an atlas change', async (compositionStore) => {
+        await compositionStore.selectAtlas('portugal' as AtlasId)
+        expect(useAtlasStore().currentAtlasConfig?.id).toBe('portugal')
+      }],
     ])('keeps the options chosen by the user after %s', async (_action, act) => {
       await startApplication(FRANCE)
       await useCompositionStore().initializeAtlas()

@@ -213,11 +213,6 @@ export const useCompositionStore = defineStore('composition', () => {
           referenceScale,
           dimensions: canvasDimensions,
         },
-        display: {
-          showGraticule: false,
-          showCompositionBorders: true,
-          showMapLimits: true,
-        },
       }
 
       const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
@@ -332,11 +327,6 @@ export const useCompositionStore = defineStore('composition', () => {
           referenceScale: preset.config.referenceScale,
           dimensions: preset.config.canvasDimensions,
         },
-        display: {
-          showGraticule: false,
-          showCompositionBorders: true,
-          showMapLimits: true,
-        },
       }
 
       parameterStore.clearAll()
@@ -446,11 +436,6 @@ export const useCompositionStore = defineStore('composition', () => {
           referenceScale: config.referenceScale,
           dimensions: config.canvasDimensions,
         },
-        display: {
-          showGraticule: false,
-          showCompositionBorders: true,
-          showMapLimits: true,
-        },
       }
 
       parameterStore.clearAll()
@@ -551,10 +536,6 @@ export const useCompositionStore = defineStore('composition', () => {
     for (const [code, scale] of Object.entries(state.territories.scales)) {
       parameterStore.setTerritoryParameter(code as TerritoryCode, 'scaleMultiplier', scale)
     }
-
-    uiStore.showGraticule = state.display.showGraticule
-    uiStore.showCompositionBorders = state.display.showCompositionBorders
-    uiStore.showMapLimits = state.display.showMapLimits
 
     if (state.viewMode === 'composite-custom') {
       presetDefaults.storePresetDefaults(
