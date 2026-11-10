@@ -12,6 +12,7 @@ import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { referenceParameters } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
+import { isViewPresetMode } from '@/core/view'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { ProjectionUIService } from '@/services/projection/projection-ui-service'
 import { useAppStore } from '@/stores/app'
@@ -75,7 +76,7 @@ export const useViewStore = defineStore('view', () => {
   }
 
   async function loadAvailableViewPresets() {
-    if (!['unified', 'split', 'built-in-composite'].includes(viewMode.value)) {
+    if (!isViewPresetMode(viewMode.value)) {
       availableViewPresets.value = []
       return
     }
