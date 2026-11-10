@@ -21,7 +21,7 @@ import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters 
 import { DEFAULT_CANVAS_DIMENSIONS, FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
-import { TerritoryResetService } from '@/core/territories/territory-reset-service'
+import { referenceParameters, TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
 import { AtlasService } from '@/services/atlas/atlas-service'
@@ -507,24 +507,10 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   function resetTerritory(operation: TerritoryResetOperation): void {
-    const { territoryCode: code, projection, translation, scale, parameters, shouldClearOverrides } = operation
-
-    if (shouldClearOverrides) {
-      parameterStore.clearAllTerritoryOverrides(code)
+    if (operation.shouldClearOverrides) {
+      parameterStore.clearAllTerritoryOverrides(operation.territoryCode)
     }
-
-    if (projection) {
-      parameterStore.setTerritoryProjection(code, projection)
-    }
-
-    parameterStore.setTerritoryTranslation(code, 'x', translation.x)
-    parameterStore.setTerritoryTranslation(code, 'y', translation.y)
-
-    parameterStore.setTerritoryParameter(code, 'scaleMultiplier', scale)
-
-    if (parameters) {
-      parameterStore.setTerritoryParameters(code, parameters as any)
-    }
+    parameterStore.setTerritoryParameters(operation.territoryCode, referenceParameters(operation))
   }
 
   function applyStateToStores(state: ApplicationState): void {
@@ -649,9 +635,7 @@ export const useCompositionStore = defineStore('composition', () => {
     viewStore.viewMode = viewMode
     viewStore.clearViewPreset()
 
-    parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
-    parameterStore.setGlobalParameter('parallels', undefined)
-    parameterStore.setGlobalParameter('scale', undefined)
+    parameterStore.clearGlobalParameters()
     presetDefaults.storeGlobalParameters(null)
 
     if (viewMode !== 'composite-custom') {

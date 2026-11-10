@@ -61,6 +61,11 @@ export const useParameterStore = defineStore('parameters', () => {
     globalParametersVersion.value++
   }
 
+  function clearGlobalParameters() {
+    parameterManager.clearGlobalParameters()
+    globalParametersVersion.value++
+  }
+
   function setAtlasParameters(parameters: ProjectionParameters) {
     parameterManager.setAtlasParameters(parameters)
     globalParametersVersion.value++
@@ -236,6 +241,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
     setGlobalParameter,
     setGlobalParameters,
+    clearGlobalParameters,
 
     setAtlasParameters,
 

@@ -70,32 +70,7 @@ const hasAnyRelevantParams = computed(() => {
   return relevantParameters.value.length > 0 || true // Always show scale
 })
 
-const hasCustomParams = computed(() => {
-  const globalParams = parameterStore.globalParameters
-  const globalDefaults = presetDefaults.presetGlobalParameters
-
-  if (Object.keys(globalParams).length === 0) {
-    return false
-  }
-
-  if (!globalDefaults) {
-    return true
-  }
-
-  for (const [key, value] of Object.entries(globalParams)) {
-    const defaultValue = globalDefaults[key as keyof ProjectionParameters]
-    if (Array.isArray(value) && Array.isArray(defaultValue)) {
-      if (value.length !== defaultValue.length || value.some((v, i) => v !== defaultValue[i])) {
-        return true
-      }
-    }
-    else if (value !== defaultValue) {
-      return true
-    }
-  }
-
-  return false
-})
+const hasCustomParams = computed(() => presetDefaults.globalDiffersFromPreset(effectiveParams.value))
 
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
   parameterStore.setGlobalParameter(key, value)
@@ -106,12 +81,7 @@ function handleRotateChange(axis: number, value: number) {
 }
 
 function reset() {
-  const currentParams = { ...parameterStore.globalParameters }
-  parameterStore.setGlobalParameters({ rotate: undefined, center: undefined })
-  for (const key of Object.keys(currentParams)) {
-    if (key !== 'rotate' && key !== 'center')
-      parameterStore.setGlobalParameter(key as keyof ProjectionParameters, undefined)
-  }
+  parameterStore.clearGlobalParameters()
 }
 </script>
 

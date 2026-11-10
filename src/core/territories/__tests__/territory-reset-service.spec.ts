@@ -3,7 +3,7 @@ import type { TerritoryDefaults } from '@/core/presets'
 import type { TerritoryConfig } from '@/types'
 import { describe, expect, it } from 'vitest'
 import { createTerritoryCode } from '@/types/branded'
-import { TerritoryResetService } from '../territory-reset-service'
+import { referenceParameters, TerritoryResetService } from '../territory-reset-service'
 
 const MET = createTerritoryCode('FR-MET')
 const GP = createTerritoryCode('FR-GP')
@@ -43,7 +43,7 @@ describe('territoryResetService', () => {
         presetParameters: mockPresetParameters,
       })
 
-      expect(result.operations).toHaveLength(2)
+      expect(result.operations).toHaveLength(3)
       expect(result.activeTerritories).toEqual([GP, MQ])
 
       const gpOperation = result.operations.find(op => op.territoryCode === GP)
@@ -53,6 +53,20 @@ describe('territoryResetService', () => {
         translation: { x: 100, y: 50 },
         scale: 1.5,
         parameters: { rotate: [10, 20, 0] },
+        shouldClearOverrides: true,
+      })
+    })
+
+    it('gives a fallback operation to each territory that the preset does not cite', () => {
+      const result = TerritoryResetService.calculateBulkReset({
+        territories: mockTerritories,
+        presetDefaults: mockTerritoryDefaults,
+      })
+
+      expect(result.operations.find(op => op.territoryCode === MET)).toEqual({
+        territoryCode: MET,
+        translation: { x: 0, y: 0 },
+        scale: 1.0,
         shouldClearOverrides: true,
       })
     })
@@ -224,6 +238,43 @@ describe('territoryResetService', () => {
       })
 
       expect(result.parameters).toBeUndefined()
+    })
+  })
+
+  describe('referenceParameters', () => {
+    it('writes the projection, the layout and the preset parameters of an operation with a projection', () => {
+      const operation = TerritoryResetService.calculateTerritoryReset({
+        territoryCode: GP,
+        presetDefaults: mockTerritoryDefaults,
+        presetParameters: mockPresetParameters,
+      })
+
+      expect(referenceParameters(operation)).toEqual({
+        projectionId: 'mercator',
+        translateOffset: [100, 50],
+        scaleMultiplier: 1.5,
+        rotate: [10, 20, 0],
+      })
+    })
+
+    it('writes the default layout of an operation without projection', () => {
+      const operation = TerritoryResetService.calculateTerritoryReset({ territoryCode: MET, presetDefaults: mockTerritoryDefaults })
+
+      expect(referenceParameters(operation)).toEqual({ translateOffset: [0, 0], scaleMultiplier: 1 })
+    })
+
+    it('keeps the layout of the preset parameters', () => {
+      const operation = TerritoryResetService.calculateTerritoryReset({
+        territoryCode: GP,
+        presetDefaults: mockTerritoryDefaults,
+        presetParameters: { [GP]: { translateOffset: [7, 8], scaleMultiplier: 0.5 } },
+      })
+
+      expect(referenceParameters(operation)).toEqual({
+        projectionId: 'mercator',
+        translateOffset: [7, 8],
+        scaleMultiplier: 0.5,
+      })
     })
   })
 })
