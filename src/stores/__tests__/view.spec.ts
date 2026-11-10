@@ -1,8 +1,10 @@
 import type { AtlasId } from '@/types/branded'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { err, ok } from '@/core/types/result'
+import i18n from '@/i18n'
 import { useAtlasStore } from '@/stores/atlas'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
@@ -87,6 +89,24 @@ describe('view store', () => {
       })
 
       expect(viewStore.currentViewPreset).toBeNull()
+    })
+  })
+
+  describe('availableViewPresets', () => {
+    afterEach(() => {
+      i18n.global.locale.value = 'en'
+    })
+
+    it.fails('gives the name and the description of a preset in the locale chosen after the loading', async () => {
+      i18n.global.locale.value = 'en'
+      await startApplication(FRANCE)
+      await openView('unified')
+      const preset = useViewStore().availableViewPresets.find(({ id }) => id === 'france-unified')!
+
+      i18n.global.locale.value = 'fr'
+
+      expect(resolveI18nValue(preset.name, i18n.global.locale.value)).toBe('Vue unifiée')
+      expect(resolveI18nValue(preset.description!, i18n.global.locale.value)).toBe('Projection Natural Earth centrée sur la France')
     })
   })
 })
