@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
@@ -20,6 +21,7 @@ const { viewModeOptions } = useViewMode()
 const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
+const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
@@ -28,9 +30,11 @@ const { options: territoryModeOptions } = useTerritoryModeOptions()
 
 const atlasGroupsWithIcons = computed(() => {
   return getAvailableAtlasesGrouped().map(group => ({
-    label: group.label, // Already translated by registry
+    label: localize(group.label),
     options: group.options.map(atlas => ({
-      ...atlas,
+      value: atlas.value,
+      label: localize(atlas.label),
+      translated: true,
       icon: getAtlasFlag(atlas.value as AtlasId),
     })),
   }))

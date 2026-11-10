@@ -18,7 +18,7 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
 
-// Names are resolved in the locale of the first load: the cache is keyed by atlas id
+// Territory names are resolved in the locale of the first load: the cache is keyed by atlas id
 export async function loadAtlasConfiguration(atlasId: AtlasId, locale: string): Promise<Result<LoadedAtlasConfig, AtlasConfigError>> {
   if (isAtlasLoaded(atlasId)) {
     debug('Atlas %s already loaded from cache', atlasId)

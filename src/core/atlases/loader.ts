@@ -1,4 +1,4 @@
-import type { AtlasRegistryBehavior, I18nValue, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
+import type { AtlasRegistryBehavior, JSONAtlasConfig, JSONTerritoryConfig } from '#types'
 import type {
   AtlasConfig,
   GeoDataConfig,
@@ -12,7 +12,6 @@ import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 export interface AtlasSpecificConfig {
   territoryModes: Record<string, TerritoryCollection>
   territoryCollections?: TerritoryCollections
-  rawModeLabels: Record<string, I18nValue>
 }
 
 interface LoadedTerritories {
@@ -65,7 +64,6 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
 
 function createTerritoryCollections(
   config: JSONAtlasConfig,
-  locale: string,
   allTerritoryCodes?: string[],
 ): TerritoryCollections | undefined {
   if (!config.territoryCollections) {
@@ -95,18 +93,16 @@ function createTerritoryCollections(
 
       return {
         id: collection.id,
-        label: resolveI18nValue(collection.label, locale),
+        label: collection.label,
         codes,
         exclude: collection.exclude,
       }
     })
 
     result[setKey] = {
-      label: resolveI18nValue(setConfig.label, locale),
+      label: setConfig.label,
       selectionType: setConfig.selectionType,
-      description: setConfig.description
-        ? resolveI18nValue(setConfig.description, locale)
-        : undefined,
+      description: setConfig.description,
       collections,
     }
   }
@@ -134,11 +130,10 @@ function createAtlasConfig(
   territories: LoadedTerritories,
   geoDataConfig: GeoDataConfig,
   territoryModes: Record<string, TerritoryCollection>,
-  locale: string,
 ): AtlasConfig {
   return {
     id: config.id,
-    name: resolveI18nValue(config.name, locale),
+    name: config.name,
     category: config.category,
     geoDataConfig,
     projectionPreferences: config.projectionPreferences as AtlasConfig['projectionPreferences'],
@@ -155,7 +150,6 @@ function createAtlasConfig(
     territoryModeOptions: Object.keys(territoryModes).map(modeId => ({
       value: modeId,
       label: territoryModes[modeId]!.label,
-      translated: true, // Labels are already translated via resolveI18nValue
     })),
   }
 }
@@ -192,7 +186,6 @@ export function loadAtlasConfig(
 
   // Create territory modes from territory collections
   let territoryModes: Record<string, TerritoryCollection>
-  let rawModeLabels: Record<string, I18nValue>
 
   if (collectionSetKey && jsonConfig.territoryCollections?.[collectionSetKey]) {
     const collectionSet = jsonConfig.territoryCollections[collectionSetKey]!
@@ -219,15 +212,12 @@ export function loadAtlasConfig(
           collection.id,
           {
             id: collection.id,
-            label: resolveI18nValue(collection.label, locale),
+            label: collection.label,
             codes,
             exclude: collection.exclude,
           },
         ]
       }),
-    )
-    rawModeLabels = Object.fromEntries(
-      collectionSet.collections.map(c => [c.id, c.label]),
     )
   }
   else {
@@ -239,13 +229,12 @@ export function loadAtlasConfig(
       )
     }
     territoryModes = {}
-    rawModeLabels = {}
   }
 
   let territoryCollections: TerritoryCollections | undefined
 
   if (jsonConfig.territoryCollections) {
-    territoryCollections = createTerritoryCollections(jsonConfig, locale, allTerritoryCodes)
+    territoryCollections = createTerritoryCollections(jsonConfig, allTerritoryCodes)
   }
 
   const geoDataConfig = createGeoDataConfig(jsonConfig, territories)
@@ -255,13 +244,11 @@ export function loadAtlasConfig(
     territories,
     geoDataConfig,
     territoryModes,
-    locale,
   )
 
   const atlasSpecificConfig: AtlasSpecificConfig = {
     territoryModes,
     territoryCollections,
-    rawModeLabels,
   }
 
   return {

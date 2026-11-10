@@ -6,18 +6,20 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
 const { t } = useI18n()
+const { localize } = useLocalizedName()
 const viewStore = useViewStore()
 
 const presetOptions = computed<DropdownOption[]>(() => {
   return viewStore.availableViewPresets.map(preset => ({
     value: preset.id,
-    label: preset.name,
-    translated: true, // Preset names are already in final form
+    label: localize(preset.name),
+    translated: true,
     icon: getPresetIcon(preset.type),
   }))
 })

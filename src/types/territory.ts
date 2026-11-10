@@ -5,6 +5,7 @@
  * Scope: Frontend runtime types for map territories
  */
 
+import type { I18nValue } from '#types'
 import type { TerritoryCode } from './branded'
 
 type Coordinates = [number, number]
@@ -28,15 +29,15 @@ export interface TerritoryConfig {
 
 export interface TerritoryCollection {
   id: string
-  label: string
+  label: I18nValue
   codes: string[] | '*'
   exclude?: string[]
 }
 
 interface TerritoryCollectionSet {
-  label: string
+  label: I18nValue
   selectionType: 'incremental' | 'mutually-exclusive'
-  description?: string
+  description?: I18nValue
   collections: TerritoryCollection[]
 }
 

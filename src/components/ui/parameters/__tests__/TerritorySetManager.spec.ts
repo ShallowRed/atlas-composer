@@ -23,7 +23,7 @@ describe('territorySetManager', () => {
     vi.unstubAllGlobals()
   })
 
-  it.fails('shows the collection sets in the locale chosen after the loading', async () => {
+  it('shows the collection sets in the locale chosen after the loading', async () => {
     const wrapper = await mountInEnglish()
     expect(wrapper.findAll('option').map(option => option.text())).toContain('Legal Status')
 
@@ -33,7 +33,7 @@ describe('territorySetManager', () => {
     expect(wrapper.findAll('option').map(option => option.text())).toContain('Statut juridique')
   })
 
-  it.fails('shows the collections in the locale chosen after the loading', async () => {
+  it('shows the collections in the locale chosen after the loading', async () => {
     const wrapper = await mountInEnglish()
     expect(wrapper.text()).toContain('Overseas Departments (DROM)')
 

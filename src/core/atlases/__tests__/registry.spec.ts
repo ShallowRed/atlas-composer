@@ -3,7 +3,7 @@ import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 
 describe('getAvailableAtlasesGrouped', () => {
-  it.fails('gives the labels of the groups and the names of the atlases in each locale', () => {
+  it('gives the labels of the groups and the names of the atlases in each locale', () => {
     const countries = getAvailableAtlasesGrouped().find(({ id }) => id === 'country')!
     const usa = countries.options.find(({ value }) => value === 'usa')!
 

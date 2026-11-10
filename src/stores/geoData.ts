@@ -8,8 +8,10 @@ import type { AtlasId } from '@/types/branded'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { err, ok } from '@/core/types/result'
+import i18n from '@/i18n'
 import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { TerritoryFilterService } from '@/services/data/territory-filter-service'
 import { CompositeExportService } from '@/services/export/composite-export-service'
@@ -329,7 +331,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       // The ref unwraps the private fields of the class out of its type
       customComposite as CompositeProjection,
       atlasConfig.id as AtlasId,
-      atlasConfig.name,
+      resolveI18nValue(atlasConfig.name, i18n.global.locale.value),
       useParameterStore().parameterProvider,
       projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
       projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,

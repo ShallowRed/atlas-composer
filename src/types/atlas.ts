@@ -1,3 +1,4 @@
+import type { I18nValue } from '#types'
 import type { ProjectionId } from '@/types/branded'
 import type { CompositeProjectionConfig } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
@@ -8,7 +9,7 @@ interface SplitModeConfig {
 
 interface TerritoryModeOption {
   value: string
-  label: string
+  label: I18nValue
 }
 
 type AtlasCategory = 'country' | 'region' | 'world'
@@ -20,7 +21,7 @@ interface ProjectionPreferences {
 
 export interface AtlasConfig {
   id: string
-  name: string
+  name: I18nValue
   category?: AtlasCategory
   geoDataConfig: GeoDataConfig
   projectionPreferences?: ProjectionPreferences

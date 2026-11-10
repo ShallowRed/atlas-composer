@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { I18nValue } from '#types'
 import type { PresetApplicationError } from '@/core/types/errors'
 import type { PresetId } from '@/types/branded'
 
@@ -7,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
@@ -15,7 +16,8 @@ import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const debug = logger.vue.component
-const { t, locale } = useI18n()
+const { t } = useI18n()
+const { localize } = useLocalizedName()
 const { errorMessage } = useErrorMessage()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
@@ -95,14 +97,9 @@ watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
   selectedPreset.value = '' as const
 }, { immediate: true })
 
-function formatPresetLabel(presetId: PresetId, presetName?: string | Record<string, string>): string {
+function formatPresetLabel(presetId: PresetId, presetName?: I18nValue): string {
   if (presetName) {
-    if (typeof presetName === 'string') {
-      return presetName
-    }
-    else {
-      return resolveI18nValue(presetName, locale.value)
-    }
+    return localize(presetName)
   }
 
   const parts = presetId.split('-')

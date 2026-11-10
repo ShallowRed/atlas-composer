@@ -97,7 +97,7 @@ describe('view store', () => {
       i18n.global.locale.value = 'en'
     })
 
-    it.fails('gives the name and the description of a preset in the locale chosen after the loading', async () => {
+    it('gives the name and the description of a preset in the locale chosen after the loading', async () => {
       i18n.global.locale.value = 'en'
       await startApplication(FRANCE)
       await openView('unified')
