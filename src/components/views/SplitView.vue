@@ -156,14 +156,11 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
               </h5>
               <MapRenderer
                 :geo-data="territory.data"
-                :title="territory.name"
                 :area="territory.area"
-                :region="territory.region"
                 :preserve-scale="projectionStore.scalePreservation"
                 :projection="getTerritoryProjection(territory.code)"
                 :territory-code="createTerritoryCode(territory.code)"
                 :full-height="false"
-                :h-level="4"
                 :width="200"
                 :height="160"
               />
@@ -187,9 +184,7 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
           </h4>
           <MapRenderer
             :geo-data="territory.data"
-            :title="territory.name"
             :area="territory.area"
-            :region="territory.region"
             :preserve-scale="projectionStore.scalePreservation"
             :projection="getTerritoryProjection(territory.code)"
             :territory-code="createTerritoryCode(territory.code)"

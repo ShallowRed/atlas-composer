@@ -110,12 +110,6 @@ export class ProjectionParameterManager {
     debug('All parameters cleared')
   }
 
-  reset(): void {
-    this.globalParameters = {}
-    this.territoryParameters.clear()
-    this.atlasParameters = null
-  }
-
   private refusePositioningKey(key: keyof ProjectionParameters): void {
     if (isPositioningKey(key))
       throw new Error(`[ProjectionParameterManager] ${String(key)} is part of the positioning: write rotate and center together with setGlobalParameters or setTerritoryParameters.`)

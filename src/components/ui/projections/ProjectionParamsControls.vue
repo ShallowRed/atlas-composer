@@ -66,10 +66,6 @@ const supportsLatitudeRotation = computed(() => {
   return supportsPanning(projection.family)
 })
 
-const hasAnyRelevantParams = computed(() => {
-  return relevantParameters.value.length > 0 || true // Always show scale
-})
-
 const hasCustomParams = computed(() => presetDefaults.globalDiffersFromPreset(effectiveParams.value))
 
 function handleParameterChange(key: keyof ProjectionParameters, value: unknown) {
@@ -94,10 +90,7 @@ function reset() {
       :recommendations="viewStore.projectionRecommendations"
     />
 
-    <div
-      v-if="hasAnyRelevantParams"
-      class="flex flex-col gap-4 pt-6"
-    >
+    <div class="flex flex-col gap-4 pt-6">
       <button
         class="btn btn-sm btn-soft w-full gap-1 mb-2"
         :disabled="!hasCustomParams"

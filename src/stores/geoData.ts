@@ -142,9 +142,6 @@ export const useGeoDataStore = defineStore('geoData', () => {
       }
 
       const cartographerId = Date.now()
-      ;(cartographer.value as any).__id = cartographerId
-      ;(cartographer.value as any).__atlasId = atlasConfig.id
-      ;(cartographer.value as any).__territories = Object.keys(compositeConfig || {})
 
       debug('Cartographer created (id: %d, atlas: %s, territories: %d)', cartographerId, atlasConfig.id, Object.keys(compositeConfig || {}).length)
       isInitialized.value = true

@@ -92,10 +92,8 @@ function handleProjectionChange(territoryCode: TerritoryCode, newProjectionId: s
       <div class="mb-4">
         <TerritoryParameterControls
           :territory-code="territory.code"
-          :territory-name="territory.name"
           :projection-family="getProjectionFamily(territory.code)"
           :view="viewStore.positioningView"
-          :show-inheritance-indicators="true"
         />
       </div>
     </AccordionItem>
