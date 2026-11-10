@@ -7,7 +7,7 @@ describe('presets of configs/presets', () => {
     const file = JSON.parse(json)
     const validation = type === 'composite-custom'
       ? validateCompositePreset(file)
-      : validateViewPreset({ ...file, viewMode: type })
+      : validateViewPreset(file)
 
     expect(validation).toMatchObject({ ok: true })
   })

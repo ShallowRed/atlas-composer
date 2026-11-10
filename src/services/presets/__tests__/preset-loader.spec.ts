@@ -10,7 +10,6 @@ import { createPresetId } from '@/types/branded'
 const FRANCE = 'france' as AtlasId
 const COMPOSITE_PRESET = createPresetId('france-standard')
 const UNIFIED_PRESET = createPresetId('france-unified')
-const SPLIT_PRESET = createPresetId('france-split')
 
 function stubPresetFile(rewrite: (preset: any) => unknown) {
   vi.stubGlobal('fetch', async (url: string) =>
@@ -80,42 +79,24 @@ describe('loadPreset', () => {
     expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' }])
   })
 
-  it('refuses a view preset without projection', async () => {
+  it('refuses a view preset with a projection that the registry does not know', async () => {
     await startApplication(FRANCE)
-    stubPresetFile(preset => ({ ...preset, config: {} }))
+    stubPresetFile((preset) => {
+      preset.config.projection.id = 'flat-earth'
+      return preset
+    })
 
     const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
 
-    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_MISSING' }])
+    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' }])
   })
 
-  it('refuses a view preset without config', async () => {
-    await startApplication(FRANCE)
-    stubPresetFile(({ config: _config, ...preset }) => preset)
-
-    const result = await PresetLoader.loadPreset(UNIFIED_PRESET)
-
-    expect(issuesOf(result)).toEqual([{ code: 'PRESET_FIELD_MISSING', field: 'config' }])
-  })
-
-  it('refuses a split preset with an empty territory', async () => {
-    await startApplication(FRANCE)
-    stubPresetFile(preset => ({ ...preset, config: { territories: { 'FR-MET': null } } }))
-
-    const result = await PresetLoader.loadPreset(SPLIT_PRESET)
-
-    expect(issuesOf(result)).toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' }])
-  })
-
-  it.each([
-    [UNIFIED_PRESET, { code: 'PRESET_FIELD_MISSING', field: 'config' }],
-    [COMPOSITE_PRESET, { code: 'PRESET_SCHEMA_INVALID_TYPE', path: '/' }],
-  ])('refuses a file of %s that contains null', async (presetId, issue) => {
+  it('refuses a composite preset file that contains null', async () => {
     await startApplication(FRANCE)
     stubPresetFile(() => null)
 
-    const result = await PresetLoader.loadPreset(presetId)
+    const result = await PresetLoader.loadPreset(COMPOSITE_PRESET)
 
-    expect(issuesOf(result)).toContainEqual(issue)
+    expect(issuesOf(result)).toContainEqual({ code: 'PRESET_SCHEMA_INVALID_TYPE', path: '/' })
   })
 })

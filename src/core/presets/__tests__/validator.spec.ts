@@ -1,5 +1,7 @@
+import type { AtlasId } from '@/types/branded'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { validateViewPreset } from '@/core/presets/validator'
+import { createPresetId } from '@/types/branded'
 
 const debug = vi.hoisted(() => vi.fn())
 
@@ -10,10 +12,9 @@ vi.mock('@/utils/logger', async (importOriginal) => {
 
 function validateProjection(projectionId: string) {
   return validateViewPreset({
-    id: 'preset',
-    name: 'Preset',
-    atlasId: 'usa',
-    viewMode: 'built-in-composite',
+    id: createPresetId('preset'),
+    atlasId: 'usa' as AtlasId,
+    type: 'built-in-composite',
     config: { projectionId },
   })
 }

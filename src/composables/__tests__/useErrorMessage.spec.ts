@@ -43,22 +43,11 @@ const issues = {
   PRESET_SCHEMA_MISSING_FIELD: { code: 'PRESET_SCHEMA_MISSING_FIELD', path: 'path-x' },
   PRESET_SCHEMA_INVALID_VALUE: { code: 'PRESET_SCHEMA_INVALID_VALUE', path: 'path-x' },
   PRESET_SCHEMA_VERSION_UNSUPPORTED: { code: 'PRESET_SCHEMA_VERSION_UNSUPPORTED', path: 'path-x' },
-  PRESET_FIELD_MISSING: { code: 'PRESET_FIELD_MISSING', field: 'atlasId' },
-  PRESET_ATLAS_ID_INVALID: { code: 'PRESET_ATLAS_ID_INVALID' },
-  PRESET_VIEW_MODE_INVALID: { code: 'PRESET_VIEW_MODE_INVALID', viewMode: 'mode-x' },
   PRESET_TYPE_NOT_SUPPORTED: { code: 'PRESET_TYPE_NOT_SUPPORTED', presetType: 'type-x', atlasId: 'atlas-x' },
   PRESET_PARAMETER_REQUIRED: { code: 'PRESET_PARAMETER_REQUIRED', territory: 'FR-MET', parameter: 'parameter-x' },
   PRESET_POSITIONING_REQUIRED: ISSUE,
-  PRESET_PROJECTION_MISSING: { code: 'PRESET_PROJECTION_MISSING' },
-  PRESET_TERRITORIES_MISSING: { code: 'PRESET_TERRITORIES_MISSING' },
-  PRESET_COMPOSITE_PROJECTION_MISSING: { code: 'PRESET_COMPOSITE_PROJECTION_MISSING' },
-  PRESET_GLOBAL_SCALE_NOT_NUMBER: { code: 'PRESET_GLOBAL_SCALE_NOT_NUMBER' },
-  PRESET_GLOBAL_SCALE_NOT_POSITIVE: { code: 'PRESET_GLOBAL_SCALE_NOT_POSITIVE' },
   PRESET_PROJECTION_ID_INVALID: { code: 'PRESET_PROJECTION_ID_INVALID', territory: null },
   PRESET_PROJECTION_UNKNOWN: { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'projection-x' },
-  PRESET_PARAMETERS_NOT_OBJECT: { code: 'PRESET_PARAMETERS_NOT_OBJECT', territory: null },
-  PRESET_PARAMETER_NOT_NUMBER: { code: 'PRESET_PARAMETER_NOT_NUMBER', territory: null, parameter: 'parameter-x', actualType: 'type-x' },
-  PRESET_PARAMETER_NOT_ARRAY: { code: 'PRESET_PARAMETER_NOT_ARRAY', territory: null, parameter: 'parameter-x', actualType: 'type-x' },
   PRESET_PARAMETER_WRONG_LENGTH: { code: 'PRESET_PARAMETER_WRONG_LENGTH', territory: null, parameter: 'parameter-x', expected: 2 },
   PRESET_PARAMETER_TOO_SMALL: { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'parameter-x', min: 1 },
   PRESET_PARAMETER_TOO_LARGE: { code: 'PRESET_PARAMETER_TOO_LARGE', territory: null, parameter: 'parameter-x', max: 9 },
@@ -161,7 +150,7 @@ describe('useErrorMessage', () => {
 
     it('leaves an issue without territory without prefix', () => {
       i18n.global.locale.value = locale
-      const issue = issues.PRESET_PARAMETERS_NOT_OBJECT
+      const issue = issues.PRESET_PROJECTION_ID_INVALID
       const [message] = withErrorMessage(({ errorMessages }) => errorMessages({ code: 'IMPORT_INVALID', issues: [issue] }))
 
       expect(message).toBe(rawMessage(locale, ISSUE_MESSAGE_KEYS[issue.code]))

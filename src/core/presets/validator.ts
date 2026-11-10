@@ -1,10 +1,5 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type {
-  CompositeExistingViewConfig,
-  SplitViewConfig,
-  UnifiedViewConfig,
-  ViewPresetMode,
-} from './types'
+import type { UnifiedViewConfig, ViewPreset } from './types'
 import type { PresetIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 
@@ -14,12 +9,7 @@ import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionStrategy } from '@/core/projections/types'
 import { err, ok } from '@/core/types/result'
 import { logger } from '@/utils/logger'
-import {
-  atlasIdIssue,
-  checkProjectionParameters,
-  projectionIdIssue,
-  schemaIssues,
-} from './validation-utils'
+import { checkProjectionParameters, projectionIdIssue, schemaIssues } from './validation-utils'
 
 const debug = logger.presets.validator
 
@@ -94,55 +84,24 @@ export function validateCompositePreset(
   return issues.length === 0 ? ok(rawPreset) : err(issues)
 }
 
-export function validateViewPreset(preset: {
-  id: string
-  name: string
-  description?: string
-  atlasId: string
-  viewMode: ViewPresetMode
-  config: UnifiedViewConfig | SplitViewConfig | CompositeExistingViewConfig
-}): Result<void, PresetIssue[]> {
+export function validateViewPreset(preset: ViewPreset): Result<void, PresetIssue[]> {
   const issues: PresetIssue[] = []
   const warnings: string[] = []
 
-  if (!preset.id) {
-    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'id' })
-  }
-  if (!preset.name) {
-    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'name' })
-  }
-  if (!preset.config) {
-    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'config' })
-  }
-
-  if (preset.atlasId) {
-    const issue = atlasIdIssue(preset.atlasId)
-    if (issue) {
-      issues.push(issue)
-    }
-  }
-  else {
-    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'atlasId' })
-  }
-
-  const validViewModes: ViewPresetMode[] = ['unified', 'split', 'built-in-composite']
-  if (preset.viewMode && !validViewModes.includes(preset.viewMode)) {
-    issues.push({ code: 'PRESET_VIEW_MODE_INVALID', viewMode: preset.viewMode })
-  }
-  else if (!preset.viewMode) {
-    issues.push({ code: 'PRESET_FIELD_MISSING', field: 'viewMode' })
-  }
-
-  if (preset.config) {
-    if (preset.viewMode === 'unified') {
-      validateUnifiedConfig(preset.config as UnifiedViewConfig, issues, warnings)
-    }
-    else if (preset.viewMode === 'split') {
-      validateSplitConfig(preset.config as SplitViewConfig, issues, warnings)
-    }
-    else if (preset.viewMode === 'built-in-composite') {
-      validateCompositeExistingConfig(preset.config as CompositeExistingViewConfig, issues, warnings)
-    }
+  switch (preset.type) {
+    case 'unified':
+      checkProjection(preset.config.projection, null, issues, warnings)
+      break
+    case 'split':
+      for (const [code, { projection }] of Object.entries(preset.config.territories)) {
+        checkProjection(projection, code, issues, warnings)
+      }
+      break
+    case 'built-in-composite':
+      if (projectionRegistry.get(preset.config.projectionId)?.strategy !== ProjectionStrategy.D3_COMPOSITE) {
+        warnings.push(`Unknown d3-composite-projection: ${preset.config.projectionId}`)
+      }
+      break
   }
 
   logWarnings(warnings)
@@ -150,85 +109,17 @@ export function validateViewPreset(preset: {
   return issues.length === 0 ? ok(undefined) : err(issues)
 }
 
-function validateUnifiedConfig(
-  config: UnifiedViewConfig,
+function checkProjection(
+  { id, parameters }: UnifiedViewConfig['projection'],
+  territory: string | null,
   issues: PresetIssue[],
   warnings: string[],
 ): void {
-  if (!config.projection) {
-    issues.push({ code: 'PRESET_PROJECTION_MISSING' })
-    return
-  }
-
-  const idIssue = projectionIdIssue(config.projection.id, null)
-  if (idIssue) {
-    issues.push(idIssue)
-    return
-  }
-
-  const projection = projectionRegistry.get(config.projection.id)
+  const projection = projectionRegistry.get(id)
   if (!projection) {
-    issues.push({ code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: config.projection.id })
+    issues.push({ code: 'PRESET_PROJECTION_UNKNOWN', territory, projectionId: id })
     return
   }
 
-  if (config.projection.parameters) {
-    checkProjectionParameters(config.projection.parameters, projection.family, null, issues, warnings)
-  }
-}
-
-function validateSplitConfig(
-  config: SplitViewConfig,
-  issues: PresetIssue[],
-  warnings: string[],
-): void {
-  if (!config.territories) {
-    issues.push({ code: 'PRESET_TERRITORIES_MISSING' })
-    return
-  }
-
-  for (const [code, territoryConfig] of Object.entries(config.territories)) {
-    const idIssue = projectionIdIssue(territoryConfig?.projection?.id, code)
-    if (idIssue) {
-      issues.push(idIssue)
-      continue
-    }
-
-    const projection = projectionRegistry.get(territoryConfig.projection.id)
-    if (!projection) {
-      issues.push({ code: 'PRESET_PROJECTION_UNKNOWN', territory: code, projectionId: territoryConfig.projection.id })
-      continue
-    }
-
-    if (territoryConfig.projection.parameters) {
-      checkProjectionParameters(territoryConfig.projection.parameters, projection.family, code, issues, warnings)
-    }
-  }
-}
-
-function validateCompositeExistingConfig(
-  config: CompositeExistingViewConfig,
-  issues: PresetIssue[],
-  warnings: string[],
-): void {
-  if (!config.projectionId) {
-    issues.push({ code: 'PRESET_COMPOSITE_PROJECTION_MISSING' })
-    return
-  }
-
-  if (projectionRegistry.get(config.projectionId)?.strategy !== ProjectionStrategy.D3_COMPOSITE) {
-    warnings.push(`Unknown d3-composite-projection: ${config.projectionId}`)
-  }
-
-  if (config.globalScale !== undefined) {
-    if (typeof config.globalScale !== 'number') {
-      issues.push({ code: 'PRESET_GLOBAL_SCALE_NOT_NUMBER' })
-    }
-    else if (config.globalScale <= 0) {
-      issues.push({ code: 'PRESET_GLOBAL_SCALE_NOT_POSITIVE' })
-    }
-    else if (config.globalScale < 0.1 || config.globalScale > 10) {
-      warnings.push('globalScale is outside recommended range (0.1 to 10)')
-    }
-  }
+  checkProjectionParameters(parameters, projection.family, territory, issues, warnings)
 }

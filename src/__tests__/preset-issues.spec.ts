@@ -1,11 +1,13 @@
-import type { Preset } from '@/core/presets'
+import type { Preset, ViewPreset } from '@/core/presets'
 import type { PresetIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { AtlasConfig } from '@/types'
+import type { AtlasConfig, AtlasId } from '@/types'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 import { describe, expect, it } from 'vitest'
 import { readPresetFiles } from '@/__tests__/test-utils'
 import { validateCompositePreset, validateViewPreset } from '@/core/presets/validator'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
+import { createPresetId } from '@/types/branded'
 
 interface IssueCase<C extends PresetIssue['code']> {
   run: () => PresetIssue[]
@@ -22,12 +24,12 @@ function compositeIssues(alter: (preset: any) => void): PresetIssue[] {
   return issuesOf(validateCompositePreset(preset))
 }
 
-function viewIssues(viewMode: unknown, config: unknown, fields: object = {}): PresetIssue[] {
-  return issuesOf(validateViewPreset({ id: 'preset', name: 'Preset', atlasId: 'france', viewMode, config, ...fields } as any))
+function viewIssues(preset: Pick<ViewPreset, 'type' | 'config'>): PresetIssue[] {
+  return issuesOf(validateViewPreset({ id: createPresetId('preset'), atlasId: 'france' as AtlasId, ...preset } as ViewPreset))
 }
 
-function unifiedIssues(parameters: unknown): PresetIssue[] {
-  return viewIssues('unified', { projection: { id: 'mercator', parameters } })
+function unifiedIssues(parameters: ProjectionParameters): PresetIssue[] {
+  return viewIssues({ type: 'unified', config: { projection: { id: 'mercator', parameters } } })
 }
 
 const NO_TERRITORY = { territory: null }
@@ -49,18 +51,6 @@ const CASES = {
     run: () => compositeIssues((preset) => { preset.version = 'x' }),
     expected: { code: 'PRESET_SCHEMA_VERSION_UNSUPPORTED', path: 'version' },
   },
-  PRESET_FIELD_MISSING: {
-    run: () => viewIssues(undefined, {}),
-    expected: { code: 'PRESET_FIELD_MISSING', field: 'viewMode' },
-  },
-  PRESET_ATLAS_ID_INVALID: {
-    run: () => viewIssues('unified', {}, { atlasId: 42 }),
-    expected: { code: 'PRESET_ATLAS_ID_INVALID' },
-  },
-  PRESET_VIEW_MODE_INVALID: {
-    run: () => viewIssues('globe', {}),
-    expected: { code: 'PRESET_VIEW_MODE_INVALID', viewMode: 'globe' },
-  },
   PRESET_TYPE_NOT_SUPPORTED: {
     run: () => {
       const preset = { id: 'preset', type: 'split', config: {} } as Preset
@@ -80,48 +70,16 @@ const CASES = {
     }),
     expected: { code: 'PRESET_POSITIONING_REQUIRED', territory: 'FR-MET' },
   },
-  PRESET_PROJECTION_MISSING: {
-    run: () => viewIssues('unified', {}),
-    expected: { code: 'PRESET_PROJECTION_MISSING' },
-  },
-  PRESET_TERRITORIES_MISSING: {
-    run: () => viewIssues('split', {}),
-    expected: { code: 'PRESET_TERRITORIES_MISSING' },
-  },
-  PRESET_COMPOSITE_PROJECTION_MISSING: {
-    run: () => viewIssues('built-in-composite', {}),
-    expected: { code: 'PRESET_COMPOSITE_PROJECTION_MISSING' },
-  },
-  PRESET_GLOBAL_SCALE_NOT_NUMBER: {
-    run: () => viewIssues('built-in-composite', { projectionId: 'albersusa', globalScale: 'large' }),
-    expected: { code: 'PRESET_GLOBAL_SCALE_NOT_NUMBER' },
-  },
-  PRESET_GLOBAL_SCALE_NOT_POSITIVE: {
-    run: () => viewIssues('built-in-composite', { projectionId: 'albersusa', globalScale: 0 }),
-    expected: { code: 'PRESET_GLOBAL_SCALE_NOT_POSITIVE' },
-  },
   PRESET_PROJECTION_ID_INVALID: {
-    run: () => viewIssues('split', { territories: { 'FR-MET': { projection: { id: '' } } } }),
+    run: () => compositeIssues((preset) => { preset.territories[0].projection.id = '' }),
     expected: { code: 'PRESET_PROJECTION_ID_INVALID', territory: 'FR-MET' },
   },
   PRESET_PROJECTION_UNKNOWN: {
-    run: () => viewIssues('unified', { projection: { id: 'flat-earth' } }),
+    run: () => viewIssues({ type: 'unified', config: { projection: { id: 'flat-earth', parameters: {} } } }),
     expected: { code: 'PRESET_PROJECTION_UNKNOWN', ...NO_TERRITORY, projectionId: 'flat-earth' },
   },
-  PRESET_PARAMETERS_NOT_OBJECT: {
-    run: () => unifiedIssues('none'),
-    expected: { code: 'PRESET_PARAMETERS_NOT_OBJECT', ...NO_TERRITORY },
-  },
-  PRESET_PARAMETER_NOT_NUMBER: {
-    run: () => unifiedIssues({ scaleMultiplier: 'large' }),
-    expected: { code: 'PRESET_PARAMETER_NOT_NUMBER', ...NO_TERRITORY, parameter: 'scaleMultiplier', actualType: 'string' },
-  },
-  PRESET_PARAMETER_NOT_ARRAY: {
-    run: () => unifiedIssues({ rotate: 5 }),
-    expected: { code: 'PRESET_PARAMETER_NOT_ARRAY', ...NO_TERRITORY, parameter: 'rotate', actualType: 'number' },
-  },
   PRESET_PARAMETER_WRONG_LENGTH: {
-    run: () => unifiedIssues({ rotate: [1] }),
+    run: () => unifiedIssues({ rotate: [1, 2] }),
     expected: { code: 'PRESET_PARAMETER_WRONG_LENGTH', ...NO_TERRITORY, parameter: 'rotate', expected: 3 },
   },
   PRESET_PARAMETER_TOO_SMALL: {
@@ -139,18 +97,13 @@ describe('preset issues', () => {
     expect(run()).toContainEqual(expected)
   })
 
-  it('names no territory for a unified preset', () => {
-    expect(viewIssues('unified', { projection: { id: '' } }))
-      .toEqual([{ code: 'PRESET_PROJECTION_ID_INVALID', ...NO_TERRITORY }])
-  })
-
   it('names the territory of a split preset', () => {
     const territories = {
-      'FR-MET': { projection: { id: 'flat-earth' } },
+      'FR-MET': { projection: { id: 'flat-earth', parameters: {} } },
       'FR-GP': { projection: { id: 'mercator', parameters: { scaleMultiplier: 0 } } },
     }
 
-    expect(viewIssues('split', { territories })).toEqual([
+    expect(viewIssues({ type: 'split', config: { territories } })).toEqual([
       { code: 'PRESET_PROJECTION_UNKNOWN', territory: 'FR-MET', projectionId: 'flat-earth' },
       { code: 'PRESET_PARAMETER_TOO_SMALL', territory: 'FR-GP', parameter: 'scaleMultiplier', min: 0.01 },
     ])

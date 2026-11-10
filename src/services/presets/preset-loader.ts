@@ -1,4 +1,4 @@
-import type { Preset } from '@/core/presets'
+import type { Preset, ViewPreset } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { AtlasId, PresetId } from '@/types'
@@ -40,19 +40,12 @@ export class PresetLoader {
       })
     }
 
-    const validation = validateViewPreset({
-      ...file,
-      viewMode: presetDef.type as 'unified' | 'split' | 'built-in-composite',
-    })
+    const preset: ViewPreset = { id: presetId, atlasId, type: presetDef.type, config: file.config }
+    const validation = validateViewPreset(preset)
     if (!validation.ok) {
       return err({ code: 'PRESET_INVALID', presetId, issues: validation.error })
     }
 
-    return ok({
-      id: presetId,
-      atlasId,
-      type: presetDef.type,
-      config: file.config,
-    } as Preset)
+    return ok(preset)
   }
 }
