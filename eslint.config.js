@@ -121,6 +121,11 @@ const PARAMETER_DEFAULT_LITERALS = [
   'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.expression.object.property.name=\'parallels\']',
 ].map(selector => ({ selector, message: 'The default value of a parameter comes from parameterRegistry.getDefaultValue of src/core/parameters/parameter-registry.ts.' }))
 
+const PARALLELS_LITERALS = [
+  'Property[key.name=\'parallels\'][value.type=\'ArrayExpression\']',
+  'Property[key.name=\'parallels\'][value.type=\'TSAsExpression\'][value.expression.type=\'ArrayExpression\']',
+].map(selector => ({ selector, message: 'The default value of a parameter comes from parameterRegistry.getDefaultValue of src/core/parameters/parameter-registry.ts, imported from @/core/parameters.' }))
+
 const PRESET_COMPARISON = {
   selector: 'Identifier[name=/^(areValuesEqual|areParametersEqual|toRaw)$/]',
   message: 'The comparison with the preset values is a function of src/stores/presetDefaults.ts.',
@@ -250,7 +255,7 @@ export default antfu({
   files: ['src/core/projections/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS, ...PARALLELS_LITERALS],
   },
 }, {
   files: ['packages/projection-loader/src/**'],
