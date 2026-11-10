@@ -137,7 +137,7 @@ function createAtlasConfig(
     category: config.category,
     geoDataConfig,
     projectionPreferences: config.projectionPreferences as AtlasConfig['projectionPreferences'],
-    compositeProjectionConfig: territories.isWildcard
+    compositeTerritories: territories.isWildcard
       ? undefined
       : {
           territories: territories.all,

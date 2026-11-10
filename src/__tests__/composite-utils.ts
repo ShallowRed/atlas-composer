@@ -55,7 +55,7 @@ export async function openAtlasWithCartographer(atlasId: AtlasId) {
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(
     atlasConfig.geoDataConfig,
-    atlasConfig.compositeProjectionConfig,
+    atlasConfig.compositeTerritories,
     undefined,
     useParameterStore().parameterProvider,
     useProjectionStore().referenceScale,
@@ -72,7 +72,7 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
   const { parameterProvider } = useParameterStore()
   const atlasConfig = getAtlasConfig(atlasId)
   const composite = new CompositeProjection(
-    atlasConfig.compositeProjectionConfig!,
+    atlasConfig.compositeTerritories!,
     parameterProvider,
     projectionStore.referenceScale,
   )

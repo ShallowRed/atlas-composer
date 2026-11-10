@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { CompositeProjectionConfig } from '@/types'
+import type { CompositeTerritories } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { boundsFromArray, calculateClipExtentFromBounds } from '@atlas-composer/projection-core'
 import { describe, expect, it } from 'vitest'
@@ -12,7 +12,7 @@ const BOUNDS: [[number, number], [number, number]] = [[-5, 42], [8, 51]]
 const WIDTH = 800
 const HEIGHT = 600
 
-const config: CompositeProjectionConfig = {
+const config: CompositeTerritories = {
   territories: [{ code: TERRITORY, name: 'France', center: [2, 46], bounds: BOUNDS }],
 }
 
@@ -98,7 +98,7 @@ describe('clipping of a territory without pixelClipExtent', () => {
   it('leaves it without clipExtent when it has no bounds', () => {
     const noBounds = {
       territories: [{ code: TERRITORY, name: 'France', center: [2, 46] }],
-    } as unknown as CompositeProjectionConfig
+    } as unknown as CompositeTerritories
     expect(setup(withoutClip, noBounds).build().clipExtent()).toBeNull()
   })
 })

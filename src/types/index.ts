@@ -8,7 +8,7 @@ export type {
 } from '@/types/branded'
 
 export type {
-  CompositeProjectionConfig,
+  CompositeTerritories,
   ViewMode,
 } from '@/types/composite'
 

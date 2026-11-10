@@ -11,7 +11,7 @@
 import type { PresetType } from '#types'
 import type { TerritoryConfig } from '@/types/territory'
 
-export interface CompositeProjectionConfig {
+export interface CompositeTerritories {
   territories: TerritoryConfig[]
 }
 

@@ -47,7 +47,7 @@ export function filterAtlasConfigByPreset(
   atlasConfig: AtlasConfig,
   activeTerritories: TerritoryCode[],
 ): AtlasConfig {
-  const compositeConfig = atlasConfig.compositeProjectionConfig
+  const compositeConfig = atlasConfig.compositeTerritories
 
   if (!compositeConfig) {
     return atlasConfig
@@ -63,7 +63,7 @@ export function filterAtlasConfigByPreset(
 
   return {
     ...atlasConfig,
-    compositeProjectionConfig: {
+    compositeTerritories: {
       territories: filteredTerritories,
     },
   }

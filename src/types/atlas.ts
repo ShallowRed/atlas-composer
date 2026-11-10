@@ -1,6 +1,6 @@
 import type { I18nValue } from '#types'
 import type { ProjectionId } from '@/types/branded'
-import type { CompositeProjectionConfig } from '@/types/composite'
+import type { CompositeTerritories } from '@/types/composite'
 import type { GeoDataConfig } from '@/types/geo-data'
 
 interface SplitModeConfig {
@@ -28,7 +28,7 @@ export interface AtlasConfig {
   splitModeConfig?: SplitModeConfig
   territoryModeOptions?: TerritoryModeOption[]
   defaultPreset?: string
-  compositeProjectionConfig?: CompositeProjectionConfig
+  compositeTerritories?: CompositeTerritories
   hasTerritorySelector?: boolean
   isWildcard?: boolean
 }

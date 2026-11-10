@@ -61,7 +61,7 @@ async function initializeInView(viewMode: ViewMode) {
 
 function reinitializedTerritories() {
   const [atlasConfig] = vi.mocked(useGeoDataStore().reinitialize).mock.calls.at(-1) as [AtlasConfig]
-  return atlasConfig.compositeProjectionConfig?.territories.map(({ code }) => code)
+  return atlasConfig.compositeTerritories?.territories.map(({ code }) => code)
 }
 
 function stubFetchFailingOn(path: string) {

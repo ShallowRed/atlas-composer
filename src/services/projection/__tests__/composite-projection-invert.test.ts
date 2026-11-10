@@ -1,4 +1,4 @@
-import type { CompositeProjectionConfig } from '@/types'
+import type { CompositeTerritories } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
@@ -11,7 +11,7 @@ describe('compositeProjection - invert/forward chain', () => {
 
   beforeEach(() => {
     franceOffset = [0, 0]
-    const config: CompositeProjectionConfig = {
+    const config: CompositeTerritories = {
       territories: [
         {
           code: createTerritoryCode('FR'),

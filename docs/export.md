@@ -4,7 +4,7 @@ The application writes a custom composite to a JSON file and reads this file bac
 
 ## Export
 
-`ImportControls`, in the controls of the `composite-custom` view, opens `CompositeExportDialog`. The dialog calls `exportConfiguration` of `src/stores/geoData.ts`, which returns a `Result`. Its error is an `ExportError` with the code `EXPORT_NOT_AVAILABLE` when the cartographer has no custom composite or the current atlas has no `compositeProjectionConfig`. The dialog shows the message that `useErrorMessage` gives for this code.
+`ImportControls`, in the controls of the `composite-custom` view, opens `CompositeExportDialog`. The dialog calls `exportConfiguration` of `src/stores/geoData.ts`, which returns a `Result`. Its error is an `ExportError` with the code `EXPORT_NOT_AVAILABLE` when the cartographer has no custom composite or the current atlas has no `compositeTerritories`. The dialog shows the message that `useErrorMessage` gives for this code.
 
 `exportToJSON`, in `src/services/export/composite-export-service.ts`, receives the `CompositeProjection`, the parameter provider of the parameters store, the atlas and the canvas, and builds the file. For each territory:
 

@@ -44,7 +44,7 @@ describe('import of a territory without positioning', () => {
 
     await importIntoApplication(JSON.stringify(config))
 
-    const [longitude, latitude] = getAtlasConfig('france').compositeProjectionConfig!.territories.find(t => t.code === code)!.center!
+    const [longitude, latitude] = getAtlasConfig('france').compositeTerritories!.territories.find(t => t.code === code)!.center!
     const expected = parameter === 'center' ? [longitude, latitude] : [-longitude, -latitude, 0]
     const effective = useParameterStore().getEffectiveParameters(code)
     expect(effective[other]).toBeUndefined()

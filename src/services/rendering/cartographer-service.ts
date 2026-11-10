@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { CompositeProjectionConfig, GeoDataConfig } from '@/types'
+import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
@@ -51,7 +51,7 @@ export class Cartographer {
 
   constructor(
     geoDataConfig: GeoDataConfig,
-    compositeConfig?: CompositeProjectionConfig,
+    compositeConfig?: CompositeTerritories,
     projectionParams?: ProjectionParameters,
     parameterProvider?: ProjectionParameterProvider,
     referenceScale?: number,
@@ -95,7 +95,7 @@ export class Cartographer {
   }
 
   rebuildCompositeProjection(
-    compositeConfig: CompositeProjectionConfig,
+    compositeConfig: CompositeTerritories,
     parameterProvider: ProjectionParameterProvider,
     referenceScale?: number,
   ): void {

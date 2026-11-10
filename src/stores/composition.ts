@@ -265,14 +265,14 @@ export const useCompositionStore = defineStore('composition', () => {
       return
     }
 
-    const compositeProjectionConfig = atlasStore.currentAtlasConfig?.compositeProjectionConfig
-    if (!compositeProjectionConfig) {
+    const compositeTerritories = atlasStore.currentAtlasConfig?.compositeTerritories
+    if (!compositeTerritories) {
       geoDataStore.triggerRender()
       return
     }
 
     cartographer.rebuildCompositeProjection(
-      compositeProjectionConfig,
+      compositeTerritories,
       parameterStore.parameterProvider,
       referenceScale,
     )

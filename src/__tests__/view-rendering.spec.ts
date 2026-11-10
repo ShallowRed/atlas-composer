@@ -97,7 +97,7 @@ function renderView(atlasId: AtlasId, view: View): Rendering {
   }
 
   const composite = buildApplicationComposite(atlasId)
-  return Object.fromEntries(atlasConfig.compositeProjectionConfig!.territories.map(t => [
+  return Object.fromEntries(atlasConfig.compositeTerritories!.territories.map(t => [
     t.code,
     pointsInBounds(t.bounds).map(point => composite.project(t.code, point)),
   ]))

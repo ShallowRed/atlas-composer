@@ -59,7 +59,7 @@ function readTerritory(territory: RawObject, { atlasConfig }: CompositeConfigCon
     return territory
   }
 
-  const atlasCenter = atlasConfig.compositeProjectionConfig?.territories.find(t => t.code === territory.code)?.center
+  const atlasCenter = atlasConfig.compositeTerritories?.territories.find(t => t.code === territory.code)?.center
   return {
     ...territory,
     projection: {

@@ -100,14 +100,14 @@ export const useGeoDataStore = defineStore('geoData', () => {
       }
 
       if (atlasConfigOverride) {
-        debug('Using filtered atlas config from the initializeAtlas action of the composition store (territories: %d)', Object.keys(atlasConfigOverride.compositeProjectionConfig || {}).length)
+        debug('Using filtered atlas config from the initializeAtlas action of the composition store (territories: %d)', Object.keys(atlasConfigOverride.compositeTerritories || {}).length)
       }
       else {
-        debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeProjectionConfig || {}).length)
+        debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeTerritories || {}).length)
       }
 
       const geoDataConfig = atlasConfig.geoDataConfig
-      const compositeConfig = atlasConfig.compositeProjectionConfig
+      const compositeConfig = atlasConfig.compositeTerritories
 
       const parameterStore = useParameterStore()
       const projectionParams = parameterStore.globalEffectiveParameters
@@ -322,7 +322,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
   function exportConfiguration(): Result<CompositeProjectionConfig, ExportError> {
     const customComposite = cartographer.value?.customComposite
     const atlasConfig = useAtlasStore().currentAtlasConfig
-    if (!customComposite || !atlasConfig?.compositeProjectionConfig) {
+    if (!customComposite || !atlasConfig?.compositeTerritories) {
       return err({ code: 'EXPORT_NOT_AVAILABLE' })
     }
 
