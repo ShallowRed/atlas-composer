@@ -40,7 +40,7 @@ The two grouping controls offer every `mutually-exclusive` set of the atlas when
 
 ## Territories of a custom composite
 
-`activeTerritoryCodes` of `src/stores/view.ts` holds the territories that the custom composite draws. `applyStateToStores` in `src/stores/composition.ts` fills it with the territories of the preset each time an atlas or a composite preset loads, and `filterAtlasConfigByPreset` reduces the composite configuration to the same territories when the atlas is initialized.
+`activeTerritoryCodes` of `src/stores/view.ts` holds the territories that the custom composite draws. `applyCompositionState` in `src/stores/composition.ts` fills it with the territories of the preset each time an atlas or a composite preset loads, and `filterAtlasConfigByPreset` reduces the composite configuration to the same territories when the atlas is initialized.
 
 `TerritorySetManager` lists the territories of the geographic data and adds or removes one with `addTerritoryToComposite` and `removeTerritoryFromComposite`. `filteredTerritories` of `src/stores/geoData.ts` keeps the active codes in this view. `resetTransforms` of the composition store restores the territories of the preset.
 

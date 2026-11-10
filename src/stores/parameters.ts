@@ -188,19 +188,6 @@ export const useParameterStore = defineStore('parameters', () => {
     return parameterManager.getEffectiveParameters()
   })
 
-  function initializeFromPreset(
-    atlasParams: ProjectionParameters,
-    territoryParams: Record<string, ProjectionParameters>,
-  ): void {
-    if (atlasParams) {
-      parameterManager.setAtlasParameters(atlasParams)
-    }
-
-    for (const [code, params] of Object.entries(territoryParams)) {
-      setTerritoryParameters(code as TerritoryCode, params)
-    }
-  }
-
   function getExportableParameters(territoryCode: string): ProjectionParameters {
     const params = getEffectiveParameters(territoryCode as TerritoryCode)
     const exportable = parameterRegistry.getExportable()
@@ -254,7 +241,6 @@ export const useParameterStore = defineStore('parameters', () => {
     getTupleRanges,
     getNumberRange,
 
-    initializeFromPreset,
     getExportableParameters,
     parameterProvider,
   }

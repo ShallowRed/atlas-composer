@@ -1,26 +1,21 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { Preset, UnifiedViewConfig } from '@/core/presets'
+import type { CompositionState } from '@/core/presets'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { SharedLink } from '@/core/view'
-import type { AtlasId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
+import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
-import type {
-  ApplicationState,
-  AtlasInitializationOptions,
-  PresetLoadOptions,
-} from '@/types/initialization'
+import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
 
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
-import { checkAtlasCompatibility, convertToDefaults, extractTerritoryParameters } from '@/core/presets'
-import { DEFAULT_CANVAS_DIMENSIONS, FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
+import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
+import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
-import { TerritoryDefaultsService } from '@/core/territories/territory-defaults-service'
 import { TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
@@ -121,104 +116,37 @@ export const useCompositionStore = defineStore('composition', () => {
       geoDataStore.setReinitializing(true)
       clearAllApplicationData()
 
-      let preset: Preset | null = null
-      let territoryDefaults = TerritoryDefaultsService.initializeAll(
-        atlasService.getAllTerritories(),
-        FALLBACK_PROJECTION_ID,
-      )
-      let territoryParameters: Record<string, Record<string, unknown>> = {}
-      let referenceScale: number | undefined
-      let canvasDimensions: { width: number, height: number } | undefined
-
-      const defaultPresetDef = getDefaultPresetForViewMode(atlasId, viewMode)
-      const defaultPresetId = defaultPresetDef?.id as PresetId | undefined
-
-      if (viewMode === 'composite-custom') {
-        if (!defaultPresetId) {
-          return fail({ code: 'ATLAS_NO_DEFAULT_PRESET', atlasId, viewMode })
-        }
-
-        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
-        if (isSuperseded()) {
-          return ok(undefined)
-        }
-
-        if (!presetResult.ok) {
-          return fail(presetResult.error)
-        }
-
-        preset = presetResult.value
-
-        if (preset.type === 'composite-custom') {
-          territoryDefaults = convertToDefaults(preset.config)
-          territoryParameters = extractTerritoryParameters(preset.config)
-          referenceScale = preset.config.referenceScale
-          canvasDimensions = preset.config.canvasDimensions
-        }
-      }
-      else if (['unified', 'split', 'built-in-composite'].includes(viewMode)) {
-        if (!defaultPresetId) {
-          return fail({ code: 'ATLAS_NO_DEFAULT_PRESET', atlasId, viewMode })
-        }
-
-        const presetResult = await PresetLoader.loadPreset(defaultPresetId)
-        if (isSuperseded()) {
-          return ok(undefined)
-        }
-
-        if (!presetResult.ok) {
-          return fail(presetResult.error)
-        }
-
-        preset = presetResult.value
-
-        const validation = PresetValidationService.validatePreset(preset, atlasConfig)
-        if (!validation.ok) {
-          return fail(validation.error)
-        }
+      const defaultPresetId = getDefaultPresetForViewMode(atlasId, viewMode)?.id as PresetId | undefined
+      if (!defaultPresetId) {
+        return fail({ code: 'ATLAS_NO_DEFAULT_PRESET', atlasId, viewMode })
       }
 
-      let atlasParameters: Record<string, unknown> = {}
-      if (viewMode === 'unified' && preset?.type === 'unified') {
-        const unifiedConfig = preset.config as UnifiedViewConfig
-        if (unifiedConfig.projection?.parameters) {
-          atlasParameters = { ...unifiedConfig.projection.parameters }
-        }
+      const presetResult = await PresetLoader.loadPreset(defaultPresetId)
+      if (isSuperseded()) {
+        return ok(undefined)
+      }
+      if (!presetResult.ok) {
+        return fail(presetResult.error)
       }
 
-      const state: ApplicationState = {
-        viewMode,
-        territoryMode,
-        preset: preset
-          ? {
-              id: defaultPresetId as PresetId,
-              type: preset.type,
-              data: preset,
-            }
-          : null,
-        projections: {
-          selected: DEFAULT_SELECTED_PROJECTION[viewMode],
-          composite: atlasConfig.projectionPreferences?.defaultCompositeProjection,
-        },
-        parameters: {
-          global: atlasParameters,
-          territories: territoryParameters as any,
-        },
-        territories: {
-          projections: territoryDefaults.projections,
-          translations: territoryDefaults.translations,
-          scales: territoryDefaults.scales,
-        },
-        canvas: {
-          referenceScale,
-          dimensions: canvasDimensions,
-        },
+      const preset = presetResult.value
+      const validation = PresetValidationService.validatePreset(preset, atlasConfig)
+      if (!validation.ok) {
+        return fail(validation.error)
       }
 
-      const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.parameters.territories)
-      debug('Filtered atlas config for %s: %d preset territories', atlasId, Object.keys(state.parameters.territories).length)
+      const state = preset.type === 'composite-custom'
+        ? compositionStateFromConfig(preset.config)
+        : compositionStateWithoutConfig(atlasService.getAllTerritories().map(territory => territory.code))
 
-      applyStateToStores(state)
+      const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.activeTerritories)
+      debug('Filtered atlas config for %s: %d preset territories', atlasId, state.activeTerritories.length)
+
+      viewStore.viewMode = viewMode
+      viewStore.territoryMode = territoryMode
+      projectionStore.selectedProjection = DEFAULT_SELECTED_PROJECTION[viewMode]
+      projectionStore.compositeProjection = atlasConfig.projectionPreferences?.defaultCompositeProjection ?? null
+      applyCompositionState(state)
 
       viewStore.clearViewPreset()
       await viewStore.loadAvailableViewPresets()
@@ -299,38 +227,8 @@ export const useCompositionStore = defineStore('composition', () => {
         return ok(undefined)
       }
 
-      const territoryDefaults = convertToDefaults(preset.config)
-      const territoryParameters = extractTerritoryParameters(preset.config)
-
-      const state: ApplicationState = {
-        viewMode: 'composite-custom',
-        territoryMode: viewStore.territoryMode,
-        preset: {
-          id: presetId,
-          type: preset.type,
-          data: preset,
-        },
-        projections: {
-          selected: projectionStore.selectedProjection,
-          composite: projectionStore.compositeProjection,
-        },
-        parameters: {
-          global: {},
-          territories: territoryParameters as any,
-        },
-        territories: {
-          projections: territoryDefaults.projections,
-          translations: territoryDefaults.translations,
-          scales: territoryDefaults.scales,
-        },
-        canvas: {
-          referenceScale: preset.config.referenceScale,
-          dimensions: preset.config.canvasDimensions,
-        },
-      }
-
       parameterStore.clearAll()
-      applyStateToStores(state)
+      applyCompositionState(compositionStateFromConfig(preset.config))
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
       if (isAtlasChanged()) {
         return ok(undefined)
@@ -344,7 +242,7 @@ export const useCompositionStore = defineStore('composition', () => {
 
       // The stores hold the preset: a rendering failure leaves the application ready
       try {
-        updateCartographer(state)
+        updateCartographer(preset.config.referenceScale)
       }
       catch (error) {
         return err({ code: 'PRESET_APPLICATION_FAILED', presetId, reason: failureReason(error) })
@@ -361,7 +259,7 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
-  function updateCartographer(state: ApplicationState): void {
+  function updateCartographer(referenceScale: number): void {
     const cartographer = geoDataStore.cartographer
     if (!cartographer) {
       return
@@ -376,7 +274,7 @@ export const useCompositionStore = defineStore('composition', () => {
     cartographer.rebuildCompositeProjection(
       compositeProjectionConfig,
       parameterStore.parameterProvider,
-      state.canvas.referenceScale,
+      referenceScale,
     )
     debug('Rebuilt composite projection')
     geoDataStore.triggerRender()
@@ -405,27 +303,9 @@ export const useCompositionStore = defineStore('composition', () => {
     const isAtlasChanged = () => atlasStore.selectedAtlasId !== currentAtlasId
 
     try {
-      const state: ApplicationState = {
-        viewMode: 'composite-custom',
-        territoryMode: viewStore.territoryMode,
-        preset: null, // Imported config is not a saved preset
-        projections: {
-          selected: projectionStore.selectedProjection,
-          composite: projectionStore.compositeProjection,
-        },
-        parameters: {
-          global: {},
-          territories: extractTerritoryParameters(config),
-        },
-        territories: convertToDefaults(config),
-        canvas: {
-          referenceScale: config.referenceScale,
-          dimensions: config.canvasDimensions,
-        },
-      }
-
       parameterStore.clearAll()
-      applyStateToStores(state)
+      viewStore.viewMode = 'composite-custom'
+      applyCompositionState(compositionStateFromConfig(config))
 
       const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
       if (isAtlasChanged()) {
@@ -436,7 +316,7 @@ export const useCompositionStore = defineStore('composition', () => {
         return geoDataResult
       }
 
-      updateCartographer(state)
+      updateCartographer(config.referenceScale)
       return ok(undefined)
     }
     catch (error) {
@@ -477,47 +357,20 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.setTerritoryParameters(operation.territoryCode, operation.parameters)
   }
 
-  function applyStateToStores(state: ApplicationState): void {
-    viewStore.viewMode = state.viewMode as ViewMode
-    viewStore.territoryMode = state.territoryMode
-
-    projectionStore.selectedProjection = state.projections.selected
-    projectionStore.compositeProjection = state.projections.composite ?? null
-    if (state.canvas.referenceScale !== undefined) {
+  function applyCompositionState(state: CompositionState): void {
+    if (state.canvas) {
       projectionStore.referenceScale = state.canvas.referenceScale
-    }
-    if (state.canvas.dimensions !== undefined) {
       projectionStore.canvasDimensions = state.canvas.dimensions
     }
 
-    const territoryCodes = Object.keys(state.parameters.territories) as TerritoryCode[]
-    viewStore.setActiveTerritories(territoryCodes)
+    viewStore.setActiveTerritories(state.activeTerritories)
 
-    if (state.parameters.global && Object.keys(state.parameters.global).length > 0) {
-      parameterStore.setAtlasParameters(state.parameters.global as any)
-      presetDefaults.storeGlobalParameters(state.parameters.global as any)
+    for (const [code, parameters] of Object.entries(state.territoryParameters)) {
+      parameterStore.setTerritoryParameters(code as TerritoryCode, parameters)
     }
 
-    if (state.parameters.territories && Object.keys(state.parameters.territories).length > 0) {
-      parameterStore.initializeFromPreset(
-        {} as any, // Atlas params already set above
-        state.parameters.territories as any,
-      )
-    }
-
-    for (const [code, projection] of Object.entries(state.territories.projections)) {
-      parameterStore.setTerritoryProjection(code as TerritoryCode, projection as ProjectionId)
-    }
-    for (const [code, translation] of Object.entries(state.territories.translations)) {
-      parameterStore.setTerritoryTranslation(code as TerritoryCode, 'x', translation.x)
-      parameterStore.setTerritoryTranslation(code as TerritoryCode, 'y', translation.y)
-    }
-    for (const [code, scale] of Object.entries(state.territories.scales)) {
-      parameterStore.setTerritoryParameter(code as TerritoryCode, 'scaleMultiplier', scale)
-    }
-
-    if (state.viewMode === 'composite-custom') {
-      presetDefaults.storePresetDefaults(state.parameters.territories)
+    if (viewStore.viewMode === 'composite-custom') {
+      presetDefaults.storePresetDefaults(state.territoryParameters)
     }
   }
 

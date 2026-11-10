@@ -1,14 +1,7 @@
 import type { PresetType } from '#types'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { Translation } from '@/types'
-import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
+import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-
-export interface TerritoryDefaults {
-  projections: Record<TerritoryCode, ProjectionId>
-  translations: Record<TerritoryCode, Translation>
-  scales: Record<TerritoryCode, number>
-}
 
 interface BasePresetMetadata {
   id: string

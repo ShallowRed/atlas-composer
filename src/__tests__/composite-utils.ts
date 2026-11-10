@@ -51,8 +51,7 @@ export async function startApplication(atlasId: AtlasId) {
 export async function openAtlasWithCartographer(atlasId: AtlasId) {
   await startApplication(atlasId)
   await useCompositionStore().initializeAtlas()
-  const presetTerritories = Object.fromEntries([...useViewStore().activeTerritoryCodes].map(code => [code, {}]))
-  const atlasConfig = filterAtlasConfigByPreset(useAtlasStore().currentAtlasConfig!, presetTerritories)
+  const atlasConfig = filterAtlasConfigByPreset(useAtlasStore().currentAtlasConfig!, [...useViewStore().activeTerritoryCodes])
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(
     atlasConfig.geoDataConfig,

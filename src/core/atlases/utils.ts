@@ -1,4 +1,4 @@
-import type { AtlasConfig, TerritoryConfig } from '@/types'
+import type { AtlasConfig, TerritoryCode, TerritoryConfig } from '@/types'
 import { logger } from '@/utils/logger'
 
 const debug = logger.atlas.loader
@@ -45,7 +45,7 @@ export function getInitialTerritoryMode(atlasConfig: Pick<AtlasConfig, 'hasTerri
 
 export function filterAtlasConfigByPreset(
   atlasConfig: AtlasConfig,
-  territoryParameters: Record<string, Record<string, unknown>>,
+  activeTerritories: TerritoryCode[],
 ): AtlasConfig {
   const compositeConfig = atlasConfig.compositeProjectionConfig
 
@@ -53,7 +53,7 @@ export function filterAtlasConfigByPreset(
     return atlasConfig
   }
 
-  const territoriesInPreset = new Set(Object.keys(territoryParameters))
+  const territoriesInPreset = new Set<string>(activeTerritories)
 
   const filteredTerritories = compositeConfig.territories.filter(t =>
     territoriesInPreset.has(t.code),

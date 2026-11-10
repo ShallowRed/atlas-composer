@@ -23,7 +23,7 @@ An entry of the registry gives the `id`, the `name`, the `type` and the `configP
 
 `validateCompositePreset`, in `src/core/presets/validator.ts`, calls `validateConfig`, then checks each territory. The projection is known to `projectionRegistry`, each required parameter that is relevant for the family is present, and `rotate` or `center` is present. A value outside the bounds of the [parameter registry](projections.md#parameter-registry) produces a warning in the `ac:presets:validator` log, and the preset loads. `validateViewPreset` checks the other types.
 
-The stores apply a loaded preset. `initializeAtlas` of `src/stores/composition.ts` loads the default preset of the view mode, and `loadPreset` of the same store loads a composite preset that the user selects. Both pass a `composite-custom` file through `convertToDefaults` and `extractTerritoryParameters`, in `src/core/presets/converter.ts`. `loadViewPreset` of `src/stores/view.ts` applies a preset of the three other types.
+The stores apply a loaded preset. `initializeAtlas` of `src/stores/composition.ts` loads the default preset of the view mode, and `loadPreset` of the same store loads a composite preset that the user selects. Both pass a `composite-custom` file through `compositionStateFromConfig`, in `src/core/presets/composition-state.ts`, which gives the territory parameters that `extractTerritoryParameters` reads, the territories of the file and its canvas. `loadViewPreset` of `src/stores/view.ts` applies a preset of the three other types.
 
 ## Reference scale
 
