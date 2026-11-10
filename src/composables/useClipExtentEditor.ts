@@ -1,6 +1,7 @@
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
 import { computed, ref } from 'vue'
+import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { parameterRegistry } from '@/core/parameters'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -14,7 +15,7 @@ export function useClipExtentEditor() {
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
 
-  const selectedTerritoryCode = ref<string | null>(null)
+  const { selectedTerritory } = useSelectedTerritory()
 
   const isDraggingCorner = ref(false)
   const dragCornerTerritoryCode = ref<string | null>(null)
@@ -39,7 +40,7 @@ export function useClipExtentEditor() {
   }
 
   function renderClipExtentHandles(svg: SVGSVGElement) {
-    if (!isEditingEnabled.value || !selectedTerritoryCode.value) {
+    if (!isEditingEnabled.value || !selectedTerritory.value) {
       select(svg).selectAll('.clip-extent-handles').remove()
       return
     }
@@ -51,8 +52,8 @@ export function useClipExtentEditor() {
       handlesGroup = svgSelection.append('g').attr('class', 'clip-extent-handles')
     }
 
-    const selectedTerritory = geoDataStore.allActiveTerritories.find(
-      t => t.code === selectedTerritoryCode.value,
+    const activeTerritory = geoDataStore.allActiveTerritories.find(
+      t => t.code === selectedTerritory.value?.code,
     )
 
     const handleData: Array<{
@@ -62,8 +63,8 @@ export function useClipExtentEditor() {
       cy: number
     }> = []
 
-    const territoryCode = selectedTerritoryCode.value
-    if (territoryCode && selectedTerritory) {
+    const territoryCode = selectedTerritory.value?.code
+    if (territoryCode && activeTerritory) {
       const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
       const translateOffset = params.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
       const pixelClipExtent = params.pixelClipExtent
@@ -205,23 +206,6 @@ export function useClipExtentEditor() {
     window.removeEventListener('mouseup', stopCornerDrag)
   }
 
-  function selectTerritory(territoryCode: string | null) {
-    selectedTerritoryCode.value = territoryCode
-  }
-
-  function deselectTerritory() {
-    selectedTerritoryCode.value = null
-  }
-
-  function toggleTerritorySelection(territoryCode: string) {
-    if (selectedTerritoryCode.value === territoryCode) {
-      deselectTerritory()
-    }
-    else {
-      selectTerritory(territoryCode)
-    }
-  }
-
   function cleanup() {
     if (isDraggingCorner.value) {
       stopCornerDrag()
@@ -232,7 +216,6 @@ export function useClipExtentEditor() {
     isDraggingCorner,
 
     renderClipExtentHandles,
-    toggleTerritorySelection,
     cleanup,
   }
 }

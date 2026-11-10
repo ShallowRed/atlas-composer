@@ -272,7 +272,6 @@ export function useTerritoryCursor() {
     customComposite: any,
     width: number,
     height: number,
-    onTerritoryClick?: (territoryCode: string) => void,
   ) {
     if (!isDragEnabled.value || !customComposite)
       return
@@ -311,11 +310,6 @@ export function useTerritoryCursor() {
       .style('stroke', 'none')
       .style('pointer-events', 'auto')
       .style('cursor', (d: any) => getCursorStyle(d.territoryCode))
-      .on('click', (_event, d: any) => {
-        if (onTerritoryClick) {
-          onTerritoryClick(d.territoryCode)
-        }
-      })
       .on('mousedown', (event) => {
         handleTerritoryMouseDown(event as MouseEvent)
       })

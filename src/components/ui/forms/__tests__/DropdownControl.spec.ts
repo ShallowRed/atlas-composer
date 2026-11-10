@@ -705,6 +705,24 @@ describe('dropdownControl', () => {
   })
 
   describe('accessibility', () => {
+    it('keeps a hidden label for screen readers', () => {
+      wrapper = mount(DropdownControl, {
+        props: {
+          label: 'test.label',
+          options: defaultOptions,
+          modelValue: 'option1',
+          hideLabel: true,
+        },
+        global: {
+          plugins: [i18n],
+        },
+      })
+
+      const label = wrapper.find('#dropdown-label')
+      expect(label.classes()).toContain('sr-only')
+      expect(label.text()).toContain('test.label')
+    })
+
     it('should have proper ARIA attributes on button', () => {
       wrapper = mount(DropdownControl, {
         props: {

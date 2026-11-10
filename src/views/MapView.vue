@@ -6,6 +6,7 @@ import BuiltInCompositeControls from '@/components/configuration/BuiltInComposit
 import CompositeCustomControls from '@/components/configuration/CompositeCustomControls.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
 import SplitControls from '@/components/configuration/SplitControls.vue'
+import TerritorySelectionSection from '@/components/configuration/TerritorySelectionSection.vue'
 import UnifiedControls from '@/components/configuration/UnifiedControls.vue'
 import MapRenderer from '@/components/MapRenderer.vue'
 import MainLayout from '@/components/ui/layout/MainLayout.vue'
@@ -13,6 +14,7 @@ import CardContainer from '@/components/ui/primitives/CardContainer.vue'
 import ShareButton from '@/components/ui/settings/ShareButton.vue'
 import SplitView from '@/components/views/SplitView.vue'
 import UnifiedView from '@/components/views/UnifiedView.vue'
+import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
 import { useAppStore } from '@/stores/app'
@@ -33,36 +35,29 @@ const {
   isCompositeExistingMode,
   isSplitMode,
   isUnifiedMode,
-  cardTitle,
-  cardIcon,
   viewOrchestration,
 } = useViewState()
 
 const controlPanelTransition = { name: 'fade', mode: 'out-in' } as const
 const contentKey = computed(() => `${atlasStore.selectedAtlasId}-${viewStore.viewMode}`)
 
+const { hasSelectedTerritory } = useSelectedTerritory()
+
 onMounted(() => compositionStore.startMapView(readSharedLink()))
 </script>
 
 <template>
   <MainLayout>
-    <template #left-sidebar>
-      <CardContainer
-        :title="t('settings.atlasConfigTitle')"
-        icon="ri-settings-4-line"
-        class="flex-1"
-      >
-        <AtlasConfigSection />
-      </CardContainer>
-    </template>
     <template #main-content>
-      <CardContainer
-        class="flex-1"
-        :title="cardTitle"
-        :icon="cardIcon"
-      >
-        <template #actions>
-          <ShareButton />
+      <CardContainer class="flex-1 min-w-0">
+        <template #header>
+          <div class="flex items-start gap-3">
+            <AtlasConfigSection class="flex-1 min-w-0" />
+            <ShareButton />
+          </div>
+        </template>
+        <template #footer>
+          <DisplayOptionsSection />
         </template>
         <div class="main-content-wrapper relative h-full w-full">
           <Transition
@@ -95,22 +90,18 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
         </div>
       </CardContainer>
     </template>
-    <template #bottom-bar>
-      <CardContainer
-        :title="t('settings.displayOptionsTitle')"
-        icon="ri-eye-line"
-        class="flex-1"
-      >
-        <DisplayOptionsSection />
-      </CardContainer>
-    </template>
     <template #right-sidebar>
       <CardContainer
         v-show="viewOrchestration.shouldShowRightSidebar.value"
-        class="flex-1"
+        class="flex-1 min-w-0"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
+        <TerritorySelectionSection
+          v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
+          v-show="!hasSelectedTerritory"
+          class="mb-6"
+        />
         <div class="control-panel-container">
           <Transition v-bind="controlPanelTransition">
             <div :key="contentKey">

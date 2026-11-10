@@ -87,6 +87,9 @@ const hasOverflowTop = computed(() => {
 .scrollable-content__container {
   overflow-y: auto;
   flex: 1;
+  /* Room for the focus outline of a control at the edge */
+  margin: -0.25rem;
+  padding: 0.25rem;
 }
 
 /* Gradient pseudo-elements - always present but opacity controlled */

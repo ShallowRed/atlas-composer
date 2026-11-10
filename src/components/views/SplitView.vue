@@ -190,6 +190,7 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
             :preserve-scale="projectionStore.scalePreservation"
             :projection="getTerritoryProjection(territory.code)"
             :territory-code="createTerritoryCode(territory.code)"
+            :full-height="false"
             :width="200"
             :height="160"
           />

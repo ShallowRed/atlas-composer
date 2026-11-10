@@ -75,11 +75,9 @@
     "controls": "Territory controls",
     "byTerritory": "By territory",
     "groupBy": "Group by",
-    "territorySettings": "Territory settings",
     "position": "Position",
     "scale": "Scale factor",
     "reset": "Reset all",
-    "resetButton": "Reset",
     "mainland": "Mainland",
     "overseas": "Overseas territories",
     "territories": "Territories",
@@ -96,11 +94,10 @@
       "projectionSpecific": "Projection parameters",
       "layout": "Layout",
       "view": "View & scale",
-      "advanced": "Advanced",
-      "reset": "Reset",
-      "resetOverrides": "Reset all parameter overrides for this territory",
       "noRelevantParameters": "No adjustable parameters",
-      "noRelevantParametersMessage": "This projection family ({family}) has no adjustable parameters for individual territories."
+      "noRelevantParametersMessage": "This projection family ({family}) has no adjustable parameters for individual territories.",
+      "projectionShort": "Projection",
+      "advancedShort": "Advanced"
     },
     "setManager": {
       "title": "Territory manager",
@@ -112,7 +109,8 @@
       "noCollections": "No territory collections available",
       "groupingLogic": "Grouping logic",
       "switchGrouping": "Switch grouping"
-    }
+    },
+    "resetOne": "Reset this territory"
   },
   "view": {
     "unified": "Unified view",
@@ -122,9 +120,7 @@
   },
   "settings": {
     "title": "Configuration",
-    "atlasConfigTitle": "Atlas configuration",
     "viewConfigTitle": "View configuration",
-    "displayOptionsTitle": "Display options",
     "projectionConfigTitle": "Projection configuration",
     "projectionParamsTitle": "Projection parameters",
     "territoryConfigTitle": "Projection configuration",

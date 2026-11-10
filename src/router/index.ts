@@ -11,6 +11,7 @@ const router = createRouter({
       component: MapView,
       meta: {
         title: 'Atlas composer',
+        fillViewport: true,
       },
     },
     {

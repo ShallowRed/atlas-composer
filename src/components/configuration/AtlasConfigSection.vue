@@ -5,9 +5,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import TerritorySetManager from '@/components/ui/parameters/TerritorySetManager.vue'
 import { useLocalizedName } from '@/composables/useLocalizedName'
-import { useTerritoryModeOptions } from '@/composables/useTerritoryModeOptions'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
 import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
@@ -25,8 +23,6 @@ const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
-
-const { options: territoryModeOptions } = useTerritoryModeOptions()
 
 const atlasGroupsWithIcons = computed(() => {
   return getAvailableAtlasesGrouped().map(group => ({
@@ -46,21 +42,22 @@ const viewModeOptionsWithIcons = computed(() => {
     icon: getViewModeIcon(mode.value as any),
   }))
 })
-const { isCompositeCustomMode } = useViewState()
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <!-- Region Selector -->
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     <DropdownControl
+      class="w-44 sm:w-56"
+      hide-label
       :model-value="atlasStore.selectedAtlasId"
       :label="t('settings.region')"
       icon="ri-map-2-line"
       :option-groups="atlasGroupsWithIcons"
       @update:model-value="compositionStore.selectAtlas($event as AtlasId)"
     />
-    <!-- Main View Mode Selector -->
     <DropdownControl
+      class="w-full sm:w-80"
+      hide-label
       :model-value="viewStore.viewMode"
       :label="t('mode.view')"
       icon="ri-layout-grid-line"
@@ -68,30 +65,5 @@ const { isCompositeCustomMode } = useViewState()
       :options="viewModeOptionsWithIcons"
       @update:model-value="compositionStore.selectViewMode($event as ViewMode)"
     />
-    <!-- Territory Selection (collapsible) -->
-    <div
-      v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
-      class="collapse collapse-arrow border-y rounded-none border-base-300"
-    >
-      <input
-        type="checkbox"
-      >
-      <div class="collapse-title text-sm font-medium flex items-center gap-2">
-        <i class="ri-map-pin-range-line" />
-        <span>{{ t('mode.select') }}</span>
-      </div>
-      <div class="collapse-content">
-        <!-- Territory Selection (for unified and split modes) -->
-        <DropdownControl
-          v-if="viewOrchestration.shouldShowTerritorySelector.value"
-          v-model="viewStore.territoryMode"
-          :label="t('mode.select')"
-          icon="ri-map-pin-range-line"
-          :options="territoryModeOptions"
-        />
-        <!-- Territory Set Manager (for composite-custom mode) -->
-        <TerritorySetManager v-if="isCompositeCustomMode" />
-      </div>
-    </div>
   </div>
 </template>
