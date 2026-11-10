@@ -5,10 +5,14 @@ import { useI18n } from 'vue-i18n'
 import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { useCompositionStore } from '@/stores/composition'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
 
 const { t } = useI18n()
 const projectionStore = useProjectionStore()
+const compositionStore = useCompositionStore()
+const presetDefaults = usePresetDefaultsStore()
 
 const CANVAS_WIDTH_RANGE = { min: 500, max: 2000, step: 10 }
 const CANVAS_HEIGHT_RANGE = { min: 300, max: 1200, step: 10 }
@@ -75,13 +79,8 @@ function applyReferenceScale() {
 }
 
 function resetToDefaults() {
-  canvasWidth.value = DEFAULT_CANVAS_DIMENSIONS.width
-  canvasHeight.value = DEFAULT_CANVAS_DIMENSIONS.height
-  referenceScale.value = DEFAULT_REFERENCE_SCALE
   aspectRatioLocked.value = true
-
-  applyCanvasDimensions()
-  applyReferenceScale()
+  compositionStore.resetCanvas()
 }
 
 const aspectRatio = computed(() => {
@@ -92,11 +91,10 @@ const aspectRatio = computed(() => {
   return `${ratioWidth}:${ratioHeight}`
 })
 
-const hasCustomValues = computed(() => {
-  return canvasWidth.value !== DEFAULT_CANVAS_DIMENSIONS.width
-    || canvasHeight.value !== DEFAULT_CANVAS_DIMENSIONS.height
-    || referenceScale.value !== DEFAULT_REFERENCE_SCALE
-})
+const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
+  referenceScale: referenceScale.value,
+  dimensions: { width: canvasWidth.value, height: canvasHeight.value },
+}))
 </script>
 
 <template>

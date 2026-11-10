@@ -357,11 +357,18 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.setTerritoryParameters(operation.territoryCode, operation.parameters)
   }
 
+  function resetCanvas(): void {
+    const canvas = presetDefaults.referenceCanvas()
+    projectionStore.referenceScale = canvas.referenceScale
+    projectionStore.canvasDimensions = { ...canvas.dimensions }
+  }
+
   function applyCompositionState(state: CompositionState): void {
     if (state.canvas) {
       projectionStore.referenceScale = state.canvas.referenceScale
       projectionStore.canvasDimensions = state.canvas.dimensions
     }
+    presetDefaults.storePresetCanvas(state.canvas)
 
     viewStore.setActiveTerritories(state.activeTerritories)
 
@@ -497,6 +504,7 @@ export const useCompositionStore = defineStore('composition', () => {
     importConfiguration,
     resetTransforms,
     resetTerritoryToDefaults,
+    resetCanvas,
     selectAtlas,
     selectViewMode,
   }
