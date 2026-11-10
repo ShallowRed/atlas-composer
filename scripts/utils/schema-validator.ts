@@ -78,7 +78,7 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
   }
 }
 
-// The view preset schemas refer to each other by relative path: ajv resolves
+// The view preset schemas refer to their definition files by relative path: ajv resolves
 // such a reference against the key of the schema, here the URL of its file.
 const VIEW_PRESET_SCHEMA_FILES = [
   'configs/schemas/preset-unified.schema.json',
