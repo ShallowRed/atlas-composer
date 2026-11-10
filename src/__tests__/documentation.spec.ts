@@ -36,7 +36,7 @@ function pathPattern(path: string): RegExp {
     .replace(/\/$/, '')
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/<atlas>/g, 'france')
-    .replace(/<id>|\*/g, '[^/]+')
+    .replace(/<id>|<type>|\*/g, '[^/]+')
   return new RegExp(`^${source}$`)
 }
 

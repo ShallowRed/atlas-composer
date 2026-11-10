@@ -46,7 +46,7 @@ For each atlas, the script checks the following points:
 - The configuration matches `configs/schemas/atlas.schema.json`.
 - The atlas has exactly one preset with `isDefault`.
 - Each preset has an id that starts with the atlas id, and is stored at `configs/presets/<atlas>/<id>.json`.
-- A preset of type `composite-custom` passes `validateConfig` of `@atlas-composer/specification`, and the `id` of any other preset equals its id in the registry.
+- A preset of type `composite-custom` passes `validateConfig` of `@atlas-composer/specification`. Any other preset matches `configs/schemas/preset-<type>.schema.json`, and its `id` equals its id in the registry.
 - At each resolution present in `src/public/data/`, each territory `code` has a feature in the generated data. A feature without a territory in the configuration produces a warning.
 
 An atlas without generated data produces a warning, so the check runs on a fresh clone. The `--all` option adds two checks of the whole repository: the registry matches `configs/schemas/atlas-registry.schema.json`, and the registry declares each JSON file of `configs/presets/` once.

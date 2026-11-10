@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://atlas-composer.com/schemas/preset-definitions.json",
   "title": "Atlas Composer Preset Definitions",
   "description": "Shared type definitions for all preset schemas",
   "definitions": {

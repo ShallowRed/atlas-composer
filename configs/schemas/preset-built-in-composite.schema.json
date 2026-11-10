@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://atlas-composer.com/schemas/preset-built-in-composite.json",
   "title": "Built-in Composite Preset",
   "description": "Schema for built-in composite view mode presets (d3-composite-projections)",
   "type": "object",

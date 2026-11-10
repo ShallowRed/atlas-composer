@@ -11,7 +11,7 @@ The application reads a file according to the `type` of its entry in the registr
 - `split` gives one projection and its parameters per territory.
 - `built-in-composite` names a definition with the `D3_COMPOSITE` strategy in `projectionId`. `applyViewPresetConfig` of `src/stores/view.ts` logs `globalScale` and leaves the scale of the map as it is.
 
-The last three types have a `config` field, whose form is in `configs/schemas/`.
+The last three types have a `config` field. `configs/schemas/preset-<type>.schema.json` gives the form of the file, and `pnpm geodata:validate --all` validates each file against it.
 
 ## Declaration
 

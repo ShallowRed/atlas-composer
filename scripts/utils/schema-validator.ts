@@ -1,13 +1,30 @@
+import type { PresetType } from '#types'
 import type { ValidateFunction } from 'ajv'
 
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
+import { pathToFileURL } from 'node:url'
 import { logger } from '#scripts/utils/logger'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
+type ViewPresetType = Exclude<PresetType, 'composite-custom'>
+
 const schemaValidators = new Map<string, ValidateFunction>()
+
+const AjvConstructor = Ajv.default
+type AjvInstance = InstanceType<typeof AjvConstructor>
+
+function createAjv(): AjvInstance {
+  const ajv = new AjvConstructor({
+    allErrors: true,
+    verbose: true,
+    strict: false, // Allow additional properties not in schema
+  })
+  addFormats.default(ajv)
+  return ajv
+}
 
 async function getSchemaValidator(schemaFile: string): Promise<ValidateFunction> {
   const cached = schemaValidators.get(schemaFile)
@@ -20,19 +37,7 @@ async function getSchemaValidator(schemaFile: string): Promise<ValidateFunction>
     const schemaContent = await readFile(schemaPath, 'utf-8')
     const schema = JSON.parse(schemaContent)
 
-    // Dynamic imports for ESM compatibility with CommonJS modules
-    // TypeScript has issues with the module types, so we need to cast
-
-    const AjvConstructor = Ajv.default
-    const ajv = new AjvConstructor({
-      allErrors: true,
-      verbose: true,
-      strict: false, // Allow additional properties not in schema
-    })
-
-    addFormats.default(ajv)
-
-    const validator = ajv.compile(schema) as ValidateFunction
+    const validator = createAjv().compile(schema) as ValidateFunction
     schemaValidators.set(schemaFile, validator)
     return validator
   }
@@ -73,9 +78,33 @@ export async function validateConfigSchema(config: unknown, atlasName: string): 
   }
 }
 
-export async function validateRegistrySchema(registry: unknown): Promise<string[]> {
-  const validate = await getSchemaValidator('atlas-registry.schema.json')
-  if (validate(registry)) {
+// The view preset schemas refer to each other by relative path: ajv resolves
+// such a reference against the key of the schema, here the URL of its file.
+const VIEW_PRESET_SCHEMA_FILES = [
+  'configs/schemas/preset-unified.schema.json',
+  'configs/schemas/preset-split.schema.json',
+  'configs/schemas/preset-built-in-composite.schema.json',
+  'configs/schemas/preset-definitions.schema.json',
+  'packages/specification/schemas/definitions.schema.json',
+]
+
+function schemaUrl(file: string): string {
+  return pathToFileURL(resolve(process.cwd(), file)).href
+}
+
+let viewPresetSchemas: Promise<AjvInstance> | undefined
+
+async function loadViewPresetSchemas(): Promise<AjvInstance> {
+  const ajv = createAjv()
+  for (const file of VIEW_PRESET_SCHEMA_FILES) {
+    const schema = JSON.parse(await readFile(resolve(process.cwd(), file), 'utf-8'))
+    ajv.addSchema(schema, schemaUrl(file))
+  }
+  return ajv
+}
+
+function listSchemaErrors(validate: ValidateFunction, value: unknown): string[] {
+  if (validate(value)) {
     return []
   }
   return (validate.errors ?? []).map((error) => {
@@ -83,4 +112,18 @@ export async function validateRegistrySchema(registry: unknown): Promise<string[
     const allowed = allowedValues ? ` (${allowedValues.join(', ')})` : ''
     return `${error.instancePath || '(root)'}: ${error.message ?? 'unknown error'}${allowed}`
   })
+}
+
+export async function validateRegistrySchema(registry: unknown): Promise<string[]> {
+  return listSchemaErrors(await getSchemaValidator('atlas-registry.schema.json'), registry)
+}
+
+export async function validateViewPresetSchema(preset: unknown, type: ViewPresetType): Promise<string[]> {
+  viewPresetSchemas ??= loadViewPresetSchemas()
+  const file = `configs/schemas/preset-${type}.schema.json`
+  const validate = (await viewPresetSchemas).getSchema(schemaUrl(file))
+  if (!validate) {
+    throw new Error(`Failed to load ${file}`)
+  }
+  return listSchemaErrors(validate, preset)
 }
