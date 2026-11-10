@@ -21,16 +21,11 @@ import { useViewStore } from '@/stores/view'
 
 interface Props {
   territoryCode: TerritoryCode
-  territoryName: string
   projectionFamily: ProjectionFamilyType
   view: PositioningView
-  showInheritanceIndicators?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  showInheritanceIndicators: true,
-  hideProjectionDropdown: false,
-})
+const props = defineProps<Props>()
 
 const { t } = useI18n()
 const viewStore = useViewStore()
@@ -129,20 +124,12 @@ const showCenter = computed(() => {
     && (positionParameter.value === 'center' || isNonNull(effectiveParameters.value.center))
 })
 
-const hasScaleParameter = computed(() => {
-  return true
-})
-
 const hasClipAngleParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'clipAngle')
 })
 
 const hasPrecisionParameter = computed(() => {
   return relevantParameters.value.some(p => String(p) === 'precision')
-})
-
-const hasTranslateParameter = computed(() => {
-  return true
 })
 </script>
 
@@ -276,144 +263,140 @@ const hasTranslateParameter = computed(() => {
         </details>
       </template>
 
-      <template v-if="hasScaleParameter || hasTranslateParameter">
-        <details class="collapse collapse-plus join-item">
-          <summary class="collapse-title text-sm font-medium">
-            <i class="ri-layout-line mr-1" />
-            {{ t('territory.parameters.layout') }}
-          </summary>
+      <details class="collapse collapse-plus join-item">
+        <summary class="collapse-title text-sm font-medium">
+          <i class="ri-layout-line mr-1" />
+          {{ t('territory.parameters.layout') }}
+        </summary>
 
-          <div class="collapse-content space-y-2">
-            <template v-if="hasScaleParameter && scaleMultiplierRange">
-              <RangeSlider
-                :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
-                :label="t('projectionParams.scaleMultiplier')"
-                icon="ri-zoom-in-line"
-                size="xs"
-                :min="scaleMultiplierRange.min"
-                :max="scaleMultiplierRange.max"
-                :step="scaleMultiplierRange.step"
-                unit="×"
-                @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
-              />
-            </template>
+        <div class="collapse-content space-y-2">
+          <template v-if="scaleMultiplierRange">
+            <RangeSlider
+              :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
+              :label="t('projectionParams.scaleMultiplier')"
+              icon="ri-zoom-in-line"
+              size="xs"
+              :min="scaleMultiplierRange.min"
+              :max="scaleMultiplierRange.max"
+              :step="scaleMultiplierRange.step"
+              unit="×"
+              @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
+            />
+          </template>
 
-            <template v-if="hasTranslateParameter && isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
-              <RangeSlider
-                :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
-                label="Translate X"
-                icon="ri-arrow-left-right-line"
-                size="xs"
-                :min="translateOffsetRanges[0].min"
-                :max="translateOffsetRanges[0].max"
-                :step="translateOffsetRanges[0].step"
-                unit="px"
-                @update:model-value="(value: number) => {
-                  const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
-                  handleParameterChange('translateOffset', [value, currentTranslateOffset[1]])
-                }"
-              />
+          <template v-if="isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
+            <RangeSlider
+              :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
+              label="Translate X"
+              icon="ri-arrow-left-right-line"
+              size="xs"
+              :min="translateOffsetRanges[0].min"
+              :max="translateOffsetRanges[0].max"
+              :step="translateOffsetRanges[0].step"
+              unit="px"
+              @update:model-value="(value: number) => {
+                const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
+                handleParameterChange('translateOffset', [value, currentTranslateOffset[1]])
+              }"
+            />
 
-              <RangeSlider
-                :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
-                label="Translate Y"
-                icon="ri-arrow-up-down-line"
-                size="xs"
-                :min="translateOffsetRanges[1].min"
-                :max="translateOffsetRanges[1].max"
-                :step="translateOffsetRanges[1].step"
-                unit="px"
-                @update:model-value="(value: number) => {
-                  const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
-                  handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
-                }"
-              />
+            <RangeSlider
+              :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
+              label="Translate Y"
+              icon="ri-arrow-up-down-line"
+              size="xs"
+              :min="translateOffsetRanges[1].min"
+              :max="translateOffsetRanges[1].max"
+              :step="translateOffsetRanges[1].step"
+              unit="px"
+              @update:model-value="(value: number) => {
+                const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
+                handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
+              }"
+            />
 
-              <RangeSlider
-                :model-value="pixelClipExtentArray[0]"
-                :label="t('clipExtent.left')"
-                icon="ri-arrow-left-line"
-                size="xs"
-                :min="pixelClipExtentRanges[0].min"
-                :max="pixelClipExtentRanges[0].max"
-                :step="pixelClipExtentRanges[0].step"
-                @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
-              />
+            <RangeSlider
+              :model-value="pixelClipExtentArray[0]"
+              :label="t('clipExtent.left')"
+              icon="ri-arrow-left-line"
+              size="xs"
+              :min="pixelClipExtentRanges[0].min"
+              :max="pixelClipExtentRanges[0].max"
+              :step="pixelClipExtentRanges[0].step"
+              @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
+            />
 
-              <RangeSlider
-                :model-value="pixelClipExtentArray[1]"
-                :label="t('clipExtent.top')"
-                icon="ri-arrow-up-line"
-                size="xs"
-                :min="pixelClipExtentRanges[1].min"
-                :max="pixelClipExtentRanges[1].max"
-                :step="pixelClipExtentRanges[1].step"
-                @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
-              />
+            <RangeSlider
+              :model-value="pixelClipExtentArray[1]"
+              :label="t('clipExtent.top')"
+              icon="ri-arrow-up-line"
+              size="xs"
+              :min="pixelClipExtentRanges[1].min"
+              :max="pixelClipExtentRanges[1].max"
+              :step="pixelClipExtentRanges[1].step"
+              @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
+            />
 
-              <RangeSlider
-                :model-value="pixelClipExtentArray[2]"
-                :label="t('clipExtent.right')"
-                icon="ri-arrow-right-line"
-                size="xs"
-                :min="pixelClipExtentRanges[2].min"
-                :max="pixelClipExtentRanges[2].max"
-                :step="pixelClipExtentRanges[2].step"
-                @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
-              />
+            <RangeSlider
+              :model-value="pixelClipExtentArray[2]"
+              :label="t('clipExtent.right')"
+              icon="ri-arrow-right-line"
+              size="xs"
+              :min="pixelClipExtentRanges[2].min"
+              :max="pixelClipExtentRanges[2].max"
+              :step="pixelClipExtentRanges[2].step"
+              @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
+            />
 
-              <RangeSlider
-                :model-value="pixelClipExtentArray[3]"
-                :label="t('clipExtent.bottom')"
-                icon="ri-arrow-down-line"
-                size="xs"
-                :min="pixelClipExtentRanges[3].min"
-                :max="pixelClipExtentRanges[3].max"
-                :step="pixelClipExtentRanges[3].step"
-                @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
-              />
-            </template>
-          </div>
-        </details>
-      </template>
+            <RangeSlider
+              :model-value="pixelClipExtentArray[3]"
+              :label="t('clipExtent.bottom')"
+              icon="ri-arrow-down-line"
+              size="xs"
+              :min="pixelClipExtentRanges[3].min"
+              :max="pixelClipExtentRanges[3].max"
+              :step="pixelClipExtentRanges[3].step"
+              @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
+            />
+          </template>
+        </div>
+      </details>
 
-      <template v-if="hasClipAngleParameter || hasPrecisionParameter || true">
-        <details class="collapse collapse-plus join-item">
-          <summary class="collapse-title text-sm font-medium">
-            <i class="ri-settings-3-line mr-1" />
-            {{ t('territory.parameters.advanced') }}
-          </summary>
+      <details class="collapse collapse-plus join-item">
+        <summary class="collapse-title text-sm font-medium">
+          <i class="ri-settings-3-line mr-1" />
+          {{ t('territory.parameters.advanced') }}
+        </summary>
 
-          <div class="collapse-content space-y-2">
-            <template v-if="hasClipAngleParameter && clipAngleRange">
-              <RangeSlider
-                :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
-                label="Clip Angle"
-                icon="ri-crop-line"
-                size="xs"
-                :min="clipAngleRange.min"
-                :max="clipAngleRange.max"
-                :step="clipAngleRange.step"
-                unit="°"
-                @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
-              />
-            </template>
+        <div class="collapse-content space-y-2">
+          <template v-if="hasClipAngleParameter && clipAngleRange">
+            <RangeSlider
+              :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
+              label="Clip Angle"
+              icon="ri-crop-line"
+              size="xs"
+              :min="clipAngleRange.min"
+              :max="clipAngleRange.max"
+              :step="clipAngleRange.step"
+              unit="°"
+              @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
+            />
+          </template>
 
-            <template v-if="hasPrecisionParameter && precisionRange">
-              <RangeSlider
-                :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
-                label="Precision"
-                icon="ri-focus-3-line"
-                size="xs"
-                :min="precisionRange.min"
-                :max="precisionRange.max"
-                :step="precisionRange.step"
-                @update:model-value="(value: number) => handleParameterChange('precision', value)"
-              />
-            </template>
-          </div>
-        </details>
-      </template>
+          <template v-if="hasPrecisionParameter && precisionRange">
+            <RangeSlider
+              :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
+              label="Precision"
+              icon="ri-focus-3-line"
+              size="xs"
+              :min="precisionRange.min"
+              :max="precisionRange.max"
+              :step="precisionRange.step"
+              @update:model-value="(value: number) => handleParameterChange('precision', value)"
+            />
+          </template>
+        </div>
+      </details>
     </div>
 
     <Alert

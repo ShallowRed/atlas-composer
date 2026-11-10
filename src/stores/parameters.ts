@@ -40,12 +40,6 @@ export const useParameterStore = defineStore('parameters', () => {
   const globalParametersVersion = ref(0)
   const territoryParametersVersion = ref(0)
 
-  function reset() {
-    parameterManager.reset()
-    globalParametersVersion.value = 0
-    territoryParametersVersion.value = 0
-  }
-
   const globalParameters = computed(() => {
     void globalParametersVersion.value
     return parameterManager.getGlobalParameters()
@@ -145,10 +139,6 @@ export const useParameterStore = defineStore('parameters', () => {
   function clearAll() {
     parameterManager.clearAll()
 
-    Object.keys(globalParameters.value).forEach((key) => {
-      delete globalParameters.value[key as keyof ProjectionParameters]
-    })
-
     globalParametersVersion.value++
     territoryParametersVersion.value++
 
@@ -236,8 +226,6 @@ export const useParameterStore = defineStore('parameters', () => {
 
     globalParameters,
     globalEffectiveParameters,
-
-    reset,
 
     setGlobalParameter,
     setGlobalParameters,

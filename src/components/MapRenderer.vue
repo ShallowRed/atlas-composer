@@ -18,7 +18,6 @@ const props = withDefaults(defineProps<Props>(), {
   preserveScale: false,
   width: 200,
   height: 160,
-  hLevel: 3,
   mode: 'simple',
   fullHeight: true,
 })
@@ -27,12 +26,9 @@ const debug = logger.vue.component
 
 interface Props {
   geoData?: GeoJSON.FeatureCollection | null
-  title?: string
   area?: number
-  region?: string
   preserveScale?: boolean
   width?: number
-  hLevel?: number
   height?: number
   projection?: string | null
   territoryCode?: TerritoryCode
