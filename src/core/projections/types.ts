@@ -1,5 +1,6 @@
 import type { ProjectionFamily as SpecificationProjectionFamily } from '@atlas-composer/specification'
 import type { GeoProjection } from 'd3-geo'
+import type { ViewMode } from '@/types/composite'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 interface ProjectionCapabilities {
@@ -75,7 +76,7 @@ export interface ProjectionDefinition {
 
 export interface ProjectionFilterContext {
   recommended?: readonly string[]
-  viewMode?: 'split' | 'composite-custom' | 'built-in-composite' | 'unified'
+  viewMode?: ViewMode
   requiredCapabilities?: Partial<ProjectionCapabilities>
   excludeCategories?: ProjectionCategoryType[]
 }

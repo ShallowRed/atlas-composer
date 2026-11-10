@@ -1,6 +1,6 @@
 import type { AtlasRegistry, AtlasRegistryBehavior, AtlasRegistryEntry, I18nValue } from '#types'
 import type { AtlasSpecificConfig, LoadedAtlasConfig } from '@/core/atlases/loader'
-import type { AtlasConfig } from '@/types'
+import type { AtlasConfig, ViewMode } from '@/types'
 import type { AtlasId, PresetId } from '@/types/branded'
 import atlasRegistryData from '#configs/atlas-registry.json'
 import { logger } from '@/utils/logger'
@@ -152,7 +152,7 @@ function getDefaultPreset(atlasId: string) {
 
 export function getDefaultPresetForViewMode(
   atlasId: string,
-  viewMode: 'split' | 'built-in-composite' | 'composite-custom' | 'unified',
+  viewMode: ViewMode,
 ) {
   const presets = getAtlasPresets(atlasId)
   const viewModePresets = presets.filter(p => p.type === viewMode)
@@ -178,13 +178,13 @@ export function getPresetById(atlasId: AtlasId, presetId: PresetId) {
   return presets.find(p => p.id === presetId)
 }
 
-export function getAvailableViewModes(atlasId: AtlasId): Array<'split' | 'built-in-composite' | 'composite-custom' | 'unified'> {
+export function getAvailableViewModes(atlasId: AtlasId): ViewMode[] {
   const presets = getAtlasPresets(atlasId)
   const uniqueTypes = new Set(presets.map(p => p.type))
   return Array.from(uniqueTypes)
 }
 
-export function getDefaultViewMode(atlasId: AtlasId): 'split' | 'built-in-composite' | 'composite-custom' | 'unified' {
+export function getDefaultViewMode(atlasId: AtlasId): ViewMode {
   const defaultPreset = getDefaultPreset(atlasId)
   if (defaultPreset) {
     return defaultPreset.type

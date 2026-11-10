@@ -8,10 +8,11 @@
  * see src/core/projections/types.d.ts
  */
 
+import type { PresetType } from '#types'
 import type { TerritoryConfig } from '@/types/territory'
 
 export interface CompositeProjectionConfig {
   territories: TerritoryConfig[]
 }
 
-export type ViewMode = 'split' | 'built-in-composite' | 'composite-custom' | 'unified'
+export type ViewMode = PresetType

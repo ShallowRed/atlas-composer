@@ -120,7 +120,7 @@ export function useMapRender(props: MapRenderProps) {
     }
 
     return await MapRenderCoordinator.renderCompositeMap(cartographer, {
-      viewMode: viewStore.viewMode as 'composite-custom' | 'built-in-composite' | 'individual',
+      viewMode: viewStore.viewMode,
       territoryMode: viewStore.territoryMode,
       selectedProjection: projectionStore.selectedProjection,
       compositeProjection: projectionStore.compositeProjection ?? undefined,
@@ -166,9 +166,7 @@ export function useMapRender(props: MapRenderProps) {
       : parameterStore.globalEffectiveParameters
 
     const isCompositeMode = props.mode === 'composite'
-    const effectiveViewMode = isCompositeMode
-      ? viewStore.viewMode as 'composite-custom' | 'built-in-composite'
-      : 'simple'
+    const overlayViewMode = isCompositeMode ? viewStore.viewMode : undefined
 
     if (!overlayProjectionId) {
       return
@@ -180,7 +178,7 @@ export function useMapRender(props: MapRenderProps) {
 
     MapRenderCoordinator.applyOverlays(
       svg,
-      isCompositeMode ? viewStore.viewMode as 'composite-custom' | 'built-in-composite' : 'individual',
+      overlayViewMode,
       {
         showBorders: uiStore.showCompositionBorders,
         showLimits: uiStore.showMapLimits,
@@ -198,7 +196,7 @@ export function useMapRender(props: MapRenderProps) {
       height,
       projection: renderProjection,
       projectionId: overlayProjectionId,
-      viewMode: effectiveViewMode,
+      viewMode: overlayViewMode,
       customComposite: isCompositeMode ? (cartographer?.customComposite as any) : undefined,
       geoData: graticuleGeoData,
       projectionParams: graticuleParams,

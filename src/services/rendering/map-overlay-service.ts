@@ -1,6 +1,7 @@
 import type { Selection } from 'd3'
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
+import type { ViewMode } from '@/types'
 import { select } from 'd3'
 import { logger } from '@/utils/logger'
 
@@ -16,7 +17,7 @@ export interface Rect {
 export interface OverlayConfig {
   showBorders: boolean
   showLimits: boolean
-  viewMode: 'composite-custom' | 'built-in-composite' | 'individual'
+  viewMode?: ViewMode
   width: number
   height: number
   customComposite?: CompositeProjection | null

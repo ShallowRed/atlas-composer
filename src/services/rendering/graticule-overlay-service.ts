@@ -1,6 +1,7 @@
 import type { Selection } from 'd3'
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
+import type { ViewMode } from '@/types'
 import type {
   GraticuleLevel,
   GraticuleOverlayConfig,
@@ -21,7 +22,7 @@ const debug = logger.render.overlay
 
 interface InternalGraticuleConfig extends GraticuleOverlayConfig {
   customComposite?: CompositeProjection | null
-  viewMode?: 'composite-custom' | 'built-in-composite' | 'individual' | 'simple'
+  viewMode?: ViewMode
   projectionId?: string
   geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
   projectionParams?: ProjectionParameters
