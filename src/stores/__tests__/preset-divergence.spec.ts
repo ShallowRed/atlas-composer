@@ -55,6 +55,10 @@ async function openUnified() {
   await openView('unified')
 }
 
+function atlasCodes(): TerritoryCode[] {
+  return useAtlasStore().atlasService.getAllTerritories().map(({ code }) => code as TerritoryCode)
+}
+
 async function addOutsidePreset(): Promise<TerritoryCode> {
   await openComposite()
   const code = codeOutsidePreset()
@@ -122,6 +126,19 @@ describe('difference with the preset values', () => {
       await openView('unified')
 
       expect(globalDiffers()).toBe(false)
+    })
+  })
+
+  describe('after a change of view', () => {
+    it('leaves no parameter of the unified preset in the split view', async () => {
+      await openUnified()
+      const parameterStore = useParameterStore()
+      expect(parameterStore.getEffectiveParameters().scale).toBeDefined()
+
+      await openView('split')
+
+      expect(atlasCodes().map(code => parameterStore.getEffectiveParameters(code)))
+        .toEqual(atlasCodes().map(code => parameterStore.getTerritoryParameters(code)))
     })
   })
 
