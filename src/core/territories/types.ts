@@ -1,5 +1,4 @@
-import type { Translation } from '@/types'
-import type { ProjectionId, TerritoryCode } from '@/types/branded'
+import type { TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 export interface PresetParameters {
@@ -8,16 +7,10 @@ export interface PresetParameters {
 
 export interface TerritoryResetOperation {
   territoryCode: TerritoryCode
-  projection?: ProjectionId
-  translation: Translation
-  scale: number
-  parameters?: Partial<ProjectionParameters>
-  shouldClearOverrides: boolean
+  parameters: ProjectionParameters
 }
 
 export interface BulkResetOperation {
   operations: TerritoryResetOperation[]
   activeTerritories?: TerritoryCode[]
 }
-
-export type ResetStrategy = 'preset' | 'fallback'

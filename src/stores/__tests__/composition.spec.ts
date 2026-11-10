@@ -506,13 +506,13 @@ describe('composition store', () => {
       expect(imported.composition.activeTerritories).toEqual(config.territories.map(({ code }) => code))
     })
 
-    it.fails('leaves the same preset values', async () => {
+    it('leaves the same preset values', async () => {
       const { imported, preset } = await leftByImportAndByPreset()
 
       expect(imported.presetValues).toEqual(preset.presetValues)
     })
 
-    it.fails('leaves out a key of the imported file that the parameter registry does not hold', async () => {
+    it('leaves out a key of the imported file that the parameter registry does not hold', async () => {
       await startApplication(FRANCE)
       await useCompositionStore().initializeAtlas()
       const config = await readPresetConfig('france-standard')
@@ -633,7 +633,7 @@ describe('composition store', () => {
 
       await useCompositionStore().selectViewMode('split')
 
-      expect(usePresetDefaultsStore().territoryDefaults).toBeNull()
+      expect(usePresetDefaultsStore().presetParameters).toEqual({})
     })
 
     it('stores no default before the split preset loads', async () => {
@@ -643,7 +643,7 @@ describe('composition store', () => {
 
       await useCompositionStore().initializeAtlas({ preserveViewMode: true })
 
-      expect(usePresetDefaultsStore().territoryDefaults).toBeNull()
+      expect(usePresetDefaultsStore().presetParameters).toEqual({})
     })
   })
 
@@ -841,19 +841,19 @@ describe('composition store', () => {
   })
 
   describe('resetTransforms', () => {
-    it('gives each territory the translation of the preset again', async () => {
+    it('gives each territory the parameters of the preset again', async () => {
       await startApplication(FRANCE)
       const compositionStore = useCompositionStore()
       await compositionStore.initializeAtlas()
       const parameterStore = useParameterStore()
-      const presetTranslations = usePresetDefaultsStore().territoryDefaults!.translations
-      const territoryCodes = Object.keys(presetTranslations) as TerritoryCode[]
-      territoryCodes.forEach(code => parameterStore.setTerritoryTranslation(code, 'x', 999))
+      const presetParameters = { ...usePresetDefaultsStore().presetParameters }
+      const presetCodes = Object.keys(presetParameters) as TerritoryCode[]
+      presetCodes.forEach(code => parameterStore.setTerritoryTranslation(code, 'x', 999))
 
       compositionStore.resetTransforms()
 
-      expect(Object.fromEntries(territoryCodes.map(code => [code, parameterStore.getTerritoryTranslation(code)])))
-        .toEqual(presetTranslations)
+      expect(Object.fromEntries(presetCodes.map(code => [code, parameterStore.getTerritoryParameters(code)])))
+        .toEqual(presetParameters)
     })
   })
 

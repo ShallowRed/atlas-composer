@@ -1,6 +1,6 @@
 import type { PresetDefinition } from '#types'
 import type { PositioningView } from '@/core/positioning'
-import type { Preset, TerritoryDefaults } from '@/core/presets'
+import type { Preset } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
@@ -150,7 +150,6 @@ export const useViewStore = defineStore('view', () => {
         break
       }
       case 'split': {
-        const projections: TerritoryDefaults['projections'] = {}
         const parameters: Record<string, ProjectionParameters> = {}
         const writeTerritoryBase = (territoryCode: TerritoryCode, projectionId: ProjectionId) => {
           parameterStore.setTerritoryParameter(territoryCode, 'translateOffset', parameterRegistry.getDefaultValue('translateOffset'))
@@ -171,13 +170,11 @@ export const useViewStore = defineStore('view', () => {
           if (!parameterStore.getTerritoryProjection(territoryCode) && displayedProjection) {
             writeTerritoryBase(territoryCode, displayedProjection)
           }
-          const projectionId = parameterStore.getTerritoryProjection(territoryCode)
-          if (projectionId) {
-            projections[territoryCode] = projectionId
+          if (parameterStore.getTerritoryProjection(territoryCode)) {
             parameters[code] = { ...parameterStore.getTerritoryParameters(territoryCode) }
           }
         }
-        presetDefaults.storePresetDefaults({ projections, translations: {}, scales: {} }, parameters)
+        presetDefaults.storePresetDefaults(parameters)
         break
       }
       case 'built-in-composite':
