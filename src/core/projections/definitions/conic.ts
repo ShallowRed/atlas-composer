@@ -1,5 +1,6 @@
 import type { ProjectionDefinition } from '../types'
 import { geoConicConformal, geoConicEqualArea, geoConicEquidistant } from 'd3-geo'
+import { parameterRegistry } from '@/core/parameters'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const CONIC_CONFORMAL: ProjectionDefinition = {
@@ -21,7 +22,7 @@ const CONIC_CONFORMAL: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    parallels: [30, 60],
+    parallels: parameterRegistry.getDefaultValue('parallels'),
   },
 
   aliases: ['conicConformal', 'lambert-conformal-conic', 'lambert', 'lcc'],
@@ -54,7 +55,7 @@ const ALBERS: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    parallels: [30, 60],
+    parallels: parameterRegistry.getDefaultValue('parallels'),
   },
 
   aliases: ['albers'],
@@ -87,7 +88,7 @@ const CONIC_EQUIDISTANT: ProjectionDefinition = {
   },
 
   defaultParameters: {
-    parallels: [30, 60],
+    parallels: parameterRegistry.getDefaultValue('parallels'),
   },
 
   aliases: ['conicEquidistant'],
