@@ -8,6 +8,7 @@ import type {
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { geoPath, select } from 'd3'
 import { geoConicConformal } from 'd3-geo'
+import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
@@ -107,7 +108,7 @@ export class GraticuleOverlayService {
       const domain = showSphere ? { type: 'Sphere' as const } : geoData
       if (domain && typeof projection.fitExtent === 'function') {
         projection.fitExtent([[0, 0], [width, height]], domain as any)
-        const scaleMultiplier = params?.scaleMultiplier ?? 1.0
+        const scaleMultiplier = params?.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')
         if (scaleMultiplier !== 1.0) {
           projection.scale(projection.scale() * scaleMultiplier)
         }
@@ -148,7 +149,7 @@ export class GraticuleOverlayService {
       return projection
     }
 
-    const scaleMultiplier = params?.scaleMultiplier ?? 1.0
+    const scaleMultiplier = params?.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')
 
     applyPositioning(projection, params ?? {}, 'global')
 

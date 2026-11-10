@@ -55,7 +55,7 @@ export function useUrlState() {
     for (const territory of geoDataStore.allActiveTerritories) {
       const code = territory.code as TerritoryCode
       const params = parameterStore.getTerritoryParameters(code)
-      const scale = params.scaleMultiplier ?? 1.0
+      const scale = params.scaleMultiplier ?? defaultScale
       if (writesEveryTerritory || scale !== defaultScale) {
         territorySettings[`s_${territory.code}`] = scale
         hasSettings = true

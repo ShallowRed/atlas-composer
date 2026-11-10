@@ -112,7 +112,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
   function setTerritoryTranslation(territoryCode: TerritoryCode, axis: 'x' | 'y', value: number) {
     const effective = getEffectiveParameters(territoryCode)
-    const currentOffset = effective.translateOffset ?? [0, 0]
+    const currentOffset = effective.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
     const newOffset: [number, number] = axis === 'x'
       ? [value, currentOffset[1]]
       : [currentOffset[0], value]
@@ -121,7 +121,7 @@ export const useParameterStore = defineStore('parameters', () => {
 
   function getTerritoryTranslation(territoryCode: TerritoryCode): Translation {
     const effective = getEffectiveParameters(territoryCode)
-    const offset = effective.translateOffset ?? [0, 0]
+    const offset = effective.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
     return { x: offset[0], y: offset[1] }
   }
 

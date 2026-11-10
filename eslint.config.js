@@ -116,9 +116,16 @@ const MERCATOR_LITERAL = {
   message: 'The fallback projection is FALLBACK_PROJECTION_ID of src/core/projections/defaults.ts.',
 }
 
+const LITERAL_FALLBACK = 'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\']'
+const PARAMETER_KEYS = '/^(translateOffset|scaleMultiplier|parallels|clipAngle|precision|pixelClipExtent)$/'
+const TUPLE_PARAMETER_KEYS = '/^(translateOffset|parallels)$/'
+
+// A parameter read as x.key, x?.key or (x.key as T), then an element read as x.key?.[0] or x.key[0]
 const PARAMETER_DEFAULT_LITERALS = [
-  'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.property.name=/^(parallels|clipAngle|precision|pixelClipExtent)$/]',
-  'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\'][left.expression.object.property.name=\'parallels\']',
+  `${LITERAL_FALLBACK}[left.property.name=${PARAMETER_KEYS}]`,
+  `${LITERAL_FALLBACK}[left.expression.property.name=${PARAMETER_KEYS}]`,
+  `${LITERAL_FALLBACK}[left.expression.object.property.name=${TUPLE_PARAMETER_KEYS}]`,
+  `${LITERAL_FALLBACK}[left.object.property.name=${TUPLE_PARAMETER_KEYS}]`,
 ].map(selector => ({ selector, message: 'The default value of a parameter comes from parameterRegistry.getDefaultValue of src/core/parameters/parameter-registry.ts.' }))
 
 const PARALLELS_LITERALS = [
@@ -230,14 +237,14 @@ export default antfu({
   files: ['src/**/*.ts', 'src/**/*.vue'],
   ignores: ['src/core/positioning/**', '**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...RESULT_FIELDS],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
   },
 }, {
   files: ['src/core/positioning/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
   },
 }, {
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
@@ -255,7 +262,7 @@ export default antfu({
   files: ['src/core/projections/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...RESULT_FIELDS, ...PARALLELS_LITERALS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, ...PARALLELS_LITERALS],
   },
 }, {
   files: ['packages/projection-loader/src/**'],

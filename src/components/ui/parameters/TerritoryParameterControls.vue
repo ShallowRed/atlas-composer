@@ -56,6 +56,8 @@ const effectiveParameters = computed(() => {
 
 const parallels = computed(() => effectiveParameters.value.parallels ?? parameterRegistry.getDefaultValue('parallels'))
 
+const translateOffset = computed(() => effectiveParameters.value.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'))
+
 const rotate = computed(() => getDisplayedRotate(effectiveParameters.value, props.view))
 
 const center = computed(() => getDisplayedCenter(effectiveParameters.value))
@@ -272,7 +274,7 @@ const hasPrecisionParameter = computed(() => {
         <div class="collapse-content space-y-2">
           <template v-if="scaleMultiplierRange">
             <RangeSlider
-              :model-value="effectiveParameters.scaleMultiplier ?? 1.0"
+              :model-value="effectiveParameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')"
               :label="t('projectionParams.scaleMultiplier')"
               icon="ri-zoom-in-line"
               size="xs"
@@ -286,7 +288,7 @@ const hasPrecisionParameter = computed(() => {
 
           <template v-if="isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
             <RangeSlider
-              :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
+              :model-value="translateOffset[0]"
               :label="t('projectionParams.translateX')"
               icon="ri-arrow-left-right-line"
               size="xs"
@@ -295,13 +297,12 @@ const hasPrecisionParameter = computed(() => {
               :step="translateOffsetRanges[0].step"
               unit="px"
               @update:model-value="(value: number) => {
-                const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
-                handleParameterChange('translateOffset', [value, currentTranslateOffset[1]])
+                handleParameterChange('translateOffset', [value, translateOffset[1]])
               }"
             />
 
             <RangeSlider
-              :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
+              :model-value="translateOffset[1]"
               :label="t('projectionParams.translateY')"
               icon="ri-arrow-up-down-line"
               size="xs"
@@ -310,8 +311,7 @@ const hasPrecisionParameter = computed(() => {
               :step="translateOffsetRanges[1].step"
               unit="px"
               @update:model-value="(value: number) => {
-                const currentTranslateOffset = effectiveParameters.translateOffset ?? [0, 0]
-                handleParameterChange('translateOffset', [currentTranslateOffset[0], value])
+                handleParameterChange('translateOffset', [translateOffset[0], value])
               }"
             />
 

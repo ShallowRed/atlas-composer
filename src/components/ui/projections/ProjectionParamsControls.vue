@@ -212,7 +212,7 @@ function reset() {
 
         <RangeSlider
           v-if="!projectionStore.autoFitDomain && scaleMultiplierRange"
-          :model-value="effectiveParams.scaleMultiplier ?? 1.0"
+          :model-value="effectiveParams.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')"
           :label="t('projectionParams.scaleMultiplier')"
           icon="ri-zoom-in-line"
           size="xs"
