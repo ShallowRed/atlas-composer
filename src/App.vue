@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import ToastNotification from '@/components/ui/export/ToastNotification.vue'
 import AppFooter from '@/components/ui/layout/AppFooter.vue'
 import AppHeader from '@/components/ui/layout/AppHeader.vue'
@@ -8,20 +8,26 @@ import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useUIStore } from '@/stores/ui'
 
+const route = useRoute()
 const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { errorMessage } = useErrorMessage()
+
+const fillsViewport = computed(() => route.meta.fillViewport === true)
 
 const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(geoDataStore.error))
 </script>
 
 <template>
-  <div class="body__inner bg-base-200">
+  <div
+    class="body__inner bg-base-200"
+    :class="{ 'app-shell': fillsViewport }"
+  >
     <AppHeader class="h-[4.5rem]" />
     <main>
       <RouterView class="flex-1" />
     </main>
-    <AppFooter />
+    <AppFooter v-if="!fillsViewport" />
 
     <!-- Global error state from geoDataStore -->
     <ToastNotification
@@ -45,5 +51,13 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
 @reference "tailwindcss";
 .body__inner main {
   @apply min-h-[calc(100vh-4rem)] container mx-auto py-8 flex flex-col;
+}
+
+.body__inner.app-shell {
+  @apply lg:h-dvh lg:flex lg:flex-col lg:overflow-hidden;
+}
+
+.body__inner.app-shell main {
+  @apply min-h-0 max-w-none p-2 sm:p-4 lg:flex-1;
 }
 </style>

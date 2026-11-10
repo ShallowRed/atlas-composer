@@ -28,6 +28,7 @@ interface Props {
   disabled?: boolean
   options?: Option[]
   optionGroups?: OptionGroup[]
+  hideLabel?: boolean
   inline?: boolean // For inline use (e.g., in navbar) - removes fieldset wrapper
   showSelectedIcon?: boolean // For inline buttons - whether to show selected option's icon (default: true)
   showStaticIcon?: boolean // For inline buttons - whether to show the static icon (default: true)
@@ -41,6 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   options: undefined,
   optionGroups: undefined,
+  hideLabel: false,
   inline: false,
   showSelectedIcon: true,
   showStaticIcon: true,
@@ -330,6 +332,7 @@ watch(focusedIndex, (newIndex) => {
     <label
       id="dropdown-label"
       class="label font-medium text-sm mb-2"
+      :class="{ 'sr-only': hideLabel }"
     >
       <span class="label-text flex items-center gap-2">
         <i

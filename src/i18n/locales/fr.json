@@ -75,11 +75,9 @@
     "controls": "Contrôles des territoires",
     "byTerritory": "Par territoire",
     "groupBy": "Regrouper par",
-    "territorySettings": "Paramètres par territoire",
     "position": "Position",
     "scale": "Facteur d'échelle",
     "reset": "Réinitialiser tout",
-    "resetButton": "Réinitialiser",
     "mainland": "Métropole",
     "overseas": "Territoires d'outre-mer",
     "territories": "Territoires",
@@ -96,11 +94,10 @@
       "projectionSpecific": "Paramètres de la projection",
       "layout": "Mise en page",
       "view": "Paramètres de la vue",
-      "advanced": "Paramètres avancés",
-      "reset": "Réinitialiser",
-      "resetOverrides": "Réinitialiser tous les paramètres personnalisés pour ce territoire",
       "noRelevantParameters": "Aucun paramètre ajustable",
-      "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels."
+      "noRelevantParametersMessage": "Cette famille de projections ({family}) n'a pas de paramètres ajustables pour les territoires individuels.",
+      "projectionShort": "Projection",
+      "advancedShort": "Avancés"
     },
     "setManager": {
       "title": "Gestionnaire de territoires",
@@ -112,7 +109,8 @@
       "noCollections": "Aucune collection de territoires disponible",
       "groupingLogic": "Logique de regroupement",
       "switchGrouping": "Changer le regroupement"
-    }
+    },
+    "resetOne": "Réinitialiser ce territoire"
   },
   "view": {
     "unified": "Vue unifiée",
@@ -130,9 +128,7 @@
   },
   "settings": {
     "title": "Configuration",
-    "atlasConfigTitle": "Configuration de l'atlas",
     "viewConfigTitle": "Configuration de la vue",
-    "displayOptionsTitle": "Options d'affichage",
     "territoryConfigTitle": "Configuration de la projection",
     "projectionConfigTitle": "Configuration de la projection",
     "projectionParamsTitle": "Paramètres de la projection",

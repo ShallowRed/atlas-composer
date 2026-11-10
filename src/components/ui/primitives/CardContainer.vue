@@ -2,8 +2,8 @@
 import ScrollableContent from '@/components/ui/layout/ScrollableContent.vue'
 
 interface Props {
-  title: string
-  icon: string
+  title?: string
+  icon?: string
 }
 
 defineProps<Props>()
@@ -14,7 +14,16 @@ defineProps<Props>()
     class="card card-sm bg-base-100 card-border border-base-300"
   >
     <div class="card-body pb-6">
-      <h2 class="card-title px-2 mb-4">
+      <div
+        v-if="$slots.header"
+        class="px-2 mb-4"
+      >
+        <slot name="header" />
+      </div>
+      <h2
+        v-else
+        class="card-title px-2 mb-4 min-h-10"
+      >
         <i :class="icon" />
         {{ title }}
         <div class="ml-auto">
@@ -29,6 +38,12 @@ defineProps<Props>()
           <slot />
         </div>
       </ScrollableContent>
+      <div
+        v-if="$slots.footer"
+        class="px-2 pt-4"
+      >
+        <slot name="footer" />
+      </div>
     </div>
   </div>
 </template>

@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import TerritoriesControl from '@/components/ui/parameters/TerritoriesControl.vue'
 import ViewPresetSelector from '@/components/ui/presets/ViewPresetSelector.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
+import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const { t } = useI18n()
@@ -10,18 +11,17 @@ const { t } = useI18n()
 const {
   shouldShowEmptyState,
 } = useTerritoryTransforms()
+
+const { hasSelectedTerritory } = useSelectedTerritory()
 </script>
 
 <template>
   <div>
-    <ViewPresetSelector />
+    <div v-show="!hasSelectedTerritory">
+      <ViewPresetSelector />
 
-    <div class="divider" />
-
-    <h3 class="card-title mb-4">
-      <i class="ri-shapes-line" />
-      {{ t('territory.territorySettings') }}
-    </h3>
+      <div class="divider" />
+    </div>
 
     <!-- Message when no territories are available -->
     <Alert
@@ -31,9 +31,6 @@ const {
       {{ t('territory.noOverseas') }}
     </Alert>
 
-    <!-- Territory Settings -->
-    <div v-if="!shouldShowEmptyState">
-      <TerritoriesControl />
-    </div>
+    <TerritoriesControl v-else />
   </div>
 </template>

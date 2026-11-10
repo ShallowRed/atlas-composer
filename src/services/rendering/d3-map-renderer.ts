@@ -26,8 +26,6 @@ export class D3MapRenderer {
     svg.setAttribute('width', String(width))
     svg.setAttribute('height', String(height))
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
-    svg.style.maxWidth = '100%'
-    svg.style.height = 'auto'
 
     debug('Created standalone SVG: %dx%d', width, height)
     return svg

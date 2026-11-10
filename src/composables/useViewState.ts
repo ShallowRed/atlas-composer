@@ -1,13 +1,10 @@
 import type { ViewState } from '@/core/view'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { ViewOrchestrationService } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
 import { useViewStore } from '@/stores/view'
-import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 export function useViewState() {
-  const { t } = useI18n()
   const atlasStore = useAtlasStore()
   const viewStore = useViewStore()
 
@@ -25,25 +22,6 @@ export function useViewState() {
 
   const isUnifiedMode = computed(() =>
     viewStore.viewMode === 'unified',
-  )
-
-  const cardTitle = computed(() => {
-    switch (viewStore.viewMode) {
-      case 'split':
-        return t('mode.split')
-      case 'built-in-composite':
-        return t('mode.compositeExisting')
-      case 'composite-custom':
-        return t('mode.compositeCustom')
-      case 'unified':
-        return t('mode.unified')
-      default:
-        return t('mode.compositeCustom')
-    }
-  })
-
-  const cardIcon = computed(() =>
-    getViewModeIcon(viewStore.viewMode),
   )
 
   const viewState = computed<ViewState | null>(() => {
@@ -93,9 +71,6 @@ export function useViewState() {
     isCompositeExistingMode,
     isSplitMode,
     isUnifiedMode,
-
-    cardTitle,
-    cardIcon,
 
     viewOrchestration,
   }
