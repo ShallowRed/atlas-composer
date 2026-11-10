@@ -13,7 +13,6 @@ interface Props {
   color?: 'primary' | 'secondary' | 'accent'
   size?: 'xs' | 'sm' | 'md'
   showMidpoint?: boolean
-  decimals?: number // Number of decimal places to show
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,7 +22,6 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
   size: 'xs',
   showMidpoint: false,
-  decimals: 0,
 })
 
 const emit = defineEmits<{
@@ -53,11 +51,29 @@ function handleTouchEnd() {
   setSliderInactive()
 }
 
-function formatValue(value: number): string {
-  return props.decimals > 0 ? value.toFixed(props.decimals) : Math.round(value).toString()
+function decimalsOf(step: number): number {
+  const [mantissa = '', exponent = '0'] = String(step).split('e')
+  const fractionLength = mantissa.split('.')[1]?.length ?? 0
+  return Math.max(0, fractionLength - Number(exponent))
 }
 
-const midpoint = () => formatValue((props.max + props.min) / 2)
+const decimals = computed(() => decimalsOf(props.step))
+
+function roundToStep(value: number): number {
+  const factor = 10 ** decimals.value
+  return Math.round(value * factor) / factor
+}
+
+function formatValue(value: number): string {
+  // Rounding before toFixed keeps a small negative value from showing as "-0"
+  return roundToStep(value).toFixed(decimals.value)
+}
+
+function formatBound(value: number): string {
+  return String(roundToStep(value))
+}
+
+const midpoint = () => formatBound((props.max + props.min) / 2)
 
 const rangeClasses = computed(() => [
   'range',
@@ -97,10 +113,10 @@ const labelSizeClass = computed(() => `text-${props.size}`)
       @touchend="handleTouchEnd"
     >
     <div class="flex justify-between px-2 text-xs opacity-50 mt-1">
-      <span>{{ formatValue(min) }}{{ unit }}</span>
+      <span>{{ formatBound(min) }}{{ unit }}</span>
       <span v-if="showMidpoint">{{ midpoint() }}{{ unit }}</span>
       <span v-else-if="min < 0 && max > 0">0{{ unit }}</span>
-      <span>{{ formatValue(max) }}{{ unit }}</span>
+      <span>{{ formatBound(max) }}{{ unit }}</span>
     </div>
   </div>
 </template>
