@@ -35,7 +35,7 @@ function globalDiffers(): boolean {
 }
 
 function codeOutsidePreset(): TerritoryCode {
-  const presetCodes = Object.keys(usePresetDefaultsStore().territoryDefaults!.projections)
+  const presetCodes = Object.keys(usePresetDefaultsStore().presetParameters)
   const code = useAtlasStore().atlasService.getAllTerritories().map(t => t.code).find(c => !presetCodes.includes(c))
   return code as TerritoryCode
 }

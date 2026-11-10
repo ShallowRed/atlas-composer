@@ -37,7 +37,9 @@ export function extractTerritoryParameters(
   const result: Record<string, ProjectionParameters> = {}
 
   for (const territory of preset.territories) {
-    const territoryParams: Partial<ProjectionParameters> = {}
+    const territoryParams: Partial<ProjectionParameters> = {
+      scaleMultiplier: parameterRegistry.getDefaultValue('scaleMultiplier'),
+    }
 
     if (territory.projection?.id) {
       territoryParams.projectionId = territory.projection.id

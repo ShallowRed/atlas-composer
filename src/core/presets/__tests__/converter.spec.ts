@@ -29,18 +29,13 @@ describe('extractTerritoryParameters', () => {
     }])))
   })
 
-  it('leaves out the keys that the parameter registry does not hold', () => {
-    const { scaleMultiplier, ...parameters } = extractTerritoryParameters(withoutScaleMultiplier)['FR-MET']!
-
-    expect(parameters).toEqual({
+  it('gives the default scaleMultiplier to a territory whose file omits it, and leaves out the keys that the parameter registry does not hold', () => {
+    expect(extractTerritoryParameters(withoutScaleMultiplier)['FR-MET']).toEqual({
       projectionId: 'conic-conformal',
       rotate: [-3, 0, 0],
       parallels: [44, 49],
       translateOffset: [10, -20],
+      scaleMultiplier: 1,
     })
-  })
-
-  it.fails('gives the default scaleMultiplier to a territory whose file omits it', () => {
-    expect(extractTerritoryParameters(withoutScaleMultiplier)['FR-MET']!.scaleMultiplier).toBe(1)
   })
 })
