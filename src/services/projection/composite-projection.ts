@@ -1,7 +1,7 @@
 import type { ProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type { GeoProjection } from 'd3-geo'
 
-import type { CompositeProjectionConfig } from '@/types'
+import type { CompositeTerritories } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 
@@ -32,11 +32,11 @@ interface SubProjectionConfig {
 
 export class CompositeProjection {
   private subProjections: SubProjectionConfig[]
-  private config: CompositeProjectionConfig
+  private config: CompositeTerritories
   private parameterProvider: ProjectionParameterProvider
   private referenceScale?: number
 
-  constructor(config: CompositeProjectionConfig, parameterProvider: ProjectionParameterProvider, referenceScale?: number) {
+  constructor(config: CompositeTerritories, parameterProvider: ProjectionParameterProvider, referenceScale?: number) {
     this.config = config
     this.parameterProvider = parameterProvider
     this.referenceScale = referenceScale

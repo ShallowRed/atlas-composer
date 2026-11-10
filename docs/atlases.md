@@ -14,7 +14,7 @@ The default atlas is the entry with `isDefault`, or else the first entry. The de
 
 A configuration names the territories, their bounds and centers, the files of `src/public/data/` that the application loads (`dataSources`), the projection preferences and the territory collections. [scripts.md](scripts.md) describes the `extraction` field of a territory.
 
-`territories` is a list or `*`. In a list, `id` is a Natural Earth id, or a compound id such as `620-20` for a territory that an extraction rule produces. `code` names the territory in the presets, the collections and the application. With `*`, the application loads every feature of the file named by `dataSources`, and the atlas has no `compositeProjectionConfig`. `configs/atlases/world.json` is this case.
+`territories` is a list or `*`. In a list, `id` is a Natural Earth id, or a compound id such as `620-20` for a territory that an extraction rule produces. `code` names the territory in the presets, the collections and the application. With `*`, the application loads every feature of the file named by `dataSources`, and the atlas has no `compositeTerritories`. `configs/atlases/world.json` is this case.
 
 `loadAtlasConfig` in `src/core/atlases/loader.ts` converts the JSON file to the `AtlasConfig` type of the application.
 

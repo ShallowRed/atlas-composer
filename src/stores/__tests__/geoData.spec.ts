@@ -22,7 +22,7 @@ async function openFranceWithCartographer({ withComposite }: { withComposite: bo
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(
     atlasConfig.geoDataConfig,
-    withComposite ? atlasConfig.compositeProjectionConfig : undefined,
+    withComposite ? atlasConfig.compositeTerritories : undefined,
     undefined,
     useParameterStore().parameterProvider,
     useProjectionStore().referenceScale,
