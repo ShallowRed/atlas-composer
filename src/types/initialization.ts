@@ -33,11 +33,6 @@ export interface ApplicationState {
     referenceScale?: number
     dimensions?: { width: number, height: number }
   }
-  display: {
-    showGraticule: boolean
-    showCompositionBorders: boolean
-    showMapLimits: boolean
-  }
 }
 
 export interface AtlasInitializationOptions {
