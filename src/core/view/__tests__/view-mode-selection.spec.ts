@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { isViewMode, ViewModeSelection } from '../view-mode-selection'
+import { isViewMode, isViewPresetMode, ViewModeSelection } from '../view-mode-selection'
 
 describe('viewModeSelection', () => {
   describe('constructor', () => {
@@ -34,6 +34,16 @@ describe('viewModeSelection', () => {
 
     it.each(['nowhere', 'toString', 1, undefined])('refuses %s', (value) => {
       expect(isViewMode(value)).toBe(false)
+    })
+  })
+
+  describe('isViewPresetMode', () => {
+    it('accepts each view mode with presets', () => {
+      expect(['built-in-composite', 'split', 'unified'].every(isViewPresetMode)).toBe(true)
+    })
+
+    it.each(['composite-custom', 'nowhere', 'toString', undefined])('refuses %s', (value) => {
+      expect(isViewPresetMode(value)).toBe(false)
     })
   })
 

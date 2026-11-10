@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useLocalizedName } from '@/composables/useLocalizedName'
+import { isViewPresetMode } from '@/core/view'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
@@ -37,10 +38,7 @@ function getPresetIcon(viewMode: string): string {
   }
 }
 
-const shouldShow = computed(() => {
-  const supportedModes = ['unified', 'split', 'built-in-composite']
-  return supportedModes.includes(viewStore.viewMode)
-})
+const shouldShow = computed(() => isViewPresetMode(viewStore.viewMode))
 
 async function handlePresetChange(presetId: PresetId | '') {
   if (!presetId) {
