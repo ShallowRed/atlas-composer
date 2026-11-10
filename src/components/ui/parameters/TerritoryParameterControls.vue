@@ -287,7 +287,7 @@ const hasPrecisionParameter = computed(() => {
           <template v-if="isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
             <RangeSlider
               :model-value="effectiveParameters.translateOffset?.[0] ?? 0"
-              label="Translate X"
+              :label="t('projectionParams.translateX')"
               icon="ri-arrow-left-right-line"
               size="xs"
               :min="translateOffsetRanges[0].min"
@@ -302,7 +302,7 @@ const hasPrecisionParameter = computed(() => {
 
             <RangeSlider
               :model-value="effectiveParameters.translateOffset?.[1] ?? 0"
-              label="Translate Y"
+              :label="t('projectionParams.translateY')"
               icon="ri-arrow-up-down-line"
               size="xs"
               :min="translateOffsetRanges[1].min"
@@ -372,7 +372,7 @@ const hasPrecisionParameter = computed(() => {
           <template v-if="hasClipAngleParameter && clipAngleRange">
             <RangeSlider
               :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
-              label="Clip Angle"
+              :label="t('projectionParams.clipAngle')"
               icon="ri-crop-line"
               size="xs"
               :min="clipAngleRange.min"
@@ -386,7 +386,7 @@ const hasPrecisionParameter = computed(() => {
           <template v-if="hasPrecisionParameter && precisionRange">
             <RangeSlider
               :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
-              label="Precision"
+              :label="t('projectionParams.precision')"
               icon="ri-focus-3-line"
               size="xs"
               :min="precisionRange.min"
