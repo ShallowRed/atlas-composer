@@ -93,8 +93,6 @@ export class TerritoryBuildError extends Error {
   }
 }
 
-type TerritoryConfig = TerritoryInput
-
 const NATURAL_EARTH_RESOLUTIONS: readonly NaturalEarthResolution[] = ['10m', '50m', '110m']
 
 // The polygon indices of the extraction rules count the polygons of the 50m topology
@@ -130,7 +128,7 @@ function polygonsOf(geometry: AreaGeometry | null): Ring[][] {
   return geometry.type === 'MultiPolygon' ? geometry.coordinates : [geometry.coordinates]
 }
 
-function territoryFeature(territory: TerritoryConfig, geometry: AreaGeometry, locale: string): TerritoryFeature {
+function territoryFeature(territory: TerritoryInput, geometry: AreaGeometry, locale: string): TerritoryFeature {
   return {
     type: 'Feature',
     id: territory.id,
@@ -144,7 +142,7 @@ function territoryFeature(territory: TerritoryConfig, geometry: AreaGeometry, lo
   }
 }
 
-function fitsInBounds(polygon: Ring[], bounds: TerritoryConfig['bounds']): boolean {
+function fitsInBounds(polygon: Ring[], bounds: TerritoryInput['bounds']): boolean {
   const ring = polygon[0]
   if (!ring || ring.length === 0) {
     return false
@@ -207,7 +205,7 @@ function buildWorld(source: NaturalEarthSource): BuiltTerritories {
   return { collection: { type: 'FeatureCollection', features }, skippedFeatures }
 }
 
-function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryConfig>, source: NaturalEarthSource, locale: string): TerritoryFeature[] {
+function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryInput>, source: NaturalEarthSource, locale: string): TerritoryFeature[] {
   const hasRules = territories.some(territory => territory.extraction?.extractFrom)
   if (hasRules && source.resolution !== RULES_RESOLUTION) {
     throw new TerritoryBuildError(
@@ -297,7 +295,7 @@ function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryConfig>, sour
   return [...result.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) }))
 }
 
-function buildFromCodes(territories: ReadonlyArray<TerritoryConfig>, source: ByCodeSource, locale: string): TerritoryFeature[] {
+function buildFromCodes(territories: ReadonlyArray<TerritoryInput>, source: ByCodeSource, locale: string): TerritoryFeature[] {
   const byCode = new Map(territories.map(territory => [territory.code, territory]))
   const polygons = new Map<string, Ring[][]>()
   const unknownCodes = new Set<string>()
@@ -307,6 +305,9 @@ function buildFromCodes(territories: ReadonlyArray<TerritoryConfig>, source: ByC
     const code = String(feature.properties?.code ?? '')
     if (!byCode.has(code)) {
       unknownCodes.add(code)
+      continue
+    }
+    if (!feature.geometry) {
       continue
     }
     const featurePolygons = polygonsOf(feature.geometry)
