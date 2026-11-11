@@ -72,12 +72,12 @@ describe('atlas-composer territories', () => {
     expect(signedArea(exterior!)).toBeCloseTo(30)
   })
 
-  it('should exit with the code 1 for --out, which compose reads', () => {
+  it('should refuse --out, which compose reads', () => {
     expect(() => execFileSync('node', [CLI, 'territories', 'portugal', '--out', 'portugal.geojson'], { encoding: 'utf8', stdio: 'pipe' }))
       .toThrow(/standard output/)
   })
 
-  it('should exit with the code 1 and name the atlases for an unknown atlas', () => {
+  it('should name the atlases for an unknown atlas', () => {
     expect(() => execFileSync('node', [CLI, 'territories', 'atlantis'], { encoding: 'utf8', stdio: 'pipe' }))
       .toThrow(/Unknown atlas "atlantis"/)
   })
