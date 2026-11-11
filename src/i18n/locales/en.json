@@ -21,24 +21,8 @@
     "europe": "European Union",
     "usa": "United States",
     "territories": {
-      "france": {
-        "mainland": "Metropolitan France",
-        "overseas": "Overseas territories"
-      },
-      "portugal": {
-        "mainland": "Continental Portugal",
-        "overseas": "Autonomous Regions"
-      },
-      "spain": {
-        "mainland": "Peninsular Spain",
-        "overseas": "Overseas territories"
-      },
       "europe": {
         "territories": "Member States"
-      },
-      "usa": {
-        "mainland": "Continental United States",
-        "overseas": "Territories"
       },
       "world": {
         "territories": "Countries"

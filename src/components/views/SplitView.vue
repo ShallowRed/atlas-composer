@@ -14,7 +14,7 @@ import { useGeoDataStore } from '@/stores/geoData'
 import { useProjectionStore } from '@/stores/projection'
 import { createTerritoryCode } from '@/types/branded'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const projectionStore = useProjectionStore()
@@ -22,9 +22,10 @@ const geoDataStore = useGeoDataStore()
 
 const { getTerritoryProjection } = useProjectionConfig()
 
-const territoriesTitle = computed(() =>
-  atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle ?? 'territory.territories',
-)
+const territoriesTitle = computed(() => {
+  const atlasTitle = atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle
+  return atlasTitle && te(atlasTitle) ? atlasTitle : 'territory.territories'
+})
 
 const atlasCollections = computed(() => {
   const atlasId = atlasStore.selectedAtlasId
