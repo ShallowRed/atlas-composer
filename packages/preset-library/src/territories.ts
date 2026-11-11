@@ -119,33 +119,50 @@ function fitsInBounds(polygon: Ring[], bounds: TerritoryConfig['bounds']): boole
     && Math.max(...latitudes) <= maxLat + tolerance
 }
 
-function buildWorld(source: NaturalEarthSource): BuiltTerritories {
-  const territories = new Map<string, TerritoryFeature>()
+interface NaturalEarthCountry {
+  name: string
+  geometry: AreaGeometry
+}
+
+// One entry per Natural Earth id padded to three digits: the features that share an id, such as Australia and
+// Ashmore and Cartier Islands for 036 at 10m and 50m, form one MultiPolygon with the name of the first
+function gatherById(features: SourceFeature[]): { countries: Map<string, NaturalEarthCountry>, skippedFeatures: string[] } {
+  const countries = new Map<string, NaturalEarthCountry>()
   const skippedFeatures: string[] = []
 
-  for (const feature of source.features) {
+  for (const feature of features) {
+    const name = String(feature.properties?.name ?? '')
     if (feature.id === undefined || feature.id === '' || !feature.geometry) {
-      skippedFeatures.push(String(feature.properties?.name ?? ''))
+      skippedFeatures.push(name)
       continue
     }
     const id = String(feature.id).padStart(3, '0')
-    const existing = territories.get(id)
-    if (existing) {
-      existing.geometry = {
-        type: 'MultiPolygon',
-        coordinates: [...polygonsOf(existing.geometry), ...polygonsOf(feature.geometry)],
-      }
+    const existing = countries.get(id)
+    countries.set(id, existing
+      ? { name: existing.name, geometry: { type: 'MultiPolygon', coordinates: [...polygonsOf(existing.geometry), ...polygonsOf(feature.geometry)] } }
+      : { name, geometry: feature.geometry })
+  }
+
+  return { countries, skippedFeatures }
+}
+
+function buildWorld(source: NaturalEarthSource): BuiltTerritories {
+  const { countries, skippedFeatures } = gatherById(source.features)
+  const features: TerritoryFeature[] = []
+
+  for (const [id, country] of countries) {
+    if (country.name === '') {
+      skippedFeatures.push(`WD-${id}`)
       continue
     }
-    territories.set(id, {
+    features.push({
       type: 'Feature',
       id,
-      properties: { id, code: `WD-${id}`, iso: '', name: String(feature.properties?.name ?? '') },
-      geometry: feature.geometry,
+      properties: { id, code: `WD-${id}`, iso: '', name: country.name },
+      geometry: rewindToD3(withoutFlatPolygons(country.geometry)),
     })
   }
 
-  const features = [...territories.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) }))
   return { collection: { type: 'FeatureCollection', features }, skippedFeatures }
 }
 
@@ -158,8 +175,8 @@ function buildFromNaturalEarth(territories: TerritoryConfig[], source: NaturalEa
     )
   }
 
-  const featuresById = new Map(source.features.map(feature => [String(feature.id), feature]))
-  const findFeature = (id: string) => featuresById.get(id.padStart(3, '0')) ?? featuresById.get(id)
+  const { countries } = gatherById(source.features)
+  const findFeature = (id: string) => countries.get(id.padStart(3, '0'))
 
   const result = new Map<string, TerritoryFeature>()
   const outOfRangeIndices: Array<{ code: string, index: number }> = []
@@ -230,7 +247,10 @@ function buildFromNaturalEarth(territories: TerritoryConfig[], source: NaturalEa
   }
 
   if (outOfRangeIndices.length > 0 || missingDuplicateSources.length > 0) {
-    throw new TerritoryBuildError('The extraction rules of this atlas do not match the topology', { outOfRangeIndices, missingDuplicateSources })
+    throw new TerritoryBuildError('The extraction rules of this atlas do not match the topology', {
+      ...(outOfRangeIndices.length > 0 && { outOfRangeIndices }),
+      ...(missingDuplicateSources.length > 0 && { missingDuplicateSources }),
+    })
   }
 
   return [...result.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) }))
@@ -257,8 +277,8 @@ function buildFromCodes(territories: TerritoryConfig[], source: ByCodeSource, lo
 
   if (unknownCodes.size > 0 || antimeridianRings.size > 0) {
     throw new TerritoryBuildError('The features do not match the territories of this atlas', {
-      unknownCodes: [...unknownCodes],
-      antimeridianRings: [...antimeridianRings],
+      ...(unknownCodes.size > 0 && { unknownCodes: [...unknownCodes] }),
+      ...(antimeridianRings.size > 0 && { antimeridianRings: [...antimeridianRings] }),
     })
   }
 

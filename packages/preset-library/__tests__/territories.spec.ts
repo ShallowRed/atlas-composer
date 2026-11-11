@@ -80,6 +80,20 @@ describe('buildTerritories', () => {
     }
   })
 
+  it('gives an atlas territory every feature of its Natural Earth id', () => {
+    const config = {
+      territories: [{ id: '36', code: 'AU', name: 'Australia', iso: 'AUS', bounds: [[112, -44], [154, -10]], center: [134, -25] }],
+    } as Pick<JSONAtlasConfig, 'territories'>
+    const sharedId = naturalEarth('50m').features.filter(feature => feature.id === '036')
+
+    const { collection } = buildTerritories(config, naturalEarth('50m'))
+
+    const polygonCount = sharedId.reduce((count, feature) => count + (feature.geometry?.type === 'MultiPolygon' ? feature.geometry.coordinates.length : 1), 0)
+    expect(sharedId.map(feature => feature.properties?.name)).toEqual(['Australia', 'Ashmore and Cartier Is.'])
+    expect(collection.features[0]!.geometry.coordinates.length).toBe(polygonCount)
+    expect(collection.features[0]!.properties.name).toBe('Australia')
+  })
+
   it('extracts a territory by its bounds when its rule has no polygon indices', () => {
     const config = {
       territories: [
@@ -122,13 +136,13 @@ describe('buildTerritories', () => {
     })
 
     it('names the unknown and the missing codes', () => {
-      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('XX', square(0, 0, true))])))).toMatchObject({ unknownCodes: ['XX'] })
+      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('XX', square(0, 0, true))])))).toEqual({ unknownCodes: ['XX'] })
       expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', square(-9, 38, true))])))).toEqual({ missingCodes: ['PT-20', 'PT-30'] })
     })
 
     it('refuses a ring that crosses the antimeridian and an atlas of every country', () => {
       const wide = [[170, 0], [-170, 0], [-170, 1], [170, 1], [170, 0]]
-      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', wide)])))).toMatchObject({ antimeridianRings: ['PT-CONT'] })
+      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', wide)])))).toEqual({ antimeridianRings: ['PT-CONT'] })
       expect(issuesOf(() => buildTerritories(atlasConfig('world'), byCode([])))).toEqual({ byCodeOnWildcard: true })
     })
   })
