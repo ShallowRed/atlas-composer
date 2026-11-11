@@ -1,0 +1,48 @@
+name: GIS
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gis:
+    # Ubuntu 24.04 has tippecanoe in its packages
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install GDAL and tippecanoe
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends gdal-bin tippecanoe
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Write the territories of the world and of each composite preset
+        run: |
+          mkdir -p "$RUNNER_TEMP/gis"
+          node packages/cli/dist/cli.js territories world > "$RUNNER_TEMP/gis/world.geojson"
+          for preset in $(jq -r '.atlases[].presets[] | select(.type == "composite-custom") | .id' configs/atlas-registry.json); do
+            node packages/cli/dist/cli.js compose "$preset" --out "$RUNNER_TEMP/gis/$preset.geojson"
+          done
+
+      - name: Check the files with GDAL and tippecanoe
+        run: scripts/check-gis.sh "$RUNNER_TEMP"/gis/*.geojson
