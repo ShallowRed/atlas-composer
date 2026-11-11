@@ -119,6 +119,20 @@ function computeScaleFactor(
   return Math.min(widthRatio, heightRatio)
 }
 
+function assertValidConfig(config: CompositeProjectionConfig): void {
+  const { valid, errors } = validateConfig(config)
+  if (!valid) {
+    throw new ConfigValidationError(errors)
+  }
+}
+
+export interface SubProjectionOptions {
+  /** Scale of the composite: `referenceScale` of the configuration draws it at its `canvasDimensions` */
+  scale: number
+  /** Position of the center of the canvas */
+  translate: [number, number]
+}
+
 export class ProjectionLoader {
   private factories = new Map<string, ProjectionFactory>()
 
@@ -151,35 +165,10 @@ export class ProjectionLoader {
   load(config: CompositeProjectionConfig, options: LoaderOptions): CompositeProjectionLike {
     const { width, height, debug = false } = options
 
-    const { valid, errors } = validateConfig(config)
-    if (!valid) {
-      throw new ConfigValidationError(errors)
-    }
+    assertValidConfig(config)
 
     const { referenceScale, canvasDimensions } = config
-
-    const layouts: TerritoryLayout[] = config.territories.map((territory) => {
-      const factory = this.getFactory(territory.projection.id)
-      const [offsetX, offsetY] = territory.layout.translateOffset
-      const clip = territory.layout.pixelClipExtent
-
-      return {
-        territory,
-        factory,
-        translateCoefficient: [
-          offsetX / referenceScale,
-          offsetY / referenceScale,
-        ] as [number, number],
-        clipCoefficients: clip
-          ? [
-              clip[0] / referenceScale,
-              clip[1] / referenceScale,
-              clip[2] / referenceScale,
-              clip[3] / referenceScale,
-            ] as [number, number, number, number]
-          : null,
-      }
-    })
+    const layouts = this.createLayouts(config)
 
     const scaleFactor = computeScaleFactor(canvasDimensions, width, height)
     let currentScale = referenceScale * scaleFactor
@@ -269,6 +258,46 @@ export class ProjectionLoader {
     }
 
     return composite
+  }
+
+  /**
+   * Builds the sub-projection of each territory of a composite, with its clipping,
+   * at the given scale and translation.
+   */
+  createSubProjections(config: CompositeProjectionConfig, options: SubProjectionOptions): Map<string, ProjectionLike> {
+    assertValidConfig(config)
+
+    return new Map(this.createLayouts(config).map(layout => [
+      layout.territory.code,
+      this.createSubProjectionFromLayout(layout, options.scale, options.translate),
+    ]))
+  }
+
+  private createLayouts(config: CompositeProjectionConfig): TerritoryLayout[] {
+    const { referenceScale } = config
+
+    return config.territories.map((territory) => {
+      const factory = this.getFactory(territory.projection.id)
+      const [offsetX, offsetY] = territory.layout.translateOffset
+      const clip = territory.layout.pixelClipExtent
+
+      return {
+        territory,
+        factory,
+        translateCoefficient: [
+          offsetX / referenceScale,
+          offsetY / referenceScale,
+        ] as [number, number],
+        clipCoefficients: clip
+          ? [
+              clip[0] / referenceScale,
+              clip[1] / referenceScale,
+              clip[2] / referenceScale,
+              clip[3] / referenceScale,
+            ] as [number, number, number, number]
+          : null,
+      }
+    })
   }
 
   private getFactory(projectionId: string): ProjectionFactory {

@@ -89,6 +89,7 @@ A territory without `pixelClipExtent` is clipped at its `bounds`, and a territor
 - `loader.registerAll(factories)` - Register multiple projections from an object
 - `loader.load(config, options)` - Load a composite projection from configuration
 - `loader.loadFromJSON(jsonString, options)` - Load from a JSON string
+- `loader.createSubProjections(config, { scale, translate })` - Build a `Map` from the code of each territory to its sub-projection, with its clipping
 - `loader.isRegistered(id)` - Check if a projection is registered
 - `loader.getRegistered()` - Get all registered projection IDs
 - `loader.unregister(id)` - Remove a registered projection
@@ -120,6 +121,20 @@ projection.invert([400, 300]) // Returns [lon, lat] or null
 ```
 
 This makes the projection fully compatible with Observable Plot's auto-sizing behavior.
+
+### Sub-projections
+
+`createSubProjections` returns the projection of each territory, to project a geometry through the projection of its own territory. A `scale` equal to `referenceScale` and a `translate` at the center of `canvasDimensions` place the territories as the configuration draws them:
+
+```typescript
+const { referenceScale, canvasDimensions: { width, height } } = config
+const subProjections = loader.createSubProjections(config, {
+  scale: referenceScale,
+  translate: [width / 2, height / 2],
+})
+
+const path = geoPath(subProjections.get('FR-GP'))
+```
 
 ## Acknowledgments
 
