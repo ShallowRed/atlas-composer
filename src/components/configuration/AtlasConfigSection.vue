@@ -5,36 +5,28 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
-import { useLocalizedName } from '@/composables/useLocalizedName'
+import { useAtlasGroups } from '@/composables/useAtlasGroups'
 import { useViewMode } from '@/composables/useViewMode'
 import { useViewState } from '@/composables/useViewState'
-import { getAvailableAtlasesGrouped } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
-import { getAtlasFlag } from '@/utils/atlas-icons'
 import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 const { viewModeOptions } = useViewMode()
 const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
-const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
 
-const atlasGroupsWithIcons = computed(() => {
-  return getAvailableAtlasesGrouped().map(group => ({
-    label: localize(group.label),
-    options: group.options.map(atlas => ({
-      value: atlas.value,
-      label: localize(atlas.label),
-      translated: true,
-      icon: getAtlasFlag(atlas.value as AtlasId),
-    })),
-  }))
-})
+const { atlasGroups } = useAtlasGroups()
+
+const atlasGroupsWithIcons = computed(() => atlasGroups.value.map(group => ({
+  label: group.label,
+  options: group.options.map(atlas => ({ ...atlas, translated: true })),
+})))
 
 const viewModeOptionsWithIcons = computed(() => {
   return viewModeOptions.value.map(mode => ({

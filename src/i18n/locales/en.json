@@ -5,7 +5,8 @@
   },
   "nav": {
     "map": "App",
-    "about": "About"
+    "about": "About",
+    "openApp": "Open the app"
   },
   "atlas": {
     "select": "Select Atlas",
@@ -251,40 +252,22 @@
   },
   "about": {
     "title": "About Atlas composer",
-    "pageTitle": "About",
     "intro": "An interactive tool for creating and exporting JSON-based composite map projections for countries with geographically-scattered territories.",
     "why": {
       "title": "Why this tool?",
       "description": "Displaying overseas territories alongside a mainland is a common cartographic challenge. While the US has the standardized Albers USA projection, mapping other fragmented countries often requires manually positioning insets or writing complex custom code. This tool standardizes the process using portable JSON definitions that describe territories, their projections, and layout. A generic loader renders the map, decoupling design from implementation and making custom projections shareable and reusable."
     },
     "features": {
-      "title": "Key Features",
+      "title": "Features",
       "compositeExisting": "Apply pre-configured composite projections",
       "compositeCustom": "Build custom layouts by positioning territories interactively",
       "split": "View territories separately with optimized projections",
       "unified": "Display all territories in a single global projection",
-      "export": "Export configurations as JSON for use with the projection loader"
+      "export": "Export a configuration as JSON, which the projection loader turns into a D3 projection",
+      "exportTitle": "JSON export"
     },
     "atlases": {
-      "title": "Available atlases (for now)",
-      "france": "France",
-      "portugal": "Portugal",
-      "spain": "Spain",
-      "europe": "European Union",
-      "usa": "United States"
-    },
-    "technologies": {
-      "title": "Built With",
-      "description": "Vue 3, TypeScript, D3.js, Observable Plot, Pinia, Tailwind CSS, and daisyUI. Powered by Natural Earth geodata."
-    },
-    "cta": "Start exploring",
-    "footer": {
-      "title": "Atlas composer",
-      "description": "JSON-based composite projections",
-      "builtWith": "Built with Vue 3, D3.js, Observable Plot, and daisyUI",
-      "license": "Open source under",
-      "madeWith": "Made with",
-      "by": "by"
+      "title": "Available atlases"
     }
   },
   "projections": {
@@ -551,5 +534,14 @@
     "errors": {
       "title": "Validation error"
     }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This address matches no page of Atlas composer."
+  },
+  "footer": {
+    "builtWith": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
+    "license": "Source code under the",
+    "licenseName": "MIT License"
   }
 }

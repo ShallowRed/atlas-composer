@@ -55,7 +55,6 @@ export const useCompositionStore = defineStore('composition', () => {
 
   async function startMapView(sharedLink?: SharedLink): Promise<void> {
     geoDataStore.clearError()
-    uiStore.initializeTheme()
 
     if (sharedLink?.atlas) {
       atlasStore.selectedAtlasId = sharedLink.atlas

@@ -70,6 +70,21 @@ function serveConfigsPlugin(): Plugin {
   }
 }
 
+/**
+ * GitHub Pages serves 404.html for a path that matches no file: the application then reads the path
+ * https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
+ */
+function notFoundPagePlugin(): Plugin {
+  return {
+    name: 'not-found-page',
+    apply: 'build',
+    writeBundle(options) {
+      const dir = options.dir ?? outDir
+      fs.copyFileSync(path.join(dir, 'index.html'), path.join(dir, '404.html'))
+    },
+  }
+}
+
 export default defineConfig(env => ({
   root: srcDir,
   publicDir: path.resolve(srcDir, 'public'),
@@ -92,6 +107,7 @@ export default defineConfig(env => ({
     vue(),
     tailwindcss(),
     serveConfigsPlugin(), // Serve configs folder as public assets
+    notFoundPagePlugin(),
     eslint({
       failOnError: false,
       failOnWarning: false,
