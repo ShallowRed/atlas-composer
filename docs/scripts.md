@@ -18,7 +18,7 @@ The script gathers the Natural Earth features of each id, padded to three digits
 
 When `territories` is `*`, each Natural Earth id gives one territory with its id padded to three digits, the code `WD-<id>` and the name of its first feature, and no rule applies. Features without an id or a geometry, and ids without a name, are left out and named in a warning. `configs/atlases/world.json` is this case.
 
-The territories follow the order of the rings that d3-geo reads, exterior rings clockwise. `buildTerritories` drops a polygon whose exterior ring has a planar area below 1e-12 square degree, a line of aligned points that d3-geo can read as the whole sphere, unless the territory has no other polygon.
+The rings of the territories are oriented as d3-geo reads them, exterior rings clockwise. `buildTerritories` drops a polygon whose exterior ring has a planar area below 1e-12 square degree, a line of aligned points that d3-geo can read as the whole sphere, unless the territory has no other polygon.
 
 ## Territory extraction rules
 

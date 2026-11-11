@@ -10,8 +10,12 @@ export { rewindToRfc7946 } from './rewind.js'
 export { buildTerritories, createNaturalEarthSource, TerritoryBuildError } from './territories.js'
 export type {
   AreaGeometry,
+  AtlasTerritoriesInput,
   BuiltTerritories,
   ByCodeSource,
+  FeatureInput,
+  FeaturesInput,
+  I18NInput,
   MultiPolygonGeometry,
   NaturalEarthResolution,
   NaturalEarthSource,
@@ -21,6 +25,7 @@ export type {
   SourceFeature,
   TerritoryBuildIssues,
   TerritoryFeature,
+  TerritoryInput,
   TerritorySource,
 } from './territories.js'
 export type { AtlasMetadata, PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'

@@ -1,4 +1,3 @@
-import type { I18NValue, JSONAtlasConfig } from '../../../types/atlas-config.js'
 import type { AreaGeometry, Ring } from './rewind.js'
 import { longitudeSpan, rewindToD3, withoutFlatPolygons } from './rewind.js'
 
@@ -6,10 +5,41 @@ export type { AreaGeometry, MultiPolygonGeometry, PolygonGeometry, Position, Rin
 
 export type NaturalEarthResolution = '10m' | '50m' | '110m'
 
-export interface SourceFeature {
-  type: 'Feature'
+/** A GeoJSON feature as GeoJSON readers, topojson-client and JSON imports type it */
+export interface FeatureInput {
+  type?: string
   id?: string | number
-  properties?: Record<string, unknown> | null
+  properties?: Readonly<Record<string, unknown>> | null
+  geometry: { type: string, coordinates?: unknown } | null
+}
+
+/** A feature collection, a single feature or a list of features */
+export type FeaturesInput = { features: ReadonlyArray<FeatureInput> } | FeatureInput | ReadonlyArray<FeatureInput>
+
+export type I18NInput = string | { readonly en: string, readonly [locale: string]: string | undefined }
+
+/** The territories of an atlas configuration, such as `@atlas-composer/preset-library/atlases/france` */
+export interface TerritoryInput {
+  id: string
+  code: string
+  name: I18NInput
+  iso: string
+  bounds: ReadonlyArray<ReadonlyArray<number>>
+  extraction?: {
+    extractFrom?: string
+    polygonIndices?: ReadonlyArray<number>
+    duplicateFrom?: string
+  }
+}
+
+export interface AtlasTerritoriesInput {
+  /** The territories, or `*` for an atlas of every country */
+  territories: string | ReadonlyArray<TerritoryInput>
+}
+
+export interface SourceFeature {
+  id?: string | number
+  properties?: Readonly<Record<string, unknown>> | null
   geometry: AreaGeometry | null
 }
 
@@ -23,7 +53,7 @@ export interface NaturalEarthSource {
 /** Features of the user, each with the code of a territory of the atlas in `properties.code` */
 export interface ByCodeSource {
   kind: 'by-code'
-  features: SourceFeature[]
+  features: FeaturesInput
 }
 
 export type TerritorySource = NaturalEarthSource | ByCodeSource
@@ -42,7 +72,7 @@ export interface TerritoryFeature {
 
 export interface BuiltTerritories {
   collection: { type: 'FeatureCollection', features: TerritoryFeature[] }
-  /** Features that the atlas `*` leaves out: by their name when they have no id, by their code when they have no name */
+  /** Features that the atlas `*` leaves out: by their name when they have no id or no geometry, by their code when they have no name */
   skippedFeatures: string[]
 }
 
@@ -63,23 +93,33 @@ export class TerritoryBuildError extends Error {
   }
 }
 
-type AtlasTerritories = Pick<JSONAtlasConfig, 'territories'>
-type TerritoryConfig = Exclude<JSONAtlasConfig['territories'], '*'>[number]
+type TerritoryConfig = TerritoryInput
 
 const NATURAL_EARTH_RESOLUTIONS: readonly NaturalEarthResolution[] = ['10m', '50m', '110m']
 
 // The polygon indices of the extraction rules count the polygons of the 50m topology
 const RULES_RESOLUTION: NaturalEarthResolution = '50m'
 
-export function createNaturalEarthSource(features: SourceFeature[], resolution: string): NaturalEarthSource {
+// Keeps the polygons and multipolygons, the geometries of a territory, and reads any other geometry as none
+function toSourceFeatures(input: FeaturesInput): SourceFeature[] {
+  const features: ReadonlyArray<FeatureInput> = Array.isArray(input) ? input : 'features' in input ? input.features : [input as FeatureInput]
+  return features.map(({ id, properties, geometry }) => ({
+    ...(id !== undefined && { id }),
+    properties,
+    geometry: geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon' ? geometry as AreaGeometry : null,
+  }))
+}
+
+/** Builds a Natural Earth source from the features of a topology of world-atlas 2.0.2, such as `topojson.feature(topology, topology.objects.countries)` */
+export function createNaturalEarthSource(features: FeaturesInput, resolution: string): NaturalEarthSource {
   const known = NATURAL_EARTH_RESOLUTIONS.find(value => value === resolution)
   if (!known) {
     throw new TerritoryBuildError(`Unknown Natural Earth resolution "${resolution}"`, { unsupportedResolution: resolution })
   }
-  return { kind: 'natural-earth', resolution: known, features }
+  return { kind: 'natural-earth', resolution: known, features: toSourceFeatures(features) }
 }
 
-function localizedName(name: I18NValue, locale: string): string {
+function localizedName(name: I18NInput, locale: string): string {
   return typeof name === 'string' ? name : (name[locale] ?? name.en)
 }
 
@@ -112,11 +152,12 @@ function fitsInBounds(polygon: Ring[], bounds: TerritoryConfig['bounds']): boole
   const tolerance = 0.1
   const longitudes = ring.map(([longitude]) => longitude!)
   const latitudes = ring.map(([, latitude]) => latitude!)
-  const [[minLon, minLat], [maxLon, maxLat]] = bounds
-  return Math.min(...longitudes) >= minLon - tolerance
-    && Math.max(...longitudes) <= maxLon + tolerance
-    && Math.min(...latitudes) >= minLat - tolerance
-    && Math.max(...latitudes) <= maxLat + tolerance
+  const [minLon, minLat] = bounds[0]!
+  const [maxLon, maxLat] = bounds[1]!
+  return Math.min(...longitudes) >= minLon! - tolerance
+    && Math.max(...longitudes) <= maxLon! + tolerance
+    && Math.min(...latitudes) >= minLat! - tolerance
+    && Math.max(...latitudes) <= maxLat! + tolerance
 }
 
 interface NaturalEarthCountry {
@@ -166,7 +207,7 @@ function buildWorld(source: NaturalEarthSource): BuiltTerritories {
   return { collection: { type: 'FeatureCollection', features }, skippedFeatures }
 }
 
-function buildFromNaturalEarth(territories: TerritoryConfig[], source: NaturalEarthSource, locale: string): TerritoryFeature[] {
+function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryConfig>, source: NaturalEarthSource, locale: string): TerritoryFeature[] {
   const hasRules = territories.some(territory => territory.extraction?.extractFrom)
   if (hasRules && source.resolution !== RULES_RESOLUTION) {
     throw new TerritoryBuildError(
@@ -256,13 +297,13 @@ function buildFromNaturalEarth(territories: TerritoryConfig[], source: NaturalEa
   return [...result.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) }))
 }
 
-function buildFromCodes(territories: TerritoryConfig[], source: ByCodeSource, locale: string): TerritoryFeature[] {
+function buildFromCodes(territories: ReadonlyArray<TerritoryConfig>, source: ByCodeSource, locale: string): TerritoryFeature[] {
   const byCode = new Map(territories.map(territory => [territory.code, territory]))
   const polygons = new Map<string, Ring[][]>()
   const unknownCodes = new Set<string>()
   const antimeridianRings = new Set<string>()
 
-  for (const feature of source.features) {
+  for (const feature of toSourceFeatures(source.features)) {
     const code = String(feature.properties?.code ?? '')
     if (!byCode.has(code)) {
       unknownCodes.add(code)
@@ -295,11 +336,14 @@ function buildFromCodes(territories: TerritoryConfig[], source: ByCodeSource, lo
  * atlas, in the order of its territories; features by code are gathered by code.
  */
 export function buildTerritories(
-  config: AtlasTerritories,
+  config: AtlasTerritoriesInput,
   source: TerritorySource,
   { locale = 'en' }: { locale?: string } = {},
 ): BuiltTerritories {
-  if (config.territories === '*') {
+  if (typeof config.territories === 'string') {
+    if (config.territories !== '*') {
+      throw new Error(`The territories of an atlas are a list or "*", not "${config.territories}"`)
+    }
     if (source.kind === 'by-code') {
       throw new TerritoryBuildError('An atlas of every country reads a Natural Earth source', { byCodeOnWildcard: true })
     }

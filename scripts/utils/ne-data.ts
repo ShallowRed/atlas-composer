@@ -1,17 +1,12 @@
 import type { Topology } from 'topojson-specification'
+import type { NaturalEarthResolution } from '../../packages/preset-library/src/territories.js'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { logger } from '#scripts/utils/logger'
 
-const RESOLUTIONS = {
-  HIGH: '10m',
-  MEDIUM: '50m',
-  LOW: '110m',
-} as const
+export type Resolution = NaturalEarthResolution
 
-export type Resolution = typeof RESOLUTIONS[keyof typeof RESOLUTIONS]
-
-export const DEFAULT_RESOLUTION: Resolution = RESOLUTIONS.MEDIUM
+export const DEFAULT_RESOLUTION: Resolution = '50m'
 
 // Literal calls of require.resolve, which knip reads as uses of world-atlas
 const require = createRequire(import.meta.url)
@@ -29,5 +24,5 @@ export async function readWorldData(resolution: Resolution = DEFAULT_RESOLUTION)
 }
 
 export function isValidResolution(resolution: string): resolution is Resolution {
-  return Object.values(RESOLUTIONS).includes(resolution as Resolution)
+  return Object.hasOwn(TOPOLOGY_PATHS, resolution)
 }

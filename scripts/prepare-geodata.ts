@@ -28,7 +28,7 @@ async function main(): Promise<void> {
     if (args.help) {
       showHelp(
         'prepare-geodata',
-        'Downloads Natural Earth world data and filters specific territories',
+        'Reads the Natural Earth topology of world-atlas and builds the territories of an atlas',
         'npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]',
         {
           '<atlas>': 'Atlas name (portugal, france, europe)',
