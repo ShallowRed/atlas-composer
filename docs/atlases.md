@@ -71,7 +71,7 @@ The territory selector appears when the `territoryScope` entry names a set of th
 4. Create the presets in `configs/presets/<atlas>/<id>.json`, each with an id that starts with the atlas id, and declare them in the registry entry. The atlas needs exactly one preset with `isDefault`. [presets.md](presets.md) describes how to create a preset.
 5. Run `pnpm geodata:prepare <atlas>`, then add this command to the `Prepare geodata` step of `.github/workflows/deploy.yml`, with `--resolution` when `dataSources` names another resolution than 50m.
 6. Add the flag of the atlas to `ATLAS_FLAGS` in `src/utils/atlas-icons.ts`.
-7. Add the key `atlas.territories.<atlas>.territories` to `src/i18n/locales/en.json` and `src/i18n/locales/fr.json`. `SplitView` uses it as the title of its territories.
+7. When the territories of the atlas have a name of their own, such as the member states of Europe, add the key `atlas.territories.<atlas>.territories` to `src/i18n/locales/en.json` and `src/i18n/locales/fr.json`. `SplitView` uses it as the title of its territories, and `territory.territories` for an atlas without this key.
 8. Run `pnpm geodata:validate <atlas>`.
 9. Regenerate the rendering reference of the new atlas, as [development.md](development.md) describes. `src/__tests__/view-rendering.spec.ts` fails on an atlas without reference.
 10. Add a changeset for `@atlas-composer/preset-library`, whose catalog reads the registry, as [development.md](development.md) describes.
