@@ -221,6 +221,51 @@ function duplicateTerritories(
   return result
 }
 
+function polygonsOf(geometry: any): any[] {
+  if (!geometry)
+    return []
+  return geometry.type === 'MultiPolygon' ? geometry.coordinates : [geometry.coordinates]
+}
+
+// One territory per Natural Earth id, named WD-<id> as in the application: the features that share an id
+// (Australia and Ashmore and Cartier Islands share 036 at 50m) form one MultiPolygon with the first name
+function collectWorldTerritories(features: GeoJSONFeature[]): GeoJSONFeature[] {
+  const territories = new Map<string, GeoJSONFeature>()
+  const skipped: string[] = []
+
+  for (const feature of features) {
+    if (feature.id === undefined || feature.id === null || feature.id === '') {
+      skipped.push(feature.properties?.name ?? '')
+      continue
+    }
+    const featureId = String(feature.id).padStart(3, '0')
+    const existing = territories.get(featureId)
+    if (existing) {
+      existing.geometry = {
+        type: 'MultiPolygon',
+        coordinates: [...polygonsOf(existing.geometry), ...polygonsOf(feature.geometry)],
+      }
+      continue
+    }
+    territories.set(featureId, {
+      type: 'Feature',
+      id: featureId,
+      properties: {
+        id: featureId,
+        code: `WD-${featureId}`,
+        iso: '',
+        name: feature.properties?.name ?? '',
+      },
+      geometry: feature.geometry,
+    })
+  }
+
+  if (skipped.length > 0) {
+    logger.warning(`  Skipped ${skipped.length} features without id: ${skipped.join(', ')}`)
+  }
+  return [...territories.values()]
+}
+
 function filterTerritories(
   worldData: Topology,
   territoriesConfig: Record<string, BackendTerritory>,
@@ -234,25 +279,9 @@ function filterTerritories(
   const isWildcardAtlas = Object.keys(territoriesConfig).length === 0
 
   if (isWildcardAtlas) {
-    const processedFeatures = featureCollection.features.map((feature): GeoJSONFeature => {
-      const featureId = String(feature.id).padStart(3, '0')
-
-      return {
-        ...feature,
-        id: featureId,
-        properties: {
-          ...feature.properties,
-          id: featureId,
-          code: feature.properties?.ISO_A3 || featureId,
-          iso: feature.properties?.ISO_A3 || '',
-          name: feature.properties?.NAME || '',
-        },
-      }
-    })
-
     return {
       type: 'FeatureCollection',
-      features: processedFeatures,
+      features: collectWorldTerritories(featureCollection.features),
     }
   }
 
