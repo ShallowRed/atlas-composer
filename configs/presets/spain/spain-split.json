@@ -1,0 +1,43 @@
+{
+  "id": "spain-split",
+  "name": "España - Vista separada uniforme",
+  "description": "Misma proyección cónica para todos los territorios",
+  "atlasId": "spain",
+  "type": "split",
+  "config": {
+    "territories": {
+      "ES-CONT": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              5,
+              -38.6,
+              0
+            ],
+            "parallels": [
+              0,
+              60
+            ]
+          }
+        }
+      },
+      "ES-CN": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              5,
+              -38.6,
+              0
+            ],
+            "parallels": [
+              0,
+              60
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -14,7 +14,7 @@ A composite map brings distant territories together on one map, each with its ow
 
 The [Atlas Composer editor](https://shallowred.github.io/atlas-composer) runs in the browser. In the editor, a person can:
 
-- choose an atlas among France, Portugal, the USA, Europe and the world;
+- choose an atlas in the atlas menu, such as France with its overseas territories;
 - display it as a custom composite, a ready-made composite projection, one map per territory or a single map;
 - change the projections and their parameters and see the map update;
 - move the territories of a custom composite on the map;
