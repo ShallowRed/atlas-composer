@@ -42,7 +42,7 @@ export interface TerritoryFeature {
 
 export interface BuiltTerritories {
   collection: { type: 'FeatureCollection', features: TerritoryFeature[] }
-  /** Names of the features that the atlas `*` leaves out for lack of an id */
+  /** Features that the atlas `*` leaves out: by their name when they have no id, by their code when they have no name */
   skippedFeatures: string[]
 }
 
@@ -139,7 +139,7 @@ function gatherById(features: SourceFeature[]): { countries: Map<string, Natural
     const id = String(feature.id).padStart(3, '0')
     const existing = countries.get(id)
     countries.set(id, existing
-      ? { name: existing.name, geometry: { type: 'MultiPolygon', coordinates: [...polygonsOf(existing.geometry), ...polygonsOf(feature.geometry)] } }
+      ? { name: existing.name || name, geometry: { type: 'MultiPolygon', coordinates: [...polygonsOf(existing.geometry), ...polygonsOf(feature.geometry)] } }
       : { name, geometry: feature.geometry })
   }
 
