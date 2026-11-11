@@ -64,7 +64,7 @@ The `built-in-composite`, `split` and `unified` presets describe the views of th
 
 The package serves the configuration of each atlas at `@atlas-composer/preset-library/atlases/<atlas>`, and its schema at `@atlas-composer/preset-library/schemas/atlas.schema`. An atlas configuration names the territories, their codes, bounds and centers, the rules that cut them out of Natural Earth, and the territory collections. `dataSources` names the files that the app loads.
 
-`buildTerritories(config, source)` builds one GeoJSON feature per territory of an atlas:
+`buildTerritories(config, source)` builds one GeoJSON feature per territory of an atlas. The example reads `world-atlas` with `topojson-client`, `@types/topojson-client` and `@types/topojson-specification`:
 
 ```typescript
 import type { Topology } from 'topojson-specification'

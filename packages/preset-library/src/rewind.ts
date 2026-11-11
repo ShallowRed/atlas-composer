@@ -53,7 +53,7 @@ function orient(geometry: AreaGeometry, exteriorCounterclockwise: boolean, keep:
 
 /**
  * Orients the rings of a geometry in longitude and latitude as d3-geo reads them: exterior rings clockwise.
- * A ring that spans more than 180° of longitude crosses the antimeridian and keeps its order,
+ * A ring that spans more than 180° of longitude crosses the antimeridian and keeps its orientation,
  * since its planar orientation says nothing of its spherical one.
  */
 export function rewindToD3(geometry: AreaGeometry): AreaGeometry {

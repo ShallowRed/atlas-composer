@@ -162,7 +162,7 @@ describe('buildTerritories', () => {
     const byCode = (features: FeatureInput[]) => ({ kind: 'by-code' as const, features })
     const territory = (code: string, ring: number[][]): FeatureInput => ({ type: 'Feature', properties: { code }, geometry: { type: 'Polygon', coordinates: [ring] } })
 
-    it('gathers the features of a code and turns rings of RFC 7946 into the order of d3', () => {
+    it('gathers the features of a code and orients the rings of RFC 7946 as d3-geo reads them', () => {
       const { collection } = buildTerritories(portugal, byCode([
         territory('PT-CONT', square(-9, 38, true)),
         territory('PT-CONT', square(-8, 40, true)),
@@ -187,6 +187,8 @@ describe('buildTerritories', () => {
       const wide = [[170, 0], [-170, 0], [-170, 1], [170, 1], [170, 0]]
       expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', wide)])))).toEqual({ antimeridianRings: ['PT-CONT'] })
       expect(issuesOf(() => buildTerritories(atlasConfig('world'), byCode([])))).toEqual({ byCodeOnWildcard: true })
+      expect(() => buildTerritories({ territories: 'all' }, byCode([]))).toThrow('a list or "*"')
+      expect(issuesOf(() => buildTerritories(portugal, byCode([{ properties: { code: 'PT-CONT' }, geometry: { type: 'Point', coordinates: [0, 0] } }])))).toEqual({ missingCodes: ['PT-CONT', 'PT-20', 'PT-30'] })
     })
   })
 
