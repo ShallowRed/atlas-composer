@@ -221,13 +221,6 @@ export function loadAtlasConfig(
     )
   }
   else {
-    if (jsonConfig.territoryCollections && Object.keys(jsonConfig.territoryCollections).length > 0) {
-      console.warn(
-        `No valid territory collection set found for atlas '${jsonConfig.id}'. `
-        + `Registry specifies '${collectionSetKey}' but it doesn't exist. `
-        + `Territory selector will be hidden. Available collection sets: ${Object.keys(jsonConfig.territoryCollections).join(', ')}`,
-      )
-    }
     territoryModes = {}
   }
 
