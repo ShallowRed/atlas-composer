@@ -1,12 +1,28 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { catalog, getDefaultPreset, getPreset, getPresetMetadata } from '../src'
+import { catalog, getDefaultPreset, getPreset, getPresetMetadata, listAtlases, listRegions } from '../src'
 
 function readJson(path: string) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
 
 const registry = readJson('configs/atlas-registry.json')
+
+describe('atlas catalog', () => {
+  it('has an entry for each atlas of the registry, with the path of its configuration', () => {
+    expect(Object.values(catalog.atlases)).toEqual(registry.atlases.map((atlas: { id: string, group: string, name: { en: string } }) => ({
+      id: atlas.id,
+      name: atlas.name.en,
+      group: atlas.group,
+      path: `atlases/${atlas.id}.json`,
+    })))
+  })
+
+  it('lists the atlases in alphabetical order and in the order of the registry', () => {
+    expect(listAtlases()).toEqual([...listRegions()].sort())
+    expect(listRegions()).toEqual(registry.atlases.map((atlas: { id: string }) => atlas.id))
+  })
+})
 
 describe('preset catalog', () => {
   it('has an entry for each preset of the registry', () => {
