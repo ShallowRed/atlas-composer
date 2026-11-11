@@ -1,5 +1,4 @@
-import type { JSONAtlasConfig } from '../../../types/atlas-config'
-import type { SourceFeature } from '../src'
+import type { AtlasTerritoriesInput, FeatureInput } from '../src'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { geoArea } from 'd3-geo'
@@ -15,17 +14,17 @@ const TOPOLOGY_PATHS = {
 } as const
 type Resolution = keyof typeof TOPOLOGY_PATHS
 
-const naturalEarthFeatures = new Map<Resolution, SourceFeature[]>()
+const naturalEarthFeatures = new Map<Resolution, FeatureInput[]>()
 function naturalEarth(resolution: Resolution) {
   if (!naturalEarthFeatures.has(resolution)) {
     const topology = JSON.parse(readFileSync(TOPOLOGY_PATHS[resolution], 'utf8'))
-    naturalEarthFeatures.set(resolution, (feature(topology, topology.objects.countries) as unknown as { features: SourceFeature[] }).features)
+    naturalEarthFeatures.set(resolution, feature(topology, topology.objects.countries).features)
   }
   return createNaturalEarthSource(naturalEarthFeatures.get(resolution)!, resolution)
 }
 
 const registry = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8')) as { atlases: Array<{ id: string, configPath: string }> }
-function atlasConfig(id: string): JSONAtlasConfig {
+function atlasConfig(id: string): AtlasTerritoriesInput {
   const entry = registry.atlases.find(atlas => atlas.id === id)!
   return JSON.parse(readFileSync(`configs/${entry.configPath.replace('./', '')}`, 'utf8'))
 }
@@ -81,7 +80,7 @@ describe('buildTerritories', () => {
   })
 
   it('leaves out of the world a feature without id and an id without name, and names them', () => {
-    const feature = (id: string | undefined, name: string, lon: number): SourceFeature => ({
+    const feature = (id: string | undefined, name: string, lon: number): FeatureInput => ({
       type: 'Feature',
       ...(id !== undefined && { id }),
       properties: { name },
@@ -101,7 +100,7 @@ describe('buildTerritories', () => {
         { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]], center: [5, 5] },
         { id: '1-I', code: 'ISLAND', name: 'Island', iso: 'MAI', bounds: [[20, 20], [22, 22]], center: [21, 21], extraction: { extractFrom: '1', polygonIndices: [5] } },
       ],
-    } as Pick<JSONAtlasConfig, 'territories'>
+    }
     const source = createNaturalEarthSource([{
       type: 'Feature',
       id: '001',
@@ -112,10 +111,22 @@ describe('buildTerritories', () => {
     expect(issuesOf(() => buildTerritories(config, source))).toEqual({ outOfRangeIndices: [{ code: 'ISLAND', index: 5 }] })
   })
 
+  it('names a duplicated territory whose source is missing', () => {
+    const config = {
+      territories: [
+        { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]] },
+        { id: '1-C', code: 'COPY', name: 'Copy', iso: 'MAI', bounds: [[0, 0], [10, 10]], extraction: { duplicateFrom: 'NONE' } },
+      ],
+    }
+    const source = createNaturalEarthSource([{ type: 'Feature', id: '001', properties: { name: 'Main' }, geometry: { type: 'Polygon', coordinates: [square(1, 1, false)] } }], '50m')
+
+    expect(issuesOf(() => buildTerritories(config, source))).toEqual({ missingDuplicateSources: ['COPY'] })
+  })
+
   it('gives an atlas territory every feature of its Natural Earth id', () => {
     const config = {
       territories: [{ id: '36', code: 'AU', name: 'Australia', iso: 'AUS', bounds: [[112, -44], [154, -10]], center: [134, -25] }],
-    } as Pick<JSONAtlasConfig, 'territories'>
+    }
     const sharedId = naturalEarth('50m').features.filter(feature => feature.id === '036')
 
     const { collection } = buildTerritories(config, naturalEarth('50m'))
@@ -132,7 +143,7 @@ describe('buildTerritories', () => {
         { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]], center: [5, 5] },
         { id: '1-I', code: 'ISLAND', name: 'Island', iso: 'MAI', bounds: [[20, 20], [22, 22]], center: [21, 21], extraction: { extractFrom: '1' } },
       ],
-    } as Pick<JSONAtlasConfig, 'territories'>
+    }
     const source = createNaturalEarthSource([{
       type: 'Feature',
       id: '001',
@@ -148,8 +159,8 @@ describe('buildTerritories', () => {
 
   describe('features by code', () => {
     const portugal = atlasConfig('portugal')
-    const byCode = (features: SourceFeature[]) => ({ kind: 'by-code' as const, features })
-    const territory = (code: string, ring: number[][]): SourceFeature => ({ type: 'Feature', properties: { code }, geometry: { type: 'Polygon', coordinates: [ring] } })
+    const byCode = (features: FeatureInput[]) => ({ kind: 'by-code' as const, features })
+    const territory = (code: string, ring: number[][]): FeatureInput => ({ type: 'Feature', properties: { code }, geometry: { type: 'Polygon', coordinates: [ring] } })
 
     it('gathers the features of a code and turns rings of RFC 7946 into the order of d3', () => {
       const { collection } = buildTerritories(portugal, byCode([

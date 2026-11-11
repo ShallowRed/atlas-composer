@@ -157,8 +157,7 @@ async function analyzeCountry(countryId: string, resolution: Resolution): Promis
     worldData = await readWorldData(resolution)
   }
   catch {
-    logger.error('Failed to fetch world data')
-    logger.info('Make sure you have internet connectivity')
+    logger.error('Failed to read world-atlas: run pnpm install')
     process.exit(1)
   }
 

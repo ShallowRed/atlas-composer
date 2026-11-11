@@ -309,8 +309,8 @@ importers:
         specifier: workspace:*
         version: link:../specification
       '@types/d3-geo':
-        specifier: ^3.1.1
-        version: 3.1.1
+        specifier: ^3.1.0
+        version: 3.1.0
       '@types/topojson-client':
         specifier: ^3.1.5
         version: 3.1.5
@@ -318,8 +318,8 @@ importers:
         specifier: ^8.17.1
         version: 8.17.1
       d3-geo:
-        specifier: ^3.1.2
-        version: 3.1.2
+        specifier: ^3.1.1
+        version: 3.1.1
       topojson-client:
         specifier: ^3.1.0
         version: 3.1.0
@@ -1486,9 +1486,6 @@ packages:
   '@types/d3-geo@3.1.0':
     resolution: {integrity: sha512-856sckF0oP/diXtS4jNsiQw/UuK5fQG8l/a9VVLeSouf1/PPbBE1i1W852zVwKwYCBkFJJB7nCFTbk6UMEXBOQ==}
 
-  '@types/d3-geo@3.1.1':
-    resolution: {integrity: sha512-65Emv9fQiQQqphLlRkuQ5ypPsOmWPhtBGCMv61JDPEPMvsx+gzhGf74yw1a78xFKPj6zw4AgQICJoQv0vK9M2w==}
-
   '@types/d3-hierarchy@3.1.7':
     resolution: {integrity: sha512-tJFtNoYBtRtkNysX1Xq4sxtjK8YgoWUNpIiUee0/jHGRwqvzYxkq0hGVbbOGSz+JgFxxRu4K8nb3YpG3CMARtg==}
 
@@ -2115,10 +2112,6 @@ packages:
 
   d3-geo@3.1.1:
     resolution: {integrity: sha512-637ln3gXKXOwhalDzinUgY83KzNWZRKbYubaG+fGVuc/dxO64RRljtCTnf5ecMyE1RIdtqpkVcq0IbtU2S8j2Q==}
-    engines: {node: '>=12'}
-
-  d3-geo@3.1.2:
-    resolution: {integrity: sha512-5R8ZgDQorIxmauv7R6gpE/ndz+Z0qAZssigq0aXFdvPHdY41RqtW02jrRUQAL724NdPABYXo1+gQEGBBr7uKNg==}
     engines: {node: '>=12'}
 
   d3-hierarchy@3.1.2:
@@ -5095,10 +5088,6 @@ snapshots:
     dependencies:
       '@types/geojson': 7946.0.16
 
-  '@types/d3-geo@3.1.1':
-    dependencies:
-      '@types/geojson': 7946.0.16
-
   '@types/d3-hierarchy@3.1.7': {}
 
   '@types/d3-interpolate@3.0.4':
@@ -5802,10 +5791,6 @@ snapshots:
       d3-geo: 3.1.1
 
   d3-geo@3.1.1:
-    dependencies:
-      d3-array: 3.2.4
-
-  d3-geo@3.1.2:
     dependencies:
       d3-array: 3.2.4
 

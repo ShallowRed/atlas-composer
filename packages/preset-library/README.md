@@ -67,19 +67,24 @@ The package serves the configuration of each atlas at `@atlas-composer/preset-li
 `buildTerritories(config, source)` builds one GeoJSON feature per territory of an atlas:
 
 ```typescript
+import type { Topology } from 'topojson-specification'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { buildTerritories, createNaturalEarthSource } from '@atlas-composer/preset-library'
 import config from '@atlas-composer/preset-library/atlases/france' with { type: 'json' }
 import { feature } from 'topojson-client'
-import topology from 'world-atlas/countries-50m.json' with { type: 'json' }
 
-const source = createNaturalEarthSource(feature(topology, topology.objects.countries).features, '50m')
+const require = createRequire(import.meta.url)
+const topology: Topology = JSON.parse(readFileSync(require.resolve('world-atlas/countries-50m.json'), 'utf8'))
+
+const source = createNaturalEarthSource(feature(topology, topology.objects.countries), '50m')
 const { collection } = buildTerritories(config, source)
 ```
 
 - A Natural Earth source goes through the extraction rules of the atlas. The polygon indices of these rules count the polygons of `countries-50m.json` of `world-atlas` 2.0.2: `buildTerritories` refuses another resolution for an atlas with rules, and another version of `world-atlas` cuts the territories at the wrong polygons. An atlas of every country, such as `world`, reads any resolution, and the code of each territory is `WD-<id>`.
 - A source `{ kind: 'by-code', features }` takes features that carry the code of a territory in `properties.code`, such as `FR-GF`, and gathers them by code.
-- The rings of the features follow the order that d3-geo reads, exterior rings clockwise. `rewindToRfc7946` orients a planar geometry as RFC 7946 asks.
-- `buildTerritories` throws a `TerritoryBuildError` whose `issues` name the missing or unknown codes, the indices out of range, the rings that cross the antimeridian and the refused resolution.
+- The rings of the features are oriented as d3-geo reads them, exterior rings clockwise. `rewindToRfc7946` orients a planar geometry as RFC 7946 asks.
+- `buildTerritories` throws a `TerritoryBuildError` whose `issues` name the missing or unknown codes, the indices out of range, the duplicated territories without source, the rings that cross the antimeridian, a source by code for an atlas of every country, and the refused resolution.
 
 ## API
 

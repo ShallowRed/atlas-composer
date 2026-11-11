@@ -1,6 +1,6 @@
 import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
 import type { Topology } from 'topojson-specification'
-import type { SourceFeature, TerritoryFeature } from '../../packages/preset-library/src/territories.js'
+import type { TerritoryFeature } from '../../packages/preset-library/src/territories.js'
 import { loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
 import * as topojson from 'topojson-client'
@@ -50,10 +50,9 @@ export async function prepareAtlasData(
   if (!countries) {
     throw new Error('No countries object found in world data')
   }
-  const { features } = topojson.feature(topology, countries) as unknown as { features: SourceFeature[] }
-  const { collection, skippedFeatures } = buildTerritories(unified, createNaturalEarthSource(features, options.resolution))
+  const { collection, skippedFeatures } = buildTerritories(unified, createNaturalEarthSource(topojson.feature(topology, countries), options.resolution))
   if (skippedFeatures.length > 0) {
-    logger.warning(`  Skipped ${skippedFeatures.length} features without id or name: ${skippedFeatures.join(', ')}`)
+    logger.warning(`  Skipped ${skippedFeatures.length} features without id, geometry or name: ${skippedFeatures.join(', ')}`)
   }
   logger.success(`  Total territories: ${collection.features.length}`)
   return {

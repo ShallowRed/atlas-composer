@@ -6,7 +6,7 @@ import { DEFAULT_RESOLUTION, isValidResolution } from '#scripts/utils/ne-data'
 export interface ParsedArgs {
   atlas: string | null
   country: string | null
-  resolution: string | null
+  resolution: Resolution | null
   help: boolean
   _unknown: string[]
 }
@@ -52,11 +52,7 @@ export function parseArgs(): ParsedArgs {
 
 export function getResolution(args: ParsedArgs): Resolution {
   if (args.resolution) {
-    if (isValidResolution(args.resolution)) {
-      return args.resolution
-    }
-    logger.warning(`Invalid resolution '${args.resolution}', using '${DEFAULT_RESOLUTION}'`)
-    return DEFAULT_RESOLUTION
+    return args.resolution
   }
 
   const envResolution = process.env.NE_RESOLUTION
