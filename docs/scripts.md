@@ -6,7 +6,7 @@
 
 `pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `prepareAtlasData` in `scripts/geodata/prepare.ts` builds the territories with `buildTerritories`, with each name in English, and the metadata with `createBackendConfig` of `scripts/config/adapter.ts`.
 
-The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`. An atlas with extraction rules refuses another resolution than 50m, since its polygon indices count the polygons of the 50m topology.
+The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`. `buildTerritories` refuses another resolution than 50m for an atlas with extraction rules, since its polygon indices count the polygons of the 50m topology.
 
 The script writes three files in `src/public/data/`, a folder that git ignores. With the 50m resolution, these files are:
 
@@ -14,9 +14,9 @@ The script writes three files in `src/public/data/`, a folder that git ignores. 
 - `src/public/data/<atlas>-territories-50m.json`, a GeoJSON feature collection with one feature per territory.
 - `src/public/data/<atlas>-metadata-50m.json`, the description of the atlas and of its territory rules.
 
-The script keeps each Natural Earth feature whose id equals the `id` of a territory, and it also accepts this `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. The script stops with a `TerritoryBuildError` that names each territory without a feature.
+The script gathers the Natural Earth features of each id, padded to three digits, into one geometry, and a territory takes the features whose id equals its `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. The script stops with a `TerritoryBuildError` that names each territory without a feature.
 
-When `territories` is `*`, each Natural Earth id gives one territory with its id padded to three digits, the code `WD-<id>` and the name of the feature, and no rule applies. Features that share an id form one territory, and features without an id are left out and named in a warning. `configs/atlases/world.json` is this case.
+When `territories` is `*`, each Natural Earth id gives one territory with its id padded to three digits, the code `WD-<id>` and the name of its first feature, and no rule applies. Features without an id or a geometry, and ids without a name, are left out and named in a warning. `configs/atlases/world.json` is this case.
 
 The territories follow the order of the rings that d3-geo reads, exterior rings clockwise. `buildTerritories` drops a polygon whose exterior ring has a planar area below 1e-12 square degree, a line of aligned points that d3-geo can read as the whole sphere, unless the territory has no other polygon.
 
@@ -33,7 +33,7 @@ A territory with `extractFrom` takes its polygons in one of two ways:
 
 The script applies the indices first, and the boxes to the polygons that remain. The parent keeps every polygon that no rule takes. The script reads `polygonIndices` on a territory that has `extractFrom`, and ignores it on any other territory.
 
-`duplicateFrom` copies the geometry of a feature into a new territory with its own `id`, `name`, `code` and `iso`. The script runs the duplication after the extraction, so the source can be an extracted territory. The script looks for the source by feature id and by `code`, and stops with a `TerritoryBuildError` when it finds none.
+`duplicateFrom` copies the geometry of a feature into a new territory with its own `id`, `name`, `code` and `iso`. The script runs the duplication after the extraction, so the source can be an extracted territory. The script looks for the source by the `id` and the `code` of a built territory, and stops with a `TerritoryBuildError` when it finds none.
 
 ## Finding the ids and the polygon indices
 
