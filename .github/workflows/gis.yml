@@ -40,7 +40,9 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/gis"
           node packages/cli/dist/cli.js territories world > "$RUNNER_TEMP/gis/world.geojson"
-          for preset in $(jq -r '.atlases[].presets[] | select(.type == "composite-custom") | .id' configs/atlas-registry.json); do
+          presets=$(jq -r '.atlases[].presets[] | select(.type == "composite-custom") | .id' configs/atlas-registry.json)
+          test -n "$presets"
+          for preset in $presets; do
             node packages/cli/dist/cli.js compose "$preset" --out "$RUNNER_TEMP/gis/$preset.geojson"
           done
 
