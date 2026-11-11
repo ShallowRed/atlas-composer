@@ -38,6 +38,6 @@ exports[`prepareAtlasData > prepares the territories and the metadata of usa in 
 exports[`prepareAtlasData > prepares the territories and the metadata of world in 110m 1`] = `
 {
   "metadata": "f3894cc7f0f068032ef1e79850fc55bc2b9c2fa9433d2395a9de360de1408022",
-  "territories": "af40cd7e151e11ae8d704349635bdf04ea7f76be379745338f64fb44eefbd8ba",
+  "territories": "eba84fdbdf1679431c42adf832b496b4a5b7e7bd14e8be0803d264dbb17d87e8",
 }
 `;
