@@ -3,7 +3,7 @@ import type { ProjectionDefinition } from '@/core/projections/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getCategoryIcon } from '@/utils/projection-icons'
-import { getViewModeIcon } from '@/utils/view-mode-icons'
+import { getViewModeIcon, getViewModeLabelKey } from '@/utils/view-modes'
 
 interface Props {
   projection: ProjectionDefinition
@@ -122,21 +122,21 @@ const categoryIcon = computed(() => getCategoryIcon(props.projection.category))
             class="badge badge-soft"
           >
             <i :class="getViewModeIcon('composite-custom')" />
-            {{ t('mode.compositeCustom') }}
+            {{ t(getViewModeLabelKey('composite-custom')) }}
           </span>
           <span
             v-if="projection.capabilities.supportsSplit"
             class="badge badge-soft"
           >
             <i :class="getViewModeIcon('split')" />
-            {{ t('mode.split') }}
+            {{ t(getViewModeLabelKey('split')) }}
           </span>
           <span
             v-if="projection.capabilities.supportsUnified"
             class="badge badge-soft"
           >
             <i :class="getViewModeIcon('unified')" />
-            {{ t('mode.unified') }}
+            {{ t(getViewModeLabelKey('unified')) }}
           </span>
         </div>
       </div>

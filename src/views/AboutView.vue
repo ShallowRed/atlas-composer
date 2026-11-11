@@ -3,16 +3,16 @@ import type { ViewMode } from '@/types'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { useAtlasGroups } from '@/composables/useAtlasGroups'
-import { getViewModeIcon } from '@/utils/view-mode-icons'
+import { getViewModeIcon, getViewModeLabelKey, VIEW_MODES } from '@/utils/view-modes'
 
 const { t } = useI18n()
 
-const viewModes: Array<{ mode: ViewMode, title: string, description: string }> = [
-  { mode: 'built-in-composite', title: 'mode.compositeExisting', description: 'about.features.compositeExisting' },
-  { mode: 'composite-custom', title: 'mode.compositeCustom', description: 'about.features.compositeCustom' },
-  { mode: 'split', title: 'mode.split', description: 'about.features.split' },
-  { mode: 'unified', title: 'mode.unified', description: 'about.features.unified' },
-]
+const viewModeDescriptions: Record<ViewMode, string> = {
+  'composite-custom': 'about.features.compositeCustom',
+  'split': 'about.features.split',
+  'built-in-composite': 'about.features.compositeExisting',
+  'unified': 'about.features.unified',
+}
 
 const { atlasGroups } = useAtlasGroups()
 </script>
@@ -71,20 +71,20 @@ const { atlasGroups } = useAtlasGroups()
       </h2>
       <ul class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
         <li
-          v-for="viewMode in viewModes"
-          :key="viewMode.mode"
+          v-for="mode in VIEW_MODES"
+          :key="mode"
           class="flex gap-3"
         >
           <i
             class="text-lg leading-6 text-primary"
-            :class="getViewModeIcon(viewMode.mode)"
+            :class="getViewModeIcon(mode)"
           />
           <div>
             <h3 class="font-medium">
-              {{ t(viewMode.title) }}
+              {{ t(getViewModeLabelKey(mode)) }}
             </h3>
             <p class="text-sm text-base-content/80">
-              {{ t(viewMode.description) }}
+              {{ t(viewModeDescriptions[mode]) }}
             </p>
           </div>
         </li>

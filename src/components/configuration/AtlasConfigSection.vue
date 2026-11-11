@@ -11,7 +11,7 @@ import { useViewState } from '@/composables/useViewState'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
-import { getViewModeIcon } from '@/utils/view-mode-icons'
+import { getViewModeIcon } from '@/utils/view-modes'
 
 const { viewModeOptions } = useViewMode()
 const { viewOrchestration } = useViewState()
