@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import Ajv from 'ajv'
+import addFormats from 'ajv-formats'
 import { describe, expect, it } from 'vitest'
 import { catalog, getDefaultPreset, getPreset, getPresetMetadata, listAtlases, listRegions } from '../src'
 
@@ -16,6 +18,21 @@ describe('atlas catalog', () => {
       group: atlas.group,
       path: `atlases/${atlas.id}.json`,
     })))
+  })
+
+  const dist = 'packages/preset-library/dist'
+
+  // pnpm check builds the packages before the tests
+  it.skipIf(!existsSync(`${dist}/atlases`))('publishes a configuration of each atlas that passes the published schema', () => {
+    const ajv = new Ajv({ allErrors: true, strict: false })
+    addFormats(ajv)
+    const validate = ajv.compile(readJson(`${dist}/schemas/atlas.schema.json`))
+    const files = readdirSync(`${dist}/atlases`).sort()
+
+    expect(files).toEqual(registry.atlases.map((atlas: { id: string }) => `${atlas.id}.json`).sort())
+    for (const file of files) {
+      expect(validate(readJson(`${dist}/atlases/${file}`)), `${file}: ${ajv.errorsText(validate.errors)}`).toBe(true)
+    }
   })
 
   it('lists the atlases in alphabetical order and in the order of the registry', () => {
