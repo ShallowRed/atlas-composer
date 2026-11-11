@@ -1,6 +1,6 @@
 # Development
 
-This document describes the tests of the format and the rendering, the publication of the packages, the deployment of the site and the debug logs. [AGENTS.md](../AGENTS.md) describes the toolchain, `pnpm check` and the boundaries of the code.
+This document describes the tests of the format and the rendering, the check of the composed geometries, the publication of the packages, the deployment of the site and the debug logs. [AGENTS.md](../AGENTS.md) describes the toolchain, `pnpm check` and the boundaries of the code.
 
 ## Tests of the format and the rendering
 
@@ -33,6 +33,17 @@ UPDATE_VIEW_RENDERING=1 pnpm exec vitest run src/__tests__/view-rendering.spec.t
 `scripts/__tests__/prepare-geodata.spec.ts` prepares each atlas from `world-atlas` and compares a digest of its territories and its metadata, keys sorted, features ordered by id and the creation date left out, with the snapshot of `scripts/__tests__/__snapshots__/`. After a change to the preparation that changes these files, update the snapshot with `pnpm exec vitest run scripts -u`; the diff of the snapshot names the atlases that change.
 
 `src/__tests__/documentation.spec.ts` compares the documents named in its `DOCUMENTS` constant with the repository: relative links, paths, identifiers and `pnpm` commands.
+
+## Check of the composed geometries
+
+`.github/workflows/gis.yml` runs on each pull request and on each push to `main`. It builds the packages, then writes with the `atlas-composer` command of `packages/cli` the territories of the `world` atlas and the composed geometries of each preset of type `composite-custom` of `configs/atlas-registry.json`, at the default resolution, `50m`. `scripts/check-gis.sh` then reads each file with two tools of the Ubuntu packages `gdal-bin` and `tippecanoe`. `ogrinfo` counts the geometries that GEOS reads as invalid, and the script fails on a count other than 0. `tippecanoe` tiles the file into a `.pmtiles` file beside it, and the script fails on a warning.
+
+To run the check on a machine that has both tools, give the files to the script:
+
+```bash
+node packages/cli/dist/cli.js territories world > world.geojson
+scripts/check-gis.sh world.geojson
+```
 
 ## Publication of the packages
 
