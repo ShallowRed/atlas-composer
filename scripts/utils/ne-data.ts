@@ -1,4 +1,6 @@
 import type { Topology } from 'topojson-specification'
+import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { logger } from '#scripts/utils/logger'
 
 const RESOLUTIONS = {
@@ -11,38 +13,19 @@ export type Resolution = typeof RESOLUTIONS[keyof typeof RESOLUTIONS]
 
 export const DEFAULT_RESOLUTION: Resolution = RESOLUTIONS.MEDIUM
 
-function getDataSourceUrl(resolution: Resolution = DEFAULT_RESOLUTION): string {
-  if (!Object.values(RESOLUTIONS).includes(resolution)) {
-    logger.warning(`Invalid resolution '${resolution}', using '${DEFAULT_RESOLUTION}'`)
-    resolution = DEFAULT_RESOLUTION
-  }
-
-  return `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${resolution}.json`
+// Literal calls of require.resolve, which knip reads as uses of world-atlas
+const require = createRequire(import.meta.url)
+const TOPOLOGY_PATHS: Record<Resolution, string> = {
+  '10m': require.resolve('world-atlas/countries-10m.json'),
+  '50m': require.resolve('world-atlas/countries-50m.json'),
+  '110m': require.resolve('world-atlas/countries-110m.json'),
 }
 
-export async function fetchWorldData(resolution: Resolution = DEFAULT_RESOLUTION): Promise<Topology> {
-  const url = getDataSourceUrl(resolution)
-
-  try {
-    logger.info(`Fetching Natural Earth data (${resolution})...`)
-    logger.dim(`Source: ${url}`)
-
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json() as Topology
-    logger.success(`Loaded ${Object.keys(data.objects || {}).length} object(s) from Natural Earth`)
-
-    return data
-  }
-  catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    logger.error(`Failed to fetch Natural Earth data: ${message}`)
-    throw error
-  }
+export async function readWorldData(resolution: Resolution = DEFAULT_RESOLUTION): Promise<Topology> {
+  const path = TOPOLOGY_PATHS[resolution]
+  logger.info(`Reading Natural Earth data (${resolution})...`)
+  logger.dim(`Source: ${path}`)
+  return JSON.parse(await readFile(path, 'utf8')) as Topology
 }
 
 export function isValidResolution(resolution: string): resolution is Resolution {

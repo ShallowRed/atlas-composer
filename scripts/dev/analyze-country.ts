@@ -21,7 +21,7 @@
 import process from 'node:process'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
-import { fetchWorldData } from '#scripts/utils/ne-data'
+import { readWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
 interface PolygonMetadata {
@@ -153,7 +153,7 @@ async function analyzeCountry(countryId: string, resolution: string): Promise<vo
 
   let worldData
   try {
-    worldData = await fetchWorldData(resolution as any)
+    worldData = await readWorldData(resolution as any)
   }
   catch {
     logger.error('Failed to fetch world data')

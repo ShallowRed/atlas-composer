@@ -1,3 +1,4 @@
+import type { Resolution } from '#scripts/utils/ne-data'
 import process from 'node:process'
 import { logger } from '#scripts/utils/logger'
 import { DEFAULT_RESOLUTION, isValidResolution } from '#scripts/utils/ne-data'
@@ -49,9 +50,13 @@ export function parseArgs(): ParsedArgs {
   return parsed
 }
 
-export function getResolution(args: ParsedArgs): string {
+export function getResolution(args: ParsedArgs): Resolution {
   if (args.resolution) {
-    return args.resolution
+    if (isValidResolution(args.resolution)) {
+      return args.resolution
+    }
+    logger.warning(`Invalid resolution '${args.resolution}', using '${DEFAULT_RESOLUTION}'`)
+    return DEFAULT_RESOLUTION
   }
 
   const envResolution = process.env.NE_RESOLUTION

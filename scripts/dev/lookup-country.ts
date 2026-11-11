@@ -9,7 +9,7 @@
 import process from 'node:process'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
-import { fetchWorldData } from '#scripts/utils/ne-data'
+import { readWorldData } from '#scripts/utils/ne-data'
 import * as topojson from 'topojson-client'
 
 interface Bounds {
@@ -183,7 +183,7 @@ function describeCountry(country: GeoJSONFeature, resolution: string, index: num
 async function lookupCountry(searchTerm: string, resolution: string): Promise<void> {
   logger.section(`Looking up "${searchTerm}"`)
 
-  const worldData = await fetchWorldData(resolution as any)
+  const worldData = await readWorldData(resolution as any)
   const countriesObject = worldData.objects.countries
   if (!countriesObject) {
     throw new Error('No countries object found in world data')
