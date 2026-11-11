@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prepareAtlasData > prepares the territories and the metadata of europe in 50m 1`] = `
+{
+  "metadata": "80273d190f172f8c4262045785e0f63358cc880af39f62c324212b9947e09d42",
+  "territories": "9fbe27de0d88488de05d9852b417d3d8446b237a03d7477da903ed60f4d7810d",
+}
+`;
+
+exports[`prepareAtlasData > prepares the territories and the metadata of france in 50m 1`] = `
+{
+  "metadata": "60340eaa71db53d1184534952d0aace26cac537af6c493f8121d96a626aaed4b",
+  "territories": "da3caef2dc6430f650a68f95c0047eb5a1cbe90358e86f241853f762b9b8fc19",
+}
+`;
+
+exports[`prepareAtlasData > prepares the territories and the metadata of portugal in 50m 1`] = `
+{
+  "metadata": "d069db002f8d9f04aa245196becd141c4e3d35908c198a44093e790ccdf157a7",
+  "territories": "8498c33a584370c2d5b2b614c63ee9eb1f45ce9911a9c0a0f82d45575d8ae74a",
+}
+`;
+
+exports[`prepareAtlasData > prepares the territories and the metadata of spain in 50m 1`] = `
+{
+  "metadata": "7081e609afde5cec33dc8fad1655bbf14ec896dabc79b85d88b96a46cc8f93de",
+  "territories": "06ca1a1c08321059b6062f7af7662f4a994abac16cb44c4d7751d1afccf14d72",
+}
+`;
+
+exports[`prepareAtlasData > prepares the territories and the metadata of usa in 50m 1`] = `
+{
+  "metadata": "d677c3fbe2282203b16681ba82d96f1fc39fd0318979e6a48d803dc6f128157d",
+  "territories": "28085832f879a9caf9fb094025ef5f49127bfb61de345191b5af0f1a99cbdbb2",
+}
+`;
+
+exports[`prepareAtlasData > prepares the territories and the metadata of world in 110m 1`] = `
+{
+  "metadata": "f3894cc7f0f068032ef1e79850fc55bc2b9c2fa9433d2395a9de360de1408022",
+  "territories": "af40cd7e151e11ae8d704349635bdf04ea7f76be379745338f64fb44eefbd8ba",
+}
+`;
