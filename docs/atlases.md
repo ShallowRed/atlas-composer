@@ -18,6 +18,8 @@ A configuration names the territories, their bounds and centers, the files of `s
 
 `loadAtlasConfig` in `src/core/atlases/loader.ts` converts the JSON file to the `AtlasConfig` type of the application.
 
+`@atlas-composer/preset-library` publishes each configuration at `@atlas-composer/preset-library/atlases/<atlas>`, with `configs/schemas/atlas.schema.json`, and builds its territories with `buildTerritories`, which the preparation of the data reads too ([scripts.md](scripts.md)).
+
 ## Projection preferences
 
 `projectionPreferences` holds two optional fields, each with definition ids of `src/core/projections/definitions/`.
