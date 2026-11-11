@@ -30,6 +30,8 @@ The variable `UPDATE_VIEW_RENDERING=1` writes this file from the current renderi
 UPDATE_VIEW_RENDERING=1 pnpm exec vitest run src/__tests__/view-rendering.spec.ts
 ```
 
+`scripts/__tests__/prepare-geodata.spec.ts` prepares each atlas from `world-atlas` and compares a digest of its territories and its metadata, keys sorted, features ordered by id and the creation date left out, with the snapshot of `scripts/__tests__/__snapshots__/`. A change to the preparation that changes these files updates the snapshot with `pnpm exec vitest run scripts -u`, and the diff of the snapshot names the atlases that change.
+
 `src/__tests__/documentation.spec.ts` compares the documents named in its `DOCUMENTS` constant with the repository: relative links, paths, identifiers and `pnpm` commands.
 
 ## Publication of the packages

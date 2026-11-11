@@ -1,37 +1,39 @@
 # Geographic data scripts
 
-`scripts/prepare-geodata.ts` builds the geographic files of an atlas from Natural Earth, and `scripts/validate-configs.ts` compares the configurations with these files. `scripts/config/` holds the code they share to read the registry and the atlas configurations. Each script prints its arguments with `--help`, and `package.json` gives the commands.
+`scripts/prepare-geodata.ts` builds the geographic files of an atlas from Natural Earth, and `scripts/validate-configs.ts` compares the configurations with these files. The territories come from `buildTerritories` of `packages/preset-library/src/territories.ts`, which the package `@atlas-composer/preset-library` publishes too. `scripts/config/` holds the code they share to read the registry and the atlas configurations. Each script prints its arguments with `--help`, and `package.json` gives the commands.
 
 ## Preparing the data of an atlas
 
-`pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `createBackendConfig` in `scripts/config/adapter.ts` then reduces the configuration to the territories and their rules, with each name in English.
+`pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `prepareAtlasData` in `scripts/geodata/prepare.ts` builds the territories with `buildTerritories`, with each name in English, and the metadata with `createBackendConfig` of `scripts/config/adapter.ts`.
 
-The script downloads the Natural Earth topology of the `world-atlas` package from jsDelivr at each run. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`.
+The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`. An atlas with extraction rules refuses another resolution than 50m, since its polygon indices count the polygons of the 50m topology.
 
 The script writes three files in `src/public/data/`, a folder that git ignores. With the 50m resolution, these files are:
 
-- `src/public/data/world-countries-50m.json`, the downloaded topology.
+- `src/public/data/world-countries-50m.json`, the topology that the script reads.
 - `src/public/data/<atlas>-territories-50m.json`, a GeoJSON feature collection with one feature per territory.
 - `src/public/data/<atlas>-metadata-50m.json`, the description of the atlas and of its territory rules.
 
-The script keeps each Natural Earth feature whose id equals the `id` of a territory, and it also accepts this `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. A territory whose `id` matches no feature and has no rule below is missing from the output, and the validation reports it.
+The script keeps each Natural Earth feature whose id equals the `id` of a territory, and it also accepts this `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. The script stops with a `TerritoryBuildError` that names each territory without a feature.
 
-When `territories` is `*`, the script keeps every feature, pads its id to three digits and applies no rule. `configs/atlases/world.json` is this case.
+When `territories` is `*`, each Natural Earth id gives one territory with its id padded to three digits, the code `WD-<id>` and the name of the feature, and no rule applies. Features that share an id form one territory, and features without an id are left out and named in a warning. `configs/atlases/world.json` is this case.
+
+The territories follow the order of the rings that d3-geo reads, exterior rings clockwise. `buildTerritories` drops a polygon whose exterior ring has a planar area below 1e-12 square degree, a line of aligned points that d3-geo can read as the whole sphere, unless the territory has no other polygon.
 
 ## Territory extraction rules
 
 The `extraction` field of a territory describes how the script cuts the territory out of a Natural Earth feature. `configs/schemas/atlas.schema.json` declares `extractFrom`, `polygonIndices` and `duplicateFrom`. `configs/atlases/portugal.json` has examples of indices, and `configs/atlases/france.json` an example of `duplicateFrom`.
 
-`extractFrom` names the parent, a territory of the same atlas whose `id` is a Natural Earth id. The adapter parses this value as an integer, so write the `id` of a parent without leading zeros. The parent feature has a `MultiPolygon` geometry, and the script leaves any other geometry whole.
+`extractFrom` names the parent, a territory of the same atlas, by its `id`. The parent feature has a `MultiPolygon` geometry, and the script leaves any other geometry whole.
 
 A territory with `extractFrom` takes its polygons in one of two ways:
 
-- With `polygonIndices`, the territory takes the polygons at these positions of the parent, counted from zero. The script logs a warning for an index out of range.
-- Without `polygonIndices`, the territory takes each polygon that fits inside its `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it.
+- With `polygonIndices`, the territory takes the polygons at these positions of the parent, counted from zero. An index out of range stops the script with a `TerritoryBuildError`.
+- Without `polygonIndices`, the territory takes each polygon that fits inside its `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it, in the order of `territories`.
 
 The script applies the indices first, and the boxes to the polygons that remain. The parent keeps every polygon that no rule takes. The script reads `polygonIndices` on a territory that has `extractFrom`, and ignores it on any other territory.
 
-`duplicateFrom` copies the geometry of a feature into a new territory with its own `id`, `name`, `code` and `iso`. The script runs the duplication after the extraction, so the source can be an extracted territory. The script looks for the source by feature id and by `code`, and logs a warning when it finds none.
+`duplicateFrom` copies the geometry of a feature into a new territory with its own `id`, `name`, `code` and `iso`. The script runs the duplication after the extraction, so the source can be an extracted territory. The script looks for the source by feature id and by `code`, and stops with a `TerritoryBuildError` when it finds none.
 
 ## Finding the ids and the polygon indices
 
