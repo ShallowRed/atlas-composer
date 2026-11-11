@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAvailableViewModes } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
+import { getViewModeLabelKey, VIEW_MODES } from '@/utils/view-modes'
 
 export function useViewMode() {
   const { t } = useI18n()
@@ -15,14 +16,9 @@ export function useViewMode() {
 
     const supportedModes = getAvailableViewModes(atlasConfig.id as AtlasId)
 
-    const allOptions = [
-      { value: 'composite-custom', label: t('mode.compositeCustom'), translated: true },
-      { value: 'split', label: t('mode.split'), translated: true },
-      { value: 'built-in-composite', label: t('mode.compositeExisting'), translated: true },
-      { value: 'unified', label: t('mode.unified'), translated: true },
-    ]
-
-    return allOptions.filter(option => supportedModes.includes(option.value as any))
+    return VIEW_MODES
+      .filter(mode => supportedModes.includes(mode))
+      .map(mode => ({ value: mode, label: t(getViewModeLabelKey(mode)), translated: true }))
   })
 
   return {
