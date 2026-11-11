@@ -40,6 +40,7 @@ The packages of `packages/` are published on npm:
 - [`@atlas-composer/projection-loader`](packages/projection-loader/) reads an exported file and returns a d3 projection.
 - [`@atlas-composer/preset-library`](packages/preset-library/) publishes the presets of the editor, such as `france-standard`, and a catalog that describes them.
 - [`@atlas-composer/specification`](packages/specification/) defines the format of the exported file, with a JSON Schema, TypeScript types and a validation function.
+- [`@atlas-composer/cli`](packages/cli/) writes the territories of an atlas, on the globe or placed in a composite projection, as GeoJSON for GIS and tile tools.
 - [`@atlas-composer/projection-core`](packages/projection-core/) holds the functions that combine several d3 projections into one composite projection.
 
 ## Documentation

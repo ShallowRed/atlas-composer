@@ -303,6 +303,49 @@ importers:
         specifier: 2.0.2
         version: 2.0.2
 
+  packages/cli:
+    dependencies:
+      '@atlas-composer/preset-library':
+        specifier: workspace:^
+        version: link:../preset-library
+      '@atlas-composer/projection-loader':
+        specifier: workspace:^
+        version: link:../projection-loader
+      d3-geo:
+        specifier: ^3.1.1
+        version: 3.1.1
+      d3-geo-projection:
+        specifier: ^4.0.0
+        version: 4.0.0
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
+      world-atlas:
+        specifier: 2.0.2
+        version: 2.0.2
+    devDependencies:
+      '@atlas-composer/specification':
+        specifier: workspace:*
+        version: link:../specification
+      '@types/d3-geo':
+        specifier: ^3.1.0
+        version: 3.1.0
+      '@types/node':
+        specifier: ^24.6.2
+        version: 24.6.2
+      '@types/topojson-client':
+        specifier: ^3.1.5
+        version: 3.1.5
+      '@types/topojson-specification':
+        specifier: ^1.0.5
+        version: 1.0.5
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.6)(supports-color@8.1.1)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+
   packages/preset-library:
     devDependencies:
       '@atlas-composer/specification':
@@ -2626,6 +2669,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globals@14.0.0:
@@ -7759,7 +7803,7 @@ snapshots:
       source-map: 0.8.0-beta.0
       sucrase: 3.35.0
       tinyexec: 0.3.2
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.17
       tree-kill: 1.2.2
     optionalDependencies:
       postcss: 8.5.6

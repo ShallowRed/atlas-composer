@@ -1,0 +1,68 @@
+{
+  "name": "@atlas-composer/cli",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Command that writes the territories of an Atlas Composer atlas and the composed geometries of a composite projection as GeoJSON",
+  "author": "Lucas Poulain (ShallowRed)",
+  "license": "MIT",
+  "homepage": "https://github.com/ShallowRed/atlas-composer/tree/main/packages/cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShallowRed/atlas-composer.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/ShallowRed/atlas-composer/issues"
+  },
+  "keywords": [
+    "atlas-composer",
+    "cartography",
+    "cli",
+    "composite-projection",
+    "geojson",
+    "gis",
+    "natural-earth"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "atlas-composer": "./dist/cli.js"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@atlas-composer/preset-library": "workspace:^",
+    "@atlas-composer/projection-loader": "workspace:^",
+    "d3-geo": "^3.1.1",
+    "d3-geo-projection": "^4.0.0",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@atlas-composer/specification": "workspace:*",
+    "@types/d3-geo": "^3.1.0",
+    "@types/node": "^24.6.2",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "tsup": "^8.0.0",
+    "typescript": "~5.9.3"
+  }
+}

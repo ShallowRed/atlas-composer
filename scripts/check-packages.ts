@@ -12,8 +12,8 @@ interface PackedPackage {
 type ExportTarget = string | { import?: string, types?: string }
 
 // Installs each packed package alone in an empty project, as a user does from npm,
-// type-checks an import of each typed entry with skipLibCheck off, and imports in Node each typed entry,
-// and as JSON each file of the tarball that an untyped entry serves
+// type-checks an import of each typed entry with skipLibCheck off, imports in Node each typed entry,
+// as JSON each file of the tarball that an untyped entry serves, and runs each command of `bin` with --help
 const root = resolve(import.meta.dirname, '..')
 const workspace = await mkdtemp(join(tmpdir(), 'atlas-composer-packages-'))
 
@@ -46,7 +46,7 @@ try {
   const overrides = packed.map(({ name, filename }) => `  '${name}': 'file:${filename}'\n`).join('')
 
   for (const [index, { name, filename }] of packed.entries()) {
-    const { exports } = JSON.parse(execFileSync('tar', ['-xOzf', filename, 'package/package.json'], { encoding: 'utf8' }))
+    const { exports, bin = {} } = JSON.parse(execFileSync('tar', ['-xOzf', filename, 'package/package.json'], { encoding: 'utf8' }))
     const typedEntries = Object.keys(exports).filter(entry => exports[entry].types)
     const specifiers = typedEntries.map(entry => `${name}${entry.slice(1)}`)
     const files = execFileSync('tar', ['-tzf', filename], { encoding: 'utf8' })
@@ -85,6 +85,10 @@ try {
     logger.success(`${name} (${typedEntries.join(', ')}): types check and entries import when installed alone`)
     if (jsonSpecifiers.length > 0)
       logger.success(`${name}: ${jsonSpecifiers.length} JSON files import by their public path`)
+    for (const command of Object.keys(bin)) {
+      execFileSync(join(project, 'node_modules/.bin', command), ['--help'], { cwd: project, stdio: 'ignore' })
+      logger.success(`${name}: ${command} --help runs`)
+    }
   }
 }
 finally {
