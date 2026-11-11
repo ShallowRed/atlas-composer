@@ -191,9 +191,75 @@
         }
       ],
       "behavior": {
-        "collectionSets": {
-
+        "collectionSets": {}
+      }
+    },
+    {
+      "id": "spain",
+      "name": {
+        "en": "Spain",
+        "fr": "Espagne"
+      },
+      "group": "country",
+      "sortOrder": 25,
+      "configPath": "./atlases/spain.json",
+      "presets": [
+        {
+          "id": "spain-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/spain/spain-standard.json",
+          "description": {
+            "en": "Custom configuration for peninsular Spain, the Balearic Islands and the Canary Islands",
+            "fr": "Configuration personnalisée pour l'Espagne péninsulaire, les îles Baléares et les îles Canaries"
+          }
+        },
+        {
+          "id": "spain-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/spain/spain-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Spain",
+            "fr": "Projection Natural Earth centrée sur l'Espagne"
+          }
+        },
+        {
+          "id": "spain-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/spain/spain-split.json",
+          "description": {
+            "en": "Same conic projection for all territories",
+            "fr": "Même projection conique pour tous les territoires"
+          }
+        },
+        {
+          "id": "spain-builtin",
+          "name": {
+            "en": "d3 composite projection",
+            "fr": "Projection composite d3"
+          },
+          "type": "built-in-composite",
+          "configPath": "./presets/spain/spain-builtin.json",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
         }
+      ],
+      "behavior": {
+        "collectionSets": {}
       }
     },
     {

@@ -45,6 +45,7 @@ jobs:
         run: |
           pnpm run geodata:prepare france
           pnpm run geodata:prepare portugal
+          pnpm run geodata:prepare spain
           pnpm run geodata:prepare europe
           pnpm run geodata:prepare usa
           pnpm run geodata:prepare world --resolution=110m

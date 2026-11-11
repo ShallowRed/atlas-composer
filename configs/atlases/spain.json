@@ -1,0 +1,124 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "spain",
+  "name": {
+    "en": "Spain",
+    "fr": "Espagne"
+  },
+  "description": {
+    "en": "Spain and the Canary Islands",
+    "fr": "Espagne et îles Canaries"
+  },
+  "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "conic-conformal-spain"
+  },
+  "dataSources": {
+    "territories": "spain-territories-50m.json",
+    "metadata": "spain-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      724
+    ],
+    "iso3": "ESP",
+    "region": "Europe"
+  },
+  "territories": [
+    {
+      "id": "724",
+      "code": "ES-CONT",
+      "name": {
+        "en": "Peninsular Spain and Balearic Islands",
+        "fr": "Espagne péninsulaire et îles Baléares"
+      },
+      "iso": "ESP",
+      "bounds": [
+        [
+          -9.4,
+          35.9
+        ],
+        [
+          4.4,
+          43.8
+        ]
+      ],
+      "center": [
+        -3.7,
+        40.2
+      ]
+    },
+    {
+      "id": "724-35",
+      "code": "ES-CN",
+      "name": {
+        "en": "Canary Islands",
+        "fr": "Îles Canaries"
+      },
+      "iso": "ESP",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -18.2,
+          27.6
+        ],
+        [
+          -13.4,
+          29.3
+        ]
+      ],
+      "center": [
+        -15.6,
+        28.4
+      ],
+      "extraction": {
+        "extractFrom": "724",
+        "polygonIndices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Peninsular Spain and Balearic Islands only",
+            "fr": "Espagne péninsulaire et Baléares uniquement"
+          },
+          "territories": [
+            "ES-CONT"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All autonomous communities",
+            "fr": "Toutes les communautés autonomes"
+          },
+          "territories": [
+            "ES-CONT",
+            "ES-CN"
+          ]
+        }
+      ]
+    }
+  }
+}

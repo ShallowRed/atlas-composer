@@ -1,0 +1,11 @@
+{
+  "id": "spain-builtin",
+  "name": "España - Proyección compuesta d3",
+  "description": "Proyección compuesta predefinida de d3-composite-projections",
+  "atlasId": "spain",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "conic-conformal-spain",
+    "globalScale": 1.0
+  }
+}
