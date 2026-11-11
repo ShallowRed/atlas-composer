@@ -424,6 +424,37 @@ describe('projection-loader', () => {
     })
   })
 
+  describe('createSubProjections', () => {
+    const options = { scale: mockConfig.referenceScale, translate: [480, 250] as [number, number] }
+
+    it('should return the sub-projection of each territory by code', () => {
+      const subProjections = loader.createSubProjections(mockConfig, options)
+
+      expect([...subProjections.keys()]).toEqual(['FR-MET', 'FR-GP'])
+    })
+
+    it('should project a point as the composite projection at the same scale and translate', () => {
+      const subProjections = loader.createSubProjections(mockConfig, options)
+      const composite = loader.load(mockConfig, { width: 960, height: 500 })
+      const pointeAPitre: [number, number] = [-61.53, 16.24]
+
+      expect(composite.scale()).toBe(options.scale)
+      expect(subProjections.get('FR-GP')!(pointeAPitre)).toEqual(composite(pointeAPitre))
+    })
+
+    it('should clip each sub-projection around the translate of its territory', () => {
+      const subProjections = loader.createSubProjections(mockConfig, options)
+
+      const [[x0, y0], [x1, y1]] = subProjections.get('FR-GP')!.clipExtent!()!
+
+      expect([x0, y0, x1, y1].map(Math.round)).toEqual([480 - 324 - 54, 250 - 38 - 48, 480 - 324 + 55, 250 - 38 + 38])
+    })
+
+    it('should refuse an invalid configuration', () => {
+      expect(() => loader.createSubProjections({ ...mockConfig, territories: [] }, options)).toThrow(ConfigValidationError)
+    })
+  })
+
   describe('pixelClipExtent support', () => {
     it('should handle pixelClipExtent format', () => {
       const configWithPixelClipExtent: CompositeProjectionConfig = {
