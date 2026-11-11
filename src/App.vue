@@ -13,6 +13,8 @@ const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { errorMessage } = useErrorMessage()
 
+uiStore.initializeTheme()
+
 const fillsViewport = computed(() => route.meta.fillViewport === true)
 
 const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(geoDataStore.error))
@@ -24,7 +26,7 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
     :class="{ 'app-shell': fillsViewport }"
   >
     <AppHeader class="h-[4.5rem]" />
-    <main>
+    <main :class="{ 'page-column': !fillsViewport }">
       <RouterView class="flex-1" />
     </main>
     <AppFooter v-if="!fillsViewport" />
@@ -50,7 +52,7 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
 <style scoped>
 @reference "tailwindcss";
 .body__inner main {
-  @apply min-h-[calc(100vh-4rem)] container mx-auto py-8 flex flex-col;
+  @apply min-h-[calc(100vh-4rem)] py-8 flex flex-col;
 }
 
 .body__inner.app-shell {

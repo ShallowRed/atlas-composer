@@ -1,96 +1,134 @@
 <script setup lang="ts">
+import type { ViewMode } from '@/types'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-
-import CardContainer from '@/components/ui/primitives/CardContainer.vue'
+import { useAtlasGroups } from '@/composables/useAtlasGroups'
+import { getViewModeIcon } from '@/utils/view-mode-icons'
 
 const { t } = useI18n()
+
+const viewModes: Array<{ mode: ViewMode, title: string, description: string }> = [
+  { mode: 'built-in-composite', title: 'mode.compositeExisting', description: 'about.features.compositeExisting' },
+  { mode: 'composite-custom', title: 'mode.compositeCustom', description: 'about.features.compositeCustom' },
+  { mode: 'split', title: 'mode.split', description: 'about.features.split' },
+  { mode: 'unified', title: 'mode.unified', description: 'about.features.unified' },
+]
+
+const { atlasGroups } = useAtlasGroups()
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <div class="hero">
-      <div class="hero-content text-center">
-        <div class="max-w-2xl">
-          <h1 class="text-4xl font-bold mb-4">
-            {{ t('about.title') }}
-          </h1>
-          <p class="text-lg">
-            {{ t('about.intro') }}
-          </p>
-        </div>
+  <div class="flex flex-col gap-12">
+    <header class="flex flex-col gap-4">
+      <h1 class="text-3xl font-bold">
+        {{ t('about.title') }}
+      </h1>
+      <p class="text-lg text-base-content/80">
+        {{ t('about.intro') }}
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <RouterLink
+          to="/"
+          class="btn btn-primary"
+        >
+          {{ t('nav.openApp') }}
+          <i class="ri-arrow-right-line" />
+        </RouterLink>
+        <a
+          href="https://github.com/shallowred/atlas-composer"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline"
+        >
+          <i class="ri-github-line" />
+          GitHub
+        </a>
       </div>
-    </div>
+    </header>
 
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <CardContainer
-        :title="t('about.why.title')"
-        icon="ri-lightbulb-line"
-      >
-        <div class="prose max-w-none text-base">
-          <p>
-            {{ t('about.why.description') }}
-          </p>
-          <a
-            href="https://observablehq.com/@shallowred/atlas-composer"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="link link-primary gap-2 justify-start block mt-2"
-          >
-            <i class="ri-line-chart-line text-lg" />
-            {{ t('export.observableNotebook') }}
-            <i class="ri-external-link-line ml-auto" />
-          </a>
-        </div>
-      </CardContainer>
-
-      <CardContainer
-        :title="t('about.features.title')"
-        icon="ri-list-check"
-      >
-        <div class="prose max-w-none">
-          <ul class="list-disc text-base pl-6 space-y-2">
-            <li>{{ t('about.features.compositeExisting') }}</li>
-            <li>{{ t('about.features.compositeCustom') }}</li>
-            <li><strong>{{ t('about.features.export') }}</strong></li>
-            <li>{{ t('about.features.split') }}</li>
-            <li>{{ t('about.features.unified') }}</li>
-          </ul>
-        </div>
-      </CardContainer>
-
-      <CardContainer
-        :title="t('about.atlases.title')"
-        icon="ri-global-line"
-      >
-        <div class="prose max-w-none">
-          <ul class="list-disc pl-6 space-y-2 text-base">
-            <li>{{ t('about.atlases.france') }}</li>
-            <li>{{ t('about.atlases.portugal') }}</li>
-            <li>{{ t('about.atlases.europe') }}</li>
-            <li>{{ t('about.atlases.usa') }}</li>
-          </ul>
-        </div>
-      </CardContainer>
-    </div>
-
-    <div class="join py-6 mx-auto">
-      <RouterLink
-        to="/"
-        class="btn btn-wide btn-primary btn-lg w-48 join-item"
-      >
-        {{ t('about.cta') }}
-        <i class="ri-flask-line" />
-      </RouterLink>
+    <section class="flex flex-col gap-3">
+      <h2 class="text-xl font-semibold">
+        {{ t('about.why.title') }}
+      </h2>
+      <p>
+        {{ t('about.why.description') }}
+      </p>
       <a
-        href="https://github.com/shallowred/atlas-composer"
+        href="https://observablehq.com/@shallowred/atlas-composer"
         target="_blank"
         rel="noopener noreferrer"
-        class="btn btn-wide btn-primary btn-outline btn-lg w-48 join-item"
+        class="link link-primary inline-flex items-center gap-2 self-start"
       >
-        GitHub
-        <i class="ri-github-line" />
+        <i class="ri-line-chart-line" />
+        {{ t('export.observableNotebook') }}
+        <i class="ri-external-link-line" />
       </a>
-    </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">
+        {{ t('about.features.title') }}
+      </h2>
+      <ul class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+        <li
+          v-for="viewMode in viewModes"
+          :key="viewMode.mode"
+          class="flex gap-3"
+        >
+          <i
+            class="text-lg leading-6 text-primary"
+            :class="getViewModeIcon(viewMode.mode)"
+          />
+          <div>
+            <h3 class="font-medium">
+              {{ t(viewMode.title) }}
+            </h3>
+            <p class="text-sm text-base-content/80">
+              {{ t(viewMode.description) }}
+            </p>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <i class="ri-download-line text-lg leading-6 text-primary" />
+          <div>
+            <h3 class="font-medium">
+              {{ t('about.features.exportTitle') }}
+            </h3>
+            <p class="text-sm text-base-content/80">
+              {{ t('about.features.export') }}
+            </p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">
+        {{ t('about.atlases.title') }}
+      </h2>
+      <div
+        v-for="group in atlasGroups"
+        :key="group.id"
+        class="flex flex-col gap-2"
+      >
+        <h3 class="text-sm font-medium text-base-content/70">
+          {{ group.label }}
+        </h3>
+        <ul class="flex flex-wrap gap-2">
+          <li
+            v-for="atlas in group.options"
+            :key="atlas.value"
+          >
+            <RouterLink
+              :to="{ path: '/', query: { atlas: atlas.value } }"
+              class="btn btn-sm"
+            >
+              <span aria-hidden="true">{{ atlas.icon }}</span>
+              {{ atlas.label }}
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+    </section>
   </div>
 </template>
