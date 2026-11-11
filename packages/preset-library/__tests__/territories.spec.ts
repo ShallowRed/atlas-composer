@@ -80,6 +80,38 @@ describe('buildTerritories', () => {
     }
   })
 
+  it('leaves out of the world a feature without id and an id without name, and names them', () => {
+    const feature = (id: string | undefined, name: string, lon: number): SourceFeature => ({
+      type: 'Feature',
+      ...(id !== undefined && { id }),
+      properties: { name },
+      geometry: { type: 'Polygon', coordinates: [square(lon, 0, false)] },
+    })
+    const source = createNaturalEarthSource([feature(undefined, 'Kosovo', 0), feature('999', '', 2), feature('998', '', 4), feature('998', 'Named', 6)], '110m')
+
+    const { collection, skippedFeatures } = buildTerritories(atlasConfig('world'), source)
+
+    expect(collection.features.map(territory => [territory.properties.code, territory.properties.name])).toEqual([['WD-998', 'Named']])
+    expect(skippedFeatures).toEqual(['Kosovo', 'WD-999'])
+  })
+
+  it('names the polygon indices out of range', () => {
+    const config = {
+      territories: [
+        { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]], center: [5, 5] },
+        { id: '1-I', code: 'ISLAND', name: 'Island', iso: 'MAI', bounds: [[20, 20], [22, 22]], center: [21, 21], extraction: { extractFrom: '1', polygonIndices: [5] } },
+      ],
+    } as Pick<JSONAtlasConfig, 'territories'>
+    const source = createNaturalEarthSource([{
+      type: 'Feature',
+      id: '001',
+      properties: { name: 'Main' },
+      geometry: { type: 'MultiPolygon', coordinates: [[square(1, 1, false)], [square(3, 3, false)]] },
+    }], '50m')
+
+    expect(issuesOf(() => buildTerritories(config, source))).toEqual({ outOfRangeIndices: [{ code: 'ISLAND', index: 5 }] })
+  })
+
   it('gives an atlas territory every feature of its Natural Earth id', () => {
     const config = {
       territories: [{ id: '36', code: 'AU', name: 'Australia', iso: 'AUS', bounds: [[112, -44], [154, -10]], center: [134, -25] }],

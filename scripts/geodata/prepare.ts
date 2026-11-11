@@ -53,7 +53,7 @@ export async function prepareAtlasData(
   const { features } = topojson.feature(topology, countries) as unknown as { features: SourceFeature[] }
   const { collection, skippedFeatures } = buildTerritories(unified, createNaturalEarthSource(features, options.resolution))
   if (skippedFeatures.length > 0) {
-    logger.warning(`  Skipped ${skippedFeatures.length} features without id: ${skippedFeatures.join(', ')}`)
+    logger.warning(`  Skipped ${skippedFeatures.length} features without id or name: ${skippedFeatures.join(', ')}`)
   }
   logger.success(`  Total territories: ${collection.features.length}`)
   return {
