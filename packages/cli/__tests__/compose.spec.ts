@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { getPreset, listPresets } from '@atlas-composer/preset-library'
+import { getPreset, listCompositePresets } from '@atlas-composer/preset-library'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { registerAllD3Projections } from '@atlas-composer/projection-loader/helpers'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -84,7 +84,7 @@ function expectRfc7946(collection: ComposedTerritories['collection']) {
 }
 
 describe('atlas-composer compose', () => {
-  const presets = listPresets().map(preset => preset.id)
+  const presets = listCompositePresets().map(preset => preset.id)
 
   it.each(presets)('should keep each territory of %s in its frame and in the canvas', async (presetId) => {
     const config = await readPreset(presetId)
