@@ -6,7 +6,8 @@
   "nav": {
     "map": "App",
     "about": "About",
-    "openApp": "Open the app"
+    "openApp": "Open the app",
+    "atlases": "Atlases"
   },
   "atlas": {
     "select": "Select Atlas",
@@ -527,5 +528,9 @@
     "builtWith": "Built with Vue 3, D3.js, Observable Plot and daisyUI",
     "license": "Source code under the",
     "licenseName": "MIT License"
+  },
+  "atlases": {
+    "open": "Open the atlas",
+    "openView": "Open this view"
   }
 }

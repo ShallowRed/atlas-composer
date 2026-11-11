@@ -8,13 +8,19 @@ const route = useRoute()
 const { t } = useI18n()
 
 const allowThemeSelection = true
+
+const NAV_LINKS = [
+  { path: '/', icon: 'ri-layout-line', labelKey: 'nav.map' },
+  { path: '/atlas', icon: 'ri-earth-line', labelKey: 'nav.atlases' },
+  { path: '/about', icon: 'ri-information-line', labelKey: 'nav.about' },
+]
 </script>
 
 <template>
   <header>
     <!-- Navigation Bar -->
     <div class="bg-base-100 shadow-sm">
-      <nav class="navbar">
+      <nav class="navbar px-1 sm:px-2">
         <div class="flex-1">
           <div class="flex flex-col items-start justify-center px-2 py-2 gap-0 h-12 box-content size-auto whitespace-nowrap">
             <span class="text-lg font-bold flex items-center gap-2">
@@ -27,41 +33,26 @@ const allowThemeSelection = true
           </div>
         </div>
         <div class="flex-none">
-          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>*]:px-2">
+          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>*]:px-1.5">
             <li
-              :class="{ 'disabled pointer-events-none': route.path === '/' }"
+              v-for="link in NAV_LINKS"
+              :key="link.path"
+              :class="{ 'disabled pointer-events-none': route.path === link.path }"
             >
               <RouterLink
-                v-if="route.path !== '/'"
-                to="/"
+                v-if="route.path !== link.path"
+                :to="link.path"
                 class="flex items-center justify-center gap-2"
               >
-                <i class="ri-layout-line" />
-                <span class="sr-only md:not-sr-only">{{ t('nav.map') }}</span>
+                <i :class="link.icon" />
+                <span class="sr-only md:not-sr-only">{{ t(link.labelKey) }}</span>
               </RouterLink>
               <span
                 v-else
-                class="text-primary font-semibold flex items-center gap-2 justify-center"
+                class="text-primary font-semibold flex items-center justify-center gap-2"
               >
-                <i class="ri-layout-line" />
-                <span class="sr-only md:not-sr-only">{{ t('nav.map') }}</span>
-              </span>
-            </li>
-            <li :class="{ 'disabled pointer-events-none': route.path === '/about' }">
-              <RouterLink
-                v-if="route.path !== '/about'"
-                to="/about"
-                class="flex items-center gap-2 justify-center"
-              >
-                <i class="ri-information-line" />
-                <span class="sr-only md:not-sr-only">{{ t('nav.about') }}</span>
-              </RouterLink>
-              <span
-                v-else
-                class="text-primary font-semibold flex items-center gap-2 justify-center"
-              >
-                <i class="ri-information-line" />
-                <span class="sr-only md:not-sr-only">{{ t('nav.about') }}</span>
+                <i :class="link.icon" />
+                <span class="sr-only md:not-sr-only">{{ t(link.labelKey) }}</span>
               </span>
             </li>
             <li>
