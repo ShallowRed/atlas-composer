@@ -6,6 +6,7 @@
  * Provides quick insight into geometry structure for configuration authoring
  */
 
+import type { Resolution } from '#scripts/utils/ne-data'
 import process from 'node:process'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
@@ -180,10 +181,10 @@ function describeCountry(country: GeoJSONFeature, resolution: string, index: num
   }
 }
 
-async function lookupCountry(searchTerm: string, resolution: string): Promise<void> {
+async function lookupCountry(searchTerm: string, resolution: Resolution): Promise<void> {
   logger.section(`Looking up "${searchTerm}"`)
 
-  const worldData = await readWorldData(resolution as any)
+  const worldData = await readWorldData(resolution)
   const countriesObject = worldData.objects.countries
   if (!countriesObject) {
     throw new Error('No countries object found in world data')

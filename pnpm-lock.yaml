@@ -308,12 +308,27 @@ importers:
       '@atlas-composer/specification':
         specifier: workspace:*
         version: link:../specification
+      '@types/d3-geo':
+        specifier: ^3.1.1
+        version: 3.1.1
+      '@types/topojson-client':
+        specifier: ^3.1.5
+        version: 3.1.5
+      d3-geo:
+        specifier: ^3.1.2
+        version: 3.1.2
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
       tsup:
         specifier: ^8.0.0
         version: 8.5.0(jiti@2.6.1)(postcss@8.5.6)(supports-color@8.1.1)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      world-atlas:
+        specifier: 2.0.2
+        version: 2.0.2
 
   packages/projection-core:
     devDependencies:
@@ -1468,6 +1483,9 @@ packages:
   '@types/d3-geo@3.1.0':
     resolution: {integrity: sha512-856sckF0oP/diXtS4jNsiQw/UuK5fQG8l/a9VVLeSouf1/PPbBE1i1W852zVwKwYCBkFJJB7nCFTbk6UMEXBOQ==}
 
+  '@types/d3-geo@3.1.1':
+    resolution: {integrity: sha512-65Emv9fQiQQqphLlRkuQ5ypPsOmWPhtBGCMv61JDPEPMvsx+gzhGf74yw1a78xFKPj6zw4AgQICJoQv0vK9M2w==}
+
   '@types/d3-hierarchy@3.1.7':
     resolution: {integrity: sha512-tJFtNoYBtRtkNysX1Xq4sxtjK8YgoWUNpIiUee0/jHGRwqvzYxkq0hGVbbOGSz+JgFxxRu4K8nb3YpG3CMARtg==}
 
@@ -2094,6 +2112,10 @@ packages:
 
   d3-geo@3.1.1:
     resolution: {integrity: sha512-637ln3gXKXOwhalDzinUgY83KzNWZRKbYubaG+fGVuc/dxO64RRljtCTnf5ecMyE1RIdtqpkVcq0IbtU2S8j2Q==}
+    engines: {node: '>=12'}
+
+  d3-geo@3.1.2:
+    resolution: {integrity: sha512-5R8ZgDQorIxmauv7R6gpE/ndz+Z0qAZssigq0aXFdvPHdY41RqtW02jrRUQAL724NdPABYXo1+gQEGBBr7uKNg==}
     engines: {node: '>=12'}
 
   d3-hierarchy@3.1.2:
@@ -5070,6 +5092,10 @@ snapshots:
     dependencies:
       '@types/geojson': 7946.0.16
 
+  '@types/d3-geo@3.1.1':
+    dependencies:
+      '@types/geojson': 7946.0.16
+
   '@types/d3-hierarchy@3.1.7': {}
 
   '@types/d3-interpolate@3.0.4':
@@ -5773,6 +5799,10 @@ snapshots:
       d3-geo: 3.1.1
 
   d3-geo@3.1.1:
+    dependencies:
+      d3-array: 3.2.4
+
+  d3-geo@3.1.2:
     dependencies:
       d3-array: 3.2.4
 
