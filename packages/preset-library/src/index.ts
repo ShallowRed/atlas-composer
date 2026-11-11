@@ -1,7 +1,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 
 import type { AtlasRegistry, PresetDefinition } from '../../../types/atlas-registry'
-import type { PresetCatalog, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
+import type { AtlasMetadata, PresetCatalog, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 import registry from '../../../configs/atlas-registry.json'
 import { version } from '../package.json'
 import { PRESET_TYPES } from './types.js'
@@ -23,7 +23,7 @@ export type {
   TerritoryFeature,
   TerritorySource,
 } from './territories.js'
-export type { PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
+export type { AtlasMetadata, PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 
 const { atlases } = registry as AtlasRegistry
 
@@ -41,6 +41,12 @@ function toPresetType(type: string): PresetType {
 
 export const catalog: PresetCatalog = {
   version,
+  atlases: Object.fromEntries(atlases.map((atlas): [string, AtlasMetadata] => [atlas.id, {
+    id: atlas.id,
+    name: english(atlas.name),
+    group: atlas.group,
+    path: `atlases/${atlas.id}.json`,
+  }])),
   presets: Object.fromEntries(atlases.flatMap(atlas => (atlas.presets ?? []).map((preset): [string, PresetMetadata] => [preset.id, {
     id: preset.id,
     name: english(preset.name),
@@ -126,15 +132,11 @@ export function getPresetPath(id: string): string | undefined {
 }
 
 export function listAtlases(): string[] {
-  const atlases = new Set<string>()
-  for (const preset of getAllPresets()) {
-    atlases.add(preset.atlasId)
-  }
-  return Array.from(atlases).sort()
+  return Object.keys(catalog.atlases).sort()
 }
 
 export function listRegions(): PresetRegion[] {
-  return atlases.map(atlas => atlas.id)
+  return Object.keys(catalog.atlases)
 }
 
 export function listTypes(): PresetType[] {

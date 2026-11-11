@@ -21,8 +21,17 @@ export interface PresetEntry extends PresetMetadata {
   config?: CompositeProjectionConfig
 }
 
+export interface AtlasMetadata {
+  id: string
+  name: string
+  group: string
+  /** Path of the atlas configuration in the package, such as `atlases/france.json` */
+  path: string
+}
+
 export interface PresetCatalog {
   version: string
+  atlases: Record<string, AtlasMetadata>
   presets: Record<string, PresetMetadata>
 }
 
