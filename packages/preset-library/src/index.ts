@@ -6,6 +6,23 @@ import registry from '../../../configs/atlas-registry.json'
 import { version } from '../package.json'
 import { PRESET_TYPES } from './types.js'
 
+export { rewindToRfc7946 } from './rewind.js'
+export { buildTerritories, createNaturalEarthSource, TerritoryBuildError } from './territories.js'
+export type {
+  AreaGeometry,
+  BuiltTerritories,
+  ByCodeSource,
+  MultiPolygonGeometry,
+  NaturalEarthResolution,
+  NaturalEarthSource,
+  PolygonGeometry,
+  Position,
+  Ring,
+  SourceFeature,
+  TerritoryBuildIssues,
+  TerritoryFeature,
+  TerritorySource,
+} from './territories.js'
 export type { PresetCatalog, PresetEntry, PresetFilterOptions, PresetMetadata, PresetRegion, PresetType } from './types.js'
 
 const { atlases } = registry as AtlasRegistry

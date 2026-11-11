@@ -18,6 +18,7 @@
  *   - Suggests configuration structure for territory extraction
  */
 
+import type { Resolution } from '#scripts/utils/ne-data'
 import process from 'node:process'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
@@ -147,13 +148,13 @@ function groupPolygonsByProximity(polygons: PolygonMetadata[], threshold = 5): P
   return groups
 }
 
-async function analyzeCountry(countryId: string, resolution: string): Promise<void> {
+async function analyzeCountry(countryId: string, resolution: Resolution): Promise<void> {
   logger.section(`Analyzing Natural Earth Country: ${countryId}`)
   logger.newline()
 
   let worldData
   try {
-    worldData = await readWorldData(resolution as any)
+    worldData = await readWorldData(resolution)
   }
   catch {
     logger.error('Failed to fetch world data')

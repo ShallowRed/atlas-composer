@@ -52,7 +52,12 @@
   },
   "devDependencies": {
     "@atlas-composer/specification": "workspace:*",
+    "@types/d3-geo": "^3.1.1",
+    "@types/topojson-client": "^3.1.5",
+    "d3-geo": "^3.1.2",
+    "topojson-client": "^3.1.0",
     "tsup": "^8.0.0",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "world-atlas": "2.0.2"
   }
 }
