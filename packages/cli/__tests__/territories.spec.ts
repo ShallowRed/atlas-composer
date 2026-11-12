@@ -1,16 +1,14 @@
 // @vitest-environment node
 import type { AreaGeometry, Ring } from '@atlas-composer/preset-library'
-import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { failureOf, run } from './cli'
 import { ringsOf, signedArea } from './geometry'
 
-const CLI = 'packages/cli/dist/cli.js'
-
 describe('atlas-composer territories', () => {
-  const output = execFileSync('node', [CLI, 'territories', 'world'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] })
+  const output = run(['territories', 'world'])
   const collection = JSON.parse(output) as { features: Array<{ properties: { code: string }, geometry: AreaGeometry }> }
   const polygons = collection.features.flatMap(feature => ringsOf(feature.geometry))
 
@@ -63,7 +61,7 @@ describe('atlas-composer territories', () => {
     writeFileSync(data, JSON.stringify(['PT-CONT', 'PT-20', 'PT-30'].map(code =>
       ({ type: 'Feature', properties: { code }, geometry: { type: 'Polygon', coordinates: square } }))))
 
-    const written = JSON.parse(execFileSync('node', [CLI, 'territories', 'portugal', '--data', data], { encoding: 'utf8', stdio: 'pipe' })) as typeof collection
+    const written = JSON.parse(run(['territories', 'portugal', '--data', data])) as typeof collection
     rmSync(directory, { recursive: true, force: true })
 
     expect(written.features.map(feature => feature.properties.code)).toEqual(['PT-CONT', 'PT-20', 'PT-30'])
@@ -73,12 +71,10 @@ describe('atlas-composer territories', () => {
   })
 
   it('should refuse --out, which compose reads', () => {
-    expect(() => execFileSync('node', [CLI, 'territories', 'portugal', '--out', 'portugal.geojson'], { encoding: 'utf8', stdio: 'pipe' }))
-      .toThrow(/standard output/)
+    expect(failureOf(['territories', 'portugal', '--out', 'portugal.geojson'])).toContain('standard output')
   })
 
   it('should name the atlases for an unknown atlas', () => {
-    expect(() => execFileSync('node', [CLI, 'territories', 'atlantis'], { encoding: 'utf8', stdio: 'pipe' }))
-      .toThrow(/Unknown atlas "atlantis"/)
+    expect(failureOf(['territories', 'atlantis'])).toContain('Unknown atlas "atlantis"')
   })
 })

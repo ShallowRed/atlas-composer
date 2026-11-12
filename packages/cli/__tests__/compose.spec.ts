@@ -2,7 +2,6 @@
 import type { TerritoryFeature } from '@atlas-composer/preset-library'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ComposedTerritories } from '../src'
-import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -11,9 +10,9 @@ import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { registerAllD3Projections } from '@atlas-composer/projection-loader/helpers'
 import { afterAll, describe, expect, it } from 'vitest'
 import { composeTerritories } from '../src'
+import { failureOf, run } from './cli'
 import { ringsOf, signedArea } from './geometry'
 
-const CLI = 'packages/cli/dist/cli.js'
 const RADIANS = Math.PI / 180
 const TOLERANCE = 1e-6
 
@@ -29,23 +28,11 @@ afterAll(() => rmSync(directory, { recursive: true, force: true }))
 
 function runCompose(target: string, name: string) {
   const out = join(directory, `${name}.geojson`)
-  execFileSync('node', [CLI, 'compose', target, '--out', out], { stdio: 'pipe' })
+  run(['compose', target, '--out', out])
   return {
     collection: JSON.parse(readFileSync(out, 'utf8')) as ComposedTerritories['collection'],
     composition: JSON.parse(readFileSync(`${out}.json`, 'utf8')) as Omit<ComposedTerritories, 'collection'>,
   }
-}
-
-function failureOf(args: string[]): string {
-  try {
-    execFileSync('node', [CLI, ...args], { encoding: 'utf8', stdio: 'pipe' })
-  }
-  catch (error) {
-    const { status, stderr } = error as { status: number, stderr: string }
-    expect(status).toBe(1)
-    return stderr
-  }
-  throw new Error(`atlas-composer ${args.join(' ')} exits with the code 0`)
 }
 
 /** Each vertex of the collection, converted back to the pixels of the composition, with the frame it stays in */
