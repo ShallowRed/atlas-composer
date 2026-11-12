@@ -136,6 +136,42 @@ const subProjections = loader.createSubProjections(config, {
 const path = geoPath(subProjections.get('FR-GP'))
 ```
 
+### Neutral description
+
+`@atlas-composer/projection-loader/neutral` exports `describeComposite(config)`, which describes a composite for tools outside d3: PROJ, pyproj, GDAL. It returns a `NeutralComposite` of `@atlas-composer/specification`, with one PROJ pipeline and one `clip` ring per territory:
+
+```typescript
+import { describeComposite } from '@atlas-composer/projection-loader/neutral'
+
+const { territories, unsupported, emptyClipCodes } = describeComposite(config)
+```
+
+A pipeline takes a longitude and a latitude in degrees and gives the pixels of the canvas, y axis down, at `referenceScale`. It describes the sub-projection that `createSubProjections` builds with `d3ProjectionFactories`, on a sphere of radius 1:
+
+```
++proj=pipeline
+  +step +proj=unitconvert +xy_in=deg +xy_out=rad
+  +step +proj=ob_tran +o_proj=lcc +o_lon_p=0 +o_lat_p=50.7 +lon_0=-10 +lat_1=0 +lat_2=60 +R=1
+  +step +proj=affine +s11=4200 +s22=-4200 +xoff=480 +yoff=250
+```
+
+`cct` and `pyproj.Transformer.from_pipeline` read the pipeline as written:
+
+```bash
+echo "-8 39.5 0 0" | cct -d 9 +proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=ob_tran +o_proj=lcc +o_lon_p=0 +o_lat_p=50.7 +lon_0=-10 +lat_1=0 +lat_2=60 +R=1 +step +proj=affine +s11=4200 +s22=-4200 +xoff=480 +yoff=250
+```
+
+`ogr2ogr -ct` passes the coordinates of a GeoJSON file as latitude then longitude, and swaps the axes of the output too: add the step `+step +proj=axisswap +order=2,1` after `+proj=pipeline` and at the end of the pipeline.
+
+`clip` is the closed ring, in the pixels of the canvas, of the frame of the territory cut to the canvas, or the canvas for a territory without frame. A pipeline converts a point, and `clip` tells where the territory is drawn:
+
+- a point outside `clip` gets pixels too, that the composite does not draw;
+- the `clipAngle` of a sub-projection and the resampling of d3 are left out;
+- `orthographic` and `gnomonic` pipelines accept the points within 90° of the center of the projection;
+- d3 also cuts `mercator` and `transverse-mercator` to the square of the world, which `clip` leaves out.
+
+`unsupported` names each territory whose conic projection has standard parallels symmetric about the equator: d3 draws it with a cylindrical projection, and PROJ refuses these parallels. `emptyClipCodes` names each territory whose frame is outside the canvas or has a zero area. `describeComposite` throws the error of the loader for a projection identifier outside `d3ProjectionFactories`.
+
 ## Acknowledgments
 
 This package uses composite projection techniques derived from [d3-geo](https://github.com/d3/d3-geo) by [Mike Bostock](https://github.com/mbostock) (ISC License), with inspiration from [d3-composite-projections](https://github.com/rveciana/d3-composite-projections) by [Roger Veciana](https://github.com/rveciana). See [NOTICES.md](./NOTICES.md) for details.

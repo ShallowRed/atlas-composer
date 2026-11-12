@@ -1,3 +1,4 @@
+import type { PROJECTION_CATALOG } from '@atlas-composer/specification'
 import type { ProjectionFactory } from './projection-loader'
 import * as d3Geo from 'd3-geo'
 
@@ -30,7 +31,7 @@ export const d3ProjectionFactories: Record<string, ProjectionFactory> = {
   'equirectangular': equirectangular,
   'natural-earth': naturalEarth1,
   'equal-earth': equalEarth,
-}
+} satisfies Record<keyof typeof PROJECTION_CATALOG, ProjectionFactory>
 
 export function registerAllD3Projections(
   registerFn: (factories: Record<string, ProjectionFactory>) => void,

@@ -399,6 +399,9 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
+      ajv:
+        specifier: ^8.17.1
+        version: 8.17.1
       d3-geo:
         specifier: ^3.1.1
         version: 3.1.1

@@ -1,8 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "treatConfigHintsAsErrors": true,
-  // System binary of check:generated-types
-  "ignoreBinaries": ["diff"],
+  // System binaries: diff of check:generated-types, cct of PROJ in the test of the neutral description
+  "ignoreBinaries": ["diff", "cct"],
   // Cycles are warnings by default, and knip --cycles exits with 0 on a warning
   "rules": { "cycles": "error" },
   "workspaces": {
