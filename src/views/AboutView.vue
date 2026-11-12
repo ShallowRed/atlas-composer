@@ -120,7 +120,7 @@ const { atlasGroups } = useAtlasGroups()
             :key="atlas.value"
           >
             <RouterLink
-              :to="{ path: '/', query: { atlas: atlas.value } }"
+              :to="{ path: '/atlas', query: { atlas: atlas.value } }"
               class="btn btn-sm"
             >
               <span aria-hidden="true">{{ atlas.icon }}</span>
