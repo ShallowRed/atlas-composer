@@ -61,7 +61,7 @@
     "d3-geo-projection": "^4.0.0",
     "daisyui": "^5.7.50",
     "debug": "^4.4.3",
-    "pinia": "^3.0.3",
+    "pinia": "^4.1.0",
     "remixicon": "^4.9.1",
     "tailwindcss": "^4.3.4",
     "topojson-client": "^3.1.0",
