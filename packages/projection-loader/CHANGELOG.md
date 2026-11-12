@@ -1,5 +1,12 @@
 # @atlas-composer/projection-loader
 
+## 3.2.0
+
+### Minor Changes
+
+- 61c0ec6: Add `describeComposite(config)`, exported by `@atlas-composer/projection-loader/neutral`, which describes each territory of a composite configuration by a PROJ pipeline, from longitudes and latitudes in degrees to the pixels of the canvas, and by the ring of its frame.
+- 2ba4f8c: Add `ProjectionLoader.createSubProjections(config, { scale, translate })`, which validates a composite configuration and returns a `Map` from the code of each territory to its sub-projection, with its clipping.
+
 ## 3.1.0
 
 ### Minor Changes

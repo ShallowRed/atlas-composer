@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/cli",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Command that writes the territories of an Atlas Composer atlas and the composed geometries of a composite projection as GeoJSON",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",

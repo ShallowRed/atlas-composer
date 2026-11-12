@@ -1,7 +1,7 @@
 {
   "name": "@atlas-composer/projection-loader",
   "type": "module",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Zero-dependency loader for the composite map projections of Atlas Composer, which validates each configuration against @atlas-composer/specification.",
   "author": "Lucas Poulain (ShallowRed)",
   "license": "MIT",
