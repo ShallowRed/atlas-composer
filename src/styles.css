@@ -7,6 +7,11 @@
   /* themes: light --default, dark --prefersdark; */
 }
 
+/* daisyUI keeps the scrollbar gutter under a modal only when its scroll-timeline check sees a scrolling page, which fails in Chromium */
+:root:has(.modal-open) {
+  scrollbar-gutter: stable;
+}
+
 @utility page-column {
   @apply mx-auto w-full max-w-3xl px-2;
 }

@@ -63,9 +63,8 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
   @apply min-h-0 max-w-none p-2 sm:p-4 lg:flex-1;
 }
 
-/* From lg the shell has no page scrollbar: daisyUI would still reserve room for one under a modal */
-:global(:root:has(.app-shell)),
-:global(:root:has(.app-shell) .modal-open) {
+/* From lg the shell has no page scrollbar, so a modal keeps no scrollbar gutter */
+:global(:root:has(.app-shell):has(.modal-open)) {
   @apply lg:[scrollbar-gutter:auto];
 }
 </style>
