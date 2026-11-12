@@ -47,6 +47,14 @@ The file is for GIS and tile tools, such as QGIS, GDAL, tippecanoe or MapLibre. 
 - a territory that the preset leaves out is missing from the composed file, where the app can draw it in the frame of another territory: US-ALEU, US-VI and US-MP in `usa-pseudo-d3cp`;
 - a territory in the frame of another one is in the composed file once, in its own frame: FR-MF and FR-BL in `france-proportional`.
 
+## PROJ pipelines of a composite projection
+
+```bash
+npx atlas-composer describe france-standard > france-standard.proj.json
+```
+
+`describe <preset>` writes to the standard output, as JSON, the PROJ pipeline of each territory of the `composite-custom` preset, from longitudes and latitudes in degrees to the pixels of the canvas, and the ring of its frame in `clip`. `describe <file.json>` reads a configuration exported from the Atlas Composer app. The command reads no geometry. The [README of `@atlas-composer/projection-loader`](https://github.com/ShallowRed/atlas-composer/tree/main/packages/projection-loader#neutral-description) describes the form of the pipelines, their use with `cct`, pyproj and GDAL, and their limits.
+
 ## API
 
 ```typescript

@@ -8,6 +8,7 @@ import { parseArgs } from 'node:util'
 import { buildTerritories, catalog, getPreset, getPresetMetadata } from '@atlas-composer/preset-library'
 import { ConfigValidationError, ProjectionLoader, validateConfig } from '@atlas-composer/projection-loader'
 import { registerAllD3Projections } from '@atlas-composer/projection-loader/helpers'
+import { describeComposite } from '@atlas-composer/projection-loader/neutral'
 import { toRfc7946 } from './antimeridian.js'
 import { composeTerritories } from './compose.js'
 import { naturalEarthSource } from './natural-earth.js'
@@ -15,12 +16,15 @@ import { naturalEarthSource } from './natural-earth.js'
 const USAGE = `Usage:
   atlas-composer territories <atlas> [--resolution 10m|50m|110m] [--data <file>]
   atlas-composer compose <preset|file.json> [--data <file>] --out <file>
+  atlas-composer describe <preset|file.json>
 
 Commands:
   territories  Writes the territories of an atlas to the standard output, as GeoJSON
   compose      Writes the territories placed in a composite projection to --out, as GeoJSON
                in longitudes and latitudes to display in EPSG:3857, and the canvas of the
                composition with the territories left out to <out>.json
+  describe     Writes the PROJ pipeline and the frame of each territory of a composite
+               projection to the standard output, as JSON
 
 Options:
   --resolution <value>  Natural Earth resolution, for territories: 10m, 50m or 110m [default: 50m]
@@ -48,7 +52,7 @@ function readSource(data: string | undefined, resolution: string): TerritorySour
   return data ? { kind: 'by-code', features: readJson(data) } : naturalEarthSource(resolution)
 }
 
-async function readComposite(target: string): Promise<CompositeProjectionConfig> {
+async function readComposite(command: string, target: string): Promise<CompositeProjectionConfig> {
   if (target.endsWith('.json')) {
     const config = readJson(target)
     const { valid, errors } = validateConfig(config)
@@ -62,7 +66,7 @@ async function readComposite(target: string): Promise<CompositeProjectionConfig>
     throw new Error(`Unknown preset "${target}"`)
   }
   if (metadata.type !== 'composite-custom') {
-    throw new Error(`The preset "${target}" has the type "${metadata.type}": compose reads a composite-custom preset`)
+    throw new Error(`The preset "${target}" has the type "${metadata.type}": ${command} reads a composite-custom preset`)
   }
   const config = await getPreset(target)
   if (!config) {
@@ -89,7 +93,7 @@ async function compose(target: string, options: { data?: string, out?: string, r
   if (!options.out) {
     throw new Error('compose writes a file: give its path with --out')
   }
-  const config = await readComposite(target)
+  const config = await readComposite('compose', target)
   const { collection: built } = buildTerritories(readAtlas(config.metadata.atlasId), readSource(options.data, DEFAULT_RESOLUTION))
 
   const loader = new ProjectionLoader()
@@ -98,6 +102,17 @@ async function compose(target: string, options: { data?: string, out?: string, r
 
   writeFileSync(options.out, `${JSON.stringify(collection)}\n`)
   writeFileSync(`${options.out}.json`, `${JSON.stringify(composition, null, 2)}\n`)
+}
+
+async function describe(target: string, options: { data?: string, out?: string }) {
+  if (options.data) {
+    throw new Error('describe reads no geometry: remove --data')
+  }
+  if (options.out) {
+    throw new Error('describe writes to the standard output: redirect it to a file in place of --out')
+  }
+  const description = describeComposite(await readComposite('describe', target))
+  process.stdout.write(`${JSON.stringify(description, null, 2)}\n`)
 }
 
 async function main() {
@@ -121,6 +136,10 @@ async function main() {
   }
   if (command === 'compose' && target) {
     await compose(target, values)
+    return
+  }
+  if (command === 'describe' && target) {
+    await describe(target, values)
     return
   }
   throw new Error(USAGE)
