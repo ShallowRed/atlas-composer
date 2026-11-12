@@ -70,7 +70,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.4.1",
+    "@antfu/eslint-config": "^10.0.0",
     "@atlas-composer/projection-loader": "workspace:*",
     "@changesets/cli": "^3.0.3",
     "@tailwindcss/vite": "^4.3.4",
