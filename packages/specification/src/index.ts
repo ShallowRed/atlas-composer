@@ -14,6 +14,7 @@ export type {
   GeoBounds,
   I18nString,
   LayoutConfig,
+  NeutralComposite,
   ProjectionFamily,
   ProjectionParameters,
   TerritoryConfig,

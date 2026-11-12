@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://atlas-composer.github.io/specification/v1/neutral-composite.schema.json",
+  "title": "NeutralComposite",
+  "description": "Description of a composite projection as one PROJ pipeline per territory, from longitudes and latitudes in degrees to the pixels of the canvas, y axis down",
+  "type": "object",
+  "required": ["canvasDimensions", "referenceScale", "territories", "unsupported", "emptyClipCodes"],
+  "properties": {
+    "canvasDimensions": {
+      "$ref": "definitions.schema.json#/definitions/canvasDimensions"
+    },
+    "referenceScale": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Reference scale of the composite configuration"
+    },
+    "territories": {
+      "type": "array",
+      "description": "Territories described by a pipeline",
+      "items": {
+        "title": "NeutralTerritory",
+        "type": "object",
+        "required": ["code", "pipeline", "clip"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Territory code"
+          },
+          "pipeline": {
+            "type": "string",
+            "pattern": "^\\+proj=pipeline ",
+            "description": "PROJ pipeline from longitude and latitude in degrees to the pixels of the canvas"
+          },
+          "clip": {
+            "type": "array",
+            "description": "Closed polygon ring, in the pixels of the canvas, of the frame of the territory cut to the canvas",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 5,
+            "maxItems": 5
+          },
+          "bounds": {
+            "$ref": "definitions.schema.json#/definitions/geoBounds"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "unsupported": {
+      "type": "array",
+      "description": "Territories whose projection has no PROJ pipeline",
+      "items": {
+        "title": "UnsupportedTerritory",
+        "type": "object",
+        "required": ["code", "reason"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Territory code"
+          },
+          "reason": {
+            "enum": ["symmetric-parallels"],
+            "description": "symmetric-parallels: conic projection whose standard parallels are symmetric about the equator, which PROJ refuses"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "emptyClipCodes": {
+      "type": "array",
+      "description": "Codes of the territories whose frame cut to the canvas is empty",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

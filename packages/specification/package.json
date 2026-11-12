@@ -39,6 +39,9 @@
     },
     "./schemas/definitions": {
       "import": "./schemas/definitions.schema.json"
+    },
+    "./schemas/neutral-composite": {
+      "import": "./schemas/neutral-composite.schema.json"
     }
   },
   "main": "./dist/index.js",
@@ -51,7 +54,7 @@
     "schemas"
   ],
   "scripts": {
-    "generate": "node scripts/generate.mjs && json2ts -i schemas/composite-projection.schema.json -o src/generated/types.ts",
+    "generate": "node scripts/generate.mjs && json2ts -i schemas/composite-projection.schema.json -o src/generated/types.ts && json2ts -i schemas/neutral-composite.schema.json -o src/generated/neutral-types.ts",
     "build": "pnpm run generate && tsup",
     "dev": "pnpm run generate && tsup --watch",
     "typecheck": "pnpm run generate && tsc --noEmit"
