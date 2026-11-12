@@ -1,5 +1,13 @@
 # @atlas-composer/preset-library
 
+## 2.2.0
+
+### Minor Changes
+
+- a1f4979: Publish the configuration of each atlas at `@atlas-composer/preset-library/atlases/<atlas>`, with its schema at `@atlas-composer/preset-library/schemas/atlas.schema`, and add `catalog.atlases`, the name, group and path of each atlas.
+- b07cdd2: Add `buildTerritories`, which builds one feature per territory of an atlas from a Natural Earth topology of `world-atlas` 2.0.2, through the extraction rules of the atlas, or from features of the user that carry the code of a territory. `createNaturalEarthSource` builds the first kind of source, `TerritoryBuildError` names the codes, indices and resolutions that the build refuses, and `rewindToRfc7946` orients a planar geometry as RFC 7946 asks.
+- c034b79: Add the presets of the Spain atlas: `spain-standard`, a `composite-custom` preset that reproduces `geoConicConformalSpain` of d3-composite-projections, and the view presets `spain-builtin`, `spain-split` and `spain-unified`.
+
 ## 2.1.0
 
 ### Minor Changes
