@@ -44,7 +44,8 @@
             "maxItems": 5
           },
           "bounds": {
-            "$ref": "definitions.schema.json#/definitions/geoBounds"
+            "$ref": "definitions.schema.json#/definitions/geoBounds",
+            "description": "Geographic bounding box of the territory, copied from the configuration when the territory has one"
           }
         },
         "additionalProperties": false
