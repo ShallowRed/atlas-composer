@@ -14,7 +14,7 @@ The change of a territory parameter shows the steps from an action to the render
 
 `MapRenderer` draws each map of the application. `SplitView` and `UnifiedView` use this component for their maps. It calls `useMapWatchers`, which watches the version counter, the view mode, the projections and the display options, and asks for a new rendering. `MapRenderer` groups these requests over 50 milliseconds. During a drag, it renders at each request. A rendering empties the container of the map, asks `useMapRender` for an SVG element, inserts this element and adds the overlays.
 
-`useMapRender` reads the stores and calls `MapRenderCoordinator`, which gives the render options to `Cartographer`. In the `composite-custom` view, `CompositeProjection` reads the parameters of each territory, builds the composite projection with `buildCompositeProjection` of `@atlas-composer/projection-core`, and `D3MapRenderer` writes the paths of the territories.
+`useMapRender` reads the stores and calls `MapRenderCoordinator`, which gives the render options to `Cartographer`. In the `composite-custom` view, `CompositeProjection` reads the parameters of each territory, places the sub-projection of each territory and builds the composite projection with `buildCompositeProjection` of `@atlas-composer/projection-core`. `D3MapRenderer` writes the path of each territory through the sub-projection of its code, as the `compose` command of `@atlas-composer/cli`, and writes no path for a territory without a sub-projection.
 
 A service imports no store, so the geoData store gives `Cartographer` the `parameterProvider` object of the parameters store when it creates the cartographer. `CompositeProjection` calls `getEffectiveParameters` on this object at each rendering.
 

@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import { afterAll, expect, it } from 'vitest'
 import atlasRegistry from '#configs/atlas-registry.json'
-import { buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
+import { boundsPolygon, buildApplicationComposite, distance, openView, pointsInBounds, startApplication } from '@/__tests__/composite-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { useCompositionStore } from '@/stores/composition'
@@ -34,18 +34,6 @@ const cases = atlasRegistry.atlases.flatMap(atlas => VIEWS
   .map(view => ({ atlasId: atlas.id as AtlasId, view })))
 
 const reference: Record<string, Rendering> = UPDATE ? {} : JSON.parse(readFileSync(FIXTURE, 'utf8'))
-
-// Clockwise ring: d3-geo reads it as the box, not as the rest of the sphere
-function boundsPolygon([[minLon, minLat], [maxLon, maxLat]]: Bounds): GeoJSON.Feature<GeoJSON.Polygon> {
-  return {
-    type: 'Feature',
-    properties: {},
-    geometry: {
-      type: 'Polygon',
-      coordinates: [[[minLon, minLat], [minLon, maxLat], [maxLon, maxLat], [maxLon, minLat], [minLon, minLat]]],
-    },
-  }
-}
 
 function unionOfBounds(bounds: Bounds[]): Bounds {
   return [

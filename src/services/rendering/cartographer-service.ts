@@ -1,6 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
+import type { TerritoryProjection } from '@/services/rendering/d3-map-renderer'
 import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
@@ -123,6 +124,7 @@ export class Cartographer {
   private createSvg(
     data: GeoJSON.FeatureCollection,
     projection: GeoProjection,
+    projectionOf: TerritoryProjection,
     width: number,
     height: number,
     showSphere = false,
@@ -133,7 +135,7 @@ export class Cartographer {
       D3MapRenderer.renderSphere(svg, projection)
     }
 
-    D3MapRenderer.renderTerritories(svg, data, projection, {
+    D3MapRenderer.renderTerritories(svg, data, projectionOf, {
       enableTooltips: true,
     })
 
@@ -168,7 +170,7 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(geoData, projectionFn, width, height, showSphere)
+    return this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere)
   }
 
   private async renderProjectionComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
@@ -189,7 +191,7 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(rawData, projectionFn, width, height, showSphere)
+    return this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere)
   }
 
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
@@ -201,11 +203,15 @@ export class Cartographer {
 
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
-    const projectionFn = this.customComposite.build(width, height)
+    const customComposite = this.customComposite
+    const projectionFn = customComposite.build(width, height)
 
     this._lastProjection = projectionFn as GeoProjection
 
-    return this.createSvg(rawData, projectionFn as GeoProjection, width, height, showSphere)
+    const projectionOf: TerritoryProjection = feature =>
+      customComposite.getSubProjectionData(feature.properties?.code)?.projection
+
+    return this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere)
   }
 
   static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection): void {
