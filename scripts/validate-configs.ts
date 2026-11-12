@@ -2,10 +2,10 @@ import type { BackendConfig } from '#types'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import process from 'node:process'
+import { validateConfig } from '@atlas-composer/specification'
 import { listConfigs, listPresetFiles, loadConfig, loadRegistry } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
 import { validateRegistrySchema, validateViewPresetSchema } from '#scripts/utils/schema-validator'
-import { validateConfig } from '@atlas-composer/specification'
 
 interface ValidationResults {
   errors: string[]

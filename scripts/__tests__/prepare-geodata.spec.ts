@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
+import { describe, expect, it } from 'vitest'
 import { prepareAtlasData } from '#scripts/geodata/prepare'
 import { readWorldData } from '#scripts/utils/ne-data'
-import { describe, expect, it } from 'vitest'
 
 // Keys sorted, features ordered by id and the creation date left out, so that a reordering alone keeps the digest
 function canonical(value: unknown): unknown {

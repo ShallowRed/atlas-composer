@@ -1,10 +1,10 @@
-import type { PresetType } from '#types'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { PresetType } from '#types'
 import type { AtlasId, PresetId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import atlasRegistry from '#configs/atlas-registry.json'
 import { vi } from 'vitest'
+import atlasRegistry from '#configs/atlas-registry.json'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 
 export async function loadAtlasFromConfigs(atlasId: AtlasId) {

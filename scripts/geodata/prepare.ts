@@ -1,9 +1,9 @@
-import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
 import type { Topology } from 'topojson-specification'
+import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
 import type { TerritoryFeature } from '../../packages/preset-library/src/territories.js'
+import * as topojson from 'topojson-client'
 import { loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
-import * as topojson from 'topojson-client'
 import { buildTerritories, createNaturalEarthSource } from '../../packages/preset-library/src/territories.js'
 
 interface Metadata {
