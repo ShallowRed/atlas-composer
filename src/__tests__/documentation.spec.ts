@@ -25,7 +25,7 @@ function ancestorsAndSelf(file: string): string[] {
 }
 
 function isIdentifierSource(file: string): boolean {
-  if (file === 'eslint.config.js' || file === 'package.json' || file.startsWith('configs/schemas/')) {
+  if (file === 'eslint.config.js' || file === 'package.json' || file === 'pnpm-workspace.yaml' || file.startsWith('configs/schemas/')) {
     return true
   }
   return /^(?:src|packages\/[^/]+\/src|scripts|types)\/.*\.(?:ts|vue)$/.test(file) && !file.includes('__tests__')
