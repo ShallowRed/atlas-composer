@@ -20,10 +20,10 @@
 
 import type { Resolution } from '#scripts/utils/ne-data'
 import process from 'node:process'
+import * as topojson from 'topojson-client'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
 import { readWorldData } from '#scripts/utils/ne-data'
-import * as topojson from 'topojson-client'
 
 interface PolygonMetadata {
   index: number

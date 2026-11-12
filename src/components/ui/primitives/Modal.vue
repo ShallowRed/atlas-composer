@@ -47,8 +47,8 @@ watch(() => props.modelValue, async (isOpen) => {
     >
       <div
         ref="modalBoxRef"
-        class="modal-box"
-        :class="`max-w-${maxWidth} max-h-60vh`"
+        class="modal-box max-h-60vh"
+        :class="`max-w-${maxWidth}`"
         tabindex="-1"
       >
         <!-- Header -->
@@ -57,7 +57,8 @@ watch(() => props.modelValue, async (isOpen) => {
             <slot name="title">
               <i
                 v-if="icon"
-                :class="`${icon} mr-1`"
+                class="mr-1"
+                :class="icon"
               />
               {{ title }}
             </slot>

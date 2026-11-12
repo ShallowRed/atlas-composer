@@ -2,8 +2,8 @@ import type { CanvasDimensions, CompositeProjectionConfig, ConfigMetadata, Proje
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameterProvider } from '@/types/projection-parameters'
-import packageJson from '#package'
 import { PROJECTION_PARAMETER_KEYS, SPECIFICATION_VERSION } from '@atlas-composer/specification'
+import packageJson from '#package'
 import { projectionRegistry } from '@/core/projections/registry'
 
 const APP_VERSION = `Atlas composer v${packageJson.version === '0.0.0' ? '1.0' : packageJson.version}`

@@ -157,6 +157,9 @@ export default antfu({
     'no-debugger': 'off',
     'eslint-comments/no-unlimited-disable': 'off',
     'ts/ban-ts-comment': 'off',
+    // reasonable-newline splits every list holding a call or a nested object onto several lines; yaml-enforce-settings requires shellEmulator, trustPolicy and minimumReleaseAgeExcludePrune in pnpm-workspace.yaml
+    'antfu/reasonable-newline': 'off',
+    'pnpm/yaml-enforce-settings': 'off',
   },
 }, {
   files: ['**/*.vue'],

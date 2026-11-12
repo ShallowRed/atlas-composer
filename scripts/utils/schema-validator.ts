@@ -1,13 +1,13 @@
-import type { PresetType } from '#types'
 import type { ValidateFunction } from 'ajv'
+import type { PresetType } from '#types'
 
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
-import { logger } from '#scripts/utils/logger'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
+import { logger } from '#scripts/utils/logger'
 
 type ViewPresetType = Exclude<PresetType, 'composite-custom'>
 
