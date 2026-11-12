@@ -1,5 +1,7 @@
 import type { CompositeProjectionConfig, TerritoryConfig } from './generated/types.js'
 
+export type { NeutralComposite } from './generated/neutral-types.js'
+
 export type {
   AtlasMetadata,
   CanvasDimensions,

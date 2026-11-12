@@ -7,6 +7,7 @@ This package defines the composite projection configuration, format 1.1, that th
 ## Contents
 
 - The JSON Schemas, draft-07, exported as `@atlas-composer/specification/schemas/composite-projection` and `@atlas-composer/specification/schemas/definitions`.
+- The JSON Schema of the neutral description, exported as `@atlas-composer/specification/schemas/neutral-composite`, with the type `NeutralComposite`: one PROJ pipeline per territory, which `describeComposite` of `@atlas-composer/projection-loader/neutral` computes from a configuration.
 - `validateConfig`, which applies the schema, and the types `CompositeProjectionConfig`, `TerritoryConfig` and the others of the schema.
 - `PROJECTION_CATALOG`, the projection identifiers with their family and aliases, and `resolveProjectionAlias`.
 - The values of the format: `SPECIFICATION_VERSION`, `PROJECTION_FAMILIES`, `PROJECTION_PARAMETER_KEYS`, `DEFAULT_REFERENCE_SCALE` and `DEFAULT_SCALE_MULTIPLIER`.
