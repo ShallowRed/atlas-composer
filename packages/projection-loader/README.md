@@ -163,7 +163,7 @@ echo "-8 39.5 0 0" | cct -d 9 +proj=pipeline +step +proj=unitconvert +xy_in=deg 
 
 `ogr2ogr -ct` passes the coordinates of a GeoJSON file as latitude then longitude, and swaps the axes of the output too: add the step `+step +proj=axisswap +order=2,1` after `+proj=pipeline` and at the end of the pipeline.
 
-`clip` is the closed ring, in the pixels of the canvas, of the frame of the territory cut to the canvas, or the canvas for a territory without frame. A pipeline converts a point, and `clip` tells where the territory is drawn:
+`clip` is the closed ring, in the pixels of the canvas, of the frame of the territory cut to the canvas, or the canvas for a territory without frame. `bounds` is the geographic bounding box of the territory, copied from the configuration when the territory has one. The pipeline and `clip` have these limits:
 
 - a point outside `clip` gets pixels too, that the composite does not draw;
 - the `clipAngle` of a sub-projection and the resampling of d3 are left out;
