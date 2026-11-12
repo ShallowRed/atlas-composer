@@ -125,34 +125,4 @@ export class D3MapRenderer {
 
     debug('Rendered %d of %d territories', pathOfFeature.size, geoData.features.length)
   }
-
-  static addTerritoryAttributes(
-    svg: SVGSVGElement,
-    geoData: GeoJSON.FeatureCollection,
-  ): void {
-    const svgSelection = select(svg)
-    const pathSelection = svgSelection.selectAll<SVGPathElement, unknown>('path')
-
-    pathSelection.each(function (_d, i) {
-      const pathElement = this as SVGPathElement
-
-      const boundData = (pathElement as any).__data__ as GeoJSON.Feature | undefined
-
-      if (boundData?.properties) {
-        const territoryCode = boundData.properties.code || boundData.properties.INSEE_DEP
-        if (territoryCode) {
-          select(pathElement).attr('data-territory', territoryCode)
-          return
-        }
-      }
-
-      if (i < geoData.features.length) {
-        const feature = geoData.features[i]
-        const territoryCode = feature?.properties?.code || feature?.properties?.INSEE_DEP
-        if (territoryCode) {
-          select(pathElement).attr('data-territory', territoryCode)
-        }
-      }
-    })
-  }
 }

@@ -213,8 +213,4 @@ export class Cartographer {
 
     return this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere)
   }
-
-  static addTerritoryAttributes(svg: SVGSVGElement, data: GeoJSON.FeatureCollection): void {
-    D3MapRenderer.addTerritoryAttributes(svg, data)
-  }
 }

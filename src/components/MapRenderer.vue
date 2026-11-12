@@ -42,7 +42,7 @@ const parameterStore = useParameterStore()
 const viewStore = useViewStore()
 const mapContainer = ref<HTMLElement>()
 
-const { size, renderSvg, addTerritoryAttributes, applyOverlays } = useMapRender(props)
+const { size, renderSvg, applyOverlays } = useMapRender(props)
 
 watch(
   () => props.territoryCode ? parameterStore.getEffectiveParameters(props.territoryCode) : null,
@@ -210,8 +210,6 @@ async function renderMap() {
     mapContainer.value.appendChild(svg)
 
     if (isDragEnabled.value) {
-      await addTerritoryAttributes(svg)
-
       const customComposite = cartographer.value?.customComposite
       if (props.mode === 'composite' && viewStore.viewMode === 'composite-custom' && customComposite) {
         createBorderZoneOverlays(svg, customComposite, size.value.width, size.value.height)
