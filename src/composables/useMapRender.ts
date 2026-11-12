@@ -2,7 +2,6 @@ import type { ViewState } from '@/core/view'
 import type { TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
 import { ViewOrchestrationService } from '@/core/view'
-import { Cartographer } from '@/services/rendering/cartographer-service'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useAtlasStore } from '@/stores/atlas'
@@ -134,21 +133,6 @@ export function useMapRender(props: MapRenderProps) {
     })
   }
 
-  async function addTerritoryAttributes(svg: SVGSVGElement) {
-    let geoData: GeoJSON.FeatureCollection | null = null
-
-    if (props.mode === 'composite' && geoDataStore.cartographer) {
-      geoData = await geoDataStore.getFilteredRawData()
-    }
-    else if (props.geoData || geoDataStore.rawUnifiedData) {
-      geoData = props.geoData || geoDataStore.rawUnifiedData
-    }
-
-    if (geoData) {
-      Cartographer.addTerritoryAttributes(svg, geoData)
-    }
-  }
-
   async function applyOverlays(svg: SVGSVGElement) {
     const { width, height } = size.value
     const overlayProjectionId = projectionStore.compositeProjection || projectionStore.selectedProjection
@@ -208,7 +192,6 @@ export function useMapRender(props: MapRenderProps) {
   return {
     size,
     renderSvg,
-    addTerritoryAttributes,
     applyOverlays,
   }
 }
