@@ -1,27 +1,9 @@
 // @vitest-environment node
 import type { NeutralComposite } from '@atlas-composer/specification'
-import { execFileSync } from 'node:child_process'
 import { getPreset } from '@atlas-composer/preset-library'
 import { describeComposite } from '@atlas-composer/projection-loader/neutral'
 import { describe, expect, it } from 'vitest'
-
-const CLI = 'packages/cli/dist/cli.js'
-
-function run(args: string[]): string {
-  return execFileSync('node', [CLI, ...args], { encoding: 'utf8', stdio: 'pipe' })
-}
-
-function failureOf(args: string[]): string {
-  try {
-    run(args)
-  }
-  catch (error) {
-    const { status, stderr } = error as { status: number, stderr: string }
-    expect(status).toBe(1)
-    return stderr
-  }
-  throw new Error(`atlas-composer ${args.join(' ')} exits with the code 0`)
-}
+import { failureOf, run } from './cli'
 
 describe('atlas-composer describe', () => {
   it('writes the neutral description of a preset to the standard output', async () => {
