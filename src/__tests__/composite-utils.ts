@@ -164,6 +164,18 @@ export function loadSubProjection(config: CompositeProjectionConfig, territoryCo
   return created as GeoProjection
 }
 
+// Clockwise ring: d3-geo reads it as the box, not as the rest of the sphere
+export function boundsPolygon([[minLon, minLat], [maxLon, maxLat]]: [Point, Point], properties: GeoJSON.GeoJsonProperties = {}): GeoJSON.Feature<GeoJSON.Polygon> {
+  return {
+    type: 'Feature',
+    properties,
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[[minLon, minLat], [minLon, maxLat], [maxLon, maxLat], [maxLon, minLat], [minLon, minLat]]],
+    },
+  }
+}
+
 export function pointsInBounds([[minLon, minLat], [maxLon, maxLat]]: [Point, Point]): Point[] {
   const fractions = [0.25, 0.5, 0.75]
   return fractions.flatMap(fx => fractions.map((fy): Point => [

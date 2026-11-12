@@ -12,6 +12,9 @@ export interface TerritoryRenderOptions {
   onClick?: (feature: GeoJSON.Feature, event: MouseEvent) => void
 }
 
+/** The projection that draws a territory, or undefined when the territory has none */
+export type TerritoryProjection = (feature: GeoJSON.Feature) => GeoProjection | undefined
+
 export interface SphereRenderOptions {
   stroke?: string
   strokeWidth?: number
@@ -60,16 +63,25 @@ export class D3MapRenderer {
   static renderTerritories(
     svg: SVGSVGElement,
     geoData: GeoJSON.FeatureCollection,
-    projection: GeoProjection,
+    projectionOf: TerritoryProjection,
     options: TerritoryRenderOptions = {},
-  ): GeoPath {
+  ): void {
     const {
       enableTooltips = true,
       onHover,
       onClick,
     } = options
 
-    const path = geoPath(projection)
+    const geoPaths = new Map<GeoProjection, GeoPath>()
+    const pathOfFeature = new Map<GeoJSON.Feature, GeoPath>()
+    for (const feature of geoData.features) {
+      const projection = projectionOf(feature)
+      if (projection) {
+        const path = geoPaths.get(projection) ?? geoPath(projection)
+        geoPaths.set(projection, path)
+        pathOfFeature.set(feature, path)
+      }
+    }
     const svgSelection = select(svg)
 
     const territoriesGroup = svgSelection
@@ -78,9 +90,9 @@ export class D3MapRenderer {
 
     const paths = territoriesGroup
       .selectAll<SVGPathElement, GeoJSON.Feature>('path')
-      .data(geoData.features)
+      .data([...pathOfFeature.keys()])
       .join('path')
-      .attr('d', d => path(d) || '')
+      .attr('d', d => pathOfFeature.get(d)?.(d) || '')
       .attr('fill', getTerritoryFillColor())
       .attr('stroke', getTerritoryStrokeColor())
       .attr('stroke-width', 1)
@@ -111,8 +123,7 @@ export class D3MapRenderer {
       })
     }
 
-    debug('Rendered %d territories', geoData.features.length)
-    return path
+    debug('Rendered %d of %d territories', pathOfFeature.size, geoData.features.length)
   }
 
   static addTerritoryAttributes(

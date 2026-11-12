@@ -286,8 +286,8 @@
         "family": "CYLINDRICAL",
         "parameters": {
           "center": [
-            -62.85,
-            17.92
+            -63.082,
+            18.067
           ],
           "scaleMultiplier": 1
         }
