@@ -1,3 +1,4 @@
+import { watch } from 'vue'
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/locales/en.json'
 import fr from '@/i18n/locales/fr.json'
@@ -36,10 +37,13 @@ const i18n = createI18n<[MessageSchema], SupportedLocale, false>({
   globalInjection: true,
 })
 
+watch(i18n.global.locale, (locale) => {
+  document.documentElement.setAttribute('lang', locale)
+}, { immediate: true })
+
 export default i18n
 
 export function setLocale(locale: SupportedLocale) {
   i18n.global.locale.value = locale
   localStorage.setItem('locale', locale)
-  document.documentElement.setAttribute('lang', locale)
 }
