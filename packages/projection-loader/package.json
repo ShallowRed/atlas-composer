@@ -39,6 +39,10 @@
     "./helpers": {
       "types": "./dist/d3-projection-helpers.d.ts",
       "import": "./dist/d3-projection-helpers.js"
+    },
+    "./neutral": {
+      "types": "./dist/neutral.d.ts",
+      "import": "./dist/neutral.js"
     }
   },
   "main": "./dist/index.js",
@@ -71,6 +75,12 @@
       "path": "dist/d3-projection-helpers.js",
       "limit": "3 KB",
       "gzip": true
+    },
+    {
+      "name": "Neutral description (optional)",
+      "path": "dist/neutral.js",
+      "limit": "12 KB",
+      "gzip": true
     }
   ],
   "peerDependencies": {
@@ -86,6 +96,7 @@
     "@atlas-composer/specification": "workspace:*",
     "@size-limit/preset-small-lib": "^11.2.0",
     "@types/d3-geo": "^3.1.0",
+    "ajv": "^8.17.1",
     "d3-geo": "^3.1.1",
     "size-limit": "^11.2.0",
     "tsup": "^8.0.0",

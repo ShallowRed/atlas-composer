@@ -27,8 +27,8 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
-      - name: Install GDAL and tippecanoe
-        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends gdal-bin tippecanoe
+      - name: Install GDAL, PROJ and tippecanoe
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends gdal-bin proj-bin tippecanoe
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -48,3 +48,8 @@ jobs:
 
       - name: Check the files with GDAL and tippecanoe
         run: scripts/check-gis.sh "$RUNNER_TEMP"/gis/*.geojson
+
+      - name: Compare the PROJ pipelines of each composite preset with d3
+        run: pnpm exec vitest run packages/projection-loader/__tests__/neutral.spec.ts
+        env:
+          REQUIRE_GIS_TOOLS: 1

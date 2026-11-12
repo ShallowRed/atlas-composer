@@ -34,7 +34,7 @@ UPDATE_VIEW_RENDERING=1 pnpm exec vitest run src/__tests__/view-rendering.spec.t
 
 `src/__tests__/documentation.spec.ts` compares the documents named in its `DOCUMENTS` constant with the repository: relative links, paths, identifiers and `pnpm` commands.
 
-## Check of the composed geometries
+## Check of the composed geometries and of the PROJ pipelines
 
 `.github/workflows/gis.yml` runs on each pull request and on each push to `main`. It builds the packages, then writes with the `atlas-composer` command of `packages/cli` the territories of the `world` atlas and the composed geometries of each preset of type `composite-custom` of `configs/atlas-registry.json`, at the default resolution, `50m`. `scripts/check-gis.sh` then reads each file with two tools of the Ubuntu packages `gdal-bin` and `tippecanoe`. `ogrinfo` counts the geometries that GEOS reads as invalid, and the script fails on a count other than 0. `tippecanoe` tiles the file into a `.pmtiles` file beside it, and the script fails on a warning.
 
@@ -44,6 +44,8 @@ To run the check on a machine that has both tools, give the files to the script:
 node packages/cli/dist/cli.js territories world > world.geojson
 scripts/check-gis.sh world.geojson
 ```
+
+The same workflow installs `proj-bin` and runs `packages/projection-loader/__tests__/neutral.spec.ts` with `REQUIRE_GIS_TOOLS=1`. For each territory of each `composite-custom` preset of the registry, the test gives nine points to `cct` through the pipeline that `describeComposite` writes, and compares the pixels with those of the d3 sub-projection, with a tolerance of 1e-6 pixel. Without this variable, `pnpm test` skips this comparison on a machine that has no `cct`.
 
 ## Publication of the packages
 
