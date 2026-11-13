@@ -331,6 +331,74 @@
       }
     },
     {
+      "id": "chile",
+      "name": {
+        "en": "Chile",
+        "fr": "Chili"
+      },
+      "group": "country",
+      "sortOrder": 29,
+      "configPath": "./atlases/chile.json",
+      "presets": [
+        {
+          "id": "chile-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/chile/chile-standard.json",
+          "description": {
+            "en": "Custom configuration for mainland Chile, the Juan Fernandez Islands and Easter Island",
+            "fr": "Configuration personnalisée pour le Chili continental, les îles Juan Fernández et l'île de Pâques"
+          }
+        },
+        {
+          "id": "chile-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/chile/chile-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Chile",
+            "fr": "Projection Natural Earth centrée sur le Chili"
+          }
+        },
+        {
+          "id": "chile-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/chile/chile-split.json",
+          "description": {
+            "en": "Same transverse Mercator projection for all territories",
+            "fr": "Même projection de Mercator transverse pour tous les territoires"
+          }
+        },
+        {
+          "id": "chile-builtin",
+          "name": {
+            "en": "d3 composite projection",
+            "fr": "Projection composite d3"
+          },
+          "type": "built-in-composite",
+          "configPath": "./presets/chile/chile-builtin.json",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {}
+      }
+    },
+    {
       "id": "usa",
       "name": {
         "en": "United States",
