@@ -20,17 +20,9 @@ export const useUIStore = defineStore('ui', () => {
   const toasts = ref<ToastMessage[]>([])
   let toastIdCounter = 0
 
+  // src/index.html chooses the theme before the first paint, from localStorage.theme or prefers-color-scheme
   function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme) {
-      theme.value = savedTheme
-      applyTheme(savedTheme)
-    }
-    else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      theme.value = prefersDark ? 'dark' : 'light'
-      applyTheme(theme.value)
-    }
+    theme.value = document.documentElement.dataset.theme ?? 'light'
   }
 
   function setTheme(newTheme: string) {
