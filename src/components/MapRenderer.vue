@@ -284,6 +284,7 @@ function handleMouseDown(event: MouseEvent) {
 <template>
   <div
     class="map-renderer"
+    :style="{ '--map-aspect': `${size.width} / ${size.height}` }"
     :class="{
       'h-full': props.fullHeight,
       'map-renderer--fill': props.fullHeight,
@@ -292,7 +293,7 @@ function handleMouseDown(event: MouseEvent) {
   >
     <div
       ref="mapContainer"
-      class="map-plot w-full bg-base-200 border-base-300 p-2"
+      class="map-plot w-full bg-base-200 border-base-300 p-2 max-lg:p-0.5"
       :class="{
         'map-ready': !isLoading && !error,
         'map-loading': isLoading || error,
@@ -317,6 +318,11 @@ function handleMouseDown(event: MouseEvent) {
 .map-plot :deep(svg) {
   max-width: 100%;
   height: auto;
+}
+
+/* Below lg, a filling map takes the proportions of its drawing, so that it fills its width */
+.map-renderer--fill {
+  @apply max-lg:h-auto max-lg:[aspect-ratio:var(--map-aspect)];
 }
 
 .map-renderer--fill .map-plot :deep(svg) {

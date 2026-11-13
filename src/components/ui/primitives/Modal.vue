@@ -42,7 +42,7 @@ watch(() => props.modelValue, async (isOpen) => {
   <Teleport to="body">
     <div
       v-if="modelValue"
-      class="modal modal-open"
+      class="modal modal-open modal-bottom lg:modal-middle"
       @click.self="close"
     >
       <div

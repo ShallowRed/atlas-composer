@@ -26,7 +26,7 @@ const badgeClasses = computed(() => {
 <template>
   <span
     v-if="selectedOption"
-    class="flex items-center text-left leading-tight gap-2"
+    class="flex min-w-0 items-center text-left leading-tight gap-2"
   >
     <DropdownOptionIcon :icon="selectedOption.icon" />
 
@@ -39,7 +39,7 @@ const badgeClasses = computed(() => {
       v-else-if="showBadge && selectedOption.badge"
       class="badge badge-soft badge-xs"
     >{{ selectedOption.badge }}</span>
-    {{ selectedOption.translated ? selectedOption.label : $t(selectedOption.label) }}
+    <span class="min-w-0 truncate">{{ selectedOption.translated ? selectedOption.label : $t(selectedOption.label) }}</span>
   </span>
   <span
     v-else

@@ -37,9 +37,9 @@ const viewModeOptionsWithIcons = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+  <div class="flex items-center gap-3">
     <DropdownControl
-      class="w-44 sm:w-56"
+      class="min-w-0 lg:w-56"
       hide-label
       :model-value="atlasStore.selectedAtlasId"
       :label="t('settings.region')"
@@ -48,7 +48,7 @@ const viewModeOptionsWithIcons = computed(() => {
       @update:model-value="compositionStore.selectAtlas($event as AtlasId)"
     />
     <DropdownControl
-      class="w-full sm:w-80"
+      class="min-w-0 flex-1 lg:w-80 lg:flex-none"
       hide-label
       :model-value="viewStore.viewMode"
       :label="t('mode.view')"

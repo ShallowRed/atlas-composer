@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { breakpointsTailwind, useBreakpoints, useElementSize } from '@vueuse/core'
+import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vue'
 import BuiltInCompositeControls from '@/components/configuration/BuiltInCompositeControls.vue'
@@ -43,23 +44,46 @@ const contentKey = computed(() => `${atlasStore.selectedAtlasId}-${viewStore.vie
 
 const { hasSelectedTerritory } = useSelectedTerritory()
 
+const isBelowLg = useBreakpoints(breakpointsTailwind).smaller('lg')
+const pinsMap = computed(() => !isSplitMode.value)
+const mapCard = useTemplateRef<InstanceType<typeof CardContainer>>('mapCard')
+const settingsCard = useTemplateRef<InstanceType<typeof CardContainer>>('settingsCard')
+const { height: mapCardHeight } = useElementSize(mapCard, undefined, { box: 'border-box' })
+const settingsCardStyle = computed(() => isBelowLg.value && pinsMap.value
+  ? { scrollMarginTop: `${mapCardHeight.value}px` }
+  : undefined)
+
+watch(hasSelectedTerritory, async (selected) => {
+  if (!selected || !isBelowLg.value || !pinsMap.value) {
+    return
+  }
+  await nextTick()
+  ;(settingsCard.value?.$el as HTMLElement | undefined)?.scrollIntoView({ behavior: 'smooth' })
+})
+
 onMounted(() => compositionStore.startMapView(readSharedLink()))
 </script>
 
 <template>
-  <MainLayout>
+  <MainLayout :pin-main-content="pinsMap">
     <template #main-content>
-      <CardContainer class="flex-1 min-w-0">
+      <CardContainer
+        ref="mapCard"
+        class="flex-1 min-w-0"
+      >
         <template #header>
           <div class="flex items-start gap-3">
             <AtlasConfigSection class="flex-1 min-w-0" />
             <ShareButton />
           </div>
         </template>
-        <template #footer>
+        <template
+          v-if="!isBelowLg"
+          #footer
+        >
           <DisplayOptionsSection />
         </template>
-        <div class="main-content-wrapper relative h-full w-full">
+        <div class="main-content-wrapper relative h-full w-full max-lg:h-auto">
           <Transition
             name="fade"
             mode="out-in"
@@ -93,10 +117,17 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
     <template #right-sidebar>
       <CardContainer
         v-show="viewOrchestration.shouldShowRightSidebar.value"
+        ref="settingsCard"
         class="flex-1 min-w-0"
+        :style="settingsCardStyle"
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
+        <DisplayOptionsSection
+          v-if="isBelowLg"
+          v-show="!hasSelectedTerritory"
+          class="mb-6"
+        />
         <TerritorySelectionSection
           v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
           v-show="!hasSelectedTerritory"
