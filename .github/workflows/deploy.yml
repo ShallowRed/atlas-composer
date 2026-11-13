@@ -51,6 +51,7 @@ jobs:
           pnpm run geodata:prepare ecuador
           pnpm run geodata:prepare malaysia
           pnpm run geodata:prepare new-zealand
+          pnpm run geodata:prepare norway
           pnpm run geodata:prepare europe
           pnpm run geodata:prepare usa
           pnpm run geodata:prepare world --resolution=110m

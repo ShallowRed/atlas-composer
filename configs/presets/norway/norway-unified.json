@@ -1,0 +1,20 @@
+{
+  "id": "norway-unified",
+  "name": "Norge - Standard samlet visning",
+  "description": "Natural Earth-projeksjon sentrert på Norge",
+  "atlasId": "norway",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -15,
+          -65,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

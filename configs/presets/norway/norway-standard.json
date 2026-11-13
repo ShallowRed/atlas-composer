@@ -1,0 +1,101 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "norway",
+    "atlasName": "Norway",
+    "exportDate": "2026-11-13T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 2000,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "NO-MAIN",
+      "name": "Mainland Norway",
+      "projection": {
+        "id": "transverse-mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -15,
+            -65,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          80,
+          0
+        ],
+        "pixelClipExtent": [
+          -185,
+          -235,
+          200,
+          245
+        ]
+      },
+      "bounds": [
+        [
+          4.8,
+          58.0
+        ],
+        [
+          31.0,
+          71.2
+        ]
+      ]
+    },
+    {
+      "code": "NO-21",
+      "name": "Svalbard",
+      "projection": {
+        "id": "transverse-mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -20,
+            -77.5,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -200,
+          -110
+        ],
+        "pixelClipExtent": [
+          -75,
+          -115,
+          90,
+          120
+        ]
+      },
+      "bounds": [
+        [
+          10.5,
+          74.3
+        ],
+        [
+          33.7,
+          80.5
+        ]
+      ]
+    }
+  ]
+}

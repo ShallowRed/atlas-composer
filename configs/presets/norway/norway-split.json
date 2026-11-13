@@ -1,0 +1,47 @@
+{
+  "id": "norway-split",
+  "name": "Norge - Ensartet delt visning",
+  "description": "Samme transversale Mercator-projeksjon for alle områdene",
+  "atlasId": "norway",
+  "type": "split",
+  "config": {
+    "territories": {
+      "NO-MAIN": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              -15,
+              -65,
+              0
+            ]
+          }
+        }
+      },
+      "NO-21": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              -20,
+              -77.5,
+              0
+            ]
+          }
+        }
+      },
+      "NO-22": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              8.4,
+              -71,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}
