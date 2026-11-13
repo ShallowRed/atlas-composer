@@ -55,7 +55,7 @@ The packages of `packages/` are published on npm with [changesets](https://githu
 
 ## Deployment
 
-`.github/workflows/deploy.yml` deploys the site to GitHub Pages on each push to `main`. After the check, it prepares the geographic data of each atlas with `pnpm geodata:prepare`, because git ignores `src/public/data/`, runs `pnpm build` and publishes the `dist` folder. The workflow names each atlas: [atlases.md](atlases.md) describes the line to add for a new atlas. The concurrency group `pages` lets a running deployment finish before the next one starts.
+`.github/workflows/deploy.yml` deploys the site to GitHub Pages on each push to `main`. After the check, it prepares the geographic data of each atlas with `pnpm geodata:prepare`, because git ignores `src/public/data/`, runs `pnpm build` and publishes the `dist` folder. The workflow reads the atlases in `configs/atlas-registry.json`: [atlases.md](atlases.md) describes the case of an atlas at another resolution than 50m. The concurrency group `pages` lets a running deployment finish before the next one starts.
 
 ## Debug logs
 

@@ -43,18 +43,11 @@ jobs:
 
       - name: Prepare geodata
         run: |
-          pnpm run geodata:prepare france
-          pnpm run geodata:prepare portugal
-          pnpm run geodata:prepare spain
-          pnpm run geodata:prepare japan
-          pnpm run geodata:prepare chile
-          pnpm run geodata:prepare ecuador
-          pnpm run geodata:prepare malaysia
-          pnpm run geodata:prepare new-zealand
-          pnpm run geodata:prepare norway
-          pnpm run geodata:prepare south-africa
-          pnpm run geodata:prepare europe
-          pnpm run geodata:prepare usa
+          atlases=$(jq -r '.atlases[].id | select(. != "world")' configs/atlas-registry.json)
+          test -n "$atlases"
+          for atlas in $atlases; do
+            pnpm run geodata:prepare "$atlas"
+          done
           pnpm run geodata:prepare world --resolution=110m
 
       - name: Build
