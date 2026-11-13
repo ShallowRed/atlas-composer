@@ -1,0 +1,59 @@
+{
+  "id": "new-zealand-split",
+  "name": "New Zealand - Uniform split view",
+  "description": "Same transverse Mercator projection for all territories",
+  "atlasId": "new-zealand",
+  "type": "split",
+  "config": {
+    "territories": {
+      "NZ-MAIN": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              -173,
+              41,
+              0
+            ]
+          }
+        }
+      },
+      "NZ-CIT": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              176.5,
+              44,
+              0
+            ]
+          }
+        }
+      },
+      "NZ-SUB": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              -167.5,
+              51.5,
+              0
+            ]
+          }
+        }
+      },
+      "TK": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              171.8,
+              9,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "new-zealand-unified",
+  "name": "New Zealand - Standard unified view",
+  "description": "Natural Earth projection centered on New Zealand",
+  "atlasId": "new-zealand",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -178,
+          30,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}
