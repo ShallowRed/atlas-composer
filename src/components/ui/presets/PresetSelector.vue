@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { I18nValue } from '#types'
 import type { PresetApplicationError } from '@/core/types/errors'
 import type { PresetId } from '@/types/branded'
 
@@ -40,7 +39,7 @@ const presetOptions = computed(() => {
   return filteredPresets.map((preset) => {
     return {
       value: preset.id,
-      label: formatPresetLabel(preset.id as PresetId, preset.name),
+      label: localize(preset.name),
       translated: true,
     }
   })
@@ -96,19 +95,6 @@ const currentPreset = computed({
 watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
   selectedPreset.value = '' as const
 }, { immediate: true })
-
-function formatPresetLabel(presetId: PresetId, presetName?: I18nValue): string {
-  if (presetName) {
-    return localize(presetName)
-  }
-
-  const parts = presetId.split('-')
-  if (parts.length > 1) {
-    const label = parts.slice(1).join(' ')
-    return label.charAt(0).toUpperCase() + label.slice(1)
-  }
-  return presetId
-}
 </script>
 
 <template>
