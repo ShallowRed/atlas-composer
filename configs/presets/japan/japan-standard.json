@@ -1,0 +1,157 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "japan",
+    "atlasName": "Japan",
+    "exportDate": "2026-11-13T00:00:00.000Z",
+    "createdWith": "d3-composite-projections Conversion",
+    "source": "d3-composite-projections/conicEquidistantJapan.js",
+    "notes": "Parameters reproduced from d3-composite-projections built-in composite projection"
+  },
+  "referenceScale": 2200,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "JP-MAIN",
+      "name": "Honshu, Shikoku and Kyushu",
+      "projection": {
+        "id": "conic-equidistant",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -136,
+            -22,
+            0
+          ],
+          "center": [
+            0,
+            13.9389
+          ],
+          "parallels": [
+            34,
+            40
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -297.44,
+          -240.02,
+          257.4,
+          215.6
+        ]
+      },
+      "bounds": [
+        [
+          128.6,
+          30.2
+        ],
+        [
+          142.0,
+          41.6
+        ]
+      ]
+    },
+    {
+      "code": "JP-01",
+      "name": "Hokkaido",
+      "projection": {
+        "id": "conic-equidistant",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -146,
+            -26,
+            0
+          ],
+          "center": [
+            0,
+            13.9389
+          ],
+          "parallels": [
+            34,
+            40
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -93.5,
+          -11.0
+        ],
+        "pixelClipExtent": [
+          -203.5,
+          -229.46,
+          6.16,
+          -48.4
+        ]
+      },
+      "bounds": [
+        [
+          139.4,
+          41.4
+        ],
+        [
+          145.9,
+          45.6
+        ]
+      ]
+    },
+    {
+      "code": "JP-RYU",
+      "name": "Ryukyu Islands",
+      "projection": {
+        "id": "conic-equidistant",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -126,
+            -19,
+            0
+          ],
+          "center": [
+            0,
+            13.9389
+          ],
+          "parallels": [
+            34,
+            40
+          ],
+          "scaleMultiplier": 0.7
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -87.78,
+          103.62,
+          112.2,
+          245.08
+        ]
+      },
+      "bounds": [
+        [
+          123.6,
+          24.2
+        ],
+        [
+          129.8,
+          28.6
+        ]
+      ]
+    }
+  ]
+}

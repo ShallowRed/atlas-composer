@@ -1,0 +1,20 @@
+{
+  "id": "japan-unified",
+  "name": "日本 - 標準統合表示",
+  "description": "日本を中心とした Natural Earth 投影",
+  "atlasId": "japan",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -136,
+          -35,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

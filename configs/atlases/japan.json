@@ -1,0 +1,189 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "japan",
+  "name": {
+    "en": "Japan",
+    "fr": "Japon"
+  },
+  "description": {
+    "en": "Honshu, Shikoku, Kyushu, Hokkaido and the Ryukyu Islands",
+    "fr": "Honshū, Shikoku, Kyūshū, Hokkaidō et îles Ryūkyū"
+  },
+  "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "conic-equidistant-japan"
+  },
+  "dataSources": {
+    "territories": "japan-territories-50m.json",
+    "metadata": "japan-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      392
+    ],
+    "iso3": "JPN",
+    "region": "Asia"
+  },
+  "territories": [
+    {
+      "id": "392",
+      "code": "JP-MAIN",
+      "name": {
+        "en": "Honshu, Shikoku and Kyushu",
+        "fr": "Honshū, Shikoku et Kyūshū"
+      },
+      "iso": "JPN",
+      "bounds": [
+        [
+          128.6,
+          30.2
+        ],
+        [
+          142.0,
+          41.6
+        ]
+      ],
+      "center": [
+        136.0,
+        35.5
+      ]
+    },
+    {
+      "id": "392-01",
+      "code": "JP-01",
+      "name": {
+        "en": "Hokkaido",
+        "fr": "Hokkaidō"
+      },
+      "iso": "JPN",
+      "region": "North",
+      "bounds": [
+        [
+          139.4,
+          41.4
+        ],
+        [
+          145.9,
+          45.6
+        ]
+      ],
+      "center": [
+        142.6,
+        43.4
+      ],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [
+          10,
+          11,
+          12,
+          22
+        ]
+      }
+    },
+    {
+      "id": "392-RYU",
+      "code": "JP-RYU",
+      "name": {
+        "en": "Ryukyu Islands",
+        "fr": "Îles Ryūkyū"
+      },
+      "iso": "JPN",
+      "region": "South",
+      "bounds": [
+        [
+          123.6,
+          24.2
+        ],
+        [
+          129.8,
+          28.6
+        ]
+      ],
+      "center": [
+        127.6,
+        26.4
+      ],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ]
+      }
+    },
+    {
+      "id": "392-OGA",
+      "code": "JP-OGA",
+      "name": {
+        "en": "Ogasawara Islands",
+        "fr": "Îles Ogasawara"
+      },
+      "iso": "JPN",
+      "region": "Pacific",
+      "bounds": [
+        [
+          142.1,
+          26.6
+        ],
+        [
+          142.3,
+          26.8
+        ]
+      ],
+      "center": [
+        142.16,
+        26.67
+      ],
+      "extraction": {
+        "extractFrom": "392",
+        "polygonIndices": [
+          21
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Honshu, Shikoku and Kyushu only",
+            "fr": "Honshū, Shikoku et Kyūshū uniquement"
+          },
+          "territories": [
+            "JP-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "JP-MAIN",
+            "JP-01",
+            "JP-RYU",
+            "JP-OGA"
+          ]
+        }
+      ]
+    }
+  }
+}
