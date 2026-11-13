@@ -27,6 +27,7 @@ const errors = {
   PRESET_NOT_APPLICABLE: { code: 'PRESET_NOT_APPLICABLE', presetId: 'preset-x', presetType: 'split', viewMode: 'unified' },
   PRESET_APPLICATION_FAILED: { code: 'PRESET_APPLICATION_FAILED', presetId: 'preset-x', reason: 'reason-x' },
   EXPORT_NOT_AVAILABLE: { code: 'EXPORT_NOT_AVAILABLE' },
+  EXPORT_NO_TERRITORY: { code: 'EXPORT_NO_TERRITORY' },
   IMPORT_NOT_JSON_FILE: { code: 'IMPORT_NOT_JSON_FILE', fileName: 'file-x' },
   IMPORT_FILE_TOO_LARGE: { code: 'IMPORT_FILE_TOO_LARGE', fileName: 'file-x', maxSizeInMb: 10 },
   IMPORT_FILE_UNREADABLE: { code: 'IMPORT_FILE_UNREADABLE', fileName: 'file-x' },

@@ -11,6 +11,7 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 const FRANCE = 'france' as AtlasId
 
@@ -183,6 +184,13 @@ describe('geoData store', () => {
       const { geoDataStore } = await openFranceWithCartographer({ withComposite: false })
 
       expect(geoDataStore.exportConfiguration()).toEqual({ ok: false, error: { code: 'EXPORT_NOT_AVAILABLE' } })
+    })
+
+    it('fails without a checked territory', async () => {
+      const { geoDataStore } = await openFranceWithCartographer({ withComposite: true })
+      useViewStore().setActiveTerritories([])
+
+      expect(geoDataStore.exportConfiguration()).toEqual({ ok: false, error: { code: 'EXPORT_NO_TERRITORY' } })
     })
   })
 })
