@@ -7,6 +7,7 @@ const ATLAS_FLAGS: Record<string, string> = {
   'europe': '🇪🇺',
   'usa': '🇺🇸',
   'netherlands': '🇳🇱',
+  'norway': '🇳🇴',
   'japan': '🇯🇵',
   'ecuador': '🇪🇨',
   'chile': '🇨🇱',

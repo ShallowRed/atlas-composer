@@ -1,0 +1,154 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "norway",
+  "name": {
+    "en": "Norway",
+    "fr": "Norvège"
+  },
+  "description": {
+    "en": "Mainland Norway, Svalbard and Jan Mayen",
+    "fr": "Norvège continentale, Svalbard et Jan Mayen"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "norway-territories-50m.json",
+    "metadata": "norway-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      578
+    ],
+    "iso3": "NOR",
+    "region": "Europe"
+  },
+  "territories": [
+    {
+      "id": "578",
+      "code": "NO-MAIN",
+      "name": {
+        "en": "Mainland Norway",
+        "fr": "Norvège continentale"
+      },
+      "iso": "NOR",
+      "bounds": [
+        [
+          4.8,
+          58.0
+        ],
+        [
+          31.0,
+          71.2
+        ]
+      ],
+      "center": [
+        12.3,
+        64.0
+      ]
+    },
+    {
+      "id": "578-21",
+      "code": "NO-21",
+      "name": {
+        "en": "Svalbard",
+        "fr": "Svalbard"
+      },
+      "iso": "SJM",
+      "region": "Arctic",
+      "bounds": [
+        [
+          10.5,
+          74.3
+        ],
+        [
+          33.7,
+          80.5
+        ]
+      ],
+      "center": [
+        18.3,
+        78.8
+      ],
+      "extraction": {
+        "extractFrom": "578",
+        "polygonIndices": [
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ]
+      }
+    },
+    {
+      "id": "578-22",
+      "code": "NO-22",
+      "name": {
+        "en": "Jan Mayen",
+        "fr": "Jan Mayen"
+      },
+      "iso": "SJM",
+      "region": "Arctic",
+      "bounds": [
+        [
+          -9.1,
+          70.8
+        ],
+        [
+          -7.9,
+          71.2
+        ]
+      ],
+      "center": [
+        -8.4,
+        71.0
+      ],
+      "extraction": {
+        "extractFrom": "578",
+        "polygonIndices": [
+          22
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Mainland Norway only",
+            "fr": "Norvège continentale uniquement"
+          },
+          "territories": [
+            "NO-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "NO-MAIN",
+            "NO-21",
+            "NO-22"
+          ]
+        }
+      ]
+    }
+  }
+}
