@@ -337,6 +337,10 @@
       "name": "Mercator",
       "description": "Préserve les angles et les directions. Couramment utilisée pour la navigation et les régions tropicales"
     },
+    "transverseMercator": {
+      "name": "Mercator transverse",
+      "description": "Préserve les angles. Adaptée aux régions allongées du nord au sud"
+    },
     "conicEquidistant": {
       "name": "Conique Équidistante",
       "description": "Préserve les distances le long des méridiens. Bonne pour les régions à grande étendue nord-sud"

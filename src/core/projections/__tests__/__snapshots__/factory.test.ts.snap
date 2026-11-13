@@ -1275,6 +1275,41 @@ exports[`projectionFactory > created projections > keeps the projection created 
 }
 `;
 
+exports[`projectionFactory > created projections > keeps the projection created for transverse-mercator 1`] = `
+{
+  "center": null,
+  "centerImage": null,
+  "hasCompositionBorders": false,
+  "points": [
+    [
+      484.780162,
+      120.757617,
+    ],
+    [
+      321.505928,
+      -27.944456,
+    ],
+    [
+      480,
+      250,
+    ],
+    [
+      267.056945,
+      140.258751,
+    ],
+    [
+      444.540199,
+      -63.607479,
+    ],
+  ],
+  "scale": 159.155,
+  "translate": [
+    480,
+    250,
+  ],
+}
+`;
+
 exports[`projectionFactory > created projections > keeps the projection created for transverse-mercator-chile 1`] = `
 {
   "center": [

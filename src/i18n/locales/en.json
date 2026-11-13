@@ -337,6 +337,10 @@
       "name": "Mercator",
       "description": "Preserves angles and direction. Commonly used for navigation and tropical regions"
     },
+    "transverseMercator": {
+      "name": "Transverse Mercator",
+      "description": "Preserves angles. Suited to regions that stretch from north to south"
+    },
     "conicEquidistant": {
       "name": "Conic Equidistant",
       "description": "Preserves distance along meridians. Good for regions with large north-south extent"

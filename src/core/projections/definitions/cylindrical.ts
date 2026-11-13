@@ -1,5 +1,5 @@
 import type { ProjectionDefinition } from '../types'
-import { geoEquirectangular, geoMercator } from 'd3-geo'
+import { geoEquirectangular, geoMercator, geoTransverseMercator } from 'd3-geo'
 import { ProjectionCategory, ProjectionFamily, ProjectionStrategy } from '../types'
 
 const MERCATOR: ProjectionDefinition = {
@@ -28,6 +28,36 @@ const MERCATOR: ProjectionDefinition = {
 
   metadata: {
     infoUrl: 'https://en.wikipedia.org/wiki/Mercator_projection',
+    experimental: false,
+  },
+}
+
+const TRANSVERSE_MERCATOR: ProjectionDefinition = {
+  id: 'transverse-mercator',
+  name: 'projections.transverseMercator.name',
+  description: 'projections.transverseMercator.description',
+  category: ProjectionCategory.CYLINDRICAL,
+  family: ProjectionFamily.CYLINDRICAL,
+  strategy: ProjectionStrategy.D3_BUILTIN,
+  create: geoTransverseMercator,
+
+  capabilities: {
+    preserves: ['angle'],
+    distorts: ['area'],
+    supportsComposite: true,
+    supportsSplit: true,
+    supportsUnified: true,
+  },
+
+  defaultParameters: {},
+
+  aliases: [],
+
+  creator: 'Johann Heinrich Lambert',
+  year: 1772,
+
+  metadata: {
+    infoUrl: 'https://en.wikipedia.org/wiki/Transverse_Mercator_projection',
     experimental: false,
   },
 }
@@ -63,5 +93,6 @@ const EQUIRECTANGULAR: ProjectionDefinition = {
 
 export const CYLINDRICAL_PROJECTIONS: ProjectionDefinition[] = [
   MERCATOR,
+  TRANSVERSE_MERCATOR,
   EQUIRECTANGULAR,
 ]
