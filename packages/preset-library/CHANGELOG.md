@@ -1,5 +1,14 @@
 # @atlas-composer/preset-library
 
+## 2.3.0
+
+### Minor Changes
+
+- eeac409: Add the presets of the Chile atlas: `chile-standard`, a `composite-custom` preset that reproduces the mainland, Juan Fernández and Easter Island frames of `geoTransverseMercatorChile` of d3-composite-projections, and the view presets `chile-builtin`, `chile-split` and `chile-unified`.
+- 2280a18: Add the presets of the Ecuador atlas: `ecuador-standard`, a `composite-custom` preset that reproduces `geoMercatorEcuador` of d3-composite-projections, and the view presets `ecuador-builtin`, `ecuador-split` and `ecuador-unified`.
+- e31705f: Add the presets of the Japan atlas: `japan-standard`, a `composite-custom` preset that reproduces `geoConicEquidistantJapan` of d3-composite-projections, and the view presets `japan-builtin`, `japan-split` and `japan-unified`.
+- 32f6237: Add the presets of the Malaysia atlas: `malaysia-standard`, a `composite-custom` preset that reproduces `geoMercatorMalaysia` of d3-composite-projections, and the view presets `malaysia-builtin`, `malaysia-split` and `malaysia-unified`.
+
 ## 2.2.1
 
 ### Patch Changes
