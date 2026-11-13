@@ -8,6 +8,7 @@ import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
+import { useTerritoryVisibility } from '@/composables/useTerritoryVisibility'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -21,6 +22,7 @@ const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
 
 const { getTerritoryProjection } = useProjectionConfig()
+const { shouldShowEmptyState } = useTerritoryVisibility()
 
 const territoriesTitle = computed(() => {
   const atlasTitle = atlasStore.currentAtlasConfig?.splitModeConfig?.territoriesTitle
@@ -200,7 +202,7 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
 
       <!-- Empty State -->
       <div
-        v-if="geoDataStore.filteredTerritories.length === 0"
+        v-if="shouldShowEmptyState"
         class="text-gray-500"
       >
         <p>{{ t('territory.noTerritories') }}</p>
