@@ -36,7 +36,7 @@ The presets and the stores hold the d3 values: `center` is `[longitude, latitude
 
 `applyPositioning` differs between the two views.
 
-- In the `composite` view, it passes `center` and `rotate` to d3 as they are written, with zeros for a missing value.
+- In the `composite` view, a territory whose file or preset leaves out `center` keeps the center of its d3 factory, as in the loader: `extractTerritoryParameters` writes this center when it reads the file, `[0, 13.9389]` for `conic-equidistant` and `[0, 33.6442]` for `conic-equal-area`. `applyPositioning` passes `center` and `rotate` to d3, with zeros for a missing value.
 - In the `global` view, `getTargetCoordinates` computes the point that the two parameters place at the translation point, and `getTargetRotate` turns the sphere to this point. The projection keeps the center of its factory.
 
 On a conic projection, `applyPositioning` sets `parallels`. Without a value, `getDerivedParallels` gives `[44, 49]` in the `global` view and the latitude of the target point plus and minus 2 degrees in the `composite` view. At a target latitude of 0, the projection keeps its parallels.
