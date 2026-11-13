@@ -2,8 +2,9 @@
 // "fix(registry): declare every preset of configs/presets once", and the territories of the france/split key that
 // the split preset omits, produced on the commit "fix(view): write the preset values of each territory in the split
 // view", the spain keys, produced on the commit "feat(atlases): add the spain atlas", the japan keys, produced on the
-// commit "feat(atlases): add the japan atlas", and the chile keys, produced on the commit "feat(atlases): add the chile
-// atlas"; regenerate a key only on the commit that produced it.
+// commit "feat(atlases): add the japan atlas", the chile keys, produced on the commit "feat(atlases): add the chile
+// atlas", and the ecuador keys, produced on the commit "feat(atlases): add the ecuador atlas"; regenerate a key only on
+// the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'

@@ -1,0 +1,123 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "ecuador",
+  "name": {
+    "en": "Ecuador",
+    "fr": "Équateur"
+  },
+  "description": {
+    "en": "Mainland Ecuador and the Galápagos Islands",
+    "fr": "Équateur continental et îles Galápagos"
+  },
+  "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "mercator-ecuador"
+  },
+  "dataSources": {
+    "territories": "ecuador-territories-50m.json",
+    "metadata": "ecuador-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      218
+    ],
+    "iso3": "ECU",
+    "region": "South America"
+  },
+  "territories": [
+    {
+      "id": "218",
+      "code": "EC-CONT",
+      "name": {
+        "en": "Mainland Ecuador",
+        "fr": "Équateur continental"
+      },
+      "iso": "ECU",
+      "bounds": [
+        [
+          -81.0,
+          -5.0
+        ],
+        [
+          -75.2,
+          1.5
+        ]
+      ],
+      "center": [
+        -78.4,
+        -1.5
+      ]
+    },
+    {
+      "id": "218-W",
+      "code": "EC-W",
+      "name": {
+        "en": "Galápagos Islands",
+        "fr": "Îles Galápagos"
+      },
+      "iso": "ECU",
+      "region": "Pacific",
+      "bounds": [
+        [
+          -91.7,
+          -1.4
+        ],
+        [
+          -89.2,
+          0.2
+        ]
+      ],
+      "center": [
+        -90.7,
+        -0.6
+      ],
+      "extraction": {
+        "extractFrom": "218",
+        "polygonIndices": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Mainland Ecuador only",
+            "fr": "Équateur continental uniquement"
+          },
+          "territories": [
+            "EC-CONT"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "EC-CONT",
+            "EC-W"
+          ]
+        }
+      ]
+    }
+  }
+}
