@@ -2,6 +2,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ImportError } from '@/core/types/errors'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
@@ -17,6 +18,7 @@ const emit = defineEmits<{
   'imported': [config: CompositeProjectionConfig]
 }>()
 
+const { t, locale } = useI18n()
 const compositionStore = useCompositionStore()
 const { errorMessages } = useErrorMessage()
 
@@ -116,13 +118,13 @@ function clearFile() {
 <template>
   <Modal
     :model-value="modelValue"
-    title="Import Configuration"
+    :title="t('import.title')"
     max-width="2xl"
     @update:model-value="handleClose"
   >
     <!-- Description -->
     <p class="text-sm text-base-content/70 mb-6">
-      Import a previously exported composite projection configuration.
+      {{ t('import.description') }}
     </p>
 
     <!-- File Upload Area -->
@@ -137,15 +139,15 @@ function clearFile() {
       <div class="flex flex-row items-center justify-center gap-2 mb-4">
         <i class="ri-file-upload-line text-3xl" />
         <p class="text-lg font-medium">
-          Drag and drop a JSON file here
+          {{ t('import.dropHint') }}
         </p>
       </div>
       <p class="text-sm text-base-content/70 mb-4">
-        or
+        {{ t('import.or') }}
       </p>
       <label class="btn btn-primary btn-soft btn-wide">
         <i class="ri-folder-3-line" />
-        Choose File
+        {{ t('import.chooseFile') }}
         <input
           type="file"
           accept=".json"
@@ -172,7 +174,7 @@ function clearFile() {
         @click="clearFile"
       >
         <i class="ri-close-line" />
-        Remove
+        {{ t('import.removeFile') }}
       </button>
     </div>
 
@@ -182,7 +184,7 @@ function clearFile() {
       class="flex items-center justify-center py-8"
     >
       <div class="loading loading-spinner loading-lg text-primary" />
-      <span class="ml-4">Processing file...</span>
+      <span class="ml-4">{{ t('import.processing') }}</span>
     </div>
 
     <!-- Validation Results -->
@@ -193,7 +195,7 @@ function clearFile() {
         class="alert alert-success alert-soft my-4"
       >
         <i class="ri-check-line text-xl" />
-        <span>Configuration is valid and ready to import</span>
+        <span>{{ t('import.valid') }}</span>
       </div>
 
       <!-- Errors -->
@@ -204,7 +206,7 @@ function clearFile() {
         <div class="flex-1">
           <h3 class="font-bold mb-2 flex items-center gap-2">
             <i class="ri-error-warning-line text-xl" />
-            Validation Errors
+            {{ t('import.errorsTitle') }}
           </h3>
           <ul class="list-disc list-inside text-sm mt-2">
             <li
@@ -223,27 +225,27 @@ function clearFile() {
         class="border border-base-300 rounded-lg p-4 mb-4"
       >
         <h3 class="font-bold mb-2">
-          Configuration Details
+          {{ t('import.detailsTitle') }}
         </h3>
         <dl class="grid grid-cols-2 gap-2 text-sm">
           <dt class="text-base-content/70">
-            Atlas:
+            {{ t('import.atlas') }}
           </dt>
           <dd class="font-medium">
             {{ importedConfig.metadata.atlasName }}
           </dd>
           <dt class="text-base-content/70">
-            Territories:
+            {{ t('import.territories') }}
           </dt>
           <dd class="font-medium">
             {{ importedConfig.territories.length }}
           </dd>
           <template v-if="importedConfig.metadata.exportDate">
             <dt class="text-base-content/70">
-              Export Date:
+              {{ t('import.exportDate') }}
             </dt>
             <dd class="font-medium">
-              {{ new Date(importedConfig.metadata.exportDate).toLocaleString() }}
+              {{ new Date(importedConfig.metadata.exportDate).toLocaleString(locale) }}
             </dd>
           </template>
         </dl>
@@ -257,7 +259,7 @@ function clearFile() {
         @click="handleClose"
       >
         <i class="ri-close-line" />
-        Cancel
+        {{ t('common.cancel') }}
       </button>
       <button
         class="btn btn-primary"
@@ -265,7 +267,7 @@ function clearFile() {
         @click="applyImport"
       >
         <i class="ri-check-line" />
-        Apply Configuration
+        {{ t('import.apply') }}
       </button>
     </template>
   </Modal>
