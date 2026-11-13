@@ -1,0 +1,109 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "south-africa",
+    "atlasName": "South Africa",
+    "exportDate": "2026-11-13T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 2100,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "ZA-MAIN",
+      "name": "Mainland South Africa",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -25,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            -28.5
+          ],
+          "parallels": [
+            -33,
+            -24
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -60,
+          0
+        ],
+        "pixelClipExtent": [
+          -285,
+          -240,
+          270,
+          245
+        ]
+      },
+      "bounds": [
+        [
+          16.4,
+          -34.8
+        ],
+        [
+          32.9,
+          -22.1
+        ]
+      ]
+    },
+    {
+      "code": "ZA-PE",
+      "name": "Prince Edward Islands",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -37.75,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            -46.9
+          ],
+          "parallels": [
+            -33,
+            -24
+          ],
+          "scaleMultiplier": 4
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          300,
+          180
+        ],
+        "pixelClipExtent": [
+          -35,
+          -25,
+          35,
+          25
+        ]
+      },
+      "bounds": [
+        [
+          37.5,
+          -47.0
+        ],
+        [
+          37.9,
+          -46.8
+        ]
+      ]
+    }
+  ]
+}
