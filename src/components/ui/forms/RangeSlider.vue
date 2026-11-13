@@ -77,6 +77,7 @@ const midpoint = () => formatBound((props.max + props.min) / 2)
 
 const rangeClasses = computed(() => [
   'range',
+  'w-full',
   `range-${props.color}`,
   `range-xs`,
   `range-${props.size}`, // not working?

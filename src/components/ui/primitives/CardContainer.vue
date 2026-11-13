@@ -13,16 +13,16 @@ defineProps<Props>()
   <div
     class="card card-sm bg-base-100 card-border border-base-300"
   >
-    <div class="card-body pb-6">
+    <div class="card-body pb-6 max-lg:p-2">
       <div
         v-if="$slots.header"
-        class="px-2 mb-4"
+        class="px-2 mb-4 max-lg:mb-2 max-lg:px-0"
       >
         <slot name="header" />
       </div>
       <h2
         v-else
-        class="card-title px-2 mb-4 min-h-10"
+        class="card-title px-2 mb-4 min-h-10 max-lg:mb-2 max-lg:px-0"
       >
         <i :class="icon" />
         {{ title }}
@@ -34,13 +34,13 @@ defineProps<Props>()
         show-gradient
         gradient-color="var(--color-base-100)"
       >
-        <div class="px-2 h-full">
+        <div class="px-2 h-full max-lg:px-0">
           <slot />
         </div>
       </ScrollableContent>
       <div
         v-if="$slots.footer"
-        class="px-2 pt-4"
+        class="px-2 pt-4 max-lg:px-0"
       >
         <slot name="footer" />
       </div>

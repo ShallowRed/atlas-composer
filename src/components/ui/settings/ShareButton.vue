@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUrlState } from '@/composables/useUrlState'
 
@@ -9,6 +9,8 @@ const { copyShareableUrl } = useUrlState()
 const copied = ref(false)
 const error = ref(false)
 let timeoutId: number | undefined
+
+const label = computed(() => t(copied.value ? 'share.copied' : error.value ? 'share.error' : 'share.button'))
 
 async function handleCopy() {
   const success = await copyShareableUrl()
@@ -57,8 +59,6 @@ async function handleCopy() {
       v-else
       class="ri-error-warning-line"
     />
-    <span v-if="!copied && !error">{{ t('share.button') }}</span>
-    <span v-else-if="copied">{{ t('share.copied') }}</span>
-    <span v-else>{{ t('share.error') }}</span>
+    <span class="max-lg:sr-only">{{ label }}</span>
   </button>
 </template>
