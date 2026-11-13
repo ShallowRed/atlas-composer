@@ -72,10 +72,11 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
         class="flex-1 min-w-0"
       >
         <template #header>
-          <div class="flex items-start gap-3">
-            <AtlasConfigSection class="flex-1 min-w-0" />
-            <ShareButton />
-          </div>
+          <AtlasConfigSection>
+            <template #actions>
+              <ShareButton />
+            </template>
+          </AtlasConfigSection>
         </template>
         <template
           v-if="!isBelowLg"
