@@ -11,7 +11,6 @@ import ImportModal from '../ImportModal.vue'
 
 const CONFIG = { metadata: { atlasName: 'France' }, territories: [] } as unknown as CompositeProjectionConfig
 const MISMATCH: ImportError = { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 'portugal', currentAtlasId: 'france' }
-const SUCCESS_TEXT = 'Configuration is valid and ready to import'
 
 async function openWithFile() {
   const wrapper = mount(ImportModal, {
@@ -26,7 +25,7 @@ async function openWithFile() {
 }
 
 function applyButton(wrapper: Awaited<ReturnType<typeof openWithFile>>) {
-  return wrapper.findAll('button').find(button => button.text().includes('Apply Configuration'))!
+  return wrapper.findAll('button').find(button => button.text().includes(i18n.global.t('import.apply')))!
 }
 
 describe('importModal', () => {
@@ -49,7 +48,7 @@ describe('importModal', () => {
     const wrapper = await openWithFile()
 
     expect(wrapper.text()).toContain('This configuration is for atlas portugal')
-    expect(wrapper.text()).not.toContain(SUCCESS_TEXT)
+    expect(wrapper.text()).not.toContain(i18n.global.t('import.valid'))
     expect(applyButton(wrapper).attributes('disabled')).toBeDefined()
   })
 
@@ -69,7 +68,7 @@ describe('importModal', () => {
 
     const wrapper = await openWithFile()
 
-    expect(wrapper.text()).toContain(SUCCESS_TEXT)
+    expect(wrapper.text()).toContain(i18n.global.t('import.valid'))
     expect(applyButton(wrapper).attributes('disabled')).toBeUndefined()
   })
 
@@ -83,7 +82,7 @@ describe('importModal', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('reason-x')
-    expect(wrapper.text()).not.toContain(SUCCESS_TEXT)
+    expect(wrapper.text()).not.toContain(i18n.global.t('import.valid'))
     expect(applyButton(wrapper).attributes('disabled')).toBeDefined()
   })
 })

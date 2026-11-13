@@ -235,6 +235,22 @@
     "downloadSuccess": "File downloaded successfully!",
     "downloadError": "Failed to download file. Please try again."
   },
+  "import": {
+    "title": "Import a composite projection",
+    "description": "Import a composite projection configuration exported from Atlas composer.",
+    "dropHint": "Drop a JSON file here",
+    "or": "or",
+    "chooseFile": "Choose a file",
+    "removeFile": "Remove",
+    "processing": "Reading the file...",
+    "valid": "The configuration is valid and ready to import",
+    "errorsTitle": "Validation errors",
+    "detailsTitle": "Configuration details",
+    "atlas": "Atlas",
+    "territories": "Territories",
+    "exportDate": "Export date",
+    "apply": "Apply the configuration"
+  },
   "about": {
     "title": "About Atlas composer",
     "intro": "An interactive tool for creating and exporting JSON-based composite map projections for countries with geographically-scattered territories.",
