@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ViewMode } from '@/types'
 import type { AtlasId } from '@/types/branded'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -17,6 +18,8 @@ const { viewModeOptions } = useViewMode()
 const { viewOrchestration } = useViewState()
 
 const { t } = useI18n()
+// Below xl, the map column is too narrow for the two selectors and the actions on one row
+const isBelowXl = useBreakpoints(breakpointsTailwind).smaller('xl')
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
@@ -37,7 +40,8 @@ const viewModeOptionsWithIcons = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-3">
+  <!-- The actions slot is rendered at two places so that the DOM order follows the visual order: after the atlas below xl, where the view selector takes its own row, after the view selector from xl -->
+  <div class="flex flex-wrap items-start gap-x-3 gap-y-2 xl:flex-nowrap">
     <DropdownControl
       class="min-w-0 lg:w-56"
       hide-label
@@ -47,8 +51,14 @@ const viewModeOptionsWithIcons = computed(() => {
       :option-groups="atlasGroupsWithIcons"
       @update:model-value="compositionStore.selectAtlas($event as AtlasId)"
     />
+    <div
+      v-if="isBelowXl"
+      class="ml-auto"
+    >
+      <slot name="actions" />
+    </div>
     <DropdownControl
-      class="min-w-0 flex-1 lg:w-80 lg:flex-none"
+      class="min-w-0 max-xl:basis-full xl:w-80 xl:flex-none"
       hide-label
       :model-value="viewStore.viewMode"
       :label="t('mode.view')"
@@ -57,5 +67,11 @@ const viewModeOptionsWithIcons = computed(() => {
       :options="viewModeOptionsWithIcons"
       @update:model-value="compositionStore.selectViewMode($event as ViewMode)"
     />
+    <div
+      v-if="!isBelowXl"
+      class="ml-auto"
+    >
+      <slot name="actions" />
+    </div>
   </div>
 </template>
