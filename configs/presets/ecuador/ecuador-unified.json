@@ -1,0 +1,20 @@
+{
+  "id": "ecuador-unified",
+  "name": "Ecuador - Vista unificada estándar",
+  "description": "Proyección Natural Earth centrada en Ecuador",
+  "atlasId": "ecuador",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          82,
+          1,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "ecuador-builtin",
+  "name": "Ecuador - Proyección compuesta d3",
+  "description": "Proyección compuesta predefinida de d3-composite-projections",
+  "atlasId": "ecuador",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "mercator-ecuador",
+    "globalScale": 1.0
+  }
+}

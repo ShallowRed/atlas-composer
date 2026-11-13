@@ -1,0 +1,35 @@
+{
+  "id": "ecuador-split",
+  "name": "Ecuador - Vista separada uniforme",
+  "description": "Misma proyección de Mercator para todos los territorios",
+  "atlasId": "ecuador",
+  "type": "split",
+  "config": {
+    "territories": {
+      "EC-CONT": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "rotate": [
+              80,
+              1.5,
+              0
+            ]
+          }
+        }
+      },
+      "EC-W": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "rotate": [
+              90.73,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}
