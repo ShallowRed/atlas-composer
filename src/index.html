@@ -1,7 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- The theme is set before the first paint: the application mounts after the default atlas loads -->
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('theme')
+          || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      }
+      catch {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary Meta Tags -->
