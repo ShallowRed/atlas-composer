@@ -19,11 +19,18 @@ const withoutScaleMultiplier = {
   }],
 } as unknown as CompositeProjectionConfig
 
+// Centers of the d3 factories that differ from [0, 0]
+const factoryCenters: Record<string, [number, unknown]> = {
+  'conic-equidistant': [0, expect.closeTo(13.9389, 4)],
+  'conic-equal-area': [0, expect.closeTo(33.6442, 4)],
+}
+
 describe('extractTerritoryParameters', () => {
-  it.each(compositePresets)('gives the projection, the parameters and the layout of each territory of %s', (_id, config) => {
+  it.each(compositePresets)('gives the projection, the parameters and the layout of each territory of %s, with the center of the d3 factory when the file omits it', (_id, config) => {
     expect(extractTerritoryParameters(config)).toEqual(Object.fromEntries(config.territories.map(territory => [territory.code, {
       projectionId: territory.projection.id,
       ...territory.projection.parameters,
+      center: territory.projection.parameters.center ?? factoryCenters[territory.projection.id],
       translateOffset: territory.layout.translateOffset,
       pixelClipExtent: territory.layout.pixelClipExtent,
     }])))

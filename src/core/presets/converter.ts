@@ -2,6 +2,14 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { parameterRegistry } from '@/core/parameters'
+import { projectionRegistry } from '@/core/projections/registry'
+
+// A file that leaves out the center keeps the center of the d3 factory, as the loader does; the application reads a
+// missing center as [0, 0], which differs for the conic equidistant and equal-area projections
+function factoryCenter(projectionId: string): [number, number] | undefined {
+  const center = projectionRegistry.get(projectionId)?.create().center() as [number, number] | undefined
+  return center && (center[0] !== 0 || center[1] !== 0) ? center : undefined
+}
 
 export function extractTerritoryParameters(
   preset: CompositeProjectionConfig,
@@ -27,6 +35,13 @@ export function extractTerritoryParameters(
           territoryParams[key as keyof ProjectionParameters] = value as any
         }
       }
+    }
+
+    const center = territoryParams.center === undefined && territory.projection?.id
+      ? factoryCenter(territory.projection.id)
+      : undefined
+    if (center) {
+      territoryParams.center = center
     }
 
     if (territory.layout?.pixelClipExtent && Array.isArray(territory.layout.pixelClipExtent) && territory.layout.pixelClipExtent.length === 4) {

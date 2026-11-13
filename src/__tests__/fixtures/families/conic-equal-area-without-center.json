@@ -1,0 +1,56 @@
+{
+  "version": "1.1",
+  "metadata": {
+    "atlasId": "japan",
+    "atlasName": "Japan"
+  },
+  "referenceScale": 2200,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "JP-01",
+      "name": "Hokkaido",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            -146,
+            -26,
+            0
+          ],
+          "parallels": [
+            34,
+            40
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -93.5,
+          -11.0
+        ],
+        "pixelClipExtent": [
+          -203.5,
+          -229.46,
+          6.16,
+          -48.4
+        ]
+      },
+      "bounds": [
+        [
+          139.4,
+          41.4
+        ],
+        [
+          145.9,
+          45.6
+        ]
+      ]
+    }
+  ]
+}
