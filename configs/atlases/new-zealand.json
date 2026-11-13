@@ -1,0 +1,180 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "new-zealand",
+  "name": {
+    "en": "New Zealand",
+    "fr": "Nouvelle-Zélande"
+  },
+  "description": {
+    "en": "North Island, South Island, the Chatham Islands, the subantarctic islands and Tokelau",
+    "fr": "Île du Nord, île du Sud, îles Chatham, îles subantarctiques et Tokelau"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "new-zealand-territories-50m.json",
+    "metadata": "new-zealand-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      554
+    ],
+    "iso3": "NZL",
+    "region": "Oceania"
+  },
+  "territories": [
+    {
+      "id": "554",
+      "code": "NZ-MAIN",
+      "name": {
+        "en": "North Island and South Island",
+        "fr": "Île du Nord et île du Sud"
+      },
+      "iso": "NZL",
+      "bounds": [
+        [
+          166.4,
+          -47.3
+        ],
+        [
+          178.6,
+          -34.4
+        ]
+      ],
+      "center": [
+        172.5,
+        -41.0
+      ]
+    },
+    {
+      "id": "554-CIT",
+      "code": "NZ-CIT",
+      "name": {
+        "en": "Chatham Islands",
+        "fr": "Îles Chatham"
+      },
+      "iso": "NZL",
+      "region": "Pacific",
+      "bounds": [
+        [
+          -176.9,
+          -44.4
+        ],
+        [
+          -176.1,
+          -43.7
+        ]
+      ],
+      "center": [
+        -176.5,
+        -44.0
+      ],
+      "extraction": {
+        "extractFrom": "554",
+        "polygonIndices": [
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "id": "554-SUB",
+      "code": "NZ-SUB",
+      "name": {
+        "en": "Subantarctic Islands",
+        "fr": "Îles subantarctiques"
+      },
+      "iso": "NZL",
+      "region": "Southern Ocean",
+      "bounds": [
+        [
+          165.8,
+          -52.6
+        ],
+        [
+          169.3,
+          -50.5
+        ]
+      ],
+      "center": [
+        167.5,
+        -51.5
+      ],
+      "extraction": {
+        "extractFrom": "554",
+        "polygonIndices": [
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "id": "554-TK",
+      "code": "TK",
+      "name": {
+        "en": "Tokelau",
+        "fr": "Tokelau"
+      },
+      "iso": "TKL",
+      "region": "Pacific",
+      "bounds": [
+        [
+          -172.6,
+          -9.4
+        ],
+        [
+          -171.1,
+          -8.5
+        ]
+      ],
+      "center": [
+        -171.8,
+        -9.0
+      ],
+      "extraction": {
+        "extractFrom": "554",
+        "polygonIndices": [
+          11,
+          12
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "North Island and South Island only",
+            "fr": "Île du Nord et île du Sud uniquement"
+          },
+          "territories": [
+            "NZ-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "NZ-MAIN",
+            "NZ-CIT",
+            "NZ-SUB",
+            "TK"
+          ]
+        }
+      ]
+    }
+  }
+}

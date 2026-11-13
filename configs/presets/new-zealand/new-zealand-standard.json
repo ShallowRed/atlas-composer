@@ -1,0 +1,101 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "new-zealand",
+    "atlasName": "New Zealand",
+    "exportDate": "2026-11-13T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 2000,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "NZ-MAIN",
+      "name": "North Island and South Island",
+      "projection": {
+        "id": "transverse-mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            -173,
+            41,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -60,
+          0
+        ],
+        "pixelClipExtent": [
+          -170,
+          -242,
+          165,
+          238
+        ]
+      },
+      "bounds": [
+        [
+          166.4,
+          -47.3
+        ],
+        [
+          178.6,
+          -34.4
+        ]
+      ]
+    },
+    {
+      "code": "NZ-CIT",
+      "name": "Chatham Islands",
+      "projection": {
+        "id": "transverse-mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "rotate": [
+            176.5,
+            44,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          200,
+          120
+        ],
+        "pixelClipExtent": [
+          -35,
+          -35,
+          35,
+          35
+        ]
+      },
+      "bounds": [
+        [
+          -176.9,
+          -44.4
+        ],
+        [
+          -176.1,
+          -43.7
+        ]
+      ]
+    }
+  ]
+}
