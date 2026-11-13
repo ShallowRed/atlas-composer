@@ -174,7 +174,7 @@ describe('composition store', () => {
         activeTerritories: presetCodes,
         canvas: { referenceScale: config.referenceScale, dimensions: config.canvasDimensions },
       })
-      expect(reinitializedTerritories()?.sort()).toEqual(presetCodes.sort())
+      expect(reinitializedTerritories()).toEqual(territoryCodes())
     })
 
     it.each(['split', 'unified', 'built-in-composite'] as const)('leaves each territory at its default position, without active territory nor canvas, in the %s view', async (viewMode) => {
@@ -191,7 +191,7 @@ describe('composition store', () => {
         activeTerritories: [],
         canvas: { referenceScale: undefined, dimensions: undefined },
       })
-      expect(reinitializedTerritories()).toEqual([])
+      expect(reinitializedTerritories()).toEqual(territoryCodes())
     })
   })
 
@@ -834,6 +834,38 @@ describe('composition store', () => {
       const result = await useCompositionStore().readConfigurationFile(new File([json], 'portugal.json'))
 
       expect(result).toEqual(err({ code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 'portugal', currentAtlasId: 'france' }))
+    })
+  })
+
+  describe('addTerritoryToComposite', () => {
+    const SAINT_MARTIN = 'FR-MF' as TerritoryCode
+
+    it('gives the default parameters to a territory outside the preset, and a sub-projection to the cartographer of the initialization', async () => {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+
+      useCompositionStore().addTerritoryToComposite(SAINT_MARTIN)
+
+      expect(useParameterStore().getTerritoryParameters(SAINT_MARTIN)).toEqual({
+        projectionId: FALLBACK_PROJECTION_ID,
+        center: useAtlasStore().territoryCenter(SAINT_MARTIN),
+        translateOffset: [0, 0],
+        scaleMultiplier: 1,
+      })
+      expect(useViewStore().activeTerritoryCodes.has(SAINT_MARTIN)).toBe(true)
+      geoDataStore.cartographer!.customComposite!.build(960, 500)
+      expect(geoDataStore.cartographer!.customComposite!.getSubProjectionData(SAINT_MARTIN)).toBeDefined()
+    })
+
+    it('keeps the parameters of a territory that has a projection', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      const [code] = useViewStore().activeTerritoryCodes
+      const parameters = useParameterStore().getTerritoryParameters(code!)
+      useViewStore().removeTerritoryFromComposite(code!)
+
+      useCompositionStore().addTerritoryToComposite(code!)
+
+      expect(useParameterStore().getTerritoryParameters(code!)).toEqual(parameters)
     })
   })
 

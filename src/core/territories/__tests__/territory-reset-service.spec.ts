@@ -2,7 +2,7 @@ import type { PresetParameters } from '../types'
 import type { TerritoryConfig } from '@/types'
 import { describe, expect, it } from 'vitest'
 import { createTerritoryCode } from '@/types/branded'
-import { referenceParameters, TerritoryResetService } from '../territory-reset-service'
+import { defaultTerritoryParameters, referenceParameters, TerritoryResetService } from '../territory-reset-service'
 
 const MET = createTerritoryCode('FR-MET')
 const GP = createTerritoryCode('FR-GP')
@@ -11,6 +11,10 @@ const MQ = createTerritoryCode('FR-MQ')
 const territories: Pick<TerritoryConfig, 'code'>[] = [{ code: MET }, { code: GP }, { code: MQ }]
 
 const DEFAULT_LAYOUT = { translateOffset: [0, 0], scaleMultiplier: 1 }
+
+const MET_CENTER: [number, number] = [2.5, 46.5]
+
+const territoryCenter = () => MET_CENTER
 
 const presetParameters = {
   [GP]: { projectionId: 'mercator', translateOffset: [100, 50], scaleMultiplier: 1.5, rotate: [10, 20, 0] },
@@ -31,16 +35,22 @@ describe('referenceParameters', () => {
   })
 })
 
+describe('defaultTerritoryParameters', () => {
+  it('centers the fallback projection on the center of the territory, with the default layout', () => {
+    expect(defaultTerritoryParameters(MET_CENTER)).toMatchObject({ projectionId: 'mercator', center: MET_CENTER, ...DEFAULT_LAYOUT })
+  })
+})
+
 describe('territoryResetService', () => {
   describe('calculateTerritoryReset', () => {
     it('gives the reference parameters of a territory of the preset', () => {
-      expect(TerritoryResetService.calculateTerritoryReset({ territoryCode: GP, presetParameters }))
+      expect(TerritoryResetService.calculateTerritoryReset({ territoryCode: GP, presetParameters, territoryCenter }))
         .toEqual({ territoryCode: GP, parameters: presetParameters[GP] })
     })
 
-    it('gives the default layout to a territory outside the preset', () => {
-      expect(TerritoryResetService.calculateTerritoryReset({ territoryCode: MET, presetParameters }))
-        .toEqual({ territoryCode: MET, parameters: DEFAULT_LAYOUT })
+    it('gives the default parameters to a territory outside the preset', () => {
+      expect(TerritoryResetService.calculateTerritoryReset({ territoryCode: MET, presetParameters, territoryCenter }))
+        .toEqual({ territoryCode: MET, parameters: defaultTerritoryParameters(MET_CENTER) })
     })
   })
 

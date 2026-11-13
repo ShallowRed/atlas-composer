@@ -6,12 +6,14 @@ import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useC
 import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 const { localize } = useLocalizedName()
 const atlasStore = useAtlasStore()
+const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
@@ -144,7 +146,7 @@ function toggleTerritory(code: string, isActive: boolean) {
     viewStore.removeTerritoryFromComposite(code as TerritoryCode)
   }
   else {
-    viewStore.addTerritoryToComposite(code as TerritoryCode)
+    compositionStore.addTerritoryToComposite(code as TerritoryCode)
   }
   geoDataStore.triggerRender()
 }

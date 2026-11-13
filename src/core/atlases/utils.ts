@@ -1,7 +1,4 @@
-import type { AtlasConfig, TerritoryCode, TerritoryConfig } from '@/types'
-import { logger } from '@/utils/logger'
-
-const debug = logger.atlas.loader
+import type { AtlasConfig, TerritoryConfig } from '@/types'
 
 export function getTerritoriesForMode(
   territories: TerritoryConfig[],
@@ -41,30 +38,4 @@ export function getInitialTerritoryMode(atlasConfig: Pick<AtlasConfig, 'hasTerri
   }
 
   throw new Error('No territory mode options available for atlas')
-}
-
-export function filterAtlasConfigByPreset(
-  atlasConfig: AtlasConfig,
-  activeTerritories: TerritoryCode[],
-): AtlasConfig {
-  const compositeConfig = atlasConfig.compositeTerritories
-
-  if (!compositeConfig) {
-    return atlasConfig
-  }
-
-  const territoriesInPreset = new Set<string>(activeTerritories)
-
-  const filteredTerritories = compositeConfig.territories.filter(t =>
-    territoriesInPreset.has(t.code),
-  )
-
-  debug('Filtered territories: %d in preset, %d filtered', territoriesInPreset.size, filteredTerritories.length)
-
-  return {
-    ...atlasConfig,
-    compositeTerritories: {
-      territories: filteredTerritories,
-    },
-  }
 }

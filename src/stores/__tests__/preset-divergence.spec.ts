@@ -99,7 +99,7 @@ function atlasCodes(): TerritoryCode[] {
 async function addOutsidePreset(): Promise<TerritoryCode> {
   await openComposite()
   const code = codeOutsidePreset()
-  useViewStore().addTerritoryToComposite(code)
+  useCompositionStore().addTerritoryToComposite(code)
   return code
 }
 
@@ -296,6 +296,12 @@ describe('difference with the preset values', () => {
 
       expect(territoryDiffers(code!)).toBe(true)
       expect(territoriesDiffer()).toBe(true)
+    })
+
+    it('shows no difference for a territory without preset values just after its addition', async () => {
+      const code = await addOutsidePreset()
+
+      expect(territoryDiffers(code)).toBe(false)
     })
 
     it('shows a difference after a change of a territory without preset values', async () => {

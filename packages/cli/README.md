@@ -42,7 +42,7 @@ The file is for GIS and tile tools, such as QGIS, GDAL, tippecanoe or MapLibre. 
 
 ### One territory per code
 
-`compose` projects each territory through the sub-projection of its code, clipped to its frame and to the canvas, as the editor of the Atlas Composer app draws it. A territory that the preset leaves out has no sub-projection, and is missing from the composed file and from the editor: US-ALEU, US-VI and US-MP in `usa-pseudo-d3cp`. A territory whose geometry falls in the frame of another one is drawn once, in its own frame: FR-MF and FR-BL in `france-proportional`.
+`compose` projects each territory through the sub-projection of its code, clipped to its frame and to the canvas, as the editor of the Atlas Composer app draws it. A territory that the preset leaves out has no sub-projection, and is missing from the composed file: US-ALEU, US-VI and US-MP in `usa-pseudo-d3cp`. The editor draws such a territory once it is checked, with default parameters. A territory whose geometry falls in the frame of another one is drawn once, in its own frame: FR-MF and FR-BL in `france-proportional`.
 
 ## PROJ pipelines of a composite projection
 

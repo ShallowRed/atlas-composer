@@ -11,12 +11,12 @@ import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/init
 
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
-import { filterAtlasConfigByPreset, getInitialTerritoryMode } from '@/core/atlases/utils'
+import { getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
 import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
-import { TerritoryResetService } from '@/core/territories/territory-reset-service'
+import { defaultTerritoryParameters, TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
 import { AtlasService } from '@/services/atlas/atlas-service'
@@ -138,9 +138,6 @@ export const useCompositionStore = defineStore('composition', () => {
         ? compositionStateFromConfig(preset.config)
         : compositionStateWithoutConfig(atlasService.getAllTerritories().map(territory => territory.code))
 
-      const filteredAtlasConfig = filterAtlasConfigByPreset(atlasConfig, state.activeTerritories)
-      debug('Filtered atlas config for %s: %d preset territories', atlasId, state.activeTerritories.length)
-
       viewStore.viewMode = viewMode
       viewStore.territoryMode = territoryMode
       projectionStore.selectedProjection = DEFAULT_SELECTED_PROJECTION[viewMode]
@@ -159,7 +156,7 @@ export const useCompositionStore = defineStore('composition', () => {
       }
 
       appStore.startLoadingGeoData()
-      const geoDataResult = await geoDataStore.reinitialize(filteredAtlasConfig)
+      const geoDataResult = await geoDataStore.reinitialize(atlasConfig)
       if (isSuperseded()) {
         return ok(undefined)
       }
@@ -345,10 +342,18 @@ export const useCompositionStore = defineStore('composition', () => {
     const operation = TerritoryResetService.calculateTerritoryReset({
       territoryCode,
       presetParameters: presetDefaults.presetParameters,
+      territoryCenter: () => atlasStore.territoryCenter(territoryCode),
     })
 
     resetTerritory(operation)
     debug('Reset territory %s', territoryCode)
+  }
+
+  function addTerritoryToComposite(territoryCode: TerritoryCode): void {
+    if (!parameterStore.getTerritoryProjection(territoryCode)) {
+      parameterStore.setTerritoryParameters(territoryCode, defaultTerritoryParameters(atlasStore.territoryCenter(territoryCode)))
+    }
+    viewStore.addTerritoryToComposite(territoryCode)
   }
 
   function resetTerritory(operation: TerritoryResetOperation): void {
@@ -503,6 +508,7 @@ export const useCompositionStore = defineStore('composition', () => {
     importConfiguration,
     resetTransforms,
     resetTerritoryToDefaults,
+    addTerritoryToComposite,
     resetCanvas,
     selectAtlas,
     selectViewMode,

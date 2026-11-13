@@ -42,9 +42,9 @@ The two grouping controls offer every `mutually-exclusive` set of the atlas when
 
 ## Territories of a custom composite
 
-`activeTerritoryCodes` of `src/stores/view.ts` holds the territories that the custom composite draws. `applyCompositionState` in `src/stores/composition.ts` fills it with the territories of the preset each time an atlas or a composite preset loads, and `filterAtlasConfigByPreset` reduces the composite configuration to the same territories when the atlas is initialized.
+`activeTerritoryCodes` of `src/stores/view.ts` holds the territories that the custom composite draws. `applyCompositionState` in `src/stores/composition.ts` fills it with the territories of the preset each time an atlas or a composite preset loads. `CompositeProjection` receives every territory of the atlas and builds a sub-projection for each territory whose parameters have a `projectionId`.
 
-`TerritorySetManager` lists the territories of the geographic data and adds or removes one with `addTerritoryToComposite` and `removeTerritoryFromComposite`. `filteredTerritories` of `src/stores/geoData.ts` keeps the active codes in this view. `resetTransforms` of the composition store restores the territories of the preset.
+`TerritorySetManager` lists the territories of the geographic data, adds one with the `addTerritoryToComposite` action of the composition store and removes one with `removeTerritoryFromComposite` of the view store. A territory added without a `projectionId` receives `defaultTerritoryParameters` of `src/core/territories/territory-reset-service.ts`: the fallback projection, centered on the `center` of the territory in the atlas configuration, with the default layout. Its reset gives these parameters again. `filteredTerritories` of `src/stores/geoData.ts` keeps the active codes in this view. `resetTransforms` of the composition store restores the territories of the preset.
 
 The built-in composite draws every territory, and the unified and split views follow the territory mode when the atlas has a territory selector.
 

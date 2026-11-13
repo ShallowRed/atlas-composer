@@ -11,7 +11,6 @@ import { vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
-import { filterAtlasConfigByPreset } from '@/core/atlases/utils'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { ok } from '@/core/types/result'
 import { CompositeExportService } from '@/services/export/composite-export-service'
@@ -23,7 +22,6 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
-import { useViewStore } from '@/stores/view'
 
 export type Point = [number, number]
 
@@ -47,11 +45,11 @@ export async function startApplication(atlasId: AtlasId) {
   vi.spyOn(geoDataStore, 'reinitialize').mockResolvedValue(ok(undefined))
 }
 
-// A real cartographer on the configuration filtered by the default preset, without geographic data
+// A real cartographer on the configuration of the atlas, without geographic data
 export async function openAtlasWithCartographer(atlasId: AtlasId) {
   await startApplication(atlasId)
   await useCompositionStore().initializeAtlas()
-  const atlasConfig = filterAtlasConfigByPreset(useAtlasStore().currentAtlasConfig!, [...useViewStore().activeTerritoryCodes])
+  const atlasConfig = useAtlasStore().currentAtlasConfig!
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(
     atlasConfig.geoDataConfig,
