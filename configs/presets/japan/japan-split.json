@@ -1,0 +1,75 @@
+{
+  "id": "japan-split",
+  "name": "日本 - 均一分割表示",
+  "description": "すべての地域に同じ円錐投影",
+  "atlasId": "japan",
+  "type": "split",
+  "config": {
+    "territories": {
+      "JP-MAIN": {
+        "projection": {
+          "id": "conic-equidistant",
+          "parameters": {
+            "rotate": [
+              -136,
+              -22,
+              0
+            ],
+            "parallels": [
+              34,
+              40
+            ]
+          }
+        }
+      },
+      "JP-01": {
+        "projection": {
+          "id": "conic-equidistant",
+          "parameters": {
+            "rotate": [
+              -146,
+              -26,
+              0
+            ],
+            "parallels": [
+              34,
+              40
+            ]
+          }
+        }
+      },
+      "JP-RYU": {
+        "projection": {
+          "id": "conic-equidistant",
+          "parameters": {
+            "rotate": [
+              -126,
+              -19,
+              0
+            ],
+            "parallels": [
+              34,
+              40
+            ]
+          }
+        }
+      },
+      "JP-OGA": {
+        "projection": {
+          "id": "conic-equidistant",
+          "parameters": {
+            "rotate": [
+              -142,
+              -27,
+              0
+            ],
+            "parallels": [
+              34,
+              40
+            ]
+          }
+        }
+      }
+    }
+  }
+}

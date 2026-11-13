@@ -1,0 +1,11 @@
+{
+  "id": "japan-builtin",
+  "name": "日本 - d3 複合投影",
+  "description": "d3-composite-projections の定義済み複合投影",
+  "atlasId": "japan",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "conic-equidistant-japan",
+    "globalScale": 1.0
+  }
+}

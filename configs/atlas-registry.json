@@ -263,6 +263,74 @@
       }
     },
     {
+      "id": "japan",
+      "name": {
+        "en": "Japan",
+        "fr": "Japon"
+      },
+      "group": "country",
+      "sortOrder": 28,
+      "configPath": "./atlases/japan.json",
+      "presets": [
+        {
+          "id": "japan-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/japan/japan-standard.json",
+          "description": {
+            "en": "Custom configuration for Honshu, Shikoku, Kyushu, Hokkaido and the Ryukyu Islands",
+            "fr": "Configuration personnalisée pour Honshū, Shikoku, Kyūshū, Hokkaidō et les îles Ryūkyū"
+          }
+        },
+        {
+          "id": "japan-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/japan/japan-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Japan",
+            "fr": "Projection Natural Earth centrée sur le Japon"
+          }
+        },
+        {
+          "id": "japan-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/japan/japan-split.json",
+          "description": {
+            "en": "Same conic projection for all territories",
+            "fr": "Même projection conique pour tous les territoires"
+          }
+        },
+        {
+          "id": "japan-builtin",
+          "name": {
+            "en": "d3 composite projection",
+            "fr": "Projection composite d3"
+          },
+          "type": "built-in-composite",
+          "configPath": "./presets/japan/japan-builtin.json",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {}
+      }
+    },
+    {
       "id": "usa",
       "name": {
         "en": "United States",
