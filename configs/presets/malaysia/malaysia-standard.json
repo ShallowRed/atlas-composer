@@ -1,0 +1,93 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "malaysia",
+    "atlasName": "Malaysia",
+    "exportDate": "2026-11-13T00:00:00.000Z",
+    "createdWith": "d3-composite-projections Conversion",
+    "source": "d3-composite-projections/mercatorMalaysia.js",
+    "notes": "Parameters reproduced from d3-composite-projections built-in composite projection"
+  },
+  "referenceScale": 4800,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "MY-PEN",
+      "name": "Peninsular Malaysia",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            105.25,
+            4.0
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          0,
+          0
+        ],
+        "pixelClipExtent": [
+          -528.0,
+          -250.08,
+          -53.28,
+          250.08
+        ]
+      },
+      "bounds": [
+        [
+          99.6,
+          1.2
+        ],
+        [
+          104.3,
+          6.7
+        ]
+      ]
+    },
+    {
+      "code": "MY-EAST",
+      "name": "East Malaysia",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            118.65,
+            2.86
+          ],
+          "scaleMultiplier": 0.615
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          432.0,
+          0
+        ],
+        "pixelClipExtent": [
+          -485.28,
+          -250.08,
+          48.0,
+          115.2
+        ]
+      },
+      "bounds": [
+        [
+          109.5,
+          0.8
+        ],
+        [
+          119.3,
+          7.4
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "malaysia-builtin",
+  "name": "Malaysia - Unjuran komposit d3",
+  "description": "Unjuran komposit pratakrif daripada d3-composite-projections",
+  "atlasId": "malaysia",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "mercator-malaysia",
+    "globalScale": 1.0
+  }
+}

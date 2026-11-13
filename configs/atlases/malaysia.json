@@ -1,0 +1,121 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "malaysia",
+  "name": {
+    "en": "Malaysia",
+    "fr": "Malaisie"
+  },
+  "description": {
+    "en": "Peninsular Malaysia and East Malaysia",
+    "fr": "Malaisie péninsulaire et Malaisie orientale"
+  },
+  "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "mercator-malaysia"
+  },
+  "dataSources": {
+    "territories": "malaysia-territories-50m.json",
+    "metadata": "malaysia-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      458
+    ],
+    "iso3": "MYS",
+    "region": "Asia"
+  },
+  "territories": [
+    {
+      "id": "458",
+      "code": "MY-PEN",
+      "name": {
+        "en": "Peninsular Malaysia",
+        "fr": "Malaisie péninsulaire"
+      },
+      "iso": "MYS",
+      "bounds": [
+        [
+          99.6,
+          1.2
+        ],
+        [
+          104.3,
+          6.7
+        ]
+      ],
+      "center": [
+        102.2,
+        4.0
+      ]
+    },
+    {
+      "id": "458-EAST",
+      "code": "MY-EAST",
+      "name": {
+        "en": "East Malaysia",
+        "fr": "Malaisie orientale"
+      },
+      "iso": "MYS",
+      "region": "Borneo",
+      "bounds": [
+        [
+          109.5,
+          0.8
+        ],
+        [
+          119.3,
+          7.4
+        ]
+      ],
+      "center": [
+        114.7,
+        3.6
+      ],
+      "extraction": {
+        "extractFrom": "458",
+        "polygonIndices": [
+          1,
+          5,
+          7,
+          8
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Peninsular Malaysia only",
+            "fr": "Malaisie péninsulaire uniquement"
+          },
+          "territories": [
+            "MY-PEN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "MY-PEN",
+            "MY-EAST"
+          ]
+        }
+      ]
+    }
+  }
+}

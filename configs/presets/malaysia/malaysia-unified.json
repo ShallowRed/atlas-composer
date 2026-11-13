@@ -1,0 +1,20 @@
+{
+  "id": "malaysia-unified",
+  "name": "Malaysia - Paparan bersatu standard",
+  "description": "Unjuran Natural Earth berpusat di Malaysia",
+  "atlasId": "malaysia",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -110,
+          -4,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}
