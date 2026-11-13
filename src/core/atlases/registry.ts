@@ -173,9 +173,14 @@ export function getDefaultPresetForViewMode(
   return firstPreset
 }
 
-export function getPresetById(atlasId: AtlasId, presetId: PresetId) {
-  const presets = getAtlasPresets(atlasId)
-  return presets.find(p => p.id === presetId)
+export function findPresetById(presetId: PresetId) {
+  for (const entry of REGISTRY_METADATA.atlases) {
+    const preset = entry.presets?.find(p => p.id === presetId)
+    if (preset) {
+      return { atlasId: entry.id as AtlasId, preset }
+    }
+  }
+  return undefined
 }
 
 export function getAvailableViewModes(atlasId: AtlasId): ViewMode[] {

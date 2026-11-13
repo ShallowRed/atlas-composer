@@ -19,7 +19,7 @@ An entry of the registry gives the `id`, the `name`, the `type` and the `configP
 
 ## Loading
 
-`PresetLoader.loadPreset`, in `src/services/presets/preset-loader.ts`, takes the atlas id from the text before the first hyphen of the preset id, finds the entry with `getPresetById` and reads the file with `JsonFileLoader`. It returns a `Result`, with `PRESET_UNKNOWN` for an id missing from the registry and `PRESET_INVALID` with the list of issues for a file that the validation refuses.
+`PresetLoader.loadPreset`, in `src/services/presets/preset-loader.ts`, finds the registry entry of the preset and its atlas with `findPresetById`, then reads the file with `JsonFileLoader`. It returns a `Result`, with `PRESET_UNKNOWN` for an id missing from the registry and `PRESET_INVALID` with the list of issues for a file that the validation refuses.
 
 `validateCompositePreset`, in `src/core/presets/validator.ts`, calls `validateConfig`, then checks each territory. The projection is known to `projectionRegistry`, each required parameter that is relevant for the family is present, and `rotate` or `center` is present. A value outside the bounds of the [parameter registry](projections.md#parameter-registry) produces a warning in the `ac:presets:validator` log, and the preset loads.
 

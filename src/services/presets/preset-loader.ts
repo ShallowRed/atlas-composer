@@ -1,9 +1,9 @@
 import type { Preset, ViewPreset } from '@/core/presets'
 import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { AtlasId, PresetId } from '@/types'
+import type { PresetId } from '@/types'
 
-import { getPresetById, resolveConfigPath } from '@/core/atlases/registry'
+import { findPresetById, resolveConfigPath } from '@/core/atlases/registry'
 import {
   validateCompositePreset,
   validateViewPreset,
@@ -13,11 +13,11 @@ import { JsonFileLoader } from '@/services/data/json-file-loader'
 
 export class PresetLoader {
   static async loadPreset(presetId: PresetId): Promise<Result<Preset, PresetError>> {
-    const atlasId = presetId.split('-')[0] as AtlasId | undefined
-    const presetDef = atlasId ? getPresetById(atlasId, presetId) : undefined
-    if (!atlasId || !presetDef?.configPath) {
+    const found = findPresetById(presetId)
+    if (!found?.preset.configPath) {
       return err({ code: 'PRESET_UNKNOWN', presetId })
     }
+    const { atlasId, preset: presetDef } = found
 
     const fileResult = await JsonFileLoader.loadJSON<any>(resolveConfigPath(presetDef.configPath))
     if (!fileResult.ok) {
