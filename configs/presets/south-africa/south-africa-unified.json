@@ -1,0 +1,20 @@
+{
+  "id": "south-africa-unified",
+  "name": "South Africa - Standard unified view",
+  "description": "Natural Earth projection centered on South Africa",
+  "atlasId": "south-africa",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -25,
+          29,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

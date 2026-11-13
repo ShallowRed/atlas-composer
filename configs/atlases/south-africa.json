@@ -1,0 +1,115 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "south-africa",
+  "name": {
+    "en": "South Africa",
+    "fr": "Afrique du Sud"
+  },
+  "description": {
+    "en": "Mainland South Africa and the Prince Edward Islands",
+    "fr": "Afrique du Sud continentale et îles du Prince-Édouard"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "south-africa-territories-50m.json",
+    "metadata": "south-africa-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      710
+    ],
+    "iso3": "ZAF",
+    "region": "Africa"
+  },
+  "territories": [
+    {
+      "id": "710",
+      "code": "ZA-MAIN",
+      "name": {
+        "en": "Mainland South Africa",
+        "fr": "Afrique du Sud continentale"
+      },
+      "iso": "ZAF",
+      "bounds": [
+        [
+          16.4,
+          -34.8
+        ],
+        [
+          32.9,
+          -22.1
+        ]
+      ],
+      "center": [
+        25.2,
+        -29.0
+      ]
+    },
+    {
+      "id": "710-PE",
+      "code": "ZA-PE",
+      "name": {
+        "en": "Prince Edward Islands",
+        "fr": "Îles du Prince-Édouard"
+      },
+      "iso": "ZAF",
+      "region": "Southern Ocean",
+      "bounds": [
+        [
+          37.5,
+          -47.0
+        ],
+        [
+          37.9,
+          -46.8
+        ]
+      ],
+      "center": [
+        37.74,
+        -46.9
+      ],
+      "extraction": {
+        "extractFrom": "710",
+        "polygonIndices": [
+          1
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Mainland South Africa only",
+            "fr": "Afrique du Sud continentale uniquement"
+          },
+          "territories": [
+            "ZA-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "ZA-MAIN",
+            "ZA-PE"
+          ]
+        }
+      ]
+    }
+  }
+}

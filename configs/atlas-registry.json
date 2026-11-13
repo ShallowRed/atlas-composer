@@ -645,13 +645,68 @@
       }
     },
     {
+      "id": "south-africa",
+      "name": {
+        "en": "South Africa",
+        "fr": "Afrique du Sud"
+      },
+      "group": "country",
+      "sortOrder": 34,
+      "configPath": "./atlases/south-africa.json",
+      "presets": [
+        {
+          "id": "south-africa-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/south-africa/south-africa-standard.json",
+          "description": {
+            "en": "Custom configuration for South Africa and the Prince Edward Islands",
+            "fr": "Configuration personnalisée pour l'Afrique du Sud et les îles du Prince-Édouard"
+          }
+        },
+        {
+          "id": "south-africa-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/south-africa/south-africa-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on South Africa",
+            "fr": "Projection Natural Earth centrée sur l'Afrique du Sud"
+          }
+        },
+        {
+          "id": "south-africa-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/south-africa/south-africa-split.json",
+          "description": {
+            "en": "Same Albers equal-area conic projection for all territories",
+            "fr": "Même projection conique équivalente d'Albers pour tous les territoires"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {}
+      }
+    },
+    {
       "id": "usa",
       "name": {
         "en": "United States",
         "fr": "États-Unis"
       },
       "group": "country",
-      "sortOrder": 34,
+      "sortOrder": 35,
       "configPath": "./atlases/usa.json",
       "presets": [
         {

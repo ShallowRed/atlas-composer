@@ -13,6 +13,7 @@ const ATLAS_FLAGS: Record<string, string> = {
   'chile': '🇨🇱',
   'malaysia': '🇲🇾',
   'new-zealand': '🇳🇿',
+  'south-africa': '🇿🇦',
   'equatorial-guinea': '🇬🇶',
   'united-kingdom': '🇬🇧',
   'denmark': '🇩🇰',

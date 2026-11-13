@@ -1,0 +1,43 @@
+{
+  "id": "south-africa-split",
+  "name": "South Africa - Uniform split view",
+  "description": "Same Albers equal-area conic projection for all territories",
+  "atlasId": "south-africa",
+  "type": "split",
+  "config": {
+    "territories": {
+      "ZA-MAIN": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              -25,
+              29,
+              0
+            ],
+            "parallels": [
+              -33,
+              -24
+            ]
+          }
+        }
+      },
+      "ZA-PE": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              -37.75,
+              46.9,
+              0
+            ],
+            "parallels": [
+              -33,
+              -24
+            ]
+          }
+        }
+      }
+    }
+  }
+}
