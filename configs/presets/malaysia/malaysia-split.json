@@ -1,0 +1,33 @@
+{
+  "id": "malaysia-split",
+  "name": "Malaysia - Paparan berasingan seragam",
+  "description": "Unjuran Mercator yang sama untuk semua wilayah",
+  "atlasId": "malaysia",
+  "type": "split",
+  "config": {
+    "territories": {
+      "MY-PEN": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              102.2,
+              4.0
+            ]
+          }
+        }
+      },
+      "MY-EAST": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              114.7,
+              3.6
+            ]
+          }
+        }
+      }
+    }
+  }
+}
