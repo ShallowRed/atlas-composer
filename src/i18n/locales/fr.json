@@ -222,18 +222,18 @@
   "export": {
     "title": "Exporter la projection composite",
     "jsonDescription": "Configuration JSON contenant tous les paramètres de la projection composite actuelle.",
-    "showPreview": "Afficher l'apercu",
-    "hidePreview": "Masquer l'apercu",
+    "showPreview": "Afficher l'aperçu",
+    "hidePreview": "Masquer l'aperçu",
     "howToUse": "Comment utiliser cette configuration",
-    "usageDescription": "Utilisez cette configuration JSON avec le package projection loader pour creer votre projection composite dans D3.js ou Observable Plot.",
+    "usageDescription": "Utilisez cette configuration JSON avec le package projection loader pour créer votre projection composite dans D3.js ou Observable Plot.",
     "npmPackage": "Documentation du package NPM",
     "observableNotebook": "Exemple Observable Notebook",
     "copyToClipboard": "Copier le JSON",
-    "downloadFile": "Telecharger",
-    "copySuccess": "Configuration copiee dans le presse-papiers !",
-    "copyError": "Echec de la copie. Veuillez reessayer.",
-    "downloadSuccess": "Fichier telecharge avec succes !",
-    "downloadError": "Echec du telechargement. Veuillez reessayer."
+    "downloadFile": "Télécharger",
+    "copySuccess": "Configuration copiée dans le presse-papiers !",
+    "copyError": "Échec de la copie. Veuillez réessayer.",
+    "downloadSuccess": "Fichier téléchargé avec succès !",
+    "downloadError": "Échec du téléchargement. Veuillez réessayer."
   },
   "import": {
     "title": "Importer une projection composite",
