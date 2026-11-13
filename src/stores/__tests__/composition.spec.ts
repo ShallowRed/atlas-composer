@@ -463,6 +463,18 @@ describe('composition store', () => {
         .toEqual(config.territories.map(territory => territory.code).sort())
     })
 
+    it('exports the checked territories only', async () => {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+      const viewStore = useViewStore()
+      const [unchecked] = viewStore.activeTerritoryCodes
+      useCompositionStore().addTerritoryToComposite('FR-MF' as TerritoryCode)
+      viewStore.removeTerritoryFromComposite('FR-MF' as TerritoryCode)
+      viewStore.removeTerritoryFromComposite(unchecked!)
+
+      expect(exportedTerritories(geoDataStore).map(territory => territory.code).sort())
+        .toEqual([...viewStore.activeTerritoryCodes].sort())
+    })
+
     it('keeps no territory of the previous preset after an import', async () => {
       const geoDataStore = await openAtlasWithCartographer(FRANCE)
       const config = await readPresetConfig('france-standard')

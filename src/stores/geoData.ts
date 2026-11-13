@@ -316,7 +316,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
     }
 
     const projectionStore = useProjectionStore()
-    return ok(CompositeExportService.exportToJSON(
+    const config = CompositeExportService.exportToJSON(
       // The ref unwraps the private fields of the class out of its type
       customComposite as CompositeProjection,
       atlasConfig.id as AtlasId,
@@ -324,7 +324,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
       useParameterStore().parameterProvider,
       projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
       projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
-    ))
+    )
+    const activeCodes = useViewStore().activeTerritoryCodes
+    const [first, ...others] = config.territories.filter(territory => activeCodes.has(territory.code as TerritoryCode))
+    if (!first) {
+      return err({ code: 'EXPORT_NO_TERRITORY' })
+    }
+    return ok({ ...config, territories: [first, ...others] })
   }
 
   return {

@@ -43,7 +43,9 @@ export type ParameterIssue
     | { code: 'PARAMETER_OUT_OF_RANGE', parameter: string, min: number, max: number }
     | { code: 'PARAMETER_PARALLELS_ORDER', parameter: string }
 
-export interface ExportError { code: 'EXPORT_NOT_AVAILABLE' }
+export type ExportError
+  = | { code: 'EXPORT_NOT_AVAILABLE' }
+    | { code: 'EXPORT_NO_TERRITORY' }
 
 export type AtlasConfigError
   = | JsonFileError

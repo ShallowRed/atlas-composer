@@ -517,7 +517,8 @@
       "parallelsOrder": "La valeur sud de {parameter} doit être inférieure à la valeur nord"
     },
     "export": {
-      "notAvailable": "Aucune projection composite à exporter"
+      "notAvailable": "Aucune projection composite à exporter",
+      "noTerritory": "Aucun territoire coché à exporter"
     }
   },
   "notFound": {

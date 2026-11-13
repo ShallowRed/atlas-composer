@@ -512,7 +512,8 @@
       "parallelsOrder": "The south value of {parameter} must be below the north value"
     },
     "export": {
-      "notAvailable": "There is no composite projection to export"
+      "notAvailable": "There is no composite projection to export",
+      "noTerritory": "There is no checked territory to export"
     }
   },
   "validation": {
