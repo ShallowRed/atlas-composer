@@ -1,0 +1,47 @@
+{
+  "id": "chile-split",
+  "name": "Chile - Vista separada uniforme",
+  "description": "Misma proyección transversa de Mercator para todos los territorios",
+  "atlasId": "chile",
+  "type": "split",
+  "config": {
+    "territories": {
+      "CL-CONT": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              72,
+              37,
+              0
+            ]
+          }
+        }
+      },
+      "CL-JF": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              78.9,
+              33.6,
+              0
+            ]
+          }
+        }
+      },
+      "CL-IP": {
+        "projection": {
+          "id": "transverse-mercator",
+          "parameters": {
+            "rotate": [
+              109.4,
+              27.1,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

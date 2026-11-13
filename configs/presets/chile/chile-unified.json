@@ -1,0 +1,20 @@
+{
+  "id": "chile-unified",
+  "name": "Chile - Vista unificada estándar",
+  "description": "Proyección Natural Earth centrada en Chile",
+  "atlasId": "chile",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          80,
+          35,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

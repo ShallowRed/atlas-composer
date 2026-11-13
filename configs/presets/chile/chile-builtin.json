@@ -1,0 +1,11 @@
+{
+  "id": "chile-builtin",
+  "name": "Chile - Proyección compuesta d3",
+  "description": "Proyección compuesta predefinida de d3-composite-projections",
+  "atlasId": "chile",
+  "type": "built-in-composite",
+  "config": {
+    "projectionId": "transverse-mercator-chile",
+    "globalScale": 1.0
+  }
+}

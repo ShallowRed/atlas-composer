@@ -1,0 +1,149 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "chile",
+  "name": {
+    "en": "Chile",
+    "fr": "Chili"
+  },
+  "description": {
+    "en": "Mainland Chile, the Juan Fernandez Islands and Easter Island",
+    "fr": "Chili continental, îles Juan Fernández et île de Pâques"
+  },
+  "category": "country",
+  "projectionPreferences": {
+    "defaultCompositeProjection": "transverse-mercator-chile"
+  },
+  "dataSources": {
+    "territories": "chile-territories-50m.json",
+    "metadata": "chile-metadata-50m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      152
+    ],
+    "iso3": "CHL",
+    "region": "South America"
+  },
+  "territories": [
+    {
+      "id": "152",
+      "code": "CL-CONT",
+      "name": {
+        "en": "Mainland Chile",
+        "fr": "Chili continental"
+      },
+      "iso": "CHL",
+      "bounds": [
+        [
+          -75.8,
+          -56.0
+        ],
+        [
+          -66.4,
+          -17.5
+        ]
+      ],
+      "center": [
+        -71.0,
+        -37.0
+      ]
+    },
+    {
+      "id": "152-JF",
+      "code": "CL-JF",
+      "name": {
+        "en": "Juan Fernandez Islands",
+        "fr": "Îles Juan Fernández"
+      },
+      "iso": "CHL",
+      "region": "Pacific",
+      "bounds": [
+        [
+          -79.0,
+          -33.7
+        ],
+        [
+          -78.7,
+          -33.5
+        ]
+      ],
+      "center": [
+        -78.88,
+        -33.63
+      ],
+      "extraction": {
+        "extractFrom": "152",
+        "polygonIndices": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "152-IP",
+      "code": "CL-IP",
+      "name": {
+        "en": "Easter Island",
+        "fr": "Île de Pâques"
+      },
+      "iso": "CHL",
+      "region": "Pacific",
+      "bounds": [
+        [
+          -109.5,
+          -27.2
+        ],
+        [
+          -109.2,
+          -27.0
+        ]
+      ],
+      "center": [
+        -109.35,
+        -27.12
+      ],
+      "extraction": {
+        "extractFrom": "152",
+        "polygonIndices": [
+          0
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Mainland Chile only",
+            "fr": "Chili continental uniquement"
+          },
+          "territories": [
+            "CL-CONT"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "CL-CONT",
+            "CL-JF",
+            "CL-IP"
+          ]
+        }
+      ]
+    }
+  }
+}
