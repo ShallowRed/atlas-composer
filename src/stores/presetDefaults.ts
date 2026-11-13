@@ -7,7 +7,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { areParametersEqual, parameterRegistry } from '@/core/parameters'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
-import { referenceParameters, RESET_KEYS } from '@/core/territories/territory-reset-service'
+import { RESET_KEYS, TerritoryResetService } from '@/core/territories/territory-reset-service'
+import { useAtlasStore } from '@/stores/atlas'
 
 type Canvas = NonNullable<CompositionState['canvas']>
 
@@ -46,7 +47,11 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
   }
 
   function territoryDiffersFromPreset(territoryCode: TerritoryCode, territoryParameters: ProjectionParameters): boolean {
-    const reference = referenceParameters(presetParameters.value[territoryCode])
+    const { parameters: reference } = TerritoryResetService.calculateTerritoryReset({
+      territoryCode,
+      presetParameters: presetParameters.value,
+      territoryCenter: () => useAtlasStore().territoryCenter(territoryCode),
+    })
     const current: ProjectionParameters = { ...territoryParameters }
     for (const key of RESET_KEYS) {
       if (current[key] === undefined) {

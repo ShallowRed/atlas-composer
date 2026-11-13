@@ -99,24 +99,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
         return ok(undefined)
       }
 
-      if (atlasConfigOverride) {
-        debug('Using filtered atlas config from the initializeAtlas action of the composition store (territories: %d)', Object.keys(atlasConfigOverride.compositeTerritories || {}).length)
-      }
-      else {
-        debug('Using atlas config from atlasStore (territories: %d)', Object.keys(atlasStore.currentAtlasConfig?.compositeTerritories || {}).length)
-      }
+      debug('Using the atlas config %s (composite territories: %d)', atlasConfigOverride ? 'of the initialization' : 'of the atlas store', atlasConfig.compositeTerritories?.territories.length ?? 0)
 
       const geoDataConfig = atlasConfig.geoDataConfig
       const compositeConfig = atlasConfig.compositeTerritories
 
       const parameterStore = useParameterStore()
       const projectionParams = parameterStore.globalEffectiveParameters
-
-      debug('Using composite config directly from preset (no filtering)')
-      if (compositeConfig) {
-        const territoryCount = compositeConfig.territories?.length ?? 0
-        debug('Composite config: %d territories', territoryCount)
-      }
 
       const newCartographer = new Cartographer(
         geoDataConfig,

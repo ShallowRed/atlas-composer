@@ -1,7 +1,7 @@
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
 import type { AtlasConfigError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { AtlasConfig, AtlasId, TerritoryConfig } from '@/types'
+import type { AtlasConfig, AtlasId, TerritoryCode, TerritoryConfig } from '@/types'
 
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
@@ -49,6 +49,14 @@ export const useAtlasStore = defineStore('atlas', () => {
     return result
   }
 
+  function territoryCenter(territoryCode: TerritoryCode): [number, number] {
+    const territory = territories.value.find(candidate => candidate.code === territoryCode)
+    if (!territory) {
+      throw new Error(`[AtlasStore] Territory ${territoryCode} is not in the atlas ${selectedAtlasId.value}`)
+    }
+    return territory.center
+  }
+
   function getInitialTerritoryMode(): string {
     return initialTerritoryModeOf(getLoadedConfig(selectedAtlasId.value).atlasConfig)
   }
@@ -58,6 +66,7 @@ export const useAtlasStore = defineStore('atlas', () => {
     currentAtlasConfig,
     atlasService,
     territories,
+    territoryCenter,
     territoryModeOptions,
 
     loadAtlas,
