@@ -1,5 +1,17 @@
 # @atlas-composer/preset-library
 
+## 2.4.0
+
+### Minor Changes
+
+- f234c61: Add the presets of the New Zealand atlas: `new-zealand-standard`, a `composite-custom` preset in the transverse Mercator projection with the Chatham Islands in an inset, and the view presets `new-zealand-split` and `new-zealand-unified`.
+- 4ab0197: Add the presets of the Norway atlas: `norway-standard`, a `composite-custom` preset in the transverse Mercator projection with Svalbard in an inset, and the view presets `norway-split` and `norway-unified`.
+- a84803d: Add the presets of the South Africa atlas: `south-africa-standard`, a `composite-custom` preset in the Albers equal-area conic projection with the Prince Edward Islands in an inset, and the view presets `south-africa-split` and `south-africa-unified`.
+
+### Patch Changes
+
+- e68fcc9: The `japan-standard` preset leaves out the center of its conic territories, which keep the center of the d3 factory.
+
 ## 2.3.0
 
 ### Minor Changes
