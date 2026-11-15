@@ -1,5 +1,5 @@
 import type { JSONAtlasConfig } from '#types'
-import type { InvertibleProjection } from '@/core/basemap'
+import type { Extent, InvertibleProjection } from '@/core/basemap'
 import { readFileSync } from 'node:fs'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
@@ -7,9 +7,9 @@ import { geoEquirectangular, geoMercator, geoNaturalEarth1 } from 'd3-geo'
 import { geoRobinson } from 'd3-geo-projection'
 import { describe, expect, it } from 'vitest'
 import { readCompositeSources } from '@/__tests__/test-utils'
-import { invertOnGlobe, tileOf, tilesForFrame, zoomForFrame } from '@/core/basemap'
-
-type Extent = [[number, number], [number, number]]
+import { invertOnGlobe, tileOf, tilesForFrame, visibleLabels, zoomForFrame } from '@/core/basemap'
+import { projectionRegistry } from '@/core/projections/registry'
+import { ProjectionCategory } from '@/core/projections/types'
 
 const tile = (point: [number, number], zoom: number) => tileOf(point, zoom).map(Math.floor)
 
@@ -74,6 +74,29 @@ describe('tilesForFrame', () => {
     }
   })
 
+  // A built-in composite draws its insets inside one projection, away from the edges of the canvas: each tile that covers 16 pixels or more of the canvas is requested
+  it.each(projectionRegistry.getAll().filter(definition => definition.category === ProjectionCategory.COMPOSITE).map(definition => [definition.id, definition] as const))('%s covers its insets', (_id, definition) => {
+    const projection = definition.create()
+    const extent: Extent = [[0, 0], [960, 500]]
+    const zoom = 5
+    const tiles = new Set(tilesForFrame(projection, extent, zoom).map(t => t.join(',')))
+    const samples = new Map<string, number>()
+    for (let x = 1; x < 960; x += 2) {
+      for (let y = 1; y < 500; y += 2) {
+        const inverse = invertOnGlobe(projection, [x, y])
+        if (inverse) {
+          const key = tile(inverse, zoom).join(',')
+          samples.set(key, (samples.get(key) ?? 0) + 1)
+        }
+      }
+    }
+    for (const [key, count] of samples) {
+      if (count >= 4) {
+        expect(tiles.has(key), `${key}, ${count * 4} pixels`).toBe(true)
+      }
+    }
+  })
+
   // No preset draws US-ALEU, whose bounds in configs/atlases/usa.json cross the antimeridian: its frame is a Mercator fitted to them
   it('covers the Aleutian Islands across the antimeridian with few tiles', () => {
     const { territories } = JSON.parse(readFileSync('configs/atlases/usa.json', 'utf8')) as JSONAtlasConfig
@@ -100,5 +123,13 @@ describe('invertOnGlobe', () => {
   it('inverts a pixel of the globe and refuses a corner outside it', () => {
     expect(invertOnGlobe(world, [480, 250])).not.toBeNull()
     expect(invertOnGlobe(world, [2, 2])).toBeNull()
+  })
+})
+
+describe('visibleLabels', () => {
+  it('drops the labels that a frame drawn later covers', () => {
+    const frames: Array<{ extent: Extent }> = [{ extent: [[0, 0], [100, 100]] }, { extent: [[0, 0], [40, 40]] }]
+    const labels = [{ frame: 0, x: 20, y: 20 }, { frame: 0, x: 80, y: 80 }, { frame: 1, x: 20, y: 20 }]
+    expect(visibleLabels(labels, frames)).toEqual([{ frame: 0, x: 80, y: 80 }, { frame: 1, x: 20, y: 20 }])
   })
 })

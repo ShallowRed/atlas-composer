@@ -8,8 +8,13 @@ const debug = logger.render.cartographer
 
 export type TerritoryTitle = (code: string, name: string) => string
 
+export const TERRITORY_STROKE_WIDTH = 1
+const HOVERED_STROKE_WIDTH = 2.5
+
 export interface TerritoryRenderOptions {
   enableTooltips?: boolean
+  // Without fill, over a basemap, a territory keeps its whole surface for the pointer and shows the hover on its outline
+  fillTerritories?: boolean
   titleOf?: TerritoryTitle
   onHover?: (feature: GeoJSON.Feature | null, event: MouseEvent) => void
   onClick?: (feature: GeoJSON.Feature, event: MouseEvent) => void
@@ -71,6 +76,7 @@ export class D3MapRenderer {
   ): void {
     const {
       enableTooltips = true,
+      fillTerritories = true,
       titleOf = (_code: string, name: string) => name,
       onHover,
       onClick,
@@ -97,9 +103,10 @@ export class D3MapRenderer {
       .data([...pathOfFeature.keys()])
       .join('path')
       .attr('d', d => pathOfFeature.get(d)?.(d) || '')
-      .attr('fill', getTerritoryFillColor())
+      .attr('fill', fillTerritories ? getTerritoryFillColor() : 'transparent')
+      .attr('pointer-events', fillTerritories ? null : 'all')
       .attr('stroke', getTerritoryStrokeColor())
-      .attr('stroke-width', 1)
+      .attr('stroke-width', TERRITORY_STROKE_WIDTH)
       .attr('data-territory', d => d.properties?.code || d.properties?.INSEE_DEP || '')
 
     if (enableTooltips) {
@@ -112,13 +119,13 @@ export class D3MapRenderer {
 
     paths
       .on('mouseenter', (event: MouseEvent, d: GeoJSON.Feature) => {
-        select(event.currentTarget as SVGPathElement).attr('opacity', 0.8)
+        select(event.currentTarget as SVGPathElement).attr(fillTerritories ? 'opacity' : 'stroke-width', fillTerritories ? 0.8 : HOVERED_STROKE_WIDTH)
         if (onHover) {
           onHover(d, event)
         }
       })
       .on('mouseleave', (event: MouseEvent) => {
-        select(event.currentTarget as SVGPathElement).attr('opacity', 1)
+        select(event.currentTarget as SVGPathElement).attr(fillTerritories ? 'opacity' : 'stroke-width', fillTerritories ? 1 : TERRITORY_STROKE_WIDTH)
         if (onHover) {
           onHover(null, event)
         }

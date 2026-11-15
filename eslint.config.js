@@ -185,9 +185,9 @@ export default antfu({
   },
 }, {
   files: ['src/**'],
-  ignores: ['**/__tests__/**', 'src/services/data/json-file-loader.ts'],
+  ignores: ['**/__tests__/**', 'src/services/data/json-file-loader.ts', 'src/services/rendering/basemap-renderer.ts'],
   rules: {
-    'no-restricted-globals': ['error', ...ANTFU_GLOBALS, { name: 'fetch', message: 'src/services/data/json-file-loader.ts reads the JSON files of the site.' }],
+    'no-restricted-globals': ['error', ...ANTFU_GLOBALS, { name: 'fetch', message: 'src/services/data/json-file-loader.ts reads the JSON files of the site, and src/services/rendering/basemap-renderer.ts the tiles of the basemap.' }],
   },
 }, {
   files: ['src/core/**'],

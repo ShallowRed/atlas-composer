@@ -1,7 +1,6 @@
-import { geoBounds } from 'd3-geo'
+import type { Extent } from './frames'
 
 type Point = [number, number]
-type Extent = [[number, number], [number, number]]
 
 export interface InvertibleProjection {
   (point: Point): Point | null
@@ -53,52 +52,35 @@ export function zoomForFrame(projection: InvertibleProjection, [[x0, y0], [x1, y
   return Math.max(0, Math.min(maxZoom, Math.ceil(Math.log2(1 / (tileSize * finest)))))
 }
 
-// The tiles of a zoom that cover a frame: the bounds of its outline in longitude and latitude, west greater than east across the antimeridian
-export function tilesForFrame(projection: InvertibleProjection, [[x0, y0], [x1, y1]]: Extent, zoom: number): Point[] {
-  const outline: Point[] = []
-  const edge = (from: Point, to: Point) => {
-    const count = Math.max(1, Math.ceil(Math.hypot(to[0] - from[0], to[1] - from[1]) / 4))
-    for (let i = 0; i < count; i++) {
-      const point = projection.invert?.([from[0] + (to[0] - from[0]) * i / count, from[1] + (to[1] - from[1]) * i / count])
-      if (point && Number.isFinite(point[0]) && Number.isFinite(point[1])) {
-        outline.push(point)
+// Spacing of the points of a frame whose tiles cover it: thinner than two pixels, the strip of a tile along the clip of an inset leaves no visible gap
+const COVERAGE_STEP = 2
+
+// The tiles of a zoom that the points of the globe in a frame touch, on a grid and along the edges: insets drawn inside one projection, the antimeridian and the poles need no other rule.
+// The generator visits one column of the grid at each step, so that a caller can go back to the event loop between two steps, and returns the tiles
+export function* coverFrame(projection: InvertibleProjection, [[x0, y0], [x1, y1]]: Extent, zoom: number): Generator<void, Point[]> {
+  const tiles = new Map<string, Point>()
+  const positions = (start: number, end: number) => [start, ...Array.from({ length: Math.ceil((end - start) / COVERAGE_STEP) }, (_, i) => Math.min(end - 0.5, start + i * COVERAGE_STEP + COVERAGE_STEP / 2)), end - 0.5]
+  const ys = positions(y0, y1)
+  for (const x of positions(x0, x1)) {
+    for (const y of ys) {
+      const inverse = invertOnGlobe(projection, [x, y])
+      if (inverse) {
+        const [tx, ty] = tileOf(inverse, zoom).map(Math.floor) as Point
+        tiles.set(`${tx},${ty}`, [tx, ty])
       }
     }
+    yield
   }
-  edge([x0, y0], [x1, y0])
-  edge([x1, y0], [x1, y1])
-  edge([x1, y1], [x0, y1])
-  edge([x0, y1], [x0, y0])
-  if (outline.length === 0) {
-    return []
+  return [...tiles.values()]
+}
+
+export function tilesForFrame(projection: InvertibleProjection, extent: Extent, zoom: number): Point[] {
+  const coverage = coverFrame(projection, extent, zoom)
+  let step = coverage.next()
+  while (!step.done) {
+    step = coverage.next()
   }
-  let [[west, south], [east, north]] = geoBounds({ type: 'LineString', coordinates: [...outline, outline[0]!] })
-  const inFrame = (point: Point) => {
-    const projected = projection(point)
-    return projected !== null && projected[0] >= x0 && projected[0] <= x1 && projected[1] >= y0 && projected[1] <= y1
-  }
-  // A frame that contains a pole reaches it on every longitude
-  if (inFrame([0, 90])) {
-    [west, east, north] = [-180, 180, MAX_MERCATOR_LATITUDE]
-  }
-  if (inFrame([0, -90])) {
-    [west, east, south] = [-180, 180, -MAX_MERCATOR_LATITUDE]
-  }
-  const n = 2 ** zoom
-  const [, yNorth] = tileOf([0, north], zoom)
-  const [, ySouth] = tileOf([0, south], zoom)
-  const xWest = Math.floor(tileOf([west, 0], zoom)[0])
-  const xEast = Math.min(n - 1, Math.floor(tileOf([east === 180 ? 179.999999 : east, 0], zoom)[0]))
-  const columns = west <= east
-    ? Array.from({ length: xEast - xWest + 1 }, (_, i) => xWest + i)
-    : [...Array.from({ length: n - xWest }, (_, i) => xWest + i), ...Array.from({ length: xEast + 1 }, (_, i) => i)]
-  const tiles: Point[] = []
-  for (let y = Math.max(0, Math.floor(yNorth)); y <= Math.min(n - 1, Math.floor(ySouth)); y++) {
-    for (const x of columns) {
-      tiles.push([x, y])
-    }
-  }
-  return tiles
+  return step.value
 }
 
 const ROUND_TRIP_TOLERANCE = 0.5

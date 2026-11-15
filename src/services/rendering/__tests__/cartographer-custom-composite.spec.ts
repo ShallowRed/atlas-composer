@@ -1,4 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
+import type { BasemapFrame } from '@/core/basemap'
 import type { AtlasId } from '@/types/branded'
 import { geoPath } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
@@ -20,6 +21,7 @@ describe('drawing of the custom composite of france-proportional', () => {
   let features: GeoJSON.Feature<GeoJSON.Polygon>[]
   let cartographer: NonNullable<Awaited<ReturnType<typeof openAtlasWithCartographer>>['cartographer']>
   let svg: SVGSVGElement
+  let frames: BasemapFrame[]
 
   beforeAll(async () => {
     const geoDataStore = await openAtlasWithCartographer(FRANCE)
@@ -27,14 +29,14 @@ describe('drawing of the custom composite of france-proportional', () => {
     await useCompositionStore().loadPreset({ presetId: createPresetId('france-proportional') })
     cartographer = geoDataStore.cartographer!
     vi.spyOn(cartographer.geoData, 'getRawUnifiedData').mockResolvedValue({ type: 'FeatureCollection', features })
-    svg = await cartographer.render({
+    ;({ svg, frames } = await cartographer.render({
       mode: 'composite-custom',
       territoryMode: 'all-territories',
       territoryCodes: CODES,
       projection: 'composite',
       width: 960,
       height: 500,
-    })
+    }))
   })
 
   it.each(CODES)('draws %s through the sub-projection of its code only', (code) => {
@@ -46,5 +48,14 @@ describe('drawing of the custom composite of france-proportional', () => {
     expect(svg.querySelector(`g.territories path[data-territory="${code}"]`)!.getAttribute('d')).toBe(ownPath)
     expect(compositePath).toContain(ownPath)
     expect(compositePath).not.toBe(ownPath)
+  })
+
+  // The basemap draws one frame per active territory, in the order of the configuration, from the projections of this render
+  it('gives the frames of the active territories only', () => {
+    const order = getAtlasConfig(FRANCE).compositeTerritories!.territories.map(territory => territory.code).filter(code => CODES.includes(code))
+    expect(frames.map(frame => frame.code)).toEqual(order)
+    for (const frame of frames) {
+      expect(frame.projection).toBe(cartographer.customComposite!.getSubProjectionData(frame.code)!.projection)
+    }
   })
 })
