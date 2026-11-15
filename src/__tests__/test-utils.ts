@@ -1,10 +1,15 @@
+import type { AtlasTerritoriesInput } from '@atlas-composer/preset-library'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { Topology } from 'topojson-specification'
 import type { PresetType } from '#types'
 import type { CompositionDemoInput, Place, TerritoryContours } from '@/core/examples'
 import type { AtlasId, PresetId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { buildTerritories, createNaturalEarthSource } from '@atlas-composer/preset-library'
 import { mount } from '@vue/test-utils'
+import { feature } from 'topojson-client'
 import { vi } from 'vitest'
 import { defineComponent } from 'vue'
 import atlasRegistry from '#configs/atlas-registry.json'
@@ -81,13 +86,24 @@ export function readCompositeSources(): CompositeSource[] {
   return [...presets, ...families]
 }
 
-// The entry of the composition demo for a preset, from the files of the repository, as loadCompositionDemo reads them
+const contoursByAtlas = new Map<string, TerritoryContours>()
+
+// The contours of an atlas at 50m, built from world-atlas by the function that pnpm geodata:prepare calls to write src/public/data, which is not versioned
+export function readAtlasContours(atlasId: string): TerritoryContours {
+  if (!contoursByAtlas.has(atlasId)) {
+    const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(atlasId as AtlasId)!.replace('./', '')}`, 'utf8')) as AtlasTerritoriesInput
+    const topology = JSON.parse(readFileSync(createRequire(import.meta.url).resolve('world-atlas/countries-50m.json'), 'utf8')) as Topology
+    contoursByAtlas.set(atlasId, buildTerritories(atlas, createNaturalEarthSource(feature(topology, topology.objects.countries!), '50m')).collection)
+  }
+  return structuredClone(contoursByAtlas.get(atlasId)!)
+}
+
+// The entry of the composition demo for a preset, as loadCompositionDemo reads it
 export function readCompositionDemoInput(presetId: string): CompositionDemoInput {
   const source = readCompositeSources().find(candidate => candidate.presetId === presetId)!
-  const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(source.atlasId)!.replace('./', '')}`, 'utf8')) as { dataSources: { territories: string } }
   return {
     config: structuredClone(source.config),
-    territories: JSON.parse(readFileSync(`src/public/data/${atlas.dataSources.territories}`, 'utf8')) as TerritoryContours,
+    territories: readAtlasContours(source.atlasId),
     places: JSON.parse(readFileSync('src/public/examples/world-places.json', 'utf8')) as Place[],
   }
 }
