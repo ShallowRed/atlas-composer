@@ -1,7 +1,7 @@
 import type { BasemapSource } from '@/core/basemap'
 import type { AppError } from '@/core/types/errors'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 type ToastContent = { message: string } | { error: AppError }
 
@@ -19,6 +19,8 @@ export const useUIStore = defineStore('ui', () => {
   const showMapLimits = ref(true)
   // A display preference, outside the shared link and the exported configuration
   const basemap = ref<BasemapSource>('none')
+  // Without a basemap, the territories are filled; over a basemap, only their outline is drawn
+  const fillTerritories = computed(() => basemap.value === 'none')
 
   const toasts = ref<ToastMessage[]>([])
   let toastIdCounter = 0
@@ -77,6 +79,7 @@ export const useUIStore = defineStore('ui', () => {
     showCompositionBorders,
     showMapLimits,
     basemap,
+    fillTerritories,
     toasts,
 
     initializeTheme,

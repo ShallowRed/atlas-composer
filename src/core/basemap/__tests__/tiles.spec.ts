@@ -7,7 +7,7 @@ import { geoEquirectangular, geoMercator, geoNaturalEarth1 } from 'd3-geo'
 import { geoRobinson } from 'd3-geo-projection'
 import { describe, expect, it } from 'vitest'
 import { readCompositeSources } from '@/__tests__/test-utils'
-import { invertOnGlobe, labelsToDraw, tileOf, tilesForFrame, zoomForFrame } from '@/core/basemap'
+import { coverFrame, invertOnGlobe, tileOf, zoomForFrame } from '@/core/basemap'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionCategory } from '@/core/projections/types'
 
@@ -19,6 +19,16 @@ function framesOf(config: ReturnType<typeof readCompositeSources>[number]['confi
   const { width, height } = config.canvasDimensions
   return [...loader.createSubProjections(config, { scale: config.referenceScale, translate: [width / 2, height / 2] })]
     .map(([code, projection]) => ({ code, projection, extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as Extent }))
+}
+
+// The tiles of a frame, the coverage run to its end in one go
+function tilesForFrame(projection: InvertibleProjection, extent: Extent, zoom: number): Array<[number, number]> {
+  const coverage = coverFrame(projection, extent, zoom)
+  let step = coverage.next()
+  while (!step.done) {
+    step = coverage.next()
+  }
+  return step.value
 }
 
 function interiorTiles(projection: InvertibleProjection, [[x0, y0], [x1, y1]]: Extent, zoom: number, step: number): Set<string> {
@@ -123,22 +133,5 @@ describe('invertOnGlobe', () => {
   it('inverts a pixel of the globe and refuses a corner outside it', () => {
     expect(invertOnGlobe(world, [480, 250])).not.toBeNull()
     expect(invertOnGlobe(world, [2, 2])).toBeNull()
-  })
-})
-
-describe('labelsToDraw', () => {
-  const label = (frame: number, x: number, y: number, name: string, city = false, rank = 5) => ({ frame, x, y, name, city, rank })
-  const frames: Array<{ extent: Extent }> = [{ extent: [[0, 0], [100, 100]] }, { extent: [[0, 0], [40, 40]] }]
-  const boxOf = ({ x, y }: { x: number, y: number }): [number, number, number, number] => [x - 2, y - 6, x + 26, y + 6]
-
-  it('drops the labels that a frame drawn later covers', () => {
-    expect(labelsToDraw([label(0, 20, 20, 'covered'), label(0, 80, 80, 'free'), label(1, 20, 20, 'inset')], frames, boxOf).map(l => l.name))
-      .toEqual(['free', 'inset'])
-  })
-
-  it('keeps the city, then the lower rank, of two names that overlap', () => {
-    expect(labelsToDraw([label(0, 60, 60, 'town'), label(0, 62, 60, 'city', true)], frames, boxOf).map(l => l.name)).toEqual(['city'])
-    expect(labelsToDraw([label(0, 60, 60, 'second', false, 7), label(0, 62, 60, 'first', false, 3)], frames, boxOf).map(l => l.name)).toEqual(['first'])
-    expect(labelsToDraw([label(0, 50, 50, 'apart'), label(0, 50, 80, 'below')], frames, boxOf)).toHaveLength(2)
   })
 })

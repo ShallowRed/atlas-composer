@@ -2,7 +2,6 @@
 import type { DropdownOption, DropdownOptionGroup } from './DropdownControl.vue'
 import type { ProjectionCategoryType } from '@/core/projections/types'
 
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { getCategoryIcon } from '@/utils/projection-icons'
@@ -18,8 +17,9 @@ interface Props {
   ariaLabel?: string
   inline?: boolean
   focusedIndex: number
-  buttonRef?: HTMLElement | null
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  // The anchor-name of the button that the menu opens next to
+  anchor: string
 }
 
 const props = defineProps<Props>()
@@ -30,8 +30,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-
-const menuPosition = ref({ top: 0, left: 0, width: 0 })
 
 function getCategoryLabel(group: DropdownOptionGroup): string {
   if (group.label) {
@@ -56,48 +54,6 @@ function getCategoryIconClass(group: DropdownOptionGroup): string | undefined {
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
 }
-
-function updateMenuPosition() {
-  if (!props.buttonRef || !props.isOpen)
-    return
-
-  const buttonRect = props.buttonRef.getBoundingClientRect()
-  menuPosition.value = {
-    top: buttonRect.bottom + 8, // 8px gap (mt-2)
-    left: buttonRect.left,
-    width: buttonRect.width,
-  }
-}
-
-watch(() => props.isOpen, (isOpen) => {
-  if (isOpen) {
-    updateMenuPosition()
-  }
-})
-
-onMounted(() => {
-  if (!props.inline) {
-    window.addEventListener('scroll', updateMenuPosition, true)
-    window.addEventListener('resize', updateMenuPosition)
-  }
-})
-
-onUnmounted(() => {
-  if (!props.inline) {
-    window.removeEventListener('scroll', updateMenuPosition, true)
-    window.removeEventListener('resize', updateMenuPosition)
-  }
-})
-
-const menuStyle = computed(() => ({
-  top: `${menuPosition.value.top}px`,
-  left: `${menuPosition.value.left}px`,
-  minWidth: `${menuPosition.value.width}px`,
-  maxWidth: '400px',
-  maxHeight: '24rem',
-  overflowY: 'auto' as const,
-  overflowX: 'hidden' as const,
-}))
 
 function handleMenuClick(event: MouseEvent) {
   event.stopPropagation()
@@ -125,6 +81,13 @@ function isOptionFocused(option: DropdownOption, directIndex?: number): boolean 
   return props.focusedIndex === index && props.localValue !== option.value
 }
 
+// The menu opens as a popover: the top layer keeps it out of the overflow of its containers
+function showPopover(element: unknown) {
+  if (element instanceof HTMLElement && !element.matches(':popover-open')) {
+    element.showPopover()
+  }
+}
+
 function handleSelect(value: string) {
   emit('select', value)
 }
@@ -138,9 +101,12 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   <!-- Inline dropdown menu with simple options -->
   <ul
     v-if="inline && options && isOpen"
+    :ref="showPopover"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-52 shadow-lg border border-base-300 gap-1"
+    popover="manual"
+    :style="{ positionAnchor: anchor }"
+    class="dropdown dropdown-end dropdown-content menu bg-base-100 rounded-box w-52 shadow-lg border border-base-300 gap-1"
   >
     <li
       v-for="(option, index) in options"
@@ -160,9 +126,12 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   <!-- Inline dropdown menu with option groups -->
   <ul
     v-if="inline && optionGroups && isOpen"
+    :ref="showPopover"
     role="listbox"
     :aria-label="ariaLabel"
-    class="dropdown-content menu bg-base-100 rounded-box z-[1] mt-2 w-56 shadow-lg border border-base-300 max-h-96 overflow-y-auto gap-1"
+    popover="manual"
+    :style="{ positionAnchor: anchor }"
+    class="dropdown dropdown-end dropdown-content menu bg-base-100 rounded-box w-56 shadow-lg border border-base-300 max-h-96 overflow-y-auto gap-1"
   >
     <template
       v-for="group in optionGroups"
@@ -197,88 +166,97 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   </ul>
 
   <!-- Standard dropdown with option groups -->
-  <Teleport
+  <ul
     v-if="!inline && optionGroups && isOpen"
-    to="body"
+    :ref="showPopover"
+    role="listbox"
+    :aria-labelledby="ariaLabelledby"
+    popover="manual"
+    :style="{ positionAnchor: anchor }"
+    class="dropdown dropdown-content menu labelled-menu bg-base-100 rounded-box shadow-lg border border-base-300 gap-4"
+    @click="handleMenuClick"
   >
-    <ul
-      role="listbox"
-      :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] shadow-lg border border-base-300 gap-4"
-      style="position: fixed;"
-      :style="menuStyle"
-      @click="handleMenuClick"
+    <template
+      v-for="group in optionGroups"
+      :key="group.key || group.category"
     >
-      <template
-        v-for="group in optionGroups"
-        :key="group.key || group.category"
-      >
-        <li>
-          <h2 class="menu-title flex items-center gap-1">
-            <i
-              v-if="getCategoryIconClass(group)"
-              :class="getCategoryIconClass(group)"
+      <li>
+        <h2 class="menu-title flex items-center gap-1">
+          <i
+            v-if="getCategoryIconClass(group)"
+            :class="getCategoryIconClass(group)"
+          />
+          {{ getCategoryLabel(group) }}
+        </h2>
+        <ul class="flex flex-col gap-1">
+          <li
+            v-for="option in group.options || []"
+            :key="option.value"
+            role="presentation"
+          >
+            <DropdownOptionItem
+              :option="option"
+              :option-id="getOptionId(getOptionIndex(option))"
+              :is-selected="localValue === option.value"
+              :show-badge-inline="true"
+              @select="handleSelect"
+              @keydown="handleKeydown"
             />
-            {{ getCategoryLabel(group) }}
-          </h2>
-          <ul class="flex flex-col gap-1">
-            <li
-              v-for="option in group.options || []"
-              :key="option.value"
-              role="presentation"
-            >
-              <DropdownOptionItem
-                :option="option"
-                :option-id="getOptionId(getOptionIndex(option))"
-                :is-selected="localValue === option.value"
-                :show-badge-inline="true"
-                @select="handleSelect"
-                @keydown="handleKeydown"
-              />
-            </li>
-          </ul>
-        </li>
-      </template>
-    </ul>
-  </Teleport>
+          </li>
+        </ul>
+      </li>
+    </template>
+  </ul>
 
   <!-- Standard dropdown with simple options -->
-  <Teleport
+  <ul
     v-if="!inline && options && isOpen"
-    to="body"
+    :ref="showPopover"
+    role="listbox"
+    :aria-labelledby="ariaLabelledby"
+    popover="manual"
+    :style="{ positionAnchor: anchor }"
+    class="dropdown dropdown-content menu labelled-menu bg-base-100 rounded-box shadow-lg border border-base-300 gap-1"
+    @click="handleMenuClick"
   >
-    <ul
-      role="listbox"
-      :aria-labelledby="ariaLabelledby"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1000] shadow-lg border border-base-300 gap-1"
-      style="position: fixed;"
-      :style="menuStyle"
-      @click="handleMenuClick"
+    <li
+      v-for="(option, index) in options"
+      :key="option.value"
+      role="presentation"
     >
-      <li
-        v-for="(option, index) in options"
-        :key="option.value"
-        role="presentation"
-      >
-        <DropdownOptionItem
-          :option="option"
-          :option-id="getOptionId(index)"
-          :is-selected="localValue === option.value"
-          :is-focused="isOptionFocused(option, index)"
-          @select="handleSelect"
-          @keydown="handleKeydown"
-        />
-      </li>
-    </ul>
-  </Teleport>
+      <DropdownOptionItem
+        :option="option"
+        :option-id="getOptionId(index)"
+        :is-selected="localValue === option.value"
+        :is-focused="isOptionFocused(option, index)"
+        @select="handleSelect"
+        @keydown="handleKeydown"
+      />
+    </li>
+  </ul>
 </template>
 
 <style scoped>
-/* Force single column layout and proper scrolling for teleported menus */
+/* Force single column layout and proper scrolling */
 .dropdown-content.menu {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap !important;
+}
+
+/* The menu opens on the other side of its button when the viewport has no room for it */
+.dropdown[popover] {
+  inset: auto;
+  margin: 0.5rem 0;
+  position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+}
+
+/* The menu of a labelled dropdown: at least as wide as its button, scrolled past 24rem */
+.labelled-menu {
+  min-width: anchor-size(width);
+  max-width: 400px;
+  max-height: 24rem;
+  overflow: hidden auto;
 }
 
 /* Ensure menu items don't wrap */

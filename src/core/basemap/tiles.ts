@@ -74,15 +74,6 @@ export function* coverFrame(projection: InvertibleProjection, [[x0, y0], [x1, y1
   return [...tiles.values()]
 }
 
-export function tilesForFrame(projection: InvertibleProjection, extent: Extent, zoom: number): Point[] {
-  const coverage = coverFrame(projection, extent, zoom)
-  let step = coverage.next()
-  while (!step.done) {
-    step = coverage.next()
-  }
-  return step.value
-}
-
 const ROUND_TRIP_TOLERANCE = 0.5
 
 // The longitude and latitude of a pixel, when they project back to it within half a pixel: outside the globe, the inverse returns a point that projects elsewhere

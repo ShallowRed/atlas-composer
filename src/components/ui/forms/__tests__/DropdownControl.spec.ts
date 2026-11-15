@@ -1,7 +1,7 @@
 import type { VueWrapper } from '@vue/test-utils'
 import type { DropdownOption, DropdownOptionGroup } from '../DropdownControl.vue'
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import DropdownControl from '../DropdownControl.vue'
@@ -20,6 +20,9 @@ const i18n = createI18n({
     },
   },
 })
+
+// The menu is in the DOM while it is open
+const isOpen = (wrapper: VueWrapper<any>) => wrapper.find('[role="listbox"]').exists()
 
 describe('dropdownControl', () => {
   let wrapper: VueWrapper<any>
@@ -87,7 +90,7 @@ describe('dropdownControl', () => {
       // Standard version uses label element instead of fieldset
       expect(wrapper.find('label').exists()).toBe(true)
       expect(wrapper.find('.label-text').exists()).toBe(true)
-      expect(wrapper.find('.dropdown').exists()).toBe(true)
+      expect(wrapper.find('button[aria-haspopup]').exists()).toBe(true)
     })
 
     it('should render inline version when inline prop is true', () => {
@@ -104,11 +107,25 @@ describe('dropdownControl', () => {
       })
 
       expect(wrapper.find('fieldset').exists()).toBe(false)
-      expect(wrapper.find('.dropdown-end').exists()).toBe(true)
       // Inline button has custom styling
       const button = wrapper.find('button[type="button"]')
       expect(button.exists()).toBe(true)
       expect(button.classes()).toContain('btn-ghost')
+    })
+
+    it('should open the inline menu as a popover', async () => {
+      const showPopover = vi.spyOn(HTMLElement.prototype, 'showPopover')
+      onTestFinished(() => showPopover.mockRestore())
+      wrapper = mount(DropdownControl, {
+        props: { label: 'test.label', options: defaultOptions, modelValue: 'option1', inline: true },
+        global: { plugins: [i18n] },
+      })
+
+      const button = wrapper.find('button[type="button"]')
+      await button.trigger('click')
+
+      expect(wrapper.find('ul[popover]').exists()).toBe(true)
+      expect(showPopover).toHaveBeenCalledOnce()
     })
 
     it('should display selected option label', () => {
@@ -250,8 +267,7 @@ describe('dropdownControl', () => {
       await button.trigger('click')
       await nextTick()
 
-      const dropdown = wrapper.find('.dropdown')
-      expect(dropdown.classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
       // The menu is a separate component (DropdownMenu) that renders when open
       const menu = wrapper.findComponent({ name: 'DropdownMenu' })
       expect(menu.exists()).toBe(true)
@@ -272,11 +288,11 @@ describe('dropdownControl', () => {
       const button = wrapper.find('.btn')
       await button.trigger('click')
       await nextTick()
-      expect(wrapper.find('.dropdown').classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
 
       await button.trigger('click')
       await nextTick()
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
 
     it('should close dropdown when option is clicked', async () => {
@@ -302,7 +318,7 @@ describe('dropdownControl', () => {
       menu.vm.$emit('select', 'option2')
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
 
     it('should not open dropdown when disabled', async () => {
@@ -322,7 +338,7 @@ describe('dropdownControl', () => {
       await button.trigger('click')
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
   })
 
@@ -415,7 +431,7 @@ describe('dropdownControl', () => {
       await button.trigger('keydown', { key: 'Enter' })
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
     })
 
     it('should open dropdown when Space is pressed on button', async () => {
@@ -434,7 +450,7 @@ describe('dropdownControl', () => {
       await button.trigger('keydown', { key: ' ' })
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
     })
 
     it('should close dropdown when Escape is pressed', async () => {
@@ -456,7 +472,7 @@ describe('dropdownControl', () => {
       await button.trigger('keydown', { key: 'Escape' })
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
 
     it('should navigate down with ArrowDown when dropdown is open', async () => {
@@ -527,13 +543,13 @@ describe('dropdownControl', () => {
       await nextTick()
 
       // Dropdown should still be open
-      expect(wrapper.find('.dropdown').classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
 
       await button.trigger('keydown', { key: 'ArrowDown' })
       await nextTick()
 
       // Should still be open
-      expect(wrapper.find('.dropdown').classes()).toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(true)
     })
 
     it('should not open dropdown with ArrowDown when closed', async () => {
@@ -552,7 +568,7 @@ describe('dropdownControl', () => {
       await button.trigger('keydown', { key: 'ArrowDown' })
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
 
     it('should navigate with ArrowRight when dropdown is closed', async () => {
@@ -700,7 +716,7 @@ describe('dropdownControl', () => {
       await button.trigger('keydown', { key: 'Tab' })
       await nextTick()
 
-      expect(wrapper.find('.dropdown').classes()).not.toContain('dropdown-open')
+      expect(isOpen(wrapper)).toBe(false)
     })
   })
 

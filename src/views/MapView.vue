@@ -111,7 +111,7 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
 
           <p
             v-if="basemapAttribution"
-            class="pointer-events-none absolute top-1 right-1 z-10 max-w-full rounded-sm bg-base-100/80 px-1.5 text-xs text-base-content/70 max-lg:static max-lg:mt-1 max-lg:bg-transparent max-lg:px-0"
+            class="map-note top-1 right-1 z-10 max-w-full text-base-content/70 max-lg:static max-lg:mt-1 max-lg:bg-transparent max-lg:px-0"
           >
             {{ basemapAttribution }}
           </p>

@@ -16,6 +16,11 @@
   @apply mx-auto w-full max-w-3xl px-2;
 }
 
+/* A short text laid over a map: the attribution of the basemap, its missing tiles */
+@utility map-note {
+  @apply pointer-events-none absolute rounded-sm bg-base-100/80 px-1.5 text-xs;
+}
+
 :root {
   --bg-base-150: oklch(50% var(--base-200));
 

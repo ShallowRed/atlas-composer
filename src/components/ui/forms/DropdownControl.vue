@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import DropdownButton from './DropdownButton.vue'
 import DropdownMenu from './DropdownMenu.vue'
 
@@ -56,12 +56,11 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
+const anchor = `--dropdown-${useId()}`
 const buttonComponentRef = ref<InstanceType<typeof DropdownButton> | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
 const isNavigating = ref(false)
-
-const buttonRef = computed(() => buttonComponentRef.value?.buttonRef || null)
 
 const localValue = computed({
   get: () => props.modelValue,
@@ -288,8 +287,7 @@ watch(focusedIndex, (newIndex) => {
   <div
     v-if="inline"
     ref="dropdownRef"
-    class="dropdown dropdown-end"
-    :class="{ 'dropdown-open': isOpen }"
+    class="inline-block"
   >
     <DropdownButton
       ref="buttonComponentRef"
@@ -300,6 +298,7 @@ watch(focusedIndex, (newIndex) => {
       :aria-label="label || 'Select option'"
       :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
       :inline="true"
+      :style="{ anchorName: anchor }"
       :icon="icon"
       :show-selected-icon="showSelectedIcon"
       :show-static-icon="showStaticIcon"
@@ -317,6 +316,7 @@ watch(focusedIndex, (newIndex) => {
       :local-value="localValue"
       :aria-label="label || 'Options'"
       :inline="true"
+      :anchor="anchor"
       :focused-index="focusedIndex"
       :size="size"
       @select="selectOption"
@@ -345,11 +345,11 @@ watch(focusedIndex, (newIndex) => {
 
     <div
       ref="dropdownRef"
-      class="dropdown w-full"
-      :class="{ 'dropdown-open': isOpen }"
+      class="w-full"
     >
       <DropdownButton
         ref="buttonComponentRef"
+        :style="{ anchorName: anchor }"
         :is-open="isOpen"
         :disabled="disabled"
         :selected-option="selectedOption ?? null"
@@ -367,8 +367,8 @@ watch(focusedIndex, (newIndex) => {
         :is-open="isOpen"
         :local-value="localValue"
         aria-labelledby="dropdown-label"
+        :anchor="anchor"
         :focused-index="focusedIndex"
-        :button-ref="buttonRef"
         @select="selectOption"
         @keydown="handleOptionKeyDown"
       />
@@ -377,22 +377,9 @@ watch(focusedIndex, (newIndex) => {
 </template>
 
 <style scoped>
-.dropdown:not(.dropdown-open) .dropdown-content {
-  display: none !important;
-}
-
-.dropdown.dropdown-open .dropdown-content {
-  display: block !important;
-}
-
 .btn:focus, .btn:focus-visible {
   outline: 2px solid var(--color-neutral);
   outline-offset: 2px;
-}
-
-.dropdown:where(.dropdown-end) {
-  background: none !important;
-  padding: 0 !important;
 }
 
 @keyframes dropdown-appear {

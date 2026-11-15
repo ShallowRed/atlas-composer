@@ -118,7 +118,7 @@ export function useMapRender(props: MapRenderProps) {
       showCompositionBorders: uiStore.showCompositionBorders,
       showMapLimits: uiStore.showMapLimits,
       titleOf: territoryName,
-      fillTerritories: uiStore.basemap === 'none',
+      fillTerritories: uiStore.fillTerritories,
     })
     frames = rendered.frames
     return rendered.svg
@@ -147,7 +147,7 @@ export function useMapRender(props: MapRenderProps) {
       showMapLimits: uiStore.showMapLimits,
       territories: geoDataStore.filteredTerritories,
       titleOf: territoryName,
-      fillTerritories: uiStore.basemap === 'none',
+      fillTerritories: uiStore.fillTerritories,
     })
     frames = rendered.frames
     return rendered.svg
