@@ -14,6 +14,7 @@
  *   its population at 300,000 on 2022-01-01 (Insee, estimations de population).
  * - Portugal boundaries: Eurostat GISCO, NUTS 2024 1:3m (© EuroGeographics)
  * - Portugal density: Eurostat, demo_r_d3dens (population density by NUTS3)
+ * - Places of the composition demo: Natural Earth 5.1.2, populated places (public domain)
  */
 
 import type { Objects, Topology } from 'topojson-specification'
@@ -50,6 +51,7 @@ const SOURCES = {
   inseePopulations: 'https://www.insee.fr/fr/statistiques/fichier/8290591/ensemble.zip',
   giscoNuts3: 'https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_03M_2024_4326_LEVL_3.geojson',
   eurostatDensity: 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_r_d3dens?format=JSON&geoLevel=nuts3&time=2023',
+  naturalEarthPlaces: 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_populated_places_simple.geojson',
 }
 
 /**
@@ -194,10 +196,35 @@ async function preparePortugal(): Promise<void> {
   logger.success(`Wrote ${features.length} NUTS3 regions to ${outputPath}`)
 }
 
+// A thousandth of a degree, about 100 m, is below a pixel of the demo
+const roundCoordinate = (value: number) => Math.round(value * 1000) / 1000
+
+async function preparePlaces(): Promise<void> {
+  logger.section('Places of the composition demo')
+
+  const places = JSON.parse((await download(SOURCES.naturalEarthPlaces)).toString()) as FeatureCollection
+  // [longitude, latitude, population, name, 1 for a capital, ISO code of the country], by decreasing population
+  const rows = places.features
+    .map(({ properties }) => [
+      roundCoordinate(properties.longitude as number),
+      roundCoordinate(properties.latitude as number),
+      properties.pop_max as number,
+      properties.name as string,
+      properties.adm0cap as number,
+      properties.adm0_a3 as string,
+    ] as const)
+    .sort((a, b) => b[2] - a[2])
+
+  const outputPath = path.join(OUTPUT_DIR, 'world-places.json')
+  await fs.writeFile(outputPath, JSON.stringify(rows))
+  logger.success(`Wrote ${rows.length} places to ${outputPath}`)
+}
+
 async function main(): Promise<void> {
   await fs.mkdir(OUTPUT_DIR, { recursive: true })
   await prepareFrance()
   await preparePortugal()
+  await preparePlaces()
   logger.success('All example datasets prepared')
 }
 

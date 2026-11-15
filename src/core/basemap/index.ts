@@ -1,5 +1,5 @@
 export type { BasemapFrame, Extent, PlaceLabel } from './frames'
-export { labelsToDraw } from './frames'
+export { labelsToDraw, visibleLabels } from './frames'
 export type { BasemapSource, BasemapSourceDefinition } from './sources'
 export { BASEMAP_SOURCE_DEFINITIONS, BASEMAP_SOURCES } from './sources'
 export type { InvertibleProjection } from './tiles'

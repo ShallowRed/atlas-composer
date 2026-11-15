@@ -19,7 +19,7 @@ export interface PlaceLabel {
 }
 
 // A frame drawn later covers the labels of the frames under it
-function visibleLabels<L extends { frame: number, x: number, y: number }>(labels: L[], frames: Pick<BasemapFrame, 'extent'>[]): L[] {
+export function visibleLabels<L extends { frame: number, x: number, y: number }>(labels: L[], frames: Pick<BasemapFrame, 'extent'>[]): L[] {
   return labels.filter(({ frame, x, y }) => !frames.some(({ extent: [[x0, y0], [x1, y1]] }, index) => index > frame && x >= x0 && x <= x1 && y >= y0 && y <= y1))
 }
 
