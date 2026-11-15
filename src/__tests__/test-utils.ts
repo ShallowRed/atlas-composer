@@ -9,7 +9,7 @@ import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 
 export async function loadAtlasFromConfigs(atlasId: AtlasId) {
   vi.stubGlobal('fetch', async (url: string) => new Response(await readFile(`.${url}`, 'utf8')))
-  const result = await loadAtlasConfiguration(atlasId, 'en')
+  const result = await loadAtlasConfiguration(atlasId)
   if (!result.ok) {
     throw new Error(`${atlasId}: ${result.error.code}`)
   }

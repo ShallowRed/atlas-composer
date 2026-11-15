@@ -20,9 +20,7 @@ export interface Translation {
 
 export interface TerritoryConfig {
   code: TerritoryCode
-  name: string
-  shortName?: string
-  region?: string
+  name: I18nValue
   center: Coordinates
   bounds: BoundingBox
 }

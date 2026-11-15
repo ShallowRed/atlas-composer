@@ -52,7 +52,7 @@ The built-in composite draws every territory, and the unified and split views fo
 
 `name`, `description`, `shortName`, `region` and each `label` accept a string or an object keyed by language, with `en` required. `resolveI18nValue` in `src/core/atlases/i18n-utils.ts` returns the value of the requested locale, then `en`, then the first key.
 
-`loadAtlasConfiguration` resolves the names of a configuration once, in the locale of its first load. `useTerritoryModeOptions` resolves the labels of the territory modes in the current locale. `getAvailableAtlasesGrouped` passes no locale, so the atlas menu shows the `en` value.
+`loadAtlasConfiguration` keeps the territory names as written in the file, and the interface resolves them in the current locale; an exported preset holds the `en` value. `useTerritoryModeOptions` resolves the labels of the territory modes in the current locale. `getAvailableAtlasesGrouped` passes no locale, so the atlas menu shows the `en` value.
 
 ## View modes and controls
 
