@@ -1,8 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { COMPOSITION_PRESETS, EXAMPLES } from '@/core/examples'
+import { readAtlasContours } from '@/__tests__/test-utils'
+import { EXAMPLES } from '@/core/examples'
 import { useExamplesStore } from '@/stores/examples'
+import { createPresetId } from '@/types/branded'
 
 describe('loadExampleMap', () => {
   beforeEach(() => {
@@ -64,8 +66,10 @@ describe('loadEarthquakes', () => {
 describe('loadCompositionDemo', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // The configurations are served from configs/, the data from src/public/
-    vi.stubGlobal('fetch', async (url: string) => new Response(await readFile(`.${url.replace(/^\/(?!configs\/)/, '/src/public/')}`, 'utf8')))
+    // The configurations are served from configs/, the contours built from world-atlas, the other files from src/public/
+    vi.stubGlobal('fetch', async (url: string) => new Response(url.endsWith('/japan-territories-50m.json')
+      ? JSON.stringify(readAtlasContours('japan'))
+      : await readFile(`.${url.replace(/^\/(?!configs\/)/, '/src/public/')}`, 'utf8')))
   })
 
   afterEach(() => {
@@ -73,7 +77,7 @@ describe('loadCompositionDemo', () => {
   })
 
   it('gives the preset, the contours of its atlas, the places and the names of the territories', async () => {
-    const result = await useExamplesStore().loadCompositionDemo(COMPOSITION_PRESETS[0]!)
+    const result = await useExamplesStore().loadCompositionDemo(createPresetId('japan-standard'))
 
     expect(result.ok).toBe(true)
     const source = result.ok ? result.value : null

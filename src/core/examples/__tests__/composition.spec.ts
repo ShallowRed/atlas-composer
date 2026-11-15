@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { readCompositionDemoInput } from '@/__tests__/test-utils'
 import { findPresetById, getAtlasConfigPath } from '@/core/atlases/registry'
@@ -46,6 +46,6 @@ describe('composition presets', () => {
     const found = findPresetById(presetId)
     expect(found?.preset.type).toBe('composite-custom')
     const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(found!.atlasId)!.replace('./', '')}`, 'utf8')) as { dataSources?: { territories?: string } }
-    expect(existsSync(`src/public/data/${atlas.dataSources?.territories}`)).toBe(true)
+    expect(atlas.dataSources?.territories).toMatch(/-territories-50m\.json$/)
   })
 })

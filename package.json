@@ -74,6 +74,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",
+    "@atlas-composer/preset-library": "workspace:*",
     "@atlas-composer/projection-loader": "workspace:*",
     "@changesets/cli": "^3.0.3",
     "@tailwindcss/vite": "^4.3.4",
