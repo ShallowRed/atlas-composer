@@ -116,10 +116,11 @@
     "language": "Language",
     "resolution": "Data resolution",
     "region": "Atlas",
-    "graticule": "Show graticule",
+    "graticule": "Graticule",
     "sphere": "Show sphere outline",
-    "compositionBorders": "Display composition borders",
-    "mapLimits": "Display map limits"
+    "compositionBorders": "Borders",
+    "mapLimits": "Limits",
+    "renderingOptions": "Rendering options"
   },
   "common": {
     "close": "Close",
