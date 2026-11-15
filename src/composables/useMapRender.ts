@@ -96,7 +96,7 @@ export function useMapRender(props: MapRenderProps) {
       cartographer.updateProjectionParams(territoryParams)
     }
 
-    return MapRenderCoordinator.renderSimpleMap(cartographer, {
+    const rendered = await MapRenderCoordinator.renderSimpleMap(cartographer, {
       geoData: props.geoData,
       projection: projectionToUse,
       width,
@@ -109,6 +109,7 @@ export function useMapRender(props: MapRenderProps) {
       showMapLimits: uiStore.showMapLimits,
       titleOf: territoryName,
     })
+    return rendered.svg
   }
 
   async function renderComposite(cartographer: NonNullable<typeof geoDataStore.cartographer>): Promise<SVGSVGElement> {
@@ -121,7 +122,7 @@ export function useMapRender(props: MapRenderProps) {
       throw new Error('Cannot render composite map: projection not loaded')
     }
 
-    return await MapRenderCoordinator.renderCompositeMap(cartographer, {
+    const rendered = await MapRenderCoordinator.renderCompositeMap(cartographer, {
       viewMode: viewStore.viewMode,
       territoryMode: viewStore.territoryMode,
       selectedProjection: projectionStore.selectedProjection,
@@ -135,6 +136,7 @@ export function useMapRender(props: MapRenderProps) {
       territories: geoDataStore.filteredTerritories,
       titleOf: territoryName,
     })
+    return rendered.svg
   }
 
   async function applyOverlays(svg: SVGSVGElement) {

@@ -1,6 +1,6 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
-import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
+import type { CompositeRenderOptions, RenderedMap, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
 import type { TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { Territory, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -8,7 +8,7 @@ import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
 export interface CartographerLike {
-  render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<SVGSVGElement>
+  render: (options: SimpleRenderOptions | CompositeRenderOptions) => Promise<RenderedMap>
   customComposite?: any
   lastProjection?: GeoProjection | null
 }
@@ -25,6 +25,7 @@ export interface SimpleMapConfig {
   showCompositionBorders: boolean
   showMapLimits: boolean
   titleOf?: TerritoryTitle
+  fillTerritories?: boolean
 }
 
 export interface CompositeMapConfig {
@@ -40,13 +41,14 @@ export interface CompositeMapConfig {
   showMapLimits: boolean
   territories?: Territory[]
   titleOf?: TerritoryTitle
+  fillTerritories?: boolean
 }
 
 export class MapRenderCoordinator {
   static async renderSimpleMap(
     cartographer: CartographerLike,
     config: SimpleMapConfig,
-  ): Promise<SVGSVGElement> {
+  ): Promise<RenderedMap> {
     const options: SimpleRenderOptions = {
       mode: 'simple',
       geoData: config.geoData,
@@ -60,6 +62,7 @@ export class MapRenderCoordinator {
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
       titleOf: config.titleOf,
+      fillTerritories: config.fillTerritories,
     }
 
     return await cartographer.render(options)
@@ -68,7 +71,7 @@ export class MapRenderCoordinator {
   static async renderCompositeMap(
     cartographer: CartographerLike,
     config: CompositeMapConfig,
-  ): Promise<SVGSVGElement> {
+  ): Promise<RenderedMap> {
     const mode = config.viewMode === 'composite-custom'
       ? 'composite-custom'
       : 'composite-projection'
@@ -91,9 +94,26 @@ export class MapRenderCoordinator {
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
       titleOf: config.titleOf,
+      fillTerritories: config.fillTerritories,
     }
 
     return await cartographer.render(options)
+  }
+
+  // The basemap goes under every other layer, in the coordinates of the viewBox
+  static insertBasemap(svg: SVGSVGElement, url: string): void {
+    svg.querySelector(':scope > image.basemap')?.remove()
+    const [x, y, width, height] = svg.getAttribute('viewBox')!.split(' ').map(Number)
+    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+    image.setAttribute('class', 'basemap')
+    image.setAttribute('href', url)
+    image.setAttribute('x', String(x))
+    image.setAttribute('y', String(y))
+    image.setAttribute('width', String(width))
+    image.setAttribute('height', String(height))
+    image.setAttribute('preserveAspectRatio', 'none')
+    image.setAttribute('pointer-events', 'none')
+    svg.insertBefore(image, svg.firstChild)
   }
 
   static applyOverlays(

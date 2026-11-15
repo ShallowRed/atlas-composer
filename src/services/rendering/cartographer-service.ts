@@ -1,4 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
+import type { BasemapFrame } from '@/core/basemap'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
@@ -15,6 +16,13 @@ const debug = logger.render.cartographer
 interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
   titleOf?: TerritoryTitle
+  fillTerritories?: boolean
+}
+
+// The map drawn, and the frames of its projections for the basemap, taken at the same render
+export interface RenderedMap {
+  svg: SVGSVGElement
+  frames: BasemapFrame[]
 }
 
 export interface SimpleRenderOptions extends RenderOptions {
@@ -109,7 +117,7 @@ export class Cartographer {
     debug('Rebuilt composite projection with new configuration')
   }
 
-  async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<SVGSVGElement> {
+  async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<RenderedMap> {
     switch (options.mode) {
       case 'simple':
         return this.renderSimple(options)
@@ -130,6 +138,7 @@ export class Cartographer {
     height: number,
     showSphere = false,
     titleOf?: TerritoryTitle,
+    fillTerritories = true,
   ): SVGSVGElement {
     const svg = D3MapRenderer.createSvgElement(width, height)
 
@@ -140,6 +149,7 @@ export class Cartographer {
     D3MapRenderer.renderTerritories(svg, data, projectionOf, {
       enableTooltips: true,
       titleOf,
+      fillTerritories,
     })
 
     return svg
@@ -156,8 +166,8 @@ export class Cartographer {
     return rawData
   }
 
-  private renderSimple(options: SimpleRenderOptions): SVGSVGElement {
-    const { geoData, projection, width, height, showSphere, titleOf } = options
+  private renderSimple(options: SimpleRenderOptions): RenderedMap {
+    const { geoData, projection, width, height, showSphere, titleOf, fillTerritories } = options
 
     const projectionFn = this.projectionService.getD3Projection(
       projection,
@@ -173,11 +183,14 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere, titleOf)
+    return {
+      svg: this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories),
+      frames: [{ code: '*', projection: projectionFn, extent: [[0, 0], [width, height]] }],
+    }
   }
 
-  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
-    const { territoryMode, territoryCodes, projection, width, height, showSphere, titleOf } = options
+  private async renderProjectionComposite(options: CompositeRenderOptions): Promise<RenderedMap> {
+    const { territoryMode, territoryCodes, projection, width, height, showSphere, titleOf, fillTerritories } = options
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
     const projectionFn = this.projectionService.getD3Projection(
@@ -194,11 +207,14 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf)
+    return {
+      svg: this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories),
+      frames: [{ code: '*', projection: projectionFn, extent: [[0, 0], [width, height]] }],
+    }
   }
 
-  private async renderCustomComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
-    const { territoryMode, territoryCodes, width, height, showSphere, titleOf } = options
+  private async renderCustomComposite(options: CompositeRenderOptions): Promise<RenderedMap> {
+    const { territoryMode, territoryCodes, width, height, showSphere, titleOf, fillTerritories } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -214,6 +230,19 @@ export class Cartographer {
     const projectionOf: TerritoryProjection = feature =>
       customComposite.getSubProjectionData(feature.properties?.code)?.projection
 
-    return this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere, titleOf)
+    // One frame per active territory, in the order of the configuration
+    const active = territoryCodes ? new Set(territoryCodes) : null
+    const frames = customComposite.getAllSubProjectionData()
+      .filter(({ territoryCode }) => !active || active.has(territoryCode))
+      .map(({ territoryCode, projection }) => ({
+        code: territoryCode,
+        projection,
+        extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as BasemapFrame['extent'],
+      }))
+
+    return {
+      svg: this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere, titleOf, fillTerritories),
+      frames,
+    }
   }
 }

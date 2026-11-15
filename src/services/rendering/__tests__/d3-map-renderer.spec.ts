@@ -5,7 +5,7 @@ import { buildCompositeProjection } from '@atlas-composer/projection-core'
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { boundsPolygon } from '@/__tests__/composite-utils'
-import { D3MapRenderer } from '@/services/rendering/d3-map-renderer'
+import { D3MapRenderer, TERRITORY_STROKE_WIDTH } from '@/services/rendering/d3-map-renderer'
 
 function territory(code: string, [lon, lat]: [number, number]): GeoJSON.Feature<GeoJSON.Polygon> {
   return boundsPolygon([[lon, lat], [lon + 1, lat + 1]], { code, name: `Territory ${code}` })
@@ -45,6 +45,19 @@ describe('drawing of the territories through one projection', () => {
 
     expect([...svg.querySelectorAll('g.territories path title')].map(title => title.textContent))
       .toEqual(['AA: Territory AA', 'BB: Territory BB'])
+  })
+
+  it('keeps the whole surface of a territory for the pointer without fill, and shows the hover on its outline', () => {
+    const svg = D3MapRenderer.createSvgElement(800, 600)
+    D3MapRenderer.renderTerritories(svg, collection, () => projection, { fillTerritories: false })
+    const [path] = svg.querySelectorAll<SVGPathElement>('g.territories path')
+
+    expect(path!.getAttribute('fill')).toBe('transparent')
+    expect(path!.getAttribute('pointer-events')).toBe('all')
+    path!.dispatchEvent(new MouseEvent('mouseenter'))
+    expect(Number(path!.getAttribute('stroke-width'))).toBeGreaterThan(TERRITORY_STROKE_WIDTH)
+    path!.dispatchEvent(new MouseEvent('mouseleave'))
+    expect(Number(path!.getAttribute('stroke-width'))).toBe(TERRITORY_STROKE_WIDTH)
   })
 })
 
