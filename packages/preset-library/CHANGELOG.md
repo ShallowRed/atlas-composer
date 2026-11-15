@@ -1,5 +1,11 @@
 # @atlas-composer/preset-library
 
+## 2.5.0
+
+### Minor Changes
+
+- feaa076: The `france`, `usa`, `portugal` and `europe` atlases name each territory in English and in French, as the other atlases do. The English names of the `france` and `portugal` atlases change, for example `Metropolitan France` for `FR-MET` and `Mainland Portugal` for `PT-CONT`.
+
 ## 2.4.0
 
 ### Minor Changes
