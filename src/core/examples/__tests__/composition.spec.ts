@@ -1,7 +1,6 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { readCompositionDemoInput } from '@/__tests__/test-utils'
-import { findPresetById, getAtlasConfigPath } from '@/core/atlases/registry'
+import { readAtlasConfig, readCompositionDemoInput } from '@/__tests__/test-utils'
+import { findPresetById } from '@/core/atlases/registry'
 import { COMPOSITION_PRESETS, interpolate, locate } from '@/core/examples'
 import { renderCompositionDemo } from '@/services/rendering/composition-demo'
 
@@ -45,7 +44,7 @@ describe('composition presets', () => {
   it.each(COMPOSITION_PRESETS)('%s is a composite-custom preset whose atlas declares a contours file', (presetId) => {
     const found = findPresetById(presetId)
     expect(found?.preset.type).toBe('composite-custom')
-    const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(found!.atlasId)!.replace('./', '')}`, 'utf8')) as { dataSources?: { territories?: string } }
+    const atlas = readAtlasConfig<{ dataSources?: { territories?: string } }>(found!.atlasId)
     expect(atlas.dataSources?.territories).toMatch(/-territories-50m\.json$/)
   })
 })

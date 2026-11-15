@@ -593,8 +593,8 @@
       "frames": "Cadres",
       "population": "{population} hab.",
       "magnitude": "Magnitude {magnitude}",
-      "pointer": "Survolez la carte pour lire la longitude, la latitude et le territoire.",
-      "pointerComposed": "Composez la carte pour lire la longitude, la latitude et le territoire sous le pointeur.",
+      "pointerHint": "Survolez la carte pour lire la longitude, la latitude et le territoire.",
+      "composeHint": "Composez la carte pour lire la longitude, la latitude et le territoire sous le pointeur.",
       "outside": "hors des territoires"
     }
   },

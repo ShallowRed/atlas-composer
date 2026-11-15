@@ -19,6 +19,8 @@ const emit = defineEmits<{
   dismiss: []
 }>()
 
+const textSizes = { xs: 'text-xs', sm: 'text-sm', md: 'text-base' }
+
 const defaultIcons = {
   info: 'ri-information-line',
   success: 'ri-checkbox-circle-line',
@@ -35,7 +37,7 @@ const displayIcon = props.icon || defaultIcons[props.type]
     :class="[
       { 'alert-soft': soft },
       type ? `alert-${type}` : '',
-      size ? `alert-${size}` : '',
+      size ? textSizes[size] : '',
     ]"
   >
     <i
