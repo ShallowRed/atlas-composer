@@ -3,9 +3,23 @@ import type { PresetType } from '#types'
 import type { AtlasId, PresetId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
+import { mount } from '@vue/test-utils'
 import { vi } from 'vitest'
+import { defineComponent } from 'vue'
 import atlasRegistry from '#configs/atlas-registry.json'
+import i18n from '@/i18n'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
+
+export function withSetup<T>(composable: () => T): T {
+  let result!: T
+  mount(defineComponent({
+    setup() {
+      result = composable()
+      return () => null
+    },
+  }), { global: { plugins: [i18n] } })
+  return result
+}
 
 export async function loadAtlasFromConfigs(atlasId: AtlasId) {
   vi.stubGlobal('fetch', async (url: string) => new Response(await readFile(`.${url}`, 'utf8')))

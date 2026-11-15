@@ -38,6 +38,14 @@ describe('drawing of the territories through one projection', () => {
     expect(paths.map(element => element.getAttribute('data-territory'))).toEqual(['AA', 'BB'])
     expect(paths.map(element => element.querySelector('title')?.textContent)).toEqual(['Territory AA', 'Territory BB'])
   })
+
+  it('writes the title that titleOf gives from the code and the name of each territory', () => {
+    const svg = D3MapRenderer.createSvgElement(800, 600)
+    D3MapRenderer.renderTerritories(svg, collection, () => projection, { titleOf: (code, name) => `${code}: ${name}` })
+
+    expect([...svg.querySelectorAll('g.territories path title')].map(title => title.textContent))
+      .toEqual(['AA: Territory AA', 'BB: Territory BB'])
+  })
 })
 
 describe('drawing of the territories through the sub-projection of their code', () => {

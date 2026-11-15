@@ -1,4 +1,5 @@
 import { watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -32,6 +33,7 @@ export function useMapWatchers(
   const projectionStore = useProjectionStore()
   const uiStore = useUIStore()
   const viewStore = useViewStore()
+  const { locale } = useI18n()
 
   const stopWatchingProjectionParams = watch(
     () => parameterStore.globalEffectiveParameters,
@@ -100,6 +102,7 @@ export function useMapWatchers(
           showMapLimits: uiStore.showMapLimits,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
           allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
+          locale: locale.value,
         }
       }
       return {
@@ -110,6 +113,7 @@ export function useMapWatchers(
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
         territoryParametersVersion: parameterStore.territoryParametersVersion,
+        locale: locale.value,
       }
     },
     async () => {

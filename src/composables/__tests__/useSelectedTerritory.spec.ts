@@ -2,6 +2,7 @@ import type { Territory } from '@/types'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { describe, expect, it } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
+import { withSetup } from '@/__tests__/test-utils'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
@@ -20,7 +21,7 @@ async function openView(viewMode: 'composite-custom' | 'unified') {
   const viewStore = useViewStore()
   viewStore.setActiveTerritories([GUADELOUPE, MARTINIQUE])
   viewStore.viewMode = viewMode
-  const selection = useSelectedTerritory()
+  const selection = withSetup(useSelectedTerritory)
   selection.clearSelection()
   return selection
 }

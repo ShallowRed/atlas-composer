@@ -1,6 +1,7 @@
 import type { ViewState } from '@/core/view'
 import type { TerritoryCode } from '@/types/branded'
 import { computed } from 'vue'
+import { useTerritoryNames } from '@/composables/useTerritoryNames'
 import { ViewOrchestrationService } from '@/core/view'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
@@ -33,6 +34,7 @@ export function useMapRender(props: MapRenderProps) {
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
   const uiStore = useUIStore()
+  const { territoryName } = useTerritoryNames()
 
   const showSphere = computed<boolean>(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
@@ -105,6 +107,7 @@ export function useMapRender(props: MapRenderProps) {
       showSphere: showSphere.value,
       showCompositionBorders: uiStore.showCompositionBorders,
       showMapLimits: uiStore.showMapLimits,
+      titleOf: territoryName,
     })
   }
 
@@ -130,6 +133,7 @@ export function useMapRender(props: MapRenderProps) {
       showCompositionBorders: uiStore.showCompositionBorders,
       showMapLimits: uiStore.showMapLimits,
       territories: geoDataStore.filteredTerritories,
+      titleOf: territoryName,
     })
   }
 
