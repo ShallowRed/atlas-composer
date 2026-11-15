@@ -43,6 +43,13 @@ describe('projectionRegistry', () => {
       expect(projections.length).toBeGreaterThan(0)
     })
 
+    // The basemap of the editor reads each pixel through the inverse of the projection
+    it('gives each projection an inverse', () => {
+      for (const definition of projectionRegistry.getAll()) {
+        expect(typeof definition.create().invert, definition.id).toBe('function')
+      }
+    })
+
     it('should not contain duplicates', () => {
       const projections = projectionRegistry.getAll()
       const ids = projections.map(p => p.id)

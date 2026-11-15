@@ -36,6 +36,8 @@ const errors = {
   IMPORT_ATLAS_NOT_LOADED: { code: 'IMPORT_ATLAS_NOT_LOADED' },
   IMPORT_ATLAS_MISMATCH: { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 'atlas-x', currentAtlasId: 'atlas-y' },
   IMPORT_APPLICATION_FAILED: { code: 'IMPORT_APPLICATION_FAILED', reason: 'reason-x' },
+  BASEMAP_TILES_FAILED: { code: 'BASEMAP_TILES_FAILED', missingTiles: 12 },
+  BASEMAP_SOURCE_UNREACHABLE: { code: 'BASEMAP_SOURCE_UNREACHABLE', url: 'url-x' },
 } satisfies { [C in AppError['code']]: Extract<AppError, { code: C }> }
 
 // Extract gives never for the template literal of the schema codes

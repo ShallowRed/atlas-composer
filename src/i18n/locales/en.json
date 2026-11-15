@@ -535,6 +535,10 @@
     "export": {
       "notAvailable": "There is no composite projection to export",
       "noTerritory": "There is no checked territory to export"
+    },
+    "basemap": {
+      "tilesFailed": "No tile of the basemap could be loaded (tiles requested: {missingTiles})",
+      "sourceUnreachable": "The basemap service does not respond: {url}"
     }
   },
   "validation": {

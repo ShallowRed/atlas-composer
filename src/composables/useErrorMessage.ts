@@ -31,6 +31,8 @@ export const ERROR_MESSAGE_KEYS = {
   IMPORT_ATLAS_NOT_LOADED: 'errors.import.atlasNotLoaded',
   IMPORT_ATLAS_MISMATCH: 'errors.import.atlasMismatch',
   IMPORT_APPLICATION_FAILED: 'errors.import.applicationFailed',
+  BASEMAP_TILES_FAILED: 'errors.basemap.tilesFailed',
+  BASEMAP_SOURCE_UNREACHABLE: 'errors.basemap.sourceUnreachable',
 } as const satisfies Record<AppError['code'], MessageKey>
 
 export const ISSUE_MESSAGE_KEYS = {
