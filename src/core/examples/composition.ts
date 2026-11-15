@@ -1,4 +1,5 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
+import type { ExampleSource } from './definitions'
 import type { BasemapFrame } from '@/core/basemap'
 import type { PresetId } from '@/types/branded'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
@@ -54,6 +55,11 @@ export const COMPOSITION_PRESETS: PresetId[] = [
   createPresetId('norway-standard'),
   createPresetId('chile-standard'),
   createPresetId('ecuador-standard'),
+]
+
+export const COMPOSITION_SOURCES: ExampleSource[] = [
+  { label: 'Natural Earth, Populated Places', url: 'https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-populated-places/' },
+  { label: 'USGS, Earthquake Hazards Program', url: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php' },
 ]
 
 export function interpolate([x0, y0]: Point, [x1, y1]: Point, progress: number): Point {

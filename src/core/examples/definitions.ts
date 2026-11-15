@@ -4,7 +4,7 @@ import { createPresetId } from '@/types/branded'
 // Sequential blue ramp, light to dark, checked for color vision deficiencies
 const SEQUENTIAL_BLUES = ['#cde2fb', '#9ec5f4', '#6da7ec', '#2a78d6', '#1c5cab', '#0d366b'] as const
 
-interface ExampleSource {
+export interface ExampleSource {
   label: string
   url: string
 }

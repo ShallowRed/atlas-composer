@@ -577,6 +577,25 @@
     },
     "units": {
       "density": "hab./km²"
+    },
+    "composition": {
+      "title": "Comment la composite place les données",
+      "description": "Chaque ville, chaque séisme et chaque contour reste en longitude et latitude. La composite du preset place chacun dans le cadre de son territoire, par la projection de ce territoire. Le curseur fait passer la carte d'une projection équirectangulaire à la composite.",
+      "preset": "Atlas",
+      "compose": "Composer",
+      "decompose": "Décomposer",
+      "progress": "Avancement de la composition",
+      "raw": "Longitude et latitude",
+      "composite": "Composite",
+      "places": "Villes",
+      "earthquakes": "Séismes du mois ({count})",
+      "earthquakesUnavailable": "Séismes du mois (flux indisponible)",
+      "frames": "Cadres",
+      "population": "{population} hab.",
+      "magnitude": "Magnitude {magnitude}",
+      "pointer": "Survolez la carte pour lire la longitude, la latitude et le territoire.",
+      "pointerComposed": "Composez la carte pour lire la longitude, la latitude et le territoire sous le pointeur.",
+      "outside": "hors des territoires"
     }
   },
   "basemap": {
