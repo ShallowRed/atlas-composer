@@ -172,7 +172,7 @@ describe('buildTerritories', () => {
 
       const mainland = collection.features.find(feature => feature.properties.code === 'PT-CONT')!
       expect(mainland.geometry.coordinates).toEqual([[square(-9, 38, false)], [square(-8, 40, false)]])
-      expect(mainland.properties).toEqual({ id: '620', code: 'PT-CONT', name: 'Portugal Continental', iso: 'PRT' })
+      expect(mainland.properties).toEqual({ id: '620', code: 'PT-CONT', name: 'Mainland Portugal', iso: 'PRT' })
       for (const feature of collection.features) {
         expect(geoArea(feature)).toBeLessThan(0.01)
       }
