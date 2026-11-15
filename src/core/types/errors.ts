@@ -75,9 +75,14 @@ export type ImportError
     | { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: string, currentAtlasId: string }
     | { code: 'IMPORT_APPLICATION_FAILED', reason: string }
 
+export type BasemapError
+  = | { code: 'BASEMAP_TILES_FAILED', missingTiles: number }
+    | { code: 'BASEMAP_SOURCE_UNREACHABLE', url: string }
+
 export type AppError
   = | InitializationError
     | PresetApplicationError
     | ImportError
     | ExportError
+    | BasemapError
     | { code: 'ATLAS_SWITCH_FAILED', atlasId: string, cause: InitializationError }

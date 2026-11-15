@@ -540,6 +540,10 @@
     "export": {
       "notAvailable": "Aucune projection composite à exporter",
       "noTerritory": "Aucun territoire coché à exporter"
+    },
+    "basemap": {
+      "tilesFailed": "Aucune tuile du fond de carte n'a pu être chargée (tuiles demandées : {missingTiles})",
+      "sourceUnreachable": "Le service du fond de carte ne répond pas : {url}"
     }
   },
   "notFound": {
