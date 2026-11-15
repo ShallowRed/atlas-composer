@@ -7,7 +7,8 @@
     "map": "App",
     "about": "About",
     "openApp": "Open the app",
-    "atlases": "Atlases"
+    "atlases": "Atlases",
+    "examples": "Examples"
   },
   "atlas": {
     "select": "Select Atlas",
@@ -553,5 +554,25 @@
   "atlases": {
     "open": "Open the atlas",
     "openView": "Open this view"
+  },
+  "examples": {
+    "title": "Examples",
+    "intro": "Thematic maps drawn with a preset of the editor and public statistics. The preset places the territories; the data stays in longitude and latitude, and the loader draws each feature in the frame of its territory.",
+    "sources": "Sources:",
+    "france-density": {
+      "title": "France: population density, overseas included",
+      "description": "Inhabitants per km² by department, from the INSEE population and the area of the boundaries. French Guiana is the least dense department of France, and Mayotte is denser than almost every department of metropolitan France."
+    },
+    "portugal-density": {
+      "title": "Portugal: the mainland, the Azores and Madeira",
+      "description": "Inhabitants per km² by NUTS 3 region, from Eurostat. The Azores lie 1,500 km from Lisbon and Madeira 1,000 km; the preset places them next to the mainland, at a readable scale."
+    },
+    "code": {
+      "title": "The same preset in your code",
+      "description": "These maps use the published npm packages: the preset of the editor loads in a few lines, with d3 or Observable Plot."
+    },
+    "units": {
+      "density": "inhabitants/km²"
+    }
   }
 }

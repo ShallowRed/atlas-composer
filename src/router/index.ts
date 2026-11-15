@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AboutView from '@/views/AboutView.vue'
 import AtlasesView from '@/views/AtlasesView.vue'
+import ExamplesView from '@/views/ExamplesView.vue'
 import MapView from '@/views/MapView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
@@ -22,6 +23,14 @@ const router = createRouter({
       component: AtlasesView,
       meta: {
         title: 'Atlas - Atlas composer',
+      },
+    },
+    {
+      path: '/examples',
+      name: 'examples',
+      component: ExamplesView,
+      meta: {
+        title: 'Exemples - Atlas composer',
       },
     },
     {
