@@ -1,6 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
+import type { TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { Territory, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
@@ -23,6 +24,7 @@ export interface SimpleMapConfig {
   showSphere: boolean
   showCompositionBorders: boolean
   showMapLimits: boolean
+  titleOf?: TerritoryTitle
 }
 
 export interface CompositeMapConfig {
@@ -37,6 +39,7 @@ export interface CompositeMapConfig {
   showCompositionBorders: boolean
   showMapLimits: boolean
   territories?: Territory[]
+  titleOf?: TerritoryTitle
 }
 
 export class MapRenderCoordinator {
@@ -56,6 +59,7 @@ export class MapRenderCoordinator {
       showSphere: config.showSphere,
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
+      titleOf: config.titleOf,
     }
 
     return await cartographer.render(options)
@@ -86,6 +90,7 @@ export class MapRenderCoordinator {
       showSphere: config.showSphere,
       showCompositionBorders: config.showCompositionBorders,
       showMapLimits: config.showMapLimits,
+      titleOf: config.titleOf,
     }
 
     return await cartographer.render(options)

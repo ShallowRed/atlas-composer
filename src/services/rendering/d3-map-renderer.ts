@@ -6,8 +6,11 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
+export type TerritoryTitle = (code: string, name: string) => string
+
 export interface TerritoryRenderOptions {
   enableTooltips?: boolean
+  titleOf?: TerritoryTitle
   onHover?: (feature: GeoJSON.Feature | null, event: MouseEvent) => void
   onClick?: (feature: GeoJSON.Feature, event: MouseEvent) => void
 }
@@ -68,6 +71,7 @@ export class D3MapRenderer {
   ): void {
     const {
       enableTooltips = true,
+      titleOf = (_code: string, name: string) => name,
       onHover,
       onClick,
     } = options
@@ -100,7 +104,10 @@ export class D3MapRenderer {
 
     if (enableTooltips) {
       paths.append('title')
-        .text(d => d.properties?.name || d.properties?.code || '')
+        .text((d) => {
+          const code = d.properties?.code ?? ''
+          return titleOf(code, d.properties?.name || code)
+        })
     }
 
     paths

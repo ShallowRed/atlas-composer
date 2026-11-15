@@ -1,7 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { TerritoryProjection } from '@/services/rendering/d3-map-renderer'
+import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { GeoDataService } from '@/services/data/geo-data-service'
@@ -14,6 +14,7 @@ const debug = logger.render.cartographer
 
 interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
+  titleOf?: TerritoryTitle
 }
 
 export interface SimpleRenderOptions extends RenderOptions {
@@ -128,6 +129,7 @@ export class Cartographer {
     width: number,
     height: number,
     showSphere = false,
+    titleOf?: TerritoryTitle,
   ): SVGSVGElement {
     const svg = D3MapRenderer.createSvgElement(width, height)
 
@@ -137,6 +139,7 @@ export class Cartographer {
 
     D3MapRenderer.renderTerritories(svg, data, projectionOf, {
       enableTooltips: true,
+      titleOf,
     })
 
     return svg
@@ -154,7 +157,7 @@ export class Cartographer {
   }
 
   private renderSimple(options: SimpleRenderOptions): SVGSVGElement {
-    const { geoData, projection, width, height, showSphere } = options
+    const { geoData, projection, width, height, showSphere, titleOf } = options
 
     const projectionFn = this.projectionService.getD3Projection(
       projection,
@@ -170,11 +173,11 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere)
+    return this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere, titleOf)
   }
 
   private async renderProjectionComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
-    const { territoryMode, territoryCodes, projection, width, height, showSphere } = options
+    const { territoryMode, territoryCodes, projection, width, height, showSphere, titleOf } = options
     const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
 
     const projectionFn = this.projectionService.getD3Projection(
@@ -191,11 +194,11 @@ export class Cartographer {
 
     this._lastProjection = projectionFn
 
-    return this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere)
+    return this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf)
   }
 
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<SVGSVGElement> {
-    const { territoryMode, territoryCodes, width, height, showSphere } = options
+    const { territoryMode, territoryCodes, width, height, showSphere, titleOf } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -211,6 +214,6 @@ export class Cartographer {
     const projectionOf: TerritoryProjection = feature =>
       customComposite.getSubProjectionData(feature.properties?.code)?.projection
 
-    return this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere)
+    return this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere, titleOf)
   }
 }

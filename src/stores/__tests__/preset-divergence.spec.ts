@@ -3,6 +3,7 @@ import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
+import { withSetup } from '@/__tests__/test-utils'
 import { useTerritoryData } from '@/composables/useTerritoryData'
 import { parameterRegistry } from '@/core/parameters'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
@@ -22,7 +23,7 @@ const METROPOLE = 'FR-MET' as TerritoryCode
 const OMITTED_BY_SPLIT_PRESET = 'FR-BL' as TerritoryCode
 
 function displayedCodes(): TerritoryCode[] {
-  return useTerritoryData().territories.value.map(({ code }) => code as TerritoryCode)
+  return withSetup(useTerritoryData).territories.value.map(({ code }) => code as TerritoryCode)
 }
 
 function territoryDiffers(code: TerritoryCode): boolean {

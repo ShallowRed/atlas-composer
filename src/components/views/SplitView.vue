@@ -8,6 +8,7 @@ import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
+import { useTerritoryNames } from '@/composables/useTerritoryNames'
 import { useTerritoryVisibility } from '@/composables/useTerritoryVisibility'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
@@ -17,6 +18,7 @@ import { createTerritoryCode } from '@/types/branded'
 
 const { t, te } = useI18n()
 const { localize } = useLocalizedName()
+const { territoryName } = useTerritoryNames()
 const atlasStore = useAtlasStore()
 const projectionStore = useProjectionStore()
 const geoDataStore = useGeoDataStore()
@@ -157,7 +159,7 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
               :key="territory.code"
             >
               <h5 class="text-xs font-medium mb-1">
-                {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
+                {{ territoryName(territory.code, territory.name) }} <span class="text-base-content/50">({{ territory.code }})</span>
               </h5>
               <MapRenderer
                 :geo-data="territory.data"
@@ -185,7 +187,7 @@ const hasGroups = computed(() => territoryGroups.value.size > 0)
           class="flex flex-col"
         >
           <h4 class="text-sm font-medium mb-1">
-            {{ territory.name }} <span class="text-base-content/50">({{ territory.code }})</span>
+            {{ territoryName(territory.code, territory.name) }} <span class="text-base-content/50">({{ territory.code }})</span>
           </h4>
           <MapRenderer
             :geo-data="territory.data"

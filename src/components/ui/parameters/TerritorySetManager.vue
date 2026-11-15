@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
+import { useTerritoryNames } from '@/composables/useTerritoryNames'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
@@ -12,6 +13,7 @@ import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 const { localize } = useLocalizedName()
+const { territoryName } = useTerritoryNames()
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
@@ -100,7 +102,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     const allTerritories = loadedTerritories.value
       .map(territory => ({
         code: territory.code,
-        name: territory.name,
+        name: territoryName(territory.code, territory.name),
         isActive: activeTerritoryCodesSet.value.has(territory.code),
       }))
 
@@ -133,7 +135,7 @@ const territoryGroups = computed((): TerritoryGroup[] => {
           const territory = territoriesByCode.get(code as TerritoryCode)!
           return {
             code,
-            name: territory.name,
+            name: territoryName(code, territory.name),
             isActive: activeTerritoryCodesSet.value.has(code as TerritoryCode),
           }
         }),
