@@ -272,15 +272,15 @@ async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vect
   const { width, height, pixelRatio, zoomPixelRatio = pixelRatio, palette, locale } = options
   const context = canvas.getContext('2d')!
   context.scale(pixelRatio, pixelRatio)
-  const labels: Array<{ frame: number, x: number, y: number, name: string, city: boolean }> = []
+  const labels: Label[] = []
   let requested = 0
   let missing = 0
   for (const [index, frame] of frames.entries()) {
     const { projection, extent } = frame
-    // One zoom finer than the scale of the frame: roads and towns of OpenMapTiles show from there
-    const zoom = Math.min(source.maxZoom, zoomForFrame(projection, extent, zoomPixelRatio, source.tileSize, source.maxZoom) + 1)
+    const zoom = zoomForFrame(projection, extent, zoomPixelRatio, source.tileSize, source.maxZoom)
     const n = 2 ** zoom
-    const tiles = await Promise.all((await cover(frame, zoom, yieldIfLate)).map(([x, y]) => vectorTile(tileUrl(template, zoom, ((x % n) + n) % n, y), ((x % n) + n) % n, y, zoom)))
+    const covered = await cover(frame, zoom, yieldIfLate)
+    const tiles = await Promise.all(covered.map(([x, y]) => vectorTile(tileUrl(template, zoom, ((x % n) + n) % n, y), ((x % n) + n) % n, y, zoom)))
     requested += tiles.length
     missing += tiles.filter(tile => tile === null).length
     const all = (name: typeof VECTOR_LAYERS[number]) => tiles.flatMap(tile => tile?.[name] ?? [])
@@ -325,7 +325,7 @@ async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vect
       const point = feature.geometry.type === 'Point' ? projection(feature.geometry.coordinates as [number, number]) : null
       const name = String(feature.properties[`name:${locale}`] ?? feature.properties['name:latin'] ?? feature.properties.name ?? '')
       if (point && name && point[0] >= x0 && point[0] <= x1 && point[1] >= y0 && point[1] <= y1) {
-        labels.push({ frame: index, x: point[0], y: point[1], name, city: feature.properties.class === 'city' })
+        labels.push({ frame: index, x: point[0], y: point[1], name, city: feature.properties.class === 'city', rank: Number(feature.properties.rank ?? 99) })
       }
     }
   }
@@ -333,14 +333,24 @@ async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vect
   return { requested, missing }
 }
 
-function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: Array<{ frame: number, x: number, y: number, name: string, city: boolean }>, frames: BasemapFrame[], palette: VectorPalette) {
+interface Label { frame: number, x: number, y: number, name: string, city: boolean, rank: number }
+
+// The cities first, by rank: a name that would overlap a name already drawn is left out
+function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: Label[], frames: BasemapFrame[], palette: VectorPalette) {
   context.textBaseline = 'middle'
-  for (const { x, y, name, city } of visibleLabels(labels, frames)) {
+  const drawn: Array<[number, number, number, number]> = []
+  const ordered = visibleLabels(labels, frames).sort((a, b) => Number(b.city) - Number(a.city) || a.rank - b.rank)
+  for (const { x, y, name, city } of ordered) {
+    context.font = `${city ? 600 : 400} ${city ? 8.5 : 7.5}px system-ui, sans-serif`
+    const box: [number, number, number, number] = [x - 2, y - 6, x + 6 + context.measureText(name).width, y + 6]
+    if (drawn.some(([x0, y0, x1, y1]) => box[0] < x1 && box[2] > x0 && box[1] < y1 && box[3] > y0)) {
+      continue
+    }
+    drawn.push(box)
     context.beginPath()
     context.arc(x, y, city ? 1.8 : 1.3, 0, 2 * Math.PI)
     context.fillStyle = palette.label
     context.fill()
-    context.font = `${city ? 600 : 400} ${city ? 8.5 : 7.5}px system-ui, sans-serif`
     context.lineWidth = 2.5
     context.strokeStyle = palette.labelHalo
     context.strokeText(name, x + 4, y)
