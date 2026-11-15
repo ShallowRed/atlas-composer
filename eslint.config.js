@@ -146,6 +146,7 @@ const CARTOGRAPHER_DATA = {
 export default antfu({
   ignores: [
     'src/public/data',
+    'src/public/examples',
     // Code blocks in docs/ are excerpts, not compiled sources
     'docs/**/*.md',
     // Generated from the schema by the build of the specification
