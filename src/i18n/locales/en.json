@@ -593,8 +593,8 @@
       "frames": "Frames",
       "population": "{population} inhabitants",
       "magnitude": "Magnitude {magnitude}",
-      "pointer": "Hover the map to read the longitude, the latitude and the territory.",
-      "pointerComposed": "Compose the map to read the longitude, the latitude and the territory under the pointer.",
+      "pointerHint": "Hover the map to read the longitude, the latitude and the territory.",
+      "composeHint": "Compose the map to read the longitude, the latitude and the territory under the pointer.",
       "outside": "outside the territories"
     }
   },

@@ -86,12 +86,17 @@ export function readCompositeSources(): CompositeSource[] {
   return [...presets, ...families]
 }
 
+// The configuration of an atlas, as configs/ holds it
+export function readAtlasConfig<T>(atlasId: string): T {
+  return JSON.parse(readFileSync(`configs/${getAtlasConfigPath(atlasId as AtlasId)!.replace('./', '')}`, 'utf8')) as T
+}
+
 const contoursByAtlas = new Map<string, TerritoryContours>()
 
 // The contours of an atlas at 50m, built from world-atlas by the function that pnpm geodata:prepare calls to write src/public/data, which is not versioned
 export function readAtlasContours(atlasId: string): TerritoryContours {
   if (!contoursByAtlas.has(atlasId)) {
-    const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(atlasId as AtlasId)!.replace('./', '')}`, 'utf8')) as AtlasTerritoriesInput
+    const atlas = readAtlasConfig<AtlasTerritoriesInput>(atlasId)
     const topology = JSON.parse(readFileSync(createRequire(import.meta.url).resolve('world-atlas/countries-50m.json'), 'utf8')) as Topology
     contoursByAtlas.set(atlasId, buildTerritories(atlas, createNaturalEarthSource(feature(topology, topology.objects.countries!), '50m')).collection)
   }

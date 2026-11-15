@@ -3,7 +3,7 @@ import type { ExampleSource } from './definitions'
 import type { BasemapFrame } from '@/core/basemap'
 import type { PresetId } from '@/types/branded'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
-import { invertOnGlobe } from '@/core/basemap'
+import { inExtent, invertOnGlobe } from '@/core/basemap'
 import { createPresetId } from '@/types/branded'
 
 type Point = [number, number]
@@ -91,7 +91,7 @@ export function territoryOf(config: CompositeProjectionConfig, territories: Terr
 
 // The longitude and latitude of a pixel, taken in the topmost frame that contains it, and the territory of that frame when its contour contains the point
 export function locate(frames: BasemapFrame[], territories: Array<GeoJSON.Feature<GeoJSON.Geometry, { code: string }>>, [x, y]: Point): PointerLocation | null {
-  const frame = [...frames].reverse().find(({ extent: [[x0, y0], [x1, y1]] }) => x >= x0 && x <= x1 && y >= y0 && y <= y1)
+  const frame = [...frames].reverse().find(({ extent }) => inExtent(extent, [x, y]))
   const point = frame && invertOnGlobe(frame.projection, [x, y])
   if (!frame || !point) {
     return null

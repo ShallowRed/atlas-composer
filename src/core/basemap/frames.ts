@@ -18,9 +18,13 @@ export interface PlaceLabel {
   rank: number
 }
 
+export function inExtent([[x0, y0], [x1, y1]]: Extent, [x, y]: [number, number]): boolean {
+  return x >= x0 && x <= x1 && y >= y0 && y <= y1
+}
+
 // A frame drawn later covers the labels of the frames under it
 export function visibleLabels<L extends { frame: number, x: number, y: number }>(labels: L[], frames: Pick<BasemapFrame, 'extent'>[]): L[] {
-  return labels.filter(({ frame, x, y }) => !frames.some(({ extent: [[x0, y0], [x1, y1]] }, index) => index > frame && x >= x0 && x <= x1 && y >= y0 && y <= y1))
+  return labels.filter(({ frame, x, y }) => !frames.some(({ extent }, index) => index > frame && inExtent(extent, [x, y])))
 }
 
 // The visible labels to draw, cities first by rank: a name whose box, which the drawing gives, overlaps a name kept is left out

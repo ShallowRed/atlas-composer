@@ -1,8 +1,8 @@
 import type { GeoStream } from 'd3-geo'
-import type { BasemapFrame, Extent } from '@/core/basemap'
+import type { BasemapFrame } from '@/core/basemap'
 import type { CompositionDemoInput, CompositionMark, Earthquake } from '@/core/examples'
 import { geoEquirectangular, geoPath } from 'd3-geo'
-import { visibleLabels } from '@/core/basemap'
+import { inExtent, visibleLabels } from '@/core/basemap'
 import { interpolate, territoryOf } from '@/core/examples'
 import { presetFrames } from '@/services/rendering/example-map'
 
@@ -29,8 +29,6 @@ export interface CompositionDemo {
   // The contours, each vertex between its raw position (0) and its place through the sub-projection of its territory (1)
   territoriesAt: (progress: number) => TerritoryShape[]
 }
-
-const inExtent = ([[x0, y0], [x1, y1]]: Extent, [x, y]: Point) => x >= x0 && x <= x1 && y >= y0 && y <= y1
 
 // The demo places the territories through the sub-projections of the published loader, as the composite of the preset draws them
 export function renderCompositionDemo({ config, territories, places }: CompositionDemoInput, earthquakes: Earthquake[]): CompositionDemo {
