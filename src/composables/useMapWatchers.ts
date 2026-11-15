@@ -22,6 +22,7 @@ interface MapWatcherCallbacks {
   onCanvasDimensionsChange: () => Promise<void>
   onReferenceScaleChange: () => Promise<void>
   onDependenciesChange: () => Promise<void>
+  onBasemapChange: () => void
 }
 
 export function useMapWatchers(
@@ -100,8 +101,7 @@ export function useMapWatchers(
           showGraticule: uiStore.showGraticule,
           showCompositionBorders: uiStore.showCompositionBorders,
           showMapLimits: uiStore.showMapLimits,
-          basemap: uiStore.basemap,
-          theme: uiStore.theme,
+          fillTerritories: uiStore.fillTerritories,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
           allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
           locale: locale.value,
@@ -114,8 +114,7 @@ export function useMapWatchers(
         showGraticule: uiStore.showGraticule,
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
-        basemap: uiStore.basemap,
-        theme: uiStore.theme,
+        fillTerritories: uiStore.fillTerritories,
         territoryParametersVersion: parameterStore.territoryParametersVersion,
         locale: locale.value,
       }
@@ -126,6 +125,17 @@ export function useMapWatchers(
     { deep: true, flush: 'post' },
   )
 
+  // Another basemap, or the palette of another theme, redraws the basemap only; when the territories gain or lose their fill, the render above draws the map again
+  const stopWatchingBasemap = watch(
+    () => [uiStore.basemap, uiStore.theme, uiStore.fillTerritories] as const,
+    ([, , fill], [, , previousFill]) => {
+      if (fill === previousFill) {
+        callbacks.onBasemapChange()
+      }
+    },
+    { flush: 'post' },
+  )
+
   const cleanup = () => {
     stopWatchingProjectionParams()
     stopWatchingCanvasDimensions()
@@ -133,6 +143,7 @@ export function useMapWatchers(
     stopWatchingAutoFitDomain()
     stopWatchingRenderKey()
     stopWatchingDependencies()
+    stopWatchingBasemap()
   }
 
   return {

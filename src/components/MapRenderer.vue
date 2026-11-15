@@ -118,6 +118,7 @@ const { cleanup: cleanupMapWatchers } = useMapWatchers(
     onCanvasDimensionsChange: debouncedRenderMap,
     onReferenceScaleChange: debouncedRenderMap,
     onDependenciesChange: debouncedRenderMap,
+    onBasemapChange: redrawBasemap,
   },
 )
 
@@ -175,6 +176,14 @@ async function debouncedRenderMap() {
   renderDebounceTimer = setTimeout(() => {
     renderMap()
   }, 50)
+}
+
+// The territories stay; a render under way draws the basemap when it ends
+function redrawBasemap() {
+  const svg = mapContainer.value?.querySelector('svg')
+  if (svg && !isRendering.value) {
+    applyBasemap(svg)
+  }
 }
 
 async function renderMap() {
@@ -313,7 +322,7 @@ function handleMouseDown(event: MouseEvent) {
     />
     <p
       v-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
-      class="pointer-events-none absolute bottom-1 left-1 rounded-sm bg-base-100/80 px-1.5 text-xs"
+      class="map-note bottom-1 left-1"
       :class="{ 'text-error': !basemapResult.ok }"
     >
       {{ basemapResult.ok ? t('basemap.missingTiles', { count: basemapResult.value.missingTiles }) : errorMessage(basemapResult.error) }}
