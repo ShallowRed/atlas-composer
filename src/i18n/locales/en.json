@@ -578,5 +578,15 @@
     "units": {
       "density": "inhabitants/km²"
     }
+  },
+  "basemap": {
+    "label": "Basemap",
+    "missingTiles": "{count} missing tile | {count} missing tiles",
+    "sources": {
+      "none": "No basemap",
+      "relief": "Relief",
+      "imagery": "Satellite imagery",
+      "streets": "Street map"
+    }
   }
 }

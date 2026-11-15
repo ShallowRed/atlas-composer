@@ -100,6 +100,8 @@ export function useMapWatchers(
           showGraticule: uiStore.showGraticule,
           showCompositionBorders: uiStore.showCompositionBorders,
           showMapLimits: uiStore.showMapLimits,
+          basemap: uiStore.basemap,
+          theme: uiStore.theme,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
           allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
           locale: locale.value,
@@ -112,6 +114,8 @@ export function useMapWatchers(
         showGraticule: uiStore.showGraticule,
         showCompositionBorders: uiStore.showCompositionBorders,
         showMapLimits: uiStore.showMapLimits,
+        basemap: uiStore.basemap,
+        theme: uiStore.theme,
         territoryParametersVersion: parameterStore.territoryParametersVersion,
         locale: locale.value,
       }

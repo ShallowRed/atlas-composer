@@ -1,3 +1,4 @@
+import type { BasemapSource } from '@/core/basemap'
 import type { AppError } from '@/core/types/errors'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -16,6 +17,8 @@ export const useUIStore = defineStore('ui', () => {
   const showGraticule = ref(false)
   const showCompositionBorders = ref(true)
   const showMapLimits = ref(true)
+  // A display preference, outside the shared link and the exported configuration
+  const basemap = ref<BasemapSource>('none')
 
   const toasts = ref<ToastMessage[]>([])
   let toastIdCounter = 0
@@ -73,6 +76,7 @@ export const useUIStore = defineStore('ui', () => {
     showGraticule,
     showCompositionBorders,
     showMapLimits,
+    basemap,
     toasts,
 
     initializeTheme,

@@ -31,7 +31,7 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
     tiles: 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg',
     tileSize: 256,
     maxZoom: 13,
-    attribution: 'Sentinel-2 cloudless 2016 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016)',
+    attribution: 'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016)',
   },
   streets: {
     kind: 'vector',

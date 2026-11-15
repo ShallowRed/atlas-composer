@@ -18,9 +18,11 @@ import UnifiedView from '@/components/views/UnifiedView.vue'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useUrlState } from '@/composables/useUrlState'
 import { useViewState } from '@/composables/useViewState'
+import { BASEMAP_SOURCE_DEFINITIONS } from '@/core/basemap'
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { useUIStore } from '@/stores/ui'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
@@ -28,6 +30,9 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
+const uiStore = useUIStore()
+
+const basemapAttribution = computed(() => uiStore.basemap === 'none' ? null : BASEMAP_SOURCE_DEFINITIONS[uiStore.basemap].attribution)
 const compositionStore = useCompositionStore()
 
 const { readSharedLink } = useUrlState()
@@ -103,6 +108,13 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
               <UnifiedView v-else-if="viewOrchestration.shouldShowUnifiedView.value" />
             </div>
           </Transition>
+
+          <p
+            v-if="basemapAttribution"
+            class="pointer-events-none absolute top-1 right-1 z-10 max-w-full rounded-sm bg-base-100/80 px-1.5 text-xs text-base-content/70 max-lg:static max-lg:mt-1 max-lg:bg-transparent max-lg:px-0"
+          >
+            {{ basemapAttribution }}
+          </p>
 
           <Transition name="fade">
             <div
