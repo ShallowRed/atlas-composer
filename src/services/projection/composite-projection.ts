@@ -7,6 +7,7 @@ import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/
 
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
+import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
@@ -61,7 +62,7 @@ export class CompositeProjection {
 
       return [{
         territoryCode,
-        territoryName: territory.name,
+        territoryName: resolveI18nValue(territory.name, 'en'),
         projection,
         projectionType: parameters.projectionId as ProjectionId,
         translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),

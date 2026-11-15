@@ -7,7 +7,6 @@ import type {
   TerritoryConfig,
 } from '@/types'
 import type { TerritoryCode } from '@/types/branded'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 
 export interface AtlasSpecificConfig {
   territoryModes: Record<string, TerritoryCollection>
@@ -25,18 +24,16 @@ export interface LoadedAtlasConfig {
   territories: LoadedTerritories
 }
 
-function transformTerritory(territory: JSONTerritoryConfig, locale: string): TerritoryConfig {
+function transformTerritory(territory: JSONTerritoryConfig): TerritoryConfig {
   return {
     code: territory.code as TerritoryCode,
-    name: resolveI18nValue(territory.name, locale),
-    ...(territory.shortName && { shortName: resolveI18nValue(territory.shortName, locale) }),
-    ...(territory.region && { region: resolveI18nValue(territory.region, locale) }),
+    name: territory.name,
     center: territory.center,
     bounds: territory.bounds,
   }
 }
 
-function extractTerritories(config: JSONAtlasConfig, locale: string) {
+function extractTerritories(config: JSONAtlasConfig) {
   if (config.territories === '*') {
     const placeholderTerritory: TerritoryConfig = {
       code: 'WORLD' as TerritoryCode,
@@ -51,7 +48,7 @@ function extractTerritories(config: JSONAtlasConfig, locale: string) {
     }
   }
 
-  const allTerritories = config.territories.map(t => transformTerritory(t, locale))
+  const allTerritories = config.territories.map(transformTerritory)
 
   if (allTerritories.length === 0) {
     throw new Error(`No territories found in ${config.id}`)
@@ -157,9 +154,8 @@ function createAtlasConfig(
 export function loadAtlasConfig(
   jsonConfig: JSONAtlasConfig,
   registryBehavior: AtlasRegistryBehavior | undefined,
-  locale: string,
 ): LoadedAtlasConfig {
-  const territories = extractTerritories(jsonConfig, locale)
+  const territories = extractTerritories(jsonConfig)
 
   const allTerritoryCodes = territories.isWildcard
     ? undefined
