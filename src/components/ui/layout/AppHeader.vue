@@ -12,6 +12,7 @@ const allowThemeSelection = true
 const NAV_LINKS = [
   { path: '/', icon: 'ri-layout-line', labelKey: 'nav.map' },
   { path: '/atlas', icon: 'ri-earth-line', labelKey: 'nav.atlases' },
+  { path: '/examples', icon: 'ri-gallery-line', labelKey: 'nav.examples' },
   { path: '/about', icon: 'ri-information-line', labelKey: 'nav.about' },
 ]
 </script>
@@ -33,7 +34,7 @@ const NAV_LINKS = [
           </div>
         </div>
         <div class="flex-none">
-          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>*]:px-1.5">
+          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>*]:px-1.5 max-md:[&>li>.dropdown>.btn]:px-1.5">
             <li
               v-for="link in NAV_LINKS"
               :key="link.path"
@@ -45,14 +46,14 @@ const NAV_LINKS = [
                 class="flex items-center justify-center gap-2"
               >
                 <i :class="link.icon" />
-                <span class="sr-only md:not-sr-only">{{ t(link.labelKey) }}</span>
+                <span class="sr-only lg:not-sr-only">{{ t(link.labelKey) }}</span>
               </RouterLink>
               <span
                 v-else
                 class="text-primary font-semibold flex items-center justify-center gap-2"
               >
                 <i :class="link.icon" />
-                <span class="sr-only md:not-sr-only">{{ t(link.labelKey) }}</span>
+                <span class="sr-only lg:not-sr-only">{{ t(link.labelKey) }}</span>
               </span>
             </li>
             <li>
@@ -62,7 +63,7 @@ const NAV_LINKS = [
                 rel="noopener noreferrer"
               >
                 <i class="ri-github-line" />
-                <span class="sr-only md:not-sr-only">GitHub</span>
+                <span class="sr-only lg:not-sr-only">GitHub</span>
               </a>
             </li>
             <li>

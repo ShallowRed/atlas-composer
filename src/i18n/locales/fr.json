@@ -7,7 +7,8 @@
     "map": "App",
     "about": "À propos",
     "openApp": "Ouvrir l'application",
-    "atlases": "Atlas"
+    "atlases": "Atlas",
+    "examples": "Exemples"
   },
   "atlas": {
     "select": "Sélectionner un atlas",
@@ -553,5 +554,25 @@
   "atlases": {
     "open": "Ouvrir l'atlas",
     "openView": "Ouvrir cette vue"
+  },
+  "examples": {
+    "title": "Exemples",
+    "intro": "Des cartes thématiques dessinées avec un preset de l'éditeur et des statistiques publiques. Le preset place les territoires ; les données restent en longitude et latitude, et le loader dessine chaque entité dans le cadre de son territoire.",
+    "sources": "Sources :",
+    "france-density": {
+      "title": "France : densité de population, outre-mer compris",
+      "description": "Habitants par km² et par département, avec la population INSEE rapportée à la surface des contours. La Guyane est le département le moins dense de France, et Mayotte est plus dense que presque tous les départements de métropole."
+    },
+    "portugal-density": {
+      "title": "Portugal : le continent, les Açores et Madère",
+      "description": "Habitants par km² et par région NUTS 3, selon Eurostat. Les Açores sont à 1 500 km de Lisbonne et Madère à 1 000 km ; le preset les place à côté du continent, à une échelle lisible."
+    },
+    "code": {
+      "title": "Le même preset dans votre code",
+      "description": "Ces cartes passent par les paquets npm publiés : le preset de l'éditeur se charge en quelques lignes, avec d3 ou Observable Plot."
+    },
+    "units": {
+      "density": "hab./km²"
+    }
   }
 }
