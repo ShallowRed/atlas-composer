@@ -82,12 +82,7 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
               <ShareButton />
             </template>
           </AtlasConfigSection>
-        </template>
-        <template
-          v-if="!isBelowLg"
-          #footer
-        >
-          <DisplayOptionsSection />
+          <DisplayOptionsSection class="mt-3" />
         </template>
         <div class="main-content-wrapper relative h-full w-full max-lg:h-auto">
           <Transition
@@ -136,11 +131,6 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
-        <DisplayOptionsSection
-          v-if="isBelowLg"
-          v-show="!hasSelectedTerritory"
-          class="mb-6"
-        />
         <TerritorySelectionSection
           v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
           v-show="!hasSelectedTerritory"

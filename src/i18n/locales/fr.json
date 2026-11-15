@@ -124,10 +124,11 @@
     "language": "Langue",
     "resolution": "Résolution des données",
     "region": "Atlas",
-    "graticule": "Afficher le graticule",
+    "graticule": "Graticule",
     "sphere": "Afficher le contour du globe",
-    "compositionBorders": "Afficher les bordures de composition",
-    "mapLimits": "Afficher les limites de la carte"
+    "compositionBorders": "Bordures",
+    "mapLimits": "Limites",
+    "renderingOptions": "Options de rendu"
   },
   "projectionParams": {
     "title": "Paramètres de projection",
