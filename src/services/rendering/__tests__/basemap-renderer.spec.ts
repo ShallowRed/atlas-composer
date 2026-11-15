@@ -34,6 +34,9 @@ class FakeContext {
   arc() {}
   strokeText() {}
   fillText() {}
+  measureText(text: string) {
+    return { width: text.length * 5 }
+  }
 }
 
 class FakeCanvas {
@@ -148,16 +151,17 @@ describe('renderBasemap', () => {
   it('keeps 256 vector tiles at most', async () => {
     const tile = readFileSync('src/services/rendering/__tests__/fixtures/openmaptiles-9-320-274.pbf')
     fetchMock.mockImplementation(async (url: string) => (url.endsWith('/planet') ? Response.json({ tiles: ['https://tiles.test/{z}/{x}/{y}.pbf'] }) : new Response(tile)))
-    const first = [frame(-170, 0, 3000)]
+    const first = [frame(-170, 0, 20000)]
     await renderer.renderBasemap(first, 'streets', options())
     const firstRequests = fetchMock.mock.calls.length - 1
     for (const latitude of [-40, 0, 40]) {
       for (let longitude = -160; longitude < 170; longitude += 3) {
-        await renderer.renderBasemap([frame(longitude, latitude, 3000)], 'streets', options())
+        await renderer.renderBasemap([frame(longitude, latitude, 20000)], 'streets', options())
       }
     }
     const before = fetchMock.mock.calls.length
     await renderer.renderBasemap(first, 'streets', options())
+    expect(firstRequests).toBeGreaterThan(0)
     expect(fetchMock.mock.calls.length - before).toBe(firstRequests)
   })
 
