@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { TerritoryCode } from '@/types/branded'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useClipExtentEditor } from '@/composables/useClipExtentEditor'
+import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useMapRender } from '@/composables/useMapRender'
 import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useProjectionPanning } from '@/composables/useProjectionPanning'
@@ -42,7 +44,9 @@ const parameterStore = useParameterStore()
 const viewStore = useViewStore()
 const mapContainer = ref<HTMLElement>()
 
-const { size, renderSvg, applyOverlays } = useMapRender(props)
+const { size, renderSvg, applyOverlays, applyBasemap, dispose: disposeBasemap, basemapResult } = useMapRender(props)
+const { errorMessage } = useErrorMessage()
+const { t } = useI18n()
 
 watch(
   () => props.territoryCode ? parameterStore.getEffectiveParameters(props.territoryCode) : null,
@@ -145,6 +149,7 @@ onUnmounted(() => {
   cleanupTerritoryCursor()
   cleanupClipExtentEditor()
   cleanupMapWatchers()
+  disposeBasemap()
 })
 
 async function debouncedRenderMap() {
@@ -222,6 +227,7 @@ async function renderMap() {
     }
 
     await applyOverlays(svg)
+    applyBasemap(svg)
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
@@ -283,7 +289,7 @@ function handleMouseDown(event: MouseEvent) {
 
 <template>
   <div
-    class="map-renderer"
+    class="map-renderer relative"
     :style="{ '--map-aspect': `${size.width} / ${size.height}` }"
     :class="{
       'h-full': props.fullHeight,
@@ -305,6 +311,13 @@ function handleMouseDown(event: MouseEvent) {
       @mousedown.capture="selectTerritoryUnderPointer"
       @mousedown="handleMouseDown"
     />
+    <p
+      v-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
+      class="pointer-events-none absolute bottom-1 left-1 rounded-sm bg-base-100/80 px-1.5 text-xs"
+      :class="{ 'text-error': !basemapResult.ok }"
+    >
+      {{ basemapResult.ok ? t('basemap.missingTiles', { count: basemapResult.value.missingTiles }) : errorMessage(basemapResult.error) }}
+    </p>
   </div>
 </template>
 

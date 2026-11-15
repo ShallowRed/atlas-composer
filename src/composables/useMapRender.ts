@@ -1,8 +1,15 @@
+import type { BasemapFrame, VectorPalette } from '@/core/basemap'
+import type { BasemapError } from '@/core/types/errors'
+import type { Result } from '@/core/types/result'
 import type { ViewState } from '@/core/view'
+import type { BasemapImage } from '@/services/rendering/basemap-renderer'
 import type { TerritoryCode } from '@/types/branded'
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTerritoryNames } from '@/composables/useTerritoryNames'
+import { BASEMAP_SOURCE_DEFINITIONS, VECTOR_PALETTES } from '@/core/basemap'
 import { ViewOrchestrationService } from '@/core/view'
+import { renderBasemap } from '@/services/rendering/basemap-renderer'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { MapSizeCalculator } from '@/services/rendering/map-size-calculator'
 import { useAtlasStore } from '@/stores/atlas'
@@ -35,6 +42,9 @@ export function useMapRender(props: MapRenderProps) {
   const parameterStore = useParameterStore()
   const uiStore = useUIStore()
   const { territoryName } = useTerritoryNames()
+  const { locale } = useI18n()
+  // The frames of the last render of this map, for its basemap
+  let frames: BasemapFrame[] = []
 
   const showSphere = computed<boolean>(() => {
     const atlasConfig = atlasStore.currentAtlasConfig
@@ -108,7 +118,9 @@ export function useMapRender(props: MapRenderProps) {
       showCompositionBorders: uiStore.showCompositionBorders,
       showMapLimits: uiStore.showMapLimits,
       titleOf: territoryName,
+      fillTerritories: uiStore.basemap === 'none',
     })
+    frames = rendered.frames
     return rendered.svg
   }
 
@@ -135,7 +147,9 @@ export function useMapRender(props: MapRenderProps) {
       showMapLimits: uiStore.showMapLimits,
       territories: geoDataStore.filteredTerritories,
       titleOf: territoryName,
+      fillTerritories: uiStore.basemap === 'none',
     })
+    frames = rendered.frames
     return rendered.svg
   }
 
@@ -195,9 +209,78 @@ export function useMapRender(props: MapRenderProps) {
     })
   }
 
+  let basemapController: AbortController | null = null
+  let basemapTimer: ReturnType<typeof setTimeout> | null = null
+  let basemapUrl: string | null = null
+  const basemapResult = shallowRef<Result<BasemapImage, BasemapError> | null>(null)
+
+  // daisyUI sets the color-scheme of each theme
+  function basemapPalette(): VectorPalette {
+    return getComputedStyle(document.documentElement).colorScheme.includes('dark') ? VECTOR_PALETTES.dark : VECTOR_PALETTES.light
+  }
+
+  function cancelBasemap() {
+    if (basemapTimer) {
+      clearTimeout(basemapTimer)
+      basemapTimer = null
+    }
+    basemapController?.abort()
+    basemapController = null
+  }
+
+  function releaseBasemapUrl(next: string | null) {
+    if (basemapUrl) {
+      URL.revokeObjectURL(basemapUrl)
+    }
+    basemapUrl = next
+  }
+
+  // Draws the basemap 200 ms after the last render of the map, at the resolution of the screen
+  function applyBasemap(svg: SVGSVGElement) {
+    cancelBasemap()
+    const basemap = uiStore.basemap
+    if (basemap === 'none') {
+      basemapResult.value = null
+      releaseBasemapUrl(null)
+      return
+    }
+    const controller = new AbortController()
+    basemapController = controller
+    const renderedFrames = frames
+    const { width, height } = size.value
+    const pixelRatio = window.devicePixelRatio || 1
+    basemapTimer = setTimeout(async () => {
+      basemapTimer = null
+      const options = { width, height, palette: basemapPalette(), locale: locale.value, signal: controller.signal, zoomPixelRatio: pixelRatio }
+      // A raster basemap draws a coarse first pass, then the pass at the resolution of the screen; a vector basemap costs the same at any resolution
+      const passes = BASEMAP_SOURCE_DEFINITIONS[basemap].kind === 'raster' ? [0.5, pixelRatio] : [pixelRatio]
+      for (const passRatio of passes) {
+        const result = await renderBasemap(renderedFrames, basemap, { ...options, pixelRatio: passRatio })
+        if (!result || controller.signal.aborted) {
+          return
+        }
+        basemapResult.value = result
+        if (!result.ok) {
+          return
+        }
+        const url = URL.createObjectURL(result.value.image)
+        MapRenderCoordinator.insertBasemap(svg, url)
+        releaseBasemapUrl(url)
+      }
+    }, 200)
+  }
+
+  function dispose() {
+    cancelBasemap()
+    releaseBasemapUrl(null)
+  }
+
   return {
     size,
     renderSvg,
     applyOverlays,
+    applyBasemap,
+    dispose,
+    basemapResult,
   }
 }

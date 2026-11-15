@@ -1,10 +1,10 @@
-import type { BasemapFrame, BasemapSource, BasemapSourceDefinition, Extent, VectorPalette } from '@/core/basemap'
+import type { BasemapFrame, BasemapSource, BasemapSourceDefinition, Extent, PlaceLabel, VectorPalette } from '@/core/basemap'
 import type { BasemapError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
 import Pbf from 'pbf'
-import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, invertOnGlobe, tileOf, visibleLabels, zoomForFrame } from '@/core/basemap'
+import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, invertOnGlobe, labelsToDraw, tileOf, zoomForFrame } from '@/core/basemap'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 
@@ -81,14 +81,6 @@ class TileCache<V> {
       this.entries.delete(key)
       this.total -= entry.weight
     }
-  }
-
-  get size(): number {
-    return this.entries.size
-  }
-
-  get weight(): number {
-    return this.total
   }
 }
 
@@ -272,7 +264,7 @@ async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vect
   const { width, height, pixelRatio, zoomPixelRatio = pixelRatio, palette, locale } = options
   const context = canvas.getContext('2d')!
   context.scale(pixelRatio, pixelRatio)
-  const labels: Label[] = []
+  const labels: PlaceLabel[] = []
   let requested = 0
   let missing = 0
   for (const [index, frame] of frames.entries()) {
@@ -333,29 +325,29 @@ async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vect
   return { requested, missing }
 }
 
-interface Label { frame: number, x: number, y: number, name: string, city: boolean, rank: number }
+const labelFont = (city: boolean) => `${city ? 600 : 400} ${city ? 8.5 : 7.5}px system-ui, sans-serif`
+const LABEL_OFFSET = 4
+const LABEL_HALF_HEIGHT = 6
+const dotRadius = (city: boolean) => (city ? 1.8 : 1.3)
 
-// The cities first, by rank: a name that would overlap a name already drawn is left out
-function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: Label[], frames: BasemapFrame[], palette: VectorPalette) {
+function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: PlaceLabel[], frames: BasemapFrame[], palette: VectorPalette) {
   context.textBaseline = 'middle'
-  const drawn: Array<[number, number, number, number]> = []
-  const ordered = visibleLabels(labels, frames).sort((a, b) => Number(b.city) - Number(a.city) || a.rank - b.rank)
-  for (const { x, y, name, city } of ordered) {
-    context.font = `${city ? 600 : 400} ${city ? 8.5 : 7.5}px system-ui, sans-serif`
-    const box: [number, number, number, number] = [x - 2, y - 6, x + 6 + context.measureText(name).width, y + 6]
-    if (drawn.some(([x0, y0, x1, y1]) => box[0] < x1 && box[2] > x0 && box[1] < y1 && box[3] > y0)) {
-      continue
-    }
-    drawn.push(box)
+  // From the dot to the end of the text and its halo
+  const boxOf = (label: PlaceLabel): [number, number, number, number] => {
+    context.font = labelFont(label.city)
+    return [label.x - dotRadius(label.city), label.y - LABEL_HALF_HEIGHT, label.x + LABEL_OFFSET + context.measureText(label.name).width + 2, label.y + LABEL_HALF_HEIGHT]
+  }
+  for (const { x, y, name, city } of labelsToDraw(labels, frames, boxOf)) {
     context.beginPath()
-    context.arc(x, y, city ? 1.8 : 1.3, 0, 2 * Math.PI)
+    context.arc(x, y, dotRadius(city), 0, 2 * Math.PI)
     context.fillStyle = palette.label
     context.fill()
+    context.font = labelFont(city)
     context.lineWidth = 2.5
     context.strokeStyle = palette.labelHalo
-    context.strokeText(name, x + 4, y)
+    context.strokeText(name, x + LABEL_OFFSET, y)
     context.fillStyle = palette.label
-    context.fillText(name, x + 4, y)
+    context.fillText(name, x + LABEL_OFFSET, y)
   }
 }
 

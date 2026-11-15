@@ -578,5 +578,15 @@
     "units": {
       "density": "hab./km²"
     }
+  },
+  "basemap": {
+    "label": "Fond de carte",
+    "missingTiles": "{count} tuile manquante | {count} tuiles manquantes",
+    "sources": {
+      "none": "Sans fond",
+      "relief": "Relief",
+      "imagery": "Imagerie satellite",
+      "streets": "Plan"
+    }
   }
 }

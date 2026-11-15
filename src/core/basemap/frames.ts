@@ -9,7 +9,31 @@ export interface BasemapFrame {
   extent: Extent
 }
 
+export interface PlaceLabel {
+  frame: number
+  x: number
+  y: number
+  name: string
+  city: boolean
+  rank: number
+}
+
 // A frame drawn later covers the labels of the frames under it
-export function visibleLabels<L extends { frame: number, x: number, y: number }>(labels: L[], frames: Pick<BasemapFrame, 'extent'>[]): L[] {
+function visibleLabels<L extends { frame: number, x: number, y: number }>(labels: L[], frames: Pick<BasemapFrame, 'extent'>[]): L[] {
   return labels.filter(({ frame, x, y }) => !frames.some(({ extent: [[x0, y0], [x1, y1]] }, index) => index > frame && x >= x0 && x <= x1 && y >= y0 && y <= y1))
+}
+
+// The visible labels to draw, cities first by rank: a name whose box, which the drawing gives, overlaps a name kept is left out
+export function labelsToDraw(labels: PlaceLabel[], frames: Pick<BasemapFrame, 'extent'>[], boxOf: (label: PlaceLabel) => [number, number, number, number]): PlaceLabel[] {
+  const kept: Array<[number, number, number, number]> = []
+  return visibleLabels(labels, frames)
+    .sort((a, b) => Number(b.city) - Number(a.city) || a.rank - b.rank)
+    .filter((label) => {
+      const box = boxOf(label)
+      if (kept.some(([x0, y0, x1, y1]) => box[0] < x1 && box[2] > x0 && box[1] < y1 && box[3] > y0)) {
+        return false
+      }
+      kept.push(box)
+      return true
+    })
 }
