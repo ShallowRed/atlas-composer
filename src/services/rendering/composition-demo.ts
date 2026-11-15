@@ -1,11 +1,10 @@
-import type { GeoProjection, GeoStream } from 'd3-geo'
+import type { GeoStream } from 'd3-geo'
 import type { BasemapFrame, Extent } from '@/core/basemap'
 import type { CompositionDemoInput, CompositionMark, Earthquake } from '@/core/examples'
-import { ProjectionLoader } from '@atlas-composer/projection-loader'
-import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
 import { geoEquirectangular, geoPath } from 'd3-geo'
 import { visibleLabels } from '@/core/basemap'
 import { interpolate, territoryOf } from '@/core/examples'
+import { presetFrames } from '@/services/rendering/example-map'
 
 type Point = [number, number]
 
@@ -36,15 +35,7 @@ const inExtent = ([[x0, y0], [x1, y1]]: Extent, [x, y]: Point) => x >= x0 && x <
 // The demo places the territories through the sub-projections of the published loader, as the composite of the preset draws them
 export function renderCompositionDemo({ config, territories, places }: CompositionDemoInput, earthquakes: Earthquake[]): CompositionDemo {
   const { width, height } = config.canvasDimensions
-  const loader = new ProjectionLoader()
-  loader.registerAll(d3ProjectionFactories)
-  const subProjections = loader.createSubProjections(config, { scale: config.referenceScale, translate: [width / 2, height / 2] })
-  // The sub-projections of the loader are d3 projections, whose ProjectionLike type lacks members that invert and geoPath do not call
-  const frames: BasemapFrame[] = [...subProjections].map(([code, projection]) => ({
-    code,
-    projection: projection as unknown as GeoProjection,
-    extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as Extent,
-  }))
+  const frames = presetFrames(config)
   const frameIndex = new Map(frames.map(({ code }, index) => [code, index]))
 
   const drawn = territories.features.filter(({ properties }) => frameIndex.has(properties.code))
@@ -86,7 +77,7 @@ export function renderCompositionDemo({ config, territories, places }: Compositi
 
   function territoriesAt(progress: number): TerritoryShape[] {
     return drawn.map((feature) => {
-      const sub = subProjections.get(feature.properties.code)!
+      const sub = frames[frameIndex.get(feature.properties.code)!]!.projection
       const stream = (output: GeoStream): GeoStream => ({
         point(longitude, latitude) {
           const from = raw([longitude, latitude])

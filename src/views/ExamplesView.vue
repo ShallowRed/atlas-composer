@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import CompositionDemo from '@/components/examples/CompositionDemo.vue'
 import ExampleChoroplethMap from '@/components/examples/ExampleChoroplethMap.vue'
-import { EXAMPLES } from '@/core/examples'
+import ExampleSources from '@/components/examples/ExampleSources.vue'
+import { COMPOSITION_SOURCES, EXAMPLES } from '@/core/examples'
 
 const { t } = useI18n()
 
@@ -34,6 +36,17 @@ if (preset) {
       </p>
     </header>
 
+    <section class="flex flex-col gap-3">
+      <h2 class="text-xl font-semibold">
+        {{ t('examples.composition.title') }}
+      </h2>
+      <p class="text-sm text-base-content/80">
+        {{ t('examples.composition.description') }}
+      </p>
+      <CompositionDemo />
+      <ExampleSources :sources="COMPOSITION_SOURCES" />
+    </section>
+
     <div class="grid gap-10 lg:grid-cols-2">
       <section
         v-for="example in EXAMPLES"
@@ -47,21 +60,7 @@ if (preset) {
           {{ t(`examples.${example.id}.description`) }}
         </p>
         <ExampleChoroplethMap :example="example" />
-        <p class="text-xs text-base-content/70">
-          {{ t('examples.sources') }}
-          <template
-            v-for="(source, index) in example.sources"
-            :key="source.url"
-          >
-            <span v-if="index > 0"> · </span>
-            <a
-              :href="source.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="link"
-            >{{ source.label }}</a>
-          </template>
-        </p>
+        <ExampleSources :sources="example.sources" />
       </section>
     </div>
 
