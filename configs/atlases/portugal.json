@@ -22,7 +22,10 @@
     {
       "id": "620",
       "code": "PT-CONT",
-      "name": "Portugal Continental",
+      "name": {
+        "en": "Mainland Portugal",
+        "fr": "Portugal continental"
+      },
       "iso": "PRT",
       "bounds": [
         [
@@ -42,7 +45,10 @@
     {
       "id": "620-20",
       "code": "PT-20",
-      "name": "Madeira",
+      "name": {
+        "en": "Madeira",
+        "fr": "Madère"
+      },
       "iso": "PRT",
       "region": "Atlantic",
       "bounds": [
@@ -69,7 +75,10 @@
     {
       "id": "620-30",
       "code": "PT-30",
-      "name": "Azores",
+      "name": {
+        "en": "Azores",
+        "fr": "Açores"
+      },
       "iso": "PRT",
       "region": "Atlantic",
       "bounds": [
