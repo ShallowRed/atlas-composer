@@ -1,5 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { PresetType } from '#types'
+import type { CompositionDemoInput, Place, TerritoryContours } from '@/core/examples'
 import type { AtlasId, PresetId } from '@/types/branded'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
@@ -7,6 +8,7 @@ import { mount } from '@vue/test-utils'
 import { vi } from 'vitest'
 import { defineComponent } from 'vue'
 import atlasRegistry from '#configs/atlas-registry.json'
+import { getAtlasConfigPath } from '@/core/atlases/registry'
 import i18n from '@/i18n'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 
@@ -77,4 +79,15 @@ export function readCompositeSources(): CompositeSource[] {
   })
 
   return [...presets, ...families]
+}
+
+// The entry of the composition demo for a preset, from the files of the repository, as loadCompositionDemo reads them
+export function readCompositionDemoInput(presetId: string): CompositionDemoInput {
+  const source = readCompositeSources().find(candidate => candidate.presetId === presetId)!
+  const atlas = JSON.parse(readFileSync(`configs/${getAtlasConfigPath(source.atlasId)!.replace('./', '')}`, 'utf8')) as { dataSources: { territories: string } }
+  return {
+    config: structuredClone(source.config),
+    territories: JSON.parse(readFileSync(`src/public/data/${atlas.dataSources.territories}`, 'utf8')) as TerritoryContours,
+    places: JSON.parse(readFileSync('src/public/examples/world-places.json', 'utf8')) as Place[],
+  }
 }
