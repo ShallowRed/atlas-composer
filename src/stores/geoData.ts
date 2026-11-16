@@ -328,8 +328,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE,
       projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
     )
-    const activeCodes = useViewStore().activeTerritoryCodes
-    const [first, ...others] = config.territories.filter(territory => activeCodes.has(territory.code as TerritoryCode))
+    const [first, ...others] = config.territories
     if (!first) {
       return err({ code: 'EXPORT_NO_TERRITORY' })
     }

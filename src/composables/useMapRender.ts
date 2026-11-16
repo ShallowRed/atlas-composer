@@ -178,7 +178,6 @@ export function useMapRender(props: MapRenderProps) {
 
     const cartographer = geoDataStore.cartographer
     const renderProjection = cartographer?.lastProjection ?? undefined
-    const filteredTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
 
     MapRenderCoordinator.applyOverlays(
       svg,
@@ -190,7 +189,6 @@ export function useMapRender(props: MapRenderProps) {
         height,
         customComposite: isCompositeMode ? cartographer?.customComposite : undefined,
         renderedProjection: renderProjection,
-        filteredTerritoryCodes,
       },
     )
 
@@ -205,7 +203,6 @@ export function useMapRender(props: MapRenderProps) {
       geoData: graticuleGeoData,
       projectionParams: graticuleParams,
       showSphere: showSphere.value,
-      filteredTerritoryCodes,
     })
   }
 
