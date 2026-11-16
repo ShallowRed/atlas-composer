@@ -200,9 +200,8 @@ describe('active territories', () => {
   })
 
   it('builds no projection on a new composite whose active territories have no parameters yet', () => {
-    const { state } = setupActive(['FR-A'])
-    state.withoutProjection = new Set(CODES)
-    const composite = new CompositeProjection(threeTerritories, { getEffectiveParameters: () => ({}), getExportableParameters: () => ({}) }, { getActiveTerritoryCodes: () => state.active }, 1000)
+    const active = new Set([createTerritoryCode('FR-A')])
+    const composite = new CompositeProjection(threeTerritories, { getEffectiveParameters: () => ({}), getExportableParameters: () => ({}) }, { getActiveTerritoryCodes: () => active }, 1000)
 
     expect(composite.build(WIDTH, HEIGHT)).toBeNull()
   })
