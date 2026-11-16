@@ -9,6 +9,7 @@ export { createPointCaptureStream } from './stream/point-capture'
 
 export type {
   ClipExtentOptions,
+  CompositeBuildInput,
   CompositeProjectionConfig,
   GeoBounds,
   GeoBoundsArray,
