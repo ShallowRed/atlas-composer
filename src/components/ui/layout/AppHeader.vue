@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LanguageSelector from '@/components/ui/settings/LanguageSelector.vue'
 import ThemeSelector from '@/components/ui/settings/ThemeSelector.vue'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 
 const allowThemeSelection = true
 
-const NAV_LINKS = [
-  { path: '/', icon: 'ri-layout-line', labelKey: 'nav.map' },
-  { path: '/atlas', icon: 'ri-earth-line', labelKey: 'nav.atlases' },
-  { path: '/examples', icon: 'ri-gallery-line', labelKey: 'nav.examples' },
-  { path: '/about', icon: 'ri-information-line', labelKey: 'nav.about' },
-]
+const NAV_LINKS = router.options.routes.flatMap(({ path, meta }) =>
+  meta?.nav ? [{ path, ...meta.nav }] : [],
+)
 </script>
 
 <template>

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { useUIStore } from '@/stores/ui'
 
+const { t } = useI18n()
 const uiStore = useUIStore()
 
-const themes: Array<{
+const themes = computed<Array<{
   key: string
   label: string
   options: Array<{
@@ -12,10 +15,10 @@ const themes: Array<{
     label: string
     translated: boolean
   }>
-}> = [
+}>>(() => [
   {
     key: 'light',
-    label: 'Thèmes clairs',
+    label: t('settings.lightThemes'),
     options: [
       { value: 'light', label: 'Light', translated: true },
       { value: 'cupcake', label: 'Cupcake', translated: true },
@@ -42,7 +45,7 @@ const themes: Array<{
   },
   {
     key: 'dark',
-    label: 'Thèmes sombres',
+    label: t('settings.darkThemes'),
     options: [
       { value: 'dark', label: 'Dark', translated: true },
       { value: 'synthwave', label: 'Synthwave', translated: true },
@@ -60,14 +63,14 @@ const themes: Array<{
       { value: 'abyss', label: 'Abyss', translated: true },
     ],
   },
-]
+])
 </script>
 
 <template>
   <DropdownControl
     v-model="uiStore.theme"
     inline
-    label="Thème"
+    :label="t('settings.theme')"
     icon="ri-palette-line"
     :option-groups="themes"
     size="sm"

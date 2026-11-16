@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useTitle } from '@vueuse/core'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 import ToastNotification from '@/components/ui/export/ToastNotification.vue'
 import AppFooter from '@/components/ui/layout/AppFooter.vue'
@@ -12,6 +14,12 @@ const route = useRoute()
 const geoDataStore = useGeoDataStore()
 const uiStore = useUIStore()
 const { errorMessage } = useErrorMessage()
+const { t } = useI18n()
+
+useTitle(computed(() => {
+  const { titleKey } = route.meta
+  return titleKey ? `${t(titleKey)} - ${t('app.title')}` : t('app.title')
+}))
 
 uiStore.initializeTheme()
 

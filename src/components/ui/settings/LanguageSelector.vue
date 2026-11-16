@@ -8,14 +8,14 @@ import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
 import { setLocale, SUPPORTED_LOCALES } from '@/i18n'
 import { getLanguageFlag } from '@/utils/language-icons'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 const languageOptions = computed<DropdownOption[]>(() => {
   return Object.entries(SUPPORTED_LOCALES).map(([code, label]) => ({
     value: code,
-    label, // Language names (English, Français)
+    label,
     icon: getLanguageFlag(code),
-    translated: true, // Labels are plain strings, not translation keys
+    translated: true,
   }))
 })
 
@@ -29,7 +29,7 @@ function changeLanguage(newLocale: string) {
     :model-value="locale"
     :options="languageOptions"
     icon="ri-translate-2"
-    label="Language"
+    :label="t('settings.language')"
     inline
     size="sm"
     :show-selected-icon="false"
