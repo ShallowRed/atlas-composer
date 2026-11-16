@@ -1,8 +1,15 @@
+import type { GeoProjection } from 'd3-geo'
+import type { ProjectionDefinition } from '../types'
 import { describe, expect, it } from 'vitest'
 
 import { ProjectionFactory } from '../factory'
 import { projectionRegistry } from '../registry'
 import { ProjectionStrategy } from '../types'
+
+function projectsToNumbers(projection: GeoProjection | null, definition: ProjectionDefinition): boolean {
+  const point = projection?.(definition.defaultParameters?.center ?? [0, 0])
+  return Array.isArray(point) && point.length === 2 && point.every(Number.isFinite)
+}
 
 describe('projectionFactory', () => {
   describe('create()', () => {
@@ -132,30 +139,11 @@ describe('projectionFactory', () => {
     const builtinProjections = projectionRegistry
       .getByStrategy(ProjectionStrategy.D3_BUILTIN)
 
-    it('should create all registered D3 builtin projections', () => {
+    it('should create all registered D3 builtin projections, which project a point to two numbers', () => {
       builtinProjections.forEach((definition) => {
         const projection = ProjectionFactory.create({ projection: definition })
-        expect(projection).toBeDefined()
-        expect(typeof projection).toBe('function')
+        expect(projectsToNumbers(projection, definition)).toBe(true)
       })
-    })
-
-    it('should create mercator projection', () => {
-      const projection = ProjectionFactory.createById('mercator')
-      expect(projection).toBeDefined()
-      expect(projection!([0, 0])).toBeDefined()
-    })
-
-    it('should create conic-conformal projection', () => {
-      const projection = ProjectionFactory.createById('conic-conformal')
-      expect(projection).toBeDefined()
-      expect(projection!([0, 0])).toBeDefined()
-    })
-
-    it('should create albers projection', () => {
-      const projection = ProjectionFactory.createById('albers')
-      expect(projection).toBeDefined()
-      expect(projection!([0, 0])).toBeDefined()
     })
   })
 
@@ -176,30 +164,11 @@ describe('projectionFactory', () => {
     const compositeProjections = projectionRegistry
       .getByStrategy(ProjectionStrategy.D3_COMPOSITE)
 
-    it('should create all composite projections', () => {
+    it('should create all composite projections, which project the center of their territory to two numbers', () => {
       compositeProjections.forEach((definition) => {
         const projection = ProjectionFactory.create({ projection: definition })
-        expect(projection).toBeDefined()
-        expect(typeof projection).toBe('function')
+        expect(projectsToNumbers(projection, definition)).toBe(true)
       })
-    })
-
-    it('should create conic-conformal-france projection', () => {
-      const projection = ProjectionFactory.createById('conic-conformal-france')
-      expect(projection).toBeDefined()
-      expect(projection!([2, 46])).toBeDefined()
-    })
-
-    it('should create conic-conformal-portugal projection', () => {
-      const projection = ProjectionFactory.createById('conic-conformal-portugal')
-      expect(projection).toBeDefined()
-      expect(projection!([-8, 39])).toBeDefined()
-    })
-
-    it('should create conic-conformal-europe projection', () => {
-      const projection = ProjectionFactory.createById('conic-conformal-europe')
-      expect(projection).toBeDefined()
-      expect(projection!([10, 50])).toBeDefined()
     })
   })
 
