@@ -1,5 +1,5 @@
-export type { SharedLink } from './shared-link'
-export { parseSharedLink } from './shared-link'
+export type { SharedLink, SharedLinkTerritory } from './shared-link'
+export { parseSharedLink, serializeSharedLink } from './shared-link'
 export { DEFAULT_SELECTED_PROJECTION, isViewPresetMode, ViewModeSelection } from './view-mode-selection'
 export type { ViewState } from './view-orchestration-service'
 export { ViewOrchestrationService } from './view-orchestration-service'
