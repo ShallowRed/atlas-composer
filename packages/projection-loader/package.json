@@ -94,7 +94,7 @@
   "devDependencies": {
     "@atlas-composer/projection-core": "workspace:*",
     "@atlas-composer/specification": "workspace:*",
-    "@size-limit/preset-small-lib": "^11.2.0",
+    "@size-limit/preset-small-lib": "^14.3.0",
     "@types/d3-geo": "^3.1.1",
     "ajv": "^8.20.0",
     "d3-geo": "^3.1.2",
