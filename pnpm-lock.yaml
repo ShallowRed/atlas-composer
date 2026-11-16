@@ -194,8 +194,8 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3(supports-color@7.2.0)
       pbf:
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^5.1.2
+        version: 5.1.2
       pinia:
         specifier: ^4.1.0
         version: 4.1.0(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.44(typescript@5.9.3))
@@ -3655,6 +3655,10 @@ packages:
 
   pbf@4.0.2:
     resolution: {integrity: sha512-J0ajxARhZfpUEebxYs1vhMGMuLSXtBe1e+fFPDrf2uA2hgo+UshKfNUWOz92HJNz6/NFEXseQPddnHkTreWRqg==}
+    hasBin: true
+
+  pbf@5.1.2:
+    resolution: {integrity: sha512-mnvGdvOrIvJOBGUEdGkrVXjN8E/VkIJCkf2eS1DH2yv82ORUlLttmDt0rWY38yYZmVwciZwBUvHM20qxBZf40w==}
     hasBin: true
 
   perfect-debounce@2.1.0:
@@ -7730,6 +7734,10 @@ snapshots:
   pathe@2.0.3: {}
 
   pbf@4.0.2:
+    dependencies:
+      resolve-protobuf-schema: 2.1.0
+
+  pbf@5.1.2:
     dependencies:
       resolve-protobuf-schema: 2.1.0
 
