@@ -1,7 +1,10 @@
 import type { Plugin } from 'vite'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { BASEMAP_SOURCE_DEFINITIONS } from '../src/core/basemap/sources.js'
+import { EARTHQUAKE_FEED } from '../src/core/examples/earthquake-feed.js'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const configsDir = path.resolve(rootDir, 'configs')
@@ -90,6 +93,42 @@ export function notFoundPagePlugin(): Plugin {
     apply: 'build',
     writeBundle(options) {
       fs.copyFileSync(path.join(options.dir!, 'index.html'), path.join(options.dir!, '404.html'))
+    },
+  }
+}
+
+/**
+ * Content Security Policy of the built page, in a meta element since GitHub Pages sets no response header
+ * The hashes of the inline scripts are computed from the built page, so the policy follows a change of these scripts
+ * https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html
+ */
+export function contentSecurityPolicyPlugin(): Plugin {
+  // A vector basemap fetches its tiles from the template of its TileJSON, admitted here by the origin of the TileJSON
+  const connectSources = [...new Set([
+    EARTHQUAKE_FEED,
+    ...Object.values(BASEMAP_SOURCE_DEFINITIONS).map(source => source.kind === 'raster' ? source.tiles : source.tileJson),
+  ].map(url => new URL(url).origin))]
+  return {
+    name: 'content-security-policy',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const scriptHashes = [...html.matchAll(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)]
+          .map(([, script]) => `'sha256-${createHash('sha256').update(script!).digest('base64')}'`)
+        const policy = [
+          `default-src 'none'`,
+          `script-src 'self' ${scriptHashes.join(' ')}`,
+          `style-src 'self'`,
+          `img-src 'self' data: blob:`,
+          `font-src 'self'`,
+          `connect-src 'self' ${connectSources.join(' ')}`,
+          `object-src 'none'`,
+          `base-uri 'none'`,
+          `form-action 'none'`,
+        ].join('; ')
+        return [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', 'content': policy }, injectTo: 'head-prepend' }]
+      },
     },
   }
 }

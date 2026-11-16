@@ -6,7 +6,7 @@ import vue from '@vitejs/plugin-vue'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 import eslint from 'vite-plugin-eslint'
-import { notFoundPagePlugin, serveConfigsPlugin } from './scripts/vite-plugins'
+import { contentSecurityPolicyPlugin, notFoundPagePlugin, serveConfigsPlugin } from './scripts/vite-plugins'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const srcDir = path.resolve(__dirname, 'src')
@@ -34,6 +34,7 @@ export default defineConfig(env => ({
     vue(),
     tailwindcss(),
     serveConfigsPlugin(), // Serve configs folder as public assets
+    contentSecurityPolicyPlugin(),
     notFoundPagePlugin(),
     eslint({
       failOnError: false,

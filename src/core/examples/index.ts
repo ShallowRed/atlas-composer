@@ -3,4 +3,5 @@ export type { CompositionDemoInput, CompositionMark, Earthquake, Place, PointerL
 export { COMPOSITION_PRESETS, COMPOSITION_SOURCES, interpolate, locate, territoryOf } from './composition'
 export type { ExampleDefinition, ExampleSource } from './definitions'
 export { EXAMPLES } from './definitions'
+export { EARTHQUAKE_FEED } from './earthquake-feed'
 export type { ExampleFeature, ExampleFrame, ExampleMap } from './map'

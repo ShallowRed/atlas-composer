@@ -6,14 +6,12 @@ import type { Result } from '@/core/types/result'
 import type { PresetId } from '@/types/branded'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { EARTHQUAKE_FEED } from '@/core/examples'
 import { err, ok } from '@/core/types/result'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
 import { renderExampleMap } from '@/services/rendering/example-map'
-
-// Earthquakes of magnitude 2.5 or more over the last 30 days
-const EARTHQUAKE_FEED = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson'
 
 export interface CompositionDemoSource {
   input: CompositionDemoInput
