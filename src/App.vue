@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Toast } from '@/components/ui/export/ToastNotification.vue'
 import { useTitle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -25,7 +26,25 @@ uiStore.initializeTheme()
 
 const fillsViewport = computed(() => route.meta.fillViewport === true)
 
-const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(geoDataStore.error))
+const GEO_DATA_TOAST_ID = 'geo-data-error'
+
+const toasts = computed<Toast[]>(() => [
+  ...(geoDataStore.error ? [{ id: GEO_DATA_TOAST_ID, message: errorMessage(geoDataStore.error), type: 'error' as const }] : []),
+  ...uiStore.toasts.map(toast => ({
+    id: toast.id,
+    type: toast.type,
+    message: 'error' in toast ? errorMessage(toast.error) : toast.message,
+  })),
+])
+
+function closeToast(id: string) {
+  if (id === GEO_DATA_TOAST_ID) {
+    geoDataStore.clearError()
+  }
+  else {
+    uiStore.dismissToast(id)
+  }
+}
 </script>
 
 <template>
@@ -39,20 +58,9 @@ const geoDataErrorMessage = computed(() => geoDataStore.error && errorMessage(ge
     </main>
     <AppFooter v-if="!fillsViewport" />
 
-    <!-- Global error state from geoDataStore -->
     <ToastNotification
-      :message="geoDataErrorMessage"
-      type="error"
-      @close="geoDataStore.clearError()"
-    />
-
-    <!-- Toast notifications from UI store -->
-    <ToastNotification
-      v-for="toast in uiStore.toasts"
-      :key="toast.id"
-      :message="'error' in toast ? errorMessage(toast.error) : toast.message"
-      :type="toast.type"
-      @close="uiStore.dismissToast(toast.id)"
+      :toasts="toasts"
+      @close="closeToast"
     />
   </div>
 </template>
