@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { BasemapFrame } from '@/core/basemap'
+import type { ProjectionFrame } from '@/core/frames'
 import type { AtlasId } from '@/types/branded'
 import { geoPath } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
@@ -24,7 +24,7 @@ describe('drawing of the custom composite of france-proportional', () => {
   let features: GeoJSON.Feature<GeoJSON.Polygon>[]
   let cartographer: NonNullable<Awaited<ReturnType<typeof openAtlasWithCartographer>>['cartographer']>
   let svg: SVGSVGElement
-  let frames: BasemapFrame[]
+  let frames: ProjectionFrame[]
   // The active territories in the order of the configuration
   let configurationOrder: string[]
 

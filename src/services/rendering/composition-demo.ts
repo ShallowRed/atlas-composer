@@ -1,9 +1,9 @@
 import type { GeoStream } from 'd3-geo'
-import type { BasemapFrame } from '@/core/basemap'
 import type { CompositionDemoInput, CompositionMark, Earthquake } from '@/core/examples'
+import type { ProjectionFrame } from '@/core/frames'
 import { geoEquirectangular, geoPath } from 'd3-geo'
-import { inExtent, visibleLabels } from '@/core/basemap'
 import { interpolate, territoryOf } from '@/core/examples'
+import { inExtent, visibleLabels } from '@/core/frames'
 import { presetFrames } from '@/services/rendering/preset-frames'
 
 type Point = [number, number]
@@ -23,7 +23,7 @@ interface TerritoryShape {
 export interface CompositionDemo {
   width: number
   height: number
-  frames: BasemapFrame[]
+  frames: ProjectionFrame[]
   framesPath: string
   marks: CompositionMark[]
   // The contours, each vertex between its raw position (0) and its place through the sub-projection of its territory (1)

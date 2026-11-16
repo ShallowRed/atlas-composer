@@ -1,10 +1,12 @@
-import type { BasemapFrame, BasemapSource, BasemapSourceDefinition, Extent, PlaceLabel, VectorPalette } from '@/core/basemap'
+import type { BasemapSource, BasemapSourceDefinition, PlaceLabel, VectorPalette } from '@/core/basemap'
+import type { Extent, ProjectionFrame } from '@/core/frames'
 import type { BasemapError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
 import Pbf from 'pbf'
-import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, invertOnGlobe, labelsToDraw, tileOf, zoomForFrame } from '@/core/basemap'
+import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, tileOf, zoomForFrame } from '@/core/basemap'
+import { invertOnGlobe } from '@/core/frames'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 
@@ -185,7 +187,7 @@ function budget(signal: AbortSignal) {
   }
 }
 
-async function cover(frame: BasemapFrame, zoom: number, yieldIfLate: () => Promise<void>): Promise<Array<[number, number]>> {
+async function cover(frame: ProjectionFrame, zoom: number, yieldIfLate: () => Promise<void>): Promise<Array<[number, number]>> {
   const coverage = coverFrame(frame.projection, frame.extent, zoom)
   let step = coverage.next()
   while (!step.done) {
@@ -214,7 +216,7 @@ async function decode(blob: Blob, tileSize: number): Promise<Uint8ClampedArray |
   }
 }
 
-async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'raster' }>, frames: BasemapFrame[], options: BasemapRenderOptions, canvas: OffscreenCanvas, yieldIfLate: () => Promise<void>) {
+async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'raster' }>, frames: ProjectionFrame[], options: BasemapRenderOptions, canvas: OffscreenCanvas, yieldIfLate: () => Promise<void>) {
   const { width, height, pixelRatio, zoomPixelRatio = pixelRatio } = options
   const context = canvas.getContext('2d')!
   const output = context.createImageData(canvas.width, canvas.height)
@@ -260,7 +262,7 @@ async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'rast
   return { requested, missing }
 }
 
-async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vector' }>, template: string, frames: BasemapFrame[], options: BasemapRenderOptions, canvas: OffscreenCanvas, yieldIfLate: () => Promise<void>) {
+async function drawVector(source: Extract<BasemapSourceDefinition, { kind: 'vector' }>, template: string, frames: ProjectionFrame[], options: BasemapRenderOptions, canvas: OffscreenCanvas, yieldIfLate: () => Promise<void>) {
   const { width, height, pixelRatio, zoomPixelRatio = pixelRatio, palette, locale } = options
   const context = canvas.getContext('2d')!
   context.scale(pixelRatio, pixelRatio)
@@ -330,7 +332,7 @@ const LABEL_OFFSET = 4
 const LABEL_HALF_HEIGHT = 6
 const dotRadius = (city: boolean) => (city ? 1.8 : 1.3)
 
-function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: PlaceLabel[], frames: BasemapFrame[], palette: VectorPalette) {
+function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: PlaceLabel[], frames: ProjectionFrame[], palette: VectorPalette) {
   context.textBaseline = 'middle'
   // From the dot to the end of the text and its halo
   const boxOf = (label: PlaceLabel): [number, number, number, number] => {
@@ -352,7 +354,7 @@ function drawLabels(context: OffscreenCanvasRenderingContext2D, labels: PlaceLab
 }
 
 // Draws the basemap of a source through the projection of each frame, in their order; an interrupted render returns null
-export async function renderBasemap(frames: BasemapFrame[], basemap: BasemapSource, options: BasemapRenderOptions): Promise<Result<BasemapImage, BasemapError> | null> {
+export async function renderBasemap(frames: ProjectionFrame[], basemap: BasemapSource, options: BasemapRenderOptions): Promise<Result<BasemapImage, BasemapError> | null> {
   const canvas = new OffscreenCanvas(Math.round(options.width * options.pixelRatio), Math.round(options.height * options.pixelRatio))
   const yieldIfLate = budget(options.signal)
   try {

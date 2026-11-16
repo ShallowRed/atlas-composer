@@ -1,9 +1,9 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ExampleSource } from './definitions'
-import type { BasemapFrame } from '@/core/basemap'
+import type { ProjectionFrame } from '@/core/frames'
 import type { PresetId } from '@/types/branded'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
-import { inExtent, invertOnGlobe } from '@/core/basemap'
+import { inExtent, invertOnGlobe } from '@/core/frames'
 import { createPresetId } from '@/types/branded'
 
 type Point = [number, number]
@@ -90,7 +90,7 @@ export function territoryOf(config: CompositeProjectionConfig, territories: Terr
 }
 
 // The longitude and latitude of a pixel, taken in the topmost frame that contains it, and the territory of that frame when its contour contains the point
-export function locate(frames: BasemapFrame[], territories: Array<GeoJSON.Feature<GeoJSON.Geometry, { code: string }>>, [x, y]: Point): PointerLocation | null {
+export function locate(frames: ProjectionFrame[], territories: Array<GeoJSON.Feature<GeoJSON.Geometry, { code: string }>>, [x, y]: Point): PointerLocation | null {
   const frame = [...frames].reverse().find(({ extent }) => inExtent(extent, [x, y]))
   const point = frame && invertOnGlobe(frame.projection, [x, y])
   if (!frame || !point) {
