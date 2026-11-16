@@ -1,69 +1,42 @@
 <script setup lang="ts">
-interface Props {
-  message: string | null
-  type?: 'error' | 'success' | 'warning' | 'info'
-  position?: 'top-start' | 'top-center' | 'top-end' | 'bottom-start' | 'bottom-center' | 'bottom-end'
+import type { AlertType } from '@/components/ui/primitives/Alert.vue'
+import Alert from '@/components/ui/primitives/Alert.vue'
+
+export interface Toast {
+  id: string
+  message: string
+  type: AlertType
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  type: 'error',
-  position: 'top-end',
-})
-
-const emit = defineEmits<{
-  close: []
+defineProps<{
+  toasts: Toast[]
 }>()
 
-const alertClass = {
-  error: 'alert-error',
-  success: 'alert-success',
-  warning: 'alert-warning',
-  info: 'alert-info',
-}
-
-const iconClass = {
-  error: 'ri-error-warning-line',
-  success: 'ri-checkbox-circle-line',
-  warning: 'ri-alert-line',
-  info: 'ri-information-line',
-}
-
-const toastClass = props.position.split('-').map(p => `toast-${p}`).join(' ')
+const emit = defineEmits<{
+  close: [id: string]
+}>()
 </script>
 
 <template>
   <Teleport to="body">
-    <Transition
+    <TransitionGroup
+      tag="div"
+      class="toast toast-top toast-end z-[1000] max-w-[calc(100vw-2rem)] whitespace-normal"
       enter-active-class="transition-all duration-300"
       leave-active-class="transition-all duration-300"
-      enter-from-class="opacity-0 translate-y-2"
-      leave-to-class="opacity-0 translate-y-2"
+      enter-from-class="opacity-0 -translate-y-2"
+      leave-to-class="opacity-0 -translate-y-2"
     >
-      <div
-        v-if="message"
-        class="toast"
-        :class="toastClass"
+      <Alert
+        v-for="toast in toasts"
+        :key="toast.id"
+        :type="toast.type"
+        :soft="false"
+        dismissible
+        @dismiss="emit('close', toast.id)"
       >
-        <div
-          class="alert"
-          :class="alertClass[type]"
-        >
-          <i :class="iconClass[type]" />
-          <span>{{ message }}</span>
-          <button
-            class="btn btn-sm btn-ghost"
-            @click="emit('close')"
-          >
-            <i class="ri-close-line" />
-          </button>
-        </div>
-      </div>
-    </Transition>
+        {{ toast.message }}
+      </Alert>
+    </TransitionGroup>
   </Teleport>
 </template>
-
-<style scoped>
-.toast {
-  z-index: 1000;
-}
-</style>
