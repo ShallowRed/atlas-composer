@@ -19,7 +19,7 @@
 
 import type { Objects, Topology } from 'topojson-specification'
 import { Buffer } from 'node:buffer'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -111,7 +111,7 @@ async function prepareFrance(): Promise<void> {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'insee-'))
   const zipPath = path.join(tempDir, 'ensemble.zip')
   await fs.writeFile(zipPath, zipBuffer)
-  execSync(`unzip -o -q ${JSON.stringify(zipPath)} -d ${JSON.stringify(tempDir)}`)
+  execFileSync('unzip', ['-o', '-q', zipPath, '-d', tempDir])
   const csvText = await fs.readFile(path.join(tempDir, 'donnees_departements.csv'), 'utf-8')
 
   const populationByCode = new Map<string, number>()
