@@ -40,9 +40,9 @@ For the same reason, `setGlobalParameter` and `setTerritoryParameter` throw an `
 
 ## State in the URL
 
-`src/composables/useUrlState.ts` builds the query of a link from the state. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
+`useUrlState` of `src/composables/useUrlState.ts` gives `serializeSharedLink` the state of the stores. `ShareButton` calls `copyShareableUrl`, which builds the link from the current state at this moment and copies it.
 
-The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations. In the `composite-custom` view, these two values are written for each active territory, because the preset of the view gives them. In the other views, the query holds the values that differ from the default values of `parameterRegistry`. `serializeState` gives the keys.
+The query holds the atlas, the view, the projection, the territory mode, the global `rotate` and `parallels`, and the territory scales and translations. In the `composite-custom` view, these two values are written for each active territory, because the preset of the view gives them. In the other views, the query holds the values that differ from the default values of `parameterRegistry`. `serializeSharedLink`, in `src/core/view/shared-link.ts`, writes the keys that `parseSharedLink` reads.
 
 When `MapView` is mounted, it gives `startMapView` the result of `readSharedLink`. `parseSharedLink`, in `src/core/view/shared-link.ts`, keeps the values of a known form and ignores the others. `startMapView` writes the atlas and the view of the link, and `initializeAtlas` runs once. It applies the default presets of the view, then `applySharedLink` writes the values of the link before the geographic data loads. It keeps a projection that the view proposes, a territory of the atlas and the numbers that `parameterRegistry` accepts.
 
@@ -56,7 +56,7 @@ The application and its tests resolve a package through the `exports` field of i
 
 ## Basemap
 
-`src/core/basemap/sources.ts` declares the basemaps in `BASEMAP_SOURCE_DEFINITIONS`: the relief of OpenFreeMap and the imagery of EOX as raster tiles, and the streets of OpenFreeMap as vector tiles, whose TileJSON gives the template of the tiles. The functions of `src/core/basemap/` compute, for each frame of a projection, the zoom and the tiles that cover it, without I/O. `renderBasemap` of `src/services/rendering/basemap-renderer.ts` fetches these tiles, the second exception to the `fetch` rule of `eslint.config.js`, and draws one image for the frames of a render. `useMapRender` puts this image under the map with `MapRenderCoordinator.insertBasemap`. The Content Security Policy of the built page admits the hosts of these tiles, as [development.md](development.md) describes.
+`src/core/basemap/sources.ts` declares the basemaps in `BASEMAP_SOURCE_DEFINITIONS`: the relief of OpenFreeMap and the imagery of EOX as raster tiles, and the streets of OpenFreeMap as vector tiles, whose TileJSON gives the template of the tiles. A `ProjectionFrame` of `src/core/frames/` is a projection and the rectangle of the canvas that it draws; the basemap and the examples both read these frames. The functions of `src/core/basemap/` compute, for each frame, the zoom and the tiles that cover it, without I/O. `renderBasemap` of `src/services/rendering/basemap-renderer.ts` fetches these tiles, the second exception to the `fetch` rule of `eslint.config.js`, and draws one image for the frames of a render. `useMapRender` puts this image under the map with `MapRenderCoordinator.insertBasemap`. The Content Security Policy of the built page admits the hosts of these tiles, as [development.md](development.md) describes.
 
 ## Examples
 
