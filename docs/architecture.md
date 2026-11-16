@@ -48,8 +48,17 @@ When `MapView` is mounted, it gives `startMapView` the result of `readSharedLink
 
 ## Application and packages
 
-The application depends on two packages at runtime. It takes the types of the exported file, `validateConfig` and the shared constants from `@atlas-composer/specification`, and `CompositeProjection` calls `@atlas-composer/projection-core`. `ProjectionLoader` calls the same `buildCompositeProjection`, so the application and the loader share the composition of the projections. The build of `@atlas-composer/projection-loader` includes these two packages in its bundle.
+The application depends on three packages at runtime. It takes the types of the exported file, `validateConfig` and the shared constants from `@atlas-composer/specification`, `CompositeProjection` calls `@atlas-composer/projection-core`, and the examples page draws the presets with `@atlas-composer/projection-loader`, as a reuser of a preset does. `ProjectionLoader` calls the same `buildCompositeProjection`, so the application and the loader share the composition of the projections. The build of `@atlas-composer/projection-loader` includes `@atlas-composer/specification` and `@atlas-composer/projection-core` in its bundle.
 
-`@atlas-composer/projection-loader` is a development dependency of the application: the specs of `src/__tests__/` compare it with the application, as [development.md](development.md) describes. `@atlas-composer/preset-library` reads `configs/atlas-registry.json` and the presets that the application also reads, as [presets.md](presets.md) describes.
+The specs of `src/__tests__/` also compare `@atlas-composer/projection-loader` with the application, as [development.md](development.md) describes. `@atlas-composer/preset-library` reads `configs/atlas-registry.json` and the presets that the application also reads, as [presets.md](presets.md) describes.
 
 The application and its tests resolve a package through the `exports` field of its `package.json`, which points to `dist/`. After a change in a package, `pnpm build:packages` gives the application the new code.
+
+## Basemap
+
+`src/core/basemap/sources.ts` declares the basemaps in `BASEMAP_SOURCE_DEFINITIONS`: the relief of OpenFreeMap and the imagery of EOX as raster tiles, and the streets of OpenFreeMap as vector tiles, whose TileJSON gives the template of the tiles. The functions of `src/core/basemap/` compute, for each frame of a projection, the zoom and the tiles that cover it, without I/O. `renderBasemap` of `src/services/rendering/basemap-renderer.ts` fetches these tiles, the second exception to the `fetch` rule of `eslint.config.js`, and draws one image for the frames of a render. `useMapRender` puts this image under the map with `MapRenderCoordinator.insertBasemap`. The Content Security Policy of the built page admits the hosts of these tiles, as [development.md](development.md) describes.
+
+## Examples
+
+`ExamplesView` shows the examples that `EXAMPLES` of `src/core/examples/definitions.ts` declares, and the demonstration of the composition. The examples store loads the data: `loadExampleMap` reads the preset of an example and the topology of its entities, which `scripts/prepare-examples.ts` writes to `src/public/examples/`; `loadCompositionDemo` reads a preset, the territories of its atlas and the places of `examples/world-places.json`; `loadEarthquakes` reads the feed of `EARTHQUAKE_FEED` once. `useExampleMap` and `useCompositionDemo` draw these data with `renderExampleMap` and `renderCompositionDemo` of `src/services/rendering/`, through the published loader, and `presetFrames` of `src/services/rendering/preset-frames.ts` gives the frames of a preset to both.
+
