@@ -307,12 +307,9 @@ export class ProjectionLoader {
       {
         clipAngle: parameters.clipAngle,
         precision: parameters.precision,
-        pixelClipExtent: clipCoefficients && [
-          clipCoefficients[0] * scale,
-          clipCoefficients[1] * scale,
-          clipCoefficients[2] * scale,
-          clipCoefficients[3] * scale,
-        ],
+        pixelClipExtent: clipCoefficients
+          ? [clipCoefficients[0] * scale, clipCoefficients[1] * scale, clipCoefficients[2] * scale, clipCoefficients[3] * scale]
+          : undefined,
         bounds: territory.bounds && boundsFromArray(territory.bounds),
       },
       projection.translate(),

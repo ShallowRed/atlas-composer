@@ -2,14 +2,8 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "baseUrl": "..",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "paths": {
-      "@/*": ["src/*"],
-      "#configs/*": ["configs/*"],
-      "#types/*": ["types/*"]
-    },
     "types": ["node"],
     "strict": true,
     "noFallthroughCasesInSwitch": true,

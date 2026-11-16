@@ -15,4 +15,4 @@ export type { StreamLike } from '@atlas-composer/projection-core'
 
 export { validateConfig } from '@atlas-composer/specification'
 
-export type { ValidationError, ValidationResult } from '@atlas-composer/specification'
+export type { CompositeProjectionConfig, ValidationError, ValidationResult } from '@atlas-composer/specification'

@@ -2,7 +2,7 @@ import type { ProjectionFrame } from '@/core/frames'
 import { readFileSync } from 'node:fs'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoArea, geoMercator } from 'd3-geo'
-import Pbf from 'pbf'
+import { PbfReader } from 'pbf'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { VECTOR_PALETTES } from '@/core/basemap'
 
@@ -185,7 +185,7 @@ describe('renderBasemap', () => {
 
 describe('openMapTiles polygons', () => {
   it('decode to areas that d3 fills, under half the sphere', () => {
-    const tile = new VectorTile(new Pbf(readFileSync('src/services/rendering/__tests__/fixtures/openmaptiles-9-320-274.pbf')))
+    const tile = new VectorTile(new PbfReader(readFileSync('src/services/rendering/__tests__/fixtures/openmaptiles-9-320-274.pbf')))
     const polygons = ['water', 'landcover', 'landuse'].flatMap((name) => {
       const layer = tile.layers[name]
       return layer ? Array.from({ length: layer.length }, (_, i) => layer.feature(i).toGeoJSON(320, 274, 9)) : []
