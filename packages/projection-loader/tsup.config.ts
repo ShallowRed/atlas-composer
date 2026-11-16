@@ -7,7 +7,7 @@ export default defineConfig({
     'neutral': 'src/neutral.ts',
   },
   format: ['esm'],
-  dts: { resolve: ['@atlas-composer/specification'] },
+  dts: { resolve: ['@atlas-composer/specification', '@atlas-composer/projection-core'] },
   splitting: true,
   sourcemap: true,
   clean: true,

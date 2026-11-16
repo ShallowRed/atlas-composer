@@ -17,41 +17,7 @@ import {
   validateConfig,
 } from '@atlas-composer/specification'
 
-export interface ProjectionLike {
-  (coordinates: [number, number]): [number, number] | null
-  center?: {
-    (): [number, number]
-    (center: [number, number]): ProjectionLike
-  }
-  rotate?: {
-    (): [number, number, number]
-    (angles: [number, number, number]): ProjectionLike
-  }
-  parallels?: {
-    (): [number, number]
-    (parallels: [number, number]): ProjectionLike
-  }
-  scale?: {
-    (): number
-    (scale: number): ProjectionLike
-  }
-  translate?: {
-    (): [number, number]
-    (translate: [number, number]): ProjectionLike
-  }
-  clipExtent?: {
-    (): [[number, number], [number, number]] | null
-    (extent: [[number, number], [number, number]] | null): ProjectionLike
-  }
-  clipAngle?: {
-    (): number
-    (angle: number): ProjectionLike
-  }
-  stream?: (stream: StreamLike) => StreamLike
-  precision?: {
-    (): number
-    (precision: number): ProjectionLike
-  }
+export interface ProjectionLike extends CoreProjectionLike {
   fitExtent?: (extent: [[number, number], [number, number]], object: any) => ProjectionLike
   fitSize?: (size: [number, number], object: any) => ProjectionLike
   fitWidth?: (width: number, object: any) => ProjectionLike
@@ -77,15 +43,6 @@ interface TerritoryLayout {
   factory: ProjectionFactory
   translateCoefficient: [number, number]
   clipCoefficients: [number, number, number, number] | null
-}
-
-export interface StreamLike {
-  point: (x: number, y: number) => void
-  lineStart: () => void
-  lineEnd: () => void
-  polygonStart: () => void
-  polygonEnd: () => void
-  sphere?: () => void
 }
 
 export type ProjectionFactory = () => ProjectionLike
@@ -185,7 +142,7 @@ export class ProjectionLoader {
         const { bounds } = layout.territory
         return {
           id: layout.territory.code,
-          projection: proj as CoreProjectionLike,
+          projection: proj,
           ...(bounds && {
             bounds: {
               minLon: bounds[0][0],
@@ -339,19 +296,14 @@ export class ProjectionLoader {
 
     const scaleMultiplier = parameters.scaleMultiplier ?? DEFAULT_SCALE_MULTIPLIER
     const territoryScale = scale * scaleMultiplier
-    if (projection.scale) {
-      projection.scale(territoryScale)
-    }
-
-    if (projection.translate) {
-      projection.translate([
-        translate[0] + translateCoefficient[0] * scale,
-        translate[1] + translateCoefficient[1] * scale,
-      ])
-    }
+    projection.scale(territoryScale)
+    projection.translate([
+      translate[0] + translateCoefficient[0] * scale,
+      translate[1] + translateCoefficient[1] * scale,
+    ])
 
     applyRenderingParameters(
-      projection as CoreProjectionLike,
+      projection,
       {
         clipAngle: parameters.clipAngle,
         precision: parameters.precision,
@@ -363,7 +315,7 @@ export class ProjectionLoader {
         ],
         bounds: territory.bounds && boundsFromArray(territory.bounds),
       },
-      projection.translate?.() || translate,
+      projection.translate(),
     )
 
     if (debug) {

@@ -8,9 +8,10 @@ export type {
   LoaderOptions,
   ProjectionFactory,
   ProjectionLike,
-  StreamLike,
   SubProjectionOptions,
 } from './projection-loader'
+
+export type { StreamLike } from '@atlas-composer/projection-core'
 
 export { validateConfig } from '@atlas-composer/specification'
 
