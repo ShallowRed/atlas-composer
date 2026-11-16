@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const PNPM_COMMANDS = ['install', 'exec', 'run']
+const PNPM_COMMANDS = ['install', 'exec', 'run', 'audit']
 const CHECKED_PATH = /^(?:src|configs|packages|scripts|types|docs|\.github)\/\S*$/
 const GENERATED_PATH = /^src\/public\/data\//
 const IDENTIFIER = /^([A-Z][a-z0-9]\w*|[a-z][a-z0-9]*[A-Z]\w*)(?:[.(<].*)?$/
