@@ -148,6 +148,7 @@ describe('renderBasemap', () => {
     expect(fetchMock.mock.calls.length - before).toBe(firstRequests)
   })
 
+  // About 330 renders decode the vector tiles, which can take more than the 5 seconds of vitest on a slow runner
   it('keeps 256 vector tiles at most', async () => {
     const tile = readFileSync('src/services/rendering/__tests__/fixtures/openmaptiles-9-320-274.pbf')
     fetchMock.mockImplementation(async (url: string) => (url.endsWith('/planet') ? Response.json({ tiles: ['https://tiles.test/{z}/{x}/{y}.pbf'] }) : new Response(tile)))
@@ -163,7 +164,7 @@ describe('renderBasemap', () => {
     await renderer.renderBasemap(first, 'streets', options())
     expect(firstRequests).toBeGreaterThan(0)
     expect(fetchMock.mock.calls.length - before).toBe(firstRequests)
-  })
+  }, 30_000)
 
   it('counts a tile whose body does not read as missing, and requests it again', async () => {
     fetchMock.mockImplementation(async () => {
