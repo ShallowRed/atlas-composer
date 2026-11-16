@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -22,12 +23,12 @@ vi.mock('@/composables/useUrlState', () => ({
 }))
 
 describe('shareButton', () => {
-  let mockCopyShareableUrl: ReturnType<typeof vi.fn>
+  let mockCopyShareableUrl: Mock<() => Promise<boolean>>
 
   beforeEach(async () => {
     setActivePinia(createPinia())
 
-    mockCopyShareableUrl = vi.fn()
+    mockCopyShareableUrl = vi.fn<() => Promise<boolean>>()
 
     const useUrlStateModule = await import('@/composables/useUrlState')
     vi.mocked(useUrlStateModule.useUrlState).mockReturnValue({
