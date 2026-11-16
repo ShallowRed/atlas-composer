@@ -1,11 +1,7 @@
-import type { Extent } from './frames'
+import type { Extent, InvertibleProjection } from '@/core/frames'
+import { invertOnGlobe } from '@/core/frames'
 
 type Point = [number, number]
-
-export interface InvertibleProjection {
-  (point: Point): Point | null
-  invert?: (point: Point) => Point | null
-}
 
 const MAX_MERCATOR_LATITUDE = 85.0511287798
 
@@ -72,16 +68,4 @@ export function* coverFrame(projection: InvertibleProjection, [[x0, y0], [x1, y1
     yield
   }
   return [...tiles.values()]
-}
-
-const ROUND_TRIP_TOLERANCE = 0.5
-
-// The longitude and latitude of a pixel, when they project back to it within half a pixel: outside the globe, the inverse returns a point that projects elsewhere
-export function invertOnGlobe(projection: InvertibleProjection, point: Point): Point | null {
-  const inverse = projection.invert?.(point)
-  if (!inverse || !Number.isFinite(inverse[0]) || !Number.isFinite(inverse[1])) {
-    return null
-  }
-  const back = projection(inverse)
-  return back !== null && Math.abs(back[0] - point[0]) <= ROUND_TRIP_TOLERANCE && Math.abs(back[1] - point[1]) <= ROUND_TRIP_TOLERANCE ? inverse : null
 }

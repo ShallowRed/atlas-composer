@@ -1,5 +1,5 @@
 import type { JSONAtlasConfig } from '#types'
-import type { Extent, InvertibleProjection } from '@/core/basemap'
+import type { Extent, InvertibleProjection } from '@/core/frames'
 import { readFileSync } from 'node:fs'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
@@ -7,7 +7,8 @@ import { geoEquirectangular, geoMercator, geoNaturalEarth1 } from 'd3-geo'
 import { geoRobinson } from 'd3-geo-projection'
 import { describe, expect, it } from 'vitest'
 import { readCompositeSources } from '@/__tests__/test-utils'
-import { coverFrame, invertOnGlobe, tileOf, zoomForFrame } from '@/core/basemap'
+import { coverFrame, tileOf, zoomForFrame } from '@/core/basemap'
+import { invertOnGlobe } from '@/core/frames'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ProjectionCategory } from '@/core/projections/types'
 
@@ -124,14 +125,5 @@ describe('tilesForFrame', () => {
     const world = geoNaturalEarth1().fitSize([960, 500], { type: 'Sphere' })
     const tiles = tilesForFrame(world, [[0, 0], [960, 500]], 2)
     expect(tiles).toHaveLength(16)
-  })
-})
-
-describe('invertOnGlobe', () => {
-  const world = geoRobinson().fitSize([960, 500], { type: 'Sphere' })
-
-  it('inverts a pixel of the globe and refuses a corner outside it', () => {
-    expect(invertOnGlobe(world, [480, 250])).not.toBeNull()
-    expect(invertOnGlobe(world, [2, 2])).toBeNull()
   })
 })

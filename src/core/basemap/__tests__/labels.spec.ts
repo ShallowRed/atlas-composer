@@ -1,4 +1,4 @@
-import type { Extent } from '@/core/basemap'
+import type { Extent } from '@/core/frames'
 import { describe, expect, it } from 'vitest'
 import { labelsToDraw } from '@/core/basemap'
 

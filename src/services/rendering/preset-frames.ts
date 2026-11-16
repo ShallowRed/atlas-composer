@@ -1,6 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { GeoProjection } from 'd3-geo'
-import type { BasemapFrame, Extent } from '@/core/basemap'
+import type { Extent, ProjectionFrame } from '@/core/frames'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
 import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers'
 
@@ -12,7 +12,7 @@ export function projectionLoader(): ProjectionLoader {
 }
 
 // The sub-projections of a preset through the published loader, each with the rectangle of the canvas that it draws
-export function presetFrames(config: CompositeProjectionConfig): BasemapFrame[] {
+export function presetFrames(config: CompositeProjectionConfig): ProjectionFrame[] {
   const { width, height } = config.canvasDimensions
   const subProjections = projectionLoader().createSubProjections(config, { scale: config.referenceScale, translate: [width / 2, height / 2] })
   // The sub-projections of the loader are d3 projections, whose ProjectionLike type lacks members that invert and geoPath do not call

@@ -1,4 +1,4 @@
-import type { BasemapFrame } from '@/core/basemap'
+import type { ProjectionFrame } from '@/core/frames'
 import { readFileSync } from 'node:fs'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoArea, geoMercator } from 'd3-geo'
@@ -57,8 +57,8 @@ class FakeCanvas {
   }
 }
 
-function frame(longitude: number, latitude: number, scale: number): BasemapFrame {
-  const extent: BasemapFrame['extent'] = [[0, 0], [64, 32]]
+function frame(longitude: number, latitude: number, scale: number): ProjectionFrame {
+  const extent: ProjectionFrame['extent'] = [[0, 0], [64, 32]]
   return { code: 'X', projection: geoMercator().scale(scale).center([longitude, latitude]).translate([32, 16]) as never, extent }
 }
 

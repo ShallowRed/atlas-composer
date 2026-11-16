@@ -1,4 +1,5 @@
-import type { BasemapFrame, VectorPalette } from '@/core/basemap'
+import type { VectorPalette } from '@/core/basemap'
+import type { ProjectionFrame } from '@/core/frames'
 import type { BasemapError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { ViewState } from '@/core/view'
@@ -44,7 +45,7 @@ export function useMapRender(props: MapRenderProps) {
   const { territoryName } = useTerritoryNames()
   const { locale } = useI18n()
   // The frames of the last render of this map, for its basemap
-  let frames: BasemapFrame[] = []
+  let frames: ProjectionFrame[] = []
 
   const showSphere = computed<boolean>(() => {
     const atlasConfig = atlasStore.currentAtlasConfig

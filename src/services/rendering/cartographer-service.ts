@@ -1,5 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
-import type { BasemapFrame } from '@/core/basemap'
+import type { ProjectionFrame } from '@/core/frames'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
@@ -23,7 +23,7 @@ interface RenderOptions {
 // The map drawn, and the frames of its projections for the basemap, taken at the same render
 export interface RenderedMap {
   svg: SVGSVGElement
-  frames: BasemapFrame[]
+  frames: ProjectionFrame[]
 }
 
 export interface SimpleRenderOptions extends RenderOptions {
@@ -238,7 +238,7 @@ export class Cartographer {
     const frames = subProjections.map(({ territoryCode, projection }) => ({
       code: territoryCode,
       projection,
-      extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as BasemapFrame['extent'],
+      extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as ProjectionFrame['extent'],
     }))
 
     return {
