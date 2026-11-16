@@ -273,7 +273,6 @@ export const useCompositionStore = defineStore('composition', () => {
       activeTerritoryProvider: viewStore.activeTerritoryProvider,
       referenceScale,
     })
-    debug('Rebuilt composite projection')
     geoDataStore.triggerRender()
   }
 
