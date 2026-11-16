@@ -4,7 +4,7 @@ import type { CompositionDemoInput, CompositionMark, Earthquake } from '@/core/e
 import { geoEquirectangular, geoPath } from 'd3-geo'
 import { inExtent, visibleLabels } from '@/core/basemap'
 import { interpolate, territoryOf } from '@/core/examples'
-import { presetFrames } from '@/services/rendering/example-map'
+import { presetFrames } from '@/services/rendering/preset-frames'
 
 type Point = [number, number]
 

@@ -1,6 +1,7 @@
+import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Topology } from 'topojson-specification'
 import type { I18nValue } from '#types'
-import type { CompositionDemoInput, Earthquake, ExampleDefinition, ExampleMap, Place, TerritoryContours } from '@/core/examples'
+import type { CompositionDemoInput, Earthquake, ExampleDefinition, Place, TerritoryContours } from '@/core/examples'
 import type { AtlasConfigError, PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId } from '@/types/branded'
@@ -11,7 +12,12 @@ import { err, ok } from '@/core/types/result'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
-import { renderExampleMap } from '@/services/rendering/example-map'
+
+// The preset of an example and the topology of its entities, which useExampleMap draws
+export interface ExampleMapSource {
+  config: CompositeProjectionConfig
+  topology: Topology
+}
 
 export interface CompositionDemoSource {
   input: CompositionDemoInput
@@ -37,7 +43,7 @@ export const useExamplesStore = defineStore('examples', () => {
   const earthquakesUnavailable = ref(false)
   let earthquakes: Promise<Earthquake[]> | null = null
 
-  async function loadExampleMap(example: ExampleDefinition): Promise<Result<ExampleMap, PresetError>> {
+  async function loadExampleMap(example: ExampleDefinition): Promise<Result<ExampleMapSource, PresetError>> {
     const preset = await PresetLoader.loadPreset(example.presetId)
     if (!preset.ok) {
       return preset
@@ -51,7 +57,7 @@ export const useExamplesStore = defineStore('examples', () => {
       return err(data.error)
     }
 
-    return ok(renderExampleMap(preset.value.config, data.value, example))
+    return ok({ config: preset.value.config, topology: data.value })
   }
 
   async function loadCompositionDemo(presetId: PresetId): Promise<Result<CompositionDemoSource, PresetError | AtlasConfigError>> {
