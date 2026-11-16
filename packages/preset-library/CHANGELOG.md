@@ -1,5 +1,11 @@
 # @atlas-composer/preset-library
 
+## 2.5.1
+
+### Patch Changes
+
+- 0fe5ba2: `getPresetMetadata` returns `undefined` for an id that names a member of `Object.prototype`, such as `constructor`.
+
 ## 2.5.0
 
 ### Minor Changes

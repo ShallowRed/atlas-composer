@@ -1,5 +1,11 @@
 # @atlas-composer/projection-core
 
+## 1.2.0
+
+### Minor Changes
+
+- 9809865: `CompositeBuildInput` names the input of `buildCompositeProjection`. `CompositeProjectionConfig` stays as a deprecated alias of it, since `@atlas-composer/specification` gives this name to the format of the exported file.
+
 ## 1.1.0
 
 ### Minor Changes
