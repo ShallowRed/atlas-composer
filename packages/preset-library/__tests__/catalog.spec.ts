@@ -51,6 +51,10 @@ describe('preset catalog', () => {
     expect(getPresetMetadata('france-standard')?.tags).toEqual([])
   })
 
+  it.each(['constructor', '__proto__', 'hasOwnProperty'])('returns no preset for %s, a member of Object.prototype', (id) => {
+    expect(getPresetMetadata(id)).toBeUndefined()
+  })
+
   it('returns the default preset of the registry', () => {
     expect(getDefaultPreset('france')?.id).toBe('france-pseudo-d3cp')
   })

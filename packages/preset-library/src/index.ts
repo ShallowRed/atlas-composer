@@ -68,7 +68,7 @@ export function getAllPresets(): PresetMetadata[] {
 }
 
 export function getPresetMetadata(id: string): PresetMetadata | undefined {
-  return catalog.presets[id]
+  return Object.hasOwn(catalog.presets, id) ? catalog.presets[id] : undefined
 }
 
 const VIEW_MODE_TYPES: PresetType[] = ['unified', 'split', 'built-in-composite']
