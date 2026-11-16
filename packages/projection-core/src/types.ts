@@ -78,10 +78,13 @@ export interface SubProjectionEntry {
   bounds?: GeoBounds
 }
 
-export interface CompositeProjectionConfig {
+export interface CompositeBuildInput {
   entries: SubProjectionEntry[]
   debug?: boolean
 }
+
+/** @deprecated Use CompositeBuildInput: CompositeProjectionConfig of @atlas-composer/specification names the exported file */
+export type CompositeProjectionConfig = CompositeBuildInput
 
 export interface PointCaptureResult {
   pointStream: StreamLike

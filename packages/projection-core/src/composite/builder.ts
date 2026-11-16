@@ -9,7 +9,7 @@
  */
 
 import type {
-  CompositeProjectionConfig,
+  CompositeBuildInput,
   GeoBounds,
   GeoBoundsArray,
   ProjectionLike,
@@ -28,7 +28,7 @@ function normalizeBounds(bounds: GeoBounds | GeoBoundsArray): GeoBounds {
 }
 
 export function buildCompositeProjection(
-  config: CompositeProjectionConfig,
+  config: CompositeBuildInput,
 ): ProjectionLike {
   const { entries, debug = false } = config
 
