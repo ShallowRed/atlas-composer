@@ -8,13 +8,12 @@ export interface DropdownOption {
   label: string
   icon?: string
   badge?: string
-  translated?: boolean
 }
 
 export interface DropdownOptionGroup {
   key?: string
-  label?: string
-  category?: string
+  label: string
+  icon?: string
   options?: DropdownOption[]
 }
 

@@ -26,11 +26,6 @@ const viewStore = useViewStore()
 
 const { atlasGroups } = useAtlasGroups()
 
-const atlasGroupsWithIcons = computed(() => atlasGroups.value.map(group => ({
-  label: group.label,
-  options: group.options.map(atlas => ({ ...atlas, translated: true })),
-})))
-
 const viewModeOptionsWithIcons = computed(() => {
   return viewModeOptions.value.map(mode => ({
     ...mode,
@@ -48,7 +43,7 @@ const viewModeOptionsWithIcons = computed(() => {
       :model-value="atlasStore.selectedAtlasId"
       :label="t('settings.region')"
       icon="ri-map-2-line"
-      :option-groups="atlasGroupsWithIcons"
+      :option-groups="atlasGroups"
       @update:model-value="compositionStore.selectAtlas($event as AtlasId)"
     />
     <div

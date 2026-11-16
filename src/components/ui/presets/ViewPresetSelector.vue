@@ -20,7 +20,6 @@ const presetOptions = computed<DropdownOption[]>(() => {
   return viewStore.availableViewPresets.map(preset => ({
     value: preset.id,
     label: localize(preset.name),
-    translated: true,
     icon: getPresetIcon(preset.type),
   }))
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
+import type { ProjectionCategoryType, ProjectionDefinition, ProjectionRecommendation } from '@/core/projections/types'
 import type { ProjectionId } from '@/types/branded'
 
 import { computed, ref, toRef } from 'vue'
@@ -10,6 +10,7 @@ import Modal from '@/components/ui/primitives/Modal.vue'
 import ProjectionInfo from '@/components/ui/projections/ProjectionInfo.vue'
 import { useProjectionRecommendations } from '@/composables/useProjectionRecommendations'
 import { projectionRegistry } from '@/core/projections/registry'
+import { getCategoryIcon } from '@/utils/projection-icons'
 
 interface ProjectionOption {
   value: string
@@ -56,7 +57,9 @@ const infoProjection = ref<ProjectionDefinition | null>(null)
 
 const projectionGroupsWithBadges = computed(() => {
   return props.projectionGroups.map(group => ({
-    ...group,
+    key: group.category,
+    label: t(`projections.categories.${group.category}`),
+    icon: getCategoryIcon(group.category as ProjectionCategoryType),
     options: group.options?.map((option) => {
       const badge = props.showRecommendations ? getBadge(option.value as ProjectionId) : undefined
       const cssClass = badge ? getCssClass(option.value as ProjectionId) : undefined
@@ -65,6 +68,7 @@ const projectionGroupsWithBadges = computed(() => {
 
       return {
         ...option,
+        label: t(option.label),
         badge: badgeWithClass,
       }
     }),

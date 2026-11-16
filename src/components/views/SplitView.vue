@@ -65,7 +65,6 @@ const groupingOptions = computed(() => {
     .map(([key, collectionSet]) => ({
       value: key,
       label: localize(collectionSet.label),
-      translated: true,
     }))
 })
 

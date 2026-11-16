@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownOptionGroup } from './DropdownControl.vue'
-import type { ProjectionCategoryType } from '@/core/projections/types'
-
-import { useI18n } from 'vue-i18n'
-
-import { getCategoryIcon } from '@/utils/projection-icons'
-
 import DropdownOptionItem from './DropdownOptionItem.vue'
 
 interface Props {
@@ -28,28 +22,6 @@ const emit = defineEmits<{
   select: [value: string]
   keydown: [event: KeyboardEvent, value: string]
 }>()
-
-const { t } = useI18n()
-
-function getCategoryLabel(group: DropdownOptionGroup): string {
-  if (group.label) {
-    return group.label
-  }
-
-  if (group.category) {
-    const translationKey = `projections.categories.${group.category}`
-    return t(translationKey)
-  }
-
-  return ''
-}
-
-function getCategoryIconClass(group: DropdownOptionGroup): string | undefined {
-  if (group.category) {
-    return getCategoryIcon(group.category as ProjectionCategoryType)
-  }
-  return undefined
-}
 
 function getOptionId(index: number): string {
   return `dropdown-option-${index}`
@@ -135,15 +107,15 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   >
     <template
       v-for="group in optionGroups"
-      :key="group.key || group.category"
+      :key="group.key ?? group.label"
     >
       <li>
         <h2 class="menu-title flex items-center gap-1">
           <i
-            v-if="getCategoryIconClass(group)"
-            :class="getCategoryIconClass(group)"
+            v-if="group.icon"
+            :class="group.icon"
           />
-          {{ getCategoryLabel(group) }}
+          {{ group.label }}
         </h2>
       </li>
       <ul class="flex flex-col gap-1">
@@ -178,15 +150,15 @@ function handleKeydown(event: KeyboardEvent, value: string) {
   >
     <template
       v-for="group in optionGroups"
-      :key="group.key || group.category"
+      :key="group.key ?? group.label"
     >
       <li>
         <h2 class="menu-title flex items-center gap-1">
           <i
-            v-if="getCategoryIconClass(group)"
-            :class="getCategoryIconClass(group)"
+            v-if="group.icon"
+            :class="group.icon"
           />
-          {{ getCategoryLabel(group) }}
+          {{ group.label }}
         </h2>
         <ul class="flex flex-col gap-1">
           <li

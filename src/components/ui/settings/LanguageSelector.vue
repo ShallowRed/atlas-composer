@@ -15,7 +15,6 @@ const languageOptions = computed<DropdownOption[]>(() => {
     value: code,
     label,
     icon: getLanguageFlag(code),
-    translated: true,
   }))
 })
 

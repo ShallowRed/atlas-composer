@@ -39,7 +39,7 @@ const badgeClasses = computed(() => {
       v-else-if="showBadge && selectedOption.badge"
       class="badge badge-soft badge-xs"
     >{{ selectedOption.badge }}</span>
-    <span class="min-w-0 truncate">{{ selectedOption.translated ? selectedOption.label : $t(selectedOption.label) }}</span>
+    <span class="min-w-0 truncate">{{ selectedOption.label }}</span>
   </span>
   <span
     v-else
