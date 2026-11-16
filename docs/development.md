@@ -57,6 +57,8 @@ The packages of `packages/` are published on npm with [changesets](https://githu
 
 `.github/workflows/deploy.yml` deploys the site to GitHub Pages on each push to `main`. After the check, it prepares the geographic data of each atlas with `pnpm geodata:prepare`, because git ignores `src/public/data/`, runs `pnpm build` and publishes the `dist` folder. The workflow reads the atlases in `configs/atlas-registry.json`: [atlases.md](atlases.md) describes the case of an atlas at another resolution than 50m. The concurrency group `pages` lets a running deployment finish before the next one starts.
 
+`pnpm build` writes a Content Security Policy in a `<meta>` element of `index.html`, since GitHub Pages sets no response header. `contentSecurityPolicyPlugin` of `scripts/vite-plugins.ts` admits the inline scripts by their hash, and admits in `connect-src` the origins of the URLs of `BASEMAP_SOURCE_DEFINITIONS` and of `EARTHQUAKE_FEED`: a new basemap needs no change of the policy. When another feature fetches from another host, declare its URL in a module of `src/core/` without imports, and add this URL to the list of `contentSecurityPolicyPlugin`. `pnpm preview` serves the build with the policy, and the browser console names each request that it blocks.
+
 ## Debug logs
 
 `src/utils/logger.ts` declares one logger of the [debug](https://www.npmjs.com/package/debug) library per module, with a namespace such as `ac:render:overlay`. A module takes its logger from `logger` and passes a format string with its arguments.
