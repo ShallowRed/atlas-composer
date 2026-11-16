@@ -27,7 +27,6 @@ interface InternalGraticuleConfig extends GraticuleOverlayConfig {
   geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
   projectionParams?: ProjectionParameters
   showSphere?: boolean
-  filteredTerritoryCodes?: Set<string>
 }
 
 export class GraticuleOverlayService {
@@ -44,12 +43,6 @@ export class GraticuleOverlayService {
     const existingOverlay = select(svg).select('.graticule-overlays')
     if (!existingOverlay.empty()) {
       existingOverlay.remove()
-    }
-
-    // A custom composite without an active territory draws no graticule, before a projection is created from its id
-    if (config.viewMode === 'composite-custom' && config.customComposite?.getAllSubProjectionData().length === 0) {
-      debug('No active territory for the graticule overlay')
-      return
     }
 
     let projection: GeoProjection | undefined = config.projection
@@ -200,18 +193,14 @@ export class GraticuleOverlayService {
     group: Selection<SVGGElement, unknown, null, undefined>,
     config: InternalGraticuleConfig,
   ): void {
-    const { width, height, customComposite, filteredTerritoryCodes } = config
+    const { width, height, customComposite } = config
 
     if (!customComposite) {
       this.renderSimpleGraticule(group, config)
       return
     }
 
-    let subProjections = customComposite.getAllSubProjectionData()
-
-    if (filteredTerritoryCodes) {
-      subProjections = subProjections.filter(sp => filteredTerritoryCodes.has(sp.territoryCode))
-    }
+    const subProjections = customComposite.getAllSubProjectionData()
 
     if (subProjections.length === 0) {
       return

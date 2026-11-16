@@ -22,7 +22,6 @@ export interface OverlayConfig {
   height: number
   customComposite?: CompositeProjection | null
   renderedProjection?: GeoProjection | null
-  filteredTerritoryCodes?: Set<string>
 }
 
 export class MapOverlayService {
@@ -95,15 +94,7 @@ export class MapOverlayService {
       return
     }
 
-    let borders = composite.getCompositionBorders(config.width, config.height)
-
-    if (config.filteredTerritoryCodes) {
-      borders = borders.filter(border =>
-        config.filteredTerritoryCodes!.has(border.territoryCode),
-      )
-    }
-
-    const validBorders = borders
+    const validBorders = composite.getCompositionBorders(config.width, config.height)
       .map(border => this.boundsToRect(border.bounds))
       .filter(rect => rect.width > 0 && rect.height > 0)
 

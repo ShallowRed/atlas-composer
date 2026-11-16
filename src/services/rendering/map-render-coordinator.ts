@@ -127,7 +127,6 @@ export class MapRenderCoordinator {
       height: number
       customComposite?: any
       renderedProjection?: GeoProjection | null
-      filteredTerritoryCodes?: Set<string>
     },
   ): void {
     MapOverlayService.applyOverlays(svg, {
@@ -138,7 +137,6 @@ export class MapRenderCoordinator {
       height: config.height,
       customComposite: config.customComposite,
       renderedProjection: config.renderedProjection,
-      filteredTerritoryCodes: config.filteredTerritoryCodes,
     })
   }
 
@@ -156,7 +154,6 @@ export class MapRenderCoordinator {
       geoData?: GeoJSON.FeatureCollection | GeoJSON.Feature | { type: 'Sphere' }
       projectionParams?: ProjectionParameters
       showSphere?: boolean
-      filteredTerritoryCodes?: Set<string>
     },
   ): void {
     if (!config.showGraticule) {
@@ -175,7 +172,6 @@ export class MapRenderCoordinator {
       geoData: config.geoData,
       projectionParams: config.projectionParams,
       showSphere: config.showSphere,
-      filteredTerritoryCodes: config.filteredTerritoryCodes,
     })
   }
 }

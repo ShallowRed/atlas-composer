@@ -213,7 +213,7 @@ export class Cartographer {
   }
 
   private async renderCustomComposite(options: CompositeRenderOptions): Promise<RenderedMap> {
-    const { territoryMode, territoryCodes, width, height, showSphere, titleOf, fillTerritories } = options
+    const { territoryMode, width, height, showSphere, titleOf, fillTerritories } = options
 
     if (!this.customComposite) {
       throw new Error('Custom composite projection not configured for this region')
@@ -235,14 +235,11 @@ export class Cartographer {
       customComposite.getSubProjectionData(feature.properties?.code)?.projection
 
     // One frame per active territory, in the order of the configuration
-    const active = territoryCodes ? new Set(territoryCodes) : null
-    const frames = subProjections
-      .filter(({ territoryCode }) => !active || active.has(territoryCode))
-      .map(({ territoryCode, projection }) => ({
-        code: territoryCode,
-        projection,
-        extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as BasemapFrame['extent'],
-      }))
+    const frames = subProjections.map(({ territoryCode, projection }) => ({
+      code: territoryCode,
+      projection,
+      extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as BasemapFrame['extent'],
+    }))
 
     return {
       svg: this.createSvg(rawData, projectionFn, projectionOf, width, height, showSphere, titleOf, fillTerritories),

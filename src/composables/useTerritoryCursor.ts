@@ -101,18 +101,6 @@ export function useTerritoryCursor() {
       .attr('pointer-events', 'none')
   }
 
-  function isTerritoryDraggable(territoryCode: string): boolean {
-    if (!isDragEnabled.value)
-      return false
-
-    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
-    if (!activeTerritoryCodes.has(territoryCode as TerritoryCode)) {
-      return false
-    }
-
-    return true
-  }
-
   function getTerritoryCodeFromElement(element: Element): string | null {
     const territoryAttr = element.getAttribute('data-territory')
     if (territoryAttr)
@@ -130,9 +118,6 @@ export function useTerritoryCursor() {
     if (!territoryCode || !isDragEnabled.value)
       return 'default'
 
-    if (!isTerritoryDraggable(territoryCode))
-      return 'default'
-
     if (isDragging.value && dragTerritoryCode.value === territoryCode) {
       return 'grabbing'
     }
@@ -141,7 +126,7 @@ export function useTerritoryCursor() {
   }
 
   function startDrag(event: MouseEvent, territoryCode: string) {
-    if (!isTerritoryDraggable(territoryCode)) {
+    if (!isDragEnabled.value) {
       return
     }
 
@@ -234,7 +219,7 @@ export function useTerritoryCursor() {
     const target = event.target as Element
     const territoryCode = getTerritoryCodeFromElement(target)
 
-    if (territoryCode && isTerritoryDraggable(territoryCode)) {
+    if (territoryCode && isDragEnabled.value) {
       startDrag(event, territoryCode)
     }
   }
@@ -243,7 +228,7 @@ export function useTerritoryCursor() {
     const target = event.target as Element
     const territoryCode = getTerritoryCodeFromElement(target)
 
-    if (territoryCode && isTerritoryDraggable(territoryCode)) {
+    if (territoryCode && isDragEnabled.value) {
       hoveredTerritoryCode.value = territoryCode
 
       const svg = target.closest('svg') as SVGSVGElement
@@ -276,11 +261,7 @@ export function useTerritoryCursor() {
     if (!isDragEnabled.value || !customComposite)
       return
 
-    const allBorders = customComposite.getCompositionBorders(width, height)
-    const activeTerritoryCodes = new Set(geoDataStore.allActiveTerritories.map(t => t.code))
-    const borders = allBorders.filter((border: any) =>
-      activeTerritoryCodes.has(border.territoryCode),
-    )
+    const borders = customComposite.getCompositionBorders(width, height)
 
     const svgSelection = select(svg)
 
@@ -323,7 +304,7 @@ export function useTerritoryCursor() {
     select(svg).selectAll('path[data-territory]').style('pointer-events', function () {
       const element = this as SVGPathElement
       const territoryCode = element.getAttribute('data-territory')
-      return (territoryCode && isTerritoryDraggable(territoryCode)) ? 'none' : null
+      return (territoryCode && isDragEnabled.value) ? 'none' : null
     })
 
     disableTooltipPointerEvents(svg)
