@@ -4,6 +4,7 @@ import type { ImportError } from '@/core/types/errors'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Alert from '@/components/ui/primitives/Alert.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useCompositionStore } from '@/stores/composition'
@@ -158,25 +159,26 @@ function clearFile() {
     </div>
 
     <!-- Selected File Info -->
-    <div
+    <Alert
       v-else-if="!isProcessing"
-      class="alert alert-info alert-soft mb-4 flex items-center justify-between"
+      type="info"
+      icon="ri-file-3-line"
+      class="mb-4"
     >
-      <div class="flex items-center gap-2 flex-1">
-        <i class="ri-file-3-line text-xl" />
+      <div class="flex items-center gap-2">
         <span class="font-medium">{{ selectedFile.name }}</span>
-        <span class="text-sm text-base-content/70">
+        <span class="flex-1 text-sm text-base-content/70">
           ({{ (selectedFile.size / 1024).toFixed(2) }} KB)
         </span>
+        <button
+          class="btn btn-sm btn-ghost"
+          @click="clearFile"
+        >
+          <i class="ri-close-line" />
+          {{ t('import.removeFile') }}
+        </button>
       </div>
-      <button
-        class="btn btn-sm btn-ghost"
-        @click="clearFile"
-      >
-        <i class="ri-close-line" />
-        {{ t('import.removeFile') }}
-      </button>
-    </div>
+    </Alert>
 
     <!-- Processing -->
     <div
@@ -190,34 +192,33 @@ function clearFile() {
     <!-- Validation Results -->
     <div v-if="(importError || importedConfig) && !isProcessing">
       <!-- Success -->
-      <div
+      <Alert
         v-if="!importError"
-        class="alert alert-success alert-soft my-4"
+        type="success"
+        icon="ri-check-line"
+        class="my-4"
       >
-        <i class="ri-check-line text-xl" />
-        <span>{{ t('import.valid') }}</span>
-      </div>
+        {{ t('import.valid') }}
+      </Alert>
 
       <!-- Errors -->
-      <div
+      <Alert
         v-if="importError"
-        class="alert alert-error alert-soft mb-4"
+        type="error"
+        class="mb-4"
       >
-        <div class="flex-1">
-          <h3 class="font-bold mb-2 flex items-center gap-2">
-            <i class="ri-error-warning-line text-xl" />
-            {{ t('import.errorsTitle') }}
-          </h3>
-          <ul class="list-disc list-inside text-sm mt-2">
-            <li
-              v-for="(message, index) in errorMessages(importError)"
-              :key="index"
-            >
-              {{ message }}
-            </li>
-          </ul>
-        </div>
-      </div>
+        <h3 class="font-bold">
+          {{ t('import.errorsTitle') }}
+        </h3>
+        <ul class="list-disc list-inside text-sm mt-1">
+          <li
+            v-for="(message, index) in errorMessages(importError)"
+            :key="index"
+          >
+            {{ message }}
+          </li>
+        </ul>
+      </Alert>
 
       <!-- Configuration Preview -->
       <div

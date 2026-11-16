@@ -6,6 +6,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DropdownControl from '@/components/ui/forms/DropdownControl.vue'
+import Alert from '@/components/ui/primitives/Alert.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasPresets } from '@/core/atlases/registry'
@@ -115,12 +116,12 @@ watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
       <span>{{ t('presets.loading') }}</span>
     </div>
 
-    <div
+    <Alert
       v-if="loadError"
-      class="alert alert-error text-xs p-2"
+      type="error"
+      size="xs"
     >
-      <i class="ri-error-warning-line" />
-      <span>{{ errorMessage(loadError) }}</span>
-    </div>
+      {{ errorMessage(loadError) }}
+    </Alert>
   </div>
 </template>
