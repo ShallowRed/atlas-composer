@@ -1,5 +1,3 @@
-import type { Plugin } from 'vite'
-import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -8,82 +6,11 @@ import vue from '@vitejs/plugin-vue'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 import eslint from 'vite-plugin-eslint'
+import { notFoundPagePlugin, serveConfigsPlugin } from './scripts/vite-plugins'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const srcDir = path.resolve(__dirname, 'src')
 const outDir = path.resolve(__dirname, 'dist')
-const configsDir = path.resolve(__dirname, 'configs')
-
-/**
- * Vite plugin to serve configs folder as public assets
- * Serves /configs/* files from the root configs directory
- */
-function serveConfigsPlugin(): Plugin {
-  return {
-    name: 'serve-configs',
-    configureServer(server) {
-      // Serve configs directory in dev mode
-      server.middlewares.use((req, res, next) => {
-        if (req.url?.startsWith('/configs/')) {
-          const filePath = path.join(configsDir, req.url.slice('/configs/'.length))
-          if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-            const content = fs.readFileSync(filePath, 'utf-8')
-            res.setHeader('Content-Type', 'application/json')
-            res.end(content)
-            return
-          }
-        }
-        next()
-      })
-    },
-    generateBundle() {
-      // Copy configs to dist in production build
-      const distConfigsDir = path.join(outDir, 'configs')
-
-      // Create configs directory in dist
-      if (!fs.existsSync(distConfigsDir)) {
-        fs.mkdirSync(distConfigsDir, { recursive: true })
-      }
-
-      // Recursively copy all JSON files and subdirectories from configs to dist/configs
-      function copyRecursive(srcDir: string, destDir: string) {
-        const files = fs.readdirSync(srcDir)
-        for (const file of files) {
-          const srcPath = path.join(srcDir, file)
-          const destPath = path.join(destDir, file)
-
-          if (fs.statSync(srcPath).isDirectory()) {
-            // Create subdirectory and recurse
-            if (!fs.existsSync(destPath)) {
-              fs.mkdirSync(destPath, { recursive: true })
-            }
-            copyRecursive(srcPath, destPath)
-          }
-          else if (file.endsWith('.json')) {
-            fs.copyFileSync(srcPath, destPath)
-          }
-        }
-      }
-
-      copyRecursive(configsDir, distConfigsDir)
-    },
-  }
-}
-
-/**
- * GitHub Pages serves 404.html for a path that matches no file: the application then reads the path
- * https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
- */
-function notFoundPagePlugin(): Plugin {
-  return {
-    name: 'not-found-page',
-    apply: 'build',
-    writeBundle(options) {
-      const dir = options.dir ?? outDir
-      fs.copyFileSync(path.join(dir, 'index.html'), path.join(dir, '404.html'))
-    },
-  }
-}
 
 export default defineConfig(env => ({
   root: srcDir,
