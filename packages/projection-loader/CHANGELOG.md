@@ -1,5 +1,12 @@
 # @atlas-composer/projection-loader
 
+## 3.4.0
+
+### Minor Changes
+
+- 49f9750: `clipAngle` of `ProjectionLike` reads and sets `number | null`, as a d3 projection does, so that TypeScript 6 accepts a d3 projection as a `ProjectionLike`. An object written by hand that implements `ProjectionLike` declares the parameter of `clipAngle` as `number | null`.
+- 49f9750: The `index` and `neutral` entries export `CompositeProjectionConfig`, and the `neutral` entry exports `NeutralComposite`: their declarations use these types.
+
 ## 3.3.0
 
 ### Minor Changes

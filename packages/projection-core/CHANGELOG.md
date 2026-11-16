@@ -1,5 +1,11 @@
 # @atlas-composer/projection-core
 
+## 1.3.0
+
+### Minor Changes
+
+- 49f9750: `clipAngle` of `ProjectionLike` reads and sets `number | null`, as a d3 projection does, so that TypeScript 6 accepts a d3 projection as a `ProjectionLike`. An object written by hand that implements `ProjectionLike` declares the parameter of `clipAngle` as `number | null`.
+
 ## 1.2.0
 
 ### Minor Changes
