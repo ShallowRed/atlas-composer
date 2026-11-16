@@ -9,14 +9,12 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "moduleDetection": "force",
     "useDefineForClassFields": true,
-    "baseUrl": ".",
     "module": "ESNext",
     /* Bundler mode */
     "moduleResolution": "bundler",
     "paths": {
       "@/*": ["./*"],
       "#configs/*": ["../configs/*"],
-      "#types/*": ["../types/*"],
       "#package": ["../package.json"]
     },
     "types": ["vite/client", "node"],

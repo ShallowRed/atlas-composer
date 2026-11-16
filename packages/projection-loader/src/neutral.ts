@@ -5,6 +5,8 @@ import { geoRotation } from 'd3-geo'
 import { d3ProjectionFactories } from './d3-projection-helpers'
 import { ProjectionLoader } from './projection-loader'
 
+export type { CompositeProjectionConfig, NeutralComposite } from '@atlas-composer/specification'
+
 type NeutralTerritory = NeutralComposite['territories'][number]
 
 /**

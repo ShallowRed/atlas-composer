@@ -4,7 +4,7 @@ import type { BasemapError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
-import Pbf from 'pbf'
+import { PbfReader } from 'pbf'
 import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, tileOf, zoomForFrame } from '@/core/basemap'
 import { invertOnGlobe } from '@/core/frames'
 import { err, ok } from '@/core/types/result'
@@ -142,7 +142,7 @@ function vectorTile(url: string, x: number, y: number, zoom: number): Promise<Ve
 
 function decodeVectorTile(buffer: ArrayBuffer, x: number, y: number, zoom: number): VectorLayers | null {
   try {
-    const tile = new VectorTile(new Pbf(new Uint8Array(buffer)))
+    const tile = new VectorTile(new PbfReader(new Uint8Array(buffer)))
     const layers: VectorLayers = {}
     for (const name of VECTOR_LAYERS) {
       const layer = tile.layers[name]

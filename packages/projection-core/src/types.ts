@@ -53,8 +53,8 @@ export interface ProjectionLike {
   }
 
   clipAngle?: {
-    (): number
-    (angle: number): ProjectionLike
+    (): number | null
+    (angle: number | null): ProjectionLike
   }
 
   precision?: {
