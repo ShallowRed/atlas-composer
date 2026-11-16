@@ -32,7 +32,7 @@ const NAV_LINKS = router.options.routes.flatMap(({ path, meta }) =>
           </div>
         </div>
         <div class="flex-none">
-          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>*]:px-1.5 max-md:[&>li>.dropdown>.btn]:px-1.5">
+          <ul class="menu menu-horizontal items-center gap-0 md:gap-2 flex-nowrap px-0 md:px-1 max-md:[&>li>:not(div)]:px-1.5 [&>li>div]:p-0 max-md:[&>li_.btn]:px-1.5">
             <li
               v-for="link in NAV_LINKS"
               :key="link.path"
