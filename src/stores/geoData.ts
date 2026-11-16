@@ -109,10 +109,13 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
       const newCartographer = new Cartographer(
         geoDataConfig,
-        compositeConfig,
         projectionParams,
-        parameterStore.parameterProvider,
-        projectionStore.referenceScale,
+        compositeConfig && {
+          config: compositeConfig,
+          parameterProvider: parameterStore.parameterProvider,
+          activeTerritoryProvider: useViewStore().activeTerritoryProvider,
+          referenceScale: projectionStore.referenceScale,
+        },
       )
       const result = await newCartographer.init()
       if (generation !== initializationGeneration) {

@@ -5,9 +5,10 @@ import type { PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId, ProjectionId, TerritoryCode, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { ActiveTerritoryProvider } from '@/types/territory'
 
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, markRaw, ref, watch } from 'vue'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { referenceParameters } from '@/core/territories/territory-reset-service'
@@ -74,6 +75,10 @@ export const useViewStore = defineStore('view', () => {
   function setActiveTerritories(territoryCodes: TerritoryCode[]) {
     activeTerritoryCodes.value = new Set(territoryCodes)
   }
+
+  const activeTerritoryProvider: ActiveTerritoryProvider = markRaw({
+    getActiveTerritoryCodes: () => activeTerritoryCodes.value,
+  })
 
   async function loadAvailableViewPresets() {
     if (!isViewPresetMode(viewMode.value)) {
@@ -193,6 +198,7 @@ export const useViewStore = defineStore('view', () => {
     territoryMode,
     viewMode,
     activeTerritoryCodes,
+    activeTerritoryProvider,
     currentViewPreset,
     availableViewPresets,
 

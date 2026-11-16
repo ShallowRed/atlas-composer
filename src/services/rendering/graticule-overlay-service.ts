@@ -46,6 +46,12 @@ export class GraticuleOverlayService {
       existingOverlay.remove()
     }
 
+    // A custom composite without an active territory draws no graticule, before a projection is created from its id
+    if (config.viewMode === 'composite-custom' && config.customComposite?.getAllSubProjectionData().length === 0) {
+      debug('No active territory for the graticule overlay')
+      return
+    }
+
     let projection: GeoProjection | undefined = config.projection
 
     if (!projection && config.projectionId) {
@@ -208,7 +214,6 @@ export class GraticuleOverlayService {
     }
 
     if (subProjections.length === 0) {
-      this.renderSimpleGraticule(group, config)
       return
     }
 

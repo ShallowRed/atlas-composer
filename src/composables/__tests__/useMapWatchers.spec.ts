@@ -5,6 +5,8 @@ import { startApplication } from '@/__tests__/composite-utils'
 import { withSetup } from '@/__tests__/test-utils'
 import { useMapWatchers } from '@/composables/useMapWatchers'
 import { useUIStore } from '@/stores/ui'
+import { useViewStore } from '@/stores/view'
+import { createTerritoryCode } from '@/types/branded'
 
 function watchMap() {
   const callbacks = {
@@ -48,5 +50,16 @@ describe('useMapWatchers', () => {
 
     expect(callbacks.onDependenciesChange).toHaveBeenCalledTimes(2)
     expect(callbacks.onBasemapChange).not.toHaveBeenCalled()
+  })
+
+  it('draws the map again when an active territory replaces another', async () => {
+    const viewStore = useViewStore()
+    viewStore.setActiveTerritories(['FR-MET', 'FR-RE'].map(createTerritoryCode))
+    const callbacks = watchMap()
+
+    viewStore.setActiveTerritories(['FR-MET', 'FR-GP'].map(createTerritoryCode))
+    await nextTick()
+
+    expect(callbacks.onDependenciesChange).toHaveBeenCalledOnce()
   })
 })

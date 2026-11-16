@@ -12,6 +12,7 @@ import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
+import { createTerritoryCode } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
 
@@ -21,13 +22,14 @@ async function openFranceWithCartographer({ withComposite }: { withComposite: bo
   await useCompositionStore().initializeAtlas()
   const atlasConfig = useAtlasStore().currentAtlasConfig!
   const geoDataStore = useGeoDataStore()
-  geoDataStore.cartographer = new Cartographer(
-    atlasConfig.geoDataConfig,
-    withComposite ? atlasConfig.compositeTerritories : undefined,
-    undefined,
-    useParameterStore().parameterProvider,
-    useProjectionStore().referenceScale,
-  )
+  geoDataStore.cartographer = new Cartographer(atlasConfig.geoDataConfig, undefined, withComposite
+    ? {
+        config: atlasConfig.compositeTerritories!,
+        parameterProvider: useParameterStore().parameterProvider,
+        activeTerritoryProvider: useViewStore().activeTerritoryProvider,
+        referenceScale: useProjectionStore().referenceScale,
+      }
+    : undefined)
   return { atlasConfig, geoDataStore }
 }
 
@@ -184,6 +186,14 @@ describe('geoData store', () => {
       const { geoDataStore } = await openFranceWithCartographer({ withComposite: false })
 
       expect(geoDataStore.exportConfiguration()).toEqual({ ok: false, error: { code: 'EXPORT_NOT_AVAILABLE' } })
+    })
+
+    it('exports the checked territories only', async () => {
+      const { geoDataStore } = await openFranceWithCartographer({ withComposite: true })
+      useViewStore().setActiveTerritories(['FR-RE', 'FR-MET'].map(createTerritoryCode))
+
+      const result = geoDataStore.exportConfiguration()
+      expect(result.ok && result.value.territories.map(territory => territory.code)).toEqual(['FR-MET', 'FR-RE'])
     })
 
     it('fails without a checked territory', async () => {
