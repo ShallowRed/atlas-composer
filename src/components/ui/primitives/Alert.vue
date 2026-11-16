@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+export type AlertType = 'info' | 'success' | 'warning' | 'error'
+
 interface Props {
-  type?: 'info' | 'success' | 'warning' | 'error'
+  type?: AlertType
   soft?: boolean
   icon?: string
   size?: 'xs' | 'sm' | 'md'
@@ -19,6 +23,10 @@ const emit = defineEmits<{
   dismiss: []
 }>()
 
+const { t } = useI18n()
+
+// Written in full, since Tailwind generates only the classes it finds in the code
+const typeClasses = { info: 'alert-info', success: 'alert-success', warning: 'alert-warning', error: 'alert-error' }
 const textSizes = { xs: 'text-xs', sm: 'text-sm', md: 'text-base' }
 
 const defaultIcons = {
@@ -33,10 +41,10 @@ const displayIcon = props.icon || defaultIcons[props.type]
 
 <template>
   <div
-    class="alert"
+    class="alert items-start [&_.btn-sm]:-my-1.5"
     :class="[
       { 'alert-soft': soft },
-      type ? `alert-${type}` : '',
+      typeClasses[type],
       size ? textSizes[size] : '',
     ]"
   >
@@ -49,11 +57,11 @@ const displayIcon = props.icon || defaultIcons[props.type]
     </div>
     <button
       v-if="dismissible"
-      class="btn btn-sm btn-ghost"
-      aria-label="Dismiss"
+      class="btn btn-sm btn-ghost btn-square"
+      :aria-label="t('actions.close')"
       @click="emit('dismiss')"
     >
-      ✕
+      <i class="ri-close-line" />
     </button>
   </div>
 </template>
