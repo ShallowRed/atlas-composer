@@ -3,23 +3,7 @@ import type { DropdownOption, DropdownOptionGroup } from '../DropdownControl.vue
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { createI18n } from 'vue-i18n'
 import DropdownControl from '../DropdownControl.vue'
-
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      'test.option1': 'Option 1',
-      'test.option2': 'Option 2',
-      'test.option3': 'Option 3',
-      'test.label': 'Test Label',
-      'test.group1': 'Group 1',
-      'test.group2': 'Group 2',
-    },
-  },
-})
 
 // The menu is in the DOM while it is open
 const isOpen = (wrapper: VueWrapper<any>) => wrapper.find('[role="listbox"]').exists()
@@ -28,44 +12,44 @@ describe('dropdownControl', () => {
   let wrapper: VueWrapper<any>
 
   const defaultOptions: DropdownOption[] = [
-    { value: 'option1', label: 'test.option1' },
-    { value: 'option2', label: 'test.option2' },
-    { value: 'option3', label: 'test.option3' },
+    { value: 'option1', label: 'Option 1' },
+    { value: 'option2', label: 'Option 2' },
+    { value: 'option3', label: 'Option 3' },
   ]
 
   const optionsWithIcons: DropdownOption[] = [
-    { value: 'fr', label: 'test.option1', icon: '🇫🇷' },
-    { value: 'en', label: 'test.option2', icon: '🇬🇧' },
-    { value: 'es', label: 'test.option3', icon: '🇪🇸' },
+    { value: 'fr', label: 'Option 1', icon: '🇫🇷' },
+    { value: 'en', label: 'Option 2', icon: '🇬🇧' },
+    { value: 'es', label: 'Option 3', icon: '🇪🇸' },
   ]
 
   const optionsWithIconClasses: DropdownOption[] = [
-    { value: 'map', label: 'test.option1', icon: 'ri-map-2-line' },
-    { value: 'globe', label: 'test.option2', icon: 'ri-global-line' },
-    { value: 'pin', label: 'test.option3', icon: 'ri-map-pin-line' },
+    { value: 'map', label: 'Option 1', icon: 'ri-map-2-line' },
+    { value: 'globe', label: 'Option 2', icon: 'ri-global-line' },
+    { value: 'pin', label: 'Option 3', icon: 'ri-map-pin-line' },
   ]
 
   const optionsWithBadges: DropdownOption[] = [
-    { value: 'best', label: 'test.option1', badge: '+++' },
-    { value: 'good', label: 'test.option2', badge: '++' },
-    { value: 'ok', label: 'test.option3', badge: '+' },
+    { value: 'best', label: 'Option 1', badge: '+++' },
+    { value: 'good', label: 'Option 2', badge: '++' },
+    { value: 'ok', label: 'Option 3', badge: '+' },
   ]
 
   const optionGroups: DropdownOptionGroup[] = [
     {
       key: 'group1',
-      label: 'test.group1',
+      label: 'Group 1',
       options: [
-        { value: 'g1-opt1', label: 'test.option1' },
-        { value: 'g1-opt2', label: 'test.option2' },
+        { value: 'g1-opt1', label: 'Option 1' },
+        { value: 'g1-opt2', label: 'Option 2' },
       ],
     },
     {
       key: 'group2',
-      label: 'test.group2',
+      label: 'Group 2',
       options: [
-        { value: 'g2-opt1', label: 'test.option1' },
-        { value: 'g2-opt2', label: 'test.option2' },
+        { value: 'g2-opt1', label: 'Option 1' },
+        { value: 'g2-opt2', label: 'Option 2' },
       ],
     },
   ]
@@ -81,9 +65,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -101,9 +82,6 @@ describe('dropdownControl', () => {
           modelValue: 'option1',
           inline: true,
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       expect(wrapper.find('fieldset').exists()).toBe(false)
@@ -118,7 +96,6 @@ describe('dropdownControl', () => {
       onTestFinished(() => showPopover.mockRestore())
       wrapper = mount(DropdownControl, {
         props: { label: 'test.label', options: defaultOptions, modelValue: 'option1', inline: true },
-        global: { plugins: [i18n] },
       })
 
       const button = wrapper.find('button[type="button"]')
@@ -135,9 +112,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -150,9 +124,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: optionsWithIcons,
           modelValue: 'fr',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -167,9 +138,6 @@ describe('dropdownControl', () => {
           options: optionsWithIconClasses,
           modelValue: 'map',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const icon = wrapper.find('.ri-map-2-line')
@@ -182,9 +150,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: optionsWithBadges,
           modelValue: 'best',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -199,9 +164,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -214,9 +176,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           optionGroups,
           modelValue: 'g1-opt1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -239,9 +198,6 @@ describe('dropdownControl', () => {
           modelValue: 'option1',
           disabled: true,
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -257,9 +213,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -280,9 +233,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -301,9 +251,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -329,9 +276,6 @@ describe('dropdownControl', () => {
           modelValue: 'option1',
           disabled: true,
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -349,9 +293,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -374,9 +315,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       await wrapper.find('.btn').trigger('click')
@@ -397,9 +335,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option2',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -422,9 +357,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -441,9 +373,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -459,9 +388,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -481,9 +407,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -506,9 +429,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option2',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -529,9 +449,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -559,9 +476,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -577,9 +491,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -598,9 +509,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option2',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -618,9 +526,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option3',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -637,9 +542,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -655,9 +557,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option3',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -680,9 +579,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -703,9 +599,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -729,9 +622,6 @@ describe('dropdownControl', () => {
           modelValue: 'option1',
           hideLabel: true,
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const label = wrapper.find('#dropdown-label')
@@ -746,9 +636,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       const button = wrapper.find('.btn')
@@ -762,9 +649,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -781,9 +665,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -804,9 +685,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       await wrapper.find('.btn').trigger('click')
@@ -825,9 +703,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option2',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -848,9 +723,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       await wrapper.find('.btn').trigger('click')
@@ -868,9 +740,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -890,9 +759,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: [],
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       expect(wrapper.find('.btn').exists()).toBe(true)
@@ -903,9 +769,6 @@ describe('dropdownControl', () => {
         props: {
           label: 'test.label',
           options: defaultOptions,
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -920,9 +783,6 @@ describe('dropdownControl', () => {
           optionGroups,
           modelValue: 'g1-opt1',
         },
-        global: {
-          plugins: [i18n],
-        },
       })
 
       expect(wrapper.find('.btn').exists()).toBe(true)
@@ -935,9 +795,6 @@ describe('dropdownControl', () => {
           label: 'test.label',
           options: defaultOptions,
           modelValue: 'option1',
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 
@@ -962,9 +819,6 @@ describe('dropdownControl', () => {
           options: defaultOptions,
           modelValue: 'option1',
           disabled: true,
-        },
-        global: {
-          plugins: [i18n],
         },
       })
 

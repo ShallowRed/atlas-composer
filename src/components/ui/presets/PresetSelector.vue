@@ -41,7 +41,6 @@ const presetOptions = computed(() => {
     return {
       value: preset.id,
       label: localize(preset.name),
-      translated: true,
     }
   })
 })

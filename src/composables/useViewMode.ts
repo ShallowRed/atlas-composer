@@ -18,7 +18,7 @@ export function useViewMode() {
 
     return VIEW_MODES
       .filter(mode => supportedModes.includes(mode))
-      .map(mode => ({ value: mode, label: t(getViewModeLabelKey(mode)), translated: true }))
+      .map(mode => ({ value: mode, label: t(getViewModeLabelKey(mode)) }))
   })
 
   return {
