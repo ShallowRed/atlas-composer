@@ -128,7 +128,9 @@
     "sphere": "Afficher le contour du globe",
     "compositionBorders": "Bordures",
     "mapLimits": "Limites",
-    "renderingOptions": "Options de rendu"
+    "renderingOptions": "Options de rendu",
+    "lightThemes": "Thèmes clairs",
+    "darkThemes": "Thèmes sombres"
   },
   "projectionParams": {
     "title": "Paramètres de projection",

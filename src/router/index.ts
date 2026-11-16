@@ -5,6 +5,15 @@ import ExamplesView from '@/views/ExamplesView.vue'
 import MapView from '@/views/MapView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** Translation key of the page name shown before the application name in the document title */
+    titleKey?: string
+    nav?: { labelKey: string, icon: string }
+    fillViewport?: boolean
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -13,7 +22,7 @@ const router = createRouter({
       name: 'map',
       component: MapView,
       meta: {
-        title: 'Atlas composer',
+        nav: { labelKey: 'nav.map', icon: 'ri-layout-line' },
         fillViewport: true,
       },
     },
@@ -22,7 +31,8 @@ const router = createRouter({
       name: 'atlases',
       component: AtlasesView,
       meta: {
-        title: 'Atlas - Atlas composer',
+        titleKey: 'nav.atlases',
+        nav: { labelKey: 'nav.atlases', icon: 'ri-earth-line' },
       },
     },
     {
@@ -30,7 +40,8 @@ const router = createRouter({
       name: 'examples',
       component: ExamplesView,
       meta: {
-        title: 'Exemples - Atlas composer',
+        titleKey: 'nav.examples',
+        nav: { labelKey: 'nav.examples', icon: 'ri-gallery-line' },
       },
     },
     {
@@ -38,7 +49,8 @@ const router = createRouter({
       name: 'about',
       component: AboutView,
       meta: {
-        title: 'À propos - Atlas composer',
+        titleKey: 'nav.about',
+        nav: { labelKey: 'nav.about', icon: 'ri-information-line' },
       },
     },
     {
@@ -46,15 +58,10 @@ const router = createRouter({
       name: 'not-found',
       component: NotFoundView,
       meta: {
-        title: 'Page introuvable - Atlas composer',
+        titleKey: 'notFound.title',
       },
     },
   ],
-})
-
-router.beforeEach((to, _from, next) => {
-  document.title = (to.meta.title as string) || 'Atlas composer'
-  next()
 })
 
 export default router

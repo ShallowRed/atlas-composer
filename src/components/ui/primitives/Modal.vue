@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   modelValue: boolean
@@ -19,6 +20,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+const { t } = useI18n()
 
 const modalBoxRef = ref<HTMLElement | null>(null)
 
@@ -66,10 +69,10 @@ watch(() => props.modelValue, async (isOpen) => {
           <button
             v-if="showCloseButton"
             class="btn btn-circle btn-ghost btn-sm"
-            aria-label="Close"
+            :aria-label="t('actions.close')"
             @click="close"
           >
-            ✕
+            <i class="ri-close-line" />
           </button>
         </div>
 

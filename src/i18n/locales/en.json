@@ -120,7 +120,9 @@
     "sphere": "Show sphere outline",
     "compositionBorders": "Borders",
     "mapLimits": "Limits",
-    "renderingOptions": "Rendering options"
+    "renderingOptions": "Rendering options",
+    "lightThemes": "Light themes",
+    "darkThemes": "Dark themes"
   },
   "common": {
     "close": "Close",
