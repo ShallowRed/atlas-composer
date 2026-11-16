@@ -62,7 +62,7 @@
   "devDependencies": {
     "ajv": "^8.20.0",
     "json-schema-to-typescript": "^16.0.0",
-    "tsup": "^8.0.0",
+    "tsup": "^9.0.0",
     "typescript": "~5.9.3"
   }
 }
