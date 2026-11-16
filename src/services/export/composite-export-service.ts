@@ -1,4 +1,5 @@
 import type { CanvasDimensions, CompositeProjectionConfig, ConfigMetadata, ProjectionParameters, TerritoryConfig } from '@atlas-composer/specification'
+import type { I18nValue } from '#types'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameterProvider } from '@/types/projection-parameters'
@@ -51,7 +52,7 @@ export class CompositeExportService {
   static exportToJSON(
     compositeProjection: CompositeProjection,
     atlasId: AtlasId,
-    atlasName: string,
+    atlasName: I18nValue,
     parameterProvider: ProjectionParameterProvider,
     referenceScale: number,
     canvasDimensions: CanvasDimensions,

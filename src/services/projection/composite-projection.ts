@@ -1,5 +1,6 @@
 import type { ProjectionLike, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type { GeoProjection } from 'd3-geo'
+import type { I18nValue } from '#types'
 
 import type { CompositeTerritories } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
@@ -8,7 +9,6 @@ import type { ActiveTerritoryProvider } from '@/types/territory'
 
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
-import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { parameterRegistry } from '@/core/parameters'
 import { applyPositioning } from '@/core/positioning'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
@@ -25,7 +25,7 @@ function roundApplied<T extends number[]>(values: T): T {
 
 interface SubProjectionConfig {
   territoryCode: TerritoryCode
-  territoryName: string
+  territoryName: I18nValue
   projection: GeoProjection
   projectionType: ProjectionId
   translateOffset: [number, number]
@@ -75,7 +75,7 @@ export class CompositeProjection {
 
       return [{
         territoryCode,
-        territoryName: resolveI18nValue(territory.name, 'en'),
+        territoryName: territory.name,
         projection,
         projectionType: parameters.projectionId as ProjectionId,
         translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),
@@ -117,7 +117,6 @@ export class CompositeProjection {
 
     const entries: SubProjectionEntry[] = this.subProjections.map(subProj => ({
       id: subProj.territoryCode,
-      name: subProj.territoryName,
       projection: subProj.projection as unknown as ProjectionLike,
       bounds: subProj.bounds && boundsFromArray(subProj.bounds),
     }))
@@ -139,7 +138,6 @@ export class CompositeProjection {
 
   getCompositionBorders(_width = 800, _height = 600): Array<{
     territoryCode: string
-    territoryName: string
     bounds: [[number, number], [number, number]]
   }> {
     return this.subProjections
@@ -149,7 +147,6 @@ export class CompositeProjection {
         if (currentClipExtent) {
           return {
             territoryCode: subProj.territoryCode,
-            territoryName: subProj.territoryName,
             bounds: [
               [currentClipExtent[0][0], currentClipExtent[0][1]],
               [currentClipExtent[1][0], currentClipExtent[1][1]],
@@ -170,7 +167,6 @@ export class CompositeProjection {
 
         return {
           territoryCode: subProj.territoryCode,
-          territoryName: subProj.territoryName,
           bounds: [
             topLeft as [number, number],
             bottomRight as [number, number],
@@ -179,7 +175,6 @@ export class CompositeProjection {
       })
       .filter(Boolean) as Array<{
       territoryCode: string
-      territoryName: string
       bounds: [[number, number], [number, number]]
     }>
   }

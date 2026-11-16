@@ -132,12 +132,12 @@ describe('provider emptied during a load', () => {
 })
 
 describe('exported territory name', () => {
-  it('is the English value of the territory name', () => {
+  it('is the name of the configuration, in each of its languages', () => {
     const { composite } = setup(BASE, {
       territories: [{ code: TERRITORY, name: { en: 'Metropolitan France', fr: 'France métropolitaine' }, center: [2, 46], bounds: BOUNDS }],
     })
 
-    expect(composite.exportConfig().subProjections[0]?.territoryName).toBe('Metropolitan France')
+    expect(composite.exportConfig().subProjections[0]?.territoryName).toEqual({ en: 'Metropolitan France', fr: 'France métropolitaine' })
   })
 })
 
