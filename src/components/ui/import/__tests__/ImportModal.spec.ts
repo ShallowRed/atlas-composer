@@ -9,7 +9,7 @@ import i18n from '@/i18n'
 import { useCompositionStore } from '@/stores/composition'
 import ImportModal from '../ImportModal.vue'
 
-const CONFIG = { metadata: { atlasName: 'France' }, territories: [] } as unknown as CompositeProjectionConfig
+const CONFIG = { metadata: { atlasName: { en: 'Japan', fr: 'Japon' } }, territories: [] } as unknown as CompositeProjectionConfig
 const MISMATCH: ImportError = { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 'portugal', currentAtlasId: 'france' }
 
 async function openWithFile() {
@@ -85,6 +85,15 @@ describe('importModal', () => {
     expect(wrapper.text()).toContain('reason-x')
     expect(wrapper.text()).not.toContain(i18n.global.t('import.valid'))
     expect(applyButton(wrapper).attributes('disabled')).toBeDefined()
+  })
+
+  it('shows the name of the atlas of the file in the language of the interface', async () => {
+    vi.spyOn(useCompositionStore(), 'readConfigurationFile').mockResolvedValue(ok(CONFIG))
+    i18n.global.locale.value = 'fr'
+
+    const wrapper = await openWithFile()
+
+    expect(wrapper.find('dd').text()).toBe('Japon')
   })
 
   it('keeps the button inactive without a custom composite to apply the file to', async () => {

@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import Alert from '@/components/ui/primitives/Alert.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
+import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const compositionStore = useCompositionStore()
 const geoDataStore = useGeoDataStore()
+const { localize } = useLocalizedName()
 const { errorMessages } = useErrorMessage()
 
 const isDragging = ref(false)
@@ -225,12 +227,14 @@ function clearFile() {
           {{ t('import.detailsTitle') }}
         </h3>
         <dl class="grid grid-cols-2 gap-2 text-sm">
-          <dt class="text-base-content/70">
-            {{ t('import.atlas') }}
-          </dt>
-          <dd class="font-medium">
-            {{ importedConfig.metadata.atlasName }}
-          </dd>
+          <template v-if="importedConfig.metadata.atlasName">
+            <dt class="text-base-content/70">
+              {{ t('import.atlas') }}
+            </dt>
+            <dd class="font-medium">
+              {{ localize(importedConfig.metadata.atlasName) }}
+            </dd>
+          </template>
           <dt class="text-base-content/70">
             {{ t('import.territories') }}
           </dt>
