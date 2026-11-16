@@ -28,7 +28,7 @@ const presetOptions = computed(() => {
   const atlases = new Map(atlasGroups.value.flatMap(group => group.options).map(option => [option.value as string, option]))
   return COMPOSITION_PRESETS.map((id) => {
     const atlas = atlases.get(findPresetById(id)?.atlasId ?? '')
-    return { value: id as string, label: atlas?.label ?? id, icon: atlas?.icon }
+    return { value: id as string, label: atlas?.label ?? id, icon: atlas?.icon, translated: true }
   })
 })
 
