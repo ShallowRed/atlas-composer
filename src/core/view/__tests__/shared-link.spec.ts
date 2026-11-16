@@ -1,5 +1,6 @@
+import type { SharedLink } from '../shared-link'
 import { describe, expect, it } from 'vitest'
-import { parseSharedLink } from '../shared-link'
+import { parseSharedLink, serializeSharedLink } from '../shared-link'
 
 describe('parseSharedLink', () => {
   it('reads the values of a link', () => {
@@ -81,5 +82,21 @@ describe('parseSharedLink', () => {
     expect(territories.get('__proto__')).toEqual({ scale: 2 })
     expect(Object.keys(Object.prototype)).toEqual([])
     expect(({} as Record<string, unknown>).polluted).toBeUndefined()
+  })
+})
+
+describe('serializeSharedLink', () => {
+  it('writes a query that parseSharedLink reads back', () => {
+    const link: SharedLink = {
+      atlas: 'france' as SharedLink['atlas'],
+      view: 'composite-custom',
+      projection: 'mercator' as SharedLink['projection'],
+      territoryMode: 'all-territories',
+      rotate: [10, -20, 0],
+      parallels: [30, 60],
+      territories: new Map([['FR-MET', { scale: 1.5, translation: [12, -4] }], ['FR-RE', { scale: 2 }]]),
+    }
+
+    expect(parseSharedLink(serializeSharedLink(link))).toEqual(link)
   })
 })

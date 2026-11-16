@@ -4,7 +4,7 @@ import { getAtlasConfigPath } from '@/core/atlases/registry'
 import { projectionRegistry } from '@/core/projections/registry'
 import { isViewMode } from './view-mode-selection'
 
-interface SharedLinkTerritory {
+export interface SharedLinkTerritory {
   scale?: number
   translation?: [number, number]
 }
@@ -103,4 +103,42 @@ export function parseSharedLink(query: Record<string, unknown>): SharedLink {
   }
 
   return link
+}
+
+// The query of a shared link, which parseSharedLink reads back
+export function serializeSharedLink(link: SharedLink): Record<string, string> {
+  const query: Record<string, string> = {}
+  const entries: Array<[string, string | undefined]> = [
+    ['atlas', link.atlas],
+    ['view', link.view],
+    ['projection', link.projection],
+    ['territory', link.territoryMode],
+  ]
+  for (const [key, value] of entries) {
+    if (value !== undefined) {
+      query[key] = value
+    }
+  }
+  if (link.rotate) {
+    [query.rlon, query.rlat, query.rgam] = link.rotate.map(String)
+  }
+  if (link.parallels) {
+    [query.p1, query.p2] = link.parallels.map(String)
+  }
+
+  const settings: Record<string, number> = {}
+  for (const [code, { scale }] of link.territories) {
+    if (scale !== undefined) {
+      settings[`s_${code}`] = scale
+    }
+  }
+  for (const [code, { translation }] of link.territories) {
+    if (translation) {
+      [settings[`tx_${code}`], settings[`ty_${code}`]] = translation
+    }
+  }
+  if (Object.keys(settings).length > 0) {
+    query.t = JSON.stringify(settings)
+  }
+  return query
 }

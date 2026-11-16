@@ -1,10 +1,11 @@
+import type { SharedLinkTerritory } from '@/core/view'
 import type { TerritoryCode } from '@/types'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { parameterRegistry } from '@/core/parameters'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
-import { parseSharedLink } from '@/core/view'
+import { parseSharedLink, serializeSharedLink } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
@@ -25,58 +26,32 @@ export function useUrlState() {
   function serializeState() {
     debug('Serializing state...')
 
-    const state: Record<string, string> = {
-      atlas: atlasStore.selectedAtlasId,
-      view: viewStore.viewMode,
-      projection: projectionStore.selectedProjection ?? FALLBACK_PROJECTION_ID, // Fallback for URL only
-      territory: viewStore.territoryMode,
-    }
-
-    if (projectionStore.customRotate) {
-      const [longitude, latitude, gamma] = projectionStore.customRotate
-      state.rlon = String(longitude)
-      state.rlat = String(latitude)
-      state.rgam = String(gamma)
-    }
-    if (projectionStore.customParallel1 !== null)
-      state.p1 = String(projectionStore.customParallel1)
-    if (projectionStore.customParallel2 !== null)
-      state.p2 = String(projectionStore.customParallel2)
-
     const defaultScale = parameterRegistry.getDefaultValue('scaleMultiplier')
     const [defaultX, defaultY] = parameterRegistry.getDefaultValue('translateOffset')
-
     // The preset of the composite-custom view gives values that differ from the default values of the registry
     const writesEveryTerritory = viewStore.viewMode === 'composite-custom'
 
-    const territorySettings: Record<string, number> = {}
-    let hasSettings = false
-
+    const territories = new Map<string, SharedLinkTerritory>()
     for (const territory of geoDataStore.allActiveTerritories) {
       const code = territory.code as TerritoryCode
-      const params = parameterStore.getTerritoryParameters(code)
-      const scale = params.scaleMultiplier ?? defaultScale
-      if (writesEveryTerritory || scale !== defaultScale) {
-        territorySettings[`s_${territory.code}`] = scale
-        hasSettings = true
-      }
+      const scale = parameterStore.getTerritoryParameters(code).scaleMultiplier ?? defaultScale
+      const { x, y } = parameterStore.getTerritoryTranslation(code)
+      territories.set(code, {
+        scale: writesEveryTerritory || scale !== defaultScale ? scale : undefined,
+        translation: writesEveryTerritory || x !== defaultX || y !== defaultY ? [x, y] : undefined,
+      })
     }
 
-    for (const territory of geoDataStore.allActiveTerritories) {
-      const code = territory.code as TerritoryCode
-      const translation = parameterStore.getTerritoryTranslation(code)
-      if (writesEveryTerritory || translation.x !== defaultX || translation.y !== defaultY) {
-        territorySettings[`tx_${territory.code}`] = translation.x
-        territorySettings[`ty_${territory.code}`] = translation.y
-        hasSettings = true
-      }
-    }
-
-    if (hasSettings) {
-      state.t = JSON.stringify(territorySettings)
-    }
-
-    return state
+    const { customParallel1, customParallel2 } = projectionStore
+    return serializeSharedLink({
+      atlas: atlasStore.selectedAtlasId,
+      view: viewStore.viewMode,
+      projection: projectionStore.selectedProjection ?? FALLBACK_PROJECTION_ID,
+      territoryMode: viewStore.territoryMode,
+      rotate: projectionStore.customRotate ?? undefined,
+      parallels: customParallel1 !== null && customParallel2 !== null ? [customParallel1, customParallel2] : undefined,
+      territories,
+    })
   }
 
   function readSharedLink() {
