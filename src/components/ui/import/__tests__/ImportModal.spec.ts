@@ -3,7 +3,7 @@ import type { ImportError } from '@/core/types/errors'
 import type { AtlasId } from '@/types/branded'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { startApplication } from '@/__tests__/composite-utils'
+import { openAtlasWithCartographer, startApplication } from '@/__tests__/composite-utils'
 import { err, ok } from '@/core/types/result'
 import i18n from '@/i18n'
 import { useCompositionStore } from '@/stores/composition'
@@ -14,7 +14,7 @@ const MISMATCH: ImportError = { code: 'IMPORT_ATLAS_MISMATCH', importedAtlasId: 
 
 async function openWithFile() {
   const wrapper = mount(ImportModal, {
-    props: { modelValue: true, compositeProjection: {} },
+    props: { modelValue: true },
     global: { plugins: [i18n], stubs: { teleport: true } },
   })
   const input = wrapper.find('input[type="file"]')
@@ -32,7 +32,8 @@ describe('importModal', () => {
   const initialLocale = i18n.global.locale.value
 
   beforeEach(async () => {
-    await startApplication('france' as AtlasId)
+    // The cartographer of the atlas has the custom composite that a file applies to
+    await openAtlasWithCartographer('france' as AtlasId)
     i18n.global.locale.value = 'en'
   })
 
@@ -83,6 +84,15 @@ describe('importModal', () => {
 
     expect(wrapper.text()).toContain('reason-x')
     expect(wrapper.text()).not.toContain(i18n.global.t('import.valid'))
+    expect(applyButton(wrapper).attributes('disabled')).toBeDefined()
+  })
+
+  it('keeps the button inactive without a custom composite to apply the file to', async () => {
+    await startApplication('france' as AtlasId)
+    vi.spyOn(useCompositionStore(), 'readConfigurationFile').mockResolvedValue(ok(CONFIG))
+
+    const wrapper = await openWithFile()
+
     expect(applyButton(wrapper).attributes('disabled')).toBeDefined()
   })
 })

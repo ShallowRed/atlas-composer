@@ -72,6 +72,9 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
   const allActiveTerritories = computed(() => filteredTerritories.value)
 
+  // A configuration file applies to the custom composite of the cartographer
+  const canImport = computed(() => cartographer.value?.customComposite != null)
+
   let initializationGeneration = 0
   let pendingInitialization: Promise<Result<void, GeoDataError>> | null = null
 
@@ -348,6 +351,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
 
     filteredTerritories,
     allActiveTerritories,
+    canImport,
 
     reinitialize,
     setReinitializing,

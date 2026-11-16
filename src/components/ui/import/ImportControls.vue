@@ -4,12 +4,10 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CompositeExportDialog from '@/components/ui/export/CompositeExportDialog.vue'
 import ImportModal from '@/components/ui/import/ImportModal.vue'
-import { useGeoDataStore } from '@/stores/geoData'
 import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 const viewStore = useViewStore()
-const geoDataStore = useGeoDataStore()
 
 const showExportDialog = ref(false)
 const showImportDialog = ref(false)
@@ -43,7 +41,6 @@ function handleImported(_config: CompositeProjectionConfig) {
   <!-- Import Dialog -->
   <ImportModal
     v-model="showImportDialog"
-    :composite-projection="geoDataStore.cartographer?.customComposite"
     @imported="handleImported"
   />
 
