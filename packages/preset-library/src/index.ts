@@ -71,7 +71,7 @@ export function getPresetMetadata(id: string): PresetMetadata | undefined {
   return Object.hasOwn(catalog.presets, id) ? catalog.presets[id] : undefined
 }
 
-const VIEW_MODE_TYPES: PresetType[] = ['unified', 'split', 'built-in-composite']
+const VIEW_MODE_TYPES: PresetType[] = PRESET_TYPES.filter(type => type !== 'composite-custom')
 
 export function listPresets(options: PresetFilterOptions = {}): PresetMetadata[] {
   let results = getAllPresets()
