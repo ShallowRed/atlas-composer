@@ -8,10 +8,10 @@ import Alert from '@/components/ui/primitives/Alert.vue'
 import Modal from '@/components/ui/primitives/Modal.vue'
 import { useErrorMessage } from '@/composables/useErrorMessage'
 import { useCompositionStore } from '@/stores/composition'
+import { useGeoDataStore } from '@/stores/geoData'
 
-const props = defineProps<{
+defineProps<{
   modelValue: boolean
-  compositeProjection: any
 }>()
 
 const emit = defineEmits<{
@@ -21,6 +21,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 const compositionStore = useCompositionStore()
+const geoDataStore = useGeoDataStore()
 const { errorMessages } = useErrorMessage()
 
 const isDragging = ref(false)
@@ -29,12 +30,7 @@ const selectedFile = ref<File | null>(null)
 const importError = ref<ImportError | null>(null)
 const importedConfig = ref<CompositeProjectionConfig | null>(null)
 
-const canApply = computed(() =>
-  importedConfig.value
-  && !importError.value
-  && props.compositeProjection !== null
-  && props.compositeProjection !== undefined,
-)
+const canApply = computed(() => importedConfig.value && !importError.value && geoDataStore.canImport)
 
 function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement
