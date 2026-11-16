@@ -12,6 +12,11 @@ type Coordinates = [number, number]
 
 type BoundingBox = [Coordinates, Coordinates]
 
+// Codes of the territories checked in the custom composite, read at each build of the composite
+export interface ActiveTerritoryProvider {
+  getActiveTerritoryCodes: () => ReadonlySet<TerritoryCode>
+}
+
 // Offset of a territory in the composition, in pixels
 export interface Translation {
   x: number

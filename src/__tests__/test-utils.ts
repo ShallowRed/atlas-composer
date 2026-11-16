@@ -3,7 +3,9 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Topology } from 'topojson-specification'
 import type { PresetType } from '#types'
 import type { CompositionDemoInput, Place, TerritoryContours } from '@/core/examples'
-import type { AtlasId, PresetId } from '@/types/branded'
+import type { CompositeTerritories } from '@/types'
+import type { AtlasId, PresetId, TerritoryCode } from '@/types/branded'
+import type { ActiveTerritoryProvider } from '@/types/territory'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
@@ -111,4 +113,10 @@ export function readCompositionDemoInput(presetId: string): CompositionDemoInput
     territories: readAtlasContours(source.atlasId),
     places: JSON.parse(readFileSync('src/public/examples/world-places.json', 'utf8')) as Place[],
   }
+}
+
+// Every territory of the configuration is active, for a test of a service without the stores
+export function allTerritoriesProvider(config: CompositeTerritories): ActiveTerritoryProvider {
+  const codes: ReadonlySet<TerritoryCode> = new Set(config.territories.map(territory => territory.code as TerritoryCode))
+  return { getActiveTerritoryCodes: () => codes }
 }

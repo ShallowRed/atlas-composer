@@ -4,6 +4,7 @@ import type { GeoProjection } from 'd3-geo'
 import type { CompositeTerritories } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
+import type { ActiveTerritoryProvider } from '@/types/territory'
 
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
@@ -35,20 +36,32 @@ export class CompositeProjection {
   private subProjections: SubProjectionConfig[]
   private config: CompositeTerritories
   private parameterProvider: ProjectionParameterProvider
+  private activeTerritoryProvider: ActiveTerritoryProvider
   private referenceScale?: number
 
-  constructor(config: CompositeTerritories, parameterProvider: ProjectionParameterProvider, referenceScale?: number) {
+  constructor(
+    config: CompositeTerritories,
+    parameterProvider: ProjectionParameterProvider,
+    activeTerritoryProvider: ActiveTerritoryProvider,
+    referenceScale?: number,
+  ) {
     this.config = config
     this.parameterProvider = parameterProvider
+    this.activeTerritoryProvider = activeTerritoryProvider
     this.referenceScale = referenceScale
     this.subProjections = this.readSubProjections()
   }
 
+  // The active territories that have a projection, in the order of the configuration
   private readSubProjections(): SubProjectionConfig[] {
     const referenceScale = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
+    const activeCodes = this.activeTerritoryProvider.getActiveTerritoryCodes()
 
     return this.config.territories.flatMap((territory) => {
       const territoryCode = territory.code as TerritoryCode
+      if (!activeCodes.has(territoryCode)) {
+        return []
+      }
       const parameters = this.parameterProvider.getEffectiveParameters(territoryCode)
 
       if (!parameters.projectionId) {
@@ -85,13 +98,21 @@ export class CompositeProjection {
     this.referenceScale = newReferenceScale
   }
 
-  build(width = 800, height = 600): GeoProjection {
+  // Null without an active territory; while the parameters of the active territories load, the sub-projections of the previous build stay
+  build(width = 800, height = 600): GeoProjection | null {
     const subProjections = this.readSubProjections()
 
-    // The parameters are empty during a load, and the composite of an empty list throws
     if (subProjections.length > 0) {
       this.subProjections = subProjections
       subProjections.forEach(subProjection => this.placeSubProjection(subProjection, width, height))
+    }
+    else if (this.activeTerritoryProvider.getActiveTerritoryCodes().size === 0) {
+      this.subProjections = []
+    }
+
+    // The composite of an empty list throws
+    if (this.subProjections.length === 0) {
+      return null
     }
 
     const entries: SubProjectionEntry[] = this.subProjections.map(subProj => ({

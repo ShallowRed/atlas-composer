@@ -1,6 +1,7 @@
 import type { CompositeTerritories } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { allTerritoriesProvider } from '@/__tests__/test-utils'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
 
@@ -48,7 +49,7 @@ describe('compositeProjection - invert/forward chain', () => {
       getExportableParameters: territoryCode => mockParameterProvider.getEffectiveParameters(territoryCode),
     }
 
-    compositeProjection = new CompositeProjection(config, mockParameterProvider)
+    compositeProjection = new CompositeProjection(config, mockParameterProvider, allTerritoriesProvider(config))
     builtProjection = compositeProjection.build(800, 600)
   })
 
@@ -159,7 +160,7 @@ describe('compositeProjection - invert/forward chain', () => {
     it('should maintain invert accuracy after translation offset changes', () => {
       franceOffset = [50, -30]
 
-      const newBuiltProjection = compositeProjection.build(800, 600)
+      const newBuiltProjection = compositeProjection.build(800, 600)!
 
       const franceGeo = [2, 46]
       const screenPoint = newBuiltProjection(franceGeo as [number, number])
@@ -181,13 +182,13 @@ describe('compositeProjection - invert/forward chain', () => {
       const franceGeo = [2, 46] as [number, number]
 
       franceOffset = [0, 0]
-      const projection1 = compositeProjection.build(800, 600)
+      const projection1 = compositeProjection.build(800, 600)!
       const screen1 = projection1(franceGeo)
 
       const offsetX = 100
       const offsetY = -50
       franceOffset = [offsetX, offsetY]
-      const projection2 = compositeProjection.build(800, 600)
+      const projection2 = compositeProjection.build(800, 600)!
       const screen2 = projection2(franceGeo)
 
       expect(screen1).toBeDefined()

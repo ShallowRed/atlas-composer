@@ -22,6 +22,7 @@ import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
+import { useViewStore } from '@/stores/view'
 
 export type Point = [number, number]
 
@@ -51,13 +52,12 @@ export async function openAtlasWithCartographer(atlasId: AtlasId) {
   await useCompositionStore().initializeAtlas()
   const atlasConfig = useAtlasStore().currentAtlasConfig!
   const geoDataStore = useGeoDataStore()
-  geoDataStore.cartographer = new Cartographer(
-    atlasConfig.geoDataConfig,
-    atlasConfig.compositeTerritories,
-    undefined,
-    useParameterStore().parameterProvider,
-    useProjectionStore().referenceScale,
-  )
+  geoDataStore.cartographer = new Cartographer(atlasConfig.geoDataConfig, undefined, {
+    config: atlasConfig.compositeTerritories!,
+    parameterProvider: useParameterStore().parameterProvider,
+    activeTerritoryProvider: useViewStore().activeTerritoryProvider,
+    referenceScale: useProjectionStore().referenceScale,
+  })
   return geoDataStore
 }
 
@@ -72,6 +72,7 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
   const composite = new CompositeProjection(
     atlasConfig.compositeTerritories!,
     parameterProvider,
+    useViewStore().activeTerritoryProvider,
     projectionStore.referenceScale,
   )
 

@@ -104,6 +104,7 @@ export function useMapWatchers(
           fillTerritories: uiStore.fillTerritories,
           territoryParametersVersion: parameterStore.territoryParametersVersion,
           allActiveTerritoriesCount: geoDataStore.allActiveTerritories.length,
+          activeTerritoryCodes: viewStore.activeTerritoryCodes,
           locale: locale.value,
         }
       }

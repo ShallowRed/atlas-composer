@@ -76,7 +76,8 @@ export class MapRenderCoordinator {
       ? 'composite-custom'
       : 'composite-projection'
 
-    const territoryCodes = config.viewMode === 'built-in-composite'
+    // The built-in composite draws every territory, and the custom composite the territories of its sub-projections
+    const territoryCodes = config.viewMode === 'built-in-composite' || config.viewMode === 'composite-custom'
       ? undefined
       : config.territories?.map(t => t.code)
 

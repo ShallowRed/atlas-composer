@@ -3,6 +3,7 @@ import type { CompositeTerritories } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import { boundsFromArray, calculateClipExtentFromBounds } from '@atlas-composer/projection-core'
 import { describe, expect, it } from 'vitest'
+import { allTerritoriesProvider } from '@/__tests__/test-utils'
 import { parameterRegistry } from '@/core/parameters'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
@@ -34,7 +35,7 @@ function setup(initial: ProjectionParameters = BASE, compositeConfig = config) {
     getEffectiveParameters: () => state.parameters,
     getExportableParameters: () => state.parameters,
   }
-  const composite = new CompositeProjection(compositeConfig, provider, 1000)
+  const composite = new CompositeProjection(compositeConfig, provider, allTerritoriesProvider(compositeConfig), 1000)
   const build = (): GeoProjection => {
     composite.build(WIDTH, HEIGHT)
     return composite.getSubProjectionData(TERRITORY)!.projection
@@ -137,5 +138,72 @@ describe('exported territory name', () => {
     })
 
     expect(composite.exportConfig().subProjections[0]?.territoryName).toBe('Metropolitan France')
+  })
+})
+
+describe('active territories', () => {
+  const CODES = ['FR-A', 'FR-B', 'FR-C'].map(createTerritoryCode)
+  const threeTerritories: CompositeTerritories = {
+    territories: CODES.map((code, index) => ({ code, name: code, center: [index, 46], bounds: [[index - 1, 45], [index + 1, 47]] })),
+  }
+
+  function setupActive(active: string[]) {
+    const state = { active: new Set(active.map(createTerritoryCode)), parameters: { ...BASE } as ProjectionParameters, withoutProjection: new Set<string>() }
+    const provider: ProjectionParameterProvider = {
+      getEffectiveParameters: code => state.withoutProjection.has(code) ? {} : state.parameters,
+      getExportableParameters: code => state.withoutProjection.has(code) ? {} : state.parameters,
+    }
+    const composite = new CompositeProjection(threeTerritories, provider, { getActiveTerritoryCodes: () => state.active }, 1000)
+    const codesOf = () => ({
+      subProjections: composite.getAllSubProjectionData().map(sub => sub.territoryCode),
+      borders: composite.getCompositionBorders(WIDTH, HEIGHT).map(border => border.territoryCode),
+      exported: composite.exportConfig().subProjections.map(sub => sub.territoryCode),
+      found: CODES.filter(code => composite.getSubProjectionData(code)),
+    })
+    return { state, composite, codesOf }
+  }
+
+  it('keeps the active territories that have a projection, in the order of the configuration', () => {
+    const { state, composite, codesOf } = setupActive(['FR-C', 'FR-A', 'FR-B'])
+    state.withoutProjection.add('FR-B')
+    composite.build(WIDTH, HEIGHT)
+
+    expect(codesOf()).toEqual({ subProjections: ['FR-A', 'FR-C'], borders: ['FR-A', 'FR-C'], exported: ['FR-A', 'FR-C'], found: ['FR-A', 'FR-C'] })
+  })
+
+  it('reads the active territories again at each build', () => {
+    const { state, composite, codesOf } = setupActive(['FR-A', 'FR-B'])
+    composite.build(WIDTH, HEIGHT)
+    state.active = new Set([createTerritoryCode('FR-B'), createTerritoryCode('FR-C')])
+    composite.build(WIDTH, HEIGHT)
+
+    expect(codesOf().subProjections).toEqual(['FR-B', 'FR-C'])
+  })
+
+  it('builds no projection without an active territory', () => {
+    const { state, composite, codesOf } = setupActive(['FR-A'])
+    composite.build(WIDTH, HEIGHT)
+    state.active = new Set()
+
+    expect(composite.build(WIDTH, HEIGHT)).toBeNull()
+    expect(codesOf()).toEqual({ subProjections: [], borders: [], exported: [], found: [] })
+  })
+
+  it('keeps the sub-projections of the previous build while the parameters of the active territories load', () => {
+    const { state, composite, codesOf } = setupActive(['FR-A', 'FR-B'])
+    const previous = composite.build(WIDTH, HEIGHT)
+    state.withoutProjection = new Set(CODES)
+
+    expect(composite.build(WIDTH, HEIGHT)).not.toBeNull()
+    expect(previous).not.toBeNull()
+    expect(codesOf().subProjections).toEqual(['FR-A', 'FR-B'])
+  })
+
+  it('builds no projection on a new composite whose active territories have no parameters yet', () => {
+    const { state } = setupActive(['FR-A'])
+    state.withoutProjection = new Set(CODES)
+    const composite = new CompositeProjection(threeTerritories, { getEffectiveParameters: () => ({}), getExportableParameters: () => ({}) }, { getActiveTerritoryCodes: () => state.active }, 1000)
+
+    expect(composite.build(WIDTH, HEIGHT)).toBeNull()
   })
 })

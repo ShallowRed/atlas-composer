@@ -5,6 +5,7 @@ import type { Result } from '@/core/types/result'
 import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
+import type { ActiveTerritoryProvider } from '@/types/territory'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
@@ -52,6 +53,14 @@ export interface CompositeRenderOptions extends RenderOptions {
   showMapLimits?: boolean
 }
 
+// The custom composite of the atlas, and the providers that it reads at each build
+export interface CustomCompositeSetup {
+  config: CompositeTerritories
+  parameterProvider: ProjectionParameterProvider
+  activeTerritoryProvider: ActiveTerritoryProvider
+  referenceScale?: number
+}
+
 export class Cartographer {
   private projectionService: ProjectionService
   private geoDataService: GeoDataService
@@ -61,10 +70,8 @@ export class Cartographer {
 
   constructor(
     geoDataConfig: GeoDataConfig,
-    compositeConfig?: CompositeTerritories,
     projectionParams?: ProjectionParameters,
-    parameterProvider?: ProjectionParameterProvider,
-    referenceScale?: number,
+    composite?: CustomCompositeSetup,
   ) {
     this.projectionService = new ProjectionService()
     this.geoDataService = new GeoDataService(geoDataConfig)
@@ -73,8 +80,8 @@ export class Cartographer {
       this.projectionService.setProjectionParams(projectionParams)
     }
 
-    if (compositeConfig && parameterProvider) {
-      this.customComposite = new CompositeProjection(compositeConfig, parameterProvider, referenceScale)
+    if (composite) {
+      this.rebuildCompositeProjection(composite)
     }
   }
 
@@ -104,17 +111,9 @@ export class Cartographer {
     }
   }
 
-  rebuildCompositeProjection(
-    compositeConfig: CompositeTerritories,
-    parameterProvider: ProjectionParameterProvider,
-    referenceScale?: number,
-  ): void {
-    this.customComposite = new CompositeProjection(
-      compositeConfig,
-      parameterProvider,
-      referenceScale,
-    )
-    debug('Rebuilt composite projection with new configuration')
+  rebuildCompositeProjection({ config, parameterProvider, activeTerritoryProvider, referenceScale }: CustomCompositeSetup): void {
+    this.customComposite = new CompositeProjection(config, parameterProvider, activeTerritoryProvider, referenceScale)
+    debug('Built composite projection')
   }
 
   async render(options: SimpleRenderOptions | CompositeRenderOptions): Promise<RenderedMap> {
@@ -220,19 +219,24 @@ export class Cartographer {
       throw new Error('Custom composite projection not configured for this region')
     }
 
-    const rawData = await this.getRawDataForComposite(territoryMode, territoryCodes)
-
     const customComposite = this.customComposite
     const projectionFn = customComposite.build(width, height)
 
-    this._lastProjection = projectionFn as GeoProjection
+    this._lastProjection = projectionFn
+
+    if (!projectionFn) {
+      return { svg: D3MapRenderer.createSvgElement(width, height), frames: [] }
+    }
+
+    const subProjections = customComposite.getAllSubProjectionData()
+    const rawData = await this.getRawDataForComposite(territoryMode, subProjections.map(({ territoryCode }) => territoryCode))
 
     const projectionOf: TerritoryProjection = feature =>
       customComposite.getSubProjectionData(feature.properties?.code)?.projection
 
     // One frame per active territory, in the order of the configuration
     const active = territoryCodes ? new Set(territoryCodes) : null
-    const frames = customComposite.getAllSubProjectionData()
+    const frames = subProjections
       .filter(({ territoryCode }) => !active || active.has(territoryCode))
       .map(({ territoryCode, projection }) => ({
         code: territoryCode,
@@ -241,7 +245,7 @@ export class Cartographer {
       }))
 
     return {
-      svg: this.createSvg(rawData, projectionFn as GeoProjection, projectionOf, width, height, showSphere, titleOf, fillTerritories),
+      svg: this.createSvg(rawData, projectionFn, projectionOf, width, height, showSphere, titleOf, fillTerritories),
       frames,
     }
   }
