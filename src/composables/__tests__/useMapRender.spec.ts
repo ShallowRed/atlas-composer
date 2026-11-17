@@ -92,6 +92,28 @@ describe('basemap of a map', () => {
     expect(signal?.aborted).toBe(true)
   })
 
+  it('tells that the basemap loads until its last pass, and stops telling when interrupted', async () => {
+    let finishSecondPass = () => {}
+    vi.mocked(renderBasemap)
+      .mockResolvedValueOnce(ok({ image: new Blob(), missingTiles: 0 }))
+      .mockReturnValueOnce(new Promise(resolve => finishSecondPass = () => resolve(ok({ image: new Blob(), missingTiles: 0 }))))
+      .mockReturnValueOnce(new Promise(() => {}))
+    const map = withSetup(() => useMapRender(props))
+
+    map.applyBasemap(svg())
+    expect(map.basemapLoading.value).toBe(true)
+    await vi.advanceTimersByTimeAsync(200)
+    expect(map.basemapLoading.value).toBe(true)
+    finishSecondPass()
+    await vi.runAllTimersAsync()
+    expect(map.basemapLoading.value).toBe(false)
+
+    map.applyBasemap(svg())
+    await vi.advanceTimersByTimeAsync(200)
+    map.dispose()
+    expect(map.basemapLoading.value).toBe(false)
+  })
+
   it('draws the basemap of each map from the frames of its own render', async () => {
     vi.mocked(renderBasemap).mockResolvedValue(ok({ image: new Blob(), missingTiles: 0 }))
     const frame = (code: string) => ({ code, projection: geoMercator(), extent: [[0, 0], [10, 10]] as [[number, number], [number, number]] })

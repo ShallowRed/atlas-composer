@@ -21,12 +21,24 @@
   @apply pointer-events-none absolute rounded-sm bg-base-100/80 px-1.5 text-xs;
 }
 
+/* A loading marker shows only when the loading lasts, so that a quick one does not blink */
+@utility delayed-fade-in {
+  animation: delayed-fade-in var(--transition-fade) ease-out var(--loading-delay) both;
+}
+
+@keyframes delayed-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 :root {
   --bg-base-150: oklch(50% var(--base-200));
 
   --transition-fade: 250ms;
   --transition-fade-instant-leave: 200ms;
   --transition-slide: 200ms;
+  --loading-delay: 400ms;
 }
 
 .fade-enter-active,
