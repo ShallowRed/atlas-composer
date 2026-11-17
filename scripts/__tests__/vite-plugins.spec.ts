@@ -53,6 +53,6 @@ describe('contentSecurityPolicyPlugin', () => {
   })
 
   it('admits the hosts of the basemaps and of the earthquake feed', () => {
-    expect(policyOf('')).toContain(`connect-src 'self' https://earthquake.usgs.gov https://tiles.openfreemap.org https://tiles.maps.eox.at;`)
+    expect(policyOf('')).toContain(`connect-src 'self' https://earthquake.usgs.gov https://s3.amazonaws.com https://tiles.maps.eox.at https://tiles.openfreemap.org;`)
   })
 })
