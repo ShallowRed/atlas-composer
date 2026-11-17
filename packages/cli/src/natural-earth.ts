@@ -2,7 +2,7 @@ import type { NaturalEarthResolution, NaturalEarthSource } from '@atlas-composer
 import type { Topology } from 'topojson-specification'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { createNaturalEarthSource } from '@atlas-composer/preset-library'
+import { createNaturalEarthSource, RULES_RESOLUTION } from '@atlas-composer/preset-library'
 import { feature } from 'topojson-client'
 
 const require = createRequire(import.meta.url)
@@ -19,9 +19,15 @@ const COUNTRIES: Record<NaturalEarthResolution, () => ReturnType<typeof readCoun
   '110m': () => readCountries(require.resolve('world-atlas/countries-110m.json')),
 }
 
-/** Reads the countries of the Natural Earth topology of world-atlas 2.0.2, which the extraction rules of the atlases count on */
+/**
+ * Reads the countries of the Natural Earth topology of world-atlas 2.0.2. At another resolution than 50m, the source also
+ * holds the countries at 50m, whose polygons the extraction rules of the atlases count.
+ */
 export function naturalEarthSource(resolution: string): NaturalEarthSource {
   // createNaturalEarthSource refuses an unknown resolution and names it
-  const countries = Object.hasOwn(COUNTRIES, resolution) ? COUNTRIES[resolution as NaturalEarthResolution]() : []
-  return createNaturalEarthSource(countries, resolution)
+  const known = Object.hasOwn(COUNTRIES, resolution)
+  const countries = known ? COUNTRIES[resolution as NaturalEarthResolution]() : []
+  return known && resolution !== RULES_RESOLUTION
+    ? createNaturalEarthSource(countries, resolution, COUNTRIES[RULES_RESOLUTION]())
+    : createNaturalEarthSource(countries, resolution)
 }
