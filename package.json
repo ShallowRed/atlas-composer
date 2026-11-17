@@ -69,6 +69,7 @@
     "remixicon": "^4.9.1",
     "tailwindcss": "^4.3.5",
     "topojson-client": "^3.1.0",
+    "topojson-simplify": "^3.0.3",
     "vue": "^3.5.45",
     "vue-i18n": "11",
     "vue-router": "^4.5.1"
@@ -100,7 +101,6 @@
     "knip": "^6.44.2",
     "rollup-plugin-visualizer": "^6.0.4",
     "topojson-server": "^3.0.1",
-    "topojson-simplify": "^3.0.3",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vite": "^7.3.8",
