@@ -44,7 +44,7 @@ const parameterStore = useParameterStore()
 const viewStore = useViewStore()
 const mapContainer = ref<HTMLElement>()
 
-const { size, renderSvg, applyOverlays, applyBasemap, dispose: disposeBasemap, basemapResult } = useMapRender(props)
+const { size, renderSvg, applyOverlays, applyBasemap, dispose: disposeBasemap, basemapResult, basemapLoading } = useMapRender(props)
 const { errorMessage } = useErrorMessage()
 const { t } = useI18n()
 
@@ -320,7 +320,22 @@ function handleMouseDown(event: MouseEvent) {
       @mousedown="handleMouseDown"
     />
     <p
-      v-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
+      v-if="basemapLoading"
+      class="map-note delayed-fade-in bottom-1 left-1 flex items-center gap-1.5 text-base-content/70"
+      role="status"
+      :aria-label="props.territoryCode ? t('basemap.loading') : undefined"
+    >
+      <span
+        class="loading loading-spinner loading-xs"
+        aria-hidden="true"
+      />
+      <!-- The map of one territory, small and repeated in the split view, shows the spinner alone -->
+      <template v-if="!props.territoryCode">
+        {{ t('basemap.loading') }}
+      </template>
+    </p>
+    <p
+      v-else-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
       class="map-note bottom-1 left-1"
       :class="{ 'text-error': !basemapResult.ok }"
     >

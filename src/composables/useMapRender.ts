@@ -211,6 +211,8 @@ export function useMapRender(props: MapRenderProps) {
   let basemapController: AbortController | null = null
   let basemapTimer: ReturnType<typeof setTimeout> | null = null
   const basemapResult = shallowRef<Result<BasemapImage, BasemapError> | null>(null)
+  // True from the scheduling of a basemap until its last pass or its cancellation
+  const basemapLoading = shallowRef(false)
 
   // daisyUI sets the color-scheme of each theme
   function basemapPalette(): VectorPalette {
@@ -224,6 +226,7 @@ export function useMapRender(props: MapRenderProps) {
     }
     basemapController?.abort()
     basemapController = null
+    basemapLoading.value = false
   }
 
   // The image of the basemap on the map, with what produced it: two images of the same key differ by their projections only
@@ -252,6 +255,7 @@ export function useMapRender(props: MapRenderProps) {
     }
     const controller = new AbortController()
     basemapController = controller
+    basemapLoading.value = true
     const renderedFrames = frames
     const { x, y, width: viewWidth, height: viewHeight } = svg.viewBox.baseVal
     const view = [x, y, viewWidth, viewHeight]
@@ -268,20 +272,27 @@ export function useMapRender(props: MapRenderProps) {
       const options = { width, height, palette, locale: locale.value, signal: controller.signal, zoomPixelRatio: pixelRatio }
       // Without a provisional image, a raster basemap draws a coarse first pass, then the pass at the resolution of the screen; a coarse pass would blur the provisional image of every frame, and a vector basemap costs the same at any resolution
       const passes = BASEMAP_SOURCE_DEFINITIONS[basemap].kind === 'raster' && placements.length === 0 ? [0.5, pixelRatio] : [pixelRatio]
-      for (const passRatio of passes) {
-        const result = await renderBasemap(renderedFrames, basemap, { ...options, pixelRatio: passRatio })
-        if (!result || controller.signal.aborted) {
-          return
+      try {
+        for (const passRatio of passes) {
+          const result = await renderBasemap(renderedFrames, basemap, { ...options, pixelRatio: passRatio })
+          if (!result || controller.signal.aborted) {
+            return
+          }
+          basemapResult.value = result
+          if (!result.ok) {
+            MapRenderCoordinator.removeBasemap(svg)
+            replaceShown(null)
+            return
+          }
+          const url = URL.createObjectURL(result.value.image)
+          MapRenderCoordinator.insertBasemap(svg, url)
+          replaceShown({ url, key, frames: renderedFrames, view })
         }
-        basemapResult.value = result
-        if (!result.ok) {
-          MapRenderCoordinator.removeBasemap(svg)
-          replaceShown(null)
-          return
+      }
+      finally {
+        if (basemapController === controller) {
+          basemapLoading.value = false
         }
-        const url = URL.createObjectURL(result.value.image)
-        MapRenderCoordinator.insertBasemap(svg, url)
-        replaceShown({ url, key, frames: renderedFrames, view })
       }
     }, 200)
   }
@@ -298,5 +309,6 @@ export function useMapRender(props: MapRenderProps) {
     applyBasemap,
     dispose,
     basemapResult,
+    basemapLoading,
   }
 }

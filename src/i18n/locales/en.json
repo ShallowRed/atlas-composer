@@ -603,6 +603,7 @@
   },
   "basemap": {
     "label": "Basemap",
+    "loading": "Loading the basemap...",
     "missingTiles": "{count} missing tile | {count} missing tiles",
     "sources": {
       "none": "No basemap",
