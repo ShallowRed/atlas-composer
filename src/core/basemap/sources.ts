@@ -5,6 +5,10 @@ interface RasterSourceDefinition {
   tileSize: number
   maxZoom: number
   attribution: string
+  // The first words of a long attribution, which the map shows folded
+  attributionSummary?: string
+  // Terrarium: the altitude of each pixel in its red, green and blue, shaded in the browser
+  encoding?: 'terrarium'
 }
 
 interface VectorSourceDefinition {
@@ -21,10 +25,12 @@ export type BasemapSourceDefinition = RasterSourceDefinition | VectorSourceDefin
 export const BASEMAP_SOURCE_DEFINITIONS = {
   relief: {
     kind: 'raster',
-    tiles: 'https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png',
+    tiles: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
     tileSize: 256,
-    maxZoom: 6,
-    attribution: 'Natural Earth, OpenFreeMap',
+    maxZoom: 12,
+    encoding: 'terrarium',
+    attributionSummary: 'Terrain Tiles on AWS',
+    attribution: 'Terrain Tiles on AWS: USGS 3DEP, SRTM and GMTED2010; NOAA ETOPO1; Copernicus EU-DEM; ©\u00A0Kartverket; ©\u00A0LINZ, Crown copyright; ©\u00A0Commonwealth of Australia (Geoscience Australia); Open Government Licence – Canada; INEGI; ©\u00A0offene Daten Österreichs (DGM Österreich); ©\u00A0Environment Agency; ArcticDEM (NSF, DigitalGlobe)',
   },
   imagery: {
     kind: 'raster',
@@ -38,7 +44,7 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
     tileJson: 'https://tiles.openfreemap.org/planet',
     tileSize: 512,
     maxZoom: 10,
-    attribution: 'OpenFreeMap © OpenMapTiles, © OpenStreetMap contributors',
+    attribution: 'OpenFreeMap ©\u00A0OpenMapTiles, ©\u00A0OpenStreetMap contributors',
   },
 } as const satisfies Record<string, BasemapSourceDefinition>
 

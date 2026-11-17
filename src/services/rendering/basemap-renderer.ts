@@ -4,8 +4,9 @@ import type { BasemapError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
+import { decode as decodePng } from 'fast-png'
 import { PbfReader } from 'pbf'
-import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, sampleTiles, tilePositions, zoomForFrame } from '@/core/basemap'
+import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, sampleTiles, shadeTile, terrariumElevations, tilePositions, zoomForFrame } from '@/core/basemap'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 
@@ -31,6 +32,7 @@ type VectorLayers = Record<string, VectorFeature[]>
 
 const VECTOR_LAYERS = ['water', 'landcover', 'landuse', 'waterway', 'transportation', 'boundary', 'place'] as const
 const RASTER_CACHE_BYTES = 48 * 1024 * 1024
+const RELIEF_CACHE_BYTES = 32 * 1024 * 1024
 const VECTOR_CACHE_TILES = 256
 // Time after which a render goes back to the event loop
 const TIME_BUDGET_MS = 8
@@ -88,6 +90,9 @@ class TileCache<V> {
 // Shared by every map: a request follows no map's signal, so the interruption of one map leaves the others their tiles
 const rasterTiles = new TileCache<Promise<Blob | null>>(RASTER_CACHE_BYTES)
 const vectorTiles = new TileCache<Promise<VectorLayers | null>>(VECTOR_CACHE_TILES)
+const elevationTiles = new TileCache<Promise<Float32Array | null>>(RELIEF_CACHE_BYTES)
+// A shaded tile whose neighbors were all present: the edge of a tile depends on its neighbors
+const shadedTiles = new TileCache<Uint8ClampedArray>(RELIEF_CACHE_BYTES)
 const tileJsonTemplates = new Map<string, Promise<string | null>>()
 
 function tileUrl(template: string, zoom: number, x: number, y: number): string {
@@ -120,6 +125,33 @@ function rasterTile(url: string): Promise<Blob | null> {
     return blob
   })
   rasterTiles.set(url, promise, 0)
+  return promise
+}
+
+// Browsers that resist fingerprinting add noise to the pixels that a canvas reads back, and one unit of red is 256 meters: the PNG is decoded without a canvas
+function elevationTile(url: string): Promise<Float32Array | null> {
+  const cached = elevationTiles.get(url)
+  if (cached) {
+    return cached
+  }
+  const promise = fetchBody(url, response => response.arrayBuffer()).then((body) => {
+    let elevations: Float32Array | null = null
+    try {
+      const png = body && decodePng(new Uint8Array(body))
+      elevations = png && png.depth === 8 && png.channels >= 3 ? terrariumElevations(png.data, png.channels) : null
+    }
+    catch {
+      // A body that is not a PNG counts as a missing tile
+    }
+    if (elevations) {
+      elevationTiles.weigh(url, elevations.byteLength)
+    }
+    else {
+      elevationTiles.delete(url)
+    }
+    return elevations
+  })
+  elevationTiles.set(url, promise, 0)
   return promise
 }
 
@@ -215,6 +247,25 @@ async function decode(blob: Blob, tileSize: number): Promise<Uint8ClampedArray |
   }
 }
 
+async function shadedRelief(template: string, covered: Array<[number, number]>, grid: { n: number, zoom: number, tileSize: number }, yieldIfLate: () => Promise<void>) {
+  const elevations = new Map(await Promise.all(covered.map(async ([x, y]): Promise<[string, Float32Array | null]> => [`${x},${y}`, await elevationTile(tileUrl(template, grid.zoom, x, y))])))
+  const tiles = new Map<string, Uint8ClampedArray | null>()
+  for (const [x, y] of covered) {
+    const url = tileUrl(template, grid.zoom, x, y)
+    let pixels = shadedTiles.get(url) ?? null
+    if (!pixels) {
+      const shaded = shadeTile(elevations, x, y, grid)
+      pixels = shaded?.pixels ?? null
+      if (shaded?.complete) {
+        shadedTiles.set(url, shaded.pixels, shaded.pixels.byteLength)
+      }
+      await yieldIfLate()
+    }
+    tiles.set(`${x},${y}`, pixels)
+  }
+  return tiles
+}
+
 async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'raster' }>, frames: ProjectionFrame[], options: BasemapRenderOptions, canvas: OffscreenCanvas, yieldIfLate: () => Promise<void>) {
   const { width, height, pixelRatio, zoomPixelRatio = pixelRatio } = options
   const context = canvas.getContext('2d')!
@@ -225,11 +276,13 @@ async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'rast
     const { projection, extent } = frame
     const zoom = zoomForFrame(projection, extent, zoomPixelRatio, source.tileSize, source.maxZoom)
     const n = 2 ** zoom
-    const tiles = new Map<string, Uint8ClampedArray | null>()
-    await Promise.all((await cover(frame, zoom, yieldIfLate)).map(async ([x, y]) => {
-      const blob = await rasterTile(tileUrl(source.tiles, zoom, ((x % n) + n) % n, y))
-      tiles.set(`${((x % n) + n) % n},${y}`, blob ? await decode(blob, source.tileSize) : null)
-    }))
+    const covered = (await cover(frame, zoom, yieldIfLate)).map(([x, y]): [number, number] => [((x % n) + n) % n, y])
+    const tiles = source.encoding === 'terrarium'
+      ? await shadedRelief(source.tiles, covered, { n, zoom, tileSize: source.tileSize }, yieldIfLate)
+      : new Map(await Promise.all(covered.map(async ([x, y]): Promise<[string, Uint8ClampedArray | null]> => {
+          const blob = await rasterTile(tileUrl(source.tiles, zoom, x, y))
+          return [`${x},${y}`, blob ? await decode(blob, source.tileSize) : null]
+        })))
     await yieldIfLate()
     requested += tiles.size
     missing += [...tiles.values()].filter(data => data === null).length

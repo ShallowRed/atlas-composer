@@ -63,6 +63,7 @@
     "d3-geo-projection": "^4.0.0",
     "daisyui": "^5.7.50",
     "debug": "^4.4.3",
+    "fast-png": "^8.0.0",
     "pbf": "^5.1.2",
     "pinia": "^4.1.0",
     "remixicon": "^4.9.1",

@@ -32,7 +32,8 @@ const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const uiStore = useUIStore()
 
-const basemapAttribution = computed(() => uiStore.basemap === 'none' ? null : BASEMAP_SOURCE_DEFINITIONS[uiStore.basemap].attribution)
+const basemapSource = computed(() => uiStore.basemap === 'none' ? null : BASEMAP_SOURCE_DEFINITIONS[uiStore.basemap])
+const basemapAttributionSummary = computed(() => basemapSource.value && 'attributionSummary' in basemapSource.value ? basemapSource.value.attributionSummary : null)
 const compositionStore = useCompositionStore()
 
 const { readSharedLink } = useUrlState()
@@ -104,12 +105,27 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
             </div>
           </Transition>
 
-          <p
-            v-if="basemapAttribution"
+          <div
+            v-if="basemapSource"
             class="map-note top-1 right-1 z-10 max-w-full text-base-content/70 max-lg:static max-lg:mt-1 max-lg:bg-transparent max-lg:px-0"
           >
-            {{ basemapAttribution }}
-          </p>
+            <details
+              v-if="basemapAttributionSummary"
+              class="group"
+            >
+              <summary class="pointer-events-auto flex cursor-pointer list-none items-baseline justify-end gap-1 hover:text-base-content max-lg:justify-start [&::-webkit-details-marker]:hidden">
+                <span class="group-open:hidden">{{ basemapAttributionSummary }}</span>
+                <span class="hidden group-open:inline">{{ basemapSource.attribution }}</span>
+                <i
+                  class="ri-information-line"
+                  aria-hidden="true"
+                />
+              </summary>
+            </details>
+            <template v-else>
+              {{ basemapSource.attribution }}
+            </template>
+          </div>
 
           <Transition name="fade">
             <div
