@@ -7,6 +7,9 @@ packages:
   - .
   - packages/*
 
+patchedDependencies:
+  d3-composite-projections@2.0.0: patches/d3-composite-projections@2.0.0.patch
+
 allowBuilds:
   '@parcel/watcher': false
   '@tailwindcss/oxide': true

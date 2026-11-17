@@ -1,0 +1,74 @@
+diff --git a/d3-composite-projections.js b/d3-composite-projections.js
+index 271bdbf304745660b358fcf67015efd20a4b85fa..44ad1d20c4be902ffe82a07d33237f9eff1404fc 100644
+--- a/d3-composite-projections.js
++++ b/d3-composite-projections.js
+@@ -1528,7 +1528,7 @@ function transverseMercatorChile () {
+         */
+ 
+     return (
+-      y >= 0.2582 && y < 0.32 && x >= -0.1036 && x < -0.087
++      y >= 0.2582 && y < 0.32 && x >= -0.1166 && x < -0.06
+         ? antarctic
+         : y >= -0.01298 && y < 0.0133 && x >= -0.11396 && x < -0.05944
+         ? juanFernandez
+@@ -2196,7 +2196,9 @@ function conicConformalFrance () {
+         ? nouvelleCaledonie
+         : y >= 0.012 && y < 0.033 && x >= 0.0967 && x < 0.1371
+         ? wallisFutuna
+-        : y >= 0.033 && y < 0.0864 && x >= 0.0967 && x < 0.1371
++        : y >= 0.033 && y < 0.06 && x >= 0.0967 && x < 0.1371
++        ? polynesie2
++        : y >= 0.06 && y < 0.0864 && x >= 0.0967 && x < 0.1371
+         ? polynesie
+         : europe
+     ).invert(coordinates);
+@@ -3630,7 +3632,7 @@ function albersUk () {
+       y = (coordinates[1] - t[1]) / k;
+ 
+     return (
+-      y >= -0.089 && y < 0.06 && x >= 0.029 && x < 0.046 ? shetland : main
++      y >= -0.089 && y < -0.06 && x >= 0.029 && x < 0.046 ? shetland : main
+     ).invert(coordinates);
+   };
+ 
+diff --git a/src/albersUk.js b/src/albersUk.js
+index e947e5c0e6760340d55bc5338897a02f28ece126..7ad98a8eaa92ef9f49e70f57aac9d49fdf3e812e 100644
+--- a/src/albersUk.js
++++ b/src/albersUk.js
+@@ -70,7 +70,7 @@ export default function () {
+       y = (coordinates[1] - t[1]) / k;
+ 
+     return (
+-      y >= -0.089 && y < 0.06 && x >= 0.029 && x < 0.046 ? shetland : main
++      y >= -0.089 && y < -0.06 && x >= 0.029 && x < 0.046 ? shetland : main
+     ).invert(coordinates);
+   };
+ 
+diff --git a/src/conicConformalFrance.js b/src/conicConformalFrance.js
+index 79f1496dc49ea0ba97439e4b0dbb1c400b7dd7b5..ba4c519cfc33d43b9db1408fa9a9590bff9e39db 100644
+--- a/src/conicConformalFrance.js
++++ b/src/conicConformalFrance.js
+@@ -133,7 +133,9 @@ export default function () {
+         ? nouvelleCaledonie
+         : y >= 0.012 && y < 0.033 && x >= 0.0967 && x < 0.1371
+         ? wallisFutuna
+-        : y >= 0.033 && y < 0.0864 && x >= 0.0967 && x < 0.1371
++        : y >= 0.033 && y < 0.06 && x >= 0.0967 && x < 0.1371
++        ? polynesie2
++        : y >= 0.06 && y < 0.0864 && x >= 0.0967 && x < 0.1371
+         ? polynesie
+         : europe
+     ).invert(coordinates);
+diff --git a/src/transverseMercatorChile.js b/src/transverseMercatorChile.js
+index 15c2a6b306b343ce0d0e2a5157ed2e3079c557c9..993665bf83bc182cc04eb68739d46254f38aece5 100644
+--- a/src/transverseMercatorChile.js
++++ b/src/transverseMercatorChile.js
+@@ -134,7 +134,7 @@ export default function () {
+         */
+ 
+     return (
+-      y >= 0.2582 && y < 0.32 && x >= -0.1036 && x < -0.087
++      y >= 0.2582 && y < 0.32 && x >= -0.1166 && x < -0.06
+         ? antarctic
+         : y >= -0.01298 && y < 0.0133 && x >= -0.11396 && x < -0.05944
+         ? juanFernandez

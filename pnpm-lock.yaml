@@ -162,6 +162,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  d3-composite-projections@2.0.0: 5ec126b83f31b1bf699f2a9771383658c4e245f7016b75a16f72e3b5b9b3c970
+
 importers:
 
   .:
@@ -183,7 +186,7 @@ importers:
         version: 7.9.2
       d3-composite-projections:
         specifier: ^2.0.0
-        version: 2.0.0
+        version: 2.0.0(patch_hash=5ec126b83f31b1bf699f2a9771383658c4e245f7016b75a16f72e3b5b9b3c970)
       d3-geo:
         specifier: ^3.1.2
         version: 3.1.2
@@ -6055,7 +6058,7 @@ snapshots:
 
   d3-color@3.1.1: {}
 
-  d3-composite-projections@2.0.0:
+  d3-composite-projections@2.0.0(patch_hash=5ec126b83f31b1bf699f2a9771383658c4e245f7016b75a16f72e3b5b9b3c970):
     dependencies:
       '@types/d3-geo': 3.1.1
       d3-geo: 3.1.2
