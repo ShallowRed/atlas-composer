@@ -11,8 +11,8 @@
   },
   "category": "country",
   "dataSources": {
-    "territories": "south-africa-territories-50m.json",
-    "metadata": "south-africa-metadata-50m.json"
+    "territories": "south-africa-territories-10m.json",
+    "metadata": "south-africa-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

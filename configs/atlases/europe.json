@@ -8,8 +8,8 @@
     "defaultCompositeProjection": "conic-conformal-europe"
   },
   "dataSources": {
-    "territories": "europe-territories-50m.json",
-    "metadata": "europe-metadata-50m.json"
+    "territories": "europe-territories-10m.json",
+    "metadata": "europe-metadata-10m.json"
   },
   "territories": [
     {

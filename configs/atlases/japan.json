@@ -14,8 +14,8 @@
     "defaultCompositeProjection": "conic-equidistant-japan"
   },
   "dataSources": {
-    "territories": "japan-territories-50m.json",
-    "metadata": "japan-metadata-50m.json"
+    "territories": "japan-territories-10m.json",
+    "metadata": "japan-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

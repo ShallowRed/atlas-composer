@@ -39,7 +39,7 @@ export interface JSONAtlasConfig {
    */
   dataSources: {
     /**
-     * Path to the GeoJSON file containing territory geometries
+     * Path to the TopoJSON file whose object territories holds the geometry of each territory
      */
     territories: string;
     /**

@@ -11,8 +11,8 @@
     ]
   },
   "dataSources": {
-    "territories": "world-countries-110m.json",
-    "metadata": "world-metadata-110m.json"
+    "territories": "world-territories-50m.json",
+    "metadata": "world-metadata-50m.json"
   },
   "territories": "*",
   "modes": [

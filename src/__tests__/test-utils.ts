@@ -95,7 +95,7 @@ export function readAtlasConfig<T>(atlasId: string): T {
 
 const contoursByAtlas = new Map<string, TerritoryContours>()
 
-// The contours of an atlas at 50m, built from world-atlas by the function that pnpm geodata:prepare calls to write src/public/data, which is not versioned
+// The contours of an atlas at 50m, built from world-atlas by the function that pnpm geodata:prepare calls at 10m to write src/public/data, which is not versioned
 export function readAtlasContours(atlasId: string): TerritoryContours {
   if (!contoursByAtlas.has(atlasId)) {
     const atlas = readAtlasConfig<AtlasTerritoriesInput>(atlasId)

@@ -45,6 +45,6 @@ describe('composition presets', () => {
     const found = findPresetById(presetId)
     expect(found?.preset.type).toBe('composite-custom')
     const atlas = readAtlasConfig<{ dataSources?: { territories?: string } }>(found!.atlasId)
-    expect(atlas.dataSources?.territories).toMatch(/-territories-50m\.json$/)
+    expect(atlas.dataSources?.territories).toMatch(/-territories-10m\.json$/)
   })
 })

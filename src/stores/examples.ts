@@ -2,7 +2,7 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Topology } from 'topojson-specification'
 import type { I18nValue } from '#types'
 import type { CompositionDemoInput, Earthquake, ExampleDefinition, Place, TerritoryContours } from '@/core/examples'
-import type { AtlasConfigError, PresetError } from '@/core/types/errors'
+import type { AtlasConfigError, GeoDataError, PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { PresetId } from '@/types/branded'
 import { defineStore } from 'pinia'
@@ -10,6 +10,7 @@ import { ref } from 'vue'
 import { EARTHQUAKE_FEED } from '@/core/examples'
 import { err, ok } from '@/core/types/result'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
+import { territoryFeatures } from '@/services/data/geo-data-service'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { PresetLoader } from '@/services/presets/preset-loader'
 
@@ -60,7 +61,7 @@ export const useExamplesStore = defineStore('examples', () => {
     return ok({ config: preset.value.config, topology: data.value })
   }
 
-  async function loadCompositionDemo(presetId: PresetId): Promise<Result<CompositionDemoSource, PresetError | AtlasConfigError>> {
+  async function loadCompositionDemo(presetId: PresetId): Promise<Result<CompositionDemoSource, PresetError | AtlasConfigError | GeoDataError>> {
     const preset = await PresetLoader.loadPreset(presetId)
     if (!preset.ok) {
       return preset
@@ -73,10 +74,15 @@ export const useExamplesStore = defineStore('examples', () => {
       return atlas
     }
 
-    const [territories, places] = await Promise.all([
-      JsonFileLoader.loadUrl<TerritoryContours>(atlas.value.atlasConfig.geoDataConfig.dataPath),
+    const { dataPath } = atlas.value.atlasConfig.geoDataConfig
+    const [topology, places] = await Promise.all([
+      JsonFileLoader.loadUrl(dataPath),
       JsonFileLoader.loadJSON<Place[]>('examples/world-places.json'),
     ])
+    if (!topology.ok) {
+      return topology
+    }
+    const territories = territoryFeatures(topology.value, dataPath)
     if (!territories.ok) {
       return territories
     }
@@ -85,7 +91,7 @@ export const useExamplesStore = defineStore('examples', () => {
     }
 
     return ok({
-      input: { config: preset.value.config, territories: territories.value, places: places.value },
+      input: { config: preset.value.config, territories: { type: 'FeatureCollection', features: territories.value as TerritoryContours['features'] }, places: places.value },
       territoryNames: new Map(atlas.value.territories.all.map(({ code, name }) => [code as string, name])),
     })
   }

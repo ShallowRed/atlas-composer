@@ -1,3 +1,4 @@
+import type { Topology } from 'topojson-specification'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { GeoDataConfig } from '@/types'
@@ -20,6 +21,21 @@ interface TerritoryRecord {
   center?: [number, number]
 }
 
+const TERRITORIES_OBJECT = 'territories'
+
+/** The territories of a file of src/public/data/: a topology whose object `territories` holds one geometry per territory, with its code */
+export function territoryFeatures(topology: unknown, path: string): Result<GeoJSON.Feature[], GeoDataError> {
+  const candidate = topology as Partial<Topology> | null
+  if (candidate?.type !== 'Topology' || !Array.isArray(candidate.arcs) || !candidate.objects) {
+    return err({ code: 'GEODATA_INVALID_STRUCTURE', path })
+  }
+  const territories = candidate.objects[TERRITORIES_OBJECT]
+  if (territories?.type !== 'GeometryCollection') {
+    return err({ code: 'GEODATA_MISSING_OBJECT', objectName: TERRITORIES_OBJECT })
+  }
+  return ok(topojson.feature(candidate as Topology, territories).features)
+}
+
 export interface TerritoryGeoData {
   territory: TerritoryRecord
   feature: GeoJSON.Feature
@@ -28,7 +44,7 @@ export interface TerritoryGeoData {
 
 export class GeoDataService {
   private territoryData: Map<string, TerritoryGeoData> = new Map()
-  private topologyData: any = null
+  private topologyData: unknown = null
   private isLoaded = false
   public readonly config: GeoDataConfig
 
@@ -68,60 +84,33 @@ export class GeoDataService {
   }
 
   private async processTerritoriesData(): Promise<Result<void, GeoDataError>> {
-    let featureCollection: GeoJSON.FeatureCollection
-
-    if (this.topologyData.type === 'FeatureCollection') {
-      featureCollection = this.topologyData as GeoJSON.FeatureCollection
-    }
-    else {
-      const objectName = this.config.topologyObjectName
-      if (!this.topologyData?.objects?.[objectName]) {
-        return err({ code: 'GEODATA_MISSING_OBJECT', objectName })
-      }
-
-      featureCollection = topojson.feature(
-        this.topologyData,
-        this.topologyData.objects[objectName],
-      ) as any as GeoJSON.FeatureCollection
+    const features = territoryFeatures(this.topologyData, this.config.dataPath)
+    if (!features.ok) {
+      return features
     }
 
-    const isWildcard = this.config.isWildcard === true
-
-    for (const feature of featureCollection.features) {
-      if (!feature.properties)
-        continue
-
-      const featureId = feature.id || feature.properties.id
-      const territoryCode = isWildcard && !feature.properties.code
-        ? `WD-${featureId}`
-        : feature.properties.code
-
-      if (!isWildcard && !feature.properties.code) {
-        continue
-      }
-
-      if (isWildcard && (!featureId || !feature.properties.name)) {
+    for (const feature of features.value) {
+      const code = feature.properties?.code
+      if (!code) {
         continue
       }
 
       const territory: TerritoryRecord = {
-        id: String(featureId),
-        iso: feature.properties.iso || '', // May be empty for world data
-        name: feature.properties.name,
-        code: territoryCode,
+        id: String(feature.id ?? feature.properties?.id),
+        iso: feature.properties?.iso || '', // Empty for the world
+        name: feature.properties?.name,
+        code,
         area: this.calculateArea(feature),
       }
 
       const bounds = this.calculateBounds(feature)
       const center = this.calculateCenter(bounds)
 
-      const territoryData: TerritoryGeoData = {
+      this.territoryData.set(code, {
         territory: { ...territory, bounds, center },
         feature,
         bounds,
-      }
-
-      this.territoryData.set(territory.code, territoryData)
+      })
     }
 
     return ok(undefined)
