@@ -1,5 +1,5 @@
 import type { ProjectionFrame } from '@/core/frames'
-import { geoConicConformal, geoOrthographic } from 'd3-geo'
+import { geoConicConformal, geoNaturalEarth1, geoOrthographic } from 'd3-geo'
 import { geoRobinson } from 'd3-geo-projection'
 import { describe, expect, it } from 'vitest'
 import { frameMapping, invertOnGlobe, provisionalPlacements } from '@/core/frames'
@@ -11,6 +11,13 @@ describe('invertOnGlobe', () => {
   it('inverts a pixel of the globe and refuses a corner outside it', () => {
     expect(invertOnGlobe(world, [480, 250])).not.toBeNull()
     expect(invertOnGlobe(world, [2, 2])).toBeNull()
+  })
+
+  it('refuses a pixel above the globe whose inverse lies beyond a pole', () => {
+    const naturalEarth = geoNaturalEarth1().scale(150).translate([480, 250])
+    expect(naturalEarth.invert!([480, 7.5])![1]).toBeLessThan(-90)
+    expect(invertOnGlobe(naturalEarth, [480, 7.5])).toBeNull()
+    expect(invertOnGlobe(naturalEarth, [480, 250])).not.toBeNull()
   })
 })
 
