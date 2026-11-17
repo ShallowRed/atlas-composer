@@ -34,10 +34,10 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
   },
   imagery: {
     kind: 'raster',
-    tiles: 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg',
+    tiles: 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',
     tileSize: 256,
     maxZoom: 13,
-    attribution: 'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016)',
+    attribution: 'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)',
   },
   streets: {
     kind: 'vector',
