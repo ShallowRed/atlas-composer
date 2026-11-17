@@ -1,6 +1,8 @@
 import type { GeoProjection } from 'd3-geo'
 import type { ProjectionDefinition } from '../types'
+import type { InvertibleProjection } from '@/core/frames'
 import { describe, expect, it } from 'vitest'
+import { invertOnGlobe } from '@/core/frames'
 
 import { ProjectionFactory } from '../factory'
 import { projectionRegistry } from '../registry'
@@ -169,6 +171,19 @@ describe('projectionFactory', () => {
         const projection = ProjectionFactory.create({ projection: definition })
         expect(projectsToNumbers(projection, definition)).toBe(true)
       })
+    })
+
+    it.each([
+      ['conic-conformal-france', [[-140, -9], [-139, -10], [-149.5, -17.6]]],
+      ['transverse-mercator-chile', [[-90, -80], [-70, -80], [-50, -80]]],
+      ['albers-uk', [[-1.5, 51.5], [-1.2, 60.3]]],
+    ] as Array<[string, Array<[number, number]>]>)('%s inverts a pixel of each inset to the place it shows', (id, places) => {
+      const projection = ProjectionFactory.createById(id) as InvertibleProjection
+      for (const place of places) {
+        const inverse = invertOnGlobe(projection, projection(place)!)
+        expect(inverse?.[0]).toBeCloseTo(place[0], 3)
+        expect(inverse?.[1]).toBeCloseTo(place[1], 3)
+      }
     })
   })
 
