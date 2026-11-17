@@ -1,5 +1,12 @@
 # @atlas-composer/preset-library
 
+## 2.6.0
+
+### Minor Changes
+
+- aa6c9de: The `dataSources` of each atlas name the files of the Atlas Composer app at 10m, such as `france-territories-10m.json`, and `world-territories-50m.json` for the world atlas. These files are topologies whose object `territories` holds the geometry of each territory, and the schema of the atlases describes them so.
+- a6e806a: `buildTerritories` builds an atlas with extraction rules at another resolution than 50m, such as 10m, when `createNaturalEarthSource` receives the features of the 50m topology in its third argument. Each polygon goes to the territory of the 50m polygon that contains it or is nearest, and `leftOutPolygons` lists the polygons that Natural Earth draws at this resolution only, far from their territory.
+
 ## 2.5.1
 
 ### Patch Changes
