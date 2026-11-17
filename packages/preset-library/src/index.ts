@@ -7,7 +7,7 @@ import { version } from '../package.json'
 import { PRESET_TYPES } from './types.js'
 
 export { rewindToRfc7946 } from './rewind.js'
-export { buildTerritories, createNaturalEarthSource, TerritoryBuildError } from './territories.js'
+export { buildTerritories, createNaturalEarthSource, RULES_RESOLUTION, TerritoryBuildError } from './territories.js'
 export type {
   AreaGeometry,
   AtlasTerritoriesInput,
@@ -16,6 +16,7 @@ export type {
   FeatureInput,
   FeaturesInput,
   I18NInput,
+  LeftOutPolygon,
   MultiPolygonGeometry,
   NaturalEarthResolution,
   NaturalEarthSource,

@@ -1,5 +1,6 @@
 import type { AreaGeometry, Ring } from './rewind.js'
-import { longitudeSpan, rewindToD3, withoutFlatPolygons } from './rewind.js'
+import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
+import { hasArea, longitudeSpan, rewindToD3, withoutFlatPolygons } from './rewind.js'
 
 export type { AreaGeometry, MultiPolygonGeometry, PolygonGeometry, Position, Ring } from './rewind.js'
 
@@ -48,6 +49,8 @@ export interface NaturalEarthSource {
   kind: 'natural-earth'
   resolution: NaturalEarthResolution
   features: SourceFeature[]
+  /** The features of the 50m topology, whose polygons the extraction rules count, for a source at another resolution */
+  ruleFeatures?: SourceFeature[]
 }
 
 /** Features of the user, each with the code of a territory of the atlas in `properties.code` */
@@ -70,10 +73,18 @@ export interface TerritoryFeature {
   geometry: AreaGeometry
 }
 
+/** A polygon of a source at another resolution than 50m that the build leaves out, with the territory of its nearest polygon */
+export interface LeftOutPolygon {
+  code: string
+  centroid: [number, number]
+}
+
 export interface BuiltTerritories {
   collection: { type: 'FeatureCollection', features: TerritoryFeature[] }
   /** Features that the atlas `*` leaves out: by their name when they have no id or no geometry, by their code when they have no name */
   skippedFeatures: string[]
+  /** Polygons without counterpart in the 50m topology, farther than 50 km from it and outside the bounds of their territory */
+  leftOutPolygons: LeftOutPolygon[]
 }
 
 export interface TerritoryBuildIssues {
@@ -95,8 +106,11 @@ export class TerritoryBuildError extends Error {
 
 const NATURAL_EARTH_RESOLUTIONS: readonly NaturalEarthResolution[] = ['10m', '50m', '110m']
 
-// The polygon indices of the extraction rules count the polygons of the 50m topology
-const RULES_RESOLUTION: NaturalEarthResolution = '50m'
+/** The resolution whose polygons the indices of the extraction rules count */
+export const RULES_RESOLUTION: NaturalEarthResolution = '50m'
+
+// A polygon of another resolution without counterpart at 50m stays with its territory up to this distance, in radians
+const ATTACHMENT_DISTANCE = 50 / 6371
 
 // Keeps the polygons and multipolygons, the geometries of a territory, and reads any other geometry as none
 function toSourceFeatures(input: FeaturesInput): SourceFeature[] {
@@ -108,13 +122,21 @@ function toSourceFeatures(input: FeaturesInput): SourceFeature[] {
   }))
 }
 
-/** Builds a Natural Earth source from the features of a topology of world-atlas 2.0.2, such as `topojson.feature(topology, topology.objects.countries)` */
-export function createNaturalEarthSource(features: FeaturesInput, resolution: string): NaturalEarthSource {
+/**
+ * Builds a Natural Earth source from the features of a topology of world-atlas 2.0.2, such as `topojson.feature(topology, topology.objects.countries)`.
+ * At another resolution than 50m, an atlas with extraction rules also needs the features of the 50m topology in `ruleFeatures`.
+ */
+export function createNaturalEarthSource(features: FeaturesInput, resolution: string, ruleFeatures?: FeaturesInput): NaturalEarthSource {
   const known = NATURAL_EARTH_RESOLUTIONS.find(value => value === resolution)
   if (!known) {
     throw new TerritoryBuildError(`Unknown Natural Earth resolution "${resolution}"`, { unsupportedResolution: resolution })
   }
-  return { kind: 'natural-earth', resolution: known, features: toSourceFeatures(features) }
+  return {
+    kind: 'natural-earth',
+    resolution: known,
+    features: toSourceFeatures(features),
+    ...(ruleFeatures && { ruleFeatures: toSourceFeatures(ruleFeatures) }),
+  }
 }
 
 function localizedName(name: I18NInput, locale: string): string {
@@ -202,69 +224,134 @@ function buildWorld(source: NaturalEarthSource): BuiltTerritories {
     })
   }
 
-  return { collection: { type: 'FeatureCollection', features }, skippedFeatures }
+  return { collection: { type: 'FeatureCollection', features }, skippedFeatures, leftOutPolygons: [] }
 }
 
-function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryInput>, source: NaturalEarthSource, locale: string): TerritoryFeature[] {
+interface AssignedPolygon {
+  polygon: Ring[]
+  code: string
+}
+
+// The extraction rules of a parent applied to its polygons at 50m: by index, then by bounds, the rest to the parent
+function assignByRules(
+  parent: TerritoryInput,
+  rules: ReadonlyArray<TerritoryInput>,
+  polygons: Ring[][],
+  outOfRangeIndices: Array<{ code: string, index: number }>,
+): AssignedPolygon[] {
+  const codeByIndex = new Map<number, string>()
+
+  for (const rule of rules) {
+    for (const index of rule.extraction?.polygonIndices ?? []) {
+      if (index < 0 || index >= polygons.length) {
+        outOfRangeIndices.push({ code: rule.code, index })
+        continue
+      }
+      codeByIndex.set(index, rule.code)
+    }
+  }
+
+  const boundsRules = rules.filter(rule => !rule.extraction?.polygonIndices)
+  return polygons.map((polygon, index) => ({
+    polygon,
+    code: codeByIndex.get(index) ?? boundsRules.find(candidate => fitsInBounds(polygon, candidate.bounds))?.code ?? parent.code,
+  }))
+}
+
+function asPolygon(coordinates: Ring[]) {
+  return { type: 'Polygon' as const, coordinates }
+}
+
+/**
+ * Gives each polygon of another resolution the territory of the 50m polygon that contains its centroid or, without one,
+ * of the 50m polygon with the nearest vertex. A polygon without counterpart at 50m, farther than ATTACHMENT_DISTANCE
+ * and outside the bounds of its territory, such as an islet that Natural Earth draws at 10m only, is left out.
+ */
+function attachToRules(
+  parent: TerritoryInput,
+  polygons: Ring[][],
+  assigned: AssignedPolygon[],
+  boundsOf: (code: string) => TerritoryInput['bounds'],
+  leftOutPolygons: LeftOutPolygon[],
+): AssignedPolygon[] {
+  if (assigned.length === 0) {
+    return polygons.map(polygon => ({ polygon, code: parent.code }))
+  }
+  return polygons.flatMap((polygon) => {
+    const centroid = geoCentroid(asPolygon(polygon))
+    const container = assigned.find(candidate => geoContains(asPolygon(candidate.polygon), centroid))
+    if (container) {
+      return [{ polygon, code: container.code }]
+    }
+
+    let nearest = assigned[0]!
+    let distance = Infinity
+    for (const candidate of assigned) {
+      for (const vertex of candidate.polygon[0] ?? []) {
+        const candidateDistance = geoDistance(centroid, vertex as [number, number])
+        if (candidateDistance < distance) {
+          distance = candidateDistance
+          nearest = candidate
+        }
+      }
+    }
+    if (distance > ATTACHMENT_DISTANCE && !fitsInBounds(polygon, boundsOf(nearest.code))) {
+      leftOutPolygons.push({ code: nearest.code, centroid })
+      return []
+    }
+    return [{ polygon, code: nearest.code }]
+  })
+}
+
+function buildFromNaturalEarth(
+  territories: ReadonlyArray<TerritoryInput>,
+  source: NaturalEarthSource,
+  locale: string,
+): { features: TerritoryFeature[], leftOutPolygons: LeftOutPolygon[] } {
   const hasRules = territories.some(territory => territory.extraction?.extractFrom)
-  if (hasRules && source.resolution !== RULES_RESOLUTION) {
+  if (hasRules && source.resolution !== RULES_RESOLUTION && !source.ruleFeatures) {
     throw new TerritoryBuildError(
-      `The extraction rules of this atlas count the polygons of the ${RULES_RESOLUTION} topology, not of the ${source.resolution} one`,
+      `The extraction rules of this atlas count the polygons of the ${RULES_RESOLUTION} topology: give its features in ruleFeatures to build at ${source.resolution}`,
       { unsupportedResolution: source.resolution },
     )
   }
+  const attaches = source.resolution !== RULES_RESOLUTION && source.ruleFeatures !== undefined
 
   const { countries } = gatherById(source.features)
-  const findFeature = (id: string) => countries.get(id.padStart(3, '0'))
+  const ruleCountries = attaches ? gatherById(source.ruleFeatures!).countries : countries
+  const pad = (id: string) => id.padStart(3, '0')
+  const boundsOf = (code: string) => territories.find(territory => territory.code === code)!.bounds
 
   const result = new Map<string, TerritoryFeature>()
   const outOfRangeIndices: Array<{ code: string, index: number }> = []
+  const leftOutPolygons: LeftOutPolygon[] = []
 
   for (const parent of territories) {
-    const feature = findFeature(parent.id)
+    const feature = countries.get(pad(parent.id))
     if (!feature?.geometry) {
       continue
     }
+    const ruleGeometry = ruleCountries.get(pad(parent.id))?.geometry
     const rules = territories.filter(territory => territory.extraction?.extractFrom === parent.id)
-    if (rules.length === 0 || feature.geometry.type !== 'MultiPolygon') {
+    const appliesRules = rules.length > 0 && ruleGeometry?.type === 'MultiPolygon'
+    if (!ruleGeometry || (!attaches && !appliesRules)) {
       result.set(parent.code, territoryFeature(parent, feature.geometry, locale))
       continue
     }
 
-    const polygons = feature.geometry.coordinates
-    const taken = new Set<number>()
-    const extracted = new Map<string, Ring[][]>()
+    const byRules = appliesRules
+      ? assignByRules(parent, rules, polygonsOf(ruleGeometry), outOfRangeIndices)
+      : polygonsOf(ruleGeometry).map(polygon => ({ polygon, code: parent.code }))
+    // d3-geo reads a flat ring as the whole sphere, which would contain every centroid
+    const assigned = attaches
+      ? attachToRules(parent, polygonsOf(feature.geometry).filter(hasArea), byRules.filter(({ polygon }) => hasArea(polygon)), boundsOf, leftOutPolygons)
+      : byRules
+    const polygonsOfCode = (code: string) => assigned.filter(candidate => candidate.code === code).map(({ polygon }) => polygon)
 
+    result.set(parent.code, territoryFeature(parent, { type: 'MultiPolygon', coordinates: polygonsOfCode(parent.code) }, locale))
     for (const rule of rules) {
-      for (const index of rule.extraction?.polygonIndices ?? []) {
-        if (index < 0 || index >= polygons.length) {
-          outOfRangeIndices.push({ code: rule.code, index })
-          continue
-        }
-        extracted.set(rule.code, [...(extracted.get(rule.code) ?? []), polygons[index]!])
-        taken.add(index)
-      }
-    }
-
-    const boundsRules = rules.filter(rule => !rule.extraction?.polygonIndices)
-    const remaining: Ring[][] = []
-    polygons.forEach((polygon, index) => {
-      if (taken.has(index)) {
-        return
-      }
-      const rule = boundsRules.find(candidate => fitsInBounds(polygon, candidate.bounds))
-      if (rule) {
-        extracted.set(rule.code, [...(extracted.get(rule.code) ?? []), polygon])
-      }
-      else {
-        remaining.push(polygon)
-      }
-    })
-
-    result.set(parent.code, territoryFeature(parent, { type: 'MultiPolygon', coordinates: remaining }, locale))
-    for (const rule of rules) {
-      const rulePolygons = extracted.get(rule.code)
-      if (rulePolygons) {
+      const rulePolygons = polygonsOfCode(rule.code)
+      if (rulePolygons.length > 0) {
         result.set(rule.code, territoryFeature(rule, { type: 'MultiPolygon', coordinates: rulePolygons }, locale))
       }
     }
@@ -292,7 +379,10 @@ function buildFromNaturalEarth(territories: ReadonlyArray<TerritoryInput>, sourc
     })
   }
 
-  return [...result.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) }))
+  return {
+    features: [...result.values()].map(territory => ({ ...territory, geometry: rewindToD3(withoutFlatPolygons(territory.geometry)) })),
+    leftOutPolygons,
+  }
 }
 
 function buildFromCodes(territories: ReadonlyArray<TerritoryInput>, source: ByCodeSource, locale: string): TerritoryFeature[] {
@@ -352,9 +442,9 @@ export function buildTerritories(
   }
 
   const territories = config.territories
-  const features = source.kind === 'natural-earth'
+  const { features, leftOutPolygons } = source.kind === 'natural-earth'
     ? buildFromNaturalEarth(territories, source, locale)
-    : buildFromCodes(territories, source, locale)
+    : { features: buildFromCodes(territories, source, locale), leftOutPolygons: [] }
 
   const built = new Set(features.map(feature => feature.properties.code))
   const missingCodes = territories.map(territory => territory.code).filter(code => !built.has(code))
@@ -362,5 +452,5 @@ export function buildTerritories(
     throw new TerritoryBuildError(`No feature for ${missingCodes.join(', ')}`, { missingCodes })
   }
 
-  return { collection: { type: 'FeatureCollection', features }, skippedFeatures: [] }
+  return { collection: { type: 'FeatureCollection', features }, skippedFeatures: [], leftOutPolygons }
 }

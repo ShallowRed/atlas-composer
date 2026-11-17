@@ -1,7 +1,7 @@
-import type { AtlasTerritoriesInput, FeatureInput } from '../src'
+import type { AtlasTerritoriesInput, FeatureInput, TerritoryInput } from '../src'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { geoArea } from 'd3-geo'
+import { geoArea, geoBounds } from 'd3-geo'
 import { feature } from 'topojson-client'
 import { describe, expect, it } from 'vitest'
 import { buildTerritories, createNaturalEarthSource, TerritoryBuildError } from '../src'
@@ -15,12 +15,35 @@ const TOPOLOGY_PATHS = {
 type Resolution = keyof typeof TOPOLOGY_PATHS
 
 const naturalEarthFeatures = new Map<Resolution, FeatureInput[]>()
-function naturalEarth(resolution: Resolution) {
+function naturalEarthFeaturesOf(resolution: Resolution) {
   if (!naturalEarthFeatures.has(resolution)) {
     const topology = JSON.parse(readFileSync(TOPOLOGY_PATHS[resolution], 'utf8'))
     naturalEarthFeatures.set(resolution, feature(topology, topology.objects.countries).features)
   }
-  return createNaturalEarthSource(naturalEarthFeatures.get(resolution)!, resolution)
+  return naturalEarthFeatures.get(resolution)!
+}
+function naturalEarth(resolution: Resolution) {
+  return createNaturalEarthSource(naturalEarthFeaturesOf(resolution), resolution)
+}
+// A source at 10m, whose polygons the build attaches to the extraction rules of 50m
+function naturalEarth10m() {
+  return createNaturalEarthSource(naturalEarthFeaturesOf('10m'), '10m', naturalEarthFeaturesOf('50m'))
+}
+
+// The polygons of Natural Earth 10m without counterpart at 50m, farther than 50 km and outside the bounds of their territory
+const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
+  'chile': { 'CL-JF': 3, 'CL-IP': 1 },
+  'ecuador': { 'EC-W': 5 },
+  'europe': { 'IT': 2, 'PT-20': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 2, 'GB': 3 },
+  'france': { 'FR-PF': 1, 'FR-NC': 1, 'FR-TF': 7 },
+  'japan': { 'JP-RYU': 4, 'JP-OGA': 9, 'JP-MAIN': 4 },
+  'malaysia': {},
+  'new-zealand': { 'NZ-CIT': 1, 'NZ-MAIN': 2 },
+  'norway': { 'NO-MAIN': 1 },
+  'portugal': { 'PT-20': 2 },
+  'south-africa': {},
+  'spain': { 'ES-CONT': 3 },
+  'usa': { 'US-ALEU': 2, 'US-HI': 6, 'US-AS': 4, 'US-MP': 3 },
 }
 
 const registry = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8')) as { atlases: Array<{ id: string, configPath: string }> }
@@ -60,8 +83,84 @@ describe('buildTerritories', () => {
     }
   })
 
-  it('refuses another resolution than 50m for an atlas with extraction rules', () => {
+  it('refuses another resolution than 50m for an atlas with extraction rules, without the features of 50m', () => {
     expect(issuesOf(() => buildTerritories(atlasConfig('france'), naturalEarth('110m')))).toEqual({ unsupportedResolution: '110m' })
+    expect(issuesOf(() => buildTerritories(atlasConfig('france'), naturalEarth('10m')))).toEqual({ unsupportedResolution: '10m' })
+  })
+
+  describe('at 10m, with the features of 50m', () => {
+    // A country of id 001 whose polygons have the given exterior rings
+    const country = (rings: number[][][]): FeatureInput => ({ type: 'Feature', id: '001', properties: { name: 'Main' }, geometry: { type: 'MultiPolygon', coordinates: rings.map(ring => [ring]) } })
+
+    const listed = registry.atlases.map(atlas => atlas.id).filter(id => atlasConfig(id).territories !== '*')
+
+    it.each(listed)('builds the territories of %s within their 50m extent and their bounds', (id) => {
+      const config = atlasConfig(id)
+      const territories = config.territories as TerritoryInput[]
+      const at50m = buildTerritories(config, naturalEarth('50m')).collection.features
+      const { collection } = buildTerritories(config, naturalEarth10m())
+
+      expect(collection.features.map(territory => territory.properties.code).sort()).toEqual(at50m.map(territory => territory.properties.code).sort())
+      for (const territory of collection.features) {
+        const [[west, south], [east, north]] = geoBounds(territory)
+        const [[west50, south50], [east50, north50]] = geoBounds(at50m.find(candidate => candidate.properties.code === territory.properties.code)!)
+        const [[minLon, minLat], [maxLon, maxLat]] = territories.find(candidate => candidate.code === territory.properties.code)!.bounds as number[][]
+        // 50 km is 0.45° of latitude, and 1° of longitude at 64° of latitude
+        expect(south, territory.properties.code).toBeGreaterThanOrEqual(Math.min(south50, minLat!) - 0.5)
+        expect(north, territory.properties.code).toBeLessThanOrEqual(Math.max(north50, maxLat!) + 0.5)
+        // geoBounds gives west > east for a territory that crosses the antimeridian
+        if (west <= east && west50 <= east50) {
+          expect(west, territory.properties.code).toBeGreaterThanOrEqual(Math.min(west50, minLon!) - 1)
+          expect(east, territory.properties.code).toBeLessThanOrEqual(Math.max(east50, maxLon!) + 1)
+        }
+        expect(geoArea(territory)).toBeLessThanOrEqual(2 * Math.PI)
+      }
+    })
+
+    it.each(listed)('leaves out the islets of %s that 50m lacks, far from their territory', (id) => {
+      const { leftOutPolygons } = buildTerritories(atlasConfig(id), naturalEarth10m())
+
+      const counts: Record<string, number> = {}
+      for (const { code } of leftOutPolygons) {
+        counts[code] = (counts[code] ?? 0) + 1
+      }
+      expect(counts).toEqual(LEFT_OUT_AT_10M[id])
+    })
+
+    it('gives the parent every polygon of an id whose polygons are flat at 50m', () => {
+      const config = { territories: [{ id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]] }] }
+      const flat = [[1, 1], [2, 2], [3, 3], [1, 1]]
+      const source = createNaturalEarthSource([country([square(1, 1, false)])], '10m', [country([flat, flat])])
+
+      const { collection } = buildTerritories(config, source)
+
+      expect(collection.features[0]!.geometry.coordinates).toEqual([[square(1, 1, false)]])
+    })
+
+    it('attaches an islet without counterpart at 50m to the territory of the nearest polygon', () => {
+      const config = {
+        territories: [
+          { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]] },
+          { id: '1-I', code: 'ISLAND', name: 'Island', iso: 'MAI', bounds: [[20.4, 20.4], [21.6, 21.6]], extraction: { extractFrom: '1', polygonIndices: [1] } },
+        ],
+      }
+      // Outside the bounds of ISLAND, 34 km from its nearest vertex
+      const islet = [[21.7, 21.7], [21.7, 21.75], [21.75, 21.75], [21.75, 21.7], [21.7, 21.7]]
+      const farIslet = [[40, 40], [40, 40.1], [40.1, 40.1], [40.1, 40], [40, 40]]
+      // In the bounds of MAIN, 300 km from its polygon
+      const islandInBounds = [[8, 8], [8, 8.1], [8.1, 8.1], [8.1, 8], [8, 8]]
+      const source = createNaturalEarthSource(
+        [country([square(1, 1, false), square(20.5, 20.5, false), islet, farIslet, islandInBounds])],
+        '10m',
+        [country([square(1, 1, false), square(20.5, 20.5, false)])],
+      )
+
+      const { collection, leftOutPolygons } = buildTerritories(config, source)
+
+      expect(collection.features.find(territory => territory.properties.code === 'ISLAND')?.geometry.coordinates).toEqual([[square(20.5, 20.5, false)], [islet]])
+      expect(collection.features.find(territory => territory.properties.code === 'MAIN')?.geometry.coordinates).toEqual([[square(1, 1, false)], [islandInBounds]])
+      expect(leftOutPolygons.map(({ code }) => code)).toEqual(['ISLAND'])
+    })
   })
 
   it.each(['10m', '50m', '110m'] as const)('gives the world a territory per id at %s', (resolution) => {

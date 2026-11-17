@@ -60,6 +60,11 @@ export function rewindToD3(geometry: AreaGeometry): AreaGeometry {
   return orient(geometry, false, ring => longitudeSpan(ring) > 180)
 }
 
+/** Whether the exterior ring of a polygon has an area, which a ring of aligned points of Natural Earth lacks */
+export function hasArea(polygon: Ring[]): boolean {
+  return polygon[0] !== undefined && Math.abs(signedArea(polygon[0])) / 2 >= FLAT_AREA
+}
+
 /**
  * Removes the polygons whose exterior ring has no area, such as a ring of aligned points of Natural Earth at 10m:
  * neither a plane nor d3-geo can give it an orientation, and d3-geo reads it as the whole sphere.
@@ -68,7 +73,7 @@ export function withoutFlatPolygons(geometry: AreaGeometry): AreaGeometry {
   if (geometry.type === 'Polygon') {
     return geometry
   }
-  const polygons = geometry.coordinates.filter(polygon => polygon[0] !== undefined && Math.abs(signedArea(polygon[0])) / 2 >= FLAT_AREA)
+  const polygons = geometry.coordinates.filter(hasArea)
   // A territory made of flat polygons only, such as the Vatican at 10m, keeps them
   return polygons.length > 0 ? { type: 'MultiPolygon', coordinates: polygons } : geometry
 }
