@@ -1,11 +1,11 @@
 import type { MockInstance } from 'vitest'
 import type { AtlasId } from '@/types/branded'
-import { geoMercator } from 'd3-geo'
+import { geoConicConformal, geoMercator } from 'd3-geo'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { startApplication } from '@/__tests__/composite-utils'
 import { withSetup } from '@/__tests__/test-utils'
 import { useMapRender } from '@/composables/useMapRender'
-import { ok } from '@/core/types/result'
+import { err, ok } from '@/core/types/result'
 import { renderBasemap } from '@/services/rendering/basemap-renderer'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -38,7 +38,12 @@ afterEach(() => {
   useUIStore().basemap = 'none'
 })
 
-const svg = () => document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+// The svg of a render of the map, with the viewBox that the renderer sets
+function svg() {
+  const element = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  element.setAttribute('viewBox', '0 0 960 500')
+  return element
+}
 
 describe('basemap of a map', () => {
   it('keeps the result of each map apart', async () => {
@@ -122,15 +127,105 @@ describe('basemap of a map', () => {
     expect(renderBasemap).toHaveBeenCalledTimes(1)
   })
 
-  it('forgets the result once the basemap is none', async () => {
+  it('removes the basemap and forgets the result once the basemap is none', async () => {
     vi.mocked(renderBasemap).mockResolvedValue(ok({ image: new Blob(), missingTiles: 3 }))
+    const remove = vi.spyOn(MapRenderCoordinator, 'removeBasemap')
     const map = withSetup(() => useMapRender(props))
+    const rendered = svg()
 
-    map.applyBasemap(svg())
+    map.applyBasemap(rendered)
     await vi.runAllTimersAsync()
     useUIStore().basemap = 'none'
-    map.applyBasemap(svg())
+    map.applyBasemap(rendered)
 
+    expect(remove).toHaveBeenCalledExactlyOnceWith(rendered)
     expect(map.basemapResult.value).toBeNull()
+  })
+})
+
+describe('provisional basemap image', () => {
+  // A frame of France whose projection and extent move by dx between two renders of the map
+  const franceFrame = (dx: number) => ({
+    code: 'FR',
+    projection: geoConicConformal().rotate([-3, -46.5]).parallels([44, 49]).scale(2600).translate([480 + dx, 250]),
+    extent: [[200 + dx, 50], [760 + dx, 450]] as [[number, number], [number, number]],
+  })
+
+  async function renderAt(map: ReturnType<typeof useMapRender>, dx: number) {
+    vi.spyOn(MapRenderCoordinator, 'renderCompositeMap').mockResolvedValueOnce({ svg: svg(), frames: [franceFrame(dx)] })
+    const rendered = await map.renderSvg()
+    map.applyBasemap(rendered!)
+  }
+
+  beforeEach(() => {
+    // renderCompositeMap is mocked: renderComposite needs a cartographer and a selected projection
+    useGeoDataStore().cartographer = {} as never
+    useProjectionStore().selectedProjection = createProjectionId('conic-conformal')
+    vi.mocked(renderBasemap).mockResolvedValue(ok({ image: new Blob(), missingTiles: 0 }))
+  })
+
+  it('places the previous image on a frame that moved before the next render, then draws in one pass', async () => {
+    const map = withSetup(() => useMapRender(props))
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+    vi.mocked(renderBasemap).mockClear()
+
+    await renderAt(map, 40)
+
+    const provisional = vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]
+    expect(provisional?.placements.map(({ code }) => code)).toEqual(['FR'])
+    expect(provisional?.placements[0]!.to[0][0]).toBeCloseTo(provisional!.placements[0]!.from[0][0] + 40, 3)
+    await vi.runAllTimersAsync()
+    expect(renderBasemap).toHaveBeenCalledTimes(1)
+  })
+
+  it('places the previous image on the frame that moved only, then draws in one pass', async () => {
+    const map = withSetup(() => useMapRender(props))
+    const reunion = (rotation: number) => ({
+      code: 'RE',
+      projection: geoMercator().rotate([rotation, 0]).scale(4000).translate([850, 400]),
+      extent: [[800, 350], [900, 450]] as [[number, number], [number, number]],
+    })
+    const renderWithReunion = async (dx: number, rotation: number) => {
+      vi.spyOn(MapRenderCoordinator, 'renderCompositeMap').mockResolvedValueOnce({ svg: svg(), frames: [franceFrame(dx), reunion(rotation)] })
+      map.applyBasemap((await map.renderSvg())!)
+    }
+    await renderWithReunion(0, -55.5)
+    await vi.runAllTimersAsync()
+    vi.mocked(renderBasemap).mockClear()
+
+    await renderWithReunion(40, -50)
+
+    expect(vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]?.placements.map(({ code }) => code)).toEqual(['FR'])
+    await vi.runAllTimersAsync()
+    expect(renderBasemap).toHaveBeenCalledTimes(1)
+  })
+
+  it('places no previous image after a change of source', async () => {
+    const map = withSetup(() => useMapRender(props))
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+    vi.mocked(MapRenderCoordinator.insertBasemap).mockClear()
+
+    useUIStore().basemap = 'relief'
+    await renderAt(map, 40)
+
+    expect(MapRenderCoordinator.insertBasemap).not.toHaveBeenCalled()
+  })
+
+  it('removes the basemap after an error of its render, and places no previous image on the next render', async () => {
+    const remove = vi.spyOn(MapRenderCoordinator, 'removeBasemap')
+    const map = withSetup(() => useMapRender(props))
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+    vi.mocked(renderBasemap).mockResolvedValue(err({ code: 'BASEMAP_TILES_FAILED', missingTiles: 4 }))
+    await renderAt(map, 40)
+    await vi.runAllTimersAsync()
+    vi.mocked(MapRenderCoordinator.insertBasemap).mockClear()
+
+    await renderAt(map, 80)
+
+    expect(remove).toHaveBeenCalled()
+    expect(MapRenderCoordinator.insertBasemap).not.toHaveBeenCalled()
   })
 })

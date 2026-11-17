@@ -1,4 +1,5 @@
 import type { GeoProjection } from 'd3-geo'
+import type { FramePlacement } from '@/core/frames'
 import type { CompositeProjection } from '@/services/projection/composite-projection'
 import type { CompositeRenderOptions, RenderedMap, SimpleRenderOptions } from '@/services/rendering/cartographer-service'
 import type { TerritoryTitle } from '@/services/rendering/d3-map-renderer'
@@ -43,6 +44,8 @@ export interface CompositeMapConfig {
   titleOf?: TerritoryTitle
   fillTerritories?: boolean
 }
+
+const SVG_NS = 'http://www.w3.org/2000/svg'
 
 export class MapRenderCoordinator {
   static async renderSimpleMap(
@@ -101,20 +104,57 @@ export class MapRenderCoordinator {
     return await cartographer.render(options)
   }
 
-  // The basemap goes under every other layer, in the coordinates of the viewBox
-  static insertBasemap(svg: SVGSVGElement, url: string): void {
-    svg.querySelector(':scope > image.basemap')?.remove()
-    const [x, y, width, height] = svg.getAttribute('viewBox')!.split(' ').map(Number)
-    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
-    image.setAttribute('class', 'basemap')
+  // The basemap goes under every other layer, in a group that the pointer goes through
+  private static basemapGroup(svg: SVGSVGElement): SVGGElement {
+    const existing = svg.querySelector<SVGGElement>(':scope > g.basemap')
+    if (existing) {
+      return existing
+    }
+    const group = document.createElementNS(SVG_NS, 'g')
+    group.setAttribute('class', 'basemap')
+    group.setAttribute('pointer-events', 'none')
+    svg.insertBefore(group, svg.firstChild)
+    return group
+  }
+
+  private static basemapImage(url: string, [x, y, width, height]: number[]): SVGImageElement {
+    const image = document.createElementNS(SVG_NS, 'image')
     image.setAttribute('href', url)
     image.setAttribute('x', String(x))
     image.setAttribute('y', String(y))
     image.setAttribute('width', String(width))
     image.setAttribute('height', String(height))
     image.setAttribute('preserveAspectRatio', 'none')
-    image.setAttribute('pointer-events', 'none')
-    svg.insertBefore(image, svg.firstChild)
+    return image
+  }
+
+  // Without placements, the image covers the viewBox, over the previous content until it is decoded; with placements, the image of a previous view shows each rectangle `from` in the rectangle `to` of the current view, in a nested svg that clips and scales it
+  static insertBasemap(svg: SVGSVGElement, url: string, provisional?: { placements: FramePlacement[], view: number[] }): void {
+    const group = MapRenderCoordinator.basemapGroup(svg)
+    if (!provisional) {
+      const previous = [...group.children]
+      const { x, y, width, height } = svg.viewBox.baseVal
+      const image = MapRenderCoordinator.basemapImage(url, [x, y, width, height])
+      group.append(image)
+      // A browser paints an image that it has not decoded yet as empty: the previous content stays under it until then
+      void image.decode().catch(() => {}).finally(() => previous.forEach(element => element.remove()))
+      return
+    }
+    group.replaceChildren(...provisional.placements.map(({ from: [[fx0, fy0], [fx1, fy1]], to: [[tx0, ty0], [tx1, ty1]] }) => {
+      const nested = document.createElementNS(SVG_NS, 'svg')
+      nested.setAttribute('viewBox', `${fx0} ${fy0} ${fx1 - fx0} ${fy1 - fy0}`)
+      nested.setAttribute('x', String(tx0))
+      nested.setAttribute('y', String(ty0))
+      nested.setAttribute('width', String(tx1 - tx0))
+      nested.setAttribute('height', String(ty1 - ty0))
+      nested.setAttribute('preserveAspectRatio', 'none')
+      nested.append(MapRenderCoordinator.basemapImage(url, provisional.view))
+      return nested
+    }))
+  }
+
+  static removeBasemap(svg: SVGSVGElement): void {
+    svg.querySelector(':scope > g.basemap')?.replaceChildren()
   }
 
   static applyOverlays(
