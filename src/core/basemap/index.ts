@@ -1,5 +1,6 @@
 export type { PlaceLabel } from './labels'
 export { labelsToDraw } from './labels'
+export { sampleTiles, tilePositions } from './raster'
 export type { BasemapSource, BasemapSourceDefinition } from './sources'
 export { BASEMAP_SOURCE_DEFINITIONS, BASEMAP_SOURCES } from './sources'
 export { coverFrame, tileOf, zoomForFrame } from './tiles'

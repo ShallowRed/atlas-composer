@@ -5,8 +5,7 @@ import type { Result } from '@/core/types/result'
 import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
 import { PbfReader } from 'pbf'
-import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, tileOf, zoomForFrame } from '@/core/basemap'
-import { invertOnGlobe } from '@/core/frames'
+import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, sampleTiles, tilePositions, zoomForFrame } from '@/core/basemap'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 
@@ -229,32 +228,16 @@ async function drawRaster(source: Extract<BasemapSourceDefinition, { kind: 'rast
     const tiles = new Map<string, Uint8ClampedArray | null>()
     await Promise.all((await cover(frame, zoom, yieldIfLate)).map(async ([x, y]) => {
       const blob = await rasterTile(tileUrl(source.tiles, zoom, ((x % n) + n) % n, y))
-      tiles.set(`${x},${y}`, blob ? await decode(blob, source.tileSize) : null)
+      tiles.set(`${((x % n) + n) % n},${y}`, blob ? await decode(blob, source.tileSize) : null)
     }))
     await yieldIfLate()
     requested += tiles.size
     missing += [...tiles.values()].filter(data => data === null).length
-    const [[x0, y0], [x1, y1]] = clampExtent(extent, width, height)
-    for (let py = Math.floor(y0 * pixelRatio); py < Math.ceil(y1 * pixelRatio); py++) {
-      for (let px = Math.floor(x0 * pixelRatio); px < Math.ceil(x1 * pixelRatio); px++) {
-        const inverse = invertOnGlobe(projection, [(px + 0.5) / pixelRatio, (py + 0.5) / pixelRatio])
-        if (!inverse) {
-          continue
-        }
-        const [fx, fy] = tileOf(inverse, zoom)
-        const data = tiles.get(`${Math.floor(fx)},${Math.floor(fy)}`)
-        if (!data) {
-          continue
-        }
-        const sx = Math.min(source.tileSize - 1, Math.floor((fx % 1) * source.tileSize))
-        const sy = Math.min(source.tileSize - 1, Math.floor((fy % 1) * source.tileSize))
-        const s = (sy * source.tileSize + sx) * 4
-        const o = (py * canvas.width + px) * 4
-        output.data[o] = data[s]!
-        output.data[o + 1] = data[s + 1]!
-        output.data[o + 2] = data[s + 2]!
-        output.data[o + 3] = 255
-      }
+    const sample = sampleTiles(tiles, n, source.tileSize)
+    const positions = tilePositions(projection, clampExtent(extent, width, height), { zoom, pixelRatio, tileSize: source.tileSize }, (px, py, fx, fy) => {
+      sample(fx, fy, output.data, (py * canvas.width + px) * 4)
+    })
+    while (!positions.next().done) {
       await yieldIfLate()
     }
   }
