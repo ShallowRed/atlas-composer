@@ -6,6 +6,7 @@ import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d
 import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import type { ActiveTerritoryProvider } from '@/types/territory'
+import { minWeightAt } from '@/core/geometry'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
@@ -145,13 +146,35 @@ export class Cartographer {
       D3MapRenderer.renderSphere(svg, projection)
     }
 
-    D3MapRenderer.renderTerritories(svg, data, projectionOf, {
+    D3MapRenderer.renderTerritories(svg, this.simplify(data, projectionOf), projectionOf, {
       enableTooltips: true,
       titleOf,
       fillTerritories,
     })
 
     return svg
+  }
+
+  // Each territory simplified to the scale of the projection that draws it, at its centroid
+  private simplify(data: GeoJSON.FeatureCollection, projectionOf: TerritoryProjection): GeoJSON.FeatureCollection {
+    const minWeights = new Map<string, number>()
+    for (const feature of data.features) {
+      const code = feature.properties?.code
+      const projection = projectionOf(feature)
+      const centroid = code === undefined ? undefined : this.geoDataService.centroid(code)
+      if (projection && centroid) {
+        minWeights.set(code, minWeightAt(projection, centroid))
+      }
+    }
+    // A collection without a territory of the loaded topology is drawn as given
+    if (minWeights.size === 0) {
+      return data
+    }
+    const simplified = this.geoDataService.simplified(minWeights)
+    return {
+      type: 'FeatureCollection',
+      features: data.features.map(feature => simplified.feature(feature.properties?.code) ?? feature),
+    }
   }
 
   private async getRawDataForComposite(

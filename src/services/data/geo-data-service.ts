@@ -1,9 +1,11 @@
-import type { Topology } from 'topojson-specification'
+import type { GeometryCollection, GeometryObject, Objects, Topology } from 'topojson-specification'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { GeoDataConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
+import { presimplify, sphericalTriangleArea } from 'topojson-simplify'
+import { simplifyTopology } from '@/core/geometry'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { logger } from '@/utils/logger'
@@ -40,11 +42,39 @@ export interface TerritoryGeoData {
   territory: TerritoryRecord
   feature: GeoJSON.Feature
   bounds: [number, number, number, number]
+  // geoCentroid of the feature, which the mean of the longitudes of the bounds misses across the antimeridian
+  centroid: [number, number]
+}
+
+/** The territories simplified to their weights, and the mesh of the borders of a group of territories */
+export interface SimplifiedTerritories {
+  feature: (code: string) => GeoJSON.Feature | undefined
+  mesh: (codes: readonly string[]) => GeoJSON.MultiLineString
+}
+
+function codeOf(geometry: GeometryObject): string | undefined {
+  return (geometry.properties as { code?: string } | undefined)?.code
+}
+
+function sameWeights(a: ReadonlyMap<string, number>, b: ReadonlyMap<string, number>): boolean {
+  if (a.size !== b.size) {
+    return false
+  }
+  for (const [code, weight] of a) {
+    const other = b.get(code)
+    // A drag translates the projections, and the weights that minWeightAt measures then differ in their last digits only
+    if (other === undefined || Math.abs(other - weight) > 1e-9 * Math.max(other, weight)) {
+      return false
+    }
+  }
+  return true
 }
 
 export class GeoDataService {
   private territoryData: Map<string, TerritoryGeoData> = new Map()
   private topologyData: unknown = null
+  private presimplified: Topology<Objects> | null = null
+  private lastSimplified: { minWeights: ReadonlyMap<string, number>, territories: SimplifiedTerritories } | null = null
   private isLoaded = false
   public readonly config: GeoDataConfig
 
@@ -110,9 +140,11 @@ export class GeoDataService {
         territory: { ...territory, bounds, center },
         feature,
         bounds,
+        centroid: d3.geoCentroid(feature),
       })
     }
 
+    this.presimplified = presimplify(this.topologyData as Topology<Objects>, sphericalTriangleArea)
     return ok(undefined)
   }
 
@@ -137,6 +169,41 @@ export class GeoDataService {
     if (!this.isLoaded) {
       throw new Error('GeoDataService read before a successful loadData')
     }
+  }
+
+  centroid(code: string): [number, number] | undefined {
+    return this.territoryData.get(code)?.centroid
+  }
+
+  /**
+   * The territories of the codes of minWeights, each simplified to its weight, and their meshes. A border shared by two
+   * territories keeps the points of the smaller weight. The last result serves again for the same weights.
+   */
+  simplified(minWeights: ReadonlyMap<string, number>): SimplifiedTerritories {
+    this.ensureLoaded()
+    if (this.lastSimplified && sameWeights(this.lastSimplified.minWeights, minWeights)) {
+      return this.lastSimplified.territories
+    }
+
+    const topology = simplifyTopology(this.presimplified!, TERRITORIES_OBJECT, geometry => minWeights.get(codeOf(geometry) ?? ''))
+    const geometries = new Map((topology.objects[TERRITORIES_OBJECT] as GeometryCollection).geometries.map(geometry => [codeOf(geometry), geometry]))
+    const features = new Map<string, GeoJSON.Feature>()
+
+    const territories: SimplifiedTerritories = {
+      feature: (code) => {
+        const geometry = minWeights.has(code) ? geometries.get(code) : undefined
+        if (geometry && !features.has(code)) {
+          features.set(code, topojson.feature(topology, geometry) as GeoJSON.Feature)
+        }
+        return features.get(code)
+      },
+      mesh: codes => topojson.mesh(topology, {
+        type: 'GeometryCollection',
+        geometries: codes.flatMap(code => geometries.get(code) ?? []),
+      }),
+    }
+    this.lastSimplified = { minWeights, territories }
+    return territories
   }
 
   async getCompleteData(): Promise<GeoJSON.FeatureCollection> {

@@ -109,3 +109,49 @@ describe('geoDataService.loadData', () => {
     expect(result).toEqual({ ok: false, error: { code: 'GEODATA_INVALID_STRUCTURE', path: DATA_PATH } })
   })
 })
+
+describe('geoDataService.simplified', () => {
+  // A square with a notch of 0.1 degree on its south side, as a ring clockwise in longitude and latitude
+  const notched = JSON.stringify({
+    type: 'Topology',
+    arcs: [[[0, 0], [0, 4], [4, 4], [4, 0], [2.1, 0], [2, 0.1], [1.9, 0], [0, 0]]],
+    objects: { territories: { type: 'GeometryCollection', geometries: [{ type: 'Polygon', arcs: [[0]], properties: { code: 'XX', name: 'Test' } }] } },
+  })
+
+  async function loadedService() {
+    stubFetch({ [DATA_PATH]: json(notched), [METADATA_PATH]: json('{}') })
+    const service = new GeoDataService(config)
+    await service.loadData()
+    return service
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('removes the points below the weight of a territory, and keeps them at the weight 0', async () => {
+    const service = await loadedService()
+    const ring = (weight: number) => (service.simplified(new Map([['XX', weight]])).feature('XX')!.geometry as GeoJSON.Polygon).coordinates[0]!
+
+    expect(ring(0)).toContainEqual([2, 0.1])
+    expect(ring(1e-4)).not.toContainEqual([2, 0.1])
+    expect(ring(1e-4)).toContainEqual([4, 4])
+  })
+
+  it('gives no feature for a code outside the weights, and the same result again for the same weights', async () => {
+    const service = await loadedService()
+    const simplified = service.simplified(new Map([['XX', 0]]))
+
+    expect(service.simplified(new Map()).feature('XX')).toBeUndefined()
+    expect(service.simplified(new Map([['XX', 0]]))).not.toBe(simplified)
+    const again = service.simplified(new Map([['XX', 0]]))
+    expect(service.simplified(new Map([['XX', 0]]))).toBe(again)
+  })
+
+  it('gives the centroid of each territory', async () => {
+    const [longitude, latitude] = (await loadedService()).centroid('XX')!
+
+    expect(longitude).toBeCloseTo(2, 1)
+    expect(latitude).toBeCloseTo(2, 1)
+  })
+})
