@@ -1,5 +1,17 @@
 # @atlas-composer/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- db67e18: `compose` reads Natural Earth at the resolution of `--resolution`, `50m` by default, and `territories` builds an atlas with extraction rules at `10m` and `110m` too: each polygon goes to the territory of the `50m` polygon that contains it or is nearest.
+
+### Patch Changes
+
+- Updated dependencies [aa6c9de]
+- Updated dependencies [a6e806a]
+  - @atlas-composer/preset-library@2.6.0
+
 ## 0.1.0
 
 ### Minor Changes
