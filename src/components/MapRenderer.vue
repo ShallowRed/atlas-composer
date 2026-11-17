@@ -214,14 +214,14 @@ async function renderMap() {
     isLoading.value = true
     error.value = null
 
-    mapContainer.value.innerHTML = ''
-
     const svg = await renderSvg()
     if (!svg || !mapContainer.value) {
       return
     }
 
-    mapContainer.value.appendChild(svg)
+    // The previous map stays on screen while the next one is built
+    mapContainer.value.replaceChildren(svg)
+    applyBasemap(svg)
 
     if (isDragEnabled.value) {
       const customComposite = cartographer.value?.customComposite
@@ -236,7 +236,6 @@ async function renderMap() {
     }
 
     await applyOverlays(svg)
-    applyBasemap(svg)
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
@@ -337,7 +336,7 @@ function handleMouseDown(event: MouseEvent) {
   transition: opacity var(--transition-fade) ease;
 }
 
-.map-plot :deep(svg) {
+.map-plot > :deep(svg) {
   max-width: 100%;
   height: auto;
 }
@@ -347,14 +346,14 @@ function handleMouseDown(event: MouseEvent) {
   @apply max-lg:h-auto max-lg:[aspect-ratio:var(--map-aspect)];
 }
 
-.map-renderer--fill .map-plot :deep(svg) {
+.map-renderer--fill .map-plot > :deep(svg) {
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 
 /* The svg box is larger than its viewBox on one axis: hide what is drawn beyond the viewBox */
-.map-renderer--fill .map-plot :deep(svg > *) {
+.map-renderer--fill .map-plot > :deep(svg > *) {
   clip-path: view-box;
 }
 
