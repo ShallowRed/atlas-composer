@@ -5,6 +5,11 @@ export function ringsOf(geometry: AreaGeometry): Ring[][] {
   return geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
 }
 
+/** The number of vertices of the rings of a collection */
+export function vertexCount(collection: { features: ReadonlyArray<{ geometry: AreaGeometry }> }): number {
+  return collection.features.flatMap(feature => ringsOf(feature.geometry)).flat().flat().length
+}
+
 /** Twice the signed area of a ring in a plane with the y axis up: positive for a counterclockwise ring */
 export function signedArea(ring: Ring): number {
   let area = 0

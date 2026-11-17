@@ -27,7 +27,8 @@ Commands:
                projection to the standard output, as JSON
 
 Options:
-  --resolution <value>  Natural Earth resolution, for territories: 10m, 50m or 110m [default: 50m]
+  --resolution <value>  Natural Earth resolution, for territories and compose: 10m, 50m or 110m
+                        [default: 50m]
   --data <file>         GeoJSON features with the code of a territory in properties.code,
                         read in place of Natural Earth
   --out <file>          File of the composed geometries, for compose
@@ -87,14 +88,11 @@ function territories(atlasId: string, options: { data?: string, out?: string, re
 }
 
 async function compose(target: string, options: { data?: string, out?: string, resolution: string }) {
-  if (options.resolution !== DEFAULT_RESOLUTION) {
-    throw new Error(`compose reads Natural Earth at ${DEFAULT_RESOLUTION}, the resolution of the extraction rules of the atlases`)
-  }
   if (!options.out) {
     throw new Error('compose writes a file: give its path with --out')
   }
   const config = await readComposite('compose', target)
-  const { collection: built } = buildTerritories(readAtlas(config.metadata.atlasId), readSource(options.data, DEFAULT_RESOLUTION))
+  const { collection: built } = buildTerritories(readAtlas(config.metadata.atlasId), readSource(options.data, options.resolution))
 
   const loader = new ProjectionLoader()
   registerAllD3Projections(factories => loader.registerAll(factories))

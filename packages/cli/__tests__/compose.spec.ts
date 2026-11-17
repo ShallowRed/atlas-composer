@@ -11,7 +11,7 @@ import { registerAllD3Projections } from '@atlas-composer/projection-loader/help
 import { afterAll, describe, expect, it } from 'vitest'
 import { composeTerritories } from '../src'
 import { failureOf, run } from './cli'
-import { ringsOf, signedArea } from './geometry'
+import { ringsOf, signedArea, vertexCount } from './geometry'
 
 const RADIANS = Math.PI / 180
 const TOLERANCE = 1e-6
@@ -26,9 +26,9 @@ async function readPreset(presetId: string): Promise<CompositeProjectionConfig> 
 const directory = mkdtempSync(join(tmpdir(), 'atlas-composer-cli-'))
 afterAll(() => rmSync(directory, { recursive: true, force: true }))
 
-function runCompose(target: string, name: string) {
+function runCompose(target: string, name: string, options: string[] = []) {
   const out = join(directory, `${name}.geojson`)
-  run(['compose', target, '--out', out])
+  run(['compose', target, '--out', out, ...options])
   return {
     collection: JSON.parse(readFileSync(out, 'utf8')) as ComposedTerritories['collection'],
     composition: JSON.parse(readFileSync(`${out}.json`, 'utf8')) as Omit<ComposedTerritories, 'collection'>,
@@ -84,6 +84,17 @@ describe('atlas-composer compose', () => {
     expectRfc7946(collection)
   })
 
+  it('should compose at the resolution of --resolution, each territory in its frame', async () => {
+    const config = await readPreset('france-standard')
+    const at50m = runCompose('france-standard', 'france-50m').collection
+    const at10m = runCompose('france-standard', 'france-10m', ['--resolution', '10m']).collection
+
+    expect(at10m.features.map(feature => feature.properties.code)).toEqual(at50m.features.map(feature => feature.properties.code))
+    expect(vertexCount(at10m)).toBeGreaterThan(2 * vertexCount(at50m))
+    expectVerticesInFrames(config, at10m)
+    expectRfc7946(at10m)
+  })
+
   it('should name the territories that the preset leaves out and those that their frame clips entirely', () => {
     expect(runCompose('usa-pseudo-d3cp', 'usa').composition.skippedCodes).toEqual(['US-ALEU', 'US-VI', 'US-MP'])
 
@@ -113,7 +124,6 @@ describe('atlas-composer compose', () => {
     expect(failureOf(['compose', 'atlantis', '--out', out])).toContain('Unknown preset "atlantis"')
     expect(failureOf(['compose', 'france-split', '--out', out])).toContain('composite-custom')
     expect(failureOf(['compose', 'france-standard'])).toContain('--out')
-    expect(failureOf(['compose', 'france-standard', '--resolution', '10m', '--out', out])).toContain('at 50m')
 
     const config = await readPreset('portugal-standard')
     const unknownAtlas = join(directory, 'unknown-atlas.json')

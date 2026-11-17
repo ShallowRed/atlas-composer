@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { failureOf, run } from './cli'
-import { ringsOf, signedArea } from './geometry'
+import { ringsOf, signedArea, vertexCount } from './geometry'
 
 describe('atlas-composer territories', () => {
   const output = run(['territories', 'world'])
@@ -68,6 +68,12 @@ describe('atlas-composer territories', () => {
     const [[exterior]] = ringsOf(written.features[0]!.geometry)
     expect(exterior).toHaveLength(5)
     expect(signedArea(exterior!)).toBeCloseTo(30)
+  })
+
+  it('should build an atlas with extraction rules at 10m, with more vertices than at 50m', () => {
+    const portugal = (resolution: string) => JSON.parse(run(['territories', 'portugal', '--resolution', resolution])) as typeof collection
+
+    expect(vertexCount(portugal('10m'))).toBeGreaterThan(2 * vertexCount(portugal('50m')))
   })
 
   it('should refuse --out, which compose reads', () => {
