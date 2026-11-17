@@ -38,7 +38,7 @@ interface TopoJSONData {
   type: string
   objects?: {
     territories?: {
-      geometries?: Array<{ id: string }>
+      geometries?: Array<{ properties?: { code?: string } }>
     }
   }
 }
@@ -90,7 +90,7 @@ function extractDataCodes(data: GeneratedData): string[] {
       .filter((code): code is string => typeof code === 'string')
   }
   else if (data.objects?.territories?.geometries) {
-    return data.objects.territories.geometries.map(g => g.id)
+    return data.objects.territories.geometries.map(g => g.properties?.code).filter((code): code is string => typeof code === 'string')
   }
   return []
 }

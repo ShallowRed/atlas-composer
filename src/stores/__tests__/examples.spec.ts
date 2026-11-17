@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { createPinia, setActivePinia } from 'pinia'
+import { topology } from 'topojson-server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readAtlasContours } from '@/__tests__/test-utils'
 import { EXAMPLES } from '@/core/examples'
@@ -66,9 +67,9 @@ describe('loadEarthquakes', () => {
 describe('loadCompositionDemo', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // The configurations are served from configs/, the contours built from world-atlas, the other files from src/public/
-    vi.stubGlobal('fetch', async (url: string) => new Response(url.endsWith('/japan-territories-50m.json')
-      ? JSON.stringify(readAtlasContours('japan'))
+    // The configurations are served from configs/, the contours built from world-atlas as a topology, the other files from src/public/
+    vi.stubGlobal('fetch', async (url: string) => new Response(url.endsWith('/japan-territories-10m.json')
+      ? JSON.stringify(topology({ territories: readAtlasContours('japan') }))
       : await readFile(`.${url.replace(/^\/(?!configs\/)/, '/src/public/')}`, 'utf8')))
   })
 

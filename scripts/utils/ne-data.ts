@@ -6,7 +6,7 @@ import { logger } from '#scripts/utils/logger'
 
 export type Resolution = NaturalEarthResolution
 
-export const DEFAULT_RESOLUTION: Resolution = '50m'
+export const DEFAULT_RESOLUTION: Resolution = '10m'
 
 // Literal calls of require.resolve, which knip reads as uses of world-atlas
 const require = createRequire(import.meta.url)

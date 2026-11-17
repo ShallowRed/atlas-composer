@@ -14,8 +14,8 @@
     "defaultCompositeProjection": "transverse-mercator-chile"
   },
   "dataSources": {
-    "territories": "chile-territories-50m.json",
-    "metadata": "chile-metadata-50m.json"
+    "territories": "chile-territories-10m.json",
+    "metadata": "chile-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

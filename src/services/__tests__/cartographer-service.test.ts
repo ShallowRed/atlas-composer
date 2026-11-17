@@ -6,9 +6,8 @@ describe('cartographer service integration', () => {
   let cartographer: Cartographer
 
   const mockGeoDataConfig: GeoDataConfig = {
-    dataPath: '/data/france-territories-50m.json',
-    metadataPath: '/data/france-metadata-50m.json',
-    topologyObjectName: 'territories',
+    dataPath: '/data/france-territories-10m.json',
+    metadataPath: '/data/france-metadata-10m.json',
     territories: [
       {
         code: 'FR-MET' as any,

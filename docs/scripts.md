@@ -6,13 +6,12 @@
 
 `pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `prepareAtlasData` in `scripts/geodata/prepare.ts` builds the territories with `buildTerritories`, with each name in English, and the metadata with `createBackendConfig` of `scripts/config/adapter.ts`.
 
-The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 50m by default. An atlas uses the resolution written in the file names of its `dataSources`. `buildTerritories` refuses another resolution than 50m for an atlas with extraction rules, since its polygon indices count the polygons of the 50m topology.
+The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, and is 10m by default; `.github/workflows/deploy.yml` prepares the world atlas with `--resolution=50m`. An atlas uses the resolution written in the file names of its `dataSources`. The polygon indices of the extraction rules count the polygons of the 50m topology: at another resolution, the script also reads the 50m topology, and `buildTerritories` gives each polygon the territory of the 50m polygon of the same id that contains its centroid or, without one, of the 50m polygon with the nearest vertex. A polygon farther than 50 km from it and outside the `bounds` of its territory, such as an islet that Natural Earth draws at 10m only, is left out of the territory and named in a warning.
 
-The script writes three files in `src/public/data/`, a folder that git ignores. With the 50m resolution, these files are:
+The script writes two files in `src/public/data/`, a folder that git ignores. With the 10m resolution, these files are:
 
-- `src/public/data/world-countries-50m.json`, the topology that the script reads.
-- `src/public/data/<atlas>-territories-50m.json`, a GeoJSON feature collection with one feature per territory.
-- `src/public/data/<atlas>-metadata-50m.json`, the description of the atlas and of its territory rules.
+- `src/public/data/<atlas>-territories-10m.json`, a topology quantized at 1e5 whose object `territories` holds one geometry per territory, with its `id`, `code`, `name` and `iso` in `properties`.
+- `src/public/data/<atlas>-metadata-10m.json`, the description of the atlas and of its territory rules.
 
 The script gathers the Natural Earth features of each id, padded to three digits, into one geometry, and a territory takes the features whose id equals its `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. The script stops with a `TerritoryBuildError` that names each territory without a feature.
 
@@ -37,7 +36,7 @@ The script applies the indices first, and the boxes to the polygons that remain.
 
 ## Finding the ids and the polygon indices
 
-`pnpm geodata:lookup` finds a country by name or by id and prints its Natural Earth id and the shape of its geometry. `pnpm geodata:analyze` takes this id and lists the polygons by decreasing area, each with its index, bounds and center, then suggests groups of nearby polygons. Polygon indices differ between resolutions, so pass the resolution of the atlas with `--resolution=`.
+`pnpm geodata:lookup` finds a country by name or by id and prints its Natural Earth id and the shape of its geometry. `pnpm geodata:analyze` takes this id and lists the polygons by decreasing area, each with its index, bounds and center, then suggests groups of nearby polygons. Polygon indices differ between resolutions: `geodata:lookup` and `geodata:analyze` read the 50m topology by default, whose polygons the extraction rules count.
 
 ## Validating the configurations
 

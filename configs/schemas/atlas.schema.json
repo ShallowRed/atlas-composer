@@ -27,13 +27,13 @@
       "properties": {
         "territories": {
           "type": "string",
-          "description": "Path to the GeoJSON file containing territory geometries",
-          "examples": ["world-countries-110m.json", "france-regions-50m.json"]
+          "description": "Path to the TopoJSON file whose object territories holds the geometry of each territory",
+          "examples": ["world-territories-50m.json", "france-territories-10m.json"]
         },
         "metadata": {
           "type": "string",
           "description": "Path to the JSON file containing territory metadata",
-          "examples": ["world-metadata-110m.json", "france-metadata-50m.json"]
+          "examples": ["world-metadata-50m.json", "france-metadata-10m.json"]
         }
       },
       "required": ["territories", "metadata"]

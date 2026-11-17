@@ -24,6 +24,7 @@ import * as topojson from 'topojson-client'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
 import { readWorldData } from '#scripts/utils/ne-data'
+import { RULES_RESOLUTION } from '../../packages/preset-library/src/territories.js'
 
 interface PolygonMetadata {
   index: number
@@ -310,7 +311,7 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const resolution = getResolution(args)
+  const resolution = getResolution(args, RULES_RESOLUTION)
   await analyzeCountry(countryId, resolution)
 }
 

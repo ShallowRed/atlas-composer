@@ -12,6 +12,7 @@ import * as topojson from 'topojson-client'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
 import { readWorldData } from '#scripts/utils/ne-data'
+import { RULES_RESOLUTION } from '../../packages/preset-library/src/territories.js'
 
 interface Bounds {
   minLon: number
@@ -268,7 +269,7 @@ async function main(): Promise<void> {
     logger.warning(`Ignoring unknown flag(s): ${args._unknown.join(', ')}`)
   }
 
-  const resolution = getResolution(args)
+  const resolution = getResolution(args, RULES_RESOLUTION)
   await lookupCountry(args.country, resolution)
 }
 

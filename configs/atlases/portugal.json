@@ -8,8 +8,8 @@
     "defaultCompositeProjection": "conic-conformal-portugal"
   },
   "dataSources": {
-    "territories": "portugal-territories-50m.json",
-    "metadata": "portugal-metadata-50m.json"
+    "territories": "portugal-territories-10m.json",
+    "metadata": "portugal-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

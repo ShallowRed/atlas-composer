@@ -14,8 +14,8 @@
     "defaultCompositeProjection": "conic-conformal-spain"
   },
   "dataSources": {
-    "territories": "spain-territories-50m.json",
-    "metadata": "spain-metadata-50m.json"
+    "territories": "spain-territories-10m.json",
+    "metadata": "spain-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

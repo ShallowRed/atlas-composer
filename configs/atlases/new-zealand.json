@@ -11,8 +11,8 @@
   },
   "category": "country",
   "dataSources": {
-    "territories": "new-zealand-territories-50m.json",
-    "metadata": "new-zealand-metadata-50m.json"
+    "territories": "new-zealand-territories-10m.json",
+    "metadata": "new-zealand-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

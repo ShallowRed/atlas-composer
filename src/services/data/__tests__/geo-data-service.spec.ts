@@ -8,7 +8,6 @@ const METADATA_PATH = '/data/test-metadata.json'
 const config: GeoDataConfig = {
   dataPath: DATA_PATH,
   metadataPath: METADATA_PATH,
-  topologyObjectName: 'territories',
   territories: [],
 }
 
@@ -95,6 +94,13 @@ describe('geoDataService.loadData', () => {
     })
 
     expect(result).toEqual({ ok: false, error: { code: 'GEODATA_MISSING_OBJECT', objectName: 'territories' } })
+  })
+
+  it('returns GEODATA_INVALID_STRUCTURE for a GeoJSON feature collection', async () => {
+    const collection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { code: 'XX' }, geometry: null }] }
+    const result = await loadData({ [DATA_PATH]: json(JSON.stringify(collection)), [METADATA_PATH]: json('{}') })
+
+    expect(result).toEqual({ ok: false, error: { code: 'GEODATA_INVALID_STRUCTURE', path: DATA_PATH } })
   })
 
   it('returns GEODATA_INVALID_STRUCTURE for a null body', async () => {

@@ -14,8 +14,8 @@
     "defaultCompositeProjection": "mercator-ecuador"
   },
   "dataSources": {
-    "territories": "ecuador-territories-50m.json",
-    "metadata": "ecuador-metadata-50m.json"
+    "territories": "ecuador-territories-10m.json",
+    "metadata": "ecuador-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

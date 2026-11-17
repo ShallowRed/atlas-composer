@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { Earthquake } from '@/core/examples'
-import type { AtlasConfigError, PresetError } from '@/core/types/errors'
+import type { AtlasConfigError, GeoDataError, PresetError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { CompositionDemoSource } from '@/stores/examples'
 import type { PresetId } from '@/types/branded'
@@ -14,7 +14,7 @@ const TRANSITION_MS = 1200
 
 export function useCompositionDemo(presetId: Ref<PresetId>) {
   const store = useExamplesStore()
-  const source = shallowRef<Result<CompositionDemoSource, PresetError | AtlasConfigError> | null>(null)
+  const source = shallowRef<Result<CompositionDemoSource, PresetError | AtlasConfigError | GeoDataError> | null>(null)
   const earthquakes = shallowRef<Earthquake[]>([])
   const isLoading = ref(false)
 

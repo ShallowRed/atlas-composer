@@ -11,8 +11,8 @@
   },
   "category": "country",
   "dataSources": {
-    "territories": "norway-territories-50m.json",
-    "metadata": "norway-metadata-50m.json"
+    "territories": "norway-territories-10m.json",
+    "metadata": "norway-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

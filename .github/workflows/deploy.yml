@@ -48,7 +48,7 @@ jobs:
           for atlas in $atlases; do
             pnpm run geodata:prepare "$atlas"
           done
-          pnpm run geodata:prepare world --resolution=110m
+          pnpm run geodata:prepare world --resolution=50m
 
       - name: Build
         run: pnpm build

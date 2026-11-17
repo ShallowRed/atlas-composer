@@ -14,8 +14,8 @@
     "defaultCompositeProjection": "mercator-malaysia"
   },
   "dataSources": {
-    "territories": "malaysia-territories-50m.json",
-    "metadata": "malaysia-metadata-50m.json"
+    "territories": "malaysia-territories-10m.json",
+    "metadata": "malaysia-metadata-10m.json"
   },
   "metadata": {
     "naturalEarthIds": [

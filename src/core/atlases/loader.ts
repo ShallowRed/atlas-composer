@@ -116,9 +116,7 @@ function createGeoDataConfig(config: JSONAtlasConfig, territories: LoadedTerrito
   return {
     dataPath,
     metadataPath,
-    topologyObjectName: territories.isWildcard ? 'countries' : 'territories',
     territories: territories.all,
-    isWildcard: territories.isWildcard === true,
   }
 }
 

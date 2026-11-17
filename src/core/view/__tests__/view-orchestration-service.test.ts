@@ -18,7 +18,6 @@ function createViewState(overrides: Partial<ViewState> = {}): ViewState {
     geoDataConfig: {
       dataPath: '/data/test.json',
       metadataPath: '/data/test-metadata.json',
-      topologyObjectName: 'territories',
       territories: [{
         code: createTerritoryCode('TEST-MAIN'),
         name: 'Test Main',
