@@ -81,7 +81,8 @@ const source = createNaturalEarthSource(feature(topology, topology.objects.count
 const { collection } = buildTerritories(config, source)
 ```
 
-- A Natural Earth source goes through the extraction rules of the atlas. The polygon indices of these rules count the polygons of `countries-50m.json` of `world-atlas` 2.0.2: `buildTerritories` refuses another resolution for an atlas with rules, and another version of `world-atlas` cuts the territories at the wrong polygons. An atlas of every country, such as `world`, reads any resolution, and the code of each territory is `WD-<id>`.
+- A Natural Earth source goes through the extraction rules of the atlas. The polygon indices of these rules count the polygons of `countries-50m.json` of `world-atlas` 2.0.2, and another version of `world-atlas` cuts the territories at the wrong polygons. An atlas of every country, such as `world`, reads any resolution, and the code of each territory is `WD-<id>`.
+- At another resolution, such as `10m`, `createNaturalEarthSource(features, '10m', features50m)` takes the features of `countries-50m.json` too, and `buildTerritories` refuses an atlas with rules without them. Each polygon of the source goes to the territory of the 50m polygon of the same id that contains its centroid or, without one, of the 50m polygon with the nearest vertex. A polygon farther than 50 km from it and outside the bounds of its territory, such as an islet that Natural Earth draws at 10m only, is left out of the geometry and listed in `leftOutPolygons`.
 - A source `{ kind: 'by-code', features }` takes features that carry the code of a territory in `properties.code`, such as `FR-GF`, and gathers them by code.
 - The rings of the features are oriented as d3-geo reads them, exterior rings clockwise. `rewindToRfc7946` orients a planar geometry as RFC 7946 asks.
 - `buildTerritories` throws a `TerritoryBuildError` whose `issues` name the missing or unknown codes, the indices out of range, the duplicated territories without source, the rings that cross the antimeridian, a source by code for an atlas of every country, and the refused resolution.
@@ -98,7 +99,8 @@ const { collection } = buildTerritories(config, source)
 - `listCompositePresets()` - List the `composite-custom` presets
 - `listViewModePresets()` - List the `built-in-composite`, `split` and `unified` presets
 - `buildTerritories(config, source)` - Build one feature per territory of an atlas
-- `createNaturalEarthSource(features, resolution)` - Build a source from the features of a Natural Earth topology
+- `createNaturalEarthSource(features, resolution, ruleFeatures?)` - Build a source from the features of a Natural Earth topology, with the features of the 50m topology for another resolution
+- `RULES_RESOLUTION` - The resolution whose polygons the indices of the extraction rules count, `50m`
 - `listAtlases()` - List the atlas identifiers, in alphabetical order
 - `listRegions()` - List the atlas identifiers, in the order of the registry of the Atlas Composer app, [`configs/atlas-registry.json`](https://github.com/ShallowRed/atlas-composer/blob/main/configs/atlas-registry.json)
 - `listTypes()` - List the preset types
