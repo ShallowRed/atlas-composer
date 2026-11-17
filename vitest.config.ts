@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [vue()],
@@ -9,6 +9,8 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['src/__tests__/setup.ts'],
     globals: true,
+    // The worktrees of other agent sessions hold copies of the tests without their dependencies
+    exclude: [...configDefaults.exclude, '.claude/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
