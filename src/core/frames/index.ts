@@ -30,7 +30,8 @@ const ROUND_TRIP_TOLERANCE = 0.5
 // The longitude and latitude of a pixel, when they project back to it within half a pixel: outside the globe, the inverse returns a point that projects elsewhere
 export function invertOnGlobe(projection: InvertibleProjection, point: Point): Point | null {
   const inverse = projection.invert?.(point)
-  if (!inverse || !Number.isFinite(inverse[0]) || !Number.isFinite(inverse[1])) {
+  // Above the globe, the inverse of a Natural Earth can give a latitude beyond a pole that projects back to the pixel
+  if (!inverse || !Number.isFinite(inverse[0]) || !(Math.abs(inverse[1]) <= 90)) {
     return null
   }
   const back = projection(inverse)
