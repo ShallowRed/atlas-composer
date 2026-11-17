@@ -58,13 +58,24 @@ describe('simplification of the territories at each render', () => {
     vi.unstubAllGlobals()
   })
 
-  it('draws each territory simplified to the scale of its projection', async () => {
+  it('draws each territory simplified to the scale of its projection, and its borders as a mesh', async () => {
     const cartographer = await loadedCartographer()
     const geoData = await cartographer.geoData.getCompleteData()
     const { svg } = await cartographer.render({ mode: 'simple', geoData, projection: 'mercator', width: 800, height: 600 })
     const full = geoPath(cartographer.lastProjection!)(geoData.features[0]!)!
     const drawn = svg.querySelector('g.territories path[data-territory="XX"]')!.getAttribute('d')!
+    const borders = [...svg.querySelectorAll('g.borders path')].map(path => path.getAttribute('d')!)
 
     expect(drawn.split('L').length).toBeLessThan(full.split('L').length)
+    // A mesh is a line, without the closing command of a ring
+    expect(borders).toHaveLength(1)
+    expect(borders[0]).not.toContain('Z')
+  })
+
+  it('draws the outline of each territory, without mesh, in the composite-projection mode of a composite of d3-composite-projections', async () => {
+    const cartographer = await loadedCartographer()
+    const { svg } = await cartographer.render({ mode: 'composite-projection', territoryMode: 'all-territories', projection: 'mercator', width: 800, height: 600 })
+
+    expect(svg.querySelector('g.borders path')!.getAttribute('d')).toContain('Z')
   })
 })

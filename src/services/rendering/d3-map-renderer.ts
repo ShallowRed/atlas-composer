@@ -11,8 +11,13 @@ export type TerritoryTitle = (code: string, name: string) => string
 export const TERRITORY_STROKE_WIDTH = 1
 const HOVERED_STROKE_WIDTH = 2.5
 
+/** The lines of the borders of a group of territories, each border once */
+export type TerritoryBorders = (codes: readonly string[]) => GeoJSON.MultiLineString
+
 export interface TerritoryRenderOptions {
   enableTooltips?: boolean
+  // Without it, the borders of a group are the outlines of its territories
+  bordersOf?: TerritoryBorders
   // Without fill, over a basemap, a territory keeps its whole surface for the pointer and shows the hover on its outline
   fillTerritories?: boolean
   titleOf?: TerritoryTitle
@@ -78,18 +83,21 @@ export class D3MapRenderer {
       enableTooltips = true,
       fillTerritories = true,
       titleOf = (_code: string, name: string) => name,
+      bordersOf,
       onHover,
       onClick,
     } = options
 
     const geoPaths = new Map<GeoProjection, GeoPath>()
     const pathOfFeature = new Map<GeoJSON.Feature, GeoPath>()
+    const featuresOfPath = new Map<GeoPath, GeoJSON.Feature[]>()
     for (const feature of geoData.features) {
       const projection = projectionOf(feature)
       if (projection) {
         const path = geoPaths.get(projection) ?? geoPath(projection)
         geoPaths.set(projection, path)
         pathOfFeature.set(feature, path)
+        featuresOfPath.set(path, [...(featuresOfPath.get(path) ?? []), feature])
       }
     }
     const svgSelection = select(svg)
@@ -106,8 +114,23 @@ export class D3MapRenderer {
       .attr('fill', fillTerritories ? getTerritoryFillColor() : 'transparent')
       .attr('pointer-events', fillTerritories ? null : 'all')
       .attr('stroke', getTerritoryStrokeColor())
-      .attr('stroke-width', TERRITORY_STROKE_WIDTH)
+      .attr('stroke-width', 0)
       .attr('data-territory', d => d.properties?.code || d.properties?.INSEE_DEP || '')
+
+    // The borders of each group of territories of one projection, drawn once over the territories
+    svgSelection
+      .append('g')
+      .attr('class', 'borders')
+      .attr('pointer-events', 'none')
+      .selectAll('path')
+      .data([...featuresOfPath])
+      .join('path')
+      .attr('d', ([path, features]) => path(bordersOf
+        ? bordersOf(features.map(feature => feature.properties?.code))
+        : { type: 'GeometryCollection', geometries: features.map(feature => feature.geometry) }) || '')
+      .attr('fill', 'none')
+      .attr('stroke', getTerritoryStrokeColor())
+      .attr('stroke-width', TERRITORY_STROKE_WIDTH)
 
     if (enableTooltips) {
       paths.append('title')
@@ -125,7 +148,7 @@ export class D3MapRenderer {
         }
       })
       .on('mouseleave', (event: MouseEvent) => {
-        select(event.currentTarget as SVGPathElement).attr(fillTerritories ? 'opacity' : 'stroke-width', fillTerritories ? 1 : TERRITORY_STROKE_WIDTH)
+        select(event.currentTarget as SVGPathElement).attr(fillTerritories ? 'opacity' : 'stroke-width', fillTerritories ? 1 : 0)
         if (onHover) {
           onHover(null, event)
         }
