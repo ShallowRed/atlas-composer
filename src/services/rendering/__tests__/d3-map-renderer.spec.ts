@@ -57,7 +57,33 @@ describe('drawing of the territories through one projection', () => {
     path!.dispatchEvent(new MouseEvent('mouseenter'))
     expect(Number(path!.getAttribute('stroke-width'))).toBeGreaterThan(TERRITORY_STROKE_WIDTH)
     path!.dispatchEvent(new MouseEvent('mouseleave'))
-    expect(Number(path!.getAttribute('stroke-width'))).toBe(TERRITORY_STROKE_WIDTH)
+    expect(Number(path!.getAttribute('stroke-width'))).toBe(0)
+  })
+
+  it('draws the territories without outline, and their borders once in a group that the pointer ignores', () => {
+    const svg = D3MapRenderer.createSvgElement(800, 600)
+    D3MapRenderer.renderTerritories(svg, collection, () => projection)
+    const borders = [...svg.querySelectorAll<SVGPathElement>('g.borders path')]
+
+    expect([...svg.querySelectorAll('g.territories path')].map(element => element.getAttribute('stroke-width'))).toEqual(['0', '0'])
+    expect(svg.querySelector('g.borders')!.getAttribute('pointer-events')).toBe('none')
+    expect(borders).toHaveLength(1)
+    expect(borders[0]!.hasAttribute('data-territory')).toBe(false)
+    expect(Number(borders[0]!.getAttribute('stroke-width'))).toBe(TERRITORY_STROKE_WIDTH)
+    expect(borders[0]!.getAttribute('d')).toBe(geoPath(projection)({ type: 'GeometryCollection', geometries: collection.features.map(feature => feature.geometry) }))
+  })
+
+  it('draws the borders that bordersOf gives for the codes of the group', () => {
+    const mesh: GeoJSON.MultiLineString = { type: 'MultiLineString', coordinates: [[[2, 45], [3, 46]]] }
+    const groups: Array<readonly string[]> = []
+    const svg = D3MapRenderer.createSvgElement(800, 600)
+    D3MapRenderer.renderTerritories(svg, collection, () => projection, { bordersOf: (codes) => {
+      groups.push(codes)
+      return mesh
+    } })
+
+    expect(groups).toEqual([['AA', 'BB']])
+    expect(svg.querySelector('g.borders path')!.getAttribute('d')).toBe(geoPath(projection)(mesh))
   })
 })
 
@@ -88,6 +114,14 @@ describe('drawing of the territories through the sub-projection of their code', 
 
     expect(pathA!.getAttribute('d')).toContain(ownPath)
     expect(pathA!.getAttribute('d')).not.toBe(ownPath)
+  })
+
+  it('draws one border path per sub-projection', () => {
+    const svg = D3MapRenderer.createSvgElement(800, 600)
+    D3MapRenderer.renderTerritories(svg, withoutProjection, projectionOf)
+
+    expect([...svg.querySelectorAll('g.borders path')].map(element => element.getAttribute('d')))
+      .toEqual(collection.features.map((feature, index) => geoPath([subProjectionA, subProjectionB][index]!)({ type: 'GeometryCollection', geometries: [feature.geometry] }) ?? ''))
   })
 
   it('draws no path for a territory without a sub-projection', () => {

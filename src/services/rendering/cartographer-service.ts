@@ -2,7 +2,7 @@ import type { GeoProjection } from 'd3-geo'
 import type { ProjectionFrame } from '@/core/frames'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
+import type { TerritoryBorders, TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { CompositeTerritories, GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import type { ActiveTerritoryProvider } from '@/types/territory'
@@ -139,6 +139,7 @@ export class Cartographer {
     showSphere = false,
     titleOf?: TerritoryTitle,
     fillTerritories = true,
+    meshBorders = true,
   ): SVGSVGElement {
     const svg = D3MapRenderer.createSvgElement(width, height)
 
@@ -146,8 +147,10 @@ export class Cartographer {
       D3MapRenderer.renderSphere(svg, projection)
     }
 
-    D3MapRenderer.renderTerritories(svg, this.simplify(data, projectionOf), projectionOf, {
+    const { territories, mesh } = this.simplify(data, projectionOf)
+    D3MapRenderer.renderTerritories(svg, territories, projectionOf, {
       enableTooltips: true,
+      bordersOf: meshBorders ? mesh : undefined,
       titleOf,
       fillTerritories,
     })
@@ -155,8 +158,8 @@ export class Cartographer {
     return svg
   }
 
-  // Each territory simplified to the scale of the projection that draws it, at its centroid
-  private simplify(data: GeoJSON.FeatureCollection, projectionOf: TerritoryProjection): GeoJSON.FeatureCollection {
+  // Each territory simplified to the scale of the projection that draws it, at its centroid, and the meshes of their borders
+  private simplify(data: GeoJSON.FeatureCollection, projectionOf: TerritoryProjection): { territories: GeoJSON.FeatureCollection, mesh?: TerritoryBorders } {
     const minWeights = new Map<string, number>()
     for (const feature of data.features) {
       const code = feature.properties?.code
@@ -168,12 +171,15 @@ export class Cartographer {
     }
     // A collection without a territory of the loaded topology is drawn as given
     if (minWeights.size === 0) {
-      return data
+      return { territories: data }
     }
     const simplified = this.geoDataService.simplified(minWeights)
     return {
-      type: 'FeatureCollection',
-      features: data.features.map(feature => simplified.feature(feature.properties?.code) ?? feature),
+      territories: {
+        type: 'FeatureCollection',
+        features: data.features.map(feature => simplified.feature(feature.properties?.code) ?? feature),
+      },
+      mesh: simplified.mesh,
     }
   }
 
@@ -230,7 +236,9 @@ export class Cartographer {
     this._lastProjection = projectionFn
 
     return {
-      svg: this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories),
+      // A composite of d3-composite-projections sends each point to the projection of its region: a line of a mesh, which
+      // joins the borders of several territories, would cross from one frame to another, so each territory draws its outline
+      svg: this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories, false),
       frames: [{ code: '*', projection: projectionFn, extent: [[0, 0], [width, height]] }],
     }
   }
