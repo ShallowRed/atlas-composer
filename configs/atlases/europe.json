@@ -1041,6 +1041,87 @@
       }
     },
     {
+      "id": "528-BQ1",
+      "code": "NL-BQ1",
+      "name": {
+        "en": "Bonaire",
+        "fr": "Bonaire"
+      },
+      "iso": "BES",
+      "region": "Caribbean",
+      "center": [
+        -68.3,
+        12.17
+      ],
+      "bounds": [
+        [
+          -68.45,
+          11.99
+        ],
+        [
+          -68.16,
+          12.34
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "528"
+      }
+    },
+    {
+      "id": "528-BQ2",
+      "code": "NL-BQ2",
+      "name": {
+        "en": "Saba",
+        "fr": "Saba"
+      },
+      "iso": "BES",
+      "region": "Caribbean",
+      "center": [
+        -63.237,
+        17.63
+      ],
+      "bounds": [
+        [
+          -63.27,
+          17.6
+        ],
+        [
+          -63.2,
+          17.66
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "528"
+      }
+    },
+    {
+      "id": "528-BQ3",
+      "code": "NL-BQ3",
+      "name": {
+        "en": "Sint Eustatius",
+        "fr": "Saint-Eustache"
+      },
+      "iso": "BES",
+      "region": "Caribbean",
+      "center": [
+        -62.972,
+        17.495
+      ],
+      "bounds": [
+        [
+          -63.02,
+          17.44
+        ],
+        [
+          -62.92,
+          17.55
+        ]
+      ],
+      "extraction": {
+        "extractFrom": "528"
+      }
+    },
+    {
       "id": "578",
       "code": "NO",
       "name": {
@@ -1387,7 +1468,10 @@
           "FR-NC",
           "PT-30",
           "PT-20",
-          "ES-CN"
+          "ES-CN",
+          "NL-BQ1",
+          "NL-BQ2",
+          "NL-BQ3"
         ]
       }]
     }

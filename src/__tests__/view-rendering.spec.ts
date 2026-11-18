@@ -1,10 +1,11 @@
-// Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit
-// "fix(registry): declare every preset of configs/presets once", the territories of the france/split, usa/split and
-// europe/split keys that the split preset omits, produced on the commit "fix(view): center each territory that the split
-// preset omits on its territory", the points of FR-RE in the france/split, france/composite-custom and europe/split keys,
-// produced on the commit "fix(atlases): widen the bounds of Réunion to cover the whole island", and the keys of each atlas
-// added since, produced on the commit "feat(atlases): add the <atlas> atlas"; regenerate a key only on the commit that
-// produced it.
+// Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit "fix(registry):
+// declare every preset of configs/presets once", the territories of the france/split, usa/split and europe/split keys
+// that the split preset omits, produced on the commit "fix(view): center each territory that the split preset omits on
+// its territory", the points of FR-RE in the france/split, france/composite-custom and europe/split keys, produced on
+// the commit "fix(atlases): widen the bounds of Réunion to cover the whole island", the NL-BQ1, NL-BQ2 and NL-BQ3
+// territories of the europe/split key, produced on the commit "fix(atlases): extract Bonaire, Saba and Sint Eustatius
+// from the Netherlands of the europe atlas", and the keys of each atlas added since, produced on the commit
+// "feat(atlases): add the <atlas> atlas"; regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
