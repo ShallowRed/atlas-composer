@@ -1,8 +1,7 @@
 import type { AppError, ParameterIssue, PresetIssue } from '@/core/types/errors'
 import type { SupportedLocale } from '@/i18n'
-import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineComponent } from 'vue'
+import { withSetup } from '@/__tests__/test-utils'
 import { ERROR_MESSAGE_KEYS, ISSUE_MESSAGE_KEYS, PARAMETER_ISSUE_MESSAGE_KEYS, useErrorMessage } from '@/composables/useErrorMessage'
 import i18n, { SUPPORTED_LOCALES } from '@/i18n'
 
@@ -73,14 +72,7 @@ const parameterIssues = {
 const initialLocale = i18n.global.locale.value
 
 function withErrorMessage<T>(read: (messages: ReturnType<typeof useErrorMessage>) => T): T {
-  let value: T
-  mount(defineComponent({
-    setup() {
-      value = read(useErrorMessage())
-      return () => null
-    },
-  }), { global: { plugins: [i18n] } })
-  return value!
+  return withSetup(() => read(useErrorMessage()))
 }
 
 function rawMessage(locale: SupportedLocale, key: string): unknown {
