@@ -85,14 +85,14 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
           </AtlasConfigSection>
           <DisplayOptionsSection class="mt-3" />
         </template>
-        <div class="main-content-wrapper relative h-full w-full max-lg:h-auto">
+        <div class="main-content-wrapper relative flex h-full w-full flex-col max-lg:h-auto">
           <Transition
             name="fade"
             mode="out-in"
           >
             <div
               :key="contentKey"
-              class="relative h-full"
+              class="relative min-h-0 flex-1"
             >
               <SplitView v-if="viewOrchestration.shouldShowSplitView.value" />
 
@@ -107,20 +107,22 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
 
           <div
             v-if="basemapSource"
-            class="map-note top-1 right-1 z-10 max-w-full text-base-content/70 max-lg:static max-lg:mt-1 max-lg:bg-transparent max-lg:px-0"
+            class="mt-auto pt-1 text-xs text-base-content/70 lg:text-right"
           >
             <details
               v-if="basemapAttributionSummary"
-              class="group"
+              class="relative"
             >
-              <summary class="pointer-events-auto flex cursor-pointer list-none items-baseline justify-end gap-1 hover:text-base-content max-lg:justify-start [&::-webkit-details-marker]:hidden">
-                <span class="group-open:hidden">{{ basemapAttributionSummary }}</span>
-                <span class="hidden group-open:inline">{{ basemapSource.attribution }}</span>
+              <summary class="flex cursor-pointer list-none items-baseline justify-end gap-1 hover:text-base-content max-lg:justify-start [&::-webkit-details-marker]:hidden">
+                {{ basemapAttributionSummary }}
                 <i
                   class="ri-information-line"
                   aria-hidden="true"
                 />
               </summary>
+              <p class="map-note inset-x-0 bottom-full z-10 mb-1 bg-base-100 py-0.5">
+                {{ basemapSource.attribution }}
+              </p>
             </details>
             <template v-else>
               {{ basemapSource.attribution }}
