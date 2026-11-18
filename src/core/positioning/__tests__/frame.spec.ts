@@ -101,7 +101,7 @@ describe('moving a territory', () => {
 describe('frame shared by territories', () => {
   const bounds: [[number, number], [number, number]] = [[100, 120], [209, 174]]
 
-  it('holds the territories whose frames have one rectangle, as Saint Martin and Saint Barthélemy', () => {
+  it('holds the territories when their frames have the same rectangle, as Saint Martin and Saint Barthélemy', () => {
     const frames = framesOfTerritories([
       { territoryCode: 'FR-MF', bounds, point: [154, 141] },
       { territoryCode: 'FR-GP', bounds: [[100, 180], [209, 320]], point: [154, 250] },
@@ -111,21 +111,24 @@ describe('frame shared by territories', () => {
     expect(frames[0]!.rect).toEqual({ left: 100, top: 120, right: 209, bottom: 174 })
   })
 
-  const shapes = [
-    { territoryCode: 'FR-MF', rect: { left: 140, top: 130, right: 150, bottom: 140 } },
-    { territoryCode: 'FR-BL', rect: { left: 160, top: 145, right: 166, bottom: 150 } },
-  ]
+  const martin = { territoryCode: 'FR-MF', rect: { left: 140, top: 130, right: 150, bottom: 140 }, holdsPoint: false }
+  const barthelemy = { territoryCode: 'FR-BL', rect: { left: 160, top: 145, right: 166, bottom: 150 }, holdsPoint: false }
 
-  it('gives the pointer to the territory whose shape is nearest', () => {
-    expect(nearestTerritory([145, 135], shapes)).toBe('FR-MF')
-    expect(nearestTerritory([170, 152], shapes)).toBe('FR-BL')
-    expect(nearestTerritory([200, 170], shapes, 'FR-MF')).toBe('FR-BL')
+  it('gives the pointer to the territory whose box is nearest', () => {
+    expect(nearestTerritory([145, 135], [martin, barthelemy])).toBe('FR-MF')
+    expect(nearestTerritory([170, 152], [martin, barthelemy])).toBe('FR-BL')
+    expect(nearestTerritory([200, 170], [martin, barthelemy], 'FR-MF')).toBe('FR-BL')
+  })
+
+  it('gives the pointer to the territory whose shape holds it, though the box of another territory contains its box', () => {
+    const around = { ...martin, rect: { left: 100, top: 120, right: 209, bottom: 174 } }
+    expect(nearestTerritory([162, 147], [around, { ...barthelemy, holdsPoint: true }], 'FR-MF')).toBe('FR-BL')
   })
 
   it('keeps the selected territory at an equal distance, then the first', () => {
-    const overlapping = [shapes[0]!, { ...shapes[1]!, rect: shapes[0]!.rect }]
+    const overlapping = [martin, { ...barthelemy, rect: martin.rect }] as const
     expect(nearestTerritory([145, 135], overlapping, 'FR-BL')).toBe('FR-BL')
     expect(nearestTerritory([145, 135], overlapping)).toBe('FR-MF')
-    expect(nearestTerritory([145, 135], [{ territoryCode: 'FR-MF', rect: null }, shapes[1]!])).toBe('FR-BL')
+    expect(nearestTerritory([145, 135], [{ ...martin, rect: null }, barthelemy])).toBe('FR-BL')
   })
 })
