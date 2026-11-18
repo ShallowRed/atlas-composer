@@ -1,7 +1,7 @@
 import type { Resolution } from '#scripts/utils/ne-data'
 import process from 'node:process'
 import { logger } from '#scripts/utils/logger'
-import { DEFAULT_RESOLUTION, isValidResolution } from '#scripts/utils/ne-data'
+import { isValidResolution } from '#scripts/utils/ne-data'
 
 export interface ParsedArgs {
   atlas: string | null
@@ -50,7 +50,7 @@ export function parseArgs(): ParsedArgs {
   return parsed
 }
 
-export function getResolution(args: ParsedArgs, fallback: Resolution = DEFAULT_RESOLUTION): Resolution {
+export function getResolution(args: ParsedArgs, fallback: Resolution): Resolution {
   if (args.resolution) {
     return args.resolution
   }
