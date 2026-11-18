@@ -43,12 +43,11 @@ jobs:
 
       - name: Prepare geodata
         run: |
-          atlases=$(jq -r '.atlases[].id | select(. != "world")' configs/atlas-registry.json)
+          atlases=$(jq -r '.atlases[].id' configs/atlas-registry.json)
           test -n "$atlases"
           for atlas in $atlases; do
             pnpm run geodata:prepare "$atlas"
           done
-          pnpm run geodata:prepare world --resolution=50m
 
       - name: Build
         run: pnpm build
