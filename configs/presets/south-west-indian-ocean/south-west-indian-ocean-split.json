@@ -1,0 +1,77 @@
+{
+  "id": "south-west-indian-ocean-split",
+  "name": "South-West Indian Ocean - Uniform split view",
+  "description": "Same Mercator projection for all territories",
+  "atlasId": "south-west-indian-ocean",
+  "type": "split",
+  "config": {
+    "territories": {
+      "KM": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              43.9,
+              -11.85
+            ]
+          }
+        }
+      },
+      "FR-YT": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              45.16,
+              -12.8
+            ]
+          }
+        }
+      },
+      "MG": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              46.9,
+              -18.8
+            ]
+          }
+        }
+      },
+      "MU": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              57.55,
+              -20.25
+            ]
+          }
+        }
+      },
+      "FR-RE": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              55.52,
+              -21.13
+            ]
+          }
+        }
+      },
+      "SC": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              55.6,
+              -4.55
+            ]
+          }
+        }
+      }
+    }
+  }
+}
