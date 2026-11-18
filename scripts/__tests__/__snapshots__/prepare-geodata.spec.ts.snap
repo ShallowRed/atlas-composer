@@ -2,15 +2,15 @@
 
 exports[`prepareAtlasData > prepares the territories and the metadata of europe in 10m 1`] = `
 {
-  "metadata": "774878ddc61af112d6f50943901695adc5f1467f5145839223887e930ca7534a",
-  "territories": "ca5b58a97d7bfd4317ff1790482e47ae15160d30d967d2313da345a58f2e73c8",
+  "metadata": "0ff858f2218134d80b709e24e5ac8f5f449808bb3ee252a0ef5223c1fe1e7e02",
+  "territories": "4153fefcdd87f1269bc573ee29b9cf55a414bba5028b6e13f44970c383058113",
 }
 `;
 
 exports[`prepareAtlasData > prepares the territories and the metadata of europe in 50m 1`] = `
 {
-  "metadata": "7ff98f63dec73217bd4ab930fcab28d276b94d7f1072173ec592bfa563699742",
-  "territories": "a57e7b8669093f7a95b9e5bb4c89eccf73fcfdee79163c71bd9e872ca0e5a090",
+  "metadata": "a8d13bd9963844cf66c747175b39bcc6b89b55f7cf9223247aed57dc9d0fb171",
+  "territories": "47cf6b3929f547df3fc824a390c08682e48d329184b824edf69af6be07910f06",
 }
 `;
 
@@ -30,15 +30,15 @@ exports[`prepareAtlasData > prepares the territories and the metadata of france 
 
 exports[`prepareAtlasData > prepares the territories and the metadata of portugal in 10m 1`] = `
 {
-  "metadata": "c0bdb4497fef9ee7e0619ace1964fccf858c1035f2ac407acf3333ff89044681",
-  "territories": "42df37d2296eb6b349a5cbda3e607053d7ee83ac8248cf0fe2cc00ed04f8c798",
+  "metadata": "eafab457e2ef40c9e5e95b138f48e9c31253455d962e4204cc6a9c921f9cb8b3",
+  "territories": "5658b3dd5948325a3b5d9d0a123d0f6431b0e09131ec25732cbd5a0af83f200d",
 }
 `;
 
 exports[`prepareAtlasData > prepares the territories and the metadata of portugal in 50m 1`] = `
 {
-  "metadata": "955dd9a6f5b41359f2b9f76a9925f96efceab397895b085697a4be0f6c23c3ff",
-  "territories": "752333436038c3fc6c69847c0c9b362124bfaf0745299a16b8187a6fd3d47af6",
+  "metadata": "2771c303156ca3ef4d86bdf37471267b3900c4db4b5e1ed61ee31c2291c38a2a",
+  "territories": "984b104a539b2382bf27d2407a0cd0840cfaec24ab5d1b87a818d1337c8c2d69",
 }
 `;
 

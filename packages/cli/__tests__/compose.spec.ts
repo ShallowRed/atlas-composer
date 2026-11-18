@@ -113,7 +113,7 @@ describe('atlas-composer compose', () => {
     writeFileSync(file, JSON.stringify(withoutFrames))
 
     const { collection } = runCompose(file, 'without-frames')
-    expect(collection.features.map(feature => feature.properties.code)).toEqual(['PT-CONT', 'PT-20', 'PT-30'])
+    expect(collection.features.map(feature => feature.properties.code)).toEqual(['PT-CONT', 'PT-30', 'PT-20'])
     expectVerticesInFrames(withoutFrames, collection)
     expectRfc7946(collection)
   })

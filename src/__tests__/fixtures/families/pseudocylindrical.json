@@ -49,7 +49,7 @@
       ]
     },
     {
-      "code": "PT-20",
+      "code": "PT-30",
       "name": "Madeira",
       "projection": {
         "id": "natural-earth",
@@ -87,7 +87,7 @@
       ]
     },
     {
-      "code": "PT-30",
+      "code": "PT-20",
       "name": "Azores",
       "projection": {
         "id": "natural-earth",

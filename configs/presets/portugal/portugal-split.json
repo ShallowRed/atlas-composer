@@ -15,7 +15,7 @@
           }
         }
       },
-      "PT-20": {
+      "PT-30": {
         "projection": {
           "id": "conic-conformal",
           "parameters": {
@@ -24,7 +24,7 @@
           }
         }
       },
-      "PT-30": {
+      "PT-20": {
         "projection": {
           "id": "conic-conformal",
           "parameters": {
