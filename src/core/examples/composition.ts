@@ -2,8 +2,9 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ExampleSource } from './definitions'
 import type { ProjectionFrame } from '@/core/frames'
 import type { PresetId } from '@/types/branded'
+import { inExtent } from '@atlas-composer/projection-core'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
-import { inExtent, invertOnGlobe } from '@/core/frames'
+import { invertOnGlobe } from '@/core/frames'
 import { createPresetId } from '@/types/branded'
 
 type Point = [number, number]

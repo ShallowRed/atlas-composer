@@ -38,3 +38,7 @@ export function calculateClipExtentFromPixelOffset(
     [center[0] + x2 - epsilon, center[1] + y2 - epsilon],
   ]
 }
+
+export function inExtent([[x0, y0], [x1, y1]]: [[number, number], [number, number]], [x, y]: [number, number]): boolean {
+  return x >= x0 && x <= x1 && y >= y0 && y <= y1
+}

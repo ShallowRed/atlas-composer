@@ -1,9 +1,10 @@
 import type { GeoStream } from 'd3-geo'
 import type { CompositionDemoInput, CompositionMark, Earthquake } from '@/core/examples'
 import type { ProjectionFrame } from '@/core/frames'
+import { inExtent } from '@atlas-composer/projection-core'
 import { geoEquirectangular, geoPath } from 'd3-geo'
 import { interpolate, territoryOf } from '@/core/examples'
-import { inExtent, visibleLabels } from '@/core/frames'
+import { visibleLabels } from '@/core/frames'
 import { presetFrames } from '@/services/rendering/preset-frames'
 
 type Point = [number, number]
