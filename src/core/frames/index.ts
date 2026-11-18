@@ -1,5 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 
+import { inExtent } from '@atlas-composer/projection-core'
+
 type Point = [number, number]
 
 export type Extent = [[number, number], [number, number]]
@@ -14,10 +16,6 @@ export interface ProjectionFrame {
 export interface InvertibleProjection {
   (point: Point): Point | null
   invert?: (point: Point) => Point | null
-}
-
-export function inExtent([[x0, y0], [x1, y1]]: Extent, [x, y]: [number, number]): boolean {
-  return x >= x0 && x <= x1 && y >= y0 && y <= y1
 }
 
 // A frame drawn later covers the labels of the frames under it
