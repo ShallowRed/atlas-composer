@@ -128,19 +128,22 @@ export class MapRenderCoordinator {
     return image
   }
 
-  // Without placements, the image covers the viewBox, over the previous content until it is decoded; with placements, the image of a previous view shows each rectangle `from` in the rectangle `to` of the current view, in a nested svg that clips and scales it
-  static insertBasemap(svg: SVGSVGElement, url: string, provisional?: { placements: FramePlacement[], view: number[] }): void {
+  // Without placements, the image covers the viewBox, over the previous content until it is decoded, and carries the fingerprint of a complete image; with placements, the image of a previous view shows each rectangle `from` in the rectangle `to` of the current view, in a nested svg that clips and scales it
+  static insertBasemap(svg: SVGSVGElement, url: string, options: { placements: FramePlacement[], view: number[] } | { fingerprint?: string } = {}): void {
     const group = MapRenderCoordinator.basemapGroup(svg)
-    if (!provisional) {
+    if (!('placements' in options)) {
       const previous = [...group.children]
       const { x, y, width, height } = svg.viewBox.baseVal
       const image = MapRenderCoordinator.basemapImage(url, [x, y, width, height])
+      if (options.fingerprint) {
+        image.setAttribute('data-basemap-fingerprint', options.fingerprint)
+      }
       group.append(image)
       // A browser paints an image that it has not decoded yet as empty: the previous content stays under it until then
       void image.decode().catch(() => {}).finally(() => previous.forEach(element => element.remove()))
       return
     }
-    group.replaceChildren(...provisional.placements.map(({ from: [[fx0, fy0], [fx1, fy1]], to: [[tx0, ty0], [tx1, ty1]] }) => {
+    group.replaceChildren(...options.placements.map(({ from: [[fx0, fy0], [fx1, fy1]], to: [[tx0, ty0], [tx1, ty1]] }) => {
       const nested = document.createElementNS(SVG_NS, 'svg')
       nested.setAttribute('viewBox', `${fx0} ${fy0} ${fx1 - fx0} ${fy1 - fy0}`)
       nested.setAttribute('x', String(tx0))
@@ -148,7 +151,7 @@ export class MapRenderCoordinator {
       nested.setAttribute('width', String(tx1 - tx0))
       nested.setAttribute('height', String(ty1 - ty0))
       nested.setAttribute('preserveAspectRatio', 'none')
-      nested.append(MapRenderCoordinator.basemapImage(url, provisional.view))
+      nested.append(MapRenderCoordinator.basemapImage(url, options.view))
       return nested
     }))
   }

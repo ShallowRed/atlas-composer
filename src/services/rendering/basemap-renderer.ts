@@ -95,6 +95,39 @@ const elevationTiles = new TileCache<Promise<Float32Array | null>>(RELIEF_CACHE_
 const shadedTiles = new TileCache<Uint8ClampedArray>(RELIEF_CACHE_BYTES)
 const tileJsonTemplates = new Map<string, Promise<string | null>>()
 
+// The images of the basemaps of the initial views, rendered at deployment
+const CACHE_DIRECTORY = `basemaps/${import.meta.env.VITE_BASEMAP_BUILD_ID ?? 'dev'}`
+const FINGERPRINT_PATTERN = /^[a-z0-9-]+$/
+let cachedFingerprints: Promise<Set<string>> | null = null
+
+// Read once per page; without the index, every map renders its basemap
+function cacheIndex(): Promise<Set<string>> {
+  cachedFingerprints ??= JsonFileLoader.loadJSON<unknown>(`${CACHE_DIRECTORY}/index.json`)
+    .then(result => new Set(result.ok && Array.isArray(result.value) ? result.value.filter(item => typeof item === 'string') : []))
+  return cachedFingerprints
+}
+
+// The cached image of a basemap whose fingerprint the index lists, once decoded; null leaves the map to the render
+export async function cachedBasemap(fingerprint: string, signal: AbortSignal): Promise<Blob | null> {
+  // The address comes from the fingerprint that the application computes, never from the index
+  if (!FINGERPRINT_PATTERN.test(fingerprint) || !(await cacheIndex()).has(fingerprint) || signal.aborted) {
+    return null
+  }
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}${CACHE_DIRECTORY}/${fingerprint}.webp`, { signal })
+    if (!response.ok) {
+      return null
+    }
+    const image = await response.blob()
+    const bitmap = await createImageBitmap(image)
+    bitmap.close()
+    return signal.aborted ? null : image
+  }
+  catch {
+    return null
+  }
+}
+
 function tileUrl(template: string, zoom: number, x: number, y: number): string {
   return template.replace('{z}', String(zoom)).replace('{x}', String(x)).replace('{y}', String(y))
 }

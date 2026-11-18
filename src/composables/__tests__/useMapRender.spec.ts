@@ -6,14 +6,14 @@ import { startApplication } from '@/__tests__/composite-utils'
 import { withSetup } from '@/__tests__/test-utils'
 import { useMapRender } from '@/composables/useMapRender'
 import { err, ok } from '@/core/types/result'
-import { renderBasemap } from '@/services/rendering/basemap-renderer'
+import { cachedBasemap, renderBasemap } from '@/services/rendering/basemap-renderer'
 import { MapRenderCoordinator } from '@/services/rendering/map-render-coordinator'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useProjectionStore } from '@/stores/projection'
 import { useUIStore } from '@/stores/ui'
 import { createProjectionId } from '@/types/branded'
 
-vi.mock('@/services/rendering/basemap-renderer', () => ({ renderBasemap: vi.fn() }))
+vi.mock('@/services/rendering/basemap-renderer', () => ({ renderBasemap: vi.fn(), cachedBasemap: vi.fn() }))
 
 const props = { mode: 'composite' as const, geoData: null, width: 960, height: 500, preserveScale: false }
 
@@ -28,6 +28,7 @@ beforeEach(async () => {
   createObjectURL = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => `blob:${++urls}`)
   revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
   vi.spyOn(MapRenderCoordinator, 'insertBasemap').mockImplementation(() => {})
+  vi.mocked(cachedBasemap).mockResolvedValue(null)
   useUIStore().basemap = 'imagery'
 })
 
@@ -37,6 +38,18 @@ afterEach(() => {
   vi.clearAllMocks()
   useUIStore().basemap = 'none'
 })
+
+// The placements of the last provisional image
+function lastPlacements() {
+  const options = vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]
+  return options && 'placements' in options ? options.placements : undefined
+}
+
+// The fingerprint that the last insertion gave to its image
+function lastFingerprint() {
+  const options = vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]
+  return options && 'fingerprint' in options ? options.fingerprint : undefined
+}
 
 // The svg of a render of the map, with the viewBox that the renderer sets
 function svg() {
@@ -194,9 +207,9 @@ describe('provisional basemap image', () => {
 
     await renderAt(map, 40)
 
-    const provisional = vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]
-    expect(provisional?.placements.map(({ code }) => code)).toEqual(['FR'])
-    expect(provisional?.placements[0]!.to[0][0]).toBeCloseTo(provisional!.placements[0]!.from[0][0] + 40, 3)
+    const placements = lastPlacements()
+    expect(placements?.map(({ code }) => code)).toEqual(['FR'])
+    expect(placements?.[0]!.to[0][0]).toBeCloseTo(placements![0]!.from[0][0] + 40, 3)
     await vi.runAllTimersAsync()
     expect(renderBasemap).toHaveBeenCalledTimes(1)
   })
@@ -218,7 +231,7 @@ describe('provisional basemap image', () => {
 
     await renderWithReunion(40, -50)
 
-    expect(vi.mocked(MapRenderCoordinator.insertBasemap).mock.lastCall?.[2]?.placements.map(({ code }) => code)).toEqual(['FR'])
+    expect(lastPlacements()?.map(({ code }) => code)).toEqual(['FR'])
     await vi.runAllTimersAsync()
     expect(renderBasemap).toHaveBeenCalledTimes(1)
   })
@@ -249,5 +262,95 @@ describe('provisional basemap image', () => {
 
     expect(remove).toHaveBeenCalled()
     expect(MapRenderCoordinator.insertBasemap).not.toHaveBeenCalled()
+  })
+})
+
+describe('cached image of a raster basemap', () => {
+  const franceFrame = (dx: number) => ({
+    code: 'FR',
+    projection: geoConicConformal().rotate([-3, -46.5]).parallels([44, 49]).scale(2600).translate([480 + dx, 250]),
+    extent: [[200 + dx, 50], [760 + dx, 450]] as [[number, number], [number, number]],
+  })
+
+  async function renderAt(map: ReturnType<typeof useMapRender>, dx: number) {
+    vi.spyOn(MapRenderCoordinator, 'renderCompositeMap').mockResolvedValueOnce({ svg: svg(), frames: [franceFrame(dx)] })
+    const rendered = await map.renderSvg()
+    map.applyBasemap(rendered!)
+  }
+
+  beforeEach(() => {
+    // renderCompositeMap is mocked: renderComposite needs a cartographer and a selected projection
+    useGeoDataStore().cartographer = {} as never
+    useProjectionStore().selectedProjection = createProjectionId('conic-conformal')
+    useUIStore().basemap = 'relief'
+    vi.mocked(renderBasemap).mockResolvedValue(ok({ image: new Blob(), missingTiles: 0 }))
+  })
+
+  it('shows the cached image with its fingerprint and renders nothing', async () => {
+    vi.mocked(cachedBasemap).mockResolvedValue(new Blob())
+    const map = withSetup(() => useMapRender(props))
+
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+
+    expect(cachedBasemap).toHaveBeenCalledOnce()
+    expect(lastFingerprint()).toBe(vi.mocked(cachedBasemap).mock.calls[0]![0])
+    expect(renderBasemap).not.toHaveBeenCalled()
+    expect(map.basemapResult.value?.ok && map.basemapResult.value.value.missingTiles).toBe(0)
+    expect(map.basemapLoading.value).toBe(false)
+  })
+
+  it('renders both passes without a cached image, not before 200 ms on the first render, and gives the fingerprint to the complete pass only', async () => {
+    const map = withSetup(() => useMapRender(props))
+
+    await renderAt(map, 0)
+    await vi.advanceTimersByTimeAsync(199)
+    expect(renderBasemap).not.toHaveBeenCalled()
+    await vi.runAllTimersAsync()
+
+    expect(renderBasemap).toHaveBeenCalledTimes(2)
+    const fingerprints = vi.mocked(MapRenderCoordinator.insertBasemap).mock.calls.map(([, , options]) => options && 'fingerprint' in options ? options.fingerprint : undefined)
+    expect(fingerprints).toEqual([undefined, vi.mocked(cachedBasemap).mock.calls[0]![0]])
+  })
+
+  it('gives no fingerprint to a final pass with missing tiles', async () => {
+    vi.mocked(renderBasemap).mockResolvedValue(ok({ image: new Blob(), missingTiles: 1 }))
+    const map = withSetup(() => useMapRender(props))
+
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+
+    expect(lastFingerprint()).toBeUndefined()
+  })
+
+  it('keeps the cached image when the map draws again with the same frames, and places it as the provisional image of other frames', async () => {
+    vi.mocked(cachedBasemap).mockResolvedValueOnce(new Blob())
+    const map = withSetup(() => useMapRender(props))
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+    vi.mocked(MapRenderCoordinator.insertBasemap).mockClear()
+
+    await renderAt(map, 0)
+    await vi.runAllTimersAsync()
+    expect(cachedBasemap).toHaveBeenCalledOnce()
+    expect(renderBasemap).not.toHaveBeenCalled()
+    expect(lastFingerprint()).toBe(vi.mocked(cachedBasemap).mock.calls[0]![0])
+
+    await renderAt(map, 40)
+    expect(lastPlacements()?.map(({ code }) => code)).toEqual(['FR'])
+  })
+
+  it('shows nothing when interrupted while the cached image loads', async () => {
+    let finish = (_image: Blob | null) => {}
+    vi.mocked(cachedBasemap).mockReturnValueOnce(new Promise(resolve => finish = resolve))
+    const map = withSetup(() => useMapRender(props))
+
+    await renderAt(map, 0)
+    map.dispose()
+    finish(new Blob())
+    await vi.runAllTimersAsync()
+
+    expect(MapRenderCoordinator.insertBasemap).not.toHaveBeenCalled()
+    expect(renderBasemap).not.toHaveBeenCalled()
   })
 })

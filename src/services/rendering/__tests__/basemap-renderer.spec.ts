@@ -183,6 +183,59 @@ describe('renderBasemap', () => {
   })
 })
 
+describe('cachedBasemap', () => {
+  const FINGERPRINT = 'relief-abc123'
+  // The index of the cached images, then each image, by address
+  const serve = (index: unknown, image: () => Response = () => new Response(new Blob(['webp']))) => fetchMock.mockImplementation(async (url: string) => (
+    String(url).endsWith('/index.json') ? new Response(JSON.stringify(index)) : image()
+  ))
+  const requestedImages = () => fetchMock.mock.calls.filter(([url]) => String(url).endsWith('.webp'))
+
+  it('returns the image of a fingerprint that the index lists, and reads the index once', async () => {
+    serve([FINGERPRINT])
+    const signal = new AbortController().signal
+
+    expect(await renderer.cachedBasemap(FINGERPRINT, signal)).toBeInstanceOf(Blob)
+    expect(await renderer.cachedBasemap(FINGERPRINT, signal)).toBeInstanceOf(Blob)
+
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/index.json'))).toHaveLength(1)
+    expect(String(requestedImages()[0]![0])).toMatch(/basemaps\/dev\/relief-abc123\.webp$/)
+  })
+
+  it.each([
+    ['without an index', () => serve(null, () => new Response('', { status: 404 })), FINGERPRINT],
+    ['for a fingerprint that the index does not list', () => serve(['relief-other']), FINGERPRINT],
+    ['for a fingerprint outside its pattern, though the index lists it', () => serve(['../relief']), '../relief'],
+  ])('returns null and requests no image %s', async (_, setup, fingerprint) => {
+    setup()
+    expect(await renderer.cachedBasemap(fingerprint, new AbortController().signal)).toBeNull()
+    expect(requestedImages()).toHaveLength(0)
+  })
+
+  it('returns null when the image answers an error or does not decode', async () => {
+    serve([FINGERPRINT], () => new Response('', { status: 500 }))
+    expect(await renderer.cachedBasemap(FINGERPRINT, new AbortController().signal)).toBeNull()
+
+    serve([FINGERPRINT])
+    vi.stubGlobal('createImageBitmap', async () => {
+      throw new DOMException('The source image could not be decoded.', 'InvalidStateError')
+    })
+    expect(await renderer.cachedBasemap(FINGERPRINT, new AbortController().signal)).toBeNull()
+  })
+
+  it('returns null once interrupted, and passes the signal to the request of the image', async () => {
+    serve([FINGERPRINT])
+    const controller = new AbortController()
+    const pending = renderer.cachedBasemap(FINGERPRINT, controller.signal)
+    controller.abort()
+
+    expect(await pending).toBeNull()
+    const second = new AbortController()
+    await renderer.cachedBasemap(FINGERPRINT, second.signal)
+    expect(requestedImages().at(-1)![1]).toMatchObject({ signal: second.signal })
+  })
+})
+
 describe('openMapTiles polygons', () => {
   it('decode to areas that d3 fills, under half the sphere', () => {
     const tile = new VectorTile(new PbfReader(readFileSync('src/services/rendering/__tests__/fixtures/openmaptiles-9-320-274.pbf')))
