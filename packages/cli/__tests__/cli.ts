@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { expect } from 'vitest'
 
 const CLI = 'packages/cli/dist/cli.js'
@@ -6,6 +6,13 @@ const CLI = 'packages/cli/dist/cli.js'
 /** The standard output of the built command */
 export function run(args: string[]): string {
   return execFileSync('node', [CLI, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: 'pipe' })
+}
+
+/** The standard error of a command that exits with the code 0 */
+export function warningsOf(args: string[]): string {
+  const { status, stderr } = spawnSync('node', [CLI, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  expect(status).toBe(0)
+  return stderr
 }
 
 /** The standard error of a command that exits with the code 1 */

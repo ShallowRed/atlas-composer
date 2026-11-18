@@ -85,6 +85,8 @@ export interface BuiltTerritories {
   skippedFeatures: string[]
   /** Polygons without counterpart in the 50m topology, farther than 50 km from it and outside the bounds of their territory */
   leftOutPolygons: LeftOutPolygon[]
+  /** Codes of the territories without `polygonIndices` that have no polygon at 50m or 110m, such as islands that Natural Earth draws at 10m only */
+  emptyTerritories: string[]
 }
 
 export interface TerritoryBuildIssues {
@@ -226,7 +228,7 @@ function buildWorld(source: NaturalEarthSource): BuiltTerritories {
     })
   }
 
-  return { collection: { type: 'FeatureCollection', features }, skippedFeatures, leftOutPolygons: [] }
+  return { collection: { type: 'FeatureCollection', features }, skippedFeatures, leftOutPolygons: [], emptyTerritories: [] }
 }
 
 interface AssignedPolygon {
@@ -234,7 +236,7 @@ interface AssignedPolygon {
   code: string
 }
 
-function boundsRulesOf(rules: ReadonlyArray<TerritoryInput>): TerritoryInput[] {
+function withoutPolygonIndices(rules: ReadonlyArray<TerritoryInput>): TerritoryInput[] {
   return rules.filter(rule => rule.extraction?.extractFrom && !rule.extraction.polygonIndices)
 }
 
@@ -257,10 +259,10 @@ function assignByRules(
     }
   }
 
-  const boundsRules = boundsRulesOf(rules)
+  const byBounds = withoutPolygonIndices(rules)
   return polygons.map((polygon, index) => ({
     polygon,
-    code: codeByIndex.get(index) ?? boundsRules.find(candidate => fitsInBounds(polygon, candidate.bounds))?.code ?? parent.code,
+    code: codeByIndex.get(index) ?? byBounds.find(candidate => fitsInBounds(polygon, candidate.bounds))?.code ?? parent.code,
   }))
 }
 
@@ -270,15 +272,15 @@ function asPolygon(coordinates: Ring[]) {
 
 /**
  * Gives each polygon of another resolution the territory of the 50m polygon that contains its centroid or, without one,
- * of the first rule by bounds whose bounds contain it, or else of the 50m polygon with the nearest vertex. A polygon
- * without counterpart at 50m, farther than ATTACHMENT_DISTANCE and outside the bounds of its territory, such as an islet
- * that Natural Earth draws at 10m only, is left out.
+ * the first territory without polygonIndices whose bounds contain it, or else the territory of the 50m polygon with the
+ * nearest vertex. A polygon without counterpart at 50m, farther than ATTACHMENT_DISTANCE and outside the bounds of its
+ * territory, such as an islet that Natural Earth draws at 10m only, is left out.
  */
 function attachToRules(
   parent: TerritoryInput,
   polygons: Ring[][],
   assigned: AssignedPolygon[],
-  boundsRules: ReadonlyArray<TerritoryInput>,
+  withoutIndices: ReadonlyArray<TerritoryInput>,
   boundsOf: (code: string) => TerritoryInput['bounds'],
   leftOutPolygons: LeftOutPolygon[],
 ): AssignedPolygon[] {
@@ -291,9 +293,9 @@ function attachToRules(
     if (container) {
       return [{ polygon, code: container.code }]
     }
-    const boundsRule = boundsRules.find(rule => fitsInBounds(polygon, rule.bounds))
-    if (boundsRule) {
-      return [{ polygon, code: boundsRule.code }]
+    const byBounds = withoutIndices.find(territory => fitsInBounds(polygon, territory.bounds))
+    if (byBounds) {
+      return [{ polygon, code: byBounds.code }]
     }
 
     let nearest = assigned[0]!
@@ -356,7 +358,7 @@ function buildFromNaturalEarth(
       : polygonsOf(ruleGeometry).map(polygon => ({ polygon, code: parent.code }))
     // d3-geo reads a flat ring as the whole sphere, which would contain every centroid
     const assigned = attaches
-      ? attachToRules(parent, polygonsOf(feature.geometry).filter(hasArea), byRules.filter(({ polygon }) => hasArea(polygon)), appliesRules ? boundsRulesOf(rules) : [], boundsOf, leftOutPolygons)
+      ? attachToRules(parent, polygonsOf(feature.geometry).filter(hasArea), byRules.filter(({ polygon }) => hasArea(polygon)), appliesRules ? withoutPolygonIndices(rules) : [], boundsOf, leftOutPolygons)
       : byRules
     const polygonsOfCode = (code: string) => assigned.filter(candidate => candidate.code === code).map(({ polygon }) => polygon)
 
@@ -459,14 +461,15 @@ export function buildTerritories(
     : { features: buildFromCodes(territories, source, locale), leftOutPolygons: [] }
 
   const built = new Set(features.map(feature => feature.properties.code))
-  // Natural Earth draws some islands at 10m only, so a territory cut by its bounds can be empty at a coarser resolution
+  // Natural Earth draws some islands at 10m only, so a territory without polygonIndices can be empty at a coarser resolution
   const mayBeEmpty = source.kind === 'natural-earth' && source.resolution !== FINEST_RESOLUTION
-    ? new Set(boundsRulesOf(territories).map(territory => territory.code))
+    ? new Set(withoutPolygonIndices(territories).map(territory => territory.code))
     : new Set<string>()
+  const emptyTerritories = territories.map(territory => territory.code).filter(code => !built.has(code) && mayBeEmpty.has(code))
   const missingCodes = territories.map(territory => territory.code).filter(code => !built.has(code) && !mayBeEmpty.has(code))
   if (missingCodes.length > 0) {
     throw new TerritoryBuildError(`No feature for ${missingCodes.join(', ')}`, { missingCodes })
   }
 
-  return { collection: { type: 'FeatureCollection', features }, skippedFeatures: [], leftOutPolygons }
+  return { collection: { type: 'FeatureCollection', features }, skippedFeatures: [], leftOutPolygons, emptyTerritories }
 }
