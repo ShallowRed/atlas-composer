@@ -125,21 +125,26 @@ export class CompositeProjection {
     return buildCompositeProjection({ entries }) as any
   }
 
+  private isFramed(territoryCode: TerritoryCode): boolean {
+    return !this.activeTerritoryProvider.isUnframed?.(territoryCode)
+  }
+
   private placeSubProjection({ territoryCode, projection, translateOffset, bounds }: SubProjectionConfig, width: number, height: number) {
     const translate: [number, number] = [width / 2 + translateOffset[0], height / 2 + translateOffset[1]]
     projection.translate(translate)
 
     const { clipAngle, precision, pixelClipExtent } = this.parameterProvider.getEffectiveParameters(territoryCode)
+    const clipBounds = bounds && this.isFramed(territoryCode) ? boundsFromArray(bounds) : undefined
     applyRenderingParameters(
       projection as unknown as ProjectionLike,
-      { clipAngle, precision, pixelClipExtent, bounds: bounds && boundsFromArray(bounds) },
+      { clipAngle, precision, pixelClipExtent, bounds: clipBounds },
       translate,
     )
   }
 
   getCompositionBorders(_width = 800, _height = 600): CompositionBorder[] {
     return this.subProjections
-      .filter(sp => sp.bounds)
+      .filter(sp => sp.bounds && this.isFramed(sp.territoryCode))
       .map((subProj) => {
         const currentClipExtent = subProj.projection.clipExtent?.()
         if (currentClipExtent) {

@@ -96,7 +96,20 @@
       "groupingLogic": "Grouping logic",
       "switchGrouping": "Switch grouping"
     },
-    "resetOne": "Reset this territory"
+    "resetOne": "Reset this territory",
+    "geographic": {
+      "inside": "Inside the frame",
+      "outside": "Outside the frame",
+      "hidden": "Hidden",
+      "real": "Real position",
+      "inset": "Inset",
+      "detach": "Detach as inset",
+      "reattach": "Reattach",
+      "hide": "Hide the territory",
+      "show": "Show",
+      "noSlot": "No free inset slot",
+      "resetAll": "Reattach all"
+    }
   },
   "view": {
     "unified": "Unified view",
@@ -209,7 +222,8 @@
       "test": "Test",
       "compact": "Compact",
       "spread": "Spread"
-    }
+    },
+    "geographic": "Geographic map"
   },
   "preset": {
     "select": "Select preset",

@@ -15,6 +15,8 @@ type BoundingBox = [Coordinates, Coordinates]
 // Codes of the territories checked in the custom composite, read at each build of the composite
 export interface ActiveTerritoryProvider {
   getActiveTerritoryCodes: () => ReadonlySet<TerritoryCode>
+  // A territory drawn at its geographic position has no frame: its bounds neither clip it nor outline it
+  isUnframed?: (territoryCode: TerritoryCode) => boolean
 }
 
 // Offset of a territory in the composition, in pixels

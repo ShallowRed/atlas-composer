@@ -2,6 +2,7 @@
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import GeographicTerritoryList from '@/components/ui/parameters/GeographicTerritoryList.vue'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
@@ -9,6 +10,7 @@ import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
+import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -34,6 +36,8 @@ const parameterStore = useParameterStore()
 const viewStore = useViewStore()
 
 const presetDefaults = usePresetDefaultsStore()
+
+const compositionStore = useCompositionStore()
 
 const backButton = ref<HTMLButtonElement>()
 const rowButtons = ref<HTMLButtonElement[]>([])
@@ -74,7 +78,9 @@ async function closeTerritory() {
   const territoryCode = selectedTerritory.value?.code
   clearSelection()
   await nextTick()
-  rowButtons.value.find(button => button.dataset.territory === territoryCode)?.focus()
+  const rowButton = rowButtons.value.find(button => button.dataset.territory === territoryCode)
+    ?? document.querySelector<HTMLButtonElement>(`button[data-territory="${territoryCode}"]`)
+  rowButton?.focus()
 }
 
 watch(selectedTerritory, (territory) => {
@@ -100,10 +106,17 @@ onUnmounted(clearSelection)
         @click="resetTransforms"
       >
         <i class="ri-restart-line" />
-        {{ t('territory.reset') }}
+        {{ compositionStore.isGeographicComposition ? t('territory.geographic.resetAll') : t('territory.reset') }}
       </button>
     </div>
-    <ul class="menu w-full p-0">
+    <GeographicTerritoryList
+      v-if="compositionStore.isGeographicComposition"
+      @open="openTerritory"
+    />
+    <ul
+      v-else
+      class="menu w-full p-0"
+    >
       <li
         v-for="territory in territories"
         :key="territory.code"

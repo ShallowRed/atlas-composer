@@ -15,6 +15,17 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
+const PROBE_POINTS: [number, number][] = [[0, 0], [90, 30], [-60, -30]]
+
+// Two projections that place three points of the globe at the same pixels draw the same map
+function sameProjection(a: GeoProjection, b: GeoProjection): boolean {
+  return PROBE_POINTS.every((point) => {
+    const [ax, ay] = a(point) ?? [Number.NaN, Number.NaN]
+    const [bx, by] = b(point) ?? [Number.NaN, Number.NaN]
+    return Math.abs(ax - bx) < 1e-6 && Math.abs(ay - by) < 1e-6
+  })
+}
+
 interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
   titleOf?: TerritoryTitle
@@ -265,8 +276,13 @@ export class Cartographer {
     const projectionOf: TerritoryProjection = feature =>
       customComposite.getSubProjectionData(feature.properties?.code)?.projection
 
-    // One frame per active territory, in the order of the configuration
-    const frames = subProjections.map(({ territoryCode, projection }) => ({
+    // One frame per active territory, in the order of the configuration. A territory without frame covers the
+    // canvas: it goes under the framed ones, and the territories that share its projection need no other frame
+    const framed = subProjections.filter(({ projection }) => projection.clipExtent?.())
+    const unframed = subProjections
+      .filter(({ projection }) => !projection.clipExtent?.())
+      .filter(({ projection }, index, all) => all.findIndex(other => sameProjection(other.projection, projection)) === index)
+    const frames = [...unframed, ...framed].map(({ territoryCode, projection }) => ({
       code: territoryCode,
       projection,
       extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as ProjectionFrame['extent'],

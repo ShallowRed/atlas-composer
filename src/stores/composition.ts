@@ -8,13 +8,18 @@ import type { SharedLink } from '@/core/view'
 import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
+import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { ActiveTerritoryProvider } from '@/types/territory'
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 
 import { defineStore } from 'pinia'
+import { computed, markRaw, ref } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
+import { commonProjectionFor, detachAsInset, freeInsetSlot, geographicComposition, geographicProjection, isAtGeographicPosition, isInsideCanvas } from '@/core/positioning/geographic'
 import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
-import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { DEFAULT_CANVAS_DIMENSIONS, FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { defaultTerritoryParameters, TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
@@ -52,6 +57,15 @@ export const useCompositionStore = defineStore('composition', () => {
   const viewStore = useViewStore()
 
   let initializationRun = 0
+
+  // The parameters that the territories at their geographic position share, while the composition starts from the geographic map
+  const geographicReference = ref<ProjectionParameters | null>(null)
+
+  const territoryProvider: ActiveTerritoryProvider = markRaw({
+    getActiveTerritoryCodes: () => viewStore.activeTerritoryCodes,
+    isUnframed: (territoryCode: TerritoryCode) => geographicReference.value !== null
+      && !parameterStore.getEffectiveParameters(territoryCode).pixelClipExtent,
+  })
 
   async function startMapView(sharedLink?: SharedLink): Promise<void> {
     geoDataStore.clearError()
@@ -270,7 +284,7 @@ export const useCompositionStore = defineStore('composition', () => {
     cartographer.rebuildCompositeProjection({
       config: compositeTerritories,
       parameterProvider: parameterStore.parameterProvider,
-      activeTerritoryProvider: viewStore.activeTerritoryProvider,
+      activeTerritoryProvider: territoryProvider,
       referenceScale,
     })
     geoDataStore.triggerRender()
@@ -368,6 +382,7 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   function applyCompositionState(state: CompositionState): void {
+    geographicReference.value = null
     if (state.canvas) {
       projectionStore.referenceScale = state.canvas.referenceScale
       projectionStore.canvasDimensions = state.canvas.dimensions
@@ -383,6 +398,110 @@ export const useCompositionStore = defineStore('composition', () => {
     if (viewStore.viewMode === 'composite-custom') {
       presetDefaults.storePresetDefaults(state.territoryParameters)
     }
+  }
+
+  function geographicTerritories() {
+    return geoDataStore.territoriesData.map(territory => ({
+      code: territory.code,
+      center: atlasStore.territoryCenter(territory.code),
+      area: territory.area,
+      geometry: territory.data,
+    }))
+  }
+
+  async function commonProjection(atlasId: AtlasId, largestCenter: [number, number]) {
+    const unifiedId = getDefaultPresetForViewMode(atlasId, 'unified')?.id as PresetId | undefined
+    const unified = unifiedId ? await PresetLoader.loadPreset(unifiedId) : null
+    const unifiedProjection = unified?.ok && unified.value.type === 'unified' ? unified.value.config.projection : null
+    return commonProjectionFor(unifiedProjection, largestCenter)
+  }
+
+  async function startGeographicComposition(): Promise<Result<void, GeoDataError>> {
+    const atlasId = atlasStore.selectedAtlasId
+    const geoDataResult = await ensureAtlasDataLoaded(viewStore.territoryMode)
+    if (!geoDataResult.ok) {
+      return geoDataResult
+    }
+
+    const territories = geographicTerritories()
+    if (territories.length === 0 || viewStore.viewMode !== 'composite-custom') {
+      return ok(undefined)
+    }
+    const largest = territories.reduce((current, territory) => territory.area > current.area ? territory : current)
+    const projection = await commonProjection(atlasId, largest.center)
+    if (atlasStore.selectedAtlasId !== atlasId) {
+      return ok(undefined)
+    }
+
+    const composition = geographicComposition({
+      territories,
+      projection,
+      canvas: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+    })
+    parameterStore.clearAll()
+    applyCompositionState(composition)
+    geographicReference.value = composition.reference
+    updateCartographer(composition.canvas.referenceScale)
+    return ok(undefined)
+  }
+
+  const isGeographicComposition = computed(() => geographicReference.value !== null && viewStore.viewMode === 'composite-custom')
+
+  // Where each territory of the atlas stands relative to the geographic map: inside the canvas, outside it, or moved
+  const geographicPlacement = computed<Record<string, 'inside' | 'outside' | 'moved'>>(() => {
+    const reference = geographicReference.value
+    if (!reference || viewStore.viewMode !== 'composite-custom') {
+      return {}
+    }
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    const projection = geographicProjection(reference, projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE, canvas)
+    return Object.fromEntries(geographicTerritories().map(({ code, geometry }) => {
+      const parameters = parameterStore.getTerritoryParameters(code)
+      if (!isAtGeographicPosition(parameters, reference)) {
+        return [code, 'moved']
+      }
+      return [code, isInsideCanvas(geometry, projection, canvas) ? 'inside' : 'outside']
+    }))
+  })
+
+  const movedTerritories = computed(() => Object.entries(geographicPlacement.value)
+    .filter(([code, placement]) => placement === 'moved' && viewStore.activeTerritoryCodes.has(code as TerritoryCode))
+    .map(([code]) => code))
+
+  const hasFreeInsetSlot = computed(() => {
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    return freeInsetSlot(movedTerritories.value.map(code => parameterStore.getTerritoryParameters(code as TerritoryCode)), canvas) !== null
+  })
+
+  function detachTerritory(territoryCode: TerritoryCode): boolean {
+    const reference = geographicReference.value
+    const territory = geographicTerritories().find(({ code }) => code === territoryCode)
+    if (!reference || !territory) {
+      return false
+    }
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    const slot = freeInsetSlot(movedTerritories.value.map(code => parameterStore.getTerritoryParameters(code as TerritoryCode)), canvas)
+    if (!slot) {
+      return false
+    }
+
+    const parameters = detachAsInset({ ...territory, projectionId: reference.projectionId ?? FALLBACK_PROJECTION_ID }, slot, canvas, projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE)
+    parameterStore.clearAllTerritoryOverrides(territoryCode)
+    parameterStore.setTerritoryParameters(territoryCode, parameters)
+    viewStore.addTerritoryToComposite(territoryCode)
+    geoDataStore.triggerRender()
+    return true
+  }
+
+  function reattachTerritory(territoryCode: TerritoryCode): void {
+    const reference = geographicReference.value
+    if (!reference) {
+      return
+    }
+    parameterStore.clearAllTerritoryOverrides(territoryCode)
+    parameterStore.setTerritoryParameters(territoryCode, { ...reference })
+    viewStore.addTerritoryToComposite(territoryCode)
+    geoDataStore.triggerRender()
   }
 
   function familyOf(projectionId: string | null | undefined): ProjectionFamilyType {
@@ -510,6 +629,13 @@ export const useCompositionStore = defineStore('composition', () => {
     resetTerritoryToDefaults,
     addTerritoryToComposite,
     resetCanvas,
+    startGeographicComposition,
+    isGeographicComposition,
+    geographicPlacement,
+    movedTerritories,
+    hasFreeInsetSlot,
+    detachTerritory,
+    reattachTerritory,
     selectAtlas,
     selectViewMode,
   }

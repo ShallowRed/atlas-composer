@@ -96,7 +96,20 @@
       "groupingLogic": "Logique de regroupement",
       "switchGrouping": "Changer le regroupement"
     },
-    "resetOne": "Réinitialiser ce territoire"
+    "resetOne": "Réinitialiser ce territoire",
+    "geographic": {
+      "inside": "Dans le cadre",
+      "outside": "Hors du cadre",
+      "hidden": "Masqués",
+      "real": "Position réelle",
+      "inset": "Encart",
+      "detach": "Détacher en encart",
+      "reattach": "Rattacher",
+      "hide": "Masquer le territoire",
+      "show": "Afficher",
+      "noSlot": "Aucune case d'encart libre",
+      "resetAll": "Tout rattacher"
+    }
   },
   "view": {
     "unified": "Vue unifiée",
@@ -209,7 +222,8 @@
       "test": "Test",
       "compact": "Compact",
       "spread": "Étendu"
-    }
+    },
+    "geographic": "Carte géographique"
   },
   "preset": {
     "select": "Sélectionner une configuration",
