@@ -22,6 +22,18 @@ export interface CompositionBorder {
   point: [number, number]
 }
 
+// A frame of the composition and its territories: several territories share a frame when their frames have one rectangle
+export interface FrameOfTerritories {
+  rect: CanvasRect
+  territoryCodes: string[]
+}
+
+// The shape of a territory as the map draws it, null when the map draws nothing of it
+export interface TerritoryShape {
+  territoryCode: string
+  rect: CanvasRect | null
+}
+
 // Edges of the frame relative to the point of its territory, as pixelClipExtent holds them
 export type FrameExtent = [left: number, top: number, right: number, bottom: number]
 
@@ -44,6 +56,40 @@ export interface FrameHandle {
 
 export function rectFromCorners([[x0, y0], [x1, y1]]: [[number, number], [number, number]]): CanvasRect {
   return { left: Math.min(x0, x1), top: Math.min(y0, y1), right: Math.max(x0, x1), bottom: Math.max(y0, y1) }
+}
+
+// The frames in the order of the composition, each with its territories in that order
+export function framesOfTerritories(borders: readonly CompositionBorder[]): FrameOfTerritories[] {
+  const frames: FrameOfTerritories[] = []
+  for (const border of borders) {
+    const rect = rectFromCorners(border.bounds)
+    const shared = frames.find(frame => frame.rect.left === rect.left && frame.rect.top === rect.top && frame.rect.right === rect.right && frame.rect.bottom === rect.bottom)
+    if (shared) {
+      shared.territoryCodes.push(border.territoryCode)
+    }
+    else {
+      frames.push({ rect, territoryCodes: [border.territoryCode] })
+    }
+  }
+  return frames
+}
+
+// The territory whose shape is nearest to the point, at a distance of zero inside the box of the shape.
+// At an equal distance, the selected territory comes first, then the first in the order of the shapes.
+export function nearestTerritory([x, y]: [number, number], shapes: readonly TerritoryShape[], selectedCode?: string | null): string | undefined {
+  const distanceOf = ({ rect }: TerritoryShape) => rect
+    ? Math.hypot(Math.max(rect.left - x, 0, x - rect.right), Math.max(rect.top - y, 0, y - rect.bottom))
+    : Number.POSITIVE_INFINITY
+  let nearest = shapes[0]
+  let nearestDistance = nearest ? distanceOf(nearest) : Number.POSITIVE_INFINITY
+  for (const shape of shapes.slice(1)) {
+    const distance = distanceOf(shape)
+    if (distance < nearestDistance || (distance === nearestDistance && shape.territoryCode === selectedCode)) {
+      nearest = shape
+      nearestDistance = distance
+    }
+  }
+  return nearest?.territoryCode
 }
 
 // The part of the frame inside the canvas, or null when it is empty or has no area

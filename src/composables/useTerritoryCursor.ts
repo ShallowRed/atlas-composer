@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import type { AxisControl } from '@/core/parameters'
+import type { FrameOfTerritories } from '@/core/positioning'
 import type { CompositionFrames } from '@/services/rendering/selection-overlay-service'
 import type { TerritoryCode } from '@/types'
 import { select } from 'd3'
@@ -8,9 +9,8 @@ import { useI18n } from 'vue-i18n'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { formatValue, parameterRegistry } from '@/core/parameters'
-import { moveOffset, rectFromCorners } from '@/core/positioning'
+import { framesOfTerritories, moveOffset, nearestTerritory } from '@/core/positioning'
 import { SelectionOverlayService } from '@/services/rendering/selection-overlay-service'
-import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 
@@ -21,14 +21,13 @@ interface TerritoryCursorOptions {
 
 export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
   const parameterStore = useParameterStore()
-  const geoDataStore = useGeoDataStore()
   const viewStore = useViewStore()
   const { selectedTerritory } = useSelectedTerritory()
   const { getTerritoryFamily } = useProjectionConfig()
   const { locale } = useI18n()
 
   const isDragging = ref(false)
-  const hoveredTerritoryCode = ref<string | null>(null)
+  const hoveredFrame = ref<FrameOfTerritories | null>(null)
   // Position written under the selected frame while the territory moves
   const moveLabel = ref<string | null>(null)
 
@@ -37,11 +36,26 @@ export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
   let drag: { code: TerritoryCode, pointerId: number, startX: number, startY: number, unit: number, startOffset: [number, number], controls: AxisControl[] } | null = null
 
   function showHover(svg: SVGSVGElement) {
-    const code = hoveredTerritoryCode.value
-    const frame = code && code !== selectedTerritory.value?.code && !isDragging.value
-      ? SelectionOverlayService.frameOf(geoDataStore.cartographer?.customComposite, code)
-      : null
-    SelectionOverlayService.drawHover(svg, frame?.rect ?? null, SelectionOverlayService.canvasUnitOf(svg))
+    const frame = hoveredFrame.value
+    const selectedCode = selectedTerritory.value?.code
+    const rect = frame && !isDragging.value && !(selectedCode && frame.territoryCodes.includes(selectedCode)) ? frame.rect : null
+    SelectionOverlayService.drawHover(svg, rect, SelectionOverlayService.canvasUnitOf(svg))
+  }
+
+  // The territory of the frame under the pointer; a frame that several territories share gives it to the one whose shape is nearest
+  function territoryUnderPointer(event: PointerEvent): TerritoryCode | null {
+    const overlay = (event.target as Element | null)?.closest?.('.border-zone-overlay')
+    const svg = overlay?.closest('svg')
+    if (!overlay || !svg) {
+      return null
+    }
+    const { territoryCodes } = select<Element, FrameOfTerritories>(overlay).datum()
+    if (territoryCodes.length === 1) {
+      return territoryCodes[0] as TerritoryCode
+    }
+    const point = SelectionOverlayService.canvasPointOf(svg, event.clientX, event.clientY)
+    const shapes = territoryCodes.map(code => SelectionOverlayService.shapeOf(svg, code))
+    return (nearestTerritory(point, shapes, selectedTerritory.value?.code) ?? territoryCodes[0]) as TerritoryCode
   }
 
   // The position of a territory whose family declares it, as the panel shows its fields
@@ -80,7 +94,7 @@ export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
       controls,
     }
     isDragging.value = true
-    hoveredTerritoryCode.value = null
+    hoveredFrame.value = null
     SelectionOverlayService.drawHover(svg, null, 1)
     window.addEventListener('pointermove', handlePointerMove)
     window.addEventListener('pointerup', stopDrag)
@@ -120,30 +134,34 @@ export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
       return
     }
 
-    const borders = customComposite.getCompositionBorders()
+    const frames = framesOfTerritories(customComposite.getCompositionBorders())
     const svgSelection = select(svg)
     svgSelection.selectAll('.border-zone-overlays').remove()
 
     svgSelection.append('g')
       .attr('class', 'border-zone-overlays')
       .selectAll('rect')
-      .data(borders)
+      .data(frames)
       .join('rect')
       .attr('class', 'border-zone-overlay')
-      .attr('data-territory', d => d.territoryCode)
-      .each(function (d) {
-        const { left, top, right, bottom } = rectFromCorners(d.bounds)
-        select(this).attr('x', left).attr('y', top).attr('width', right - left).attr('height', bottom - top)
-      })
+      .attr('x', ({ rect }) => rect.left)
+      .attr('y', ({ rect }) => rect.top)
+      .attr('width', ({ rect }) => rect.right - rect.left)
+      .attr('height', ({ rect }) => rect.bottom - rect.top)
       .style('fill', 'transparent')
       .style('cursor', 'grab')
-      .on('pointerdown', (event: PointerEvent, d) => startDrag(event, d.territoryCode as TerritoryCode))
-      .on('pointerenter', (_event: PointerEvent, d) => {
-        hoveredTerritoryCode.value = d.territoryCode
+      .on('pointerdown', (event: PointerEvent) => {
+        const code = territoryUnderPointer(event)
+        if (code) {
+          startDrag(event, code)
+        }
+      })
+      .on('pointerenter', (_event: PointerEvent, frame) => {
+        hoveredFrame.value = frame
         showHover(svg)
       })
       .on('pointerleave', () => {
-        hoveredTerritoryCode.value = null
+        hoveredFrame.value = null
         showHover(svg)
       })
 
@@ -159,6 +177,7 @@ export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
     isDragging,
     moveLabel,
     createBorderZoneOverlays,
+    territoryUnderPointer,
     moveBy,
     cleanup,
   }
