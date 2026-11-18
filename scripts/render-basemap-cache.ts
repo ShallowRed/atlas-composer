@@ -1,13 +1,15 @@
 /// <reference lib="dom" />
 /**
- * Renders the relief of the initial view of each atlas of the registry, at the pixel ratios 1, 2 and 3, into
- * dist/basemaps/<build>/<fingerprint>.webp, and lists the fingerprints in dist/basemaps/<build>/index.json.
+ * Renders the relief of the initial view of each atlas of the registry, at the pixel ratios of CACHED_PIXEL_RATIOS,
+ * into dist/basemaps/<build>/<fingerprint>.webp, and lists the fingerprints in dist/basemaps/<build>/index.json.
  *
  * The built site renders each image itself: the script opens it in Chromium, waits for the image of the basemap
  * that carries its fingerprint, and reads the build from the address of the index that the site requests.
  * A map that fails stays out of the index and the site renders its basemap: the script never fails the deployment.
  *
- * Terrain Tiles on AWS: the sources ask for attribution only (https://github.com/tilezen/joerd/blob/master/docs/attribution.md).
+ * Terrain Tiles on AWS (https://github.com/tilezen/joerd/blob/master/docs/attribution.md): every source asks for its attribution,
+ * GMTED2010 for a description of the modifications, and ETOPO1 for a notice of the material of the US Government in a
+ * derived work. The full attribution of the relief in src/core/basemap/sources.ts names the sources and the shading.
  */
 
 import type { Browser } from 'playwright'
@@ -19,8 +21,8 @@ import { chromium } from 'playwright'
 import { preview } from 'vite'
 import { logger } from '#scripts/utils/logger'
 import registry from '../configs/atlas-registry.json' with { type: 'json' }
+import { BASEMAP_CACHE_DIRECTORY, CACHED_PIXEL_RATIOS, FINGERPRINT_ATTRIBUTE } from '../src/core/basemap/cache.js'
 
-const PIXEL_RATIOS = [1, 2, 3]
 const ATTEMPTS = 3
 const MAP_TIMEOUT = 60_000
 // Past this time, the maps left render their basemap on the site: an unreachable tile service never holds the deployment
@@ -28,7 +30,9 @@ const RUN_TIMEOUT = 15 * 60_000
 // The fingerprint stays the same for this long once the basemap has loaded
 const STABLE_DELAY = 1000
 const WEBP_QUALITY = 0.8
-const INDEX_PATTERN = /basemaps\/([^/]+)\/index\.json$/
+const INDEX_PATTERN = new RegExp(`${BASEMAP_CACHE_DIRECTORY}/([^/]+)/index\\.json$`)
+// The last complete image of the map: the previous one stays under it until the new one is decoded
+const COMPLETE_IMAGE = `.map-plot svg image[${FINGERPRINT_ATTRIBUTE}]`
 
 interface RenderedMap {
   build: string
@@ -54,17 +58,19 @@ async function renderMap(browser: Browser, url: string, pixelRatio: number): Pro
     page.on('request', (request) => {
       build ??= INDEX_PATTERN.exec(new URL(request.url()).pathname)?.[1] ?? null
     })
+    // Without the index, the site renders the basemap instead of showing an image that a previous run wrote in dist
+    await page.route(INDEX_PATTERN, route => route.fulfill({ status: 404 }))
     await page.goto(url)
+    // The relief is the default basemap; the click keeps the script working if the default changes.
     // The radio is visually hidden: a click on its label chooses it, as a visitor does
     const relief = page.locator('input[name=basemap][value=relief]')
     if (!await relief.isChecked({ timeout: MAP_TIMEOUT })) {
       await page.locator('[role=radiogroup] label', { has: relief }).click()
     }
-    // The last complete image: the previous one stays under it until the new one is decoded
-    const fingerprintOf = () => page.evaluate(() => [...document.querySelectorAll('.map-plot svg image[data-basemap-fingerprint]')].at(-1)?.getAttribute('data-basemap-fingerprint') ?? null)
+    const fingerprintOf = () => page.evaluate(([selector, attribute]) => [...document.querySelectorAll(selector)].at(-1)?.getAttribute(attribute) ?? null, [COMPLETE_IMAGE, FINGERPRINT_ATTRIBUTE])
     await page.waitForFunction(
-      () => document.querySelector('.map-plot svg image[data-basemap-fingerprint]') !== null && document.querySelector('.map-renderer .loading') === null,
-      null,
+      selector => document.querySelector(selector) !== null && document.querySelector('.map-renderer .loading') === null,
+      COMPLETE_IMAGE,
       { timeout: MAP_TIMEOUT },
     )
     const fingerprint = await fingerprintOf()
@@ -75,9 +81,9 @@ async function renderMap(browser: Browser, url: string, pixelRatio: number): Pro
     if (!build) {
       throw new Error('the site requested no index of the cached basemaps')
     }
-    const encoded = await page.evaluate(async (quality) => {
+    const encoded = await page.evaluate(async ({ selector, attribute, quality }) => {
       // The content security policy of the site refuses a fetch of the blob address: the decoded element gives its pixels
-      const image = [...document.querySelectorAll<SVGImageElement>('.map-plot svg image[data-basemap-fingerprint]')].at(-1)!
+      const image = [...document.querySelectorAll<SVGImageElement>(selector)].at(-1)!
       const bitmap = await createImageBitmap(image)
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
       canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
@@ -87,8 +93,8 @@ async function renderMap(browser: Browser, url: string, pixelRatio: number): Pro
       for (const byte of bytes) {
         binary += String.fromCharCode(byte)
       }
-      return { fingerprint: image.getAttribute('data-basemap-fingerprint'), base64: btoa(binary) }
-    }, WEBP_QUALITY)
+      return { fingerprint: image.getAttribute(attribute), base64: btoa(binary) }
+    }, { selector: COMPLETE_IMAGE, attribute: FINGERPRINT_ATTRIBUTE, quality: WEBP_QUALITY })
     // The pixels and the fingerprint come from the same element
     if (encoded.fingerprint !== fingerprint) {
       throw new Error('the image of the basemap changed while it was read')
@@ -113,7 +119,7 @@ async function main() {
     browser = await chromium.launch()
     const deadline = Date.now() + RUN_TIMEOUT
     for (const { id } of registry.atlases) {
-      for (const pixelRatio of PIXEL_RATIOS) {
+      for (const pixelRatio of CACHED_PIXEL_RATIOS) {
         for (let attempt = 1; attempt <= ATTEMPTS && Date.now() < deadline; attempt++) {
           try {
             const { build, fingerprint, webp } = await renderMap(browser, `${siteUrl}?atlas=${id}`, pixelRatio)
@@ -142,7 +148,7 @@ async function main() {
     warn(`no cached basemap: the site gave ${builds.size} builds`)
     return
   }
-  const directory = path.join('dist', 'basemaps', build)
+  const directory = path.join('dist', BASEMAP_CACHE_DIRECTORY, build)
   await fs.mkdir(directory, { recursive: true })
   for (const [fingerprint, webp] of images) {
     await fs.writeFile(path.join(directory, `${fingerprint}.webp`), webp)
@@ -150,7 +156,7 @@ async function main() {
   await fs.writeFile(path.join(directory, 'index.json'), `${JSON.stringify([...images.keys()].sort())}\n`)
   const total = [...images.values()].reduce((sum, webp) => sum + webp.length, 0)
   logger.success(`${images.size} cached basemaps, ${Math.round(total / 1000)} kB, in ${directory}`)
-  const expected = registry.atlases.length * PIXEL_RATIOS.length
+  const expected = registry.atlases.length * CACHED_PIXEL_RATIOS.length
   if (images.size < expected) {
     warn(`${expected - images.size} of the ${expected} initial views draw their basemap on the site`)
   }

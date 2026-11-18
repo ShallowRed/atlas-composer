@@ -8,7 +8,7 @@ import type { TerritoryCode } from '@/types/branded'
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTerritoryNames } from '@/composables/useTerritoryNames'
-import { BASEMAP_SOURCE_DEFINITIONS, basemapFingerprint, VECTOR_PALETTES } from '@/core/basemap'
+import { BASEMAP_SOURCE_DEFINITIONS, basemapFingerprint, CACHED_PIXEL_RATIOS, VECTOR_PALETTES } from '@/core/basemap'
 import { provisionalPlacements } from '@/core/frames'
 import { ok } from '@/core/types/result'
 import { ViewOrchestrationService } from '@/core/view'
@@ -27,8 +27,7 @@ const debug = logger.vue.composable
 
 // Delay between the last render of a map and the render of its basemap
 const BASEMAP_DELAY = 200
-// The deployment renders the cached images at the pixel ratios 1, 2 and 3
-const MAX_CACHED_PIXEL_RATIO = 3
+const MAX_CACHED_PIXEL_RATIO = Math.max(...CACHED_PIXEL_RATIOS)
 
 interface MapRenderProps {
   mode: 'simple' | 'composite'
