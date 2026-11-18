@@ -4,7 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import NumberField from '@/components/ui/forms/NumberField.vue'
 import ParameterInput from '@/components/ui/forms/ParameterInput.vue'
-import { CANVAS_LENGTH_CONTROL, REFERENCE_SCALE_CONTROL } from '@/core/parameters'
+import { CANVAS_LENGTH_CONTROL, REFERENCE_SCALE_CONTROL, toDomain } from '@/core/parameters'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useCompositionStore } from '@/stores/composition'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -39,11 +39,16 @@ watch(() => projectionStore.referenceScale, (newScale) => {
   }
 }, { immediate: true })
 
+// The side that the lock computes stays inside the domain of a length of the canvas
+function lockedLength(value: number): number {
+  return toDomain(value, CANVAS_LENGTH_CONTROL.domain, CANVAS_LENGTH_CONTROL.format)
+}
+
 function updateCanvasWidth(value: number) {
   canvasWidth.value = value
 
   if (aspectRatioLocked.value) {
-    canvasHeight.value = Math.round(value / originalAspectRatio.value)
+    canvasHeight.value = lockedLength(value / originalAspectRatio.value)
   }
 
   applyCanvasDimensions()
@@ -53,7 +58,7 @@ function updateCanvasHeight(value: number) {
   canvasHeight.value = value
 
   if (aspectRatioLocked.value) {
-    canvasWidth.value = Math.round(value * originalAspectRatio.value)
+    canvasWidth.value = lockedLength(value * originalAspectRatio.value)
   }
 
   applyCanvasDimensions()
@@ -115,7 +120,7 @@ const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
           :class="{ 'text-primary': aspectRatioLocked }"
           :aria-pressed="aspectRatioLocked"
           :aria-label="t('projectionControls.global.lockAspectRatio')"
-          :title="aspectRatioLocked ? t('projectionControls.global.unlockAspectRatio') : t('projectionControls.global.lockAspectRatio')"
+          :title="t('projectionControls.global.lockAspectRatio')"
           @click="aspectRatioLocked = !aspectRatioLocked"
         >
           <i :class="aspectRatioLocked ? 'ri-link' : 'ri-link-unlink'" />
