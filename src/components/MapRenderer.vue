@@ -244,11 +244,19 @@ async function renderMap() {
   }
 }
 
-// The label under the frame shows the position during a move and the size of the frame after it
-watch([selectedTerritory, moveLabel], () => {
+function redrawSelection() {
   const svg = mapContainer.value?.querySelector('svg')
   if (svg && isEditable.value) {
     renderSelection(svg)
+  }
+}
+
+watch(selectedTerritory, redrawSelection)
+
+// The render of each move draws the position under the frame; at the end of a move, no render follows, and the label takes the size of the frame again
+watch(moveLabel, (label) => {
+  if (label === null) {
+    redrawSelection()
   }
 })
 
