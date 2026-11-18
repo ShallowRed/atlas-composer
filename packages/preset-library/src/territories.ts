@@ -106,6 +106,8 @@ export class TerritoryBuildError extends Error {
 
 const NATURAL_EARTH_RESOLUTIONS: readonly NaturalEarthResolution[] = ['10m', '50m', '110m']
 
+const FINEST_RESOLUTION: NaturalEarthResolution = '10m'
+
 /** The resolution whose polygons the indices of the extraction rules count */
 export const RULES_RESOLUTION: NaturalEarthResolution = '50m'
 
@@ -232,6 +234,10 @@ interface AssignedPolygon {
   code: string
 }
 
+function boundsRulesOf(rules: ReadonlyArray<TerritoryInput>): TerritoryInput[] {
+  return rules.filter(rule => rule.extraction?.extractFrom && !rule.extraction.polygonIndices)
+}
+
 // The extraction rules of a parent applied to its polygons at 50m: by index, then by bounds, the rest to the parent
 function assignByRules(
   parent: TerritoryInput,
@@ -251,7 +257,7 @@ function assignByRules(
     }
   }
 
-  const boundsRules = rules.filter(rule => !rule.extraction?.polygonIndices)
+  const boundsRules = boundsRulesOf(rules)
   return polygons.map((polygon, index) => ({
     polygon,
     code: codeByIndex.get(index) ?? boundsRules.find(candidate => fitsInBounds(polygon, candidate.bounds))?.code ?? parent.code,
@@ -264,13 +270,15 @@ function asPolygon(coordinates: Ring[]) {
 
 /**
  * Gives each polygon of another resolution the territory of the 50m polygon that contains its centroid or, without one,
- * of the 50m polygon with the nearest vertex. A polygon without counterpart at 50m, farther than ATTACHMENT_DISTANCE
- * and outside the bounds of its territory, such as an islet that Natural Earth draws at 10m only, is left out.
+ * of the first rule by bounds whose bounds contain it, or else of the 50m polygon with the nearest vertex. A polygon
+ * without counterpart at 50m, farther than ATTACHMENT_DISTANCE and outside the bounds of its territory, such as an islet
+ * that Natural Earth draws at 10m only, is left out.
  */
 function attachToRules(
   parent: TerritoryInput,
   polygons: Ring[][],
   assigned: AssignedPolygon[],
+  boundsRules: ReadonlyArray<TerritoryInput>,
   boundsOf: (code: string) => TerritoryInput['bounds'],
   leftOutPolygons: LeftOutPolygon[],
 ): AssignedPolygon[] {
@@ -282,6 +290,10 @@ function attachToRules(
     const container = assigned.find(candidate => geoContains(asPolygon(candidate.polygon), centroid))
     if (container) {
       return [{ polygon, code: container.code }]
+    }
+    const boundsRule = boundsRules.find(rule => fitsInBounds(polygon, rule.bounds))
+    if (boundsRule) {
+      return [{ polygon, code: boundsRule.code }]
     }
 
     let nearest = assigned[0]!
@@ -344,7 +356,7 @@ function buildFromNaturalEarth(
       : polygonsOf(ruleGeometry).map(polygon => ({ polygon, code: parent.code }))
     // d3-geo reads a flat ring as the whole sphere, which would contain every centroid
     const assigned = attaches
-      ? attachToRules(parent, polygonsOf(feature.geometry).filter(hasArea), byRules.filter(({ polygon }) => hasArea(polygon)), boundsOf, leftOutPolygons)
+      ? attachToRules(parent, polygonsOf(feature.geometry).filter(hasArea), byRules.filter(({ polygon }) => hasArea(polygon)), appliesRules ? boundsRulesOf(rules) : [], boundsOf, leftOutPolygons)
       : byRules
     const polygonsOfCode = (code: string) => assigned.filter(candidate => candidate.code === code).map(({ polygon }) => polygon)
 
@@ -447,7 +459,11 @@ export function buildTerritories(
     : { features: buildFromCodes(territories, source, locale), leftOutPolygons: [] }
 
   const built = new Set(features.map(feature => feature.properties.code))
-  const missingCodes = territories.map(territory => territory.code).filter(code => !built.has(code))
+  // Natural Earth draws some islands at 10m only, so a territory cut by its bounds can be empty at a coarser resolution
+  const mayBeEmpty = source.kind === 'natural-earth' && source.resolution !== FINEST_RESOLUTION
+    ? new Set(boundsRulesOf(territories).map(territory => territory.code))
+    : new Set<string>()
+  const missingCodes = territories.map(territory => territory.code).filter(code => !built.has(code) && !mayBeEmpty.has(code))
   if (missingCodes.length > 0) {
     throw new TerritoryBuildError(`No feature for ${missingCodes.join(', ')}`, { missingCodes })
   }
