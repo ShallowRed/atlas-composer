@@ -8,11 +8,17 @@ const MET = createTerritoryCode('FR-MET')
 const GP = createTerritoryCode('FR-GP')
 const MQ = createTerritoryCode('FR-MQ')
 
-const territories: Pick<TerritoryConfig, 'code'>[] = [{ code: MET }, { code: GP }, { code: MQ }]
+const MET_CENTER: [number, number] = [2.5, 46.5]
+const GP_CENTER: [number, number] = [-61.5, 16.2]
+const MQ_CENTER: [number, number] = [-61, 14.6]
+
+const territories: Pick<TerritoryConfig, 'code' | 'center'>[] = [
+  { code: MET, center: MET_CENTER },
+  { code: GP, center: GP_CENTER },
+  { code: MQ, center: MQ_CENTER },
+]
 
 const DEFAULT_LAYOUT = { translateOffset: [0, 0], scaleMultiplier: 1 }
-
-const MET_CENTER: [number, number] = [2.5, 46.5]
 
 const territoryCenter = () => MET_CENTER
 
@@ -61,8 +67,15 @@ describe('territoryResetService', () => {
       expect(operations).toEqual([
         { territoryCode: GP, parameters: presetParameters[GP] },
         { territoryCode: MQ, parameters: { projectionId: 'azimuthal-equal-area', ...DEFAULT_LAYOUT } },
-        { territoryCode: MET, parameters: DEFAULT_LAYOUT },
+        { territoryCode: MET, parameters: defaultTerritoryParameters(MET_CENTER) },
       ])
+    })
+
+    it('gives a territory outside the preset the parameters of its own reset', () => {
+      const { operations } = TerritoryResetService.calculateBulkReset({ territories, presetParameters })
+
+      expect(operations.find(({ territoryCode }) => territoryCode === MET))
+        .toEqual(TerritoryResetService.calculateTerritoryReset({ territoryCode: MET, presetParameters, territoryCenter }))
     })
 
     it('gives the territories of the preset as active territories', () => {
@@ -74,10 +87,10 @@ describe('territoryResetService', () => {
     it.each([
       ['without preset parameters', undefined],
       ['with empty preset parameters', {}],
-    ])('gives the default layout to each territory and no active territories %s', (_case, emptyParameters) => {
+    ])('gives the default parameters to each territory and no active territories %s', (_case, emptyParameters) => {
       const { operations, activeTerritories } = TerritoryResetService.calculateBulkReset({ territories, presetParameters: emptyParameters })
 
-      expect(operations).toEqual([MET, GP, MQ].map(territoryCode => ({ territoryCode, parameters: DEFAULT_LAYOUT })))
+      expect(operations).toEqual(territories.map(({ code, center }) => ({ territoryCode: code, parameters: defaultTerritoryParameters(center) })))
       expect(activeTerritories).toBeUndefined()
     })
   })
