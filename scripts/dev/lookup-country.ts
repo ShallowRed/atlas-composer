@@ -269,7 +269,7 @@ async function main(): Promise<void> {
     logger.warning(`Ignoring unknown flag(s): ${args._unknown.join(', ')}`)
   }
 
-  const resolution = getResolution(args, RULES_RESOLUTION)
+  const resolution = getResolution(args, () => RULES_RESOLUTION)
   await lookupCountry(args.country, resolution)
 }
 
