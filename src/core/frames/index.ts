@@ -1,4 +1,4 @@
-import type { GeoProjection } from 'd3-geo'
+import type { GeoStreamWrapper } from 'd3-geo'
 
 type Point = [number, number]
 
@@ -7,13 +7,18 @@ export type Extent = [[number, number], [number, number]]
 // A projection and the rectangle of the canvas that it draws, in the order in which a figure draws them
 export interface ProjectionFrame {
   code: string
-  projection: GeoProjection
+  projection: FrameProjection
   extent: Extent
 }
 
 export interface InvertibleProjection {
   (point: Point): Point | null
   invert?: (point: Point) => Point | null
+}
+
+// What the readers of a frame call on its projection: a d3 projection and a sub-projection of the loader both provide it
+interface FrameProjection extends InvertibleProjection, GeoStreamWrapper {
+  clipAngle?: () => number | null
 }
 
 export function inExtent([[x0, y0], [x1, y1]]: Extent, [x, y]: [number, number]): boolean {
