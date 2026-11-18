@@ -1,23 +1,25 @@
-interface RasterSourceDefinition {
+interface BasemapAttribution {
+  attribution: string
+  // The short form of the attribution, on one line under the map, which opens to the full one
+  attributionSummary: string
+}
+
+interface RasterSourceDefinition extends BasemapAttribution {
   kind: 'raster'
   // Template of a Web Mercator tile, with {z}, {x} and {y}
   tiles: string
   tileSize: number
   maxZoom: number
-  attribution: string
-  // The first words of a long attribution, which the map shows folded
-  attributionSummary?: string
   // Terrarium: the altitude of each pixel in its red, green and blue, shaded in the browser
   encoding?: 'terrarium'
 }
 
-interface VectorSourceDefinition {
+interface VectorSourceDefinition extends BasemapAttribution {
   kind: 'vector'
   // TileJSON whose tiles[0] is the current template of the OpenMapTiles tiles
   tileJson: string
   tileSize: number
   maxZoom: number
-  attribution: string
 }
 
 export type BasemapSourceDefinition = RasterSourceDefinition | VectorSourceDefinition
@@ -37,6 +39,7 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
     tiles: 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',
     tileSize: 256,
     maxZoom: 13,
+    attributionSummary: 'EOxCloudless by EOX',
     attribution: 'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)',
   },
   streets: {
@@ -44,6 +47,7 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
     tileJson: 'https://tiles.openfreemap.org/planet',
     tileSize: 512,
     maxZoom: 10,
+    attributionSummary: 'OpenFreeMap ©\u00A0OpenStreetMap',
     attribution: 'OpenFreeMap ©\u00A0OpenMapTiles, ©\u00A0OpenStreetMap contributors',
   },
 } as const satisfies Record<string, BasemapSourceDefinition>
