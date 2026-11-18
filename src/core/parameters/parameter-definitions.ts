@@ -1,4 +1,4 @@
-import type { FamilyConstraint, FamilyConstraints } from '@/core/parameters/parameter-registry'
+import type { AxisControlSpec, FamilyConstraint, FamilyConstraints } from '@/core/parameters/parameter-registry'
 import type { PositionParameter } from '@/core/positioning'
 import type { ParameterIssue } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
@@ -11,6 +11,13 @@ const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMU
 const OTHER_FAMILIES = ['POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
 
 const TRANSLATE_OFFSET_LIMIT = 2000
+
+// Writings cover the decimals of the presets of configs/presets/
+const LONGITUDE: AxisControlSpec = { kind: 'longitude', cyclic: true, step: 0.1, format: { maximumFractionDigits: 3 }, symbol: '°', track: { scale: 'linear', min: -180, max: 180, detents: [0], ticks: [-180, 0, 180] } }
+const LATITUDE: AxisControlSpec = { kind: 'latitude', step: 0.1, format: { maximumFractionDigits: 3 }, symbol: '°', track: { scale: 'linear', min: -90, max: 90, detents: [0], ticks: [-90, 0, 90] } }
+const ROLL: AxisControlSpec = { kind: 'angle', cyclic: true, step: 1, format: { maximumFractionDigits: 2 }, symbol: '°' }
+const PARALLEL: AxisControlSpec = { kind: 'latitude', step: 0.1, format: { maximumFractionDigits: 2 }, symbol: '°', track: { band: 'latitude' } }
+const CANVAS_OFFSET: AxisControlSpec = { kind: 'canvas-length', step: 1, format: { maximumFractionDigits: 2 }, symbol: 'px' }
 
 // Bounds of a parameter that the controls of these families do not show
 function boundsOfOtherFamilies(constraint: Omit<FamilyConstraint, 'relevant' | 'required'>): FamilyConstraints {
@@ -51,6 +58,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: true,
     defaultValue: [0, 0],
+    controls: [LONGITUDE, LATITUDE],
     familyConstraints: positionConstraints('center', {
       min: [-180, -90],
       max: [180, 90],
@@ -69,6 +77,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: true,
     defaultValue: [0, 0, 0],
+    controls: [LONGITUDE, LATITUDE, ROLL],
     familyConstraints: {
       ...positionConstraints('rotate', {
         min: [-180, -90, -180],
@@ -90,6 +99,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: true, // Core parameter for conic projections
     defaultValue: [30, 60],
+    controls: [PARALLEL, PARALLEL],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: false, // Not used in cylindrical projections
@@ -137,6 +147,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: true, // Core scale parameter
     defaultValue: DEFAULT_SCALE_MULTIPLIER,
+    controls: [{ kind: 'ratio', step: 0.01, multiplicative: true, format: { maximumSignificantDigits: 3 }, symbol: '×', track: { scale: 'log', min: 0.05, max: 20, detents: [1], ticks: [0.1, 1, 10] } }],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
@@ -171,49 +182,6 @@ export function registerAllParameters(): void {
   })
 
   parameterRegistry.register({
-    key: 'zoomLevel',
-    displayName: 'Zoom Level',
-    description: 'Zoom multiplier applied to auto-fit scale (unified mode only)',
-    type: 'number',
-    unit: 'multiplier',
-    source: 'preset',
-    mutable: true,
-    exportable: true,
-    requiresPreset: false, // Optional parameter
-    defaultValue: 1,
-    familyConstraints: {
-      CYLINDRICAL: {
-        relevant: true, // Available for unified mode zoom
-        required: false,
-        min: 0.5,
-        max: 10,
-        step: 0.1,
-      },
-      PSEUDOCYLINDRICAL: {
-        relevant: true,
-        required: false,
-        min: 0.5,
-        max: 10,
-        step: 0.1,
-      },
-      CONIC: {
-        relevant: true,
-        required: false,
-        min: 0.5,
-        max: 10,
-        step: 0.1,
-      },
-      AZIMUTHAL: {
-        relevant: true,
-        required: false,
-        min: 0.5,
-        max: 10,
-        step: 0.1,
-      },
-    },
-  })
-
-  parameterRegistry.register({
     key: 'translateOffset',
     displayName: 'Layout Position',
     description: 'Territory position offset from map center [x, y] - stored in layout section of preset',
@@ -224,6 +192,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: true, // Core layout parameter
     defaultValue: [0, 0],
+    controls: [CANVAS_OFFSET, CANVAS_OFFSET],
     familyConstraints: {
       ...Object.fromEntries(POSITIONED_FAMILIES.map(family => [family, {
         relevant: true,
@@ -248,6 +217,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: false,
     defaultValue: 90,
+    controls: [{ kind: 'angle', step: 1, format: { maximumFractionDigits: 2 }, symbol: '°', track: { scale: 'linear', min: 0, max: 180, detents: [90], ticks: [0, 90, 180] } }],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: false,
@@ -281,6 +251,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: false,
     defaultValue: 0.1,
+    controls: [{ kind: 'threshold', step: 0.1, multiplicative: true, format: { maximumSignificantDigits: 2 }, symbol: 'px' }],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true,
@@ -324,6 +295,7 @@ export function registerAllParameters(): void {
     exportable: true,
     requiresPreset: false,
     defaultValue: [-100, -100, 100, 100],
+    controls: [CANVAS_OFFSET, CANVAS_OFFSET, CANVAS_OFFSET, CANVAS_OFFSET],
     familyConstraints: {
       CYLINDRICAL: {
         relevant: true,

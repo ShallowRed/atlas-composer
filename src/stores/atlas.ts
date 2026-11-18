@@ -15,6 +15,8 @@ import { getInitialTerritoryMode as initialTerritoryModeOf } from '@/core/atlase
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { AtlasService } from '@/services/atlas/atlas-service'
 
+type LatitudeBand = [south: number, north: number]
+
 export const useAtlasStore = defineStore('atlas', () => {
   const selectedAtlasId = ref<AtlasId>(DEFAULT_ATLAS as AtlasId)
 
@@ -60,6 +62,19 @@ export const useAtlasStore = defineStore('atlas', () => {
     return initialTerritoryModeOf(getLoadedConfig(selectedAtlasId.value).atlasConfig)
   }
 
+  // Latitudes south and north of the bounds that the configuration declares for a territory
+  function latitudeBand(territoryCode: string): LatitudeBand | null {
+    const bounds = territories.value.find(territory => territory.code === territoryCode)?.bounds
+    return bounds ? [bounds[0][1], bounds[1][1]] : null
+  }
+
+  function displayedLatitudeBand(territoryCodes: readonly string[]): LatitudeBand | null {
+    const bands = territoryCodes.map(latitudeBand).filter(band => band !== null)
+    return bands.length > 0
+      ? [Math.min(...bands.map(([south]) => south)), Math.max(...bands.map(([, north]) => north))]
+      : null
+  }
+
   return {
     selectedAtlasId,
     currentAtlasConfig,
@@ -70,5 +85,7 @@ export const useAtlasStore = defineStore('atlas', () => {
 
     loadAtlas,
     getInitialTerritoryMode,
+    latitudeBand,
+    displayedLatitudeBand,
   }
 })

@@ -67,4 +67,24 @@ describe('atlas store', () => {
     expect(result).toEqual(err({ code: 'JSON_FILE_NOT_FOUND', path: '/configs/atlases/usa.json' }))
     expect(atlasStore.currentAtlasConfig?.id).toBe(FRANCE)
   })
+
+  it('gives the latitude band that the configuration declares for a territory', async () => {
+    const atlasStore = useAtlasStore()
+    atlasStore.selectedAtlasId = FRANCE
+    await atlasStore.loadAtlas(FRANCE)
+
+    expect(atlasStore.latitudeBand('FR-MET')).toEqual([41, 51])
+    expect(atlasStore.latitudeBand('XX')).toBeNull()
+  })
+
+  it('gives the band of several territories', async () => {
+    const atlasStore = useAtlasStore()
+    atlasStore.selectedAtlasId = FRANCE
+    await atlasStore.loadAtlas(FRANCE)
+
+    const [south, north] = atlasStore.displayedLatitudeBand(['FR-MET', 'FR-GF'])!
+    expect(north).toBe(51)
+    expect(south).toBeLessThan(10)
+    expect(atlasStore.displayedLatitudeBand([])).toBeNull()
+  })
 })

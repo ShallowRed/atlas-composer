@@ -153,9 +153,7 @@
     "precision": "Precision",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
-    "noParams": "This projection type doesn't have adjustable parameters in unified mode.",
-    "zoom": "Zoom",
-    "zoomLevel": "Zoom level"
+    "noParams": "This projection type doesn't have adjustable parameters in unified mode."
   },
   "projectionControls": {
     "global": {

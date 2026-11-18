@@ -1,3 +1,4 @@
+import type { AxisControl } from '@/core/parameters'
 import type { PositioningView } from '@/core/positioning'
 import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ParameterIssue } from '@/core/types/errors'
@@ -182,6 +183,10 @@ export const useParameterStore = defineStore('parameters', () => {
     return typeof min === 'number' && typeof max === 'number' ? { min, max, step } : undefined
   }
 
+  function getAxisControls(family: ProjectionFamilyType, key: keyof ProjectionParameters): AxisControl[] | undefined {
+    return parameterRegistry.getAxisControls(key as string, family)
+  }
+
   const globalEffectiveParameters = computed(() => {
     void globalParametersVersion.value
     void territoryParametersVersion.value
@@ -240,6 +245,7 @@ export const useParameterStore = defineStore('parameters', () => {
     getParameterConstraints,
     getTupleRanges,
     getNumberRange,
+    getAxisControls,
 
     getExportableParameters,
     parameterProvider,
