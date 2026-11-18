@@ -55,7 +55,7 @@
       ]
     },
     {
-      "code": "PT-20",
+      "code": "PT-30",
       "name": "Madeira",
       "projection": {
         "id": "conic-conformal",
@@ -95,7 +95,7 @@
       ]
     },
     {
-      "code": "PT-30",
+      "code": "PT-20",
       "name": "Azores",
       "projection": {
         "id": "conic-conformal",

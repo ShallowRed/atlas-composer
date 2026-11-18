@@ -58,13 +58,13 @@ describe('atlas-composer territories', () => {
     const directory = mkdtempSync(join(tmpdir(), 'atlas-composer-cli-'))
     const data = join(directory, 'data.json')
     const square = [[[-9, 37], [-9, 42], [-6, 42], [-6, 37], [-9, 37]]]
-    writeFileSync(data, JSON.stringify(['PT-CONT', 'PT-20', 'PT-30'].map(code =>
+    writeFileSync(data, JSON.stringify(['PT-CONT', 'PT-30', 'PT-20'].map(code =>
       ({ type: 'Feature', properties: { code }, geometry: { type: 'Polygon', coordinates: square } }))))
 
     const written = JSON.parse(run(['territories', 'portugal', '--data', data])) as typeof collection
     rmSync(directory, { recursive: true, force: true })
 
-    expect(written.features.map(feature => feature.properties.code)).toEqual(['PT-CONT', 'PT-20', 'PT-30'])
+    expect(written.features.map(feature => feature.properties.code)).toEqual(['PT-CONT', 'PT-30', 'PT-20'])
     const [[exterior]] = ringsOf(written.features[0]!.geometry)
     expect(exterior).toHaveLength(5)
     expect(signedArea(exterior!)).toBeCloseTo(30)

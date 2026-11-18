@@ -9,8 +9,7 @@ import { renderExampleMap } from '@/services/rendering/example-map'
 
 const TERRITORY_OF_CODE: Record<string, Record<string, string>> = {
   'france-density': { 971: 'FR-GP', 972: 'FR-MQ', 973: 'FR-GF', 974: 'FR-RE', 976: 'FR-YT' },
-  // The portugal atlas names the Azores PT-30 and Madeira PT-20
-  'portugal-density': { PT200: 'PT-30', PT300: 'PT-20' },
+  'portugal-density': { PT200: 'PT-20', PT300: 'PT-30' },
 }
 const MAINLAND: Record<string, string> = { 'france-density': 'FR-MET', 'portugal-density': 'PT-CONT' }
 

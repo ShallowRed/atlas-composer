@@ -19,7 +19,6 @@ function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex')
 }
 
-// The digests at 50m and 110m, produced on commit b1b0123, check that the build at 50m and 110m keeps its collections
 const PREPARED_ATLASES = [
   ['france', '50m'],
   ['portugal', '50m'],

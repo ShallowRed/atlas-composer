@@ -939,8 +939,8 @@
       "extraction": {}
     },
     {
-      "id": "620-20",
-      "code": "PT-20",
+      "id": "620-30",
+      "code": "PT-30",
       "name": {
         "en": "Madeira",
         "fr": "Madère"
@@ -969,8 +969,8 @@
       }
     },
     {
-      "id": "620-30",
-      "code": "PT-30",
+      "id": "620-20",
+      "code": "PT-20",
       "name": {
         "en": "Azores",
         "fr": "Açores"
@@ -1385,8 +1385,8 @@
           "FR-WF",
           "FR-PF",
           "FR-NC",
-          "PT-20",
           "PT-30",
+          "PT-20",
           "ES-CN"
         ]
       }]

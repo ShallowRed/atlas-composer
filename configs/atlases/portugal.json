@@ -43,8 +43,8 @@
       ]
     },
     {
-      "id": "620-20",
-      "code": "PT-20",
+      "id": "620-30",
+      "code": "PT-30",
       "name": {
         "en": "Madeira",
         "fr": "Madère"
@@ -73,8 +73,8 @@
       }
     },
     {
-      "id": "620-30",
-      "code": "PT-30",
+      "id": "620-20",
+      "code": "PT-20",
       "name": {
         "en": "Azores",
         "fr": "Açores"
@@ -139,7 +139,7 @@
           },
           "territories": [
             "PT-CONT",
-            "PT-20"
+            "PT-30"
           ]
         },
         {
@@ -150,8 +150,8 @@
           },
           "territories": [
             "PT-CONT",
-            "PT-20",
-            "PT-30"
+            "PT-30",
+            "PT-20"
           ]
         }
       ]
@@ -184,8 +184,8 @@
             "fr": "Régions autonomes atlantique"
           },
           "territories": [
-            "PT-20",
-            "PT-30"
+            "PT-30",
+            "PT-20"
           ]
         }
       ]

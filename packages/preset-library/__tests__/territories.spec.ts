@@ -34,13 +34,13 @@ function naturalEarth10m() {
 const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
   'chile': { 'CL-JF': 3, 'CL-IP': 1 },
   'ecuador': { 'EC-W': 5 },
-  'europe': { 'IT': 2, 'PT-20': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 2, 'GB': 3 },
+  'europe': { 'IT': 2, 'PT-30': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 2, 'GB': 3 },
   'france': { 'FR-PF': 1, 'FR-NC': 1, 'FR-TF': 7 },
   'japan': { 'JP-RYU': 4, 'JP-OGA': 9, 'JP-MAIN': 4 },
   'malaysia': {},
   'new-zealand': { 'NZ-CIT': 1, 'NZ-MAIN': 2 },
   'norway': { 'NO-MAIN': 1 },
-  'portugal': { 'PT-20': 2 },
+  'portugal': { 'PT-30': 2 },
   'south-africa': {},
   'spain': { 'ES-CONT': 3 },
   'usa': { 'US-ALEU': 2, 'US-HI': 6, 'US-AS': 4, 'US-MP': 3 },
@@ -265,8 +265,8 @@ describe('buildTerritories', () => {
       const { collection } = buildTerritories(portugal, byCode([
         territory('PT-CONT', square(-9, 38, true)),
         territory('PT-CONT', square(-8, 40, true)),
-        territory('PT-20', square(-17, 32, true)),
-        territory('PT-30', square(-28, 38, false)),
+        territory('PT-30', square(-17, 32, true)),
+        territory('PT-20', square(-28, 38, false)),
       ]))
 
       const mainland = collection.features.find(feature => feature.properties.code === 'PT-CONT')!
@@ -279,7 +279,7 @@ describe('buildTerritories', () => {
 
     it('names the unknown and the missing codes', () => {
       expect(issuesOf(() => buildTerritories(portugal, byCode([territory('XX', square(0, 0, true))])))).toEqual({ unknownCodes: ['XX'] })
-      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', square(-9, 38, true))])))).toEqual({ missingCodes: ['PT-20', 'PT-30'] })
+      expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', square(-9, 38, true))])))).toEqual({ missingCodes: ['PT-30', 'PT-20'] })
     })
 
     it('refuses a ring that crosses the antimeridian and an atlas of every country', () => {
@@ -287,7 +287,7 @@ describe('buildTerritories', () => {
       expect(issuesOf(() => buildTerritories(portugal, byCode([territory('PT-CONT', wide)])))).toEqual({ antimeridianRings: ['PT-CONT'] })
       expect(issuesOf(() => buildTerritories(atlasConfig('world'), byCode([])))).toEqual({ byCodeOnWildcard: true })
       expect(() => buildTerritories({ territories: 'all' }, byCode([]))).toThrow('a list or "*"')
-      expect(issuesOf(() => buildTerritories(portugal, byCode([{ properties: { code: 'PT-CONT' }, geometry: { type: 'Point', coordinates: [0, 0] } }])))).toEqual({ missingCodes: ['PT-CONT', 'PT-20', 'PT-30'] })
+      expect(issuesOf(() => buildTerritories(portugal, byCode([{ properties: { code: 'PT-CONT' }, geometry: { type: 'Point', coordinates: [0, 0] } }])))).toEqual({ missingCodes: ['PT-CONT', 'PT-30', 'PT-20'] })
     })
   })
 
