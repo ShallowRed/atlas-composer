@@ -13,7 +13,6 @@ import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { TRANSITION_DURATION } from '@/config/transitions'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,7 +40,6 @@ interface Props {
 
 const geoDataStore = useGeoDataStore()
 const parameterStore = useParameterStore()
-const viewStore = useViewStore()
 const mapContainer = ref<HTMLElement>()
 
 const { size, renderSvg, applyOverlays, applyBasemap, dispose: disposeBasemap, basemapResult, basemapLoading } = useMapRender(props)
@@ -77,34 +75,28 @@ const {
 const {
   isDragEnabled,
   isDragging: _isDragging,
-  hoveredTerritoryCode,
-  getCursorStyle: getTerritoryyCursorStyle,
-  handleTerritoryMouseDown,
-  handleTerritoryMouseEnter,
-  handleTerritoryMouseLeave,
+  moveLabel,
   createBorderZoneOverlays,
+  moveBy,
   cleanup: cleanupTerritoryCursor,
-} = useTerritoryCursor()
+} = useTerritoryCursor({ container: mapContainer })
 
 const {
-  renderClipExtentHandles,
+  renderSelection,
   isDraggingCorner,
   cleanup: cleanupClipExtentEditor,
-} = useClipExtentEditor()
+} = useClipExtentEditor({ container: mapContainer, size, moveLabel })
 
 const { isSliderActive } = useSliderState()
 
-const { selectedTerritory, selectTerritory } = useSelectedTerritory()
+const { selectedTerritory, selectTerritory, clearSelection } = useSelectedTerritory()
 
 const isInDragOperation = computed(() => _isDragging.value || isPanning.value || isDraggingCorner.value || isSliderActive.value)
 
-const cursorStyle = computed(() => {
-  if (isDragEnabled.value && hoveredTerritoryCode.value) {
-    return getTerritoryyCursorStyle(hoveredTerritoryCode.value)
-  }
+// The map of the custom composite takes the pointer and the keyboard for its territories
+const isEditable = computed(() => isDragEnabled.value && props.mode === 'composite')
 
-  return panningCursorStyle.value
-})
+const cursorStyle = computed(() => _isDragging.value ? 'grabbing' : panningCursorStyle.value)
 
 const { cleanup: cleanupMapWatchers } = useMapWatchers(
   {
@@ -223,19 +215,15 @@ async function renderMap() {
     mapContainer.value.replaceChildren(svg)
     applyBasemap(svg)
 
-    if (isDragEnabled.value) {
-      const customComposite = cartographer.value?.customComposite
-      if (props.mode === 'composite' && viewStore.viewMode === 'composite-custom' && customComposite) {
-        createBorderZoneOverlays(svg, customComposite, size.value.width, size.value.height)
-      }
-      else {
-        setupTerritoryEventListeners(svg)
-      }
-
-      renderClipExtentHandles(svg)
+    const customComposite = cartographer.value?.customComposite
+    if (isEditable.value && customComposite) {
+      createBorderZoneOverlays(svg, customComposite)
     }
 
     await applyOverlays(svg)
+    if (isEditable.value) {
+      renderSelection(svg)
+    }
   }
   catch (err) {
     error.value = err instanceof Error ? err.message : 'Error rendering map'
@@ -255,42 +243,63 @@ async function renderMap() {
   }
 }
 
-function setupTerritoryEventListeners(svg: SVGSVGElement) {
-  if (!isDragEnabled.value)
-    return
-
-  const paths = svg.querySelectorAll('path[data-territory]')
-
-  paths.forEach((path) => {
-    path.addEventListener('mousedown', event => handleTerritoryMouseDown(event as MouseEvent))
-    path.addEventListener('mouseenter', event => handleTerritoryMouseEnter(event as MouseEvent))
-    path.addEventListener('mouseleave', () => handleTerritoryMouseLeave())
-  })
-}
-
 watch(selectedTerritory, () => {
   const svg = mapContainer.value?.querySelector('svg')
-  if (svg) {
-    renderClipExtentHandles(svg)
+  if (svg && isEditable.value) {
+    renderSelection(svg)
   }
 })
 
-// Runs in the capture phase: the drag listeners of a territory stop the propagation of mousedown.
-function selectTerritoryUnderPointer(event: MouseEvent) {
-  const territoryCode = (event.target as Element).getAttribute?.('data-territory') ?? props.territoryCode
+// Runs in the capture phase, before the gestures of the frames and of the handles
+function selectTerritoryUnderPointer(event: PointerEvent) {
+  const target = event.target as Element
+  // The map of one territory, in the split view, selects that territory
+  const territoryCode = target.getAttribute?.('data-territory') ?? props.territoryCode
+  if (!isEditable.value) {
+    if (territoryCode) {
+      selectTerritory(territoryCode)
+    }
+    return
+  }
+  // The ring of the focus stays for the keyboard
+  mapContainer.value?.focus({ preventScroll: true, focusVisible: false } as FocusOptions)
   if (territoryCode) {
     selectTerritory(territoryCode)
   }
+  else if (!target.closest?.('.selection-handle')) {
+    clearSelection()
+  }
+}
+
+const ARROW_MOVES: Record<string, [number, number]> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (!isEditable.value || !selectedTerritory.value) {
+    return
+  }
+  if (event.key === 'Escape') {
+    clearSelection()
+    return
+  }
+  const move = ARROW_MOVES[event.key]
+  if (!move) {
+    return
+  }
+  event.preventDefault()
+  const distance = event.shiftKey ? 10 : 1
+  moveBy(selectedTerritory.value.code as TerritoryCode, move[0] * distance, move[1] * distance)
 }
 
 function handleMouseDown(event: MouseEvent) {
-  const target = event.target as Element
-
-  if (isDragEnabled.value && target.hasAttribute && target.hasAttribute('data-territory')) {
-    handleTerritoryMouseDown(event)
+  // The frames of the custom composite take their own pointer events
+  if (isEditable.value && (event.target as Element).closest?.('.border-zone-overlay, .selection-handle')) {
     return
   }
-
   handlePanMouseDown(event)
 }
 </script>
@@ -311,13 +320,19 @@ function handleMouseDown(event: MouseEvent) {
       :class="{
         'map-ready': !isLoading && !error,
         'map-loading': isLoading || error,
+        'map-plot--editable': isEditable,
       }"
       :style="{
         display: 'flex',
         cursor: cursorStyle,
+        touchAction: isEditable && selectedTerritory ? 'none' : undefined,
       }"
-      @mousedown.capture="selectTerritoryUnderPointer"
+      :tabindex="isEditable ? 0 : undefined"
+      :role="isEditable ? 'application' : undefined"
+      :aria-label="isEditable ? t('mapEditor.label') : undefined"
+      @pointerdown.capture="selectTerritoryUnderPointer"
       @mousedown="handleMouseDown"
+      @keydown="handleKeydown"
     />
     <p
       v-if="basemapLoading"
@@ -367,9 +382,23 @@ function handleMouseDown(event: MouseEvent) {
   min-height: 0;
 }
 
-/* The svg box is larger than its viewBox on one axis: hide what is drawn beyond the viewBox */
-.map-renderer--fill .map-plot > :deep(svg > *) {
+/* The svg box is larger than its viewBox on one axis: hide what is drawn beyond the viewBox, except the selection */
+.map-renderer--fill .map-plot > :deep(svg > :not(.map-selection)) {
   clip-path: view-box;
+}
+
+/* The handles on the edge of the canvas stay whole */
+.map-plot--editable > :deep(svg) {
+  overflow: visible;
+}
+
+.map-plot--editable:focus {
+  outline: none;
+}
+
+.map-plot--editable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .map-loading {

@@ -5,6 +5,7 @@ import { boundsFromArray, calculateClipExtentFromBounds } from '@atlas-composer/
 import { describe, expect, it } from 'vitest'
 import { allTerritoriesProvider } from '@/__tests__/test-utils'
 import { parameterRegistry } from '@/core/parameters'
+import { frameFromRect, rectFromCorners } from '@/core/positioning'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
 
@@ -98,6 +99,17 @@ describe('clipping of a territory without pixelClipExtent', () => {
       territories: [{ code: TERRITORY, name: 'France', center: [2, 46] }],
     } as unknown as CompositeTerritories
     expect(setup(withoutClip, noBounds).build().clipExtent()).toBeNull()
+  })
+
+  it('keeps the frame of the map when the first crop starts from it', () => {
+    const { state, composite, build } = setup(withoutClip)
+    build()
+    const [shown] = composite.getCompositionBorders(WIDTH, HEIGHT)
+    expect(shown!.point).toEqual([WIDTH / 2 + 10, HEIGHT / 2 + 20])
+
+    state.parameters = { ...withoutClip, pixelClipExtent: frameFromRect(rectFromCorners(shown!.bounds), shown!.point) }
+    build()
+    expect(composite.getCompositionBorders(WIDTH, HEIGHT)[0]!.bounds.flat()).toEqual(shown!.bounds.flat().map(value => expect.closeTo(value, 5)))
   })
 })
 

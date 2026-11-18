@@ -1,221 +1,140 @@
+import type { Ref } from 'vue'
+import type { AxisControl } from '@/core/parameters'
+import type { FrameExtent, HandleIndex } from '@/core/positioning'
 import type { TerritoryCode } from '@/types'
-import { select } from 'd3'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
-import { parameterRegistry } from '@/core/parameters'
-import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
+import { formatValue } from '@/core/parameters'
+import { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, resizeFrame, visiblePart } from '@/core/positioning'
+import { SelectionOverlayService } from '@/services/rendering/selection-overlay-service'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
-import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 
-export function useClipExtentEditor() {
+interface ClipExtentEditorOptions {
+  // The container of the map keeps the pointer while the render replaces the svg
+  container: Ref<HTMLElement | undefined>
+  // Size of the canvas that the composite is built on
+  size: Ref<{ width: number, height: number }>
+  // Position written while the territory moves, in place of the size of its frame
+  moveLabel: Ref<string | null>
+}
+
+// Grabbing zones in pixels of the screen, larger for a finger
+const MOUSE_HIT_SIZE = 14
+const FINGER_HIT_SIZE = 32
+
+export function useClipExtentEditor({ container, size, moveLabel }: ClipExtentEditorOptions) {
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
-  const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
-
   const { selectedTerritory } = useSelectedTerritory()
+  const { getTerritoryFamily } = useProjectionConfig()
+  const { locale } = useI18n()
 
   const isDraggingCorner = ref(false)
-  const dragCornerTerritoryCode = ref<string | null>(null)
-  const dragCornerIndex = ref<number | null>(null)
-  const dragStartX = ref(0)
-  const dragStartY = ref(0)
-  const dragStartClipExtent = ref<[number, number, number, number]>([0, 0, 0, 0])
-  const dragSvgElement = ref<SVGSVGElement | null>(null)
 
-  const GRID_STEP = 5
+  const isEditingEnabled = computed(() => viewStore.viewMode === 'composite-custom')
 
-  const isEditingEnabled = computed(() => {
-    return viewStore.viewMode === 'composite-custom'
-  })
+  let drag: { code: TerritoryCode, handle: HandleIndex, pointerId: number, startX: number, startY: number, unit: number, start: FrameExtent, controls: AxisControl[] } | null = null
 
-  function getSVGScale(svg: SVGSVGElement): number {
-    const ctm = svg.getScreenCTM()
-    if (ctm) {
-      return Math.sqrt(ctm.a * ctm.a + ctm.b * ctm.b)
-    }
-    return 1
+  function frameOf(code: string) {
+    return SelectionOverlayService.frameOf(geoDataStore.cartographer?.customComposite, code)
   }
 
-  function renderClipExtentHandles(svg: SVGSVGElement) {
-    if (!isEditingEnabled.value || !selectedTerritory.value) {
-      select(svg).selectAll('.clip-extent-handles').remove()
+  // The frame of a territory whose family declares it, as the panel shows its fields
+  function frameControlsOf(code: TerritoryCode) {
+    return parameterStore.getAxisControls(getTerritoryFamily(code), 'pixelClipExtent')
+  }
+
+  function renderSelection(svg: SVGSVGElement) {
+    const code = selectedTerritory.value?.code as TerritoryCode | undefined
+    const controls = isEditingEnabled.value && code ? frameControlsOf(code) : undefined
+    const rect = controls && code ? frameOf(code)?.rect : null
+    const visible = rect && visiblePart(rect, size.value)
+    if (!code || !controls || !rect || !visible) {
+      SelectionOverlayService.clearSelection(svg)
       return
     }
 
-    const svgSelection = select(svg)
+    const unit = SelectionOverlayService.canvasUnitOf(svg)
+    const hitSize = (window.matchMedia?.('(pointer: coarse)').matches ? FINGER_HIT_SIZE : MOUSE_HIT_SIZE) * unit
+    const beyond = edgesBeyond(rect, size.value)
+    const { format } = controls[0]!
+    const label = moveLabel.value
+      ?? `${formatValue(rect.right - rect.left, format, locale.value)} × ${formatValue(rect.bottom - rect.top, format, locale.value)}`
 
-    let handlesGroup = svgSelection.select<SVGGElement>('.clip-extent-handles')
-    if (handlesGroup.empty()) {
-      handlesGroup = svgSelection.append('g').attr('class', 'clip-extent-handles')
-    }
-
-    const activeTerritory = geoDataStore.allActiveTerritories.find(
-      t => t.code === selectedTerritory.value?.code,
-    )
-
-    const handleData: Array<{
-      territoryCode: string
-      cornerIndex: number
-      cx: number
-      cy: number
-    }> = []
-
-    const territoryCode = selectedTerritory.value?.code
-    if (territoryCode && activeTerritory) {
-      const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-      const translateOffset = params.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset')
-      const pixelClipExtent = params.pixelClipExtent
-
-      if (pixelClipExtent && pixelClipExtent.length === 4) {
-        const [x1, y1, x2, y2] = pixelClipExtent
-
-        const canvasDims = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
-        const centerX = canvasDims.width / 2
-        const centerY = canvasDims.height / 2
-        const territoryX = centerX + translateOffset[0]
-        const territoryY = centerY + translateOffset[1]
-
-        handleData.push(
-          { territoryCode, cornerIndex: 0, cx: territoryX + x1, cy: territoryY + y1 }, // top-left
-          { territoryCode, cornerIndex: 1, cx: territoryX + x2, cy: territoryY + y1 }, // top-right
-          { territoryCode, cornerIndex: 2, cx: territoryX + x2, cy: territoryY + y2 }, // bottom-right
-          { territoryCode, cornerIndex: 3, cx: territoryX + x1, cy: territoryY + y2 }, // bottom-left
-        )
-      }
-    }
-
-    const handles = handlesGroup.selectAll('.clip-corner-handle')
-      .data(handleData, (d: any) => `${d.territoryCode}-${d.cornerIndex}`)
-
-    handles.exit().remove()
-    const newHandles = handles.enter()
-      .append('circle')
-      .attr('class', 'clip-corner-handle')
-      .attr('r', 6)
-      .style('fill', '#3b82f6')
-      .style('stroke', '#1e40af')
-      .style('stroke-width', '2')
-      .style('cursor', 'pointer')
-      .style('opacity', '0.7')
-      .on('mouseenter', function () {
-        select(this).style('opacity', '1').attr('r', 8)
-      })
-      .on('mouseleave', function () {
-        select(this).style('opacity', '0.7').attr('r', 6)
-      })
-      .on('mousedown', (event: MouseEvent, d: any) => {
-        event.preventDefault()
-        event.stopPropagation()
-        startCornerDrag(event, svg, d.territoryCode, d.cornerIndex)
-      })
-
-    newHandles.merge(handles as any)
-      .attr('cx', (d: any) => d.cx)
-      .attr('cy', (d: any) => d.cy)
-      .attr('data-territory', (d: any) => d.territoryCode)
-      .attr('data-corner', (d: any) => d.cornerIndex)
+    SelectionOverlayService.drawSelection(svg, {
+      visible,
+      beyond,
+      handles: frameHandles(visible, beyond, hitSize),
+      cornerHitSize: cornerHitSize(visible, hitSize) / unit,
+      sideHitSize: hitSize / unit,
+      label,
+      canvas: size.value,
+      unit,
+      onHandlePointerDown: (event, handle) => startCornerDrag(event, svg, code, controls, handle),
+    })
   }
 
-  function startCornerDrag(event: MouseEvent, svg: SVGSVGElement, territoryCode: string, cornerIndex: number) {
-    dragSvgElement.value = svg
+  // A territory without its own frame starts from the rectangle that the map shows
+  function startFrameOf(code: TerritoryCode): FrameExtent | null {
+    const parameters = parameterStore.getEffectiveParameters(code)
+    if (parameters.pixelClipExtent) {
+      return parameters.pixelClipExtent
+    }
+    const frame = frameOf(code)
+    return frame && frameFromRect(frame.rect, frame.point)
+  }
+
+  function startCornerDrag(event: PointerEvent, svg: SVGSVGElement, code: TerritoryCode, controls: AxisControl[], handle: HandleIndex) {
+    const start = startFrameOf(code)
+    if (!start || event.button !== 0) {
+      return
+    }
+    event.preventDefault()
+    event.stopPropagation()
+    container.value?.setPointerCapture(event.pointerId)
+    drag = { code, handle, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, unit: SelectionOverlayService.canvasUnitOf(svg), start, controls }
     isDraggingCorner.value = true
-    dragCornerTerritoryCode.value = territoryCode
-    dragCornerIndex.value = cornerIndex
-
-    dragStartX.value = event.clientX
-    dragStartY.value = event.clientY
-
-    const params = parameterStore.getEffectiveParameters(territoryCode as TerritoryCode)
-    const pixelClipExtent = params.pixelClipExtent ?? parameterRegistry.getDefaultValue('pixelClipExtent')
-    dragStartClipExtent.value = [...pixelClipExtent] as [number, number, number, number]
-
-    document.body.style.cursor = 'grabbing'
-    document.body.style.userSelect = 'none'
-
-    window.addEventListener('mousemove', handleCornerMouseMove)
-    window.addEventListener('mouseup', stopCornerDrag)
+    window.addEventListener('pointermove', handleCornerMove)
+    window.addEventListener('pointerup', stopCornerDrag)
+    window.addEventListener('pointercancel', stopCornerDrag)
   }
 
-  function handleCornerMouseMove(event: MouseEvent) {
-    if (!isDraggingCorner.value || !dragCornerTerritoryCode.value || dragCornerIndex.value === null || !dragSvgElement.value) {
+  function handleCornerMove(event: PointerEvent) {
+    if (!drag || event.pointerId !== drag.pointerId) {
       return
     }
-
-    const screenDx = event.clientX - dragStartX.value
-    const screenDy = event.clientY - dragStartY.value
-
-    const scale = getSVGScale(dragSvgElement.value)
-
-    const dx = screenDx / scale
-    const dy = screenDy / scale
-
-    const [origX1, origY1, origX2, origY2] = dragStartClipExtent.value
-    let newX1 = origX1
-    let newY1 = origY1
-    let newX2 = origX2
-    let newY2 = origY2
-
-    const snappedDx = Math.round(dx / GRID_STEP) * GRID_STEP
-    const snappedDy = Math.round(dy / GRID_STEP) * GRID_STEP
-
-    switch (dragCornerIndex.value) {
-      case 0: // top-left: adjust x1, y1
-        newX1 = origX1 + snappedDx
-        newY1 = origY1 + snappedDy
-        break
-      case 1: // top-right: adjust x2, y1
-        newX2 = origX2 + snappedDx
-        newY1 = origY1 + snappedDy
-        break
-      case 2: // bottom-right: adjust x2, y2
-        newX2 = origX2 + snappedDx
-        newY2 = origY2 + snappedDy
-        break
-      case 3: // bottom-left: adjust x1, y2
-        newX1 = origX1 + snappedDx
-        newY2 = origY2 + snappedDy
-        break
-    }
-
-    const newClipExtent: [number, number, number, number] = [
-      newX1,
-      newY1,
-      newX2,
-      newY2,
-    ]
-
-    parameterStore.setTerritoryParameter(dragCornerTerritoryCode.value as TerritoryCode, 'pixelClipExtent', newClipExtent)
-    if (dragSvgElement.value) {
-      renderClipExtentHandles(dragSvgElement.value)
-    }
+    // A handle applies the move to the real edge, even when the edge lies beyond the canvas
+    const dx = Math.round((event.clientX - drag.startX) * drag.unit)
+    const dy = Math.round((event.clientY - drag.startY) * drag.unit)
+    parameterStore.setTerritoryParameter(drag.code, 'pixelClipExtent', resizeFrame(drag.start, drag.handle, dx, dy, drag.controls, event.altKey))
   }
 
-  function stopCornerDrag() {
+  function stopCornerDrag(event?: PointerEvent) {
+    if (event && drag && event.pointerId !== drag.pointerId) {
+      return
+    }
+    if (drag && container.value?.hasPointerCapture(drag.pointerId)) {
+      container.value.releasePointerCapture(drag.pointerId)
+    }
+    drag = null
     isDraggingCorner.value = false
-    dragCornerTerritoryCode.value = null
-    dragCornerIndex.value = null
-    dragSvgElement.value = null
-
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
-
-    window.removeEventListener('mousemove', handleCornerMouseMove)
-    window.removeEventListener('mouseup', stopCornerDrag)
+    window.removeEventListener('pointermove', handleCornerMove)
+    window.removeEventListener('pointerup', stopCornerDrag)
+    window.removeEventListener('pointercancel', stopCornerDrag)
   }
 
   function cleanup() {
-    if (isDraggingCorner.value) {
-      stopCornerDrag()
-    }
+    stopCornerDrag()
   }
 
   return {
     isDraggingCorner,
-
-    renderClipExtentHandles,
+    renderSelection,
     cleanup,
   }
 }

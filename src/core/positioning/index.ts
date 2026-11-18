@@ -7,6 +7,9 @@ export {
 
 export { getDisplayedCenter, getDisplayedRotate, updatePositioningAxis } from './editing'
 
+export { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, moveOffset, rectFromCorners, resizeFrame, visiblePart } from './frame'
+export type { CanvasRect, CompositionBorder, EdgesBeyond, FrameExtent, FrameHandle, HandleIndex } from './frame'
+
 export {
   getDerivedParallels,
   getPositionParameter,

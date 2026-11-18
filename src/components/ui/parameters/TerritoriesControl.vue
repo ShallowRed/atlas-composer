@@ -4,11 +4,11 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TerritoryParameterControls from '@/components/ui/parameters/TerritoryParameterControls.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
+import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
-import { ProjectionFamily } from '@/core/projections/types'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -26,6 +26,8 @@ const {
 } = useTerritoryTransforms()
 
 const { selectedTerritory, selectTerritory, clearSelection } = useSelectedTerritory()
+
+const { getTerritoryFamily } = useProjectionConfig()
 
 const parameterStore = useParameterStore()
 
@@ -49,15 +51,6 @@ const selectedTerritoryDiffers = computed(() => {
 
 function getTerritoryProjection(territoryCode: TerritoryCode): ProjectionId {
   return parameterStore.getTerritoryProjection(territoryCode) || selectedProjection.value || FALLBACK_PROJECTION_ID
-}
-
-function getProjectionFamily(territoryCode: TerritoryCode) {
-  const projectionId = getTerritoryProjection(territoryCode)
-  if (!projectionId) {
-    return ProjectionFamily.AZIMUTHAL
-  }
-  const definition = projectionRegistry.get(projectionId)
-  return definition?.family || ProjectionFamily.AZIMUTHAL
 }
 
 function getProjectionLabel(territoryCode: TerritoryCode) {
@@ -172,7 +165,7 @@ onUnmounted(clearSelection)
 
     <TerritoryParameterControls
       :territory-code="selectedTerritory.code"
-      :projection-family="getProjectionFamily(selectedTerritory.code)"
+      :projection-family="getTerritoryFamily(selectedTerritory.code)"
       :view="viewStore.positioningView"
     />
   </template>
