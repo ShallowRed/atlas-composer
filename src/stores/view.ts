@@ -10,8 +10,7 @@ import type { ActiveTerritoryProvider } from '@/types/territory'
 import { defineStore } from 'pinia'
 import { computed, markRaw, ref, watch } from 'vue'
 import { getAtlasPresets, getDefaultViewMode } from '@/core/atlases/registry'
-import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
-import { referenceParameters } from '@/core/territories/territory-reset-service'
+import { defaultTerritoryParameters, referenceParameters } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { isViewPresetMode } from '@/core/view'
 import { PresetLoader } from '@/services/presets/preset-loader'
@@ -159,12 +158,11 @@ export const useViewStore = defineStore('view', () => {
       case 'split': {
         const presetTerritories = preset.config.territories ?? {}
         const parameters: Record<string, ProjectionParameters> = {}
-        for (const { code } of getAtlasStore().atlasService.getAllTerritories()) {
+        for (const { code, center } of getAtlasStore().atlasService.getAllTerritories()) {
           const projection = presetTerritories[code]?.projection
-          parameters[code] = referenceParameters({
-            projectionId: projection?.id ?? FALLBACK_PROJECTION_ID,
-            ...projection?.parameters,
-          })
+          parameters[code] = projection
+            ? referenceParameters({ projectionId: projection.id, ...projection.parameters })
+            : defaultTerritoryParameters(center)
         }
         presetDefaults.storePresetDefaults(parameters)
         for (const [code, territoryParameters] of Object.entries(parameters)) {

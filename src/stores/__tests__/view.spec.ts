@@ -1,16 +1,34 @@
-import type { AtlasId } from '@/types/branded'
+import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openView, startApplication } from '@/__tests__/composite-utils'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { err, ok } from '@/core/types/result'
 import i18n from '@/i18n'
+import { ProjectionService } from '@/services/projection/projection-service'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
+import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 import { createPresetId } from '@/types/branded'
 
 const FRANCE = 'france' as AtlasId
 const WORLD = 'world' as AtlasId
+const USA = 'usa' as AtlasId
+const ALEUTIANS = 'US-ALEU' as TerritoryCode
+
+// Two islands on either side of the antimeridian, at the latitude of the Aleutian Islands
+const ACROSS_ANTIMERIDIAN: GeoJSON.Feature = {
+  type: 'Feature',
+  properties: {},
+  geometry: {
+    type: 'MultiPolygon',
+    coordinates: [
+      [[[172, 52], [172, 53], [173, 53], [173, 52], [172, 52]]],
+      [[[-170, 52], [-170, 53], [-169, 53], [-169, 52], [-170, 52]]],
+    ],
+  },
+}
 
 describe('view store', () => {
   afterEach(() => {
@@ -89,6 +107,21 @@ describe('view store', () => {
       })
 
       expect(viewStore.currentViewPreset).toBeNull()
+    })
+  })
+
+  describe('split preset', () => {
+    it('frames on its islands a territory across the antimeridian that the preset omits', async () => {
+      await startApplication(USA)
+      await useCompositionStore().initializeAtlas()
+      await openView('split')
+      const service = new ProjectionService()
+      service.setProjectionParams(useParameterStore().getEffectiveParameters(ALEUTIANS))
+
+      const projection = service.getD3Projection('mercator', ACROSS_ANTIMERIDIAN, 300, 200)!
+
+      // The frame of the whole world would be as wide as the map
+      expect(projection.scale() * 2 * Math.PI).toBeGreaterThan(10 * 300)
     })
   })
 
