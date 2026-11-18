@@ -1,0 +1,242 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "macaronesia",
+  "name": {
+    "en": "Macaronesia",
+    "fr": "Macaronésie"
+  },
+  "description": {
+    "en": "The Azores, Madeira, the Canary Islands and Cabo Verde, with the Iberian Peninsula",
+    "fr": "Açores, Madère, îles Canaries et Cap-Vert, avec la péninsule Ibérique"
+  },
+  "category": "region",
+  "dataSources": {
+    "territories": "macaronesia-territories-10m.json",
+    "metadata": "macaronesia-metadata-10m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      620,
+      724,
+      132
+    ],
+    "region": "Atlantic"
+  },
+  "territories": [
+    {
+      "id": "620-20",
+      "code": "PT-20",
+      "name": {
+        "en": "Azores",
+        "fr": "Açores"
+      },
+      "iso": "PRT",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ],
+      "center": [
+        -28,
+        38.5
+      ],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "id": "620-30",
+      "code": "PT-30",
+      "name": {
+        "en": "Madeira",
+        "fr": "Madère"
+      },
+      "iso": "PRT",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ],
+      "center": [
+        -16.9,
+        32.75
+      ],
+      "extraction": {
+        "extractFrom": "620",
+        "polygonIndices": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "724-35",
+      "code": "ES-CN",
+      "name": {
+        "en": "Canary Islands",
+        "fr": "Îles Canaries"
+      },
+      "iso": "ESP",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -18.2,
+          27.6
+        ],
+        [
+          -13.4,
+          29.3
+        ]
+      ],
+      "center": [
+        -15.6,
+        28.4
+      ],
+      "extraction": {
+        "extractFrom": "724",
+        "polygonIndices": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      }
+    },
+    {
+      "id": "132",
+      "code": "CV",
+      "name": {
+        "en": "Cabo Verde",
+        "fr": "Cap-Vert"
+      },
+      "iso": "CPV",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -25.4,
+          14.7
+        ],
+        [
+          -22.6,
+          17.3
+        ]
+      ],
+      "center": [
+        -24,
+        16
+      ]
+    },
+    {
+      "id": "620",
+      "code": "PT-CONT",
+      "name": {
+        "en": "Mainland Portugal",
+        "fr": "Portugal continental"
+      },
+      "iso": "PRT",
+      "bounds": [
+        [
+          -9.5,
+          37
+        ],
+        [
+          -6.2,
+          42.2
+        ]
+      ],
+      "center": [
+        -8,
+        39.5
+      ]
+    },
+    {
+      "id": "724",
+      "code": "ES-CONT",
+      "name": {
+        "en": "Peninsular Spain and Balearic Islands",
+        "fr": "Espagne péninsulaire et îles Baléares"
+      },
+      "iso": "ESP",
+      "bounds": [
+        [
+          -9.4,
+          35.9
+        ],
+        [
+          4.4,
+          43.8
+        ]
+      ],
+      "center": [
+        -3.7,
+        40.2
+      ]
+    }
+  ],
+  "territoryCollections": {
+    "scope": {
+      "label": {
+        "en": "Territory scope",
+        "fr": "Étendue des territoires"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "The four archipelagos, then the Iberian Peninsula that situates them",
+        "fr": "Les quatre archipels, puis la péninsule Ibérique qui les situe"
+      },
+      "collections": [
+        {
+          "id": "archipelagos",
+          "label": {
+            "en": "Macaronesia",
+            "fr": "Macaronésie"
+          },
+          "territories": [
+            "PT-20",
+            "PT-30",
+            "ES-CN",
+            "CV"
+          ]
+        },
+        {
+          "id": "with-iberian-peninsula",
+          "label": {
+            "en": "Macaronesia and the Iberian Peninsula",
+            "fr": "Macaronésie et péninsule Ibérique"
+          },
+          "territories": [
+            "PT-20",
+            "PT-30",
+            "ES-CN",
+            "CV",
+            "PT-CONT",
+            "ES-CONT"
+          ]
+        }
+      ]
+    }
+  }
+}
