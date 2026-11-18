@@ -168,8 +168,7 @@
       "lockAspectRatio": "Lock the aspect ratio",
       "referenceScale": "Reference Scale",
       "scaleWarning": "Changing the reference scale will affect all territories. Individual territory scale multipliers are preserved.",
-      "resetToDefaults": "Reset to Defaults",
-      "unlockAspectRatio": "Unlock the aspect ratio"
+      "resetToDefaults": "Reset to Defaults"
     }
   },
   "clipExtent": {
