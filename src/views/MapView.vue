@@ -33,7 +33,6 @@ const viewStore = useViewStore()
 const uiStore = useUIStore()
 
 const basemapSource = computed(() => uiStore.basemap === 'none' ? null : BASEMAP_SOURCE_DEFINITIONS[uiStore.basemap])
-const basemapAttributionSummary = computed(() => basemapSource.value && 'attributionSummary' in basemapSource.value ? basemapSource.value.attributionSummary : null)
 const compositionStore = useCompositionStore()
 
 const { readSharedLink } = useUrlState()
@@ -85,7 +84,7 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
           </AtlasConfigSection>
           <DisplayOptionsSection class="mt-3" />
         </template>
-        <div class="main-content-wrapper relative flex h-full w-full flex-col max-lg:h-auto">
+        <div class="main-content-wrapper relative flex h-full w-full flex-col gap-1 max-lg:h-auto">
           <Transition
             name="fade"
             mode="out-in"
@@ -105,16 +104,14 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
             </div>
           </Transition>
 
-          <div
-            v-if="basemapSource"
-            class="mt-auto pt-1 text-xs text-base-content/70 lg:text-right"
-          >
+          <!-- The line of the attribution stays without a basemap, so that choosing one leaves the map in place -->
+          <div class="mt-auto min-h-lh text-xs text-base-content/70 lg:text-right">
             <details
-              v-if="basemapAttributionSummary"
+              v-if="basemapSource"
               class="relative"
             >
-              <summary class="flex cursor-pointer list-none items-baseline justify-end gap-1 hover:text-base-content max-lg:justify-start [&::-webkit-details-marker]:hidden">
-                {{ basemapAttributionSummary }}
+              <summary class="flex cursor-pointer list-none items-center justify-end gap-1 hover:text-base-content max-lg:justify-start [&::-webkit-details-marker]:hidden">
+                {{ basemapSource.attributionSummary }}
                 <i
                   class="ri-information-line"
                   aria-hidden="true"
@@ -124,9 +121,6 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
                 {{ basemapSource.attribution }}
               </p>
             </details>
-            <template v-else>
-              {{ basemapSource.attribution }}
-            </template>
           </div>
 
           <Transition name="fade">
