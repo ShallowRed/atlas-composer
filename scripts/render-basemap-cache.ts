@@ -58,7 +58,7 @@ async function renderMap(browser: Browser, url: string, pixelRatio: number): Pro
     page.on('request', (request) => {
       build ??= INDEX_PATTERN.exec(new URL(request.url()).pathname)?.[1] ?? null
     })
-    // Without the index, the site renders the basemap instead of showing an image that a previous run wrote in dist
+    // Without the index, the site renders the basemap: an image that a previous run wrote in dist stays out of the new one
     await page.route(INDEX_PATTERN, route => route.fulfill({ status: 404 }))
     await page.goto(url)
     // The relief is the default basemap; the click keeps the script working if the default changes.
