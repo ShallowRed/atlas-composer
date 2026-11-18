@@ -6,7 +6,7 @@
  *
  * The built site renders each image itself: the script opens it in Chromium, waits for the image of the basemap
  * of each map, which carries its fingerprint, and reads the build from the address of the index that the site requests.
- * A map that fails stays out of the index and the site renders its basemap: the script never fails the deployment.
+ * A view that fails, with all its maps, stays out of the index and the site renders its basemaps: the script never fails the deployment.
  *
  * Terrain Tiles on AWS (https://github.com/tilezen/joerd/blob/master/docs/attribution.md): every source asks for its attribution,
  * GMTED2010 for a description of the modifications, and ETOPO1 for a notice of the material of the US Government in a
@@ -32,13 +32,12 @@ const RUN_TIMEOUT = 15 * 60_000
 const STABLE_DELAY = 1000
 const WEBP_QUALITY = 0.8
 const INDEX_PATTERN = new RegExp(`${BASEMAP_CACHE_DIRECTORY}/([^/]+)/index\\.json$`)
-// A map of the view, and its complete images: the previous one stays under the last one until the last one is decoded
+// A map of the view, and its complete images: a map keeps its previous image under the new one until the new one is decoded, so the last image is the current one
 const MAP_PLOT = '.map-plot'
 const COMPLETE_IMAGE = `svg image[${FINGERPRINT_ATTRIBUTE}]`
 
 interface RenderedView {
   build: string
-  // The image of each map of the view, by its fingerprint
   maps: Array<{ fingerprint: string, webp: Buffer }>
 }
 
@@ -178,7 +177,7 @@ async function main() {
   const total = [...images.values()].reduce((sum, webp) => sum + webp.length, 0)
   logger.success(`${images.size} cached basemaps, ${Math.round(total / 1000)} kB, in ${directory}`)
   if (failedViews > 0) {
-    warn(`${failedViews} views draw their basemap on the site`)
+    warn(`${failedViews} ${failedViews === 1 ? 'view at a pixel ratio draws its' : 'views at a pixel ratio draw their'} basemaps on the site`)
   }
 }
 
