@@ -26,13 +26,13 @@ describe('control of each axis of a parameter', () => {
 
   it.each(numericAxes)('gives a control to each axis of $key for the family $family', ({ key, family, count }) => {
     const controls = parameterRegistry.getAxisControls(key, family)
+    const { min, max } = parameterRegistry.get(key)!.familyConstraints![family]!
     expect(controls).toHaveLength(count)
-    for (const control of controls!) {
-      expect(control.kind).toBeTruthy()
+    controls!.forEach((control, axis) => {
+      expect(control.domain.min).toBe(Array.isArray(min) ? min[axis] : min)
+      expect(control.domain.max).toBe(Array.isArray(max) ? max[axis] : max)
       expect(control.step).toBeGreaterThan(0)
-      expect(control.format).toBeTruthy()
-      expect(control.domain.min).toBeLessThan(control.domain.max)
-    }
+    })
   })
 
   it('gives the control of a parameter that the family declares without using it', () => {

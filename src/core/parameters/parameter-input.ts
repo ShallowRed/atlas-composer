@@ -1,7 +1,7 @@
 import type { AxisControl, AxisDomain, AxisFormat, AxisTrack } from '@/core/parameters/parameter-registry'
 import { scaleLinear, scaleLog } from 'd3'
 
-type Band = [number, number]
+export type LatitudeBand = [south: number, north: number]
 
 type ScaleTrack = Extract<AxisTrack, { scale: unknown }>
 
@@ -86,7 +86,7 @@ export function isOutsideTrack(value: number, track: ScaleTrack): boolean {
 }
 
 // Standard parallels at one sixth and five sixths of the band, the usual rule for a conic
-export function parallelsForBand([south, north]: Band): Band {
+export function parallelsForBand([south, north]: LatitudeBand): LatitudeBand {
   const span = north - south
   return [Math.round((south + span / 6) * 10) / 10, Math.round((north - span / 6) * 10) / 10]
 }
