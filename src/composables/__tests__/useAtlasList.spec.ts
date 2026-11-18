@@ -1,18 +1,11 @@
-import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { withSetup } from '@/__tests__/test-utils'
 import { useAtlasList } from '@/composables/useAtlasList'
 import i18n from '@/i18n'
 
 function readAtlasList() {
-  let result: ReturnType<typeof useAtlasList>['atlasList']['value'] = []
-  mount(defineComponent({
-    setup() {
-      result = useAtlasList().atlasList.value
-      return () => h('div')
-    },
-  }), { global: { plugins: [i18n] } })
-  return result.flatMap(group => group.options)
+  const { atlasList } = withSetup(() => useAtlasList())
+  return atlasList.value.flatMap(group => group.options)
 }
 
 describe('useAtlasList', () => {

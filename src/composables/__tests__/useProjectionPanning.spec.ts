@@ -1,21 +1,10 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { withSetup } from '@/__tests__/test-utils'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { createProjectionId } from '@/types/branded'
 import { useProjectionPanning } from '../useProjectionPanning'
-
-function withSetup<T>(composable: () => T): T {
-  let result: T
-  const app = {
-    setup() {
-      result = composable()
-      return () => {}
-    },
-  }
-  app.setup()
-  return result!
-}
 
 describe('useProjectionPanning', () => {
   beforeEach(() => {
