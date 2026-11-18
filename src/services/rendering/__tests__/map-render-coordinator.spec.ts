@@ -21,6 +21,14 @@ describe('basemap of the map', () => {
     expect(['href', 'x', 'y', 'width', 'height', 'preserveAspectRatio'].map(name => image.getAttribute(name))).toEqual(['blob:1', '0', '0', '960', '500', 'none'])
   })
 
+  it('gives its fingerprint to a complete image only', () => {
+    const svg = view()
+    MapRenderCoordinator.insertBasemap(svg, 'blob:1')
+    MapRenderCoordinator.insertBasemap(svg, 'blob:2', { fingerprint: 'relief-abc123' })
+
+    expect([...basemap(svg).querySelectorAll('image')].map(image => image.getAttribute('data-basemap-fingerprint'))).toEqual([null, 'relief-abc123'])
+  })
+
   it('keeps the previous content under a new image until the new image is decoded', async () => {
     const svg = view()
     MapRenderCoordinator.insertBasemap(svg, 'blob:0', { view: [0, 0, 960, 500], placements: [{ code: 'FR', from: [[0, 0], [100, 100]], to: [[0, 0], [100, 100]] }] })
