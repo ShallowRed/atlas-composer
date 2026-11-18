@@ -298,7 +298,7 @@ function handleMouseDown(event: MouseEvent) {
 <template>
   <div
     class="map-renderer relative"
-    :style="{ '--map-aspect': `${size.width} / ${size.height}`, '--map-ratio': size.width / size.height }"
+    :style="{ '--map-ratio': size.width / size.height }"
     :class="{
       'h-full': props.fullHeight,
       'map-renderer--fill': props.fullHeight,
@@ -376,7 +376,7 @@ function handleMouseDown(event: MouseEvent) {
 /* A filling map is larger than its drawing on one axis, and the drawing is centered in it; below lg, it takes the proportions of its drawing, so that it fills its width */
 .map-renderer--fill {
   container-type: size;
-  @apply max-lg:h-auto max-lg:[aspect-ratio:var(--map-aspect)];
+  @apply max-lg:h-auto max-lg:[aspect-ratio:var(--map-ratio)];
 }
 
 .map-renderer--fill .map-frame {
