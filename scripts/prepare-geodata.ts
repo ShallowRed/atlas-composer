@@ -10,11 +10,6 @@ import { RULES_RESOLUTION } from '../packages/preset-library/src/territories.js'
 
 const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
 
-const OUTPUT_FILENAMES = {
-  territories: (configName: string, resolution: string) => `${configName}-territories-${resolution}.json`,
-  metadata: (configName: string, resolution: string) => `${configName}-metadata-${resolution}.json`,
-}
-
 async function saveData(filename: string, data: any): Promise<void> {
   const outputPath = path.join(OUTPUT_DIR, filename)
   await fs.mkdir(OUTPUT_DIR, { recursive: true })
@@ -46,11 +41,15 @@ async function main(): Promise<void> {
     }
 
     const atlasName = args.atlas!
-    const { unified } = await loadConfig(atlasName)
-    const resolution = getResolution(args, resolutionOfDataSources(unified.dataSources))
+    const config = await loadConfig(atlasName)
+    const { dataSources } = config.unified
+    const resolution = getResolution(args, () => resolutionOfDataSources(dataSources))
 
     logger.section(`Preparing geodata: ${atlasName}`)
     logger.data('Resolution', resolution)
+    if (![dataSources.territories, dataSources.metadata].every(file => file.endsWith(`-${resolution}.json`))) {
+      logger.warning(`${dataSources.territories} and ${dataSources.metadata}, the dataSources that the site reads, hold the ${resolution} topology, although their names do not end with ${resolution}`)
+    }
     logger.newline()
 
     logger.subsection('Step 1: Read world data')
@@ -58,9 +57,9 @@ async function main(): Promise<void> {
     const ruleTopology = resolution === RULES_RESOLUTION ? undefined : await readWorldData(RULES_RESOLUTION)
 
     logger.subsection('Step 2: Filter territories and create metadata')
-    const prepared = await prepareAtlasData(atlasName, worldData, { resolution, created: new Date().toISOString(), ruleTopology })
-    await saveData(OUTPUT_FILENAMES.territories(prepared.outputName, resolution), toTopology(prepared.territories))
-    await saveData(OUTPUT_FILENAMES.metadata(prepared.outputName, resolution), prepared.metadata)
+    const prepared = prepareAtlasData(config, worldData, { resolution, created: new Date().toISOString(), ruleTopology })
+    await saveData(dataSources.territories, toTopology(prepared.territories))
+    await saveData(dataSources.metadata, prepared.metadata)
 
     logger.newline()
     logger.success('All done!')

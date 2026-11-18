@@ -4,14 +4,16 @@
 
 ## Preparing the data of an atlas
 
-`pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `prepareAtlasData` in `scripts/geodata/prepare.ts` builds the territories with `buildTerritories`, with each name in English, and the metadata with `createBackendConfig` of `scripts/config/adapter.ts`.
+`pnpm geodata:prepare <atlas>` finds the atlas in `configs/atlas-registry.json` and reads its configuration. The script stops when the configuration does not match `configs/schemas/atlas.schema.json`. `prepareAtlasData` in `scripts/geodata/prepare.ts` receives this configuration and builds the territories with `buildTerritories`, with each name in English, and the metadata with `createBackendConfig` of `scripts/config/adapter.ts`.
 
-The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, then from the end of the two file names of the `dataSources` of the atlas, such as 50m in `world-territories-50m.json`. The script stops when these names end with two different resolutions or with none. The polygon indices of the extraction rules count the polygons of the 50m topology: at another resolution, the script also reads the 50m topology, and `buildTerritories` gives each polygon the territory of the 50m polygon of the same id that contains its centroid or, without one, of the 50m polygon with the nearest vertex. A polygon farther than 50 km from it and outside the `bounds` of its territory, such as an islet that Natural Earth draws at 10m only, is left out of the territory and named in a warning.
+The script reads the Natural Earth topology of `world-atlas` 2.0.2, a development dependency of the repository, in `node_modules`. The resolution comes from `--resolution`, then from the `NE_RESOLUTION` environment variable, then from the end of the two file names of the `dataSources` of the atlas, such as 50m in `world-territories-50m.json`. Without `--resolution` or `NE_RESOLUTION`, the script stops when these names end with two different resolutions or with none. The polygon indices of the extraction rules count the polygons of the 50m topology: at another resolution, the script also reads the 50m topology, and `buildTerritories` gives each polygon the territory of the 50m polygon of the same id that contains its centroid or, without one, of the 50m polygon with the nearest vertex. A polygon farther than 50 km from it and outside the `bounds` of its territory, such as an islet that Natural Earth draws at 10m only, is left out of the territory and named in a warning.
 
-The script writes two files in `src/public/data/`, a folder that git ignores. With the 10m resolution, these files are:
+The script writes in `src/public/data/`, a folder that git ignores, the two files that the `dataSources` of the atlas name and that the site reads:
 
-- `src/public/data/<atlas>-territories-10m.json`, a topology quantized at 1e5 whose object `territories` holds one geometry per territory, with its `id`, `code`, `name` and `iso` in `properties`.
-- `src/public/data/<atlas>-metadata-10m.json`, the description of the atlas and of its territory rules.
+- `dataSources.territories`, such as `france-territories-10m.json`, a topology quantized at 1e5 whose object `territories` holds one geometry per territory, with its `id`, `code`, `name` and `iso` in `properties`.
+- `dataSources.metadata`, such as `france-metadata-10m.json`, the description of the atlas and of its territory rules, with the resolution of the topology in `resolution`.
+
+When `--resolution` or `NE_RESOLUTION` gives another resolution than the end of these names, the script writes the topology of this resolution in the same two files and names them in a warning.
 
 The script gathers the Natural Earth features of each id, padded to three digits, into one geometry, and a territory takes the features whose id equals its `id` padded to three digits. A feature takes its `name`, `code` and `iso` from the configuration. The script stops with a `TerritoryBuildError` that names each territory without a feature.
 

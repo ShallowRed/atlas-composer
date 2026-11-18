@@ -1,9 +1,9 @@
 import type { Topology } from 'topojson-specification'
 import type { BackendConfig, BackendTerritory } from '#scripts/config/adapter'
+import type { LoadedConfig } from '#scripts/config/loader'
 import type { TerritoryFeature } from '../../packages/preset-library/src/territories.js'
 import * as topojson from 'topojson-client'
 import { topology as toTopologyOf } from 'topojson-server'
-import { loadConfig } from '#scripts/config/loader'
 import { logger } from '#scripts/utils/logger'
 import { buildTerritories, createNaturalEarthSource } from '../../packages/preset-library/src/territories.js'
 
@@ -19,7 +19,6 @@ interface Metadata {
 }
 
 export interface PreparedAtlasData {
-  outputName: string
   territories: { type: 'FeatureCollection', features: TerritoryFeature[] }
   metadata: Metadata
 }
@@ -53,12 +52,11 @@ function countriesOf(topology: Topology) {
  * Builds the territories of an atlas from a Natural Earth topology. At another resolution than 50m, ruleTopology is
  * the 50m topology, whose polygons the extraction rules count.
  */
-export async function prepareAtlasData(
-  atlasName: string,
+export function prepareAtlasData(
+  { unified, backend: config }: LoadedConfig,
   topology: Topology,
   options: { resolution: string, created: string, ruleTopology?: Topology },
-): Promise<PreparedAtlasData> {
-  const { unified, backend: config } = await loadConfig(atlasName)
+): PreparedAtlasData {
   const ruleFeatures = options.ruleTopology && countriesOf(options.ruleTopology)
   const source = createNaturalEarthSource(countriesOf(topology), options.resolution, ruleFeatures)
   const { collection, skippedFeatures, leftOutPolygons } = buildTerritories(unified, source)
@@ -71,7 +69,6 @@ export async function prepareAtlasData(
   }
   logger.success(`  Total territories: ${collection.features.length}`)
   return {
-    outputName: config.outputName || atlasName,
     territories: collection,
     metadata: createMetadata(config, options.resolution, naturalEarthUrl(options.resolution), options.created),
   }
