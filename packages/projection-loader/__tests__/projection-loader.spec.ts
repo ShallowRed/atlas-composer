@@ -8,15 +8,10 @@ import { geoConicConformal, geoConicEqualArea } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { ConfigValidationError, ProjectionLoader, validateConfig } from '../src'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
+import { presetOf } from './presets'
 
 function readFormatFixture(name: string): CompositeProjectionConfig {
   return JSON.parse(readFileSync(resolve(import.meta.dirname, `../../specification/__tests__/fixtures/valid/${name}.json`), 'utf8'))
-}
-
-function presetOf(presetId: string): CompositeProjectionConfig {
-  const registry: { atlases: { presets: { id: string, configPath: string }[] }[] } = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8'))
-  const preset = registry.atlases.flatMap(atlas => atlas.presets).find(({ id }) => id === presetId)!
-  return JSON.parse(readFileSync(`configs/${preset.configPath}`, 'utf8'))
 }
 
 describe('projection-loader', () => {
