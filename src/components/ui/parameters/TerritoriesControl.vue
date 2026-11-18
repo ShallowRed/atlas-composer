@@ -9,6 +9,7 @@ import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
+import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -34,6 +35,8 @@ const parameterStore = useParameterStore()
 const viewStore = useViewStore()
 
 const presetDefaults = usePresetDefaultsStore()
+
+const geoDataStore = useGeoDataStore()
 
 const backButton = ref<HTMLButtonElement>()
 const rowButtons = ref<HTMLButtonElement[]>([])
@@ -77,6 +80,16 @@ async function closeTerritory() {
   rowButtons.value.find(button => button.dataset.territory === territoryCode)?.focus()
 }
 
+async function removeSelectedTerritory() {
+  const territoryCode = selectedTerritory.value?.code
+  if (!territoryCode) {
+    return
+  }
+  clearSelection()
+  viewStore.removeTerritoryFromComposite(territoryCode as TerritoryCode)
+  geoDataStore.triggerRender()
+}
+
 watch(selectedTerritory, (territory) => {
   if (territory === null) {
     clearSelection()
@@ -100,10 +113,17 @@ onUnmounted(clearSelection)
         @click="resetTransforms"
       >
         <i class="ri-restart-line" />
-        {{ t('territory.reset') }}
+        {{ presetDefaults.isBlank ? t('territory.blankCanvas.resetAll') : t('territory.reset') }}
       </button>
     </div>
-    <ul class="menu w-full p-0">
+    <slot
+      v-if="territories.length === 0"
+      name="empty"
+    />
+    <ul
+      v-else
+      class="menu w-full p-0"
+    >
       <li
         v-for="territory in territories"
         :key="territory.code"
@@ -141,16 +161,28 @@ onUnmounted(clearSelection)
         <span class="min-w-0">{{ selectedTerritory.name }}</span>
         <span class="badge badge-sm badge-ghost shrink-0">{{ selectedTerritory.code }}</span>
       </h3>
-      <button
-        type="button"
-        class="btn btn-ghost btn-sm btn-square"
-        :title="t('territory.resetOne')"
-        :aria-label="t('territory.resetOne')"
-        :disabled="!selectedTerritoryDiffers"
-        @click="resetTerritoryToDefaults(selectedTerritory.code)"
-      >
-        <i class="ri-restart-line text-base" />
-      </button>
+      <div class="flex shrink-0 items-center">
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm btn-square"
+          :title="t('territory.resetOne')"
+          :aria-label="t('territory.resetOne')"
+          :disabled="!selectedTerritoryDiffers"
+          @click="resetTerritoryToDefaults(selectedTerritory.code)"
+        >
+          <i class="ri-restart-line text-base" />
+        </button>
+        <button
+          v-if="presetDefaults.isBlank"
+          type="button"
+          class="btn btn-ghost btn-sm btn-square"
+          :title="t('territory.blankCanvas.remove')"
+          :aria-label="t('territory.blankCanvas.remove')"
+          @click="removeSelectedTerritory"
+        >
+          <i class="ri-delete-bin-line text-base" />
+        </button>
+      </div>
     </div>
 
     <div class="mb-6">

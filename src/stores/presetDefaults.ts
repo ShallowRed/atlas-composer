@@ -16,8 +16,15 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
   const presetGlobalParameters = ref<ProjectionParameters | null>(null)
   const presetCanvas = ref<Canvas | null>(null)
+  // The reference is an empty canvas, which no preset describes
+  const isBlank = ref(false)
+
+  function markBlank() {
+    isBlank.value = true
+  }
 
   function storePresetDefaults(parameters: Record<string, ProjectionParameters>) {
+    isBlank.value = false
     presetParameters.value = { ...parameters }
   }
 
@@ -30,6 +37,7 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
   }
 
   function clearAll() {
+    isBlank.value = false
     presetParameters.value = {}
     presetGlobalParameters.value = null
     presetCanvas.value = null
@@ -66,6 +74,9 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
     activeCodes: ReadonlySet<TerritoryCode>,
     compareActiveSet: boolean,
   ): boolean {
+    if (isBlank.value) {
+      return activeCodes.size > 0
+    }
     const presetCodes = Object.keys(presetParameters.value) as TerritoryCode[]
     if (compareActiveSet && presetCodes.length > 0
       && (presetCodes.length !== activeCodes.size || presetCodes.some(code => !activeCodes.has(code)))) {
@@ -83,6 +94,8 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
     presetParameters,
     presetGlobalParameters,
     presetCanvas,
+    isBlank,
+    markBlank,
     storePresetDefaults,
     storeGlobalParameters,
     storePresetCanvas,

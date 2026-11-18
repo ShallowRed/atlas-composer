@@ -4,28 +4,15 @@ import ImportControls from '@/components/ui/import/ImportControls.vue'
 import GlobalProjectionControls from '@/components/ui/parameters/GlobalProjectionControls.vue'
 import TerritoriesControl from '@/components/ui/parameters/TerritoriesControl.vue'
 import PresetSelector from '@/components/ui/presets/PresetSelector.vue'
-import Alert from '@/components/ui/primitives/Alert.vue'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
-import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 
 const { t } = useI18n()
-
-const {
-  shouldShowEmptyState,
-} = useTerritoryTransforms()
 
 const { hasSelectedTerritory } = useSelectedTerritory()
 </script>
 
 <template>
   <div>
-    <Alert
-      v-if="shouldShowEmptyState"
-      type="info"
-    >
-      {{ t('territory.noOverseas') }}
-    </Alert>
-
     <div
       v-show="!hasSelectedTerritory"
       class="flex flex-col gap-3 mb-8"
@@ -48,6 +35,12 @@ const { hasSelectedTerritory } = useSelectedTerritory()
       </div>
     </div>
 
-    <TerritoriesControl />
+    <TerritoriesControl>
+      <template #empty>
+        <p class="text-sm text-base-content/70">
+          {{ t('territory.blankCanvas.empty') }}
+        </p>
+      </template>
+    </TerritoriesControl>
   </div>
 </template>

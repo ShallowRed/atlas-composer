@@ -4,14 +4,23 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
+import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryNames } from '@/composables/useTerritoryNames'
 import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 
+const props = defineProps<{
+  // Lists the territories that the composition leaves out, and selects a territory once added
+  availableOnly?: boolean
+}>()
+
 const { t } = useI18n()
+const { selectTerritory } = useSelectedTerritory()
+const presetDefaults = usePresetDefaultsStore()
 const { localize } = useLocalizedName()
 const { territoryName } = useTerritoryNames()
 const atlasStore = useAtlasStore()
@@ -45,7 +54,8 @@ const activeTerritoryCodesSet = computed(() => {
 
 const atlasCollections = computed(() => {
   const atlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(atlasId)) {
+  // The loaded configuration of the store makes the computed follow the loading of the atlas
+  if (atlasStore.currentAtlasConfig?.id !== atlasId || !isAtlasLoaded(atlasId)) {
     return undefined
   }
 
@@ -85,20 +95,16 @@ const collectionSetToDisplay = computed(() => {
   return defaultCollectionSet.value
 })
 
-const territoryGroups = computed((): TerritoryGroup[] => {
+const allTerritoryGroups = computed((): TerritoryGroup[] => {
   const collections = atlasCollections.value
 
   const currentAtlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(currentAtlasId)) {
-    return []
-  }
-
-  if (!collections) {
+  if (atlasStore.currentAtlasConfig?.id !== currentAtlasId || !isAtlasLoaded(currentAtlasId)) {
     return []
   }
 
   const collectionSetKey = collectionSetToDisplay.value
-  if (!collectionSetKey) {
+  if (!collections || !collectionSetKey) {
     const allTerritories = loadedTerritories.value
       .map(territory => ({
         code: territory.code,
@@ -143,6 +149,12 @@ const territoryGroups = computed((): TerritoryGroup[] => {
     .filter(group => group.territories.length > 0)
 })
 
+const territoryGroups = computed((): TerritoryGroup[] => props.availableOnly
+  ? allTerritoryGroups.value
+      .map(group => ({ ...group, territories: group.territories.filter(territory => !territory.isActive) }))
+      .filter(group => group.territories.length > 0)
+  : allTerritoryGroups.value)
+
 function toggleTerritory(code: string, isActive: boolean) {
   if (isActive) {
     viewStore.removeTerritoryFromComposite(code as TerritoryCode)
@@ -151,6 +163,9 @@ function toggleTerritory(code: string, isActive: boolean) {
     compositionStore.addTerritoryToComposite(code as TerritoryCode)
   }
   geoDataStore.triggerRender()
+  if (!isActive && presetDefaults.isBlank) {
+    selectTerritory(code)
+  }
 }
 </script>
 
@@ -224,7 +239,7 @@ function toggleTerritory(code: string, isActive: boolean) {
       v-if="territoryGroups.length === 0"
       class="text-xs text-base-content/40 italic text-center py-4"
     >
-      {{ t('territory.setManager.noCollections', 'No territory collections available') }}
+      {{ props.availableOnly ? t('territory.blankCanvas.allPlaced') : t('territory.setManager.noCollections', 'No territory collections available') }}
     </div>
   </div>
 </template>

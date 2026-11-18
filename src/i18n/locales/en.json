@@ -96,7 +96,14 @@
       "groupingLogic": "Grouping logic",
       "switchGrouping": "Switch grouping"
     },
-    "resetOne": "Reset this territory"
+    "resetOne": "Reset this territory",
+    "blankCanvas": {
+      "empty": "The canvas is empty. Add a territory from “Territories to include” to start.",
+      "map": "Add a territory to start the composition",
+      "allPlaced": "Each territory of the atlas is on the canvas.",
+      "remove": "Remove from the canvas",
+      "resetAll": "Clear the canvas"
+    }
   },
   "view": {
     "unified": "Unified view",
@@ -209,7 +216,8 @@
       "test": "Test",
       "compact": "Compact",
       "spread": "Spread"
-    }
+    },
+    "blankCanvas": "Blank canvas"
   },
   "preset": {
     "select": "Select preset",

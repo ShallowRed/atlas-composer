@@ -13,6 +13,7 @@ import { useTerritoryCursor } from '@/composables/useTerritoryCursor'
 import { TRANSITION_DURATION } from '@/config/transitions'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,6 +65,11 @@ const pendingRender = ref(false)
 let renderDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const cartographer = computed(() => geoDataStore.cartographer)
+const viewStore = useViewStore()
+const isEmptyComposition = computed(() => props.mode === 'composite'
+  && viewStore.viewMode === 'composite-custom'
+  && viewStore.activeTerritoryCodes.size === 0
+  && !isLoading.value)
 
 const {
   handleMouseDown: handlePanMouseDown,
@@ -335,6 +341,16 @@ function handleMouseDown(event: MouseEvent) {
       @keydown="handleKeydown"
     />
     <div class="map-frame">
+      <p
+        v-if="isEmptyComposition"
+        class="absolute inset-0 flex items-center justify-center gap-2 p-4 text-center text-sm text-base-content/60"
+      >
+        <i
+          class="ri-add-box-line text-base"
+          aria-hidden="true"
+        />
+        {{ t('territory.blankCanvas.map') }}
+      </p>
       <p
         v-if="basemapLoading"
         class="map-note delayed-fade-in bottom-1 left-1 flex items-center gap-1.5 text-base-content/70"

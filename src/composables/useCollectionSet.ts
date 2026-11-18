@@ -55,7 +55,7 @@ export function useCollectionSet(
   return computed(() => {
     const atlasId = atlasStore.selectedAtlasId
 
-    if (!isAtlasLoaded(atlasId)) {
+    if (atlasStore.currentAtlasConfig?.id !== atlasId || !isAtlasLoaded(atlasId)) {
       return undefined
     }
 

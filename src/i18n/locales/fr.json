@@ -96,7 +96,14 @@
       "groupingLogic": "Logique de regroupement",
       "switchGrouping": "Changer le regroupement"
     },
-    "resetOne": "Réinitialiser ce territoire"
+    "resetOne": "Réinitialiser ce territoire",
+    "blankCanvas": {
+      "empty": "Le canevas est vide. Ajoutez un territoire depuis « Territoires à inclure » pour commencer.",
+      "map": "Ajoutez un territoire pour commencer la composition",
+      "allPlaced": "Tous les territoires de l’atlas sont sur le canevas.",
+      "remove": "Retirer du canevas",
+      "resetAll": "Vider le canevas"
+    }
   },
   "view": {
     "unified": "Vue unifiée",
@@ -209,7 +216,8 @@
       "test": "Test",
       "compact": "Compact",
       "spread": "Étendu"
-    }
+    },
+    "blankCanvas": "Canevas vide"
   },
   "preset": {
     "select": "Sélectionner une configuration",

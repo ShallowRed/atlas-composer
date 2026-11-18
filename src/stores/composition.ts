@@ -9,10 +9,13 @@ import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
 
+import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
+import { frameFromRect } from '@/core/positioning'
+import { compositionSlots, fitTerritory, nextFreeSlot, territoryRect } from '@/core/positioning/fit'
 import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -323,7 +326,67 @@ export const useCompositionStore = defineStore('composition', () => {
     }
   }
 
+  // A composite-custom view without a preset: no territory, the default canvas
+  function startBlankComposition(): void {
+    parameterStore.clearAll()
+    presetDefaults.clearAll()
+    applyCompositionState({
+      territoryParameters: {},
+      activeTerritories: [],
+      canvas: { referenceScale: DEFAULT_REFERENCE_SCALE, dimensions: { ...DEFAULT_CANVAS_DIMENSIONS } },
+    })
+    presetDefaults.markBlank()
+    updateCartographer(DEFAULT_REFERENCE_SCALE)
+  }
+
+  // Fits a territory into the first slot of the canvas that the placed territories leave free
+  function placeTerritory(territoryCode: TerritoryCode): void {
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    const referenceScale = projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE
+    const territoryConfig = (code: TerritoryCode) => atlasStore.territories.find(territory => territory.code === code)
+
+    const others = [...viewStore.activeTerritoryCodes].filter(code => code !== territoryCode)
+    const placed = others.flatMap((code) => {
+      const parameters = parameterStore.getTerritoryParameters(code)
+      const bounds = territoryConfig(code)?.bounds
+      if (!parameters.projectionId || !bounds) {
+        return []
+      }
+      return [territoryRect({
+        projection: { ...parameters, projectionId: parameters.projectionId },
+        bounds,
+        scaleMultiplier: parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier'),
+        translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),
+        pixelClipExtent: parameters.pixelClipExtent,
+        referenceScale,
+        canvas,
+      })]
+    })
+
+    const bounds = territoryConfig(territoryCode)?.bounds
+    if (!bounds) {
+      return
+    }
+    const current = parameterStore.getTerritoryParameters(territoryCode)
+    const { pixelClipExtent: _frame, ...kept } = current.projectionId ? current : defaultTerritoryParameters(atlasStore.territoryCenter(territoryCode))
+    const box = nextFreeSlot(placed, canvas) ?? compositionSlots(canvas).at(-1)!
+    const projection = { ...kept, projectionId: kept.projectionId! }
+    const fit = fitTerritory({ projection, bounds, box, referenceScale, canvas })
+    const rect = territoryRect({ projection, bounds, ...fit, referenceScale, canvas })
+    const point: [number, number] = [canvas.width / 2 + fit.translateOffset[0], canvas.height / 2 + fit.translateOffset[1]]
+    const frame = frameFromRect({ left: Math.floor(rect.left), top: Math.floor(rect.top), right: Math.ceil(rect.right), bottom: Math.ceil(rect.bottom) }, point)
+
+    parameterStore.clearAllTerritoryOverrides(territoryCode)
+    parameterStore.setTerritoryParameters(territoryCode, { ...kept, ...fit, pixelClipExtent: frame })
+  }
+
   function resetTransforms(): void {
+    if (presetDefaults.isBlank) {
+      viewStore.setActiveTerritories([])
+      geoDataStore.triggerRender()
+      return
+    }
+
     const operation = TerritoryResetService.calculateBulkReset({
       territories: atlasStore.atlasService.getAllTerritories(),
       presetParameters: presetDefaults.presetParameters,
@@ -339,6 +402,12 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   function resetTerritoryToDefaults(territoryCode: TerritoryCode): void {
+    if (presetDefaults.isBlank) {
+      placeTerritory(territoryCode)
+      geoDataStore.triggerRender()
+      return
+    }
+
     const operation = TerritoryResetService.calculateTerritoryReset({
       territoryCode,
       presetParameters: presetDefaults.presetParameters,
@@ -350,7 +419,10 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   function addTerritoryToComposite(territoryCode: TerritoryCode): void {
-    if (!parameterStore.getTerritoryProjection(territoryCode)) {
+    if (presetDefaults.isBlank) {
+      placeTerritory(territoryCode)
+    }
+    else if (!parameterStore.getTerritoryProjection(territoryCode)) {
       parameterStore.setTerritoryParameters(territoryCode, defaultTerritoryParameters(atlasStore.territoryCenter(territoryCode)))
     }
     viewStore.addTerritoryToComposite(territoryCode)
@@ -506,6 +578,7 @@ export const useCompositionStore = defineStore('composition', () => {
     loadPreset,
     readConfigurationFile,
     importConfiguration,
+    startBlankComposition,
     resetTransforms,
     resetTerritoryToDefaults,
     addTerritoryToComposite,

@@ -12,6 +12,7 @@ import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
@@ -22,6 +23,9 @@ const { errorMessage } = useErrorMessage()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const compositionStore = useCompositionStore()
+const presetDefaults = usePresetDefaultsStore()
+
+const BLANK_CANVAS = 'blank-canvas'
 
 const isLoading = ref(false)
 const loadError = ref<PresetApplicationError | null>(null)
@@ -36,13 +40,18 @@ const presetOptions = computed(() => {
   const presets = getAtlasPresets(atlasId)
 
   const filteredPresets = presets.filter(preset => preset.type === viewMode)
+  const blankCanvas = viewMode === 'composite-custom'
+    ? [{ value: BLANK_CANVAS, label: t('presets.blankCanvas'), icon: 'ri-checkbox-blank-line' }]
+    : []
 
-  return filteredPresets.map((preset) => {
-    return {
-      value: preset.id,
+  return [
+    ...blankCanvas,
+    ...filteredPresets.map(preset => ({
+      value: preset.id as string,
       label: localize(preset.name),
-    }
-  })
+      icon: 'ri-layout-grid-line',
+    })),
+  ]
 })
 
 const currentPreset = computed({
@@ -51,6 +60,8 @@ const currentPreset = computed({
     const viewMode = viewStore.viewMode
     if (!atlasId || !viewMode)
       return ''
+    if (presetDefaults.isBlank)
+      return BLANK_CANVAS
 
     const presets = getAtlasPresets(atlasId)
     const viewModePresets = presets.filter(p => p.type === viewMode)
@@ -58,9 +69,15 @@ const currentPreset = computed({
 
     return selectedPreset.value || defaultPreset?.id || ''
   },
-  set: async (presetId: PresetId) => {
+  set: async (presetId: PresetId | typeof BLANK_CANVAS) => {
     if (!presetId || isLoading.value)
       return
+
+    if (presetId === BLANK_CANVAS) {
+      loadError.value = null
+      compositionStore.startBlankComposition()
+      return
+    }
 
     isLoading.value = true
     loadError.value = null

@@ -31,6 +31,7 @@ function handleImported(_config: CompositeProjectionConfig) {
     </button>
     <button
       class="btn btn-soft btn-sm join-item flex-1"
+      :disabled="viewStore.activeTerritoryCodes.size === 0"
       @click="showExportDialog = true"
     >
       <i class="ri-download-2-line" />
