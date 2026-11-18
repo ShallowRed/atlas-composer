@@ -2,6 +2,7 @@ import type { ProjectionLike, SubProjectionEntry } from '@atlas-composer/project
 import type { GeoProjection } from 'd3-geo'
 import type { I18nValue } from '#types'
 
+import type { CompositionBorder } from '@/core/positioning'
 import type { CompositeTerritories } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
@@ -136,10 +137,7 @@ export class CompositeProjection {
     )
   }
 
-  getCompositionBorders(_width = 800, _height = 600): Array<{
-    territoryCode: string
-    bounds: [[number, number], [number, number]]
-  }> {
+  getCompositionBorders(_width = 800, _height = 600): CompositionBorder[] {
     return this.subProjections
       .filter(sp => sp.bounds)
       .map((subProj) => {
@@ -151,6 +149,7 @@ export class CompositeProjection {
               [currentClipExtent[0][0], currentClipExtent[0][1]],
               [currentClipExtent[1][0], currentClipExtent[1][1]],
             ] as [[number, number], [number, number]],
+            point: subProj.projection.translate() as [number, number],
           }
         }
 
@@ -171,12 +170,10 @@ export class CompositeProjection {
             topLeft as [number, number],
             bottomRight as [number, number],
           ] as [[number, number], [number, number]],
+          point: subProj.projection.translate() as [number, number],
         }
       })
-      .filter(Boolean) as Array<{
-      territoryCode: string
-      bounds: [[number, number], [number, number]]
-    }>
+      .filter(Boolean) as CompositionBorder[]
   }
 
   exportConfig() {

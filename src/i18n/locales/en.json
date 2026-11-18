@@ -612,5 +612,8 @@
       "imagery": "Satellite imagery",
       "streets": "Street map"
     }
+  },
+  "mapEditor": {
+    "label": "Map of the composition. Arrows: move the selected territory, by 10 px with Shift. Escape: clear the selection."
   }
 }

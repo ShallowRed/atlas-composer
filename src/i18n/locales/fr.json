@@ -612,5 +612,8 @@
       "imagery": "Imagerie satellite",
       "streets": "Plan"
     }
+  },
+  "mapEditor": {
+    "label": "Carte de la composition. Flèches : déplacer le territoire sélectionné, de 10 px avec Maj. Échap : désélectionner."
   }
 }
