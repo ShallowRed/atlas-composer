@@ -110,7 +110,8 @@
     "search": "Rechercher",
     "showProjectionInformation": "Afficher les informations sur la projection",
     "projectionInformation": "Informations sur la projection",
-    "searchProjections": "Rechercher des projections..."
+    "searchProjections": "Rechercher des projections...",
+    "select": "Sélectionner…"
   },
   "settings": {
     "title": "Configuration",
@@ -614,5 +615,32 @@
   },
   "mapEditor": {
     "label": "Carte de la composition. Flèches : déplacer le territoire sélectionné, de 10 px avec Maj. Échap : désélectionner."
+  },
+  "suggestion": {
+    "newComposition": "Nouvelle composition",
+    "title": "Nouvelle composition",
+    "description": "Cochez les territoires à représenter. Le plus étendu occupe la zone principale, les autres sont placés en encarts.",
+    "checkAll": "Tout cocher",
+    "uncheckAll": "Tout décocher",
+    "selectedCount": "Aucun territoire coché | 1 territoire coché | {count} territoires cochés",
+    "compose": "Composer",
+    "arrangement": "Disposition",
+    "arrangements": {
+      "insets-right": "Encarts à droite",
+      "insets-bottom": "Encarts en bas"
+    },
+    "scaleMode": "Échelle",
+    "scaleModes": {
+      "uniform": "Même échelle pour tous",
+      "readable": "Échelle lisible par territoire"
+    },
+    "adjusted": "Composition ajustée à la main. Réinitialisez pour revenir à la proposition.",
+    "reasons": {
+      "eastWest": "Proposée pour un territoire étendu d'est en ouest aux latitudes moyennes.",
+      "midLatitude": "Proposée pour un territoire aux latitudes moyennes.",
+      "northSouth": "Proposée pour un territoire allongé du nord au sud.",
+      "equatorial": "Proposée pour un territoire proche de l'équateur.",
+      "polar": "Proposée pour un territoire polaire."
+    }
   }
 }

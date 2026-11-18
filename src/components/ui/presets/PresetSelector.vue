@@ -47,6 +47,9 @@ const presetOptions = computed(() => {
 
 const currentPreset = computed({
   get: () => {
+    if (compositionStore.suggestedComposition) {
+      return ''
+    }
     const atlasId = atlasStore.selectedAtlasId
     const viewMode = viewStore.viewMode
     if (!atlasId || !viewMode)
@@ -92,7 +95,7 @@ const currentPreset = computed({
   },
 })
 
-watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode], () => {
+watch(() => [atlasStore.selectedAtlasId, viewStore.viewMode, compositionStore.suggestedComposition], () => {
   selectedPreset.value = '' as const
 }, { immediate: true })
 </script>

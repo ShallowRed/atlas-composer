@@ -129,7 +129,8 @@
     "search": "Search",
     "showProjectionInformation": "Show projection information",
     "projectionInformation": "Projection information",
-    "searchProjections": "Search projections..."
+    "searchProjections": "Search projections...",
+    "select": "Select…"
   },
   "projectionParams": {
     "title": "Projection Parameters",
@@ -614,5 +615,32 @@
   },
   "mapEditor": {
     "label": "Map of the composition. Arrows: move the selected territory, by 10 px with Shift. Escape: clear the selection."
+  },
+  "suggestion": {
+    "newComposition": "New composition",
+    "title": "New composition",
+    "description": "Check the territories to show. The largest one fills the main area, the others are placed as insets.",
+    "checkAll": "Check all",
+    "uncheckAll": "Uncheck all",
+    "selectedCount": "No territory checked | 1 territory checked | {count} territories checked",
+    "compose": "Compose",
+    "arrangement": "Arrangement",
+    "arrangements": {
+      "insets-right": "Insets on the right",
+      "insets-bottom": "Insets at the bottom"
+    },
+    "scaleMode": "Scale",
+    "scaleModes": {
+      "uniform": "Same scale for all",
+      "readable": "Readable scale for each territory"
+    },
+    "adjusted": "Composition adjusted by hand. Reset to return to the proposal.",
+    "reasons": {
+      "eastWest": "Proposed for a territory extending east to west at mid-latitudes.",
+      "midLatitude": "Proposed for a territory at mid-latitudes.",
+      "northSouth": "Proposed for a territory elongated north to south.",
+      "equatorial": "Proposed for a territory near the equator.",
+      "polar": "Proposed for a polar territory."
+    }
   }
 }

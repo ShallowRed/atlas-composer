@@ -1,9 +1,13 @@
 import type { VueWrapper } from '@vue/test-utils'
 import type { DropdownOption, DropdownOptionGroup } from '../DropdownControl.vue'
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { nextTick } from 'vue'
+import i18n from '@/i18n'
 import DropdownControl from '../DropdownControl.vue'
+
+config.global.plugins = [i18n]
+i18n.global.locale.value = 'en'
 
 // The menu is in the DOM while it is open
 const isOpen = (wrapper: VueWrapper<any>) => wrapper.find('[role="listbox"]').exists()
@@ -167,7 +171,7 @@ describe('dropdownControl', () => {
       })
 
       const button = wrapper.find('.btn')
-      expect(button.text()).toContain('Select...')
+      expect(button.text()).toContain('Select…')
     })
 
     it('should render option groups correctly', async () => {
@@ -624,7 +628,7 @@ describe('dropdownControl', () => {
         },
       })
 
-      const label = wrapper.find('#dropdown-label')
+      const label = wrapper.find(`#${wrapper.find('button').attributes('aria-labelledby')}`)
       expect(label.classes()).toContain('sr-only')
       expect(label.text()).toContain('test.label')
     })
@@ -773,7 +777,7 @@ describe('dropdownControl', () => {
       })
 
       const button = wrapper.find('.btn')
-      expect(button.text()).toContain('Select...')
+      expect(button.text()).toContain('Select…')
     })
 
     it('should handle option groups with flat options', () => {

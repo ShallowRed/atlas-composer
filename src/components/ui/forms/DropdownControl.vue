@@ -56,6 +56,7 @@ const emit = defineEmits<{
 
 const isOpen = ref(false)
 const anchor = `--dropdown-${useId()}`
+const labelId = `dropdown-label-${useId()}`
 const buttonComponentRef = ref<InstanceType<typeof DropdownButton> | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
@@ -329,7 +330,7 @@ watch(focusedIndex, (newIndex) => {
     class="flex flex-col"
   >
     <label
-      id="dropdown-label"
+      :id="labelId"
       class="label font-medium text-sm mb-2"
       :class="{ 'sr-only': hideLabel }"
     >
@@ -353,7 +354,7 @@ watch(focusedIndex, (newIndex) => {
         :disabled="disabled"
         :selected-option="selectedOption ?? null"
         :aria-expanded="isOpen"
-        aria-labelledby="dropdown-label"
+        :aria-labelledby="labelId"
         :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
         @click="isOpen ? closeDropdown() : openDropdown()"
         @keydown="handleKeyDown"
@@ -365,7 +366,7 @@ watch(focusedIndex, (newIndex) => {
         :option-groups="optionGroups"
         :is-open="isOpen"
         :local-value="localValue"
-        aria-labelledby="dropdown-label"
+        :aria-labelledby="labelId"
         :anchor="anchor"
         :focused-index="focusedIndex"
         @select="selectOption"

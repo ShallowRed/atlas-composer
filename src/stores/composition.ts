@@ -1,6 +1,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { CompositionState } from '@/core/presets'
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { SuggestedArrangement, SuggestedScaleMode } from '@/core/territories/suggested-composition'
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
@@ -10,12 +11,14 @@ import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
 
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
 import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
+import { proposeComposition } from '@/core/territories/suggested-composition'
 import { defaultTerritoryParameters, TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
@@ -35,6 +38,15 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.store.config
 
+export interface SuggestedCompositionOptions {
+  arrangement: SuggestedArrangement
+  scaleMode: SuggestedScaleMode
+}
+
+export interface SuggestedComposition extends SuggestedCompositionOptions {
+  codes: TerritoryCode[]
+}
+
 function failureReason(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -52,6 +64,9 @@ export const useCompositionStore = defineStore('composition', () => {
   const viewStore = useViewStore()
 
   let initializationRun = 0
+
+  // The territories and options of the proposed composition on display, null for a preset or an imported file
+  const suggestedComposition = ref<SuggestedComposition | null>(null)
 
   async function startMapView(sharedLink?: SharedLink): Promise<void> {
     geoDataStore.clearError()
@@ -367,7 +382,28 @@ export const useCompositionStore = defineStore('composition', () => {
     projectionStore.canvasDimensions = { ...canvas.dimensions }
   }
 
+  function startSuggestedComposition(codes: TerritoryCode[], options: SuggestedCompositionOptions): void {
+    const selected = new Set(codes)
+    const territories = atlasStore.territories
+      .filter(territory => selected.has(territory.code))
+      .map(({ code, bounds, center }) => ({ code, bounds, center }))
+    if (territories.length === 0) {
+      return
+    }
+
+    const state = proposeComposition({
+      territories,
+      canvas: projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS,
+      ...options,
+    })
+    parameterStore.clearAll()
+    applyCompositionState(state)
+    suggestedComposition.value = { codes: territories.map(({ code }) => code), ...options }
+    updateCartographer(state.canvas!.referenceScale)
+  }
+
   function applyCompositionState(state: CompositionState): void {
+    suggestedComposition.value = null
     if (state.canvas) {
       projectionStore.referenceScale = state.canvas.referenceScale
       projectionStore.canvasDimensions = state.canvas.dimensions
@@ -428,6 +464,7 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.clearAll()
     geoDataStore.clearAllData()
     presetDefaults.clearAll()
+    suggestedComposition.value = null
   }
 
   async function preloadAtlasData(territoryMode: string): Promise<Result<void, GeoDataError>> {
@@ -501,6 +538,7 @@ export const useCompositionStore = defineStore('composition', () => {
   }
 
   return {
+    suggestedComposition,
     startMapView,
     initializeAtlas,
     loadPreset,
@@ -510,6 +548,7 @@ export const useCompositionStore = defineStore('composition', () => {
     resetTerritoryToDefaults,
     addTerritoryToComposite,
     resetCanvas,
+    startSuggestedComposition,
     selectAtlas,
     selectViewMode,
   }

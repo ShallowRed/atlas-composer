@@ -9,6 +9,9 @@ import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
+import { suggestProjection } from '@/core/territories/suggested-composition'
+import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
@@ -20,6 +23,7 @@ const {
   projectionRecommendations,
   projectionGroups,
   selectedProjection,
+  differsFromReference,
   resetTransforms,
   resetTerritoryToDefaults,
   changeTerritoryProjection,
@@ -35,14 +39,26 @@ const viewStore = useViewStore()
 
 const presetDefaults = usePresetDefaultsStore()
 
+const atlasStore = useAtlasStore()
+
+const compositionStore = useCompositionStore()
+
+// The reason of the proposed projection, while the territory keeps it
+const projectionReason = computed(() => {
+  const territory = selectedTerritory.value
+  if (!territory || !compositionStore.suggestedComposition?.codes.includes(territory.code)) {
+    return null
+  }
+  const bounds = atlasStore.territories.find(candidate => candidate.code === territory.code)?.bounds
+  if (!bounds) {
+    return null
+  }
+  const suggestion = suggestProjection(bounds)
+  return suggestion.projectionId === getTerritoryProjection(territory.code) ? t(`suggestion.reasons.${suggestion.reason}`) : null
+})
+
 const backButton = ref<HTMLButtonElement>()
 const rowButtons = ref<HTMLButtonElement[]>([])
-
-const hasDivergingFromPreset = computed(() => presetDefaults.territoriesDifferFromPreset(
-  Object.fromEntries(territories.value.map(({ code }) => [code, parameterStore.getTerritoryParameters(code as TerritoryCode)])),
-  viewStore.activeTerritoryCodes,
-  viewStore.viewMode === 'composite-custom',
-))
 
 const selectedTerritoryDiffers = computed(() => {
   const territory = selectedTerritory.value
@@ -96,7 +112,7 @@ onUnmounted(clearSelection)
       <button
         type="button"
         class="btn btn-ghost btn-xs"
-        :disabled="!hasDivergingFromPreset"
+        :disabled="!differsFromReference"
         @click="resetTransforms"
       >
         <i class="ri-restart-line" />
@@ -161,6 +177,12 @@ onUnmounted(clearSelection)
         :recommendations="projectionRecommendations"
         @update:model-value="changeSelectedTerritoryProjection"
       />
+      <p
+        v-if="projectionReason"
+        class="text-xs text-base-content/70 mt-1"
+      >
+        {{ projectionReason }}
+      </p>
     </div>
 
     <TerritoryParameterControls
