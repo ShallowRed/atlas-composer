@@ -76,14 +76,21 @@ async function readComposite(command: string, target: string): Promise<Composite
   return config
 }
 
+function reportEmptyTerritories(codes: string[], resolution: string) {
+  if (codes.length > 0) {
+    console.error(`Left out, without polygon at ${resolution}, drawn at 10m: ${codes.join(', ')}`)
+  }
+}
+
 function territories(atlasId: string, options: { data?: string, out?: string, resolution: string }) {
   if (options.out) {
     throw new Error('territories writes to the standard output: redirect it to a file in place of --out')
   }
-  const { collection, skippedFeatures } = buildTerritories(readAtlas(atlasId), readSource(options.data, options.resolution))
+  const { collection, skippedFeatures, emptyTerritories } = buildTerritories(readAtlas(atlasId), readSource(options.data, options.resolution))
   if (skippedFeatures.length > 0) {
     console.error(`Left out, without id, geometry or name: ${skippedFeatures.join(', ')}`)
   }
+  reportEmptyTerritories(emptyTerritories, options.resolution)
   process.stdout.write(`${JSON.stringify(toRfc7946(collection))}\n`)
 }
 
@@ -92,7 +99,8 @@ async function compose(target: string, options: { data?: string, out?: string, r
     throw new Error('compose writes a file: give its path with --out')
   }
   const config = await readComposite('compose', target)
-  const { collection: built } = buildTerritories(readAtlas(config.metadata.atlasId), readSource(options.data, options.resolution))
+  const { collection: built, emptyTerritories } = buildTerritories(readAtlas(config.metadata.atlasId), readSource(options.data, options.resolution))
+  reportEmptyTerritories(emptyTerritories, options.resolution)
 
   const loader = new ProjectionLoader()
   registerAllD3Projections(factories => loader.registerAll(factories))

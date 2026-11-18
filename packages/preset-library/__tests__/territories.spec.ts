@@ -156,12 +156,14 @@ describe('buildTerritories', () => {
       const features50m = [country([square(1, 1, false), square(3, 3, false)])]
       const source = createNaturalEarthSource([country([square(1, 1, false), square(3, 3, false), island])], '10m', features50m)
 
-      const { collection, leftOutPolygons } = buildTerritories(config, source)
-      const at50m = buildTerritories(config, createNaturalEarthSource(features50m, '50m')).collection
+      const { collection, leftOutPolygons, emptyTerritories } = buildTerritories(config, source)
+      const at50m = buildTerritories(config, createNaturalEarthSource(features50m, '50m'))
 
       expect(collection.features.find(territory => territory.properties.code === 'ISLAND')?.geometry.coordinates).toEqual([[island]])
       expect(leftOutPolygons).toEqual([])
-      expect(at50m.features.map(territory => territory.properties.code)).toEqual(['MAIN'])
+      expect(emptyTerritories).toEqual([])
+      expect(at50m.collection.features.map(territory => territory.properties.code)).toEqual(['MAIN'])
+      expect(at50m.emptyTerritories).toEqual(['ISLAND'])
     })
 
     it('attaches an islet without counterpart at 50m to the territory of the nearest polygon', () => {
