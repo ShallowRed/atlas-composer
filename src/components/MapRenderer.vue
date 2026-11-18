@@ -243,7 +243,8 @@ async function renderMap() {
   }
 }
 
-watch(selectedTerritory, () => {
+// The label under the frame shows the position during a move and the size of the frame after it
+watch([selectedTerritory, moveLabel], () => {
   const svg = mapContainer.value?.querySelector('svg')
   if (svg && isEditable.value) {
     renderSelection(svg)
