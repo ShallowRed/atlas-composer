@@ -61,11 +61,12 @@ export class SelectionOverlayService {
     return [point.x, point.y]
   }
 
-  // The box of the shapes that the map draws for a territory, null when it draws none
-  static shapeOf(svg: SVGSVGElement, code: string): TerritoryShape {
-    const boxes = [...svg.querySelectorAll<SVGPathElement>('g.territories path[data-territory]')]
+  // The box of the shapes that the map draws for a territory, null when it draws none, and whether a shape holds the point of the canvas.
+  // The group of the territories has no transform: the coordinates of its paths are those of the canvas.
+  static shapeOf(svg: SVGSVGElement, code: string, [x, y]: [number, number]): TerritoryShape {
+    const paths = [...svg.querySelectorAll<SVGPathElement>('g.territories path[data-territory]')]
       .filter(path => path.getAttribute('data-territory') === code && path.getAttribute('d'))
-      .map(path => path.getBBox())
+    const boxes = paths.map(path => path.getBBox())
     const rect = boxes.length > 0
       ? {
           left: Math.min(...boxes.map(box => box.x)),
@@ -74,7 +75,7 @@ export class SelectionOverlayService {
           bottom: Math.max(...boxes.map(box => box.y + box.height)),
         }
       : null
-    return { territoryCode: code, rect }
+    return { territoryCode: code, rect, holdsPoint: paths.some(path => path.isPointInFill(new DOMPoint(x, y))) }
   }
 
   // The frame of a territory as the map shows it, and the point of the territory that its pixelClipExtent is relative to
