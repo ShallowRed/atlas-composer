@@ -19,15 +19,17 @@ const canvasWidth = ref(projectionStore.canvasDimensions?.width ?? DEFAULT_CANVA
 const canvasHeight = ref(projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height)
 const aspectRatioLocked = ref(true)
 
+// The ratio that the lock keeps, so that a rounded side does not change it
+const lockedRatio = ref(canvasWidth.value / canvasHeight.value)
+
 const referenceScale = ref(projectionStore.referenceScale ?? DEFAULT_REFERENCE_SCALE)
-const originalAspectRatio = computed(() => {
-  const width = projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
-  const height = projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
-  return width / height
-})
 
 watch(() => projectionStore.canvasDimensions, (newDimensions) => {
   if (newDimensions) {
+    // A preset, an import or a reset gives the canvas a new ratio
+    if (newDimensions.width !== canvasWidth.value || newDimensions.height !== canvasHeight.value) {
+      lockedRatio.value = newDimensions.width / newDimensions.height
+    }
     canvasWidth.value = newDimensions.width
     canvasHeight.value = newDimensions.height
   }
@@ -48,7 +50,7 @@ function updateCanvasWidth(value: number) {
   canvasWidth.value = value
 
   if (aspectRatioLocked.value) {
-    canvasHeight.value = lockedLength(value / originalAspectRatio.value)
+    canvasHeight.value = lockedLength(value / lockedRatio.value)
   }
 
   applyCanvasDimensions()
@@ -58,10 +60,17 @@ function updateCanvasHeight(value: number) {
   canvasHeight.value = value
 
   if (aspectRatioLocked.value) {
-    canvasWidth.value = lockedLength(value * originalAspectRatio.value)
+    canvasWidth.value = lockedLength(value * lockedRatio.value)
   }
 
   applyCanvasDimensions()
+}
+
+function toggleAspectRatioLock() {
+  aspectRatioLocked.value = !aspectRatioLocked.value
+  if (aspectRatioLocked.value) {
+    lockedRatio.value = canvasWidth.value / canvasHeight.value
+  }
 }
 
 function updateReferenceScale(value: number) {
@@ -83,6 +92,9 @@ function applyReferenceScale() {
 function resetToDefaults() {
   aspectRatioLocked.value = true
   compositionStore.resetCanvas()
+  // The reset canvas may equal the shown one, which the watch then leaves alone
+  const { width, height } = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+  lockedRatio.value = width / height
 }
 
 const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
@@ -121,7 +133,7 @@ const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
           :aria-pressed="aspectRatioLocked"
           :aria-label="t('projectionControls.global.lockAspectRatio')"
           :title="t('projectionControls.global.lockAspectRatio')"
-          @click="aspectRatioLocked = !aspectRatioLocked"
+          @click="toggleAspectRatioLock"
         >
           <i :class="aspectRatioLocked ? 'ri-link' : 'ri-link-unlink'" />
         </button>
