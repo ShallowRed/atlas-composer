@@ -1145,6 +1145,74 @@
       ]
     },
     {
+      "id": "578-21",
+      "code": "NO-21",
+      "name": {
+        "en": "Svalbard",
+        "fr": "Svalbard"
+      },
+      "iso": "SJM",
+      "region": "Arctic",
+      "bounds": [
+        [
+          10.5,
+          74.3
+        ],
+        [
+          33.7,
+          80.5
+        ]
+      ],
+      "center": [
+        18.3,
+        78.8
+      ],
+      "extraction": {
+        "extractFrom": "578",
+        "polygonIndices": [
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ]
+      }
+    },
+    {
+      "id": "578-22",
+      "code": "NO-22",
+      "name": {
+        "en": "Jan Mayen",
+        "fr": "Jan Mayen"
+      },
+      "iso": "SJM",
+      "region": "Arctic",
+      "bounds": [
+        [
+          -9.1,
+          70.8
+        ],
+        [
+          -7.9,
+          71.2
+        ]
+      ],
+      "center": [
+        -8.4,
+        71.0
+      ],
+      "extraction": {
+        "extractFrom": "578",
+        "polygonIndices": [
+          22
+        ]
+      }
+    },
+    {
       "id": "756",
       "code": "CH",
       "name": {
@@ -1385,7 +1453,9 @@
           "AL",
           "BA",
           "MK",
-          "ME"
+          "ME",
+          "NO-21",
+          "NO-22"
         ]
       }, {
         "id": "continental-europe",
