@@ -6,7 +6,7 @@ import { openView, startApplication } from '@/__tests__/composite-utils'
 import { withSetup } from '@/__tests__/test-utils'
 import { useTerritoryData } from '@/composables/useTerritoryData'
 import { parameterRegistry } from '@/core/parameters'
-import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
+import { defaultTerritoryParameters } from '@/core/territories/territory-reset-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
@@ -179,7 +179,7 @@ describe('difference with the preset values', () => {
         .toEqual(atlasCodes().map(code => parameterStore.getTerritoryParameters(code)))
     })
 
-    it('writes in the split view the preset values of each territory, and the fallback projection for a territory that the preset omits', async () => {
+    it('writes in the split view the preset values of each territory, and the fallback projection centered on its territory for a territory that the preset omits', async () => {
       await openComposite()
       const parameterStore = useParameterStore()
       atlasCodes().forEach(code => parameterStore.setTerritoryParameters(code, { scaleMultiplier: 3, center: [1, 2] }))
@@ -191,7 +191,7 @@ describe('difference with the preset values', () => {
         .toEqual(presetValues)
       expect(presetValues[METROPOLE]).toMatchObject({ projectionId: 'conic-conformal' })
       expect(parameterStore.getTerritoryParameters(OMITTED_BY_SPLIT_PRESET))
-        .toEqual({ projectionId: FALLBACK_PROJECTION_ID, translateOffset: [0, 0], scaleMultiplier: 1 })
+        .toEqual(defaultTerritoryParameters(useAtlasStore().territoryCenter(OMITTED_BY_SPLIT_PRESET)))
       expect(atlasCodes().filter(territoryDiffers)).toEqual([])
     })
   })
