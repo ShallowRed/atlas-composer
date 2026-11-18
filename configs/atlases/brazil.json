@@ -1,0 +1,168 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "brazil",
+  "name": {
+    "en": "Brazil",
+    "fr": "Brésil"
+  },
+  "description": {
+    "en": "Mainland Brazil, Fernando de Noronha, Saint Peter and Saint Paul Archipelago, Trindade and Martim Vaz",
+    "fr": "Brésil continental, Fernando de Noronha, archipel Saint-Pierre-et-Saint-Paul, Trindade et Martim Vaz"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "brazil-territories-10m.json",
+    "metadata": "brazil-metadata-10m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      76
+    ],
+    "iso3": "BRA",
+    "region": "South America"
+  },
+  "territories": [
+    {
+      "id": "076",
+      "code": "BR-MAIN",
+      "name": {
+        "en": "Mainland Brazil",
+        "fr": "Brésil continental"
+      },
+      "iso": "BRA",
+      "bounds": [
+        [
+          -74.0,
+          -33.8
+        ],
+        [
+          -34.7,
+          5.3
+        ]
+      ],
+      "center": [
+        -54.4,
+        -14.2
+      ]
+    },
+    {
+      "id": "076-FN",
+      "code": "BR-FN",
+      "name": {
+        "en": "Fernando de Noronha",
+        "fr": "Fernando de Noronha"
+      },
+      "iso": "BRA",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -32.5,
+          -3.9
+        ],
+        [
+          -32.35,
+          -3.8
+        ]
+      ],
+      "center": [
+        -32.42,
+        -3.85
+      ],
+      "extraction": {
+        "extractFrom": "076"
+      }
+    },
+    {
+      "id": "076-SPP",
+      "code": "BR-SPP",
+      "name": {
+        "en": "Saint Peter and Saint Paul Archipelago",
+        "fr": "Archipel Saint-Pierre-et-Saint-Paul"
+      },
+      "iso": "BRA",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -29.45,
+          0.8
+        ],
+        [
+          -29.3,
+          0.95
+        ]
+      ],
+      "center": [
+        -29.38,
+        0.86
+      ],
+      "extraction": {
+        "extractFrom": "076"
+      }
+    },
+    {
+      "id": "076-TMV",
+      "code": "BR-TMV",
+      "name": {
+        "en": "Trindade and Martim Vaz",
+        "fr": "Trindade et Martim Vaz"
+      },
+      "iso": "BRA",
+      "region": "Atlantic",
+      "bounds": [
+        [
+          -29.4,
+          -20.6
+        ],
+        [
+          -28.8,
+          -20.45
+        ]
+      ],
+      "center": [
+        -29.1,
+        -20.54
+      ],
+      "extraction": {
+        "extractFrom": "076"
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Mainland Brazil only",
+            "fr": "Brésil continental uniquement"
+          },
+          "territories": [
+            "BR-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "BR-MAIN",
+            "BR-FN",
+            "BR-SPP",
+            "BR-TMV"
+          ]
+        }
+      ]
+    }
+  }
+}

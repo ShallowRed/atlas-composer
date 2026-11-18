@@ -1,0 +1,20 @@
+{
+  "id": "brazil-unified",
+  "name": "Brasil - Vista unificada padrão",
+  "description": "Projeção Natural Earth centrada no Brasil",
+  "atlasId": "brazil",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          48,
+          12,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

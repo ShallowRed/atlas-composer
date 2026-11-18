@@ -1,0 +1,201 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "brazil",
+    "atlasName": "Brazil",
+    "exportDate": "2026-11-19T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 650,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "BR-MAIN",
+      "name": "Mainland Brazil",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            54,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            -14.2
+          ],
+          "parallels": [
+            -22,
+            -2
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -90,
+          0
+        ],
+        "pixelClipExtent": [
+          -240,
+          -240,
+          225,
+          240
+        ]
+      },
+      "bounds": [
+        [
+          -74.0,
+          -33.8
+        ],
+        [
+          -34.7,
+          5.3
+        ]
+      ]
+    },
+    {
+      "code": "BR-SPP",
+      "name": "Saint Peter and Saint Paul Archipelago",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            29.38,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            0.86
+          ],
+          "parallels": [
+            -22,
+            -2
+          ],
+          "scaleMultiplier": 40
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          240,
+          -165
+        ],
+        "pixelClipExtent": [
+          -40,
+          -30,
+          40,
+          30
+        ]
+      },
+      "bounds": [
+        [
+          -29.45,
+          0.8
+        ],
+        [
+          -29.3,
+          0.95
+        ]
+      ]
+    },
+    {
+      "code": "BR-FN",
+      "name": "Fernando de Noronha",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            32.42,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            -3.85
+          ],
+          "parallels": [
+            -22,
+            -2
+          ],
+          "scaleMultiplier": 40
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          240,
+          -90
+        ],
+        "pixelClipExtent": [
+          -40,
+          -30,
+          40,
+          30
+        ]
+      },
+      "bounds": [
+        [
+          -32.5,
+          -3.9
+        ],
+        [
+          -32.35,
+          -3.8
+        ]
+      ]
+    },
+    {
+      "code": "BR-TMV",
+      "name": "Trindade and Martim Vaz",
+      "projection": {
+        "id": "conic-equal-area",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            29.1,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            -20.54
+          ],
+          "parallels": [
+            -22,
+            -2
+          ],
+          "scaleMultiplier": 20
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          240,
+          70
+        ],
+        "pixelClipExtent": [
+          -65,
+          -25,
+          65,
+          25
+        ]
+      },
+      "bounds": [
+        [
+          -29.4,
+          -20.6
+        ],
+        [
+          -28.8,
+          -20.45
+        ]
+      ]
+    }
+  ]
+}

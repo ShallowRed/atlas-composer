@@ -32,6 +32,7 @@ function naturalEarth10m() {
 
 // The polygons of Natural Earth 10m without counterpart at 50m, farther than 50 km and outside the bounds of their territory
 const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
+  'brazil': {},
   'chile': { 'CL-JF': 3, 'CL-IP': 1 },
   'ecuador': { 'EC-W': 5 },
   'europe': { 'IT': 2, 'PT-30': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 1, 'GB': 3 },
@@ -46,6 +47,11 @@ const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
   'south-west-indian-ocean': { MU: 2, SC: 8 },
   'spain': { 'ES-CONT': 3 },
   'usa': { 'US-ALEU': 2, 'US-HI': 6, 'US-AS': 4, 'US-MP': 3 },
+}
+
+// The territories whose islands Natural Earth draws at 10m only
+const DRAWN_AT_10M_ONLY: Record<string, string[]> = {
+  brazil: ['BR-FN', 'BR-SPP', 'BR-TMV'],
 }
 
 const registry = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8')) as { atlases: Array<{ id: string, configPath: string }> }
@@ -77,8 +83,9 @@ describe('buildTerritories', () => {
     const { collection } = buildTerritories(config, naturalEarth(config.territories === '*' ? '110m' : '50m'))
 
     if (config.territories !== '*') {
+      const drawnAt10mOnly = DRAWN_AT_10M_ONLY[id] ?? []
       expect(collection.features.map(territory => territory.properties.code).sort())
-        .toEqual(config.territories.map(territory => territory.code).sort())
+        .toEqual(config.territories.map(territory => territory.code).filter(code => !drawnAt10mOnly.includes(code)).sort())
     }
     for (const territory of collection.features) {
       expect(geoArea(territory)).toBeLessThanOrEqual(2 * Math.PI)
