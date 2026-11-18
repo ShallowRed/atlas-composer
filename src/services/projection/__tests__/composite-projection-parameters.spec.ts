@@ -55,14 +55,11 @@ const PROBES: Record<string, { change: ProjectionParameters, read: (projection: 
   pixelClipExtent: { change: { pixelClipExtent: [-80, -80, 80, 80] }, read: projection => projection.clipExtent() },
 }
 
-const WITHOUT_EFFECT_ON_THE_SUB_PROJECTION = ['zoomLevel']
-
 const keys = parameterRegistry.getAll().map(definition => definition.key as string)
 
 describe('parameters of a territory read at each build', () => {
   it('classifies every parameter of the registry', () => {
-    const classified = [...Object.keys(PROBES), ...WITHOUT_EFFECT_ON_THE_SUB_PROJECTION]
-    expect(keys.filter(key => !classified.includes(key))).toEqual([])
+    expect(keys.filter(key => !(key in PROBES))).toEqual([])
   })
 
   for (const key of keys.filter(key => key in PROBES)) {

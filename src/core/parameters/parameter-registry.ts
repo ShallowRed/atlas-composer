@@ -25,6 +25,35 @@ export interface FamilyConstraints {
   [family: string]: FamilyConstraint
 }
 
+// The nature of a metric decides its step, its writing and whether a track has a meaning for it
+type ParameterKind = 'longitude' | 'latitude' | 'angle' | 'ratio' | 'scale' | 'canvas-length' | 'threshold'
+
+export interface AxisDomain {
+  min: number
+  max: number
+  minExclusive?: boolean
+  cyclic?: boolean
+}
+
+export type AxisFormat = { maximumFractionDigits: number } | { maximumSignificantDigits: number }
+
+export type AxisTrack
+  = | { scale: 'linear' | 'log', min: number, max: number, detents: number[], ticks: number[] }
+    | { band: 'latitude' }
+
+export interface AxisControl {
+  kind: ParameterKind
+  domain: AxisDomain
+  step: number
+  multiplicative?: boolean
+  format: AxisFormat
+  track?: AxisTrack
+  symbol: string
+}
+
+// The control of an axis, whose domain comes from the bounds of each family
+export type AxisControlSpec = Omit<AxisControl, 'domain'> & { cyclic?: boolean }
+
 export interface ParameterDefinition {
   key: keyof ProjectionParameters
   displayName: string
@@ -39,6 +68,8 @@ export interface ParameterDefinition {
   requiresPreset: boolean
 
   familyConstraints?: FamilyConstraints
+
+  controls?: AxisControlSpec[]
 
   defaultValue?: any
 }
@@ -99,6 +130,25 @@ class ParameterRegistry {
     }
 
     return { relevant: false, required: false }
+  }
+
+  // Given for every family that declares bounds, whether or not the parameter is relevant to it
+  getAxisControls(key: string, family: ProjectionFamilyType): AxisControl[] | undefined {
+    const def = this.get(key)
+    const familyConstraint = def?.familyConstraints?.[family]
+    if (!def?.controls || familyConstraint?.min === undefined || familyConstraint.max === undefined) {
+      return undefined
+    }
+
+    const { min, max } = familyConstraint
+    return def.controls.map(({ cyclic, ...control }, axis) => ({
+      ...control,
+      domain: {
+        min: Array.isArray(min) ? min[axis] as number : min,
+        max: Array.isArray(max) ? max[axis] as number : max,
+        ...(cyclic ? { cyclic } : {}),
+      },
+    }))
   }
 
   validate(key: string, value: any, family: ProjectionFamilyType): Result<void, ParameterIssue> {
