@@ -791,6 +791,61 @@
       ]
     },
     {
+      "id": "brazil",
+      "name": {
+        "en": "Brazil",
+        "fr": "Brésil"
+      },
+      "group": "country",
+      "sortOrder": 36,
+      "configPath": "./atlases/brazil.json",
+      "presets": [
+        {
+          "id": "brazil-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/brazil/brazil-standard.json",
+          "description": {
+            "en": "Custom configuration for Brazil and its Atlantic islands",
+            "fr": "Configuration personnalisée pour le Brésil et ses îles de l'Atlantique"
+          }
+        },
+        {
+          "id": "brazil-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/brazil/brazil-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Brazil",
+            "fr": "Projection Natural Earth centrée sur le Brésil"
+          }
+        },
+        {
+          "id": "brazil-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/brazil/brazil-split.json",
+          "description": {
+            "en": "Same Albers equal-area conic projection for all territories",
+            "fr": "Même projection conique équivalente d'Albers pour tous les territoires"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {}
+      }
+    },
+    {
       "id": "europe",
       "name": {
         "en": "Europe",
