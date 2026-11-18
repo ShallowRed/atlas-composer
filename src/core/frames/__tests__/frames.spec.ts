@@ -67,7 +67,7 @@ describe('frameMapping', () => {
   })
 
   it('gives a translation for a built-in composite projection that only moved', () => {
-    const france = (translate: [number, number]): ProjectionFrame => ({ code: '*', projection: ProjectionFactory.createById('conic-conformal-france')!.scale(2600).translate(translate) as never, extent: [[0, 0], [600, 500]] })
+    const france = (translate: [number, number]): ProjectionFrame => ({ code: '*', projection: ProjectionFactory.createById('conic-conformal-france')!.scale(2600).translate(translate), extent: [[0, 0], [600, 500]] })
     const mapping = frameMapping(france([300, 250]), france([340, 230]))
     expect(mapping?.k).toBeCloseTo(1, 6)
     expect(mapping?.t[0]).toBeCloseTo(40, 3)
