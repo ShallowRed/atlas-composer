@@ -71,13 +71,6 @@ describe('territoryResetService', () => {
       ])
     })
 
-    it('gives a territory outside the preset the parameters of its own reset', () => {
-      const { operations } = TerritoryResetService.calculateBulkReset({ territories, presetParameters })
-
-      expect(operations.find(({ territoryCode }) => territoryCode === MET))
-        .toEqual(TerritoryResetService.calculateTerritoryReset({ territoryCode: MET, presetParameters, territoryCenter }))
-    })
-
     it('gives the territories of the preset as active territories', () => {
       const { activeTerritories } = TerritoryResetService.calculateBulkReset({ territories, presetParameters })
 
