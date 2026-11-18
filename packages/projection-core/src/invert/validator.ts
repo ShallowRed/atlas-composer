@@ -9,6 +9,10 @@ function normalizeBounds(bounds: GeoBounds | GeoBoundsArray): GeoBounds {
   return boundsFromArray(bounds)
 }
 
+function isPointInExtent(x: number, y: number, [[x0, y0], [x1, y1]]: [[number, number], [number, number]]): boolean {
+  return x >= x0 && x <= x1 && y >= y0 && y <= y1
+}
+
 export function invertWithBoundsValidation(
   screenCoords: [number, number],
   entries: SubProjectionEntry[],
@@ -17,10 +21,16 @@ export function invertWithBoundsValidation(
   const { tolerance = 0.01, debug = false } = options
   const [x, y] = screenCoords
 
-  for (const entry of entries) {
+  // A sub-projection drawn later covers the ones before it: the pixel belongs to the last one whose clip extent contains the pixel and whose bounds contain its inverse
+  for (const entry of [...entries].reverse()) {
     const { projection, bounds, id } = entry
 
     if (!projection.invert) {
+      continue
+    }
+
+    const clipExtent = projection.clipExtent?.()
+    if (clipExtent && !isPointInExtent(x, y, clipExtent)) {
       continue
     }
 
