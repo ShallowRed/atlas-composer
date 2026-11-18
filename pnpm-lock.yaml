@@ -408,12 +408,21 @@ importers:
 
   packages/projection-core:
     devDependencies:
+      '@types/d3-geo':
+        specifier: ^3.1.1
+        version: 3.1.1
+      d3-geo:
+        specifier: ^3.1.2
+        version: 3.1.2
       tsup:
         specifier: ^9.0.0
         version: 9.0.0(jiti@2.7.0)(postcss@8.5.32)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+      vitest:
+        specifier: ^4.1.12
+        version: 4.1.12(@types/node@24.6.2)(@vitest/coverage-v8@4.1.12)(@vitest/ui@4.1.12)(happy-dom@21.0.4)(vite@7.3.8(@types/node@24.6.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.93.2)(sass@1.93.2)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/projection-loader:
     devDependencies:

@@ -50,7 +50,10 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/d3-geo": "^3.1.1",
+    "d3-geo": "^3.1.2",
     "tsup": "^9.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.12"
   }
 }
