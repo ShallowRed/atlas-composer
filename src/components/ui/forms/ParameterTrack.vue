@@ -6,7 +6,6 @@ import { useSliderState } from '@/composables/useSliderState'
 import { formatValue, isOutsideTrack, toDomain, trackScale, valueAtTrackPosition } from '@/core/parameters'
 
 interface Props {
-  label: string
   modelValue: number
   control: AxisControl
 }
@@ -36,6 +35,12 @@ const position = computed(() => Math.round(scale.value(props.modelValue) * RESOL
 
 const outside = computed(() => isOutsideTrack(props.modelValue, track.value))
 
+// The capture keeps the end of the drag when the pointer is released beyond the track
+function onPointerDown(event: PointerEvent) {
+  ;(event.currentTarget as Element).setPointerCapture(event.pointerId)
+  setSliderActive()
+}
+
 function onInput(event: Event) {
   const value = valueAtTrackPosition(track.value, Number((event.target as HTMLInputElement).value) / RESOLUTION)
   emit('update:modelValue', toDomain(value, props.control.domain, props.control.format))
@@ -55,7 +60,7 @@ const ticks = computed(() => track.value.ticks.map((value) => {
 
 <template>
   <div class="relative pb-4">
-    <!-- The field next to the track takes the keyboard -->
+    <!-- The field next to the track takes the keyboard and the assistive technologies -->
     <input
       type="range"
       class="range range-primary range-xs w-full"
@@ -64,12 +69,11 @@ const ticks = computed(() => track.value.ticks.map((value) => {
       :max="RESOLUTION"
       step="1"
       :value="position"
-      :aria-label="label"
       tabindex="-1"
+      aria-hidden="true"
       @input="onInput"
-      @pointerdown="setSliderActive"
-      @pointerup="setSliderInactive"
-      @pointercancel="setSliderInactive"
+      @pointerdown="onPointerDown"
+      @lostpointercapture="setSliderInactive"
     >
     <span
       v-for="tick in ticks"

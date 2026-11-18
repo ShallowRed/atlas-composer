@@ -36,6 +36,16 @@ describe('latitude band slider', () => {
     expect(wrapper.emitted('update:modelValue')!.at(-1)).toEqual([[48.99, 49]])
   })
 
+  it('keeps its extent during a drag beyond the band', async () => {
+    const { wrapper, track } = mountSlider([44, 49])
+    await track.trigger('pointerdown', { clientX: 190, pointerId: 1 })
+    for (let step = 0; step < 5; step++) {
+      await wrapper.setProps({ modelValue: wrapper.emitted('update:modelValue')!.at(-1)![0] as [number, number] })
+      await track.trigger('pointermove', { clientX: 200, pointerId: 1 })
+    }
+    expect(wrapper.emitted('update:modelValue')!.at(-1)).toEqual([[44, 56]])
+  })
+
   it('stays out of the accessibility tree, where the two fields take the input', () => {
     expect(mountSlider([44, 49]).wrapper.attributes('aria-hidden')).toBe('true')
   })

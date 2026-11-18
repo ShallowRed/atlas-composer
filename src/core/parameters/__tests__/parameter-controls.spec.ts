@@ -19,6 +19,8 @@ const numericAxes = parameterRegistry.getAll().flatMap((definition) => {
         .map(family => ({ key: definition.key as string, family, count }))
 })
 
+const KINDS = ['longitude', 'latitude', 'angle', 'ratio', 'scale', 'canvas-length', 'threshold']
+
 describe('control of each axis of a parameter', () => {
   it('finds numeric parameters to check', () => {
     expect(numericAxes.length).toBeGreaterThan(0)
@@ -32,6 +34,8 @@ describe('control of each axis of a parameter', () => {
       expect(control.domain.min).toBe(Array.isArray(min) ? min[axis] : min)
       expect(control.domain.max).toBe(Array.isArray(max) ? max[axis] : max)
       expect(control.step).toBeGreaterThan(0)
+      expect(KINDS).toContain(control.kind)
+      expect(Object.keys(control.format)).toHaveLength(1)
     })
   })
 

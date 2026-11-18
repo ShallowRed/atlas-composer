@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import type { AxisControl } from '@/core/parameters'
+import type { AxisControl, LatitudeBand } from '@/core/parameters'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSliderState } from '@/composables/useSliderState'
-import { boundDomain, formatValue, toDomain } from '@/core/parameters'
+import { boundDomain, formatValue, orderedPairLimits, roundToStep, toDomain } from '@/core/parameters'
 
 interface Props {
-  modelValue: [number, number]
+  modelValue: LatitudeBand
   control: AxisControl
-  // Latitudes covered by the territories, south then north
-  band: [number, number]
+  // Latitudes covered by the territories
+  band: LatitudeBand
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: [number, number]]
+  'update:modelValue': [value: LatitudeBand]
 }>()
 
 const { locale } = useI18n()
@@ -26,8 +26,18 @@ const MARGIN = 5
 
 const track = ref<HTMLElement>()
 
-const min = computed(() => Math.max(props.control.domain.min, Math.floor(Math.min(props.band[0], ...props.modelValue) - MARGIN)))
-const max = computed(() => Math.min(props.control.domain.max, Math.ceil(Math.max(props.band[1], ...props.modelValue) + MARGIN)))
+function extentOf(parallels: LatitudeBand): LatitudeBand {
+  return [
+    Math.max(props.control.domain.min, Math.floor(Math.min(props.band[0], ...parallels) - MARGIN)),
+    Math.min(props.control.domain.max, Math.ceil(Math.max(props.band[1], ...parallels) + MARGIN)),
+  ]
+}
+
+// The extent stays as it was at the start of a drag, so that a parallel dragged beyond it does not push it
+const dragExtent = ref<LatitudeBand | null>(null)
+const extent = computed(() => dragExtent.value ?? extentOf(props.modelValue))
+const min = computed(() => extent.value[0])
+const max = computed(() => extent.value[1])
 
 function percent(latitude: number): number {
   return (latitude - min.value) / (max.value - min.value) * 100
@@ -35,9 +45,6 @@ function percent(latitude: number): number {
 
 const bandStyle = computed(() => ({ left: `${percent(props.band[0])}%`, width: `${percent(props.band[1]) - percent(props.band[0])}%` }))
 const rangeStyle = computed(() => ({ left: `${percent(props.modelValue[0])}%`, width: `${percent(props.modelValue[1]) - percent(props.modelValue[0])}%` }))
-
-// One unit of the writing keeps the south parallel strictly below the north one
-const gap = computed(() => 'maximumFractionDigits' in props.control.format ? 10 ** -props.control.format.maximumFractionDigits : 0.01)
 
 let activeIndex: 0 | 1 = 0
 
@@ -49,11 +56,8 @@ function latitudeAt(clientX: number): number {
 
 function update(latitude: number) {
   const [south, north] = props.modelValue
-  const domain = activeIndex === 0
-    ? boundDomain(props.control.domain, { max: north - gap.value })
-    : boundDomain(props.control.domain, { min: south + gap.value })
-  // The track moves by tenths of a degree, the fields by the writing of the axis
-  const value = toDomain(Math.round(latitude * 10) / 10, domain, props.control.format)
+  const domain = boundDomain(props.control.domain, orderedPairLimits(props.modelValue, props.control.format)[activeIndex])
+  const value = toDomain(roundToStep(latitude, props.control.step), domain, props.control.format)
   emit('update:modelValue', activeIndex === 0 ? [value, north] : [south, value])
 }
 
@@ -61,6 +65,7 @@ function onPointerDown(event: PointerEvent) {
   event.preventDefault()
   const latitude = latitudeAt(event.clientX)
   activeIndex = Math.abs(latitude - props.modelValue[0]) <= Math.abs(latitude - props.modelValue[1]) ? 0 : 1
+  dragExtent.value = extent.value
   track.value!.setPointerCapture(event.pointerId)
   setSliderActive()
   update(latitude)
@@ -77,6 +82,7 @@ function onPointerUp(event: PointerEvent) {
     track.value.releasePointerCapture(event.pointerId)
     setSliderInactive()
   }
+  dragExtent.value = null
 }
 
 const ticks = computed(() => props.band.map(latitude => ({

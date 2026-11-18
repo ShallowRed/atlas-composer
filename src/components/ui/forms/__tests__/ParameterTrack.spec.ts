@@ -7,7 +7,7 @@ import ParameterTrack from '../ParameterTrack.vue'
 const [scaleMultiplier] = parameterRegistry.getAxisControls('scaleMultiplier', 'CONIC')!
 
 function mountTrack(modelValue: number) {
-  return mount(ParameterTrack, { props: { label: 'Scale', control: scaleMultiplier!, modelValue }, global: { plugins: [i18n] } })
+  return mount(ParameterTrack, { props: { control: scaleMultiplier!, modelValue }, global: { plugins: [i18n] } })
 }
 
 describe('parameter track', () => {
@@ -25,6 +25,10 @@ describe('parameter track', () => {
     const wrapper = mountTrack(30)
     expect(wrapper.find('input').element.value).toBe('1000')
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('stays out of the accessibility tree, where the field takes the input', () => {
+    expect(mountTrack(1).find('input').attributes('aria-hidden')).toBe('true')
   })
 
   it('labels its ticks with the symbol of the axis', () => {

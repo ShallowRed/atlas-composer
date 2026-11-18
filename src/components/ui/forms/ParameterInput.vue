@@ -35,7 +35,6 @@ const hasTrack = computed(() => props.control.track !== undefined && 'scale' in 
     <ParameterTrack
       v-if="hasTrack"
       :model-value="modelValue"
-      :label="label"
       :control="control"
       @update:model-value="(value: number) => emit('update:modelValue', value)"
     />

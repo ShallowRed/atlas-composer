@@ -19,11 +19,20 @@ export function roundToFormat(value: number, format: AxisFormat): number {
   return Math.round(value * factor) / factor + 0
 }
 
-// The smallest written value above an excluded bound
-function aboveExcludedBound(min: number, format: AxisFormat): number {
+// The smallest written value above a bound that the value may not reach
+function writtenAbove(bound: number, format: AxisFormat): number {
   return 'maximumSignificantDigits' in format
-    ? (min === 0 ? 10 ** -format.maximumSignificantDigits : min * (1 + 10 ** (1 - format.maximumSignificantDigits)))
-    : min + 10 ** -format.maximumFractionDigits
+    ? (bound === 0 ? 10 ** -format.maximumSignificantDigits : bound + Math.abs(bound) * 10 ** (1 - format.maximumSignificantDigits))
+    : roundToFormat(bound + 10 ** -format.maximumFractionDigits, format)
+}
+
+function writtenBelow(bound: number, format: AxisFormat): number {
+  return -writtenAbove(-bound, format)
+}
+
+export function roundToStep(value: number, step: number): number {
+  const decimals = String(step).split('.')[1]?.length ?? 0
+  return Number((Math.round(value / step) * step).toFixed(decimals))
 }
 
 export function toDomain(value: number, domain: AxisDomain, format: AxisFormat): number {
@@ -32,7 +41,7 @@ export function toDomain(value: number, domain: AxisDomain, format: AxisFormat):
     return roundToFormat(((((value - domain.min) % span) + span) % span) + domain.min, format)
   }
   const rounded = roundToFormat(Math.min(domain.max, Math.max(domain.min, value)), format)
-  return domain.minExclusive && rounded <= domain.min ? aboveExcludedBound(domain.min, format) : rounded
+  return domain.minExclusive && rounded <= domain.min ? writtenAbove(domain.min, format) : rounded
 }
 
 // The domain of an axis narrowed by the axis it faces: a frame edge stops at the opposite edge
@@ -42,6 +51,11 @@ export function boundDomain(domain: AxisDomain, limits: { min?: number, max?: nu
     max: Math.min(domain.max, limits.max ?? domain.max),
     ...(domain.minExclusive && limits.min === undefined ? { minExclusive: true } : {}),
   }
+}
+
+// The limits that keep the first value of an ordered pair strictly below the second one
+export function orderedPairLimits([low, high]: [number, number], format: AxisFormat): [{ max: number }, { min: number }] {
+  return [{ max: writtenBelow(high, format) }, { min: writtenAbove(low, format) }]
 }
 
 // A multiplicative step multiplies upwards and divides downwards, so that up then down gives the value back
