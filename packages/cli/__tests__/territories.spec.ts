@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { failureOf, run } from './cli'
+import { failureOf, run, warningsOf } from './cli'
 import { ringsOf, signedArea, vertexCount } from './geometry'
 
 describe('atlas-composer territories', () => {
@@ -52,6 +52,11 @@ describe('atlas-composer territories', () => {
   it('should leave a feature without the id member of the built territory', () => {
     expect(collection.features.every(feature => !('id' in feature))).toBe(true)
     expect(collection.features[0]!.properties).toHaveProperty('id')
+  })
+
+  it('should name the territories without polygon at 50m, whose islands Natural Earth draws at 10m only', () => {
+    expect(warningsOf(['territories', 'brazil'])).toBe('Left out, without polygon at 50m, drawn at 10m: BR-FN, BR-SPP, BR-TMV\n')
+    expect(warningsOf(['territories', 'brazil', '--resolution', '10m'])).toBe('')
   })
 
   it('should read the geometries of --data by the code of the territory', () => {
