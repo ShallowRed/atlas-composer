@@ -340,6 +340,19 @@ describe('cached image of a raster basemap', () => {
     expect(lastPlacements()?.map(({ code }) => code)).toEqual(['FR'])
   })
 
+  it('renders nothing when interrupted between the answer of the cache and the end of the delay', async () => {
+    const map = withSetup(() => useMapRender(props))
+
+    await renderAt(map, 0)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(cachedBasemap).toHaveBeenCalledOnce()
+    map.dispose()
+    await vi.runAllTimersAsync()
+
+    expect(renderBasemap).not.toHaveBeenCalled()
+    expect(map.basemapLoading.value).toBe(false)
+  })
+
   it('shows nothing when interrupted while the cached image loads', async () => {
     let finish = (_image: Blob | null) => {}
     vi.mocked(cachedBasemap).mockReturnValueOnce(new Promise(resolve => finish = resolve))
