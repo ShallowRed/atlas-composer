@@ -1,3 +1,4 @@
+export { basemapFingerprint } from './fingerprint'
 export type { PlaceLabel } from './labels'
 export { labelsToDraw } from './labels'
 export { sampleTiles, tilePositions } from './raster'
