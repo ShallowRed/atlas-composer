@@ -35,13 +35,15 @@ export class TerritoryResetService {
   }): BulkResetOperation {
     const { territories, presetParameters = {} } = params
     const presetCodes = Object.keys(presetParameters) as TerritoryCode[]
-    const outsidePreset = territories.filter(({ code }) => !presetCodes.includes(code))
+    const centers = new Map(territories.map(({ code, center }) => [code, center]))
+    const outsidePreset = territories.map(({ code }) => code).filter(code => !presetCodes.includes(code))
 
     return {
-      operations: [
-        ...presetCodes.map(territoryCode => ({ territoryCode, parameters: referenceParameters(presetParameters[territoryCode]) })),
-        ...outsidePreset.map(({ code, center }) => ({ territoryCode: code, parameters: defaultTerritoryParameters(center) })),
-      ],
+      operations: [...presetCodes, ...outsidePreset].map(territoryCode => TerritoryResetService.calculateTerritoryReset({
+        territoryCode,
+        presetParameters,
+        territoryCenter: () => centers.get(territoryCode)!,
+      })),
       activeTerritories: presetCodes.length > 0 ? presetCodes : undefined,
     }
   }

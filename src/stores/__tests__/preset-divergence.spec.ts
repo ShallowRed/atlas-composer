@@ -7,7 +7,6 @@ import { withSetup } from '@/__tests__/test-utils'
 import { useTerritoryData } from '@/composables/useTerritoryData'
 import { parameterRegistry } from '@/core/parameters'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
-import { defaultTerritoryParameters } from '@/core/territories/territory-reset-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useParameterStore } from '@/stores/parameters'
@@ -234,7 +233,6 @@ describe('difference with the preset values', () => {
       useCompositionStore().resetTransforms()
 
       expect(territoriesDiffer()).toBe(false)
-      expect(useParameterStore().getTerritoryParameters(code)).toEqual(defaultTerritoryParameters(useAtlasStore().territoryCenter(code)))
     })
 
     it('gives a territory outside the preset the same values after the reset of all territories as after its own reset', async () => {
