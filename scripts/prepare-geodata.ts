@@ -1,10 +1,11 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
+import { loadConfig } from '#scripts/config/loader'
 import { prepareAtlasData, toTopology } from '#scripts/geodata/prepare'
 import { getResolution, parseArgs, showHelp, validateRequired } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
-import { DEFAULT_RESOLUTION, readWorldData } from '#scripts/utils/ne-data'
+import { readWorldData, resolutionOfDataSources } from '#scripts/utils/ne-data'
 import { RULES_RESOLUTION } from '../packages/preset-library/src/territories.js'
 
 const OUTPUT_DIR = path.join(process.cwd(), 'src/public', 'data')
@@ -32,7 +33,7 @@ async function main(): Promise<void> {
         'npm run geodata:prepare <atlas> [--resolution=10m|50m|110m]',
         {
           '<atlas>': 'Atlas name (portugal, france, europe)',
-          '--resolution=<val>': `Natural Earth resolution (10m, 50m, 110m) [default: ${DEFAULT_RESOLUTION}]`,
+          '--resolution=<val>': 'Natural Earth resolution (10m, 50m, 110m) [default: the resolution in the dataSources of the atlas]',
           '--help': 'Show this help message',
         },
       )
@@ -45,7 +46,8 @@ async function main(): Promise<void> {
     }
 
     const atlasName = args.atlas!
-    const resolution = getResolution(args)
+    const { unified } = await loadConfig(atlasName)
+    const resolution = getResolution(args, resolutionOfDataSources(unified.dataSources))
 
     logger.section(`Preparing geodata: ${atlasName}`)
     logger.data('Resolution', resolution)
