@@ -2,31 +2,16 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { GeoProjection } from 'd3-geo'
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import Ajv from 'ajv'
 import { describe, expect, it } from 'vitest'
 import { ProjectionLoader } from '../src'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
 import { describeComposite } from '../src/neutral'
+import { compositePresets, presetOf, readJson } from './presets'
 
 const SCHEMAS = 'packages/specification/schemas'
 const TOLERANCE = 1e-6
-
-function readJson(path: string) {
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
-
-interface RegistryPreset { id: string, type: string, configPath: string }
-const registry: { atlases: { presets: RegistryPreset[] }[] } = readJson('configs/atlas-registry.json')
-const compositePresets = registry.atlases
-  .flatMap(atlas => atlas.presets)
-  .filter(preset => preset.type === 'composite-custom')
-  .map((preset): [string, CompositeProjectionConfig] => [preset.id, readJson(`configs/${preset.configPath}`)])
-
-function presetOf(presetId: string): CompositeProjectionConfig {
-  return compositePresets.find(([id]) => id === presetId)![1]
-}
 
 /** A copy of portugal-standard reduced to its first territory, with another projection */
 function withProjection(projection: CompositeProjectionConfig['territories'][number]['projection']): CompositeProjectionConfig {
