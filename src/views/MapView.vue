@@ -120,7 +120,7 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
                   aria-hidden="true"
                 />
               </summary>
-              <p class="map-note inset-x-0 bottom-full z-10 mb-1 bg-base-100 py-0.5">
+              <p class="map-note inset-x-0 bottom-full z-10 mb-1 bg-base-100 py-0.5 text-left">
                 {{ basemapSource.attribution }}
               </p>
             </details>
