@@ -52,6 +52,19 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          VITE_BASEMAP_BUILD_ID: ${{ github.sha }}
+
+      # The relief of the initial view of each atlas; without it, the site draws its basemaps, so neither step stops the deployment
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Render cached basemaps
+        run: pnpm basemaps:render
+        timeout-minutes: 20
+        continue-on-error: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
