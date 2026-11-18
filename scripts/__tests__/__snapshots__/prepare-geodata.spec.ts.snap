@@ -2,15 +2,15 @@
 
 exports[`prepareAtlasData > prepares the territories and the metadata of europe in 10m 1`] = `
 {
-  "metadata": "9fc8d246944275fe0b28c93aa9cca3c46b9c59cb5156900e60dd66a37584c51f",
-  "territories": "2f12a2982e691cfd7efba1dba635c6996573ec67388aff257ffa5516d98d1534",
+  "metadata": "a8e9d6d37ebf88fc1eed561da9dfa8cb9f92c14658a57698da53481c2b39fbc5",
+  "territories": "747c59ff9caebf0bad23462784e650aabd02d6f275db7aa73af3ca33430acf02",
 }
 `;
 
 exports[`prepareAtlasData > prepares the territories and the metadata of europe in 50m 1`] = `
 {
-  "metadata": "660a541ffd94873e69c9422b96b4065ac521a52dc285f9c5439f3ab462a2e602",
-  "territories": "02c301a1bbf84efb50298908d9d785aa10f6ecbf810dd622686c265393a0dbd9",
+  "metadata": "8fb10ec56898d0faa8b258faec433a62269c16bf372aa3d44168f550dbdd827a",
+  "territories": "ea0a12b7c4e28040f06c9a27aac8a7bbc1c52353fa47fb18c8e16019b7c65610",
 }
 `;
 
