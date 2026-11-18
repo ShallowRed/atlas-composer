@@ -1,4 +1,5 @@
 import type { LoadedAtlasConfig } from '@/core/atlases/loader'
+import type { LatitudeBand } from '@/core/parameters'
 import type { AtlasConfigError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { AtlasConfig, AtlasId, TerritoryCode, TerritoryConfig } from '@/types'
@@ -14,8 +15,6 @@ import {
 import { getInitialTerritoryMode as initialTerritoryModeOf } from '@/core/atlases/utils'
 import { loadAtlasConfiguration } from '@/services/atlas/atlas-config-loader'
 import { AtlasService } from '@/services/atlas/atlas-service'
-
-type LatitudeBand = [south: number, north: number]
 
 export const useAtlasStore = defineStore('atlas', () => {
   const selectedAtlasId = ref<AtlasId>(DEFAULT_ATLAS as AtlasId)
