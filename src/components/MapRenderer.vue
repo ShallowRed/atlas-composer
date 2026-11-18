@@ -298,7 +298,7 @@ function handleMouseDown(event: MouseEvent) {
 <template>
   <div
     class="map-renderer relative"
-    :style="{ '--map-aspect': `${size.width} / ${size.height}` }"
+    :style="{ '--map-aspect': `${size.width} / ${size.height}`, '--map-ratio': size.width / size.height }"
     :class="{
       'h-full': props.fullHeight,
       'map-renderer--fill': props.fullHeight,
@@ -307,7 +307,7 @@ function handleMouseDown(event: MouseEvent) {
   >
     <div
       ref="mapContainer"
-      class="map-plot w-full bg-base-200 border-base-300 p-2 max-lg:p-0.5"
+      class="map-plot w-full bg-base-200 border-base-300"
       :class="{
         'map-ready': !isLoading && !error,
         'map-loading': isLoading || error,
@@ -319,35 +319,40 @@ function handleMouseDown(event: MouseEvent) {
       @mousedown.capture="selectTerritoryUnderPointer"
       @mousedown="handleMouseDown"
     />
-    <p
-      v-if="basemapLoading"
-      class="map-note delayed-fade-in bottom-1 left-1 flex items-center gap-1.5 text-base-content/70"
-      role="status"
-      :aria-label="props.territoryCode ? t('basemap.loading') : undefined"
-    >
-      <span
-        class="loading loading-spinner loading-xs"
-        aria-hidden="true"
-      />
-      <!-- The map of one territory, small and repeated in the split view, shows the spinner alone -->
-      <template v-if="!props.territoryCode">
-        {{ t('basemap.loading') }}
-      </template>
-    </p>
-    <p
-      v-else-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
-      class="map-note bottom-1 left-1"
-      :class="{ 'text-error': !basemapResult.ok }"
-    >
-      {{ basemapResult.ok ? t('basemap.missingTiles', { count: basemapResult.value.missingTiles }) : errorMessage(basemapResult.error) }}
-    </p>
+    <div class="map-frame">
+      <p
+        v-if="basemapLoading"
+        class="map-note delayed-fade-in bottom-1 left-1 flex items-center gap-1.5 text-base-content/70"
+        role="status"
+        :aria-label="props.territoryCode ? t('basemap.loading') : undefined"
+      >
+        <span
+          class="loading loading-spinner loading-xs"
+          aria-hidden="true"
+        />
+        <!-- The map of one territory, small and repeated in the split view, shows the spinner alone -->
+        <template v-if="!props.territoryCode">
+          {{ t('basemap.loading') }}
+        </template>
+      </p>
+      <p
+        v-else-if="basemapResult && (!basemapResult.ok || basemapResult.value.missingTiles > 0)"
+        class="map-note bottom-1 left-1"
+        :class="{ 'text-error': !basemapResult.ok }"
+      >
+        {{ basemapResult.ok ? t('basemap.missingTiles', { count: basemapResult.value.missingTiles }) : errorMessage(basemapResult.error) }}
+      </p>
+    </div>
   </div>
 </template>
 
 <style lang="css" scoped>
 @reference 'tailwindcss';
 .map-plot {
-  @apply h-full w-full rounded-sm border flex-col items-center justify-center;
+  @apply h-full w-full rounded-sm flex-col items-center justify-center;
+  padding: var(--plot-padding);
+  border-width: var(--plot-border);
+  border-style: solid;
   transition: opacity var(--transition-fade) ease;
 }
 
@@ -356,9 +361,29 @@ function handleMouseDown(event: MouseEvent) {
   height: auto;
 }
 
-/* Below lg, a filling map takes the proportions of its drawing, so that it fills its width */
+.map-renderer {
+  --plot-padding: --spacing(0.5);
+  --plot-border: 1px;
+  --plot-inset: calc(var(--plot-padding) + var(--plot-border));
+  @apply lg:[--plot-padding:--spacing(2)];
+}
+
+.map-frame {
+  @apply pointer-events-none absolute;
+  inset: var(--plot-inset);
+}
+
+/* A filling map is larger than its drawing on one axis, and the drawing is centered in it; below lg, it takes the proportions of its drawing, so that it fills its width */
 .map-renderer--fill {
+  container-type: size;
   @apply max-lg:h-auto max-lg:[aspect-ratio:var(--map-aspect)];
+}
+
+.map-renderer--fill .map-frame {
+  inset: 0;
+  margin: auto;
+  width: min(100cqw - 2 * var(--plot-inset), (100cqh - 2 * var(--plot-inset)) * var(--map-ratio));
+  height: min(100cqh - 2 * var(--plot-inset), (100cqw - 2 * var(--plot-inset)) / var(--map-ratio));
 }
 
 .map-renderer--fill .map-plot > :deep(svg) {
