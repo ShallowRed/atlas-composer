@@ -1,0 +1,201 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "macaronesia",
+    "atlasName": "Macaronesia",
+    "exportDate": "2026-11-18T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 3000,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "PT-20",
+      "name": "Azores",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            28.15,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            38.33
+          ],
+          "parallels": [
+            20,
+            36
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -240,
+          -120
+        ],
+        "pixelClipExtent": [
+          -150,
+          -95,
+          152,
+          92
+        ]
+      },
+      "bounds": [
+        [
+          -32,
+          36.5
+        ],
+        [
+          -24.5,
+          40
+        ]
+      ]
+    },
+    {
+      "code": "PT-30",
+      "name": "Madeira",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            16.76,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            32.8
+          ],
+          "parallels": [
+            20,
+            36
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          20,
+          -130
+        ],
+        "pixelClipExtent": [
+          -63,
+          -52,
+          63,
+          52
+        ]
+      },
+      "bounds": [
+        [
+          -17.5,
+          32.5
+        ],
+        [
+          -16.5,
+          33
+        ]
+      ]
+    },
+    {
+      "code": "ES-CN",
+      "name": "Canary Islands",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            15.79,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            28.47
+          ],
+          "parallels": [
+            20,
+            36
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          240,
+          10
+        ],
+        "pixelClipExtent": [
+          -129,
+          -64,
+          127,
+          62
+        ]
+      },
+      "bounds": [
+        [
+          -18.2,
+          27.6
+        ],
+        [
+          -13.4,
+          29.3
+        ]
+      ]
+    },
+    {
+      "code": "CV",
+      "name": "Cabo Verde",
+      "projection": {
+        "id": "conic-conformal",
+        "family": "CONIC",
+        "parameters": {
+          "rotate": [
+            24.01,
+            0,
+            0
+          ],
+          "center": [
+            0,
+            16
+          ],
+          "parallels": [
+            20,
+            36
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -60,
+          140
+        ],
+        "pixelClipExtent": [
+          -88,
+          -84,
+          89,
+          83
+        ]
+      },
+      "bounds": [
+        [
+          -25.4,
+          14.7
+        ],
+        [
+          -22.6,
+          17.3
+        ]
+      ]
+    }
+  ]
+}

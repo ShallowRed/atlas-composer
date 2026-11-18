@@ -1,0 +1,20 @@
+{
+  "id": "macaronesia-unified",
+  "name": "Macaronesia - Standard unified view",
+  "description": "Natural Earth projection centered on Macaronesia",
+  "atlasId": "macaronesia",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          18,
+          -29,
+          0
+        ],
+        "scale": 1
+      }
+    }
+  }
+}
