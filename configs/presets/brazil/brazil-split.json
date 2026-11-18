@@ -1,0 +1,75 @@
+{
+  "id": "brazil-split",
+  "name": "Brasil - Vista separada uniforme",
+  "description": "Mesma projeção cônica equivalente de Albers para todos os territórios",
+  "atlasId": "brazil",
+  "type": "split",
+  "config": {
+    "territories": {
+      "BR-MAIN": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              54,
+              14.2,
+              0
+            ],
+            "parallels": [
+              -22,
+              -2
+            ]
+          }
+        }
+      },
+      "BR-FN": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              32.42,
+              3.85,
+              0
+            ],
+            "parallels": [
+              -22,
+              -2
+            ]
+          }
+        }
+      },
+      "BR-SPP": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              29.38,
+              -0.86,
+              0
+            ],
+            "parallels": [
+              -22,
+              -2
+            ]
+          }
+        }
+      },
+      "BR-TMV": {
+        "projection": {
+          "id": "conic-equal-area",
+          "parameters": {
+            "rotate": [
+              29.1,
+              20.54,
+              0
+            ],
+            "parallels": [
+              -22,
+              -2
+            ]
+          }
+        }
+      }
+    }
+  }
+}
