@@ -1,6 +1,6 @@
 import type { AxisControl } from '../index'
 import { describe, expect, it } from 'vitest'
-import { boundDomain, CANVAS_LENGTH_CONTROL, formatValue, isOutsideTrack, parallelsForBand, parameterRegistry, parseValue, REFERENCE_SCALE_CONTROL, roundToFormat, stepFactor, stepValue, toDomain, trackScale, valueAtTrackPosition } from '../index'
+import { boundDomain, CANVAS_LENGTH_CONTROL, formatValue, isOutsideTrack, orderedPairLimits, parallelsForBand, parameterRegistry, parseValue, REFERENCE_SCALE_CONTROL, roundToFormat, roundToStep, stepFactor, stepValue, toDomain, trackScale, valueAtTrackPosition } from '../index'
 
 const [longitude, latitude] = parameterRegistry.getAxisControls('center', 'CYLINDRICAL')!
 const [left] = parameterRegistry.getAxisControls('pixelClipExtent', 'CONIC')!
@@ -28,6 +28,16 @@ describe('domain of an axis', () => {
   it('narrows a domain by the axis it faces', () => {
     expect(boundDomain({ min: -2000, max: 2000 }, { max: 60 })).toEqual({ min: -2000, max: 60 })
     expect(boundDomain({ min: 0, max: 10, minExclusive: true }, { max: 5 })).toEqual({ min: 0, max: 5, minExclusive: true })
+  })
+})
+
+describe('ordered pair', () => {
+  it('keeps the first value one unit of the writing below the second', () => {
+    expect(orderedPairLimits([44, 49], { maximumFractionDigits: 2 })).toEqual([{ max: 48.99 }, { min: 44.01 }])
+  })
+
+  it('rounds a dragged value to the step of the axis', () => {
+    expect(roundToStep(43.27, 0.1)).toBe(43.3)
   })
 })
 
