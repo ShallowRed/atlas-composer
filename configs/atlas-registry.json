@@ -843,6 +843,63 @@
       ]
     },
     {
+      "id": "macaronesia",
+      "name": {
+        "en": "Macaronesia",
+        "fr": "Macaronésie"
+      },
+      "group": "region",
+      "sortOrder": 110,
+      "configPath": "./atlases/macaronesia.json",
+      "presets": [
+        {
+          "id": "macaronesia-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/macaronesia/macaronesia-standard.json",
+          "description": {
+            "en": "Custom configuration for the Azores, Madeira, the Canary Islands and Cabo Verde",
+            "fr": "Configuration personnalisée pour les Açores, Madère, les îles Canaries et le Cap-Vert"
+          }
+        },
+        {
+          "id": "macaronesia-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/macaronesia/macaronesia-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Macaronesia",
+            "fr": "Projection Natural Earth centrée sur la Macaronésie"
+          }
+        },
+        {
+          "id": "macaronesia-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/macaronesia/macaronesia-split.json",
+          "description": {
+            "en": "Same conformal conic projection for all territories",
+            "fr": "Même projection conique conforme pour tous les territoires"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {
+          "territoryScope": "scope"
+        }
+      }
+    },
+    {
       "id": "world",
       "name": {
         "en": "World",
