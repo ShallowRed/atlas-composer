@@ -13,6 +13,12 @@ function readFormatFixture(name: string): CompositeProjectionConfig {
   return JSON.parse(readFileSync(resolve(import.meta.dirname, `../../specification/__tests__/fixtures/valid/${name}.json`), 'utf8'))
 }
 
+function presetOf(presetId: string): CompositeProjectionConfig {
+  const registry: { atlases: { presets: { id: string, configPath: string }[] }[] } = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8'))
+  const preset = registry.atlases.flatMap(atlas => atlas.presets).find(({ id }) => id === presetId)!
+  return JSON.parse(readFileSync(`configs/${preset.configPath}`, 'utf8'))
+}
+
 describe('projection-loader', () => {
   const loader = new ProjectionLoader()
 
@@ -586,6 +592,24 @@ describe('projection-loader', () => {
         const inverted = (projection as any).invert(coords)
         expect(inverted).toBeDefined()
       }
+    })
+
+    it('inverts Naha in the frame of the Ryukyu Islands, inside the frame of the mainland', () => {
+      const projection = loader.load(presetOf('japan-standard'), { width: 960, height: 500 })
+      const naha: [number, number] = [127.68, 26.21]
+
+      const [lon, lat] = projection.invert!(projection(naha)!)!
+
+      expect(lon).toBeCloseTo(naha[0], 6)
+      expect(lat).toBeCloseTo(naha[1], 6)
+    })
+
+    it('returns null for a pixel of the frame of Hokkaido whose inverse leaves its bounds, over the frame of the mainland', () => {
+      const config = presetOf('japan-standard')
+      const mainland = { ...config, territories: config.territories.filter(({ code }) => code === 'JP-MAIN') }
+
+      expect(loader.load(mainland, { width: 960, height: 500 }).invert!([240, 188])).not.toBeNull()
+      expect(loader.load(config, { width: 960, height: 500 }).invert!([240, 188])).toBeNull()
     })
   })
 })
