@@ -3,12 +3,16 @@ import type { ProjectionFamilyType } from '@/core/projections/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+import LatitudeBandSlider from '@/components/ui/forms/LatitudeBandSlider.vue'
+import NumberField from '@/components/ui/forms/NumberField.vue'
+import ParameterInput from '@/components/ui/forms/ParameterInput.vue'
 import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
 import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.vue'
-import { parameterRegistry } from '@/core/parameters'
+import { orderedPairLimits, parallelsForBand, parameterRegistry } from '@/core/parameters'
 import { getDisplayedRotate, supportsPanning, updatePositioningAxis } from '@/core/positioning'
 import { projectionRegistry } from '@/core/projections/registry'
+import { useAtlasStore } from '@/stores/atlas'
+import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
@@ -39,9 +43,25 @@ const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(projectionFamily.value)
 })
 
-const rotateRanges = computed(() => parameterStore.getTupleRanges(projectionFamily.value, 'rotate'))
-const parallelsRanges = computed(() => parameterStore.getTupleRanges(projectionFamily.value, 'parallels'))
-const scaleMultiplierRange = computed(() => parameterStore.getNumberRange(projectionFamily.value, 'scaleMultiplier'))
+const atlasStore = useAtlasStore()
+const geoDataStore = useGeoDataStore()
+
+const rotateControls = computed(() => parameterStore.getAxisControls(projectionFamily.value, 'rotate'))
+const parallelsControls = computed(() => parameterStore.getAxisControls(projectionFamily.value, 'parallels'))
+const scaleMultiplierControl = computed(() => parameterStore.getAxisControls(projectionFamily.value, 'scaleMultiplier')?.[0])
+
+// The band of the territories that the view shows
+const band = computed(() => atlasStore.displayedLatitudeBand(geoDataStore.filteredTerritories.map(territory => territory.code)))
+
+const parallelsLimits = computed(() => parallelsControls.value
+  ? orderedPairLimits(parallels.value, parallelsControls.value[0]!.format)
+  : undefined)
+
+function updateParallel(index: number, value: number) {
+  const updated = [...parallels.value] as [number, number]
+  updated[index] = value
+  handleParameterChange('parallels', updated)
+}
 
 const relevantParameters = computed(() => {
   return Object.entries(parameterConstraints.value.constraints)
@@ -100,109 +120,79 @@ function reset() {
         {{ t('projectionParams.reset') }}
       </button>
 
-      <template v-if="hasRotateParameter && rotateRanges">
-        <div class="space-y-2">
-          <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
-            <i class="ri-compass-3-line" />
-            {{ t('territory.parameters.projectionSpecific') }}
-          </h4>
+      <div
+        v-if="hasRotateParameter && rotateControls"
+        class="space-y-3"
+      >
+        <ParameterInput
+          :model-value="rotate[0]"
+          :label="t('projectionParams.rotateLongitude')"
+          :control="rotateControls[0]!"
+          @update:model-value="(value: number) => handleRotateChange(0, value)"
+        />
 
-          <RangeSlider
-            :model-value="rotate[0]"
-            :label="t('projectionParams.rotateLongitude')"
-            icon="ri-map-pin-line"
-            size="xs"
-            :min="rotateRanges[0].min"
-            :max="rotateRanges[0].max"
-            :step="rotateRanges[0].step"
-            unit="°"
-            @update:model-value="(value: number) => handleRotateChange(0, value)"
-          />
+        <ToggleControl
+          v-if="supportsLatitudeRotation"
+          :model-value="!projectionStore.rotateLatitudeLocked"
+          :label="t(projectionStore.rotateLatitudeLocked ? 'projectionParams.unlockLatitude' : 'projectionParams.lockLatitude')"
+          icon="ri-lock-unlock-line"
+          @update:model-value="(value: boolean) => projectionStore.setRotateLatitudeLocked(!value)"
+        />
 
-          <div
-            v-if="supportsLatitudeRotation"
-            class="flex flex-col gap-1"
+        <ParameterInput
+          v-if="supportsLatitudeRotation && !projectionStore.rotateLatitudeLocked"
+          :model-value="rotate[1]"
+          :label="t('projectionParams.rotateLatitude')"
+          :control="rotateControls[1]!"
+          @update:model-value="(value: number) => handleRotateChange(1, value)"
+        />
+
+        <ParameterInput
+          :model-value="rotate[2]"
+          :label="t('projectionParams.rotation')"
+          :control="rotateControls[2]!"
+          @update:model-value="(value: number) => handleRotateChange(2, value)"
+        />
+      </div>
+
+      <div
+        v-if="hasParallelsParameter && parallelsControls && parallelsLimits"
+        class="space-y-1"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-medium text-base-content/70">{{ t('projectionParams.parallels') }}</span>
+          <button
+            v-if="band"
+            type="button"
+            class="btn btn-ghost btn-xs"
+            @click="handleParameterChange('parallels', parallelsForBand(band))"
           >
-            <ToggleControl
-              :model-value="!projectionStore.rotateLatitudeLocked"
-              :label="t(projectionStore.rotateLatitudeLocked ? 'projectionParams.unlockLatitude' : 'projectionParams.lockLatitude')"
-              icon="ri-lock-unlock-line"
-              @update:model-value="(value: boolean) => projectionStore.setRotateLatitudeLocked(!value)"
-            />
-
-            <RangeSlider
-              v-if="!projectionStore.rotateLatitudeLocked"
-              :model-value="rotate[1]"
-              :label="t('projectionParams.rotateLatitude')"
-              icon="ri-map-pin-2-line"
-              size="xs"
-              :min="rotateRanges[1].min"
-              :max="rotateRanges[1].max"
-              :step="rotateRanges[1].step"
-              unit="°"
-              @update:model-value="(value: number) => handleRotateChange(1, value)"
-            />
-          </div>
-
-          <RangeSlider
-            :model-value="rotate[2]"
-            :label="t('projectionParams.rotation')"
-            icon="ri-rotate-lock-line"
-            size="xs"
-            :min="rotateRanges[2].min"
-            :max="rotateRanges[2].max"
-            :step="rotateRanges[2].step"
-            unit="°"
-            @update:model-value="(value: number) => handleRotateChange(2, value)"
+            {{ t('projectionParams.parallelsRule') }}
+          </button>
+        </div>
+        <LatitudeBandSlider
+          v-if="band"
+          :model-value="parallels"
+          :band="band"
+          :control="parallelsControls[0]!"
+          @update:model-value="(value: [number, number]) => handleParameterChange('parallels', value)"
+        />
+        <div class="grid grid-cols-2 gap-2">
+          <NumberField
+            v-for="index in [0, 1]"
+            :key="index"
+            :model-value="parallels[index]!"
+            :label="index === 0 ? t('projectionParams.parallel1') : t('projectionParams.parallel2')"
+            :prefix="index === 0 ? 'φ₁' : 'φ₂'"
+            scrub
+            :control="parallelsControls[index]!"
+            :limits="parallelsLimits[index]"
+            @update:model-value="(value: number) => updateParallel(index, value)"
           />
         </div>
-      </template>
+      </div>
 
-      <template v-if="hasParallelsParameter && parallelsRanges">
-        <div class="space-y-2">
-          <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
-            <i class="ri-subtract-line" />
-            {{ t('projectionParams.parallels') }}
-          </h4>
-
-          <RangeSlider
-            :model-value="parallels[0]"
-            :label="t('projectionParams.parallel1')"
-            icon="ri-subtract-line"
-            size="xs"
-            :min="parallelsRanges[0].min"
-            :max="parallelsRanges[0].max"
-            :step="parallelsRanges[0].step"
-            unit="°"
-            show-midpoint
-            @update:model-value="(value: number) => {
-              handleParameterChange('parallels', [value, parallels[1]])
-            }"
-          />
-
-          <RangeSlider
-            :model-value="parallels[1]"
-            :label="t('projectionParams.parallel2')"
-            icon="ri-subtract-line"
-            size="xs"
-            :min="parallelsRanges[1].min"
-            :max="parallelsRanges[1].max"
-            :step="parallelsRanges[1].step"
-            unit="°"
-            show-midpoint
-            @update:model-value="(value: number) => {
-              handleParameterChange('parallels', [parallels[0], value])
-            }"
-          />
-        </div>
-      </template>
-
-      <div class="space-y-2">
-        <h4 class="text-xs font-medium text-base-content/70 flex items-center gap-1">
-          <i class="ri-zoom-in-line" />
-          {{ t('territory.parameters.layout') }}
-        </h4>
-
+      <div class="space-y-3">
         <ToggleControl
           :model-value="!projectionStore.autoFitDomain"
           :label="t(projectionStore.autoFitDomain ? 'projectionParams.enableCustomScale' : 'projectionParams.disableCustomScale')"
@@ -210,16 +200,11 @@ function reset() {
           @update:model-value="(value: boolean) => projectionStore.setAutoFitDomain(!value)"
         />
 
-        <RangeSlider
-          v-if="!projectionStore.autoFitDomain && scaleMultiplierRange"
+        <ParameterInput
+          v-if="!projectionStore.autoFitDomain && scaleMultiplierControl"
           :model-value="effectiveParams.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')"
           :label="t('projectionParams.scaleMultiplier')"
-          icon="ri-zoom-in-line"
-          size="xs"
-          :min="scaleMultiplierRange.min"
-          :max="scaleMultiplierRange.max"
-          :step="scaleMultiplierRange.step"
-          unit="×"
+          :control="scaleMultiplierControl"
           @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
         />
       </div>

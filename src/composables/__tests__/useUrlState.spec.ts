@@ -222,10 +222,10 @@ describe('useUrlState', () => {
     })
 
     it('ignores the scale and the translation out of bounds', async () => {
-      await openLink({ t: '{"s_FR-GP":100,"tx_FR-GP":1e308,"ty_FR-GP":0}' })
+      await openLink({ t: '{"s_FR-GP":0,"tx_FR-GP":1e308,"ty_FR-GP":0}' })
       const parameterStore = useParameterStore()
 
-      expect(parameterStore.getTerritoryParameters(GUADELOUPE).scaleMultiplier).not.toBe(100)
+      expect(parameterStore.getTerritoryParameters(GUADELOUPE).scaleMultiplier).not.toBe(0)
       expect(parameterStore.getTerritoryTranslation(GUADELOUPE).x).not.toBe(1e308)
     })
 

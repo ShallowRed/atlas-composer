@@ -23,33 +23,28 @@ describe('parameter store projection actions', () => {
     setActivePinia(createPinia())
   })
 
-  describe('slider ranges', () => {
+  describe('controls of the axes', () => {
     const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
-    const ALL_FAMILIES = [...POSITIONED_FAMILIES, 'POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
 
-    it.each(POSITIONED_FAMILIES)('gives the translation and clip extent ranges of %s', (family) => {
+    it.each(POSITIONED_FAMILIES)('gives the controls of the position and the frame of %s', (family) => {
       const parameterStore = useParameterStore()
 
-      expect(parameterStore.getTupleRanges(family, 'translateOffset')).toHaveLength(2)
-      expect(parameterStore.getTupleRanges(family, 'pixelClipExtent')).toHaveLength(4)
+      expect(parameterStore.getAxisControls(family, 'translateOffset')).toHaveLength(2)
+      expect(parameterStore.getAxisControls(family, 'pixelClipExtent')).toHaveLength(4)
     })
 
-    it.each(ALL_FAMILIES)('gives the scale multiplier range of %s', (family) => {
-      expect(useParameterStore().getNumberRange(family, 'scaleMultiplier')).toEqual({ min: 0.01, max: 10, step: 0.01 })
+    it('gives the scale factor the domain of the specification, zero excluded', () => {
+      const [{ domain }] = useParameterStore().getAxisControls('CONIC', 'scaleMultiplier')!
+
+      expect(domain).toEqual({ min: 0, max: Number.POSITIVE_INFINITY, minExclusive: true })
     })
 
-    it('gives the parallels range of a conic projection', () => {
-      const axis = { min: -90, max: 90, step: 1 }
-
-      expect(useParameterStore().getTupleRanges('CONIC', 'parallels')).toEqual([axis, axis])
+    it('gives no control to a parameter without bounds for the family', () => {
+      expect(useParameterStore().getAxisControls('CYLINDRICAL', 'clipAngle')).toBeUndefined()
     })
 
-    it('gives no number range to a parameter without bounds for the family', () => {
-      expect(useParameterStore().getNumberRange('CYLINDRICAL', 'clipAngle')).toBeUndefined()
-    })
-
-    it('accepts the translation at the limit of its range and refuses it past the limit', () => {
-      const [{ max }] = useParameterStore().getTupleRanges('CONIC', 'translateOffset')!
+    it('accepts the position at the limit of its domain and refuses it past the limit', () => {
+      const [{ domain: { max } }] = useParameterStore().getAxisControls('CONIC', 'translateOffset')!
 
       expect(parameterRegistry.validate('translateOffset', [max, 0], 'CONIC').ok).toBe(true)
       expect(parameterRegistry.validate('translateOffset', [max + 1, 0], 'CONIC').ok).toBe(false)

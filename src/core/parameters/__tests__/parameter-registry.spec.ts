@@ -101,8 +101,9 @@ describe('parameterRegistry', () => {
     it('should return constraints for family', () => {
       const constraints = parameterRegistry.getConstraintsForFamily('scaleMultiplier', 'CYLINDRICAL')
       expect(constraints.relevant).toBe(true)
-      expect(constraints.min).toBe(0.01)
-      expect(constraints.max).toBe(10)
+      expect(constraints.min).toBe(0)
+      expect(constraints.max).toBe(Number.POSITIVE_INFINITY)
+      expect(constraints.minExclusive).toBe(true)
     })
 
     it('should return empty constraints for unknown parameter', () => {
@@ -139,13 +140,13 @@ describe('parameterRegistry', () => {
         issue: () => issueOf('center', ['a', 'b'], 'CYLINDRICAL'),
         expected: { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: 'center' },
       },
-      PARAMETER_TOO_SMALL: {
-        issue: () => issueOf('scaleMultiplier', 0.005, 'CYLINDRICAL'),
-        expected: { code: 'PARAMETER_TOO_SMALL', parameter: 'scaleMultiplier', min: 0.01 },
+      PARAMETER_NOT_ABOVE: {
+        issue: () => issueOf('scaleMultiplier', 0, 'CYLINDRICAL'),
+        expected: { code: 'PARAMETER_NOT_ABOVE', parameter: 'scaleMultiplier', min: 0 },
       },
       PARAMETER_TOO_LARGE: {
-        issue: () => issueOf('scaleMultiplier', 15, 'CYLINDRICAL'),
-        expected: { code: 'PARAMETER_TOO_LARGE', parameter: 'scaleMultiplier', max: 10 },
+        issue: () => issueOf('clipAngle', 200, 'AZIMUTHAL'),
+        expected: { code: 'PARAMETER_TOO_LARGE', parameter: 'clipAngle', max: 180 },
       },
       PARAMETER_ITEM_TOO_SMALL: {
         issue: () => issueOf('center', [-200, 0], 'CYLINDRICAL'),
@@ -175,7 +176,7 @@ describe('parameterRegistry', () => {
 
     it('lists the issues of the relevant parameters', () => {
       const issues = parameterRegistry.validateParameters({
-        scaleMultiplier: 0.005,
+        scaleMultiplier: 0,
         center: [-200, 100] as [number, number],
         clipAngle: 'not relevant for this family' as unknown as number,
       }, 'CYLINDRICAL')
@@ -189,28 +190,25 @@ describe('parameterRegistry', () => {
   })
 })
 
-describe('slider ranges and default values of the registered parameters', () => {
+describe('domains and default values of the registered parameters', () => {
   const FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL', 'POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
   const asArray = (value: unknown) => (Array.isArray(value) ? value : [value]) as number[]
-  const isWhole = (value: number) => Math.abs(value - Math.round(value)) < 1e-9
 
   registerAllParameters()
-  const ranges = parameterRegistry.getAll().flatMap(definition => FAMILIES.flatMap((family) => {
-    const { min, max, step } = parameterRegistry.getConstraintsForFamily(definition.key as string, family)
-    return min !== undefined && max !== undefined && step !== undefined
-      ? [{ name: `${String(definition.key)} of ${family}`, min: asArray(min), max: asArray(max), step, defaultValue: definition.defaultValue }]
+  const axes = parameterRegistry.getAll().flatMap(definition => FAMILIES.flatMap((family) => {
+    const controls = parameterRegistry.getAxisControls(definition.key as string, family)
+    return controls && definition.defaultValue !== undefined
+      ? [{ name: `${String(definition.key)} of ${family}`, controls, defaultValue: asArray(definition.defaultValue) }]
       : []
   }))
 
   beforeEach(registerAllParameters)
 
-  it.each(ranges)('$name reaches its maximum and its default value', ({ min, max, step, defaultValue }) => {
-    min.forEach((axisMin, axis) => {
-      expect(isWhole((max[axis]! - axisMin) / step)).toBe(true)
-      const axisDefault = defaultValue === undefined ? undefined : asArray(defaultValue)[axis]
-      if (axisDefault !== undefined && axisDefault >= axisMin && axisDefault <= max[axis]!) {
-        expect(isWhole((axisDefault - axisMin) / step)).toBe(true)
-      }
+  it.each(axes)('$name holds its default value in its domain', ({ controls, defaultValue }) => {
+    controls.forEach(({ domain }, axis) => {
+      const value = defaultValue[axis]!
+      expect(domain.minExclusive ? value > domain.min : value >= domain.min).toBe(true)
+      expect(value).toBeLessThanOrEqual(domain.max)
     })
   })
 

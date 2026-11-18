@@ -2,8 +2,9 @@
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
-import ToggleControl from '@/components/ui/forms/ToggleControl.vue'
+import NumberField from '@/components/ui/forms/NumberField.vue'
+import ParameterInput from '@/components/ui/forms/ParameterInput.vue'
+import { CANVAS_LENGTH_CONTROL, REFERENCE_SCALE_CONTROL } from '@/core/parameters'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { useCompositionStore } from '@/stores/composition'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -13,10 +14,6 @@ const { t } = useI18n()
 const projectionStore = useProjectionStore()
 const compositionStore = useCompositionStore()
 const presetDefaults = usePresetDefaultsStore()
-
-const CANVAS_WIDTH_RANGE = { min: 500, max: 2000, step: 10 }
-const CANVAS_HEIGHT_RANGE = { min: 300, max: 1200, step: 10 }
-const REFERENCE_SCALE_RANGE = { min: 100, max: 10000, step: 50 }
 
 const canvasWidth = ref(projectionStore.canvasDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width)
 const canvasHeight = ref(projectionStore.canvasDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height)
@@ -83,14 +80,6 @@ function resetToDefaults() {
   compositionStore.resetCanvas()
 }
 
-const aspectRatio = computed(() => {
-  const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b)
-  const divisor = gcd(canvasWidth.value, canvasHeight.value)
-  const ratioWidth = canvasWidth.value / divisor
-  const ratioHeight = canvasHeight.value / divisor
-  return `${ratioWidth}:${ratioHeight}`
-})
-
 const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
   referenceScale: referenceScale.value,
   dimensions: { width: canvasWidth.value, height: canvasHeight.value },
@@ -109,59 +98,44 @@ const hasCustomValues = computed(() => presetDefaults.canvasDiffersFromPreset({
       {{ t('projectionControls.global.resetToDefaults') }}
     </button>
 
-    <!-- Canvas Dimensions Section -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <!-- Aspect Ratio Lock Toggle -->
-        <ToggleControl
-          v-model="aspectRatioLocked"
-          :label="t('projectionControls.global.lockAspectRatio')"
-          icon="i-carbon-locked"
-          size="xs"
+    <div class="space-y-1">
+      <span class="text-xs font-medium text-base-content/70">{{ t('projectionControls.global.canvasDimensions') }}</span>
+      <div class="flex items-center gap-1">
+        <NumberField
+          :model-value="canvasWidth"
+          :label="t('projectionControls.global.canvasWidth')"
+          prefix="L"
+          scrub
+          :control="CANVAS_LENGTH_CONTROL"
+          @update:model-value="updateCanvasWidth"
         />
-        <span class="badge badge-sm badge-ghost">
-          {{ aspectRatio }}
-        </span>
+        <button
+          type="button"
+          class="btn btn-ghost btn-square btn-sm flex-none"
+          :class="{ 'text-primary': aspectRatioLocked }"
+          :aria-pressed="aspectRatioLocked"
+          :aria-label="t('projectionControls.global.lockAspectRatio')"
+          :title="aspectRatioLocked ? t('projectionControls.global.unlockAspectRatio') : t('projectionControls.global.lockAspectRatio')"
+          @click="aspectRatioLocked = !aspectRatioLocked"
+        >
+          <i :class="aspectRatioLocked ? 'ri-link' : 'ri-link-unlink'" />
+        </button>
+        <NumberField
+          :model-value="canvasHeight"
+          :label="t('projectionControls.global.canvasHeight')"
+          prefix="H"
+          scrub
+          :control="CANVAS_LENGTH_CONTROL"
+          @update:model-value="updateCanvasHeight"
+        />
       </div>
-
-      <!-- Canvas Width -->
-      <RangeSlider
-        :model-value="canvasWidth"
-        :label="t('projectionControls.global.canvasWidth')"
-        icon="i-carbon-row"
-        :min="CANVAS_WIDTH_RANGE.min"
-        :max="CANVAS_WIDTH_RANGE.max"
-        :step="CANVAS_WIDTH_RANGE.step"
-        unit="px"
-        color="primary"
-        size="xs"
-        @update:model-value="updateCanvasWidth"
-      />
-      <!-- Canvas Height -->
-      <RangeSlider
-        :model-value="canvasHeight"
-        :label="t('projectionControls.global.canvasHeight')"
-        icon="i-carbon-column"
-        :min="CANVAS_HEIGHT_RANGE.min"
-        :max="CANVAS_HEIGHT_RANGE.max"
-        :step="CANVAS_HEIGHT_RANGE.step"
-        unit="px"
-        color="primary"
-        size="xs"
-        @update:model-value="updateCanvasHeight"
-      />
-      <!-- Reference Scale -->
-      <RangeSlider
-        :model-value="referenceScale"
-        :label="t('projectionControls.global.scaleValue')"
-        icon="i-carbon-zoom-in"
-        :min="REFERENCE_SCALE_RANGE.min"
-        :max="REFERENCE_SCALE_RANGE.max"
-        :step="REFERENCE_SCALE_RANGE.step"
-        color="secondary"
-        size="xs"
-        @update:model-value="updateReferenceScale"
-      />
     </div>
+
+    <ParameterInput
+      :model-value="referenceScale"
+      :label="t('projectionControls.global.referenceScale')"
+      :control="REFERENCE_SCALE_CONTROL"
+      @update:model-value="updateReferenceScale"
+    />
   </div>
 </template>

@@ -21,7 +21,7 @@ export type PresetIssue
     | TerritoryScope & { code: 'PRESET_PROJECTION_ID_INVALID' }
     | TerritoryScope & { code: 'PRESET_PROJECTION_UNKNOWN', projectionId: string }
     | TerritoryScope & { code: 'PRESET_PARAMETER_WRONG_LENGTH', parameter: string, expected: number }
-    | TerritoryScope & { code: 'PRESET_PARAMETER_TOO_SMALL', parameter: string, min: number }
+    | TerritoryScope & { code: 'PRESET_PARAMETER_NOT_ABOVE', parameter: string, min: number }
     | TerritoryScope & { code: 'PRESET_PARAMETER_TOO_LARGE', parameter: string, max: number }
 
 export type PresetError
@@ -36,7 +36,7 @@ export type ParameterIssue
     | { code: 'PARAMETER_NOT_PAIR', parameter: string }
     | { code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter: string }
     | { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: string }
-    | { code: 'PARAMETER_TOO_SMALL', parameter: string, min: number }
+    | { code: 'PARAMETER_NOT_ABOVE', parameter: string, min: number }
     | { code: 'PARAMETER_TOO_LARGE', parameter: string, max: number }
     | { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: string, position: number, min: number }
     | { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: string, position: number, max: number }

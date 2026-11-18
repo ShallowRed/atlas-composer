@@ -52,7 +52,7 @@ const issues = {
   PRESET_PROJECTION_ID_INVALID: { code: 'PRESET_PROJECTION_ID_INVALID', territory: null },
   PRESET_PROJECTION_UNKNOWN: { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'projection-x' },
   PRESET_PARAMETER_WRONG_LENGTH: { code: 'PRESET_PARAMETER_WRONG_LENGTH', territory: null, parameter: 'parameter-x', expected: 2 },
-  PRESET_PARAMETER_TOO_SMALL: { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'parameter-x', min: 1 },
+  PRESET_PARAMETER_NOT_ABOVE: { code: 'PRESET_PARAMETER_NOT_ABOVE', territory: null, parameter: 'parameter-x', min: 0 },
   PRESET_PARAMETER_TOO_LARGE: { code: 'PRESET_PARAMETER_TOO_LARGE', territory: null, parameter: 'parameter-x', max: 9 },
 } satisfies { [C in PresetIssue['code']]: PresetIssue & { code: C } }
 
@@ -62,7 +62,7 @@ const parameterIssues = {
   PARAMETER_NOT_PAIR: { code: 'PARAMETER_NOT_PAIR', parameter: 'parameter-x' },
   PARAMETER_NOT_PAIR_OR_TRIPLE: { code: 'PARAMETER_NOT_PAIR_OR_TRIPLE', parameter: 'parameter-x' },
   PARAMETER_ITEMS_NOT_NUMBERS: { code: 'PARAMETER_ITEMS_NOT_NUMBERS', parameter: 'parameter-x' },
-  PARAMETER_TOO_SMALL: { code: 'PARAMETER_TOO_SMALL', parameter: 'parameter-x', min: 11 },
+  PARAMETER_NOT_ABOVE: { code: 'PARAMETER_NOT_ABOVE', parameter: 'parameter-x', min: 0 },
   PARAMETER_TOO_LARGE: { code: 'PARAMETER_TOO_LARGE', parameter: 'parameter-x', max: 22 },
   PARAMETER_ITEM_TOO_SMALL: { code: 'PARAMETER_ITEM_TOO_SMALL', parameter: 'parameter-x', position: 3, min: 11 },
   PARAMETER_ITEM_TOO_LARGE: { code: 'PARAMETER_ITEM_TOO_LARGE', parameter: 'parameter-x', position: 3, max: 22 },

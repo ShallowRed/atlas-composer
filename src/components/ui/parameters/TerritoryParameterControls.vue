@@ -8,12 +8,15 @@ import type {
 
 import { computed, nextTick, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import RangeSlider from '@/components/ui/forms/RangeSlider.vue'
+import LatitudeBandSlider from '@/components/ui/forms/LatitudeBandSlider.vue'
+import NumberField from '@/components/ui/forms/NumberField.vue'
+import ParameterInput from '@/components/ui/forms/ParameterInput.vue'
 
 import ParameterValidationFeedback from '@/components/ui/parameters/ParameterValidationFeedback.vue'
 import Alert from '@/components/ui/primitives/Alert.vue'
-import { parameterRegistry } from '@/core/parameters'
+import { formatValue, orderedPairLimits, parallelsForBand, parameterRegistry } from '@/core/parameters'
 import { getDisplayedCenter, getDisplayedRotate, getPositionParameter, updatePositioningAxis } from '@/core/positioning'
+import { useAtlasStore } from '@/stores/atlas'
 import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 
@@ -25,7 +28,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const parameterStore = useParameterStore()
 
@@ -37,14 +41,16 @@ const parameterConstraints = computed(() => {
   return parameterStore.getParameterConstraints(props.projectionFamily)
 })
 
-const rotateRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'rotate'))
-const centerRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'center'))
-const parallelsRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'parallels'))
-const translateOffsetRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'translateOffset'))
-const pixelClipExtentRanges = computed(() => parameterStore.getTupleRanges(props.projectionFamily, 'pixelClipExtent'))
-const scaleMultiplierRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'scaleMultiplier'))
-const clipAngleRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'clipAngle'))
-const precisionRange = computed(() => parameterStore.getNumberRange(props.projectionFamily, 'precision'))
+const controlsOf = (key: keyof ProjectionParameters) => parameterStore.getAxisControls(props.projectionFamily, key)
+
+const rotateControls = computed(() => controlsOf('rotate'))
+const centerControls = computed(() => controlsOf('center'))
+const parallelsControls = computed(() => controlsOf('parallels'))
+const translateOffsetControls = computed(() => controlsOf('translateOffset'))
+const pixelClipExtentControls = computed(() => controlsOf('pixelClipExtent'))
+const scaleMultiplierControl = computed(() => controlsOf('scaleMultiplier')?.[0])
+const clipAngleControl = computed(() => controlsOf('clipAngle')?.[0])
+const precisionControl = computed(() => controlsOf('precision')?.[0])
 
 const effectiveParameters = computed(() => {
   return parameterStore.getEffectiveParameters(props.territoryCode)
@@ -70,6 +76,48 @@ const relevantParameters = computed(() => {
 
 const pixelClipExtentArray = computed(() => {
   return effectiveParameters.value.pixelClipExtent ?? parameterRegistry.getDefaultValue('pixelClipExtent')
+})
+
+const band = computed(() => atlasStore.latitudeBand(props.territoryCode))
+
+const parallelsLimits = computed(() => parallelsControls.value
+  ? orderedPairLimits(parallels.value, parallelsControls.value[0]!.format)
+  : undefined)
+
+const hasCylindricalParallels = computed(() => parallels.value[0] === -parallels.value[1])
+
+function updateParallel(index: number, value: number) {
+  const updated = [...parallels.value] as [number, number]
+  updated[index] = value
+  handleParameterChange('parallels', updated)
+}
+
+const offsetAxes = computed(() => [
+  { prefix: 'X', label: t('projectionParams.translateX') },
+  { prefix: 'Y', label: t('projectionParams.translateY') },
+])
+
+function updateTranslateOffset(index: number, value: number) {
+  const updated = [...translateOffset.value] as [number, number]
+  updated[index] = value
+  handleParameterChange('translateOffset', updated)
+}
+
+// Each edge of the frame stops at the opposite edge
+const frameEdges = computed(() => {
+  const [left, top, right, bottom] = pixelClipExtentArray.value
+  return [
+    { index: 0, icon: 'ri-arrow-left-line', label: t('clipExtent.left'), limits: { max: right } },
+    { index: 1, icon: 'ri-arrow-up-line', label: t('clipExtent.top'), limits: { max: bottom } },
+    { index: 2, icon: 'ri-arrow-right-line', label: t('clipExtent.right'), limits: { min: left } },
+    { index: 3, icon: 'ri-arrow-down-line', label: t('clipExtent.bottom'), limits: { min: top } },
+  ]
+})
+
+const frameSize = computed(() => {
+  const [left, top, right, bottom] = pixelClipExtentArray.value
+  const format = pixelClipExtentControls.value?.[0]?.format ?? { maximumFractionDigits: 2 }
+  return `${formatValue(right - left, format, locale.value)} × ${formatValue(bottom - top, format, locale.value)} px`
 })
 
 function updatePixelClipExtent(index: number, value: number) {
@@ -202,103 +250,95 @@ async function moveToTab(event: KeyboardEvent) {
         :id="panelId('projection')"
         role="tabpanel"
         :aria-labelledby="tabId('projection')"
-        class="space-y-2"
+        class="space-y-4"
       >
-        <template v-if="hasPositionParameters">
-          <template v-if="showRotate && rotateRanges">
-            <RangeSlider
-              :model-value="rotate[0]"
-              :label="t('projectionParams.rotateLongitude')"
-              icon="ri-map-pin-line"
-              size="xs"
-              :min="rotateRanges[0].min"
-              :max="rotateRanges[0].max"
-              :step="rotateRanges[0].step"
-              unit="°"
-              @update:model-value="(value: number) => handlePositioningChange('rotate', 0, value)"
+        <div
+          v-if="hasPositionParameters && showRotate && rotateControls"
+          class="space-y-1"
+        >
+          <span class="text-xs font-medium text-base-content/70">{{ t('projectionParams.rotation') }}</span>
+          <div class="grid grid-cols-3 gap-2">
+            <NumberField
+              v-for="(axis, index) in [
+                { prefix: 'λ', label: t('projectionParams.rotateLongitude') },
+                { prefix: 'φ', label: t('projectionParams.rotateLatitude') },
+                { prefix: 'γ', label: t('projectionParams.rotation') },
+              ]"
+              :key="index"
+              :model-value="rotate[index]!"
+              :label="axis.label"
+              :prefix="axis.prefix"
+              scrub
+              :control="rotateControls[index]!"
+              @update:model-value="(value: number) => handlePositioningChange('rotate', index, value)"
             />
+          </div>
+        </div>
 
-            <RangeSlider
-              :model-value="rotate[1]"
-              :label="t('projectionParams.rotateLatitude')"
-              icon="ri-map-pin-2-line"
-              size="xs"
-              :min="rotateRanges[1].min"
-              :max="rotateRanges[1].max"
-              :step="rotateRanges[1].step"
-              unit="°"
-              @update:model-value="(value: number) => handlePositioningChange('rotate', 1, value)"
+        <div
+          v-if="hasPositionParameters && showCenter && centerControls"
+          class="space-y-1"
+        >
+          <span class="text-xs font-medium text-base-content/70">{{ t('projectionParams.center') }}</span>
+          <div class="grid grid-cols-2 gap-2">
+            <NumberField
+              v-for="(axis, index) in [
+                { prefix: 'λ', label: t('projectionParams.centerLongitude') },
+                { prefix: 'φ', label: t('projectionParams.centerLatitude') },
+              ]"
+              :key="index"
+              :model-value="center[index]!"
+              :label="axis.label"
+              :prefix="axis.prefix"
+              scrub
+              :control="centerControls[index]!"
+              @update:model-value="(value: number) => handlePositioningChange('center', index, value)"
             />
+          </div>
+        </div>
 
-            <RangeSlider
-              :model-value="rotate[2]"
-              :label="t('projectionParams.rotation')"
-              icon="ri-compass-3-line"
-              size="xs"
-              :min="rotateRanges[2].min"
-              :max="rotateRanges[2].max"
-              :step="rotateRanges[2].step"
-              unit="°"
-              @update:model-value="(value: number) => handlePositioningChange('rotate', 2, value)"
-            />
-          </template>
-
-          <template v-if="showCenter && centerRanges">
-            <RangeSlider
-              :model-value="center[0]"
-              :label="t('projectionParams.centerLongitude')"
-              icon="ri-map-pin-line"
-              size="xs"
-              :min="centerRanges[0].min"
-              :max="centerRanges[0].max"
-              :step="centerRanges[0].step"
-              unit="°"
-              @update:model-value="(value: number) => handlePositioningChange('center', 0, value)"
-            />
-
-            <RangeSlider
-              :model-value="center[1]"
-              :label="t('projectionParams.centerLatitude')"
-              icon="ri-map-pin-2-line"
-              size="xs"
-              :min="centerRanges[1].min"
-              :max="centerRanges[1].max"
-              :step="centerRanges[1].step"
-              unit="°"
-              @update:model-value="(value: number) => handlePositioningChange('center', 1, value)"
-            />
-          </template>
-        </template>
-
-        <template v-if="hasProjectionSpecificParameters && parallelsRanges">
-          <RangeSlider
-            :model-value="parallels[0]"
-            :label="t('projectionParams.parallel1')"
-            icon="ri-equalizer-line"
-            size="xs"
-            :min="parallelsRanges[0].min"
-            :max="parallelsRanges[0].max"
-            :step="parallelsRanges[0].step"
-            unit="°"
-            @update:model-value="(value: number) => {
-              handleParameterChange('parallels', [value, parallels[1]])
-            }"
+        <div
+          v-if="hasProjectionSpecificParameters && parallelsControls && parallelsLimits"
+          class="space-y-1"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-medium text-base-content/70">{{ t('projectionParams.parallels') }}</span>
+            <button
+              v-if="band"
+              type="button"
+              class="btn btn-ghost btn-xs"
+              @click="handleParameterChange('parallels', parallelsForBand(band))"
+            >
+              {{ t('projectionParams.parallelsRule') }}
+            </button>
+          </div>
+          <LatitudeBandSlider
+            v-if="band"
+            :model-value="parallels"
+            :band="band"
+            :control="parallelsControls[0]!"
+            @update:model-value="(value: [number, number]) => handleParameterChange('parallels', value)"
           />
-
-          <RangeSlider
-            :model-value="parallels[1]"
-            :label="t('projectionParams.parallel2')"
-            icon="ri-equalizer-line"
-            size="xs"
-            :min="parallelsRanges[1].min"
-            :max="parallelsRanges[1].max"
-            :step="parallelsRanges[1].step"
-            unit="°"
-            @update:model-value="(value: number) => {
-              handleParameterChange('parallels', [parallels[0], value])
-            }"
-          />
-        </template>
+          <div class="grid grid-cols-2 gap-2">
+            <NumberField
+              v-for="index in [0, 1]"
+              :key="index"
+              :model-value="parallels[index]!"
+              :label="index === 0 ? t('projectionParams.parallel1') : t('projectionParams.parallel2')"
+              :prefix="index === 0 ? 'φ₁' : 'φ₂'"
+              scrub
+              :control="parallelsControls[index]!"
+              :limits="parallelsLimits[index]"
+              @update:model-value="(value: number) => updateParallel(index, value)"
+            />
+          </div>
+          <p
+            v-if="hasCylindricalParallels"
+            class="text-xs text-warning"
+          >
+            {{ t('projectionParams.cylindricalParallels') }}
+          </p>
+        </div>
       </div>
 
       <div
@@ -306,94 +346,52 @@ async function moveToTab(event: KeyboardEvent) {
         :id="panelId('layout')"
         role="tabpanel"
         :aria-labelledby="tabId('layout')"
-        class="space-y-2"
+        class="space-y-4"
       >
-        <template v-if="scaleMultiplierRange">
-          <RangeSlider
-            :model-value="effectiveParameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')"
-            :label="t('projectionParams.scaleMultiplier')"
-            icon="ri-zoom-in-line"
-            size="xs"
-            :min="scaleMultiplierRange.min"
-            :max="scaleMultiplierRange.max"
-            :step="scaleMultiplierRange.step"
-            unit="×"
-            @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
-          />
-        </template>
+        <ParameterInput
+          v-if="scaleMultiplierControl"
+          :model-value="effectiveParameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')"
+          :label="t('projectionParams.scaleMultiplier')"
+          :control="scaleMultiplierControl"
+          @update:model-value="(value: number) => handleParameterChange('scaleMultiplier', value)"
+        />
 
-        <template v-if="isCompositeMode && translateOffsetRanges && pixelClipExtentRanges">
-          <RangeSlider
-            :model-value="translateOffset[0]"
-            :label="t('projectionParams.translateX')"
-            icon="ri-arrow-left-right-line"
-            size="xs"
-            :min="translateOffsetRanges[0].min"
-            :max="translateOffsetRanges[0].max"
-            :step="translateOffsetRanges[0].step"
-            unit="px"
-            @update:model-value="(value: number) => {
-              handleParameterChange('translateOffset', [value, translateOffset[1]])
-            }"
-          />
+        <template v-if="isCompositeMode && translateOffsetControls && pixelClipExtentControls">
+          <div class="space-y-1">
+            <span class="text-xs font-medium text-base-content/70">{{ t('territory.parameters.position') }}</span>
+            <div class="grid grid-cols-2 gap-2">
+              <NumberField
+                v-for="(axis, index) in offsetAxes"
+                :key="index"
+                :model-value="translateOffset[index]!"
+                :label="axis.label"
+                :prefix="axis.prefix"
+                scrub
+                :control="translateOffsetControls[index]!"
+                @update:model-value="(value: number) => updateTranslateOffset(index, value)"
+              />
+            </div>
+          </div>
 
-          <RangeSlider
-            :model-value="translateOffset[1]"
-            :label="t('projectionParams.translateY')"
-            icon="ri-arrow-up-down-line"
-            size="xs"
-            :min="translateOffsetRanges[1].min"
-            :max="translateOffsetRanges[1].max"
-            :step="translateOffsetRanges[1].step"
-            unit="px"
-            @update:model-value="(value: number) => {
-              handleParameterChange('translateOffset', [translateOffset[0], value])
-            }"
-          />
-
-          <RangeSlider
-            :model-value="pixelClipExtentArray[0]"
-            :label="t('clipExtent.left')"
-            icon="ri-arrow-left-line"
-            size="xs"
-            :min="pixelClipExtentRanges[0].min"
-            :max="pixelClipExtentRanges[0].max"
-            :step="pixelClipExtentRanges[0].step"
-            @update:model-value="(value: number) => updatePixelClipExtent(0, value)"
-          />
-
-          <RangeSlider
-            :model-value="pixelClipExtentArray[1]"
-            :label="t('clipExtent.top')"
-            icon="ri-arrow-up-line"
-            size="xs"
-            :min="pixelClipExtentRanges[1].min"
-            :max="pixelClipExtentRanges[1].max"
-            :step="pixelClipExtentRanges[1].step"
-            @update:model-value="(value: number) => updatePixelClipExtent(1, value)"
-          />
-
-          <RangeSlider
-            :model-value="pixelClipExtentArray[2]"
-            :label="t('clipExtent.right')"
-            icon="ri-arrow-right-line"
-            size="xs"
-            :min="pixelClipExtentRanges[2].min"
-            :max="pixelClipExtentRanges[2].max"
-            :step="pixelClipExtentRanges[2].step"
-            @update:model-value="(value: number) => updatePixelClipExtent(2, value)"
-          />
-
-          <RangeSlider
-            :model-value="pixelClipExtentArray[3]"
-            :label="t('clipExtent.bottom')"
-            icon="ri-arrow-down-line"
-            size="xs"
-            :min="pixelClipExtentRanges[3].min"
-            :max="pixelClipExtentRanges[3].max"
-            :step="pixelClipExtentRanges[3].step"
-            @update:model-value="(value: number) => updatePixelClipExtent(3, value)"
-          />
+          <div class="space-y-1">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-xs font-medium text-base-content/70">{{ t('projectionParams.frame') }}</span>
+              <span class="text-xs tabular-nums text-base-content/60">{{ frameSize }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <NumberField
+                v-for="edge in frameEdges"
+                :key="edge.index"
+                :model-value="pixelClipExtentArray[edge.index]!"
+                :label="edge.label"
+                :prefix-icon="edge.icon"
+                scrub
+                :control="pixelClipExtentControls[edge.index]!"
+                :limits="edge.limits"
+                @update:model-value="(value: number) => updatePixelClipExtent(edge.index, value)"
+              />
+            </div>
+          </div>
         </template>
       </div>
 
@@ -403,34 +401,23 @@ async function moveToTab(event: KeyboardEvent) {
         :id="panelId('advanced')"
         role="tabpanel"
         :aria-labelledby="tabId('advanced')"
-        class="space-y-2"
+        class="space-y-4"
       >
-        <template v-if="hasClipAngleParameter && clipAngleRange">
-          <RangeSlider
-            :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
-            :label="t('projectionParams.clipAngle')"
-            icon="ri-crop-line"
-            size="xs"
-            :min="clipAngleRange.min"
-            :max="clipAngleRange.max"
-            :step="clipAngleRange.step"
-            unit="°"
-            @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
-          />
-        </template>
+        <ParameterInput
+          v-if="hasClipAngleParameter && clipAngleControl"
+          :model-value="effectiveParameters.clipAngle ?? parameterRegistry.getDefaultValue('clipAngle')"
+          :label="t('projectionParams.clipAngle')"
+          :control="clipAngleControl"
+          @update:model-value="(value: number) => handleParameterChange('clipAngle', value)"
+        />
 
-        <template v-if="hasPrecisionParameter && precisionRange">
-          <RangeSlider
-            :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
-            :label="t('projectionParams.precision')"
-            icon="ri-focus-3-line"
-            size="xs"
-            :min="precisionRange.min"
-            :max="precisionRange.max"
-            :step="precisionRange.step"
-            @update:model-value="(value: number) => handleParameterChange('precision', value)"
-          />
-        </template>
+        <ParameterInput
+          v-if="hasPrecisionParameter && precisionControl"
+          :model-value="effectiveParameters.precision ?? parameterRegistry.getDefaultValue('precision')"
+          :label="t('projectionParams.precision')"
+          :control="precisionControl"
+          @update:model-value="(value: number) => handleParameterChange('precision', value)"
+        />
       </div>
     </template>
 

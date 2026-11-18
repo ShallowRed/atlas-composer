@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ProjectionFamily } from '@/core/projections/types'
-import { parameterRegistry } from '../index'
+import { CANVAS_LENGTH_CONTROL, parameterRegistry, REFERENCE_SCALE_CONTROL } from '../index'
 
 // A numeric parameter has a number or an array of numbers as default value
 function axisCount(defaultValue: unknown): number | null {
@@ -39,6 +40,11 @@ describe('control of each axis of a parameter', () => {
     })
   })
 
+  it.each(numericAxes.filter(({ count }) => count === 1))('excludes the minimum of $key for the family $family', ({ key, family }) => {
+    const { min, minExclusive } = parameterRegistry.get(key)!.familyConstraints![family]!
+    expect(min === undefined || minExclusive).toBe(true)
+  })
+
   it('gives the control of a parameter that the family declares without using it', () => {
     expect(parameterRegistry.getAxisControls('center', 'CONIC')).toHaveLength(2)
   })
@@ -50,5 +56,47 @@ describe('control of each axis of a parameter', () => {
   it('wraps the longitudes and the roll', () => {
     const cyclic = parameterRegistry.getAxisControls('rotate', 'CONIC')!.map(control => control.domain.cyclic ?? false)
     expect(cyclic).toEqual([true, false, true])
+  })
+})
+
+const definitions = JSON.parse(readFileSync('packages/specification/schemas/definitions.schema.json', 'utf8')).definitions
+const composite = JSON.parse(readFileSync('packages/specification/schemas/composite-projection.schema.json', 'utf8'))
+
+interface SchemaBounds {
+  minimum?: number
+  exclusiveMinimum?: number
+  maximum?: number
+}
+
+// The domain lies inside the bounds of the specification
+function expectInside(domain: { min: number, max: number, minExclusive?: boolean }, bounds: SchemaBounds) {
+  const lowest = bounds.exclusiveMinimum ?? bounds.minimum
+  if (lowest !== undefined) {
+    expect(domain.min).toBeGreaterThanOrEqual(lowest)
+    if (bounds.exclusiveMinimum !== undefined && domain.min === lowest) {
+      expect(domain.minExclusive).toBe(true)
+    }
+  }
+  expect(domain.max).toBeLessThanOrEqual(bounds.maximum ?? Number.POSITIVE_INFINITY)
+}
+
+describe('domains and the specification', () => {
+  it.each(['scaleMultiplier', 'clipAngle', 'precision'])('keeps %s inside the bounds of the specification, its minimum excluded', (key) => {
+    const [{ domain }] = parameterRegistry.getAxisControls(key, 'AZIMUTHAL')!
+    expectInside(domain, definitions.projectionParameters.properties[key])
+    expect(domain.minExclusive).toBe(true)
+  })
+
+  it('keeps the canvas inside the bounds of the specification', () => {
+    expectInside(CANVAS_LENGTH_CONTROL.domain, definitions.canvasDimensions.properties.width)
+    expectInside(CANVAS_LENGTH_CONTROL.domain, definitions.canvasDimensions.properties.height)
+  })
+
+  it('keeps the reference scale inside the bounds of the specification', () => {
+    expectInside(REFERENCE_SCALE_CONTROL.domain, composite.properties.referenceScale)
+  })
+
+  it.each(['scaleMultiplier', 'clipAngle', 'precision'])('refuses %s at zero', (key) => {
+    expect(parameterRegistry.validate(key, 0, 'AZIMUTHAL').ok).toBe(false)
   })
 })

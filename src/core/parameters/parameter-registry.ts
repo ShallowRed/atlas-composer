@@ -7,7 +7,7 @@ import { err, ok } from '@/core/types/result'
 interface ParameterConstraint {
   min?: number | number[]
   max?: number | number[]
-  step?: number
+  minExclusive?: boolean
   relevant?: boolean
   required?: boolean
 }
@@ -17,7 +17,8 @@ export interface FamilyConstraint {
   required: boolean
   min?: number | number[]
   max?: number | number[]
-  step?: number
+  // The minimum is excluded, as the zero of a ratio
+  minExclusive?: boolean
   validate?: (value: any) => Result<void, ParameterIssue>
 }
 
@@ -125,7 +126,7 @@ class ParameterRegistry {
         required: familyConstraint.required,
         min: familyConstraint.min,
         max: familyConstraint.max,
-        step: familyConstraint.step,
+        minExclusive: familyConstraint.minExclusive,
       }
     }
 
@@ -140,12 +141,13 @@ class ParameterRegistry {
       return undefined
     }
 
-    const { min, max } = familyConstraint
+    const { min, max, minExclusive } = familyConstraint
     return def.controls.map(({ cyclic, ...control }, axis) => ({
       ...control,
       domain: {
         min: Array.isArray(min) ? min[axis] as number : min,
         max: Array.isArray(max) ? max[axis] as number : max,
+        ...(minExclusive ? { minExclusive } : {}),
         ...(cyclic ? { cyclic } : {}),
       },
     }))
@@ -201,8 +203,9 @@ class ParameterRegistry {
       return err({ code: 'PARAMETER_NOT_NUMBER', parameter })
     }
 
-    if (constraints.min !== undefined && value < (constraints.min as number)) {
-      return err({ code: 'PARAMETER_TOO_SMALL', parameter, min: constraints.min as number })
+    // The minimum of a number parameter is exclusive, as parameter-controls.spec.ts checks
+    if (constraints.min !== undefined && value <= (constraints.min as number)) {
+      return err({ code: 'PARAMETER_NOT_ABOVE', parameter, min: constraints.min as number })
     }
 
     if (constraints.max !== undefined && value > (constraints.max as number)) {
