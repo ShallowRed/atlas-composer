@@ -1,3 +1,4 @@
+export { BASEMAP_CACHE_DIRECTORY, CACHED_PIXEL_RATIOS, FINGERPRINT_ATTRIBUTE } from './cache'
 export { basemapFingerprint } from './fingerprint'
 export type { PlaceLabel } from './labels'
 export { labelsToDraw } from './labels'

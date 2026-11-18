@@ -32,7 +32,7 @@ export const BASEMAP_SOURCE_DEFINITIONS = {
     maxZoom: 12,
     encoding: 'terrarium',
     attributionSummary: 'Terrain Tiles on AWS',
-    attribution: 'Terrain Tiles on AWS: USGS 3DEP, SRTM and GMTED2010; NOAA ETOPO1; Copernicus EU-DEM; ©\u00A0Kartverket; ©\u00A0LINZ, Crown copyright; ©\u00A0Commonwealth of Australia (Geoscience Australia); Open Government Licence – Canada; INEGI; ©\u00A0offene Daten Österreichs (DGM Österreich); ©\u00A0Environment Agency; ArcticDEM (NSF, DigitalGlobe)',
+    attribution: 'Relief shaded and reprojected from Terrain Tiles on AWS: USGS 3DEP, SRTM and GMTED2010; NOAA ETOPO1; Copernicus EU-DEM; ©\u00A0Kartverket; ©\u00A0LINZ, Crown copyright; ©\u00A0Commonwealth of Australia (Geoscience Australia); Open Government Licence – Canada; INEGI; ©\u00A0offene Daten Österreichs (DGM Österreich); ©\u00A0Environment Agency; ArcticDEM (NSF, DigitalGlobe)',
   },
   imagery: {
     kind: 'raster',

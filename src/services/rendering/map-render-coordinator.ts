@@ -5,6 +5,7 @@ import type { CompositeRenderOptions, RenderedMap, SimpleRenderOptions } from '@
 import type { TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { Territory, ViewMode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import { FINGERPRINT_ATTRIBUTE } from '@/core/basemap'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 import { MapOverlayService } from '@/services/rendering/map-overlay-service'
 
@@ -136,7 +137,7 @@ export class MapRenderCoordinator {
       const { x, y, width, height } = svg.viewBox.baseVal
       const image = MapRenderCoordinator.basemapImage(url, [x, y, width, height])
       if (options.fingerprint) {
-        image.setAttribute('data-basemap-fingerprint', options.fingerprint)
+        image.setAttribute(FINGERPRINT_ATTRIBUTE, options.fingerprint)
       }
       group.append(image)
       // A browser paints an image that it has not decoded yet as empty: the previous content stays under it until then

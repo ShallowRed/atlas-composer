@@ -6,7 +6,7 @@ import { VectorTile } from '@mapbox/vector-tile'
 import { geoPath } from 'd3-geo'
 import { decode as decodePng } from 'fast-png'
 import { PbfReader } from 'pbf'
-import { BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, sampleTiles, shadeTile, terrariumElevations, tilePositions, zoomForFrame } from '@/core/basemap'
+import { BASEMAP_CACHE_DIRECTORY, BASEMAP_SOURCE_DEFINITIONS, coverFrame, labelsToDraw, sampleTiles, shadeTile, terrariumElevations, tilePositions, zoomForFrame } from '@/core/basemap'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 
@@ -96,7 +96,7 @@ const shadedTiles = new TileCache<Uint8ClampedArray>(RELIEF_CACHE_BYTES)
 const tileJsonTemplates = new Map<string, Promise<string | null>>()
 
 // The images of the basemaps of the initial views, rendered at deployment
-const CACHE_DIRECTORY = `basemaps/${import.meta.env.VITE_BASEMAP_BUILD_ID ?? 'dev'}`
+const CACHE_DIRECTORY = `${BASEMAP_CACHE_DIRECTORY}/${import.meta.env.VITE_BASEMAP_BUILD_ID ?? 'dev'}`
 const FINGERPRINT_PATTERN = /^[a-z0-9-]+$/
 let cachedFingerprints: Promise<Set<string>> | null = null
 
