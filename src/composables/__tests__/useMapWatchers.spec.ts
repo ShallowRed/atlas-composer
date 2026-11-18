@@ -43,9 +43,9 @@ describe('useMapWatchers', () => {
     const uiStore = useUIStore()
     const callbacks = watchMap()
 
-    uiStore.basemap = 'relief'
-    await nextTick()
     uiStore.basemap = 'none'
+    await nextTick()
+    uiStore.basemap = 'relief'
     await nextTick()
 
     expect(callbacks.onDependenciesChange).toHaveBeenCalledTimes(2)
