@@ -43,6 +43,7 @@ const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
   'norway': { 'NO-MAIN': 1 },
   'portugal': { 'PT-30': 2 },
   'south-africa': {},
+  'south-west-indian-ocean': { MU: 2, SC: 8 },
   'spain': { 'ES-CONT': 3 },
   'usa': { 'US-ALEU': 2, 'US-HI': 6, 'US-AS': 4, 'US-MP': 3 },
 }
