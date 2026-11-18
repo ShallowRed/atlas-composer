@@ -791,63 +791,6 @@
       ]
     },
     {
-      "id": "south-west-indian-ocean",
-      "name": {
-        "en": "South-West Indian Ocean",
-        "fr": "Sud-ouest de l'océan Indien"
-      },
-      "group": "region",
-      "sortOrder": 120,
-      "configPath": "./atlases/south-west-indian-ocean.json",
-      "presets": [
-        {
-          "id": "south-west-indian-ocean-standard",
-          "name": {
-            "en": "Default custom composite",
-            "fr": "Composite personnalisée par défaut"
-          },
-          "type": "composite-custom",
-          "isDefault": true,
-          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-standard.json",
-          "description": {
-            "en": "Custom configuration for Madagascar, the Comoros, Mauritius, Seychelles, Réunion and Mayotte",
-            "fr": "Configuration personnalisée pour Madagascar, les Comores, Maurice, les Seychelles, La Réunion et Mayotte"
-          }
-        },
-        {
-          "id": "south-west-indian-ocean-unified",
-          "name": {
-            "en": "Standard unified view",
-            "fr": "Vue unifiée standard"
-          },
-          "type": "unified",
-          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-unified.json",
-          "description": {
-            "en": "Natural Earth projection centered on the South-West Indian Ocean",
-            "fr": "Projection Natural Earth centrée sur le sud-ouest de l'océan Indien"
-          }
-        },
-        {
-          "id": "south-west-indian-ocean-split",
-          "name": {
-            "en": "Uniform split view",
-            "fr": "Vue séparée uniforme"
-          },
-          "type": "split",
-          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-split.json",
-          "description": {
-            "en": "Same Mercator projection for all territories",
-            "fr": "Même projection de Mercator pour tous les territoires"
-          }
-        }
-      ],
-      "behavior": {
-        "collectionSets": {
-          "territoryScope": "scope"
-        }
-      }
-    },
-    {
       "id": "europe",
       "name": {
         "en": "Europe",
@@ -947,6 +890,63 @@
           "description": {
             "en": "Same conformal conic projection for all territories",
             "fr": "Même projection conique conforme pour tous les territoires"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {
+          "territoryScope": "scope"
+        }
+      }
+    },
+    {
+      "id": "south-west-indian-ocean",
+      "name": {
+        "en": "South-West Indian Ocean",
+        "fr": "Sud-ouest de l'océan Indien"
+      },
+      "group": "region",
+      "sortOrder": 120,
+      "configPath": "./atlases/south-west-indian-ocean.json",
+      "presets": [
+        {
+          "id": "south-west-indian-ocean-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-standard.json",
+          "description": {
+            "en": "Custom configuration for Madagascar, the Comoros, Mauritius, Seychelles, Réunion and Mayotte",
+            "fr": "Configuration personnalisée pour Madagascar, les Comores, Maurice, les Seychelles, La Réunion et Mayotte"
+          }
+        },
+        {
+          "id": "south-west-indian-ocean-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on the South-West Indian Ocean",
+            "fr": "Projection Natural Earth centrée sur le sud-ouest de l'océan Indien"
+          }
+        },
+        {
+          "id": "south-west-indian-ocean-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/south-west-indian-ocean/south-west-indian-ocean-split.json",
+          "description": {
+            "en": "Same Mercator projection for all territories",
+            "fr": "Même projection de Mercator pour tous les territoires"
           }
         }
       ],
