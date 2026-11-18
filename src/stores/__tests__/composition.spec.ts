@@ -776,7 +776,7 @@ describe('composition store', () => {
         presetId: 'france-unified',
         issues: [
           { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' },
-          { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'scaleMultiplier', min: 0.01 },
+          { code: 'PRESET_PARAMETER_NOT_ABOVE', territory: null, parameter: 'scaleMultiplier', min: 0 },
         ],
       }))
 
@@ -787,7 +787,7 @@ describe('composition store', () => {
         presetId: 'france-unified',
         issues: [
           { code: 'PRESET_PROJECTION_UNKNOWN', territory: null, projectionId: 'flat-earth' },
-          { code: 'PRESET_PARAMETER_TOO_SMALL', territory: null, parameter: 'scaleMultiplier', min: 0.01 },
+          { code: 'PRESET_PARAMETER_NOT_ABOVE', territory: null, parameter: 'scaleMultiplier', min: 0 },
         ],
       }))
     })

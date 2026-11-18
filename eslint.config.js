@@ -106,11 +106,6 @@ const SELECTION_WRITES = [
   message: 'The atlas and the view mode change through selectAtlas and selectViewMode of src/stores/composition.ts.',
 }))
 
-const RANGE_SLIDER_LITERALS = {
-  selector: 'VElement[rawName=\'RangeSlider\'] > VStartTag > VAttribute[directive=true][key.name.name=\'bind\'][key.argument.name=/^(min|max|step)$/][value.expression.type=/^(Literal|UnaryExpression)$/]',
-  message: 'The range of a slider comes from the parameter registry: read getNumberRange or getTupleRanges of src/stores/parameters.ts.',
-}
-
 const MERCATOR_LITERAL = {
   selector: 'Literal[value=\'mercator\']',
   message: 'The fallback projection is FALLBACK_PROJECTION_ID of src/core/projections/defaults.ts.',
@@ -256,11 +251,6 @@ export default antfu({
   rules: {
     'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, PRESET_COMPARISON],
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
-  },
-}, {
-  files: ['src/components/ui/parameters/TerritoryParameterControls.vue', 'src/components/ui/projections/ProjectionParamsControls.vue'],
-  rules: {
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, RANGE_SLIDER_LITERALS],
   },
 }, {
   files: ['src/core/projections/**'],

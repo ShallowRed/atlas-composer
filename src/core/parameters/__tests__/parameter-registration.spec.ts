@@ -13,7 +13,7 @@ describe('parameter registration system', () => {
   it.each(Object.values(ProjectionFamily))('bounds the values of a shared link for the family %s', (family) => {
     expect(parameterRegistry.validate('rotate', [0, 9999, 0], family).ok).toBe(false)
     expect(parameterRegistry.validate('rotate', [0, 45, 0], family).ok).toBe(true)
-    expect(parameterRegistry.validate('scaleMultiplier', 1e300, family).ok).toBe(false)
+    expect(parameterRegistry.validate('scaleMultiplier', 0, family).ok).toBe(false)
     expect(parameterRegistry.validate('scaleMultiplier', 1.5, family).ok).toBe(true)
     expect(parameterRegistry.validate('translateOffset', [1e308, 0], family).ok).toBe(false)
     expect(parameterRegistry.validate('translateOffset', [526.44, -320], family).ok).toBe(true)
@@ -135,7 +135,7 @@ describe('parameter registration system', () => {
       const validMult = parameterRegistry.validate('scaleMultiplier', 1.5, 'CYLINDRICAL')
       expect(validMult.ok).toBe(true)
 
-      const invalidMult = parameterRegistry.validate('scaleMultiplier', 15, 'CYLINDRICAL')
+      const invalidMult = parameterRegistry.validate('scaleMultiplier', 0, 'CYLINDRICAL')
       expect(invalidMult.ok).toBe(false)
 
       expect(() => parameterRegistry.validate('baseScale', 2700, 'CYLINDRICAL')).toThrow('Unknown parameter')

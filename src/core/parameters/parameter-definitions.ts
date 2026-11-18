@@ -10,7 +10,8 @@ import { err, ok } from '@/core/types/result'
 const POSITIONED_FAMILIES = ['CYLINDRICAL', 'PSEUDOCYLINDRICAL', 'CONIC', 'AZIMUTHAL'] as const
 const OTHER_FAMILIES = ['POLYHEDRAL', 'POLYCONIC', 'MISCELLANEOUS'] as const
 
-const TRANSLATE_OFFSET_LIMIT = 2000
+// The specification bounds neither the position nor the frame of a territory, in pixels of the canvas
+const PIXEL_LIMIT = 2000
 
 // Writings cover the decimals of the presets of configs/presets/
 const LONGITUDE: AxisControlSpec = { kind: 'longitude', cyclic: true, step: 0.1, format: { maximumFractionDigits: 3 }, symbol: '°', track: { scale: 'linear', min: -180, max: 180, detents: [0], ticks: [-180, 0, 180] } }
@@ -29,8 +30,8 @@ function validateTranslateOffset(value: any): Result<void, ParameterIssue> {
     return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'translateOffset' })
   }
   const [x, y] = value
-  if (x < -TRANSLATE_OFFSET_LIMIT || x > TRANSLATE_OFFSET_LIMIT || y < -TRANSLATE_OFFSET_LIMIT || y > TRANSLATE_OFFSET_LIMIT) {
-    return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'translateOffset', min: -TRANSLATE_OFFSET_LIMIT, max: TRANSLATE_OFFSET_LIMIT })
+  if (x < -PIXEL_LIMIT || x > PIXEL_LIMIT || y < -PIXEL_LIMIT || y > PIXEL_LIMIT) {
+    return err({ code: 'PARAMETER_OUT_OF_RANGE', parameter: 'translateOffset', min: -PIXEL_LIMIT, max: PIXEL_LIMIT })
   }
   return ok(undefined)
 }
@@ -62,7 +63,6 @@ export function registerAllParameters(): void {
     familyConstraints: positionConstraints('center', {
       min: [-180, -90],
       max: [180, 90],
-      step: 0.5,
     }),
   })
 
@@ -82,7 +82,6 @@ export function registerAllParameters(): void {
       ...positionConstraints('rotate', {
         min: [-180, -90, -180],
         max: [180, 90, 180],
-        step: 0.5,
       }),
       ...boundsOfOtherFamilies({ min: [-180, -90, -180], max: [180, 90, 180] }),
     },
@@ -114,7 +113,6 @@ export function registerAllParameters(): void {
         required: false,
         min: [-90, -90],
         max: [90, 90],
-        step: 1,
         validate: (value) => {
           if (!Array.isArray(value) || value.length !== 2) {
             return err({ code: 'PARAMETER_NOT_PAIR', parameter: 'parallels' })
@@ -152,32 +150,32 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true, // Used for user scale adjustments
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       CONIC: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       AZIMUTHAL: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
-      ...boundsOfOtherFamilies({ min: 0.01, max: 10, step: 0.01 }),
+      ...boundsOfOtherFamilies({ min: 0, max: Number.POSITIVE_INFINITY, minExclusive: true }),
     },
   })
 
@@ -197,9 +195,8 @@ export function registerAllParameters(): void {
       ...Object.fromEntries(POSITIONED_FAMILIES.map(family => [family, {
         relevant: true,
         required: false,
-        min: [-TRANSLATE_OFFSET_LIMIT, -TRANSLATE_OFFSET_LIMIT],
-        max: [TRANSLATE_OFFSET_LIMIT, TRANSLATE_OFFSET_LIMIT],
-        step: 5,
+        min: [-PIXEL_LIMIT, -PIXEL_LIMIT],
+        max: [PIXEL_LIMIT, PIXEL_LIMIT],
         validate: validateTranslateOffset,
       }])),
       ...boundsOfOtherFamilies({ validate: validateTranslateOffset }),
@@ -236,7 +233,7 @@ export function registerAllParameters(): void {
         required: false,
         min: 0,
         max: 180,
-        step: 1,
+        minExclusive: true,
       },
     },
   })
@@ -256,30 +253,30 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       CONIC: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
       AZIMUTHAL: {
         relevant: true,
         required: false,
-        min: 0.01,
-        max: 10,
-        step: 0.01,
+        min: 0,
+        max: Number.POSITIVE_INFINITY,
+        minExclusive: true,
       },
     },
   })
@@ -300,30 +297,26 @@ export function registerAllParameters(): void {
       CYLINDRICAL: {
         relevant: true,
         required: false,
-        min: [-500, -500, -500, -500],
-        max: [500, 500, 500, 500],
-        step: 10,
+        min: [-PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT],
+        max: [PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT],
       },
       PSEUDOCYLINDRICAL: {
         relevant: true,
         required: false,
-        min: [-500, -500, -500, -500],
-        max: [500, 500, 500, 500],
-        step: 10,
+        min: [-PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT],
+        max: [PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT],
       },
       CONIC: {
         relevant: true,
         required: false,
-        min: [-500, -500, -500, -500],
-        max: [500, 500, 500, 500],
-        step: 10,
+        min: [-PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT],
+        max: [PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT],
       },
       AZIMUTHAL: {
         relevant: true,
         required: false,
-        min: [-500, -500, -500, -500],
-        max: [500, 500, 500, 500],
-        step: 10,
+        min: [-PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT, -PIXEL_LIMIT],
+        max: [PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT, PIXEL_LIMIT],
       },
     },
   })

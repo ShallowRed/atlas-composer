@@ -46,7 +46,7 @@ export const ISSUE_MESSAGE_KEYS = {
   PRESET_PROJECTION_ID_INVALID: 'errors.presetIssue.projectionIdInvalid',
   PRESET_PROJECTION_UNKNOWN: 'errors.presetIssue.projectionUnknown',
   PRESET_PARAMETER_WRONG_LENGTH: 'errors.presetIssue.parameterWrongLength',
-  PRESET_PARAMETER_TOO_SMALL: 'errors.presetIssue.parameterTooSmall',
+  PRESET_PARAMETER_NOT_ABOVE: 'errors.presetIssue.parameterNotAbove',
   PRESET_PARAMETER_TOO_LARGE: 'errors.presetIssue.parameterTooLarge',
 } as const satisfies Record<PresetIssue['code'], MessageKey>
 
@@ -56,7 +56,7 @@ export const PARAMETER_ISSUE_MESSAGE_KEYS = {
   PARAMETER_NOT_PAIR: 'errors.parameterIssue.notPair',
   PARAMETER_NOT_PAIR_OR_TRIPLE: 'errors.parameterIssue.notPairOrTriple',
   PARAMETER_ITEMS_NOT_NUMBERS: 'errors.parameterIssue.itemsNotNumbers',
-  PARAMETER_TOO_SMALL: 'errors.presetIssue.parameterTooSmall',
+  PARAMETER_NOT_ABOVE: 'errors.presetIssue.parameterNotAbove',
   PARAMETER_TOO_LARGE: 'errors.presetIssue.parameterTooLarge',
   PARAMETER_ITEM_TOO_SMALL: 'errors.parameterIssue.itemTooSmall',
   PARAMETER_ITEM_TOO_LARGE: 'errors.parameterIssue.itemTooLarge',

@@ -21,20 +21,6 @@ import { logger } from '@/utils/logger'
 
 const debug = logger.store.parameters
 
-interface AxisRange {
-  min: number
-  max: number
-  step?: number
-}
-
-type TupleParameter = 'rotate' | 'center' | 'parallels' | 'translateOffset' | 'pixelClipExtent'
-
-type TupleRanges<K extends TupleParameter> = K extends 'rotate'
-  ? [AxisRange, AxisRange, AxisRange]
-  : K extends 'pixelClipExtent'
-    ? [AxisRange, AxisRange, AxisRange, AxisRange]
-    : [AxisRange, AxisRange]
-
 export const useParameterStore = defineStore('parameters', () => {
   const parameterManager = new ProjectionParameterManager()
 
@@ -163,24 +149,10 @@ export const useParameterStore = defineStore('parameters', () => {
           required: familyConstraints.required,
           min: familyConstraints.min,
           max: familyConstraints.max,
-          step: familyConstraints.step,
         }
         return acc
       }, {} as any),
     }
-  }
-
-  // Bounds of each axis, whether or not the parameter is relevant for the family
-  function getTupleRanges<K extends TupleParameter>(family: ProjectionFamilyType, key: K): TupleRanges<K> | undefined {
-    const { min, max, step } = parameterRegistry.getConstraintsForFamily(key, family)
-    if (!Array.isArray(min) || !Array.isArray(max))
-      return undefined
-    return min.map((axisMin, axis) => ({ min: axisMin, max: max[axis] as number, step })) as TupleRanges<K>
-  }
-
-  function getNumberRange(family: ProjectionFamilyType, key: keyof ProjectionParameters): AxisRange | undefined {
-    const { min, max, step } = parameterRegistry.getConstraintsForFamily(key as string, family)
-    return typeof min === 'number' && typeof max === 'number' ? { min, max, step } : undefined
   }
 
   function getAxisControls(family: ProjectionFamilyType, key: keyof ProjectionParameters): AxisControl[] | undefined {
@@ -243,8 +215,6 @@ export const useParameterStore = defineStore('parameters', () => {
     validateTerritoryParameters,
 
     getParameterConstraints,
-    getTupleRanges,
-    getNumberRange,
     getAxisControls,
 
     getExportableParameters,

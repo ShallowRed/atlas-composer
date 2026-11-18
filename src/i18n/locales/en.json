@@ -78,7 +78,6 @@
     "grabToMove": "Click and drag to move territory",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Projection parameters",
       "layout": "Layout",
       "view": "View & scale",
       "noRelevantParameters": "No adjustable parameters",
@@ -153,20 +152,24 @@
     "precision": "Precision",
     "reset": "Reset",
     "info": "Adjust projection parameters to customize the view. These controls override the default atlas settings.",
-    "noParams": "This projection type doesn't have adjustable parameters in unified mode."
+    "noParams": "This projection type doesn't have adjustable parameters in unified mode.",
+    "center": "Center",
+    "frame": "Clip frame",
+    "parallelsRule": "At one sixth of the band",
+    "cylindricalParallels": "With φ₁ = −φ₂, d3 draws a cylindrical projection."
   },
   "projectionControls": {
     "global": {
       "title": "Global Projection Settings",
       "description": "These settings control the ideal display size and base scale for your composite projection. Canvas dimensions set the SVG viewport size, while reference scale controls the zoom level of all territories.",
-      "canvasDimensions": "Canvas Dimensions",
+      "canvasDimensions": "Canvas dimensions",
       "canvasWidth": "Canvas Width",
       "canvasHeight": "Canvas Height",
-      "lockAspectRatio": "Lock aspect ratio",
+      "lockAspectRatio": "Lock the aspect ratio",
       "referenceScale": "Reference Scale",
-      "scaleValue": "Scale Value",
       "scaleWarning": "Changing the reference scale will affect all territories. Individual territory scale multipliers are preserved.",
-      "resetToDefaults": "Reset to Defaults"
+      "resetToDefaults": "Reset to Defaults",
+      "unlockAspectRatio": "Unlock the aspect ratio"
     }
   },
   "clipExtent": {
@@ -520,7 +523,7 @@
       "projectionIdInvalid": "The projection identifier is invalid",
       "projectionUnknown": "Unknown projection: {projectionId}",
       "parameterWrongLength": "The parameter {parameter} must have {expected} values",
-      "parameterTooSmall": "The parameter {parameter} must be at least {min}",
+      "parameterNotAbove": "The parameter {parameter} must be greater than {min}",
       "parameterTooLarge": "The parameter {parameter} must be at most {max}"
     },
     "parameterIssue": {

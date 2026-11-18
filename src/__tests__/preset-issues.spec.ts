@@ -82,15 +82,26 @@ const CASES = {
     run: () => unifiedIssues({ rotate: [1, 2] }),
     expected: { code: 'PRESET_PARAMETER_WRONG_LENGTH', ...NO_TERRITORY, parameter: 'rotate', expected: 3 },
   },
-  PRESET_PARAMETER_TOO_SMALL: {
+  PRESET_PARAMETER_NOT_ABOVE: {
     run: () => unifiedIssues({ scaleMultiplier: 0 }),
-    expected: { code: 'PRESET_PARAMETER_TOO_SMALL', ...NO_TERRITORY, parameter: 'scaleMultiplier', min: 0.01 },
+    expected: { code: 'PRESET_PARAMETER_NOT_ABOVE', ...NO_TERRITORY, parameter: 'scaleMultiplier', min: 0 },
   },
   PRESET_PARAMETER_TOO_LARGE: {
-    run: () => unifiedIssues({ scaleMultiplier: 11 }),
-    expected: { code: 'PRESET_PARAMETER_TOO_LARGE', ...NO_TERRITORY, parameter: 'scaleMultiplier', max: 10 },
+    run: () => viewIssues({ type: 'unified', config: { projection: { id: 'azimuthal-equal-area', parameters: { clipAngle: 200 } } } }),
+    expected: { code: 'PRESET_PARAMETER_TOO_LARGE', ...NO_TERRITORY, parameter: 'clipAngle', max: 180 },
   },
 } satisfies { [C in PresetIssue['code']]: IssueCase<C> }
+
+describe('domains of the parameters of a view preset', () => {
+  it('accepts a scale factor beyond 10, which the specification allows', () => {
+    expect(unifiedIssues({ scaleMultiplier: 12 })).toEqual([])
+  })
+
+  it('refuses a clip angle of zero, which turns the circular clip off in d3', () => {
+    expect(viewIssues({ type: 'unified', config: { projection: { id: 'azimuthal-equal-area', parameters: { clipAngle: 0 } } } }))
+      .toContainEqual({ code: 'PRESET_PARAMETER_NOT_ABOVE', ...NO_TERRITORY, parameter: 'clipAngle', min: 0 })
+  })
+})
 
 describe('preset issues', () => {
   it.each(Object.values(CASES))('$expected.code is produced by its rule', ({ run, expected }) => {
@@ -105,7 +116,7 @@ describe('preset issues', () => {
 
     expect(viewIssues({ type: 'split', config: { territories } })).toEqual([
       { code: 'PRESET_PROJECTION_UNKNOWN', territory: 'FR-MET', projectionId: 'flat-earth' },
-      { code: 'PRESET_PARAMETER_TOO_SMALL', territory: 'FR-GP', parameter: 'scaleMultiplier', min: 0.01 },
+      { code: 'PRESET_PARAMETER_NOT_ABOVE', territory: 'FR-GP', parameter: 'scaleMultiplier', min: 0 },
     ])
   })
 })

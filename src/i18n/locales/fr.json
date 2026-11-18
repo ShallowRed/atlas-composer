@@ -78,7 +78,6 @@
     "grabToMove": "Cliquer et glisser pour déplacer le territoire",
     "parameters": {
       "position": "Position",
-      "projectionSpecific": "Paramètres de la projection",
       "layout": "Mise en page",
       "view": "Paramètres de la vue",
       "noRelevantParameters": "Aucun paramètre ajustable",
@@ -153,7 +152,11 @@
     "precision": "Précision",
     "reset": "Réinitialiser",
     "info": "Ajustez les paramètres de projection pour personnaliser la vue. Ces contrôles remplacent les paramètres par défaut de l'atlas.",
-    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié."
+    "noParams": "Ce type de projection n'a pas de paramètres ajustables en mode unifié.",
+    "center": "Centre",
+    "frame": "Cadre de découpe",
+    "parallelsRule": "Au sixième de la bande",
+    "cylindricalParallels": "Avec φ₁ = −φ₂, d3 dessine une projection cylindrique."
   },
   "projectionControls": {
     "global": {
@@ -162,11 +165,11 @@
       "canvasDimensions": "Dimensions du canevas",
       "canvasWidth": "Largeur du canevas",
       "canvasHeight": "Hauteur du canevas",
-      "lockAspectRatio": "Verrouiller le ratio d'aspect",
+      "lockAspectRatio": "Verrouiller les proportions",
       "referenceScale": "Échelle de référence",
-      "scaleValue": "Échelle de Référence",
       "scaleWarning": "Modifier l'échelle de référence affectera tous les territoires. Les multiplicateurs d'échelle individuels sont préservés.",
-      "resetToDefaults": "Réinitialiser"
+      "resetToDefaults": "Réinitialiser",
+      "unlockAspectRatio": "Déverrouiller les proportions"
     }
   },
   "clipExtent": {
@@ -525,7 +528,7 @@
       "projectionIdInvalid": "L'identifiant de la projection est invalide",
       "projectionUnknown": "Projection inconnue : {projectionId}",
       "parameterWrongLength": "Le paramètre {parameter} doit avoir {expected} valeurs",
-      "parameterTooSmall": "Le paramètre {parameter} doit valoir au moins {min}",
+      "parameterNotAbove": "Le paramètre {parameter} doit valoir plus de {min}",
       "parameterTooLarge": "Le paramètre {parameter} doit valoir au plus {max}"
     },
     "parameterIssue": {

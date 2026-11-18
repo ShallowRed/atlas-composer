@@ -48,8 +48,9 @@ export function checkProjectionParameters(
       }
     }
     else if (paramDef.type === 'number') {
-      if (typeof constraints.min === 'number' && value < constraints.min) {
-        issues.push({ code: 'PRESET_PARAMETER_TOO_SMALL', territory, parameter, min: constraints.min })
+      // The minimum of a number parameter is exclusive, as parameter-controls.spec.ts checks
+      if (typeof constraints.min === 'number' && value <= constraints.min) {
+        issues.push({ code: 'PRESET_PARAMETER_NOT_ABOVE', territory, parameter, min: constraints.min })
       }
       if (typeof constraints.max === 'number' && value > constraints.max) {
         issues.push({ code: 'PRESET_PARAMETER_TOO_LARGE', territory, parameter, max: constraints.max })

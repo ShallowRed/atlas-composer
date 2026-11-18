@@ -14,14 +14,14 @@ describe('parameterValidationFeedback', () => {
     i18n.global.locale.value = 'fr'
     const wrapper = mount(ParameterValidationFeedback, {
       props: { issues: [
-        { code: 'PARAMETER_TOO_SMALL', parameter: 'scaleMultiplier', min: 0.01 },
+        { code: 'PARAMETER_NOT_ABOVE', parameter: 'scaleMultiplier', min: 0 },
         { code: 'PARAMETER_NOT_PAIR', parameter: 'center' },
       ] },
       global: { plugins: [i18n] },
     })
 
     expect(wrapper.findAll('li').map(item => item.text())).toEqual([
-      'Le paramètre scaleMultiplier doit valoir au moins 0.01',
+      'Le paramètre scaleMultiplier doit valoir plus de 0',
       'Le paramètre center doit avoir 2 nombres',
     ])
   })
