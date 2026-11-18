@@ -22,16 +22,17 @@ export interface CompositionBorder {
   point: [number, number]
 }
 
-// A frame of the composition and its territories: several territories share a frame when their frames have one rectangle
+// A frame of the composition and its territories: several territories share a frame when their frames have the same rectangle
 export interface FrameOfTerritories {
   rect: CanvasRect
-  territoryCodes: string[]
+  territoryCodes: [string, ...string[]]
 }
 
-// The shape of a territory as the map draws it, null when the map draws nothing of it
+// The box of the shape of a territory as the map draws it, null when the map draws nothing of it, and whether the shape holds the point
 export interface TerritoryShape {
   territoryCode: string
   rect: CanvasRect | null
+  holdsPoint: boolean
 }
 
 // Edges of the frame relative to the point of its territory, as pixelClipExtent holds them
@@ -74,14 +75,17 @@ export function framesOfTerritories(borders: readonly CompositionBorder[]): Fram
   return frames
 }
 
-// The territory whose shape is nearest to the point, at a distance of zero inside the box of the shape.
-// At an equal distance, the selected territory comes first, then the first in the order of the shapes.
-export function nearestTerritory([x, y]: [number, number], shapes: readonly TerritoryShape[], selectedCode?: string | null): string | undefined {
-  const distanceOf = ({ rect }: TerritoryShape) => rect
-    ? Math.hypot(Math.max(rect.left - x, 0, x - rect.right), Math.max(rect.top - y, 0, y - rect.bottom))
-    : Number.POSITIVE_INFINITY
-  let nearest = shapes[0]
-  let nearestDistance = nearest ? distanceOf(nearest) : Number.POSITIVE_INFINITY
+// The territory whose shape holds the point, otherwise the territory whose box is nearest to the point.
+// At an equal rank, the selected territory comes first, then the first in the order of the shapes.
+export function nearestTerritory([x, y]: [number, number], shapes: readonly [TerritoryShape, ...TerritoryShape[]], selectedCode?: string | null): string {
+  // A shape that holds the point comes before every box
+  const distanceOf = ({ rect, holdsPoint }: TerritoryShape) => holdsPoint
+    ? -1
+    : rect
+      ? Math.hypot(Math.max(rect.left - x, 0, x - rect.right), Math.max(rect.top - y, 0, y - rect.bottom))
+      : Number.POSITIVE_INFINITY
+  let [nearest] = shapes
+  let nearestDistance = distanceOf(nearest)
   for (const shape of shapes.slice(1)) {
     const distance = distanceOf(shape)
     if (distance < nearestDistance || (distance === nearestDistance && shape.territoryCode === selectedCode)) {
@@ -89,7 +93,7 @@ export function nearestTerritory([x, y]: [number, number], shapes: readonly Terr
       nearestDistance = distance
     }
   }
-  return nearest?.territoryCode
+  return nearest.territoryCode
 }
 
 // The part of the frame inside the canvas, or null when it is empty or has no area

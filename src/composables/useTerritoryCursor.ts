@@ -42,20 +42,20 @@ export function useTerritoryCursor({ container }: TerritoryCursorOptions) {
     SelectionOverlayService.drawHover(svg, rect, SelectionOverlayService.canvasUnitOf(svg))
   }
 
-  // The territory of the frame under the pointer; a frame that several territories share gives it to the one whose shape is nearest
+  // The territory of the frame under the pointer; in a frame that several territories share, the territory whose shape is nearest to the pointer
   function territoryUnderPointer(event: PointerEvent): TerritoryCode | null {
     const overlay = (event.target as Element | null)?.closest?.('.border-zone-overlay')
     const svg = overlay?.closest('svg')
     if (!overlay || !svg) {
       return null
     }
-    const { territoryCodes } = select<Element, FrameOfTerritories>(overlay).datum()
-    if (territoryCodes.length === 1) {
-      return territoryCodes[0] as TerritoryCode
+    const [first, ...others] = select<Element, FrameOfTerritories>(overlay).datum().territoryCodes
+    if (others.length === 0) {
+      return first as TerritoryCode
     }
     const point = SelectionOverlayService.canvasPointOf(svg, event.clientX, event.clientY)
-    const shapes = territoryCodes.map(code => SelectionOverlayService.shapeOf(svg, code))
-    return (nearestTerritory(point, shapes, selectedTerritory.value?.code) ?? territoryCodes[0]) as TerritoryCode
+    const shapeOf = (code: string) => SelectionOverlayService.shapeOf(svg, code, point)
+    return nearestTerritory(point, [shapeOf(first), ...others.map(shapeOf)], selectedTerritory.value?.code) as TerritoryCode
   }
 
   // The position of a territory whose family declares it, as the panel shows its fields
