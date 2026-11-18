@@ -791,6 +791,58 @@
       ]
     },
     {
+      "id": "europe",
+      "name": {
+        "en": "Europe",
+        "fr": "Europe"
+      },
+      "group": "region",
+      "sortOrder": 100,
+      "configPath": "./atlases/europe.json",
+      "presets": [
+        {
+          "id": "europe-builtin",
+          "name": {
+            "en": "d3 composite projection",
+            "fr": "Projection composite d3"
+          },
+          "type": "built-in-composite",
+          "isDefault": true,
+          "configPath": "./presets/europe/europe-builtin.json",
+          "description": {
+            "en": "Predefined composite projection from d3-composite-projections",
+            "fr": "Projection composite prédéfinie de d3-composite-projections"
+          }
+        },
+        {
+          "id": "europe-unified",
+          "name": {
+            "en": "Unified view",
+            "fr": "Vue unifiée"
+          },
+          "type": "unified",
+          "configPath": "./presets/europe/europe-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Europe",
+            "fr": "Projection Natural Earth centrée sur l'Europe"
+          }
+        },
+        {
+          "id": "europe-split",
+          "name": {
+            "en": "Split view",
+            "fr": "Vue séparée"
+          },
+          "type": "split",
+          "configPath": "./presets/europe/europe-split.json",
+          "description": {
+            "en": "Conformal conic projection for all European territories",
+            "fr": "Projection conique conforme pour tous les territoires européens"
+          }
+        }
+      ]
+    },
+    {
       "id": "south-west-indian-ocean",
       "name": {
         "en": "South-West Indian Ocean",
@@ -846,58 +898,6 @@
           "territoryScope": "scope"
         }
       }
-    },
-    {
-      "id": "europe",
-      "name": {
-        "en": "Europe",
-        "fr": "Europe"
-      },
-      "group": "region",
-      "sortOrder": 100,
-      "configPath": "./atlases/europe.json",
-      "presets": [
-        {
-          "id": "europe-builtin",
-          "name": {
-            "en": "d3 composite projection",
-            "fr": "Projection composite d3"
-          },
-          "type": "built-in-composite",
-          "isDefault": true,
-          "configPath": "./presets/europe/europe-builtin.json",
-          "description": {
-            "en": "Predefined composite projection from d3-composite-projections",
-            "fr": "Projection composite prédéfinie de d3-composite-projections"
-          }
-        },
-        {
-          "id": "europe-unified",
-          "name": {
-            "en": "Unified view",
-            "fr": "Vue unifiée"
-          },
-          "type": "unified",
-          "configPath": "./presets/europe/europe-unified.json",
-          "description": {
-            "en": "Natural Earth projection centered on Europe",
-            "fr": "Projection Natural Earth centrée sur l'Europe"
-          }
-        },
-        {
-          "id": "europe-split",
-          "name": {
-            "en": "Split view",
-            "fr": "Vue séparée"
-          },
-          "type": "split",
-          "configPath": "./presets/europe/europe-split.json",
-          "description": {
-            "en": "Conformal conic projection for all European territories",
-            "fr": "Projection conique conforme pour tous les territoires européens"
-          }
-        }
-      ]
     },
     {
       "id": "world",
