@@ -51,6 +51,5 @@ export function createBackendConfig(unifiedConfig: JSONAtlasConfig): BackendConf
     name: typeof unifiedConfig.name === 'string' ? unifiedConfig.name : unifiedConfig.name.en,
     description: typeof unifiedConfig.description === 'string' ? unifiedConfig.description : unifiedConfig.description.en,
     territories,
-    outputName: unifiedConfig.id,
   }
 }

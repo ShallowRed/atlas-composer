@@ -311,7 +311,7 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const resolution = getResolution(args, RULES_RESOLUTION)
+  const resolution = getResolution(args, () => RULES_RESOLUTION)
   await analyzeCountry(countryId, resolution)
 }
 

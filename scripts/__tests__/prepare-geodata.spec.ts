@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { geoContains } from 'd3-geo'
 import { feature } from 'topojson-client'
 import { describe, expect, it } from 'vitest'
+import { loadConfig } from '#scripts/config/loader'
 import { prepareAtlasData, toTopology } from '#scripts/geodata/prepare'
 import { readWorldData } from '#scripts/utils/ne-data'
 
@@ -36,7 +37,7 @@ const PREPARED_ATLASES = [
 
 async function prepare(atlas: string, resolution: '10m' | '50m' | '110m') {
   const ruleTopology = resolution === '10m' ? await readWorldData('50m') : undefined
-  return prepareAtlasData(atlas, await readWorldData(resolution), { resolution, created: '', ruleTopology })
+  return prepareAtlasData(await loadConfig(atlas), await readWorldData(resolution), { resolution, created: '', ruleTopology })
 }
 
 describe('prepareAtlasData', () => {

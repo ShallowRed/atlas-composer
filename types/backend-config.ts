@@ -27,5 +27,4 @@ export interface BackendConfig {
   name: string
   description: string
   territories: Record<string, BackendTerritory>
-  outputName?: string
 }

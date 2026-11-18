@@ -50,7 +50,7 @@ export function parseArgs(): ParsedArgs {
   return parsed
 }
 
-export function getResolution(args: ParsedArgs, fallback: Resolution): Resolution {
+export function getResolution(args: ParsedArgs, fallback: () => Resolution): Resolution {
   if (args.resolution) {
     return args.resolution
   }
@@ -60,7 +60,7 @@ export function getResolution(args: ParsedArgs, fallback: Resolution): Resolutio
     return envResolution
   }
 
-  return fallback
+  return fallback()
 }
 
 export function showHelp(
