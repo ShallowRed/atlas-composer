@@ -18,7 +18,7 @@ export const useUIStore = defineStore('ui', () => {
   const showCompositionBorders = ref(true)
   const showMapLimits = ref(true)
   // A display preference, outside the shared link and the exported configuration
-  const basemap = ref<BasemapSource>('none')
+  const basemap = ref<BasemapSource>('relief')
   // Without a basemap, the territories are filled; over a basemap, only their outline is drawn
   const fillTerritories = computed(() => basemap.value === 'none')
 
