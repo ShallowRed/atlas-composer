@@ -60,6 +60,8 @@ The application and its tests resolve a package through the `exports` field of i
 
 Between two renders of the same basemap, `useMapRender` places the previous image on the new map as soon as the map is drawn, and the new image replaces it when it arrives. `provisionalPlacements` of `src/core/frames/` places it frame by frame: `frameMapping` checks that the projection of a frame changed by a scale and a translation only, and a frame whose projection changed otherwise shows no image until the new one.
 
+The deployment renders the relief of the initial view of each atlas at the pixel ratios 1, 2 and 3, as [development.md](development.md) describes. `basemapFingerprint` of `src/core/basemap/fingerprint.ts` sums up what the image of a raster basemap depends on: the source, the size of the canvas, the pixel ratio and, frame by frame in the order of the render, the extent and the position on the globe of a grid of points. Before it draws a raster basemap, `useMapRender` asks `cachedBasemap` of `basemap-renderer.ts` for the image of that fingerprint, at the next whole pixel ratio; `cachedBasemap` reads the index `basemaps/<build>/index.json` once per page and returns the image once decoded, or `null`, and the map then draws its basemap. The build, `VITE_BASEMAP_BUILD_ID`, keeps the images of two deployments apart. `MapRenderCoordinator.insertBasemap` gives `data-basemap-fingerprint` to a complete image only: a cached image, or the final pass without a missing tile.
+
 The Content Security Policy of the built page admits the hosts of these tiles, as [development.md](development.md) describes.
 
 ## Examples
