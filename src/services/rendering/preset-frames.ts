@@ -15,7 +15,7 @@ export function projectionLoader(): ProjectionLoader {
 export function presetFrames(config: CompositeProjectionConfig): ProjectionFrame[] {
   const { width, height } = config.canvasDimensions
   const subProjections = projectionLoader().createSubProjections(config, { scale: config.referenceScale, translate: [width / 2, height / 2] })
-  // The sub-projections of the loader are d3 projections, whose ProjectionLike type lacks members that invert and geoPath do not call
+  // The sub-projections of the loader are d3 projections; a ProjectionFrame types its projection as GeoProjection, which ProjectionLike does not declare in full
   return [...subProjections].map(([code, projection]) => ({
     code,
     projection: projection as unknown as GeoProjection,
