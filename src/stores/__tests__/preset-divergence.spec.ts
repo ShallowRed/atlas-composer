@@ -233,7 +233,18 @@ describe('difference with the preset values', () => {
       useCompositionStore().resetTransforms()
 
       expect(territoriesDiffer()).toBe(false)
-      expect(useParameterStore().getTerritoryParameters(code)).toEqual({ translateOffset: [0, 0], scaleMultiplier: 1 })
+    })
+
+    it('gives a territory outside the preset the same values after the reset of all territories as after its own reset', async () => {
+      const code = await addOutsidePreset()
+      changeRotation(code)
+      useCompositionStore().resetTerritoryToDefaults(code)
+      const ownReset = useParameterStore().getTerritoryParameters(code)
+      changeRotation(code)
+
+      useCompositionStore().resetTransforms()
+
+      expect(useParameterStore().getTerritoryParameters(code)).toEqual(ownReset)
     })
 
     it('shows no difference after the reset of all territories in the split view', async () => {

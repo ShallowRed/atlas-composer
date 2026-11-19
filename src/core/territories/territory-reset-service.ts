@@ -30,18 +30,20 @@ export function defaultTerritoryParameters(center: [number, number]): Projection
 
 export class TerritoryResetService {
   static calculateBulkReset(params: {
-    territories: Pick<TerritoryConfig, 'code'>[]
+    territories: Pick<TerritoryConfig, 'code' | 'center'>[]
     presetParameters?: PresetParameters
   }): BulkResetOperation {
     const { territories, presetParameters = {} } = params
     const presetCodes = Object.keys(presetParameters) as TerritoryCode[]
+    const centers = new Map(territories.map(({ code, center }) => [code, center]))
     const outsidePreset = territories.map(({ code }) => code).filter(code => !presetCodes.includes(code))
 
     return {
-      operations: [
-        ...presetCodes.map(territoryCode => ({ territoryCode, parameters: referenceParameters(presetParameters[territoryCode]) })),
-        ...outsidePreset.map(territoryCode => ({ territoryCode, parameters: referenceParameters() })),
-      ],
+      operations: [...presetCodes, ...outsidePreset].map(territoryCode => TerritoryResetService.calculateTerritoryReset({
+        territoryCode,
+        presetParameters,
+        territoryCenter: () => centers.get(territoryCode)!,
+      })),
       activeTerritories: presetCodes.length > 0 ? presetCodes : undefined,
     }
   }
