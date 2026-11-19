@@ -408,6 +408,12 @@ importers:
 
   packages/projection-core:
     devDependencies:
+      '@types/d3-geo':
+        specifier: ^3.1.1
+        version: 3.1.1
+      d3-geo:
+        specifier: ^3.1.2
+        version: 3.1.2
       tsup:
         specifier: ^9.0.0
         version: 9.0.0(jiti@2.7.0)(postcss@8.5.32)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.1)
