@@ -1,5 +1,4 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { GeoProjection } from 'd3-geo'
 import type { GeometryCollection, GeometryObject, Topology } from 'topojson-specification'
 import type { ExampleDefinition, ExampleMap } from '@/core/examples'
 import { geoPath } from 'd3-geo'
@@ -16,8 +15,7 @@ function groupOf(entity: GeometryObject): string | undefined {
 // The examples draw the composite of a preset through the published loader, as a reuser of the preset does
 export function renderExampleMap(config: CompositeProjectionConfig, topology: Topology, example: ExampleDefinition): ExampleMap {
   const { width, height } = config.canvasDimensions
-  // The CompositeProjectionLike of the loader lacks members of the d3 GeoProjection type, which geoPath does not call
-  const path = geoPath(projectionLoader().load(config, { width, height }) as unknown as GeoProjection)
+  const path = geoPath(projectionLoader().load(config, { width, height }))
 
   const entities = topology.objects.entities as GeometryCollection<EntityProperties>
   const features = feature(topology, entities).features.flatMap((entity) => {
