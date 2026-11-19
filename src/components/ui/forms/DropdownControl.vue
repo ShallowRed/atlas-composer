@@ -55,7 +55,10 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
-const anchor = `--dropdown-${useId()}`
+const id = useId()
+const anchor = `--dropdown-${id}`
+const labelId = `dropdown-label-${id}`
+const optionIdPrefix = `dropdown-option-${id}`
 const buttonComponentRef = ref<InstanceType<typeof DropdownButton> | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
@@ -262,7 +265,7 @@ function handleOptionKeyDown(event: KeyboardEvent, value: string) {
 }
 
 function getOptionId(index: number): string {
-  return `dropdown-option-${index}`
+  return `${optionIdPrefix}-${index}`
 }
 
 watch(focusedIndex, (newIndex) => {
@@ -316,6 +319,7 @@ watch(focusedIndex, (newIndex) => {
       :aria-label="label"
       :inline="true"
       :anchor="anchor"
+      :option-id-prefix="optionIdPrefix"
       :focused-index="focusedIndex"
       :size="size"
       @select="selectOption"
@@ -329,7 +333,7 @@ watch(focusedIndex, (newIndex) => {
     class="flex flex-col"
   >
     <label
-      id="dropdown-label"
+      :id="labelId"
       class="label font-medium text-sm mb-2"
       :class="{ 'sr-only': hideLabel }"
     >
@@ -353,7 +357,7 @@ watch(focusedIndex, (newIndex) => {
         :disabled="disabled"
         :selected-option="selectedOption ?? null"
         :aria-expanded="isOpen"
-        aria-labelledby="dropdown-label"
+        :aria-labelledby="labelId"
         :aria-activedescendant="focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined"
         @click="isOpen ? closeDropdown() : openDropdown()"
         @keydown="handleKeyDown"
@@ -365,8 +369,9 @@ watch(focusedIndex, (newIndex) => {
         :option-groups="optionGroups"
         :is-open="isOpen"
         :local-value="localValue"
-        aria-labelledby="dropdown-label"
+        :aria-labelledby="labelId"
         :anchor="anchor"
+        :option-id-prefix="optionIdPrefix"
         :focused-index="focusedIndex"
         @select="selectOption"
         @keydown="handleOptionKeyDown"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownOption } from './DropdownControl.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DropdownOptionIcon from './DropdownOptionIcon.vue'
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   showBadge: true,
 })
+
+const { t } = useI18n()
 
 const isBadgeIcon = computed(() => {
   return props.selectedOption?.badge?.startsWith('ri-')
@@ -45,6 +48,6 @@ const badgeClasses = computed(() => {
     v-else
     class="text-base-content/50"
   >
-    Select...
+    {{ t('common.select') }}
   </span>
 </template>
