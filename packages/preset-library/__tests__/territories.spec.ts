@@ -32,6 +32,7 @@ function naturalEarth10m() {
 
 // The polygons of Natural Earth 10m without counterpart at 50m, farther than 50 km and outside the bounds of their territory
 const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
+  'brazil': {},
   'chile': { 'CL-JF': 3, 'CL-IP': 1 },
   'ecuador': { 'EC-W': 5 },
   'europe': { 'IT': 2, 'PT-30': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 2, 'GB': 3 },
@@ -44,6 +45,11 @@ const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
   'south-africa': {},
   'spain': { 'ES-CONT': 3 },
   'usa': { 'US-ALEU': 2, 'US-HI': 6, 'US-AS': 4, 'US-MP': 3 },
+}
+
+// The territories whose islands Natural Earth draws at 10m only
+const DRAWN_AT_10M_ONLY: Record<string, string[]> = {
+  brazil: ['BR-FN', 'BR-SPP', 'BR-TMV'],
 }
 
 const registry = JSON.parse(readFileSync('configs/atlas-registry.json', 'utf8')) as { atlases: Array<{ id: string, configPath: string }> }
@@ -75,8 +81,9 @@ describe('buildTerritories', () => {
     const { collection } = buildTerritories(config, naturalEarth(config.territories === '*' ? '110m' : '50m'))
 
     if (config.territories !== '*') {
+      const drawnAt10mOnly = DRAWN_AT_10M_ONLY[id] ?? []
       expect(collection.features.map(territory => territory.properties.code).sort())
-        .toEqual(config.territories.map(territory => territory.code).sort())
+        .toEqual(config.territories.map(territory => territory.code).filter(code => !drawnAt10mOnly.includes(code)).sort())
     }
     for (const territory of collection.features) {
       expect(geoArea(territory)).toBeLessThanOrEqual(2 * Math.PI)
@@ -100,11 +107,12 @@ describe('buildTerritories', () => {
       const at50m = buildTerritories(config, naturalEarth('50m')).collection.features
       const { collection } = buildTerritories(config, naturalEarth10m())
 
-      expect(collection.features.map(territory => territory.properties.code).sort()).toEqual(at50m.map(territory => territory.properties.code).sort())
+      expect(collection.features.map(territory => territory.properties.code).sort()).toEqual(territories.map(territory => territory.code).sort())
       for (const territory of collection.features) {
         const [[west, south], [east, north]] = geoBounds(territory)
-        const [[west50, south50], [east50, north50]] = geoBounds(at50m.find(candidate => candidate.properties.code === territory.properties.code)!)
         const [[minLon, minLat], [maxLon, maxLat]] = territories.find(candidate => candidate.code === territory.properties.code)!.bounds as number[][]
+        const territoryAt50m = at50m.find(candidate => candidate.properties.code === territory.properties.code)
+        const [[west50, south50], [east50, north50]] = territoryAt50m ? geoBounds(territoryAt50m) : [[minLon!, minLat!], [maxLon!, maxLat!]]
         // 50 km is 0.45° of latitude, and 1° of longitude at 64° of latitude
         expect(south, territory.properties.code).toBeGreaterThanOrEqual(Math.min(south50, minLat!) - 0.5)
         expect(north, territory.properties.code).toBeLessThanOrEqual(Math.max(north50, maxLat!) + 0.5)
@@ -135,6 +143,27 @@ describe('buildTerritories', () => {
       const { collection } = buildTerritories(config, source)
 
       expect(collection.features[0]!.geometry.coordinates).toEqual([[square(1, 1, false)]])
+    })
+
+    it('gives an island without counterpart at 50m to the territory whose bounds contain it, which 50m leaves out', () => {
+      const config = {
+        territories: [
+          { id: '1', code: 'MAIN', name: 'Main', iso: 'MAI', bounds: [[0, 0], [10, 10]] },
+          { id: '1-I', code: 'ISLAND', name: 'Island', iso: 'MAI', bounds: [[30, 30], [31, 31]], extraction: { extractFrom: '1' } },
+        ],
+      }
+      const island = [[30.2, 30.2], [30.2, 30.3], [30.3, 30.3], [30.3, 30.2], [30.2, 30.2]]
+      const features50m = [country([square(1, 1, false), square(3, 3, false)])]
+      const source = createNaturalEarthSource([country([square(1, 1, false), square(3, 3, false), island])], '10m', features50m)
+
+      const { collection, leftOutPolygons, emptyTerritories } = buildTerritories(config, source)
+      const at50m = buildTerritories(config, createNaturalEarthSource(features50m, '50m'))
+
+      expect(collection.features.find(territory => territory.properties.code === 'ISLAND')?.geometry.coordinates).toEqual([[island]])
+      expect(leftOutPolygons).toEqual([])
+      expect(emptyTerritories).toEqual([])
+      expect(at50m.collection.features.map(territory => territory.properties.code)).toEqual(['MAIN'])
+      expect(at50m.emptyTerritories).toEqual(['ISLAND'])
     })
 
     it('attaches an islet without counterpart at 50m to the territory of the nearest polygon', () => {

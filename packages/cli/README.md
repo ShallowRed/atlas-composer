@@ -16,9 +16,9 @@ npm install @atlas-composer/cli
 npx atlas-composer territories france > france.geojson
 ```
 
-`territories <atlas>` writes to the standard output a GeoJSON `FeatureCollection` with one feature per territory of the atlas, in longitudes and latitudes. Each feature has the `id`, the `code`, the `name` and the `iso` of its territory in `properties`. The rings follow RFC 7946: exterior rings counterclockwise, and a ring that crosses the antimeridian cut in two. At `50m`, GEOS reads each geometry as valid; at `10m` and `110m`, some rings of Natural Earth cross themselves and GEOS reads their geometries as invalid: `ogr2ogr -makevalid` repairs them.
+`territories <atlas>` writes to the standard output a GeoJSON `FeatureCollection` with one feature per territory of the atlas, in longitudes and latitudes. At `50m` and `110m`, a territory without `polygonIndices` whose islands Natural Earth draws at `10m` only has no feature, and the command names it on the standard error: BR-FN, BR-SPP and BR-TMV of `brazil`. Each feature has the `id`, the `code`, the `name` and the `iso` of its territory in `properties`. The rings follow RFC 7946: exterior rings counterclockwise, and a ring that crosses the antimeridian cut in two. At `50m`, GEOS reads each geometry as valid; at `10m` and `110m`, some rings of Natural Earth cross themselves and GEOS reads their geometries as invalid: `ogr2ogr -makevalid` repairs them.
 
-- `--resolution 10m|50m|110m` chooses the Natural Earth resolution, `50m` by default. The extraction rules of the atlases count the polygons of a country in the `50m` topology: at `10m` and `110m`, each polygon goes to the territory of the `50m` polygon that contains it or is nearest, and a polygon that Natural Earth draws at this resolution only, farther than 50 km and outside the bounds of its territory, is left out.
+- `--resolution 10m|50m|110m` chooses the Natural Earth resolution, `50m` by default. The extraction rules of the atlases count the polygons of a country in the `50m` topology: at `10m` and `110m`, each polygon goes to the territory of the `50m` polygon that contains its centroid or, without one, to the first territory without `polygonIndices` whose bounds contain the polygon, or else to the territory of the `50m` polygon with the nearest vertex. A polygon of the last case farther than 50 km from the nearest `50m` polygon and outside the bounds of its territory is left out.
 - `--data <file>` reads the geometries from a JSON file of GeoJSON features, each with the code of a territory of the atlas in `properties.code`, in place of Natural Earth.
 
 ## Territories placed in a composite projection
@@ -32,7 +32,7 @@ npx atlas-composer compose france-standard --out france-standard.geojson
 - `france-standard.geojson`, a GeoJSON `FeatureCollection` of the placed territories;
 - `france-standard.geojson.json`, with the `canvasDimensions` and the `referenceScale` of the composition, the codes of the territories that the preset leaves out in `skippedCodes`, and the codes of the territories that their frame clips entirely in `emptyCodes`.
 
-`compose <file.json>` reads a configuration exported from the Atlas Composer app, for the atlas that its `metadata.atlasId` names. `--data <file>` reads the geometries as for `territories`; without it, `compose` reads Natural Earth at the resolution of `--resolution`, `50m` by default.
+`compose <file.json>` reads a configuration exported from the Atlas Composer app, for the atlas that its `metadata.atlasId` names. `--data <file>` reads the geometries as for `territories`; without it, `compose` reads Natural Earth at the resolution of `--resolution`, `50m` by default, and names on the standard error the territories without polygon at this resolution, as `territories` does.
 
 ### Coordinates of the composed file
 
