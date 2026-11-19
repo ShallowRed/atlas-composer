@@ -2,6 +2,7 @@ import type { AtlasId } from '@/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { getAtlasSpecificConfig } from '@/core/atlases/registry'
 import { err } from '@/core/types/result'
 import { useAtlasStore } from '@/stores/atlas'
 
@@ -39,6 +40,21 @@ describe('atlas store', () => {
     await atlasStore.loadAtlas(PORTUGAL)
 
     expect(atlasStore.currentAtlasConfig?.id).toBe(PORTUGAL)
+  })
+
+  it('gives the collections of the selected atlas once its configuration is loaded', async () => {
+    const atlasStore = useAtlasStore()
+    atlasStore.selectedAtlasId = FRANCE
+    await atlasStore.loadAtlas(FRANCE)
+    const franceCollections = atlasStore.territoryCollections
+
+    atlasStore.selectedAtlasId = PORTUGAL
+    const beforeLoad = atlasStore.territoryCollections
+    await atlasStore.loadAtlas(PORTUGAL)
+
+    expect(franceCollections).toEqual(getAtlasSpecificConfig(FRANCE).territoryCollections)
+    expect(beforeLoad).toBeUndefined()
+    expect(atlasStore.territoryCollections).toEqual(getAtlasSpecificConfig(PORTUGAL).territoryCollections)
   })
 
   it('fails for an atlas that is not in the registry', async () => {

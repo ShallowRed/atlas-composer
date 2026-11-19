@@ -9,6 +9,7 @@ import { computed, ref, shallowRef } from 'vue'
 import {
   DEFAULT_ATLAS,
   getAtlasConfig,
+  getAtlasSpecificConfig,
   getLoadedConfig,
   isAtlasLoaded,
 } from '@/core/atlases/registry'
@@ -36,6 +37,11 @@ export const useAtlasStore = defineStore('atlas', () => {
   const territories = computed<TerritoryConfig[]>(() => {
     return atlasService.value.getAllTerritories()
   })
+
+  // The collections of the selected atlas once its configuration is loaded: the registry cache that holds them is not reactive
+  const territoryCollections = computed(() => currentAtlasConfig.value?.id === selectedAtlasId.value
+    ? getAtlasSpecificConfig(selectedAtlasId.value).territoryCollections
+    : undefined)
 
   const territoryModeOptions = computed(() => {
     return currentAtlasConfig.value?.territoryModeOptions ?? []
@@ -80,6 +86,7 @@ export const useAtlasStore = defineStore('atlas', () => {
     atlasService,
     territories,
     territoryCenter,
+    territoryCollections,
     territoryModeOptions,
 
     loadAtlas,
