@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useTerritoryNames } from '@/composables/useTerritoryNames'
-import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -43,15 +42,7 @@ const activeTerritoryCodesSet = computed(() => {
   return new Set(activeTerritories.value.map(t => t.code))
 })
 
-const atlasCollections = computed(() => {
-  const atlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(atlasId)) {
-    return undefined
-  }
-
-  const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
-  return atlasSpecificConfig.territoryCollections
-})
+const atlasCollections = computed(() => atlasStore.territoryCollections)
 
 const availableCollectionSets = computed(() => {
   const collections = atlasCollections.value
@@ -87,12 +78,6 @@ const collectionSetToDisplay = computed(() => {
 
 const territoryGroups = computed((): TerritoryGroup[] => {
   const collections = atlasCollections.value
-
-  const currentAtlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(currentAtlasId)) {
-    return []
-  }
-
   if (!collections) {
     return []
   }

@@ -10,7 +10,6 @@ import { useLocalizedName } from '@/composables/useLocalizedName'
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useTerritoryNames } from '@/composables/useTerritoryNames'
 import { useTerritoryVisibility } from '@/composables/useTerritoryVisibility'
-import { getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useProjectionStore } from '@/stores/projection'
@@ -31,15 +30,7 @@ const territoriesTitle = computed(() => {
   return atlasTitle && te(atlasTitle) ? atlasTitle : 'territory.territories'
 })
 
-const atlasCollections = computed(() => {
-  const atlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(atlasId)) {
-    return undefined
-  }
-
-  const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
-  return atlasSpecificConfig.territoryCollections
-})
+const atlasCollections = computed(() => atlasStore.territoryCollections)
 
 const defaultGrouping = useCollectionSet('territoryGroups', 'mutually-exclusive')
 
@@ -71,11 +62,6 @@ const groupingOptions = computed(() => {
 const territoryGroups = computed<Map<string, Territory[]>>(() => {
   const collections = atlasCollections.value
   const territories = geoDataStore.filteredTerritories
-
-  const currentAtlasId = atlasStore.selectedAtlasId
-  if (!isAtlasLoaded(currentAtlasId)) {
-    return new Map()
-  }
 
   if (!collections || !territories || territories.length === 0) {
     return new Map()

@@ -1,7 +1,7 @@
 import type { ComputedRef } from 'vue'
 import type { TerritoryCollections } from '@/types'
 import { computed } from 'vue'
-import { getAtlasBehavior, getAtlasSpecificConfig, isAtlasLoaded } from '@/core/atlases/registry'
+import { getAtlasBehavior } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { logger } from '@/utils/logger'
 
@@ -53,20 +53,11 @@ export function useCollectionSet(
   const atlasStore = useAtlasStore()
 
   return computed(() => {
-    const atlasId = atlasStore.selectedAtlasId
-
-    if (!isAtlasLoaded(atlasId)) {
-      return undefined
-    }
-
-    const atlasSpecificConfig = getAtlasSpecificConfig(atlasId)
-    const territoryCollections = atlasSpecificConfig.territoryCollections
-
     return getValidatedCollectionSetKey(
       uiLocation,
       requiredSelectionType,
-      atlasId,
-      territoryCollections,
+      atlasStore.selectedAtlasId,
+      atlasStore.territoryCollections,
     )
   })
 }
