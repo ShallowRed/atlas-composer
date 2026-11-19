@@ -1,0 +1,20 @@
+{
+  "id": "south-west-indian-ocean-unified",
+  "name": "South-West Indian Ocean - Standard unified view",
+  "description": "Natural Earth projection centered on the South-West Indian Ocean",
+  "atlasId": "south-west-indian-ocean",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -50,
+          14,
+          0
+        ],
+        "scale": 1
+      }
+    }
+  }
+}

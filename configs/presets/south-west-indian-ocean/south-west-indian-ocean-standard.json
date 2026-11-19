@@ -1,0 +1,239 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "south-west-indian-ocean",
+    "atlasName": "South-West Indian Ocean",
+    "exportDate": "2026-11-18T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 1500,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "KM",
+      "name": "Comoros",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            44.25,
+            -12.15
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -248,
+          -142
+        ],
+        "pixelClipExtent": [
+          -75,
+          -65,
+          75,
+          66
+        ]
+      },
+      "bounds": [
+        [
+          43.2,
+          -12.4
+        ],
+        [
+          44.6,
+          -11.3
+        ]
+      ]
+    },
+    {
+      "code": "FR-YT",
+      "name": "Mayotte",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            44.25,
+            -12.15
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -248,
+          -142
+        ],
+        "pixelClipExtent": [
+          -75,
+          -65,
+          75,
+          66
+        ]
+      },
+      "bounds": [
+        [
+          44.98,
+          -13
+        ],
+        [
+          45.3,
+          -12.64
+        ]
+      ]
+    },
+    {
+      "code": "MG",
+      "name": "Madagascar",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            46.9,
+            -18.8
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -16,
+          0
+        ],
+        "pixelClipExtent": [
+          -117,
+          -207,
+          117,
+          215
+        ]
+      },
+      "bounds": [
+        [
+          43.2,
+          -25.7
+        ],
+        [
+          50.6,
+          -11.9
+        ]
+      ]
+    },
+    {
+      "code": "MU",
+      "name": "Mauritius",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            56.55,
+            -20.65
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          232,
+          40
+        ],
+        "pixelClipExtent": [
+          -91,
+          -62,
+          91,
+          62
+        ]
+      },
+      "bounds": [
+        [
+          57.2,
+          -20.6
+        ],
+        [
+          57.9,
+          -19.9
+        ]
+      ]
+    },
+    {
+      "code": "FR-RE",
+      "name": "Réunion",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            56.55,
+            -20.65
+          ],
+          "scaleMultiplier": 2
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          232,
+          40
+        ],
+        "pixelClipExtent": [
+          -91,
+          -62,
+          91,
+          62
+        ]
+      },
+      "bounds": [
+        [
+          55.22,
+          -21.39
+        ],
+        [
+          55.87,
+          -20.87
+        ]
+      ]
+    },
+    {
+      "code": "SC",
+      "name": "Seychelles",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            55.6,
+            -4.55
+          ],
+          "scaleMultiplier": 4
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          232,
+          -150
+        ],
+        "pixelClipExtent": [
+          -62,
+          -57,
+          62,
+          57
+        ]
+      },
+      "bounds": [
+        [
+          55.2,
+          -4.9
+        ],
+        [
+          56,
+          -4.2
+        ]
+      ]
+    }
+  ]
+}
