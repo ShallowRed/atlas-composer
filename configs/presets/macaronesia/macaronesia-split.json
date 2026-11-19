@@ -1,0 +1,131 @@
+{
+  "id": "macaronesia-split",
+  "name": "Macaronesia - Uniform split view",
+  "description": "Same conformal conic projection for all territories",
+  "atlasId": "macaronesia",
+  "type": "split",
+  "config": {
+    "territories": {
+      "PT-20": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              28.15,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              38.33
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      },
+      "PT-30": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              16.76,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              32.8
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      },
+      "ES-CN": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              15.79,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              28.47
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      },
+      "CV": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              24.01,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              16
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      },
+      "PT-CONT": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              7.85,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              39.56
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      },
+      "ES-CONT": {
+        "projection": {
+          "id": "conic-conformal",
+          "parameters": {
+            "rotate": [
+              2.48,
+              0,
+              0
+            ],
+            "center": [
+              0,
+              39.82
+            ],
+            "parallels": [
+              20,
+              36
+            ]
+          }
+        }
+      }
+    }
+  }
+}
