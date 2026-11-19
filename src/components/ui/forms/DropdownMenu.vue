@@ -14,6 +14,8 @@ interface Props {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   // The anchor-name of the button that the menu opens next to
   anchor: string
+  // The identifier of an option is this prefix and its index, which aria-activedescendant of the button reads
+  optionIdPrefix: string
 }
 
 const props = defineProps<Props>()
@@ -24,7 +26,7 @@ const emit = defineEmits<{
 }>()
 
 function getOptionId(index: number): string {
-  return `dropdown-option-${index}`
+  return `${props.optionIdPrefix}-${index}`
 }
 
 function handleMenuClick(event: MouseEvent) {

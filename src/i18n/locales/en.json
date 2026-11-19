@@ -124,6 +124,7 @@
     "darkThemes": "Dark themes"
   },
   "common": {
+    "select": "Select…",
     "close": "Close",
     "cancel": "Cancel",
     "search": "Search",

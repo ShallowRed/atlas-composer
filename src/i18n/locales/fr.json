@@ -105,6 +105,7 @@
     "split": "Territoires séparés"
   },
   "common": {
+    "select": "Sélectionner…",
     "close": "Fermer",
     "cancel": "Annuler",
     "search": "Rechercher",

@@ -1,9 +1,14 @@
 import type { VueWrapper } from '@vue/test-utils'
 import type { DropdownOption, DropdownOptionGroup } from '../DropdownControl.vue'
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { nextTick } from 'vue'
+import i18n from '@/i18n'
 import DropdownControl from '../DropdownControl.vue'
+
+// DropdownSelectedOption translates its text in each of the mounts of this file; Vitest keeps this configuration inside the file
+config.global.plugins = [i18n]
+i18n.global.locale.value = 'en'
 
 // The menu is in the DOM while it is open
 const isOpen = (wrapper: VueWrapper<any>) => wrapper.find('[role="listbox"]').exists()
@@ -167,7 +172,7 @@ describe('dropdownControl', () => {
       })
 
       const button = wrapper.find('.btn')
-      expect(button.text()).toContain('Select...')
+      expect(button.text()).toContain('Select…')
     })
 
     it('should render option groups correctly', async () => {
@@ -624,9 +629,38 @@ describe('dropdownControl', () => {
         },
       })
 
-      const label = wrapper.find('#dropdown-label')
+      const label = wrapper.find(`#${wrapper.find('button').attributes('aria-labelledby')}`)
       expect(label.classes()).toContain('sr-only')
       expect(label.text()).toContain('test.label')
+    })
+
+    it('names each dropdown of a page by its own label', () => {
+      const page = mount({
+        components: { DropdownControl },
+        template: '<div><DropdownControl label="first" :options="options" model-value="option1" /><DropdownControl label="second" :options="options" model-value="option1" /></div>',
+        data: () => ({ options: defaultOptions }),
+      })
+      onTestFinished(() => page.unmount())
+
+      const names = page.findAll('button[aria-haspopup]').map(button => page.find(`#${button.attributes('aria-labelledby')}`).text())
+      expect(names).toEqual(['first', 'second'])
+    })
+
+    it('gives the options of each dropdown of a page their own identifiers', async () => {
+      const page = mount({
+        components: { DropdownControl },
+        template: '<div><DropdownControl label="first" :options="options" model-value="option1" /><DropdownControl label="second" :options="options" model-value="option1" /></div>',
+        data: () => ({ options: defaultOptions }),
+      })
+      onTestFinished(() => page.unmount())
+
+      const optionIds = []
+      for (const button of page.findAll('button[aria-haspopup]')) {
+        await button.trigger('click')
+        optionIds.push(...page.findAll('[role="option"]').map(option => option.attributes('id')))
+        await button.trigger('click')
+      }
+      expect(new Set(optionIds).size).toBe(defaultOptions.length * 2)
     })
 
     it('should have proper ARIA attributes on button', () => {
@@ -773,7 +807,7 @@ describe('dropdownControl', () => {
       })
 
       const button = wrapper.find('.btn')
-      expect(button.text()).toContain('Select...')
+      expect(button.text()).toContain('Select…')
     })
 
     it('should handle option groups with flat options', () => {
