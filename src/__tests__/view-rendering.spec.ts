@@ -1,8 +1,11 @@
 // Reference produced on commit afe1525, except the usa/composite-custom key, produced on the commit
 // "fix(registry): declare every preset of configs/presets once", the territories of the france/split key that the split
-// preset omits, produced on the commit "fix(view): write the preset values of each territory in the split view", and the
-// keys of each atlas added since, produced on the commit "feat(atlases): add the <atlas> atlas"; regenerate a key only
-// on the commit that produced it.
+// preset omits, produced on the commit "fix(view): write the preset values of each territory in the split view", the
+// NL-BQ1, NL-BQ2 and NL-BQ3 territories of the europe/split key, produced on the commit "fix(atlases): extract Bonaire,
+// Saba and Sint Eustatius from the Netherlands of the europe atlas", the NO-21 and NO-22 territories of the europe/split
+// key and the europe/unified key, produced on the commit "fix(atlases): extract Svalbard and Jan Mayen from Norway in the
+// europe atlas", and the keys of each atlas added since, produced on the commit "feat(atlases): add the <atlas> atlas";
+// regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
