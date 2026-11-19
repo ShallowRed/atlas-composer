@@ -1,6 +1,5 @@
 // @vitest-environment node
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { GeoProjection } from 'd3-geo'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
@@ -82,7 +81,7 @@ describe('neutral description', () => {
     expect(territories.length).toBeGreaterThan(0)
 
     for (const { code, pipeline, clip } of territories) {
-      const sub = subProjections.get(code) as unknown as GeoProjection
+      const sub = subProjections.get(code)!
       const [longitude, latitude] = sub.invert!([(clip[0][0] + clip[2][0]) / 2, (clip[0][1] + clip[2][1]) / 2])!
       const points = [-1, 0, 1].flatMap(dx => [-1, 0, 1].map((dy): [number, number] => [longitude + dx, latitude + dy]))
 
