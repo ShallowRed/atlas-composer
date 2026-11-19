@@ -1,4 +1,4 @@
-import type { CanvasRect, CompositionBorder, EdgesBeyond, FrameHandle, HandleIndex } from '@/core/positioning'
+import type { CanvasRect, CompositionBorder, EdgesBeyond, FrameHandle, HandleIndex, TerritoryShape } from '@/core/positioning'
 import { select } from 'd3'
 import { rectFromCorners } from '@/core/positioning'
 
@@ -52,6 +52,30 @@ export class SelectionOverlayService {
     const ctm = svg.getScreenCTM()
     const scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1
     return scale > 0 ? 1 / scale : 1
+  }
+
+  // The point of the canvas under a point of the screen
+  static canvasPointOf(svg: SVGSVGElement, clientX: number, clientY: number): [number, number] {
+    const ctm = svg.getScreenCTM()
+    const point = ctm ? new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse()) : { x: clientX, y: clientY }
+    return [point.x, point.y]
+  }
+
+  // The box of the shapes that the map draws for a territory, null when it draws none, and whether a shape holds the point of the canvas.
+  // The group of the territories has no transform: the coordinates of its paths are those of the canvas.
+  static shapeOf(svg: SVGSVGElement, code: string, [x, y]: [number, number]): TerritoryShape {
+    const paths = [...svg.querySelectorAll<SVGPathElement>('g.territories path[data-territory]')]
+      .filter(path => path.getAttribute('data-territory') === code && path.getAttribute('d'))
+    const boxes = paths.map(path => path.getBBox())
+    const rect = boxes.length > 0
+      ? {
+          left: Math.min(...boxes.map(box => box.x)),
+          top: Math.min(...boxes.map(box => box.y)),
+          right: Math.max(...boxes.map(box => box.x + box.width)),
+          bottom: Math.max(...boxes.map(box => box.y + box.height)),
+        }
+      : null
+    return { territoryCode: code, rect, holdsPoint: paths.some(path => path.isPointInFill(new DOMPoint(x, y))) }
   }
 
   // The frame of a territory as the map shows it, and the point of the territory that its pixelClipExtent is relative to

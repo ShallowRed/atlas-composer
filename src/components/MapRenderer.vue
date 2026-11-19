@@ -77,6 +77,7 @@ const {
   isDragging: _isDragging,
   moveLabel,
   createBorderZoneOverlays,
+  territoryUnderPointer,
   moveBy,
   cleanup: cleanupTerritoryCursor,
 } = useTerritoryCursor({ container: mapContainer })
@@ -254,7 +255,7 @@ watch(selectedTerritory, () => {
 function selectTerritoryUnderPointer(event: PointerEvent) {
   const target = event.target as Element
   // The map of one territory, in the split view, selects that territory
-  const territoryCode = target.getAttribute?.('data-territory') ?? props.territoryCode
+  const territoryCode = territoryUnderPointer(event) ?? target.getAttribute?.('data-territory') ?? props.territoryCode
   if (!isEditable.value) {
     if (territoryCode) {
       selectTerritory(territoryCode)

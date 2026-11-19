@@ -8,6 +8,8 @@ import { useViewStore } from '@/stores/view'
 import { useTerritoryCursor } from '../useTerritoryCursor'
 
 const GUIANA = 'FR-GF' as TerritoryCode
+const SAINT_MARTIN = 'FR-MF' as TerritoryCode
+const SAINT_BARTHELEMY = 'FR-BL' as TerritoryCode
 const FRAMES = { getCompositionBorders: () => [{ territoryCode: GUIANA, bounds: [[100, 300], [220, 460]] as [[number, number], [number, number]], point: [160, 410] as [number, number] }] }
 
 // An svg drawn at twice its size on the screen: one pixel of the screen is half a unit of the canvas
@@ -37,7 +39,7 @@ describe('useTerritoryCursor', () => {
     vi.unstubAllGlobals()
   })
 
-  function setup() {
+  function setup(frames = FRAMES) {
     const container = document.createElement('div')
     container.setPointerCapture = () => {}
     container.hasPointerCapture = () => true
@@ -45,8 +47,8 @@ describe('useTerritoryCursor', () => {
     document.body.append(container)
     const cursor = withSetup(() => useTerritoryCursor({ container: ref(container) }))
     const svg = drawnSvg(container)
-    cursor.createBorderZoneOverlays(svg, FRAMES)
-    return { container, cursor, overlay: svg.querySelector('.border-zone-overlay')! }
+    cursor.createBorderZoneOverlays(svg, frames)
+    return { container, cursor, svg, overlay: svg.querySelector('.border-zone-overlay')! }
   }
 
   it('moves the territory by the gesture over the scale read at its start, though the render replaces the svg', () => {
@@ -84,6 +86,61 @@ describe('useTerritoryCursor', () => {
     expect(cursor.moveLabel.value).toBe('X 10  Y 0')
     window.dispatchEvent(pointer('pointerup', 520, 400))
     expect(cursor.moveLabel.value).toBeNull()
+  })
+
+  // Saint Martin and Saint Barthélemy in one frame; a path holds the points of its box, or those of the box given as its fill
+  function sharedFrame(shapes: Record<string, { box: { x: number, y: number, width: number, height: number }, fill?: { x: number, y: number, width: number, height: number } }>) {
+    const bounds: [[number, number], [number, number]] = [[0, 0], [110, 54]]
+    const { cursor, svg } = setup({ getCompositionBorders: () => [SAINT_MARTIN, SAINT_BARTHELEMY].map(territoryCode => ({ territoryCode, bounds, point: [54, 21] as [number, number] })) })
+    svg.getScreenCTM = () => new DOMMatrix([2, 0, 0, 2, 0, 0])
+    const territories = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'g'))
+    territories.setAttribute('class', 'territories')
+    for (const [code, { box, fill = box }] of Object.entries(shapes)) {
+      const path = territories.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
+      path.setAttribute('data-territory', code)
+      path.setAttribute('d', 'M0,0')
+      path.getBBox = () => box as DOMRect
+      path.isPointInFill = ({ x = 0, y = 0 }: DOMPointInit = {}) => x >= fill.x && x <= fill.x + fill.width && y >= fill.y && y <= fill.y + fill.height
+    }
+    const overlays = svg.querySelectorAll('.border-zone-overlay')
+    function pick(clientX: number, clientY: number) {
+      const down = pointer('pointerdown', clientX, clientY)
+      overlays[0]!.dispatchEvent(down)
+      window.dispatchEvent(pointer('pointerup', clientX, clientY))
+      return cursor.territoryUnderPointer(down)
+    }
+    return { overlays, pick }
+  }
+
+  it('picks, in a frame that two territories share, the territory whose shape is nearest to the pointer', () => {
+    const { overlays, pick } = sharedFrame({
+      [SAINT_MARTIN]: { box: { x: 40, y: 15, width: 10, height: 10 } },
+      [SAINT_BARTHELEMY]: { box: { x: 70, y: 30, width: 8, height: 6 } },
+    })
+    const parameterStore = useParameterStore()
+    parameterStore.setTerritoryParameter(SAINT_MARTIN, 'translateOffset', [-324, -119])
+    parameterStore.setTerritoryParameter(SAINT_BARTHELEMY, 'translateOffset', [-324, -119])
+
+    expect(overlays).toHaveLength(1)
+    // On the screen, the shape of Saint Martin goes from (80, 30) to (100, 50), that of Saint Barthélemy from (140, 60) to (156, 72)
+    expect(pick(90, 40)).toBe(SAINT_MARTIN)
+    expect(pick(170, 80)).toBe(SAINT_BARTHELEMY)
+
+    overlays[0]!.dispatchEvent(pointer('pointerdown', 150, 66))
+    window.dispatchEvent(pointer('pointermove', 150, 86))
+    window.dispatchEvent(pointer('pointerup', 150, 86))
+    expect(parameterStore.getEffectiveParameters(SAINT_BARTHELEMY).translateOffset).toEqual([-324, -109])
+    expect(parameterStore.getEffectiveParameters(SAINT_MARTIN).translateOffset).toEqual([-324, -119])
+  })
+
+  it('picks the territory whose shape is under the pointer, though the box of the other territory contains its box', () => {
+    const { pick } = sharedFrame({
+      // The box of Saint Martin covers the frame, its shape the left of the frame
+      [SAINT_MARTIN]: { box: { x: 0, y: 0, width: 110, height: 54 }, fill: { x: 0, y: 0, width: 30, height: 54 } },
+      [SAINT_BARTHELEMY]: { box: { x: 70, y: 30, width: 8, height: 6 } },
+    })
+    expect(pick(150, 66)).toBe(SAINT_BARTHELEMY)
+    expect(pick(20, 20)).toBe(SAINT_MARTIN)
   })
 
   it('moves the territory by the arrows within the domain of the position', () => {
