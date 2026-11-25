@@ -19,13 +19,15 @@ export default defineConfig(env => ({
   build: {
     outDir,
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          // Split vendor chunks for better caching
-          'd3': ['d3', 'd3-geo', 'd3-geo-projection', 'd3-composite-projections'],
-          'vue-core': ['vue', 'vue-router', 'pinia'],
-          'geo-data': ['topojson-client'],
+        // Vendor chunks, which change less often than the application
+        codeSplitting: {
+          groups: [
+            { name: 'd3', test: /node_modules[\\/](d3|d3-[^\\/]+)[\\/]/ },
+            { name: 'vue-core', test: /node_modules[\\/](vue|@vue[\\/][^\\/]+|vue-router|pinia)[\\/]/ },
+            { name: 'geo-data', test: /node_modules[\\/]topojson-client[\\/]/ },
+          ],
         },
       },
     },
