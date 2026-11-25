@@ -4,7 +4,7 @@ import type {
   TerritoryResetOperation,
 } from './types'
 import type { TerritoryConfig } from '@/types'
-import type { TerritoryCode } from '@/types/branded'
+import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { parameterRegistry } from '@/core/parameters'
 import { convertPositioning } from '@/core/positioning'
@@ -22,10 +22,10 @@ export function referenceParameters(presetParameters?: Partial<ProjectionParamet
   }
 }
 
-// The parameters of a territory that the preset leaves out: the fallback projection, centered on the center of the territory
-export function defaultTerritoryParameters(center: [number, number]): ProjectionParameters {
-  const family = projectionRegistry.get(FALLBACK_PROJECTION_ID)!.family
-  return referenceParameters({ projectionId: FALLBACK_PROJECTION_ID, ...convertPositioning({ center }, family) })
+// The parameters of a territory in a projection centered on its center, the fallback projection unless another is given
+export function defaultTerritoryParameters(center: [number, number], projectionId: ProjectionId = FALLBACK_PROJECTION_ID): ProjectionParameters {
+  const family = projectionRegistry.get(projectionId)!.family
+  return referenceParameters({ projectionId, ...convertPositioning({ center }, family) })
 }
 
 export class TerritoryResetService {

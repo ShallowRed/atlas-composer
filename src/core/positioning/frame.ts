@@ -142,6 +142,11 @@ export function frameFromRect(rect: CanvasRect, [x, y]: [number, number]): Frame
   return [rect.left - x, rect.top - y, rect.right - x, rect.bottom - y]
 }
 
+// The rectangle of the canvas from edges relative to a point
+export function rectFromFrame([left, top, right, bottom]: FrameExtent, [x, y]: [number, number]): CanvasRect {
+  return { left: x + left, top: y + top, right: x + right, bottom: y + bottom }
+}
+
 const MOVED_EDGES: Record<HandleIndex, { x?: 0 | 2, y?: 1 | 3 }> = {
   0: { x: 0, y: 1 },
   1: { x: 2, y: 1 },

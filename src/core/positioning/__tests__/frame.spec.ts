@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parameterRegistry } from '@/core/parameters'
-import { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, framesOfTerritories, moveOffset, nearestTerritory, rectFromCorners, resizeFrame, visiblePart } from '../frame'
+import { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, framesOfTerritories, moveOffset, nearestTerritory, rectFromCorners, rectFromFrame, resizeFrame, visiblePart } from '../frame'
 
 const CANVAS = { width: 960, height: 500 }
 
@@ -49,6 +49,7 @@ describe('handles of a frame', () => {
 describe('frame relative to its territory', () => {
   it('reads the frame of a territory from the rectangle on the map', () => {
     expect(frameFromRect({ left: 100, top: 300, right: 220, bottom: 460 }, [160, 410])).toEqual([-60, -110, 60, 50])
+    expect(rectFromFrame([-60, -110, 60, 50], [160, 410])).toEqual({ left: 100, top: 300, right: 220, bottom: 460 })
   })
 })
 

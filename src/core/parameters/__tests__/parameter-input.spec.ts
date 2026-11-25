@@ -1,6 +1,6 @@
 import type { AxisControl } from '../index'
 import { describe, expect, it } from 'vitest'
-import { boundDomain, CANVAS_LENGTH_CONTROL, formatValue, isOutsideTrack, orderedPairLimits, parallelsForBand, parameterRegistry, parseValue, REFERENCE_SCALE_CONTROL, roundToFormat, roundToStep, stepFactor, stepValue, toDomain, trackScale, valueAtTrackPosition } from '../index'
+import { boundDomain, CANVAS_LENGTH_CONTROL, ceilToFormat, floorToFormat, formatValue, isOutsideTrack, orderedPairLimits, parallelsForBand, parameterRegistry, parseValue, REFERENCE_SCALE_CONTROL, roundToFormat, roundToStep, stepFactor, stepValue, toDomain, trackScale, valueAtTrackPosition } from '../index'
 
 const [longitude, latitude] = parameterRegistry.getAxisControls('center', 'CYLINDRICAL')!
 const [left] = parameterRegistry.getAxisControls('pixelClipExtent', 'CONIC')!
@@ -119,5 +119,26 @@ describe('track of an axis', () => {
 describe('standard parallels of a band', () => {
   it('places them at one sixth and five sixths of the band', () => {
     expect(parallelsForBand([41, 51])).toEqual([42.7, 49.3])
+  })
+
+  it('takes the edges rounded outward on a band too narrow for two distinct tenths, which the validation of a conic accepts', () => {
+    const parallels = parallelsForBand([18.04, 18.13])
+
+    expect(parallels).toEqual([18, 18.2])
+    expect(parameterRegistry.validate('parallels', parallels, 'CONIC').ok).toBe(true)
+  })
+})
+
+describe('rounding toward a direction at the precision of a format', () => {
+  it('rounds down and up to the fraction digits of a format, without the noise of the product', () => {
+    expect(floorToFormat(-378.805, { maximumFractionDigits: 2 })).toBe(-378.81)
+    expect(ceilToFormat(-378.805, { maximumFractionDigits: 2 })).toBe(-378.8)
+    expect(ceilToFormat(0.1 + 0.2, { maximumFractionDigits: 1 })).toBe(0.3)
+  })
+
+  it('rounds down and up to the significant digits of a format', () => {
+    expect(floorToFormat(18_934.7, { maximumSignificantDigits: 4 })).toBe(18_930)
+    expect(ceilToFormat(0.08637, { maximumSignificantDigits: 3 })).toBe(0.0864)
+    expect(floorToFormat(0, { maximumSignificantDigits: 3 })).toBe(0)
   })
 })

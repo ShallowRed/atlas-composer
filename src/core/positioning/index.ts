@@ -8,8 +8,10 @@ export {
 
 export { getDisplayedCenter, getDisplayedRotate, updatePositioningAxis } from './editing'
 
-export { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, framesOfTerritories, moveOffset, nearestTerritory, rectFromCorners, resizeFrame, visiblePart } from './frame'
+export { cornerHitSize, edgesBeyond, frameFromRect, frameHandles, framesOfTerritories, moveOffset, nearestTerritory, rectFromCorners, rectFromFrame, resizeFrame, visiblePart } from './frame'
 export type { CanvasRect, CompositionBorder, EdgesBeyond, FrameExtent, FrameHandle, FrameOfTerritories, HandleIndex, TerritoryShape } from './frame'
+
+export { subProjectionAnchor, subProjectionScale } from './placement'
 
 export {
   getDerivedParallels,

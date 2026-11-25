@@ -11,7 +11,7 @@ import type { ActiveTerritoryProvider } from '@/types/territory'
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
-import { applyPositioning, completeRotate } from '@/core/positioning'
+import { applyPositioning, completeRotate, subProjectionAnchor, subProjectionScale } from '@/core/positioning'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { projectionRegistry } from '@/core/projections/registry'
@@ -76,7 +76,7 @@ export class CompositeProjection {
       const { projection, projectionId } = this.createProjectionByType(parameters.projectionId)
       projection.translate([0, 0])
       applyPositioning(projection, parameters, 'composite', projectionId)
-      projection.scale(referenceScale * (parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')))
+      projection.scale(subProjectionScale(referenceScale, parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')))
 
       return [{
         territoryCode,
@@ -136,7 +136,7 @@ export class CompositeProjection {
   }
 
   private placeSubProjection({ territoryCode, projection, translateOffset, bounds }: SubProjectionConfig, width: number, height: number) {
-    const translate: [number, number] = [width / 2 + translateOffset[0], height / 2 + translateOffset[1]]
+    const translate = subProjectionAnchor({ width, height }, translateOffset)
     projection.translate(translate)
 
     const { clipAngle, precision, pixelClipExtent } = this.parameterProvider.getEffectiveParameters(territoryCode)

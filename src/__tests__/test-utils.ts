@@ -1,4 +1,4 @@
-import type { AtlasTerritoriesInput } from '@atlas-composer/preset-library'
+import type { AtlasTerritoriesInput, FeaturesInput } from '@atlas-composer/preset-library'
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Topology } from 'topojson-specification'
 import type { PresetType } from '#types'
@@ -94,15 +94,27 @@ export function readAtlasConfig<T>(atlasId: string): T {
 }
 
 const contoursByAtlas = new Map<string, TerritoryContours>()
+const countriesByResolution = new Map<string, FeaturesInput>()
 
-// The contours of an atlas at 50m, built from world-atlas by the function that pnpm geodata:prepare calls at 10m to write src/public/data, which is not versioned
-export function readAtlasContours(atlasId: string): TerritoryContours {
-  if (!contoursByAtlas.has(atlasId)) {
-    const atlas = readAtlasConfig<AtlasTerritoriesInput>(atlasId)
-    const topology = JSON.parse(readFileSync(createRequire(import.meta.url).resolve('world-atlas/countries-50m.json'), 'utf8')) as Topology
-    contoursByAtlas.set(atlasId, buildTerritories(atlas, createNaturalEarthSource(feature(topology, topology.objects.countries!), '50m')).collection)
+function readCountries(resolution: '10m' | '50m'): FeaturesInput {
+  if (!countriesByResolution.has(resolution)) {
+    const topology = JSON.parse(readFileSync(createRequire(import.meta.url).resolve(`world-atlas/countries-${resolution}.json`), 'utf8')) as Topology
+    countriesByResolution.set(resolution, feature(topology, topology.objects.countries!))
   }
-  return structuredClone(contoursByAtlas.get(atlasId)!)
+  return countriesByResolution.get(resolution)!
+}
+
+// The contours of an atlas, at 50m by default, built from world-atlas by the function that pnpm geodata:prepare calls at 10m to write src/public/data, which is not versioned
+export function readAtlasContours(atlasId: string, resolution: '10m' | '50m' = '50m'): TerritoryContours {
+  const key = `${atlasId} ${resolution}`
+  if (!contoursByAtlas.has(key)) {
+    const atlas = readAtlasConfig<AtlasTerritoriesInput>(atlasId)
+    const source = resolution === '50m'
+      ? createNaturalEarthSource(readCountries('50m'), '50m')
+      : createNaturalEarthSource(readCountries('10m'), '10m', readCountries('50m'))
+    contoursByAtlas.set(key, buildTerritories(atlas, source).collection)
+  }
+  return structuredClone(contoursByAtlas.get(key)!)
 }
 
 // The entry of the composition demo for a preset, as loadCompositionDemo reads it
