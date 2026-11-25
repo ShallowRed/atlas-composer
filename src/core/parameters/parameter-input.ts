@@ -19,6 +19,24 @@ export function roundToFormat(value: number, format: AxisFormat): number {
   return Math.round(value * factor) / factor + 0
 }
 
+// Rounds down or up at the precision of a format; toFixed drops the noise of the product before the rounding
+function roundToFormatToward(value: number, format: AxisFormat, round: (value: number) => number): number {
+  const decimals = 'maximumSignificantDigits' in format
+    ? (value === 0 ? 0 : format.maximumSignificantDigits - 1 - Math.floor(Math.log10(Math.abs(value))))
+    : format.maximumFractionDigits
+  const rounded = round(Number((value * 10 ** decimals).toFixed(6)))
+  // Adding zero turns -0 into 0
+  return (decimals >= 0 ? rounded / 10 ** decimals : rounded * 10 ** -decimals) + 0
+}
+
+export function floorToFormat(value: number, format: AxisFormat): number {
+  return roundToFormatToward(value, format, Math.floor)
+}
+
+export function ceilToFormat(value: number, format: AxisFormat): number {
+  return roundToFormatToward(value, format, Math.ceil)
+}
+
 // The smallest written value above a bound that the value may not reach
 function writtenAbove(bound: number, format: AxisFormat): number {
   return 'maximumSignificantDigits' in format
@@ -99,8 +117,9 @@ export function isOutsideTrack(value: number, track: ScaleTrack): boolean {
   return value < track.min || value > track.max
 }
 
-// Standard parallels at one sixth and five sixths of the band, the usual rule for a conic
+// Standard parallels at one sixth and five sixths of the band, the usual rule for a conic, rounded to the tenth; on a band too narrow for two distinct tenths, the edges of the band rounded outward
 export function parallelsForBand([south, north]: LatitudeBand): LatitudeBand {
   const span = north - south
-  return [Math.round((south + span / 6) * 10) / 10, Math.round((north - span / 6) * 10) / 10]
+  const parallels: LatitudeBand = [Math.round((south + span / 6) * 10) / 10, Math.round((north - span / 6) * 10) / 10]
+  return parallels[0] < parallels[1] ? parallels : [Math.floor(south * 10) / 10, Math.ceil(north * 10) / 10]
 }

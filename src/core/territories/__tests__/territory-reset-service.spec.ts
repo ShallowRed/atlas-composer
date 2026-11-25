@@ -1,5 +1,6 @@
 import type { PresetParameters } from '../types'
 import type { TerritoryConfig } from '@/types'
+import type { ProjectionId } from '@/types/branded'
 import { describe, expect, it } from 'vitest'
 import { createTerritoryCode } from '@/types/branded'
 import { defaultTerritoryParameters, referenceParameters, TerritoryResetService } from '../territory-reset-service'
@@ -44,6 +45,14 @@ describe('referenceParameters', () => {
 describe('defaultTerritoryParameters', () => {
   it('centers the fallback projection on the center of the territory, with the default layout', () => {
     expect(defaultTerritoryParameters(MET_CENTER)).toMatchObject({ projectionId: 'mercator', center: MET_CENTER, ...DEFAULT_LAYOUT })
+  })
+
+  it.each([
+    ['conic-conformal', { rotate: [-2.5, -46.5, 0] }],
+    ['transverse-mercator', { center: MET_CENTER }],
+    ['azimuthal-equal-area', { rotate: [-2.5, -46.5, 0] }],
+  ])('positions a %s on the center of the territory by the parameter of its family', (projectionId, positioning) => {
+    expect(defaultTerritoryParameters(MET_CENTER, projectionId as ProjectionId)).toMatchObject({ projectionId, ...positioning, ...DEFAULT_LAYOUT })
   })
 })
 

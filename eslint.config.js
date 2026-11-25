@@ -111,6 +111,11 @@ const MERCATOR_LITERAL = {
   message: 'The fallback projection is FALLBACK_PROJECTION_ID of src/core/projections/defaults.ts.',
 }
 
+const FIT_CALLS = {
+  selector: 'CallExpression[callee.property.name=/^(fitExtent|fitSize|fitWidth|fitHeight)$/]',
+  message: 'A territory is fitted to a zone by fitTerritory of src/core/positioning/fit.ts.',
+}
+
 const LITERAL_FALLBACK = 'LogicalExpression[operator=/^(\\?\\?|\\|\\|)$/][right.type=/^(Literal|ArrayExpression|UnaryExpression)$/][right.raw!=\'null\']'
 const PARAMETER_KEYS = '/^(translateOffset|scaleMultiplier|parallels|clipAngle|precision|pixelClipExtent)$/'
 const TUPLE_PARAMETER_KEYS = '/^(translateOffset|parallels)$/'
@@ -240,6 +245,12 @@ export default antfu({
     'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
   },
 }, {
+  files: ['src/core/territories/**', 'src/stores/**'],
+  ignores: ['**/__tests__/**'],
+  rules: {
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, FIT_CALLS],
+  },
+}, {
   files: ['src/core/positioning/**'],
   ignores: ['**/__tests__/**'],
   rules: {
@@ -249,8 +260,8 @@ export default antfu({
   files: ['src/composables/**', 'src/components/**', 'src/views/**'],
   ignores: ['**/__tests__/**', '**/*.d.ts'],
   rules: {
-    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, PRESET_COMPARISON],
-    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS],
+    'no-restricted-syntax': ['error', ...ANTFU_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, PRESET_COMPARISON, FIT_CALLS],
+    'vue/no-restricted-syntax': ['error', ...ANTFU_VUE_RESTRICTED_SYNTAX, ...DEPRECATED_POSITIONING, DEFAULT_REFERENCE_SCALE, CARTOGRAPHER_DATA, ...SELECTION_WRITES, MERCATOR_LITERAL, ...PARAMETER_DEFAULT_LITERALS, ...RESULT_FIELDS, FIT_CALLS],
   },
 }, {
   files: ['src/core/projections/**'],
