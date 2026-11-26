@@ -1,4 +1,6 @@
 import type { CompositionState } from '@/core/presets'
+import type { ProjectionReason } from '@/core/projections/defaults'
+import type { CompositionProposal } from '@/core/territories/proposal'
 import type { TerritoryCode } from '@/types'
 import type { ProjectionParameters } from '@/types/projection-parameters'
 
@@ -16,6 +18,8 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
   const presetParameters = ref<Record<string, ProjectionParameters>>({})
   const presetGlobalParameters = ref<ProjectionParameters | null>(null)
   const presetCanvas = ref<Canvas | null>(null)
+  // The proposal whose state is the reference, null for a preset or a file
+  const proposal = ref<CompositionProposal | null>(null)
 
   function storePresetDefaults(parameters: Record<string, ProjectionParameters>) {
     presetParameters.value = { ...parameters }
@@ -29,10 +33,28 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
     presetCanvas.value = canvas ? { referenceScale: canvas.referenceScale, dimensions: { ...canvas.dimensions } } : null
   }
 
+  function storeProposal(applied: CompositionProposal | null) {
+    proposal.value = applied ? { ...applied, codes: [...applied.codes], additions: [...applied.additions], reasons: { ...applied.reasons } } : null
+  }
+
+  // A territory checked after a proposal enters the proposal and the reference with its fitted parameters
+  function addToProposal(territoryCode: TerritoryCode, parameters: ProjectionParameters, reason: ProjectionReason) {
+    if (!proposal.value) {
+      throw new Error('No proposal to add a territory to')
+    }
+    proposal.value = {
+      ...proposal.value,
+      additions: [...proposal.value.additions, territoryCode],
+      reasons: { ...proposal.value.reasons, [territoryCode]: reason },
+    }
+    presetParameters.value = { ...presetParameters.value, [territoryCode]: { ...parameters } }
+  }
+
   function clearAll() {
     presetParameters.value = {}
     presetGlobalParameters.value = null
     presetCanvas.value = null
+    proposal.value = null
   }
 
   function referenceCanvas(): Canvas {
@@ -83,7 +105,10 @@ export const usePresetDefaultsStore = defineStore('presetDefaults', () => {
     presetParameters,
     presetGlobalParameters,
     presetCanvas,
+    proposal,
     storePresetDefaults,
+    storeProposal,
+    addToProposal,
     storeGlobalParameters,
     storePresetCanvas,
     clearAll,
