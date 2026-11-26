@@ -1,5 +1,21 @@
 # @atlas-composer/preset-library
 
+## 2.8.0
+
+### Minor Changes
+
+- 5cf46d5: Give the Aleutian Islands of the `usa` atlas their bounds across the antimeridian, `[[172.49, 51.37], [-159.36, 63.73]]`. At 10m, the territory `US-ALEU` takes one more polygon, the island whose centroid is at [−178.96, 51.36], which `atlas-composer territories usa --resolution 10m` writes from this version on. projection-loader 3.4.x or older, reading a composite exported with `US-ALEU` from this version on, returns `null` for its points, draws it cut at the antimeridian when it has a `pixelClipExtent`, and leaves it out without one.
+- 294a247: Fit a polygon in the bounds of a territory whose `minLon` exceeds `maxLon` as bounds that cross the antimeridian: `buildTerritories` gives a territory without `polygonIndices` each polygon whose outer ring has every vertex in its bounds, within 0.1 degree, by the rule of `isPointInBounds` of `@atlas-composer/projection-core`. The atlas schema describes these bounds. The atlases of the library keep their territories.
+- 07ece2c: `buildTerritories` gives a polygon of another resolution than 50m without counterpart at 50m to the first territory without `polygonIndices` whose bounds contain it. At 50m and 110m, it leaves out of the collection a territory without `polygonIndices` that has no polygon, and lists its code in `emptyTerritories`, so that an atlas can hold islands that Natural Earth draws at 10m only.
+- c47a1a5: Add the presets of the Brazil atlas: `brazil-standard`, a `composite-custom` preset in the Albers equal-area conic projection with Saint Peter and Saint Paul Archipelago, Fernando de Noronha, and Trindade and Martim Vaz in insets, and the view presets `brazil-split` and `brazil-unified`.
+- 62c45dd: The `europe` atlas has the territories Bonaire `NL-BQ1`, Saba `NL-BQ2` and Sint Eustatius `NL-BQ3`, which `buildTerritories` extracts from the Netherlands, in the collection `europe-overseas`, and the territories Svalbard `NO-21` and Jan Mayen `NO-22`, which `buildTerritories` extracts from Norway, in the collection `continental-europe` of the geographic region. The territory `NL` holds the European part of the Netherlands, and the territory `NO` the mainland of Norway.
+- a9deaba: Add the Macaronesia atlas, with the Azores, Madeira, the Canary Islands and Cabo Verde, and its presets: `macaronesia-standard`, a `composite-custom` preset in the conformal conic projection with one frame per archipelago, and the view presets `macaronesia-split` and `macaronesia-unified`.
+- 3226e0c: Add the South-West Indian Ocean atlas, with Madagascar, the Comoros, Mauritius, Seychelles, Réunion and Mayotte, and its presets: `south-west-indian-ocean-standard`, a `composite-custom` preset in the Mercator projection with one frame for Madagascar, one for the Comoros and Mayotte, one for Réunion and Mauritius and one for Seychelles, and the view presets `south-west-indian-ocean-split` and `south-west-indian-ocean-unified`.
+
+### Patch Changes
+
+- 6b4294c: The bounds of Réunion in the atlases `france` and `europe` and in the presets `france-standard`, `france-proportional` and `france-pseudo-d3cp` cover the whole island with a margin on each side, its east and north tips included.
+
 ## 2.7.0
 
 ### Minor Changes
