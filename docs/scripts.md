@@ -30,7 +30,7 @@ The `extraction` field of a territory describes how the script cuts the territor
 A territory with `extractFrom` takes its polygons in one of two ways:
 
 - With `polygonIndices`, the territory takes the polygons at these positions of the parent, counted from zero. An index out of range stops the script with a `TerritoryBuildError`.
-- Without `polygonIndices`, the territory takes each polygon that fits inside its `bounds`. The script compares the bounding box of the first ring of the polygon with this box, with a tolerance of 0.1 degree. A polygon goes to the first territory of the configuration whose box contains it, in the order of `territories`.
+- Without `polygonIndices`, the territory takes each polygon that fits inside its `bounds`. The polygon fits when each vertex of its first ring is in this box, with a tolerance of 0.1 degree; a box whose `minLon` exceeds `maxLon` crosses the antimeridian. A polygon goes to the first territory of the configuration whose box contains it, in the order of `territories`.
 
 The script applies the indices first, and the boxes to the polygons that remain. The parent keeps every polygon that no rule takes. The script reads `polygonIndices` on a territory that has `extractFrom`, and ignores it on any other territory.
 

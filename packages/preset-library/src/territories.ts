@@ -1,4 +1,5 @@
 import type { AreaGeometry, Ring } from './rewind.js'
+import { boundsFromArray, isPointInBounds } from '@atlas-composer/projection-core'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
 import { hasArea, longitudeSpan, rewindToD3, withoutFlatPolygons } from './rewind.js'
 
@@ -110,6 +111,9 @@ const NATURAL_EARTH_RESOLUTIONS: readonly NaturalEarthResolution[] = ['10m', '50
 
 const FINEST_RESOLUTION: NaturalEarthResolution = '10m'
 
+// Degrees by which a polygon may pass the box of the territory it fits in
+const BOUNDS_TOLERANCE = 0.1
+
 /** The resolution whose polygons the indices of the extraction rules count */
 export const RULES_RESOLUTION: NaturalEarthResolution = '50m'
 
@@ -173,15 +177,8 @@ function fitsInBounds(polygon: Ring[], bounds: TerritoryInput['bounds']): boolea
   if (!ring || ring.length === 0) {
     return false
   }
-  const tolerance = 0.1
-  const longitudes = ring.map(([longitude]) => longitude!)
-  const latitudes = ring.map(([, latitude]) => latitude!)
-  const [minLon, minLat] = bounds[0]!
-  const [maxLon, maxLat] = bounds[1]!
-  return Math.min(...longitudes) >= minLon! - tolerance
-    && Math.max(...longitudes) <= maxLon! + tolerance
-    && Math.min(...latitudes) >= minLat! - tolerance
-    && Math.max(...latitudes) <= maxLat! + tolerance
+  const box = boundsFromArray(bounds as [[number, number], [number, number]])
+  return ring.every(([longitude, latitude]) => isPointInBounds(longitude!, latitude!, box, BOUNDS_TOLERANCE))
 }
 
 interface NaturalEarthCountry {

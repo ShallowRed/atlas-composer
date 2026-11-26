@@ -141,7 +141,7 @@ export interface JSONTerritoryConfig {
   iso: string;
   region?: I18NValue;
   /**
-   * Bounding box [[minLon, minLat], [maxLon, maxLat]]
+   * Bounding box [[minLon, minLat], [maxLon, maxLat]], with longitudes in [-180, 180]; a box whose minLon exceeds maxLon crosses the antimeridian
    *
    * @minItems 2
    * @maxItems 2
