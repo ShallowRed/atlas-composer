@@ -212,6 +212,33 @@
       "spread": "Spread"
     }
   },
+  "proposal": {
+    "newComposition": "New composition",
+    "title": "New composition",
+    "description": "Check the territories to show. The largest one fills the main area, the others are placed as insets.",
+    "checkAll": "Check all",
+    "uncheckAll": "Uncheck all",
+    "checkedCount": "No territory checked | 1 territory checked | {count} territories checked",
+    "compose": "Compose",
+    "arrangement": "Arrangement",
+    "arrangements": {
+      "insets-right": "Insets on the right",
+      "insets-bottom": "Insets at the bottom"
+    },
+    "scaleMode": "Scale",
+    "scaleModes": {
+      "readable": "Readable scale for each territory",
+      "uniform": "Same scale for all"
+    },
+    "adjusted": "Composition adjusted by hand. Reset to return to the proposal.",
+    "reasons": {
+      "polar": "Proposed for a polar territory.",
+      "northSouth": "Proposed for a territory elongated from north to south.",
+      "equatorial": "Proposed for a territory near the equator.",
+      "eastWest": "Proposed for a territory extending from east to west at mid-latitudes.",
+      "midLatitude": "Proposed for a territory at mid-latitudes."
+    }
+  },
   "preset": {
     "select": "Select preset",
     "unified": {

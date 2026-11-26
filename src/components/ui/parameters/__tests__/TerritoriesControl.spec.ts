@@ -1,10 +1,11 @@
-import type { AtlasId, TerritoryCode } from '@/types/branded'
+import type { AtlasId, ProjectionId, TerritoryCode } from '@/types/branded'
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import { startApplication } from '@/__tests__/composite-utils'
+import { openCompositeWithContours, startApplication } from '@/__tests__/composite-utils'
 import i18n from '@/i18n'
 import { useCompositionStore } from '@/stores/composition'
+import { useParameterStore } from '@/stores/parameters'
 import { useViewStore } from '@/stores/view'
 import TerritoriesControl from '../TerritoriesControl.vue'
 
@@ -64,6 +65,24 @@ describe('territoriesControl', () => {
     viewStore.setActiveTerritories([...viewStore.activeTerritoryCodes, MARTINIQUE])
     await nextTick()
     expect(wrapper.find('button[data-territory]').exists()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('shows the reason of the proposed projection of a territory while the territory keeps it', async () => {
+    i18n.global.locale.value = 'en'
+    await openCompositeWithContours('japan' as AtlasId)
+    const ryukyu = 'JP-RYU' as TerritoryCode
+    useCompositionStore().startProposal(['JP-MAIN' as TerritoryCode, ryukyu], { arrangement: 'insets-right', scaleMode: 'readable' })
+    const wrapper = mount(TerritoriesControl, { global: { plugins: [i18n] }, attachTo: document.body })
+    await wrapper.find(`button[data-territory="${ryukyu}"]`).trigger('click')
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Proposed for a territory')
+
+    useParameterStore().setTerritoryProjection(ryukyu, 'azimuthal-equal-area' as ProjectionId)
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('Proposed for a territory')
     wrapper.unmount()
   })
 })

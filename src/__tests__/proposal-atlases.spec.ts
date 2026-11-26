@@ -2,6 +2,7 @@ import type { CompositionState } from '@/core/presets/composition-state'
 import type { ProposedTerritory } from '@/core/territories/proposal'
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import { readFileSync } from 'node:fs'
 import { validateConfig } from '@atlas-composer/specification'
 import { geoArea, geoPath } from 'd3-geo'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -10,6 +11,7 @@ import { getAtlasConfig } from '@/core/atlases/registry'
 import { parameterRegistry, REFERENCE_SCALE_CONTROL, roundToFormat } from '@/core/parameters'
 import { rectFromFrame, subProjectionAnchor } from '@/core/positioning'
 import { compositionStateFromConfig } from '@/core/presets/composition-state'
+import { PROPOSED_PROJECTION_IDS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { ARRANGEMENTS, proposeComposition, SCALE_MODES } from '@/core/territories/proposal'
 import { CompositeExportService } from '@/services/export/composite-export-service'
@@ -139,5 +141,21 @@ describe('proposal on the atlas usa', () => {
     const [main] = proposeComposition(proposedTerritories('usa' as AtlasId), { arrangement: 'insets-right', scaleMode: 'readable', canvas }).state.activeTerritories
 
     expect(main).toBe('US-CONT')
+  })
+})
+
+describe.each(['fr', 'en'])('texts of the proposal in %s', (locale) => {
+  const { proposal } = JSON.parse(readFileSync(`src/i18n/locales/${locale}.json`, 'utf8'))
+
+  it('name each reason of a proposed projection, each arrangement and each scale', () => {
+    for (const reason of Object.keys(PROPOSED_PROJECTION_IDS)) {
+      expect(proposal.reasons[reason], reason).toEqual(expect.any(String))
+    }
+    for (const arrangement of ARRANGEMENTS) {
+      expect(proposal.arrangements[arrangement], arrangement).toEqual(expect.any(String))
+    }
+    for (const scaleMode of SCALE_MODES) {
+      expect(proposal.scaleModes[scaleMode], scaleMode).toEqual(expect.any(String))
+    }
   })
 })

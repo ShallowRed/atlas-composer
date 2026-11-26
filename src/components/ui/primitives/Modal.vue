@@ -79,10 +79,10 @@ watch(() => props.modelValue, async (isOpen) => {
         <!-- Content -->
         <slot />
 
-        <!-- Actions -->
+        <!-- Actions, kept in view at the bottom of a window whose content scrolls -->
         <div
           v-if="$slots.actions"
-          class="modal-action"
+          class="modal-action sticky -bottom-6 -mx-6 -mb-6 bg-base-100 px-6 pb-6 pt-3"
         >
           <slot name="actions" />
         </div>

@@ -387,6 +387,18 @@ export const useCompositionStore = defineStore('composition', () => {
     debug('Proposal of %d territories', territoryCodes.length)
   }
 
+  // A new arrangement or scale composes again the territories of the proposal, those added after it included
+  function recomposeProposal(options: Partial<Pick<ProposalOptions, 'arrangement' | 'scaleMode'>>): void {
+    const proposal = presetDefaults.proposal
+    if (!proposal) {
+      throw new Error('No proposal to compose again')
+    }
+    startProposal([...proposal.codes, ...proposal.additions], {
+      arrangement: options.arrangement ?? proposal.arrangement,
+      scaleMode: options.scaleMode ?? proposal.scaleMode,
+    })
+  }
+
   // A territory checked during a proposal, fitted at the current reference scale: the first free cell avoids the rectangle of each active territory and of each territory of the reference
   function addToProposal(territoryCode: TerritoryCode, proposal: CompositionProposal): void {
     const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
@@ -560,6 +572,7 @@ export const useCompositionStore = defineStore('composition', () => {
     resetTerritoryToDefaults,
     addTerritoryToComposite,
     startProposal,
+    recomposeProposal,
     resetCanvas,
     selectAtlas,
     selectViewMode,

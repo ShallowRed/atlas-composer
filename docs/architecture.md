@@ -28,6 +28,10 @@ A store holds the state of one concept, and [adrs.md](adrs.md) gives the reasons
 
 A composable holds the logic of the interface. It reads the stores and gives a component computed values, as `useViewState` does for the flags of the view mode, or it handles the mouse events on the map, as `useTerritoryCursor`, `useProjectionPanning` and `useClipExtentEditor` do. The composables that draw, such as `useMapRender`, call `src/services/rendering/`.
 
+## Proposal of a composition
+
+In the `composite-custom` view, `ProposalControls` opens `NewCompositionModal`, where one checks territories of the atlas and chooses an arrangement and a scale. "Compose" calls `startProposal` of `src/stores/composition.ts`. `proposeComposition` of `src/core/territories/proposal.ts` gives the main zone to the territory of largest spherical area and a cell of inset to each other territory, gives each territory the projection of the rule of `suggestProjection` with its reason, and fits it to its zone with `fitTerritory` of `src/core/positioning/fit.ts`, which places a sub-projection with the same functions of `src/core/positioning/placement.ts` as `CompositeProjection`. `applyCompositionState` applies the state and stores the proposal in the preset defaults store, so that the proposal is the reference of "Reset all". A territory checked afterwards in "Territories to include" goes in the first free cell, with `freeCell` and `proposeAddition`, and enters the proposal. A preset, an imported file, or a change of atlas or of view empties the proposal.
+
 ## Order of the projection parameters
 
 `ProjectionParameterManager`, in `src/services/parameters/projection-parameter-manager.ts`, holds three levels of parameters. The atlas level comes from the parameters of a `unified` preset. The global level comes from `ProjectionParamsControls`, the panning of the map and the rotation and parallels of a link. The territory level comes from the presets, the imported files, the territory controls and the drag of a territory.

@@ -1,6 +1,6 @@
 import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { GeoProjection } from 'd3-geo'
-import type { AtlasId, PresetId } from '@/types/branded'
+import type { AtlasId, PresetId, TerritoryCode } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
 import type { Territory } from '@/types/territory'
 import { ProjectionLoader } from '@atlas-composer/projection-loader'
@@ -8,7 +8,7 @@ import { d3ProjectionFactories } from '@atlas-composer/projection-loader/helpers
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
-import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
+import { loadAtlasFromConfigs, readAtlasContours } from '@/__tests__/test-utils'
 import { resolveI18nValue } from '@/core/atlases/i18n-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
@@ -63,6 +63,20 @@ export async function openAtlasWithCartographer(atlasId: AtlasId) {
 
 export async function openView(view: ViewMode) {
   await useCompositionStore().selectViewMode(view)
+}
+
+// An atlas in the custom composite view, with the contours of its territories, which the application reads from src/public/data
+export async function openCompositeWithContours(atlasId: AtlasId) {
+  await startApplication(atlasId)
+  await useCompositionStore().initializeAtlas()
+  await openView('composite-custom')
+  useGeoDataStore().territoriesData = readAtlasContours(atlasId).features.map(feature => ({
+    code: feature.properties.code as TerritoryCode,
+    name: feature.properties.code,
+    area: 0,
+    region: '',
+    data: { type: 'FeatureCollection', features: [feature] },
+  }) satisfies Territory)
 }
 
 export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {

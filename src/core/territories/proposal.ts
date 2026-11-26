@@ -18,7 +18,7 @@ export const ARRANGEMENTS = ['insets-right', 'insets-bottom'] as const
 export type Arrangement = typeof ARRANGEMENTS[number]
 
 export const SCALE_MODES = ['readable', 'uniform'] as const
-type ScaleMode = typeof SCALE_MODES[number]
+export type ScaleMode = typeof SCALE_MODES[number]
 
 // A territory checked for a proposal: its geometry, the center of its configuration and the latitudes of its bounds
 export interface ProposedTerritory {
