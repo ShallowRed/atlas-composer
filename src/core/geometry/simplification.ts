@@ -15,8 +15,35 @@ const PROBE = 0.01
 // round the pole
 const CUT_LINE_TOLERANCE = 0.01
 
+function onAntimeridian(longitude: number): boolean {
+  return Math.abs(longitude) >= 180 - CUT_LINE_TOLERANCE
+}
+
 function onCutLine([longitude, latitude]: number[]): boolean {
-  return Math.abs(longitude!) >= 180 - CUT_LINE_TOLERANCE || Math.abs(latitude!) >= 90 - CUT_LINE_TOLERANCE
+  return onAntimeridian(longitude!) || Math.abs(latitude!) >= 90 - CUT_LINE_TOLERANCE
+}
+
+/**
+ * The lines without their segments along the antimeridian, where Natural Earth cuts a ring: a line is split where such a
+ * segment was, and a line reduced to a point is left out. The mesh of the borders keeps these segments, since each belongs
+ * to one territory, as a coastline does
+ */
+export function withoutAntimeridianSeams(lines: GeoJSON.MultiLineString): GeoJSON.MultiLineString {
+  const seam = ([lonA]: GeoJSON.Position, [lonB]: GeoJSON.Position) =>
+    onAntimeridian(lonA!) && onAntimeridian(lonB!) && Math.sign(lonA!) === Math.sign(lonB!)
+  const coordinates = lines.coordinates.flatMap((line) => {
+    const parts: GeoJSON.Position[][] = [[line[0]!]]
+    for (let index = 1; index < line.length; index++) {
+      if (seam(line[index - 1]!, line[index]!)) {
+        parts.push([line[index]!])
+      }
+      else {
+        parts.at(-1)!.push(line[index]!)
+      }
+    }
+    return parts.filter(part => part.length > 1)
+  })
+  return { ...lines, coordinates }
 }
 
 /**

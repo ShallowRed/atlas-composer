@@ -2,11 +2,11 @@ import type { GeometryCollection, Objects, Topology } from 'topojson-specificati
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { geoArea, geoMercator } from 'd3-geo'
-import { feature } from 'topojson-client'
+import { feature, mesh } from 'topojson-client'
 import { topology } from 'topojson-server'
 import { presimplify, sphericalTriangleArea } from 'topojson-simplify'
 import { describe, expect, it } from 'vitest'
-import { minWeightAt, simplifyTopology } from '@/core/geometry'
+import { minWeightAt, simplifyTopology, withoutAntimeridianSeams } from '@/core/geometry'
 
 // A zigzag of n teeth of the given height, in degrees, from [x0, y] to [x0 + n, y]
 function zigzag(x0: number, y: number, n: number, height: number): Array<[number, number]> {
@@ -95,5 +95,37 @@ describe('simplifyTopology', () => {
     expect(polygons.flat().every(ring => ring.length >= 4)).toBe(true)
     expect(polygons).toHaveLength(1)
     expect(geoArea(territory)).toBeLessThan(2 * Math.PI)
+  })
+})
+
+describe('withoutAntimeridianSeams', () => {
+  const lines = (...coordinates: GeoJSON.Position[][]): GeoJSON.MultiLineString => ({ type: 'MultiLineString', coordinates })
+  // Segments whose two ends are on the same meridian ±180
+  const seams = ({ coordinates }: GeoJSON.MultiLineString) => coordinates.flatMap(line => line.slice(1)
+    .filter((point, index) => Math.abs(point[0]!) >= 179.99 && Math.abs(line[index]![0]!) >= 179.99 && Math.sign(point[0]!) === Math.sign(line[index]![0]!)))
+  const segmentCount = ({ coordinates }: GeoJSON.MultiLineString) => coordinates.reduce((count, line) => count + line.length - 1, 0)
+
+  it('splits a line at a segment along the antimeridian and keeps the other segments in their order', () => {
+    expect(withoutAntimeridianSeams(lines([[170, 0], [180, 0], [180, 5], [170, 5]], [[-180, 0], [-180, 1]])))
+      .toEqual(lines([[170, 0], [180, 0]], [[180, 5], [170, 5]]))
+  })
+
+  it('keeps a segment from 180 to -180 and the lines away from the antimeridian', () => {
+    const kept = lines([[179, 0], [180, 0], [-180, 1], [-179, 1]], [[0, 0], [1, 1]])
+
+    expect(withoutAntimeridianSeams(kept)).toEqual(kept)
+  })
+
+  it('leaves out the cut of Fiji in the mesh of Natural Earth 50m and keeps the mesh of Russia', () => {
+    const world = JSON.parse(readFileSync(createRequire(import.meta.url).resolve('world-atlas/countries-50m.json'), 'utf8')) as Topology<Objects>
+    const countries = world.objects.countries as GeometryCollection
+    const meshOf = (id: string) => mesh(world, { type: 'GeometryCollection', geometries: countries.geometries.filter(geometry => geometry.id === id) })
+    const fiji = meshOf('242')
+    const russia = meshOf('643')
+
+    expect(seams(fiji)).toHaveLength(5)
+    expect(seams(withoutAntimeridianSeams(fiji))).toHaveLength(0)
+    expect(segmentCount(withoutAntimeridianSeams(fiji))).toBe(segmentCount(fiji) - 5)
+    expect(withoutAntimeridianSeams(russia)).toEqual(russia)
   })
 })

@@ -1,1 +1,1 @@
-export { minWeightAt, simplifyTopology } from './simplification'
+export { minWeightAt, simplifyTopology, withoutAntimeridianSeams } from './simplification'
