@@ -58,14 +58,14 @@ exports[`prepareAtlasData > prepares the territories and the metadata of spain i
 
 exports[`prepareAtlasData > prepares the territories and the metadata of usa in 10m 1`] = `
 {
-  "metadata": "8e56ef677b4220f2b3190816b7d38f3dba846e9204a4cb34dd15405e0d9cd061",
-  "territories": "f187f8c9dd5c069c58f6a42c856b77b1fd68892aa163c596640b420870c18149",
+  "metadata": "27a8f3b505acc09bb1e6092dc2096c9c490571fd26b0e78c67f78fb9b000e1df",
+  "territories": "fc8d8c66c91351e2bea90bbb3bcdfb35cc0a6b919f6766eaba62bac46af9b8b7",
 }
 `;
 
 exports[`prepareAtlasData > prepares the territories and the metadata of usa in 50m 1`] = `
 {
-  "metadata": "d677c3fbe2282203b16681ba82d96f1fc39fd0318979e6a48d803dc6f128157d",
+  "metadata": "af32fbba3bdfdcad0dcd4704b785a297e31ec6d8ff410bd520b3bed256d7d2a1",
   "territories": "28085832f879a9caf9fb094025ef5f49127bfb61de345191b5af0f1a99cbdbb2",
 }
 `;

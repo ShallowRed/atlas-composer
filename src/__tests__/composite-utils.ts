@@ -175,10 +175,13 @@ export function boundsPolygon([[minLon, minLat], [maxLon, maxLat]]: [Point, Poin
   }
 }
 
+// Nine points of a box; across the antimeridian, when minLon exceeds maxLon, their longitudes are wrapped into [-180, 180]
 export function pointsInBounds([[minLon, minLat], [maxLon, maxLat]]: [Point, Point]): Point[] {
   const fractions = [0.25, 0.5, 0.75]
+  const east = minLon > maxLon ? maxLon + 360 : maxLon
+  const wrap = (longitude: number) => (longitude > 180 ? longitude - 360 : longitude)
   return fractions.flatMap(fx => fractions.map((fy): Point => [
-    minLon + (maxLon - minLon) * fx,
+    wrap(minLon + (east - minLon) * fx),
     minLat + (maxLat - minLat) * fy,
   ]))
 }
