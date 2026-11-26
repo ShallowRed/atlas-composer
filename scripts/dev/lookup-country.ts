@@ -11,6 +11,7 @@ import process from 'node:process'
 import * as topojson from 'topojson-client'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
+import { longitudeExtent } from '#scripts/utils/longitudes'
 import { readWorldData } from '#scripts/utils/ne-data'
 import { RULES_RESOLUTION } from '../../packages/preset-library/src/territories.js'
 
@@ -64,12 +65,12 @@ function calculateBounds(ring: number[][]): Bounds {
     }
   }
 
-  const lons = ring.map(coord => coord[0]).filter((n): n is number => n !== undefined)
+  const { west, east } = longitudeExtent(ring.map(coord => coord[0]).filter((n): n is number => n !== undefined))
   const lats = ring.map(coord => coord[1]).filter((n): n is number => n !== undefined)
 
   return {
-    minLon: Math.min(...lons),
-    maxLon: Math.max(...lons),
+    minLon: west,
+    maxLon: east,
     minLat: Math.min(...lats),
     maxLat: Math.max(...lats),
   }
@@ -82,12 +83,10 @@ function formatBounds(bounds: Bounds): string {
 function getPolygonStats(polygon: any[], index: number): PolygonStats {
   const firstRing = polygon[0] || []
   const bounds = calculateBounds(firstRing)
-
-  const width = bounds.maxLon - bounds.minLon
+  const { width, center: centerLon } = firstRing.length > 0 ? longitudeExtent(firstRing.map((coord: number[]) => coord[0]!)) : { width: 0, center: 0 }
   const height = bounds.maxLat - bounds.minLat
 
   const approxArea = Math.max(width * height, 0)
-  const centerLon = (bounds.minLon + bounds.maxLon) / 2
   const centerLat = (bounds.minLat + bounds.maxLat) / 2
 
   return {
