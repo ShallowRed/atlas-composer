@@ -3,7 +3,7 @@ import type { AreaGeometry, Position, Ring, TerritoryFeature } from '@atlas-comp
 import type { GeoJsonTerritories } from './geojson.js'
 import { rewindToRfc7946 } from '@atlas-composer/preset-library'
 import { geoEquirectangular } from 'd3-geo'
-import { geoProject } from 'd3-geo-projection'
+import { geoProject, geoStitch } from 'd3-geo-projection'
 import { mapPositions } from './geojson.js'
 
 // In degrees, above the quantization step of world-atlas: a vertex this close to the antimeridian is on it
@@ -14,20 +14,27 @@ function isOnAntimeridian([longitude]: Position): boolean {
 }
 
 /**
+ * The vertices of a ring without its closing point, those near the antimeridian moved onto it, from the first vertex off
+ * it: a run along the antimeridian that spans the closing point of the ring is then whole. Null for a ring along it
+ */
+function startOffAntimeridian(ring: Ring): Position[] | null {
+  const vertices = ring.slice(0, -1).map(([longitude, latitude]): Position =>
+    180 - Math.abs(longitude!) < ON_ANTIMERIDIAN ? [Math.sign(longitude!) * 180, latitude!] : [longitude!, latitude!])
+  const start = vertices.findIndex(vertex => !isOnAntimeridian(vertex))
+  return start === -1 ? null : [...vertices.slice(start), ...vertices.slice(0, start)]
+}
+
+/**
  * Keeps the two ends of each run of vertices along the antimeridian. Natural Earth has rings that follow it with
  * vertices on both sides, which the cut turns into a line that folds back on itself, invalid for GEOS.
  */
 function tidyRing(ring: Ring): Ring | null {
-  const vertices = ring.slice(0, -1).map(([longitude, latitude]): Position =>
-    180 - Math.abs(longitude!) < ON_ANTIMERIDIAN ? [Math.sign(longitude!) * 180, latitude!] : [longitude!, latitude!])
-
-  // A run that spans the closing point of the ring is whole once the ring starts off the antimeridian
-  const start = vertices.findIndex(vertex => !isOnAntimeridian(vertex))
-  if (start === -1) {
+  const vertices = startOffAntimeridian(ring)
+  if (!vertices) {
     return null
   }
   const kept: Position[] = []
-  for (const vertex of [...vertices.slice(start), ...vertices.slice(0, start)]) {
+  for (const vertex of vertices) {
     const last = kept.at(-1)
     if (last && last[0] === vertex[0] && last[1] === vertex[1]) {
       continue
@@ -69,4 +76,20 @@ export function toRfc7946(territories: { type: 'FeatureCollection', features: Te
       geometry: rewindToRfc7946(tidy(mapPositions(geometry, ([x, y]) => [x!, -y!]))),
     })),
   }
+}
+
+/**
+ * Joins the pieces of a territory that Natural Earth cuts at the antimeridian, for a projection that cuts elsewhere:
+ * geoStitch removes the runs of the rings along the antimeridian and joins the pieces whose ends meet there
+ */
+export function stitchAtAntimeridian(territory: TerritoryFeature): TerritoryFeature {
+  const rotate = (ring: Ring): Ring => {
+    const vertices = startOffAntimeridian(ring)
+    return vertices ? [...vertices, vertices[0]!] : ring
+  }
+  const { geometry } = territory
+  const rotated: AreaGeometry = geometry.type === 'Polygon'
+    ? { type: 'Polygon', coordinates: geometry.coordinates.map(rotate) }
+    : { type: 'MultiPolygon', coordinates: geometry.coordinates.map(polygon => polygon.map(rotate)) }
+  return { ...territory, geometry: geoStitch(rotated) }
 }

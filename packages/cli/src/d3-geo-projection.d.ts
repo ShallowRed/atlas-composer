@@ -13,4 +13,7 @@ declare module 'd3-geo-projection' {
     collection: Collection,
     projection: StreamProjection,
   ): Collection
+
+  /** Removes the cuts at the antimeridian and at the poles of a geometry in longitudes and latitudes */
+  export function geoStitch(geometry: AreaGeometry): AreaGeometry
 }
