@@ -1,10 +1,11 @@
-import type { AtlasId, PresetId } from '@/types/branded'
+import type { AtlasId, PresetId, TerritoryCode } from '@/types/branded'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { startApplication } from '@/__tests__/composite-utils'
+import { openCompositeWithContours, startApplication } from '@/__tests__/composite-utils'
 import { ok } from '@/core/types/result'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import DropdownControl from '../../forms/DropdownControl.vue'
 import PresetSelector from '../PresetSelector.vue'
 
@@ -48,5 +49,20 @@ describe('presetSelector', () => {
     const dropdown = await selectPreset()
 
     expect(dropdown.props('modelValue')).not.toBe(PRESET)
+  })
+
+  it('shows no preset during a proposal, and the preset chosen after it', async () => {
+    await openCompositeWithContours('japan' as AtlasId)
+    useCompositionStore().startProposal(['JP-MAIN' as TerritoryCode, 'JP-RYU' as TerritoryCode], { arrangement: 'insets-right', scaleMode: 'readable' })
+    const wrapper = mount(PresetSelector)
+    const dropdown = wrapper.findComponent(DropdownControl)
+
+    expect(dropdown.props('modelValue')).toBe('')
+
+    dropdown.vm.$emit('update:modelValue', 'japan-standard')
+    await vi.waitFor(() => expect(usePresetDefaultsStore().proposal).toBeNull())
+    await flushPromises()
+
+    expect(dropdown.props('modelValue')).toBe('japan-standard')
   })
 })

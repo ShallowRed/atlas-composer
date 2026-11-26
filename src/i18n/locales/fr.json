@@ -212,6 +212,33 @@
       "spread": "Étendu"
     }
   },
+  "proposal": {
+    "newComposition": "Nouvelle composition",
+    "title": "Nouvelle composition",
+    "description": "Cochez les territoires à représenter. Le plus étendu occupe la zone principale, les autres sont placés en encarts.",
+    "checkAll": "Tout cocher",
+    "uncheckAll": "Tout décocher",
+    "checkedCount": "Aucun territoire coché | 1 territoire coché | {count} territoires cochés",
+    "compose": "Composer",
+    "arrangement": "Disposition",
+    "arrangements": {
+      "insets-right": "Encarts à droite",
+      "insets-bottom": "Encarts en bas"
+    },
+    "scaleMode": "Échelle",
+    "scaleModes": {
+      "readable": "Échelle lisible par territoire",
+      "uniform": "Même échelle pour tous"
+    },
+    "adjusted": "Composition ajustée à la main. Réinitialisez pour revenir à la proposition.",
+    "reasons": {
+      "polar": "Proposée pour un territoire polaire.",
+      "northSouth": "Proposée pour un territoire allongé du nord au sud.",
+      "equatorial": "Proposée pour un territoire proche de l'équateur.",
+      "eastWest": "Proposée pour un territoire étendu d'est en ouest aux latitudes moyennes.",
+      "midLatitude": "Proposée pour un territoire aux latitudes moyennes."
+    }
+  },
   "preset": {
     "select": "Sélectionner une configuration",
     "unified": {

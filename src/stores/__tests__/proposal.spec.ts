@@ -1,14 +1,12 @@
 import type { AtlasId, TerritoryCode } from '@/types/branded'
-import type { Territory } from '@/types/territory'
 import { readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
-import { openView, startApplication } from '@/__tests__/composite-utils'
-import { readAtlasContours, withSetup } from '@/__tests__/test-utils'
+import { openCompositeWithContours, openView } from '@/__tests__/composite-utils'
+import { withSetup } from '@/__tests__/test-utils'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
 import { rectFromFrame, subProjectionAnchor } from '@/core/positioning'
 import { freeCell } from '@/core/territories/proposal'
 import { useCompositionStore } from '@/stores/composition'
-import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
@@ -22,22 +20,8 @@ const RYUKYU = 'JP-RYU' as TerritoryCode
 const OGASAWARA = 'JP-OGA' as TerritoryCode
 const OPTIONS = { arrangement: 'insets-right', scaleMode: 'readable' } as const
 
-// Japan in the custom composite view, with the contours of its territories, which the application reads from src/public/data
-async function openJapan() {
-  await startApplication(JAPAN)
-  await useCompositionStore().initializeAtlas()
-  await openView('composite-custom')
-  useGeoDataStore().territoriesData = readAtlasContours(JAPAN).features.map(feature => ({
-    code: feature.properties.code as TerritoryCode,
-    name: feature.properties.code,
-    area: 0,
-    region: '',
-    data: { type: 'FeatureCollection', features: [feature] },
-  }) satisfies Territory)
-}
-
 async function propose(codes: TerritoryCode[] = [MAIN, RYUKYU]) {
-  await openJapan()
+  await openCompositeWithContours(JAPAN)
   useCompositionStore().startProposal(codes, OPTIONS)
 }
 
@@ -83,15 +67,14 @@ describe('a proposal as the reference of the reset', () => {
     await propose()
     const composition = useCompositionStore()
     composition.addTerritoryToComposite(OGASAWARA)
-    const { codes, additions } = usePresetDefaultsStore().proposal!
-    composition.startProposal([...codes, ...additions], { ...OPTIONS, arrangement: 'insets-bottom' })
+    composition.recomposeProposal({ arrangement: 'insets-bottom' })
 
     expect(usePresetDefaultsStore().proposal).toMatchObject({ codes: [MAIN, RYUKYU, OGASAWARA], additions: [], arrangement: 'insets-bottom' })
     expect(differsFromReference()).toBe(false)
   })
 
   it('keeps the global parameters', async () => {
-    await openJapan()
+    await openCompositeWithContours(JAPAN)
     useParameterStore().setGlobalParameter('parallels', [30, 40])
     useCompositionStore().startProposal([MAIN, RYUKYU], OPTIONS)
 
@@ -138,7 +121,7 @@ describe('a territory checked after a proposal', () => {
   })
 
   it('goes in the first cell, over another territory, when no cell is free', async () => {
-    await openJapan()
+    await openCompositeWithContours(JAPAN)
     // One territory fills the whole canvas
     useCompositionStore().startProposal([MAIN], OPTIONS)
     useCompositionStore().addTerritoryToComposite(OGASAWARA)

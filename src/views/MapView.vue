@@ -6,6 +6,7 @@ import AtlasConfigSection from '@/components/configuration/AtlasConfigSection.vu
 import BuiltInCompositeControls from '@/components/configuration/BuiltInCompositeControls.vue'
 import CompositeCustomControls from '@/components/configuration/CompositeCustomControls.vue'
 import DisplayOptionsSection from '@/components/configuration/DisplayOptionsSection.vue'
+import ProposalControls from '@/components/configuration/ProposalControls.vue'
 import SplitControls from '@/components/configuration/SplitControls.vue'
 import TerritorySelectionSection from '@/components/configuration/TerritorySelectionSection.vue'
 import UnifiedControls from '@/components/configuration/UnifiedControls.vue'
@@ -143,6 +144,11 @@ onMounted(() => compositionStore.startMapView(readSharedLink()))
         :title="t('settings.projectionConfigTitle')"
         icon="ri-settings-4-line"
       >
+        <ProposalControls
+          v-if="isCompositeCustomMode"
+          v-show="!hasSelectedTerritory"
+          class="mb-6"
+        />
         <TerritorySelectionSection
           v-if="viewOrchestration.shouldShowTerritorySelector.value || isCompositeCustomMode"
           v-show="!hasSelectedTerritory"

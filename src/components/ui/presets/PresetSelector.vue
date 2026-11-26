@@ -12,6 +12,7 @@ import { useLocalizedName } from '@/composables/useLocalizedName'
 import { getAtlasPresets } from '@/core/atlases/registry'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
 
@@ -22,6 +23,7 @@ const { errorMessage } = useErrorMessage()
 const atlasStore = useAtlasStore()
 const viewStore = useViewStore()
 const compositionStore = useCompositionStore()
+const presetDefaults = usePresetDefaultsStore()
 
 const isLoading = ref(false)
 const loadError = ref<PresetApplicationError | null>(null)
@@ -47,6 +49,10 @@ const presetOptions = computed(() => {
 
 const currentPreset = computed({
   get: () => {
+    // A proposal comes from no preset
+    if (presetDefaults.proposal) {
+      return ''
+    }
     const atlasId = atlasStore.selectedAtlasId
     const viewMode = viewStore.viewMode
     if (!atlasId || !viewMode)

@@ -7,7 +7,7 @@ import ProjectionDropdown from '@/components/ui/projections/ProjectionDropdown.v
 import { useProjectionConfig } from '@/composables/useProjectionConfig'
 import { useSelectedTerritory } from '@/composables/useSelectedTerritory'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
-import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
+import { FALLBACK_PROJECTION_ID, PROPOSED_PROJECTION_IDS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -38,6 +38,15 @@ const presetDefaults = usePresetDefaultsStore()
 
 const backButton = ref<HTMLButtonElement>()
 const rowButtons = ref<HTMLButtonElement[]>([])
+
+// The reason of the projection that the proposal gave to the selected territory, while the territory keeps it
+const projectionReason = computed(() => {
+  const territory = selectedTerritory.value
+  const reason = territory ? presetDefaults.proposal?.reasons[territory.code] : undefined
+  return territory && reason && PROPOSED_PROJECTION_IDS[reason] === getTerritoryProjection(territory.code)
+    ? t(`proposal.reasons.${reason}`)
+    : null
+})
 
 const selectedTerritoryDiffers = computed(() => {
   const territory = selectedTerritory.value
@@ -156,6 +165,12 @@ onUnmounted(clearSelection)
         :recommendations="projectionRecommendations"
         @update:model-value="changeSelectedTerritoryProjection"
       />
+      <p
+        v-if="projectionReason"
+        class="text-xs text-base-content/70 mt-1"
+      >
+        {{ projectionReason }}
+      </p>
     </div>
 
     <TerritoryParameterControls

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import type { TerritoryGroup } from '@/composables/useTerritoryGroups'
 import type { TerritoryCode } from '@/types/branded'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { filterCollectionSetsByType, useCollectionSet } from '@/composables/useCollectionSet'
 import { useLocalizedName } from '@/composables/useLocalizedName'
-import { useTerritoryNames } from '@/composables/useTerritoryNames'
+import { useTerritoryGroups } from '@/composables/useTerritoryGroups'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
 import { useGeoDataStore } from '@/stores/geoData'
@@ -12,27 +13,14 @@ import { useViewStore } from '@/stores/view'
 
 const { t } = useI18n()
 const { localize } = useLocalizedName()
-const { territoryName } = useTerritoryNames()
 const atlasStore = useAtlasStore()
 const compositionStore = useCompositionStore()
 const viewStore = useViewStore()
 const geoDataStore = useGeoDataStore()
 
-interface TerritoryItem {
-  code: string
-  name: string
-  isActive: boolean
+type ToggledGroup = Omit<TerritoryGroup, 'territories'> & {
+  territories: Array<TerritoryGroup['territories'][number] & { isActive: boolean }>
 }
-
-interface TerritoryGroup {
-  id: string
-  label: string
-  territories: TerritoryItem[]
-}
-
-const loadedTerritories = computed(() => {
-  return geoDataStore.territoriesData
-})
 
 const activeTerritories = computed(() => {
   return geoDataStore.filteredTerritories
@@ -76,64 +64,25 @@ const collectionSetToDisplay = computed(() => {
   return defaultCollectionSet.value
 })
 
-const territoryGroups = computed((): TerritoryGroup[] => {
-  const collections = atlasCollections.value
-  if (!collections) {
+const groupsOfCollectionSet = useTerritoryGroups(collectionSetToDisplay)
+
+// An atlas without territory collections lists no territory to toggle
+const territoryGroups = computed((): ToggledGroup[] => {
+  if (!atlasCollections.value) {
     return []
   }
-
-  const collectionSetKey = collectionSetToDisplay.value
-  if (!collectionSetKey) {
-    const allTerritories = loadedTerritories.value
-      .map(territory => ({
-        code: territory.code,
-        name: territoryName(territory.code, territory.name),
-        isActive: activeTerritoryCodesSet.value.has(territory.code),
-      }))
-
-    if (allTerritories.length === 0) {
-      return []
-    }
-
-    return [{
-      id: 'all-territories',
-      label: '',
-      territories: allTerritories,
-    }]
-  }
-
-  const collectionSet = collections[collectionSetKey]
-  if (!collectionSet) {
-    return []
-  }
-
-  const territoriesByCode = new Map(loadedTerritories.value.map(t => [t.code, t]))
-
-  return collectionSet.collections
-    .filter(collection => collection.codes !== '*')
-    .map(collection => ({
-      id: collection.id,
-      label: localize(collection.label),
-      territories: (collection.codes as string[])
-        .filter((code: string) => territoriesByCode.has(code as TerritoryCode))
-        .map((code: string) => {
-          const territory = territoriesByCode.get(code as TerritoryCode)!
-          return {
-            code,
-            name: territoryName(code, territory.name),
-            isActive: activeTerritoryCodesSet.value.has(code as TerritoryCode),
-          }
-        }),
-    }))
-    .filter(group => group.territories.length > 0)
+  return groupsOfCollectionSet.value.map(group => ({
+    ...group,
+    territories: group.territories.map(territory => ({ ...territory, isActive: activeTerritoryCodesSet.value.has(territory.code) })),
+  }))
 })
 
-function toggleTerritory(code: string, isActive: boolean) {
+function toggleTerritory(code: TerritoryCode, isActive: boolean) {
   if (isActive) {
-    viewStore.removeTerritoryFromComposite(code as TerritoryCode)
+    viewStore.removeTerritoryFromComposite(code)
   }
   else {
-    compositionStore.addTerritoryToComposite(code as TerritoryCode)
+    compositionStore.addTerritoryToComposite(code)
   }
   geoDataStore.triggerRender()
 }
