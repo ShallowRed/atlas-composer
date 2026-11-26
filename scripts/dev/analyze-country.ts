@@ -23,6 +23,7 @@ import process from 'node:process'
 import * as topojson from 'topojson-client'
 import { getResolution, parseArgs, showHelp } from '#scripts/utils/cli-args'
 import { logger } from '#scripts/utils/logger'
+import { continuousLongitudes, longitudeDifference, longitudeExtent } from '#scripts/utils/longitudes'
 import { readWorldData } from '#scripts/utils/ne-data'
 import { RULES_RESOLUTION } from '../../packages/preset-library/src/territories.js'
 
@@ -66,27 +67,17 @@ function calculatePolygonArea(ring: number[][]): number {
   return Math.abs(area / 2)
 }
 
-function calculatePolygonCenter(ring: number[][]): [number, number] {
-  const lons = ring.map(coord => coord[0]).filter((n): n is number => n !== undefined)
-  const lats = ring.map(coord => coord[1]).filter((n): n is number => n !== undefined)
-  return [
-    (Math.min(...lons) + Math.max(...lons)) / 2,
-    (Math.min(...lats) + Math.max(...lats)) / 2,
-  ]
-}
-
 function analyzePolygon(polygon: any[], index: number): PolygonMetadata {
-  const firstRing = polygon[0]
-  const lons = firstRing.map((coord: number[]) => coord[0]).filter((n: number | undefined): n is number => n !== undefined)
-  const lats = firstRing.map((coord: number[]) => coord[1]).filter((n: number | undefined): n is number => n !== undefined)
+  const lats = polygon[0].map((coord: number[]) => coord[1]).filter((n: number | undefined): n is number => n !== undefined)
+  const lons: number[] = polygon[0].map((coord: number[]) => coord[0])
+  const { west: minLon, east: maxLon, center: centerLon } = longitudeExtent(lons)
+  const firstRing = continuousLongitudes(lons).map((lon, i) => [lon, polygon[0][i][1]])
 
-  const minLon = Math.min(...lons)
-  const maxLon = Math.max(...lons)
   const minLat = Math.min(...lats)
   const maxLat = Math.max(...lats)
 
   const area = calculatePolygonArea(firstRing)
-  const center = calculatePolygonCenter(firstRing)
+  const center: [number, number] = [centerLon, (minLat + maxLat) / 2]
 
   let region = 'Unknown'
   if (minLat > 45)
@@ -133,7 +124,7 @@ function groupPolygonsByProximity(polygons: PolygonMetadata[], threshold = 5): P
         continue
 
       const distance = Math.sqrt(
-        (polygon.center[0] - other.center[0]) ** 2
+        longitudeDifference(polygon.center[0], other.center[0]) ** 2
         + (polygon.center[1] - other.center[1]) ** 2,
       )
 
