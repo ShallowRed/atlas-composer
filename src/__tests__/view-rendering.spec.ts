@@ -6,8 +6,9 @@
 // territories of the europe/split key, produced on the commit "fix(atlases): extract Bonaire, Saba and Sint Eustatius
 // from the Netherlands of the europe atlas", the NO-21 and NO-22 territories of the europe/split key and the
 // europe/unified key, produced on the commit "fix(atlases): extract Svalbard and Jan Mayen from Norway in the europe
-// atlas", and the keys of each atlas added since, produced on the commit "feat(atlases): add the <atlas> atlas";
-// regenerate a key only on the commit that produced it.
+// atlas", the usa/unified key and the US-ALEU territory of the usa/split key, produced on the commit "fix(atlases):
+// give the Aleutian Islands their box across the antimeridian", and the keys of each atlas added since, produced on the
+// commit "feat(atlases): add the <atlas> atlas"; regenerate a key only on the commit that produced it.
 import type { Point } from '@/__tests__/composite-utils'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
@@ -40,10 +41,15 @@ const cases = atlasRegistry.atlases.flatMap(atlas => VIEWS
 
 const reference: Record<string, Rendering> = UPDATE ? {} : JSON.parse(readFileSync(FIXTURE, 'utf8'))
 
+// A box across the antimeridian counts its eastern edge beyond 180; a union that spans the whole globe takes [-180, 180]
 function unionOfBounds(bounds: Bounds[]): Bounds {
+  const east = (b: Bounds) => (b[0][0] > b[1][0] ? b[1][0] + 360 : b[1][0])
+  const minLon = Math.min(...bounds.map(b => b[0][0]))
+  const maxLon = Math.max(...bounds.map(east))
+  const [west, eastEdge] = maxLon - minLon >= 360 ? [-180, 180] : [minLon, maxLon]
   return [
-    [Math.min(...bounds.map(b => b[0][0])), Math.min(...bounds.map(b => b[0][1]))],
-    [Math.max(...bounds.map(b => b[1][0])), Math.max(...bounds.map(b => b[1][1]))],
+    [west, Math.min(...bounds.map(b => b[0][1]))],
+    [eastEdge, Math.max(...bounds.map(b => b[1][1]))],
   ]
 }
 
