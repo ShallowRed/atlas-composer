@@ -5,7 +5,7 @@ import type { CompositionProposal, ProposalOptions, ProposedTerritory } from '@/
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { SharedLink } from '@/core/view'
+import type { SharedLink, SharedLinkProposal } from '@/core/view'
 import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
@@ -155,8 +155,13 @@ export const useCompositionStore = defineStore('composition', () => {
         return ok(undefined)
       }
 
+      // With a link of a proposal, initializeAtlas applies the territories once the geometries, which the proposal reads, are loaded
+      const linkProposal = viewMode === 'composite-custom' ? sharedLink?.proposal : undefined
       if (sharedLink) {
-        applySharedLink(sharedLink)
+        applySharedLinkView(sharedLink)
+        if (!linkProposal) {
+          applySharedLinkTerritories(sharedLink)
+        }
       }
 
       appStore.startLoadingGeoData()
@@ -174,6 +179,10 @@ export const useCompositionStore = defineStore('composition', () => {
       }
       if (!preloadResult.ok) {
         return fail(preloadResult.error)
+      }
+      if (sharedLink && linkProposal) {
+        reopenSharedProposal(linkProposal)
+        applySharedLinkTerritories(sharedLink)
       }
       geoDataStore.setReinitializing(false)
       appStore.setReady()
@@ -451,7 +460,8 @@ export const useCompositionStore = defineStore('composition', () => {
     return projectionRegistry.get(projectionId ?? '')?.family ?? 'MISCELLANEOUS'
   }
 
-  function applySharedLink(link: SharedLink): void {
+  // The projection, the rotation and the parallels of a link
+  function applySharedLinkView(link: SharedLink): void {
     const isProposed = viewStore.projectionGroups.some(group => group.options?.some(option => option.value === link.projection))
     if (link.projection && isProposed) {
       projectionStore.setSelectedProjection(link.projection)
@@ -466,7 +476,11 @@ export const useCompositionStore = defineStore('composition', () => {
     if (link.parallels && parameterRegistry.validate('parallels', link.parallels, 'CONIC').ok) {
       parameterStore.setGlobalParameter('parallels', link.parallels)
     }
+  }
 
+  // The scale and the position of each territory of a link
+  function applySharedLinkTerritories(link: SharedLink): void {
+    const selectedProjection = projectionStore.selectedProjection
     const atlasTerritories = new Set<string>(atlasStore.atlasService.getAllTerritories().map(territory => territory.code))
     for (const [territory, { scale, translation }] of link.territories) {
       if (!atlasTerritories.has(territory)) {
@@ -482,6 +496,22 @@ export const useCompositionStore = defineStore('composition', () => {
         parameterStore.setTerritoryTranslation(code, 'x', translation[0])
         parameterStore.setTerritoryTranslation(code, 'y', translation[1])
       }
+    }
+  }
+
+  // The proposal of a link composed again on its canvas, with each territory added after it replayed in its order; a code that the atlas has not loaded is left out
+  function reopenSharedProposal({ codes, added, arrangement, scaleMode, canvas }: SharedLinkProposal): void {
+    const loaded = new Set<string>(geoDataStore.territoriesData.map(territory => territory.code))
+    const composed = codes.filter(code => loaded.has(code)) as TerritoryCode[]
+    if (composed.length === 0) {
+      return
+    }
+    if (canvas) {
+      projectionStore.canvasDimensions = { ...canvas }
+    }
+    startProposal(composed, { arrangement, scaleMode })
+    for (const code of added.filter(code => loaded.has(code)) as TerritoryCode[]) {
+      addTerritoryToComposite(code)
     }
   }
 

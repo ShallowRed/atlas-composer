@@ -1,12 +1,28 @@
+import type { CanvasDimensions } from '@atlas-composer/specification'
+import type { Arrangement, ScaleMode } from '@/core/territories/proposal'
 import type { AtlasId, ProjectionId } from '@/types/branded'
 import type { ViewMode } from '@/types/composite'
 import { getAtlasConfigPath } from '@/core/atlases/registry'
+import { CANVAS_LENGTH_CONTROL } from '@/core/parameters/composition-controls'
 import { projectionRegistry } from '@/core/projections/registry'
+import { ARRANGEMENTS, SCALE_MODES } from '@/core/territories/proposal'
 import { isViewMode } from './view-mode-selection'
 
 export interface SharedLinkTerritory {
   scale?: number
   translation?: [number, number]
+}
+
+// The largest side of a canvas that a link gives, in pixels: the control of the canvas has no upper bound
+const SHARED_CANVAS_MAX_LENGTH = 4000
+
+// A proposal in a link: its composed territories, those added after it in their order, its options and its canvas
+export interface SharedLinkProposal {
+  codes: string[]
+  added: string[]
+  arrangement: Arrangement
+  scaleMode: ScaleMode
+  canvas?: CanvasDimensions
 }
 
 export interface SharedLink {
@@ -17,6 +33,7 @@ export interface SharedLink {
   rotate?: [number, number, number]
   parallels?: [number, number]
   territories: Map<string, SharedLinkTerritory>
+  proposal?: SharedLinkProposal
 }
 
 function readNumber(value: unknown): number | undefined {
@@ -76,6 +93,30 @@ function readTerritories(value: unknown): Map<string, SharedLinkTerritory> {
   return territories
 }
 
+function readCodes(value: unknown): string[] {
+  return typeof value === 'string' ? value.split(',').filter(code => code !== '') : []
+}
+
+function readCanvas(value: unknown): CanvasDimensions | undefined {
+  const match = typeof value === 'string' ? /^(\d+)x(\d+)$/.exec(value) : null
+  const [width, height] = match ? [Number(match[1]), Number(match[2])] : []
+  const inBounds = (length: number | undefined) => length !== undefined && length >= CANVAS_LENGTH_CONTROL.domain.min && length <= SHARED_CANVAS_MAX_LENGTH
+  return inBounds(width) && inBounds(height) ? { width: width!, height: height! } : undefined
+}
+
+// An unknown arrangement or scale takes the starting option; a code added twice, or already composed, counts once
+function readProposal(query: Record<string, unknown>): SharedLinkProposal | undefined {
+  const codes = [...new Set(readCodes(query.proposal))]
+  if (codes.length === 0) {
+    return undefined
+  }
+  const added = [...new Set(readCodes(query.added))].filter(code => !codes.includes(code))
+  const arrangement = ARRANGEMENTS.find(option => option === query.arrangement) ?? ARRANGEMENTS[0]
+  const scaleMode = SCALE_MODES.find(option => option === query.scaleMode) ?? SCALE_MODES[0]
+  const canvas = readCanvas(query.canvas)
+  return { codes, added, arrangement, scaleMode, ...(canvas ? { canvas } : {}) }
+}
+
 export function parseSharedLink(query: Record<string, unknown>): SharedLink {
   const { atlas, view, projection, territory } = query
   const link: SharedLink = { territories: readTerritories(query.t) }
@@ -100,6 +141,10 @@ export function parseSharedLink(query: Record<string, unknown>): SharedLink {
   const parallels = readNumbers(query, ['p1', 'p2'])
   if (parallels) {
     link.parallels = parallels as [number, number]
+  }
+  const proposal = readProposal(query)
+  if (proposal) {
+    link.proposal = proposal
   }
 
   return link
@@ -139,6 +184,19 @@ export function serializeSharedLink(link: SharedLink): Record<string, string> {
   }
   if (Object.keys(settings).length > 0) {
     query.t = JSON.stringify(settings)
+  }
+
+  if (link.proposal) {
+    const { codes, added, arrangement, scaleMode, canvas } = link.proposal
+    query.proposal = codes.join(',')
+    if (added.length > 0) {
+      query.added = added.join(',')
+    }
+    query.arrangement = arrangement
+    query.scaleMode = scaleMode
+    if (canvas) {
+      query.canvas = `${canvas.width}x${canvas.height}`
+    }
   }
   return query
 }

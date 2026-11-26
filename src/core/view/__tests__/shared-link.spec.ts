@@ -100,3 +100,30 @@ describe('serializeSharedLink', () => {
     expect(parseSharedLink(serializeSharedLink(link))).toEqual(link)
   })
 })
+
+describe('proposal in a shared link', () => {
+  const PROPOSAL = { proposal: 'JP-MAIN,JP-RYU', added: 'JP-OGA', arrangement: 'insets-bottom', scaleMode: 'uniform', canvas: '1200x600' }
+
+  it('reads the composed and the added territories, the options and the canvas, and writes them back', () => {
+    const link = parseSharedLink(PROPOSAL)
+
+    expect(link.proposal).toEqual({ codes: ['JP-MAIN', 'JP-RYU'], added: ['JP-OGA'], arrangement: 'insets-bottom', scaleMode: 'uniform', canvas: { width: 1200, height: 600 } })
+    expect(serializeSharedLink(link)).toEqual(PROPOSAL)
+  })
+
+  it('counts once a territory added twice or already composed', () => {
+    expect(parseSharedLink({ proposal: 'JP-MAIN', added: 'JP-OGA,JP-MAIN,JP-OGA,JP-RYU' }).proposal?.added).toEqual(['JP-OGA', 'JP-RYU'])
+  })
+
+  it('takes the starting arrangement and scale for an unknown value', () => {
+    expect(parseSharedLink({ proposal: 'JP-MAIN', arrangement: 'circle', scaleMode: 'huge' }).proposal).toMatchObject({ arrangement: 'insets-right', scaleMode: 'readable' })
+  })
+
+  it.each(['0x500', '960x4001', '960', 'wide'])('ignores the canvas %s', (canvas) => {
+    expect(parseSharedLink({ proposal: 'JP-MAIN', canvas }).proposal).not.toHaveProperty('canvas')
+  })
+
+  it('reads no proposal without a composed territory', () => {
+    expect(parseSharedLink({ added: 'JP-OGA', arrangement: 'insets-bottom' }).proposal).toBeUndefined()
+  })
+})

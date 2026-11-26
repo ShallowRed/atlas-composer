@@ -1,12 +1,17 @@
 import type { AtlasId, TerritoryCode } from '@/types/branded'
 import { readFile } from 'node:fs/promises'
-import { describe, expect, it } from 'vitest'
-import { openCompositeWithContours, openView } from '@/__tests__/composite-utils'
+import { describe, expect, it, vi } from 'vitest'
+import { openCompositeWithContours, openView, startApplication, territoriesWithContours } from '@/__tests__/composite-utils'
 import { withSetup } from '@/__tests__/test-utils'
 import { useTerritoryTransforms } from '@/composables/useTerritoryTransforms'
+import { useUrlState } from '@/composables/useUrlState'
 import { rectFromFrame, subProjectionAnchor } from '@/core/positioning'
 import { freeCell } from '@/core/territories/proposal'
+import { ok } from '@/core/types/result'
+import { parseSharedLink } from '@/core/view'
+import { useAppStore } from '@/stores/app'
 import { useCompositionStore } from '@/stores/composition'
+import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
@@ -209,5 +214,86 @@ describe('the end of a proposal', () => {
     await useCompositionStore().selectAtlas('france' as AtlasId)
 
     expect(usePresetDefaultsStore().proposal).toBeNull()
+  })
+})
+
+// The page opened at the link of the current state, in a new application whose loading gives the contours of the atlas; gives whether the proposal was applied when the page became ready
+async function reopenFromLink(extraQuery: Record<string, string> = {}): Promise<{ proposedWhenReady: boolean }> {
+  const query = { ...useUrlState().serializeState(), ...extraQuery }
+  await startApplication(JAPAN)
+  const geoDataStore = useGeoDataStore()
+  vi.spyOn(geoDataStore, 'loadAllAtlasData').mockImplementation(async () => {
+    geoDataStore.territoriesData = territoriesWithContours(JAPAN)
+    return ok(undefined)
+  })
+  const appStore = useAppStore()
+  const setReady = appStore.setReady
+  let proposedWhenReady = false
+  vi.spyOn(appStore, 'setReady').mockImplementation(() => {
+    proposedWhenReady = usePresetDefaultsStore().proposal !== null
+    setReady()
+  })
+  await useCompositionStore().startMapView(parseSharedLink(query))
+  return { proposedWhenReady }
+}
+
+describe('a proposal in a shared link', () => {
+  it('opens the same proposal before the page is ready, with the territories added after it in their order, and no difference from its reference', async () => {
+    await propose()
+    useCompositionStore().addTerritoryToComposite(OGASAWARA)
+    useCompositionStore().addTerritoryToComposite(HOKKAIDO)
+    const proposal = usePresetDefaultsStore().proposal
+    const codes = [MAIN, RYUKYU, OGASAWARA, HOKKAIDO]
+    const parameters = codes.map(parametersOf)
+
+    const { proposedWhenReady } = await reopenFromLink()
+
+    expect(proposedWhenReady).toBe(true)
+    expect(usePresetDefaultsStore().proposal).toEqual(proposal)
+    expect(usePresetDefaultsStore().proposal!.additions).toEqual([OGASAWARA, HOKKAIDO])
+    expect(codes.map(parametersOf)).toEqual(parameters)
+    expect(differsFromReference()).toBe(false)
+  })
+
+  it('opens the proposal on the canvas on which it was composed, after a change of the canvas', async () => {
+    await propose()
+    const canvas = { ...useProjectionStore().canvasDimensions! }
+    const parameters = [MAIN, RYUKYU].map(parametersOf)
+    useProjectionStore().canvasDimensions = { width: 1400, height: 900 }
+
+    await reopenFromLink()
+
+    expect(useProjectionStore().canvasDimensions).toEqual(canvas)
+    expect([MAIN, RYUKYU].map(parametersOf)).toEqual(parameters)
+  })
+
+  it('keeps the global parallels of the link', async () => {
+    await propose()
+
+    await reopenFromLink({ p1: '30', p2: '40' })
+
+    expect(usePresetDefaultsStore().proposal).not.toBeNull()
+    expect(useParameterStore().globalParameters.parallels).toEqual([30, 40])
+  })
+
+  it('opens the proposal on its own canvas, and the moved territory at its position', async () => {
+    await openCompositeWithContours(JAPAN)
+    useProjectionStore().canvasDimensions = { width: 1200, height: 600 }
+    useCompositionStore().startProposal([MAIN, RYUKYU], OPTIONS)
+    useParameterStore().setTerritoryTranslation(RYUKYU, 'x', 300)
+
+    await reopenFromLink()
+
+    expect(useProjectionStore().canvasDimensions).toEqual({ width: 1200, height: 600 })
+    expect(useParameterStore().getTerritoryTranslation(RYUKYU).x).toBe(300)
+    expect(differsFromReference()).toBe(true)
+  })
+
+  it('opens the default preset when the atlas has none of the composed territories', async () => {
+    await startApplication(JAPAN)
+    await useCompositionStore().startMapView(parseSharedLink({ atlas: JAPAN, view: 'composite-custom', proposal: 'XX-1,XX-2' }))
+
+    expect(usePresetDefaultsStore().proposal).toBeNull()
+    expect(useViewStore().activeTerritoryCodes.size).toBeGreaterThan(0)
   })
 })
