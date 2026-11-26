@@ -41,6 +41,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # preset-library, which prepare-geodata reads, imports the build of projection-core
+      - name: Build packages
+        run: pnpm build:packages
+
       - name: Prepare geodata
         run: |
           atlases=$(jq -r '.atlases[].id' configs/atlas-registry.json)
