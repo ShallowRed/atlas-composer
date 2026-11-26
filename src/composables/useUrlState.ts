@@ -9,6 +9,7 @@ import { parseSharedLink, serializeSharedLink } from '@/core/view'
 import { useAtlasStore } from '@/stores/atlas'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
+import { usePresetDefaultsStore } from '@/stores/presetDefaults'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 import { logger } from '@/utils/logger'
@@ -22,6 +23,7 @@ export function useUrlState() {
   const projectionStore = useProjectionStore()
   const viewStore = useViewStore()
   const geoDataStore = useGeoDataStore()
+  const presetDefaults = usePresetDefaultsStore()
 
   function serializeState() {
     debug('Serializing state...')
@@ -43,6 +45,8 @@ export function useUrlState() {
     }
 
     const { customParallel1, customParallel2 } = projectionStore
+    // The link of a proposal holds its territories, active or not, its options and the canvas on which it was composed
+    const { proposal } = presetDefaults
     return serializeSharedLink({
       atlas: atlasStore.selectedAtlasId,
       view: viewStore.viewMode,
@@ -51,6 +55,9 @@ export function useUrlState() {
       rotate: projectionStore.customRotate ?? undefined,
       parallels: customParallel1 !== null && customParallel2 !== null ? [customParallel1, customParallel2] : undefined,
       territories,
+      proposal: proposal && writesEveryTerritory
+        ? { codes: proposal.codes, added: proposal.additions, arrangement: proposal.arrangement, scaleMode: proposal.scaleMode, canvas: presetDefaults.referenceCanvas().dimensions }
+        : undefined,
     })
   }
 

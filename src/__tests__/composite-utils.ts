@@ -65,18 +65,23 @@ export async function openView(view: ViewMode) {
   await useCompositionStore().selectViewMode(view)
 }
 
-// An atlas in the custom composite view, with the contours of its territories, which the application reads from src/public/data
-export async function openCompositeWithContours(atlasId: AtlasId) {
-  await startApplication(atlasId)
-  await useCompositionStore().initializeAtlas()
-  await openView('composite-custom')
-  useGeoDataStore().territoriesData = readAtlasContours(atlasId).features.map(feature => ({
+// The territories of an atlas with their contours, which the application reads from src/public/data
+export function territoriesWithContours(atlasId: AtlasId): Territory[] {
+  return readAtlasContours(atlasId).features.map(feature => ({
     code: feature.properties.code as TerritoryCode,
     name: feature.properties.code,
     area: 0,
     region: '',
     data: { type: 'FeatureCollection', features: [feature] },
   }) satisfies Territory)
+}
+
+// An atlas in the custom composite view, with the contours of its territories
+export async function openCompositeWithContours(atlasId: AtlasId) {
+  await startApplication(atlasId)
+  await useCompositionStore().initializeAtlas()
+  await openView('composite-custom')
+  useGeoDataStore().territoriesData = territoriesWithContours(atlasId)
 }
 
 export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposite {
