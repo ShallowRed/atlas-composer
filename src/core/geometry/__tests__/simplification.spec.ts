@@ -100,9 +100,9 @@ describe('simplifyTopology', () => {
 
 describe('withoutAntimeridianSeams', () => {
   const lines = (...coordinates: GeoJSON.Position[][]): GeoJSON.MultiLineString => ({ type: 'MultiLineString', coordinates })
-  // Segments whose two ends are on the same meridian ±180
+  // Segments whose two ends are on the antimeridian, at 180 or -180
   const seams = ({ coordinates }: GeoJSON.MultiLineString) => coordinates.flatMap(line => line.slice(1)
-    .filter((point, index) => Math.abs(point[0]!) >= 179.99 && Math.abs(line[index]![0]!) >= 179.99 && Math.sign(point[0]!) === Math.sign(line[index]![0]!)))
+    .filter((point, index) => Math.abs(point[0]!) >= 179.99 && Math.abs(line[index]![0]!) >= 179.99))
   const segmentCount = ({ coordinates }: GeoJSON.MultiLineString) => coordinates.reduce((count, line) => count + line.length - 1, 0)
 
   it('splits a line at a segment along the antimeridian and keeps the other segments in their order', () => {
@@ -110,10 +110,9 @@ describe('withoutAntimeridianSeams', () => {
       .toEqual(lines([[170, 0], [180, 0]], [[180, 5], [170, 5]]))
   })
 
-  it('keeps a segment from 180 to -180 and the lines away from the antimeridian', () => {
-    const kept = lines([[179, 0], [180, 0], [-180, 1], [-179, 1]], [[0, 0], [1, 1]])
-
-    expect(withoutAntimeridianSeams(kept)).toEqual(kept)
+  it('leaves out a segment from 180 to -180, along the antimeridian, and keeps the lines away from it', () => {
+    expect(withoutAntimeridianSeams(lines([[179, 0], [180, 0], [-180, 1], [-179, 1]], [[0, 0], [1, 1]])))
+      .toEqual(lines([[179, 0], [180, 0]], [[-180, 1], [-179, 1]], [[0, 0], [1, 1]]))
   })
 
   it('leaves out the cut of Fiji in the mesh of Natural Earth 50m and keeps the mesh of Russia', () => {
@@ -123,9 +122,9 @@ describe('withoutAntimeridianSeams', () => {
     const fiji = meshOf('242')
     const russia = meshOf('643')
 
-    expect(seams(fiji)).toHaveLength(5)
+    expect(seams(fiji)).toHaveLength(6)
     expect(seams(withoutAntimeridianSeams(fiji))).toHaveLength(0)
-    expect(segmentCount(withoutAntimeridianSeams(fiji))).toBe(segmentCount(fiji) - 5)
+    expect(segmentCount(withoutAntimeridianSeams(fiji))).toBe(segmentCount(fiji) - 6)
     expect(withoutAntimeridianSeams(russia)).toEqual(russia)
   })
 })
