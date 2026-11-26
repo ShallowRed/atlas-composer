@@ -36,6 +36,7 @@ const LEFT_OUT_AT_10M: Record<string, Record<string, number>> = {
   'chile': { 'CL-JF': 3, 'CL-IP': 1 },
   'ecuador': { 'EC-W': 5 },
   'europe': { 'IT': 2, 'PT-30': 2, 'ES': 3, 'FR-PF': 1, 'FR-NC': 1, 'NO': 1, 'GB': 3 },
+  'fiji': {},
   'france': { 'FR-PF': 1, 'FR-NC': 1, 'FR-TF': 7 },
   'japan': { 'JP-RYU': 4, 'JP-OGA': 9, 'JP-MAIN': 4 },
   'macaronesia': { 'PT-30': 2, 'ES-CONT': 3 },

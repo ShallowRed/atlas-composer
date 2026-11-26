@@ -1,0 +1,44 @@
+{
+  "id": "fiji-split",
+  "name": "Fiji - Uniform split view",
+  "description": "Same Mercator projection for all territories",
+  "atlasId": "fiji",
+  "type": "split",
+  "config": {
+    "territories": {
+      "FJ-MAIN": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              179.5,
+              -18.4
+            ]
+          }
+        }
+      },
+      "FJ-R": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              177.07,
+              -12.5
+            ]
+          }
+        }
+      },
+      "FJ-CR": {
+        "projection": {
+          "id": "mercator",
+          "parameters": {
+            "center": [
+              174.61,
+              -21.69
+            ]
+          }
+        }
+      }
+    }
+  }
+}
