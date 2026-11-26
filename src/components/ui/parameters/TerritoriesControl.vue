@@ -20,6 +20,7 @@ const {
   projectionRecommendations,
   projectionGroups,
   selectedProjection,
+  differsFromReference,
   resetTransforms,
   resetTerritoryToDefaults,
   changeTerritoryProjection,
@@ -37,12 +38,6 @@ const presetDefaults = usePresetDefaultsStore()
 
 const backButton = ref<HTMLButtonElement>()
 const rowButtons = ref<HTMLButtonElement[]>([])
-
-const hasDivergingFromPreset = computed(() => presetDefaults.territoriesDifferFromPreset(
-  Object.fromEntries(territories.value.map(({ code }) => [code, parameterStore.getTerritoryParameters(code as TerritoryCode)])),
-  viewStore.activeTerritoryCodes,
-  viewStore.viewMode === 'composite-custom',
-))
 
 const selectedTerritoryDiffers = computed(() => {
   const territory = selectedTerritory.value
@@ -96,7 +91,7 @@ onUnmounted(clearSelection)
       <button
         type="button"
         class="btn btn-ghost btn-xs"
-        :disabled="!hasDivergingFromPreset"
+        :disabled="!differsFromReference"
         @click="resetTransforms"
       >
         <i class="ri-restart-line" />

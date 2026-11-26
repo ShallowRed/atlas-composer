@@ -1,6 +1,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { CompositionState } from '@/core/presets'
 import type { ProjectionFamilyType } from '@/core/projections/types'
+import type { CompositionProposal, ProposalOptions, ProposedTerritory } from '@/core/territories/proposal'
 import type { TerritoryResetOperation } from '@/core/territories/types'
 import type { GeoDataError, ImportError, InitializationError, PresetApplicationError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
@@ -8,14 +9,17 @@ import type { SharedLink } from '@/core/view'
 import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
+import type { ProjectionParameters } from '@/types/projection-parameters'
 
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
 import { getInitialTerritoryMode } from '@/core/atlases/utils'
 import { parameterRegistry } from '@/core/parameters'
+import { territoryRect } from '@/core/positioning/fit'
 import { checkAtlasCompatibility, compositionStateFromConfig, compositionStateWithoutConfig } from '@/core/presets'
 import { DEFAULT_CANVAS_DIMENSIONS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
+import { freeCell, proposeAddition, proposeComposition } from '@/core/territories/proposal'
 import { defaultTerritoryParameters, TerritoryResetService } from '@/core/territories/territory-reset-service'
 import { err, ok } from '@/core/types/result'
 import { DEFAULT_SELECTED_PROJECTION } from '@/core/view'
@@ -349,11 +353,55 @@ export const useCompositionStore = defineStore('composition', () => {
     debug('Reset territory %s', territoryCode)
   }
 
+  // During a proposal, a territory outside the reference goes in the first free cell; else it keeps its parameters, or receives the default ones
   function addTerritoryToComposite(territoryCode: TerritoryCode): void {
-    if (!parameterStore.getTerritoryProjection(territoryCode)) {
+    const proposal = presetDefaults.proposal
+    if (proposal && !(territoryCode in presetDefaults.presetParameters)) {
+      addToProposal(territoryCode, proposal)
+    }
+    else if (!parameterStore.getTerritoryProjection(territoryCode)) {
       parameterStore.setTerritoryParameters(territoryCode, defaultTerritoryParameters(atlasStore.territoryCenter(territoryCode)))
     }
     viewStore.addTerritoryToComposite(territoryCode)
+  }
+
+  // A territory of the atlas as a proposal reads it: its geometry, the center of its configuration and the latitudes of its bounds
+  function proposedTerritory(territoryCode: TerritoryCode): ProposedTerritory {
+    const territory = geoDataStore.territoriesData.find(candidate => candidate.code === territoryCode)
+    const band = atlasStore.latitudeBand(territoryCode)
+    if (!territory || !band) {
+      throw new Error(`Territory ${territoryCode} has no geometry or no bounds`)
+    }
+    return { code: territoryCode, geometry: territory.data, center: atlasStore.territoryCenter(territoryCode), band }
+  }
+
+  // The proposal of the checked territories becomes the reference of the reset; the global parameters stay
+  function startProposal(territoryCodes: TerritoryCode[], options: Pick<ProposalOptions, 'arrangement' | 'scaleMode'>): void {
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    const { state, reasons } = proposeComposition(territoryCodes.map(proposedTerritory), { ...options, canvas })
+    for (const { code } of atlasStore.atlasService.getAllTerritories()) {
+      parameterStore.clearAllTerritoryOverrides(code as TerritoryCode)
+    }
+    applyCompositionState(state, { codes: state.activeTerritories, additions: [], ...options, reasons })
+    updateCartographer(state.canvas!.referenceScale)
+    debug('Proposal of %d territories', territoryCodes.length)
+  }
+
+  // A territory checked during a proposal, fitted at the current reference scale: the first free cell avoids the rectangle of each active territory and of each territory of the reference
+  function addToProposal(territoryCode: TerritoryCode, proposal: CompositionProposal): void {
+    const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
+    const referenceScale = projectionStore.referenceScale ?? presetDefaults.referenceCanvas().referenceScale
+    const rectOf = (code: string, parameters: ProjectionParameters) =>
+      territoryRect(proposedTerritory(code as TerritoryCode).geometry, parameters, { canvas, referenceScale })
+    const occupied = [
+      ...[...viewStore.activeTerritoryCodes].map(code => rectOf(code, parameterStore.getTerritoryParameters(code))),
+      ...Object.entries(presetDefaults.presetParameters).map(([code, parameters]) => rectOf(code, parameters)),
+    ]
+    const cell = freeCell(occupied, proposal.codes.length, { arrangement: proposal.arrangement, canvas })
+    const { parameters, reason } = proposeAddition(proposedTerritory(territoryCode), cell, { canvas, referenceScale })
+    parameterStore.clearAllTerritoryOverrides(territoryCode)
+    parameterStore.setTerritoryParameters(territoryCode, parameters)
+    presetDefaults.addToProposal(territoryCode, parameters, reason)
   }
 
   function resetTerritory(operation: TerritoryResetOperation): void {
@@ -367,7 +415,8 @@ export const useCompositionStore = defineStore('composition', () => {
     projectionStore.canvasDimensions = { ...canvas.dimensions }
   }
 
-  function applyCompositionState(state: CompositionState): void {
+  // The applied state is the reference of the reset, with the proposal it comes from, null for a preset or a file
+  function applyCompositionState(state: CompositionState, proposal: CompositionProposal | null = null): void {
     if (state.canvas) {
       projectionStore.referenceScale = state.canvas.referenceScale
       projectionStore.canvasDimensions = state.canvas.dimensions
@@ -383,6 +432,7 @@ export const useCompositionStore = defineStore('composition', () => {
     if (viewStore.viewMode === 'composite-custom') {
       presetDefaults.storePresetDefaults(state.territoryParameters)
     }
+    presetDefaults.storeProposal(proposal)
   }
 
   function familyOf(projectionId: string | null | undefined): ProjectionFamilyType {
@@ -509,6 +559,7 @@ export const useCompositionStore = defineStore('composition', () => {
     resetTransforms,
     resetTerritoryToDefaults,
     addTerritoryToComposite,
+    startProposal,
     resetCanvas,
     selectAtlas,
     selectViewMode,

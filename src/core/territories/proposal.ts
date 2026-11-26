@@ -34,6 +34,15 @@ export interface ProposalOptions {
   canvas: CanvasDimensions
 }
 
+// The territories composed by a proposal, those added after it in the order of their addition, its options and the reason of the projection of each territory
+export interface CompositionProposal {
+  codes: TerritoryCode[]
+  additions: TerritoryCode[]
+  arrangement: Arrangement
+  scaleMode: ScaleMode
+  reasons: Partial<Record<TerritoryCode, ProjectionReason>>
+}
+
 // Thresholds of the rule of projection, in degrees and in ratio of the north-south extent to the east-west extent
 const POLAR_LATITUDE = 60
 const NORTH_SOUTH_MIN_SPAN = 8
@@ -130,6 +139,12 @@ function byArea(territories: ProposedTerritory[]): ProposedTerritory[] {
   return [...territories].sort((a, b) => areas.get(b.code)! - areas.get(a.code)! || a.code.localeCompare(b.code))
 }
 
+// The multiplier that brings the reference scale to a scale, rounded down to the format of its control
+function multiplierFor(scale: number, referenceScale: number, { projectionId }: ProjectionParameters): number {
+  const [control] = parameterRegistry.getAxisControls('scaleMultiplier', projectionRegistry.get(projectionId!)!.family)!
+  return floorToFormat(scale / referenceScale, control!.format)
+}
+
 export function proposeComposition(territories: ProposedTerritory[], { arrangement, scaleMode, canvas }: ProposalOptions): { state: CompositionState, reasons: Partial<Record<TerritoryCode, ProjectionReason>> } {
   const ordered = byArea(territories)
   const { main, insets } = arrangeZones(Math.max(ordered.length - 1, 0), canvas, arrangement)
@@ -146,8 +161,7 @@ export function proposeComposition(territories: ProposedTerritory[], { arrangeme
   const territoryParameters: CompositionState['territoryParameters'] = {}
   const reasons: Partial<Record<TerritoryCode, ProjectionReason>> = {}
   for (const [index, { territory, reason, parameters, zone, scale }] of fitted.entries()) {
-    const [multiplierControl] = parameterRegistry.getAxisControls('scaleMultiplier', projectionRegistry.get(parameters.projectionId!)!.family)!
-    const scaleMultiplier = scaleMode === 'uniform' || index === 0 ? 1 : floorToFormat(scale / referenceScale, multiplierControl!.format)
+    const scaleMultiplier = scaleMode === 'uniform' || index === 0 ? 1 : multiplierFor(scale, referenceScale, parameters)
     territoryParameters[territory.code] = {
       ...parameters,
       ...fitTerritory(territory.geometry, parameters, zone, { canvas, referenceScale, scaleMultiplier }),
@@ -178,4 +192,12 @@ export function freeCell(occupied: CanvasRect[], composedCount: number, { arrang
   }
   const overlaps = (a: CanvasRect, b: CanvasRect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
   return cells.find(cell => !occupied.some(rect => overlaps(cell, rect))) ?? cells[0]!
+}
+
+// The proposed projection of a territory checked after a proposal, fitted to a cell at a reference scale
+export function proposeAddition(territory: ProposedTerritory, cell: CanvasRect, { canvas, referenceScale }: { canvas: CanvasDimensions, referenceScale: number }): { parameters: ProjectionParameters, reason: ProjectionReason } {
+  const { projectionId, reason } = suggestProjection(territory.geometry)
+  const parameters = proposedParameters(territory, projectionId)
+  const scaleMultiplier = multiplierFor(fittedScale(territory.geometry, parameters, cell), referenceScale, parameters)
+  return { parameters: { ...parameters, ...fitTerritory(territory.geometry, parameters, cell, { canvas, referenceScale, scaleMultiplier }) }, reason }
 }

@@ -67,12 +67,12 @@ export function fitTerritory(
 }
 
 // The rectangle of the canvas that an active territory covers: its frame when it has one, else the box of its projected geometry
-export function territoryRect(geometry: GeoPermissibleObjects, parameters: ProjectionParameters & Required<Pick<ProjectionParameters, 'translateOffset' | 'scaleMultiplier'>>, { canvas, referenceScale }: { canvas: CanvasDimensions, referenceScale: number }): CanvasRect {
-  const anchor = subProjectionAnchor(canvas, parameters.translateOffset)
+export function territoryRect(geometry: GeoPermissibleObjects, parameters: ProjectionParameters, { canvas, referenceScale }: { canvas: CanvasDimensions, referenceScale: number }): CanvasRect {
+  const anchor = subProjectionAnchor(canvas, parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'))
   if (parameters.pixelClipExtent) {
     return rectFromFrame(parameters.pixelClipExtent, anchor)
   }
-  const projection = positionedProjection(parameters).scale(subProjectionScale(referenceScale, parameters.scaleMultiplier))
+  const projection = positionedProjection(parameters).scale(subProjectionScale(referenceScale, parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')))
   const [[x0, y0], [x1, y1]] = geoPath(projection).bounds(geometry)
   return rectFromFrame([x0, y0, x1, y1], anchor)
 }
