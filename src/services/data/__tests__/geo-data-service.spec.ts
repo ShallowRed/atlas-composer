@@ -155,3 +155,32 @@ describe('geoDataService.simplified', () => {
     expect(latitude).toBeCloseTo(2, 1)
   })
 })
+
+describe('geoDataService.simplified mesh', () => {
+  // One territory of two squares that meet at the antimeridian, as Natural Earth cuts an island there, rings clockwise
+  const cutAtAntimeridian = JSON.stringify({
+    type: 'Topology',
+    arcs: [
+      [[178, -18], [178, -16], [180, -16], [180, -18], [178, -18]],
+      [[-180, -18], [-180, -16], [-178, -16], [-178, -18], [-180, -18]],
+    ],
+    objects: { territories: { type: 'GeometryCollection', geometries: [{ type: 'MultiPolygon', arcs: [[[0]], [[1]]], properties: { code: 'XX', name: 'Test' } }] } },
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('draws the outline of a territory cut at the antimeridian without the cut', async () => {
+    stubFetch({ [DATA_PATH]: json(cutAtAntimeridian), [METADATA_PATH]: json('{}') })
+    const service = new GeoDataService(config)
+    await service.loadData()
+
+    const { coordinates } = service.simplified(new Map([['XX', 0]])).mesh(['XX'])
+    const alongAntimeridian = coordinates.flatMap(line => line.slice(1).filter((point, index) => Math.abs(point[0]!) === 180 && point[0] === line[index]![0]))
+
+    expect(alongAntimeridian).toEqual([])
+    expect(coordinates.flat()).toContainEqual([178, -16])
+    expect(coordinates.flat()).toContainEqual([-178, -18])
+  })
+})

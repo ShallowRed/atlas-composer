@@ -5,7 +5,7 @@ import type { GeoDataConfig } from '@/types'
 import * as d3 from 'd3-geo'
 import * as topojson from 'topojson-client'
 import { presimplify, sphericalTriangleArea } from 'topojson-simplify'
-import { simplifyTopology } from '@/core/geometry'
+import { simplifyTopology, withoutAntimeridianSeams } from '@/core/geometry'
 import { err, ok } from '@/core/types/result'
 import { JsonFileLoader } from '@/services/data/json-file-loader'
 import { logger } from '@/utils/logger'
@@ -197,10 +197,10 @@ export class GeoDataService {
         }
         return features.get(code)
       },
-      mesh: codes => topojson.mesh(topology, {
+      mesh: codes => withoutAntimeridianSeams(topojson.mesh(topology, {
         type: 'GeometryCollection',
         geometries: codes.flatMap(code => geometries.get(code) ?? []),
-      }),
+      })),
     }
     this.lastSimplified = { minWeights, territories }
     return territories
