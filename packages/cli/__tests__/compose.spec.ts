@@ -95,6 +95,21 @@ describe('atlas-composer compose', () => {
     expectRfc7946(at10m)
   })
 
+  it.each(['50m', '10m'])('should join the islands of Fiji that Natural Earth cuts at the antimeridian, at %s', (resolution) => {
+    const { collection } = runCompose('fiji-standard', `fiji-${resolution}`, ['--resolution', resolution])
+    const mainIslands = collection.features.find(feature => feature.properties.code === 'FJ-MAIN')!
+
+    // Two polygons with a vertex in common touch along the cut, which GEOS refuses
+    const polygonOfVertex = new Map<string, number>()
+    ringsOf(mainIslands.geometry).forEach((polygon, index) => {
+      for (const [longitude, latitude] of polygon.flat()) {
+        const vertex = `${longitude!.toFixed(9)} ${latitude!.toFixed(9)}`
+        expect(polygonOfVertex.get(vertex) ?? index).toBe(index)
+        polygonOfVertex.set(vertex, index)
+      }
+    })
+  })
+
   it('should name the territories that the preset leaves out and those that their frame clips entirely', () => {
     expect(runCompose('usa-pseudo-d3cp', 'usa').composition.skippedCodes).toEqual(['US-ALEU', 'US-VI', 'US-MP'])
 

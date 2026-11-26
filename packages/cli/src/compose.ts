@@ -7,6 +7,7 @@ import type { GeoJsonTerritories, GeoJsonTerritory } from './geojson.js'
 import { rewindToRfc7946 } from '@atlas-composer/preset-library'
 import { geoClipRectangle } from 'd3-geo'
 import { geoProject } from 'd3-geo-projection'
+import { stitchAtAntimeridian } from './antimeridian.js'
 import { mapPositions } from './geojson.js'
 
 export interface ComposedTerritories {
@@ -23,8 +24,9 @@ export interface ComposedTerritories {
 const DEGREES = 180 / Math.PI
 
 /**
- * Places each territory in the composition through the sub-projection of its code, clipped to its frame and to the
- * canvas, then converts the plane of the composition to longitudes and latitudes by the inverse of Web Mercator.
+ * Places each territory in the composition through the sub-projection of its code, with its pieces cut at the antimeridian
+ * joined, clipped to its frame and to the canvas, then converts the plane of the composition to longitudes and latitudes
+ * by the inverse of Web Mercator.
  */
 export function composeTerritories(
   loader: ProjectionLoader,
@@ -54,7 +56,7 @@ export function composeTerritories(
       continue
     }
     const stream = (output: GeoStream) => subProjection.stream!(clipToCanvas(output)) as GeoStream
-    const { geometry } = geoProject(territory, { stream })
+    const { geometry } = geoProject(stitchAtAntimeridian(territory), { stream })
     if (!geometry) {
       emptyCodes.push(code)
       continue
