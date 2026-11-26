@@ -25,7 +25,7 @@
     "geoBounds": {
       "title": "GeoBounds",
       "type": "array",
-      "description": "Geographic bounding box [[minLon, minLat], [maxLon, maxLat]]",
+      "description": "Geographic bounding box [[minLon, minLat], [maxLon, maxLat]], with longitudes in [-180, 180]; a box whose minLon exceeds maxLon crosses the antimeridian and holds the longitudes from minLon to 180 and from -180 to maxLon",
       "items": {
         "type": "array",
         "items": { "type": "number" },

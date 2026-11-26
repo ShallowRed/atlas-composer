@@ -63,6 +63,7 @@ export interface ProjectionLike {
   }
 }
 
+// Longitudes in [-180, 180]; a box whose minLon exceeds maxLon crosses the antimeridian
 export interface GeoBounds {
   minLon: number
   minLat: number

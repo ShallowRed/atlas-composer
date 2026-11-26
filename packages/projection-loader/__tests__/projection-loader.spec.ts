@@ -1,10 +1,12 @@
+import type { GeoBounds, SubProjectionEntry } from '@atlas-composer/projection-core'
 import type { CompositeProjectionConfig, ProjectionParameters } from '@atlas-composer/specification'
 import type { GeoConicProjection } from 'd3-geo'
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { applyRenderingParameters, boundsToArray, buildCompositeProjection, calculateClipExtentFromBounds, invertWithBoundsValidation } from '@atlas-composer/projection-core'
 import { DEFAULT_SCALE_MULTIPLIER } from '@atlas-composer/specification'
-import { geoConicConformal, geoConicEqualArea } from 'd3-geo'
+import { geoConicConformal, geoConicEqualArea, geoMercator } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { ConfigValidationError, ProjectionLoader, validateConfig } from '../src'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
@@ -605,6 +607,77 @@ describe('projection-loader', () => {
 
       expect(loader.load(mainland, { width: 960, height: 500 }).invert!([240, 188])).not.toBeNull()
       expect(loader.load(config, { width: 960, height: 500 }).invert!([240, 188])).toBeNull()
+    })
+  })
+
+  describe('bounds across the antimeridian', () => {
+    // Fiji, whose box crosses the antimeridian, and Tonga, east of it, in two frames side by side
+    const FIJI: GeoBounds = { minLon: 174.5, minLat: -21.8, maxLon: -178.2, maxLat: -12.4 }
+    const TONGA: GeoBounds = { minLon: -176.3, minLat: -22.4, maxLon: -173.7, maxLat: -15.5 }
+    const SCALE = 1000
+
+    function entryOf(id: string, rotate: [number, number, number], bounds: GeoBounds, translate: [number, number]): SubProjectionEntry {
+      const projection = geoMercator().rotate(rotate).scale(SCALE).translate(translate)
+      applyRenderingParameters(projection, { bounds }, translate)
+      return { id, projection, bounds }
+    }
+
+    const entries = [entryOf('FJ', [-178, 0, 0], FIJI, [300, 0]), entryOf('TO', [175, 0, 0], TONGA, [700, 0])]
+    const composite = buildCompositeProjection({ entries })
+
+    it.each([
+      ['FJ', [179.9, -16.5]],
+      ['FJ', [-179.9, -16.5]],
+      ['TO', [-175, -21]],
+    ] as const)('projects a point of %s by its sub-projection and inverts it back', (code, point) => {
+      const result = invertWithBoundsValidation(composite([...point])!, entries)
+
+      expect(result?.territoryId).toBe(code)
+      expect(result!.coordinates[0]).toBeCloseTo(point[0], 6)
+      expect(result!.coordinates[1]).toBeCloseTo(point[1], 6)
+    })
+
+    it('draws a frame from the corners of a box across the antimeridian that holds the image of the box', () => {
+      const { projection } = entryOf('FJ', [-178, 0, 0], FIJI, [300, 0])
+      const [[x0, y0], [x1, y1]] = calculateClipExtentFromBounds(projection, FIJI)!
+      const wrap = (lon: number) => (lon > 180 ? lon - 360 : lon)
+      const eastEdge = FIJI.maxLon + 360
+
+      expect(x0).toBeLessThan(x1)
+      expect(y0).toBeLessThan(y1)
+      // The fraction 0.9 of the longitudes falls west of the antimeridian, at -179.93
+      for (const fx of [0.25, 0.5, 0.75, 0.9]) {
+        for (const fy of [0.25, 0.5, 0.75]) {
+          const [x, y] = projection([wrap(FIJI.minLon + fx * (eastEdge - FIJI.minLon)), FIJI.minLat + fy * (FIJI.maxLat - FIJI.minLat)])!
+          expect(x).toBeGreaterThan(x0)
+          expect(x).toBeLessThan(x1)
+          expect(y).toBeGreaterThan(y0)
+          expect(y).toBeLessThan(y1)
+        }
+      }
+    })
+
+    it('inverts a point across the antimeridian through a loaded configuration', () => {
+      const territory = (code: string, rotate: [number, number, number], bounds: GeoBounds, x: number) => ({
+        code,
+        name: code,
+        projection: { id: 'mercator', family: 'CYLINDRICAL' as const, parameters: { rotate, scaleMultiplier: 1 } },
+        layout: { translateOffset: [x, 0] as [number, number] },
+        bounds: boundsToArray(bounds),
+      })
+      const config: CompositeProjectionConfig = {
+        ...mockConfig,
+        version: '1.1',
+        referenceScale: SCALE,
+        territories: [territory('FJ', [-178, 0, 0], FIJI, -180), territory('TO', [175, 0, 0], TONGA, 220)],
+      }
+      const projection = loader.load(config, { width: 960, height: 500 })
+
+      for (const point of [[179.9, -16.5], [-179.9, -16.5], [-175, -21]] as [number, number][]) {
+        const [lon, lat] = projection.invert!(projection(point)!)!
+        expect(lon).toBeCloseTo(point[0], 6)
+        expect(lat).toBeCloseTo(point[1], 6)
+      }
     })
   })
 })
