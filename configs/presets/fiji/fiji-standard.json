@@ -1,0 +1,128 @@
+{
+  "$schema": "../../schemas/preset.schema.json",
+  "version": "1.0",
+  "metadata": {
+    "atlasId": "fiji",
+    "atlasName": "Fiji",
+    "exportDate": "2026-11-26T00:00:00.000Z",
+    "createdWith": "Atlas composer"
+  },
+  "referenceScale": 5000,
+  "canvasDimensions": {
+    "width": 960,
+    "height": 500
+  },
+  "territories": [
+    {
+      "code": "FJ-MAIN",
+      "name": "Main islands",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            179.5,
+            -18.4
+          ],
+          "scaleMultiplier": 1
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          -100,
+          0
+        ],
+        "pixelClipExtent": [
+          -215,
+          -230,
+          215,
+          230
+        ]
+      },
+      "bounds": [
+        [
+          177.1,
+          -20.8
+        ],
+        [
+          -178.2,
+          -16
+        ]
+      ]
+    },
+    {
+      "code": "FJ-R",
+      "name": "Rotuma",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            177.07,
+            -12.5
+          ],
+          "scaleMultiplier": 4
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          290,
+          -110
+        ],
+        "pixelClipExtent": [
+          -60,
+          -50,
+          60,
+          50
+        ]
+      },
+      "bounds": [
+        [
+          176.9,
+          -12.6
+        ],
+        [
+          177.2,
+          -12.4
+        ]
+      ]
+    },
+    {
+      "code": "FJ-CR",
+      "name": "Ceva-i-Ra",
+      "projection": {
+        "id": "mercator",
+        "family": "CYLINDRICAL",
+        "parameters": {
+          "center": [
+            174.61,
+            -21.69
+          ],
+          "scaleMultiplier": 4
+        }
+      },
+      "layout": {
+        "translateOffset": [
+          290,
+          110
+        ],
+        "pixelClipExtent": [
+          -60,
+          -50,
+          60,
+          50
+        ]
+      },
+      "bounds": [
+        [
+          174.5,
+          -21.8
+        ],
+        [
+          174.7,
+          -21.6
+        ]
+      ]
+    }
+  ]
+}

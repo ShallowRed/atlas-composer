@@ -1,0 +1,20 @@
+{
+  "id": "fiji-unified",
+  "name": "Fiji - Standard unified view",
+  "description": "Natural Earth projection centered on Fiji",
+  "atlasId": "fiji",
+  "type": "unified",
+  "config": {
+    "projection": {
+      "id": "natural-earth",
+      "parameters": {
+        "rotate": [
+          -178.5,
+          17.7,
+          0
+        ],
+        "scale": 1.0
+      }
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "$schema": "../schemas/atlas.schema.json",
+  "id": "fiji",
+  "name": {
+    "en": "Fiji",
+    "fr": "Fidji"
+  },
+  "description": {
+    "en": "Viti Levu, Vanua Levu and the Lau Islands on both sides of the antimeridian, Rotuma and Ceva-i-Ra",
+    "fr": "Viti Levu, Vanua Levu et les îles Lau de part et d'autre de l'antiméridien, Rotuma et Ceva-i-Ra"
+  },
+  "category": "country",
+  "dataSources": {
+    "territories": "fiji-territories-10m.json",
+    "metadata": "fiji-metadata-10m.json"
+  },
+  "metadata": {
+    "naturalEarthIds": [
+      242
+    ],
+    "iso3": "FJI",
+    "region": "Oceania"
+  },
+  "territories": [
+    {
+      "id": "242",
+      "code": "FJ-MAIN",
+      "name": {
+        "en": "Main islands",
+        "fr": "Îles principales"
+      },
+      "iso": "FJI",
+      "bounds": [
+        [
+          177.1,
+          -20.8
+        ],
+        [
+          -178.2,
+          -16
+        ]
+      ],
+      "center": [
+        179.5,
+        -18.4
+      ]
+    },
+    {
+      "id": "242-R",
+      "code": "FJ-R",
+      "name": {
+        "en": "Rotuma",
+        "fr": "Rotuma"
+      },
+      "iso": "FJI",
+      "region": "Pacific",
+      "bounds": [
+        [
+          176.9,
+          -12.6
+        ],
+        [
+          177.2,
+          -12.4
+        ]
+      ],
+      "center": [
+        177.07,
+        -12.5
+      ],
+      "extraction": {
+        "extractFrom": "242",
+        "polygonIndices": [
+          17
+        ]
+      }
+    },
+    {
+      "id": "242-CR",
+      "code": "FJ-CR",
+      "name": {
+        "en": "Ceva-i-Ra",
+        "fr": "Ceva-i-Ra"
+      },
+      "iso": "FJI",
+      "region": "Pacific",
+      "bounds": [
+        [
+          174.5,
+          -21.8
+        ],
+        [
+          174.7,
+          -21.6
+        ]
+      ],
+      "center": [
+        174.61,
+        -21.69
+      ],
+      "extraction": {
+        "extractFrom": "242",
+        "polygonIndices": [
+          18
+        ]
+      }
+    }
+  ],
+  "territoryCollections": {
+    "administrative": {
+      "label": {
+        "en": "Administrative Selection",
+        "fr": "Sélection administrative"
+      },
+      "selectionType": "incremental",
+      "description": {
+        "en": "Territory groupings based on administrative status",
+        "fr": "Groupes de territoires selon le statut administratif"
+      },
+      "collections": [
+        {
+          "id": "mainland-only",
+          "label": {
+            "en": "Main islands only",
+            "fr": "Îles principales uniquement"
+          },
+          "territories": [
+            "FJ-MAIN"
+          ]
+        },
+        {
+          "id": "all-territories",
+          "label": {
+            "en": "All territories",
+            "fr": "Tous les territoires"
+          },
+          "territories": [
+            "FJ-MAIN",
+            "FJ-R",
+            "FJ-CR"
+          ]
+        }
+      ]
+    }
+  }
+}

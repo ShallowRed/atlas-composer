@@ -846,6 +846,61 @@
       }
     },
     {
+      "id": "fiji",
+      "name": {
+        "en": "Fiji",
+        "fr": "Fidji"
+      },
+      "group": "country",
+      "sortOrder": 37,
+      "configPath": "./atlases/fiji.json",
+      "presets": [
+        {
+          "id": "fiji-standard",
+          "name": {
+            "en": "Default custom composite",
+            "fr": "Composite personnalisée par défaut"
+          },
+          "type": "composite-custom",
+          "isDefault": true,
+          "configPath": "./presets/fiji/fiji-standard.json",
+          "description": {
+            "en": "Custom configuration for the main islands of Fiji, Rotuma and Ceva-i-Ra",
+            "fr": "Configuration personnalisée pour les îles principales des Fidji, Rotuma et Ceva-i-Ra"
+          }
+        },
+        {
+          "id": "fiji-unified",
+          "name": {
+            "en": "Standard unified view",
+            "fr": "Vue unifiée standard"
+          },
+          "type": "unified",
+          "configPath": "./presets/fiji/fiji-unified.json",
+          "description": {
+            "en": "Natural Earth projection centered on Fiji",
+            "fr": "Projection Natural Earth centrée sur les Fidji"
+          }
+        },
+        {
+          "id": "fiji-split",
+          "name": {
+            "en": "Uniform split view",
+            "fr": "Vue séparée uniforme"
+          },
+          "type": "split",
+          "configPath": "./presets/fiji/fiji-split.json",
+          "description": {
+            "en": "Same Mercator projection for all territories",
+            "fr": "Même projection de Mercator pour tous les territoires"
+          }
+        }
+      ],
+      "behavior": {
+        "collectionSets": {}
+      }
+    },
+    {
       "id": "europe",
       "name": {
         "en": "Europe",
