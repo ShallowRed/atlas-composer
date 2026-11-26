@@ -10,6 +10,7 @@ import {
   applyRenderingParameters,
   boundsFromArray,
   buildCompositeProjection,
+  placeCylindrical,
 } from '@atlas-composer/projection-core'
 import {
   DEFAULT_SCALE_MULTIPLIER,
@@ -280,13 +281,14 @@ export class ProjectionLoader {
     const { territory, factory, translateCoefficient, clipCoefficients } = layout
     const parameters = territory.projection.parameters
     const projection = factory()
+    const { center, rotate } = placeCylindrical(resolveProjectionAlias(territory.projection.id), parameters)
 
-    if (parameters.center !== undefined && projection.center) {
-      projection.center(parameters.center)
+    if (center !== undefined && projection.center) {
+      projection.center(center)
     }
 
-    if (parameters.rotate !== undefined && projection.rotate) {
-      const [lambda, phi, gamma = 0] = parameters.rotate
+    if (rotate !== undefined && projection.rotate) {
+      const [lambda, phi, gamma = 0] = rotate
       projection.rotate([lambda, phi, gamma])
     }
 

@@ -4,9 +4,9 @@ import type { GeoConicProjection } from 'd3-geo'
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { applyRenderingParameters, boundsToArray, buildCompositeProjection, calculateClipExtentFromBounds, invertWithBoundsValidation } from '@atlas-composer/projection-core'
-import { DEFAULT_SCALE_MULTIPLIER } from '@atlas-composer/specification'
-import { geoConicConformal, geoConicEqualArea, geoMercator } from 'd3-geo'
+import { applyRenderingParameters, boundsToArray, buildCompositeProjection, calculateClipExtentFromBounds, CENTER_PLACED_CYLINDRICAL_IDS, invertWithBoundsValidation } from '@atlas-composer/projection-core'
+import { DEFAULT_SCALE_MULTIPLIER, PROJECTION_CATALOG } from '@atlas-composer/specification'
+import { geoConicConformal, geoConicEqualArea, geoEquirectangular, geoMercator } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { ConfigValidationError, ProjectionLoader, validateConfig } from '../src'
 import { d3ProjectionFactories } from '../src/d3-projection-helpers'
@@ -678,6 +678,57 @@ describe('projection-loader', () => {
         expect(lon).toBeCloseTo(point[0], 6)
         expect(lat).toBeCloseTo(point[1], 6)
       }
+    })
+  })
+
+  describe('cylindrical projections placed by their center', () => {
+    it.each(CENTER_PLACED_CYLINDRICAL_IDS)('names %s, a cylindrical projection of the catalog', (projectionId) => {
+      expect(PROJECTION_CATALOG[projectionId as keyof typeof PROJECTION_CATALOG]?.family).toBe('CYLINDRICAL')
+    })
+
+    // The Aleutian Islands, whose box crosses the antimeridian, placed by the center of a mercator or an equirectangular
+    const ALEUTIANS: [[number, number], [number, number]] = [[172.49, 51.37], [-159.36, 63.73]]
+    const SCALE = 1000
+
+    function configOf(projectionId: string): CompositeProjectionConfig {
+      return {
+        ...mockConfig,
+        version: '1.1',
+        referenceScale: SCALE,
+        territories: [{
+          code: 'US-ALEU',
+          name: 'Aleutian Islands',
+          projection: { id: projectionId, family: 'CYLINDRICAL', parameters: { center: [-175, 52], scaleMultiplier: 1 } },
+          layout: { translateOffset: [0, 0] },
+          bounds: ALEUTIANS,
+        }],
+      }
+    }
+
+    it.each([
+      ['mercator', geoMercator],
+      ['equirectangular', geoEquirectangular],
+    ] as const)('draws a %s with the image of its center alone, moved by a turn of the world across the old cut', (projectionId, factory) => {
+      const projection = loader.load(configOf(projectionId), { width: 960, height: 500 })
+      const alone = factory().center([-175, 52]).scale(SCALE).translate([480, 250])
+      const sameSide = projection([-170, 55])!
+      const across = projection([179.5, 52])!
+
+      expect(sameSide[0]).toBeCloseTo(alone([-170, 55])![0], 6)
+      expect(sameSide[1]).toBeCloseTo(alone([-170, 55])![1], 6)
+      expect(across[0]).toBeCloseTo(alone([179.5, 52])![0] - 2 * Math.PI * SCALE, 6)
+      expect(across[1]).toBeCloseTo(alone([179.5, 52])![1], 6)
+    })
+
+    it('draws Attu, at 173° E, inside the frame of the box of the Aleutian Islands', () => {
+      const projection = loader.createSubProjections(configOf('mercator'), { scale: SCALE, translate: [480, 250] }).get('US-ALEU')!
+      const [[x0, y0], [x1, y1]] = projection.clipExtent!()!
+      const [x, y] = projection([173.2, 52.9])!
+
+      expect(x0).toBeLessThan(x)
+      expect(x).toBeLessThan(x1)
+      expect(y0).toBeLessThan(y)
+      expect(y).toBeLessThan(y1)
     })
   })
 })

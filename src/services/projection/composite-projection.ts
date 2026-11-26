@@ -11,9 +11,10 @@ import type { ActiveTerritoryProvider } from '@/types/territory'
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
 import { parameterRegistry } from '@/core/parameters'
-import { applyPositioning } from '@/core/positioning'
+import { applyPositioning, completeRotate } from '@/core/positioning'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { ProjectionFactory } from '@/core/projections/factory'
+import { projectionRegistry } from '@/core/projections/registry'
 import { isConicProjection } from '@/types/d3-geo-extended'
 import { logger } from '@/utils/logger'
 
@@ -31,6 +32,8 @@ interface SubProjectionConfig {
   projectionType: ProjectionId
   translateOffset: [number, number]
   bounds?: [[number, number], [number, number]]
+  // The center and rotate of the parameters, which the export writes, before placeCylindrical moves the cut of a cylindrical projection
+  positioning: { center: [number, number], rotate: [number, number, number] }
 }
 
 export class CompositeProjection {
@@ -70,8 +73,9 @@ export class CompositeProjection {
         return []
       }
 
-      const projection = this.createProjectionByType(parameters.projectionId).translate([0, 0])
-      applyPositioning(projection, parameters, 'composite')
+      const { projection, projectionId } = this.createProjectionByType(parameters.projectionId)
+      projection.translate([0, 0])
+      applyPositioning(projection, parameters, 'composite', projectionId)
       projection.scale(referenceScale * (parameters.scaleMultiplier ?? parameterRegistry.getDefaultValue('scaleMultiplier')))
 
       return [{
@@ -81,18 +85,24 @@ export class CompositeProjection {
         projectionType: parameters.projectionId as ProjectionId,
         translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),
         bounds: territory.bounds,
+        positioning: {
+          center: parameters.center ?? [0, 0],
+          rotate: completeRotate(parameters.rotate),
+        },
       }]
     })
   }
 
-  private createProjectionByType(projectionType: string): GeoProjection {
+  // The projection and the id of the projection created, the fallback projection for an unknown id
+  private createProjectionByType(projectionType: string): { projection: GeoProjection, projectionId: string } {
     const projection = ProjectionFactory.createById(projectionType)
     if (projection) {
-      return projection
+      // The registry resolves the aliases and the case of the id
+      return { projection, projectionId: projectionRegistry.get(projectionType)!.id }
     }
 
     debug('Failed to create projection: %s, falling back to Mercator', projectionType)
-    return ProjectionFactory.createById(FALLBACK_PROJECTION_ID)!
+    return { projection: ProjectionFactory.createById(FALLBACK_PROJECTION_ID)!, projectionId: FALLBACK_PROJECTION_ID }
   }
 
   updateReferenceScale(newReferenceScale: number): void {
@@ -183,17 +193,18 @@ export class CompositeProjection {
         territoryName: sp.territoryName,
         projectionType: sp.projectionType,
         ...this.parameterProvider.getExportableParameters(sp.territoryCode),
-        ...this.getAppliedPositioning(sp.projection),
+        ...this.getExportedPositioning(sp),
         translateOffset: sp.translateOffset,
         bounds: sp.bounds,
       })),
     }
   }
 
-  private getAppliedPositioning(projection: GeoProjection): Pick<ProjectionParameters, 'center' | 'rotate' | 'parallels'> {
+  // The center and rotate before the placement of a cylindrical projection, and the parallels that the projection applies
+  private getExportedPositioning({ projection, positioning }: SubProjectionConfig): Pick<ProjectionParameters, 'center' | 'rotate' | 'parallels'> {
     return {
-      rotate: roundApplied(projection.rotate()),
-      center: roundApplied(projection.center()),
+      rotate: roundApplied(positioning.rotate),
+      center: roundApplied(positioning.center),
       parallels: isConicProjection(projection) ? roundApplied(projection.parallels()) : undefined,
     }
   }

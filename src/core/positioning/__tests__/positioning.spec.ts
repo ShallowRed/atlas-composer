@@ -155,8 +155,8 @@ describe('convertPositioning', () => {
     const converted = convertPositioning(US_AK, 'CONIC')
     const before = geoConicEqualArea().translate([0, 0])
     const after = geoConicEqualArea().translate([0, 0])
-    applyPositioning(before, { ...US_AK, parallels: [55, 65] }, 'composite')
-    applyPositioning(after, { ...converted, parallels: [55, 65] }, 'composite')
+    applyPositioning(before, { ...US_AK, parallels: [55, 65] }, 'composite', 'conic-equal-area')
+    applyPositioning(after, { ...converted, parallels: [55, 65] }, 'composite', 'conic-equal-area')
     expectTuple(before([-156, 58.5])!, [0, 0])
     expectTuple(after([-156, 58.5])!, [0, 0])
   })
@@ -204,32 +204,35 @@ describe('applyPositioning', () => {
   describe('composite view', () => {
     it('applies center and rotate of the state', () => {
       const projection = geoConicConformal()
-      applyPositioning(projection, { ...US_AK, parallels: [55, 65] }, 'composite')
+      applyPositioning(projection, { ...US_AK, parallels: [55, 65] }, 'composite', 'conic-conformal')
       expectTuple(projection.center(), [-2, 58.5])
       expectTuple(projection.rotate(), [154, 0, 0])
       expectTuple(projection.parallels(), [55, 65])
     })
 
-    it('gives an undefined center or rotate its null value', () => {
+    it('gives an undefined center or rotate its null value, and places a mercator by its center with its cut opposite the center', () => {
       const projection = geoMercator().center([10, 10]).rotate([20, 20, 20])
-      applyPositioning(projection, { center: [2, 46] }, 'composite')
-      expectTuple(projection.center(), [2, 46])
+      applyPositioning(projection, { center: [2, 46] }, 'composite', 'mercator')
+      expectTuple(projection.center(), [0, 46])
+      expectTuple(projection.rotate(), [-2, 0, 0])
+
+      applyPositioning(projection, { center: [2, 46] }, 'composite', 'conic-conformal')
       expectTuple(projection.rotate(), [0, 0, 0])
 
-      applyPositioning(projection, { rotate: [-3, -46, 0] }, 'composite')
+      applyPositioning(projection, { rotate: [-3, -46, 0] }, 'composite', 'mercator')
       expectTuple(projection.center(), [0, 0])
       expectTuple(projection.rotate(), [-3, -46, 0])
     })
 
     it('derives the parallels of a conic projection without parallels', () => {
       const projection = geoConicConformal()
-      applyPositioning(projection, { rotate: [-3, -46.2, 0] }, 'composite')
+      applyPositioning(projection, { rotate: [-3, -46.2, 0] }, 'composite', 'conic-conformal')
       expectTuple(projection.parallels(), [44.2, 48.2])
     })
 
     it('keeps the parallels of the definition for a null target latitude', () => {
       const projection = geoConicConformal().parallels([30, 60])
-      applyPositioning(projection, { rotate: [-55, 0, 0] }, 'composite')
+      applyPositioning(projection, { rotate: [-55, 0, 0] }, 'composite', 'conic-conformal')
       expectTuple(projection.parallels(), [30, 60])
     })
   })

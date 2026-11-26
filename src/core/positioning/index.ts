@@ -1,6 +1,7 @@
 export { applyPositioning } from './applicator'
 
 export {
+  completeRotate,
   convertPositioning,
   replaceDeprecatedPositioning,
 } from './converters'
