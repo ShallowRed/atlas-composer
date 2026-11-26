@@ -61,6 +61,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@atlas-composer/projection-core": "workspace:*",
     "@atlas-composer/specification": "workspace:*",
     "@types/d3-geo": "^3.1.1",
     "@types/topojson-client": "^3.1.5",

@@ -192,7 +192,7 @@
         "region": { "$ref": "#/definitions/i18nValue" },
         "bounds": {
           "type": "array",
-          "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]]",
+          "description": "Bounding box [[minLon, minLat], [maxLon, maxLat]], with longitudes in [-180, 180]; a box whose minLon exceeds maxLon crosses the antimeridian",
           "items": {
             "type": "array",
             "items": { "type": "number" },

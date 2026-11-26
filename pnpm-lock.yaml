@@ -378,6 +378,9 @@ importers:
 
   packages/preset-library:
     devDependencies:
+      '@atlas-composer/projection-core':
+        specifier: workspace:*
+        version: link:../projection-core
       '@atlas-composer/specification':
         specifier: workspace:*
         version: link:../specification

@@ -287,6 +287,25 @@ describe('buildTerritories', () => {
     expect(collection.features.find(territory => territory.properties.code === 'MAIN')?.geometry.coordinates).toEqual([[square(1, 1, false)]])
   })
 
+  it.each([
+    ['takes', [[174.5, -21.8], [-178.2, -12.4]], true],
+    ['leaves out', [[174.5, -21.8], [180, -12.4]], false],
+    ['leaves out', [[-180, -21.8], [-178.2, -12.4]], false],
+  ] as const)('%s the polygon of Fiji whose ring goes from 180 to -180 with the bounds %j', (_verb, bounds, takes) => {
+    const config = {
+      territories: [
+        { id: '242', code: 'FJ', name: 'Fiji', iso: 'FJI', bounds: [[-180, -21.8], [180, -12.4]] },
+        { id: '242-B', code: 'FJ-B', name: 'Box', iso: 'FJI', bounds, extraction: { extractFrom: '242' } },
+      ],
+    }
+    const { collection } = buildTerritories(config, naturalEarth('50m'))
+    const box = collection.features.find(territory => territory.properties.code === 'FJ-B')
+    const polygons = box ? (box.geometry.type === 'MultiPolygon' ? box.geometry.coordinates : [box.geometry.coordinates]) : []
+    const acrossAntimeridian = polygons.some(([ring]) => ring!.some(([lon]) => lon === 180) && ring!.some(([lon]) => lon === -180))
+
+    expect(acrossAntimeridian).toBe(takes)
+  })
+
   describe('features by code', () => {
     const portugal = atlasConfig('portugal')
     const byCode = (features: FeatureInput[]) => ({ kind: 'by-code' as const, features })
