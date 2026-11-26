@@ -6,6 +6,11 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    ignore:
+      # The types follow the major version of Node in .node-version
+      - dependency-name: '@types/node'
+        update-types:
+          - version-update:semver-major
     groups:
       minor-and-patch:
         update-types:
