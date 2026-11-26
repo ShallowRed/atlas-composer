@@ -14,7 +14,12 @@ function projectTarget(view: PositioningView): [number, number] {
   const parameterStore = useParameterStore()
   const params = parameterStore.getEffectiveParameters(CODE)
   const projection = ProjectionFactory.createById(params.projectionId!)!.translate([0, 0])
-  applyPositioning(projection, params, view)
+  if (view === 'composite') {
+    applyPositioning(projection, params, view, params.projectionId!)
+  }
+  else {
+    applyPositioning(projection, params, view)
+  }
   return projection(TARGET)!
 }
 

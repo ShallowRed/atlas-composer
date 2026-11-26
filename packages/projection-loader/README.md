@@ -76,7 +76,7 @@ The package also exports `validateConfig`, which returns `{ valid, errors, warni
 
 ## Projection parameters
 
-The loader applies `center`, `rotate`, `parallels`, `clipAngle` and `precision` when the configuration gives them, and keeps the value of the d3 factory otherwise. The scale of a territory is `referenceScale` × `scaleMultiplier`, and `scaleMultiplier` defaults to `DEFAULT_SCALE_MULTIPLIER` of the specification, 1. The loader ignores `scale`, `distance` and `tilt`, which the format accepts.
+The loader applies `center`, `rotate`, `parallels`, `clipAngle` and `precision` when the configuration gives them, and keeps the value of the d3 factory otherwise. A `mercator` or an `equirectangular` placed by `center: [λ, φ]`, with a missing `rotate` or a `rotate` whose values are all zero, and without `clipAngle`, has its cut on the meridian λ + 180, opposite its center: the loader applies `rotate([-λ, 0, 0])` and `center([0, φ])`, which give each point the image of `center([λ, φ])` alone, a turn of the world apart beyond the cut. The scale of a territory is `referenceScale` × `scaleMultiplier`, and `scaleMultiplier` defaults to `DEFAULT_SCALE_MULTIPLIER` of the specification, 1. The loader ignores `scale`, `distance` and `tilt`, which the format accepts.
 
 A box whose `minLon` exceeds `maxLon` crosses the antimeridian: it holds the longitudes from `minLon` to 180 and from −180 to `maxLon`, as `geoBounds` of d3-geo writes it; a loader older than projection-loader 3.5.0 reads it as empty. A territory without `pixelClipExtent` is clipped at its `bounds`, and a territory with neither is not clipped. A territory without `bounds` is drawn, and the composite projection returns `null` for its points.
 

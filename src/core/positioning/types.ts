@@ -12,6 +12,8 @@ export interface Positioning {
 
 export interface PositioningParameters extends Positioning {
   parallels?: [number, number]
+  // A cylindrical projection with a clipAngle keeps its center and rotate in the composite view
+  clipAngle?: number
 }
 
 export interface DeprecatedPositioning {

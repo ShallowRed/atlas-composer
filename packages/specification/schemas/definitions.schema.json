@@ -58,7 +58,7 @@
           "items": { "type": "number" },
           "minItems": 2,
           "maxItems": 2,
-          "description": "Center [longitude, latitude] in degrees"
+          "description": "Center [longitude, latitude] in degrees; a mercator or an equirectangular placed by its center, with a missing rotate or a rotate whose values are all zero, and without clipAngle, has its cut on the meridian opposite its center"
         },
         "parallels": {
           "type": "array",
