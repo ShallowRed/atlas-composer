@@ -45,7 +45,7 @@
           },
           "bounds": {
             "$ref": "definitions.schema.json#/definitions/geoBounds",
-            "description": "Geographic bounding box of the territory, copied from the configuration when the territory has one"
+            "description": "Geographic bounding box of the territory, copied from the configuration when the territory has one; a box whose minLon exceeds maxLon crosses the antimeridian"
           }
         },
         "additionalProperties": false

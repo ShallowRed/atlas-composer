@@ -2,13 +2,12 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { ExampleSource } from './definitions'
 import type { ProjectionFrame } from '@/core/frames'
 import type { PresetId } from '@/types/branded'
-import { inExtent } from '@atlas-composer/projection-core'
+import { boundsFromArray, inExtent, isPointInBounds } from '@atlas-composer/projection-core'
 import { geoCentroid, geoContains, geoDistance } from 'd3-geo'
 import { invertOnGlobe } from '@/core/frames'
 import { createPresetId } from '@/types/branded'
 
 type Point = [number, number]
-type Bounds = [[number, number], [number, number]]
 
 // A place of examples/world-places.json: longitude, latitude, population, name, 1 for a capital, ISO code of the country (adm0_a3)
 export type Place = [number, number, number, string, number, string]
@@ -67,10 +66,6 @@ export function interpolate([x0, y0]: Point, [x1, y1]: Point, progress: number):
   return [x0 + (x1 - x0) * progress, y0 + (y1 - y0) * progress]
 }
 
-function inBounds([[west, south], [east, north]]: Bounds, [longitude, latitude]: Point) {
-  return longitude >= west && longitude <= east && latitude >= south && latitude <= north
-}
-
 // The territory of the preset whose contour contains the point; else, among those whose bounds contain it, the one with the nearest contour center
 export function territoryOf(config: CompositeProjectionConfig, territories: TerritoryContour[], point: Point): string | null {
   const codes = new Set(config.territories.map(({ code }) => code))
@@ -83,7 +78,7 @@ export function territoryOf(config: CompositeProjectionConfig, territories: Terr
   const nearest = candidates
     .filter(({ properties }) => {
       const territoryBounds = bounds.get(properties.code)
-      return territoryBounds !== undefined && inBounds(territoryBounds, point)
+      return territoryBounds !== undefined && isPointInBounds(point[0], point[1], boundsFromArray(territoryBounds))
     })
     .map(contour => ({ code: contour.properties.code, distance: geoDistance(geoCentroid(contour), point) }))
     .sort((a, b) => a.distance - b.distance)[0]
