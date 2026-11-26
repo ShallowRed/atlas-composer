@@ -25,12 +25,13 @@ function onCutLine([longitude, latitude]: number[]): boolean {
 
 /**
  * The lines without their segments along the antimeridian, where Natural Earth cuts a ring: a line is split where such a
- * segment was, and a line reduced to a point is left out. The mesh of the borders keeps these segments, since each belongs
+ * segment was, and a line reduced to a point is left out. The meridians 180 and -180 are one, so a segment from one to the
+ * other follows the antimeridian too. The mesh of the borders keeps these segments, since each belongs
  * to one territory, as a coastline does
  */
 export function withoutAntimeridianSeams(lines: GeoJSON.MultiLineString): GeoJSON.MultiLineString {
   const seam = ([lonA]: GeoJSON.Position, [lonB]: GeoJSON.Position) =>
-    onAntimeridian(lonA!) && onAntimeridian(lonB!) && Math.sign(lonA!) === Math.sign(lonB!)
+    onAntimeridian(lonA!) && onAntimeridian(lonB!)
   const coordinates = lines.coordinates.flatMap((line) => {
     const parts: GeoJSON.Position[][] = [[line[0]!]]
     for (let index = 1; index < line.length; index++) {
