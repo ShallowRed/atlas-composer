@@ -26,10 +26,16 @@ export interface TerritoryRenderOptions {
   onClick?: (feature: GeoJSON.Feature, event: MouseEvent) => void
 }
 
-/** An entry of a composite: its code, and the sub-projection that draws the territories through its frame */
+/** The paths of an entry of a composite: the d of each territory of the layer through its sub-projection, empty outside its frame, and of their borders */
+export interface EntryPaths {
+  territories: string[]
+  borders: string
+}
+
+/** An entry of a composite: its code, and its paths */
 export interface EntryDrawing {
   code: string
-  projection: GeoProjection
+  paths: EntryPaths
 }
 
 export interface SphereRenderOptions {
@@ -84,34 +90,50 @@ export class D3MapRenderer {
     options: TerritoryRenderOptions = {},
   ): void {
     const path = geoPath(projection)
-    this.drawTerritories(select(svg), geoData.features.map(feature => ({ feature, d: path(feature) || '' })), path, options)
+    const drawn = geoData.features.map(feature => ({ feature, d: path(feature) || '' }))
+    this.drawTerritories(select(svg), drawn, this.bordersPath(path, geoData.features, options.bordersOf), options)
     debug('Rendered %d territories', geoData.features.length)
   }
 
-  // One group per entry, in the order of the entries: each entry draws every territory through its sub-projection, which clips it
-  // to its frame, and an entry drawn later covers the fills and borders of the previous ones
+  // Each territory of the layer through the sub-projection of an entry, which clips it to its frame, and the borders of the territories drawn
+  static entryPaths(geoData: GeoJSON.FeatureCollection, projection: GeoProjection, bordersOf?: TerritoryBorders): EntryPaths {
+    const path = geoPath(projection)
+    const territories = geoData.features.map(feature => path(feature) || '')
+    return { territories, borders: this.bordersPath(path, geoData.features.filter((_, index) => territories[index]), bordersOf) }
+  }
+
+  // One group per entry, in the order of the entries, and an entry drawn later covers the fills and borders of the previous ones
   static renderEntries(
     svg: SVGSVGElement,
     geoData: GeoJSON.FeatureCollection,
     entries: readonly EntryDrawing[],
-    options: TerritoryRenderOptions = {},
+    options: Omit<TerritoryRenderOptions, 'bordersOf'> = {},
   ): void {
-    for (const { code, projection } of entries) {
-      const path = geoPath(projection)
-      const drawn = geoData.features.flatMap((feature) => {
-        const d = path(feature)
+    for (const { code, paths } of entries) {
+      const drawn = geoData.features.flatMap((feature, index) => {
+        const d = paths.territories[index]
         return d ? [{ feature, d }] : []
       })
       const group = select(svg).append('g').attr('class', 'entry').attr('data-entry', code)
-      this.drawTerritories(group, drawn, path, options, code)
+      this.drawTerritories(group, drawn, paths.borders, options, code)
     }
     debug('Rendered %d territories through %d entries', geoData.features.length, entries.length)
+  }
+
+  // The borders of the territories through a path, or an empty string without territory
+  private static bordersPath(path: GeoPath, features: readonly GeoJSON.Feature[], bordersOf?: TerritoryBorders): string {
+    if (features.length === 0) {
+      return ''
+    }
+    return path(bordersOf
+      ? bordersOf(features.map(feature => feature.properties?.code))
+      : { type: 'GeometryCollection', geometries: features.map(feature => feature.geometry) }) || ''
   }
 
   private static drawTerritories<Parent extends SVGElement>(
     parent: Selection<Parent, unknown, null, undefined>,
     drawn: { feature: GeoJSON.Feature, d: string }[],
-    path: GeoPath,
+    borders: string,
     options: TerritoryRenderOptions,
     entry?: string,
   ): void {
@@ -119,7 +141,6 @@ export class D3MapRenderer {
       enableTooltips = true,
       fillTerritories = true,
       titleOf = (_code: string, name: string) => name,
-      bordersOf,
       onHover,
       onClick,
     } = options
@@ -146,11 +167,9 @@ export class D3MapRenderer {
       .attr('class', 'borders')
       .attr('pointer-events', 'none')
       .selectAll('path')
-      .data(features.length > 0 ? [features] : [])
+      .data(features.length > 0 ? [borders] : [])
       .join('path')
-      .attr('d', group => path(bordersOf
-        ? bordersOf(group.map(feature => feature.properties?.code))
-        : { type: 'GeometryCollection', geometries: group.map(feature => feature.geometry) }) || '')
+      .attr('d', d => d)
       .attr('fill', 'none')
       .attr('stroke', getTerritoryStrokeColor())
       .attr('stroke-width', TERRITORY_STROKE_WIDTH)

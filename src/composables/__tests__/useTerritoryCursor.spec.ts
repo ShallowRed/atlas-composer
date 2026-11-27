@@ -163,7 +163,7 @@ describe('useTerritoryCursor', () => {
     expect(pick(20, 20)).toBe(SAINT_MARTIN)
   })
 
-  it('takes the shape of an entry from its own group, though the other entry of the frame draws its territory over the shape of that entry', () => {
+  it('takes the shape of an entry from its own group, where the other entry of the frame also draws this territory', () => {
     const { pick } = sharedFrame({
       [SAINT_MARTIN]: { box: { x: 40, y: 15, width: 10, height: 10 } },
       [SAINT_BARTHELEMY]: { box: { x: 70, y: 30, width: 8, height: 6 } },
