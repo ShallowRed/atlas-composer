@@ -2,6 +2,23 @@
 
 Atlas Composer is a Vue application with Pinia stores and a rendering in d3, beside the npm packages of `packages/`. [adrs.md](adrs.md) gives the reasons of the decisions that this document describes.
 
+## Framing
+
+The maintainer set this framing on 2026-11-27, as a working hypothesis to revise when one of its signs appears or at the next architecture audit, including the split into four parts.
+
+The project holds seven architecture characteristics: geometric accuracy, compatibility of the formats, safety of the dependencies, boundaries between modules, maintainability and rendering speed, which are critical, and a bilingual interface, which is kept. Accessibility is a horizon, the weight of the loader is secondary, and privacy is not critical.
+
+The compatibility of the formats goes in two stages. While few projects reuse the packages, a breaking change is allowed and announced in the changelog. Each file carries the version of its format (`version`, `1.x` in `composite-projection.schema.json`), distinct from the npm version of `@atlas-composer/specification`: a change that makes the new schema refuse a valid file, or the old schema accept a file whose meaning changes, moves both to their next major version; an optional addition moves both to their next minor version. A use in production, a project that depends on the format or time spent on compatibility questions moves the project to the stable stage, with a deprecation period.
+
+Each part has its own three priorities:
+
+- The site, the editor and the examples: geometric accuracy, rendering speed and maintainability. The editor shows what the loader draws, which `src/__tests__/roundtrip-loader.spec.ts` checks to 1e-6 pixel; the accuracy concerns the projection, and the drawing may approximate (simplification to the pixel, reused relief image) without any approximation reaching an exported file. The rendering speed has no measure and is judged at acceptance; a slowness noticed there adds one. A shared link or an exported file may stop opening after a change of the format, while few projects use them.
+- The format, `@atlas-composer/specification`: compatibility, accuracy, each parameter having a single meaning, and interoperability, since the neutral description of `describeComposite` targets PROJ.
+- The libraries that applications load, `@atlas-composer/projection-core` and `@atlas-composer/projection-loader`: accuracy, compatibility and safety of the dependencies. They have no production dependency besides `d3-geo` as a peer of the loader, and adding one is the maintainer's decision. `size-limit` stays an error in `pnpm check`; raising the limit for a justified feature is allowed and written in the changeset.
+- The data and the tool, `@atlas-composer/preset-library` and `@atlas-composer/cli`: accuracy, checked by `.github/workflows/gis.yml`, compatibility of the public preset ids and of the options of the CLI, and safety of the dependencies of the CLI.
+
+The application is layered by technical role, as the next section describes. A feature that touches every layer is the sign to revisit this first level, measured at the next audit. The loader is a microkernel: its core validates a file against the schema and composes the sub-projections, and the application that reuses it registers the projection factories. The preparation of the data is a pipeline from `configs/atlases/` and `world-atlas` to the topologies of the site and the geometries of the CLI, and a defect is fixed in the step that produces it.
+
 ## Layers
 
 [AGENTS.md](../AGENTS.md) gives the rules of each layer of `src/`, and `eslint.config.js` checks them. The dependencies go from the interface to the domain. `src/views/` and `src/components/` call the composables and the stores. `src/composables/` calls the stores and `src/services/rendering/`. `src/stores/` calls the services and `src/core/`. `src/services/` calls `src/core/`, and `src/core/` imports none of these layers.
