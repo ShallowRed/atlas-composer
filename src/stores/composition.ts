@@ -10,6 +10,7 @@ import type { AtlasId, TerritoryCode, ViewMode } from '@/types'
 import type { PresetId } from '@/types/branded'
 import type { AtlasInitializationOptions, PresetLoadOptions } from '@/types/initialization'
 import type { ProjectionParameters } from '@/types/projection-parameters'
+import type { TerritoryConfig } from '@/types/territory'
 
 import { defineStore } from 'pinia'
 import { getAtlasConfig, getAvailableViewModes, getDefaultPresetForViewMode, getDefaultViewMode } from '@/core/atlases/registry'
@@ -29,6 +30,7 @@ import { PresetLoader } from '@/services/presets/preset-loader'
 import { PresetValidationService } from '@/services/validation/preset-validation-service'
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -48,6 +50,7 @@ function failureReason(error: unknown): string {
 export const useCompositionStore = defineStore('composition', () => {
   const appStore = useAppStore()
   const atlasStore = useAtlasStore()
+  const entriesStore = useCompositionEntriesStore()
   const geoDataStore = useGeoDataStore()
   const parameterStore = useParameterStore()
   const presetDefaults = usePresetDefaultsStore()
@@ -362,7 +365,18 @@ export const useCompositionStore = defineStore('composition', () => {
     debug('Reset territory %s', territoryCode)
   }
 
-  // During a proposal, a territory outside the reference goes in the first free cell; else it keeps its parameters, or receives the default ones
+  const catalogueCodes = () => atlasStore.territories.map(territory => territory.code)
+
+  function catalogueTerritory(territoryCode: TerritoryCode): TerritoryConfig {
+    const territory = atlasStore.territories.find(candidate => candidate.code === territoryCode)
+    if (!territory) {
+      throw new Error(`Territory ${territoryCode} is not in the atlas ${atlasStore.selectedAtlasId}`)
+    }
+    return territory
+  }
+
+  // During a proposal, a territory outside the reference goes in the first free cell; else it keeps its parameters, or receives the default ones.
+  // A territory checked again keeps its entry
   function addTerritoryToComposite(territoryCode: TerritoryCode): void {
     const proposal = presetDefaults.proposal
     if (proposal && !(territoryCode in presetDefaults.presetParameters)) {
@@ -371,23 +385,26 @@ export const useCompositionStore = defineStore('composition', () => {
     else if (!parameterStore.getTerritoryProjection(territoryCode)) {
       parameterStore.setTerritoryParameters(territoryCode, defaultTerritoryParameters(atlasStore.territoryCenter(territoryCode)))
     }
+    const { name, bounds } = catalogueTerritory(territoryCode)
+    entriesStore.addEntry({ code: territoryCode, name, bounds }, catalogueCodes())
     viewStore.addTerritoryToComposite(territoryCode)
   }
 
-  // A territory of the atlas as a proposal reads it: its geometry, the center of its configuration and the latitudes of its bounds
+  // A territory of the atlas as a proposal reads it: its geometry, and the name, the bounds, the center and the latitudes of the bounds of its configuration
   function proposedTerritory(territoryCode: TerritoryCode): ProposedTerritory {
     const territory = geoDataStore.territoriesData.find(candidate => candidate.code === territoryCode)
     const band = atlasStore.latitudeBand(territoryCode)
     if (!territory || !band) {
       throw new Error(`Territory ${territoryCode} has no geometry or no bounds`)
     }
-    return { code: territoryCode, geometry: territory.data, center: atlasStore.territoryCenter(territoryCode), band }
+    const { name, bounds, center } = catalogueTerritory(territoryCode)
+    return { code: territoryCode, name, bounds, geometry: territory.data, center, band }
   }
 
   // The proposal of the checked territories becomes the reference of the reset; the global parameters stay
   function startProposal(territoryCodes: TerritoryCode[], options: Pick<ProposalOptions, 'arrangement' | 'scaleMode'>): void {
     const canvas = projectionStore.canvasDimensions ?? DEFAULT_CANVAS_DIMENSIONS
-    const { state, reasons } = proposeComposition(territoryCodes.map(proposedTerritory), { ...options, canvas })
+    const { state, reasons } = proposeComposition(territoryCodes.map(proposedTerritory), { ...options, canvas }, catalogueCodes())
     for (const { code } of atlasStore.atlasService.getAllTerritories()) {
       parameterStore.clearAllTerritoryOverrides(code as TerritoryCode)
     }
@@ -445,6 +462,7 @@ export const useCompositionStore = defineStore('composition', () => {
     presetDefaults.storePresetCanvas(state.canvas)
 
     viewStore.setActiveTerritories(state.activeTerritories)
+    entriesStore.setEntries(state.entries)
 
     for (const [code, parameters] of Object.entries(state.territoryParameters)) {
       parameterStore.setTerritoryParameters(code as TerritoryCode, parameters)
@@ -520,6 +538,7 @@ export const useCompositionStore = defineStore('composition', () => {
     parameterStore.clearAll()
     geoDataStore.clearAllData()
     presetDefaults.clearAll()
+    entriesStore.clear()
   }
 
   async function preloadAtlasData(territoryMode: string): Promise<Result<void, GeoDataError>> {
@@ -554,6 +573,7 @@ export const useCompositionStore = defineStore('composition', () => {
 
     if (viewMode !== 'composite-custom') {
       presetDefaults.clearAll()
+      entriesStore.clear()
     }
 
     await viewStore.loadAvailableViewPresets()
