@@ -2,7 +2,7 @@ import type { GeoProjection } from 'd3-geo'
 import type { ProjectionFrame } from '@/core/frames'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { TerritoryBorders, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
+import type { EntryPaths, TerritoryBorders, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import type { ActiveTerritoryProvider, EntryProvider } from '@/types/territory'
@@ -11,12 +11,41 @@ import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { ProjectionService } from '@/services/projection/projection-service'
 import { D3MapRenderer } from '@/services/rendering/d3-map-renderer'
+import { createTerritoryCode } from '@/types/branded'
+import { isConicProjection } from '@/types/d3-geo-extended'
 import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
 
 // The projection whose scale simplifies a territory, or undefined when the territory has none
 type TerritoryProjection = (feature: GeoJSON.Feature) => GeoProjection | undefined
+
+// What the paths of an entry depend on: its projection and the parameters applied to it, the simplified topology and the codes of the layer
+export interface EntryPathsKey {
+  projectionId: string | undefined
+  parameters: string
+  topology: object
+  codes: string
+}
+
+export function samePathsKey(a: EntryPathsKey, b: EntryPathsKey): boolean {
+  return a.projectionId === b.projectionId && a.parameters === b.parameters && a.topology === b.topology && a.codes === b.codes
+}
+
+// The parameters that d3 applies, each absent value written as null
+function appliedParameters(projection: GeoProjection): string {
+  const parallels = isConicProjection(projection) ? projection.parallels() : null
+  return JSON.stringify([
+    projection.center(),
+    projection.rotate(),
+    parallels,
+    projection.scale(),
+    projection.translate(),
+    projection.clipExtent() ?? null,
+    projection.clipAngle() ?? null,
+    projection.precision(),
+  ])
+}
 
 interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -71,6 +100,9 @@ export class Cartographer {
   public customComposite: CompositeProjection | null = null
 
   private _lastProjection: GeoProjection | null = null
+  private parameterProvider: ProjectionParameterProvider | null = null
+  // The paths of each entry of the custom composite at its last render, with the key that gave them
+  private entryPaths = new Map<string, { key: EntryPathsKey, paths: EntryPaths }>()
 
   constructor(
     geoDataConfig: GeoDataConfig,
@@ -98,6 +130,7 @@ export class Cartographer {
   }
 
   async init(): Promise<Result<void, GeoDataError>> {
+    this.entryPaths.clear()
     return this.geoDataService.loadData()
   }
 
@@ -117,6 +150,7 @@ export class Cartographer {
 
   rebuildCompositeProjection({ entryProvider, parameterProvider, activeTerritoryProvider, referenceScale }: CustomCompositeSetup): void {
     this.customComposite = new CompositeProjection(entryProvider, parameterProvider, activeTerritoryProvider, referenceScale)
+    this.parameterProvider = parameterProvider
     debug('Built composite projection')
   }
 
@@ -163,7 +197,8 @@ export class Cartographer {
   }
 
   // Each territory simplified to the scale of the projection that draws it, at its centroid, and the meshes of their borders
-  private simplify(data: GeoJSON.FeatureCollection, projectionOf: TerritoryProjection): { territories: GeoJSON.FeatureCollection, mesh?: TerritoryBorders } {
+  // The source is the simplified topology, or the collection drawn as given
+  private simplify(data: GeoJSON.FeatureCollection, projectionOf: TerritoryProjection): { territories: GeoJSON.FeatureCollection, mesh?: TerritoryBorders, source: object } {
     const minWeights = new Map<string, number>()
     for (const feature of data.features) {
       const code = feature.properties?.code
@@ -175,7 +210,7 @@ export class Cartographer {
     }
     // A collection without a territory of the loaded topology is drawn as given
     if (minWeights.size === 0) {
-      return { territories: data }
+      return { territories: data, source: data }
     }
     const simplified = this.geoDataService.simplified(minWeights)
     return {
@@ -184,6 +219,7 @@ export class Cartographer {
         features: data.features.map(feature => simplified.feature(feature.properties?.code) ?? feature),
       },
       mesh: simplified.mesh,
+      source: simplified,
     }
   }
 
@@ -274,10 +310,37 @@ export class Cartographer {
     }))
 
     // Each territory keeps the simplification at the scale of its own entry, in the frames of the other entries too
-    const { territories, mesh } = this.simplify(rawData, feature => customComposite.getSubProjectionData(feature.properties?.code)?.projection)
+    const { territories, mesh, source } = this.simplify(rawData, feature => customComposite.getSubProjectionData(feature.properties?.code)?.projection)
+    const codes = JSON.stringify(territories.features.map(feature => feature.properties?.code ?? null))
+    const entries = frames.map(({ code, projection }) => {
+      const key: EntryPathsKey = {
+        projectionId: this.parameterProvider?.getEffectiveParameters(createTerritoryCode(code)).projectionId,
+        parameters: appliedParameters(projection),
+        topology: source,
+        codes,
+      }
+      return { code, paths: this.pathsOfEntry(code, projection, territories, mesh, key) }
+    })
+    // An entry that leaves the composition leaves the memory of the paths
+    for (const code of this.entryPaths.keys()) {
+      if (!frames.some(frame => frame.code === code)) {
+        this.entryPaths.delete(code)
+      }
+    }
     const svg = this.createSphereSvg(projectionFn, width, height, showSphere ?? false)
-    D3MapRenderer.renderEntries(svg, territories, frames, { enableTooltips: true, bordersOf: mesh, titleOf, fillTerritories })
+    D3MapRenderer.renderEntries(svg, territories, entries, { enableTooltips: true, titleOf, fillTerritories })
 
     return { svg, frames }
+  }
+
+  // The paths of the last render of an entry when their key is the same, computed otherwise
+  private pathsOfEntry(code: string, projection: GeoProjection, territories: GeoJSON.FeatureCollection, mesh: TerritoryBorders | undefined, key: EntryPathsKey): EntryPaths {
+    const kept = this.entryPaths.get(code)
+    if (kept && samePathsKey(kept.key, key)) {
+      return kept.paths
+    }
+    const paths = D3MapRenderer.entryPaths(territories, projection, mesh)
+    this.entryPaths.set(code, { key, paths })
+    return paths
   }
 }

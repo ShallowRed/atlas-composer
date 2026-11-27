@@ -1,6 +1,7 @@
 import type { GeoProjection } from 'd3-geo'
 import type { TerritoryContours } from '@/core/examples'
 import type { ProjectionFrame } from '@/core/frames'
+import type { EntryPathsKey } from '@/services/rendering/cartographer-service'
 import type { AtlasId } from '@/types/branded'
 import { geoPath } from 'd3-geo'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -8,7 +9,12 @@ import { boundsPolygon, openAtlasWithCartographer, openView } from '@/__tests__/
 import { readAtlasContours, readPresetFiles } from '@/__tests__/test-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { minWeightAt } from '@/core/geometry'
+import { Cartographer, samePathsKey } from '@/services/rendering/cartographer-service'
+import { D3MapRenderer } from '@/services/rendering/d3-map-renderer'
 import { useCompositionStore } from '@/stores/composition'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
+import { useParameterStore } from '@/stores/parameters'
+import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
 import { createPresetId, createTerritoryCode } from '@/types/branded'
 
@@ -101,6 +107,7 @@ describe.each(readPresetFiles().filter(preset => preset.type === 'composite-cust
   let entries: { code: string, projection: GeoProjection }[]
   // The geometries of the active territories, each simplified with the weight of its code at the sub-projection of its entry
   let geometries: Map<string, GeoJSON.Feature>
+  const renderOptions = { mode: 'composite-custom', territoryMode: 'all-territories', projection: 'composite', width: 960, height: 500 } as const
   const fileOrder = (JSON.parse(json) as { territories: { code: string }[] }).territories.map(({ code }) => code)
 
   beforeAll(async () => {
@@ -111,7 +118,7 @@ describe.each(readPresetFiles().filter(preset => preset.type === 'composite-cust
     const topology = toTopology(readAtlasContours(atlasId))
     vi.stubGlobal('fetch', async (url: string) => new Response(JSON.stringify(url === cartographer.geoData.config.dataPath ? topology : {})))
     await cartographer.init()
-    ;({ svg } = await cartographer.render({ mode: 'composite-custom', territoryMode: 'all-territories', projection: 'composite', width: 960, height: 500 }))
+    ;({ svg } = await cartographer.render(renderOptions))
 
     entries = cartographer.customComposite!.getAllSubProjectionData().map(({ territoryCode, projection }) => ({ code: territoryCode, projection }))
     const weights = new Map(entries.flatMap(({ code, projection }) => {
@@ -128,7 +135,7 @@ describe.each(readPresetFiles().filter(preset => preset.type === 'composite-cust
 
   const pathOf = (entry: string, territory: string) => svg.querySelector(`g.entry[data-entry="${entry}"] g.territories path[data-entry="${entry}"][data-territory="${territory}"]`)
 
-  it('draws the geometry of each entry in its own group as the drawing by code did', () => {
+  it('draws the geometry of each entry in its own group through the sub-projection of the entry', () => {
     for (const { code, projection } of entries) {
       const geometry = geometries.get(code)
       if (!geometry) {
@@ -159,5 +166,80 @@ describe.each(readPresetFiles().filter(preset => preset.type === 'composite-cust
     for (const group of groups) {
       expect([...group.children].map(child => child.getAttribute('class'))).toEqual(['territories', 'borders'])
     }
+  })
+
+  // The map that a new cartographer draws from the same stores
+  async function freshRender(): Promise<SVGSVGElement> {
+    const fresh = new Cartographer(cartographer.geoData.config, undefined, {
+      entryProvider: useCompositionEntriesStore().entryProvider,
+      parameterProvider: useParameterStore().parameterProvider,
+      activeTerritoryProvider: useViewStore().activeTerritoryProvider,
+      referenceScale: useProjectionStore().referenceScale,
+    })
+    await fresh.init()
+    return (await fresh.render(renderOptions)).svg
+  }
+
+  const paths = (map: SVGSVGElement) => [...map.querySelectorAll('g.entry path')].map(path => path.getAttribute('d'))
+
+  it('recomputes the paths of the moved entry only, as a new cartographer draws them', async () => {
+    const moved = entries[0]!.code
+    const [x, y] = useParameterStore().getEffectiveParameters(createTerritoryCode(moved)).translateOffset ?? [0, 0]
+    useParameterStore().setTerritoryParameter(createTerritoryCode(moved), 'translateOffset', [x + 12, y - 7])
+    const entryPaths = vi.spyOn(D3MapRenderer, 'entryPaths')
+    const kept = (await cartographer.render(renderOptions)).svg
+    const computed = entryPaths.mock.calls.map(([, projection]) => projection)
+    entryPaths.mockRestore()
+
+    const drawn = await freshRender()
+
+    expect(paths(kept)).toEqual(paths(drawn))
+    expect(computed).toEqual([cartographer.customComposite!.getSubProjectionData(moved)!.projection])
+  })
+
+  // The applied parameters change with the projection, and the test compares the whole map with a new cartographer
+  it('recomputes the paths of an entry whose projection changes, as a new cartographer draws them', async () => {
+    const changed = createTerritoryCode(entries[0]!.code)
+    const projectionId = useParameterStore().getEffectiveParameters(changed).projectionId === 'mercator' ? 'equirectangular' : 'mercator'
+    useParameterStore().setTerritoryParameter(changed, 'projectionId', projectionId)
+    const kept = (await cartographer.render(renderOptions)).svg
+
+    const drawn = await freshRender()
+
+    expect(paths(kept)).toEqual(paths(drawn))
+  })
+
+  // The scale of an entry changes the simplification of its territory, which the other entries draw too while their own parameters stay
+  it('recomputes the paths of a territory drawn in another entry when the scale of its own entry changes, as a new cartographer draws them', async () => {
+    const scaled = createTerritoryCode(entries.at(-1)!.code)
+    const scaleMultiplier = useParameterStore().getEffectiveParameters(scaled).scaleMultiplier ?? 1
+    useParameterStore().setTerritoryParameter(scaled, 'scaleMultiplier', scaleMultiplier * 1.5)
+    const kept = (await cartographer.render(renderOptions)).svg
+    const drawn = await freshRender()
+
+    expect(paths(kept)).toEqual(paths(drawn))
+  })
+
+  it('keeps no paths of an entry that leaves the composition', async () => {
+    const left = createTerritoryCode(entries.at(-1)!.code)
+    useViewStore().removeTerritoryFromComposite(left)
+    await cartographer.render(renderOptions)
+    // The memory of the paths is private: the test reads it to check what no drawing shows
+    const kept = (cartographer as unknown as { entryPaths: Map<string, unknown> }).entryPaths
+
+    expect([...kept.keys()]).not.toContain(left)
+    useCompositionStore().addTerritoryToComposite(left)
+  })
+})
+
+describe('key of the paths of an entry', () => {
+  const key: EntryPathsKey = { projectionId: 'mercator', parameters: '[0]', topology: {}, codes: '["AA"]' }
+
+  it('is the same key only when each field is the same', () => {
+    expect(samePathsKey(key, { ...key })).toBe(true)
+    expect(samePathsKey(key, { ...key, projectionId: 'equirectangular' })).toBe(false)
+    expect(samePathsKey(key, { ...key, parameters: '[1]' })).toBe(false)
+    expect(samePathsKey(key, { ...key, topology: {} })).toBe(false)
+    expect(samePathsKey(key, { ...key, codes: '["BB"]' })).toBe(false)
   })
 })

@@ -1,3 +1,4 @@
+import type { TerritoryBorders } from '@/services/rendering/d3-map-renderer'
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { boundsPolygon } from '@/__tests__/composite-utils'
@@ -89,9 +90,12 @@ describe('drawing of the territories through each entry of a composite', () => {
   const subProjectionB = geoMercator().scale(1000).center([2.5, 45.5]).translate([400, 300]).clipExtent([[350, 200], [600, 400]])
   const entries = [{ code: 'AA', projection: subProjectionA }, { code: 'BB', projection: subProjectionB }]
 
-  function renderEntries(options = {}) {
+  function renderEntries(bordersOf?: TerritoryBorders) {
     const svg = D3MapRenderer.createSvgElement(800, 600)
-    D3MapRenderer.renderEntries(svg, collection, entries, options)
+    D3MapRenderer.renderEntries(svg, collection, entries.map(({ code, projection: subProjection }) => ({
+      code,
+      paths: D3MapRenderer.entryPaths(collection, subProjection, bordersOf),
+    })))
     return svg
   }
 
@@ -122,10 +126,10 @@ describe('drawing of the territories through each entry of a composite', () => {
   it('draws the borders of each entry through its sub-projection', () => {
     const groups: Array<readonly string[]> = []
     const mesh: GeoJSON.MultiLineString = { type: 'MultiLineString', coordinates: [[[2, 45], [3, 46]]] }
-    const svg = renderEntries({ bordersOf: (codes: readonly string[]) => {
+    const svg = renderEntries((codes) => {
       groups.push(codes)
       return mesh
-    } })
+    })
 
     expect(groups).toEqual([['AA'], ['AA']])
     expect(entries.map(({ code }) => svg.querySelector(`g.entry[data-entry="${code}"] g.borders path`)!.getAttribute('d')))
