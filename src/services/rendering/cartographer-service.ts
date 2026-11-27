@@ -2,7 +2,7 @@ import type { GeoProjection } from 'd3-geo'
 import type { ProjectionFrame } from '@/core/frames'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
-import type { TerritoryBorders, TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
+import type { TerritoryBorders, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
 import type { GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
 import type { ActiveTerritoryProvider, EntryProvider } from '@/types/territory'
@@ -14,6 +14,9 @@ import { D3MapRenderer } from '@/services/rendering/d3-map-renderer'
 import { logger } from '@/utils/logger'
 
 const debug = logger.render.cartographer
+
+// The projection whose scale simplifies a territory, or undefined when the territory has none
+type TerritoryProjection = (feature: GeoJSON.Feature) => GeoProjection | undefined
 
 interface RenderOptions {
   mode: 'simple' | 'composite-custom' | 'composite-projection'
@@ -133,7 +136,6 @@ export class Cartographer {
   private createSvg(
     data: GeoJSON.FeatureCollection,
     projection: GeoProjection,
-    projectionOf: TerritoryProjection,
     width: number,
     height: number,
     showSphere = false,
@@ -141,20 +143,22 @@ export class Cartographer {
     fillTerritories = true,
     meshBorders = true,
   ): SVGSVGElement {
-    const svg = D3MapRenderer.createSvgElement(width, height)
-
-    if (showSphere) {
-      D3MapRenderer.renderSphere(svg, projection)
-    }
-
-    const { territories, mesh } = this.simplify(data, projectionOf)
-    D3MapRenderer.renderTerritories(svg, territories, projectionOf, {
+    const svg = this.createSphereSvg(projection, width, height, showSphere)
+    const { territories, mesh } = this.simplify(data, () => projection)
+    D3MapRenderer.renderTerritories(svg, territories, projection, {
       enableTooltips: true,
       bordersOf: meshBorders ? mesh : undefined,
       titleOf,
       fillTerritories,
     })
+    return svg
+  }
 
+  private createSphereSvg(projection: GeoProjection, width: number, height: number, showSphere: boolean): SVGSVGElement {
+    const svg = D3MapRenderer.createSvgElement(width, height)
+    if (showSphere) {
+      D3MapRenderer.renderSphere(svg, projection)
+    }
     return svg
   }
 
@@ -212,7 +216,7 @@ export class Cartographer {
     this._lastProjection = projectionFn
 
     return {
-      svg: this.createSvg(geoData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories),
+      svg: this.createSvg(geoData, projectionFn, width, height, showSphere, titleOf, fillTerritories),
       frames: [{ code: '*', projection: projectionFn, extent: [[0, 0], [width, height]] }],
     }
   }
@@ -238,7 +242,7 @@ export class Cartographer {
     return {
       // A composite of d3-composite-projections sends each point to the projection of its region: a line of a mesh, which
       // joins the borders of several territories, would cross from one frame to another, so each territory draws its outline
-      svg: this.createSvg(rawData, projectionFn, () => projectionFn, width, height, showSphere, titleOf, fillTerritories, false),
+      svg: this.createSvg(rawData, projectionFn, width, height, showSphere, titleOf, fillTerritories, false),
       frames: [{ code: '*', projection: projectionFn, extent: [[0, 0], [width, height]] }],
     }
   }
@@ -262,9 +266,6 @@ export class Cartographer {
     const subProjections = customComposite.getAllSubProjectionData()
     const rawData = await this.getRawDataForComposite(territoryMode, subProjections.map(({ territoryCode }) => territoryCode))
 
-    const projectionOf: TerritoryProjection = feature =>
-      customComposite.getSubProjectionData(feature.properties?.code)?.projection
-
     // One frame per active territory, in the order of the configuration
     const frames = subProjections.map(({ territoryCode, projection }) => ({
       code: territoryCode,
@@ -272,9 +273,11 @@ export class Cartographer {
       extent: (projection.clipExtent?.() ?? [[0, 0], [width, height]]) as ProjectionFrame['extent'],
     }))
 
-    return {
-      svg: this.createSvg(rawData, projectionFn, projectionOf, width, height, showSphere, titleOf, fillTerritories),
-      frames,
-    }
+    // Each territory keeps the simplification at the scale of its own entry, in the frames of the other entries too
+    const { territories, mesh } = this.simplify(rawData, feature => customComposite.getSubProjectionData(feature.properties?.code)?.projection)
+    const svg = this.createSphereSvg(projectionFn, width, height, showSphere ?? false)
+    D3MapRenderer.renderEntries(svg, territories, frames, { enableTooltips: true, bordersOf: mesh, titleOf, fillTerritories })
+
+    return { svg, frames }
   }
 }
