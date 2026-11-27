@@ -1,9 +1,9 @@
-import type { CompositeTerritories } from '@/types'
 import type { AtlasId } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
+import type { CompositionEntry } from '@/types/territory'
 import { validateConfig } from '@atlas-composer/specification'
 import { describe, expect, it } from 'vitest'
-import { allTerritoriesProvider } from '@/__tests__/test-utils'
+import { allTerritoriesProvider, entryProviderOf } from '@/__tests__/test-utils'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { createTerritoryCode } from '@/types/branded'
 import { CompositeExportService } from '../composite-export-service'
@@ -19,15 +19,12 @@ describe('compositeExportService', () => {
       getEffectiveParameters: code => parameters[code]!,
       getExportableParameters: code => parameters[code]!,
     }
-    const config: CompositeTerritories = {
-      territories: Object.keys(parameters).map(code => ({
-        code: createTerritoryCode(code),
-        name: code,
-        center: [0, 0],
-        bounds: [[-1, -1], [1, 1]],
-      })),
-    }
-    const composite = new CompositeProjection(config, provider, allTerritoriesProvider(config))
+    const entries: CompositionEntry[] = Object.keys(parameters).map(code => ({
+      code: createTerritoryCode(code),
+      name: code,
+      bounds: [[-1, -1], [1, 1]],
+    }))
+    const composite = new CompositeProjection(entryProviderOf(entries), provider, allTerritoriesProvider(entries))
 
     const exported = CompositeExportService.exportToJSON(composite, 'test' as AtlasId, 'Test', provider, 2700, { width: 960, height: 500 })
     const exportedParameters = (code: string) => exported.territories.find(t => t.code === code)!.projection.parameters

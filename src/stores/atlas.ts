@@ -55,13 +55,19 @@ export const useAtlasStore = defineStore('atlas', () => {
     return result
   }
 
-  function territoryCenter(territoryCode: TerritoryCode): [number, number] {
-    const territory = territories.value.find(candidate => candidate.code === territoryCode)
-    if (!territory) {
+  function territory(territoryCode: TerritoryCode): TerritoryConfig {
+    const found = territories.value.find(candidate => candidate.code === territoryCode)
+    if (!found) {
       throw new Error(`[AtlasStore] Territory ${territoryCode} is not in the atlas ${selectedAtlasId.value}`)
     }
-    return territory.center
+    return found
   }
+
+  function territoryCenter(territoryCode: TerritoryCode): [number, number] {
+    return territory(territoryCode).center
+  }
+
+  const territoryCodes = computed(() => territories.value.map(({ code }) => code))
 
   function getInitialTerritoryMode(): string {
     return initialTerritoryModeOf(getLoadedConfig(selectedAtlasId.value).atlasConfig)
@@ -85,6 +91,8 @@ export const useAtlasStore = defineStore('atlas', () => {
     currentAtlasConfig,
     atlasService,
     territories,
+    territoryCodes,
+    territory,
     territoryCenter,
     territoryCollections,
     territoryModeOptions,

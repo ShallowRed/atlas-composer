@@ -3,9 +3,9 @@ import type { ProjectionFrame } from '@/core/frames'
 import type { GeoDataError } from '@/core/types/errors'
 import type { Result } from '@/core/types/result'
 import type { TerritoryBorders, TerritoryProjection, TerritoryTitle } from '@/services/rendering/d3-map-renderer'
-import type { CompositeTerritories, GeoDataConfig } from '@/types'
+import type { GeoDataConfig } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
-import type { ActiveTerritoryProvider } from '@/types/territory'
+import type { ActiveTerritoryProvider, EntryProvider } from '@/types/territory'
 import { minWeightAt } from '@/core/geometry'
 import { GeoDataService } from '@/services/data/geo-data-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
@@ -54,9 +54,9 @@ export interface CompositeRenderOptions extends RenderOptions {
   showMapLimits?: boolean
 }
 
-// The custom composite of the atlas, and the providers that it reads at each build
+// The providers that the custom composite reads at each build
 export interface CustomCompositeSetup {
-  config: CompositeTerritories
+  entryProvider: EntryProvider
   parameterProvider: ProjectionParameterProvider
   activeTerritoryProvider: ActiveTerritoryProvider
   referenceScale?: number
@@ -112,8 +112,8 @@ export class Cartographer {
     }
   }
 
-  rebuildCompositeProjection({ config, parameterProvider, activeTerritoryProvider, referenceScale }: CustomCompositeSetup): void {
-    this.customComposite = new CompositeProjection(config, parameterProvider, activeTerritoryProvider, referenceScale)
+  rebuildCompositeProjection({ entryProvider, parameterProvider, activeTerritoryProvider, referenceScale }: CustomCompositeSetup): void {
+    this.customComposite = new CompositeProjection(entryProvider, parameterProvider, activeTerritoryProvider, referenceScale)
     debug('Built composite projection')
   }
 

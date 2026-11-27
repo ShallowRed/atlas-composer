@@ -2,11 +2,12 @@ import type { GeoProjection } from 'd3-geo'
 import type { ViewMode } from '@/types'
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
+import { entryProviderOf } from '@/__tests__/test-utils'
 import { CompositeProjection } from '@/services/projection/composite-projection'
 import { GraticuleOverlayService } from '@/services/rendering/graticule-overlay-service'
 
 const parameters = { getEffectiveParameters: () => ({}), getExportableParameters: () => ({}) }
-const emptyComposite = new CompositeProjection({ territories: [] }, parameters, { getActiveTerritoryCodes: () => new Set() })
+const emptyComposite = new CompositeProjection(entryProviderOf([]), parameters, { getActiveTerritoryCodes: () => new Set() })
 
 function graticulePaths(viewMode: ViewMode, options: { withProjection: boolean, customComposite?: CompositeProjection }) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')

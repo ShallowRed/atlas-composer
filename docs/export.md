@@ -12,7 +12,7 @@ The application writes a custom composite to a JSON file and reads this file bac
 - The other projection parameters come from `getExportableParameters`, filtered by `PROJECTION_PARAMETER_KEYS`.
 - `projection.id` and `projection.family` come from the definition in `projectionRegistry`. A projection missing from the registry is a programming error, and `exportToJSON` throws an `Error`.
 - `translateOffset`, `pixelClipExtent` and `bounds` are rounded to six decimals.
-- `name` is the name of the territory in the atlas configuration, with each language that it gives.
+- `name` is the name of the territory in the atlas configuration, with each language that it gives, for a code that the atlas declares, and the name of the entry otherwise.
 
 `referenceScale` and `canvasDimensions` are the values of the projection store, or `DEFAULT_REFERENCE_SCALE` and `DEFAULT_CANVAS_DIMENSIONS` when the store has none. `metadata.atlasName` is the name of the atlas in its configuration, with each language that it gives, and the import dialog shows it in the language of the interface. `version` is `SPECIFICATION_VERSION`. The downloaded file is named after the atlas, such as `france-projection.json`.
 

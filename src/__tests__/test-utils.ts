@@ -3,9 +3,8 @@ import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { Topology } from 'topojson-specification'
 import type { PresetType } from '#types'
 import type { CompositionDemoInput, Place, TerritoryContours } from '@/core/examples'
-import type { CompositeTerritories } from '@/types'
 import type { AtlasId, PresetId, TerritoryCode } from '@/types/branded'
-import type { ActiveTerritoryProvider } from '@/types/territory'
+import type { ActiveTerritoryProvider, CompositionEntry, EntryProvider } from '@/types/territory'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
@@ -127,8 +126,13 @@ export function readCompositionDemoInput(presetId: string): CompositionDemoInput
   }
 }
 
-// Every territory of the configuration is active, for a test of a service without the stores
-export function allTerritoriesProvider(config: CompositeTerritories): ActiveTerritoryProvider {
-  const codes: ReadonlySet<TerritoryCode> = new Set(config.territories.map(territory => territory.code as TerritoryCode))
+// The entries of a composite, for a test of a service without the stores
+export function entryProviderOf(entries: readonly CompositionEntry[]): EntryProvider {
+  return { getEntries: () => entries }
+}
+
+// Every entry is active, for a test of a service without the stores
+export function allTerritoriesProvider(entries: readonly Pick<CompositionEntry, 'code'>[]): ActiveTerritoryProvider {
+  const codes: ReadonlySet<TerritoryCode> = new Set(entries.map(({ code }) => code))
   return { getActiveTerritoryCodes: () => codes }
 }

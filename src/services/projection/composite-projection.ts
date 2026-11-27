@@ -3,10 +3,9 @@ import type { GeoProjection } from 'd3-geo'
 import type { I18nValue } from '#types'
 
 import type { CompositionBorder } from '@/core/positioning'
-import type { CompositeTerritories } from '@/types'
 import type { ProjectionId, TerritoryCode } from '@/types/branded'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
-import type { ActiveTerritoryProvider } from '@/types/territory'
+import type { ActiveTerritoryProvider, EntryProvider } from '@/types/territory'
 
 import { applyRenderingParameters, boundsFromArray, buildCompositeProjection } from '@atlas-composer/projection-core'
 import { DEFAULT_REFERENCE_SCALE } from '@atlas-composer/specification'
@@ -38,38 +37,38 @@ interface SubProjectionConfig {
 
 export class CompositeProjection {
   private subProjections: SubProjectionConfig[]
-  private config: CompositeTerritories
+  private entryProvider: EntryProvider
   private parameterProvider: ProjectionParameterProvider
   private activeTerritoryProvider: ActiveTerritoryProvider
   private referenceScale?: number
 
   constructor(
-    config: CompositeTerritories,
+    entryProvider: EntryProvider,
     parameterProvider: ProjectionParameterProvider,
     activeTerritoryProvider: ActiveTerritoryProvider,
     referenceScale?: number,
   ) {
-    this.config = config
+    this.entryProvider = entryProvider
     this.parameterProvider = parameterProvider
     this.activeTerritoryProvider = activeTerritoryProvider
     this.referenceScale = referenceScale
     this.subProjections = this.readSubProjections()
   }
 
-  // The active territories that have a projection, in the order of the configuration
+  // The active entries that have a projection, in the order of the entries
   private readSubProjections(): SubProjectionConfig[] {
     const referenceScale = this.referenceScale ?? DEFAULT_REFERENCE_SCALE
     const activeCodes = this.activeTerritoryProvider.getActiveTerritoryCodes()
 
-    return this.config.territories.flatMap((territory) => {
-      const territoryCode = territory.code as TerritoryCode
+    return this.entryProvider.getEntries().flatMap((entry) => {
+      const territoryCode = entry.code
       if (!activeCodes.has(territoryCode)) {
         return []
       }
       const parameters = this.parameterProvider.getEffectiveParameters(territoryCode)
 
       if (!parameters.projectionId) {
-        debug('Skipping territory %s - not defined in preset (projectionId missing)', territory.code)
+        debug('Skipping territory %s - not defined in preset (projectionId missing)', territoryCode)
         return []
       }
 
@@ -80,11 +79,11 @@ export class CompositeProjection {
 
       return [{
         territoryCode,
-        territoryName: territory.name,
+        territoryName: entry.name,
         projection,
         projectionType: parameters.projectionId as ProjectionId,
         translateOffset: parameters.translateOffset ?? parameterRegistry.getDefaultValue('translateOffset'),
-        bounds: territory.bounds,
+        bounds: entry.bounds,
         positioning: {
           center: parameters.center ?? [0, 0],
           rotate: completeRotate(parameters.rotate),

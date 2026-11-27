@@ -1,6 +1,6 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
-import type { CompositionEntry } from '../composition-state'
 import type { TerritoryCode } from '@/types/branded'
+import type { CompositionEntry } from '@/types/territory'
 import { describe, expect, it } from 'vitest'
 import { readPresetFiles } from '@/__tests__/test-utils'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
