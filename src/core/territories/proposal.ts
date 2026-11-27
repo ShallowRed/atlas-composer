@@ -1,5 +1,6 @@
-import type { CanvasDimensions } from '@atlas-composer/specification'
+import type { CanvasDimensions, GeoBounds } from '@atlas-composer/specification'
 import type { GeoPermissibleObjects } from 'd3-geo'
+import type { I18nValue } from '#types'
 import type { LatitudeBand } from '@/core/parameters'
 import type { CanvasRect } from '@/core/positioning'
 import type { CompositionState } from '@/core/presets/composition-state'
@@ -10,6 +11,7 @@ import type { ProjectionParameters } from '@/types/projection-parameters'
 import { geoArea, geoBounds } from 'd3-geo'
 import { floorToFormat, parallelsForBand, parameterRegistry, REFERENCE_SCALE_CONTROL, roundToFormat } from '@/core/parameters'
 import { fittedScale, fitTerritory } from '@/core/positioning/fit'
+import { insertInCatalogueOrder } from '@/core/presets/composition-state'
 import { PROPOSED_PROJECTION_IDS } from '@/core/projections/defaults'
 import { projectionRegistry } from '@/core/projections/registry'
 import { defaultTerritoryParameters } from './territory-reset-service'
@@ -20,9 +22,11 @@ export type Arrangement = typeof ARRANGEMENTS[number]
 export const SCALE_MODES = ['readable', 'uniform'] as const
 export type ScaleMode = typeof SCALE_MODES[number]
 
-// A territory checked for a proposal: its geometry, the center of its configuration and the latitudes of its bounds
+// A territory checked for a proposal: its geometry, and the name, the bounds, the center and the latitudes of the bounds of its configuration
 export interface ProposedTerritory {
   code: TerritoryCode
+  name: I18nValue
+  bounds: GeoBounds
   geometry: GeoPermissibleObjects
   center: [number, number]
   band: LatitudeBand
@@ -145,7 +149,8 @@ function multiplierFor(scale: number, referenceScale: number, { projectionId }: 
   return floorToFormat(scale / referenceScale, control!.format)
 }
 
-export function proposeComposition(territories: ProposedTerritory[], { arrangement, scaleMode, canvas }: ProposalOptions): { state: CompositionState, reasons: Partial<Record<TerritoryCode, ProjectionReason>> } {
+// The entries follow the order of the catalogue, whatever the order of the territories; the placement follows their order by area
+export function proposeComposition(territories: ProposedTerritory[], { arrangement, scaleMode, canvas }: ProposalOptions, catalogueCodes: readonly TerritoryCode[]): { state: CompositionState, reasons: Partial<Record<TerritoryCode, ProjectionReason>> } {
   const ordered = byArea(territories)
   const { main, insets } = arrangeZones(Math.max(ordered.length - 1, 0), canvas, arrangement)
   const fitted = ordered.map((territory, index) => {
@@ -169,8 +174,13 @@ export function proposeComposition(territories: ProposedTerritory[], { arrangeme
     reasons[territory.code] = reason
   }
 
+  const entries = territories.reduce<CompositionState['entries']>(
+    (placed, { code, name, bounds }) => insertInCatalogueOrder(placed, { code, name, bounds }, catalogueCodes),
+    [],
+  )
+
   return {
-    state: { territoryParameters, activeTerritories: ordered.map(({ code }) => code), canvas: { referenceScale, dimensions: { ...canvas } } },
+    state: { territoryParameters, activeTerritories: ordered.map(({ code }) => code), entries, canvas: { referenceScale, dimensions: { ...canvas } } },
     reasons,
   }
 }

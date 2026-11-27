@@ -10,7 +10,9 @@ import { freeCell } from '@/core/territories/proposal'
 import { ok } from '@/core/types/result'
 import { parseSharedLink } from '@/core/view'
 import { useAppStore } from '@/stores/app'
+import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -40,6 +42,11 @@ function rectOf(parameters: { pixelClipExtent?: [number, number, number, number]
 function overlaps(code: TerritoryCode, others: Array<Parameters<typeof rectOf>[0]>): boolean {
   const a = rectOf(parametersOf(code))
   return others.map(rectOf).some(b => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom)
+}
+
+// The entries of some territories as the catalogue gives them, in its order
+function catalogueEntries(codes: TerritoryCode[]) {
+  return useAtlasStore().territories.filter(({ code }) => codes.includes(code)).map(({ code, name, bounds }) => ({ code, name, bounds }))
 }
 
 const activeExcept = (code: TerritoryCode) => [...useViewStore().activeTerritoryCodes].filter(other => other !== code).map(parametersOf)
@@ -84,6 +91,22 @@ describe('a proposal as the reference of the reset', () => {
     useCompositionStore().startProposal([MAIN, RYUKYU], OPTIONS)
 
     expect(useParameterStore().globalParameters.parallels).toEqual([30, 40])
+  })
+})
+
+describe('entries of a proposal', () => {
+  it('gives an entry by composed territory, with the bounds of the catalogue, in the order of the catalogue', async () => {
+    await propose([RYUKYU, MAIN])
+
+    expect(useCompositionEntriesStore().entries).toEqual(catalogueEntries([MAIN, RYUKYU]))
+  })
+
+  it('inserts an added territory at its place in the order of the catalogue', async () => {
+    await propose([RYUKYU, MAIN])
+    useCompositionStore().addTerritoryToComposite(OGASAWARA)
+    useCompositionStore().addTerritoryToComposite(HOKKAIDO)
+
+    expect(useCompositionEntriesStore().entries).toEqual(catalogueEntries([MAIN, HOKKAIDO, RYUKYU, OGASAWARA]))
   })
 })
 
@@ -252,6 +275,7 @@ describe('a proposal in a shared link', () => {
     expect(usePresetDefaultsStore().proposal).toEqual(proposal)
     expect(usePresetDefaultsStore().proposal!.additions).toEqual([OGASAWARA, HOKKAIDO])
     expect(codes.map(parametersOf)).toEqual(parameters)
+    expect(useCompositionEntriesStore().entries).toEqual(catalogueEntries(codes))
     expect(differsFromReference()).toBe(false)
   })
 

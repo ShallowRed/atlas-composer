@@ -27,12 +27,18 @@ const atlasIds = [...new Set(readPresetFiles().filter(preset => preset.type === 
 // The territories at 10m, as the application loads them: the islands of the brazil atlas have no polygon at 50m
 function proposedTerritories(atlasId: AtlasId): ProposedTerritory[] {
   const contours = readAtlasContours(atlasId, '10m')
-  return getAtlasConfig(atlasId).compositeTerritories!.territories.map(({ code, center, bounds }) => ({
+  return getAtlasConfig(atlasId).compositeTerritories!.territories.map(({ code, name, center, bounds }) => ({
     code: code as TerritoryCode,
+    name,
+    bounds: bounds!,
     geometry: contours.features.find(feature => feature.properties.code === code)!,
     center,
     band: [bounds![0][1], bounds![1][1]],
   }))
+}
+
+function catalogueCodes(atlasId: AtlasId): TerritoryCode[] {
+  return getAtlasConfig(atlasId).compositeTerritories!.territories.map(({ code }) => code as TerritoryCode)
 }
 
 function compositeOf(atlasId: AtlasId, { territoryParameters, activeTerritories, canvas: composition }: CompositionState) {
@@ -104,23 +110,29 @@ describe.each(atlasIds)('proposal on the atlas %s', (atlasId) => {
 
   it('composes each territory alone', () => {
     for (const territory of territories) {
-      expectReadableComposition(atlasId, [territory], proposeComposition([territory], { arrangement: 'insets-right', scaleMode: 'readable', canvas }).state)
+      expectReadableComposition(atlasId, [territory], proposeComposition([territory], { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId)).state)
     }
   })
 
   it.each(ARRANGEMENTS.flatMap(arrangement => SCALE_MODES.map(scaleMode => ({ arrangement, scaleMode }))))('composes every territory, $arrangement, $scaleMode', (options) => {
-    expectReadableComposition(atlasId, territories, proposeComposition(territories, { ...options, canvas }).state)
+    expectReadableComposition(atlasId, territories, proposeComposition(territories, { ...options, canvas }, catalogueCodes(atlasId)).state)
+  })
+
+  it('writes an entry by territory, with the bounds of the catalogue, in the order of the catalogue', () => {
+    const { state } = proposeComposition([...territories].reverse(), { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId))
+
+    expect(state.entries).toEqual(getAtlasConfig(atlasId).compositeTerritories!.territories.map(({ code, name, bounds }) => ({ code, name, bounds })))
   })
 
   it('puts first the territory of largest spherical area', () => {
-    const [main] = proposeComposition(territories, { arrangement: 'insets-right', scaleMode: 'readable', canvas }).state.activeTerritories
+    const [main] = proposeComposition(territories, { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId)).state.activeTerritories
     const largest = territories.reduce((a, b) => geoArea(b.geometry) > geoArea(a.geometry) ? b : a)
 
     expect(main).toBe(largest.code)
   })
 
   it('exports a file that validateConfig accepts, whose import gives back the proposed parameters', () => {
-    const { state } = proposeComposition(territories, { arrangement: 'insets-right', scaleMode: 'readable', canvas })
+    const { state } = proposeComposition(territories, { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId))
     const { composite, provider } = compositeOf(atlasId, state)
     const exported = JSON.parse(JSON.stringify(CompositeExportService.exportToJSON(composite, atlasId, atlasId, provider, state.canvas!.referenceScale, canvas)))
 
@@ -138,7 +150,7 @@ describe.each(atlasIds)('proposal on the atlas %s', (atlasId) => {
 describe('proposal on the atlas usa', () => {
   it('takes the contiguous states as main territory, though the bounds of the Aleutians cross the antimeridian', async () => {
     await loadAtlasFromConfigs('usa' as AtlasId)
-    const [main] = proposeComposition(proposedTerritories('usa' as AtlasId), { arrangement: 'insets-right', scaleMode: 'readable', canvas }).state.activeTerritories
+    const [main] = proposeComposition(proposedTerritories('usa' as AtlasId), { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes('usa' as AtlasId)).state.activeTerritories
 
     expect(main).toBe('US-CONT')
   })

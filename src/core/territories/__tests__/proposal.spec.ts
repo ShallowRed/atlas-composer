@@ -14,12 +14,21 @@ function box(west: number, south: number, east: number, north: number): GeoJSON.
 }
 
 function territory(code: string, west: number, south: number, east: number, north: number): ProposedTerritory {
-  return { code: createTerritoryCode(code), geometry: box(west, south, east, north), center: [(west + east) / 2, (south + north) / 2], band: [south, north] }
+  return {
+    code: createTerritoryCode(code),
+    name: code,
+    bounds: [[west, south], [east, north]],
+    geometry: box(west, south, east, north),
+    center: [(west + east) / 2, (south + north) / 2],
+    band: [south, north],
+  }
 }
 
 const MAIN = territory('MAIN', -5, 42, 12, 51)
 const ISLAND = territory('ISLAND', -61.8, 15.8, -61, 16.5)
 const SOUTH = territory('SOUTH', 55.2, -21.4, 55.9, -20.8)
+// An order of the catalogue that differs from the order by area
+const CATALOGUE = [SOUTH.code, MAIN.code, ISLAND.code]
 
 describe('suggestProjection', () => {
   it.each([
@@ -49,32 +58,39 @@ describe('proposeComposition', () => {
   const options = { arrangement: 'insets-right', scaleMode: 'readable', canvas } as const
 
   it('gives a conic the parallels of the band of its territory', () => {
-    const { state } = proposeComposition([MAIN], options)
+    const { state } = proposeComposition([MAIN], options, CATALOGUE)
 
     expect(state.territoryParameters[MAIN.code]).toMatchObject({ projectionId: 'conic-conformal', parallels: parallelsForBand(MAIN.band) })
   })
 
   it('gives the same state whatever the order of the checked territories', () => {
-    expect(proposeComposition([SOUTH, MAIN, ISLAND], options)).toEqual(proposeComposition([ISLAND, SOUTH, MAIN], options))
+    expect(proposeComposition([SOUTH, MAIN, ISLAND], options, CATALOGUE)).toEqual(proposeComposition([ISLAND, SOUTH, MAIN], options, CATALOGUE))
   })
 
   it('puts the territory of largest area first, then the others by area', () => {
-    expect(proposeComposition([ISLAND, SOUTH, MAIN], options).state.activeTerritories).toEqual([MAIN.code, ISLAND.code, SOUTH.code])
+    expect(proposeComposition([ISLAND, SOUTH, MAIN], options, CATALOGUE).state.activeTerritories).toEqual([MAIN.code, ISLAND.code, SOUTH.code])
+  })
+
+  it('writes an entry by territory, with its name and its bounds, in the order of the catalogue whatever the order of the territories', () => {
+    const entries = [SOUTH, MAIN, ISLAND].map(({ code, name, bounds }) => ({ code, name, bounds }))
+
+    expect(proposeComposition([ISLAND, SOUTH, MAIN], options, CATALOGUE).state.entries).toEqual(entries)
+    expect(proposeComposition([MAIN, ISLAND, SOUTH], options, CATALOGUE).state.entries).toEqual(entries)
   })
 
   it('gives each reason of projection', () => {
-    expect(proposeComposition([ISLAND, MAIN], options).reasons).toEqual({ [MAIN.code]: 'eastWest', [ISLAND.code]: 'equatorial' })
+    expect(proposeComposition([ISLAND, MAIN], options, CATALOGUE).reasons).toEqual({ [MAIN.code]: 'eastWest', [ISLAND.code]: 'equatorial' })
   })
 
   it('keeps the main territory at the reference scale and fits each other one to its cell in the readable scale', () => {
-    const { territoryParameters } = proposeComposition([MAIN, ISLAND, SOUTH], options).state
+    const { territoryParameters } = proposeComposition([MAIN, ISLAND, SOUTH], options, CATALOGUE).state
 
     expect(territoryParameters[MAIN.code]!.scaleMultiplier).toBe(1)
     expect(territoryParameters[ISLAND.code]!.scaleMultiplier).toBeGreaterThan(1)
   })
 
   it('gives every territory the same scale in the uniform scale', () => {
-    const { territoryParameters } = proposeComposition([MAIN, ISLAND, SOUTH], { ...options, scaleMode: 'uniform' }).state
+    const { territoryParameters } = proposeComposition([MAIN, ISLAND, SOUTH], { ...options, scaleMode: 'uniform' }, CATALOGUE).state
 
     expect(Object.values(territoryParameters).map(({ scaleMultiplier }) => scaleMultiplier)).toEqual([1, 1, 1])
   })

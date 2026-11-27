@@ -7,6 +7,7 @@ import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openAtlasWithCartographer, startApplication } from '@/__tests__/composite-utils'
 import { readPresetFiles } from '@/__tests__/test-utils'
+import { compositionStateFromConfig, insertInCatalogueOrder } from '@/core/presets/composition-state'
 import { extractTerritoryParameters } from '@/core/presets/converter'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { err, ok } from '@/core/types/result'
@@ -17,6 +18,7 @@ import { PresetValidationService } from '@/services/validation/preset-validation
 import { useAppStore } from '@/stores/app'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { usePresetDefaultsStore } from '@/stores/presetDefaults'
@@ -42,6 +44,14 @@ async function readPresetConfig(file: string) {
 function territoryCodes(): TerritoryCode[] {
   return useAtlasStore().atlasService.getAllTerritories().map(({ code }) => code as TerritoryCode)
 }
+
+// The entry of a territory as the catalogue gives it
+function catalogueEntry(code: TerritoryCode) {
+  const { name, bounds } = useAtlasStore().territories.find(territory => territory.code === code)!
+  return { code, name, bounds }
+}
+
+const entryCodes = () => useCompositionEntriesStore().entries.map(({ code }) => code)
 
 function compositionLeft() {
   const parameterStore = useParameterStore()
@@ -851,6 +861,32 @@ describe('composition store', () => {
 
   describe('addTerritoryToComposite', () => {
     const SAINT_MARTIN = 'FR-MF' as TerritoryCode
+    const METROPOLE = 'FR-MET' as TerritoryCode
+
+    it('gives a territory outside the preset the entry of the catalogue, at its place in the order of the catalogue', async () => {
+      await openAtlasWithCartographer(FRANCE)
+      const entries = [...useCompositionEntriesStore().entries]
+
+      useCompositionStore().addTerritoryToComposite(SAINT_MARTIN)
+
+      expect(useCompositionEntriesStore().entries)
+        .toEqual(insertInCatalogueOrder(entries, catalogueEntry(SAINT_MARTIN), useAtlasStore().territories.map(({ code }) => code)))
+      expect(entryCodes()).toContain(SAINT_MARTIN)
+    })
+
+    it('keeps the entry of a territory unchecked then checked again', async () => {
+      await openAtlasWithCartographer(FRANCE)
+      const entries = [...useCompositionEntriesStore().entries]
+      // The bounds of the preset differ from those of the catalogue
+      expect(entries.find(({ code }) => code === METROPOLE)!.bounds).not.toEqual(catalogueEntry(METROPOLE).bounds)
+      useViewStore().removeTerritoryFromComposite(METROPOLE)
+
+      expect(useCompositionEntriesStore().entries).toEqual(entries)
+
+      useCompositionStore().addTerritoryToComposite(METROPOLE)
+
+      expect(useCompositionEntriesStore().entries).toEqual(entries)
+    })
 
     it('gives the default parameters to a territory outside the preset, and a sub-projection to the cartographer of the initialization', async () => {
       const geoDataStore = await openAtlasWithCartographer(FRANCE)
@@ -878,6 +914,59 @@ describe('composition store', () => {
       useCompositionStore().addTerritoryToComposite(code!)
 
       expect(useParameterStore().getTerritoryParameters(code!)).toEqual(parameters)
+    })
+  })
+
+  describe('entries of the composition', () => {
+    const JAPAN = 'japan' as AtlasId
+
+    async function defaultPresetEntries(file: string) {
+      return compositionStateFromConfig(await readPresetConfig(file)).entries
+    }
+
+    it('gives an entry to each active code of the composite-custom view', async () => {
+      await openAtlasWithCartographer(FRANCE)
+      useCompositionStore().addTerritoryToComposite('FR-MF' as TerritoryCode)
+
+      expect(useViewStore().viewMode).toBe('composite-custom')
+      expect(entryCodes()).toEqual(expect.arrayContaining([...useViewStore().activeTerritoryCodes]))
+    })
+
+    it('holds the entries of the default preset after an initialization', async () => {
+      await startApplication(FRANCE)
+
+      await initializeInView('composite-custom')
+
+      expect(useCompositionEntriesStore().entries).toEqual(await defaultPresetEntries('france-pseudo-d3cp'))
+    })
+
+    it.each(['split', 'unified', 'built-in-composite'] as const)('holds no entry after a change to the %s view', async (viewMode) => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+      expect(useCompositionEntriesStore().entries).not.toEqual([])
+
+      await useCompositionStore().selectViewMode(viewMode)
+
+      expect(useCompositionEntriesStore().entries).toEqual([])
+    })
+
+    it('replaces the entries of the previous atlas with those of the default preset of the new atlas', async () => {
+      await startApplication(FRANCE)
+      await useCompositionStore().initializeAtlas()
+
+      await useCompositionStore().selectAtlas(JAPAN)
+
+      const config = JSON.parse(await readFile('configs/presets/japan/japan-standard.json', 'utf8')) as CompositeProjectionConfig
+      expect(useCompositionEntriesStore().entries).toEqual(compositionStateFromConfig(config).entries)
+    })
+
+    it('holds the entries of an imported file, in the order of the file', async () => {
+      await openAtlasWithCartographer(FRANCE)
+      const config = await readPresetConfig('france-proportional')
+
+      expect(await useCompositionStore().importConfiguration(config)).toEqual(ok(undefined))
+
+      expect(useCompositionEntriesStore().entries).toEqual(compositionStateFromConfig(config).entries)
     })
   })
 
