@@ -19,6 +19,7 @@ import { CompositeProjection } from '@/services/projection/composite-projection'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -26,9 +27,19 @@ import { useViewStore } from '@/stores/view'
 
 export type Point = [number, number]
 
+export type ClipExtent = [[number, number], [number, number]] | null
+
+// A composite and the clip extent of each of its sub-projections, by code
+export interface BuiltComposite {
+  project: (point: Point) => Point | null
+  invert: (point: Point) => Point | null
+  clipExtents: Map<string, ClipExtent>
+}
+
 interface ApplicationComposite {
   project: (territoryCode: string, point: Point) => Point | null
   subProjection: (territoryCode: string) => GeoProjection
+  composite: (dimensions: CanvasDimensions) => BuiltComposite
   exportToJSON: () => CompositeProjectionConfig
 }
 
@@ -53,7 +64,7 @@ export async function openAtlasWithCartographer(atlasId: AtlasId) {
   const atlasConfig = useAtlasStore().currentAtlasConfig!
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(atlasConfig.geoDataConfig, undefined, {
-    config: atlasConfig.compositeTerritories!,
+    entryProvider: useCompositionEntriesStore().entryProvider,
     parameterProvider: useParameterStore().parameterProvider,
     activeTerritoryProvider: useViewStore().activeTerritoryProvider,
     referenceScale: useProjectionStore().referenceScale,
@@ -89,7 +100,7 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
   const { parameterProvider } = useParameterStore()
   const atlasConfig = getAtlasConfig(atlasId)
   const composite = new CompositeProjection(
-    atlasConfig.compositeTerritories!,
+    useCompositionEntriesStore().entryProvider,
     parameterProvider,
     useViewStore().activeTerritoryProvider,
     projectionStore.referenceScale,
@@ -104,6 +115,14 @@ export function buildApplicationComposite(atlasId: AtlasId): ApplicationComposit
   return {
     project: (territoryCode, point) => buildSubProjection(territoryCode)?.(point) ?? null,
     subProjection: territoryCode => buildSubProjection(territoryCode)!,
+    composite: ({ width, height }) => {
+      const projection = composite.build(width, height)!
+      return {
+        project: point => projection(point) as Point | null,
+        invert: point => projection.invert?.(point) as Point | null ?? null,
+        clipExtents: new Map(composite.getAllSubProjectionData().map(({ territoryCode, projection: sub }) => [territoryCode, sub.clipExtent() as ClipExtent])),
+      }
+    },
     exportToJSON: () => CompositeExportService.exportToJSON(
       composite,
       atlasId,
@@ -180,6 +199,36 @@ export function loadSubProjection(config: CompositeProjectionConfig, territoryCo
   }]))
   load(config, config.territories.filter(t => t.code === territoryCode), factories)
   return created as GeoProjection
+}
+
+// The composite of the loader at the dimensions of the file; the loader gives no access to its sub-projections,
+// so wrapped factories keep the projections of the last build, created in the order of the territories
+export function loadCompositeWithLoader(config: CompositeProjectionConfig): BuiltComposite {
+  const created: GeoProjection[] = []
+  const factories = Object.fromEntries(Object.entries(d3ProjectionFactories).map(([id, factory]) => [id, () => {
+    const projection = factory()
+    created.push(projection as unknown as GeoProjection)
+    return projection
+  }]))
+  const composite = load(config, config.territories, factories)
+  const lastBuild = created.slice(-config.territories.length)
+  return {
+    project: point => composite(point) as Point | null,
+    invert: point => composite.invert?.(point) as Point | null ?? null,
+    clipExtents: new Map(config.territories.map(({ code }, i) => [code, lastBuild[i]!.clipExtent() as ClipExtent])),
+  }
+}
+
+// Twenty-five points of a box, at the fractions -0.02, 0.02, 0.5, 0.98 and 1.02 of each axis, on both sides of each edge;
+// latitudes are bounded to [-90, 90], longitudes wrapped into [-180, 180], across the antimeridian when minLon exceeds maxLon
+export function gridAcrossBounds([[minLon, minLat], [maxLon, maxLat]]: [Point, Point]): Point[] {
+  const fractions = [-0.02, 0.02, 0.5, 0.98, 1.02]
+  const east = minLon > maxLon ? maxLon + 360 : maxLon
+  const wrap = (longitude: number) => (longitude > 180 ? longitude - 360 : longitude < -180 ? longitude + 360 : longitude)
+  return fractions.flatMap(fx => fractions.map((fy): Point => [
+    wrap(minLon + (east - minLon) * fx),
+    Math.max(-90, Math.min(90, minLat + (maxLat - minLat) * fy)),
+  ]))
 }
 
 // Clockwise ring: d3-geo reads it as the box, not as the rest of the sphere

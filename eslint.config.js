@@ -60,6 +60,12 @@ const SERVICES_FROM_COMPOSABLES = {
   message: 'Composables call src/services/rendering/ only: reach the other services through a store action.',
 }
 
+const COMPOSITE_TERRITORIES_IN_SERVICES = {
+  regex: '^(?:@/types(?:/composite)?|(?:\\.{1,2}/)+(?:[^/]+/)*types(?:/composite)?)$',
+  importNames: ['CompositeTerritories'],
+  message: 'Composite entries come from the entries store, through EntryProvider (src/types/territory.ts).',
+}
+
 const ANTFU_GLOBALS = [
   { name: 'global', message: 'Use `globalThis` instead.' },
   { name: 'self', message: 'Use `globalThis` instead.' },
@@ -212,7 +218,7 @@ export default antfu({
   files: ['src/services/**'],
   ignores: ['**/__tests__/**'],
   rules: {
-    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO, LOCALE_FROM_IO, PROJECTION_LIBRARIES] }],
+    'no-restricted-imports': ['error', { patterns: [AJV, UI, STORES_FROM_IO, LOCALE_FROM_IO, PROJECTION_LIBRARIES, COMPOSITE_TERRITORIES_IN_SERVICES] }],
   },
 }, {
   files: ['src/stores/**'],

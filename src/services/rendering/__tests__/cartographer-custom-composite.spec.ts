@@ -4,6 +4,7 @@ import type { AtlasId } from '@/types/branded'
 import { geoPath } from 'd3-geo'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { boundsPolygon, openAtlasWithCartographer } from '@/__tests__/composite-utils'
+import { readPresetFiles } from '@/__tests__/test-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { useCompositionStore } from '@/stores/composition'
 import { useViewStore } from '@/stores/view'
@@ -25,8 +26,11 @@ describe('drawing of the custom composite of france-proportional', () => {
   let cartographer: NonNullable<Awaited<ReturnType<typeof openAtlasWithCartographer>>['cartographer']>
   let svg: SVGSVGElement
   let frames: ProjectionFrame[]
-  // The active territories in the order of the configuration
-  let configurationOrder: string[]
+  // The active territories in the order of the preset file
+  const entryOrder = (JSON.parse(readPresetFiles().find(({ id }) => id === 'france-proportional')!.json) as { territories: { code: string }[] })
+    .territories
+    .map(({ code }) => code)
+    .filter(code => CODES.includes(code))
 
   const render = () => cartographer.render({
     mode: 'composite-custom',
@@ -39,7 +43,6 @@ describe('drawing of the custom composite of france-proportional', () => {
   beforeAll(async () => {
     const geoDataStore = await openAtlasWithCartographer(FRANCE)
     features = CODES.map(territoryInBounds)
-    configurationOrder = getAtlasConfig(FRANCE).compositeTerritories!.territories.map(territory => territory.code).filter(code => CODES.includes(code))
     // The preset sets its own active territories, so the test sets its codes after it
     await useCompositionStore().loadPreset({ presetId: createPresetId('france-proportional') })
     useViewStore().setActiveTerritories(CODES.map(createTerritoryCode))
@@ -62,16 +65,16 @@ describe('drawing of the custom composite of france-proportional', () => {
     expect(compositePath).not.toBe(ownPath)
   })
 
-  // The basemap draws one frame per active territory, in the order of the configuration, from the projections of this render
+  // The basemap draws one frame per active territory, in the order of the entries, from the projections of this render
   it('gives the frames of the active territories only', () => {
-    expect(frames.map(frame => frame.code)).toEqual(configurationOrder)
+    expect(frames.map(frame => frame.code)).toEqual(entryOrder)
     for (const frame of frames) {
       expect(frame.projection).toBe(cartographer.customComposite!.getSubProjectionData(frame.code)!.projection)
     }
   })
 
   it('reads the data of the active territories, and draws no path for another territory', () => {
-    expect(cartographer.geoData.getRawUnifiedData).toHaveBeenCalledWith('all-territories', configurationOrder)
+    expect(cartographer.geoData.getRawUnifiedData).toHaveBeenCalledWith('all-territories', entryOrder)
     expect(svg.querySelector(`g.territories path[data-territory="${INACTIVE}"]`)).toBeNull()
     expect(frames.map(frame => frame.code)).not.toContain(INACTIVE)
   })

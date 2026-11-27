@@ -7,10 +7,7 @@ export type {
   TerritoryCode,
 } from '@/types/branded'
 
-export type {
-  CompositeTerritories,
-  ViewMode,
-} from '@/types/composite'
+export type { ViewMode } from '@/types/composite'
 
 export type {
   GeoDataConfig,

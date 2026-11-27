@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { openAtlasWithCartographer, startApplication } from '@/__tests__/composite-utils'
 import { readPresetFiles } from '@/__tests__/test-utils'
-import { compositionStateFromConfig, insertInCatalogueOrder } from '@/core/presets/composition-state'
+import { compositionStateFromConfig } from '@/core/presets/composition-state'
 import { extractTerritoryParameters } from '@/core/presets/converter'
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { err, ok } from '@/core/types/result'
@@ -473,6 +473,22 @@ describe('composition store', () => {
         .toEqual(config.territories.map(territory => territory.code).sort())
     })
 
+    it('keeps an entry of an imported file whose code the atlas does not declare, with the bounds of the file', async () => {
+      const geoDataStore = await openAtlasWithCartographer(FRANCE)
+      const config = await readPresetConfig('france-proportional')
+      const bounds: [[number, number], [number, number]] = [[-30, 10], [-29, 11]]
+      config.territories.push({ ...structuredClone(config.territories[1]!), code: 'FR-XX', name: 'Free zone', bounds })
+
+      expect(await useCompositionStore().importConfiguration(config)).toEqual(ok(undefined))
+
+      expect(geoDataStore.cartographer!.customComposite!.getSubProjectionData('FR-XX')?.bounds).toEqual(bounds)
+      expect(exportedTerritories(geoDataStore).find(territory => territory.code === 'FR-XX')).toMatchObject({ name: 'Free zone', bounds })
+
+      useViewStore().removeTerritoryFromComposite('FR-XX' as TerritoryCode)
+      useCompositionStore().addTerritoryToComposite('FR-XX' as TerritoryCode)
+      expect(useCompositionEntriesStore().entries.find(({ code }) => code === 'FR-XX')).toEqual({ code: 'FR-XX', name: 'Free zone', bounds })
+    })
+
     it('exports the checked territories only', async () => {
       const geoDataStore = await openAtlasWithCartographer(FRANCE)
       const viewStore = useViewStore()
@@ -865,13 +881,11 @@ describe('composition store', () => {
 
     it('gives a territory outside the preset the entry of the catalogue, at its place in the order of the catalogue', async () => {
       await openAtlasWithCartographer(FRANCE)
-      const entries = [...useCompositionEntriesStore().entries]
 
       useCompositionStore().addTerritoryToComposite(SAINT_MARTIN)
 
-      expect(useCompositionEntriesStore().entries)
-        .toEqual(insertInCatalogueOrder(entries, catalogueEntry(SAINT_MARTIN), useAtlasStore().territories.map(({ code }) => code)))
-      expect(entryCodes()).toContain(SAINT_MARTIN)
+      expect(entryCodes()).toEqual(['FR-MET', 'FR-GP', 'FR-MQ', 'FR-GF', 'FR-RE', 'FR-YT', 'FR-BL', 'FR-MF', 'FR-PM', 'FR-WF', 'FR-PF', 'FR-PF-2', 'FR-NC'])
+      expect(useCompositionEntriesStore().entries.find(({ code }) => code === SAINT_MARTIN)).toEqual(catalogueEntry(SAINT_MARTIN))
     })
 
     it('keeps the entry of a territory unchecked then checked again', async () => {
@@ -926,10 +940,14 @@ describe('composition store', () => {
 
     it('gives an entry to each active code of the composite-custom view', async () => {
       await openAtlasWithCartographer(FRANCE)
-      useCompositionStore().addTerritoryToComposite('FR-MF' as TerritoryCode)
+      const expectEveryActiveCodeHasAnEntry = () => expect(entryCodes()).toEqual(expect.arrayContaining([...useViewStore().activeTerritoryCodes]))
 
+      useCompositionStore().addTerritoryToComposite('FR-MF' as TerritoryCode)
       expect(useViewStore().viewMode).toBe('composite-custom')
-      expect(entryCodes()).toEqual(expect.arrayContaining([...useViewStore().activeTerritoryCodes]))
+      expectEveryActiveCodeHasAnEntry()
+
+      useCompositionStore().resetTransforms()
+      expectEveryActiveCodeHasAnEntry()
     })
 
     it('holds the entries of the default preset after an initialization', async () => {

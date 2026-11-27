@@ -1,6 +1,7 @@
 import type { CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { CompositeConfigContext } from '@/core/presets'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { importIntoApplication } from '@/__tests__/composite-utils'
 import { loadAtlasFromConfigs } from '@/__tests__/test-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { CompositeImportService } from '@/services/export/composite-import-service'
@@ -253,5 +254,39 @@ describe('export/import JSON roundtrip', () => {
       expect(imported.projection.parameters.center).toEqual([2.123456, 46.654321])
       expect(imported.projection.parameters.scaleMultiplier).toBe(1.234567)
     })
+  })
+})
+
+// Import into the application, then export: the entries of the file come back in their order, with their bounds
+describe('entries through an import and an export', () => {
+  const mercator = (center: [number, number]) => ({ id: 'mercator', family: 'CYLINDRICAL', parameters: { center, scaleMultiplier: 1 } })
+  const file: CompositeProjectionConfig = {
+    version: '1.1',
+    metadata: { atlasId: 'france', atlasName: 'France' },
+    referenceScale: 2700,
+    canvasDimensions: { width: 960, height: 500 },
+    territories: [
+      { code: 'FR-MF', name: 'Saint-Martin du fichier', projection: mercator([-63.06, 18.08]), layout: { translateOffset: [-324, -119] }, bounds: [[-63.1500004, 18.0412345678], [-63, 18.13]] },
+      { code: 'FR-BL', name: 'Saint-Barthélemy du fichier', projection: mercator([-62.85, 17.9]), layout: { translateOffset: [-324, -60] } },
+      { code: 'FR-XX', name: 'Zone du fichier', projection: mercator([-30, 10]), layout: { translateOffset: [100, 100] }, bounds: [[-31, 9], [-29, 11]] },
+    ],
+  } as CompositeProjectionConfig
+
+  it('keeps the codes, the order and the bounds, absences included, at the rounding of the export', async () => {
+    const exported = (await importIntoApplication(JSON.stringify(file))).exportToJSON()
+
+    expect(exported.territories.map(({ code, bounds }) => ({ code, bounds }))).toEqual([
+      { code: 'FR-MF', bounds: [[-63.15, 18.041235], [-63, 18.13]] },
+      { code: 'FR-BL', bounds: undefined },
+      { code: 'FR-XX', bounds: [[-31, 9], [-29, 11]] },
+    ])
+    expect(exported.territories[1]).not.toHaveProperty('bounds')
+  })
+
+  it('writes the name of the catalogue for a code that the atlas declares, the name of the file else', async () => {
+    const exported = (await importIntoApplication(JSON.stringify(file))).exportToJSON()
+    const catalogueName = (code: string) => getAtlasConfig(createAtlasId('france')).compositeTerritories!.territories.find(territory => territory.code === code)!.name
+
+    expect(exported.territories.map(({ name }) => name)).toEqual([catalogueName('FR-MF'), catalogueName('FR-BL'), 'Zone du fichier'])
   })
 })

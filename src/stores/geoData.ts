@@ -16,6 +16,7 @@ import { CompositeExportService } from '@/services/export/composite-export-servi
 
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
 import { useViewStore } from '@/stores/view'
@@ -103,6 +104,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
       debug('Using the atlas config %s (composite territories: %d)', atlasConfigOverride ? 'of the initialization' : 'of the atlas store', atlasConfig.compositeTerritories?.territories.length ?? 0)
 
       const geoDataConfig = atlasConfig.geoDataConfig
+      // An atlas without catalogue has no custom composite
       const compositeConfig = atlasConfig.compositeTerritories
 
       const parameterStore = useParameterStore()
@@ -112,7 +114,7 @@ export const useGeoDataStore = defineStore('geoData', () => {
         geoDataConfig,
         projectionParams,
         compositeConfig && {
-          config: compositeConfig,
+          entryProvider: useCompositionEntriesStore().entryProvider,
           parameterProvider: parameterStore.parameterProvider,
           activeTerritoryProvider: useViewStore().activeTerritoryProvider,
           referenceScale: projectionStore.referenceScale,

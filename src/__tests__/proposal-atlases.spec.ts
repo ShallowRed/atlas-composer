@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { validateConfig } from '@atlas-composer/specification'
 import { geoArea, geoPath } from 'd3-geo'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { loadAtlasFromConfigs, readAtlasContours, readPresetFiles } from '@/__tests__/test-utils'
+import { entryProviderOf, loadAtlasFromConfigs, readAtlasContours, readPresetFiles } from '@/__tests__/test-utils'
 import { getAtlasConfig } from '@/core/atlases/registry'
 import { parameterRegistry, REFERENCE_SCALE_CONTROL, roundToFormat } from '@/core/parameters'
 import { rectFromFrame, subProjectionAnchor } from '@/core/positioning'
@@ -41,13 +41,13 @@ function catalogueCodes(atlasId: AtlasId): TerritoryCode[] {
   return getAtlasConfig(atlasId).compositeTerritories!.territories.map(({ code }) => code as TerritoryCode)
 }
 
-function compositeOf(atlasId: AtlasId, { territoryParameters, activeTerritories, canvas: composition }: CompositionState) {
+function compositeOf({ territoryParameters, activeTerritories, entries, canvas: composition }: CompositionState) {
   const provider = {
     getEffectiveParameters: (code: TerritoryCode) => territoryParameters[code]!,
     getExportableParameters: (code: TerritoryCode) => territoryParameters[code]!,
   }
   const active = new Set(activeTerritories)
-  const composite = new CompositeProjection(getAtlasConfig(atlasId).compositeTerritories!, provider, { getActiveTerritoryCodes: () => active }, composition!.referenceScale)
+  const composite = new CompositeProjection(entryProviderOf(entries), provider, { getActiveTerritoryCodes: () => active }, composition!.referenceScale)
   composite.build(canvas.width, canvas.height)
   return { composite, provider }
 }
@@ -58,8 +58,8 @@ function frameOf(parameters: ProjectionParameters) {
 
 // A proposed state that the application draws as it is: valid parameters, values that their field shows without loss,
 // frames inside the canvas that hold the geometry of their territory and do not overlap
-function expectReadableComposition(atlasId: AtlasId, territories: ProposedTerritory[], state: CompositionState) {
-  const { composite } = compositeOf(atlasId, state)
+function expectReadableComposition(territories: ProposedTerritory[], state: CompositionState) {
+  const { composite } = compositeOf(state)
   const referenceScale = state.canvas!.referenceScale
   expect(referenceScale).toBeGreaterThanOrEqual(REFERENCE_SCALE_CONTROL.domain.min)
   expect(roundToFormat(referenceScale, REFERENCE_SCALE_CONTROL.format)).toBe(referenceScale)
@@ -110,12 +110,12 @@ describe.each(atlasIds)('proposal on the atlas %s', (atlasId) => {
 
   it('composes each territory alone', () => {
     for (const territory of territories) {
-      expectReadableComposition(atlasId, [territory], proposeComposition([territory], { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId)).state)
+      expectReadableComposition([territory], proposeComposition([territory], { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId)).state)
     }
   })
 
   it.each(ARRANGEMENTS.flatMap(arrangement => SCALE_MODES.map(scaleMode => ({ arrangement, scaleMode }))))('composes every territory, $arrangement, $scaleMode', (options) => {
-    expectReadableComposition(atlasId, territories, proposeComposition(territories, { ...options, canvas }, catalogueCodes(atlasId)).state)
+    expectReadableComposition(territories, proposeComposition(territories, { ...options, canvas }, catalogueCodes(atlasId)).state)
   })
 
   it('writes an entry by territory, with the bounds of the catalogue, in the order of the catalogue', () => {
@@ -133,7 +133,7 @@ describe.each(atlasIds)('proposal on the atlas %s', (atlasId) => {
 
   it('exports a file that validateConfig accepts, whose import gives back the proposed parameters', () => {
     const { state } = proposeComposition(territories, { arrangement: 'insets-right', scaleMode: 'readable', canvas }, catalogueCodes(atlasId))
-    const { composite, provider } = compositeOf(atlasId, state)
+    const { composite, provider } = compositeOf(state)
     const exported = JSON.parse(JSON.stringify(CompositeExportService.exportToJSON(composite, atlasId, atlasId, provider, state.canvas!.referenceScale, canvas)))
 
     expect(validateConfig(exported)).toMatchObject({ valid: true, errors: [] })

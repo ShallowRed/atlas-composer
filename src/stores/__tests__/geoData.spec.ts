@@ -7,6 +7,7 @@ import { TerritoryDataLoader } from '@/services/data/territory-data-loader'
 import { Cartographer } from '@/services/rendering/cartographer-service'
 import { useAtlasStore } from '@/stores/atlas'
 import { useCompositionStore } from '@/stores/composition'
+import { useCompositionEntriesStore } from '@/stores/composition-entries'
 import { useGeoDataStore } from '@/stores/geoData'
 import { useParameterStore } from '@/stores/parameters'
 import { useProjectionStore } from '@/stores/projection'
@@ -23,7 +24,7 @@ async function openFranceWithCartographer({ withComposite }: { withComposite: bo
   const geoDataStore = useGeoDataStore()
   geoDataStore.cartographer = new Cartographer(atlasConfig.geoDataConfig, undefined, withComposite
     ? {
-        config: atlasConfig.compositeTerritories!,
+        entryProvider: useCompositionEntriesStore().entryProvider,
         parameterProvider: useParameterStore().parameterProvider,
         activeTerritoryProvider: useViewStore().activeTerritoryProvider,
         referenceScale: useProjectionStore().referenceScale,

@@ -1,19 +1,12 @@
-import type { CanvasDimensions, CompositeProjectionConfig, GeoBounds } from '@atlas-composer/specification'
+import type { CanvasDimensions, CompositeProjectionConfig } from '@atlas-composer/specification'
 import type { I18nValue } from '#types'
 import type { TerritoryCode } from '@/types/branded'
 import type { ProjectionParameters } from '@/types/projection-parameters'
-import type { TerritoryConfig } from '@/types/territory'
+import type { CompositionEntry, TerritoryConfig } from '@/types/territory'
 
 import { FALLBACK_PROJECTION_ID } from '@/core/projections/defaults'
 import { referenceParameters } from '@/core/territories/territory-reset-service'
 import { extractTerritoryParameters } from './converter'
-
-// An element of the territories of a composite file; its parameters stay in the parameter store, under its code
-export interface CompositionEntry {
-  code: TerritoryCode
-  name: I18nValue
-  bounds?: GeoBounds
-}
 
 export interface CompositionState {
   territoryParameters: Record<TerritoryCode, ProjectionParameters>

@@ -1,7 +1,7 @@
 import type { ProjectionParameters } from '@/types/projection-parameters'
 import { geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import { allTerritoriesProvider } from '@/__tests__/test-utils'
+import { allTerritoriesProvider, entryProviderOf } from '@/__tests__/test-utils'
 import { ProjectionFactory } from '@/core/projections/factory'
 import { defaultTerritoryParameters } from '@/core/territories/territory-reset-service'
 import { CompositeProjection } from '@/services/projection/composite-projection'
@@ -33,11 +33,11 @@ describe('fitTerritory', () => {
   it.each(FAMILIES)('places the geometry inside its zone, as CompositeProjection draws it, in %s', (_, parameters) => {
     const scaleMultiplier = Math.floor(fittedScale(territory, parameters, zone) / REFERENCE_SCALE * 100) / 100
     const placed = { ...parameters, ...fitTerritory(territory, parameters, zone, { canvas, referenceScale: REFERENCE_SCALE, scaleMultiplier }) }
-    const config = { territories: [{ code: CODE, name: 'X', center: [-3, 44] as [number, number], bounds: [[-11, 39], [5, 49]] as [[number, number], [number, number]] }] }
+    const entries = [{ code: CODE, name: 'X', bounds: [[-11, 39], [5, 49]] as [[number, number], [number, number]] }]
     const composite = new CompositeProjection(
-      config,
+      entryProviderOf(entries),
       { getEffectiveParameters: () => placed, getExportableParameters: () => placed },
-      allTerritoriesProvider(config),
+      allTerritoriesProvider(entries),
       REFERENCE_SCALE,
     )
     composite.build(canvas.width, canvas.height)

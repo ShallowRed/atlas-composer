@@ -1,7 +1,7 @@
-import type { CompositeTerritories } from '@/types'
 import type { ProjectionParameterProvider, ProjectionParameters } from '@/types/projection-parameters'
+import type { CompositionEntry } from '@/types/territory'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { allTerritoriesProvider } from '@/__tests__/test-utils'
+import { allTerritoriesProvider, entryProviderOf } from '@/__tests__/test-utils'
 import { createProjectionId, createTerritoryCode } from '@/types/branded'
 import { CompositeProjection } from '../composite-projection'
 
@@ -12,22 +12,18 @@ describe('compositeProjection - invert/forward chain', () => {
 
   beforeEach(() => {
     franceOffset = [0, 0]
-    const config: CompositeTerritories = {
-      territories: [
-        {
-          code: createTerritoryCode('FR'),
-          name: 'France Metropolitan',
-          center: [2, 46],
-          bounds: [[-5, 42], [8, 51]],
-        },
-        {
-          code: createTerritoryCode('FR-GF'),
-          name: 'French Guiana',
-          center: [-53, 4],
-          bounds: [[-55, 2], [-51, 6]],
-        },
-      ],
-    }
+    const entries: CompositionEntry[] = [
+      {
+        code: createTerritoryCode('FR'),
+        name: 'France Metropolitan',
+        bounds: [[-5, 42], [8, 51]],
+      },
+      {
+        code: createTerritoryCode('FR-GF'),
+        name: 'French Guiana',
+        bounds: [[-55, 2], [-51, 6]],
+      },
+    ]
 
     const mockParameterProvider: ProjectionParameterProvider = {
       getEffectiveParameters: (territoryCode) => {
@@ -49,7 +45,7 @@ describe('compositeProjection - invert/forward chain', () => {
       getExportableParameters: territoryCode => mockParameterProvider.getEffectiveParameters(territoryCode),
     }
 
-    compositeProjection = new CompositeProjection(config, mockParameterProvider, allTerritoriesProvider(config))
+    compositeProjection = new CompositeProjection(entryProviderOf(entries), mockParameterProvider, allTerritoriesProvider(entries))
     builtProjection = compositeProjection.build(800, 600)
   })
 
