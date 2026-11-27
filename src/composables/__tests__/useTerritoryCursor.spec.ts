@@ -88,19 +88,39 @@ describe('useTerritoryCursor', () => {
     expect(cursor.moveLabel.value).toBeNull()
   })
 
-  // Saint Martin and Saint Barthélemy in one frame; a path holds the points of its box, or those of the box given as its fill
-  function sharedFrame(shapes: Record<string, { box: { x: number, y: number, width: number, height: number }, fill?: { x: number, y: number, width: number, height: number } }>) {
+  interface Box { x: number, y: number, width: number, height: number }
+
+  // Saint Martin and Saint Barthélemy in one frame, each entry drawing its territory in its group, and the territory of the other
+  // entry when drawnByOther gives it; a path holds the points of its box, or those of the box given as its fill
+  function sharedFrame(shapes: Record<string, { box: Box, fill?: Box }>, drawnByOther: Record<string, Box> = {}) {
     const bounds: [[number, number], [number, number]] = [[0, 0], [110, 54]]
     const { cursor, svg } = setup({ getCompositionBorders: () => [SAINT_MARTIN, SAINT_BARTHELEMY].map(territoryCode => ({ territoryCode, bounds, point: [54, 21] as [number, number] })) })
     svg.getScreenCTM = () => new DOMMatrix([2, 0, 0, 2, 0, 0])
-    const territories = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'g'))
-    territories.setAttribute('class', 'territories')
-    for (const [code, { box, fill = box }] of Object.entries(shapes)) {
-      const path = territories.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
+    const territoriesOf = (entry: string) => {
+      const existing = svg.querySelector(`g.entry[data-entry="${entry}"] g.territories`)
+      if (existing) {
+        return existing
+      }
+      const group = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'g'))
+      group.setAttribute('class', 'entry')
+      group.setAttribute('data-entry', entry)
+      const territories = group.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'g'))
+      territories.setAttribute('class', 'territories')
+      return territories
+    }
+    const draw = (entry: string, code: string, box: Box, fill = box) => {
+      const path = territoriesOf(entry).appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
+      path.setAttribute('data-entry', entry)
       path.setAttribute('data-territory', code)
       path.setAttribute('d', 'M0,0')
       path.getBBox = () => box as DOMRect
       path.isPointInFill = ({ x = 0, y = 0 }: DOMPointInit = {}) => x >= fill.x && x <= fill.x + fill.width && y >= fill.y && y <= fill.y + fill.height
+    }
+    for (const [code, { box, fill }] of Object.entries(shapes)) {
+      draw(code, code, box, fill)
+    }
+    for (const [code, box] of Object.entries(drawnByOther)) {
+      draw(code === SAINT_MARTIN ? SAINT_BARTHELEMY : SAINT_MARTIN, code, box)
     }
     const overlays = svg.querySelectorAll('.border-zone-overlay')
     function pick(clientX: number, clientY: number) {
@@ -141,6 +161,19 @@ describe('useTerritoryCursor', () => {
     })
     expect(pick(150, 66)).toBe(SAINT_BARTHELEMY)
     expect(pick(20, 20)).toBe(SAINT_MARTIN)
+  })
+
+  it('takes the shape of an entry from its own group, though the other entry of the frame draws its territory over the shape of that entry', () => {
+    const { pick } = sharedFrame({
+      [SAINT_MARTIN]: { box: { x: 40, y: 15, width: 10, height: 10 } },
+      [SAINT_BARTHELEMY]: { box: { x: 70, y: 30, width: 8, height: 6 } },
+    }, {
+      // Each entry draws the territory of the other at its own scale, over the territory of the entry
+      [SAINT_MARTIN]: { x: 60, y: 20, width: 30, height: 30 },
+      [SAINT_BARTHELEMY]: { x: 30, y: 5, width: 30, height: 30 },
+    })
+    expect(pick(90, 40)).toBe(SAINT_MARTIN)
+    expect(pick(148, 66)).toBe(SAINT_BARTHELEMY)
   })
 
   it('moves the territory by the arrows within the domain of the position', () => {

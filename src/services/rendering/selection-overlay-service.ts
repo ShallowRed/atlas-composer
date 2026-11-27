@@ -61,11 +61,11 @@ export class SelectionOverlayService {
     return [point.x, point.y]
   }
 
-  // The box of the shapes that the map draws for a territory, null when it draws none, and whether a shape holds the point of the canvas.
-  // The group of the territories has no transform: the coordinates of its paths are those of the canvas.
+  // The box of the shapes that an entry draws for its own territory, null when it draws none, and whether a shape holds the point of
+  // the canvas. The groups of the territories have no transform: the coordinates of their paths are those of the canvas.
   static shapeOf(svg: SVGSVGElement, code: string, [x, y]: [number, number]): TerritoryShape {
-    const paths = [...svg.querySelectorAll<SVGPathElement>('g.territories path[data-territory]')]
-      .filter(path => path.getAttribute('data-territory') === code && path.getAttribute('d'))
+    const paths = [...svg.querySelectorAll<SVGPathElement>('g.territories path[data-territory][data-entry]')]
+      .filter(path => path.getAttribute('data-territory') === code && path.getAttribute('data-entry') === code && path.getAttribute('d'))
     const boxes = paths.map(path => path.getBBox())
     const rect = boxes.length > 0
       ? {
